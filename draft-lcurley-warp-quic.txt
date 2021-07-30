@@ -1,0 +1,224 @@
+
+
+
+
+TODO Working Group                                             L. Curley
+Internet-Draft                                                    Twitch
+Intended status: Informational                              30 July 2021
+Expires: 31 January 2022
+
+
+              Warp - Low-Latency Video Transport over QUIC
+                        draft-lcurley-warp-quic
+
+Abstract
+
+   This document defines the Warp video transport protocol.  Warp
+   utilizes [QUIC] to deliver live media streams over the network.
+   These streams are prioritized based on the underlying encoding to
+   minimize latency.
+
+Status of This Memo
+
+   This Internet-Draft is submitted in full conformance with the
+   provisions of BCP 78 and BCP 79.
+
+   Internet-Drafts are working documents of the Internet Engineering
+   Task Force (IETF).  Note that other groups may also distribute
+   working documents as Internet-Drafts.  The list of current Internet-
+   Drafts is at https://datatracker.ietf.org/drafts/current/.
+
+   Internet-Drafts are draft documents valid for a maximum of six months
+   and may be updated, replaced, or obsoleted by other documents at any
+   time.  It is inappropriate to use Internet-Drafts as reference
+   material or to cite them other than as "work in progress."
+
+   This Internet-Draft will expire on 31 January 2022.
+
+Copyright Notice
+
+   Copyright (c) 2021 IETF Trust and the persons identified as the
+   document authors.  All rights reserved.
+
+   This document is subject to BCP 78 and the IETF Trust's Legal
+   Provisions Relating to IETF Documents (https://trustee.ietf.org/
+   license-info) in effect on the date of publication of this document.
+   Please review these documents carefully, as they describe your rights
+   and restrictions with respect to this document.  Code Components
+   extracted from this document must include Simplified BSD License text
+   as described in Section 4.e of the Trust Legal Provisions and are
+   provided without warranty as described in the Simplified BSD License.
+
+
+
+
+
+Curley                   Expires 31 January 2022                [Page 1]
+
+Internet-Draft                    WARP                         July 2021
+
+
+Table of Contents
+
+   1.  Overview  . . . . . . . . . . . . . . . . . . . . . . . . . .   2
+   2.  Background  . . . . . . . . . . . . . . . . . . . . . . . . .   2
+     2.1.  Congestion  . . . . . . . . . . . . . . . . . . . . . . .   2
+     2.2.  Latency . . . . . . . . . . . . . . . . . . . . . . . . .   2
+     2.3.  Video . . . . . . . . . . . . . . . . . . . . . . . . . .   2
+     2.4.  Audio . . . . . . . . . . . . . . . . . . . . . . . . . .   3
+   3.  Conventions and Definitions . . . . . . . . . . . . . . . . .   3
+   4.  Security Considerations . . . . . . . . . . . . . . . . . . .   3
+   5.  IANA Considerations . . . . . . . . . . . . . . . . . . . . .   3
+   6.  Normative References  . . . . . . . . . . . . . . . . . . . .   3
+   Acknowledgments . . . . . . . . . . . . . . . . . . . . . . . . .   4
+   Author's Address  . . . . . . . . . . . . . . . . . . . . . . . .   4
+
+1.  Overview
+
+2.  Background
+
+2.1.  Congestion
+
+   Congestion occurs when a network is oversaturated and is unable to
+   deliver packets in a timely manner.  [QUIC-RECOVERY] outlines how
+   QUIC limits the transmission rate in response to congestion.
+
+   During periods of congestion, the encoder bitrate can exceed the
+   network bitrate.  To remediate the situation, media must be queued or
+   dropped until the sufficiently network recovers.
+
+2.2.  Latency
+
+   The latency of a video transport protocol depends on how timely it
+   can respond to congestion.  A low-latency video transport protocol
+   will deliver newly generated media at the expense of older media.
+   This means dropping older media, which can have side-effects
+   depending on the encoding.
+
+2.3.  Video
+
+   Video encoding works by computing deltas between frames.  Each frame
+   can depend on 0, 1, or multiple frames in the past, or somtimes
+   future.
+
+   There are a few common frame types: * I frames are effectively a
+   static image, so they are relatively large * P frames depend on
+   previous I or P frames. * B frames depend on future P or B frames,
+   and possibly previous I or P frames,
+
+
+
+
+Curley                   Expires 31 January 2022                [Page 2]
+
+Internet-Draft                    WARP                         July 2021
+
+
+   It's important to take video encoding into account when delivering
+   low-latency media over a network.  The decision to drop a frame at
+   the network level can cause video decoding errors impacting other
+   frames.
+
+   TODO diagram
+
+2.4.  Audio
+
+   Audio encoding works by producing groups of samples at a specified
+   frequency.
+
+   Audio samples do not depend on each other and can be more freely
+   dropped at the network level.  However, some video protocols like
+   WebRTC choose to prioritize audio over video for a few reasons:
+
+   *  Audio is more important for some applications (ex.
+      teleconferencing)
+
+   *  Audio gaps are far more noticable.
+
+   *  Audio uses a fraction of the bandwidth.
+
+3.  Conventions and Definitions
+
+   The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+   "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and
+   "OPTIONAL" in this document are to be interpreted as described in
+   BCP 14 [RFC2119] [RFC8174] when, and only when, they appear in all
+   capitals, as shown here.
+
+4.  Security Considerations
+
+   TODO Security
+
+5.  IANA Considerations
+
+   This document has no IANA actions.
+
+6.  Normative References
+
+   [QUIC]     Iyengar, J., Ed. and M. Thomson, Ed., "QUIC: A UDP-Based
+              Multiplexed and Secure Transport", RFC 9000, May 2021,
+              <https://www.rfc-editor.org/rfc/rfc9000>.
+
+
+
+
+
+
+
+Curley                   Expires 31 January 2022                [Page 3]
+
+Internet-Draft                    WARP                         July 2021
+
+
+   [QUIC-RECOVERY]
+              Iyengar, J., Ed. and I. Swett, Ed., "QUIC Loss Detection
+              and Congestion Control", RFC 9002, DOI 10.17487/RFC9002,
+              May 2021, <https://www.rfc-editor.org/rfc/rfc9002>.
+
+   [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
+              Requirement Levels", BCP 14, RFC 2119,
+              DOI 10.17487/RFC2119, March 1997,
+              <https://www.rfc-editor.org/info/rfc2119>.
+
+   [RFC8174]  Leiba, B., "Ambiguity of Uppercase vs Lowercase in RFC
+              2119 Key Words", BCP 14, RFC 8174, DOI 10.17487/RFC8174,
+              May 2017, <https://www.rfc-editor.org/info/rfc8174>.
+
+Acknowledgments
+
+   TODO acknowledge.
+
+Author's Address
+
+   Luke Curley
+   Twitch
+
+   Email: lcurley@twitch.tv
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Curley                   Expires 31 January 2022                [Page 4]
