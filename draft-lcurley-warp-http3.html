@@ -4,16 +4,16 @@
 <meta charset="utf-8">
 <meta content="Common,Latin" name="scripts">
 <meta content="initial-scale=1.0" name="viewport">
-<title>Warp - Live Video Transport</title>
+<title>Warp - Live Video Transport over HTTP/3</title>
 <meta content="Luke Curley" name="author">
 <meta content="
-       This document defines the core behavior for Warp video transport protocol family:   and  .
-Warp is the method of mapping of live media to QUIC streams based on the underlying media encoding.
-Latency is minimized achieved by prioritizing the delivery of specific streams during congestion. 
+       This document defines the Warp video transport protocol.
+Warp utilizes   to deliver live media streams over the network.
+These streams are prioritized based on the underlying encoding to minimize latency. 
     " name="description">
 <meta content="xml2rfc 3.9.1" name="generator">
 <meta content="Internet-Draft" name="keyword">
-<meta content="draft-lcurley-warp-base" name="ietf.draft">
+<meta content="draft-lcurley-warp-http3" name="ietf.draft">
 <!-- Generator version information:
   xml2rfc 3.9.1
     Python 3.9.5
@@ -32,7 +32,7 @@ Latency is minimized achieved by prioritizing the delivery of specific streams d
     setuptools 56.0.0
     six 1.15.0
 -->
-<link href="draft-lcurley-warp-base.xml" rel="alternate" type="application/rfc+xml">
+<link href="draft-lcurley-warp-http3.xml" rel="alternate" type="application/rfc+xml">
 <link href="#copyright" rel="license">
 <style type="text/css">/*
 
@@ -1180,12 +1180,12 @@ li > p:last-of-type {
 <table class="ears">
 <thead><tr>
 <td class="left">Internet-Draft</td>
-<td class="center">WARP-BASE</td>
+<td class="center">WARP-HTTP3</td>
 <td class="right">August 2021</td>
 </tr></thead>
 <tfoot><tr>
 <td class="left">Curley</td>
-<td class="center">Expires 6 February 2022</td>
+<td class="center">Expires 5 February 2022</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1195,15 +1195,15 @@ li > p:last-of-type {
 <dt class="label-workgroup">Workgroup:</dt>
 <dd class="workgroup">TODO Working Group</dd>
 <dt class="label-internet-draft">Internet-Draft:</dt>
-<dd class="internet-draft">draft-lcurley-warp-base</dd>
+<dd class="internet-draft">draft-lcurley-warp-http3</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2021-08-05" class="published">5 August 2021</time>
+<time datetime="2021-08-04" class="published">4 August 2021</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Informational</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2022-02-06">6 February 2022</time></dd>
+<dd class="expires"><time datetime="2022-02-05">5 February 2022</time></dd>
 <dt class="label-authors">Author:</dt>
 <dd class="authors">
 <div class="author">
@@ -1213,12 +1213,12 @@ li > p:last-of-type {
 </dd>
 </dl>
 </div>
-<h1 id="title">Warp - Live Video Transport</h1>
+<h1 id="title">Warp - Live Video Transport over HTTP/3</h1>
 <section id="section-abstract">
       <h2 id="abstract"><a href="#abstract" class="selfRef">Abstract</a></h2>
-<p id="section-abstract-1">This document defines the core behavior for Warp video transport protocol family: <span>[<a href="#WARP-QUIC" class="xref">WARP-QUIC</a>]</span> and <span>[<a href="#WARP-HTTP3" class="xref">WARP-HTTP3</a>]</span>.
-Warp is the method of mapping of live media to QUIC streams based on the underlying media encoding.
-Latency is minimized achieved by prioritizing the delivery of specific streams during congestion.<a href="#section-abstract-1" class="pilcrow">¶</a></p>
+<p id="section-abstract-1">This document defines the Warp video transport protocol.
+Warp utilizes <span>[<a href="#QUIC" class="xref">QUIC</a>]</span> to deliver live media streams over the network.
+These streams are prioritized based on the underlying encoding to minimize latency.<a href="#section-abstract-1" class="pilcrow">¶</a></p>
 </section>
 <div id="status-of-memo">
 <section id="section-boilerplate.1">
@@ -1239,7 +1239,7 @@ Latency is minimized achieved by prioritizing the delivery of specific streams d
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 6 February 2022.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 5 February 2022.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1267,90 +1267,27 @@ Latency is minimized achieved by prioritizing the delivery of specific streams d
         <a href="#" onclick="scroll(0,0)" class="toplink">▲</a><h2 id="name-table-of-contents">
 <a href="#name-table-of-contents" class="section-name selfRef">Table of Contents</a>
         </h2>
-<nav class="toc"><ul class="compact ulBare ulEmpty toc">
-<li class="compact ulBare ulEmpty toc" id="section-toc.1-1.1">
+<nav class="toc"><ul class="ulEmpty ulBare toc compact">
+<li class="ulEmpty ulBare toc compact" id="section-toc.1-1.1">
             <p id="section-toc.1-1.1.1" class="keepWithNext"><a href="#section-1" class="xref">1</a>.  <a href="#name-overview" class="xref">Overview</a></p>
-<ul class="ulBare ulEmpty toc compact">
-<li class="ulBare ulEmpty toc compact" id="section-toc.1-1.1.2.1">
-                <p id="section-toc.1-1.1.2.1.1" class="keepWithNext"><a href="#section-1.1" class="xref">1.1</a>.  <a href="#name-terms-and-definitions" class="xref">Terms and Definitions</a></p>
 </li>
-            </ul>
+          <li class="ulEmpty ulBare toc compact" id="section-toc.1-1.2">
+            <p id="section-toc.1-1.2.1" class="keepWithNext"><a href="#section-2" class="xref">2</a>.  <a href="#name-conventions-and-definitions" class="xref">Conventions and Definitions</a></p>
 </li>
-          <li class="compact ulBare ulEmpty toc" id="section-toc.1-1.2">
-            <p id="section-toc.1-1.2.1"><a href="#section-2" class="xref">2</a>.  <a href="#name-background" class="xref">Background</a></p>
-<ul class="ulBare ulEmpty toc compact">
-<li class="ulBare ulEmpty toc compact" id="section-toc.1-1.2.2.1">
-                <p id="section-toc.1-1.2.2.1.1"><a href="#section-2.1" class="xref">2.1</a>.  <a href="#name-encoding" class="xref">Encoding</a></p>
-<ul class="ulBare ulEmpty toc compact">
-<li class="ulBare ulEmpty toc compact" id="section-toc.1-1.2.2.1.2.1">
-                    <p id="section-toc.1-1.2.2.1.2.1.1" class="keepWithNext"><a href="#section-2.1.1" class="xref">2.1.1</a>.  <a href="#name-video" class="xref">Video</a></p>
+          <li class="ulEmpty ulBare toc compact" id="section-toc.1-1.3">
+            <p id="section-toc.1-1.3.1" class="keepWithNext"><a href="#section-3" class="xref">3</a>.  <a href="#name-security-considerations" class="xref">Security Considerations</a></p>
 </li>
-                  <li class="ulBare ulEmpty toc compact" id="section-toc.1-1.2.2.1.2.2">
-                    <p id="section-toc.1-1.2.2.1.2.2.1"><a href="#section-2.1.2" class="xref">2.1.2</a>.  <a href="#name-audio" class="xref">Audio</a></p>
+          <li class="ulEmpty ulBare toc compact" id="section-toc.1-1.4">
+            <p id="section-toc.1-1.4.1"><a href="#section-4" class="xref">4</a>.  <a href="#name-iana-considerations" class="xref">IANA Considerations</a></p>
 </li>
-                </ul>
+          <li class="ulEmpty ulBare toc compact" id="section-toc.1-1.5">
+            <p id="section-toc.1-1.5.1"><a href="#section-5" class="xref">5</a>.  <a href="#name-normative-references" class="xref">Normative References</a></p>
 </li>
-              <li class="ulBare ulEmpty toc compact" id="section-toc.1-1.2.2.2">
-                <p id="section-toc.1-1.2.2.2.1"><a href="#section-2.2" class="xref">2.2</a>.  <a href="#name-latency" class="xref">Latency</a></p>
+          <li class="ulEmpty ulBare toc compact" id="section-toc.1-1.6">
+            <p id="section-toc.1-1.6.1"><a href="#appendix-A" class="xref"></a><a href="#name-acknowledgments" class="xref">Acknowledgments</a></p>
 </li>
-              <li class="ulBare ulEmpty toc compact" id="section-toc.1-1.2.2.3">
-                <p id="section-toc.1-1.2.2.3.1"><a href="#section-2.3" class="xref">2.3</a>.  <a href="#name-congestion" class="xref">Congestion</a></p>
-<ul class="ulBare ulEmpty toc compact">
-<li class="ulBare ulEmpty toc compact" id="section-toc.1-1.2.2.3.2.1">
-                    <p id="section-toc.1-1.2.2.3.2.1.1"><a href="#section-2.3.1" class="xref">2.3.1</a>.  <a href="#name-encoder-backpressure" class="xref">Encoder Backpressure</a></p>
-</li>
-                  <li class="ulBare ulEmpty toc compact" id="section-toc.1-1.2.2.3.2.2">
-                    <p id="section-toc.1-1.2.2.3.2.2.1"><a href="#section-2.3.2" class="xref">2.3.2</a>.  <a href="#name-media-dropping" class="xref">Media Dropping</a></p>
-</li>
-                </ul>
-</li>
-            </ul>
-</li>
-          <li class="compact ulBare ulEmpty toc" id="section-toc.1-1.3">
-            <p id="section-toc.1-1.3.1"><a href="#section-3" class="xref">3</a>.  <a href="#name-streams" class="xref">Streams</a></p>
-<ul class="ulBare ulEmpty toc compact">
-<li class="ulBare ulEmpty toc compact" id="section-toc.1-1.3.2.1">
-                <p id="section-toc.1-1.3.2.1.1"><a href="#section-3.1" class="xref">3.1</a>.  <a href="#name-prioritization" class="xref">Prioritization</a></p>
-<ul class="ulBare ulEmpty toc compact">
-<li class="ulBare ulEmpty toc compact" id="section-toc.1-1.3.2.1.2.1">
-                    <p id="section-toc.1-1.3.2.1.2.1.1"><a href="#section-3.1.1" class="xref">3.1.1</a>.  <a href="#name-media-type" class="xref">Media Type</a></p>
-</li>
-                  <li class="ulBare ulEmpty toc compact" id="section-toc.1-1.3.2.1.2.2">
-                    <p id="section-toc.1-1.3.2.1.2.2.1"><a href="#section-3.1.2" class="xref">3.1.2</a>.  <a href="#name-video-streams" class="xref">Video Streams</a></p>
-</li>
-                  <li class="ulBare ulEmpty toc compact" id="section-toc.1-1.3.2.1.2.3">
-                    <p id="section-toc.1-1.3.2.1.2.3.1"><a href="#section-3.1.3" class="xref">3.1.3</a>.  <a href="#name-audio-streams" class="xref">Audio Streams</a></p>
-</li>
-                </ul>
-</li>
-              <li class="ulBare ulEmpty toc compact" id="section-toc.1-1.3.2.2">
-                <p id="section-toc.1-1.3.2.2.1"><a href="#section-3.2" class="xref">3.2</a>.  <a href="#name-retransmissions" class="xref">Retransmissions</a></p>
-</li>
-              <li class="ulBare ulEmpty toc compact" id="section-toc.1-1.3.2.3">
-                <p id="section-toc.1-1.3.2.3.1"><a href="#section-3.3" class="xref">3.3</a>.  <a href="#name-closure" class="xref">Closure</a></p>
-</li>
-              <li class="ulBare ulEmpty toc compact" id="section-toc.1-1.3.2.4">
-                <p id="section-toc.1-1.3.2.4.1"><a href="#section-3.4" class="xref">3.4</a>.  <a href="#name-multiple-tracks" class="xref">Multiple Tracks</a></p>
-</li>
-            </ul>
-</li>
-          <li class="compact ulBare ulEmpty toc" id="section-toc.1-1.4">
-            <p id="section-toc.1-1.4.1"><a href="#section-4" class="xref">4</a>.  <a href="#name-decoding" class="xref">Decoding</a></p>
-</li>
-          <li class="compact ulBare ulEmpty toc" id="section-toc.1-1.5">
-            <p id="section-toc.1-1.5.1"><a href="#section-5" class="xref">5</a>.  <a href="#name-security-considerations" class="xref">Security Considerations</a></p>
-</li>
-          <li class="compact ulBare ulEmpty toc" id="section-toc.1-1.6">
-            <p id="section-toc.1-1.6.1"><a href="#section-6" class="xref">6</a>.  <a href="#name-iana-considerations" class="xref">IANA Considerations</a></p>
-</li>
-          <li class="compact ulBare ulEmpty toc" id="section-toc.1-1.7">
-            <p id="section-toc.1-1.7.1"><a href="#section-7" class="xref">7</a>.  <a href="#name-normative-references" class="xref">Normative References</a></p>
-</li>
-          <li class="compact ulBare ulEmpty toc" id="section-toc.1-1.8">
-            <p id="section-toc.1-1.8.1"><a href="#appendix-A" class="xref"></a><a href="#name-acknowledgments" class="xref">Acknowledgments</a></p>
-</li>
-          <li class="compact ulBare ulEmpty toc" id="section-toc.1-1.9">
-            <p id="section-toc.1-1.9.1"><a href="#appendix-B" class="xref"></a><a href="#name-authors-address" class="xref">Author's Address</a></p>
+          <li class="ulEmpty ulBare toc compact" id="section-toc.1-1.7">
+            <p id="section-toc.1-1.7.1"><a href="#appendix-B" class="xref"></a><a href="#name-authors-address" class="xref">Author's Address</a></p>
 </li>
         </ul>
 </nav>
@@ -1360,248 +1297,53 @@ Latency is minimized achieved by prioritizing the delivery of specific streams d
 <section id="section-1">
       <h2 id="name-overview">
 <a href="#section-1" class="section-number selfRef">1. </a><a href="#name-overview" class="section-name selfRef">Overview</a>
-      </h2>
-<p id="section-1-1">Warp is a live video transport protocol that utilizes the <span>[<a href="#QUIC" class="xref">QUIC</a>]</span> network protocol. There are two Warp variants depending on product requirements:<a href="#section-1-1" class="pilcrow">¶</a></p>
-<ul class="normal">
-<li class="normal" id="section-1-2.1">
-          <span>[<a href="#WARP-QUIC" class="xref">WARP-QUIC</a>]</span> is an API on top of QUIC.<a href="#section-1-2.1" class="pilcrow">¶</a>
-</li>
-        <li class="normal" id="section-1-2.2">
-          <span>[<a href="#WARP-HTTP3" class="xref">WARP-HTTP3</a>]</span> is an API on top of HTTP/3, primarily for distribution over CDNs.<a href="#section-1-2.2" class="pilcrow">¶</a>
-</li>
-      </ul>
-<p id="section-1-3">This document covers the shared behavior for both variants.<a href="#section-1-3" class="pilcrow">¶</a></p>
-<div id="terms-and-definitions">
-<section id="section-1.1">
-        <h3 id="name-terms-and-definitions">
-<a href="#section-1.1" class="section-number selfRef">1.1. </a><a href="#name-terms-and-definitions" class="section-name selfRef">Terms and Definitions</a>
-        </h3>
-<p id="section-1.1-1">The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL
-NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED",
-"MAY", and "OPTIONAL" in this document are to be interpreted as
-described in BCP 14 <span>[<a href="#RFC2119" class="xref">RFC2119</a>]</span> <span>[<a href="#RFC8174" class="xref">RFC8174</a>]</span> when, and only when, they
-appear in all capitals, as shown here.<a href="#section-1.1-1" class="pilcrow">¶</a></p>
-</section>
-</div>
-</section>
-</div>
-<div id="background">
-<section id="section-2">
-      <h2 id="name-background">
-<a href="#section-2" class="section-number selfRef">2. </a><a href="#name-background" class="section-name selfRef">Background</a>
-      </h2>
-<div id="encoding">
-<section id="section-2.1">
-        <h3 id="name-encoding">
-<a href="#section-2.1" class="section-number selfRef">2.1. </a><a href="#name-encoding" class="section-name selfRef">Encoding</a>
-        </h3>
-<p id="section-2.1-1">In order to optimize media delivery over a network, it's important to have a basic understanding of how media is encoded.<a href="#section-2.1-1" class="pilcrow">¶</a></p>
-<div id="video">
-<section id="section-2.1.1">
-          <h4 id="name-video">
-<a href="#section-2.1.1" class="section-number selfRef">2.1.1. </a><a href="#name-video" class="section-name selfRef">Video</a>
-          </h4>
-<p id="section-2.1.1-1">Video encoding works by computing deltas between frames. Each frame can depend on 0, 1, or multiple frames in the past, or sometimes future.<a href="#section-2.1.1-1" class="pilcrow">¶</a></p>
-<p id="section-2.1.1-2">There are a few common frame types:<a href="#section-2.1.1-2" class="pilcrow">¶</a></p>
-<ul class="normal">
-<li class="normal" id="section-2.1.1-3.1">I frames are effectively a static image, so they are relatively large<a href="#section-2.1.1-3.1" class="pilcrow">¶</a>
-</li>
-            <li class="normal" id="section-2.1.1-3.2">P frames depend on previous I or P frames.<a href="#section-2.1.1-3.2" class="pilcrow">¶</a>
-</li>
-            <li class="normal" id="section-2.1.1-3.3">B frames depend on future P or B frames, and possibly previous I or P frames,<a href="#section-2.1.1-3.3" class="pilcrow">¶</a>
-</li>
-          </ul>
-<p id="section-2.1.1-4">TODO diagram<a href="#section-2.1.1-4" class="pilcrow">¶</a></p>
-</section>
-</div>
-<div id="audio">
-<section id="section-2.1.2">
-          <h4 id="name-audio">
-<a href="#section-2.1.2" class="section-number selfRef">2.1.2. </a><a href="#name-audio" class="section-name selfRef">Audio</a>
-          </h4>
-<p id="section-2.1.2-1">Audio encoding works by producing samples at a specified frequency. These samples are grouped together based on the sample rate (also called frames). Unlike video, groups of audio samples do not depend on each other.<a href="#section-2.1.2-1" class="pilcrow">¶</a></p>
-<p id="section-2.1.2-2">Some video transport protocols (like WebRTC) choose to prioritize audio over video for a few reasons:<a href="#section-2.1.2-2" class="pilcrow">¶</a></p>
-<ul class="normal">
-<li class="normal" id="section-2.1.2-3.1">Audio is more important for some applications (ex. teleconferencing)<a href="#section-2.1.2-3.1" class="pilcrow">¶</a>
-</li>
-            <li class="normal" id="section-2.1.2-3.2">Audio gaps are far more noticable.<a href="#section-2.1.2-3.2" class="pilcrow">¶</a>
-</li>
-            <li class="normal" id="section-2.1.2-3.3">Audio uses a fraction of the bandwidth.<a href="#section-2.1.2-3.3" class="pilcrow">¶</a>
-</li>
-          </ul>
-</section>
-</div>
-</section>
-</div>
-<div id="latency">
-<section id="section-2.2">
-        <h3 id="name-latency">
-<a href="#section-2.2" class="section-number selfRef">2.2. </a><a href="#name-latency" class="section-name selfRef">Latency</a>
-        </h3>
-<p id="section-2.2-1">The latency of a video protocol depends on how long media frames are queued. Media can be queued for a number of different reasons, such as to improve the compression ratio by using more reference frames.<a href="#section-2.2-1" class="pilcrow">¶</a></p>
-<p id="section-2.2-2">For a video transport protocol, the vast majority of queuing (and thus latency) is caused by network congestion.<a href="#section-2.2-2" class="pilcrow">¶</a></p>
-</section>
-</div>
-<div id="congestion">
-<section id="section-2.3">
-        <h3 id="name-congestion">
-<a href="#section-2.3" class="section-number selfRef">2.3. </a><a href="#name-congestion" class="section-name selfRef">Congestion</a>
-        </h3>
-<p id="section-2.3-1">Congestion occurs when a network is oversaturated and is unable to deliver packets in a timely manner.<a href="#section-2.3-1" class="pilcrow">¶</a></p>
-<p id="section-2.3-2">During periods of congestion, intermediate routers will queue and eventually drop packets. Excessive queuing causes bufferbloat, increasing latency and eating into any buffer maintained by the receiver.<a href="#section-2.3-2" class="pilcrow">¶</a></p>
-<p id="section-2.3-3"><span>[<a href="#QUIC-RECOVERY" class="xref">QUIC-RECOVERY</a>]</span> outlines how QUIC limits the transmission rate in response to congestion. When this happens, encoder bitrate can exceed that of the transmission bitrate and results in queuing. The ability to rapidly respond to this situation determines the latency of a video transport protocol.<a href="#section-2.3-3" class="pilcrow">¶</a></p>
-<div id="encoder-backpressure">
-<section id="section-2.3.1">
-          <h4 id="name-encoder-backpressure">
-<a href="#section-2.3.1" class="section-number selfRef">2.3.1. </a><a href="#name-encoder-backpressure" class="section-name selfRef">Encoder Backpressure</a>
-          </h4>
-<p id="section-2.3.1-1">The simplest response to network congestion is to reduce the encoder bitrate. The encoder can be reconfigured relatively quickly, while any queued media is delivered or reencoded.<a href="#section-2.3.1-1" class="pilcrow">¶</a></p>
-<p id="section-2.3.1-2">However, tweaking the encoder bitrate has ramifications when there are multiple recipients. Network congestion for one receipient will cause degraded video quality for other participants.<a href="#section-2.3.1-2" class="pilcrow">¶</a></p>
-</section>
-</div>
-<div id="media-dropping">
-<section id="section-2.3.2">
-          <h4 id="name-media-dropping">
-<a href="#section-2.3.2" class="section-number selfRef">2.3.2. </a><a href="#name-media-dropping" class="section-name selfRef">Media Dropping</a>
-          </h4>
-<p id="section-2.3.2-1">As mentioned in the encoding section, video frames and audio samples only sometimes depend on each other. It is possible to deliver certain frames out-of-order or drop them entirely.<a href="#section-2.3.2-1" class="pilcrow">¶</a></p>
-<p id="section-2.3.2-2">The effective media bitrate can be reduced by dropping frames at the network layer. The specific frames dropped have an impact on media decoding, so it's important that the network layer takes this into account.<a href="#section-2.3.2-2" class="pilcrow">¶</a></p>
-</section>
-</div>
-</section>
-</div>
-</section>
-</div>
-<div id="streams">
-<section id="section-3">
-      <h2 id="name-streams">
-<a href="#section-3" class="section-number selfRef">3. </a><a href="#name-streams" class="section-name selfRef">Streams</a>
-      </h2>
-<p id="section-3-1">QUIC provides independent streams multiplexed over a connection. These streams are ordered and reliable, but can be closed early by either endpoint.<a href="#section-3-1" class="pilcrow">¶</a></p>
-<p id="section-3-2">Media sent over a single QUIC stream would suffer from head-of-line blocking. Warp avoids this by utilizing multiple concurrent QUIC streams based on the media encoding.<a href="#section-3-2" class="pilcrow">¶</a></p>
-<p id="section-3-3">For <span>[<a href="#WARP-HTTP3" class="xref">WARP-HTTP3</a>]</span>, these concepts apply to the underlying bidirectional stream for each request.<a href="#section-3-3" class="pilcrow">¶</a></p>
-<div id="prioritization">
-<section id="section-3.1">
-        <h3 id="name-prioritization">
-<a href="#section-3.1" class="section-number selfRef">3.1. </a><a href="#name-prioritization" class="section-name selfRef">Prioritization</a>
-        </h3>
-<p id="section-3.1-1">The sender gives each QUIC stream a priority based on its contents, as defined below.<a href="#section-3.1-1" class="pilcrow">¶</a></p>
-<p id="section-3.1-2">Warp uses a strict prioritzation scheme, such that any available bandwidth is allocated to streams in descending priority order. This requires support on the sender side only.<a href="#section-3.1-2" class="pilcrow">¶</a></p>
-<p id="section-3.1-3">During congestion, this prioritization will intentionally cause stream starvation for the lowest priority streams.<a href="#section-3.1-3" class="pilcrow">¶</a></p>
-<div id="media-type">
-<section id="section-3.1.1">
-          <h4 id="name-media-type">
-<a href="#section-3.1.1" class="section-number selfRef">3.1.1. </a><a href="#name-media-type" class="section-name selfRef">Media Type</a>
-          </h4>
-<p id="section-3.1.1-1">Audio and video are split into separate QUIC streams. The timestamp within the media container is used for synchronization.<a href="#section-3.1.1-1" class="pilcrow">¶</a></p>
-<p id="section-3.1.1-2">Audio streams SHOULD be prioritized over video streams. This enables the receiver to skip video while audio continues uninterupted during congestion.<a href="#section-3.1.1-2" class="pilcrow">¶</a></p>
-</section>
-</div>
-<div id="video-streams">
-<section id="section-3.1.2">
-          <h4 id="name-video-streams">
-<a href="#section-3.1.2" class="section-number selfRef">3.1.2. </a><a href="#name-video-streams" class="section-name selfRef">Video Streams</a>
-          </h4>
-<p id="section-3.1.2-1">Video is split into a separate QUIC streams that can be delivered and decoded independently. This is done by splitting at GoP boundaries, ideally one stream per GoP. A video stream is finalized when the next one begins.<a href="#section-3.1.2-1" class="pilcrow">¶</a></p>
-<p id="section-3.1.2-2">For live content, newer video streams SHOULD be prioritized over older video streams. This enables the receiver to skip over older content during congestion.<a href="#section-3.1.2-2" class="pilcrow">¶</a></p>
-<p id="section-3.1.2-3">QUIC streams are reliable and ordered, so frames are flushed to the application in decode order. This is ideal when the GoP structure is linear or unknown, as it prevents decode errors.<a href="#section-3.1.2-3" class="pilcrow">¶</a></p>
-<p id="section-3.1.2-4">A future version of Warp could optimize for other GoP structures. For example, non-reference frames could be sent over a lower priority stream. This added complexity is situational and does not seem necessary at this time.<a href="#section-3.1.2-4" class="pilcrow">¶</a></p>
-</section>
-</div>
-<div id="audio-streams">
-<section id="section-3.1.3">
-          <h4 id="name-audio-streams">
-<a href="#section-3.1.3" class="section-number selfRef">3.1.3. </a><a href="#name-audio-streams" class="section-name selfRef">Audio Streams</a>
-          </h4>
-<p id="section-3.1.3-1">Audio samples are also split into separate QUIC streams. These boundaries are based on the frequency and sample rate. An audio stream is finalized when the next one begins.<a href="#section-3.1.3-1" class="pilcrow">¶</a></p>
-<p id="section-3.1.3-2">For live content, newer audio streams CAN be prioritized over older audio streams. This enables the receiver to skip ahead after persistent congestion.<a href="#section-3.1.3-2" class="pilcrow">¶</a></p>
-</section>
-</div>
-</section>
-</div>
-<div id="retransmissions">
-<section id="section-3.2">
-        <h3 id="name-retransmissions">
-<a href="#section-3.2" class="section-number selfRef">3.2. </a><a href="#name-retransmissions" class="section-name selfRef">Retransmissions</a>
-        </h3>
-<p id="section-3.2-1">STREAM frames may be lost over the network and require retransmision. A Warp sender MAY choose to delay retransmitting these frames if a higher priority stream can be sent instead.<a href="#section-3.2-1" class="pilcrow">¶</a></p>
-<p id="section-3.2-2">When this is done, stream prioritization MUST still obey QUIC flow control. STREAM frames counts towards flow control limits, even when lost, until the frame is acknowledged or the stream reset. A Warp sender SHOULD retransmit frames instead of prioritizing other streams when nearing connection flow control limits.<a href="#section-3.2-2" class="pilcrow">¶</a></p>
-</section>
-</div>
-<div id="closure">
-<section id="section-3.3">
-        <h3 id="name-closure">
-<a href="#section-3.3" class="section-number selfRef">3.3. </a><a href="#name-closure" class="section-name selfRef">Closure</a>
-        </h3>
-<p id="section-3.3-1">Due to the strict prioritization, streams may be starved indefinitely. Both the sender and receiver SHOULD close the lowest priority stream when nearing resource limits.<a href="#section-3.3-1" class="pilcrow">¶</a></p>
-<p id="section-3.3-2">The receiver CAN close a stream after it has been skipped to reduce network usage.<a href="#section-3.3-2" class="pilcrow">¶</a></p>
-</section>
-</div>
-<div id="multiple-tracks">
-<section id="section-3.4">
-        <h3 id="name-multiple-tracks">
-<a href="#section-3.4" class="section-number selfRef">3.4. </a><a href="#name-multiple-tracks" class="section-name selfRef">Multiple Tracks</a>
-        </h3>
-<p id="section-3.4-1">Sessions can support multiple tracks or renditions. These SHOULD be sent over separate QUIC streams and CAN be prioritized.<a href="#section-3.4-1" class="pilcrow">¶</a></p>
-</section>
-</div>
-</section>
-</div>
-<div id="decoding">
-<section id="section-4">
-      <h2 id="name-decoding">
-<a href="#section-4" class="section-number selfRef">4. </a><a href="#name-decoding" class="section-name selfRef">Decoding</a>
     </h2>
 </section>
 </div>
-<div id="security-considerations">
-<section id="section-5">
-      <h2 id="name-security-considerations">
-<a href="#section-5" class="section-number selfRef">5. </a><a href="#name-security-considerations" class="section-name selfRef">Security Considerations</a>
+<div id="conventions-and-definitions">
+<section id="section-2">
+      <h2 id="name-conventions-and-definitions">
+<a href="#section-2" class="section-number selfRef">2. </a><a href="#name-conventions-and-definitions" class="section-name selfRef">Conventions and Definitions</a>
       </h2>
-<p id="section-5-1">TODO Security<a href="#section-5-1" class="pilcrow">¶</a></p>
+<p id="section-2-1">The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL
+NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED",
+"MAY", and "OPTIONAL" in this document are to be interpreted as
+described in BCP 14 <span>[<a href="#RFC2119" class="xref">RFC2119</a>]</span> <span>[<a href="#RFC8174" class="xref">RFC8174</a>]</span> when, and only when, they
+appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="security-considerations">
+<section id="section-3">
+      <h2 id="name-security-considerations">
+<a href="#section-3" class="section-number selfRef">3. </a><a href="#name-security-considerations" class="section-name selfRef">Security Considerations</a>
+      </h2>
+<p id="section-3-1">TODO Security<a href="#section-3-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="iana-considerations">
-<section id="section-6">
+<section id="section-4">
       <h2 id="name-iana-considerations">
-<a href="#section-6" class="section-number selfRef">6. </a><a href="#name-iana-considerations" class="section-name selfRef">IANA Considerations</a>
+<a href="#section-4" class="section-number selfRef">4. </a><a href="#name-iana-considerations" class="section-name selfRef">IANA Considerations</a>
       </h2>
-<p id="section-6-1">This document has no IANA actions.<a href="#section-6-1" class="pilcrow">¶</a></p>
+<p id="section-4-1">This document has no IANA actions.<a href="#section-4-1" class="pilcrow">¶</a></p>
 </section>
 </div>
-<section id="section-7">
+<section id="section-5">
       <h2 id="name-normative-references">
-<a href="#section-7" class="section-number selfRef">7. </a><a href="#name-normative-references" class="section-name selfRef">Normative References</a>
+<a href="#section-5" class="section-number selfRef">5. </a><a href="#name-normative-references" class="section-name selfRef">Normative References</a>
       </h2>
 <dl class="references">
-<dt id="HTTP3">[HTTP3]</dt>
-      <dd>
-<span class="refAuthor">Bishop, M., Ed.</span>, <span class="refTitle">"Hypertext Transfer Protocol Version 3 (HTTP/3)"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-quic-http-latest</span>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-quic-http-latest">https://datatracker.ietf.org/doc/html/draft-ietf-quic-http-latest</a>&gt;</span>. </dd>
-<dd class="break"></dd>
 <dt id="QUIC">[QUIC]</dt>
       <dd>
-<span class="refAuthor">Iyengar, J., Ed.</span> and <span class="refAuthor">M. Thomson, Ed.</span>, <span class="refTitle">"QUIC: A UDP-Based Multiplexed and Secure Transport"</span>, <span class="seriesInfo">RFC 9000</span>, <span class="seriesInfo">DOI 10.17487/RFC9000</span>, <time datetime="2021-05" class="refDate">May 2021</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9000">https://www.rfc-editor.org/rfc/rfc9000</a>&gt;</span>. </dd>
-<dd class="break"></dd>
-<dt id="QUIC-RECOVERY">[QUIC-RECOVERY]</dt>
-      <dd>
-<span class="refAuthor">Iyengar, J., Ed.</span> and <span class="refAuthor">I. Swett, Ed.</span>, <span class="refTitle">"QUIC Loss Detection and Congestion Control"</span>, <span class="seriesInfo">RFC 9002</span>, <span class="seriesInfo">DOI 10.17487/RFC9002</span>, <time datetime="2021-05" class="refDate">May 2021</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9002">https://www.rfc-editor.org/rfc/rfc9002</a>&gt;</span>. </dd>
+<span class="refAuthor">Iyengar, J., Ed.</span> and <span class="refAuthor">M. Thomson, Ed.</span>, <span class="refTitle">"QUIC: A UDP-Based Multiplexed and Secure Transport"</span>, <span class="seriesInfo">RFC 9000</span>, <time datetime="2021-05" class="refDate">May 2021</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9000">https://www.rfc-editor.org/rfc/rfc9000</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="RFC2119">[RFC2119]</dt>
       <dd>
 <span class="refAuthor">Bradner, S.</span>, <span class="refTitle">"Key words for use in RFCs to Indicate Requirement Levels"</span>, <span class="seriesInfo">BCP 14</span>, <span class="seriesInfo">RFC 2119</span>, <span class="seriesInfo">DOI 10.17487/RFC2119</span>, <time datetime="1997-03" class="refDate">March 1997</time>, <span>&lt;<a href="https://www.rfc-editor.org/info/rfc2119">https://www.rfc-editor.org/info/rfc2119</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="RFC8174">[RFC8174]</dt>
-      <dd>
-<span class="refAuthor">Leiba, B.</span>, <span class="refTitle">"Ambiguity of Uppercase vs Lowercase in RFC 2119 Key Words"</span>, <span class="seriesInfo">BCP 14</span>, <span class="seriesInfo">RFC 8174</span>, <span class="seriesInfo">DOI 10.17487/RFC8174</span>, <time datetime="2017-05" class="refDate">May 2017</time>, <span>&lt;<a href="https://www.rfc-editor.org/info/rfc8174">https://www.rfc-editor.org/info/rfc8174</a>&gt;</span>. </dd>
-<dd class="break"></dd>
-<dt id="WARP-HTTP3">[WARP-HTTP3]</dt>
-      <dd>
-<span class="refAuthor">Curley, L.</span>, <span class="refTitle">"Warp - Live Video Transport over HTTP/3"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-lcurley-warp-http3</span>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-lcurley-warp-http3">https://datatracker.ietf.org/doc/html/draft-lcurley-warp-http3</a>&gt;</span>. </dd>
-<dd class="break"></dd>
-<dt id="WARP-QUIC">[WARP-QUIC]</dt>
     <dd>
-<span class="refAuthor">Curley, L.</span>, <span class="refTitle">"Warp - Live Video Transport over QUIC"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-lcurley-warp-quic</span>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-lcurley-warp-quic">https://datatracker.ietf.org/doc/html/draft-lcurley-warp-quic</a>&gt;</span>. </dd>
+<span class="refAuthor">Leiba, B.</span>, <span class="refTitle">"Ambiguity of Uppercase vs Lowercase in RFC 2119 Key Words"</span>, <span class="seriesInfo">BCP 14</span>, <span class="seriesInfo">RFC 8174</span>, <span class="seriesInfo">DOI 10.17487/RFC8174</span>, <time datetime="2017-05" class="refDate">May 2017</time>, <span>&lt;<a href="https://www.rfc-editor.org/info/rfc8174">https://www.rfc-editor.org/info/rfc8174</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 </dl>
 </section>

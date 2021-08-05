@@ -8,8 +8,8 @@ Intended status: Informational                             5 August 2021
 Expires: 6 February 2022
 
 
-                 Warp - Live Video Transport over QUIC
-                        draft-lcurley-warp-quic
+                Warp - Live Video Transport over HTTP/3
+                        draft-lcurley-warp-http3
 
 Abstract
 
@@ -55,7 +55,7 @@ Copyright Notice
 
 Curley                   Expires 6 February 2022                [Page 1]
 
-Internet-Draft                  WARP-QUIC                    August 2021
+Internet-Draft                 WARP-HTTP3                    August 2021
 
 
 Table of Contents
@@ -65,7 +65,7 @@ Table of Contents
    3.  Security Considerations . . . . . . . . . . . . . . . . . . .   2
    4.  IANA Considerations . . . . . . . . . . . . . . . . . . . . .   2
    5.  Normative References  . . . . . . . . . . . . . . . . . . . .   2
-   Acknowledgments . . . . . . . . . . . . . . . . . . . . . . . . .   3
+   Acknowledgments . . . . . . . . . . . . . . . . . . . . . . . . .   2
    Author's Address  . . . . . . . . . . . . . . . . . . . . . . . .   3
 
 1.  Overview
@@ -101,22 +101,18 @@ Table of Contents
               2119 Key Words", BCP 14, RFC 8174, DOI 10.17487/RFC8174,
               May 2017, <https://www.rfc-editor.org/info/rfc8174>.
 
-   [WARP-BASE]
-              Curley, L., "Warp - Live Video Transport", Work in
-              Progress, Internet-Draft, draft-lcurley-warp-base,
-              <https://datatracker.ietf.org/doc/html/draft-lcurley-warp-
-              base>.
+Acknowledgments
+
+   TODO acknowledge.
+
+
 
 
 
 Curley                   Expires 6 February 2022                [Page 2]
 
-Internet-Draft                  WARP-QUIC                    August 2021
+Internet-Draft                 WARP-HTTP3                    August 2021
 
-
-Acknowledgments
-
-   TODO acknowledge.
 
 Author's Address
 
@@ -124,6 +120,10 @@ Author's Address
    Twitch
 
    Email: lcurley@twitch.tv
+
+
+
+
 
 
 

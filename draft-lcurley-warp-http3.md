@@ -1,7 +1,7 @@
 ---
-title: "Warp - Live Video Transport over QUIC"
-abbrev: WARP-QUIC
-docname: draft-lcurley-warp-quic
+title: "Warp - Live Video Transport over HTTP/3"
+abbrev: WARP-HTTP3
+docname: draft-lcurley-warp-http3
 date: {DATE}
 category: info
 
@@ -22,17 +22,6 @@ author:
     email: lcurley@twitch.tv
 
 normative:
-  WARP-BASE:
-		title: "Warp - Live Video Transport"
-		date: {DATE}
-		seriesinfo:
-			Internet-Draft: draft-lcurley-warp-base
-		author:
-			-
-				ins: L. Curley
-				name: Luke Curley
-				organization: Twitch
-				email: lcurley@twitch.tv
   QUIC:
     title: "QUIC: A UDP-Based Multiplexed and Secure Transport"
     date: 2021-05
