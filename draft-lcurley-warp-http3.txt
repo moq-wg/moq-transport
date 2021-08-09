@@ -4,8 +4,8 @@
 
 TODO Working Group                                             L. Curley
 Internet-Draft                                                    Twitch
-Intended status: Informational                             5 August 2021
-Expires: 6 February 2022
+Intended status: Informational                             9 August 2021
+Expires: 10 February 2022
 
 
                 Warp - Live Video Transport over HTTP/3
@@ -33,7 +33,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 6 February 2022.
+   This Internet-Draft will expire on 10 February 2022.
 
 Copyright Notice
 
@@ -53,7 +53,7 @@ Copyright Notice
 
 
 
-Curley                   Expires 6 February 2022                [Page 1]
+Curley                  Expires 10 February 2022                [Page 1]
 
 Internet-Draft                 WARP-HTTP3                    August 2021
 
@@ -65,7 +65,7 @@ Table of Contents
    3.  Security Considerations . . . . . . . . . . . . . . . . . . .   2
    4.  IANA Considerations . . . . . . . . . . . . . . . . . . . . .   2
    5.  Normative References  . . . . . . . . . . . . . . . . . . . .   2
-   Acknowledgments . . . . . . . . . . . . . . . . . . . . . . . . .   2
+   Acknowledgments . . . . . . . . . . . . . . . . . . . . . . . . .   3
    Author's Address  . . . . . . . . . . . . . . . . . . . . . . . .   3
 
 1.  Overview
@@ -88,6 +88,11 @@ Table of Contents
 
 5.  Normative References
 
+   [HTTP3]    Bishop, M., Ed., "Hypertext Transfer Protocol Version 3
+              (HTTP/3)", Work in Progress, Internet-Draft, draft-ietf-
+              quic-http-latest, <https://datatracker.ietf.org/doc/html/
+              draft-ietf-quic-http-latest>.
+
    [QUIC]     Iyengar, J., Ed. and M. Thomson, Ed., "QUIC: A UDP-Based
               Multiplexed and Secure Transport", RFC 9000, May 2021,
               <https://www.rfc-editor.org/rfc/rfc9000>.
@@ -101,18 +106,17 @@ Table of Contents
               2119 Key Words", BCP 14, RFC 8174, DOI 10.17487/RFC8174,
               May 2017, <https://www.rfc-editor.org/info/rfc8174>.
 
-Acknowledgments
-
-   TODO acknowledge.
 
 
 
-
-
-Curley                   Expires 6 February 2022                [Page 2]
+Curley                  Expires 10 February 2022                [Page 2]
 
 Internet-Draft                 WARP-HTTP3                    August 2021
 
+
+Acknowledgments
+
+   TODO acknowledge.
 
 Author's Address
 
@@ -161,8 +165,4 @@ Author's Address
 
 
 
-
-
-
-
-Curley                   Expires 6 February 2022                [Page 3]
+Curley                  Expires 10 February 2022                [Page 3]

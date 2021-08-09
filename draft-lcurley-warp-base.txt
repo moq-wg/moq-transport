@@ -4,8 +4,8 @@
 
 TODO Working Group                                             L. Curley
 Internet-Draft                                                    Twitch
-Intended status: Informational                             5 August 2021
-Expires: 6 February 2022
+Intended status: Informational                             9 August 2021
+Expires: 10 February 2022
 
 
                       Warp - Live Video Transport
@@ -34,7 +34,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 6 February 2022.
+   This Internet-Draft will expire on 10 February 2022.
 
 Copyright Notice
 
@@ -53,7 +53,7 @@ Copyright Notice
 
 
 
-Curley                   Expires 6 February 2022                [Page 1]
+Curley                  Expires 10 February 2022                [Page 1]
 
 Internet-Draft                  WARP-BASE                    August 2021
 
@@ -61,29 +61,38 @@ Internet-Draft                  WARP-BASE                    August 2021
 Table of Contents
 
    1.  Overview  . . . . . . . . . . . . . . . . . . . . . . . . . .   2
-     1.1.  Terms and Definitions . . . . . . . . . . . . . . . . . .   2
+     1.1.  Terms and Definitions . . . . . . . . . . . . . . . . . .   3
    2.  Background  . . . . . . . . . . . . . . . . . . . . . . . . .   3
      2.1.  Encoding  . . . . . . . . . . . . . . . . . . . . . . . .   3
        2.1.1.  Video . . . . . . . . . . . . . . . . . . . . . . . .   3
        2.1.2.  Audio . . . . . . . . . . . . . . . . . . . . . . . .   3
-     2.2.  Latency . . . . . . . . . . . . . . . . . . . . . . . . .   3
+     2.2.  Latency . . . . . . . . . . . . . . . . . . . . . . . . .   4
      2.3.  Congestion  . . . . . . . . . . . . . . . . . . . . . . .   4
        2.3.1.  Encoder Backpressure  . . . . . . . . . . . . . . . .   4
        2.3.2.  Media Dropping  . . . . . . . . . . . . . . . . . . .   4
-   3.  Streams . . . . . . . . . . . . . . . . . . . . . . . . . . .   4
-     3.1.  Prioritization  . . . . . . . . . . . . . . . . . . . . .   5
-       3.1.1.  Media Type  . . . . . . . . . . . . . . . . . . . . .   5
-       3.1.2.  Video Streams . . . . . . . . . . . . . . . . . . . .   5
-       3.1.3.  Audio Streams . . . . . . . . . . . . . . . . . . . .   6
-     3.2.  Retransmissions . . . . . . . . . . . . . . . . . . . . .   6
-     3.3.  Closure . . . . . . . . . . . . . . . . . . . . . . . . .   6
-     3.4.  Multiple Tracks . . . . . . . . . . . . . . . . . . . . .   6
-   4.  Decoding  . . . . . . . . . . . . . . . . . . . . . . . . . .   6
-   5.  Security Considerations . . . . . . . . . . . . . . . . . . .   6
-   6.  IANA Considerations . . . . . . . . . . . . . . . . . . . . .   6
-   7.  Normative References  . . . . . . . . . . . . . . . . . . . .   6
-   Acknowledgments . . . . . . . . . . . . . . . . . . . . . . . . .   7
-   Author's Address  . . . . . . . . . . . . . . . . . . . . . . . .   7
+   3.  Streams . . . . . . . . . . . . . . . . . . . . . . . . . . .   5
+     3.1.  Media Container . . . . . . . . . . . . . . . . . . . . .   5
+     3.2.  Media Type  . . . . . . . . . . . . . . . . . . . . . . .   5
+       3.2.1.  Video Streams . . . . . . . . . . . . . . . . . . . .   5
+       3.2.2.  Audio Streams . . . . . . . . . . . . . . . . . . . .   5
+     3.3.  Multiple Tracks . . . . . . . . . . . . . . . . . . . . .   5
+   4.  Prioritization  . . . . . . . . . . . . . . . . . . . . . . .   6
+     4.1.  Streams . . . . . . . . . . . . . . . . . . . . . . . . .   6
+       4.1.1.  Live Content  . . . . . . . . . . . . . . . . . . . .   6
+       4.1.2.  Recorded Content  . . . . . . . . . . . . . . . . . .   6
+     4.2.  Retransmissions . . . . . . . . . . . . . . . . . . . . .   6
+     4.3.  Starvation  . . . . . . . . . . . . . . . . . . . . . . .   7
+   5.  Endpoints . . . . . . . . . . . . . . . . . . . . . . . . . .   7
+     5.1.  Encoder . . . . . . . . . . . . . . . . . . . . . . . . .   7
+     5.2.  Sender  . . . . . . . . . . . . . . . . . . . . . . . . .   7
+     5.3.  Receiver  . . . . . . . . . . . . . . . . . . . . . . . .   8
+     5.4.  Middleware  . . . . . . . . . . . . . . . . . . . . . . .   8
+     5.5.  Decoder . . . . . . . . . . . . . . . . . . . . . . . . .   8
+   6.  Security Considerations . . . . . . . . . . . . . . . . . . .   8
+   7.  IANA Considerations . . . . . . . . . . . . . . . . . . . . .   8
+   8.  Normative References  . . . . . . . . . . . . . . . . . . . .   9
+   Acknowledgments . . . . . . . . . . . . . . . . . . . . . . . . .   9
+   Author's Address  . . . . . . . . . . . . . . . . . . . . . . . .   9
 
 1.  Overview
 
@@ -98,6 +107,13 @@ Table of Contents
 
    This document covers the shared behavior for both variants.
 
+
+
+Curley                  Expires 10 February 2022                [Page 2]
+
+Internet-Draft                  WARP-BASE                    August 2021
+
+
 1.1.  Terms and Definitions
 
    The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
@@ -105,14 +121,6 @@ Table of Contents
    "OPTIONAL" in this document are to be interpreted as described in
    BCP 14 [RFC2119] [RFC8174] when, and only when, they appear in all
    capitals, as shown here.
-
-
-
-
-Curley                   Expires 6 February 2022                [Page 2]
-
-Internet-Draft                  WARP-BASE                    August 2021
-
 
 2.  Background
 
@@ -154,6 +162,14 @@ Internet-Draft                  WARP-BASE                    August 2021
 
    *  Audio gaps are far more noticable.
 
+
+
+
+Curley                  Expires 10 February 2022                [Page 3]
+
+Internet-Draft                  WARP-BASE                    August 2021
+
+
    *  Audio uses a fraction of the bandwidth.
 
 2.2.  Latency
@@ -161,14 +177,6 @@ Internet-Draft                  WARP-BASE                    August 2021
    The latency of a video protocol depends on how long media frames are
    queued.  Media can be queued for a number of different reasons, such
    as to improve the compression ratio by using more reference frames.
-
-
-
-
-Curley                   Expires 6 February 2022                [Page 3]
-
-Internet-Draft                  WARP-BASE                    August 2021
-
 
    For a video transport protocol, the vast majority of queuing (and
    thus latency) is caused by network congestion.
@@ -210,21 +218,19 @@ Internet-Draft                  WARP-BASE                    August 2021
    decoding, so it's important that the network layer takes this into
    account.
 
+
+
+
+Curley                  Expires 10 February 2022                [Page 4]
+
+Internet-Draft                  WARP-BASE                    August 2021
+
+
 3.  Streams
 
    QUIC provides independent streams multiplexed over a connection.
    These streams are ordered and reliable, but can be closed early by
    either endpoint.
-
-
-
-
-
-
-Curley                   Expires 6 February 2022                [Page 4]
-
-Internet-Draft                  WARP-BASE                    August 2021
-
 
    Media sent over a single QUIC stream would suffer from head-of-line
    blocking.  Warp avoids this by utilizing multiple concurrent QUIC
@@ -233,70 +239,104 @@ Internet-Draft                  WARP-BASE                    August 2021
    For [WARP-HTTP3], these concepts apply to the underlying
    bidirectional stream for each request.
 
-3.1.  Prioritization
+3.1.  Media Container
 
-   The sender gives each QUIC stream a priority based on its contents,
-   as defined below.
+   Stream payloads start with a warp-specific header indicating the
+   content.  The remainder of the stream consists of a FMP4 or TS media
+   container, depending on the configuration.
 
-   Warp uses a strict prioritzation scheme, such that any available
-   bandwidth is allocated to streams in descending priority order.  This
-   requires support on the sender side only.
-
-   During congestion, this prioritization will intentionally cause
-   stream starvation for the lowest priority streams.
-
-3.1.1.  Media Type
+3.2.  Media Type
 
    Audio and video are split into separate QUIC streams.  The timestamp
    within the media container is used for synchronization.
 
-   Audio streams SHOULD be prioritized over video streams.  This enables
-   the receiver to skip video while audio continues uninterupted during
-   congestion.
-
-3.1.2.  Video Streams
+3.2.1.  Video Streams
 
    Video is split into a separate QUIC streams that can be delivered and
    decoded independently.  This is done by splitting at GoP boundaries,
-   ideally one stream per GoP.  A video stream is finalized when the
+   preferably one stream per GoP.  A video stream is finalized when the
    next one begins.
-
-   For live content, newer video streams SHOULD be prioritized over
-   older video streams.  This enables the receiver to skip over older
-   content during congestion.
 
    QUIC streams are reliable and ordered, so frames are flushed to the
    application in decode order.  This is ideal when the GoP structure is
    linear or unknown, as it prevents decode errors.
 
-   A future version of Warp could optimize for other GoP structures.
-   For example, non-reference frames could be sent over a lower priority
-   stream.  This added complexity is situational and does not seem
-   necessary at this time.
+3.2.2.  Audio Streams
+
+   Audio samples are also split into separate QUIC streams.  An audio
+   stream is finalized when the next one begins.
+
+   Audio streams should be aligned with video streams, which are split
+   based on the GoP.  This allows an endpoint to drop the same amount of
+   audio and video if desired.
+
+3.3.  Multiple Tracks
+
+   Sessions can support multiple tracks or renditions sent over separate
+   QUIC streams.
 
 
 
-
-Curley                   Expires 6 February 2022                [Page 5]
+Curley                  Expires 10 February 2022                [Page 5]
 
 Internet-Draft                  WARP-BASE                    August 2021
 
 
-3.1.3.  Audio Streams
+4.  Prioritization
 
-   Audio samples are also split into separate QUIC streams.  These
-   boundaries are based on the frequency and sample rate.  An audio
-   stream is finalized when the next one begins.
+   Warp utilizes a stream priority scheme rather than deadlines.  This
+   ensures that the most important content is delivered first without
+   constant coordination between endpoints.
 
-   For live content, newer audio streams CAN be prioritized over older
-   audio streams.  This enables the receiver to skip ahead after
-   persistent congestion.
+4.1.  Streams
 
-3.2.  Retransmissions
+   The sender assigns a priority to each QUIC stream.  Warp uses a
+   strict prioritzation scheme, such that any available bandwidth is
+   allocated to streams in descending priority order.
+
+   QUIC supports stream prioritization but does not standardize any
+   mechanisms; see Section 2.3 in [QUIC].  The sender need to add
+   support in their QUIC implementation.
+
+4.1.1.  Live Content
+
+   Live content is encoded and delivered in real-time.  The video
+   transport protocol is typically blocked on the encoder throughput
+   rather than the network, except during congestion.
+
+   Audio streams SHOULD be prioritized over video streams.  This will
+   skip video while audio continues uninterupted during congestion.
+
+   Newer video streams SHOULD be prioritized over older video streams.
+   This will skip over older video content during congestion.
+
+4.1.2.  Recorded Content
+
+   Recorded content has already been encoded and can be delivered at
+   line speed.  The video transport protocol is only blocked on the
+   network throughput.
+
+   Warp is primarily designed for live content, but can switch to head-
+   of-line blocking by changing stream prioritization.  This is also
+   useful for content that should not be skipped over, such as
+   advertisements.
+
+   To enable head-of-line blocking: older streams SHOULD be prioritized
+   over newer streams.
+
+4.2.  Retransmissions
 
    STREAM frames may be lost over the network and require retransmision.
    A Warp sender MAY choose to delay retransmitting these frames if a
    higher priority stream can be sent instead.
+
+
+
+
+Curley                  Expires 10 February 2022                [Page 6]
+
+Internet-Draft                  WARP-BASE                    August 2021
+
 
    When this is done, stream prioritization MUST still obey QUIC flow
    control.  STREAM frames counts towards flow control limits, even when
@@ -304,44 +344,113 @@ Internet-Draft                  WARP-BASE                    August 2021
    sender SHOULD retransmit frames instead of prioritizing other streams
    when nearing connection flow control limits.
 
-3.3.  Closure
+4.3.  Starvation
 
-   Due to the strict prioritization, streams may be starved
-   indefinitely.  Both the sender and receiver SHOULD close the lowest
-   priority stream when nearing resource limits.
+   During congestion, this prioritization scheme will intentionally
+   cause stream starvation for the lowest priority streams.  This
+   starvation will last until the network fully recovers, which may be
+   indefinite.
 
-   The receiver CAN close a stream after it has been skipped to reduce
-   network usage.
+   When nearing resource limits, an endpoint SHOULD close the lowest
+   priority stream.  The receiver CAN close a stream after it has been
+   skipped to reduce network usage.
 
-3.4.  Multiple Tracks
+5.  Endpoints
 
-   Sessions can support multiple tracks or renditions.  These SHOULD be
-   sent over separate QUIC streams and CAN be prioritized.
+   This section covers a few requirements and suggestions depending on
+   the endpoint.
 
-4.  Decoding
+5.1.  Encoder
 
-5.  Security Considerations
+   The encoder SHOULD insert a keyframe at least every 4 seconds.  This
+   allows the receiver to skip ahead to the next GoP during periods of
+   congestion.
 
-   TODO Security
+   The encoder SHOULD reduce the media bitrate during periods of
+   sustained congestion.  This allows the receiver to recover catch up
+   and reduces the amount of media skipped.
 
-6.  IANA Considerations
+   A low-latency encoder configuration is recommended.
 
-   This document has no IANA actions.
+5.2.  Sender
 
-7.  Normative References
+   The sender is the network component responsible for sending Warp
+   streams.
+
+   The sender SHOULD use a delay-based congestion control algorithm to
+   counter bufferbloat.  Live video is produced and delivered at a
+   consistent rate, so any queuing on intermediate routers will
+   introduce latency.
+
+   The sender SHOULD NOT be responsible for imposing latency deadlines,
+   and instead SHOULD defer to the receiver to cancel streams (ie.
+   STOP_SENDING).
 
 
 
 
-Curley                   Expires 6 February 2022                [Page 6]
+Curley                  Expires 10 February 2022                [Page 7]
 
 Internet-Draft                  WARP-BASE                    August 2021
 
 
-   [HTTP3]    Bishop, M., Ed., "Hypertext Transfer Protocol Version 3
-              (HTTP/3)", Work in Progress, Internet-Draft, draft-ietf-
-              quic-http-latest, <https://datatracker.ietf.org/doc/html/
-              draft-ietf-quic-http-latest>.
+5.3.  Receiver
+
+   The receiver is the network component responsible for receiver Warp
+   streams.
+
+   The receiver SHOULD cancel a stream (ex.  STOP_SENDING) once its
+   contents have been fully skipped to save bandwidth.
+
+5.4.  Middleware
+
+   Warp senders and receivers can be combined to form middleware.  For
+   example, intermediate servers that perform caching within a video
+   distribution system.
+
+   The middleware SHOULD maintain the same stream priority, within the
+   scope of a session.  The middleware CAN implement its own
+   prioritization scheme when congestion is unlikely.
+
+   The middleware MUST NOT introduce any head-of-line blocking.  This
+   means the middleware MUST NOT combine streams or otherwise introduce
+   dependencies.
+
+5.5.  Decoder
+
+   The decoder MUST maintain a separate audio and video buffer.  The
+   initial and maximum size of this buffer depends on the application.
+   The decoder CAN pause playback to increase the size of the buffer
+   during persistent congestion.
+
+   The decoder SHOULD maintain a constant playback rate.  The decoder
+   SHOULD temporarily desynchronize audio and video when one of the
+   buffers is missing data.
+
+   The decoder CAN drop audio samples if there is a gap in the audio
+   buffer.  This may introduce a noticable blip.
+
+   The decoder SHOULD drop video frames if there is a gap in the video
+   buffer.  The decoder CAN show late video frames.  This will result in
+   video that is missing or late compared to audio.
+
+6.  Security Considerations
+
+   TODO Security
+
+7.  IANA Considerations
+
+   This document has no IANA actions.
+
+
+
+
+Curley                  Expires 10 February 2022                [Page 8]
+
+Internet-Draft                  WARP-BASE                    August 2021
+
+
+8.  Normative References
 
    [QUIC]     Iyengar, J., Ed. and M. Thomson, Ed., "QUIC: A UDP-Based
               Multiplexed and Secure Transport", RFC 9000,
@@ -389,4 +498,7 @@ Author's Address
 
 
 
-Curley                   Expires 6 February 2022                [Page 7]
+
+
+
+Curley                  Expires 10 February 2022                [Page 9]

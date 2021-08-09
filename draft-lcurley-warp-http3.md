@@ -39,12 +39,17 @@ normative:
         org: Mozilla
         role: editor
 
-informative:
-  HLS:
-  RTP:
-  RTMP:
-  WebRTC:
-
+  HTTP3:
+    title: "Hypertext Transfer Protocol Version 3 (HTTP/3)"
+    date: {DATE}
+    seriesinfo:
+      Internet-Draft: draft-ietf-quic-http-latest
+    author:
+      -
+          ins: M. Bishop
+          name: Mike Bishop
+          org: Akamai Technologies
+          role: editor
 
 --- abstract
 
