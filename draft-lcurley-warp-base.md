@@ -92,13 +92,17 @@ Latency is minimized achieved by prioritizing the delivery of specific streams d
 --- middle
 
 # Overview
+Warp is a live video transport protocol that utilizes the {{QUIC}} network protocol.
 
-Warp is a live video transport protocol that utilizes the {{QUIC}} network protocol. There are two Warp variants depending on product requirements:
+TODO Summarize each section.
 
-* {{WARP-QUIC}} is an API on top of QUIC.
-* {{WARP-HTTP3}} is an API on top of HTTP/3, primarily for distribution over CDNs.
+## Variants
+There are two Warp variants depending on product requirements:
 
-This document covers the shared behavior for both variants.
+* {{WARP-QUIC}} is an bidirectional API on top of QUIC.
+* {{WARP-HTTP3}} is an unidirectional API on top of HTTP/3, primarily for distribution over CDNs.
+
+This document covers the shared concepts and functionality for both variants.
 
 ## Terms and Definitions
 
@@ -119,12 +123,14 @@ There are a few common frame types:
 - P frames depend on previous I or P frames.
 - B frames depend on future P or B frames, and possibly previous I or P frames,
 
+The encoder effectively creates a dependency graph based on which frames are used as references.
+
 TODO diagram
 
 ### Audio
 Audio encoding works by producing samples at a specified frequency. These samples are grouped together based on the sample rate (also called frames). Unlike video, groups of audio samples do not depend on each other.
 
-Some video transport protocols (like WebRTC) choose to prioritize audio over video for a few reasons:
+Live video transport protocols (ex. WebRTC) typically choose to prioritize audio over video for a few reasons:
 
 - Audio is more important for some applications (ex. teleconferencing)
 - Audio gaps are far more noticable.
@@ -152,10 +158,14 @@ As mentioned in the encoding section, video frames and audio samples only someti
 
 The effective media bitrate can be reduced by dropping frames at the network layer. The specific frames dropped have an impact on media decoding, so it's important that the network layer takes this into account.
 
-# Streams
-QUIC provides independent streams multiplexed over a connection. These streams are ordered and reliable, but can be closed early by either endpoint.
 
-Media sent over a single QUIC stream would suffer from head-of-line blocking. Warp avoids this by utilizing multiple concurrent QUIC streams based on the media encoding.
+# API
+Warp runs on top of a standard QUIC connection. It utilizes multiple concurrent QUIC streams to transmit media in a prioritized manner.
+
+## Streams
+QUIC streams are is independent and multiplexed over a connection. These streams are ordered and reliable, but can be closed early by either endpoint.
+
+If all media was sent over a single QUIC stream, the protocol suffers from head-of-line blocking (like TCP). Warp avoids this by utilizing multiple concurrent QUIC streams based on the media encoding.
 
 For {{WARP-HTTP3}}, these concepts apply to the underlying bidirectional stream for each request.
 

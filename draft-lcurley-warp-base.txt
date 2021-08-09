@@ -61,51 +61,51 @@ Internet-Draft                  WARP-BASE                    August 2021
 Table of Contents
 
    1.  Overview  . . . . . . . . . . . . . . . . . . . . . . . . . .   2
-     1.1.  Terms and Definitions . . . . . . . . . . . . . . . . . .   3
+     1.1.  Variants  . . . . . . . . . . . . . . . . . . . . . . . .   3
+     1.2.  Terms and Definitions . . . . . . . . . . . . . . . . . .   3
    2.  Background  . . . . . . . . . . . . . . . . . . . . . . . . .   3
      2.1.  Encoding  . . . . . . . . . . . . . . . . . . . . . . . .   3
        2.1.1.  Video . . . . . . . . . . . . . . . . . . . . . . . .   3
-       2.1.2.  Audio . . . . . . . . . . . . . . . . . . . . . . . .   3
+       2.1.2.  Audio . . . . . . . . . . . . . . . . . . . . . . . .   4
      2.2.  Latency . . . . . . . . . . . . . . . . . . . . . . . . .   4
      2.3.  Congestion  . . . . . . . . . . . . . . . . . . . . . . .   4
        2.3.1.  Encoder Backpressure  . . . . . . . . . . . . . . . .   4
-       2.3.2.  Media Dropping  . . . . . . . . . . . . . . . . . . .   4
-   3.  Streams . . . . . . . . . . . . . . . . . . . . . . . . . . .   5
-     3.1.  Media Container . . . . . . . . . . . . . . . . . . . . .   5
-     3.2.  Media Type  . . . . . . . . . . . . . . . . . . . . . . .   5
-       3.2.1.  Video Streams . . . . . . . . . . . . . . . . . . . .   5
-       3.2.2.  Audio Streams . . . . . . . . . . . . . . . . . . . .   5
-     3.3.  Multiple Tracks . . . . . . . . . . . . . . . . . . . . .   5
+       2.3.2.  Media Dropping  . . . . . . . . . . . . . . . . . . .   5
+   3.  API . . . . . . . . . . . . . . . . . . . . . . . . . . . . .   5
+     3.1.  Streams . . . . . . . . . . . . . . . . . . . . . . . . .   5
+     3.2.  Media Container . . . . . . . . . . . . . . . . . . . . .   5
+     3.3.  Media Type  . . . . . . . . . . . . . . . . . . . . . . .   5
+       3.3.1.  Video Streams . . . . . . . . . . . . . . . . . . . .   6
+       3.3.2.  Audio Streams . . . . . . . . . . . . . . . . . . . .   6
+     3.4.  Multiple Tracks . . . . . . . . . . . . . . . . . . . . .   6
    4.  Prioritization  . . . . . . . . . . . . . . . . . . . . . . .   6
      4.1.  Streams . . . . . . . . . . . . . . . . . . . . . . . . .   6
        4.1.1.  Live Content  . . . . . . . . . . . . . . . . . . . .   6
-       4.1.2.  Recorded Content  . . . . . . . . . . . . . . . . . .   6
-     4.2.  Retransmissions . . . . . . . . . . . . . . . . . . . . .   6
+       4.1.2.  Recorded Content  . . . . . . . . . . . . . . . . . .   7
+     4.2.  Retransmissions . . . . . . . . . . . . . . . . . . . . .   7
      4.3.  Starvation  . . . . . . . . . . . . . . . . . . . . . . .   7
    5.  Endpoints . . . . . . . . . . . . . . . . . . . . . . . . . .   7
-     5.1.  Encoder . . . . . . . . . . . . . . . . . . . . . . . . .   7
-     5.2.  Sender  . . . . . . . . . . . . . . . . . . . . . . . . .   7
+     5.1.  Encoder . . . . . . . . . . . . . . . . . . . . . . . . .   8
+     5.2.  Sender  . . . . . . . . . . . . . . . . . . . . . . . . .   8
      5.3.  Receiver  . . . . . . . . . . . . . . . . . . . . . . . .   8
      5.4.  Middleware  . . . . . . . . . . . . . . . . . . . . . . .   8
-     5.5.  Decoder . . . . . . . . . . . . . . . . . . . . . . . . .   8
-   6.  Security Considerations . . . . . . . . . . . . . . . . . . .   8
-   7.  IANA Considerations . . . . . . . . . . . . . . . . . . . . .   8
+     5.5.  Decoder . . . . . . . . . . . . . . . . . . . . . . . . .   9
+   6.  Security Considerations . . . . . . . . . . . . . . . . . . .   9
+   7.  IANA Considerations . . . . . . . . . . . . . . . . . . . . .   9
    8.  Normative References  . . . . . . . . . . . . . . . . . . . .   9
-   Acknowledgments . . . . . . . . . . . . . . . . . . . . . . . . .   9
-   Author's Address  . . . . . . . . . . . . . . . . . . . . . . . .   9
+   Acknowledgments . . . . . . . . . . . . . . . . . . . . . . . . .  10
+   Author's Address  . . . . . . . . . . . . . . . . . . . . . . . .  10
 
 1.  Overview
 
    Warp is a live video transport protocol that utilizes the [QUIC]
-   network protocol.  There are two Warp variants depending on product
-   requirements:
+   network protocol.
 
-   *  [WARP-QUIC] is an API on top of QUIC.
+   TODO Summarize each section.
 
-   *  [WARP-HTTP3] is an API on top of HTTP/3, primarily for
-      distribution over CDNs.
 
-   This document covers the shared behavior for both variants.
+
+
 
 
 
@@ -114,7 +114,19 @@ Curley                  Expires 10 February 2022                [Page 2]
 Internet-Draft                  WARP-BASE                    August 2021
 
 
-1.1.  Terms and Definitions
+1.1.  Variants
+
+   There are two Warp variants depending on product requirements:
+
+   *  [WARP-QUIC] is an bidirectional API on top of QUIC.
+
+   *  [WARP-HTTP3] is an unidirectional API on top of HTTP/3, primarily
+      for distribution over CDNs.
+
+   This document covers the shared concepts and functionality for both
+   variants.
+
+1.2.  Terms and Definitions
 
    The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
    "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and
@@ -145,22 +157,10 @@ Internet-Draft                  WARP-BASE                    August 2021
    *  B frames depend on future P or B frames, and possibly previous I
       or P frames,
 
+   The encoder effectively creates a dependency graph based on which
+   frames are used as references.
+
    TODO diagram
-
-2.1.2.  Audio
-
-   Audio encoding works by producing samples at a specified frequency.
-   These samples are grouped together based on the sample rate (also
-   called frames).  Unlike video, groups of audio samples do not depend
-   on each other.
-
-   Some video transport protocols (like WebRTC) choose to prioritize
-   audio over video for a few reasons:
-
-   *  Audio is more important for some applications (ex.
-      teleconferencing)
-
-   *  Audio gaps are far more noticable.
 
 
 
@@ -169,6 +169,21 @@ Curley                  Expires 10 February 2022                [Page 3]
 
 Internet-Draft                  WARP-BASE                    August 2021
 
+
+2.1.2.  Audio
+
+   Audio encoding works by producing samples at a specified frequency.
+   These samples are grouped together based on the sample rate (also
+   called frames).  Unlike video, groups of audio samples do not depend
+   on each other.
+
+   Live video transport protocols (ex.  WebRTC) typically choose to
+   prioritize audio over video for a few reasons:
+
+   *  Audio is more important for some applications (ex.
+      teleconferencing)
+
+   *  Audio gaps are far more noticable.
 
    *  Audio uses a fraction of the bandwidth.
 
@@ -203,6 +218,14 @@ Internet-Draft                  WARP-BASE                    August 2021
    bitrate.  The encoder can be reconfigured relatively quickly, while
    any queued media is delivered or reencoded.
 
+
+
+
+Curley                  Expires 10 February 2022                [Page 4]
+
+Internet-Draft                  WARP-BASE                    August 2021
+
+
    However, tweaking the encoder bitrate has ramifications when there
    are multiple recipients.  Network congestion for one receipient will
    cause degraded video quality for other participants.
@@ -218,39 +241,48 @@ Internet-Draft                  WARP-BASE                    August 2021
    decoding, so it's important that the network layer takes this into
    account.
 
+3.  API
 
+   Warp runs on top of a standard QUIC connection.  It utilizes multiple
+   concurrent QUIC streams to transmit media in a prioritized manner.
 
+3.1.  Streams
 
-Curley                  Expires 10 February 2022                [Page 4]
-
-Internet-Draft                  WARP-BASE                    August 2021
-
-
-3.  Streams
-
-   QUIC provides independent streams multiplexed over a connection.
+   QUIC streams are is independent and multiplexed over a connection.
    These streams are ordered and reliable, but can be closed early by
    either endpoint.
 
-   Media sent over a single QUIC stream would suffer from head-of-line
-   blocking.  Warp avoids this by utilizing multiple concurrent QUIC
-   streams based on the media encoding.
+   If all media was sent over a single QUIC stream, the protocol suffers
+   from head-of-line blocking (like TCP).  Warp avoids this by utilizing
+   multiple concurrent QUIC streams based on the media encoding.
 
    For [WARP-HTTP3], these concepts apply to the underlying
    bidirectional stream for each request.
 
-3.1.  Media Container
+3.2.  Media Container
 
    Stream payloads start with a warp-specific header indicating the
    content.  The remainder of the stream consists of a FMP4 or TS media
    container, depending on the configuration.
 
-3.2.  Media Type
+3.3.  Media Type
 
    Audio and video are split into separate QUIC streams.  The timestamp
    within the media container is used for synchronization.
 
-3.2.1.  Video Streams
+
+
+
+
+
+
+
+Curley                  Expires 10 February 2022                [Page 5]
+
+Internet-Draft                  WARP-BASE                    August 2021
+
+
+3.3.1.  Video Streams
 
    Video is split into a separate QUIC streams that can be delivered and
    decoded independently.  This is done by splitting at GoP boundaries,
@@ -261,7 +293,7 @@ Internet-Draft                  WARP-BASE                    August 2021
    application in decode order.  This is ideal when the GoP structure is
    linear or unknown, as it prevents decode errors.
 
-3.2.2.  Audio Streams
+3.3.2.  Audio Streams
 
    Audio samples are also split into separate QUIC streams.  An audio
    stream is finalized when the next one begins.
@@ -270,17 +302,10 @@ Internet-Draft                  WARP-BASE                    August 2021
    based on the GoP.  This allows an endpoint to drop the same amount of
    audio and video if desired.
 
-3.3.  Multiple Tracks
+3.4.  Multiple Tracks
 
    Sessions can support multiple tracks or renditions sent over separate
    QUIC streams.
-
-
-
-Curley                  Expires 10 February 2022                [Page 5]
-
-Internet-Draft                  WARP-BASE                    August 2021
-
 
 4.  Prioritization
 
@@ -303,6 +328,15 @@ Internet-Draft                  WARP-BASE                    August 2021
    Live content is encoded and delivered in real-time.  The video
    transport protocol is typically blocked on the encoder throughput
    rather than the network, except during congestion.
+
+
+
+
+
+Curley                  Expires 10 February 2022                [Page 6]
+
+Internet-Draft                  WARP-BASE                    August 2021
+
 
    Audio streams SHOULD be prioritized over video streams.  This will
    skip video while audio continues uninterupted during congestion.
@@ -330,14 +364,6 @@ Internet-Draft                  WARP-BASE                    August 2021
    A Warp sender MAY choose to delay retransmitting these frames if a
    higher priority stream can be sent instead.
 
-
-
-
-Curley                  Expires 10 February 2022                [Page 6]
-
-Internet-Draft                  WARP-BASE                    August 2021
-
-
    When this is done, stream prioritization MUST still obey QUIC flow
    control.  STREAM frames counts towards flow control limits, even when
    lost, until the frame is acknowledged or the stream reset.  A Warp
@@ -359,6 +385,14 @@ Internet-Draft                  WARP-BASE                    August 2021
 
    This section covers a few requirements and suggestions depending on
    the endpoint.
+
+
+
+
+Curley                  Expires 10 February 2022                [Page 7]
+
+Internet-Draft                  WARP-BASE                    August 2021
+
 
 5.1.  Encoder
 
@@ -386,14 +420,6 @@ Internet-Draft                  WARP-BASE                    August 2021
    and instead SHOULD defer to the receiver to cancel streams (ie.
    STOP_SENDING).
 
-
-
-
-Curley                  Expires 10 February 2022                [Page 7]
-
-Internet-Draft                  WARP-BASE                    August 2021
-
-
 5.3.  Receiver
 
    The receiver is the network component responsible for receiver Warp
@@ -415,6 +441,14 @@ Internet-Draft                  WARP-BASE                    August 2021
    The middleware MUST NOT introduce any head-of-line blocking.  This
    means the middleware MUST NOT combine streams or otherwise introduce
    dependencies.
+
+
+
+
+Curley                  Expires 10 February 2022                [Page 8]
+
+Internet-Draft                  WARP-BASE                    August 2021
+
 
 5.5.  Decoder
 
@@ -442,14 +476,6 @@ Internet-Draft                  WARP-BASE                    August 2021
 
    This document has no IANA actions.
 
-
-
-
-Curley                  Expires 10 February 2022                [Page 8]
-
-Internet-Draft                  WARP-BASE                    August 2021
-
-
 8.  Normative References
 
    [QUIC]     Iyengar, J., Ed. and M. Thomson, Ed., "QUIC: A UDP-Based
@@ -470,6 +496,15 @@ Internet-Draft                  WARP-BASE                    August 2021
    [RFC8174]  Leiba, B., "Ambiguity of Uppercase vs Lowercase in RFC
               2119 Key Words", BCP 14, RFC 8174, DOI 10.17487/RFC8174,
               May 2017, <https://www.rfc-editor.org/info/rfc8174>.
+
+
+
+
+
+Curley                  Expires 10 February 2022                [Page 9]
+
+Internet-Draft                  WARP-BASE                    August 2021
+
 
    [WARP-HTTP3]
               Curley, L., "Warp - Live Video Transport over HTTP/3",
@@ -501,4 +536,25 @@ Author's Address
 
 
 
-Curley                  Expires 10 February 2022                [Page 9]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Curley                  Expires 10 February 2022               [Page 10]
