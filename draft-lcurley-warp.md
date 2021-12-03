@@ -1,7 +1,7 @@
 ---
 title: "Warp - Live Video Transport"
-abbrev: WARP-BASE
-docname: draft-lcurley-warp-base
+abbrev: WARP
+docname: draft-lcurley-warp
 date: {DATE}
 category: info
 
