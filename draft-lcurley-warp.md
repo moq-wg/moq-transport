@@ -64,7 +64,7 @@ Warp is a live video transport protocol that utilizes the {{QUIC}} network proto
 
 The live stream is split into segments ({{segments}}) at I-frame boundaries. These are fragmented MP4 files as defined in {{ISOBMFF}}. Initialization segments contain track metadata while media segments contain either video or audio samples.
 
-QUIC streams ({{streams}}) are used to transfer messages and segments between endpoints. These streams are prioritized based on the contents, such that only the most important media is delivered during congestion. This prioritization scheme allows media consumers to dynamically choose their latency target without modifying the media producer behavior.
+QUIC streams ({{streams}}) are used to transfer messages and segments between endpoints. These streams are prioritized based on the contents, such that the most important media is delivered during congestion.
 
 Messages ({{messages}}) are sent over streams alongside segments. These are used to carry necessary metadata and control messages.
 
@@ -111,8 +111,6 @@ Congestion:
 : Packet loss and queuing caused by degraded or overloaded networks.
 
 
-
-
 # Segments
 The live stream is split into segments before being transferred over the network. Segments are fragmented MP4 files as defined by {{ISOBMFF}}.
 
@@ -147,21 +145,23 @@ An endpoints MAY both send media (producer) and receive media (consumer). This i
 ## Messages {#streams-messages}
 Messages are used to control playback or carry metadata about upcoming segments.
 
-A Warp Box ('warp') is a top-level MP4 box as defined in {{ISOBMFF}}. The contents of this box is a warp message. See {{messages}} for the encoding and types available.
+A Warp Box ('warp') is a top-level MP4 box as defined in {{ISOBMFF}}. The contents of this box is a warp message. See the messages section ({{messages}}) for the encoding and types available.
 
 ## Segments
 Segments are transferred over streams alongside messages. Each segment MUST be preceded by an `init` ({{message-init}}) or `media` ({{message-media}}) message, indicating the type of segment and providing additional metadata.
 
-The producer SHOULD create a segment and stream for each group of pictures.
+The media producer SHOULD send each segment as a unique stream to avoid head-of-line blocking. The media producer CAN send multiple segments over a single stream, for simplicity, when head-of-line blocking is desired.
+
+A segment is the smallest unit of delivery, as the tail of a segment can be safely delayed/dropped without decode errors. A future version of Warp will support layered coding (as another QUIC stream) to allow dropping or downscalling frames in the middle of a segment.
 
 ## Prioritization
-Warp primarily utilizes a stream priority scheme rather than deadlines. This ensures that the most important content is delivered first during congestion.
+Warp utilizes a stream priority scheme to deliver the most important content during congestion.
 
-The media producer assigns a numeric priority to each stream. This is a strict prioritzation scheme, such that any available bandwidth is allocated to streams in descending priority order. The stream priority value depends on the type of content being served.
+The media producer assigns a numeric priority to each stream. This is a strict prioritzation scheme, such that any available bandwidth is allocated to streams in descending priority order. QUIC supports stream prioritization but does not standardize any mechanisms; see Section 2.3 in {{QUIC}}. The media producer MUST support sending priorized streams. The media producer MAY choose to delay retransmitting lower priority streams when possible within QUIC flow control limits.
 
-QUIC supports stream prioritization but does not standardize any mechanisms; see Section 2.3 in {{QUIC}}. The media producer MUST support sending priorized streams.
+The media consumer determines how long to wait for a given segment (buffer size) before skipping ahead. The media consumer CAN cancel a skipped segment to save bandwidth, or leave it downloading in the background (ex. to support rewind).
 
-The media producer MAY choose to transmit higher priority streams instead of retransmitting lower priority streams. This is not always possible due to QUIC flow control limits.
+Prioritization allows a single media producer to support multiple media consumers with different latency targets. For example, one viewer could have a 1s buffer to minimize latency, another viewer could have a 5s buffer to improve quality, while a VOD worker could have a 30s buffer to receive all media.
 
 ### Live Content
 Live content is encoded and delivered in real-time. Media delivery is blocked on the encoder throughput, except during congestion causing limited network throughput. To best deliver live content:
