@@ -2,10 +2,10 @@
 
 
 
-TODO Working Group                                             L. Curley
+Independent Submission                                         L. Curley
 Internet-Draft                                                    Twitch
-Intended status: Informational                         22 September 2021
-Expires: 26 March 2022
+Intended status: Informational                           2 December 2021
+Expires: 5 June 2022
 
 
                       Warp - Live Video Transport
@@ -33,7 +33,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 26 March 2022.
+   This Internet-Draft will expire on 5 June 2022.
 
 Copyright Notice
 
@@ -53,9 +53,9 @@ Copyright Notice
 
 
 
-Curley                    Expires 26 March 2022                 [Page 1]
+Curley                     Expires 5 June 2022                  [Page 1]
 
-Internet-Draft                  WARP-BASE                 September 2021
+Internet-Draft                  WARP-BASE                  December 2021
 
 
 Table of Contents
@@ -63,8 +63,8 @@ Table of Contents
    1.  Overview  . . . . . . . . . . . . . . . . . . . . . . . . . .   2
      1.1.  Terms and Definitions . . . . . . . . . . . . . . . . . .   3
    2.  Segments  . . . . . . . . . . . . . . . . . . . . . . . . . .   3
-     2.1.  Initialization Segments . . . . . . . . . . . . . . . . .   3
-     2.2.  Media Segments  . . . . . . . . . . . . . . . . . . . . .   3
+     2.1.  Initialization  . . . . . . . . . . . . . . . . . . . . .   3
+     2.2.  Media . . . . . . . . . . . . . . . . . . . . . . . . . .   3
        2.2.1.  Video . . . . . . . . . . . . . . . . . . . . . . . .   4
        2.2.2.  Audio . . . . . . . . . . . . . . . . . . . . . . . .   4
    3.  Streams . . . . . . . . . . . . . . . . . . . . . . . . . . .   4
@@ -73,49 +73,46 @@ Table of Contents
      3.3.  Prioritization  . . . . . . . . . . . . . . . . . . . . .   4
        3.3.1.  Live Content  . . . . . . . . . . . . . . . . . . . .   5
        3.3.2.  Recorded Content  . . . . . . . . . . . . . . . . . .   5
+       3.3.3.  Retransmissions . . . . . . . . . . . . . . . . . . .   6
      3.4.  Starvation  . . . . . . . . . . . . . . . . . . . . . . .   6
-     3.5.  Retransmissions . . . . . . . . . . . . . . . . . . . . .   6
+       3.4.1.  Middleware  . . . . . . . . . . . . . . . . . . . . .   6
    4.  Messages  . . . . . . . . . . . . . . . . . . . . . . . . . .   6
-     4.1.  Ordering  . . . . . . . . . . . . . . . . . . . . . . . .   6
-     4.2.  init  . . . . . . . . . . . . . . . . . . . . . . . . . .   6
-     4.3.  media . . . . . . . . . . . . . . . . . . . . . . . . . .   7
-     4.4.  load  . . . . . . . . . . . . . . . . . . . . . . . . . .   7
-     4.5.  play  . . . . . . . . . . . . . . . . . . . . . . . . . .   7
-     4.6.  pause . . . . . . . . . . . . . . . . . . . . . . . . . .   8
-     4.7.  priority  . . . . . . . . . . . . . . . . . . . . . . . .   8
-   5.  Security Considerations . . . . . . . . . . . . . . . . . . .   8
+     4.1.  init  . . . . . . . . . . . . . . . . . . . . . . . . . .   6
+     4.2.  media . . . . . . . . . . . . . . . . . . . . . . . . . .   7
+     4.3.  priority  . . . . . . . . . . . . . . . . . . . . . . . .   7
+   5.  Security Considerations . . . . . . . . . . . . . . . . . . .   7
    6.  IANA Considerations . . . . . . . . . . . . . . . . . . . . .   8
    7.  References  . . . . . . . . . . . . . . . . . . . . . . . . .   8
      7.1.  Normative References  . . . . . . . . . . . . . . . . . .   8
-     7.2.  Informative References  . . . . . . . . . . . . . . . . .   9
-   Acknowledgments . . . . . . . . . . . . . . . . . . . . . . . . .   9
-   Author's Address  . . . . . . . . . . . . . . . . . . . . . . . .   9
+     7.2.  Informative References  . . . . . . . . . . . . . . . . .   8
+   Acknowledgments . . . . . . . . . . . . . . . . . . . . . . . . .   8
+   Author's Address  . . . . . . . . . . . . . . . . . . . . . . . .   8
 
 1.  Overview
 
    Warp is a live video transport protocol that utilizes the [QUIC]
    network protocol.
 
-   The live stream is split into demuxed segments at IDR boundaries.
-   These are fragmented fMP4 files as defined in [ISOBMFF].
-   Initialization segments contain track metadata and media segments
-   contain the actual media samples.
+   The live stream is split into segments at IDR boundaries.  These are
+   fragmented fMP4 files as defined in [ISOBMFF].  Initialization
+   segments contain track metadata while media segments contain either
+   video or audio samples.
 
    Unidirectional QUIC streams are used to transfer messages and
    segments between endpoints.  These streams are prioritized based on
-   the contents, such that any available bandwidth is utilized by the
-   highest priority streams.  The prioritization scheme depends on the
-   latency target.
+   the contents, such that only the most important media is delivered
+   during congestion.  This prioritization scheme allows media consumers
+   to dynamically choose their latency target without signaling the
+   producer.
 
 
 
-Curley                    Expires 26 March 2022                 [Page 2]
+
+
+Curley                     Expires 5 June 2022                  [Page 2]
 
-Internet-Draft                  WARP-BASE                 September 2021
+Internet-Draft                  WARP-BASE                  December 2021
 
-
-   Warp messages are used to control playback and carry any metadata
-   about the stream contents.
 
 1.1.  Terms and Definitions
 
@@ -137,7 +134,7 @@ Internet-Draft                  WARP-BASE                 September 2021
 
    There are two types of segments: initialization and media.
 
-2.1.  Initialization Segments
+2.1.  Initialization
 
    Initialization segments contain track metadata but no sample data.
 
@@ -150,39 +147,40 @@ Internet-Draft                  WARP-BASE                 September 2021
    Note that a Common Media Application Format Header [CMAF] meets all
    these requirements.
 
-2.2.  Media Segments
+2.2.  Media
 
    Media segments contain media samples for a single track.
 
    Media segments MUST consist of a Segment Type Box ('styp') followed
-   by at least one media fragments.  Each media fragment consists of a
+   by at least one media fragment.  Each media fragment consists of a
    Movie Fragment Box ('moof') followed by a Media Data Box ('mdat').
    The Media Fragment Box MUST contain a Movie Fragment Header Box
    ('mfhd') and Track Box ('trak') with a Track ID ('track_ID') matching
    a Track Box in the initialization segment.
 
-
-
-
-
-Curley                    Expires 26 March 2022                 [Page 3]
-
-Internet-Draft                  WARP-BASE                 September 2021
-
-
    Note that a Common Media Application Format Segment [CMAF] meets all
    these requirements.
+
+
+
+
+
+Curley                     Expires 5 June 2022                  [Page 3]
+
+Internet-Draft                  WARP-BASE                  December 2021
+
 
 2.2.1.  Video
 
    Media segments containing video data MUST start with an IDR frame.
-   Media fragments SHOULD contain a single frame to minimize latency.
-   Video frames MUST be in decode order.
+   Media fragments CAN contain a single frame, minimizing latency at the
+   cost of a small increase in segment size.  Video frames MUST be in
+   decode order.
 
 2.2.2.  Audio
 
-   Media fragments SHOULD contain a single group of audio samples to
-   minimize latency.
+   Media fragments CAN contain a single group of audio samples,
+   minimizing latency at the cost of a small increase in segment size.
 
 3.  Streams
 
@@ -190,13 +188,15 @@ Internet-Draft                  WARP-BASE                 September 2021
    segments over the network.  The establishment of the QUIC connection
    is outside the scope of this document.
 
-   Both endpoints CAN create any number of unidirectional streams.
-   These streams contain any number of messages and segments appended
-   together.
+   An endpoints MAY both send media (producer) and receive media
+   (consumer).  This is accomplished by sending messages and segments
+   over unidirectional streams.  Streams contain any number of messages
+   and segments concatenated together.
 
 3.1.  Messages
 
-   Messages are used to carry metadata and control playback.
+   Messages are used to control playback or carry metadata about
+   upcoming segments.
 
    A Warp Box ('warp') is a top-level MP4 box as defined in [ISOBMFF].
    The contents of this box is a warp message.  See the Messages section
@@ -204,14 +204,12 @@ Internet-Draft                  WARP-BASE                 September 2021
 
 3.2.  Segments
 
-   Segments are transferred over streams along-side messages.
+   Segments are transferred over streams alongside messages.  Each
+   segment MUST be preceded by an 'init' or 'segment' message,
+   indicating the type of segment and providing additional metadata.
 
-   The sender SHOULD create a stream for each segment.  The sender CAN
-   send multiple segments over the same stream if there is an explicit
-   dependency.
-
-   Each segment MUST be preceded by an 'init' or 'segment' message,
-   indicating the type of segment.
+   The producer SHOULD create a stream for each segment that can be
+   indepdendently decoded (starts with an IDR frame).
 
 3.3.  Prioritization
 
@@ -221,34 +219,38 @@ Internet-Draft                  WARP-BASE                 September 2021
 
 
 
-Curley                    Expires 26 March 2022                 [Page 4]
+
+
+Curley                     Expires 5 June 2022                  [Page 4]
 
-Internet-Draft                  WARP-BASE                 September 2021
+Internet-Draft                  WARP-BASE                  December 2021
 
 
-   The sender assigns a numeric priority to each stream.  This is a
-   strict prioritzation scheme, such that any available bandwidth is
-   allocated to streams in descending priority order.
+   The media producer assigns a numeric priority to each stream.  This
+   is a strict prioritzation scheme, such that any available bandwidth
+   is allocated to streams in descending priority order.  The stream
+   priority value depends on the type of content being served.
 
    QUIC supports stream prioritization but does not standardize any
-   mechanisms; see Section 2.3 in [QUIC].  Only the sender needs to
-   implement prioritization.
-
-   The stream priority value depends on the type of content being
-   served.
+   mechanisms; see Section 2.3 in [QUIC].  Only the media producer needs
+   to implement prioritization.
 
 3.3.1.  Live Content
 
    Live content is encoded and delivered in real-time.  Media delivery
-   is blocked on the encoder throughput, except during congestion.
+   is blocked on the encoder throughput, except during congestion
+   causing limited network throughput.
 
-   Audio streams SHOULD be prioritized over video streams.  This will
-   skip video while audio continues uninterupted during congestion.
+   Audio streams SHOULD be prioritized over video streams.  This allows
+   the media consumer to skip video while audio continues uninterupted
+   during congestion.
+
    Newer video streams SHOULD be prioritized over older video streams.
-   This will skip over older video content during congestion.
+   This allows the media consumer to skip older video content during
+   congestion.
 
-   For example, this formula will prioritze audio segments up to 3s in
-   the future:
+   For example, this formula will prioritze audio segments, but only up
+   to 3s in the future:
 
      if is_audio:
        priority = timestamp + 3s
@@ -263,10 +265,8 @@ Internet-Draft                  WARP-BASE                 September 2021
    Warp is primarily designed for live content, but can switch to head-
    of-line blocking by changing stream prioritization.  This is also
    useful for content that should not be skipped over, such as
-   advertisements.
-
-   To enable head-of-line blocking: older streams SHOULD be prioritized
-   over newer streams.
+   advertisements.  To enable head-of-line blocking: older streams
+   SHOULD be prioritized over newer streams.
 
    For example, this formula will prioritize older segments:
 
@@ -277,10 +277,17 @@ Internet-Draft                  WARP-BASE                 September 2021
 
 
 
-Curley                    Expires 26 March 2022                 [Page 5]
+Curley                     Expires 5 June 2022                  [Page 5]
 
-Internet-Draft                  WARP-BASE                 September 2021
+Internet-Draft                  WARP-BASE                  December 2021
 
+
+3.3.3.  Retransmissions
+
+   STREAM frames may be lost over the network and require retransmision.
+   The media producer MAY choose to delay retransmitting these frames if
+   a higher priority stream can be sent instead.  This will not always
+   be possible due to flow control limits.
 
 3.4.  Starvation
 
@@ -289,16 +296,19 @@ Internet-Draft                  WARP-BASE                 September 2021
    starvation will last until the network fully recovers, which may be
    indefinite.
 
-   The receiver SHOULD cancel a stream (STOP_SENDING) after it has been
-   skipped to save bandwidth.  The sender SHOULD reset the lowest
-   priority stream when nearing resource limits.
+   The media consumer SHOULD cancel a stream (STOP_SENDING) after it has
+   been skipped to save bandwidth.  The media producer SHOULD reset the
+   lowest priority stream when nearing resource limits, effectively
+   dropping it.
 
-3.5.  Retransmissions
+3.4.1.  Middleware
 
-   STREAM frames may be lost over the network and require retransmision.
-   The sender MAY choose to delay retransmitting these frames if a
-   higher priority stream can be sent instead.  This will not always be
-   possible due to flow control limits.
+   Media may go through multiple hops and processing steps on the path
+   from the broadcaster to player.
+
+   Middleware MUST maintain stream idependence to avoid introducing
+   head-of-line blocking.  Middleware SHOULD maintain stream
+   prioritization when traversing networks susceptible to congestion.
 
 4.  Messages
 
@@ -309,15 +319,11 @@ Internet-Draft                  WARP-BASE                 September 2021
    and the value depends on the message type.  Unknown messages MUST be
    ignored.
 
-4.1.  Ordering
-
    An endpoint MUST send messages sequentially over a single stream when
-   ordering is important.
+   ordering is required.  Messages CAN be combined into a single JSON
+   object when ordering is not required.
 
-   Messages CAN be combined into a single JSON object, however this
-   introduces ambiguous ordering.
-
-4.2.  init
+4.1.  init
 
    The "init" message indicates that the remainder of the stream
    contains an initialization segment.
@@ -325,20 +331,20 @@ Internet-Draft                  WARP-BASE                 September 2021
    *  The "id" field is incremented by 1 for each unique initialization
       segment.
 
+
+
+Curley                     Expires 5 June 2022                  [Page 6]
+
+Internet-Draft                  WARP-BASE                  December 2021
+
+
    {
      init: {
        id: int
      }
    }
 
-
-
-Curley                    Expires 26 March 2022                 [Page 6]
-
-Internet-Draft                  WARP-BASE                 September 2021
-
-
-4.3.  media
+4.2.  media
 
    The "media" message indicates that the remainder of the stream
    contains a media segment.
@@ -360,60 +366,7 @@ Internet-Draft                  WARP-BASE                 September 2021
      }
    }
 
-4.4.  load
-
-   The "load" message is used to initialize a playback session.  This
-   message is application-specific.  A "play" message is required to
-   start transferring media.
-
-   *  The "type" field is a string indicating the type of stream being
-      loaded.
-
-   *  The "value" field contents depend on the "type".
-
-   {
-     load: {
-       type: string,
-       value: any,
-     }
-   }
-
-4.5.  play
-
-   The "play" message instructs the sender to start or resume
-   transferring media.
-
-   *  The optional "latency" field is the desired latency in
-      milliseconds (for starting playback).  The server CAN use this
-      value to determine which segments to transfer first.
-
-
-
-Curley                    Expires 26 March 2022                 [Page 7]
-
-Internet-Draft                  WARP-BASE                 September 2021
-
-
-   *  The optional "timestamp" field is the desired timestamp in
-      milliseconds (for resuming playback).  The server CAN use this
-      value to determine which segments to transfer first.
-
-   {
-     play: {
-                   latency*: int,
-                   timestamp*: int,
-           }
-   }
-
-4.6.  pause
-
-   The "pause" message instructs the sender to halt transferring media
-
-   {
-     pause: {}
-   }
-
-4.7.  priority
+4.3.  priority
 
    The "priority" message informs middleware about the intended priority
    of the current stream.  The middleware CAN ignore this value if it
@@ -433,6 +386,14 @@ Internet-Draft                  WARP-BASE                 September 2021
 
    TODO Security
 
+
+
+
+Curley                     Expires 5 June 2022                  [Page 7]
+
+Internet-Draft                  WARP-BASE                  December 2021
+
+
 6.  IANA Considerations
 
    This document has no IANA actions.
@@ -440,15 +401,6 @@ Internet-Draft                  WARP-BASE                 September 2021
 7.  References
 
 7.1.  Normative References
-
-
-
-
-
-Curley                    Expires 26 March 2022                 [Page 8]
-
-Internet-Draft                  WARP-BASE                 September 2021
-
 
    [ISOBMFF]  "Information technology — Coding of audio-visual objects —
               Part 12: ISO Base Media File Format", December 2015.
@@ -493,12 +445,4 @@ Author's Address
 
 
 
-
-
-
-
-
-
-
-
-Curley                    Expires 26 March 2022                 [Page 9]
+Curley                     Expires 5 June 2022                  [Page 8]
