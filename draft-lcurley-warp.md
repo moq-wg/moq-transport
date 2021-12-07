@@ -152,7 +152,7 @@ Segments are transferred over streams alongside messages. Each segment MUST be p
 
 The media producer SHOULD send each segment as a unique stream to avoid head-of-line blocking. The media producer CAN send multiple segments over a single stream, for simplicity, when head-of-line blocking is desired.
 
-A segment is the smallest unit of delivery, as the tail of a segment can be safely delayed/dropped without decode errors. A future version of Warp will support layered coding (as another QUIC stream) to allow dropping or downscalling frames in the middle of a segment.
+A segment is the smallest unit of delivery, as the tail of a segment can be safely delayed/dropped without decode errors. A future version of Warp will support layered coding (additional QUIC streams) to enable dropping or downscalling frames in the middle of a segment.
 
 ## Prioritization
 Warp utilizes a stream priority scheme to deliver the most important content during congestion.
@@ -213,8 +213,6 @@ An endpoint MUST send messages sequentially over a single stream when ordering i
 ## init {#message-init}
 The `init` message indicates that the remainder of the stream contains an initialization segment.
 
-* The `id` field is incremented by 1 for each unique initialization segment.
-
 ~~~
 {
   init: {
@@ -223,29 +221,39 @@ The `init` message indicates that the remainder of the stream contains an initia
 }
 ~~~
 
+id:
+
+: Incremented by 1 for each initialization segment.
+
 
 ## media {#message-media}
 The `media` message indicates that the remainder of the stream contains a media segment.
-
-* The `init` field is the id of the cooresponding initialization segment. A decoder MUST block until the coorespending `init` message to arrive.
-* The `timestamp` field indicates the desired presentation timestamp in milliseconds at the start of the segment.
-
-The video consumer uses the `timestamp` field to both handle discontinuities and cancel streams without having to parse the segment. It MAY be different from the presentation timestamp in the media container, in which case the `timestamp` field takes precedence.
 
 ~~~
 {
   segment: {
     init: int,
     timestamp: int,
+    timestamp_offset*: int,
   }
 }
 ~~~
 
+init:
+
+: The id of the cooresponding initialization segment. A decoder MUST block until the coorespending `init` message to arrive.
+
+timestamp:
+
+: The presentation timestamp in milliseconds at the start of the segment. This timestamp MUST NOT be larger than any timestamp within the segment, but CAN be smaller to indicate a gap.
+
+timestamp_offset:
+
+: An optional offset to be applied to the timestamps within the segment. The video decoder MUST add this value to timestamps within the media container. This is used to insert media segments without re-encoding.
+
 
 ## priority {#message-priority}
 The `priority` message informs middleware about the intended priority of the current stream. Any middleware MAY ignore this value but SHOULD forward it.
-
-* The `strict` field is an integer value, where larger values indicate higher priority. A higher priority stream will always use available bandwidth over a lower priority stream.
 
 ~~~
 {
@@ -255,10 +263,15 @@ The `priority` message informs middleware about the intended priority of the cur
 }
 ~~~
 
-## Extensions
-Custom messages MUST contain a hyphen, typically part of a prefix.
+strict:
 
-For example: `twitch-load` would contain identification required to start playback of a Twitch stream.
+: An integer value, where larger values indicate higher priority. A higher priority stream will always use available bandwidth over a lower priority stream.
+
+
+## Extensions
+Custom messages MUST start with `x-`. Unicode LATIN SMALL LETTER X (U+0078) followed by HYPHEN-MINUS (U+002D).
+
+Custom messages SHOULD use a unique prefix to reduce collisions. For example: `x-twitch-load` would contain identification required to start playback of a Twitch stream.
 
 
 # Security Considerations
