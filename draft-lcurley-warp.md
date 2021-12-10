@@ -55,7 +55,7 @@ informative:
 
 This document defines the core behavior for Warp video transport protocol.
 Warp maps live media to QUIC streams based on the underlying media encoding.
-Latency is minimized achieved by prioritizing the delivery of important media during congestion.
+Media is prioritized to minimize latency during congestion.
 
 --- middle
 
@@ -157,7 +157,7 @@ A segment is the smallest unit of delivery, as the tail of a segment can be safe
 ## Prioritization
 Warp utilizes a stream priority scheme to deliver the most important content during congestion.
 
-The media producer assigns a numeric priority to each stream. This is a strict prioritzation scheme, such that any available bandwidth is allocated to streams in descending priority order. QUIC supports stream prioritization but does not standardize any mechanisms; see Section 2.3 in {{QUIC}}. The media producer MUST support sending priorized streams. The media producer MAY choose to delay retransmitting lower priority streams when possible within QUIC flow control limits.
+The media producer assigns a numeric presidence to each stream. This is a strict prioritzation scheme, such that any available bandwidth is allocated to streams in descending order. QUIC supports stream prioritization but does not standardize any mechanisms; see Section 2.3 in {{QUIC}}. The media producer MUST support sending priorized streams. The media producer MAY choose to delay retransmitting lower priority streams when possible within QUIC flow control limits.
 
 The media consumer determines how long to wait for a given segment (buffer size) before skipping ahead. The media consumer CAN cancel a skipped segment to save bandwidth, or leave it downloading in the background (ex. to support rewind).
 
@@ -191,7 +191,7 @@ For example, this formula will prioritize older segments:
   priority = -timestamp
 ~~~
 
-## Cancelation
+## Cancellation
 During congestion, this strict prioritization will intentionally cause stream starvation for the lowest priority streams. This starvation will last until the network fully recovers, which may be indefinite.
 
 The media consumer SHOULD cancel a stream (via STOP_SENDING frame) after it has been skipped to save bandwidth. The media producer SHOULD reset the lowest priority stream (via RESET_STREAM frame) when nearing resource limits. Both of these actions will effectively drop the tail of the segment.
@@ -234,7 +234,6 @@ The `media` message indicates that the remainder of the stream contains a media 
   segment: {
     init: int,
     timestamp: int,
-    timestamp_offset*: int,
   }
 }
 ~~~
@@ -245,11 +244,7 @@ init:
 
 timestamp:
 
-: The presentation timestamp in milliseconds at the start of the segment. This timestamp MUST NOT be larger than any timestamp within the segment, but CAN be smaller to indicate a gap.
-
-timestamp_offset:
-
-: An optional offset to be applied to the timestamps within the segment. The video decoder MUST add this value to timestamps within the media container. This is used to insert media segments without re-encoding.
+: The presentation timestamp in milliseconds for the first frame/sample in the segment. This timestamp MUST be used when it does not match the timestamp in the media container.
 
 
 ## priority {#message-priority}
@@ -265,7 +260,7 @@ The `priority` message informs middleware about the intended priority of the cur
 
 strict:
 
-: An integer value, where larger values indicate higher priority. A higher priority stream will always use available bandwidth over a lower priority stream.
+: An integer value, where higher values take precedence over smaller values. The highest priority stream with pending data MUST be transmitted first as allowed by flow control and congestion control limits.
 
 
 ## Extensions
