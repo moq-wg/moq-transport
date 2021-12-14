@@ -155,7 +155,7 @@ The media producer SHOULD send each segment as a unique stream to avoid head-of-
 A segment is the smallest unit of delivery, as the tail of a segment can be safely delayed/dropped without decode errors. A future version of Warp will support layered coding (additional QUIC streams) to enable dropping or downscalling frames in the middle of a segment.
 
 ## Prioritization
-Warp utilizes a stream priority scheme to deliver the most important content during congestion.
+Warp utilizes precedence to deliver the most important content during congestion.
 
 The media producer assigns a numeric presidence to each stream. This is a strict prioritzation scheme, such that any available bandwidth is allocated to streams in descending order. QUIC supports stream prioritization but does not standardize any mechanisms; see Section 2.3 in {{QUIC}}. The media producer MUST support sending priorized streams. The media producer MAY choose to delay retransmitting lower priority streams when possible within QUIC flow control limits.
 
@@ -173,9 +173,9 @@ For example, this formula will prioritze audio segments, but only up to 3s in th
 
 ~~~
   if is_audio:
-    priority = timestamp + 3s
+    precedence = timestamp + 3s
   else:
-    priority = timestamp
+    precedence = timestamp
 ~~~
 
 ### Recorded Content
@@ -188,11 +188,11 @@ Warp is primarily designed for live content, but can switch to head-of-line bloc
 For example, this formula will prioritize older segments:
 
 ~~~
-  priority = -timestamp
+  precedence = -timestamp
 ~~~
 
 ## Cancellation
-During congestion, this strict prioritization will intentionally cause stream starvation for the lowest priority streams. This starvation will last until the network fully recovers, which may be indefinite.
+During congestion, prioritization intentionally cause stream starvation for the lowest priority streams. Some form of starvation will last until the network fully recovers, which may be indefinite.
 
 The media consumer SHOULD cancel a stream (via STOP_SENDING frame) after it has been skipped to save bandwidth. The media producer SHOULD reset the lowest priority stream (via RESET_STREAM frame) when nearing resource limits. Both of these actions will effectively drop the tail of the segment.
 
@@ -253,15 +253,14 @@ The `priority` message informs middleware about the intended priority of the cur
 ~~~
 {
   priority: {
-    strict: int,
+    precedence: int,
   }
 }
 ~~~
 
-strict:
+precedence:
 
-: An integer value, where higher values take precedence over smaller values. The highest priority stream with pending data MUST be transmitted first as allowed by flow control and congestion control limits.
-
+: An integer value, indicating that any available bandwidth SHOULD be allocated to streams in descending order.
 
 ## Extensions
 Custom messages MUST start with `x-`. Unicode LATIN SMALL LETTER X (U+0078) followed by HYPHEN-MINUS (U+002D).

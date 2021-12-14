@@ -9,7 +9,7 @@
 <meta content="
        This document defines the core behavior for Warp video transport protocol.
 Warp maps live media to QUIC streams based on the underlying media encoding.
-Latency is minimized achieved by prioritizing the delivery of important media during congestion. 
+Media is prioritized to minimize latency during congestion. 
     " name="description">
 <meta content="xml2rfc 3.9.1" name="generator">
 <meta content="Internet-Draft" name="keyword">
@@ -1185,7 +1185,7 @@ li > p:last-of-type {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Curley</td>
-<td class="center">Expires 10 June 2022</td>
+<td class="center">Expires 17 June 2022</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1198,12 +1198,12 @@ li > p:last-of-type {
 <dd class="internet-draft">draft-lcurley-warp</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2021-12-07" class="published">7 December 2021</time>
+<time datetime="2021-12-14" class="published">14 December 2021</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Informational</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2022-06-10">10 June 2022</time></dd>
+<dd class="expires"><time datetime="2022-06-17">17 June 2022</time></dd>
 <dt class="label-authors">Author:</dt>
 <dd class="authors">
 <div class="author">
@@ -1218,7 +1218,7 @@ li > p:last-of-type {
       <h2 id="abstract"><a href="#abstract" class="selfRef">Abstract</a></h2>
 <p id="section-abstract-1">This document defines the core behavior for Warp video transport protocol.
 Warp maps live media to QUIC streams based on the underlying media encoding.
-Latency is minimized achieved by prioritizing the delivery of important media during congestion.<a href="#section-abstract-1" class="pilcrow">¶</a></p>
+Media is prioritized to minimize latency during congestion.<a href="#section-abstract-1" class="pilcrow">¶</a></p>
 </section>
 <div id="status-of-memo">
 <section id="section-boilerplate.1">
@@ -1239,7 +1239,7 @@ Latency is minimized achieved by prioritizing the delivery of important media du
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 10 June 2022.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 17 June 2022.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1267,100 +1267,100 @@ Latency is minimized achieved by prioritizing the delivery of important media du
         <a href="#" onclick="scroll(0,0)" class="toplink">▲</a><h2 id="name-table-of-contents">
 <a href="#name-table-of-contents" class="section-name selfRef">Table of Contents</a>
         </h2>
-<nav class="toc"><ul class="compact ulBare toc ulEmpty">
-<li class="compact ulBare toc ulEmpty" id="section-toc.1-1.1">
+<nav class="toc"><ul class="toc ulBare compact ulEmpty">
+<li class="toc ulBare compact ulEmpty" id="section-toc.1-1.1">
             <p id="section-toc.1-1.1.1" class="keepWithNext"><a href="#section-1" class="xref">1</a>.  <a href="#name-overview" class="xref">Overview</a></p>
-<ul class="toc compact ulBare ulEmpty">
-<li class="toc compact ulBare ulEmpty" id="section-toc.1-1.1.2.1">
+<ul class="compact ulEmpty toc ulBare">
+<li class="compact ulEmpty toc ulBare" id="section-toc.1-1.1.2.1">
                 <p id="section-toc.1-1.1.2.1.1" class="keepWithNext"><a href="#section-1.1" class="xref">1.1</a>.  <a href="#name-terms-and-definitions" class="xref">Terms and Definitions</a></p>
 </li>
             </ul>
 </li>
-          <li class="compact ulBare toc ulEmpty" id="section-toc.1-1.2">
+          <li class="toc ulBare compact ulEmpty" id="section-toc.1-1.2">
             <p id="section-toc.1-1.2.1"><a href="#section-2" class="xref">2</a>.  <a href="#name-segments" class="xref">Segments</a></p>
-<ul class="toc compact ulBare ulEmpty">
-<li class="toc compact ulBare ulEmpty" id="section-toc.1-1.2.2.1">
+<ul class="compact ulEmpty toc ulBare">
+<li class="compact ulEmpty toc ulBare" id="section-toc.1-1.2.2.1">
                 <p id="section-toc.1-1.2.2.1.1" class="keepWithNext"><a href="#section-2.1" class="xref">2.1</a>.  <a href="#name-initialization" class="xref">Initialization</a></p>
 </li>
-              <li class="toc compact ulBare ulEmpty" id="section-toc.1-1.2.2.2">
+              <li class="compact ulEmpty toc ulBare" id="section-toc.1-1.2.2.2">
                 <p id="section-toc.1-1.2.2.2.1"><a href="#section-2.2" class="xref">2.2</a>.  <a href="#name-media" class="xref">Media</a></p>
-<ul class="toc compact ulBare ulEmpty">
-<li class="toc compact ulBare ulEmpty" id="section-toc.1-1.2.2.2.2.1">
+<ul class="compact ulEmpty toc ulBare">
+<li class="compact ulEmpty toc ulBare" id="section-toc.1-1.2.2.2.2.1">
                     <p id="section-toc.1-1.2.2.2.2.1.1"><a href="#section-2.2.1" class="xref">2.2.1</a>.  <a href="#name-video" class="xref">Video</a></p>
 </li>
-                  <li class="toc compact ulBare ulEmpty" id="section-toc.1-1.2.2.2.2.2">
+                  <li class="compact ulEmpty toc ulBare" id="section-toc.1-1.2.2.2.2.2">
                     <p id="section-toc.1-1.2.2.2.2.2.1"><a href="#section-2.2.2" class="xref">2.2.2</a>.  <a href="#name-audio" class="xref">Audio</a></p>
 </li>
                 </ul>
 </li>
             </ul>
 </li>
-          <li class="compact ulBare toc ulEmpty" id="section-toc.1-1.3">
+          <li class="toc ulBare compact ulEmpty" id="section-toc.1-1.3">
             <p id="section-toc.1-1.3.1"><a href="#section-3" class="xref">3</a>.  <a href="#name-streams" class="xref">Streams</a></p>
-<ul class="toc compact ulBare ulEmpty">
-<li class="toc compact ulBare ulEmpty" id="section-toc.1-1.3.2.1">
+<ul class="compact ulEmpty toc ulBare">
+<li class="compact ulEmpty toc ulBare" id="section-toc.1-1.3.2.1">
                 <p id="section-toc.1-1.3.2.1.1"><a href="#section-3.1" class="xref">3.1</a>.  <a href="#name-messages" class="xref">Messages</a></p>
 </li>
-              <li class="toc compact ulBare ulEmpty" id="section-toc.1-1.3.2.2">
+              <li class="compact ulEmpty toc ulBare" id="section-toc.1-1.3.2.2">
                 <p id="section-toc.1-1.3.2.2.1"><a href="#section-3.2" class="xref">3.2</a>.  <a href="#name-segments-2" class="xref">Segments</a></p>
 </li>
-              <li class="toc compact ulBare ulEmpty" id="section-toc.1-1.3.2.3">
+              <li class="compact ulEmpty toc ulBare" id="section-toc.1-1.3.2.3">
                 <p id="section-toc.1-1.3.2.3.1"><a href="#section-3.3" class="xref">3.3</a>.  <a href="#name-prioritization" class="xref">Prioritization</a></p>
-<ul class="toc compact ulBare ulEmpty">
-<li class="toc compact ulBare ulEmpty" id="section-toc.1-1.3.2.3.2.1">
+<ul class="compact ulEmpty toc ulBare">
+<li class="compact ulEmpty toc ulBare" id="section-toc.1-1.3.2.3.2.1">
                     <p id="section-toc.1-1.3.2.3.2.1.1"><a href="#section-3.3.1" class="xref">3.3.1</a>.  <a href="#name-live-content" class="xref">Live Content</a></p>
 </li>
-                  <li class="toc compact ulBare ulEmpty" id="section-toc.1-1.3.2.3.2.2">
+                  <li class="compact ulEmpty toc ulBare" id="section-toc.1-1.3.2.3.2.2">
                     <p id="section-toc.1-1.3.2.3.2.2.1"><a href="#section-3.3.2" class="xref">3.3.2</a>.  <a href="#name-recorded-content" class="xref">Recorded Content</a></p>
 </li>
                 </ul>
 </li>
-              <li class="toc compact ulBare ulEmpty" id="section-toc.1-1.3.2.4">
-                <p id="section-toc.1-1.3.2.4.1"><a href="#section-3.4" class="xref">3.4</a>.  <a href="#name-cancelation" class="xref">Cancelation</a></p>
+              <li class="compact ulEmpty toc ulBare" id="section-toc.1-1.3.2.4">
+                <p id="section-toc.1-1.3.2.4.1"><a href="#section-3.4" class="xref">3.4</a>.  <a href="#name-cancellation" class="xref">Cancellation</a></p>
 </li>
-              <li class="toc compact ulBare ulEmpty" id="section-toc.1-1.3.2.5">
+              <li class="compact ulEmpty toc ulBare" id="section-toc.1-1.3.2.5">
                 <p id="section-toc.1-1.3.2.5.1"><a href="#section-3.5" class="xref">3.5</a>.  <a href="#name-middleware" class="xref">Middleware</a></p>
 </li>
             </ul>
 </li>
-          <li class="compact ulBare toc ulEmpty" id="section-toc.1-1.4">
+          <li class="toc ulBare compact ulEmpty" id="section-toc.1-1.4">
             <p id="section-toc.1-1.4.1"><a href="#section-4" class="xref">4</a>.  <a href="#name-messages-2" class="xref">Messages</a></p>
-<ul class="toc compact ulBare ulEmpty">
-<li class="toc compact ulBare ulEmpty" id="section-toc.1-1.4.2.1">
+<ul class="compact ulEmpty toc ulBare">
+<li class="compact ulEmpty toc ulBare" id="section-toc.1-1.4.2.1">
                 <p id="section-toc.1-1.4.2.1.1"><a href="#section-4.1" class="xref">4.1</a>.  <a href="#name-init" class="xref">init</a></p>
 </li>
-              <li class="toc compact ulBare ulEmpty" id="section-toc.1-1.4.2.2">
+              <li class="compact ulEmpty toc ulBare" id="section-toc.1-1.4.2.2">
                 <p id="section-toc.1-1.4.2.2.1"><a href="#section-4.2" class="xref">4.2</a>.  <a href="#name-media-2" class="xref">media</a></p>
 </li>
-              <li class="toc compact ulBare ulEmpty" id="section-toc.1-1.4.2.3">
+              <li class="compact ulEmpty toc ulBare" id="section-toc.1-1.4.2.3">
                 <p id="section-toc.1-1.4.2.3.1"><a href="#section-4.3" class="xref">4.3</a>.  <a href="#name-priority" class="xref">priority</a></p>
 </li>
-              <li class="toc compact ulBare ulEmpty" id="section-toc.1-1.4.2.4">
+              <li class="compact ulEmpty toc ulBare" id="section-toc.1-1.4.2.4">
                 <p id="section-toc.1-1.4.2.4.1"><a href="#section-4.4" class="xref">4.4</a>.  <a href="#name-extensions" class="xref">Extensions</a></p>
 </li>
             </ul>
 </li>
-          <li class="compact ulBare toc ulEmpty" id="section-toc.1-1.5">
+          <li class="toc ulBare compact ulEmpty" id="section-toc.1-1.5">
             <p id="section-toc.1-1.5.1"><a href="#section-5" class="xref">5</a>.  <a href="#name-security-considerations" class="xref">Security Considerations</a></p>
 </li>
-          <li class="compact ulBare toc ulEmpty" id="section-toc.1-1.6">
+          <li class="toc ulBare compact ulEmpty" id="section-toc.1-1.6">
             <p id="section-toc.1-1.6.1"><a href="#section-6" class="xref">6</a>.  <a href="#name-iana-considerations" class="xref">IANA Considerations</a></p>
 </li>
-          <li class="compact ulBare toc ulEmpty" id="section-toc.1-1.7">
+          <li class="toc ulBare compact ulEmpty" id="section-toc.1-1.7">
             <p id="section-toc.1-1.7.1"><a href="#section-7" class="xref">7</a>.  <a href="#name-references" class="xref">References</a></p>
-<ul class="toc compact ulBare ulEmpty">
-<li class="toc compact ulBare ulEmpty" id="section-toc.1-1.7.2.1">
+<ul class="compact ulEmpty toc ulBare">
+<li class="compact ulEmpty toc ulBare" id="section-toc.1-1.7.2.1">
                 <p id="section-toc.1-1.7.2.1.1"><a href="#section-7.1" class="xref">7.1</a>.  <a href="#name-normative-references" class="xref">Normative References</a></p>
 </li>
-              <li class="toc compact ulBare ulEmpty" id="section-toc.1-1.7.2.2">
+              <li class="compact ulEmpty toc ulBare" id="section-toc.1-1.7.2.2">
                 <p id="section-toc.1-1.7.2.2.1"><a href="#section-7.2" class="xref">7.2</a>.  <a href="#name-informative-references" class="xref">Informative References</a></p>
 </li>
             </ul>
 </li>
-          <li class="compact ulBare toc ulEmpty" id="section-toc.1-1.8">
+          <li class="toc ulBare compact ulEmpty" id="section-toc.1-1.8">
             <p id="section-toc.1-1.8.1"><a href="#appendix-A" class="xref"></a><a href="#name-acknowledgments" class="xref">Acknowledgments</a></p>
 </li>
-          <li class="compact ulBare toc ulEmpty" id="section-toc.1-1.9">
+          <li class="toc ulBare compact ulEmpty" id="section-toc.1-1.9">
             <p id="section-toc.1-1.9.1"><a href="#appendix-B" class="xref"></a><a href="#name-authors-address" class="xref">Author's Address</a></p>
 </li>
         </ul>
@@ -1514,8 +1514,8 @@ appear in all capitals, as shown here.<a href="#section-1.1-1" class="pilcrow">�
         <h3 id="name-prioritization">
 <a href="#section-3.3" class="section-number selfRef">3.3. </a><a href="#name-prioritization" class="section-name selfRef">Prioritization</a>
         </h3>
-<p id="section-3.3-1">Warp utilizes a stream priority scheme to deliver the most important content during congestion.<a href="#section-3.3-1" class="pilcrow">¶</a></p>
-<p id="section-3.3-2">The media producer assigns a numeric priority to each stream. This is a strict prioritzation scheme, such that any available bandwidth is allocated to streams in descending priority order. QUIC supports stream prioritization but does not standardize any mechanisms; see Section 2.3 in <span>[<a href="#QUIC" class="xref">QUIC</a>]</span>. The media producer MUST support sending priorized streams. The media producer MAY choose to delay retransmitting lower priority streams when possible within QUIC flow control limits.<a href="#section-3.3-2" class="pilcrow">¶</a></p>
+<p id="section-3.3-1">Warp utilizes precedence to deliver the most important content during congestion.<a href="#section-3.3-1" class="pilcrow">¶</a></p>
+<p id="section-3.3-2">The media producer assigns a numeric presidence to each stream. This is a strict prioritzation scheme, such that any available bandwidth is allocated to streams in descending order. QUIC supports stream prioritization but does not standardize any mechanisms; see Section 2.3 in <span>[<a href="#QUIC" class="xref">QUIC</a>]</span>. The media producer MUST support sending priorized streams. The media producer MAY choose to delay retransmitting lower priority streams when possible within QUIC flow control limits.<a href="#section-3.3-2" class="pilcrow">¶</a></p>
 <p id="section-3.3-3">The media consumer determines how long to wait for a given segment (buffer size) before skipping ahead. The media consumer CAN cancel a skipped segment to save bandwidth, or leave it downloading in the background (ex. to support rewind).<a href="#section-3.3-3" class="pilcrow">¶</a></p>
 <p id="section-3.3-4">Prioritization allows a single media producer to support multiple media consumers with different latency targets. For example, one viewer could have a 1s buffer to minimize latency, another viewer could have a 5s buffer to improve quality, while a VOD worker could have a 30s buffer to receive all media.<a href="#section-3.3-4" class="pilcrow">¶</a></p>
 <div id="live-content">
@@ -1534,9 +1534,9 @@ appear in all capitals, as shown here.<a href="#section-1.1-1" class="pilcrow">�
 <div class="artwork art-text alignLeft" id="section-3.3.1-4">
 <pre>
   if is_audio:
-    priority = timestamp + 3s
+    precedence = timestamp + 3s
   else:
-    priority = timestamp
+    precedence = timestamp
 </pre><a href="#section-3.3.1-4" class="pilcrow">¶</a>
 </div>
 </section>
@@ -1555,17 +1555,17 @@ appear in all capitals, as shown here.<a href="#section-1.1-1" class="pilcrow">�
 <p id="section-3.3.2-4">For example, this formula will prioritize older segments:<a href="#section-3.3.2-4" class="pilcrow">¶</a></p>
 <div class="artwork art-text alignLeft" id="section-3.3.2-5">
 <pre>
-  priority = -timestamp
+  precedence = -timestamp
 </pre><a href="#section-3.3.2-5" class="pilcrow">¶</a>
 </div>
 </section>
 </div>
 </section>
 </div>
-<div id="cancelation">
+<div id="cancellation">
 <section id="section-3.4">
-        <h3 id="name-cancelation">
-<a href="#section-3.4" class="section-number selfRef">3.4. </a><a href="#name-cancelation" class="section-name selfRef">Cancelation</a>
+        <h3 id="name-cancellation">
+<a href="#section-3.4" class="section-number selfRef">3.4. </a><a href="#name-cancellation" class="section-name selfRef">Cancellation</a>
         </h3>
 <p id="section-3.4-1">During congestion, this strict prioritization will intentionally cause stream starvation for the lowest priority streams. This starvation will last until the network fully recovers, which may be indefinite.<a href="#section-3.4-1" class="pilcrow">¶</a></p>
 <p id="section-3.4-2">The media consumer SHOULD cancel a stream (via STOP_SENDING frame) after it has been skipped to save bandwidth. The media producer SHOULD reset the lowest priority stream (via RESET_STREAM frame) when nearing resource limits. Both of these actions will effectively drop the tail of the segment.<a href="#section-3.4-2" class="pilcrow">¶</a></p>
@@ -1633,7 +1633,6 @@ appear in all capitals, as shown here.<a href="#section-1.1-1" class="pilcrow">�
   segment: {
     init: int,
     timestamp: int,
-    timestamp_offset*: int,
   }
 }
 </pre><a href="#section-4.2-2" class="pilcrow">¶</a>
@@ -1646,12 +1645,7 @@ appear in all capitals, as shown here.<a href="#section-1.1-1" class="pilcrow">�
           <dd class="break"></dd>
 <dt id="section-4.2-3.3">timestamp:</dt>
           <dd style="margin-left: 1.5em" id="section-4.2-3.4">
-  The presentation timestamp in milliseconds at the start of the segment. This timestamp MUST NOT be larger than any timestamp within the segment, but CAN be smaller to indicate a gap.<a href="#section-4.2-3.4" class="pilcrow">¶</a>
-</dd>
-          <dd class="break"></dd>
-<dt id="section-4.2-3.5">timestamp_offset:</dt>
-          <dd style="margin-left: 1.5em" id="section-4.2-3.6">
-  An optional offset to be applied to the timestamps within the segment. The video decoder MUST add this value to timestamps within the media container. This is used to insert media segments without re-encoding.<a href="#section-4.2-3.6" class="pilcrow">¶</a>
+  The presentation timestamp in milliseconds for the first frame/sample in the segment. This timestamp MUST be used when it does not match the timestamp in the media container.<a href="#section-4.2-3.4" class="pilcrow">¶</a>
 </dd>
         <dd class="break"></dd>
 </dl>
@@ -1667,15 +1661,15 @@ appear in all capitals, as shown here.<a href="#section-1.1-1" class="pilcrow">�
 <pre>
 {
   priority: {
-    strict: int,
+    precedence: int,
   }
 }
 </pre><a href="#section-4.3-2" class="pilcrow">¶</a>
 </div>
 <span class="break"></span><dl class="dlParallel" id="section-4.3-3">
-          <dt id="section-4.3-3.1">strict:</dt>
+          <dt id="section-4.3-3.1">precedence:</dt>
           <dd style="margin-left: 1.5em" id="section-4.3-3.2">
-  An integer value, where larger values indicate higher priority. A higher priority stream will always use available bandwidth over a lower priority stream.<a href="#section-4.3-3.2" class="pilcrow">¶</a>
+  An integer value, indicating that any available bandwidth SHOULD be allocated to streams in descending order.<a href="#section-4.3-3.2" class="pilcrow">¶</a>
 </dd>
         <dd class="break"></dd>
 </dl>

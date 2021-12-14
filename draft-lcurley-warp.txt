@@ -4,8 +4,8 @@
 
 Independent Submission                                         L. Curley
 Internet-Draft                                                    Twitch
-Intended status: Informational                           7 December 2021
-Expires: 10 June 2022
+Intended status: Informational                          14 December 2021
+Expires: 17 June 2022
 
 
                       Warp - Live Video Transport
@@ -15,8 +15,8 @@ Abstract
 
    This document defines the core behavior for Warp video transport
    protocol.  Warp maps live media to QUIC streams based on the
-   underlying media encoding.  Latency is minimized achieved by
-   prioritizing the delivery of important media during congestion.
+   underlying media encoding.  Media is prioritized to minimize latency
+   during congestion.
 
 Status of This Memo
 
@@ -33,7 +33,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 10 June 2022.
+   This Internet-Draft will expire on 17 June 2022.
 
 Copyright Notice
 
@@ -53,7 +53,7 @@ Copyright Notice
 
 
 
-Curley                    Expires 10 June 2022                  [Page 1]
+Curley                    Expires 17 June 2022                  [Page 1]
 
 Internet-Draft                    WARP                     December 2021
 
@@ -73,20 +73,20 @@ Table of Contents
      3.3.  Prioritization  . . . . . . . . . . . . . . . . . . . . .   5
        3.3.1.  Live Content  . . . . . . . . . . . . . . . . . . . .   6
        3.3.2.  Recorded Content  . . . . . . . . . . . . . . . . . .   6
-     3.4.  Cancelation . . . . . . . . . . . . . . . . . . . . . . .   7
+     3.4.  Cancellation  . . . . . . . . . . . . . . . . . . . . . .   7
      3.5.  Middleware  . . . . . . . . . . . . . . . . . . . . . . .   7
    4.  Messages  . . . . . . . . . . . . . . . . . . . . . . . . . .   7
      4.1.  init  . . . . . . . . . . . . . . . . . . . . . . . . . .   7
      4.2.  media . . . . . . . . . . . . . . . . . . . . . . . . . .   8
      4.3.  priority  . . . . . . . . . . . . . . . . . . . . . . . .   8
-     4.4.  Extensions  . . . . . . . . . . . . . . . . . . . . . . .   9
+     4.4.  Extensions  . . . . . . . . . . . . . . . . . . . . . . .   8
    5.  Security Considerations . . . . . . . . . . . . . . . . . . .   9
    6.  IANA Considerations . . . . . . . . . . . . . . . . . . . . .   9
    7.  References  . . . . . . . . . . . . . . . . . . . . . . . . .   9
      7.1.  Normative References  . . . . . . . . . . . . . . . . . .   9
      7.2.  Informative References  . . . . . . . . . . . . . . . . .   9
-   Acknowledgments . . . . . . . . . . . . . . . . . . . . . . . . .  10
-   Author's Address  . . . . . . . . . . . . . . . . . . . . . . . .  10
+   Acknowledgments . . . . . . . . . . . . . . . . . . . . . . . . .   9
+   Author's Address  . . . . . . . . . . . . . . . . . . . . . . . .   9
 
 1.  Overview
 
@@ -109,7 +109,7 @@ Table of Contents
 
 
 
-Curley                    Expires 10 June 2022                  [Page 2]
+Curley                    Expires 17 June 2022                  [Page 2]
 
 Internet-Draft                    WARP                     December 2021
 
@@ -165,7 +165,7 @@ Internet-Draft                    WARP                     December 2021
 
 
 
-Curley                    Expires 10 June 2022                  [Page 3]
+Curley                    Expires 17 June 2022                  [Page 3]
 
 Internet-Draft                    WARP                     December 2021
 
@@ -221,7 +221,7 @@ Internet-Draft                    WARP                     December 2021
 
 
 
-Curley                    Expires 10 June 2022                  [Page 4]
+Curley                    Expires 17 June 2022                  [Page 4]
 
 Internet-Draft                    WARP                     December 2021
 
@@ -254,13 +254,13 @@ Internet-Draft                    WARP                     December 2021
 
 3.3.  Prioritization
 
-   Warp utilizes a stream priority scheme to deliver the most important
-   content during congestion.
+   Warp utilizes precedence to deliver the most important content during
+   congestion.
 
-   The media producer assigns a numeric priority to each stream.  This
+   The media producer assigns a numeric presidence to each stream.  This
    is a strict prioritzation scheme, such that any available bandwidth
-   is allocated to streams in descending priority order.  QUIC supports
-   stream prioritization but does not standardize any mechanisms; see
+   is allocated to streams in descending order.  QUIC supports stream
+   prioritization but does not standardize any mechanisms; see
    Section 2.3 in [QUIC].  The media producer MUST support sending
    priorized streams.  The media producer MAY choose to delay
    retransmitting lower priority streams when possible within QUIC flow
@@ -277,7 +277,7 @@ Internet-Draft                    WARP                     December 2021
 
 
 
-Curley                    Expires 10 June 2022                  [Page 5]
+Curley                    Expires 17 June 2022                  [Page 5]
 
 Internet-Draft                    WARP                     December 2021
 
@@ -306,9 +306,9 @@ Internet-Draft                    WARP                     December 2021
    to 3s in the future:
 
      if is_audio:
-       priority = timestamp + 3s
+       precedence = timestamp + 3s
      else:
-       priority = timestamp
+       precedence = timestamp
 
 3.3.2.  Recorded Content
 
@@ -324,7 +324,7 @@ Internet-Draft                    WARP                     December 2021
 
    For example, this formula will prioritize older segments:
 
-     priority = -timestamp
+     precedence = -timestamp
 
 
 
@@ -333,12 +333,12 @@ Internet-Draft                    WARP                     December 2021
 
 
 
-Curley                    Expires 10 June 2022                  [Page 6]
+Curley                    Expires 17 June 2022                  [Page 6]
 
 Internet-Draft                    WARP                     December 2021
 
 
-3.4.  Cancelation
+3.4.  Cancellation
 
    During congestion, this strict prioritization will intentionally
    cause stream starvation for the lowest priority streams.  This
@@ -389,7 +389,7 @@ Internet-Draft                    WARP                     December 2021
 
 
 
-Curley                    Expires 10 June 2022                  [Page 7]
+Curley                    Expires 17 June 2022                  [Page 7]
 
 Internet-Draft                    WARP                     December 2021
 
@@ -411,22 +411,15 @@ Internet-Draft                    WARP                     December 2021
      segment: {
        init: int,
        timestamp: int,
-       timestamp_offset*: int,
      }
    }
 
    init:  The id of the cooresponding initialization segment.  A decoder
       MUST block until the coorespending "init" message to arrive.
 
-   timestamp:  The presentation timestamp in milliseconds at the start
-      of the segment.  This timestamp MUST NOT be larger than any
-      timestamp within the segment, but CAN be smaller to indicate a
-      gap.
-
-   timestamp_offset:  An optional offset to be applied to the timestamps
-      within the segment.  The video decoder MUST add this value to
-      timestamps within the media container.  This is used to insert
-      media segments without re-encoding.
+   timestamp:  The presentation timestamp in milliseconds for the first
+      frame/sample in the segment.  This timestamp MUST be used when it
+      does not match the timestamp in the media container.
 
 4.3.  priority
 
@@ -436,27 +429,26 @@ Internet-Draft                    WARP                     December 2021
 
    {
      priority: {
-       strict: int,
+       precedence: int,
      }
    }
 
-   strict:  An integer value, where larger values indicate higher
-
-
-
-
-Curley                    Expires 10 June 2022                  [Page 8]
-
-Internet-Draft                    WARP                     December 2021
-
-
-      priority.  A higher priority stream will always use available
-      bandwidth over a lower priority stream.
+   precedence:  An integer value, indicating that any available
+      bandwidth SHOULD be allocated to streams in descending order.
 
 4.4.  Extensions
 
    Custom messages MUST start with "x-".  Unicode LATIN SMALL LETTER X
    (U+0078) followed by HYPHEN-MINUS (U+002D).
+
+
+
+
+
+Curley                    Expires 17 June 2022                  [Page 8]
+
+Internet-Draft                    WARP                     December 2021
+
 
    Custom messages SHOULD use a unique prefix to reduce collisions.  For
    example: "x-twitch-load" would contain identification required to
@@ -497,15 +489,6 @@ Internet-Draft                    WARP                     December 2021
               (MPEG-A) -- Part 19: Common media application format
               (CMAF) for segmented media", March 2020.
 
-
-
-
-
-Curley                    Expires 10 June 2022                  [Page 9]
-
-Internet-Draft                    WARP                     December 2021
-
-
 Acknowledgments
 
    TODO
@@ -514,6 +497,14 @@ Author's Address
 
    Luke Curley
    Twitch
+
+
+
+
+Curley                    Expires 17 June 2022                  [Page 9]
+
+Internet-Draft                    WARP                     December 2021
+
 
    Email: lcurley@twitch.tv
 
@@ -557,4 +548,13 @@ Author's Address
 
 
 
-Curley                    Expires 10 June 2022                 [Page 10]
+
+
+
+
+
+
+
+
+
+Curley                    Expires 17 June 2022                 [Page 10]
