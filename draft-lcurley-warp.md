@@ -1,7 +1,7 @@
 ---
-title: "Warp - Live Video Transport"
+title: "Warp - Segmented Live Video Transport"
 abbrev: WARP
-docname: draft-lcurley-warp
+docname: draft-lcurley-warp-00
 date: {DATE}
 category: info
 
@@ -281,7 +281,7 @@ This document has no IANA actions.
 
 --- back
 
-# Acknowledgments
+# Contributors
 {:numbered="false"}
 
-TODO
+* Michael Thornburgh

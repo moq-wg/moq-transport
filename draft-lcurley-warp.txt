@@ -4,12 +4,12 @@
 
 Independent Submission                                         L. Curley
 Internet-Draft                                                    Twitch
-Intended status: Informational                          14 December 2021
-Expires: 17 June 2022
+Intended status: Informational                           7 February 2022
+Expires: 11 August 2022
 
 
-                      Warp - Live Video Transport
-                           draft-lcurley-warp
+                 Warp - Segmented Live Video Transport
+                         draft-lcurley-warp-00
 
 Abstract
 
@@ -33,11 +33,11 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 17 June 2022.
+   This Internet-Draft will expire on 11 August 2022.
 
 Copyright Notice
 
-   Copyright (c) 2021 IETF Trust and the persons identified as the
+   Copyright (c) 2022 IETF Trust and the persons identified as the
    document authors.  All rights reserved.
 
    This document is subject to BCP 78 and the IETF Trust's Legal
@@ -53,9 +53,9 @@ Copyright Notice
 
 
 
-Curley                    Expires 17 June 2022                  [Page 1]
+Curley                   Expires 11 August 2022                 [Page 1]
 
-Internet-Draft                    WARP                     December 2021
+Internet-Draft                    WARP                     February 2022
 
 
 Table of Contents
@@ -73,14 +73,14 @@ Table of Contents
      3.3.  Prioritization  . . . . . . . . . . . . . . . . . . . . .   5
        3.3.1.  Live Content  . . . . . . . . . . . . . . . . . . . .   6
        3.3.2.  Recorded Content  . . . . . . . . . . . . . . . . . .   6
-     3.4.  Cancellation  . . . . . . . . . . . . . . . . . . . . . .   7
+     3.4.  Cancellation  . . . . . . . . . . . . . . . . . . . . . .   6
      3.5.  Middleware  . . . . . . . . . . . . . . . . . . . . . . .   7
    4.  Messages  . . . . . . . . . . . . . . . . . . . . . . . . . .   7
      4.1.  init  . . . . . . . . . . . . . . . . . . . . . . . . . .   7
      4.2.  media . . . . . . . . . . . . . . . . . . . . . . . . . .   8
      4.3.  priority  . . . . . . . . . . . . . . . . . . . . . . . .   8
      4.4.  Extensions  . . . . . . . . . . . . . . . . . . . . . . .   8
-   5.  Security Considerations . . . . . . . . . . . . . . . . . . .   9
+   5.  Security Considerations . . . . . . . . . . . . . . . . . . .   8
    6.  IANA Considerations . . . . . . . . . . . . . . . . . . . . .   9
    7.  References  . . . . . . . . . . . . . . . . . . . . . . . . .   9
      7.1.  Normative References  . . . . . . . . . . . . . . . . . .   9
@@ -109,9 +109,9 @@ Table of Contents
 
 
 
-Curley                    Expires 17 June 2022                  [Page 2]
+Curley                   Expires 11 August 2022                 [Page 2]
 
-Internet-Draft                    WARP                     December 2021
+Internet-Draft                    WARP                     February 2022
 
 
 1.1.  Terms and Definitions
@@ -135,7 +135,8 @@ Internet-Draft                    WARP                     December 2021
    Group of samples:  A sequential series of audio samples starting at a
       given timestamp.
 
-   Segment:  One or more group of pictures serialized into a container.
+   Segment:  A sequence of video frames and/or audio samples serialized
+      into a container.
 
    Presentation Timestamp (PTS):  A point in time when video/audio
       should be presented to the viewer.
@@ -164,10 +165,9 @@ Internet-Draft                    WARP                     December 2021
 
 
 
-
-Curley                    Expires 17 June 2022                  [Page 3]
+Curley                   Expires 11 August 2022                 [Page 3]
 
-Internet-Draft                    WARP                     December 2021
+Internet-Draft                    WARP                     February 2022
 
 
    Initialization segments MUST consist of a File Type Box ('ftyp')
@@ -221,9 +221,9 @@ Internet-Draft                    WARP                     December 2021
 
 
 
-Curley                    Expires 17 June 2022                  [Page 4]
+Curley                   Expires 11 August 2022                 [Page 4]
 
-Internet-Draft                    WARP                     December 2021
+Internet-Draft                    WARP                     February 2022
 
 
 3.1.  Messages
@@ -243,7 +243,7 @@ Internet-Draft                    WARP                     December 2021
    additional metadata.
 
    The media producer SHOULD send each segment as a unique stream to
-   avoid head-of-line blocking.  The media producer CAN send multiple
+   avoid head-of-line blocking.  The media producer MAY send multiple
    segments over a single stream, for simplicity, when head-of-line
    blocking is desired.
 
@@ -267,26 +267,24 @@ Internet-Draft                    WARP                     December 2021
    control limits.
 
    The media consumer determines how long to wait for a given segment
-   (buffer size) before skipping ahead.  The media consumer CAN cancel a
+   (buffer size) before skipping ahead.  The media consumer MAY cancel a
    skipped segment to save bandwidth, or leave it downloading in the
    background (ex. to support rewind).
 
-
-
-
-
-
-
-Curley                    Expires 17 June 2022                  [Page 5]
-
-Internet-Draft                    WARP                     December 2021
-
-
    Prioritization allows a single media producer to support multiple
    media consumers with different latency targets.  For example, one
-   viewer could have a 1s buffer to minimize latency, another viewer
-   could have a 5s buffer to improve quality, while a VOD worker could
-   have a 30s buffer to receive all media.
+   consumer could have a 1s buffer to minimize latency, while another
+
+
+
+Curley                   Expires 11 August 2022                 [Page 5]
+
+Internet-Draft                    WARP                     February 2022
+
+
+   conssumer could have a 5s buffer to improve quality, while a yet
+   another consumer could have a 30s buffer to receive all media (ex.
+   VOD recorder).
 
 3.3.1.  Live Content
 
@@ -326,30 +324,25 @@ Internet-Draft                    WARP                     December 2021
 
      precedence = -timestamp
 
-
-
-
-
-
-
-
-Curley                    Expires 17 June 2022                  [Page 6]
-
-Internet-Draft                    WARP                     December 2021
-
-
 3.4.  Cancellation
 
-   During congestion, this strict prioritization will intentionally
-   cause stream starvation for the lowest priority streams.  This
-   starvation will last until the network fully recovers, which may be
-   indefinite.
+   During congestion, prioritization intentionally cause stream
+   starvation for the lowest priority streams.  Some form of starvation
+   will last until the network fully recovers, which may be indefinite.
 
-   The media consumer SHOULD cancel a stream (via STOP_SENDING frame)
-   after it has been skipped to save bandwidth.  The media producer
-   SHOULD reset the lowest priority stream (via RESET_STREAM frame) when
-   nearing resource limits.  Both of these actions will effectively drop
-   the tail of the segment.
+
+
+
+Curley                   Expires 11 August 2022                 [Page 6]
+
+Internet-Draft                    WARP                     February 2022
+
+
+   The media consumer SHOULD cancel a stream (via a QUIC "STOP_SENDING"
+   frame) after it has been skipped to save bandwidth.  The media
+   producer SHOULD reset the lowest priority stream (via QUIC
+   "RESET_STREAM" frame) when nearing resource limits.  Both of these
+   actions will effectively drop the tail of the segment.
 
 3.5.  Middleware
 
@@ -384,16 +377,6 @@ Internet-Draft                    WARP                     December 2021
    The "init" message indicates that the remainder of the stream
    contains an initialization segment.
 
-
-
-
-
-
-Curley                    Expires 17 June 2022                  [Page 7]
-
-Internet-Draft                    WARP                     December 2021
-
-
    {
      init: {
        id: int
@@ -402,10 +385,19 @@ Internet-Draft                    WARP                     December 2021
 
    id:  Incremented by 1 for each initialization segment.
 
+
+
+
+
+Curley                   Expires 11 August 2022                 [Page 7]
+
+Internet-Draft                    WARP                     February 2022
+
+
 4.2.  media
 
-   The "media" message indicates that the remainder of the stream
-   contains a media segment.
+   The "media" message contains metadata about the next media segment in
+   the stream.
 
    {
      segment: {
@@ -418,8 +410,8 @@ Internet-Draft                    WARP                     December 2021
       MUST block until the coorespending "init" message to arrive.
 
    timestamp:  The presentation timestamp in milliseconds for the first
-      frame/sample in the segment.  This timestamp MUST be used when it
-      does not match the timestamp in the media container.
+      frame/sample in the next segment.  This timestamp MUST be used
+      when it does not match the timestamp in the media container.
 
 4.3.  priority
 
@@ -441,15 +433,6 @@ Internet-Draft                    WARP                     December 2021
    Custom messages MUST start with "x-".  Unicode LATIN SMALL LETTER X
    (U+0078) followed by HYPHEN-MINUS (U+002D).
 
-
-
-
-
-Curley                    Expires 17 June 2022                  [Page 8]
-
-Internet-Draft                    WARP                     December 2021
-
-
    Custom messages SHOULD use a unique prefix to reduce collisions.  For
    example: "x-twitch-load" would contain identification required to
    start playback of a Twitch stream.
@@ -457,6 +440,15 @@ Internet-Draft                    WARP                     December 2021
 5.  Security Considerations
 
    TODO
+
+
+
+
+
+Curley                   Expires 11 August 2022                 [Page 8]
+
+Internet-Draft                    WARP                     February 2022
+
 
 6.  IANA Considerations
 
@@ -498,14 +490,6 @@ Author's Address
    Luke Curley
    Twitch
 
-
-
-
-Curley                    Expires 17 June 2022                  [Page 9]
-
-Internet-Draft                    WARP                     December 2021
-
-
    Email: lcurley@twitch.tv
 
 
@@ -517,44 +501,4 @@ Internet-Draft                    WARP                     December 2021
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Curley                    Expires 17 June 2022                 [Page 10]
+Curley                   Expires 11 August 2022                 [Page 9]
