@@ -92,7 +92,7 @@ Group of samples:
 
 Segment:
 
-: One or more group of pictures serialized into a container.
+: A sequence of video frames and/or audio samples serialized into a container.
 
 Presentation Timestamp (PTS):
 
@@ -150,7 +150,7 @@ A Warp Box ('warp') is a top-level MP4 box as defined in {{ISOBMFF}}. The conten
 ## Segments
 Segments are transferred over streams alongside messages. Each segment MUST be preceded by an `init` ({{message-init}}) or `media` ({{message-media}}) message, indicating the type of segment and providing additional metadata.
 
-The media producer SHOULD send each segment as a unique stream to avoid head-of-line blocking. The media producer CAN send multiple segments over a single stream, for simplicity, when head-of-line blocking is desired.
+The media producer SHOULD send each segment as a unique stream to avoid head-of-line blocking. The media producer MAY send multiple segments over a single stream, for simplicity, when head-of-line blocking is desired.
 
 A segment is the smallest unit of delivery, as the tail of a segment can be safely delayed/dropped without decode errors. A future version of Warp will support layered coding (additional QUIC streams) to enable dropping or downscalling frames in the middle of a segment.
 
@@ -159,9 +159,9 @@ Warp utilizes precedence to deliver the most important content during congestion
 
 The media producer assigns a numeric presidence to each stream. This is a strict prioritzation scheme, such that any available bandwidth is allocated to streams in descending order. QUIC supports stream prioritization but does not standardize any mechanisms; see Section 2.3 in {{QUIC}}. The media producer MUST support sending priorized streams. The media producer MAY choose to delay retransmitting lower priority streams when possible within QUIC flow control limits.
 
-The media consumer determines how long to wait for a given segment (buffer size) before skipping ahead. The media consumer CAN cancel a skipped segment to save bandwidth, or leave it downloading in the background (ex. to support rewind).
+The media consumer determines how long to wait for a given segment (buffer size) before skipping ahead. The media consumer MAY cancel a skipped segment to save bandwidth, or leave it downloading in the background (ex. to support rewind).
 
-Prioritization allows a single media producer to support multiple media consumers with different latency targets. For example, one viewer could have a 1s buffer to minimize latency, another viewer could have a 5s buffer to improve quality, while a VOD worker could have a 30s buffer to receive all media.
+Prioritization allows a single media producer to support multiple media consumers with different latency targets. For example, one consumer could have a 1s buffer to minimize latency, while another conssumer could have a 5s buffer to improve quality, while a yet another consumer could have a 30s buffer to receive all media (ex. VOD recorder).
 
 ### Live Content
 Live content is encoded and delivered in real-time. Media delivery is blocked on the encoder throughput, except during congestion causing limited network throughput. To best deliver live content:
@@ -194,7 +194,7 @@ For example, this formula will prioritize older segments:
 ## Cancellation
 During congestion, prioritization intentionally cause stream starvation for the lowest priority streams. Some form of starvation will last until the network fully recovers, which may be indefinite.
 
-The media consumer SHOULD cancel a stream (via STOP_SENDING frame) after it has been skipped to save bandwidth. The media producer SHOULD reset the lowest priority stream (via RESET_STREAM frame) when nearing resource limits. Both of these actions will effectively drop the tail of the segment.
+The media consumer SHOULD cancel a stream (via a QUIC `STOP_SENDING` frame) after it has been skipped to save bandwidth. The media producer SHOULD reset the lowest priority stream (via QUIC `RESET_STREAM` frame) when nearing resource limits. Both of these actions will effectively drop the tail of the segment.
 
 ## Middleware
 Media may go through multiple hops and processing steps on the path from the broadcaster to player. The full effectiveness of warp as an end-to-end protocol depends on middleware support.
@@ -227,7 +227,7 @@ id:
 
 
 ## media {#message-media}
-The `media` message indicates that the remainder of the stream contains a media segment.
+The `media` message contains metadata about the next media segment in the stream.
 
 ~~~
 {
@@ -244,7 +244,7 @@ init:
 
 timestamp:
 
-: The presentation timestamp in milliseconds for the first frame/sample in the segment. This timestamp MUST be used when it does not match the timestamp in the media container.
+: The presentation timestamp in milliseconds for the first frame/sample in the next segment. This timestamp MUST be used when it does not match the timestamp in the media container.
 
 
 ## priority {#message-priority}
