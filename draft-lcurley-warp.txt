@@ -4,8 +4,8 @@
 
 Independent Submission                                         L. Curley
 Internet-Draft                                                    Twitch
-Intended status: Informational                           7 February 2022
-Expires: 11 August 2022
+Intended status: Informational                           8 February 2022
+Expires: 12 August 2022
 
 
                  Warp - Segmented Live Video Transport
@@ -33,7 +33,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 11 August 2022.
+   This Internet-Draft will expire on 12 August 2022.
 
 Copyright Notice
 
@@ -53,7 +53,7 @@ Copyright Notice
 
 
 
-Curley                   Expires 11 August 2022                 [Page 1]
+Curley                   Expires 12 August 2022                 [Page 1]
 
 Internet-Draft                    WARP                     February 2022
 
@@ -85,7 +85,7 @@ Table of Contents
    7.  References  . . . . . . . . . . . . . . . . . . . . . . . . .   9
      7.1.  Normative References  . . . . . . . . . . . . . . . . . .   9
      7.2.  Informative References  . . . . . . . . . . . . . . . . .   9
-   Acknowledgments . . . . . . . . . . . . . . . . . . . . . . . . .   9
+   Contributors  . . . . . . . . . . . . . . . . . . . . . . . . . .   9
    Author's Address  . . . . . . . . . . . . . . . . . . . . . . . .   9
 
 1.  Overview
@@ -109,7 +109,7 @@ Table of Contents
 
 
 
-Curley                   Expires 11 August 2022                 [Page 2]
+Curley                   Expires 12 August 2022                 [Page 2]
 
 Internet-Draft                    WARP                     February 2022
 
@@ -165,7 +165,7 @@ Internet-Draft                    WARP                     February 2022
 
 
 
-Curley                   Expires 11 August 2022                 [Page 3]
+Curley                   Expires 12 August 2022                 [Page 3]
 
 Internet-Draft                    WARP                     February 2022
 
@@ -221,7 +221,7 @@ Internet-Draft                    WARP                     February 2022
 
 
 
-Curley                   Expires 11 August 2022                 [Page 4]
+Curley                   Expires 12 August 2022                 [Page 4]
 
 Internet-Draft                    WARP                     February 2022
 
@@ -277,7 +277,7 @@ Internet-Draft                    WARP                     February 2022
 
 
 
-Curley                   Expires 11 August 2022                 [Page 5]
+Curley                   Expires 12 August 2022                 [Page 5]
 
 Internet-Draft                    WARP                     February 2022
 
@@ -333,7 +333,7 @@ Internet-Draft                    WARP                     February 2022
 
 
 
-Curley                   Expires 11 August 2022                 [Page 6]
+Curley                   Expires 12 August 2022                 [Page 6]
 
 Internet-Draft                    WARP                     February 2022
 
@@ -389,7 +389,7 @@ Internet-Draft                    WARP                     February 2022
 
 
 
-Curley                   Expires 11 August 2022                 [Page 7]
+Curley                   Expires 12 August 2022                 [Page 7]
 
 Internet-Draft                    WARP                     February 2022
 
@@ -445,7 +445,7 @@ Internet-Draft                    WARP                     February 2022
 
 
 
-Curley                   Expires 11 August 2022                 [Page 8]
+Curley                   Expires 12 August 2022                 [Page 8]
 
 Internet-Draft                    WARP                     February 2022
 
@@ -481,9 +481,9 @@ Internet-Draft                    WARP                     February 2022
               (MPEG-A) -- Part 19: Common media application format
               (CMAF) for segmented media", March 2020.
 
-Acknowledgments
+Contributors
 
-   TODO
+   *  Michael Thornburgh
 
 Author's Address
 
@@ -501,4 +501,4 @@ Author's Address
 
 
 
-Curley                   Expires 11 August 2022                 [Page 9]
+Curley                   Expires 12 August 2022                 [Page 9]
