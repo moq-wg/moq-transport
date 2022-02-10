@@ -53,7 +53,7 @@ informative:
 
 --- abstract
 
-This document defines the core behavior for Warp video transport protocol.
+This document defines the core behavior for Warp, a segmented live video transport protocol.
 Warp maps live media to QUIC streams based on the underlying media encoding.
 Media is prioritized to minimize latency during congestion.
 

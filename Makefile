@@ -2,9 +2,11 @@ OPEN=$(word 1, $(wildcard /usr/bin/xdg-open /usr/bin/open /bin/echo))
 SOURCES?=${wildcard *.md}
 TEXT=${SOURCES:.md=.txt}
 HTML=${SOURCES:.md=.html}
+XML=${SOURCES:.md=.xml}
 
 text:	$(TEXT)
 html:   $(HTML)
+xml:    $(XML)
 
 %.xml:	%.md
 	kramdown-rfc2629 $< >$@.new
