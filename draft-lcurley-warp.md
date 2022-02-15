@@ -152,16 +152,16 @@ Segments are transferred over streams alongside messages. Each segment MUST be p
 
 The media producer SHOULD send each segment as a unique stream to avoid head-of-line blocking. The media producer MAY send multiple segments over a single stream, for simplicity, when head-of-line blocking is desired.
 
-A segment is the smallest unit of delivery, as the tail of a segment can be safely delayed/dropped without decode errors. A future version of Warp will support layered coding (additional QUIC streams) to enable dropping or downscalling frames in the middle of a segment.
+A segment is the smallest unit of delivery, as the tail of a segment can be safely delayed/dropped without decode errors. A future version of Warp will support layered coding (additional QUIC streams) to enable dropping or downscaling frames in the middle of a segment.
 
 ## Prioritization
 Warp utilizes precedence to deliver the most important content during congestion.
 
-The media producer assigns a numeric presidence to each stream. This is a strict prioritzation scheme, such that any available bandwidth is allocated to streams in descending order. QUIC supports stream prioritization but does not standardize any mechanisms; see Section 2.3 in {{QUIC}}. The media producer MUST support sending priorized streams. The media producer MAY choose to delay retransmitting lower priority streams when possible within QUIC flow control limits.
+The media producer assigns a numeric precedence to each stream. This is a strict prioritization scheme, such that any available bandwidth is allocated to streams in descending order. QUIC supports stream prioritization but does not standardize any mechanisms; see Section 2.3 in {{QUIC}}. The media producer MUST support sending prioritized streams. The media producer MAY choose to delay retransmitting lower priority streams when possible within QUIC flow control limits.
 
 The media consumer determines how long to wait for a given segment (buffer size) before skipping ahead. The media consumer MAY cancel a skipped segment to save bandwidth, or leave it downloading in the background (ex. to support rewind).
 
-Prioritization allows a single media producer to support multiple media consumers with different latency targets. For example, one consumer could have a 1s buffer to minimize latency, while another conssumer could have a 5s buffer to improve quality, while a yet another consumer could have a 30s buffer to receive all media (ex. VOD recorder).
+Prioritization allows a single media producer to support multiple media consumers with different latency targets. For example, one consumer could have a 1s buffer to minimize latency, while another consumer could have a 5s buffer to improve quality, while a yet another consumer could have a 30s buffer to receive all media (ex. VOD recorder).
 
 ### Live Content
 Live content is encoded and delivered in real-time. Media delivery is blocked on the encoder throughput, except during congestion causing limited network throughput. To best deliver live content:
@@ -240,7 +240,7 @@ The `media` message contains metadata about the next media segment in the stream
 
 init:
 
-: The id of the cooresponding initialization segment. A decoder MUST block until the coorespending `init` message to arrive.
+: The id of the corresponding initialization segment. A decoder MUST block until the coorespending `init` message to arrive.
 
 timestamp:
 
