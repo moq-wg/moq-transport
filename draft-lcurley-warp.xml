@@ -18,7 +18,7 @@
     <author initials="L." surname="Curley" fullname="Luke Curley">
       <organization>Twitch</organization>
       <address>
-        <email>lcurley@twitch.tv</email>
+        <email>kixelated@gmail.com</email>
       </address>
     </author>
 
@@ -46,13 +46,13 @@ Media is prioritized to minimize latency during congestion.</t>
 
 
 <section anchor="overview" title="Overview">
-<t>Warp is a live video transport protocol that utilizes the <xref target="QUIC"/> network protocol.</t>
+<t>Warp is a live video transport protocol that utilizes the QUIC network protocol <xref target="QUIC"/>.</t>
 
-<t>The live stream is split into segments (<xref target="segments"/>) at I-frame boundaries. These are fragmented MP4 files as defined in <xref target="ISOBMFF"/>. Initialization segments contain track metadata while media segments contain either video or audio samples.</t>
+<t>QUIC streams (<xref target="streams"/>) are used to transfer segments and messages. These streams are prioritized based on the contents, such that the most important media is delivered during congestion.</t>
 
-<t>QUIC streams (<xref target="streams"/>) are used to transfer messages and segments between endpoints. These streams are prioritized based on the contents, such that the most important media is delivered during congestion.</t>
+<t>Segments (<xref target="segments"/>) are fragmented MP4 containers <xref target="ISOBMFF"/>. Initialization segments contain track metadata while media segments contain media samples.</t>
 
-<t>Messages (<xref target="messages"/>) are sent over streams alongside segments. These are used to carry necessary metadata and control messages.</t>
+<t>Messages (<xref target="messages"/>) are sent over streams alongside segments. These are used to carry necessary metadata about segments and control playback.</t>
 
 <section anchor="terms-and-definitions" title="Terms and Definitions">
 
@@ -66,7 +66,7 @@ appear in all capitals, as shown here.</t>
 
 <t><list style="hanging">
   <t hangText="Frame:">
-  An image to be rendered at a specific point in time.</t>
+  An video image or group of audio samples to be rendered at a specific point in time.</t>
   <t hangText="I-frame:">
   A frame that does not depend on the contents of other frames.</t>
   <t hangText="Group of pictures (GOP):">
@@ -87,59 +87,40 @@ appear in all capitals, as shown here.</t>
 
 </section>
 </section>
-<section anchor="segments" title="Segments">
-<t>The live stream is split into segments before being transferred over the network. Segments are fragmented MP4 files as defined by <xref target="ISOBMFF"/>.</t>
-
-<t>There are two types of segments: initialization and media.</t>
-
-<section anchor="initialization" title="Initialization">
-<t>Initialization segments contain track metadata but no sample data.</t>
-
-<t>Initialization segments MUST consist of a File Type Box ('ftyp') followed by a Movie Box ('moov'). This Movie Box consists of Movie Header Boxes ('mvhd'), Track Header Boxes ('tkhd'), Track Boxes ('trak'), followed by a final Movie Extends Box ('mvex'). These boxes MUST NOT contain any samples and MUST have a duration of zero.</t>
-
-<t>Note that a Common Media Application Format Header <xref target="CMAF"/> meets all these requirements.</t>
-
-</section>
-<section anchor="media" title="Media">
-<t>Media segments contain media samples for a single track.</t>
-
-<t>Media segments MUST consist of a Segment Type Box ('styp') followed by at least one media fragment. Each media fragment consists of a Movie Fragment Box ('moof') followed by a Media Data Box ('mdat'). The Media Fragment Box MUST contain a Movie Fragment Header Box ('mfhd') and Track Box ('trak') with a Track ID ('track_ID') matching a Track Box in the initialization segment.</t>
-
-<t>Note that a Common Media Application Format Segment <xref target="CMAF"/> meets all these requirements.</t>
-
-<section anchor="video" title="Video">
-<t>Media segments containing video data MUST start with an I-frame. Media fragments MAY contain a single frame, minimizing latency at the cost of a small increase in segment size. Video frames MUST be in decode order.</t>
-
-</section>
-<section anchor="audio" title="Audio">
-<t>Media fragments MAY contain a single group of audio samples, minimizing latency at the cost of a small increase in segment size.</t>
-
-</section>
-</section>
-</section>
 <section anchor="streams" title="Streams">
-<t>Warp uses unidirectional QUIC streams to transfer messages and segments over the network. The establishment of the QUIC connection is outside the scope of this document.</t>
+<t>Warp uses the QUIC stream API to transfer media.</t>
 
-<t>An endpoints MAY both send media (producer) and receive media (consumer). This is accomplished by sending messages and segments over unidirectional streams. Streams contain any number of messages and segments concatenated together.</t>
+<t>Both endpoints MAY create unidirectional QUIC streams. An endpoint SHOULD discard any data received over a bidirectional stream.</t>
 
-<section anchor="streams-messages" title="Messages">
-<t>Messages are used to control playback or carry metadata about upcoming segments.</t>
+<t>Each stream consists of byte data with an eventual final size. A stream is reliably delivered in order unless cancelled early with an error code.</t>
 
-<t>A Warp Box ('warp') is a top-level MP4 box as defined in <xref target="ISOBMFF"/>. The contents of this box is a warp message. See the messages section (<xref target="messages"/>) for the encoding and types available.</t>
+<t>The delivery of each stream is independent. The sender can prioritize their delivery (<xref target="prioritization"/>); intentionally starving streams in favor of more important streams.</t>
+
+<section anchor="establishment" title="Establishment">
+<t>A connection is established using WebTransport over HTTP/3 <xref target="WebTransport"/>. This involves establishing a HTTP/3 connection, issuing a CONNECT request to establish a WebTransport session, and exposing the underlying QUIC stream API while the session is active.</t>
+
+<t>The application is responsible for authentication based on the CONNECT request.</t>
+
+<t>The application is responsible for determining if an endpoint is a media producer, consumer, or both. A media consumer does not send segments.</t>
 
 </section>
-<section anchor="segments-1" title="Segments">
-<t>Segments are transferred over streams alongside messages. Each segment MUST be preceded by an <spanx style="verb">init</spanx> (<xref target="message-init"/>) or <spanx style="verb">media</spanx> (<xref target="message-media"/>) message, indicating the type of segment and providing additional metadata.</t>
+<section anchor="contents" title="Contents">
+<t>Each stream consists of MP4 top-level boxes <xref target="ISOBMFF"/> concatenated together.</t>
 
-<t>The media producer SHOULD send each segment as a unique stream to avoid head-of-line blocking. The media producer MAY send multiple segments over a single stream, for simplicity, when head-of-line blocking is desired.</t>
+<t><list style="symbols">
+  <t>Segments (<xref target="segments"/>) contain media samples and additional metadata. These are 'ftyp', 'moov', 'styp', 'moof', and 'mdat' boxes.</t>
+  <t>Messages (<xref target="messages"/>) control playback or carry metadata about segments. These are 'warp' boxes.</t>
+</list></t>
 
-<t>A segment is the smallest unit of delivery, as the tail of a segment can be safely delayed/dropped without decode errors. A future version of Warp will support layered coding (additional QUIC streams) to enable dropping or downscalling frames in the middle of a segment.</t>
+<t>Each 'ftyp' box MUST be preceded by a 'warp' box indicating that it is an initialization segment (<xref target="message-init"/>). Each 'styp' box MUST be preceded by a 'warp' box indicating that it is a media segment (<xref target="message-segment"/>).</t>
+
+<t>A stream MUST start with a message and MAY contain multiple messages. A stream MUST NOT contain multiple segments.</t>
 
 </section>
 <section anchor="prioritization" title="Prioritization">
 <t>Warp utilizes precedence to deliver the most important content during congestion.</t>
 
-<t>The media producer assigns a numeric presidence to each stream. This is a strict prioritzation scheme, such that any available bandwidth is allocated to streams in descending order. QUIC supports stream prioritization but does not standardize any mechanisms; see Section 2.3 in <xref target="QUIC"/>. The media producer MUST support sending priorized streams. The media producer MAY choose to delay retransmitting lower priority streams when possible within QUIC flow control limits.</t>
+<t>The media producer assigns a numeric presidence to each stream. This is a strict prioritzation scheme, such that any available bandwidth is allocated to streams in descending order. QUIC supports stream prioritization but does not standardize any mechanisms; see Section 2.3 in <xref target="QUIC"/>. The media producer MUST support sending priorized streams. The sender MAY choose to delay retransmitting lower priority streams when possible within QUIC flow control limits.</t>
 
 <t>The media consumer determines how long to wait for a given segment (buffer size) before skipping ahead. The media consumer MAY cancel a skipped segment to save bandwidth, or leave it downloading in the background (ex. to support rewind).</t>
 
@@ -169,6 +150,7 @@ appear in all capitals, as shown here.</t>
 <t>Warp is primarily designed for live content, but can switch to head-of-line blocking by changing stream prioritization. This is also useful for content that should not be skipped over, such as advertisements. To enable head-of-line blocking:</t>
 
 <t><list style="symbols">
+  <t>Audio streams SHOULD be prioritized equally with video streams.</t>
   <t>Older streams SHOULD be prioritized over newer streams.</t>
 </list></t>
 
@@ -197,12 +179,40 @@ appear in all capitals, as shown here.</t>
 
 </section>
 </section>
+<section anchor="segments" title="Segments">
+<t>The live stream is split into segments before being transferred over the network. Segments are fragmented MP4 files as defined by <xref target="ISOBMFF"/>.</t>
+
+<t>There are two types of segments: initialization and media.</t>
+
+<section anchor="initialization" title="Initialization">
+<t>Initialization segments contain track metadata but no sample data.</t>
+
+<t>Initialization segments MUST consist of a File Type Box ('ftyp') followed by a Movie Box ('moov'). This Movie Box consists of Movie Header Boxes ('mvhd'), Track Header Boxes ('tkhd'), Track Boxes ('trak'), followed by a final Movie Extends Box ('mvex'). These boxes MUST NOT contain any samples and MUST have a duration of zero.</t>
+
+<t>Note that a Common Media Application Format Header <xref target="CMAF"/> meets all these requirements.</t>
+
+</section>
+<section anchor="media" title="Media">
+<t>Media segments contain media samples for a single track.</t>
+
+<t>Media segments MUST consist of a Segment Type Box ('styp') followed by at least one media fragment. Each media fragment consists of a Movie Fragment Box ('moof') followed by a Media Data Box ('mdat'). The Media Fragment Box MUST contain a Movie Fragment Header Box ('mfhd') and Track Box ('trak') with a Track ID ('track_ID') matching a Track Box in the initialization segment.</t>
+
+<t>Note that a Common Media Application Format Segment <xref target="CMAF"/> meets all these requirements.</t>
+
+<section anchor="fragmentation" title="Fragmentation">
+<t>Media is broken into segments at configurable boundaries. Each media segment MUST start with an I-frame so it can be decoded independently of other media segments. Each media segment SHOULD contain a single group of pictures (GOP).</t>
+
+<t>Media segments are broken into media fragments at configurable boundaries. To minimize latency, each media fragment SHOULD contain a single frame.</t>
+
+</section>
+</section>
+</section>
 <section anchor="messages" title="Messages">
-<t>Warp endpoints communicate via messages contained in the top-level Warp Box (warp).</t>
+<t>Warp endpoints communicate via messages contained in a custom top-level <xref target="ISOBMFF"/> Box.</t>
 
-<t>A warp message is JSON object, where the key defines the message type and the value depends on the message type. Unknown messages MUST be ignored.</t>
+<t>This Warp Box ('warp') contains a single JSON object. Each key defines the message type and the value the contents. Unknown messages MUST be ignored.</t>
 
-<t>An endpoint MUST send messages sequentially over a single stream when ordering is required. Messages MAY be combined into a single JSON object when ordering is not required.</t>
+<t>Multiple messages with different types MAY be encoded in the same JSON object. Messages SHOULD be sent in separate boxes on the same stream when ordering is important.</t>
 
 <section anchor="message-init" title="init">
 <t>The <spanx style="verb">init</spanx> message indicates that the remainder of the stream contains an initialization segment.</t>
@@ -217,32 +227,35 @@ appear in all capitals, as shown here.</t>
 
 <t><list style="hanging">
   <t hangText="id:">
-  Incremented by 1 for each initialization segment.</t>
+  Incremented by 1 for each unique initialization segment.</t>
 </list></t>
 
 </section>
-<section anchor="message-media" title="media">
-<t>The <spanx style="verb">media</spanx> message contains metadata about the next media segment in the stream.</t>
+<section anchor="message-segment" title="media">
+<t>The <spanx style="verb">segment</spanx> message contains metadata about the next media segment in the stream.</t>
 
 <figure><artwork><![CDATA[
 {
   segment: {
     init: int,
     timestamp: int,
+    timescale: int, (optional)
   }
 }
 ]]></artwork></figure>
 
 <t><list style="hanging">
   <t hangText="init:">
-  The id of the cooresponding initialization segment. A decoder MUST block until the coorespending <spanx style="verb">init</spanx> message to arrive.</t>
+  The id of the cooresponding initialization segment. A decoder MUST block until the cooresponding initialization segment has been fully processed.</t>
   <t hangText="timestamp:">
-  The presentation timestamp in milliseconds for the first frame/sample in the next segment. This timestamp MUST be used when it does not match the timestamp in the media container.</t>
+  The presentation timestamp in <spanx style="verb">timescale</spanx> units for the first frame/sample in the next segment. This timestamp takes precedence over the timestamp in media container to support stream stitching.</t>
+  <t hangText="timescale (optional):">
+  The number of units in second. This defaults to <spanx style="verb">1000</spanx> to signify milliseconds.</t>
 </list></t>
 
 </section>
 <section anchor="message-priority" title="priority">
-<t>The <spanx style="verb">priority</spanx> message informs middleware about the intended priority of the current stream. Any middleware MAY ignore this value but SHOULD forward it.</t>
+<t>The <spanx style="verb">priority</spanx> message informs middleware about the intended priority of the current stream. Middleware MAY obey this message but SHOULD forward it.</t>
 
 <figure><artwork><![CDATA[
 {
@@ -260,6 +273,8 @@ appear in all capitals, as shown here.</t>
 </section>
 <section anchor="extensions" title="Extensions">
 <t>Custom messages MUST start with <spanx style="verb">x-</spanx>. Unicode LATIN SMALL LETTER X (U+0078) followed by HYPHEN-MINUS (U+002D).</t>
+
+<t>Custom messages MAY control playback. For example: <spanx style="verb">x-pause</spanx> could halt the transfer of segments until followed by a <spanx style="verb">x-play</spanx>.</t>
 
 <t>Custom messages SHOULD use a unique prefix to reduce collisions. For example: <spanx style="verb">x-twitch-load</spanx> would contain identification required to start playback of a Twitch stream.</t>
 
@@ -283,20 +298,52 @@ appear in all capitals, as shown here.</t>
 
     <references title='Normative References'>
 
-<reference anchor="QUIC" >
-  <front>
-    <title>QUIC: A UDP-Based Multiplexed and Secure Transport</title>
-    <author initials="J." surname="Iyengar" fullname="Jana Iyengar" role="editor">
-      <organization>Fastly</organization>
-    </author>
-    <author initials="M." surname="Thomson" fullname="Martin Thomson" role="editor">
-      <organization>Mozilla</organization>
-    </author>
-    <date year="2021" month="May"/>
-  </front>
-  <seriesInfo name="RFC" value="9000"/>
-  <seriesInfo name="DOI" value="10.17487/RFC9000"/>
+
+
+
+
+<reference anchor='QUIC' target='https://www.rfc-editor.org/info/rfc9000'>
+<front>
+<title>QUIC: A UDP-Based Multiplexed and Secure Transport</title>
+<author fullname='J. Iyengar' initials='J.' role='editor' surname='Iyengar'><organization/></author>
+<author fullname='M. Thomson' initials='M.' role='editor' surname='Thomson'><organization/></author>
+<date month='May' year='2021'/>
+<abstract><t>This document defines the core of the QUIC transport protocol.  QUIC provides applications with flow-controlled streams for structured communication, low-latency connection establishment, and network path migration. QUIC includes security measures that ensure confidentiality, integrity, and availability in a range of deployment circumstances.  Accompanying documents describe the integration of TLS for key negotiation, loss detection, and an exemplary congestion control algorithm.</t></abstract>
+</front>
+<seriesInfo name='RFC' value='9000'/>
+<seriesInfo name='DOI' value='10.17487/RFC9000'/>
 </reference>
+
+
+<reference anchor='WebTransport'>
+   <front>
+      <title>WebTransport over HTTP/3</title>
+      <author fullname='Alan Frindell'>
+	 <organization>Facebook</organization>
+      </author>
+      <author fullname='Eric Kinnear'>
+	 <organization>Apple Inc.</organization>
+      </author>
+      <author fullname='Victor Vasiliev'>
+	 <organization>Google</organization>
+      </author>
+      <date day='25' month='October' year='2021'/>
+      <abstract>
+	 <t>   WebTransport [OVERVIEW] is a protocol framework that enables clients
+   constrained by the Web security model to communicate with a remote
+   server using a secure multiplexed transport.  This document describes
+   a WebTransport protocol that is based on HTTP/3 [HTTP3] and provides
+   support for unidirectional streams, bidirectional streams and
+   datagrams, all multiplexed within the same HTTP/3 connection.
+
+	 </t>
+      </abstract>
+   </front>
+   <seriesInfo name='Internet-Draft' value='draft-ietf-webtrans-http3-02'/>
+   <format target='https://www.ietf.org/archive/id/draft-ietf-webtrans-http3-02.txt' type='TXT'/>
+</reference>
+
+
 <reference anchor="ISOBMFF" >
   <front>
     <title>Information technology — Coding of audio-visual objects — Part 12: ISO Base Media File Format</title>
@@ -369,106 +416,107 @@ appear in all capitals, as shown here.</t>
   </back>
 
 <!-- ##markdown-source:
-H4sIAB6OBGIAA61aa3IbSXL+36coUz9E7hIUqZmJmYFjI0yRlMQJgqRFaNYT
-DodY6C4AtezuwnQ1SEEMTvgQPoDP4qP4JP4ys6ofAERrHdYPEf2orHx8+awe
-DAZJbevcDNXOX3W1UAN1Y2aFKWuTqQt7b9SvNjNOjStd+oWr6p1ETyaVuR+q
-vx5/uE4yl5a6wOqs0tN6kKfLKjerwQNIDQ4Pk0zXePZ4ejw+e0pSXMxctRoq
-W05dkthFNVR1tfT168PDnw9fJ7oyeqjemdJUOk8eXHU3q9xyMVTnZWYWBv+V
-tbpZTgrrvXVlcmdWeCmj57WpSlMPTomLJPG1LrNPOncldl8Zn/hCV/Wn35eu
-Nn6oSpcs7FD9a+3SfeUhVGWmHr9WhfyAUIVeLGw5+7ck0ct67qphogaJwj9b
-gsDFgTphQfmWKOBieWe6d10106X9omtwOlTjB1unc35gCm3zoQqq+qeanxzU
-90lSuqrA+/cGu6l//nh+MuQF0T58Rx2rj6fXgzfaw0CjZV7bRW4+4zckhulA
-1HSNRevFCK8PXx8NDn/gO95U1niyguyg1Ie3IP3zIUwm16dX50N1dHhw9OP3
-P/34Ck+bZ40++N8g/A2K+eVAna9MOdNVc1+084su9cYjqGio3mpf56vmXuVI
-VpPZ2lXb9xgdqPHcFR4A6O8xgo1tufGQdxm5LzbP9fZtcPf85urN6O3bvsLP
-oSC2iCtVbdJ56XI3W6n//vf/UCcuAzyUm0IfmXWDe+uXOldu8jeT1p5fuQY7
-6uj1kGgrspcaYT+t3trcqLdMuG+fox8GR6/hFnFXwcGbNx/oz4lbaP47Ov42
-LgcDgUfBmwLOuU3lJXld7Y6uz94NjvfoTeH15yG2KQq88vVFtP8eXQFEMU7w
-22tYOxwcfpckA9DWE19XOoVbjufWk3MtaZ3KzNSWxqt6blTqANuJmet7C8pE
-nYLRvtKdXXKKRvccjeoIcLWoHLzY5QcJRy+4rZcXRYLasR8pcGB04dWE3YYU
-hU2XCChVviI7ytumTNmsB4lYCtwuKjBka/sFy0CssKUtcKFyyFmmK5UtK1qf
-unJmPCnqQIQubJblJkleqKt7U91b8yAMgqR+XhKwBj0va5tjH9HO4yMJ8fSk
-EOIoKnakhk6N0BMRaQMPq9XwFfAbtOfV7uNj/P30tKeww/lgWsFt1MRBD5ri
-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
-J/8DQWWWmWUtAAA=
+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
+wqad5nAuAAA=
 
 -->
 

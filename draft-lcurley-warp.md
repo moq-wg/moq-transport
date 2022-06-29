@@ -19,34 +19,17 @@ author:
     ins: L. Curley
     name: Luke Curley
     organization: Twitch
-    email: lcurley@twitch.tv
+    email: kixelated@gmail.com
 
 normative:
-  QUIC:
-    title: "QUIC: A UDP-Based Multiplexed and Secure Transport"
-    date: 2021-05
-    seriesinfo:
-      RFC: 9000
-      DOI: 10.17487/RFC9000
-    author:
-      -
-        ins: J. Iyengar
-        name: Jana Iyengar
-        org: Fastly
-        role: editor
-      -
-        ins: M. Thomson
-        name: Martin Thomson
-        org: Mozilla
-        role: editor
+  QUIC: RFC9000
+  WebTransport: I-D.ietf-webtrans-http3
 
   ISOBMFF:
     title: "Information technology — Coding of audio-visual objects — Part 12: ISO Base Media File Format"
     date: 2015-12
 
 informative:
-  BBR:
-  Copa:
   CMAF:
     title: "Information technology -- Multimedia application format (MPEG-A) -- Part 19: Common media application format (CMAF) for segmented media"
     date: 2020-03
@@ -60,13 +43,13 @@ Media is prioritized to minimize latency during congestion.
 --- middle
 
 # Overview
-Warp is a live video transport protocol that utilizes the {{QUIC}} network protocol.
+Warp is a live video transport protocol that utilizes the QUIC network protocol {{QUIC}}.
 
-The live stream is split into segments ({{segments}}) at I-frame boundaries. These are fragmented MP4 files as defined in {{ISOBMFF}}. Initialization segments contain track metadata while media segments contain either video or audio samples.
+QUIC streams ({{streams}}) are used to transfer segments and messages. These streams are prioritized based on the contents, such that the most important media is delivered during congestion.
 
-QUIC streams ({{streams}}) are used to transfer messages and segments between endpoints. These streams are prioritized based on the contents, such that the most important media is delivered during congestion.
+Segments ({{segments}}) are fragmented MP4 containers {{ISOBMFF}}. Initialization segments contain track metadata while media segments contain media samples.
 
-Messages ({{messages}}) are sent over streams alongside segments. These are used to carry necessary metadata and control messages.
+Messages ({{messages}}) are sent over streams alongside segments. These are used to carry necessary metadata about segments and control playback.
 
 ## Terms and Definitions
 
@@ -76,7 +59,7 @@ Commonly used terms in this document are described below.
 
 Frame:
 
-: An image to be rendered at a specific point in time.
+: An video image or group of audio samples to be rendered at a specific point in time.
 
 I-frame:
 
@@ -111,53 +94,36 @@ Congestion:
 : Packet loss and queuing caused by degraded or overloaded networks.
 
 
-# Segments
-The live stream is split into segments before being transferred over the network. Segments are fragmented MP4 files as defined by {{ISOBMFF}}.
-
-There are two types of segments: initialization and media.
-
-## Initialization
-Initialization segments contain track metadata but no sample data.
-
-Initialization segments MUST consist of a File Type Box ('ftyp') followed by a Movie Box ('moov'). This Movie Box consists of Movie Header Boxes ('mvhd'), Track Header Boxes ('tkhd'), Track Boxes ('trak'), followed by a final Movie Extends Box ('mvex'). These boxes MUST NOT contain any samples and MUST have a duration of zero.
-
-Note that a Common Media Application Format Header {{CMAF}} meets all these requirements.
-
-## Media
-Media segments contain media samples for a single track.
-
-Media segments MUST consist of a Segment Type Box ('styp') followed by at least one media fragment. Each media fragment consists of a Movie Fragment Box ('moof') followed by a Media Data Box ('mdat'). The Media Fragment Box MUST contain a Movie Fragment Header Box ('mfhd') and Track Box ('trak') with a Track ID ('track_ID') matching a Track Box in the initialization segment.
-
-Note that a Common Media Application Format Segment {{CMAF}} meets all these requirements.
-
-### Video
-Media segments containing video data MUST start with an I-frame. Media fragments MAY contain a single frame, minimizing latency at the cost of a small increase in segment size. Video frames MUST be in decode order.
-
-### Audio
-Media fragments MAY contain a single group of audio samples, minimizing latency at the cost of a small increase in segment size.
-
-
 # Streams
-Warp uses unidirectional QUIC streams to transfer messages and segments over the network. The establishment of the QUIC connection is outside the scope of this document.
+Warp uses the QUIC stream API to transfer media.
 
-An endpoints MAY both send media (producer) and receive media (consumer). This is accomplished by sending messages and segments over unidirectional streams. Streams contain any number of messages and segments concatenated together.
+Both endpoints MAY create unidirectional QUIC streams. An endpoint SHOULD discard any data received over a bidirectional stream.
 
-## Messages {#streams-messages}
-Messages are used to control playback or carry metadata about upcoming segments.
+Each stream consists of byte data with an eventual final size. A stream is reliably delivered in order unless cancelled early with an error code.
 
-A Warp Box ('warp') is a top-level MP4 box as defined in {{ISOBMFF}}. The contents of this box is a warp message. See the messages section ({{messages}}) for the encoding and types available.
+The delivery of each stream is independent. The sender can prioritize their delivery ({{prioritization}}); intentionally starving streams in favor of more important streams.
 
-## Segments
-Segments are transferred over streams alongside messages. Each segment MUST be preceded by an `init` ({{message-init}}) or `media` ({{message-media}}) message, indicating the type of segment and providing additional metadata.
+## Establishment
+A connection is established using WebTransport over HTTP/3 {{WebTransport}}. This involves establishing a HTTP/3 connection, issuing a CONNECT request to establish a WebTransport session, and exposing the underlying QUIC stream API while the session is active.
 
-The media producer SHOULD send each segment as a unique stream to avoid head-of-line blocking. The media producer MAY send multiple segments over a single stream, for simplicity, when head-of-line blocking is desired.
+The application is responsible for authentication based on the CONNECT request.
 
-A segment is the smallest unit of delivery, as the tail of a segment can be safely delayed/dropped without decode errors. A future version of Warp will support layered coding (additional QUIC streams) to enable dropping or downscalling frames in the middle of a segment.
+The application is responsible for determining if an endpoint is a media producer, consumer, or both. A media consumer does not send segments.
+
+## Contents
+Each stream consists of MP4 top-level boxes {{ISOBMFF}} concatenated together.
+
+* Segments ({{segments}}) contain media samples and additional metadata. These are 'ftyp', 'moov', 'styp', 'moof', and 'mdat' boxes.
+* Messages ({{messages}}) control playback or carry metadata about segments. These are 'warp' boxes.
+
+Each 'ftyp' box MUST be preceded by a 'warp' box indicating that it is an initialization segment ({{message-init}}). Each 'styp' box MUST be preceded by a 'warp' box indicating that it is a media segment ({{message-segment}}).
+
+A stream MUST start with a message and MAY contain multiple messages. A stream MUST NOT contain multiple segments.
 
 ## Prioritization
 Warp utilizes precedence to deliver the most important content during congestion.
 
-The media producer assigns a numeric presidence to each stream. This is a strict prioritzation scheme, such that any available bandwidth is allocated to streams in descending order. QUIC supports stream prioritization but does not standardize any mechanisms; see Section 2.3 in {{QUIC}}. The media producer MUST support sending priorized streams. The media producer MAY choose to delay retransmitting lower priority streams when possible within QUIC flow control limits.
+The media producer assigns a numeric presidence to each stream. This is a strict prioritzation scheme, such that any available bandwidth is allocated to streams in descending order. QUIC supports stream prioritization but does not standardize any mechanisms; see Section 2.3 in {{QUIC}}. The media producer MUST support sending priorized streams. The sender MAY choose to delay retransmitting lower priority streams when possible within QUIC flow control limits.
 
 The media consumer determines how long to wait for a given segment (buffer size) before skipping ahead. The media consumer MAY cancel a skipped segment to save bandwidth, or leave it downloading in the background (ex. to support rewind).
 
@@ -183,6 +149,7 @@ Recorded content has already been encoded. Media delivery is blocked exclusively
 
 Warp is primarily designed for live content, but can switch to head-of-line blocking by changing stream prioritization. This is also useful for content that should not be skipped over, such as advertisements. To enable head-of-line blocking:
 
+* Audio streams SHOULD be prioritized equally with video streams.
 * Older streams SHOULD be prioritized over newer streams.
 
 For example, this formula will prioritize older segments:
@@ -203,12 +170,37 @@ Media may go through multiple hops and processing steps on the path from the bro
 * Middleware SHOULD maintain stream prioritization when traversing networks susceptible to congestion.
 * Middleware MUST forward the `priority` message ({{message-priority}}) for downstream servers.
 
+# Segments
+The live stream is split into segments before being transferred over the network. Segments are fragmented MP4 files as defined by {{ISOBMFF}}.
+
+There are two types of segments: initialization and media.
+
+## Initialization
+Initialization segments contain track metadata but no sample data.
+
+Initialization segments MUST consist of a File Type Box ('ftyp') followed by a Movie Box ('moov'). This Movie Box consists of Movie Header Boxes ('mvhd'), Track Header Boxes ('tkhd'), Track Boxes ('trak'), followed by a final Movie Extends Box ('mvex'). These boxes MUST NOT contain any samples and MUST have a duration of zero.
+
+Note that a Common Media Application Format Header {{CMAF}} meets all these requirements.
+
+## Media
+Media segments contain media samples for a single track.
+
+Media segments MUST consist of a Segment Type Box ('styp') followed by at least one media fragment. Each media fragment consists of a Movie Fragment Box ('moof') followed by a Media Data Box ('mdat'). The Media Fragment Box MUST contain a Movie Fragment Header Box ('mfhd') and Track Box ('trak') with a Track ID ('track_ID') matching a Track Box in the initialization segment.
+
+Note that a Common Media Application Format Segment {{CMAF}} meets all these requirements.
+
+### Fragmentation
+Media is broken into segments at configurable boundaries. Each media segment MUST start with an I-frame so it can be decoded independently of other media segments. Each media segment SHOULD contain a single group of pictures (GOP).
+
+Media segments are broken into media fragments at configurable boundaries. To minimize latency, each media fragment SHOULD contain a single frame.
+
+
 # Messages
-Warp endpoints communicate via messages contained in the top-level Warp Box (warp).
+Warp endpoints communicate via messages contained in a custom top-level {{ISOBMFF}} Box.
 
-A warp message is JSON object, where the key defines the message type and the value depends on the message type. Unknown messages MUST be ignored.
+This Warp Box ('warp') contains a single JSON object. Each key defines the message type and the value the contents. Unknown messages MUST be ignored.
 
-An endpoint MUST send messages sequentially over a single stream when ordering is required. Messages MAY be combined into a single JSON object when ordering is not required.
+Multiple messages with different types MAY be encoded in the same JSON object. Messages SHOULD be sent in separate boxes on the same stream when ordering is important.
 
 ## init {#message-init}
 The `init` message indicates that the remainder of the stream contains an initialization segment.
@@ -223,32 +215,37 @@ The `init` message indicates that the remainder of the stream contains an initia
 
 id:
 
-: Incremented by 1 for each initialization segment.
+: Incremented by 1 for each unique initialization segment.
 
 
-## media {#message-media}
-The `media` message contains metadata about the next media segment in the stream.
+## media {#message-segment}
+The `segment` message contains metadata about the next media segment in the stream.
 
 ~~~
 {
   segment: {
     init: int,
     timestamp: int,
+    timescale: int, (optional)
   }
 }
 ~~~
 
 init:
 
-: The id of the cooresponding initialization segment. A decoder MUST block until the coorespending `init` message to arrive.
+: The id of the cooresponding initialization segment. A decoder MUST block until the cooresponding initialization segment has been fully processed.
 
 timestamp:
 
-: The presentation timestamp in milliseconds for the first frame/sample in the next segment. This timestamp MUST be used when it does not match the timestamp in the media container.
+: The presentation timestamp in `timescale` units for the first frame/sample in the next segment. This timestamp takes precedence over the timestamp in media container to support stream stitching.
+
+timescale (optional):
+
+: The number of units in second. This defaults to `1000` to signify milliseconds.
 
 
 ## priority {#message-priority}
-The `priority` message informs middleware about the intended priority of the current stream. Any middleware MAY ignore this value but SHOULD forward it.
+The `priority` message informs middleware about the intended priority of the current stream. Middleware MAY obey this message but SHOULD forward it.
 
 ~~~
 {
@@ -264,6 +261,8 @@ precedence:
 
 ## Extensions
 Custom messages MUST start with `x-`. Unicode LATIN SMALL LETTER X (U+0078) followed by HYPHEN-MINUS (U+002D).
+
+Custom messages MAY control playback. For example: `x-pause` could halt the transfer of segments until followed by a `x-play`.
 
 Custom messages SHOULD use a unique prefix to reduce collisions. For example: `x-twitch-load` would contain identification required to start playback of a Twitch stream.
 
