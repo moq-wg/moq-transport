@@ -13,7 +13,7 @@
 <rfc ipr="trust200902" docName="draft-lcurley-warp-00" category="info">
 
   <front>
-    <title abbrev="WARP">Warp - Segmented Live Video Transport</title>
+    <title abbrev="WARP">Warp - Segmented Live Media Transport</title>
 
     <author initials="L." surname="Curley" fullname="Luke Curley">
       <organization>Twitch</organization>
@@ -31,9 +31,9 @@
     <abstract>
 
 
-<t>This document defines the core behavior for Warp, a segmented live video transport protocol.
+<t>This document defines the core behavior for Warp, a segmented live media transport protocol.
 Warp maps live media to QUIC streams based on the underlying media encoding.
-Media is prioritized to minimize latency during congestion.</t>
+Media is prioritized to reduce latency when encountering congestion.</t>
 
 
 
@@ -46,13 +46,15 @@ Media is prioritized to minimize latency during congestion.</t>
 
 
 <section anchor="overview" title="Overview">
-<t>Warp is a live video transport protocol that utilizes the QUIC network protocol <xref target="QUIC"/>.</t>
+<t>Warp is a live media transport protocol that utilizes the QUIC network protocol <xref target="QUIC"/>.</t>
 
-<t>QUIC streams (<xref target="streams"/>) are used to transfer segments and messages. These streams are prioritized based on the contents, such that the most important media is delivered during congestion.</t>
+<t><xref target="connection"/> covers how QUIC is used to transfer media. QUIC streams are created for each segment and prioritized such that the most important media is delivered during congestion.</t>
 
-<t>Segments (<xref target="segments"/>) are fragmented MP4 containers <xref target="ISOBMFF"/>. Initialization segments contain track metadata while media segments contain media samples.</t>
+<t><xref target="segments"/> covers how media is packaged into fragmented MP4 containers. Initialization segments contain track metadata while media segments contain audio and/or video samples.</t>
 
-<t>Messages (<xref target="messages"/>) are sent over streams alongside segments. These are used to carry necessary metadata about segments and control playback.</t>
+<t><xref target="messages"/> covers how control messages are encoded. These are used sent alongside segments to carry necessary metadata and control playback.</t>
+
+<t><xref target="configuration"/> covers how to build an optimal live media stack. The application can configure Warp based on the desired user experience.</t>
 
 <section anchor="terms-and-definitions" title="Terms and Definitions">
 
@@ -65,6 +67,8 @@ appear in all capitals, as shown here.</t>
 <t>Commonly used terms in this document are described below.</t>
 
 <t><list style="hanging">
+  <t hangText="Congestion:">
+  Packet loss and queuing caused by degraded or overloaded networks.</t>
   <t hangText="Frame:">
   An video image or group of audio samples to be rendered at a specific point in time.</t>
   <t hangText="I-frame:">
@@ -75,44 +79,47 @@ appear in all capitals, as shown here.</t>
   A sequential series of audio samples starting at a given timestamp.</t>
   <t hangText="Segment:">
   A sequence of video frames and/or audio samples serialized into a container.</t>
-  <t hangText="Presentation Timestamp (PTS):">
-  A point in time when video/audio should be presented to the viewer.</t>
+  <t hangText="Media player:">
+  A component responsible for presenting frames to a viewer based on the presentation timestamp.</t>
+  <t hangText="Media encoder:">
+  A component responsible for creating a compressed media stream.</t>
   <t hangText="Media producer:">
-  An endpoint sending media over the network.</t>
+  A QUIC endpoint sending media over the network. This could be the media encoder or middleware.</t>
   <t hangText="Media consumer:">
-  An endpoint receiving media over the network.</t>
-  <t hangText="Congestion:">
-  Packet loss and queuing caused by degraded or overloaded networks.</t>
+  A QUIC endpoint receiving media over the network. This could be the media player or middleware.</t>
+  <t hangText="Middleware:">
+  A media consumer that forwards streams to one or more downstream media consumers.</t>
 </list></t>
 
 </section>
 </section>
-<section anchor="streams" title="Streams">
+<section anchor="connection" title="Connection">
 <t>Warp uses the QUIC stream API to transfer media.</t>
 
-<t>Both endpoints MAY create unidirectional QUIC streams. An endpoint SHOULD discard any data received over a bidirectional stream.</t>
-
-<t>Each stream consists of byte data with an eventual final size. A stream is reliably delivered in order unless cancelled early with an error code.</t>
-
-<t>The delivery of each stream is independent. The sender can prioritize their delivery (<xref target="prioritization"/>); intentionally starving streams in favor of more important streams.</t>
-
 <section anchor="establishment" title="Establishment">
-<t>A connection is established using WebTransport over HTTP/3 <xref target="WebTransport"/>. This involves establishing a HTTP/3 connection, issuing a CONNECT request to establish a WebTransport session, and exposing the underlying QUIC stream API while the session is active.</t>
+<t>A connection is established using WebTransport over HTTP/3 <xref target="WebTransport"/>. This involves establishing a HTTP/3 connection, issuing a CONNECT request to establish the session, and exposing the underlying QUIC stream API while the session is active.</t>
 
 <t>The application is responsible for authentication based on the CONNECT request.</t>
 
-<t>The application is responsible for determining if an endpoint is a media producer, consumer, or both. A media consumer does not send segments.</t>
+<t>The application is responsible for determining if an endpoint is a media producer, consumer, or both.</t>
 
 </section>
+<section anchor="streams" title="Streams">
+<t>Endpoints communicate over unidirectional QUIC streams. The application MAY use bidirectional QUIC streams for other purposes.</t>
+
+<t>Both endpoints can create a new stream at any time. Each stream consists of byte data with an eventual final size. A stream is reliably delivered in order unless canceled early with an error code.</t>
+
+<t>The delivery of each stream is independent. The sender MAY prioritize their delivery (<xref target="prioritization"/>); intentionally starving streams in favor of more important streams.</t>
+
 <section anchor="contents" title="Contents">
 <t>Each stream consists of MP4 top-level boxes <xref target="ISOBMFF"/> concatenated together.</t>
 
 <t><list style="symbols">
-  <t>Segments (<xref target="segments"/>) contain media samples and additional metadata. These are 'ftyp', 'moov', 'styp', 'moof', and 'mdat' boxes.</t>
-  <t>Messages (<xref target="messages"/>) control playback or carry metadata about segments. These are 'warp' boxes.</t>
+  <t>Segments (<xref target="segments"/>) contain media samples and additional metadata. These are <spanx style="verb">ftyp</spanx>, <spanx style="verb">moov</spanx>, <spanx style="verb">styp</spanx>, <spanx style="verb">moof</spanx>, and <spanx style="verb">mdat</spanx> boxes.</t>
+  <t>Messages (<xref target="messages"/>) control playback or carry metadata about segments. These are <spanx style="verb">warp</spanx> boxes.</t>
 </list></t>
 
-<t>Each 'ftyp' box MUST be preceded by a 'warp' box indicating that it is an initialization segment (<xref target="message-init"/>). Each 'styp' box MUST be preceded by a 'warp' box indicating that it is a media segment (<xref target="message-segment"/>).</t>
+<t>Each <spanx style="verb">ftyp</spanx> box MUST be preceded by a <spanx style="verb">warp</spanx> box indicating that it is an initialization segment (<xref target="message-init"/>). Each <spanx style="verb">styp</spanx> box MUST be preceded by a <spanx style="verb">warp</spanx> box indicating that it is a media segment (<xref target="message-segment"/>).</t>
 
 <t>A stream MUST start with a message and MAY contain multiple messages. A stream MUST NOT contain multiple segments.</t>
 
@@ -120,62 +127,38 @@ appear in all capitals, as shown here.</t>
 <section anchor="prioritization" title="Prioritization">
 <t>Warp utilizes precedence to deliver the most important content during congestion.</t>
 
-<t>The media producer assigns a numeric presidence to each stream. This is a strict prioritzation scheme, such that any available bandwidth is allocated to streams in descending order. QUIC supports stream prioritization but does not standardize any mechanisms; see Section 2.3 in <xref target="QUIC"/>. The media producer MUST support sending priorized streams. The sender MAY choose to delay retransmitting lower priority streams when possible within QUIC flow control limits.</t>
+<t>The media producer assigns a numeric precedence to each stream. This is a strict prioritization scheme, such that any available bandwidth is allocated to streams in descending order. QUIC supports stream prioritization but does not standardize any mechanisms; see Section 2.3 in <xref target="QUIC"/>.</t>
 
-<t>The media consumer determines how long to wait for a given segment (buffer size) before skipping ahead. The media consumer MAY cancel a skipped segment to save bandwidth, or leave it downloading in the background (ex. to support rewind).</t>
+<t>The media producer MUST support sending prioritized streams using precedence. The media producer MAY choose to delay retransmitting lower priority streams when possible within QUIC flow control limits.</t>
 
-<t>Prioritization allows a single media producer to support multiple media consumers with different latency targets. For example, one consumer could have a 1s buffer to minimize latency, while another conssumer could have a 5s buffer to improve quality, while a yet another consumer could have a 30s buffer to receive all media (ex. VOD recorder).</t>
+<t>See <xref target="configuration-prioritization"/> for suggestions on how to prioritize streams based on the contents.</t>
 
-<section anchor="live-content" title="Live Content">
-<t>Live content is encoded and delivered in real-time. Media delivery is blocked on the encoder throughput, except during congestion causing limited network throughput. To best deliver live content:</t>
-
-<t><list style="symbols">
-  <t>Audio streams SHOULD be prioritized over video streams. This allows the media consumer to skip video while audio continues uninterupted during congestion.</t>
-  <t>Newer video streams SHOULD be prioritized over older video streams. This allows the media consumer to skip older video content during congestion.</t>
-</list></t>
-
-<t>For example, this formula will prioritze audio segments, but only up to 3s in the future:</t>
-
-<figure><artwork><![CDATA[
-  if is_audio:
-    precedence = timestamp + 3s
-  else:
-    precedence = timestamp
-]]></artwork></figure>
-
-</section>
-<section anchor="recorded-content" title="Recorded Content">
-<t>Recorded content has already been encoded. Media delivery is blocked exclusively on network throughput.</t>
-
-<t>Warp is primarily designed for live content, but can switch to head-of-line blocking by changing stream prioritization. This is also useful for content that should not be skipped over, such as advertisements. To enable head-of-line blocking:</t>
-
-<t><list style="symbols">
-  <t>Audio streams SHOULD be prioritized equally with video streams.</t>
-  <t>Older streams SHOULD be prioritized over newer streams.</t>
-</list></t>
-
-<t>For example, this formula will prioritize older segments:</t>
-
-<figure><artwork><![CDATA[
-  precedence = -timestamp
-]]></artwork></figure>
-
-</section>
 </section>
 <section anchor="cancellation" title="Cancellation">
 <t>During congestion, prioritization intentionally cause stream starvation for the lowest priority streams. Some form of starvation will last until the network fully recovers, which may be indefinite.</t>
 
-<t>The media consumer SHOULD cancel a stream (via a QUIC <spanx style="verb">STOP_SENDING</spanx> frame) after it has been skipped to save bandwidth. The media producer SHOULD reset the lowest priority stream (via QUIC <spanx style="verb">RESET_STREAM</spanx> frame) when nearing resource limits. Both of these actions will effectively drop the tail of the segment.</t>
+<t>The media consumer SHOULD cancel a stream (via a QUIC <spanx style="verb">STOP_SENDING</spanx> frame) with application error code 0 when the segment is no longer desired. This can happen when the consumer decides to skip the remainder of a segment after some duration has elapsed. The media producer MUST NOT treat this as a fatal error.</t>
 
+<t>The media producer SHOULD cancel the lowest priority stream (via QUIC <spanx style="verb">RESET_STREAM</spanx> frame) with application error code 0 when nearing resource limits. This can happen after sustained starvation and indicates that the consumer must skip over the remainer of a segment. The media consumer MUST NOT treat this as a fatal error.</t>
+
+<t>Both of these actions will effectively drop the tail of the segment. The segment fragment size SHOULD be small to reduce data loss, ideally one fragment per frame.</t>
+
+</section>
 </section>
 <section anchor="middleware" title="Middleware">
 <t>Media may go through multiple hops and processing steps on the path from the broadcaster to player. The full effectiveness of warp as an end-to-end protocol depends on middleware support.</t>
 
 <t><list style="symbols">
-  <t>Middleware MUST maintain stream idependence to avoid introducing head-of-line blocking.</t>
+  <t>Middleware SHOULD maintain stream idependence to avoid introducing head-of-line blocking.</t>
   <t>Middleware SHOULD maintain stream prioritization when traversing networks susceptible to congestion.</t>
-  <t>Middleware MUST forward the <spanx style="verb">priority</spanx> message (<xref target="message-priority"/>) for downstream servers.</t>
+  <t>Middleware MUST forward the <spanx style="verb">priority</spanx> message (<xref target="message-priority"/>) to downstream servers.</t>
 </list></t>
+
+</section>
+<section anchor="termination" title="Termination">
+<t>The QUIC connection can be terminated at any point with an error code.</t>
+
+<t>The media producer MAY terminate the QUIC connection with an error code of 0 to indicate the end of the media stream. Either endpoint MAY use any other error code to indicate a fatal error.</t>
 
 </section>
 </section>
@@ -187,7 +170,7 @@ appear in all capitals, as shown here.</t>
 <section anchor="initialization" title="Initialization">
 <t>Initialization segments contain track metadata but no sample data.</t>
 
-<t>Initialization segments MUST consist of a File Type Box ('ftyp') followed by a Movie Box ('moov'). This Movie Box consists of Movie Header Boxes ('mvhd'), Track Header Boxes ('tkhd'), Track Boxes ('trak'), followed by a final Movie Extends Box ('mvex'). These boxes MUST NOT contain any samples and MUST have a duration of zero.</t>
+<t>Initialization segments MUST consist of a File Type Box (<spanx style="verb">ftyp</spanx>) followed by a Movie Box (<spanx style="verb">moov</spanx>). This Movie Box consists of Movie Header Boxes (<spanx style="verb">mvhd</spanx>), Track Header Boxes (<spanx style="verb">tkhd</spanx>), Track Boxes (<spanx style="verb">trak</spanx>), followed by a final Movie Extends Box (<spanx style="verb">mvex</spanx>). These boxes MUST NOT contain any samples and MUST have a duration of zero.</t>
 
 <t>Note that a Common Media Application Format Header <xref target="CMAF"/> meets all these requirements.</t>
 
@@ -195,14 +178,16 @@ appear in all capitals, as shown here.</t>
 <section anchor="media" title="Media">
 <t>Media segments contain media samples for a single track.</t>
 
-<t>Media segments MUST consist of a Segment Type Box ('styp') followed by at least one media fragment. Each media fragment consists of a Movie Fragment Box ('moof') followed by a Media Data Box ('mdat'). The Media Fragment Box MUST contain a Movie Fragment Header Box ('mfhd') and Track Box ('trak') with a Track ID ('track_ID') matching a Track Box in the initialization segment.</t>
+<t>Media segments MUST consist of a Segment Type Box (<spanx style="verb">styp</spanx>) followed by at least one media fragment. Each media fragment consists of a Movie Fragment Box (<spanx style="verb">moof</spanx>) followed by a Media Data Box (<spanx style="verb">mdat</spanx>). The Media Fragment Box MUST contain a Movie Fragment Header Box (<spanx style="verb">mfhd</spanx>) and Track Box (<spanx style="verb">trak</spanx>) with a Track ID (<spanx style="verb">track_ID</spanx>) matching a Track Box in the initialization segment.</t>
 
 <t>Note that a Common Media Application Format Segment <xref target="CMAF"/> meets all these requirements.</t>
 
-<section anchor="fragmentation" title="Fragmentation">
+<section anchor="segmentation" title="Segmentation">
 <t>Media is broken into segments at configurable boundaries. Each media segment MUST start with an I-frame so it can be decoded independently of other media segments. Each media segment SHOULD contain a single group of pictures (GOP).</t>
 
-<t>Media segments are broken into media fragments at configurable boundaries. To minimize latency, each media fragment SHOULD contain a single frame.</t>
+</section>
+<section anchor="fragmentation" title="Fragmentation">
+<t>Media segments are further broken into media fragments at configurable boundaries. See <xref target="configuration-fragmentation"/> for advice on when to fragment.</t>
 
 </section>
 </section>
@@ -210,7 +195,7 @@ appear in all capitals, as shown here.</t>
 <section anchor="messages" title="Messages">
 <t>Warp endpoints communicate via messages contained in a custom top-level <xref target="ISOBMFF"/> Box.</t>
 
-<t>This Warp Box ('warp') contains a single JSON object. Each key defines the message type and the value the contents. Unknown messages MUST be ignored.</t>
+<t>This Warp Box (<spanx style="verb">warp</spanx>) contains a single JSON object. Each key defines the message type and the value the contents. Unknown messages MUST be ignored.</t>
 
 <t>Multiple messages with different types MAY be encoded in the same JSON object. Messages SHOULD be sent in separate boxes on the same stream when ordering is important.</t>
 
@@ -255,7 +240,7 @@ appear in all capitals, as shown here.</t>
 
 </section>
 <section anchor="message-priority" title="priority">
-<t>The <spanx style="verb">priority</spanx> message informs middleware about the intended priority of the current stream. Middleware MAY obey this message but SHOULD forward it.</t>
+<t>The <spanx style="verb">priority</spanx> message informs middleware about the intended priority of the current stream. Middleware MUST foward this message but it is OPTIONAL to obey it.</t>
 
 <figure><artwork><![CDATA[
 {
@@ -274,16 +259,147 @@ appear in all capitals, as shown here.</t>
 <section anchor="extensions" title="Extensions">
 <t>Custom messages MUST start with <spanx style="verb">x-</spanx>. Unicode LATIN SMALL LETTER X (U+0078) followed by HYPHEN-MINUS (U+002D).</t>
 
-<t>Custom messages MAY control playback. For example: <spanx style="verb">x-pause</spanx> could halt the transfer of segments until followed by a <spanx style="verb">x-play</spanx>.</t>
+<t>Custom messages could control playback. For example: <spanx style="verb">x-pause</spanx> could halt the transfer of segments until followed by a <spanx style="verb">x-play</spanx>.</t>
 
 <t>Custom messages SHOULD use a unique prefix to reduce collisions. For example: <spanx style="verb">x-twitch-load</spanx> would contain identification required to start playback of a Twitch stream.</t>
 
 </section>
 </section>
+<section anchor="configuration" title="Configuration">
+<t>Achieving both a high quality and low latency broadcast is difficult. Warp is a generic media transport and it is ultimately up to the application to choose the desired user experience.</t>
+
+<section anchor="playback-buffer" title="Playback Buffer">
+<t>It is RECOMMENDED that a media player use a playback buffer to ensure smooth playback at the cost of higher latency. The buffer SHOULD be at last large enough to synchronize audio/video and to account for network/encoding jitter.</t>
+
+<t>The size of the playback buffer MAY be increased by temporarily pausing playback or reducing playback speed. The playback buffer MAY be fragmented such that unreceived media can be skipped.</t>
+
+<t>A larger playback buffer gives the application more time to recover from starvation without user impact. A media player MAY increase the size of the playback buffer when future starvation events are anticipated.</t>
+
+<t>Middleware SHOULD NOT use a buffer, as it will increase latency for each hop.</t>
+
+</section>
+<section anchor="congestion-control" title="Congestion Control">
+<t>Warp uses the underlying QUIC congestion control <xref target="QUIC-RECOVERY"></xref>. The default congestion control algorithm <xref target="NewReno"/> will work in many situations but can be improved.</t>
+
+<t>This section outlines how a live media congestion control algorithm should perform, but does not recommend a specific algorithm.</t>
+
+<section anchor="transmission-delays" title="Transmission Delays">
+<t>Live media is generated in real-time and played back at a constant rate. Transmission delays cause frame delays, necessitating a larger playback buffer. Additionally, the effectiveness of prioritizing streams is reduced by high transmission delays.</t>
+
+<t>A live media congestion control algorithm SHOULD aim to minimize delay, possibly at the expense of throughput.</t>
+
+<t>The default QUIC congestion controller is loss-based and suffers from bufferbloat. Large queues on intermediate routers cause high transmission delays prior to any packet loss.</t>
+
+<section anchor="application-limited" title="Application Limited">
+<t>Live media is often application-limited, as the encoder limits the amount of data available to be sent. This occurs more frequently with a smaller fragment duration, as individual frames might not be large enough to saturate the congestion window.</t>
+
+<t>A live media congestion control algorithm SHOULD have some way of determining the network capabilities even when application-limited. Alternatively, the media producer CAN pad the network with QUIC PING frames to avoid being application limited at the expense of higher bandwidth usage.</t>
+
+<t>The default QUIC congestion controller does not increase the congestion window when application-limited. See section 7.8 of <xref target="QUIC-RECOVERY"/>.</t>
+
+</section>
+</section>
+<section anchor="constant-delivery" title="Constant Delivery">
+<t>Live media generates frames at regular intervals. Delaying the delivery of a frame relative to others necessitates a larger playback buffer</t>
+
+<t>A live media congestion control algorithm SHOULD NOT introduce artificial starvation.</t>
+
+<t>A counter-example is BBR <xref target="BBR"/>, as the <spanx style="verb">PROBE_RTT</spanx> state effectively prohibits sending packets for a short period of time for the sake of remeasuring <spanx style="verb">min_rtt</spanx>. The impact is reduced in future versions of BBR.</t>
+
+</section>
+</section>
+<section anchor="configuration-prioritization" title="Prioritization">
+<t>Media segments might be delivered out of order during starvation.</t>
+
+<t>The media player determines how long to wait for a given segment (buffer size) before skipping ahead. The media consumer MAY cancel a skipped segment to save bandwidth, or leave it downloading in the background (ex. to support rewind).</t>
+
+<t>Prioritization allows a single media producer to support multiple media consumers with different latency targets. For example, one consumer could have a 1s buffer to minimize latency, while another consumer could have a 5s buffer to improve quality, while a yet another consumer could have a 30s buffer to receive all media (ex. VOD recorder).</t>
+
+<section anchor="live-content" title="Live Content">
+<t>Live content is encoded and delivered in real-time. Media delivery is blocked on the encoder throughput, except during congestion causing limited network throughput. To best deliver live content:</t>
+
+<t><list style="symbols">
+  <t>Audio streams SHOULD be prioritized over video streams. This allows the media consumer to skip video while audio continues uninterrupted during congestion.</t>
+  <t>Newer video streams SHOULD be prioritized over older video streams. This allows the media consumer to skip older video content during congestion.</t>
+</list></t>
+
+<t>For example, this formula will prioritize audio segments, but only up to 3s in the future:</t>
+
+<figure><artwork><![CDATA[
+  if is_audio:
+    precedence = timestamp + 3s
+  else:
+    precedence = timestamp
+]]></artwork></figure>
+
+</section>
+<section anchor="recorded-content" title="Recorded Content">
+<t>Recorded content has already been encoded. Media delivery is blocked exclusively on network throughput.</t>
+
+<t>Warp is primarily designed for live content, but can switch to head-of-line blocking by changing stream prioritization. This is also useful for content that should not be skipped over, such as advertisements. To enable head-of-line blocking:</t>
+
+<t><list style="symbols">
+  <t>Audio and video streams SHOULD be equally prioritized.</t>
+  <t>Older streams SHOULD be prioritized over newer streams.</t>
+</list></t>
+
+<t>For example, this formula will prioritize older segments:</t>
+
+<figure><artwork><![CDATA[
+  precedence = -timestamp
+]]></artwork></figure>
+
+</section>
+</section>
+<section anchor="bitrate-selection" title="Bitrate Selection">
+<t>Live media is encoded in real-time and the bitrate can be adjusted on the fly. This is common in 1:1 media delivery.</t>
+
+<t>A media producer MAY reduce the media bitrate in response to starvation. This can be detected via the estimated bitrate as reported by the congestion control algorithm. A less accurate indication of starvation is when the QUIC sender is actively prioritizing streams, as it means the congestion control window is full.</t>
+
+</section>
+<section anchor="rendition-selection" title="Rendition Selection">
+<t>Live media is can be encoded into multiple renditions, such that media consumers could receive different renditions based on network conditions. This is common in 1:n media delivery.</t>
+
+<t>A media producer MAY switch between renditions at segment boundaries. Renditions SHOULD be fragmented at the same timestamps to avoid introducing gaps or redundant media.</t>
+
+<section anchor="push-versus-pull" title="Push versus Pull">
+<t>Protocols like HLS and DASH rely on the media player to determine the rendition. However, it becomes increasingly difficult to determine the network capabilities on the receiver side as media fragments become smaller and smaller. It also introduces split-brain, as the sender's congestion control may disagree with the receiver's requested rendition.</t>
+
+<t>It is RECOMMENDED that the media producer chooses the rendition based on the estimated bitrate as reported by the congestion control algorithm. Alternatively, the media producer MAY expose the estimated bitrate if the player must be in charge.</t>
+
+</section>
+</section>
+<section anchor="configuration-fragmentation" title="Fragmentation">
+<t>Segments are encoded as fragmented MP4. Each fragment is a <spanx style="verb">moof</spanx> and <spanx style="verb">mdat</spanx> pair containing data for a number of samples. Using more fragments introduces more container overhead (higher bitrate), so it's up to the application to determine the fragment frequency.</t>
+
+<t>For the highest latency: one fragment per segment. This means the entire segment must be received before any of the samples can be processed. This is optimal for content that is not intended to be decoded in real-time.</t>
+
+<t>For the lowest latency: one fragment per frame. This means that each frame can be decoded when fully received. This is optimal for real-time decoding, however it introduces the largest overhead.</t>
+
+<t>Fragments can be created with variable durations. However, the fragment duration SHOULD be relatively consistent to avoid introducing additional playback starvation. Likewise audio and video SHOULD be encoded using similar fragment durations.</t>
+
+</section>
+<section anchor="encoding" title="Encoding">
+<t>Warp is primarily a network protocol and does enforce any encoding requirements. However, encoding has a significant impact on the user experience and should be taken into account.</t>
+
+<t>B-frames MAY be used to improve compression efficiency, but they introduce jitter. This necessitates a larger playback buffer, increasing latency.</t>
+
+<t>Audio and video MAY be encoded and transmitted independently. However, audio can be encoded without delay unlike video. Media players SHOULD be prepared to receive audio before video even without congestion.</t>
+
+</section>
+</section>
 <section anchor="security-considerations" title="Security Considerations">
 
-<t>TODO</t>
+<section anchor="resource-exhaustion" title="Resource Exhaustion">
+<t>Live media requires significant bandwidth and resources. Failure to set limits will quickly cause resource exhaustion.</t>
 
+<t>Warp uses QUIC flow control to impose resource limits at the network layer. Endpoints SHOULD set flow control limits based on the anticipated media bitrate.</t>
+
+<t>The media producer prioritizes and transmits streams out of order. Streams might be starved indefinitely during congestion and SHOULD be cancelled (<xref target="cancellation"/>) after hitting some timeout or resource limit.</t>
+
+<t>The media consumer might receive streams out of order. If stream data is buffered, for example to decode segments in order, then the media consumer SHOULD cancel a stream (<xref target="cancellation"/>) after hitting some timeout or resource limit.</t>
+
+</section>
 </section>
 <section anchor="iana-considerations" title="IANA Considerations">
 
@@ -315,6 +431,20 @@ appear in all capitals, as shown here.</t>
 </reference>
 
 
+
+<reference anchor='QUIC-RECOVERY' target='https://www.rfc-editor.org/info/rfc9002'>
+<front>
+<title>QUIC Loss Detection and Congestion Control</title>
+<author fullname='J. Iyengar' initials='J.' role='editor' surname='Iyengar'><organization/></author>
+<author fullname='I. Swett' initials='I.' role='editor' surname='Swett'><organization/></author>
+<date month='May' year='2021'/>
+<abstract><t>This document describes loss detection and congestion control mechanisms for QUIC.</t></abstract>
+</front>
+<seriesInfo name='RFC' value='9002'/>
+<seriesInfo name='DOI' value='10.17487/RFC9002'/>
+</reference>
+
+
 <reference anchor='WebTransport'>
    <front>
       <title>WebTransport over HTTP/3</title>
@@ -327,7 +457,7 @@ appear in all capitals, as shown here.</t>
       <author fullname='Victor Vasiliev'>
 	 <organization>Google</organization>
       </author>
-      <date day='25' month='October' year='2021'/>
+      <date day='6' month='July' year='2022'/>
       <abstract>
 	 <t>   WebTransport [OVERVIEW] is a protocol framework that enables clients
    constrained by the Web security model to communicate with a remote
@@ -339,8 +469,8 @@ appear in all capitals, as shown here.</t>
 	 </t>
       </abstract>
    </front>
-   <seriesInfo name='Internet-Draft' value='draft-ietf-webtrans-http3-02'/>
-   <format target='https://www.ietf.org/archive/id/draft-ietf-webtrans-http3-02.txt' type='TXT'/>
+   <seriesInfo name='Internet-Draft' value='draft-ietf-webtrans-http3-03'/>
+   <format target='https://www.ietf.org/archive/id/draft-ietf-webtrans-http3-03.txt' type='TXT'/>
 </reference>
 
 
@@ -401,6 +531,69 @@ appear in all capitals, as shown here.</t>
 </reference>
 
 
+
+
+<reference anchor='NewReno' target='https://www.rfc-editor.org/info/rfc6582'>
+<front>
+<title>The NewReno Modification to TCP's Fast Recovery Algorithm</title>
+<author fullname='T. Henderson' initials='T.' surname='Henderson'><organization/></author>
+<author fullname='S. Floyd' initials='S.' surname='Floyd'><organization/></author>
+<author fullname='A. Gurtov' initials='A.' surname='Gurtov'><organization/></author>
+<author fullname='Y. Nishida' initials='Y.' surname='Nishida'><organization/></author>
+<date month='April' year='2012'/>
+<abstract><t>RFC 5681 documents the following four intertwined TCP congestion control algorithms: slow start, congestion avoidance, fast retransmit, and fast recovery.  RFC 5681 explicitly allows certain modifications of these algorithms, including modifications that use the TCP Selective Acknowledgment (SACK) option (RFC 2883), and modifications that respond to &quot;partial acknowledgments&quot; (ACKs that cover new data, but not all the data outstanding when loss was detected) in the absence of SACK.  This document describes a specific algorithm for responding to partial acknowledgments, referred to as &quot;NewReno&quot;.  This response to partial acknowledgments was first proposed by Janey Hoe.  This document obsoletes RFC 3782.  [STANDARDS-TRACK]</t></abstract>
+</front>
+<seriesInfo name='RFC' value='6582'/>
+<seriesInfo name='DOI' value='10.17487/RFC6582'/>
+</reference>
+
+
+<reference anchor='BBR'>
+   <front>
+      <title>BBR Congestion Control</title>
+      <author fullname='Neal Cardwell' initials='N.' surname='Cardwell'>
+         <organization>Google</organization>
+      </author>
+      <author fullname='Yuchung Cheng' initials='Y.' surname='Cheng'>
+         <organization>Google</organization>
+      </author>
+      <author fullname='Soheil Hassas Yeganeh' initials='S. H.' surname='Yeganeh'>
+         <organization>Google</organization>
+      </author>
+      <author fullname='Ian Swett' initials='I.' surname='Swett'>
+         <organization>Google</organization>
+      </author>
+      <author fullname='Van Jacobson' initials='V.' surname='Jacobson'>
+         <organization>Google</organization>
+      </author>
+      <date day='7' month='March' year='2022'/>
+      <abstract>
+	 <t>   This document specifies the BBR congestion control algorithm.  BBR
+   (&quot;Bottleneck Bandwidth and Round-trip propagation time&quot;) uses recent
+   measurements of a transport connection&#39;s delivery rate, round-trip
+   time, and packet loss rate to build an explicit model of the network
+   path.  BBR then uses this model to control both how fast it sends
+   data and the maximum volume of data it allows in flight in the
+   network at any time.  Relative to loss-based congestion control
+   algorithms such as Reno [RFC5681] or CUBIC [RFC8312], BBR offers
+   substantially higher throughput for bottlenecks with shallow buffers
+   or random losses, and substantially lower queueing delays for
+   bottlenecks with deep buffers (avoiding &quot;bufferbloat&quot;).  BBR can be
+   implemented in any transport protocol that supports packet-delivery
+   acknowledgment.  Thus far, open source implementations are available
+   for TCP [RFC793] and QUIC [RFC9000].  This document specifies version
+   2 of the BBR algorithm, also sometimes referred to as BBRv2 or bbr2.
+
+	 </t>
+      </abstract>
+   </front>
+   <seriesInfo name='Internet-Draft' value='draft-cardwell-iccrg-bbr-congestion-control-02'/>
+   <format target='https://www.ietf.org/archive/id/draft-cardwell-iccrg-bbr-congestion-control-02.txt' type='TXT'/>
+</reference>
+
+
+
+
     </references>
 
 
@@ -416,107 +609,164 @@ appear in all capitals, as shown here.</t>
   </back>
 
 <!-- ##markdown-source:
-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
-wqad5nAuAAA=
+H4sIAIJoymIAA61c63IbyXX+P0/RkX5YtAEupbXjXbhSFd60Yoq3kJAdl8sl
+NmYaQJuDGez0DCmYJVceIg+QZ8mj5Elybn2ZAajl2tkfKwAz3X369Ll859Ic
+j8dZa9vSTNSrP+hmrcbq1ixWpmpNoc7tg1EXprBaTRtduXXdtK8yPZs15mGi
+/nB4c50VdV7pFYwuGj1vx2XeNaXZjB9hqvHBQVboFp49nRxOT79kOXxZ1M1m
+omw1r7PMrpuJapvOte8ODr4/eJfpxuiJ+sFUptFl9lg394um7tYTdVYVZm3g
+f1WrbrvZyjpn6yq7Nxt4qcDnrWkq045PkIosc62uik+6rCtYfWNc5la6aT/9
+2NWtcRNV1dnaTtSf2jofKQebaszcwafNij/AplZ6vbbV4s9Zprt2WTeTTI0z
+Bf/ZCiY431fHtFH6iRlw3t2b9Ne6WejK/lW3QOlETR9tmy/pgVlpW07Uvf1s
+SuBI8a8L/GE/r1dZVtXNCkY8GFhP/fvHs+OJunl//P0BsJK/j29Oj69+f3rz
+R//gHTz4g5mF8wFmjE/2rWnn40cza/Hn8bJt199m8OLZ7dXRxfv3E6LDH/sZ
+HAatWleqNfmyqst6sVH/+5//pY7rApig6rnSXWHr8YN1nS5VPfuLyVtHr1wD
+Y9XbdxOcWx1p5wXmvS2Nek8Tv6LlWBTeHbz9zfjtOzh8vyrv9fji8GVkjcfq
+oitbu6JV4JRKm/NL/Lp6c3F9+sP4cA/fZOK+n8BGVit45flBuP4eflMuiD+9
+3Sf+3cH44Fv45dI83piqpkP45998h4dwdHTDvM91UzyashzbPG8WY9CWcV5X
+C+NwQfzYNnU5hoPLsjHQqGcOTikHqZ0urUPZ63B9VZi5rYxT7dKovG6Mmpml
+frBAIVKJujpSOqG2RGXlDbZeGNS6qUHI63I/I+UGqXa9F2sSKgUUGL1yagbn
+VyhkOCzagb415QYFgN82VU7ysJ/xEQO16wYIsq39KwyDyRpTdLlRKNZVvlGP
+S1PRqA71EyeKjNjn3a9sUZQmy16rqwfTPFjzyJTC3PrrWwIa4eC61pawOrOJ
+9gJmAC1HfO/pCX//8gVWfHoCAiqQXSDgyxegBtZ0alk/8lBYtHO8E1pvbhpe
+fr/PJrBTKoePyHY8DKPzpT8JBZanxxbXwUOiFUlc1a5VdoU70fDyyjOyMLhZ
+4J8qum1OPT3J7K5PdRi+1vm9XsBoWwHx80Z7qbi4/jVO1WqQpcbtg6UEsnQp
+dskT7fw7uO/8HuZtNYi8hhNENeZltt4lm4D7/QZ48GALUyunV+vSOCJ5ZZwD
+mgYki/wr/5SYSZJlin01XRqwIPgTHYQjhoIZXziYPlIAewQtazZw2DnOA58C
+ych/v8i61JsZbMgf/dwuukZvnz7MN+tsWcBgVa/BuICRS4QP3AnMgcT1bEcO
+b/tJDWlkX4EK4yyeKGwFZOTzGlQANmqAmNev1dQ0KElA7AkqusUZHdoAo8Ct
+KfRrTr26+Hg7fTXif9XlFX2+OQVhvDk9wc+3Hw7Pz8OHTN64/XD18fwkfooj
+j68uLk4vT3gw/Kp6P2WvLg7/CE+QqldX19Ozq8vD81cKxaJnmvB8kGUGxc00
+68agqGmXwY7zxs5IDtXR8fX//PfbX4P+/RNYyXdv334PTOcv37397a/hC9oH
+Xq2uyo18Bc5tMmCz0Q3OossSGL22rS7BM2unHBxYpZagK8DIjA07DGbFJabu
+pDeSNjNl/biPQ72GTbJsAr4ivzetKmvHx/JjZzpSRE1TzzYwxaLRBZ5vo1B2
+ypq+icFBoX/fIBTA2Q4r0QiQpYXBEQRlgiv1miJ8bBDcoKyAmQB5W5vczm2u
+1jUwmPYD/g7mPxvP4wqKPrNpKWqYqqrRayBO8hKIekAKA8vW8EPDY5DUHzw5
+a5u3IL9Ovfnh6npPppaFwLqVwCzePloAYEqF9gM+gjDTvBGZbc8tm5RJdw7v
+cwM0rWmR68SHBagg7x1+X61hZsGmvQnB4cA8zG0mwdukwdywJlo+byV1NIww
+M7s0NBimkekBka0BQcLOgD3wydlZacjgg8SjaUJCZUWaD90X8LhnBORVwTHJ
+Vi6iT33BiuRuiDH0Ejx2HqGIW4p7aGr0wn5O8lxwQixLQEsRPTpKMVEpMow2
+zqKB70rUE/ZYKZ0oyOyyAeGbsCQw0oGq7V6yARttH/6eRfk0ttcMX2S9VY8I
+1ghgGrxRuOC04YSAtTQZoqkCrAg/GgxHAQY4chyAAgMSMAIJyJCRh9dnO8AC
+2fdTOOdZad0S5TXDo/Xzob82/im5B+RNiuGZRR+m0+tvvgWLmT4CGMPsstVD
+XT6YZCqWDhkVlxvBeq7jh8dXl5enx1M4ElAcACJAexhOm4NNOhqDFhBcVk20
+DdDgkAMMEpLhhN5yhPb77NFSrwnPhsKNIRaqk7zR058ByS+bsDDoCcCrArV2
+jl49SCMBy1VPUUbh7EcoHjOwlHyGtyw62akMRiFdrboKVzZ8SPClACdPnAa7
+lsLEbcAA3hXlSM2eHUPUs6Vedw2wn+zpEfwSduAYdxD8hK1U5tGfBdrMasO+
+Qp0SJuUHuD3r2A3MNjCMsZ2FWZE1YGRbDOsAhqBpBgu5j8aVxxJ3SwsysklA
+KrgkACi0fzCtRFJuSngAXhs9uZ+6adB2geWQc5MZNkiJSSgkgQ6ehDnnyCcS
+0yKeRpmwTZznzdNTeCjAbu93BEsqZi9Qg06F7I9nMlA/1w/I6TkbgwjI/dnh
++ZMRIP+ZPcdNhNdtvR6XwMQSJOczKOTTk4TZhDErlJWKQoW2Xhg8Wpj8lz7L
+4nAHEdzvBXAtpl18F6qjLgorIuPBbgqY7+btZn03Unerun7Af138Pr9jjb5b
+wag7pnMfiLjwIPxNCtf3tvAzqgUD7gizZ3XXBkTeIwSTP2ERZh0Th78pgrIz
+coy5KTy0iINQEEhhyPCATFtWWlD0nbFLQvsY3wD6RfqZA//Qov3QJ11KfsLV
+sixoC61DIEZ0wMc5xH4U5XC+mMRYU3DFfE90zqP97ZcDv1k+r3uiL47KR8Sy
+V8RHYOdFY3YFoYISd0ae0+iMxVoCBnd2USFzKrSZCFN7KyV67X0Vvgy/ANJU
+fW1VLl+alRklUTKaMP2gbanRms+Ab4+2AFbiJABGc1GlVJkR2wuuIavkw/Vu
+jVv0EGC49KxLcDNlDAEvoIlBClYmX+rKupX7HTDdgLqy7363/y2umOQUdnCI
+pYBXD4irlxMQ2tn1R/ax4RvOhlKzrMEXyDnqDZhkwhwr25LIIkZv/AqbMD3l
+X8CJsGNEgQTSiTXzMgnFSwvzOELXRg3i5PHQunKOrFuIiDj00xJCJ1Z6Z0LJ
+RyPeuJLPKFl0T4ayNxoeV9+mU1TmD5YMfMjn0VrIEddusWRf3dYU1jQrik/i
+wEcLgWapYUwHq5QpQFXzDpeEU6KMwQgBD0jrCs6BQuCCA3jTE4aARiUEZw+p
+PFpXbx4wE8mncXc7vbr+dAtR+NnlD3ccUuyJAUngQ/Sm6oDPljEX2yaLgqww
+V2Ian3rw0BqM5xJD6ioOC/QVEGsWHMG4e7umhw3mqMn7YoQWU1tzgFXKIQcL
+kQ+YFyBoqddO0jc7dQFtGW675cBcoz2YgxcpeU+7tajPuOcPlVnJjLw5vT2d
+frqd3pweXvwcRlaAW1D+AEjWXYMpTNaJLf4JCzpHgWORShBaeHEjFCpIxi8w
+egWDmMUhAmI+D9icsjEMfiEbCSnCZC1745xVlGTbzOeGMDkCuabmg4ZdlPJ+
+f3l/5D6VSLDQHwlIvVthYiamfAkTYO4Ewo3CkIpitBWGr33ugZF1DOEkgkRl
+WkAktWzqbrGMDm9Zr52kVGtM9TGMM2sX4msNO5439Yq+zZpaFzloMTK4lgCS
+d4RKHJlQIWqFjSMCIEZSiDBu67HhxTh3zJCUFoshqDfthOPiTjx38EjJa3ts
+63Etu0cAnpYyECTnuJ+l0cW4no9LEAU1Axd3T0n2l8w9sJGs3Y1GM4Uz+9QU
+Cmxu1i35AUyeJi6+twyJmYTOxNA7r2x3AckkIMg/RMyIvinG1M40DxxLS64T
+Ygsy9FMfQicBMeoXBv7ymqTBwAtzyPZsNLHDUYY5YqyeLLQ9E8rAAdLuNZfG
+UQptnmQiPJw5tRSbhWjSR3RILIdtydTprENFfR0CANoJJZtjLOTAVrWcpQo5
+75mZcxWIMKpkHDAW286nhNgCj3RQDJhbiiec1JcICScRC3O2YSQP0ymA0Jyo
+84RMhjgctTNJfPQrDNnPLDggKKt8zo6sCqY9n5mDpFXCMTahVHWcAsnqCED9
+Gw479gZpzIv6wfoXKFjaEzsfH/RiPPr1Aygp8PmIQjwY97As7vZGWBcH8gcP
+2/v0Yfi10ff4a58YDrp5jdPPLVkbIe3BfGbS0JZzbLkVGaDgpUEivbAEAwBT
+Bx8Nm/iraWrg5GXdSsZY+5oo29/DxD1y1dZv6ukJa6MA/FbGtITBxbtgRgZA
+RoxHeCox6FsH3Q9oKe2j0EihRWq4RjMYuX28ItjpCbsdJ9yq0iCSQw/Ey3ol
+kMiw/2PvtL14vPcPg5zMtwWJpjlBuZW3MLzmI/Nl8HQavyE+ueFCUYhwpjmK
+EB1pkKIgQz625CdnJ/wgv/90dgIP4exySQbGoZa95e4Q+mcKhj+Fl0tGsHZs
+E0L5GNz1vakGhk63oarGIWDdYWhmMUROTs8jlK2QuwrVC1djHC/eBXAu1hjT
+PFO5iYWRfo1z50oekIYDFPFd7C6lyM79+aZbdz0D3TVEQcqMvoB+nSe7orZ5
+uqgEbbp4sFgr8TAh1ok54+2TQZxGMDtznoi0Q+XWl08oHQhYFfAtwrCQDksT
+YSCD+9LhQNOzOFP+JeS8XGTpv91eXUqbiRwFFkXTlgiPRtA/kZrgjw+67Ew/
+1lQfq/sKK4aBbJ8LsouqxhgJ7M4wF8OSVFhAiw2ePDtBdPazUKz2KuVQ0nr0
+hqxaApcN1/GcWesGGcnmvE6mEO9PZ0NZDEpeu5inYRuLGqyeXvcyXgQh7vBj
+RGk7IpFeVEfrhoSmsP+5HBss/be//S17yhS9MFFP3AtVIBho4fOX7Au9kcFP
+WJM5q3LWfzaVb2ObBEjSj91XDBHukaU/btLn2nif8i1uNdA/SE4yJvrcDtTY
+n5uvmvmdyfOwOdoobG8kbUlSuhv+lmtsV8Lf1BvsHcAExV6PJTgRMgWptwFY
+5nXNZQvKDj3DD3UodksiQIoOkgzFSyahEH1mQKw4jyGRFEl+3JUncHe9Epl2
+F7Z7h6fYupBsmdvGSfn3G0FuwmRifxJYgjzHOVt9309TBiTbWzdEwlyrpUSF
+z635/I9ll+d3hEQmpxE2V3WrGYs/b4A0Emb2iRIwMBpsASVD7t4eHBzc0Wpg
+Kex8AxFgWVp+34mkhlREFNYQE7G0bsdP3Pnm0oAyyitludC6hJm9uHQNmSIf
+iWwHbRKzWRdWQjDNiWzfzEFV0BmYUpvqtF/Li348kiDsQZqTZ9LngCRjzomM
+72grk/5cPjcaxxendbmwiiDZUbfMMXucvmVPoMDd5/EdOgBL4dj54fTsUt1e
+HJ6fq/PT6fT0Rv2HevPxVwcHv/2uj+w+/PH6w+nl+OLs8uMtv/HuBN35cD0u
+WW81GyFOUuYzKcIEiVhjsvJOXl/qko86VI2T4EpUuw8zcQaY+24HBcJECkG9
+aYUTmtvPSW4mr1FukWPbpLXUlzrGVpY79Rj2g/jGIkTCNhS2BQLq5JCQx7E6
+hLCZO1yjWeUaesQk2SGoqKE6HFZYYcTSLpbqxw4MFog5unBMSvvewZDJoe44
+8MQ2B83cV7E7cIF9wjbfahCkPBwNoz5RmA/bg9ZUqB8UZDEVIpn1n+rXuvab
+PeoQFWRntELSPuXRc691gQ8mMGpGY6lIUjlsGnMQVwAvwgshZ8gRD3II3hee
+cFwhcyTq03LeutTNAtEJJdDwkDZVvmzqikoa2AnzDffIEFiCf3LqyyQjLpmD
+b3yHp/qLbVvj87KU+hMzNNyKYCKL/l5Ln1RrELIAOkVno6XGkVQSSSx7P7q1
+8enjZxZIshixVNRV3FsSOmEE6mOSdU3+7ZC50mxNi61FbkseqBiMHoS1h/L9
+nFzsVQraJZprEhNAZzonP907d6Ta84TRxld4SJBv3rUkEHEdqstziKCxOcKu
+0Ub2+l9U7O8TUeMpqVHOtpz4DXR41QpYbFmvWbhjKxyVvMGaDZpeht0fMYEY
+zN+feu3pf+bTFIe6631dLtDpLFcQJ0g7NbYEIsVUdEHPT9kN23aa89joz+SI
+ge8NnE7hgwonGT44mJJiBKxJ9TqIv0qCW5LpA5VH3zzq1wZREFYrzAkmrXlh
+rIR5U67Hcf/LCRbpXHYeVwcSyV6Rm7NoTXU5Jkmj5DZKDeiOmADO+1NtFgfs
+9yenCqCTChgHuvzTSNphbetbxXYLP0hraCUoNyPOeA4T4yGz3GuccOJTSM/J
+frfbpLHevZDzIsHaYuSosGdnhapCM4188XLjDSNa5cqJJlGpYN35niAva88I
+aIna6qhGMeayJHLeEUccKzmzBzC2Bo0+J3OKXaAcqFGrK20IwjdYusVhfAjP
+MYKZSMYWk9mxwZRl5nUvuXKOFSdTDISmnrdYdYrvjUt+j1Scc9UcH3DFik3a
+iiw7NmdSNBTQFzebugjG6xxwpWO7N2+4PzP073CRhws3HEn4jCLbF4Bm4FGo
+c4ibIFfAh5ZUZma23ZFuu8Yn2JPjeYR5qB/3Z8sMpTmpGvmoN9yKGtu+0vpt
+rtd6ZgFmYM8pmlU2uTu4CqpR4lUizYWyUdqM6MsMx4eXcJZFbwViGAne9dnl
+D2lTKFV7OGmfehpZb4dci8+PQLlDqPdyGQ9mq+d/thj+FRZgQsnb09/uf4dE
+cb9DsO5UJ5AGKbZTJ9KQlYqvN3gutOWiLV10JXV2A5shYgBISsbSH1naIKbF
+ujV4TwqnxeAFU2UuMXTGPWvn/g6RQkfqS3NYAyH8Sw3LwS+TpMqVlrFAadTU
+o6MbYBP8/8uXoJt31zdXR6efbqbTO5yhNb0qLEjU0s5QaUOPCJmIkB1f0n0X
+gKE1Zw0sty5IzuiexAXTLNpx98QdyP6npm3v2PkyNkmNtg04gyqE1L4xR8oF
+4/ariU+vv9oKMsxlsvbPTNImiDAJM6zUKijtRT1OJlU8Bk5ehcWDYzsDHvuj
+tq1whZvCQ0eWYCjEV3u+Rkb4jzQOS6u76+nYVBNaMhgvhknJWj0kwSr1hZYG
+f7MtlTkxYOKUC9ed4eAwDQwe5Y35vJ/mKBqDCofh44C9GPY+JjnPgZlJpkh6
+xXqdysM0pQd4LapD24/2RlQNCfv3sSgVit66JDIJLlhmG0l/r644Ub57it+k
+Uwg487FdmEFtTPsT83x7kE4k8J5KC7x34u7vr04IlKFY+TQ72R3p12Qj5Nva
+sN1aUrbo8XtNrAGG7Uu5I9gfrE5gsi22L3lHG4HHCJiLZfXtzjkCBtSZJXbe
+O4oEtagpemPXhta8MqF6gr0Fh3x/QcBXjPjSVjIKUeTyVew7lma5R5c4sNgf
+L50+PErOhpbCxW2FgKeryEI33brdfSftl3gHcrj012isy+LvpjQd+7VuxZ68
+UyoM4Tw4HI4rkgY1uRoitosBP98jokTBt85rNtvLCSfLFHaTW/eJRk8GuTL1
+L0ne8lcwBTw3pTNfe49zaii/NyzPRZDh8IPfMKZxdQmMKzaczg235p4XXZDP
+EgSR3E1d7ZLCLNy3BO6sOGjHRMiiksuNqVSOQgjmONsDrNrZvYLhATZQLmL0
+MOhVSVpDS1djpDnvSr7qIvulEF8CM8GU3lCjQEnPKDKlgK+tdca3ImN6hfDu
+TtoS1UJ78JwAG7Re5KWDIKPUX5EovkDeK1KP2E/+ctlkaQ/9Fl70ehI03hIh
+dWRbwte3ppSLK/1QIqlb9aNPcmAyWMJrXfylc220ffNyEw8s5/owzPN28lbm
+98JH6GhHX46kIqOO+wWJGrq9YXxm8SEVkFC9bWFTpqAKJFljx7m9IsykEeeg
+v5QsVB/1bkE+zNnQ3QWNMRCTUnh43u8NtS72TXJnMV9NCNdcUjFJ4mWfhgGE
+VrnnCBI4jvLQlSUDsRvEg/TWc4cpbIlnip7bw4TGD3dpY/UQPLDf9S42oog4
+Orbvhkiq9s92i0P1QnEQ8zGDadGSJUvqUC/qFblv4htR55KkoMRRVEkNqpFE
+YGm/3QJvwUseEhbw17B9T33nlgSPOwefyxJgGzcD4s15wNwfzm/52u7h7QcM
+TTZeR3o4ljq1BcpK8VU2sK8+1I+GDJhFowbsM84Ha4gENzHdvT3NzpBWCJCj
+RDBckDoMuwh4sRDWU/6DP++rs5YNcYh+pAttPGu0rUJEw5L/C7dLkrGHs7AQ
+rTaGu817VP3C+Ttcpki4kT2XSd8ReXOu3vX52e8x//8wCz+ZAUAJpstx5pk1
+bUz0+sZfSpKjT2wWUlHoNYZsBVv9Do6s19IX4KwbdPdJr0TI11CdhHuX0vs/
+a20bX+ZBhaAsEUdXsULqr/KrjwRkJUXkRSkRE3oSy7Po/NDvqjc+k8FM2Rtx
+Pw7IwbPFmL6sh21IZirfiBvFhzS5CzHPZLvduF92jjYYq1pN7HD2pxNKCRJE
+Ukvn3FsValoToxsL6MEG+j8asIVfrM/FSFmXM3CxFymJQOLepM/9+a1xJ3V/
+Y7CYkcNfmWHTk5QY5BoD7XM38REZ0FA4+REG4mivFLek+mMnQlGaXRvOnK/A
++8Y/JsH/oQwyCA9gzgmZ+UyiS8xh78xD82I09z4PhNc/uGNPgvVtE5/clYtF
+pgRanIMlf7TOxL9hITgwwX+iZBzHOYjjMG+1RZ+0Pp5K5WwHmtbbf5KE4lDM
+0xnsBchZ2ELxrdc+F9kTnlMgIF0JoDxV6zM9/g+39OuXbOeX4Xq1Dl1mUgLE
+ewNjSdFJuc3/GRQfyfs751SXQudkOTUw47aFTZI0k9IhS9eL8nSjxPuFWicA
+h8HRDNqvCLn6S1DDvr6EbRLZ9vGSr+HxbaquIs9Oy/hoim13H+Fj85b/QzeS
+mKDJxWIwmZxflvl70Sl2QQLUxGo35k3hbREhwXxy9eT081J3boj5RChc79xj
+khi54S+vYOJH27Ljv9LhsObAtQEKNGCa/D7coAoXXkxY1YeEVPzbvi3GUlGn
+Y2V63fYgity9iJenhZVI0I77Z30/nlQ8+wHD7tb/GD25nmDE6/9pKnLf3+yO
+OUsyDiJFfJsLcdhWWgfnjhLBCUS89vzm6SlPrrPhfQi+KbSUG3pUpkC7SnQ0
+A97tvjnGxHlR272Rs7kPr8mJW589wwLRPEac7FypDSbka/0dbjK8KYT9yatr
+//BmX6uzw8vDLS3o/wEsNHNVzW/KTSZsK6E/G4XWQzpM2saCFaoblz1NGL2Y
+4l9ezQHMmldf+IYOoC6gf7qsm2rWNYtl9n+U2HvW9k4AAA==
 
 -->
 
