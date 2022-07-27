@@ -337,20 +337,20 @@ For example, this formula will prioritize older segments:
   precedence = -timestamp
 ~~~
 
-## Bitrate Selection
+## Bitrate Adjustment
+The media producer SHOULD reduce the media bitrate in response to prolonged congestion. This can be done by adjusting the encoding bitrate and/or producing multiple renditions.
+
+### Dynamic Bitrate
 Live media is encoded in real-time and the bitrate can be adjusted on the fly. This is common in 1:1 media delivery.
 
 A media producer MAY reduce the media bitrate in response to starvation. This can be detected via the estimated bitrate as reported by the congestion control algorithm. A less accurate indication of starvation is when the QUIC sender is actively prioritizing streams, as it means the congestion control window is full.
 
-## Rendition Selection
+### Rendition Selection
 Live media is can be encoded into multiple renditions, such that media consumers could receive different renditions based on network conditions. This is common in 1:n media delivery.
 
-A media producer MAY switch between renditions at segment boundaries. Renditions SHOULD be fragmented at the same timestamps to avoid introducing gaps or redundant media.
+A media producer MAY switch between renditions at segment boundaries. The media producer MAY choose the rendition based on underlying network conditions and/or feedback from the media consumer via a custom message.
 
-### Push versus Pull
-Protocols like HLS and DASH rely on the media player to determine the rendition. However, it becomes increasingly difficult to determine the network capabilities on the receiver side as media fragments become smaller and smaller. It also introduces split-brain, as the sender's congestion control may disagree with the receiver's requested rendition.
-
-It is RECOMMENDED that the media producer chooses the rendition based on the estimated bitrate as reported by the congestion control algorithm. Alternatively, the media producer MAY expose the estimated bitrate if the player must be in charge.
+It is RECOMMENDED that rendition segments are aligned to avoid introducing gaps or overlapping media. A media decoder MUST be prepared to receive unaligned segments, skipping over excess or missing media.
 
 ## Fragmentation {#configuration-fragmentation}
 Segments are encoded as fragmented MP4. Each fragment is a `moof` and `mdat` pair containing data for a number of samples. Using more fragments introduces more container overhead (higher bitrate), so it's up to the application to determine the fragment frequency.
