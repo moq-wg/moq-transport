@@ -112,11 +112,11 @@ This draft relies on QUIC streams to deliver media layers in priority order duri
 The media protocol ecosystem is fragmented; each protocol has it's own niche.
 Specialization is often a good thing, but we believe there's enough overlap to warrant consolidation.
 
-For example, a service might similtaniously ingest via WebRTC, SRT, RTMP, and/or a custom UDP protocol depending on the broadcaster.
-The same service might then similtaniously distribute via WebRTC, LL-HLS, HLS, (or the DASH variants) and/or a custom UDP protocol depending on the viewer.
+For example, a service might simultaneously ingest via WebRTC, SRT, RTMP, and/or a custom UDP protocol depending on the broadcaster.
+The same service might then simultaneously distribute via WebRTC, LL-HLS, HLS, (or the DASH variants) and/or a custom UDP protocol depending on the viewer.
 
-These media protocols are radically different and not interopable; requiring transcoding or transmuxing.
-This cost is further increased by the need to maintain seperate stacks with different expertise requirements.
+These media protocols are radically different and not interoperable; requiring transcoding or transmuxing.
+This cost is further increased by the need to maintain separate stacks with different expertise requirements.
 
 A goal of this draft is to cover a large spectrum of use-cases. Specifically:
 
@@ -194,6 +194,9 @@ TODO Indicates the layer should be dropped after some amount of time (ex. `RESET
 
 * `timestamp`.
 TODO The presentation timestamp of the earliest (not always first) frame in the layer. What does an intermediary need this for?
+
+
+TODO example priorities
 
 
 ## Tracks
@@ -388,10 +391,10 @@ TODO How do we do this?
 ### Encoding
 Audio is dramatically simpler than video as it is not delta encoded.
 Audio samples are grouped together (group of samples) at a configured rate, also called a "frame".
-Frames do not depend on other frames and have a timestamp for sychronization.
+Frames do not depend on other frames and have a timestamp for synchronization.
 
-In the below diagrams, each audio frame is denonated with an S.
-The encoder spits out a continous stream of samples:
+In the below diagrams, each audio frame is denoted with an S.
+The encoder spits out a continuous stream of samples:
 
 ~~~
 S S S S S S S S S S S S S
@@ -441,39 +444,51 @@ It is RECOMMENDED to create a new audio layer at each video I-frame.
 This is effectively how HLS/DASH segments work, with the exception that the most recent layers are still pending.
 
 ## Synchronization
-Different layers and tracks can use their layering scheme.
-Even with the same scheme, timestamps will not always line up, especially since audio and video use different frame rates.
+The decoder MUST synchronize layers using presentation timestamps within the bitstream.
 
-A decoder MUST support sychronized playback of non-aligned layers.
-
+Layers are NOT REQUIRED to be aligned within or between tracks.
+For example, a low quality rendition may have more frequent I-frames, and thus layers, than a higher quality rendition.
+A decoder MUST be prepared to skip over any gaps between layers.
 
 # QUIC
 
 ## Establishment
-A connection is established using WebTransport over HTTP/3 {{WebTransport}}.
-To summarize, this involves establishing a HTTP/3 connection, issuing a CONNECT request to establish the session, and exposing the underlying QUIC stream API while the session is active.
+A connection is established using WebTransport ({{WebTransport}}).
 
-TODO Do we support native QUIC?
+To summarize:
+The client issues a HTTP CONNECT request with the intention of establishing a new WebTransport session.
+The server returns an 200 OK response if the WebTransport session has been established, or an error status otherwise.
+A WebTransport session mimics the QUIC API: either endpoint may create independent streams which are reliably delivered in order until canceled.
 
-The application is responsible for authentication based on the CONNECT request.
-TODO Perform authentication in the protocol instead?
+WebTransport can currently operate via HTTP/3 and HTTP/2, using QUIC or TCP under the hood respectively.
+As mentioned in the motivation ({{motivation}}) section, TCP introduces head-of-line blocking and will result in a worse experience.
+It is RECOMMENDED to use WebTransport over HTTP/3.
 
-The application is responsible for determining if an endpoint is a media producer, consumer, or both.
-TODO negotiate version?
+The application SHOULD use the CONNECT request for authentication and negotiation.
+For example, including a authentication token and some identifier in the path.
+The application MAY use QUIC streams for more complicated behavior.
+
+TODO define auth inside the protocol?
 
 ## Streams
-Endpoints communicate over unidirectional QUIC streams.
+Warp endpoints communicate over unidirectional QUIC streams.
 The application MAY use bidirectional QUIC streams for other purposes.
 
-TODO Each stream consists of a message. Ideally multiple messages, so control messages can arrive in order (ex. PAUSE then PLAY will not race).
+A stream consists of sequential messages.
+See messages ({{messages}}) for the list of messages and their encoding.
+These are similar to QUIC and HTTP/3 frames, but called messages to avoid the media terminology.
 
-Each layer is delivered over a separate QUIC stream, ensuring reliable and ordered delivery of the layer.
-TODO elaborate more on layers, since it's the most important concept for prioritization/reliability
+Each stream MUST start with a `HEADERS` message. TODO better name.
+This message includes information on how intermediaries should proxy or cache the stream.
+If a stream is used to transmit a layer, the header MUST match the layer properties ({{properties}}).
+
+Messages SHOULD be sent over the same stream if ordering is desired.
+For example, `PAUSE` and `PLAY` messages SHOULD be sent on the same stream to avoid a race.
 
 ## Prioritization
 Warp utilizes stream prioritization to deliver the most important content during congestion.
 
-The media producer assigns a numeric order to each stream.
+The media producer SHOULD assign a numeric order to each stream, as contained in the HEADERS message ({{headers}}).
 This is a strict prioritization scheme, such that any available bandwidth is allocated to streams in ascending order.
 The order is determined at encode, written to the wire so it can be read by intermediaries, and will not be updated.
 This effectively creates a priority queue that can be maintained over multiple hops.
@@ -481,40 +496,106 @@ This effectively creates a priority queue that can be maintained over multiple h
 QUIC supports stream prioritization but does not standardize any mechanisms; see Section 2.3 in {{QUIC}}.
 QUIC libraries will need to expose a API to the application to set the priority of each stream.
 
-The media sender SHOULD support prioritized streams, although it is OPTIONAL on a path with no expected congestion.
-The media sender SHOULD use strict ordering, although relative weights MAY be acceptable if there are no other options.
-The media sender MUST obey the order as written to the wire.
-The media sender MAY choose to delay retransmitting lower priority streams when possible within QUIC flow control limits.
+Senders SHOULD support prioritized streams, although it is OPTIONAL on a path with no expected congestion.
+Senders SHOULD use strict ordering, although relative weights MAY be acceptable if there are no other options.
+Senders MUST obey the order as written to the wire.
+Senders MAY choose to delay retransmitting lower priority streams when possible within QUIC flow control limits.
 
-TODO examples priorities in the layer section
+## Cancellation
+QUIC streams can be canceled by either endpoint with an error code.
 
-## Reliability
-QUIC streams containing layers SHOULD be canceled based on the layer properties.
-The sender SHOULD cancel layers based on the `expires` property.
+When using `order`, lower priority streams will be starved during congestion, perhaps indefinitely.
+These streams will consume resources and flow control until they are canceled.
+When nearing resource limits, an endpoint SHOULD cancel the lowest priority stream with error code 0.
 
-When using the `order` property, incomplete streams can be starved indefinitely.
-Either endpoint SHOULD cancel the lowest priority stream when nearing resource limits.
-The sender can do this by sending a `RESET_STREAM` frame with error code 0.
-The receiver can do this by sending a `STOP_SENDING` frame with error code 0.
+When using `expires`, a stream SHOULD be canceled after the duration has elapsed.
+This is not a full replacement for prioritization, but can provide some congestion response by clearing parts of the queue.
 
+## Congestion Control
+As covered in the motivation section ({{motivation}}), the ability to prioritize or cancel streams is a form of congestion response.
+It's equally important to detect congestion via congestion control, which is handled in the QUIC layer.
+
+Bufferbloat is caused by routers queueing packets for an indefinite amount of time rather than drop them.
+This latency significantly reduces the ability for the application to prioritize or drop media in response to congestion.
+Senders SHOULD use a congestion control algorithm that reduces this bufferbloat.
+It is NOT RECOMMENDED to use a loss-based algorithm (ex. Reno, CUBIC) unless the network fully supports ECN.
+
+Live media is application-limited, which means that the encoder determines the max bitrate rather than the network.
+Most TCP congestion control algorithms will only increase the congestion window if it is full, limiting the upwards mobility when application-limited.
+Senders SHOULD use a congestion control algorithm that is designed for application-limited flows (ex. GCC).
+Senders MAY periodically pad the connection with QUIC PING frames to fill the congestion window.
 
 ## Termination
 The QUIC connection can be terminated at any point with an error code.
 
-The media producer MAY terminate the QUIC connection with an error code of 0 to indicate the end of the media stream.
-An endpoint SHOULD use a non-zero error code to indicate a fatal error.
+The media producer MAY terminate the QUIC connection with an error code of 0 to indicate the clean termination of the broadcast.
+The application SHOULD use a non-zero error code to indicate a fatal error.
 
-TODO define some error codes
+|------|----------------------|
+| Code | Reason               |
+|-----:|:---------------------|
+| 0x0  | Broadcast Terminated |
+|------|----------------------|
+| 0x1  | GOAWAY {{goaway}}    |
+|------|----------------------|
 
+TODO define more error codes
 
 # Messages
-TODO document message types; "layer" is a message type
+Messages consist of a type identifier followed by contents, depending on the message type.
 
-## Layer
-Each layer is divided into two parts: a layer header and the media container
+TODO document varint identifier
+TODO more message types
 
-TODO Wire format for {{properties}}
-TODO Document container options (CMAF)
+|------|----------------------|
+| ID   | Messages             |
+|-----:|:---------------------|
+| 0x0  | HEADERS {{headers}}  |
+|------|----------------------|
+| 0x1  | LAYER {{layer}}      |
+|------|----------------------|
+| 0x2  | APP {{app}}          |
+|------|----------------------|
+| 0x10 | GOAWAY {{goaway}}    |
+|------|----------------------|
+
+
+
+## HEADERS
+The `HEADERS` message contains the information listed in layer properties ({{properties}}).
+
+TODO better name
+TODO document wire format
+TODO use QPACK?
+
+## LAYER
+A `LAYER` message consists of the layer bitstream.
+A `LAYER` message must be proceeded with a `HEADERS` message specifying the layer properties ({{properties}}).
+
+TODO document CMAF
+TODO document wire format
+TODO support multiple container formats
+
+## APP
+The `APP` message contains arbitrary contents.
+A stream containing `APP` message SHOULD be cached and forwarded by intermediaries like any other stream; based on the `HEADERS` message ({{headers}}).
+
+TODO document wire format
+
+## GOAWAY
+The `GOAWAY` message is sent by the server to force the client to reconnect.
+This is useful for server maintenance or reassignments without severing the QUIC connection.
+A server MAY use QUIC load balancing instead of a GOAWAY message.
+
+The server initiates the graceful shutdown by sending a GOAWAY message.
+The server MUST close the QUIC connection after a timeout with the GOAWAY error code ({{termination}}).
+The server MAY close the QUIC connection with a different error code if there is a fatal error before shutdown.
+The server SHOULD wait until the `GOAWAY` message and any pending streams have been fully acknowledged, plus an extra delay to ensure they have been processed.
+
+A client that receives a `GOAWAY` message should establish a new WebTransport session to the provided URL.
+This session SHOULD be made in parallel and MUST use a different QUIC connection (not pooled).
+The optimal client will be connected for two servers for a short period, potentially receiving layers from both in parallel.
+
 
 # Security Considerations
 TODO expand

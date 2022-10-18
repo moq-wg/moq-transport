@@ -4,19 +4,23 @@
 
 Independent Submission                                         L. Curley
 Internet-Draft                                                    Twitch
-Intended status: Informational                               9 July 2022
-Expires: 10 January 2023
+Intended status: Informational                                  K. Pugin
+Expires: 21 April 2023                                              Meta
+                                                           S. Nandakumar
+                                                                   Cisco
+                                                         18 October 2022
 
 
-                 Warp - Segmented Live Media Transport
-                         draft-lcurley-warp-01
+                  Warp - Layered Live Media Transport
+                       draft-lcurley-warp-latest
 
 Abstract
 
-   This document defines the core behavior for Warp, a segmented live
-   media transport protocol.  Warp maps live media to QUIC streams based
-   on the underlying media encoding.  Media is prioritized to reduce
-   latency when encountering congestion.
+   This document defines the core behavior for Warp, a layered live
+   media transport protocol.  Media is split into layers based on the
+   underlying media encoding.  Each layer is transmitted independently
+   over a QUIC stream.  QUIC streams are prioritized, allowing less
+   important layers to be starved or dropped during congestion.
 
 Status of This Memo
 
@@ -33,12 +37,26 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 10 January 2023.
+   This Internet-Draft will expire on 21 April 2023.
 
 Copyright Notice
 
    Copyright (c) 2022 IETF Trust and the persons identified as the
    document authors.  All rights reserved.
+
+
+
+
+
+
+
+
+
+
+Curley, et al.            Expires 21 April 2023                 [Page 1]
+
+Internet-Draft                    WARP                      October 2022
+
 
    This document is subject to BCP 78 and the IETF Trust's Legal
    Provisions Relating to IETF Documents (https://trustee.ietf.org/
@@ -49,85 +67,68 @@ Copyright Notice
    as described in Section 4.e of the Trust Legal Provisions and are
    provided without warranty as described in the Simplified BSD License.
 
-
-
-
-
-Curley                   Expires 10 January 2023                [Page 1]
-
-Internet-Draft                    WARP                         July 2022
-
-
 Table of Contents
 
-   1.  Overview  . . . . . . . . . . . . . . . . . . . . . . . . . .   2
+   1.  Introduction  . . . . . . . . . . . . . . . . . . . . . . . .   3
      1.1.  Terms and Definitions . . . . . . . . . . . . . . . . . .   3
-   2.  Connection  . . . . . . . . . . . . . . . . . . . . . . . . .   4
-     2.1.  Establishment . . . . . . . . . . . . . . . . . . . . . .   4
-     2.2.  Streams . . . . . . . . . . . . . . . . . . . . . . . . .   4
-       2.2.1.  Contents  . . . . . . . . . . . . . . . . . . . . . .   4
-       2.2.2.  Prioritization  . . . . . . . . . . . . . . . . . . .   5
-       2.2.3.  Cancellation  . . . . . . . . . . . . . . . . . . . .   5
-     2.3.  Middleware  . . . . . . . . . . . . . . . . . . . . . . .   6
-     2.4.  Termination . . . . . . . . . . . . . . . . . . . . . . .   6
-   3.  Segments  . . . . . . . . . . . . . . . . . . . . . . . . . .   6
-     3.1.  Initialization  . . . . . . . . . . . . . . . . . . . . .   6
-     3.2.  Media . . . . . . . . . . . . . . . . . . . . . . . . . .   7
-       3.2.1.  Segmentation  . . . . . . . . . . . . . . . . . . . .   7
-       3.2.2.  Fragmentation . . . . . . . . . . . . . . . . . . . .   7
-   4.  Messages  . . . . . . . . . . . . . . . . . . . . . . . . . .   7
-     4.1.  init  . . . . . . . . . . . . . . . . . . . . . . . . . .   7
-     4.2.  media . . . . . . . . . . . . . . . . . . . . . . . . . .   8
-     4.3.  priority  . . . . . . . . . . . . . . . . . . . . . . . .   8
-     4.4.  Extensions  . . . . . . . . . . . . . . . . . . . . . . .   9
-   5.  Configuration . . . . . . . . . . . . . . . . . . . . . . . .   9
-     5.1.  Playback Buffer . . . . . . . . . . . . . . . . . . . . .   9
-     5.2.  Congestion Control  . . . . . . . . . . . . . . . . . . .   9
-       5.2.1.  Transmission Delays . . . . . . . . . . . . . . . . .  10
-       5.2.2.  Constant Delivery . . . . . . . . . . . . . . . . . .  10
-     5.3.  Prioritization  . . . . . . . . . . . . . . . . . . . . .  11
-       5.3.1.  Live Content  . . . . . . . . . . . . . . . . . . . .  11
-       5.3.2.  Recorded Content  . . . . . . . . . . . . . . . . . .  11
-     5.4.  Bitrate Selection . . . . . . . . . . . . . . . . . . . .  12
-     5.5.  Rendition Selection . . . . . . . . . . . . . . . . . . .  12
-       5.5.1.  Push versus Pull  . . . . . . . . . . . . . . . . . .  12
-     5.6.  Fragmentation . . . . . . . . . . . . . . . . . . . . . .  13
-     5.7.  Encoding  . . . . . . . . . . . . . . . . . . . . . . . .  13
-   6.  Security Considerations . . . . . . . . . . . . . . . . . . .  13
-     6.1.  Resource Exhaustion . . . . . . . . . . . . . . . . . . .  13
-   7.  IANA Considerations . . . . . . . . . . . . . . . . . . . . .  14
-   8.  References  . . . . . . . . . . . . . . . . . . . . . . . . .  14
-     8.1.  Normative References  . . . . . . . . . . . . . . . . . .  14
-     8.2.  Informative References  . . . . . . . . . . . . . . . . .  14
-   Contributors  . . . . . . . . . . . . . . . . . . . . . . . . . .  15
-   Author's Address  . . . . . . . . . . . . . . . . . . . . . . . .  15
+   2.  Motivation  . . . . . . . . . . . . . . . . . . . . . . . . .   3
+     2.1.  Latency . . . . . . . . . . . . . . . . . . . . . . . . .   3
+     2.2.  Universal . . . . . . . . . . . . . . . . . . . . . . . .   4
+     2.3.  Intermediaries  . . . . . . . . . . . . . . . . . . . . .   5
+   3.  Layers  . . . . . . . . . . . . . . . . . . . . . . . . . . .   5
+     3.1.  Properties  . . . . . . . . . . . . . . . . . . . . . . .   6
+     3.2.  Tracks  . . . . . . . . . . . . . . . . . . . . . . . . .   7
+     3.3.  Video . . . . . . . . . . . . . . . . . . . . . . . . . .   7
+       3.3.1.  Encoding  . . . . . . . . . . . . . . . . . . . . . .   7
+       3.3.2.  Decode Order  . . . . . . . . . . . . . . . . . . . .   8
+       3.3.3.  Group of Pictures . . . . . . . . . . . . . . . . . .   8
+       3.3.4.  Scalable Video Coding . . . . . . . . . . . . . . . .   9
+       3.3.5.  Frames  . . . . . . . . . . . . . . . . . . . . . . .   9
+       3.3.6.  Slices  . . . . . . . . . . . . . . . . . . . . . . .  10
+       3.3.7.  Init  . . . . . . . . . . . . . . . . . . . . . . . .  11
+     3.4.  Audio . . . . . . . . . . . . . . . . . . . . . . . . . .  11
+       3.4.1.  Encoding  . . . . . . . . . . . . . . . . . . . . . .  11
+       3.4.2.  Simple  . . . . . . . . . . . . . . . . . . . . . . .  11
+       3.4.3.  Refresh . . . . . . . . . . . . . . . . . . . . . . .  12
+     3.5.  Synchronization . . . . . . . . . . . . . . . . . . . . .  12
+   4.  QUIC  . . . . . . . . . . . . . . . . . . . . . . . . . . . .  13
+     4.1.  Establishment . . . . . . . . . . . . . . . . . . . . . .  13
+     4.2.  Streams . . . . . . . . . . . . . . . . . . . . . . . . .  13
+     4.3.  Prioritization  . . . . . . . . . . . . . . . . . . . . .  14
+     4.4.  Cancelation . . . . . . . . . . . . . . . . . . . . . . .  14
+     4.5.  Congestion Control  . . . . . . . . . . . . . . . . . . .  14
+     4.6.  Termination . . . . . . . . . . . . . . . . . . . . . . .  15
+   5.  Messages  . . . . . . . . . . . . . . . . . . . . . . . . . .  15
+     5.1.  HEADERS . . . . . . . . . . . . . . . . . . . . . . . . .  16
+     5.2.  LAYER . . . . . . . . . . . . . . . . . . . . . . . . . .  16
+     5.3.  APP . . . . . . . . . . . . . . . . . . . . . . . . . . .  16
+     5.4.  GOAWAY  . . . . . . . . . . . . . . . . . . . . . . . . .  16
+   6.  Security Considerations . . . . . . . . . . . . . . . . . . .  17
+     6.1.  Resource Exhaustion . . . . . . . . . . . . . . . . . . .  17
+   7.  IANA Considerations . . . . . . . . . . . . . . . . . . . . .  17
 
-1.  Overview
+
+
+Curley, et al.            Expires 21 April 2023                 [Page 2]
+
+Internet-Draft                    WARP                      October 2022
+
+
+   8.  References  . . . . . . . . . . . . . . . . . . . . . . . . .  17
+     8.1.  Normative References  . . . . . . . . . . . . . . . . . .  17
+     8.2.  Informative References  . . . . . . . . . . . . . . . . .  18
+   Contributors  . . . . . . . . . . . . . . . . . . . . . . . . . .  18
+   Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .  18
+
+1.  Introduction
 
    Warp is a live media transport protocol that utilizes the QUIC
    network protocol [QUIC].
 
-
-
-Curley                   Expires 10 January 2023                [Page 2]
-
-Internet-Draft                    WARP                         July 2022
-
-
-   Section 2 covers how QUIC is used to transfer media.  QUIC streams
-   are created for each segment and prioritized such that the most
-   important media is delivered during congestion.
-
-   Section 3 covers how media is packaged into fragmented MP4
-   containers.  Initialization segments contain track metadata while
-   media segments contain audio and/or video samples.
-
-   Section 4 covers how control messages are encoded.  These are used
-   sent alongside segments to carry necessary metadata and control
-   playback.
-
-   Section 5 covers how to build an optimal live media stack.  The
-   application can configure Warp based on the desired user experience.
+   Section 2 covers the background and rationale behind Warp.  Section 3
+   covers how media is encoded and split into layers.  Section 4 covers
+   how QUIC is used to transfer media.  Section 5 covers how messages
+   are encoded on the wire.
 
 1.1.  Terms and Definitions
 
@@ -139,578 +140,778 @@ Internet-Draft                    WARP                         July 2022
 
    Commonly used terms in this document are described below.
 
-   Congestion:  Packet loss and queuing caused by degraded or overloaded
-      networks.
+   TODO definitions
 
-   Frame:  An video image or group of audio samples to be rendered at a
-      specific point in time.
+2.  Motivation
 
-   I-frame:  A frame that does not depend on the contents of other
-      frames.
+2.1.  Latency
 
-   Group of pictures (GOP):  A I-frame followed by a sequential series
-      of dependent frames.
+   In a perfect world, we could deliver live media at the same rate it
+   is produced.  The end-to-end latency of a broadcast would be fixed
+   and only subject to encoding and transmission delays.  Unfortunately,
+   networks have variable throughput, primarily due to congestion.
 
-   Group of samples:  A sequential series of audio samples starting at a
-      given timestamp.
+   Attempting to deliver media larger than this variable network bitrate
+   causes queuing.  This queuing can occur anywhere in the path between
+   the encoder and decoder.  For example: the application, the OS
+   socket, a wifi router, within an ISP, or generally anywhere in
+   transit.
 
-   Segment:  A sequence of video frames and/or audio samples serialized
-      into a container.
-
-   Media player:  A component responsible for presenting frames to a
-      viewer based on the presentation timestamp.
-
-   Media encoder:  A component responsible for creating a compressed
-      media stream.
+   If nothing is done, new frames will be appended to the end of a
+   growing queue and will take longer to arrive than their predecessors,
+   increasing latency.  Our job is to minimize the growth of this queue,
+   and failing that, skip the queue when possible.
 
 
 
-Curley                   Expires 10 January 2023                [Page 3]
+
+Curley, et al.            Expires 21 April 2023                 [Page 3]
 
-Internet-Draft                    WARP                         July 2022
+Internet-Draft                    WARP                      October 2022
 
 
-   Media producer:  A QUIC endpoint sending media over the network.
-      This could be the media encoder or middleware.
+   Thus speed at which a media protocol can detect and respond to
+   queuing determines the latency.  We can generally classify existing
+   media protocols into two categories based on the underlying network
+   protocol:
 
-   Media consumer:  A QUIC endpoint receiving media over the network.
-      This could be the media player or middleware.
+   *  TCP-based media protocols (ex.  RTMP, HLS, DASH) are popular due
+      to their simplicity.  Media is served/consumed in decode order
+      while any networking is handled by the TCP layer.  However, these
+      protocols primarily see use at higher latency targets due to their
+      relatively slow detection and response to queuing.
 
-   Middleware:  A media consumer that forwards streams to one or more
-      downstream media consumers.
+   *  UDP-based media protocols (ex.  RTP, WebRTC, SRT) can side-step
+      the issues with TCP and provide lower latency with better queue
+      management.  However the media protocol is now responsible for
+      fragmentation, congestion control, retransmissions, receiver
+      feedback, reassembly, and more.  This added complexity
+      significantly raises the implementation difficulty and hurts
+      interoperability.
 
-2.  Connection
+   A goal of this draft is to get the best of both worlds: a simple
+   protocol that can still rapidly detect and respond to congestion.
+   This is possible emergence of QUIC, designed to fix the shortcomings
+   of TCP.  This draft relies on QUIC streams to deliver media layers in
+   priority order during congestion.
 
-   Warp uses the QUIC stream API to transfer media.
+2.2.  Universal
 
-2.1.  Establishment
+   The media protocol ecosystem is fragmented; each protocol has it's
+   own niche.  Specialization is often a good thing, but we believe
+   there's enough overlap to warrant consolidation.
 
-   A connection is established using WebTransport over HTTP/3
-   [WebTransport].  This involves establishing a HTTP/3 connection,
-   issuing a CONNECT request to establish the session, and exposing the
-   underlying QUIC stream API while the session is active.
+   For example, a service might similtaniously ingest via WebRTC, SRT,
+   RTMP, and/or a custom UDP protocol depending on the broadcaster.  The
+   same service might then similtaniously distribute via WebRTC, LL-HLS,
+   HLS, (or the DASH variants) and/or a custom UDP protocol depending on
+   the viewer.
 
-   The application is responsible for authentication based on the
-   CONNECT request.
+   These media protocols are radically different and not interopable;
+   requiring transcoding or transmuxing.  This cost is further increased
+   by the need to maintain seperate stacks with different expertise
+   requirements.
 
-   The application is responsible for determining if an endpoint is a
-   media producer, consumer, or both.
+   A goal of this draft is to cover a large spectrum of use-cases.
+   Specifically:
 
-2.2.  Streams
+   *  Consolidated contribution and distribution.  The difference
+      between the two has historically been push versus pull.  This is
+      an over-simplification, as the real difference is the ability to
 
-   Endpoints communicate over unidirectional QUIC streams.  The
+
+
+Curley, et al.            Expires 21 April 2023                 [Page 4]
+
+Internet-Draft                    WARP                      October 2022
+
+
+      fanout, which is much easier with HTTP GET.  A single protocol can
+      cover both use-cases with adequate information on how an
+      intermediary should forward media.
+
+   *  A configurable latency versus quality trade-off.  The broadcaster
+      (producer) chooses how to encode and transmit media based on the
+      desired user experience.  Each viewer (consumer) chooses how long
+      to wait for media based on their desired user experience and
+      network.  We want an experience that can vary from real-time and
+      lossy for one viewer, to delayed and loss-less for another viewer,
+      without separate encodings or protocols.
+
+2.3.  Intermediaries
+
+   The prevailing belief is that UDP-based protocols are more expensive
+   and don't "scale".  While it's true that UDP is more difficult to
+   optimize than TCP, QUIC itself is proof that it is is possible to
+   reach performance parity.  In fact even some TCP-based protocols (ex.
+   RTMP) don't "scale" either and are exclusively used for contribution
+   as a result.
+
+   The truth is that the ability to scale a media protocol depends on
+   intermediary support: proxies, caches, CDNs, SFUs, etc.  The success
+   of HTTP-based media protocols is due to the ability to leverage
+   traditional HTTP CDNs.
+
+   Meanwhile, it's difficult to build a CDN for media protocols that
+   were not designed with intermediaries in mind.  For example, an
+   intermediary has to parse the underlying codec to determine which RTP
+   packets should be dropped first, and the decision is not
+   deterministic or consistent for each hop.
+
+   A goal of this draft is to treat intermediaries as first class
+   citizens.  Any identification, reliability, ordering, prioritization,
+   caching, etc is written to the wire in header designed for
+   intermediaries.  This ensures that intermediaries can easily route/
+   fanout media to the final destination.  This also ensures that
+   congestion response is consistent at every hop based on the
+   preferences of the media producer.
+
+3.  Layers
+
+   Warp is based on a concept of layers.  A layer is a bitstream that is
+   decoded in order and without gaps.
+
+   The goal is to deliver layers such that the least important media is
+   dropped during congestion.  This is done by assigning dependencies
+   and/or priority to each layer, as covered in the properties
+
+
+
+Curley, et al.            Expires 21 April 2023                 [Page 5]
+
+Internet-Draft                    WARP                      October 2022
+
+
+   (Section 3.1) section.  Each layer is then transmitted over a QUIC
+   stream, as covered in the streams (Section 4.2) section.  QUIC will
+   ensure that the layer arrives in order until canceled by either
+   endpoint.
+
+   Media is broken up into layers based on the underlying encoding.  The
+   contents and properties of each layer is determined by the producer
+   based on the desired user experience.
+
+3.1.  Properties
+
+   Each layer has properties to go along with its contents.  These are
+   written on the wire and inform how they layer should be transmitted
+   at each hop.  This is primarily for the purpose of supporting
+   intermediaries, but this information may also be used by the decoder.
+
+   All currently defined properties are optional.
+
+   *  "id".  A numeric identifier for the layer.  If non-zero, this
+      value MUST be unique.  The default value is 0.
+
+   *  "order".  A numeric priority such that the smaller values take
+      priority.  A sender SHOULD transmit layers with smallest value
+      first, effectively starving layers with larger values during
+      congestion.  If two layers use the same value, they SHOULD be
+      round-robined.  Note that layers can still arrive out of the
+      intended order due to packet loss.  The default value is 0.
+
+   *  "dependency".  A numeric value that indicates this layer depends
+      on the specified layer id.  TODO do we need multiple dependencies?
+      This informs the decoder that it MUST receive and process the
+      dependency layer first.  The decoder SHOULD support stream
+      processing, such that it does not need to receive the entire
+      dependency layer first.  The layer MUST have a larger "order" than
+      its dependency, if present.  The default value is 0, which means
+      no dependency.
+
+   *  "cache".  TODO Indicates the layer should be cached for some
+      amount of time since last access.  What about fragments with an
+      unbounded age?  Should we send an "expire" message instead?
+
+   *  "expires".  TODO Indicates the layer should be dropped after some
+      amount of time (ex.  "RESET_STREAM").  Do we need clock sync for
+      this?  How does this interact with "cache"?
+
+   *  "timestamp".  TODO The presentation timestamp of the earliest (not
+      always first) frame in the layer.  What does an intermediary need
+      this for?
+
+
+
+Curley, et al.            Expires 21 April 2023                 [Page 6]
+
+Internet-Draft                    WARP                      October 2022
+
+
+   TODO example priorities
+
+3.2.  Tracks
+
+   The simplest configuration is a single layer spanning the entire
+   broadcast.  This is effectively a TCP stream and is a direct
+   replacement for RTMP.  The downside of a single layer is that it can
+   only respond to congestion by modifying the encoder bitrate, so it
+   SHOULD NOT be used over networks with congestion.
+
+   Each track (audio and/or video) can be split into separate layers.
+   This improves user experience as individual tracks can be prioritized
+   during congestion.  For example, audio could be prioritized before
+   video, and/or a lower bitrate rendition could be prioritized before a
+   higher bitrate rendition.
+
+   A layer MAY contain multiple tracks.  A layer SHOULD contain a single
+   track.
+
+   A single layer per track means that all media within the track is
+   ordered.  Multiple layers per track allow sections to be dropped or
+   prioritized, which is necessary to skip media and reduce queuing.
+   The next section covers how to further split layers based on the type
+   of media.
+
+3.3.  Video
+
+3.3.1.  Encoding
+
+   Video is a sequence of frames with a display timestamp.  To improve
+   compression, frames are encoded as deltas and can reference number of
+   frames in the past (P-frames) and/or in the future (B-frames).  A
+   frame with no dependencies (I-frame) is effectively an image file and
+   is a seek point.
+
+   A common encoding structure is to only reference the previous frame,
+   as it is simple and minimizes latency:
+
+    I <- P <- P <- P   I <- P <- P <- P   I <- P ...
+
+   Another common encoding structure is to use B-frames in a fixed
+   pattern, which is easier for hardware encoding.  B-frames reference
+   one or more future frames, which improves the compression ratio but
+   increases latency.
+
+   This example is referenced in later sections:
+
+
+
+
+
+Curley, et al.            Expires 21 April 2023                 [Page 7]
+
+Internet-Draft                    WARP                      October 2022
+
+
+       B     B         B     B         B
+      / \   / \       / \   / \       / \
+     /   \ /   \     /   \ /   \     /   \
+    I <-- P <-- P   I <-- P <-- P   I <-- P ...
+
+   Note that the B-frames reference I and P frames in this example,
+   despite the lack of an arrow.  TODO better ASCII art
+
+   There is no such thing as an optimal encoding structure.  Encoders
+   tuned for the best quality will produce a tangled spaghetti of
+   references.  Encoders tuned for the lowest latency still have a lot
+   of options for references.
+
+3.3.2.  Decode Order
+
+   The encoder outputs the bitstream in decode order, which means that
+   each frame is output after its dependencies.  This is only relevant
+   for B-frames as they must be buffered until the frame they reference
+   has been flushed.
+
+   A layer MUST be in decode order.
+
+   For the example above, this would look like:
+
+   encode order: I B P B P I B P B P I B P ..
+   decode order: I P B P B I P B P B I P B ..
+
+3.3.3.  Group of Pictures
+
+   A group of pictures (GoP) is consists of an I-frame and the frames
+   that directly or indirectly reference it.  Each GoP can be decoded
+   independently and thus can be transmitted independently.  It is also
+   safe to drop the tail of the GoP (in decode order) without causing
+   decode errors.
+
+   A layer MAY consist of an entire GoP.  A layer MAY consist of
+   multiple sequential GoPs.
+
+   Our example GoP structure would be split into three layers.
+
+        layer 1         layer 2      layer 3
+   +---------------+---------------+---------
+   | I  P  B  P  B | I  P  B  P  B | I  P  B
+   +---------------+---------------+---------
+
+
+
+
+
+
+
+Curley, et al.            Expires 21 April 2023                 [Page 8]
+
+Internet-Draft                    WARP                      October 2022
+
+
+3.3.4.  Scalable Video Coding
+
+   The concept of layers is borrowed from scalable video coding (SVC).
+   When SVC is enabled, the encoder produces multiple bitstreams in a
+   hierarchy.  Dropping the top layer degrades the user experience in a
+   configured way, such as reducing the resolution, picture quality,
+   and/or frame rate.
+
+   A layer MAY consist of an entire SVC layer.
+
+   Our example GoP structure would be split into six layers, assuming
+   the B frames are part of a SVC layer:
+
+       layer 2       layer 4     layer 6
+   +-------------+-------------+--------
+   |    B   B    |    B   B    |    B
+   +-------------+-------------+--------
+   |  I   P   P  |  I   P   P  |  I   P
+   +-------------+-------------+--------
+       layer 1       layer 3     layer 5
+
+   Note that SVC encoding is more complicated than this; our example is
+   a simple temporal encoding scheme.
+
+3.3.5.  Frames
+
+   With full knowledge of the encoding, the producer can split a GoP
+   into multiple layers based on the frame.  However, this is highly
+   dependent on the encoding, and the additional complexity might not
+   improve the user experience.
+
+   A layer MAY consist of a single frame.
+
+   Our example GoP structure could be split into thirteen layers:
+
+         2     4           7     9           12
+   +--------+--------+--------+--------+-----------+
+   |     B  |  B     |     B  |  B     |     B     |
+   |-----+--+--+-----+-----+--+--+-----+-----+-----+
+   |  I  |  P  |  P  |  I  |  P  |  P  |  I  |  P  |
+   +-----+-----+-----+-----+-----+-----+-----+-----+
+      1     3     5     6     8     10    11    13
+
+   To reduce the number of layers, frames can be appended to a layer
+   they depend on.  Layers are delivered in order so this is simpler and
+   produces the same user experience.
+
+   A layer MAY consist of multiple frames within the same GoP.
+
+
+
+Curley, et al.            Expires 21 April 2023                 [Page 9]
+
+Internet-Draft                    WARP                      October 2022
+
+
+   The same GoP structure can be represented using eight layers:
+
+         2     3           5     6           8
+   +--------+--------+-----------------+------------
+   |     B  |  B     |     B  |  B     |     B     |
+   +--------+--------+--------+--------+-----------+
+   |  I     P     P  |  I     P     P  |  I     P
+   +-----------------+-----------------+------------
+            1                 4              7
+
+   We can further reduce the number of layers by combining some frames
+   that don't depend on each other.  The only restriction is that frames
+   can only reference frames earlier in the layer, or within a
+   dependency layer.  For example, non-reference frames can have their
+   own layer so they can be prioritized or dropped separate from
+   reference frames.
+
+   The same GoP structure can also be represented using six layers,
+   although we've removed our ability to drop individual B-frames:
+
+       layer 2       layer 4     layer 6
+   +-------------+-------------+--------
+   |    B   B    |    B   B    |    B
+   +-------------+-------------+--------
+   |  I   P   P  |  I   P   P  |  I   P
+   +-------------+-------------+--------
+       layer 1       layer 3     layer 5
+
+   Note that this is identical to our SVC example; we've effectively
+   implemented our own temporal coding scheme.
+
+3.3.6.  Slices
+
+   Frames actually consist of multiple slices that reference other
+   slices.  It's conceptually simpler to work with frames instead of
+   slices, but splitting slices into layers may be useful.  For example,
+   intra-refresh splits an I-frame into multiple I-slices (TODO
+   terminology) and spread over multiple frames to smooth out the
+   bitrate.  TODO are slices necessary?
+
+   A layer MAY consist of a single slice.  A layer MAY consist of
+   multiple slices that are part of the same GoP.
+
+
+
+
+
+
+
+
+
+Curley, et al.            Expires 21 April 2023                [Page 10]
+
+Internet-Draft                    WARP                      October 2022
+
+
+3.3.7.  Init
+
+   For the most byte-conscious applications, initialization data can be
+   sent over its own layer.  Multiple layers can depend on this
+   initialization layer to avoid redundant transmissions.  For example:
+   this is the init segment in CMAF ("moov" with no samples), which
+   contains the SPS/PPS NALUs for h.264.
+
+   A layer MAY consist of no samples.
+
+   Our example layer per GoP would have an extra layer added:
+
+        layer 2         layer 3      layer 4
+   +---------------+---------------+---------
+   | I  P  B  P  B | I  P  B  P  B | I  P  B
+   +---------------+---------------+---------
+   |                     init
+   +-----------------------------------------
+                        layer 1
+
+   An initialization layer MUST be cached in memory until it expires.
+   TODO How do we do this?
+
+3.4.  Audio
+
+3.4.1.  Encoding
+
+   Audio is dramatically simpler than video as it is not delta encoded.
+   Audio samples are grouped together (group of samples) at a configured
+   rate, also called a "frame".  Frames do not depend on other frames
+   and have a timestamp for sychronization.
+
+   In the below diagrams, each audio frame is denonated with an S.  The
+   encoder spits out a continous stream of samples:
+
+   S S S S S S S S S S S S S
+
+3.4.2.  Simple
+
+   The simplest configuration is to use a single layer for each audio
+   track.  This may seem inefficient given the ease of dropping audio
+   samples.  However, the audio bitrate is low and gaps cause quite a
+   poor user experience, when compared to video.
+
+   A layer SHOULD consist of multiple audio frames.
+
+
+
+
+
+
+Curley, et al.            Expires 21 April 2023                [Page 11]
+
+Internet-Draft                    WARP                      October 2022
+
+
+             layer 1
+   +---------------------------
+   | S S S S S S S S S S S S S
+   +---------------------------
+
+3.4.3.  Refresh
+
+   An improvement is to periodically split audio samples into separate
+   layers.  This gives the consumer the ability to skip ahead during
+   severe congestion or temporary connectivity loss.
+
+        layer 1         layer 2      layer 3
+   +---------------+---------------+---------
+   | S  S  S  S  S | S  S  S  S  S | S  S  S
+   +---------------+---------------+---------
+
+   This frequency of audio layers is configurable, at the cost of
+   additional overhead.  It's NOT RECOMMENDED to create a layer for each
+   audio frame because of this overhead.
+
+   Video can only recover from severe congestion with an I-frame, so
+   there's not much point recovering audio at a separate interval.  It
+   is RECOMMENDED to create a new audio layer at each video I-frame.
+
+        layer 1         layer 3      layer 5
+   +---------------+---------------+---------
+   | S  S  S  S  S | S  S  S  S  S | S  S  S
+   +---------------+---------------+---------
+   | I  P  B  P  B | I  P  B  P  B | I  P  B
+   +---------------+---------------+---------
+        layer 2         layer 4      layer 6
+
+   This is effectively how HLS/DASH segments work, with the exception
+   that the most recent layers are still pending.
+
+3.5.  Synchronization
+
+   The decoder MUST sychronize layers using presentation timestamps
+   within the bitstream.
+
+   Layers are NOT REQUIRED to be aligned within or between tracks.  For
+   example, a low quality rendition may have more frequent I-frames, and
+   thus layers, than a higher quality rendition.  A decoder MUST be
+   prepared to skip over any gaps between layers.
+
+
+
+
+
+
+
+Curley, et al.            Expires 21 April 2023                [Page 12]
+
+Internet-Draft                    WARP                      October 2022
+
+
+4.  QUIC
+
+4.1.  Establishment
+
+   A connection is established using WebTransport ([WebTransport]).
+
+   To summarize: The client issues a HTTP CONNECT request with the
+   intention of establishing a new WebTransport session.  The server
+   returns an 200 OK response if the WebTransport session has been
+   established, or an error status otherwise.  A WebTransport session
+   mimicks the QUIC API: either endpoint may create independent streams
+   which are reliably delievered in order until cancelled.
+
+   WebTransport can currently operate via HTTP/3 and HTTP/2, using QUIC
+   or TCP under the hood respectively.  As mentioned in the motivation
+   (Section 2) section, TCP introduces head-of-line blocking and will
+   result in a worse experience.  It is RECOMMENDED to use WebTransport
+   over HTTP/3.
+
+   The application SHOULD use the CONNECT request for authentication and
+   negotiation.  For example, including a authentication token and some
+   identifier in the path.  The application MAY use QUIC streams for
+   more complicated behavior.
+
+   TODO define auth inside the protocol?
+
+4.2.  Streams
+
+   Warp endpoints communicate over unidirectional QUIC streams.  The
    application MAY use bidirectional QUIC streams for other purposes.
 
-   Both endpoints can create a new stream at any time.  Each stream
-   consists of byte data with an eventual final size.  A stream is
-   reliably delivered in order unless canceled early with an error code.
+   A stream consists of sequential messages.  See messages (Section 5)
+   for the list of messages and their encoding.  These are similar to
+   QUIC and HTTP/3 frames, but called messages to avoid the media
+   terminology.
 
-   The delivery of each stream is independent.  The sender MAY
-   prioritize their delivery (Section 2.2.2); intentionally starving
-   streams in favor of more important streams.
+   Each stream MUST start with a "HEADERS" message.  TODO better name.
+   This message includes information on how intermediaries should proxy
+   or cache the stream.  If a stream is used to transmit a layer, the
+   header MUST match the layer properties (Section 3.1).
 
-2.2.1.  Contents
-
-   Each stream consists of MP4 top-level boxes [ISOBMFF] concatenated
-   together.
-
-   *  Segments (Section 3) contain media samples and additional
-      metadata.  These are "ftyp", "moov", "styp", "moof", and "mdat"
-      boxes.
+   Messages SHOULD be sent over the same stream if ordering is desired.
+   For example, "PAUSE" and "PLAY" messages SHOULD be sent on the same
+   stream to avoid a race.
 
 
 
 
-Curley                   Expires 10 January 2023                [Page 4]
+
+
+
+Curley, et al.            Expires 21 April 2023                [Page 13]
 
-Internet-Draft                    WARP                         July 2022
+Internet-Draft                    WARP                      October 2022
 
 
-   *  Messages (Section 4) control playback or carry metadata about
-      segments.  These are "warp" boxes.
+4.3.  Prioritization
 
-   Each "ftyp" box MUST be preceded by a "warp" box indicating that it
-   is an initialization segment (Section 4.1).  Each "styp" box MUST be
-   preceded by a "warp" box indicating that it is a media segment
-   (Section 4.2).
+   Warp utilizes stream prioritization to deliver the most important
+   content during congestion.
 
-   A stream MUST start with a message and MAY contain multiple messages.
-   A stream MUST NOT contain multiple segments.
+   The media producer SHOULD assign a numeric order to each stream, as
+   contained in the HEADERS message (Section 5.1).  This is a strict
+   prioritization scheme, such that any available bandwidth is allocated
+   to streams in ascending order.  The order is determined at encode,
+   written to the wire so it can be read by intermediaries, and will not
+   be updated.  This effectively creates a priority queue that can be
+   maintained over multiple hops.
 
-2.2.2.  Prioritization
+   QUIC supports stream prioritization but does not standardize any
+   mechanisms; see Section 2.3 in [QUIC].  QUIC libraries will need to
+   expose a API to the application to set the priority of each stream.
 
-   Warp utilizes precedence to deliver the most important content during
-   congestion.
+   Senders SHOULD support prioritized streams, although it is OPTIONAL
+   on a path with no expected congestion.  Senders SHOULD use strict
+   ordering, although relative weights MAY be acceptable if there are no
+   other options.  Senders MUST obey the order as written to the wire.
+   Senders MAY choose to delay retransmitting lower priority streams
+   when possible within QUIC flow control limits.
 
-   The media producer assigns a numeric precedence to each stream.  This
-   is a strict prioritization scheme, such that any available bandwidth
-   is allocated to streams in descending order.  QUIC supports stream
-   prioritization but does not standardize any mechanisms; see
-   Section 2.3 in [QUIC].
+4.4.  Cancelation
 
-   The media producer MUST support sending prioritized streams using
-   precedence.  The media producer MAY choose to delay retransmitting
-   lower priority streams when possible within QUIC flow control limits.
+   QUIC streams can be canceled by either endpoint with an error code.
 
-   See Section 5.3 for suggestions on how to prioritize streams based on
-   the contents.
+   When using "order", lower priority streams will be starved during
+   congestion, perhaps indefinitely.  These streams will consume
+   resources and flow control until they are canceled.  When nearing
+   resource limits, an endpoint SHOULD cancel the lowest priority stream
+   with error code 0.
 
-2.2.3.  Cancellation
+   When using "expires", a stream SHOULD be canceled after the duration
+   has elasped.  This is not a full replacement for prioritization, but
+   can provide some congestion response by clearing parts of the queue.
 
-   During congestion, prioritization intentionally cause stream
-   starvation for the lowest priority streams.  Some form of starvation
-   will last until the network fully recovers, which may be indefinite.
+4.5.  Congestion Control
 
-   The media consumer SHOULD cancel a stream (via a QUIC "STOP_SENDING"
-   frame) with application error code 0 when the segment is no longer
-   desired.  This can happen when the consumer decides to skip the
-   remainder of a segment after some duration has elapsed.  The media
-   producer MUST NOT treat this as a fatal error.
+   As covered in the motivation section (Section 2), the ability to
+   priortize or cancel streams is a form of congestion response.  It's
+   equally important to detect congestion via congestion control, which
+   is handled in the QUIC layer.
 
-   The media producer SHOULD cancel the lowest priority stream (via QUIC
-   "RESET_STREAM" frame) with application error code 0 when nearing
-   resource limits.  This can happen after sustained starvation and
-   indicates that the consumer must skip over the remainer of a segment.
-   The media consumer MUST NOT treat this as a fatal error.
-
-
+   Bufferbloat is caused by routers queueing packets for an indefinite
+   amount of time rather than drop them.  This latency significantly
+   reduces the ability for the application to prioritize or drop media
 
 
 
-Curley                   Expires 10 January 2023                [Page 5]
+Curley, et al.            Expires 21 April 2023                [Page 14]
 
-Internet-Draft                    WARP                         July 2022
+Internet-Draft                    WARP                      October 2022
 
 
-   Both of these actions will effectively drop the tail of the segment.
-   The segment fragment size SHOULD be small to reduce data loss,
-   ideally one fragment per frame.
+   in response to congestion.  Senders SHOULD use a congestion control
+   algorithm that reduces this bufferbloat.  It is NOT RECOMMENDED to
+   use a loss-based algorithm (ex.  Reno, CUBIC) unless the network
+   fully supports ECN.
 
-2.3.  Middleware
+   Live media is application-limited, which means that the encoder
+   determines the max bitrate rather than the network.  Most TCP
+   congestion control algorithms will only increase the congestion
+   window if it is full, limitting the upwards mobility when
+   application-limited.  Senders SHOULD use a congestion control
+   algorithm that is designed for application-limited flows (ex.  GCC).
+   Senders MAY periodically pad the connection with QUIC PING frames to
+   fill the congestion window.
 
-   Media may go through multiple hops and processing steps on the path
-   from the broadcaster to player.  The full effectiveness of warp as an
-   end-to-end protocol depends on middleware support.
-
-   *  Middleware SHOULD maintain stream idependence to avoid introducing
-      head-of-line blocking.
-
-   *  Middleware SHOULD maintain stream prioritization when traversing
-      networks susceptible to congestion.
-
-   *  Middleware MUST forward the "priority" message (Section 4.3) to
-      downstream servers.
-
-2.4.  Termination
+4.6.  Termination
 
    The QUIC connection can be terminated at any point with an error
    code.
 
    The media producer MAY terminate the QUIC connection with an error
-   code of 0 to indicate the end of the media stream.  Either endpoint
-   MAY use any other error code to indicate a fatal error.
+   code of 0 to indicate the clean termination of the broadcast.  The
+   application SHOULD use a non-zero error code to indicate a fatal
+   error.
 
-3.  Segments
+                      +======+======================+
+                      | Code | Reason               |
+                      +======+======================+
+                      |  0x0 | Broadcast Terminated |
+                      +------+----------------------+
+                      |  0x1 | GOAWAY Section 5.4   |
+                      +------+----------------------+
 
-   The live stream is split into segments before being transferred over
-   the network.  Segments are fragmented MP4 files as defined by
-   [ISOBMFF].
+                                  Table 1
 
-   There are two types of segments: initialization and media.
+   TODO define more error codes
 
-3.1.  Initialization
+5.  Messages
 
-   Initialization segments contain track metadata but no sample data.
+   Messages consist of a type identifier followed by contents, depending
+   on the message type.
 
-   Initialization segments MUST consist of a File Type Box ("ftyp")
-   followed by a Movie Box ("moov").  This Movie Box consists of Movie
-   Header Boxes ("mvhd"), Track Header Boxes ("tkhd"), Track Boxes
-   ("trak"), followed by a final Movie Extends Box ("mvex").  These
-   boxes MUST NOT contain any samples and MUST have a duration of zero.
-
-   Note that a Common Media Application Format Header [CMAF] meets all
-   these requirements.
-
+   TODO document varint identifier TODO more message types
 
 
-Curley                   Expires 10 January 2023                [Page 6]
+
+
+
+
+
+
+
+Curley, et al.            Expires 21 April 2023                [Page 15]
 
-Internet-Draft                    WARP                         July 2022
+Internet-Draft                    WARP                      October 2022
 
 
-3.2.  Media
+                      +======+=====================+
+                      |   ID | Messages            |
+                      +======+=====================+
+                      |  0x0 | HEADERS Section 5.1 |
+                      +------+---------------------+
+                      |  0x1 | LAYER Section 5.2   |
+                      +------+---------------------+
+                      |  0x2 | APP Section 5.3     |
+                      +------+---------------------+
+                      | 0x10 | GOAWAY Section 5.4  |
+                      +------+---------------------+
 
-   Media segments contain media samples for a single track.
+                                 Table 2
 
-   Media segments MUST consist of a Segment Type Box ("styp") followed
-   by at least one media fragment.  Each media fragment consists of a
-   Movie Fragment Box ("moof") followed by a Media Data Box ("mdat").
-   The Media Fragment Box MUST contain a Movie Fragment Header Box
-   ("mfhd") and Track Box ("trak") with a Track ID ("track_ID") matching
-   a Track Box in the initialization segment.
+5.1.  HEADERS
 
-   Note that a Common Media Application Format Segment [CMAF] meets all
-   these requirements.
+   The "HEADERS" message contains the information listed in layer
+   properties (Section 3.1).
 
-3.2.1.  Segmentation
+   TODO better name TODO document wire format TODO use QPACK?
 
-   Media is broken into segments at configurable boundaries.  Each media
-   segment MUST start with an I-frame so it can be decoded independently
-   of other media segments.  Each media segment SHOULD contain a single
-   group of pictures (GOP).
+5.2.  LAYER
 
-3.2.2.  Fragmentation
+   A "LAYER" message consists of the layer bitstream.  A "LAYER" message
+   must be proceeded with a "HEADERS" message specifying the layer
+   properties (Section 3.1).
 
-   Media segments are further broken into media fragments at
-   configurable boundaries.  See Section 5.6 for advice on when to
-   fragment.
+   TODO document CMAF TODO document wire format TODO support multiple
+   container formats
 
-4.  Messages
+5.3.  APP
 
-   Warp endpoints communicate via messages contained in a custom top-
-   level [ISOBMFF] Box.
+   The "APP" message contains arbitrary contents.  A stream containing
+   "APP" message SHOULD be cached and forwarded by intermediaries like
+   any other stream; based on the "HEADERS" message (Section 5.1).
 
-   This Warp Box ("warp") contains a single JSON object.  Each key
-   defines the message type and the value the contents.  Unknown
-   messages MUST be ignored.
+   TODO document wire format
 
-   Multiple messages with different types MAY be encoded in the same
-   JSON object.  Messages SHOULD be sent in separate boxes on the same
-   stream when ordering is important.
+5.4.  GOAWAY
 
-4.1.  init
+   The "GOAWAY" message is sent by the server to force the client to
+   reconnect.  This is useful for server maintenance or reassignments
+   without severing the QUIC connection.  A server MAY use QUIC load
+   balancing instead of a GOAWAY message.
 
-   The "init" message indicates that the remainder of the stream
-   contains an initialization segment.
+   The server initiates the graceful shutdown by sending a GOAWAY
+   message.  The server MUST close the QUIC connection after a timeout
+   with the GOAWAY error code (Section 4.6).  The server MAY close the
 
 
 
-
-
-
-
-Curley                   Expires 10 January 2023                [Page 7]
+Curley, et al.            Expires 21 April 2023                [Page 16]
 
-Internet-Draft                    WARP                         July 2022
-
-
-   {
-     init: {
-       id: int
-     }
-   }
-
-   id:  Incremented by 1 for each unique initialization segment.
-
-4.2.  media
-
-   The "segment" message contains metadata about the next media segment
-   in the stream.
-
-   {
-     segment: {
-       init: int,
-       timestamp: int,
-       timescale: int, (optional)
-     }
-   }
-
-   init:  The id of the cooresponding initialization segment.  A decoder
-      MUST block until the cooresponding initialization segment has been
-      fully processed.
-
-   timestamp:  The presentation timestamp in "timescale" units for the
-      first frame/sample in the next segment.  This timestamp takes
-      precedence over the timestamp in media container to support stream
-      stitching.
-
-   timescale (optional):  The number of units in second.  This defaults
-      to "1000" to signify milliseconds.
-
-4.3.  priority
-
-   The "priority" message informs middleware about the intended priority
-   of the current stream.  Middleware MUST foward this message but it is
-   OPTIONAL to obey it.
-
-   {
-     priority: {
-       precedence: int,
-     }
-   }
-
-   precedence:  An integer value, indicating that any available
-      bandwidth SHOULD be allocated to streams in descending order.
-
-
-
-
-Curley                   Expires 10 January 2023                [Page 8]
-
-Internet-Draft                    WARP                         July 2022
-
-
-4.4.  Extensions
-
-   Custom messages MUST start with "x-".  Unicode LATIN SMALL LETTER X
-   (U+0078) followed by HYPHEN-MINUS (U+002D).
-
-   Custom messages could control playback.  For example: "x-pause" could
-   halt the transfer of segments until followed by a "x-play".
-
-   Custom messages SHOULD use a unique prefix to reduce collisions.  For
-   example: "x-twitch-load" would contain identification required to
-   start playback of a Twitch stream.
-
-5.  Configuration
-
-   Achieving both a high quality and low latency broadcast is difficult.
-   Warp is a generic media transport and it is ultimately up to the
-   application to choose the desired user experience.
-
-5.1.  Playback Buffer
-
-   It is RECOMMENDED that a media player use a playback buffer to ensure
-   smooth playback at the cost of higher latency.  The buffer SHOULD be
-   at last large enough to synchronize audio/video and to account for
-   network/encoding jitter.
-
-   The size of the playback buffer MAY be increased by temporarily
-   pausing playback or reducing playback speed.  The playback buffer MAY
-   be fragmented such that unreceived media can be skipped.
-
-   A larger playback buffer gives the application more time to recover
-   from starvation without user impact.  A media player MAY increase the
-   size of the playback buffer when future starvation events are
-   anticipated.
-
-   Middleware SHOULD NOT use a buffer, as it will increase latency for
-   each hop.
-
-5.2.  Congestion Control
-
-   Warp uses the underlying QUIC congestion control [QUIC-RECOVERY].
-   The default congestion control algorithm [NewReno] will work in many
-   situations but can be improved.
-
-   This section outlines how a live media congestion control algorithm
-   should perform, but does not recommend a specific algorithm.
-
-
-
-
-
-
-Curley                   Expires 10 January 2023                [Page 9]
-
-Internet-Draft                    WARP                         July 2022
-
-
-5.2.1.  Transmission Delays
-
-   Live media is generated in real-time and played back at a constant
-   rate.  Transmission delays cause frame delays, necessitating a larger
-   playback buffer.  Additionally, the effectiveness of prioritizing
-   streams is reduced by high transmission delays.
-
-   A live media congestion control algorithm SHOULD aim to minimize
-   delay, possibly at the expense of throughput.
-
-   The default QUIC congestion controller is loss-based and suffers from
-   bufferbloat.  Large queues on intermediate routers cause high
-   transmission delays prior to any packet loss.
-
-5.2.1.1.  Application Limited
-
-   Live media is often application-limited, as the encoder limits the
-   amount of data available to be sent.  This occurs more frequently
-   with a smaller fragment duration, as individual frames might not be
-   large enough to saturate the congestion window.
-
-   A live media congestion control algorithm SHOULD have some way of
-   determining the network capabilities even when application-limited.
-   Alternatively, the media producer CAN pad the network with QUIC PING
-   frames to avoid being application limited at the expense of higher
-   bandwidth usage.
-
-   The default QUIC congestion controller does not increase the
-   congestion window when application-limited.  See section 7.8 of
-   [QUIC-RECOVERY].
-
-5.2.2.  Constant Delivery
-
-   Live media generates frames at regular intervals.  Delaying the
-   delivery of a frame relative to others necessitates a larger playback
-   buffer
-
-   A live media congestion control algorithm SHOULD NOT introduce
-   artificial starvation.
-
-   A counter-example is BBR [BBR], as the "PROBE_RTT" state effectively
-   prohibits sending packets for a short period of time for the sake of
-   remeasuring "min_rtt".  The impact is reduced in future versions of
-   BBR.
-
-
-
-
-
-
-
-Curley                   Expires 10 January 2023               [Page 10]
-
-Internet-Draft                    WARP                         July 2022
-
-
-5.3.  Prioritization
-
-   Media segments might be delivered out of order during starvation.
-
-   The media player determines how long to wait for a given segment
-   (buffer size) before skipping ahead.  The media consumer MAY cancel a
-   skipped segment to save bandwidth, or leave it downloading in the
-   background (ex. to support rewind).
-
-   Prioritization allows a single media producer to support multiple
-   media consumers with different latency targets.  For example, one
-   consumer could have a 1s buffer to minimize latency, while another
-   consumer could have a 5s buffer to improve quality, while a yet
-   another consumer could have a 30s buffer to receive all media (ex.
-   VOD recorder).
-
-5.3.1.  Live Content
-
-   Live content is encoded and delivered in real-time.  Media delivery
-   is blocked on the encoder throughput, except during congestion
-   causing limited network throughput.  To best deliver live content:
-
-   *  Audio streams SHOULD be prioritized over video streams.  This
-      allows the media consumer to skip video while audio continues
-      uninterrupted during congestion.
-
-   *  Newer video streams SHOULD be prioritized over older video
-      streams.  This allows the media consumer to skip older video
-      content during congestion.
-
-   For example, this formula will prioritize audio segments, but only up
-   to 3s in the future:
-
-     if is_audio:
-       precedence = timestamp + 3s
-     else:
-       precedence = timestamp
-
-5.3.2.  Recorded Content
-
-   Recorded content has already been encoded.  Media delivery is blocked
-   exclusively on network throughput.
-
-   Warp is primarily designed for live content, but can switch to head-
-   of-line blocking by changing stream prioritization.  This is also
-   useful for content that should not be skipped over, such as
-   advertisements.  To enable head-of-line blocking:
-
-
-
-
-Curley                   Expires 10 January 2023               [Page 11]
-
-Internet-Draft                    WARP                         July 2022
-
-
-   *  Audio and video streams SHOULD be equally prioritized.
-
-   *  Older streams SHOULD be prioritized over newer streams.
-
-   For example, this formula will prioritize older segments:
-
-     precedence = -timestamp
-
-5.4.  Bitrate Selection
-
-   Live media is encoded in real-time and the bitrate can be adjusted on
-   the fly.  This is common in 1:1 media delivery.
-
-   A media producer MAY reduce the media bitrate in response to
-   starvation.  This can be detected via the estimated bitrate as
-   reported by the congestion control algorithm.  A less accurate
-   indication of starvation is when the QUIC sender is actively
-   prioritizing streams, as it means the congestion control window is
-   full.
-
-5.5.  Rendition Selection
-
-   Live media is can be encoded into multiple renditions, such that
-   media consumers could receive different renditions based on network
-   conditions.  This is common in 1:n media delivery.
-
-   A media producer MAY switch between renditions at segment boundaries.
-   Renditions SHOULD be fragmented at the same timestamps to avoid
-   introducing gaps or redundant media.
-
-5.5.1.  Push versus Pull
-
-   Protocols like HLS and DASH rely on the media player to determine the
-   rendition.  However, it becomes increasingly difficult to determine
-   the network capabilities on the receiver side as media fragments
-   become smaller and smaller.  It also introduces split-brain, as the
-   sender's congestion control may disagree with the receiver's
-   requested rendition.
-
-   It is RECOMMENDED that the media producer chooses the rendition based
-   on the estimated bitrate as reported by the congestion control
-   algorithm.  Alternatively, the media producer MAY expose the
-   estimated bitrate if the player must be in charge.
-
-
-
-
-
-
-
-
-Curley                   Expires 10 January 2023               [Page 12]
-
-Internet-Draft                    WARP                         July 2022
-
-
-5.6.  Fragmentation
-
-   Segments are encoded as fragmented MP4.  Each fragment is a "moof"
-   and "mdat" pair containing data for a number of samples.  Using more
-   fragments introduces more container overhead (higher bitrate), so
-   it's up to the application to determine the fragment frequency.
-
-   For the highest latency: one fragment per segment.  This means the
-   entire segment must be received before any of the samples can be
-   processed.  This is optimal for content that is not intended to be
-   decoded in real-time.
-
-   For the lowest latency: one fragment per frame.  This means that each
-   frame can be decoded when fully received.  This is optimal for real-
-   time decoding, however it introduces the largest overhead.
-
-   Fragments can be created with variable durations.  However, the
-   fragment duration SHOULD be relatively consistent to avoid
-   introducing additional playback starvation.  Likewise audio and video
-   SHOULD be encoded using similar fragment durations.
-
-5.7.  Encoding
-
-   Warp is primarily a network protocol and does enforce any encoding
-   requirements.  However, encoding has a significant impact on the user
-   experience and should be taken into account.
-
-   B-frames MAY be used to improve compression efficiency, but they
-   introduce jitter.  This necessitates a larger playback buffer,
-   increasing latency.
-
-   Audio and video MAY be encoded and transmitted independently.
-   However, audio can be encoded without delay unlike video.  Media
-   players SHOULD be prepared to receive audio before video even without
-   congestion.
+Internet-Draft                    WARP                      October 2022
+
+
+   QUIC connection with a different error code if there is a fatal error
+   before shutdown.  The server SHOULD wait until the "GOAWAY" message
+   and any pending streams have been fully acknowledged, plus an extra
+   delay to ensure they have been processed.
+
+   A client that receives a "GOAWAY" message should establish a new
+   WebTransport session to the provided URL.  This session SHOULD be
+   made in parallel and MUST use a different QUIC connection (not
+   pooled).  The optimal client will be connected for two servers for a
+   short period, potentially receiving layers from both in parallel.
 
 6.  Security Considerations
+
+   TODO expand
 
 6.1.  Resource Exhaustion
 
@@ -721,28 +922,18 @@ Internet-Draft                    WARP                         July 2022
    layer.  Endpoints SHOULD set flow control limits based on the
    anticipated media bitrate.
 
-
-
-
-
-Curley                   Expires 10 January 2023               [Page 13]
-
-Internet-Draft                    WARP                         July 2022
-
-
    The media producer prioritizes and transmits streams out of order.
    Streams might be starved indefinitely during congestion and SHOULD be
-   cancelled (Section 2.2.3) after hitting some timeout or resource
-   limit.
+   canceled after hitting some timeout or resource limit.
 
    The media consumer might receive streams out of order.  If stream
    data is buffered, for example to decode segments in order, then the
-   media consumer SHOULD cancel a stream (Section 2.2.3) after hitting
-   some timeout or resource limit.
+   media consumer SHOULD cancel a stream after hitting some timeout or
+   resource limit.
 
 7.  IANA Considerations
 
-   This document has no IANA actions.
+   TODO
 
 8.  References
 
@@ -755,6 +946,13 @@ Internet-Draft                    WARP                         July 2022
               Multiplexed and Secure Transport", RFC 9000,
               DOI 10.17487/RFC9000, May 2021,
               <https://www.rfc-editor.org/info/rfc9000>.
+
+
+
+Curley, et al.            Expires 21 April 2023                [Page 17]
+
+Internet-Draft                    WARP                      October 2022
+
 
    [QUIC-RECOVERY]
               Iyengar, J., Ed. and I. Swett, Ed., "QUIC Loss Detection
@@ -779,13 +977,6 @@ Internet-Draft                    WARP                         July 2022
 
 8.2.  Informative References
 
-
-
-Curley                   Expires 10 January 2023               [Page 14]
-
-Internet-Draft                    WARP                         July 2022
-
-
    [BBR]      Cardwell, N., Cheng, Y., Yeganeh, S. H., Swett, I., and V.
               Jacobson, "BBR Congestion Control", Work in Progress,
               Internet-Draft, draft-cardwell-iccrg-bbr-congestion-
@@ -804,16 +995,34 @@ Internet-Draft                    WARP                         July 2022
 
 Contributors
 
-   *  Michael Thornburgh
+   TODO
 
-Author's Address
+Authors' Addresses
 
    Luke Curley
    Twitch
 
+
+
+
+Curley, et al.            Expires 21 April 2023                [Page 18]
+
+Internet-Draft                    WARP                      October 2022
+
+
    Email: kixelated@gmail.com
 
 
+   Kirill Pugin
+   Meta
+
+   Email: ikir@meta.com
+
+
+   Suhas Nandakumar
+   Cisco
+
+   Email: snandaku@cisco.com
 
 
 
@@ -837,4 +1046,19 @@ Author's Address
 
 
 
-Curley                   Expires 10 January 2023               [Page 15]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Curley, et al.            Expires 21 April 2023                [Page 19]

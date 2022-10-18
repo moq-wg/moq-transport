@@ -1,5 +1,5 @@
 OPEN=$(word 1, $(wildcard /usr/bin/xdg-open /usr/bin/open /bin/echo))
-SOURCES?=${wildcard *.md}
+SOURCES?=${wildcard draft-*.md}
 TEXT=${SOURCES:.md=.txt}
 HTML=${SOURCES:.md=.html}
 XML=${SOURCES:.md=.xml}
