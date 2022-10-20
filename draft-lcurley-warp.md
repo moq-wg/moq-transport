@@ -148,21 +148,36 @@ This also ensures that congestion response is consistent at every hop based on t
 
 
 # Layers
-Warp is based on a concept of layers.
-A layer is a bitstream that is decoded in order and without gaps.
+Warp is based on the concept of layered coding.
+A layer is a combination of a media bitstream and a set of properties.
 
-The goal is to deliver layers such that the least important media is dropped during congestion.
-This is done by assigning dependencies and/or priority to each layer, as covered in the properties ({{properties}}) section.
-Each layer is then transmitted over a QUIC stream, as covered in the streams ({{streams}}) section.
-QUIC will ensure that the layer arrives in order until canceled by either endpoint.
+* The encoder determines how to split the encoded bitstream into layers ({{media}}).
+* Each layer is transferred over a QUIC stream, which are delivered independently according to the layer properties ({{properties}}).
+* The decoder receives each layer and skips any layers that do not arrive in time ({{decoder}}).
 
-Media is broken up into layers based on the underlying encoding.
-The contents and properties of each layer is determined by the producer based on the desired user experience.
+## Media
+An encoder produces one or more codec bitstreams for each track.
+The bitstream is then fed to the decoder on the other end, after being transported over the network, in the same order its produced.
+The problem, as explained in motivation ({{latency}}), is that networks cannot sustain a continuous rate and thus queuing occurs.
+
+Warp works by splitting the codec bitstream into layers that can be transmitted independently.
+The producer determines how to split the bistream into layers: based on the track, GoP, frame/sample, or even slice.
+Depending on how the layers are produced, the consumer has the ability to decode layers out of order and skip over gaps.
+See the appendix for examples based on media encoding ({{appendix.examples}}).
+
+TOOD specify CMAF
+
+A layer MUST contain a single track.
+A layer MAY contain any number of samples which MUST be in decode order (increasing DTS).
+There MAY be gaps between samples, as specified by the presentation timestamp and duration within the container.
+
+The goal of layers is to produce a hierarchy.
+Layers MAY depend on any number of other layers and MAY overlap with other layers.
 
 ## Properties
 Each layer has properties to go along with its contents.
 These are written on the wire and inform how they layer should be transmitted at each hop.
-This is primarily for the purpose of supporting intermediaries, but this information may also be used by the decoder.
+This is primarily for the purpose of supporting intermediaries, but some of this information may also be used by the decoder.
 
 All currently defined properties are optional.
 
@@ -178,12 +193,11 @@ If two layers use the same value, they SHOULD be round-robined.
 Note that layers can still arrive out of the intended order due to packet loss.
 The default value is 0.
 
-* `dependency`.
-A numeric value that indicates this layer depends on the specified layer id.
-TODO do we need multiple dependencies?
-This informs the decoder that it MUST receive and process the dependency layer first.
-The decoder SHOULD support stream processing, such that it does not need to receive the entire dependency layer first.
-The layer MUST have a larger `order` than its dependency, if present.
+* `depends`.
+A list of numeric layer IDs.
+This informs the decoder that it MUST receive and process the dependency layers first.
+The decoder MAY support stream processing, such that it does not need to fully receive the dependency layers first.
+The layer SHOULD have a larger `order` than its dependencies, if present.
 The default value is 0, which means no dependency.
 
 * `cache`.
@@ -195,265 +209,25 @@ TODO Indicates the layer should be dropped after some amount of time (ex. `RESET
 * `timestamp`.
 TODO The presentation timestamp of the earliest (not always first) frame in the layer. What does an intermediary need this for?
 
+* `track`
+TODO The track identifier to be used in conjunction with the TRACK message.
 
-TODO example priorities
+See the appendix for some example layers and properties. {{appendix.examples}}
 
-
-## Tracks
-The simplest configuration is a single layer spanning the entire broadcast.
-This is effectively a TCP stream and is a direct replacement for RTMP.
-The downside of a single layer is that it can only respond to congestion by modifying the encoder bitrate, so it SHOULD NOT be used over networks with congestion.
-
-Each track (audio and/or video) can be split into separate layers.
-This improves user experience as individual tracks can be prioritized during congestion.
-For example, audio could be prioritized before video, and/or a lower bitrate rendition could be prioritized before a higher bitrate rendition.
-
-A layer MAY contain multiple tracks.
-A layer SHOULD contain a single track.
-
-A single layer per track means that all media within the track is ordered.
-Multiple layers per track allow sections to be dropped or prioritized, which is necessary to skip media and reduce queuing.
-The next section covers how to further split layers based on the type of media.
-
-## Video
-
-### Encoding
-Video is a sequence of frames with a display timestamp.
-To improve compression, frames are encoded as deltas and can reference number of frames in the past (P-frames) and/or in the future (B-frames).
-A frame with no dependencies (I-frame) is effectively an image file and is a seek point.
-
-A common encoding structure is to only reference the previous frame, as it is simple and minimizes latency:
-
-~~~
- I <- P <- P <- P   I <- P <- P <- P   I <- P ...
-~~~
-
-Another common encoding structure is to use B-frames in a fixed pattern, which is easier for hardware encoding.
-B-frames reference one or more future frames, which improves the compression ratio but increases latency.
-
-This example is referenced in later sections:
-
-~~~
-    B     B         B     B         B
-   / \   / \       / \   / \       / \
-  /   \ /   \     /   \ /   \     /   \
- I <-- P <-- P   I <-- P <-- P   I <-- P ...
-~~~
-
-Note that the B-frames reference I and P frames in this example, despite the lack of an arrow.
-TODO better ASCII art
-
-There is no such thing as an optimal encoding structure.
-Encoders tuned for the best quality will produce a tangled spaghetti of references.
-Encoders tuned for the lowest latency still have a lot of options for references.
-
-
-### Decode Order
-The encoder outputs the bitstream in decode order, which means that each frame is output after its dependencies.
-This is only relevant for B-frames as they must be buffered until the frame they reference has been flushed.
-
-A layer MUST be in decode order.
-
-For the example above, this would look like:
-
-~~~
-encode order: I B P B P I B P B P I B P ..
-decode order: I P B P B I P B P B I P B ..
-~~~
-
-
-### Group of Pictures
-A group of pictures (GoP) is consists of an I-frame and the frames that directly or indirectly reference it.
-Each GoP can be decoded independently and thus can be transmitted independently.
-It is also safe to drop the tail of the GoP (in decode order) without causing decode errors.
-
-A layer MAY consist of an entire GoP.
-A layer MAY consist of multiple sequential GoPs.
-
-Our example GoP structure would be split into three layers.
-
-~~~
-     layer 1         layer 2      layer 3
-+---------------+---------------+---------
-| I  P  B  P  B | I  P  B  P  B | I  P  B
-+---------------+---------------+---------
-~~~
-
-
-### Scalable Video Coding
-The concept of layers is borrowed from scalable video coding (SVC).
-When SVC is enabled, the encoder produces multiple bitstreams in a hierarchy.
-Dropping the top layer degrades the user experience in a configured way, such as reducing the resolution, picture quality, and/or frame rate.
-
-A layer MAY consist of an entire SVC layer.
-
-Our example GoP structure would be split into six layers, assuming the B frames are part of a SVC layer:
-
-~~~
-    layer 2       layer 4     layer 6
-+-------------+-------------+--------
-|    B   B    |    B   B    |    B
-+-------------+-------------+--------
-|  I   P   P  |  I   P   P  |  I   P
-+-------------+-------------+--------
-    layer 1       layer 3     layer 5
-~~~
-
-Note that SVC encoding is more complicated than this; our example is a simple temporal encoding scheme.
-
-
-### Frames
-With full knowledge of the encoding, the producer can split a GoP into multiple layers based on the frame.
-However, this is highly dependent on the encoding, and the additional complexity might not improve the user experience.
-
-A layer MAY consist of a single frame.
-
-Our example GoP structure could be split into thirteen layers:
-
-~~~
-      2     4           7     9           12
-+--------+--------+--------+--------+-----------+
-|     B  |  B     |     B  |  B     |     B     |
-|-----+--+--+-----+-----+--+--+-----+-----+-----+
-|  I  |  P  |  P  |  I  |  P  |  P  |  I  |  P  |
-+-----+-----+-----+-----+-----+-----+-----+-----+
-   1     3     5     6     8     10    11    13
-~~~
-
-To reduce the number of layers, frames can be appended to a layer they depend on.
-Layers are delivered in order so this is simpler and produces the same user experience.
-
-A layer MAY consist of multiple frames within the same GoP.
-
-The same GoP structure can be represented using eight layers:
-
-~~~
-      2     3           5     6           8
-+--------+--------+-----------------+------------
-|     B  |  B     |     B  |  B     |     B     |
-+--------+--------+--------+--------+-----------+
-|  I     P     P  |  I     P     P  |  I     P
-+-----------------+-----------------+------------
-         1                 4              7
-~~~
-
-We can further reduce the number of layers by combining some frames that don't depend on each other.
-The only restriction is that frames can only reference frames earlier in the layer, or within a dependency layer.
-For example, non-reference frames can have their own layer so they can be prioritized or dropped separate from reference frames.
-
-The same GoP structure can also be represented using six layers, although we've removed our ability to drop individual B-frames:
-
-~~~
-    layer 2       layer 4     layer 6
-+-------------+-------------+--------
-|    B   B    |    B   B    |    B
-+-------------+-------------+--------
-|  I   P   P  |  I   P   P  |  I   P
-+-------------+-------------+--------
-    layer 1       layer 3     layer 5
-~~~
-
-Note that this is identical to our SVC example; we've effectively implemented our own temporal coding scheme.
-
-### Slices
-Frames actually consist of multiple slices that reference other slices.
-It's conceptually simpler to work with frames instead of slices, but splitting slices into layers may be useful.
-For example, intra-refresh splits an I-frame into multiple I-slices (TODO terminology) and spread over multiple frames to smooth out the bitrate.
-TODO are slices necessary?
-
-A layer MAY consist of a single slice.
-A layer MAY consist of multiple slices that are part of the same GoP.
-
-### Init
-For the most byte-conscious applications, initialization data can be sent over its own layer.
-Multiple layers can depend on this initialization layer to avoid redundant transmissions.
-For example: this is the init segment in CMAF (`moov` with no samples), which contains the SPS/PPS NALUs for h.264.
-
-A layer MAY consist of no samples.
-
-Our example layer per GoP would have an extra layer added:
-
-~~~
-     layer 2         layer 3      layer 4
-+---------------+---------------+---------
-| I  P  B  P  B | I  P  B  P  B | I  P  B
-+---------------+---------------+---------
-|                     init
-+-----------------------------------------
-                     layer 1
-~~~
-
-An initialization layer MUST be cached in memory until it expires.
-TODO How do we do this?
-
-## Audio
-
-### Encoding
-Audio is dramatically simpler than video as it is not delta encoded.
-Audio samples are grouped together (group of samples) at a configured rate, also called a "frame".
-Frames do not depend on other frames and have a timestamp for synchronization.
-
-In the below diagrams, each audio frame is denoted with an S.
-The encoder spits out a continuous stream of samples:
-
-~~~
-S S S S S S S S S S S S S
-~~~
-
-### Simple
-The simplest configuration is to use a single layer for each audio track.
-This may seem inefficient given the ease of dropping audio samples.
-However, the audio bitrate is low and gaps cause quite a poor user experience, when compared to video.
-
-A layer SHOULD consist of multiple audio frames.
-
-~~~
-          layer 1
-+---------------------------
-| S S S S S S S S S S S S S
-+---------------------------
-~~~
-
-### Refresh
-An improvement is to periodically split audio samples into separate layers.
-This gives the consumer the ability to skip ahead during severe congestion or temporary connectivity loss.
-
-~~~
-     layer 1         layer 2      layer 3
-+---------------+---------------+---------
-| S  S  S  S  S | S  S  S  S  S | S  S  S
-+---------------+---------------+---------
-~~~
-
-This frequency of audio layers is configurable, at the cost of additional overhead.
-It's NOT RECOMMENDED to create a layer for each audio frame because of this overhead.
-
-Video can only recover from severe congestion with an I-frame, so there's not much point recovering audio at a separate interval.
-It is RECOMMENDED to create a new audio layer at each video I-frame.
-
-~~~
-     layer 1         layer 3      layer 5
-+---------------+---------------+---------
-| S  S  S  S  S | S  S  S  S  S | S  S  S
-+---------------+---------------+---------
-| I  P  B  P  B | I  P  B  P  B | I  P  B
-+---------------+---------------+---------
-     layer 2         layer 4      layer 6
-~~~
-
-This is effectively how HLS/DASH segments work, with the exception that the most recent layers are still pending.
-
-## Synchronization
+## Decoder
+The consumer will receive multiple layers over the network in parallel.
 The decoder MUST synchronize layers using presentation timestamps within the bitstream.
+The decoder might not support decoding each layer independently, so the consumer MAY need to reorder prior to passing a bitstream to the decoder.
 
 Layers are NOT REQUIRED to be aligned within or between tracks.
 For example, a low quality rendition may have more frequent I-frames, and thus layers, than a higher quality rendition.
 A decoder MUST be prepared to skip over any gaps between layers.
 
+
 # QUIC
 
 ## Establishment
-A connection is established using WebTransport ({{WebTransport}}).
+A connection is established using WebTransport {{WebTransport}}.
 
 To summarize:
 The client issues a HTTP CONNECT request with the intention of establishing a new WebTransport session.
@@ -615,6 +389,271 @@ If stream data is buffered, for example to decode segments in order, then the me
 
 # IANA Considerations
 TODO
+
+# Appendix A. Layer Examples {#appendix.examples}
+Warp offers a large degree of flexability on how layers are fragmented and prioritized.
+There is no best solution; it depends on the desired complexity and user experience.
+
+This section provides a summary of media encoding and some options available.
+
+## Recommended
+Before explaining all of the options, there is a recommended approach:
+
+* a video layer per GoP ({{appendix.gop}})
+* an audio layer at roughly the same timestamp ({{appendix.segments}})
+
+TODO section on prioritization
+* audio should be delivered before video
+* for new media should be delivered before old media, or the opposite if reliability is desired
+
+
+## Tracks
+A broadcast consists of one or more tracks.
+Each track has a type (audio, video, caption, etc) and uses a cooresponding codec.
+There may be multiple tracks, including of the same type for a number of reasons.
+
+For example:
+
+* A track for each codec.
+* A track for each resolution and bitrate.
+* A track for each language.
+* A track for each camera feed.
+
+Traditionally, these tracks could be muxed together into a single container or stream.
+The goal of Warp is to independently deliver tracks, and even parts of a track, so they must be demuxed.
+
+The simplest configuration is a single, continuous layer per track.
+This allows tracks to be prioritized during congestion, although no media can be dropped.
+The next section covers how to further split layers based on the type of media.
+
+## Video
+
+### Encoding
+Video is a sequence of frames with a display timestamp.
+To improve compression, frames are encoded as deltas and can reference number of frames in the past (P-frames) and/or in the future (B-frames).
+A frame with no dependencies (I-frame) is effectively an image file and is a seek point.
+
+A common encoding structure is to only reference the previous frame, as it is simple and minimizes latency:
+
+~~~
+ I <- P <- P <- P   I <- P <- P <- P   I <- P ...
+~~~
+
+Another common encoding structure is to use B-frames in a fixed pattern, which is easier for hardware encoding.
+B-frames reference one or more future frames, which improves the compression ratio but increases latency.
+
+This example is referenced in later sections:
+
+~~~
+    B     B         B     B         B
+   / \   / \       / \   / \       / \
+  /   \ /   \     /   \ /   \     /   \
+ I <-- P <-- P   I <-- P <-- P   I <-- P ...
+~~~
+
+Note that the B-frames reference I and P frames in this example, despite the lack of an arrow.
+TODO better ASCII art
+
+There is no such thing as an optimal encoding structure.
+Encoders tuned for the best quality will produce a tangled spaghetti of references.
+Encoders tuned for the lowest latency still have a lot of options for references.
+
+
+### Decode Order
+The encoder outputs the bitstream in decode order, which means that each frame is output after its dependencies.
+This is only relevant for B-frames as they must be buffered until the frame they reference has been flushed.
+
+A layer MUST be in decode order.
+
+For the example above, this would look like:
+
+~~~
+encode order: I B P B P I B P B P I B P ..
+decode order: I P B P B I P B P B I P B ..
+~~~
+
+
+### Group of Pictures {#appendix.gop}
+A group of pictures (GoP) is consists of an I-frame and the frames that directly or indirectly reference it.
+Each GoP can be decoded independently and thus can be transmitted independently.
+It is also safe to drop the tail of the GoP (in decode order) without causing decode errors.
+
+A layer MAY consist of an entire GoP.
+A layer MAY consist of multiple sequential GoPs.
+
+Our example GoP structure would be split into three layers.
+
+~~~
+     layer 1         layer 2      layer 3
++---------------+---------------+---------
+| I  P  B  P  B | I  P  B  P  B | I  P  B
++---------------+---------------+---------
+~~~
+
+
+### Scalable Video Coding
+The concept of layers is borrowed from scalable video coding (SVC).
+When SVC is enabled, the encoder produces multiple bitstreams in a hierarchy.
+Dropping the top layer degrades the user experience in a configured way, such as reducing the resolution, picture quality, and/or frame rate.
+
+A layer MAY consist of an entire SVC layer.
+
+Our example GoP structure would be split into six layers, assuming the B frames are part of a SVC layer:
+
+~~~
+    layer 2       layer 4     layer 6
++-------------+-------------+--------
+|    B   B    |    B   B    |    B
++-------------+-------------+--------
+|  I   P   P  |  I   P   P  |  I   P
++-------------+-------------+--------
+    layer 1       layer 3     layer 5
+~~~
+
+Note that SVC encoding is more complicated than this; our example is a simple temporal encoding scheme.
+
+
+### Frames
+With full knowledge of the encoding, the producer can split a GoP into multiple layers based on the frame.
+However, this is highly dependent on the encoding, and the additional complexity might not improve the user experience.
+
+A layer MAY consist of a single frame.
+
+Our example GoP structure could be split into thirteen layers:
+
+~~~
+      2     4           7     9           12
++--------+--------+--------+--------+-----------+
+|     B  |  B     |     B  |  B     |     B     |
+|-----+--+--+-----+-----+--+--+-----+-----+-----+
+|  I  |  P  |  P  |  I  |  P  |  P  |  I  |  P  |
++-----+-----+-----+-----+-----+-----+-----+-----+
+   1     3     5     6     8     10    11    13
+~~~
+
+To reduce the number of layers, frames can be appended to a layer they depend on.
+Layers are delivered in order so this is simpler and produces the same user experience.
+
+A layer MAY consist of multiple frames within the same GoP.
+
+The same GoP structure can be represented using eight layers:
+
+~~~
+      2     3           5     6           8
++--------+--------+-----------------+------------
+|     B  |  B     |     B  |  B     |     B     |
++--------+--------+--------+--------+-----------+
+|  I     P     P  |  I     P     P  |  I     P
++-----------------+-----------------+------------
+         1                 4              7
+~~~
+
+We can further reduce the number of layers by combining some frames that don't depend on each other.
+The only restriction is that frames can only reference frames earlier in the layer, or within a dependency layer.
+For example, non-reference frames can have their own layer so they can be prioritized or dropped separate from reference frames.
+
+The same GoP structure can also be represented using six layers, although we've removed our ability to drop individual B-frames:
+
+~~~
+    layer 2       layer 4     layer 6
++-------------+-------------+--------
+|    B   B    |    B   B    |    B
++-------------+-------------+--------
+|  I   P   P  |  I   P   P  |  I   P
++-------------+-------------+--------
+    layer 1       layer 3     layer 5
+~~~
+
+Note that this is identical to our SVC example; we've effectively implemented our own temporal coding scheme.
+
+### Slices
+Frames actually consist of multiple slices that reference other slices.
+It's conceptually simpler to work with frames instead of slices, but splitting slices into layers may be useful.
+For example, intra-refresh splits an I-frame into multiple I-slices (TODO terminology) and spread over multiple frames to smooth out the bitrate.
+TODO are slices necessary?
+
+A layer MAY consist of a single slice.
+A layer MAY consist of multiple slices that are part of the same GoP.
+
+### Init
+For the most byte-conscious applications, initialization data can be sent over its own layer.
+Multiple layers can depend on this initialization layer to avoid redundant transmissions.
+For example: this is the init segment in CMAF (`moov` with no samples), which contains the SPS/PPS NALUs for h.264.
+
+A layer MAY consist of no samples.
+
+Our example layer per GoP would have an extra layer added:
+
+~~~
+     layer 2         layer 3      layer 4
++---------------+---------------+---------
+| I  P  B  P  B | I  P  B  P  B | I  P  B
++---------------+---------------+---------
+|                     init
++-----------------------------------------
+                     layer 1
+~~~
+
+An initialization layer MUST be cached in memory until it expires.
+TODO How do we do this?
+
+## Audio
+
+### Encoding
+Audio is dramatically simpler than video as it is not delta encoded.
+Audio samples are grouped together (group of samples) at a configured rate, also called a "frame".
+Frames do not depend on other frames and have a timestamp for synchronization.
+
+In the below diagrams, each audio frame is denoted with an S.
+The encoder spits out a continuous stream of samples:
+
+~~~
+S S S S S S S S S S S S S
+~~~
+
+### Simple
+The simplest configuration is to use a single layer for each audio track.
+This may seem inefficient given the ease of dropping audio samples.
+However, the audio bitrate is low and gaps cause quite a poor user experience, when compared to video.
+
+A layer SHOULD consist of multiple audio frames.
+
+~~~
+          layer 1
++---------------------------
+| S S S S S S S S S S S S S
++---------------------------
+~~~
+
+### Periodic Refresh
+An improvement is to periodically split audio samples into separate layers.
+This gives the consumer the ability to skip ahead during severe congestion or temporary connectivity loss.
+
+~~~
+     layer 1         layer 2      layer 3
++---------------+---------------+---------
+| S  S  S  S  S | S  S  S  S  S | S  S  S
++---------------+---------------+---------
+~~~
+
+This frequency of audio layers is configurable, at the cost of additional overhead.
+It's NOT RECOMMENDED to create a layer for each audio frame because of this overhead.
+
+### Segments {#appendix.segments}
+Video can only recover from severe congestion with an I-frame, so there's not much point recovering audio at a separate interval.
+It is RECOMMENDED to create a new audio layer at each video I-frame.
+
+~~~
+     layer 1         layer 3      layer 5
++---------------+---------------+---------
+| S  S  S  S  S | S  S  S  S  S | S  S  S
++---------------+---------------+---------
+| I  P  B  P  B | I  P  B  P  B | I  P  B
++---------------+---------------+---------
+     layer 2         layer 4      layer 6
+~~~
+
+This is effectively how HLS/DASH segments work, with the exception that the most recent layers are still pending.
 
 
 --- back
