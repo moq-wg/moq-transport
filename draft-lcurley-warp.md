@@ -500,19 +500,28 @@ Dropping the top layer degrades the user experience in a configured way, such as
 
 A layer MAY consist of an entire SVC layer.
 
-Our example GoP structure would be split into six layers, assuming the B frames are part of a SVC layer:
+Here is an example SVC encoding with 3 resolutions:
 
 ~~~
-    layer 2       layer 4     layer 6
-+-------------+-------------+--------
-|    B   B    |    B   B    |    B
-+-------------+-------------+--------
-|  I   P   P  |  I   P   P  |  I   P
-+-------------+-------------+--------
-    layer 1       layer 3     layer 5
-~~~
+                layer 3              layer 6
+      +-------------------------+---------------
+   4k |  P <- P <- P <- P <- P  |  P <- P <- P
+      |  |    |    |    |    |  |  |    |    |
+      |  v    v    v    v    v  |  v    v    v
+      +-------------------------+--------------
 
-Note that SVC encoding is more complicated than this; our example is a simple temporal encoding scheme.
+                layer 2              layer 5
+      +-------------------------+---------------
+1080p |  P <- P <- P <- P <- P  |  P <- P <- P
+      |  |    |    |    |    |  |  |    |    |
+      |  v    v    v    v    v  |  v    v    v
+      +-------------------------+--------------
+
+                layer 1              layer 4
+      +-------------------------+---------------
+ 360p |  I <- P <- P <- P <- P  |  I <- P <- P
+      +-------------------------+---------------
+~~~
 
 
 ### Frames

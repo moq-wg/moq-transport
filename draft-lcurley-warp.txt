@@ -5,10 +5,10 @@
 Independent Submission                                         L. Curley
 Internet-Draft                                                    Twitch
 Intended status: Informational                                  K. Pugin
-Expires: 23 April 2023                                              Meta
+Expires: 24 April 2023                                              Meta
                                                            S. Nandakumar
                                                                    Cisco
-                                                         20 October 2022
+                                                         21 October 2022
 
 
                   Warp - Layered Live Media Transport
@@ -37,7 +37,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 23 April 2023.
+   This Internet-Draft will expire on 24 April 2023.
 
 Copyright Notice
 
@@ -53,7 +53,7 @@ Copyright Notice
 
 
 
-Curley, et al.            Expires 23 April 2023                 [Page 1]
+Curley, et al.            Expires 24 April 2023                 [Page 1]
 
 Internet-Draft                    WARP                      October 2022
 
@@ -109,7 +109,7 @@ Table of Contents
 
 
 
-Curley, et al.            Expires 23 April 2023                 [Page 2]
+Curley, et al.            Expires 24 April 2023                 [Page 2]
 
 Internet-Draft                    WARP                      October 2022
 
@@ -165,7 +165,7 @@ Internet-Draft                    WARP                      October 2022
 
 
 
-Curley, et al.            Expires 23 April 2023                 [Page 3]
+Curley, et al.            Expires 24 April 2023                 [Page 3]
 
 Internet-Draft                    WARP                      October 2022
 
@@ -221,7 +221,7 @@ Internet-Draft                    WARP                      October 2022
 
 
 
-Curley, et al.            Expires 23 April 2023                 [Page 4]
+Curley, et al.            Expires 24 April 2023                 [Page 4]
 
 Internet-Draft                    WARP                      October 2022
 
@@ -277,7 +277,7 @@ Internet-Draft                    WARP                      October 2022
 
 
 
-Curley, et al.            Expires 23 April 2023                 [Page 5]
+Curley, et al.            Expires 24 April 2023                 [Page 5]
 
 Internet-Draft                    WARP                      October 2022
 
@@ -333,7 +333,7 @@ Internet-Draft                    WARP                      October 2022
 
 
 
-Curley, et al.            Expires 23 April 2023                 [Page 6]
+Curley, et al.            Expires 24 April 2023                 [Page 6]
 
 Internet-Draft                    WARP                      October 2022
 
@@ -389,7 +389,7 @@ Internet-Draft                    WARP                      October 2022
 
 
 
-Curley, et al.            Expires 23 April 2023                 [Page 7]
+Curley, et al.            Expires 24 April 2023                 [Page 7]
 
 Internet-Draft                    WARP                      October 2022
 
@@ -445,7 +445,7 @@ Internet-Draft                    WARP                      October 2022
 
 
 
-Curley, et al.            Expires 23 April 2023                 [Page 8]
+Curley, et al.            Expires 24 April 2023                 [Page 8]
 
 Internet-Draft                    WARP                      October 2022
 
@@ -501,7 +501,7 @@ Internet-Draft                    WARP                      October 2022
 
 
 
-Curley, et al.            Expires 23 April 2023                 [Page 9]
+Curley, et al.            Expires 24 April 2023                 [Page 9]
 
 Internet-Draft                    WARP                      October 2022
 
@@ -557,7 +557,7 @@ Internet-Draft                    WARP                      October 2022
 
 
 
-Curley, et al.            Expires 23 April 2023                [Page 10]
+Curley, et al.            Expires 24 April 2023                [Page 10]
 
 Internet-Draft                    WARP                      October 2022
 
@@ -613,7 +613,7 @@ Internet-Draft                    WARP                      October 2022
 
 
 
-Curley, et al.            Expires 23 April 2023                [Page 11]
+Curley, et al.            Expires 24 April 2023                [Page 11]
 
 Internet-Draft                    WARP                      October 2022
 
@@ -669,7 +669,7 @@ Internet-Draft                    WARP                      October 2022
 
 
 
-Curley, et al.            Expires 23 April 2023                [Page 12]
+Curley, et al.            Expires 24 April 2023                [Page 12]
 
 Internet-Draft                    WARP                      October 2022
 
@@ -725,7 +725,7 @@ Internet-Draft                    WARP                      October 2022
 
 
 
-Curley, et al.            Expires 23 April 2023                [Page 13]
+Curley, et al.            Expires 24 April 2023                [Page 13]
 
 Internet-Draft                    WARP                      October 2022
 
@@ -781,7 +781,7 @@ Internet-Draft                    WARP                      October 2022
 
 
 
-Curley, et al.            Expires 23 April 2023                [Page 14]
+Curley, et al.            Expires 24 April 2023                [Page 14]
 
 Internet-Draft                    WARP                      October 2022
 
@@ -806,19 +806,26 @@ Internet-Draft                    WARP                      October 2022
 
    A layer MAY consist of an entire SVC layer.
 
-   Our example GoP structure would be split into six layers, assuming
-   the B frames are part of a SVC layer:
+   Here is an example SVC encoding with 3 resolutions:
 
-       layer 2       layer 4     layer 6
-   +-------------+-------------+--------
-   |    B   B    |    B   B    |    B
-   +-------------+-------------+--------
-   |  I   P   P  |  I   P   P  |  I   P
-   +-------------+-------------+--------
-       layer 1       layer 3     layer 5
+                   layer 3              layer 6
+         +-------------------------+---------------
+      4k |  P <- P <- P <- P <- P  |  P <- P <- P
+         |  |    |    |    |    |  |  |    |    |
+         |  v    v    v    v    v  |  v    v    v
+         +-------------------------+--------------
 
-   Note that SVC encoding is more complicated than this; our example is
-   a simple temporal encoding scheme.
+                   layer 2              layer 5
+         +-------------------------+---------------
+   1080p |  P <- P <- P <- P <- P  |  P <- P <- P
+         |  |    |    |    |    |  |  |    |    |
+         |  v    v    v    v    v  |  v    v    v
+         +-------------------------+--------------
+
+                   layer 1              layer 4
+         +-------------------------+---------------
+    360p |  I <- P <- P <- P <- P  |  I <- P <- P
+         +-------------------------+---------------
 
 8.3.5.  Frames
 
@@ -827,20 +834,17 @@ Internet-Draft                    WARP                      October 2022
    dependent on the encoding, and the additional complexity might not
    improve the user experience.
 
-   A layer MAY consist of a single frame.
-
-   Our example GoP structure could be split into thirteen layers:
 
 
 
-
-
-
-
-Curley, et al.            Expires 23 April 2023                [Page 15]
+Curley, et al.            Expires 24 April 2023                [Page 15]
 
 Internet-Draft                    WARP                      October 2022
 
+
+   A layer MAY consist of a single frame.
+
+   Our example GoP structure could be split into thirteen layers:
 
          2     4           7     9           12
    +--------+--------+--------+--------+-----------+
@@ -889,11 +893,7 @@ Internet-Draft                    WARP                      October 2022
 
 
 
-
-
-
-
-Curley, et al.            Expires 23 April 2023                [Page 16]
+Curley, et al.            Expires 24 April 2023                [Page 16]
 
 Internet-Draft                    WARP                      October 2022
 
@@ -949,7 +949,7 @@ Internet-Draft                    WARP                      October 2022
 
 
 
-Curley, et al.            Expires 23 April 2023                [Page 17]
+Curley, et al.            Expires 24 April 2023                [Page 17]
 
 Internet-Draft                    WARP                      October 2022
 
@@ -1005,7 +1005,7 @@ Internet-Draft                    WARP                      October 2022
 
 
 
-Curley, et al.            Expires 23 April 2023                [Page 18]
+Curley, et al.            Expires 24 April 2023                [Page 18]
 
 Internet-Draft                    WARP                      October 2022
 
@@ -1061,7 +1061,7 @@ Internet-Draft                    WARP                      October 2022
 
 
 
-Curley, et al.            Expires 23 April 2023                [Page 19]
+Curley, et al.            Expires 24 April 2023                [Page 19]
 
 Internet-Draft                    WARP                      October 2022
 
@@ -1117,4 +1117,4 @@ Authors' Addresses
 
 
 
-Curley, et al.            Expires 23 April 2023                [Page 20]
+Curley, et al.            Expires 24 April 2023                [Page 20]
