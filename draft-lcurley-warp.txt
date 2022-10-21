@@ -71,41 +71,41 @@ Table of Contents
 
    1.  Introduction  . . . . . . . . . . . . . . . . . . . . . . . .   3
      1.1.  Terms and Definitions . . . . . . . . . . . . . . . . . .   3
-   2.  Motivation  . . . . . . . . . . . . . . . . . . . . . . . . .   3
-     2.1.  Latency . . . . . . . . . . . . . . . . . . . . . . . . .   3
-     2.2.  Universal . . . . . . . . . . . . . . . . . . . . . . . .   4
-     2.3.  Intermediaries  . . . . . . . . . . . . . . . . . . . . .   5
-   3.  Layers  . . . . . . . . . . . . . . . . . . . . . . . . . . .   6
-     3.1.  Media . . . . . . . . . . . . . . . . . . . . . . . . . .   6
-     3.2.  Properties  . . . . . . . . . . . . . . . . . . . . . . .   6
-     3.3.  Decoder . . . . . . . . . . . . . . . . . . . . . . . . .   7
-   4.  QUIC  . . . . . . . . . . . . . . . . . . . . . . . . . . . .   8
-     4.1.  Establishment . . . . . . . . . . . . . . . . . . . . . .   8
-     4.2.  Streams . . . . . . . . . . . . . . . . . . . . . . . . .   8
-     4.3.  Prioritization  . . . . . . . . . . . . . . . . . . . . .   9
-     4.4.  Cancellation  . . . . . . . . . . . . . . . . . . . . . .   9
-     4.5.  Congestion Control  . . . . . . . . . . . . . . . . . . .   9
-     4.6.  Termination . . . . . . . . . . . . . . . . . . . . . . .  10
-   5.  Messages  . . . . . . . . . . . . . . . . . . . . . . . . . .  10
-     5.1.  HEADERS . . . . . . . . . . . . . . . . . . . . . . . . .  11
-     5.2.  LAYER . . . . . . . . . . . . . . . . . . . . . . . . . .  11
-     5.3.  APP . . . . . . . . . . . . . . . . . . . . . . . . . . .  11
-     5.4.  GOAWAY  . . . . . . . . . . . . . . . . . . . . . . . . .  11
-   6.  Security Considerations . . . . . . . . . . . . . . . . . . .  12
-     6.1.  Resource Exhaustion . . . . . . . . . . . . . . . . . . .  12
-   7.  IANA Considerations . . . . . . . . . . . . . . . . . . . . .  12
-   8.  Appendix A.  Layer Examples . . . . . . . . . . . . . . . . .  12
-     8.1.  Recommended . . . . . . . . . . . . . . . . . . . . . . .  13
-     8.2.  Tracks  . . . . . . . . . . . . . . . . . . . . . . . . .  13
-     8.3.  Video . . . . . . . . . . . . . . . . . . . . . . . . . .  13
-       8.3.1.  Encoding  . . . . . . . . . . . . . . . . . . . . . .  13
-       8.3.2.  Decode Order  . . . . . . . . . . . . . . . . . . . .  14
-       8.3.3.  Group of Pictures . . . . . . . . . . . . . . . . . .  14
-       8.3.4.  Scalable Video Coding . . . . . . . . . . . . . . . .  15
-       8.3.5.  Frames  . . . . . . . . . . . . . . . . . . . . . . .  15
-       8.3.6.  Slices  . . . . . . . . . . . . . . . . . . . . . . .  17
-       8.3.7.  Init  . . . . . . . . . . . . . . . . . . . . . . . .  17
-     8.4.  Audio . . . . . . . . . . . . . . . . . . . . . . . . . .  17
+   2.  Motivation  . . . . . . . . . . . . . . . . . . . . . . . . .   4
+     2.1.  Latency . . . . . . . . . . . . . . . . . . . . . . . . .   4
+     2.2.  Universal . . . . . . . . . . . . . . . . . . . . . . . .   5
+     2.3.  Intermediaries  . . . . . . . . . . . . . . . . . . . . .   6
+   3.  Layers  . . . . . . . . . . . . . . . . . . . . . . . . . . .   7
+     3.1.  Media . . . . . . . . . . . . . . . . . . . . . . . . . .   7
+     3.2.  Properties  . . . . . . . . . . . . . . . . . . . . . . .   7
+     3.3.  Decoder . . . . . . . . . . . . . . . . . . . . . . . . .   8
+   4.  QUIC  . . . . . . . . . . . . . . . . . . . . . . . . . . . .   9
+     4.1.  Establishment . . . . . . . . . . . . . . . . . . . . . .   9
+     4.2.  Streams . . . . . . . . . . . . . . . . . . . . . . . . .   9
+     4.3.  Prioritization  . . . . . . . . . . . . . . . . . . . . .  10
+     4.4.  Cancellation  . . . . . . . . . . . . . . . . . . . . . .  10
+     4.5.  Congestion Control  . . . . . . . . . . . . . . . . . . .  10
+     4.6.  Termination . . . . . . . . . . . . . . . . . . . . . . .  11
+   5.  Messages  . . . . . . . . . . . . . . . . . . . . . . . . . .  11
+     5.1.  HEADERS . . . . . . . . . . . . . . . . . . . . . . . . .  12
+     5.2.  LAYER . . . . . . . . . . . . . . . . . . . . . . . . . .  12
+     5.3.  APP . . . . . . . . . . . . . . . . . . . . . . . . . . .  12
+     5.4.  GOAWAY  . . . . . . . . . . . . . . . . . . . . . . . . .  12
+   6.  Security Considerations . . . . . . . . . . . . . . . . . . .  13
+     6.1.  Resource Exhaustion . . . . . . . . . . . . . . . . . . .  13
+   7.  IANA Considerations . . . . . . . . . . . . . . . . . . . . .  13
+   8.  Appendix A.  Layer Examples . . . . . . . . . . . . . . . . .  13
+     8.1.  Recommended . . . . . . . . . . . . . . . . . . . . . . .  14
+     8.2.  Tracks  . . . . . . . . . . . . . . . . . . . . . . . . .  14
+     8.3.  Video . . . . . . . . . . . . . . . . . . . . . . . . . .  14
+       8.3.1.  Encoding  . . . . . . . . . . . . . . . . . . . . . .  14
+       8.3.2.  Decode Order  . . . . . . . . . . . . . . . . . . . .  15
+       8.3.3.  Group of Pictures . . . . . . . . . . . . . . . . . .  15
+       8.3.4.  Scalable Video Coding . . . . . . . . . . . . . . . .  16
+       8.3.5.  Frames  . . . . . . . . . . . . . . . . . . . . . . .  16
+       8.3.6.  Slices  . . . . . . . . . . . . . . . . . . . . . . .  18
+       8.3.7.  Init  . . . . . . . . . . . . . . . . . . . . . . . .  18
+     8.4.  Audio . . . . . . . . . . . . . . . . . . . . . . . . . .  18
 
 
 
@@ -114,15 +114,15 @@ Curley, et al.            Expires 24 April 2023                 [Page 2]
 Internet-Draft                    WARP                      October 2022
 
 
-       8.4.1.  Encoding  . . . . . . . . . . . . . . . . . . . . . .  17
-       8.4.2.  Simple  . . . . . . . . . . . . . . . . . . . . . . .  18
-       8.4.3.  Periodic Refresh  . . . . . . . . . . . . . . . . . .  18
-       8.4.4.  Segments  . . . . . . . . . . . . . . . . . . . . . .  18
-   9.  References  . . . . . . . . . . . . . . . . . . . . . . . . .  18
-     9.1.  Normative References  . . . . . . . . . . . . . . . . . .  19
-     9.2.  Informative References  . . . . . . . . . . . . . . . . .  19
-   Contributors  . . . . . . . . . . . . . . . . . . . . . . . . . .  20
-   Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .  20
+       8.4.1.  Encoding  . . . . . . . . . . . . . . . . . . . . . .  18
+       8.4.2.  Simple  . . . . . . . . . . . . . . . . . . . . . . .  19
+       8.4.3.  Periodic Refresh  . . . . . . . . . . . . . . . . . .  19
+       8.4.4.  Segments  . . . . . . . . . . . . . . . . . . . . . .  19
+   9.  References  . . . . . . . . . . . . . . . . . . . . . . . . .  19
+     9.1.  Normative References  . . . . . . . . . . . . . . . . . .  20
+     9.2.  Informative References  . . . . . . . . . . . . . . . . .  20
+   Contributors  . . . . . . . . . . . . . . . . . . . . . . . . . .  21
+   Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .  21
 
 1.  Introduction
 
@@ -144,7 +144,64 @@ Internet-Draft                    WARP                      October 2022
 
    Commonly used terms in this document are described below.
 
-   TODO definitions
+   Bitstream:  A continunous series of bytes.
+
+   Codec:  A compression algorithm for audio or video.
+
+   Congestion:  Packet loss and queuing caused by degraded or overloaded
+      networks.
+
+   Consumer:  A QUIC endpoint receiving media over the network.  This
+      could be the media player or middleware.
+
+   Container:  A file format containing timestamps and the codec
+      bitstream
+
+   Decoder:  A endpoint responsible for a deflating a compressed media
+      stream into raw frames.
+
+   Decode Timestamp (DTS):  A timestamp indicating the order that
+      frames/samples should be fed to the decoder.
+
+
+
+Curley, et al.            Expires 24 April 2023                 [Page 3]
+
+Internet-Draft                    WARP                      October 2022
+
+
+   Encoder:  A component responsible for creating a compressed media
+      stream out of raw frames.
+
+   Frame:  An video image or group of audio samples to be rendered at a
+      specific point in time.
+
+   I-frame:  A frame that does not depend on the contents of other
+      frames; effectively an image.
+
+   Group of pictures (GoP):  A I-frame followed by a sequential series
+      of dependent frames.
+
+   Group of samples:  A sequential series of audio samples starting at a
+      given timestamp.
+
+   Player:  A component responsible for presenting frames to a viewer
+      based on the presentation timestamp.
+
+   Presentation Timestamp (PTS):  A timestamp indicating when a frames/
+      samples should be presented to the viewer.
+
+   Producer:  A QUIC endpoint sending media over the network.  This
+      could be the media encoder or middleware.
+
+   Rendition:  One or more tracks with the same content but different
+      encodings.
+
+   Slice:  A section of a video frame.  There may be multiple slices per
+      frame.
+
+   Track:  An encoded bitstream, representing a single video/audio
+      component that makes up the larger broadcast.
 
 2.  Motivation
 
@@ -164,8 +221,7 @@ Internet-Draft                    WARP                      October 2022
 
 
 
-
-Curley, et al.            Expires 24 April 2023                 [Page 3]
+Curley, et al.            Expires 24 April 2023                 [Page 4]
 
 Internet-Draft                    WARP                      October 2022
 
@@ -221,7 +277,7 @@ Internet-Draft                    WARP                      October 2022
 
 
 
-Curley, et al.            Expires 24 April 2023                 [Page 4]
+Curley, et al.            Expires 24 April 2023                 [Page 5]
 
 Internet-Draft                    WARP                      October 2022
 
@@ -277,7 +333,7 @@ Internet-Draft                    WARP                      October 2022
 
 
 
-Curley, et al.            Expires 24 April 2023                 [Page 5]
+Curley, et al.            Expires 24 April 2023                 [Page 6]
 
 Internet-Draft                    WARP                      October 2022
 
@@ -333,7 +389,7 @@ Internet-Draft                    WARP                      October 2022
 
 
 
-Curley, et al.            Expires 24 April 2023                 [Page 6]
+Curley, et al.            Expires 24 April 2023                 [Page 7]
 
 Internet-Draft                    WARP                      October 2022
 
@@ -389,7 +445,7 @@ Internet-Draft                    WARP                      October 2022
 
 
 
-Curley, et al.            Expires 24 April 2023                 [Page 7]
+Curley, et al.            Expires 24 April 2023                 [Page 8]
 
 Internet-Draft                    WARP                      October 2022
 
@@ -445,7 +501,7 @@ Internet-Draft                    WARP                      October 2022
 
 
 
-Curley, et al.            Expires 24 April 2023                 [Page 8]
+Curley, et al.            Expires 24 April 2023                 [Page 9]
 
 Internet-Draft                    WARP                      October 2022
 
@@ -501,7 +557,7 @@ Internet-Draft                    WARP                      October 2022
 
 
 
-Curley, et al.            Expires 24 April 2023                 [Page 9]
+Curley, et al.            Expires 24 April 2023                [Page 10]
 
 Internet-Draft                    WARP                      October 2022
 
@@ -557,7 +613,7 @@ Internet-Draft                    WARP                      October 2022
 
 
 
-Curley, et al.            Expires 24 April 2023                [Page 10]
+Curley, et al.            Expires 24 April 2023                [Page 11]
 
 Internet-Draft                    WARP                      October 2022
 
@@ -613,7 +669,7 @@ Internet-Draft                    WARP                      October 2022
 
 
 
-Curley, et al.            Expires 24 April 2023                [Page 11]
+Curley, et al.            Expires 24 April 2023                [Page 12]
 
 Internet-Draft                    WARP                      October 2022
 
@@ -669,7 +725,7 @@ Internet-Draft                    WARP                      October 2022
 
 
 
-Curley, et al.            Expires 24 April 2023                [Page 12]
+Curley, et al.            Expires 24 April 2023                [Page 13]
 
 Internet-Draft                    WARP                      October 2022
 
@@ -725,7 +781,7 @@ Internet-Draft                    WARP                      October 2022
 
 
 
-Curley, et al.            Expires 24 April 2023                [Page 13]
+Curley, et al.            Expires 24 April 2023                [Page 14]
 
 Internet-Draft                    WARP                      October 2022
 
@@ -781,7 +837,7 @@ Internet-Draft                    WARP                      October 2022
 
 
 
-Curley, et al.            Expires 24 April 2023                [Page 14]
+Curley, et al.            Expires 24 April 2023                [Page 15]
 
 Internet-Draft                    WARP                      October 2022
 
@@ -837,7 +893,7 @@ Internet-Draft                    WARP                      October 2022
 
 
 
-Curley, et al.            Expires 24 April 2023                [Page 15]
+Curley, et al.            Expires 24 April 2023                [Page 16]
 
 Internet-Draft                    WARP                      October 2022
 
@@ -893,7 +949,7 @@ Internet-Draft                    WARP                      October 2022
 
 
 
-Curley, et al.            Expires 24 April 2023                [Page 16]
+Curley, et al.            Expires 24 April 2023                [Page 17]
 
 Internet-Draft                    WARP                      October 2022
 
@@ -949,7 +1005,7 @@ Internet-Draft                    WARP                      October 2022
 
 
 
-Curley, et al.            Expires 24 April 2023                [Page 17]
+Curley, et al.            Expires 24 April 2023                [Page 18]
 
 Internet-Draft                    WARP                      October 2022
 
@@ -1005,7 +1061,7 @@ Internet-Draft                    WARP                      October 2022
 
 
 
-Curley, et al.            Expires 24 April 2023                [Page 18]
+Curley, et al.            Expires 24 April 2023                [Page 19]
 
 Internet-Draft                    WARP                      October 2022
 
@@ -1061,7 +1117,7 @@ Internet-Draft                    WARP                      October 2022
 
 
 
-Curley, et al.            Expires 24 April 2023                [Page 19]
+Curley, et al.            Expires 24 April 2023                [Page 20]
 
 Internet-Draft                    WARP                      October 2022
 
@@ -1117,4 +1173,4 @@ Authors' Addresses
 
 
 
-Curley, et al.            Expires 24 April 2023                [Page 20]
+Curley, et al.            Expires 24 April 2023                [Page 21]

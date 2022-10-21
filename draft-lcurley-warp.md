@@ -76,7 +76,77 @@ Warp is a live media transport protocol that utilizes the QUIC network protocol 
 
 Commonly used terms in this document are described below.
 
-TODO definitions
+Bitstream:
+
+: A continunous series of bytes.
+
+Codec:
+
+: A compression algorithm for audio or video.
+
+Congestion:
+
+: Packet loss and queuing caused by degraded or overloaded networks.
+
+Consumer:
+
+: A QUIC endpoint receiving media over the network. This could be the media player or middleware.
+
+Container:
+
+: A file format containing timestamps and the codec bitstream
+
+Decoder:
+
+: A endpoint responsible for a deflating a compressed media stream into raw frames.
+
+Decode Timestamp (DTS):
+
+: A timestamp indicating the order that frames/samples should be fed to the decoder.
+
+Encoder:
+
+: A component responsible for creating a compressed media stream out of raw frames.
+
+Frame:
+
+: An video image or group of audio samples to be rendered at a specific point in time.
+
+I-frame:
+
+: A frame that does not depend on the contents of other frames; effectively an image.
+
+Group of pictures (GoP):
+
+: A I-frame followed by a sequential series of dependent frames.
+
+Group of samples:
+
+: A sequential series of audio samples starting at a given timestamp.
+
+Player:
+
+: A component responsible for presenting frames to a viewer based on the presentation timestamp.
+
+Presentation Timestamp (PTS):
+
+: A timestamp indicating when a frames/samples should be presented to the viewer.
+
+Producer:
+
+: A QUIC endpoint sending media over the network. This could be the media encoder or middleware.
+
+Rendition:
+
+: One or more tracks with the same content but different encodings.
+
+Slice:
+
+: A section of a video frame. There may be multiple slices per frame.
+
+Track:
+
+: An encoded bitstream, representing a single video/audio component that makes up the larger broadcast.
 
 
 # Motivation
