@@ -121,13 +121,13 @@ This cost is further increased by the need to maintain separate stacks with diff
 A goal of this draft is to cover a large spectrum of use-cases. Specifically:
 
 * Consolidated contribution and distribution.
-The difference between the two has historically been push versus pull.
-This is an over-simplification, as the real difference is the ability to fanout, which is much easier with HTTP GET.
-A single protocol can cover both use-cases with adequate information on how an intermediary should forward media.
+The primary difference between the two is the ability to fanout.
+How does a CDN know how to forward media to N consumers and how does it reduce the encoded bitrate during congestion?
+A single protocol can cover both use-cases provided intermediaries are informed on how to forward and drop media.
 
 * A configurable latency versus quality trade-off.
-The broadcaster (producer) chooses how to encode and transmit media based on the desired user experience.
-Each viewer (consumer) chooses how long to wait for media based on their desired user experience and network.
+The producer (broadcaster) chooses how to encode and transmit media based on the desired user experience.
+Each consumer (viewer) chooses how long to wait for media based on their desired user experience and network.
 We want an experience that can vary from real-time and lossy for one viewer, to delayed and loss-less for another viewer, without separate encodings or protocols.
 
 ## Intermediaries
@@ -232,7 +232,9 @@ A connection is established using WebTransport {{WebTransport}}.
 To summarize:
 The client issues a HTTP CONNECT request with the intention of establishing a new WebTransport session.
 The server returns an 200 OK response if the WebTransport session has been established, or an error status otherwise.
-A WebTransport session mimics the QUIC API: either endpoint may create independent streams which are reliably delivered in order until canceled.
+
+A WebTransport session exposes the basic QUIC service abstractions.
+Specifically, either endpoint may create independent streams which are reliably delivered in order until canceled.
 
 WebTransport can currently operate via HTTP/3 and HTTP/2, using QUIC or TCP under the hood respectively.
 As mentioned in the motivation ({{motivation}}) section, TCP introduces head-of-line blocking and will result in a worse experience.
@@ -600,9 +602,8 @@ TODO How do we do this?
 ## Audio
 
 ### Encoding
-Audio is dramatically simpler than video as it is not delta encoded.
+Audio is dramatically simpler than video as it is not typically not delta encoded.
 Audio samples are grouped together (group of samples) at a configured rate, also called a "frame".
-Frames do not depend on other frames and have a timestamp for synchronization.
 
 In the below diagrams, each audio frame is denoted with an S.
 The encoder spits out a continuous stream of samples:
