@@ -222,6 +222,7 @@ Warp is based on the concept of layered coding.
 A layer is a combination of a media bitstream and a set of properties.
 
 * The encoder determines how to split the encoded bitstream into layers ({{media}}).
+* Layers are assigned an intended delivery order that should be obeyed during congestion ({{delivery-order}})
 * Each layer is transferred over a QUIC stream, which are delivered independently according to the layer properties ({{properties}}).
 * The decoder receives each layer and skips any layers that do not arrive in time ({{decoder}}).
 
@@ -244,12 +245,39 @@ There MAY be gaps between samples, as specified by the presentation timestamp an
 The goal of layers is to produce a hierarchy.
 Layers MAY depend on any number of other layers and MAY overlap with other layers.
 
+## Delivery Order {#delivery-order}
+Media is produced with an intended order, both in terms of when media should be presented (PTS) and when media should be decoded (DTS).
+As stated in motivation ({{latency}}), the network is unable to maintain this ordering during congestion without increasing latency.
+
+Warp responds to congestion by assigning each layer a numeric delivery order.
+The delivery order SHOULD be followed when possible to ensure that the most important media is delivered when throughput is limited.
+Note that the contents within each layer are still delivered in order; this delivery order only applies to the ordering between layers.
+
+The encoder determines the value assigned to each layer based the media encoding and desired user experience.
+Multiple layers MAY use the same value, in which case they SHOULD be delivered via round-robin.
+See the appendix for examples ({{appendix.examples}}).
+
+A sender SHOULD attempt to deliver layers based on this delivery order.
+This effectively involves creating a priority queue in ascending order, allocating any avaiable bandwidth to the next pending layer.
+Since each layer is sent over a dedicated QUIC stream, the next QUIC packet SHOULD contain a STREAM frame for the next pending layer, repeated until the congestion window is hit.
+The sender MAY ignore the delivery order for retransmits and MUST ignore it when flow control limits are reached.
+
+A receiver MUST NOT assume that layers will be received in delivery order for a number of reasons:
+* Newly encoded layers MAY have a smaller delivery order than outstanding layers.
+* Packet loss or flow control MAY delay the delivery of individual streams.
+* The sender might not support QUIC stream prioritization.
+
+Layers arrive in delivery order, but media usually needs to be processed in decode order.
+The decoder SHOULD use a buffer to reassmble layers into decode order and it SHOULD skip layers after a configurable duration.
+The amount of time the decoder is willing to wait for a layer (buffer duration) is what ultimately determines the latency.
+
+A proxy MAY change the delivery order, in which case it SHOULD update the value on the wire for future hops.
+This is NOT RECOMMENDED unless the proxy knows additional information about the media.
+For example, a proxy could use the PTS as the delivery order to enable head-of-line blocking for content that should not be skipped, like an advertisement.
+
 ## Properties
 Each layer has properties to go along with its contents.
-These are written on the wire and inform how they layer should be transmitted at each hop.
-This is primarily for the purpose of supporting intermediaries, but some of this information may also be used by the decoder.
-
-All currently defined properties are optional.
+These are written on the wire and SHOULD be parsed by any Warp intermediaries.
 
 * `id`.
 A numeric identifier for the layer.
@@ -257,8 +285,8 @@ If non-zero, this value MUST be unique.
 The default value is 0.
 
 * `order`.
-A numeric priority such that the smaller values take priority.
-A sender SHOULD transmit layers with smallest value first, effectively starving layers with larger values during congestion.
+A numeric value indicating the delivery order ({{delivery-order}}).
+A sender SHOULD transmit layers with smallest value first, as bandwidth permits.
 If two layers use the same value, they SHOULD be round-robined.
 Note that layers can still arrive out of the intended order due to packet loss.
 The default value is 0.
@@ -474,10 +502,13 @@ Before explaining all of the options, there is a recommended approach:
 * a video layer per GoP ({{appendix.gop}})
 * an audio layer at roughly the same timestamp ({{appendix.segments}})
 
-TODO section on prioritization
-* audio should be delivered before video
-* for new media should be delivered before old media, or the opposite if reliability is desired
+The recommended delivery order ({{delivery-order}} depends on the desired user experience during congestion:
 
+* if media should be skipped: delivery order = PTS
+* if media should not be skipped: delivery order = -PTS
+* if video should be skipped before audio: audio delivery order < video delivery order
+
+TODO full section on delivery order.
 
 ## Tracks
 A broadcast consists of one or more tracks.
@@ -519,12 +550,9 @@ This example is referenced in later sections:
 ~~~
     B     B         B     B         B
    / \   / \       / \   / \       / \
-  /   \ /   \     /   \ /   \     /   \
+  v   v v   v     v   v v   v     v   v
  I <-- P <-- P   I <-- P <-- P   I <-- P ...
 ~~~
-
-Note that the B-frames reference I and P frames in this example, despite the lack of an arrow.
-TODO better ASCII art
 
 There is no such thing as an optimal encoding structure.
 Encoders tuned for the best quality will produce a tangled spaghetti of references.
@@ -734,7 +762,6 @@ It is RECOMMENDED to create a new audio layer at each video I-frame.
 ~~~
 
 This is effectively how HLS/DASH segments work, with the exception that the most recent layers are still pending.
-
 
 --- back
 
