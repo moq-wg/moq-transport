@@ -4,8 +4,9 @@ TEXT=${SOURCES:.md=.txt}
 HTML=${SOURCES:.md=.html}
 XML=${SOURCES:.md=.xml}
 
-text:	$(TEXT)
+all:    html text
 html:   $(HTML)
+text:	$(TEXT)
 xml:    $(XML)
 
 %.xml:	%.md
