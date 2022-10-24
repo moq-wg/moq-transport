@@ -394,9 +394,9 @@ An unique identifier for the stream.
 This field is optional and MUST be unique if set.
 
 * `order`.
-An numeric value indicating the delivery order ({{delivery-order}}).
+An integer indicating the delivery order ({{delivery-order}}).
 A sender SHOULD transmit streams with smallest value first, as bandwidth permits.
-If two streams use the same value, they SHOULD be round-robined.
+If two streams use the same value, they SHOULD be allocated the same bandwidth (round-robin).
 Note that streams can still arrive out of the intended order due to packet loss.
 This field is optional and the default value is 0.
 
