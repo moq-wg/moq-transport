@@ -265,6 +265,7 @@ Since each segment is sent over a dedicated QUIC stream, the next QUIC packet SH
 The sender MAY ignore the delivery order for retransmits and MUST ignore it when flow control limits are reached.
 
 A receiver MUST NOT assume that segments will be received in delivery order for a number of reasons:
+
 * Newly encoded segments MAY have a smaller delivery order than outstanding segments.
 * Packet loss or flow control MAY delay the delivery of individual streams.
 * The sender might not support QUIC stream prioritization.
@@ -442,12 +443,14 @@ This is useful for server maintenance or reassignments without severing the QUIC
 A server MAY use QUIC load balancing instead of a GOAWAY message.
 
 The server:
+
 * MAY initiate a graceful shutdown by sending a GOAWAY message.
 * MUST close the QUIC connection after a timeout with the GOAWAY error code ({{termination}}).
 * MAY close the QUIC connection with a different error code if there is a fatal error before shutdown.
 * SHOULD wait until the `GOAWAY` message and any pending streams have been fully acknowledged, plus an extra delay to ensure they have been processed.
 
 The client:
+
 * MUST establish a new WebTransport session to the provided URL upon receipt of a `GOAWAY` message.
 * SHOULD establish the connection in parallel which MUST use different QUIC connection.
 * SHOULD remain connected for two servers for a short period, processing segments from both in parallel.
