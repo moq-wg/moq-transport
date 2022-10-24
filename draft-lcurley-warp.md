@@ -53,10 +53,9 @@ informative:
 
 --- abstract
 
-This document defines the core behavior for Warp, a segmented live media transport protocol.
-Media is split into segments based on the underlying media encoding.
-Each segment is transmitted independently over a QUIC stream.
-QUIC streams are prioritized, allowing less important segments to be starved or dropped during congestion.
+This document defines the core behavior for Warp, a segmented live media transport protocol over QUIC.
+Media is split into segments based on the underlying media encoding and transmitted independently over QUIC streams.
+QUIC streams are prioritized based on the delivery order, allowing less important segments to be starved or dropped during congestion.
 
 --- middle
 
@@ -64,10 +63,10 @@ QUIC streams are prioritized, allowing less important segments to be starved or 
 ## Introduction
 Warp is a live media transport protocol that utilizes the QUIC network protocol {{QUIC}}.
 
-{{motivation}} covers the background and rationale behind Warp.
-{{segments}} covers how media is encoded and split into segments.
-{{quic}} covers how QUIC is used to transfer media.
-{{messages}} covers how messages are encoded on the wire.
+* {{motivation}} covers the background and rationale behind Warp.
+* {{segments}} covers how media is encoded and split into segments.
+* {{quic}} covers how QUIC is used to transfer media.
+* {{messages}} covers how messages are encoded on the wire.
 
 
 ## Terms and Definitions
@@ -156,19 +155,19 @@ In a perfect world, we could deliver live media at the same rate it is produced.
 The end-to-end latency of a broadcast would be fixed and only subject to encoding and transmission delays.
 Unfortunately, networks have variable throughput, primarily due to congestion.
 
-Attempting to deliver media larger than this variable network bitrate causes queuing.
+Attempting to deliver media encoded at a higher bitrate than the network can support causes queuing.
 This queuing can occur anywhere in the path between the encoder and decoder.
 For example: the application, the OS socket, a wifi router, within an ISP, or generally anywhere in transit.
 
 If nothing is done, new frames will be appended to the end of a growing queue and will take longer to arrive than their predecessors, increasing latency.
-Our job is to minimize the growth of this queue, and failing that, skip the queue when possible.
+Our job is to minimize the growth of this queue, and if necessary, bypass the queue entirely by dropping content.
 
-Thus speed at which a media protocol can detect and respond to queuing determines the latency.
+The speed at which a media protocol can detect and respond to queuing determines the latency.
 We can generally classify existing media protocols into two categories based on the underlying network protocol:
 
 * TCP-based media protocols (ex. RTMP, HLS, DASH) are popular due to their simplicity.
 Media is served/consumed in decode order while any networking is handled by the TCP layer.
-However, these protocols primarily see use at higher latency targets due to their relatively slow detection and response to queuing.
+However, these protocols primarily see usage at higher latency targets due to their relatively slow detection and response to queuing.
 
 * UDP-based media protocols (ex. RTP, WebRTC, SRT) can side-step the issues with TCP and provide lower latency with better queue management.
 However the media protocol is now responsible for fragmentation, congestion control, retransmissions, receiver feedback, reassembly, and more.
@@ -176,7 +175,6 @@ This added complexity significantly raises the implementation difficulty and hur
 
 A goal of this draft is to get the best of both worlds: a simple protocol that can still rapidly detect and respond to congestion.
 This is possible emergence of QUIC, designed to fix the shortcomings of TCP.
-This draft relies on QUIC streams to deliver media segments in priority order during congestion.
 
 ## Universal
 The media protocol ecosystem is fragmented; each protocol has it's own niche.
@@ -185,7 +183,7 @@ Specialization is often a good thing, but we believe there's enough overlap to w
 For example, a service might simultaneously ingest via WebRTC, SRT, RTMP, and/or a custom UDP protocol depending on the broadcaster.
 The same service might then simultaneously distribute via WebRTC, LL-HLS, HLS, (or the DASH variants) and/or a custom UDP protocol depending on the viewer.
 
-These media protocols are radically different and not interoperable; requiring transcoding or transmuxing.
+These media protocols are often radically different and not interoperable; requiring transcoding or transmuxing.
 This cost is further increased by the need to maintain separate stacks with different expertise requirements.
 
 A goal of this draft is to cover a large spectrum of use-cases. Specifically:
@@ -200,25 +198,29 @@ The producer (broadcaster) chooses how to encode and transmit media based on the
 Each consumer (viewer) chooses how long to wait for media based on their desired user experience and network.
 We want an experience that can vary from real-time and lossy for one viewer, to delayed and loss-less for another viewer, without separate encodings or protocols.
 
+A related goal is to not reinvent how media is encoded.
+The same codec bitstream and container should be usable between different protocols.
+
 ## Relays
 The prevailing belief is that UDP-based protocols are more expensive and don't "scale".
-While it's true that UDP is more difficult to optimize than TCP, QUIC itself is proof that it is is possible to reach performance parity.
+While it's true that UDP is more difficult to optimize than TCP, QUIC itself is proof that it is possible to reach performance parity.
 In fact even some TCP-based protocols (ex. RTMP) don't "scale" either and are exclusively used for contribution as a result.
 
-The truth is that the ability to scale a media protocol depends on relay support: proxies, caches, CDNs, SFUs, etc.
+The ability to scale a media protocol actually depends on relay support: proxies, caches, CDNs, SFUs, etc.
 The success of HTTP-based media protocols is due to the ability to leverage traditional HTTP CDNs.
 
-Meanwhile, it's difficult to build a CDN for media protocols that were not designed with relays in mind.
+It's difficult to build a CDN for media protocols that were not designed with relays in mind.
 For example, an relay has to parse the underlying codec to determine which RTP packets should be dropped first, and the decision is not deterministic or consistent for each hop.
+This is the fatal flaw of many UDP-based protocols.
 
 A goal of this draft is to treat relays as first class citizens.
-Any identification, reliability, ordering, prioritization, caching, etc is written to the wire in header designed for relays.
+Any identification, reliability, ordering, prioritization, caching, etc is written to the wire in a header that is easy to parse.
 This ensures that relays can easily route/fanout media to the final destination.
 This also ensures that congestion response is consistent at every hop based on the preferences of the media producer.
 
 
 # Segments
-Warp works by splitting media into segments that can be transferred over the network somewhat independently.
+Warp works by splitting media into segments that can be transferred over QUIC streams.
 
 * The encoder determines how to fragment the encoded bitstream into segments ({{media}}).
 * Segments are assigned an intended delivery order that should be obeyed during congestion ({{delivery-order}})
@@ -226,11 +228,10 @@ Warp works by splitting media into segments that can be transferred over the net
 
 ## Media
 An encoder produces one or more codec bitstreams for each track.
-The bitstreams are fed to the decoder on the other end, after being transported over the network, in the same order its produced.
-The problem, as explained in motivation ({{latency}}), is that networks cannot sustain a continuous rate and thus queuing occurs.
+The decoder processes the codec bitstreams in the same order they were produced, with some possible exceptions based on the encoding.
 See the appendix for an overview of media encoding ({{appendix.encoding}}).
 
-Warp works by fragmenting the bitstream into segments that can be transmitted independently.
+Warp works by fragmenting the bitstream into segments that can be transmitted somewhat independently.
 Depending on how the segments are fragmented, the decoder has the ability to safely drop media during congestion.
 See the appendix for fragmentation examples ({{appendix.examples}})
 
@@ -240,7 +241,7 @@ A segment:
 * MUST be in decode order. This means an increasing DTS.
 * MAY contain any number of frames/samples.
 * MAY have gaps between frames/samples.
-* MAY overlap with other segments. This means interleaved timestamps.
+* MAY overlap with other segments. This means timestamps may be interleaved between segments.
 * MAY reference frames in other segments, but only if listed as a dependency.
 
 Segments are encoded using fragmented MP4 {{ISOBMFF}}.
@@ -269,9 +270,9 @@ The decoder will receive multiple segments in parallel and out of order.
 
 Segments arrive in delivery order, but media usually needs to be processed in decode order.
 The decoder SHOULD use a buffer to reassmble segments into decode order and it SHOULD skip segments after a configurable duration.
-The amount of time the decoder is willing to wait for a segment (buffer duration) is what ultimately determines the latency.
+The amount of time the decoder is willing to wait for a segment (buffer duration) is what ultimately determines the end-to-end latency.
 
-Segments MUST synchronize segments using presentation timestamps within the bitstream.
+Segments MUST synchronize frames within and between tracks using presentation timestamps within the container.
 Segments are NOT REQUIRED to be aligned and the decoder MUST be prepared to skip over any gaps.
 
 
@@ -291,9 +292,8 @@ WebTransport can currently operate via HTTP/3 and HTTP/2, using QUIC or TCP unde
 As mentioned in the motivation ({{motivation}}) section, TCP introduces head-of-line blocking and will result in a worse experience.
 It is RECOMMENDED to use WebTransport over HTTP/3.
 
-The application SHOULD use the CONNECT request for authentication and negotiation.
+The application SHOULD use the CONNECT request for authentication.
 For example, including a authentication token and some identifier in the path.
-The application MAY use QUIC streams for more complicated behavior.
 
 ## Streams
 Warp endpoints communicate over unidirectional QUIC streams.
@@ -303,7 +303,7 @@ A stream consists of sequential messages.
 See messages ({{messages}}) for the list of messages and their encoding.
 These are similar to QUIC and HTTP/3 frames, but called messages to avoid the media terminology.
 
-Each stream MUST start with a `HEADERS` message that indicates how the stream should be transmitted.
+Each stream MUST start with a `HEADERS` message ({{headers}}) to indicates how the stream should be transmitted.
 
 Messages SHOULD be sent over the same stream if ordering is desired.
 For example, `PAUSE` and `PLAY` messages SHOULD be sent on the same stream to avoid a race.
@@ -318,8 +318,10 @@ If two streams have the same delivery order, they SHOULD receive equal bandwidth
 
 QUIC supports stream prioritization but does not standardize any mechanisms; see Section 2.3 in {{QUIC}}.
 In order to support prioritization, a QUIC library MUST expose a API to set the priority of each stream.
-This is easy to implement; the next QUIC packet should contain a STREAM frame for the next pending stream in priority order.
-It is OPTIONAL to prioritize retransmissions within flow control limits.
+This is relatively easy to implement; the next QUIC packet should contain a STREAM frame for the next pending stream in priority order.
+
+The sender MUST respect flow control even if means delivering streams out of delivery order.
+It is OPTIONAL to prioritize retransmissions.
 
 ## Cancellation
 A QUIC stream MAY be canceled at any point with an error code.
@@ -329,19 +331,19 @@ When using `order`, lower priority streams will be starved during congestion, pe
 These streams will consume resources and flow control until they are canceled.
 When nearing resource limits, an endpoint SHOULD cancel the lowest priority stream with error code 0.
 
-The producer or consumer MAY cancel streams in response to congestion.
+The sender MAY cancel streams in response to congestion.
 This can be useful when the sender does not support stream prioritization.
 
 ## Relays
-Warp encodes the delivery information at the start each stream via a `HEADERS` frame ({{headers}}).
-This is meant to be easy to parse for a relay.
+Warp encodes the delivery information for each stream via a `HEADERS` frame ({{headers}}).
+This MUST be at the start of each stream so it is easy for a relay to parse.
 
 A relay SHOULD prioritize streams ({{prioritization}}) based on the delivery order.
 A relay MAY change the delivery order, in which case it SHOULD update the value on the wire for future hops.
 
 A relay that reads from a stream and then writes to another stream will suffer from head-of-line blocking.
 Packet loss will cause stream data to be buffered in the QUIC library, awaiting an in order flush, which will increase latency over additional hops.
-To mitigate this, a relay MAY read and write QUIC streams out of order according to flow control limits.
+To mitigate this, a relay SHOULD read and write QUIC streams out of order according to flow control limits.
 See section 2.2 in {{QUIC}}.
 
 ## Congestion Control
@@ -369,7 +371,7 @@ The application SHOULD use a non-zero error code to indicate a fatal error.
 |-----:|:---------------------|
 | 0x0  | Broadcast Terminated |
 |------|----------------------|
-| 0x1  | GOAWAY {{goaway}}    |
+| 0x1  | GOAWAY ({{goaway}})  |
 |------|----------------------|
 
 # Messages
@@ -377,23 +379,23 @@ Messages consist of a type identifier followed by contents, depending on the mes
 
 TODO document the encoding
 
-|------|----------------------|
-| ID   | Messages             |
-|-----:|:---------------------|
-| 0x0  | HEADERS {{headers}}  |
-|------|----------------------|
-| 0x1  | SEGMENT {{segment}}  |
-|------|----------------------|
-| 0x2  | APP {{app}}          |
-|------|----------------------|
-| 0x10 | GOAWAY {{goaway}}    |
-|------|----------------------|
+|------|-----------------------|
+| ID   | Messages              |
+|-----:|:----------------------|
+| 0x0  | HEADERS ({{headers}}) |
+|------|-----------------------|
+| 0x1  | SEGMENT ({{segment}}) |
+|------|-----------------------|
+| 0x2  | APP ({{app}})         |
+|------|-----------------------|
+| 0x10 | GOAWAY ({{goaway}})   |
+|------|-----------------------|
 
 
 
 ## HEADERS
 The `HEADERS` message contains information required to deliver, cache, and forward a stream.
-This message SHOULD be parsed and obeyed by any Warp proxies.
+This message SHOULD be parsed and obeyed by any Warp relays.
 
 * `id`.
 An unique identifier for the stream.
@@ -401,9 +403,6 @@ This field is optional and MUST be unique if set.
 
 * `order`.
 An integer indicating the delivery order ({{delivery-order}}).
-A sender SHOULD transmit streams with smallest value first, as bandwidth permits.
-If two streams use the same value, they SHOULD be allocated the same bandwidth (round-robin).
-Note that streams can still arrive out of the intended order due to packet loss.
 This field is optional and the default value is 0.
 
 * `depends`.
@@ -433,6 +432,11 @@ It is RECOMMENDED that a media fragment consists of a single frame to minimize l
 
 ## APP
 The `APP` message contains arbitrary contents.
+This is useful for metadata that would otherwise have to be shoved into the media bitstream.
+
+Relays MUST NOT differentiate between streams containing `SEGMENT` and `APP` frames.
+The same forwarding and caching behavior applies to both as specified in the`HEADERS` frame.
+
 
 ## GOAWAY
 The `GOAWAY` message is sent by the server to force the client to reconnect.
@@ -462,10 +466,8 @@ Warp uses QUIC flow control to impose resource limits at the network layer.
 Endpoints SHOULD set flow control limits based on the anticipated media bitrate.
 
 The media producer prioritizes and transmits streams out of order.
-Streams might be starved indefinitely during congestion and SHOULD be canceled after hitting some timeout or resource limit.
-
-The media consumer might receive streams out of order.
-If stream data is buffered, for example to decode segments in order, then the media consumer SHOULD cancel a stream after hitting some timeout or resource limit.
+Streams might be starved indefinitely during congestion.
+The producer and consumer MUST cancel a stream, preferrably the lowest priority, after reaching a resource limit.
 
 # IANA Considerations
 TODO
@@ -494,19 +496,19 @@ Each Warp segment MUST contain a single track.
 Media codecs have a wide array of configuration options.
 For example, the resolution, the color space, the features enabled, etc.
 
-Before playback can begin, the decoder needs to know how the configuration.
+Before playback can begin, the decoder needs to know the configuration.
 This is done via a short payload at the very start of the media file.
-The initialization payload can be cached and reused between segments with the same configuration.
+The initialization payload MAY be cached and reused between segments with the same configuration.
 
 ## Video {#appendix.video}
 Video is a sequence of pictures (frames) with a presentation timestamp (PTS).
 
 An I-frame is a frame with no dependencies and is effectively an image file.
 These frames are usually inserted at a frequent interval to support seeking or joining a live stream.
-However they can also improve compression when used at hard scene cuts.
+However they can also improve compression when used at scene boundaries.
 
 A P-frame is a frame that references on one or more earlier frames.
-These frames are delta-encoded, such that they only encode the changes (typically motion).
+These frames are delta-encoded, such that they only encode the changes (motion).
 This result in a massive file size reduction for most content outside of few notorious cases (ex. confetti).
 
 A common encoding structure is to only reference the previous frame, as it is simple and minimizes latency:
@@ -536,6 +538,9 @@ Such a fixed pattern is not optimal, but it's simpler for hardware encoding:
  I <-- P <-- P   I <-- P <-- P   I <-- P ...
 ~~~
 
+### Timestamps
+Each frame is assigned a presentation timestamp (PTS), indicating when it should be shown relative to other frames.
+
 The encoder outputs the bitstream in decode order, which means that each frame is output after its references.
 This makes it easier for the decoder as all references are earlier in the bitstream and can be decoded immediately.
 
@@ -546,6 +551,7 @@ A B-frame will have higher DTS value that its dependencies, while PTS and DTS wi
 For the example above, this would look like:
 
 ~~~
+     0 1 2 3 4 5 6 7 8 9 10
 PTS: I B P B P I B P B P B
 DTS: I   PB  PBI   PB  PB
 ~~~

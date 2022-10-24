@@ -43,10 +43,9 @@
     <abstract>
 
 
-<t>This document defines the core behavior for Warp, a segmented live media transport protocol.
-Media is split into segments based on the underlying media encoding.
-Each segment is transmitted independently over a QUIC stream.
-QUIC streams are prioritized, allowing less important segments to be starved or dropped during congestion.</t>
+<t>This document defines the core behavior for Warp, a segmented live media transport protocol over QUIC.
+Media is split into segments based on the underlying media encoding and transmitted independently over QUIC streams.
+QUIC streams are prioritized based on the delivery order, allowing less important segments to be starved or dropped during congestion.</t>
 
 
 
@@ -61,10 +60,12 @@ QUIC streams are prioritized, allowing less important segments to be starved or 
 <section anchor="introduction" title="Introduction">
 <t>Warp is a live media transport protocol that utilizes the QUIC network protocol <xref target="QUIC"/>.</t>
 
-<t><xref target="motivation"/> covers the background and rationale behind Warp.
-<xref target="segments"/> covers how media is encoded and split into segments.
-<xref target="quic"/> covers how QUIC is used to transfer media.
-<xref target="messages"/> covers how messages are encoded on the wire.</t>
+<t><list style="symbols">
+  <t><xref target="motivation"/> covers the background and rationale behind Warp.</t>
+  <t><xref target="segments"/> covers how media is encoded and split into segments.</t>
+  <t><xref target="quic"/> covers how QUIC is used to transfer media.</t>
+  <t><xref target="messages"/> covers how messages are encoded on the wire.</t>
+</list></t>
 
 <section anchor="terms-and-definitions" title="Terms and Definitions">
 
@@ -124,28 +125,27 @@ appear in all capitals, as shown here.</t>
 The end-to-end latency of a broadcast would be fixed and only subject to encoding and transmission delays.
 Unfortunately, networks have variable throughput, primarily due to congestion.</t>
 
-<t>Attempting to deliver media larger than this variable network bitrate causes queuing.
+<t>Attempting to deliver media encoded at a higher bitrate than the network can support causes queuing.
 This queuing can occur anywhere in the path between the encoder and decoder.
 For example: the application, the OS socket, a wifi router, within an ISP, or generally anywhere in transit.</t>
 
 <t>If nothing is done, new frames will be appended to the end of a growing queue and will take longer to arrive than their predecessors, increasing latency.
-Our job is to minimize the growth of this queue, and failing that, skip the queue when possible.</t>
+Our job is to minimize the growth of this queue, and if necessary, bypass the queue entirely by dropping content.</t>
 
-<t>Thus speed at which a media protocol can detect and respond to queuing determines the latency.
+<t>The speed at which a media protocol can detect and respond to queuing determines the latency.
 We can generally classify existing media protocols into two categories based on the underlying network protocol:</t>
 
 <t><list style="symbols">
   <t>TCP-based media protocols (ex. RTMP, HLS, DASH) are popular due to their simplicity.
 Media is served/consumed in decode order while any networking is handled by the TCP layer.
-However, these protocols primarily see use at higher latency targets due to their relatively slow detection and response to queuing.</t>
+However, these protocols primarily see usage at higher latency targets due to their relatively slow detection and response to queuing.</t>
   <t>UDP-based media protocols (ex. RTP, WebRTC, SRT) can side-step the issues with TCP and provide lower latency with better queue management.
 However the media protocol is now responsible for fragmentation, congestion control, retransmissions, receiver feedback, reassembly, and more.
 This added complexity significantly raises the implementation difficulty and hurts interoperability.</t>
 </list></t>
 
 <t>A goal of this draft is to get the best of both worlds: a simple protocol that can still rapidly detect and respond to congestion.
-This is possible emergence of QUIC, designed to fix the shortcomings of TCP.
-This draft relies on QUIC streams to deliver media segments in priority order during congestion.</t>
+This is possible emergence of QUIC, designed to fix the shortcomings of TCP.</t>
 
 </section>
 <section anchor="universal" title="Universal">
@@ -155,7 +155,7 @@ Specialization is often a good thing, but we believe there's enough overlap to w
 <t>For example, a service might simultaneously ingest via WebRTC, SRT, RTMP, and/or a custom UDP protocol depending on the broadcaster.
 The same service might then simultaneously distribute via WebRTC, LL-HLS, HLS, (or the DASH variants) and/or a custom UDP protocol depending on the viewer.</t>
 
-<t>These media protocols are radically different and not interoperable; requiring transcoding or transmuxing.
+<t>These media protocols are often radically different and not interoperable; requiring transcoding or transmuxing.
 This cost is further increased by the need to maintain separate stacks with different expertise requirements.</t>
 
 <t>A goal of this draft is to cover a large spectrum of use-cases. Specifically:</t>
@@ -171,27 +171,31 @@ Each consumer (viewer) chooses how long to wait for media based on their desired
 We want an experience that can vary from real-time and lossy for one viewer, to delayed and loss-less for another viewer, without separate encodings or protocols.</t>
 </list></t>
 
+<t>A related goal is to not reinvent how media is encoded.
+The same codec bitstream and container should be usable between different protocols.</t>
+
 </section>
 <section anchor="relays" title="Relays">
 <t>The prevailing belief is that UDP-based protocols are more expensive and don't "scale".
-While it's true that UDP is more difficult to optimize than TCP, QUIC itself is proof that it is is possible to reach performance parity.
+While it's true that UDP is more difficult to optimize than TCP, QUIC itself is proof that it is possible to reach performance parity.
 In fact even some TCP-based protocols (ex. RTMP) don't "scale" either and are exclusively used for contribution as a result.</t>
 
-<t>The truth is that the ability to scale a media protocol depends on relay support: proxies, caches, CDNs, SFUs, etc.
+<t>The ability to scale a media protocol actually depends on relay support: proxies, caches, CDNs, SFUs, etc.
 The success of HTTP-based media protocols is due to the ability to leverage traditional HTTP CDNs.</t>
 
-<t>Meanwhile, it's difficult to build a CDN for media protocols that were not designed with relays in mind.
-For example, an relay has to parse the underlying codec to determine which RTP packets should be dropped first, and the decision is not deterministic or consistent for each hop.</t>
+<t>It's difficult to build a CDN for media protocols that were not designed with relays in mind.
+For example, an relay has to parse the underlying codec to determine which RTP packets should be dropped first, and the decision is not deterministic or consistent for each hop.
+This is the fatal flaw of many UDP-based protocols.</t>
 
 <t>A goal of this draft is to treat relays as first class citizens.
-Any identification, reliability, ordering, prioritization, caching, etc is written to the wire in header designed for relays.
+Any identification, reliability, ordering, prioritization, caching, etc is written to the wire in a header that is easy to parse.
 This ensures that relays can easily route/fanout media to the final destination.
 This also ensures that congestion response is consistent at every hop based on the preferences of the media producer.</t>
 
 </section>
 </section>
 <section anchor="segments" title="Segments">
-<t>Warp works by splitting media into segments that can be transferred over the network somewhat independently.</t>
+<t>Warp works by splitting media into segments that can be transferred over QUIC streams.</t>
 
 <t><list style="symbols">
   <t>The encoder determines how to fragment the encoded bitstream into segments (<xref target="media"/>).</t>
@@ -201,11 +205,10 @@ This also ensures that congestion response is consistent at every hop based on t
 
 <section anchor="media" title="Media">
 <t>An encoder produces one or more codec bitstreams for each track.
-The bitstreams are fed to the decoder on the other end, after being transported over the network, in the same order its produced.
-The problem, as explained in motivation (<xref target="latency"/>), is that networks cannot sustain a continuous rate and thus queuing occurs.
+The decoder processes the codec bitstreams in the same order they were produced, with some possible exceptions based on the encoding.
 See the appendix for an overview of media encoding (<xref target="appendix.encoding"/>).</t>
 
-<t>Warp works by fragmenting the bitstream into segments that can be transmitted independently.
+<t>Warp works by fragmenting the bitstream into segments that can be transmitted somewhat independently.
 Depending on how the segments are fragmented, the decoder has the ability to safely drop media during congestion.
 See the appendix for fragmentation examples (<xref target="appendix.examples"/>)</t>
 
@@ -216,7 +219,7 @@ See the appendix for fragmentation examples (<xref target="appendix.examples"/>)
   <t>MUST be in decode order. This means an increasing DTS.</t>
   <t>MAY contain any number of frames/samples.</t>
   <t>MAY have gaps between frames/samples.</t>
-  <t>MAY overlap with other segments. This means interleaved timestamps.</t>
+  <t>MAY overlap with other segments. This means timestamps may be interleaved between segments.</t>
   <t>MAY reference frames in other segments, but only if listed as a dependency.</t>
 </list></t>
 
@@ -250,9 +253,9 @@ The QUIC library should support prioritization (<xref target="prioritization"/>)
 
 <t>Segments arrive in delivery order, but media usually needs to be processed in decode order.
 The decoder SHOULD use a buffer to reassmble segments into decode order and it SHOULD skip segments after a configurable duration.
-The amount of time the decoder is willing to wait for a segment (buffer duration) is what ultimately determines the latency.</t>
+The amount of time the decoder is willing to wait for a segment (buffer duration) is what ultimately determines the end-to-end latency.</t>
 
-<t>Segments MUST synchronize segments using presentation timestamps within the bitstream.
+<t>Segments MUST synchronize frames within and between tracks using presentation timestamps within the container.
 Segments are NOT REQUIRED to be aligned and the decoder MUST be prepared to skip over any gaps.</t>
 
 </section>
@@ -273,9 +276,8 @@ Specifically, either endpoint may create independent streams which are reliably 
 As mentioned in the motivation (<xref target="motivation"/>) section, TCP introduces head-of-line blocking and will result in a worse experience.
 It is RECOMMENDED to use WebTransport over HTTP/3.</t>
 
-<t>The application SHOULD use the CONNECT request for authentication and negotiation.
-For example, including a authentication token and some identifier in the path.
-The application MAY use QUIC streams for more complicated behavior.</t>
+<t>The application SHOULD use the CONNECT request for authentication.
+For example, including a authentication token and some identifier in the path.</t>
 
 </section>
 <section anchor="streams" title="Streams">
@@ -286,7 +288,7 @@ The application MAY use bidirectional QUIC streams for other purposes.</t>
 See messages (<xref target="messages"/>) for the list of messages and their encoding.
 These are similar to QUIC and HTTP/3 frames, but called messages to avoid the media terminology.</t>
 
-<t>Each stream MUST start with a <spanx style="verb">HEADERS</spanx> message that indicates how the stream should be transmitted.</t>
+<t>Each stream MUST start with a <spanx style="verb">HEADERS</spanx> message (<xref target="headers"/>) to indicates how the stream should be transmitted.</t>
 
 <t>Messages SHOULD be sent over the same stream if ordering is desired.
 For example, <spanx style="verb">PAUSE</spanx> and <spanx style="verb">PLAY</spanx> messages SHOULD be sent on the same stream to avoid a race.</t>
@@ -302,8 +304,10 @@ If two streams have the same delivery order, they SHOULD receive equal bandwidth
 
 <t>QUIC supports stream prioritization but does not standardize any mechanisms; see Section 2.3 in <xref target="QUIC"/>.
 In order to support prioritization, a QUIC library MUST expose a API to set the priority of each stream.
-This is easy to implement; the next QUIC packet should contain a STREAM frame for the next pending stream in priority order.
-It is OPTIONAL to prioritize retransmissions within flow control limits.</t>
+This is relatively easy to implement; the next QUIC packet should contain a STREAM frame for the next pending stream in priority order.</t>
+
+<t>The sender MUST respect flow control even if means delivering streams out of delivery order.
+It is OPTIONAL to prioritize retransmissions.</t>
 
 </section>
 <section anchor="cancellation" title="Cancellation">
@@ -314,20 +318,20 @@ The producer does this via a <spanx style="verb">RESET_STREAM</spanx> frame whil
 These streams will consume resources and flow control until they are canceled.
 When nearing resource limits, an endpoint SHOULD cancel the lowest priority stream with error code 0.</t>
 
-<t>The producer or consumer MAY cancel streams in response to congestion.
+<t>The sender MAY cancel streams in response to congestion.
 This can be useful when the sender does not support stream prioritization.</t>
 
 </section>
 <section anchor="relays-1" title="Relays">
-<t>Warp encodes the delivery information at the start each stream via a <spanx style="verb">HEADERS</spanx> frame (<xref target="headers"/>).
-This is meant to be easy to parse for a relay.</t>
+<t>Warp encodes the delivery information for each stream via a <spanx style="verb">HEADERS</spanx> frame (<xref target="headers"/>).
+This MUST be at the start of each stream so it is easy for a relay to parse.</t>
 
 <t>A relay SHOULD prioritize streams (<xref target="prioritization"/>) based on the delivery order.
 A relay MAY change the delivery order, in which case it SHOULD update the value on the wire for future hops.</t>
 
 <t>A relay that reads from a stream and then writes to another stream will suffer from head-of-line blocking.
 Packet loss will cause stream data to be buffered in the QUIC library, awaiting an in order flush, which will increase latency over additional hops.
-To mitigate this, a relay MAY read and write QUIC streams out of order according to flow control limits.
+To mitigate this, a relay SHOULD read and write QUIC streams out of order according to flow control limits.
 See section 2.2 in <xref target="QUIC"/>.</t>
 
 </section>
@@ -358,7 +362,7 @@ The application SHOULD use a non-zero error code to indicate a fatal error.</t>
       <c>0x0</c>
       <c>Broadcast Terminated</c>
       <c>0x1</c>
-      <c>GOAWAY <xref target="goaway"/></c>
+      <c>GOAWAY (<xref target="goaway"/>)</c>
 </texttable>
 
 </section>
@@ -372,18 +376,18 @@ The application SHOULD use a non-zero error code to indicate a fatal error.</t>
       <ttcol align='right'>ID</ttcol>
       <ttcol align='left'>Messages</ttcol>
       <c>0x0</c>
-      <c>HEADERS <xref target="headers"/></c>
+      <c>HEADERS (<xref target="headers"/>)</c>
       <c>0x1</c>
-      <c>SEGMENT <xref target="segment"/></c>
+      <c>SEGMENT (<xref target="segment"/>)</c>
       <c>0x2</c>
-      <c>APP <xref target="app"/></c>
+      <c>APP (<xref target="app"/>)</c>
       <c>0x10</c>
-      <c>GOAWAY <xref target="goaway"/></c>
+      <c>GOAWAY (<xref target="goaway"/>)</c>
 </texttable>
 
 <section anchor="headers" title="HEADERS">
 <t>The <spanx style="verb">HEADERS</spanx> message contains information required to deliver, cache, and forward a stream.
-This message SHOULD be parsed and obeyed by any Warp proxies.</t>
+This message SHOULD be parsed and obeyed by any Warp relays.</t>
 
 <t><list style="symbols">
   <t><spanx style="verb">id</spanx>.
@@ -391,9 +395,6 @@ An unique identifier for the stream.
 This field is optional and MUST be unique if set.</t>
   <t><spanx style="verb">order</spanx>.
 An integer indicating the delivery order (<xref target="delivery-order"/>).
-A sender SHOULD transmit streams with smallest value first, as bandwidth permits.
-If two streams use the same value, they SHOULD be allocated the same bandwidth (round-robin).
-Note that streams can still arrive out of the intended order due to packet loss.
 This field is optional and the default value is 0.</t>
   <t><spanx style="verb">depends</spanx>.
 An list of dependencies by stream identifier.
@@ -423,7 +424,11 @@ It is RECOMMENDED that a media fragment consists of a single frame to minimize l
 
 </section>
 <section anchor="app" title="APP">
-<t>The <spanx style="verb">APP</spanx> message contains arbitrary contents.</t>
+<t>The <spanx style="verb">APP</spanx> message contains arbitrary contents.
+This is useful for metadata that would otherwise have to be shoved into the media bitstream.</t>
+
+<t>Relays MUST NOT differentiate between streams containing <spanx style="verb">SEGMENT</spanx> and <spanx style="verb">APP</spanx> frames.
+The same forwarding and caching behavior applies to both as specified in the<spanx style="verb">HEADERS</spanx> frame.</t>
 
 </section>
 <section anchor="goaway" title="GOAWAY">
@@ -460,10 +465,8 @@ Failure to set limits will quickly cause resource exhaustion.</t>
 Endpoints SHOULD set flow control limits based on the anticipated media bitrate.</t>
 
 <t>The media producer prioritizes and transmits streams out of order.
-Streams might be starved indefinitely during congestion and SHOULD be canceled after hitting some timeout or resource limit.</t>
-
-<t>The media consumer might receive streams out of order.
-If stream data is buffered, for example to decode segments in order, then the media consumer SHOULD cancel a stream after hitting some timeout or resource limit.</t>
+Streams might be starved indefinitely during congestion.
+The producer and consumer MUST cancel a stream, preferrably the lowest priority, after reaching a resource limit.</t>
 
 </section>
 </section>
@@ -498,9 +501,9 @@ Each Warp segment MUST contain a single track.</t>
 <t>Media codecs have a wide array of configuration options.
 For example, the resolution, the color space, the features enabled, etc.</t>
 
-<t>Before playback can begin, the decoder needs to know how the configuration.
+<t>Before playback can begin, the decoder needs to know the configuration.
 This is done via a short payload at the very start of the media file.
-The initialization payload can be cached and reused between segments with the same configuration.</t>
+The initialization payload MAY be cached and reused between segments with the same configuration.</t>
 
 </section>
 <section anchor="appendix.video" title="Video">
@@ -508,10 +511,10 @@ The initialization payload can be cached and reused between segments with the sa
 
 <t>An I-frame is a frame with no dependencies and is effectively an image file.
 These frames are usually inserted at a frequent interval to support seeking or joining a live stream.
-However they can also improve compression when used at hard scene cuts.</t>
+However they can also improve compression when used at scene boundaries.</t>
 
 <t>A P-frame is a frame that references on one or more earlier frames.
-These frames are delta-encoded, such that they only encode the changes (typically motion).
+These frames are delta-encoded, such that they only encode the changes (motion).
 This result in a massive file size reduction for most content outside of few notorious cases (ex. confetti).</t>
 
 <t>A common encoding structure is to only reference the previous frame, as it is simple and minimizes latency:</t>
@@ -541,6 +544,10 @@ Such a fixed pattern is not optimal, but it's simpler for hardware encoding:</t>
  I <-- P <-- P   I <-- P <-- P   I <-- P ...
 ]]></artwork></figure>
 
+</section>
+<section anchor="timestamps" title="Timestamps">
+<t>Each frame is assigned a presentation timestamp (PTS), indicating when it should be shown relative to other frames.</t>
+
 <t>The encoder outputs the bitstream in decode order, which means that each frame is output after its references.
 This makes it easier for the decoder as all references are earlier in the bitstream and can be decoded immediately.</t>
 
@@ -551,6 +558,7 @@ A B-frame will have higher DTS value that its dependencies, while PTS and DTS wi
 <t>For the example above, this would look like:</t>
 
 <figure><artwork><![CDATA[
+     0 1 2 3 4 5 6 7 8 9 10
 PTS: I B P B P I B P B P B
 DTS: I   PB  PBI   PB  PB
 ]]></artwork></figure>
@@ -994,257 +1002,259 @@ For example, switching from a live stream (skippable) to an advertisement (unski
   </back>
 
 <!-- ##markdown-source:
-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
+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
+L4roctrLK9tmcR/5dV7/cU0XB1q/mJrXRKbsuiPiRF1cdKus6X+VdnOcN/Mq
+7qcp5fY/zvGNdDYqq3pND9xYEO/fvj87PjBvnx9/s7+/r58nb0+P3/z59O1f
+3BdP6Ysf7MwzHK3s5GSa23Y5ubWzFpcnq7bdPMNUzi7eHL16/vyAx+H4+Iw4
+i3utStPa+aqsiupqa/7Xf/vv5rha0IqaammybpFXk5u86bLCVLO/2nnb8C3n
+xCXmydMDtG2OssZJwPO8sOY5N/yIuxO+frr/5MvJk6fEya5Xmevxq8NfNqzJ
+xLzqijZfcy/EckU+l5vkdvP41fnpd5PDPdwpg/uGqF+t13TL/Q+h/z18Mo2X
+Z747HfzT/cn+M7ry2t6+tWXFi/DVl19jEY6O3grt51m9uLVFMcnn8/pqQuI/
+mVflFck2dYi3bV0VE1q40WhCY8xmDa3SnETwcpU3EKQO/ZuFXealbUy7smZe
+1dbM7Cq7yWmEGCWUz9hk0WgLaB+ZYOuYwWzqiiS2oiW7sTUz0HQk60NdNUSG
+lhi7rVwzjZnRCi4MSE7ddqQ+6mILFpCGbTkXjiDWlV7WeYvO86Btim3ozNDU
+bLZupqP4kyGlRSOjqeRt/hM9nXS6sJhJTa3U1DvNsSiqW/RZ2KYx+Rrzyog+
+fsg0/JmltrP6Bq3UpFurzYbeLroazwXiT4Xi63yxKCyR/7PPoAbratHN8fWI
+NToRJvsIMdsVsUzX5gWNXhaIp0faFAo43Pfzz7j+4QP1+1v6sK6I25ntPnyg
+UdEk5eFZNmetTTQFXWu+JSt4xYmwvNZTbsHNOTy/qm51nDRuXh4rrQwsrrTx
+ty6fp8/z4OnxDqtA9/OMl7SE3LA8tSbiZ0TGfs9ylVfU9a7reJvXdipEvrQ1
+Vp1GdQKmzjG/BvxuDdkjA4PUmEevvr+4fDSWf83rN/z+7SkN7u3pCd5fvDh8
++dK/GekdFy/efP/yJLwLTx6/efXq9PWJPExXTXJp9OjV4V/oG4zq0Zvzy7M3
+rw9fPiKC0eBjMcTMhMNyWMxNbcHvWTNa2GZe5zNmfnN0fP4//8eTL4hQ/0Qa
+4emTJ98QoeTD109+/wV9uF3ZUnqrShIR+Uh02o5IHdmsRivE6maebfI2K8ik
+kkVpiMilWVmhpCgxelgWiok6ON4wtJkl4aFnj/JWhO9gNDowh5CJNi+7suqo
+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
+f1SA9NeHAAA=
 
 -->
 

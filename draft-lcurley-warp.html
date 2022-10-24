@@ -9,10 +9,9 @@
 <meta content="Kirill Pugin" name="author">
 <meta content="Suhas Nandakumar" name="author">
 <meta content="
-       This document defines the core behavior for Warp, a segmented live media transport protocol.
-Media is split into segments based on the underlying media encoding.
-Each segment is transmitted independently over a QUIC stream.
-QUIC streams are prioritized, allowing less important segments to be starved or dropped during congestion. 
+       This document defines the core behavior for Warp, a segmented live media transport protocol over QUIC.
+Media is split into segments based on the underlying media encoding and transmitted independently over QUIC streams.
+QUIC streams are prioritized based on the delivery order, allowing less important segments to be starved or dropped during congestion. 
     " name="description">
 <meta content="xml2rfc 3.9.1" name="generator">
 <meta content="Internet-Draft" name="keyword">
@@ -1227,10 +1226,9 @@ li > p:last-of-type {
 <h1 id="title">Warp - Segmented Live Media Transport</h1>
 <section id="section-abstract">
       <h2 id="abstract"><a href="#abstract" class="selfRef">Abstract</a></h2>
-<p id="section-abstract-1">This document defines the core behavior for Warp, a segmented live media transport protocol.
-Media is split into segments based on the underlying media encoding.
-Each segment is transmitted independently over a QUIC stream.
-QUIC streams are prioritized, allowing less important segments to be starved or dropped during congestion.<a href="#section-abstract-1" class="pilcrow">¶</a></p>
+<p id="section-abstract-1">This document defines the core behavior for Warp, a segmented live media transport protocol over QUIC.
+Media is split into segments based on the underlying media encoding and transmitted independently over QUIC streams.
+QUIC streams are prioritized based on the delivery order, allowing less important segments to be starved or dropped during congestion.<a href="#section-abstract-1" class="pilcrow">¶</a></p>
 </section>
 <div id="status-of-memo">
 <section id="section-boilerplate.1">
@@ -1279,168 +1277,171 @@ QUIC streams are prioritized, allowing less important segments to be starved or 
         <a href="#" onclick="scroll(0,0)" class="toplink">▲</a><h2 id="name-table-of-contents">
 <a href="#name-table-of-contents" class="section-name selfRef">Table of Contents</a>
         </h2>
-<nav class="toc"><ul class="compact ulBare ulEmpty toc">
-<li class="compact ulBare ulEmpty toc" id="section-toc.1-1.1">
+<nav class="toc"><ul class="ulBare toc compact ulEmpty">
+<li class="ulBare toc compact ulEmpty" id="section-toc.1-1.1">
             <p id="section-toc.1-1.1.1" class="keepWithNext"><a href="#section-1" class="xref">1</a>.  <a href="#name-introduction" class="xref">Introduction</a></p>
-<ul class="ulEmpty toc compact ulBare">
-<li class="ulEmpty toc compact ulBare" id="section-toc.1-1.1.2.1">
+<ul class="toc ulEmpty ulBare compact">
+<li class="toc ulEmpty ulBare compact" id="section-toc.1-1.1.2.1">
                 <p id="section-toc.1-1.1.2.1.1" class="keepWithNext"><a href="#section-1.1" class="xref">1.1</a>.  <a href="#name-terms-and-definitions" class="xref">Terms and Definitions</a></p>
 </li>
             </ul>
 </li>
-          <li class="compact ulBare ulEmpty toc" id="section-toc.1-1.2">
+          <li class="ulBare toc compact ulEmpty" id="section-toc.1-1.2">
             <p id="section-toc.1-1.2.1"><a href="#section-2" class="xref">2</a>.  <a href="#name-motivation" class="xref">Motivation</a></p>
-<ul class="ulEmpty toc compact ulBare">
-<li class="ulEmpty toc compact ulBare" id="section-toc.1-1.2.2.1">
+<ul class="toc ulEmpty ulBare compact">
+<li class="toc ulEmpty ulBare compact" id="section-toc.1-1.2.2.1">
                 <p id="section-toc.1-1.2.2.1.1" class="keepWithNext"><a href="#section-2.1" class="xref">2.1</a>.  <a href="#name-latency" class="xref">Latency</a></p>
 </li>
-              <li class="ulEmpty toc compact ulBare" id="section-toc.1-1.2.2.2">
+              <li class="toc ulEmpty ulBare compact" id="section-toc.1-1.2.2.2">
                 <p id="section-toc.1-1.2.2.2.1"><a href="#section-2.2" class="xref">2.2</a>.  <a href="#name-universal" class="xref">Universal</a></p>
 </li>
-              <li class="ulEmpty toc compact ulBare" id="section-toc.1-1.2.2.3">
+              <li class="toc ulEmpty ulBare compact" id="section-toc.1-1.2.2.3">
                 <p id="section-toc.1-1.2.2.3.1"><a href="#section-2.3" class="xref">2.3</a>.  <a href="#name-relays" class="xref">Relays</a></p>
 </li>
             </ul>
 </li>
-          <li class="compact ulBare ulEmpty toc" id="section-toc.1-1.3">
+          <li class="ulBare toc compact ulEmpty" id="section-toc.1-1.3">
             <p id="section-toc.1-1.3.1"><a href="#section-3" class="xref">3</a>.  <a href="#name-segments" class="xref">Segments</a></p>
-<ul class="ulEmpty toc compact ulBare">
-<li class="ulEmpty toc compact ulBare" id="section-toc.1-1.3.2.1">
+<ul class="toc ulEmpty ulBare compact">
+<li class="toc ulEmpty ulBare compact" id="section-toc.1-1.3.2.1">
                 <p id="section-toc.1-1.3.2.1.1"><a href="#section-3.1" class="xref">3.1</a>.  <a href="#name-media" class="xref">Media</a></p>
 </li>
-              <li class="ulEmpty toc compact ulBare" id="section-toc.1-1.3.2.2">
+              <li class="toc ulEmpty ulBare compact" id="section-toc.1-1.3.2.2">
                 <p id="section-toc.1-1.3.2.2.1"><a href="#section-3.2" class="xref">3.2</a>.  <a href="#name-delivery-order" class="xref">Delivery Order</a></p>
 </li>
-              <li class="ulEmpty toc compact ulBare" id="section-toc.1-1.3.2.3">
+              <li class="toc ulEmpty ulBare compact" id="section-toc.1-1.3.2.3">
                 <p id="section-toc.1-1.3.2.3.1"><a href="#section-3.3" class="xref">3.3</a>.  <a href="#name-decoder" class="xref">Decoder</a></p>
 </li>
             </ul>
 </li>
-          <li class="compact ulBare ulEmpty toc" id="section-toc.1-1.4">
+          <li class="ulBare toc compact ulEmpty" id="section-toc.1-1.4">
             <p id="section-toc.1-1.4.1"><a href="#section-4" class="xref">4</a>.  <a href="#name-quic" class="xref">QUIC</a></p>
-<ul class="ulEmpty toc compact ulBare">
-<li class="ulEmpty toc compact ulBare" id="section-toc.1-1.4.2.1">
+<ul class="toc ulEmpty ulBare compact">
+<li class="toc ulEmpty ulBare compact" id="section-toc.1-1.4.2.1">
                 <p id="section-toc.1-1.4.2.1.1"><a href="#section-4.1" class="xref">4.1</a>.  <a href="#name-establishment" class="xref">Establishment</a></p>
 </li>
-              <li class="ulEmpty toc compact ulBare" id="section-toc.1-1.4.2.2">
+              <li class="toc ulEmpty ulBare compact" id="section-toc.1-1.4.2.2">
                 <p id="section-toc.1-1.4.2.2.1"><a href="#section-4.2" class="xref">4.2</a>.  <a href="#name-streams" class="xref">Streams</a></p>
 </li>
-              <li class="ulEmpty toc compact ulBare" id="section-toc.1-1.4.2.3">
+              <li class="toc ulEmpty ulBare compact" id="section-toc.1-1.4.2.3">
                 <p id="section-toc.1-1.4.2.3.1"><a href="#section-4.3" class="xref">4.3</a>.  <a href="#name-prioritization" class="xref">Prioritization</a></p>
 </li>
-              <li class="ulEmpty toc compact ulBare" id="section-toc.1-1.4.2.4">
+              <li class="toc ulEmpty ulBare compact" id="section-toc.1-1.4.2.4">
                 <p id="section-toc.1-1.4.2.4.1"><a href="#section-4.4" class="xref">4.4</a>.  <a href="#name-cancellation" class="xref">Cancellation</a></p>
 </li>
-              <li class="ulEmpty toc compact ulBare" id="section-toc.1-1.4.2.5">
+              <li class="toc ulEmpty ulBare compact" id="section-toc.1-1.4.2.5">
                 <p id="section-toc.1-1.4.2.5.1"><a href="#section-4.5" class="xref">4.5</a>.  <a href="#name-relays-2" class="xref">Relays</a></p>
 </li>
-              <li class="ulEmpty toc compact ulBare" id="section-toc.1-1.4.2.6">
+              <li class="toc ulEmpty ulBare compact" id="section-toc.1-1.4.2.6">
                 <p id="section-toc.1-1.4.2.6.1"><a href="#section-4.6" class="xref">4.6</a>.  <a href="#name-congestion-control" class="xref">Congestion Control</a></p>
 </li>
-              <li class="ulEmpty toc compact ulBare" id="section-toc.1-1.4.2.7">
+              <li class="toc ulEmpty ulBare compact" id="section-toc.1-1.4.2.7">
                 <p id="section-toc.1-1.4.2.7.1"><a href="#section-4.7" class="xref">4.7</a>.  <a href="#name-termination" class="xref">Termination</a></p>
 </li>
             </ul>
 </li>
-          <li class="compact ulBare ulEmpty toc" id="section-toc.1-1.5">
+          <li class="ulBare toc compact ulEmpty" id="section-toc.1-1.5">
             <p id="section-toc.1-1.5.1"><a href="#section-5" class="xref">5</a>.  <a href="#name-messages" class="xref">Messages</a></p>
-<ul class="ulEmpty toc compact ulBare">
-<li class="ulEmpty toc compact ulBare" id="section-toc.1-1.5.2.1">
+<ul class="toc ulEmpty ulBare compact">
+<li class="toc ulEmpty ulBare compact" id="section-toc.1-1.5.2.1">
                 <p id="section-toc.1-1.5.2.1.1"><a href="#section-5.1" class="xref">5.1</a>.  <a href="#name-headers" class="xref">HEADERS</a></p>
 </li>
-              <li class="ulEmpty toc compact ulBare" id="section-toc.1-1.5.2.2">
+              <li class="toc ulEmpty ulBare compact" id="section-toc.1-1.5.2.2">
                 <p id="section-toc.1-1.5.2.2.1"><a href="#section-5.2" class="xref">5.2</a>.  <a href="#name-segment" class="xref">SEGMENT</a></p>
 </li>
-              <li class="ulEmpty toc compact ulBare" id="section-toc.1-1.5.2.3">
+              <li class="toc ulEmpty ulBare compact" id="section-toc.1-1.5.2.3">
                 <p id="section-toc.1-1.5.2.3.1"><a href="#section-5.3" class="xref">5.3</a>.  <a href="#name-app" class="xref">APP</a></p>
 </li>
-              <li class="ulEmpty toc compact ulBare" id="section-toc.1-1.5.2.4">
+              <li class="toc ulEmpty ulBare compact" id="section-toc.1-1.5.2.4">
                 <p id="section-toc.1-1.5.2.4.1"><a href="#section-5.4" class="xref">5.4</a>.  <a href="#name-goaway" class="xref">GOAWAY</a></p>
 </li>
             </ul>
 </li>
-          <li class="compact ulBare ulEmpty toc" id="section-toc.1-1.6">
+          <li class="ulBare toc compact ulEmpty" id="section-toc.1-1.6">
             <p id="section-toc.1-1.6.1"><a href="#section-6" class="xref">6</a>.  <a href="#name-security-considerations" class="xref">Security Considerations</a></p>
-<ul class="ulEmpty toc compact ulBare">
-<li class="ulEmpty toc compact ulBare" id="section-toc.1-1.6.2.1">
+<ul class="toc ulEmpty ulBare compact">
+<li class="toc ulEmpty ulBare compact" id="section-toc.1-1.6.2.1">
                 <p id="section-toc.1-1.6.2.1.1"><a href="#section-6.1" class="xref">6.1</a>.  <a href="#name-resource-exhaustion" class="xref">Resource Exhaustion</a></p>
 </li>
             </ul>
 </li>
-          <li class="compact ulBare ulEmpty toc" id="section-toc.1-1.7">
+          <li class="ulBare toc compact ulEmpty" id="section-toc.1-1.7">
             <p id="section-toc.1-1.7.1"><a href="#section-7" class="xref">7</a>.  <a href="#name-iana-considerations" class="xref">IANA Considerations</a></p>
 </li>
-          <li class="compact ulBare ulEmpty toc" id="section-toc.1-1.8">
+          <li class="ulBare toc compact ulEmpty" id="section-toc.1-1.8">
             <p id="section-toc.1-1.8.1"><a href="#section-8" class="xref">8</a>.  <a href="#name-appendix-a-video-encoding" class="xref">Appendix A. Video Encoding</a></p>
-<ul class="ulEmpty toc compact ulBare">
-<li class="ulEmpty toc compact ulBare" id="section-toc.1-1.8.2.1">
+<ul class="toc ulEmpty ulBare compact">
+<li class="toc ulEmpty ulBare compact" id="section-toc.1-1.8.2.1">
                 <p id="section-toc.1-1.8.2.1.1"><a href="#section-8.1" class="xref">8.1</a>.  <a href="#name-tracks" class="xref">Tracks</a></p>
 </li>
-              <li class="ulEmpty toc compact ulBare" id="section-toc.1-1.8.2.2">
+              <li class="toc ulEmpty ulBare compact" id="section-toc.1-1.8.2.2">
                 <p id="section-toc.1-1.8.2.2.1"><a href="#section-8.2" class="xref">8.2</a>.  <a href="#name-init" class="xref">Init</a></p>
 </li>
-              <li class="ulEmpty toc compact ulBare" id="section-toc.1-1.8.2.3">
+              <li class="toc ulEmpty ulBare compact" id="section-toc.1-1.8.2.3">
                 <p id="section-toc.1-1.8.2.3.1"><a href="#section-8.3" class="xref">8.3</a>.  <a href="#name-video" class="xref">Video</a></p>
-<ul class="ulEmpty toc compact ulBare">
-<li class="ulEmpty toc compact ulBare" id="section-toc.1-1.8.2.3.2.1">
+<ul class="toc ulEmpty ulBare compact">
+<li class="toc ulEmpty ulBare compact" id="section-toc.1-1.8.2.3.2.1">
                     <p id="section-toc.1-1.8.2.3.2.1.1"><a href="#section-8.3.1" class="xref">8.3.1</a>.  <a href="#name-b-frames" class="xref">B-Frames</a></p>
 </li>
-                  <li class="ulEmpty toc compact ulBare" id="section-toc.1-1.8.2.3.2.2">
-                    <p id="section-toc.1-1.8.2.3.2.2.1"><a href="#section-8.3.2" class="xref">8.3.2</a>.  <a href="#name-group-of-pictures" class="xref">Group of Pictures</a></p>
+                  <li class="toc ulEmpty ulBare compact" id="section-toc.1-1.8.2.3.2.2">
+                    <p id="section-toc.1-1.8.2.3.2.2.1"><a href="#section-8.3.2" class="xref">8.3.2</a>.  <a href="#name-timestamps" class="xref">Timestamps</a></p>
 </li>
-                  <li class="ulEmpty toc compact ulBare" id="section-toc.1-1.8.2.3.2.3">
-                    <p id="section-toc.1-1.8.2.3.2.3.1"><a href="#section-8.3.3" class="xref">8.3.3</a>.  <a href="#name-scalable-video-coding" class="xref">Scalable Video Coding</a></p>
+                  <li class="toc ulEmpty ulBare compact" id="section-toc.1-1.8.2.3.2.3">
+                    <p id="section-toc.1-1.8.2.3.2.3.1"><a href="#section-8.3.3" class="xref">8.3.3</a>.  <a href="#name-group-of-pictures" class="xref">Group of Pictures</a></p>
+</li>
+                  <li class="toc ulEmpty ulBare compact" id="section-toc.1-1.8.2.3.2.4">
+                    <p id="section-toc.1-1.8.2.3.2.4.1"><a href="#section-8.3.4" class="xref">8.3.4</a>.  <a href="#name-scalable-video-coding" class="xref">Scalable Video Coding</a></p>
 </li>
                 </ul>
 </li>
-              <li class="ulEmpty toc compact ulBare" id="section-toc.1-1.8.2.4">
+              <li class="toc ulEmpty ulBare compact" id="section-toc.1-1.8.2.4">
                 <p id="section-toc.1-1.8.2.4.1"><a href="#section-8.4" class="xref">8.4</a>.  <a href="#name-audio" class="xref">Audio</a></p>
 </li>
             </ul>
 </li>
-          <li class="compact ulBare ulEmpty toc" id="section-toc.1-1.9">
+          <li class="ulBare toc compact ulEmpty" id="section-toc.1-1.9">
             <p id="section-toc.1-1.9.1"><a href="#section-9" class="xref">9</a>.  <a href="#name-appendix-b-segment-examples" class="xref">Appendix B. Segment Examples</a></p>
-<ul class="ulEmpty toc compact ulBare">
-<li class="ulEmpty toc compact ulBare" id="section-toc.1-1.9.2.1">
+<ul class="toc ulEmpty ulBare compact">
+<li class="toc ulEmpty ulBare compact" id="section-toc.1-1.9.2.1">
                 <p id="section-toc.1-1.9.2.1.1"><a href="#section-9.1" class="xref">9.1</a>.  <a href="#name-video-2" class="xref">Video</a></p>
-<ul class="ulEmpty toc compact ulBare">
-<li class="ulEmpty toc compact ulBare" id="section-toc.1-1.9.2.1.2.1">
+<ul class="toc ulEmpty ulBare compact">
+<li class="toc ulEmpty ulBare compact" id="section-toc.1-1.9.2.1.2.1">
                     <p id="section-toc.1-1.9.2.1.2.1.1"><a href="#section-9.1.1" class="xref">9.1.1</a>.  <a href="#name-group-of-pictures-2" class="xref">Group of Pictures</a></p>
 </li>
-                  <li class="ulEmpty toc compact ulBare" id="section-toc.1-1.9.2.1.2.2">
+                  <li class="toc ulEmpty ulBare compact" id="section-toc.1-1.9.2.1.2.2">
                     <p id="section-toc.1-1.9.2.1.2.2.1"><a href="#section-9.1.2" class="xref">9.1.2</a>.  <a href="#name-scalable-video-coding-2" class="xref">Scalable Video Coding</a></p>
 </li>
-                  <li class="ulEmpty toc compact ulBare" id="section-toc.1-1.9.2.1.2.3">
+                  <li class="toc ulEmpty ulBare compact" id="section-toc.1-1.9.2.1.2.3">
                     <p id="section-toc.1-1.9.2.1.2.3.1"><a href="#section-9.1.3" class="xref">9.1.3</a>.  <a href="#name-frames" class="xref">Frames</a></p>
 </li>
-                  <li class="ulEmpty toc compact ulBare" id="section-toc.1-1.9.2.1.2.4">
+                  <li class="toc ulEmpty ulBare compact" id="section-toc.1-1.9.2.1.2.4">
                     <p id="section-toc.1-1.9.2.1.2.4.1"><a href="#section-9.1.4" class="xref">9.1.4</a>.  <a href="#name-init-2" class="xref">Init</a></p>
 </li>
                 </ul>
 </li>
-              <li class="ulEmpty toc compact ulBare" id="section-toc.1-1.9.2.2">
+              <li class="toc ulEmpty ulBare compact" id="section-toc.1-1.9.2.2">
                 <p id="section-toc.1-1.9.2.2.1"><a href="#section-9.2" class="xref">9.2</a>.  <a href="#name-audio-2" class="xref">Audio</a></p>
 </li>
-              <li class="ulEmpty toc compact ulBare" id="section-toc.1-1.9.2.3">
+              <li class="toc ulEmpty ulBare compact" id="section-toc.1-1.9.2.3">
                 <p id="section-toc.1-1.9.2.3.1"><a href="#section-9.3" class="xref">9.3</a>.  <a href="#name-delivery-order-2" class="xref">Delivery Order</a></p>
 </li>
             </ul>
 </li>
-          <li class="compact ulBare ulEmpty toc" id="section-toc.1-1.10">
+          <li class="ulBare toc compact ulEmpty" id="section-toc.1-1.10">
             <p id="section-toc.1-1.10.1"><a href="#section-10" class="xref"></a><a href="#name-contributors" class="xref">Contributors</a></p>
 </li>
-          <li class="compact ulBare ulEmpty toc" id="section-toc.1-1.11">
+          <li class="ulBare toc compact ulEmpty" id="section-toc.1-1.11">
             <p id="section-toc.1-1.11.1"><a href="#section-11" class="xref"></a><a href="#name-references" class="xref">References</a></p>
-<ul class="ulEmpty toc compact ulBare">
-<li class="ulEmpty toc compact ulBare" id="section-toc.1-1.11.2.1">
+<ul class="toc ulEmpty ulBare compact">
+<li class="toc ulEmpty ulBare compact" id="section-toc.1-1.11.2.1">
                 <p id="section-toc.1-1.11.2.1.1"><a href="#section-11.1" class="xref"></a><a href="#name-normative-references" class="xref">Normative References</a></p>
 </li>
-              <li class="ulEmpty toc compact ulBare" id="section-toc.1-1.11.2.2">
+              <li class="toc ulEmpty ulBare compact" id="section-toc.1-1.11.2.2">
                 <p id="section-toc.1-1.11.2.2.1"><a href="#section-11.2" class="xref"></a><a href="#name-informative-references" class="xref">Informative References</a></p>
 </li>
             </ul>
 </li>
-          <li class="compact ulBare ulEmpty toc" id="section-toc.1-1.12">
+          <li class="ulBare toc compact ulEmpty" id="section-toc.1-1.12">
             <p id="section-toc.1-1.12.1"><a href="#appendix-A" class="xref"></a><a href="#name-authors-addresses" class="xref">Authors' Addresses</a></p>
 </li>
         </ul>
@@ -1453,10 +1454,20 @@ QUIC streams are prioritized, allowing less important segments to be starved or 
 <a href="#section-1" class="section-number selfRef">1. </a><a href="#name-introduction" class="section-name selfRef">Introduction</a>
       </h2>
 <p id="section-1-1">Warp is a live media transport protocol that utilizes the QUIC network protocol <span>[<a href="#QUIC" class="xref">QUIC</a>]</span>.<a href="#section-1-1" class="pilcrow">¶</a></p>
-<p id="section-1-2"><a href="#motivation" class="xref">Section 2</a> covers the background and rationale behind Warp.
-<a href="#segments" class="xref">Section 3</a> covers how media is encoded and split into segments.
-<a href="#quic" class="xref">Section 4</a> covers how QUIC is used to transfer media.
-<a href="#messages" class="xref">Section 5</a> covers how messages are encoded on the wire.<a href="#section-1-2" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-1-2.1">
+          <a href="#motivation" class="xref">Section 2</a> covers the background and rationale behind Warp.<a href="#section-1-2.1" class="pilcrow">¶</a>
+</li>
+        <li class="normal" id="section-1-2.2">
+          <a href="#segments" class="xref">Section 3</a> covers how media is encoded and split into segments.<a href="#section-1-2.2" class="pilcrow">¶</a>
+</li>
+        <li class="normal" id="section-1-2.3">
+          <a href="#quic" class="xref">Section 4</a> covers how QUIC is used to transfer media.<a href="#section-1-2.3" class="pilcrow">¶</a>
+</li>
+        <li class="normal" id="section-1-2.4">
+          <a href="#messages" class="xref">Section 5</a> covers how messages are encoded on the wire.<a href="#section-1-2.4" class="pilcrow">¶</a>
+</li>
+      </ul>
 <div id="terms-and-definitions">
 <section id="section-1.1">
         <h3 id="name-terms-and-definitions">
@@ -1577,17 +1588,17 @@ appear in all capitals, as shown here.<a href="#section-1.1-1" class="pilcrow">�
 <p id="section-2.1-1">In a perfect world, we could deliver live media at the same rate it is produced.
 The end-to-end latency of a broadcast would be fixed and only subject to encoding and transmission delays.
 Unfortunately, networks have variable throughput, primarily due to congestion.<a href="#section-2.1-1" class="pilcrow">¶</a></p>
-<p id="section-2.1-2">Attempting to deliver media larger than this variable network bitrate causes queuing.
+<p id="section-2.1-2">Attempting to deliver media encoded at a higher bitrate than the network can support causes queuing.
 This queuing can occur anywhere in the path between the encoder and decoder.
 For example: the application, the OS socket, a wifi router, within an ISP, or generally anywhere in transit.<a href="#section-2.1-2" class="pilcrow">¶</a></p>
 <p id="section-2.1-3">If nothing is done, new frames will be appended to the end of a growing queue and will take longer to arrive than their predecessors, increasing latency.
-Our job is to minimize the growth of this queue, and failing that, skip the queue when possible.<a href="#section-2.1-3" class="pilcrow">¶</a></p>
-<p id="section-2.1-4">Thus speed at which a media protocol can detect and respond to queuing determines the latency.
+Our job is to minimize the growth of this queue, and if necessary, bypass the queue entirely by dropping content.<a href="#section-2.1-3" class="pilcrow">¶</a></p>
+<p id="section-2.1-4">The speed at which a media protocol can detect and respond to queuing determines the latency.
 We can generally classify existing media protocols into two categories based on the underlying network protocol:<a href="#section-2.1-4" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-2.1-5.1">TCP-based media protocols (ex. RTMP, HLS, DASH) are popular due to their simplicity.
 Media is served/consumed in decode order while any networking is handled by the TCP layer.
-However, these protocols primarily see use at higher latency targets due to their relatively slow detection and response to queuing.<a href="#section-2.1-5.1" class="pilcrow">¶</a>
+However, these protocols primarily see usage at higher latency targets due to their relatively slow detection and response to queuing.<a href="#section-2.1-5.1" class="pilcrow">¶</a>
 </li>
           <li class="normal" id="section-2.1-5.2">UDP-based media protocols (ex. RTP, WebRTC, SRT) can side-step the issues with TCP and provide lower latency with better queue management.
 However the media protocol is now responsible for fragmentation, congestion control, retransmissions, receiver feedback, reassembly, and more.
@@ -1595,8 +1606,7 @@ This added complexity significantly raises the implementation difficulty and hur
 </li>
         </ul>
 <p id="section-2.1-6">A goal of this draft is to get the best of both worlds: a simple protocol that can still rapidly detect and respond to congestion.
-This is possible emergence of QUIC, designed to fix the shortcomings of TCP.
-This draft relies on QUIC streams to deliver media segments in priority order during congestion.<a href="#section-2.1-6" class="pilcrow">¶</a></p>
+This is possible emergence of QUIC, designed to fix the shortcomings of TCP.<a href="#section-2.1-6" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="universal">
@@ -1608,7 +1618,7 @@ This draft relies on QUIC streams to deliver media segments in priority order du
 Specialization is often a good thing, but we believe there's enough overlap to warrant consolidation.<a href="#section-2.2-1" class="pilcrow">¶</a></p>
 <p id="section-2.2-2">For example, a service might simultaneously ingest via WebRTC, SRT, RTMP, and/or a custom UDP protocol depending on the broadcaster.
 The same service might then simultaneously distribute via WebRTC, LL-HLS, HLS, (or the DASH variants) and/or a custom UDP protocol depending on the viewer.<a href="#section-2.2-2" class="pilcrow">¶</a></p>
-<p id="section-2.2-3">These media protocols are radically different and not interoperable; requiring transcoding or transmuxing.
+<p id="section-2.2-3">These media protocols are often radically different and not interoperable; requiring transcoding or transmuxing.
 This cost is further increased by the need to maintain separate stacks with different expertise requirements.<a href="#section-2.2-3" class="pilcrow">¶</a></p>
 <p id="section-2.2-4">A goal of this draft is to cover a large spectrum of use-cases. Specifically:<a href="#section-2.2-4" class="pilcrow">¶</a></p>
 <ul class="normal">
@@ -1623,6 +1633,8 @@ Each consumer (viewer) chooses how long to wait for media based on their desired
 We want an experience that can vary from real-time and lossy for one viewer, to delayed and loss-less for another viewer, without separate encodings or protocols.<a href="#section-2.2-5.2" class="pilcrow">¶</a>
 </li>
         </ul>
+<p id="section-2.2-6">A related goal is to not reinvent how media is encoded.
+The same codec bitstream and container should be usable between different protocols.<a href="#section-2.2-6" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="relays">
@@ -1631,14 +1643,15 @@ We want an experience that can vary from real-time and lossy for one viewer, to 
 <a href="#section-2.3" class="section-number selfRef">2.3. </a><a href="#name-relays" class="section-name selfRef">Relays</a>
         </h3>
 <p id="section-2.3-1">The prevailing belief is that UDP-based protocols are more expensive and don't "scale".
-While it's true that UDP is more difficult to optimize than TCP, QUIC itself is proof that it is is possible to reach performance parity.
+While it's true that UDP is more difficult to optimize than TCP, QUIC itself is proof that it is possible to reach performance parity.
 In fact even some TCP-based protocols (ex. RTMP) don't "scale" either and are exclusively used for contribution as a result.<a href="#section-2.3-1" class="pilcrow">¶</a></p>
-<p id="section-2.3-2">The truth is that the ability to scale a media protocol depends on relay support: proxies, caches, CDNs, SFUs, etc.
+<p id="section-2.3-2">The ability to scale a media protocol actually depends on relay support: proxies, caches, CDNs, SFUs, etc.
 The success of HTTP-based media protocols is due to the ability to leverage traditional HTTP CDNs.<a href="#section-2.3-2" class="pilcrow">¶</a></p>
-<p id="section-2.3-3">Meanwhile, it's difficult to build a CDN for media protocols that were not designed with relays in mind.
-For example, an relay has to parse the underlying codec to determine which RTP packets should be dropped first, and the decision is not deterministic or consistent for each hop.<a href="#section-2.3-3" class="pilcrow">¶</a></p>
+<p id="section-2.3-3">It's difficult to build a CDN for media protocols that were not designed with relays in mind.
+For example, an relay has to parse the underlying codec to determine which RTP packets should be dropped first, and the decision is not deterministic or consistent for each hop.
+This is the fatal flaw of many UDP-based protocols.<a href="#section-2.3-3" class="pilcrow">¶</a></p>
 <p id="section-2.3-4">A goal of this draft is to treat relays as first class citizens.
-Any identification, reliability, ordering, prioritization, caching, etc is written to the wire in header designed for relays.
+Any identification, reliability, ordering, prioritization, caching, etc is written to the wire in a header that is easy to parse.
 This ensures that relays can easily route/fanout media to the final destination.
 This also ensures that congestion response is consistent at every hop based on the preferences of the media producer.<a href="#section-2.3-4" class="pilcrow">¶</a></p>
 </section>
@@ -1650,7 +1663,7 @@ This also ensures that congestion response is consistent at every hop based on t
       <h2 id="name-segments">
 <a href="#section-3" class="section-number selfRef">3. </a><a href="#name-segments" class="section-name selfRef">Segments</a>
       </h2>
-<p id="section-3-1">Warp works by splitting media into segments that can be transferred over the network somewhat independently.<a href="#section-3-1" class="pilcrow">¶</a></p>
+<p id="section-3-1">Warp works by splitting media into segments that can be transferred over QUIC streams.<a href="#section-3-1" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-3-2.1">The encoder determines how to fragment the encoded bitstream into segments (<a href="#media" class="xref">Section 3.1</a>).<a href="#section-3-2.1" class="pilcrow">¶</a>
 </li>
@@ -1665,10 +1678,9 @@ This also ensures that congestion response is consistent at every hop based on t
 <a href="#section-3.1" class="section-number selfRef">3.1. </a><a href="#name-media" class="section-name selfRef">Media</a>
         </h3>
 <p id="section-3.1-1">An encoder produces one or more codec bitstreams for each track.
-The bitstreams are fed to the decoder on the other end, after being transported over the network, in the same order its produced.
-The problem, as explained in motivation (<a href="#latency" class="xref">Section 2.1</a>), is that networks cannot sustain a continuous rate and thus queuing occurs.
+The decoder processes the codec bitstreams in the same order they were produced, with some possible exceptions based on the encoding.
 See the appendix for an overview of media encoding (<a href="#appendix.encoding" class="xref">Section 8</a>).<a href="#section-3.1-1" class="pilcrow">¶</a></p>
-<p id="section-3.1-2">Warp works by fragmenting the bitstream into segments that can be transmitted independently.
+<p id="section-3.1-2">Warp works by fragmenting the bitstream into segments that can be transmitted somewhat independently.
 Depending on how the segments are fragmented, the decoder has the ability to safely drop media during congestion.
 See the appendix for fragmentation examples (<a href="#appendix.examples" class="xref">Section 9</a>)<a href="#section-3.1-2" class="pilcrow">¶</a></p>
 <p id="section-3.1-3">A segment:<a href="#section-3.1-3" class="pilcrow">¶</a></p>
@@ -1681,7 +1693,7 @@ See the appendix for fragmentation examples (<a href="#appendix.examples" class=
 </li>
           <li class="normal" id="section-3.1-4.4">MAY have gaps between frames/samples.<a href="#section-3.1-4.4" class="pilcrow">¶</a>
 </li>
-          <li class="normal" id="section-3.1-4.5">MAY overlap with other segments. This means interleaved timestamps.<a href="#section-3.1-4.5" class="pilcrow">¶</a>
+          <li class="normal" id="section-3.1-4.5">MAY overlap with other segments. This means timestamps may be interleaved between segments.<a href="#section-3.1-4.5" class="pilcrow">¶</a>
 </li>
           <li class="normal" id="section-3.1-4.6">MAY reference frames in other segments, but only if listed as a dependency.<a href="#section-3.1-4.6" class="pilcrow">¶</a>
 </li>
@@ -1722,8 +1734,8 @@ The QUIC library should support prioritization (<a href="#prioritization" class=
 <p id="section-3.3-1">The decoder will receive multiple segments in parallel and out of order.<a href="#section-3.3-1" class="pilcrow">¶</a></p>
 <p id="section-3.3-2">Segments arrive in delivery order, but media usually needs to be processed in decode order.
 The decoder SHOULD use a buffer to reassmble segments into decode order and it SHOULD skip segments after a configurable duration.
-The amount of time the decoder is willing to wait for a segment (buffer duration) is what ultimately determines the latency.<a href="#section-3.3-2" class="pilcrow">¶</a></p>
-<p id="section-3.3-3">Segments MUST synchronize segments using presentation timestamps within the bitstream.
+The amount of time the decoder is willing to wait for a segment (buffer duration) is what ultimately determines the end-to-end latency.<a href="#section-3.3-2" class="pilcrow">¶</a></p>
+<p id="section-3.3-3">Segments MUST synchronize frames within and between tracks using presentation timestamps within the container.
 Segments are NOT REQUIRED to be aligned and the decoder MUST be prepared to skip over any gaps.<a href="#section-3.3-3" class="pilcrow">¶</a></p>
 </section>
 </div>
@@ -1748,9 +1760,8 @@ Specifically, either endpoint may create independent streams which are reliably 
 <p id="section-4.1-4">WebTransport can currently operate via HTTP/3 and HTTP/2, using QUIC or TCP under the hood respectively.
 As mentioned in the motivation (<a href="#motivation" class="xref">Section 2</a>) section, TCP introduces head-of-line blocking and will result in a worse experience.
 It is RECOMMENDED to use WebTransport over HTTP/3.<a href="#section-4.1-4" class="pilcrow">¶</a></p>
-<p id="section-4.1-5">The application SHOULD use the CONNECT request for authentication and negotiation.
-For example, including a authentication token and some identifier in the path.
-The application MAY use QUIC streams for more complicated behavior.<a href="#section-4.1-5" class="pilcrow">¶</a></p>
+<p id="section-4.1-5">The application SHOULD use the CONNECT request for authentication.
+For example, including a authentication token and some identifier in the path.<a href="#section-4.1-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="streams">
@@ -1763,7 +1774,7 @@ The application MAY use bidirectional QUIC streams for other purposes.<a href="#
 <p id="section-4.2-2">A stream consists of sequential messages.
 See messages (<a href="#messages" class="xref">Section 5</a>) for the list of messages and their encoding.
 These are similar to QUIC and HTTP/3 frames, but called messages to avoid the media terminology.<a href="#section-4.2-2" class="pilcrow">¶</a></p>
-<p id="section-4.2-3">Each stream MUST start with a <code>HEADERS</code> message that indicates how the stream should be transmitted.<a href="#section-4.2-3" class="pilcrow">¶</a></p>
+<p id="section-4.2-3">Each stream MUST start with a <code>HEADERS</code> message (<a href="#headers" class="xref">Section 5.1</a>) to indicates how the stream should be transmitted.<a href="#section-4.2-3" class="pilcrow">¶</a></p>
 <p id="section-4.2-4">Messages SHOULD be sent over the same stream if ordering is desired.
 For example, <code>PAUSE</code> and <code>PLAY</code> messages SHOULD be sent on the same stream to avoid a race.<a href="#section-4.2-4" class="pilcrow">¶</a></p>
 </section>
@@ -1780,8 +1791,9 @@ The sender SHOULD prioritize streams based on the delivery order.
 If two streams have the same delivery order, they SHOULD receive equal bandwidth (round-robin).<a href="#section-4.3-2" class="pilcrow">¶</a></p>
 <p id="section-4.3-3">QUIC supports stream prioritization but does not standardize any mechanisms; see Section 2.3 in <span>[<a href="#QUIC" class="xref">QUIC</a>]</span>.
 In order to support prioritization, a QUIC library MUST expose a API to set the priority of each stream.
-This is easy to implement; the next QUIC packet should contain a STREAM frame for the next pending stream in priority order.
-It is OPTIONAL to prioritize retransmissions within flow control limits.<a href="#section-4.3-3" class="pilcrow">¶</a></p>
+This is relatively easy to implement; the next QUIC packet should contain a STREAM frame for the next pending stream in priority order.<a href="#section-4.3-3" class="pilcrow">¶</a></p>
+<p id="section-4.3-4">The sender MUST respect flow control even if means delivering streams out of delivery order.
+It is OPTIONAL to prioritize retransmissions.<a href="#section-4.3-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="cancellation">
@@ -1794,7 +1806,7 @@ The producer does this via a <code>RESET_STREAM</code> frame while the consumer 
 <p id="section-4.4-2">When using <code>order</code>, lower priority streams will be starved during congestion, perhaps indefinitely.
 These streams will consume resources and flow control until they are canceled.
 When nearing resource limits, an endpoint SHOULD cancel the lowest priority stream with error code 0.<a href="#section-4.4-2" class="pilcrow">¶</a></p>
-<p id="section-4.4-3">The producer or consumer MAY cancel streams in response to congestion.
+<p id="section-4.4-3">The sender MAY cancel streams in response to congestion.
 This can be useful when the sender does not support stream prioritization.<a href="#section-4.4-3" class="pilcrow">¶</a></p>
 </section>
 </div>
@@ -1803,13 +1815,13 @@ This can be useful when the sender does not support stream prioritization.<a hre
         <h3 id="name-relays-2">
 <a href="#section-4.5" class="section-number selfRef">4.5. </a><a href="#name-relays-2" class="section-name selfRef">Relays</a>
         </h3>
-<p id="section-4.5-1">Warp encodes the delivery information at the start each stream via a <code>HEADERS</code> frame (<a href="#headers" class="xref">Section 5.1</a>).
-This is meant to be easy to parse for a relay.<a href="#section-4.5-1" class="pilcrow">¶</a></p>
+<p id="section-4.5-1">Warp encodes the delivery information for each stream via a <code>HEADERS</code> frame (<a href="#headers" class="xref">Section 5.1</a>).
+This MUST be at the start of each stream so it is easy for a relay to parse.<a href="#section-4.5-1" class="pilcrow">¶</a></p>
 <p id="section-4.5-2">A relay SHOULD prioritize streams (<a href="#prioritization" class="xref">Section 4.3</a>) based on the delivery order.
 A relay MAY change the delivery order, in which case it SHOULD update the value on the wire for future hops.<a href="#section-4.5-2" class="pilcrow">¶</a></p>
 <p id="section-4.5-3">A relay that reads from a stream and then writes to another stream will suffer from head-of-line blocking.
 Packet loss will cause stream data to be buffered in the QUIC library, awaiting an in order flush, which will increase latency over additional hops.
-To mitigate this, a relay MAY read and write QUIC streams out of order according to flow control limits.
+To mitigate this, a relay SHOULD read and write QUIC streams out of order according to flow control limits.
 See section 2.2 in <span>[<a href="#QUIC" class="xref">QUIC</a>]</span>.<a href="#section-4.5-3" class="pilcrow">¶</a></p>
 </section>
 </div>
@@ -1853,8 +1865,7 @@ The application SHOULD use a non-zero error code to indicate a fatal error.<a hr
             </tr>
             <tr>
               <td class="text-right" rowspan="1" colspan="1">0x1</td>
-              <td class="text-left" rowspan="1" colspan="1">GOAWAY <a href="#goaway" class="xref">Section 5.4</a>
-</td>
+              <td class="text-left" rowspan="1" colspan="1">GOAWAY (<a href="#goaway" class="xref">Section 5.4</a>)</td>
             </tr>
           </tbody>
         </table>
@@ -1880,23 +1891,19 @@ The application SHOULD use a non-zero error code to indicate a fatal error.<a hr
         <tbody>
           <tr>
             <td class="text-right" rowspan="1" colspan="1">0x0</td>
-            <td class="text-left" rowspan="1" colspan="1">HEADERS <a href="#headers" class="xref">Section 5.1</a>
-</td>
+            <td class="text-left" rowspan="1" colspan="1">HEADERS (<a href="#headers" class="xref">Section 5.1</a>)</td>
           </tr>
           <tr>
             <td class="text-right" rowspan="1" colspan="1">0x1</td>
-            <td class="text-left" rowspan="1" colspan="1">SEGMENT <a href="#segment" class="xref">Section 5.2</a>
-</td>
+            <td class="text-left" rowspan="1" colspan="1">SEGMENT (<a href="#segment" class="xref">Section 5.2</a>)</td>
           </tr>
           <tr>
             <td class="text-right" rowspan="1" colspan="1">0x2</td>
-            <td class="text-left" rowspan="1" colspan="1">APP <a href="#app" class="xref">Section 5.3</a>
-</td>
+            <td class="text-left" rowspan="1" colspan="1">APP (<a href="#app" class="xref">Section 5.3</a>)</td>
           </tr>
           <tr>
             <td class="text-right" rowspan="1" colspan="1">0x10</td>
-            <td class="text-left" rowspan="1" colspan="1">GOAWAY <a href="#goaway" class="xref">Section 5.4</a>
-</td>
+            <td class="text-left" rowspan="1" colspan="1">GOAWAY (<a href="#goaway" class="xref">Section 5.4</a>)</td>
           </tr>
         </tbody>
       </table>
@@ -1906,7 +1913,7 @@ The application SHOULD use a non-zero error code to indicate a fatal error.<a hr
 <a href="#section-5.1" class="section-number selfRef">5.1. </a><a href="#name-headers" class="section-name selfRef">HEADERS</a>
         </h3>
 <p id="section-5.1-1">The <code>HEADERS</code> message contains information required to deliver, cache, and forward a stream.
-This message SHOULD be parsed and obeyed by any Warp proxies.<a href="#section-5.1-1" class="pilcrow">¶</a></p>
+This message SHOULD be parsed and obeyed by any Warp relays.<a href="#section-5.1-1" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-5.1-2.1">
             <code>id</code>.
@@ -1916,9 +1923,6 @@ This field is optional and MUST be unique if set.<a href="#section-5.1-2.1" clas
           <li class="normal" id="section-5.1-2.2">
             <code>order</code>.
 An integer indicating the delivery order (<a href="#delivery-order" class="xref">Section 3.2</a>).
-A sender SHOULD transmit streams with smallest value first, as bandwidth permits.
-If two streams use the same value, they SHOULD be allocated the same bandwidth (round-robin).
-Note that streams can still arrive out of the intended order due to packet loss.
 This field is optional and the default value is 0.<a href="#section-5.1-2.2" class="pilcrow">¶</a>
 </li>
           <li class="normal" id="section-5.1-2.3">
@@ -1956,7 +1960,10 @@ It is RECOMMENDED that a media fragment consists of a single frame to minimize l
         <h3 id="name-app">
 <a href="#section-5.3" class="section-number selfRef">5.3. </a><a href="#name-app" class="section-name selfRef">APP</a>
         </h3>
-<p id="section-5.3-1">The <code>APP</code> message contains arbitrary contents.<a href="#section-5.3-1" class="pilcrow">¶</a></p>
+<p id="section-5.3-1">The <code>APP</code> message contains arbitrary contents.
+This is useful for metadata that would otherwise have to be shoved into the media bitstream.<a href="#section-5.3-1" class="pilcrow">¶</a></p>
+<p id="section-5.3-2">Relays MUST NOT differentiate between streams containing <code>SEGMENT</code> and <code>APP</code> frames.
+The same forwarding and caching behavior applies to both as specified in the<code>HEADERS</code> frame.<a href="#section-5.3-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="goaway">
@@ -2006,9 +2013,8 @@ Failure to set limits will quickly cause resource exhaustion.<a href="#section-6
 <p id="section-6.1-2">Warp uses QUIC flow control to impose resource limits at the network layer.
 Endpoints SHOULD set flow control limits based on the anticipated media bitrate.<a href="#section-6.1-2" class="pilcrow">¶</a></p>
 <p id="section-6.1-3">The media producer prioritizes and transmits streams out of order.
-Streams might be starved indefinitely during congestion and SHOULD be canceled after hitting some timeout or resource limit.<a href="#section-6.1-3" class="pilcrow">¶</a></p>
-<p id="section-6.1-4">The media consumer might receive streams out of order.
-If stream data is buffered, for example to decode segments in order, then the media consumer SHOULD cancel a stream after hitting some timeout or resource limit.<a href="#section-6.1-4" class="pilcrow">¶</a></p>
+Streams might be starved indefinitely during congestion.
+The producer and consumer MUST cancel a stream, preferrably the lowest priority, after reaching a resource limit.<a href="#section-6.1-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -2059,9 +2065,9 @@ Each Warp segment MUST contain a single track.<a href="#section-8.1-4" class="pi
         </h3>
 <p id="section-8.2-1">Media codecs have a wide array of configuration options.
 For example, the resolution, the color space, the features enabled, etc.<a href="#section-8.2-1" class="pilcrow">¶</a></p>
-<p id="section-8.2-2">Before playback can begin, the decoder needs to know how the configuration.
+<p id="section-8.2-2">Before playback can begin, the decoder needs to know the configuration.
 This is done via a short payload at the very start of the media file.
-The initialization payload can be cached and reused between segments with the same configuration.<a href="#section-8.2-2" class="pilcrow">¶</a></p>
+The initialization payload MAY be cached and reused between segments with the same configuration.<a href="#section-8.2-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="appendix.video">
@@ -2072,9 +2078,9 @@ The initialization payload can be cached and reused between segments with the sa
 <p id="section-8.3-1">Video is a sequence of pictures (frames) with a presentation timestamp (PTS).<a href="#section-8.3-1" class="pilcrow">¶</a></p>
 <p id="section-8.3-2">An I-frame is a frame with no dependencies and is effectively an image file.
 These frames are usually inserted at a frequent interval to support seeking or joining a live stream.
-However they can also improve compression when used at hard scene cuts.<a href="#section-8.3-2" class="pilcrow">¶</a></p>
+However they can also improve compression when used at scene boundaries.<a href="#section-8.3-2" class="pilcrow">¶</a></p>
 <p id="section-8.3-3">A P-frame is a frame that references on one or more earlier frames.
-These frames are delta-encoded, such that they only encode the changes (typically motion).
+These frames are delta-encoded, such that they only encode the changes (motion).
 This result in a massive file size reduction for most content outside of few notorious cases (ex. confetti).<a href="#section-8.3-3" class="pilcrow">¶</a></p>
 <p id="section-8.3-4">A common encoding structure is to only reference the previous frame, as it is simple and minimizes latency:<a href="#section-8.3-4" class="pilcrow">¶</a></p>
 <div class="artwork art-text alignLeft" id="section-8.3-5">
@@ -2104,29 +2110,38 @@ Such a fixed pattern is not optimal, but it's simpler for hardware encoding:<a h
  I &lt;-- P &lt;-- P   I &lt;-- P &lt;-- P   I &lt;-- P ...
 </pre><a href="#section-8.3.1-4" class="pilcrow">¶</a>
 </div>
-<p id="section-8.3.1-5">The encoder outputs the bitstream in decode order, which means that each frame is output after its references.
-This makes it easier for the decoder as all references are earlier in the bitstream and can be decoded immediately.<a href="#section-8.3.1-5" class="pilcrow">¶</a></p>
-<p id="section-8.3.1-6">However, this causes problems with B-frames because they depend on a future frame, and some reordering has to occur.
+</section>
+</div>
+<div id="timestamps">
+<section id="section-8.3.2">
+          <h4 id="name-timestamps">
+<a href="#section-8.3.2" class="section-number selfRef">8.3.2. </a><a href="#name-timestamps" class="section-name selfRef">Timestamps</a>
+          </h4>
+<p id="section-8.3.2-1">Each frame is assigned a presentation timestamp (PTS), indicating when it should be shown relative to other frames.<a href="#section-8.3.2-1" class="pilcrow">¶</a></p>
+<p id="section-8.3.2-2">The encoder outputs the bitstream in decode order, which means that each frame is output after its references.
+This makes it easier for the decoder as all references are earlier in the bitstream and can be decoded immediately.<a href="#section-8.3.2-2" class="pilcrow">¶</a></p>
+<p id="section-8.3.2-3">However, this causes problems with B-frames because they depend on a future frame, and some reordering has to occur.
 In order to keep track of this, frames have a decode timestamp (DTS) in addition to a presentation timestamp (PTS).
-A B-frame will have higher DTS value that its dependencies, while PTS and DTS will be the same for other frame types.<a href="#section-8.3.1-6" class="pilcrow">¶</a></p>
-<p id="section-8.3.1-7">For the example above, this would look like:<a href="#section-8.3.1-7" class="pilcrow">¶</a></p>
-<div class="artwork art-text alignLeft" id="section-8.3.1-8">
+A B-frame will have higher DTS value that its dependencies, while PTS and DTS will be the same for other frame types.<a href="#section-8.3.2-3" class="pilcrow">¶</a></p>
+<p id="section-8.3.2-4">For the example above, this would look like:<a href="#section-8.3.2-4" class="pilcrow">¶</a></p>
+<div class="artwork art-text alignLeft" id="section-8.3.2-5">
 <pre>
+     0 1 2 3 4 5 6 7 8 9 10
 PTS: I B P B P I B P B P B
 DTS: I   PB  PBI   PB  PB
-</pre><a href="#section-8.3.1-8" class="pilcrow">¶</a>
+</pre><a href="#section-8.3.2-5" class="pilcrow">¶</a>
 </div>
-<p id="section-8.3.1-9">B-frames add latency because of this reordering so they are usually not used for conversational latency.<a href="#section-8.3.1-9" class="pilcrow">¶</a></p>
+<p id="section-8.3.2-6">B-frames add latency because of this reordering so they are usually not used for conversational latency.<a href="#section-8.3.2-6" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="appendix.gop">
-<section id="section-8.3.2">
+<section id="section-8.3.3">
           <h4 id="name-group-of-pictures">
-<a href="#section-8.3.2" class="section-number selfRef">8.3.2. </a><a href="#name-group-of-pictures" class="section-name selfRef">Group of Pictures</a>
+<a href="#section-8.3.3" class="section-number selfRef">8.3.3. </a><a href="#name-group-of-pictures" class="section-name selfRef">Group of Pictures</a>
           </h4>
-<p id="section-8.3.2-1">A group of pictures (GoP) is an I-frame followed by any number of frames until the next I-frame.
-All frames MUST reference, either directly or indirectly, only the most recent I-frame.<a href="#section-8.3.2-1" class="pilcrow">¶</a></p>
-<div class="artwork art-text alignLeft" id="section-8.3.2-2">
+<p id="section-8.3.3-1">A group of pictures (GoP) is an I-frame followed by any number of frames until the next I-frame.
+All frames MUST reference, either directly or indirectly, only the most recent I-frame.<a href="#section-8.3.3-1" class="pilcrow">¶</a></p>
+<div class="artwork art-text alignLeft" id="section-8.3.3-2">
 <pre>
         GoP               GoP            GoP
 +-----------------+-----------------+---------------
@@ -2135,21 +2150,21 @@ All frames MUST reference, either directly or indirectly, only the most recent I
 |   v   v v   v   |   v   v v   v   |   v   v
 |  I &lt;-- P &lt;-- P  |  I &lt;-- P &lt;-- P  |  I &lt;-- P ...
 +-----------------+-----------------+--------------
-</pre><a href="#section-8.3.2-2" class="pilcrow">¶</a>
+</pre><a href="#section-8.3.3-2" class="pilcrow">¶</a>
 </div>
-<p id="section-8.3.2-3">This is a useful abstraction because GoPs can always be decoded independently.<a href="#section-8.3.2-3" class="pilcrow">¶</a></p>
+<p id="section-8.3.3-3">This is a useful abstraction because GoPs can always be decoded independently.<a href="#section-8.3.3-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="appendix.svc">
-<section id="section-8.3.3">
+<section id="section-8.3.4">
           <h4 id="name-scalable-video-coding">
-<a href="#section-8.3.3" class="section-number selfRef">8.3.3. </a><a href="#name-scalable-video-coding" class="section-name selfRef">Scalable Video Coding</a>
+<a href="#section-8.3.4" class="section-number selfRef">8.3.4. </a><a href="#name-scalable-video-coding" class="section-name selfRef">Scalable Video Coding</a>
           </h4>
-<p id="section-8.3.3-1">Some codecs support scalable video coding (SVC), in which the encoder produces multiple bitstreams in a hierarchy.
+<p id="section-8.3.4-1">Some codecs support scalable video coding (SVC), in which the encoder produces multiple bitstreams in a hierarchy.
 This layered coding means that dropping the top layer degrades the user experience in a configured way.
-Examples include reducing the resolution, picture quality, and/or frame rate.<a href="#section-8.3.3-1" class="pilcrow">¶</a></p>
-<p id="section-8.3.3-2">Here is an example SVC encoding with 3 resolutions:<a href="#section-8.3.3-2" class="pilcrow">¶</a></p>
-<div class="artwork art-text alignLeft" id="section-8.3.3-3">
+Examples include reducing the resolution, picture quality, and/or frame rate.<a href="#section-8.3.4-1" class="pilcrow">¶</a></p>
+<p id="section-8.3.4-2">Here is an example SVC encoding with 3 resolutions:<a href="#section-8.3.4-2" class="pilcrow">¶</a></p>
+<div class="artwork art-text alignLeft" id="section-8.3.4-3">
 <pre>
       +-------------------------+------------------
    4k |  P &lt;- P &lt;- P &lt;- P &lt;- P  |  P &lt;- P &lt;- P ...
@@ -2162,7 +2177,7 @@ Examples include reducing the resolution, picture quality, and/or frame rate.<a 
       +-------------------------+------------------
  360p |  I &lt;- P &lt;- P &lt;- P &lt;- P  |  I &lt;- P &lt;- P ...
       +-------------------------+------------------
-</pre><a href="#section-8.3.3-3" class="pilcrow">¶</a>
+</pre><a href="#section-8.3.4-3" class="pilcrow">¶</a>
 </div>
 </section>
 </div>
@@ -2203,7 +2218,7 @@ There is no best solution; it depends on the desired complexity and user experie
           <h4 id="name-group-of-pictures-2">
 <a href="#section-9.1.1" class="section-number selfRef">9.1.1. </a><a href="#name-group-of-pictures-2" class="section-name selfRef">Group of Pictures</a>
           </h4>
-<p id="section-9.1.1-1">A group of pictures (GoP) is consists of an I-frame and all frames that directly or indirectly reference it (<a href="#appendix.gop" class="xref">Section 8.3.2</a>).
+<p id="section-9.1.1-1">A group of pictures (GoP) is consists of an I-frame and all frames that directly or indirectly reference it (<a href="#appendix.gop" class="xref">Section 8.3.3</a>).
 The tail of a GoP can be dropped without causing decode errors, even if the encoding is otherwise unknown, making this the safest option.<a href="#section-9.1.1-1" class="pilcrow">¶</a></p>
 <p id="section-9.1.1-2">It is RECOMMENDED that each segment consist of a single GoP.
 For example:<a href="#section-9.1.1-2" class="pilcrow">¶</a></p>
@@ -2224,7 +2239,7 @@ A better option may be available below.<a href="#section-9.1.1-4" class="pilcrow
           <h4 id="name-scalable-video-coding-2">
 <a href="#section-9.1.2" class="section-number selfRef">9.1.2. </a><a href="#name-scalable-video-coding-2" class="section-name selfRef">Scalable Video Coding</a>
           </h4>
-<p id="section-9.1.2-1">Some codecs support scalable video coding (SVC), in which the encoder produces multiple bitstreams in a hierarchy (<a href="#appendix.svc" class="xref">Section 8.3.3</a>).<a href="#section-9.1.2-1" class="pilcrow">¶</a></p>
+<p id="section-9.1.2-1">Some codecs support scalable video coding (SVC), in which the encoder produces multiple bitstreams in a hierarchy (<a href="#appendix.svc" class="xref">Section 8.3.4</a>).<a href="#section-9.1.2-1" class="pilcrow">¶</a></p>
 <p id="section-9.1.2-2">When SVC is used, it is RECOMMENDED that each segment consist of a single layer and GoP.
 For example:<a href="#section-9.1.2-2" class="pilcrow">¶</a></p>
 <div class="artwork art-text alignLeft" id="section-9.1.2-3">
