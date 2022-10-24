@@ -264,10 +264,6 @@ A receiver MUST NOT assume that segments will be received in delivery order for 
 * Packet loss or flow control MAY delay the delivery of individual streams.
 * The sender might not support QUIC stream prioritization.
 
-A proxy MAY change the delivery order, in which case it SHOULD update the value on the wire for future hops.
-This is NOT RECOMMENDED unless the proxy knows additional information about the media.
-For example, a proxy could use the PTS as the delivery order to enable head-of-line blocking for content that should not be skipped, like an advertisement.
-
 ## Decoder
 The decoder will receive multiple segments in parallel and out of order.
 
@@ -325,9 +321,6 @@ In order to support prioritization, a QUIC library MUST expose a API to set the 
 This is easy to implement; the next QUIC packet should contain a STREAM frame for the next pending stream in priority order.
 It is OPTIONAL to prioritize retransmissions within flow control limits.
 
-The delivery order is written on the wire so it can be easily parsed by proxies.
-A proxy SHOULD obey the stream priority.
-
 ## Cancellation
 A QUIC stream MAY be canceled at any point with an error code.
 The producer does this via a `RESET_STREAM` frame while the consumer requests cancelation with a `STOP_SENDING` frame.
@@ -338,6 +331,18 @@ When nearing resource limits, an endpoint SHOULD cancel the lowest priority stre
 
 The producer or consumer MAY cancel streams in response to congestion.
 This can be useful when the sender does not support stream prioritization.
+
+## Relays
+Warp encodes the delivery information at the start each stream via a `HEADERS` frame ({{headers}}).
+This is meant to be easy to parse for a relay.
+
+A relay SHOULD prioritize streams ({{prioritization}}) based on the delivery order.
+A relay MAY change the delivery order, in which case it SHOULD update the value on the wire for future hops.
+
+A relay that reads from a stream and then writes to another stream will suffer from head-of-line blocking.
+Packet loss will cause stream data to be buffered in the QUIC library, awaiting an in order flush, which will increase latency over additional hops.
+To mitigate this, a relay MAY read and write QUIC streams out of order according to flow control limits.
+See section 2.2 in {{QUIC}}.
 
 ## Congestion Control
 As covered in the motivation section ({{motivation}}), the ability to prioritize or cancel streams is a form of congestion response.

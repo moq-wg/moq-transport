@@ -84,28 +84,28 @@ Table of Contents
      4.2.  Streams . . . . . . . . . . . . . . . . . . . . . . . . .   9
      4.3.  Prioritization  . . . . . . . . . . . . . . . . . . . . .  10
      4.4.  Cancellation  . . . . . . . . . . . . . . . . . . . . . .  10
-     4.5.  Congestion Control  . . . . . . . . . . . . . . . . . . .  10
-     4.6.  Termination . . . . . . . . . . . . . . . . . . . . . . .  11
-   5.  Messages  . . . . . . . . . . . . . . . . . . . . . . . . . .  11
+     4.5.  Relays  . . . . . . . . . . . . . . . . . . . . . . . . .  10
+     4.6.  Congestion Control  . . . . . . . . . . . . . . . . . . .  11
+     4.7.  Termination . . . . . . . . . . . . . . . . . . . . . . .  11
+   5.  Messages  . . . . . . . . . . . . . . . . . . . . . . . . . .  12
      5.1.  HEADERS . . . . . . . . . . . . . . . . . . . . . . . . .  12
-     5.2.  SEGMENT . . . . . . . . . . . . . . . . . . . . . . . . .  12
+     5.2.  SEGMENT . . . . . . . . . . . . . . . . . . . . . . . . .  13
      5.3.  APP . . . . . . . . . . . . . . . . . . . . . . . . . . .  13
      5.4.  GOAWAY  . . . . . . . . . . . . . . . . . . . . . . . . .  13
    6.  Security Considerations . . . . . . . . . . . . . . . . . . .  14
      6.1.  Resource Exhaustion . . . . . . . . . . . . . . . . . . .  14
    7.  IANA Considerations . . . . . . . . . . . . . . . . . . . . .  14
-   8.  Appendix A.  Video Encoding . . . . . . . . . . . . . . . . .  14
-     8.1.  Tracks  . . . . . . . . . . . . . . . . . . . . . . . . .  14
+   8.  Appendix A.  Video Encoding . . . . . . . . . . . . . . . . .  15
+     8.1.  Tracks  . . . . . . . . . . . . . . . . . . . . . . . . .  15
      8.2.  Init  . . . . . . . . . . . . . . . . . . . . . . . . . .  15
      8.3.  Video . . . . . . . . . . . . . . . . . . . . . . . . . .  15
-       8.3.1.  B-Frames  . . . . . . . . . . . . . . . . . . . . . .  15
-       8.3.2.  Group of Pictures . . . . . . . . . . . . . . . . . .  16
+       8.3.1.  B-Frames  . . . . . . . . . . . . . . . . . . . . . .  16
+       8.3.2.  Group of Pictures . . . . . . . . . . . . . . . . . .  17
        8.3.3.  Scalable Video Coding . . . . . . . . . . . . . . . .  17
-     8.4.  Audio . . . . . . . . . . . . . . . . . . . . . . . . . .  17
-   9.  Appendix B.  Segment Examples . . . . . . . . . . . . . . . .  17
-     9.1.  Video . . . . . . . . . . . . . . . . . . . . . . . . . .  17
+     8.4.  Audio . . . . . . . . . . . . . . . . . . . . . . . . . .  18
+   9.  Appendix B.  Segment Examples . . . . . . . . . . . . . . . .  18
+     9.1.  Video . . . . . . . . . . . . . . . . . . . . . . . . . .  18
        9.1.1.  Group of Pictures . . . . . . . . . . . . . . . . . .  18
-       9.1.2.  Scalable Video Coding . . . . . . . . . . . . . . . .  18
 
 
 
@@ -114,14 +114,15 @@ Curley, et al.            Expires 27 April 2023                 [Page 2]
 Internet-Draft                    WARP                      October 2022
 
 
+       9.1.2.  Scalable Video Coding . . . . . . . . . . . . . . . .  18
        9.1.3.  Frames  . . . . . . . . . . . . . . . . . . . . . . .  19
        9.1.4.  Init  . . . . . . . . . . . . . . . . . . . . . . . .  20
      9.2.  Audio . . . . . . . . . . . . . . . . . . . . . . . . . .  20
      9.3.  Delivery Order  . . . . . . . . . . . . . . . . . . . . .  21
-   Contributors  . . . . . . . . . . . . . . . . . . . . . . . . . .  21
+   Contributors  . . . . . . . . . . . . . . . . . . . . . . . . . .  22
    References  . . . . . . . . . . . . . . . . . . . . . . . . . . .  22
      Normative References  . . . . . . . . . . . . . . . . . . . . .  22
-     Informative References  . . . . . . . . . . . . . . . . . . . .  22
+     Informative References  . . . . . . . . . . . . . . . . . . . .  23
    Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .  23
 
 1.  Introduction
@@ -161,7 +162,6 @@ Internet-Draft                    WARP                      October 2022
       stream into raw frames.
 
    Decode Timestamp (DTS):  A timestamp indicating the order that
-      frames/samples should be fed to the decoder.
 
 
 
@@ -169,6 +169,8 @@ Curley, et al.            Expires 27 April 2023                 [Page 3]
 
 Internet-Draft                    WARP                      October 2022
 
+
+      frames/samples should be fed to the decoder.
 
    Encoder:  A component responsible for creating a compressed media
       stream out of raw frames.
@@ -212,11 +214,9 @@ Internet-Draft                    WARP                      October 2022
    and only subject to encoding and transmission delays.  Unfortunately,
    networks have variable throughput, primarily due to congestion.
 
-   Attempting to deliver media larger than this variable network bitrate
-   causes queuing.  This queuing can occur anywhere in the path between
-   the encoder and decoder.  For example: the application, the OS
-   socket, a wifi router, within an ISP, or generally anywhere in
-   transit.
+
+
+
 
 
 
@@ -225,6 +225,12 @@ Curley, et al.            Expires 27 April 2023                 [Page 4]
 
 Internet-Draft                    WARP                      October 2022
 
+
+   Attempting to deliver media larger than this variable network bitrate
+   causes queuing.  This queuing can occur anywhere in the path between
+   the encoder and decoder.  For example: the application, the OS
+   socket, a wifi router, within an ISP, or generally anywhere in
+   transit.
 
    If nothing is done, new frames will be appended to the end of a
    growing queue and will take longer to arrive than their predecessors,
@@ -268,12 +274,6 @@ Internet-Draft                    WARP                      October 2022
    HLS, (or the DASH variants) and/or a custom UDP protocol depending on
    the viewer.
 
-   These media protocols are radically different and not interoperable;
-   requiring transcoding or transmuxing.  This cost is further increased
-   by the need to maintain separate stacks with different expertise
-   requirements.
-
-
 
 
 
@@ -281,6 +281,11 @@ Curley, et al.            Expires 27 April 2023                 [Page 5]
 
 Internet-Draft                    WARP                      October 2022
 
+
+   These media protocols are radically different and not interoperable;
+   requiring transcoding or transmuxing.  This cost is further increased
+   by the need to maintain separate stacks with different expertise
+   requirements.
 
    A goal of this draft is to cover a large spectrum of use-cases.
    Specifically:
@@ -320,13 +325,8 @@ Internet-Draft                    WARP                      October 2022
    packets should be dropped first, and the decision is not
    deterministic or consistent for each hop.
 
-   A goal of this draft is to treat intermediaries as first class
-   citizens.  Any identification, reliability, ordering, prioritization,
-   caching, etc is written to the wire in header designed for
-   intermediaries.  This ensures that intermediaries can easily route/
-   fanout media to the final destination.  This also ensures that
-   congestion response is consistent at every hop based on the
-   preferences of the media producer.
+
+
 
 
 
@@ -337,6 +337,14 @@ Curley, et al.            Expires 27 April 2023                 [Page 6]
 
 Internet-Draft                    WARP                      October 2022
 
+
+   A goal of this draft is to treat intermediaries as first class
+   citizens.  Any identification, reliability, ordering, prioritization,
+   caching, etc is written to the wire in header designed for
+   intermediaries.  This ensures that intermediaries can easily route/
+   fanout media to the final destination.  This also ensures that
+   congestion response is consistent at every hop based on the
+   preferences of the media producer.
 
 3.  Segments
 
@@ -379,20 +387,19 @@ Internet-Draft                    WARP                      October 2022
    *  MAY overlap with other segments.  This means interleaved
       timestamps.
 
-   *  MAY reference frames in other segments, but only if listed as a
-      dependency.
-
-   Segments are encoded using fragmented MP4 [ISOBMFF].  This is
-   necessary to store timestamps and various metadata depending on the
-   codec.  A future draft of Warp may specify other container formats.
-
-
 
 
 Curley, et al.            Expires 27 April 2023                 [Page 7]
 
 Internet-Draft                    WARP                      October 2022
 
+
+   *  MAY reference frames in other segments, but only if listed as a
+      dependency.
+
+   Segments are encoded using fragmented MP4 [ISOBMFF].  This is
+   necessary to store timestamps and various metadata depending on the
+   codec.  A future draft of Warp may specify other container formats.
 
 3.2.  Delivery Order
 
@@ -422,13 +429,6 @@ Internet-Draft                    WARP                      October 2022
       streams.
 
    *  The sender might not support QUIC stream prioritization.
-
-   A proxy MAY change the delivery order, in which case it SHOULD update
-   the value on the wire for future hops.  This is NOT RECOMMENDED
-   unless the proxy knows additional information about the media.  For
-   example, a proxy could use the PTS as the delivery order to enable
-   head-of-line blocking for content that should not be skipped, like an
-   advertisement.
 
 3.3.  Decoder
 
@@ -526,9 +526,6 @@ Internet-Draft                    WARP                      October 2022
    order.  It is OPTIONAL to prioritize retransmissions within flow
    control limits.
 
-   The delivery order is written on the wire so it can be easily parsed
-   by proxies.  A proxy SHOULD obey the stream priority.
-
 4.4.  Cancellation
 
    A QUIC stream MAY be canceled at any point with an error code.  The
@@ -545,12 +542,15 @@ Internet-Draft                    WARP                      October 2022
    congestion.  This can be useful when the sender does not support
    stream prioritization.
 
-4.5.  Congestion Control
+4.5.  Relays
 
-   As covered in the motivation section (Section 2), the ability to
-   prioritize or cancel streams is a form of congestion response.  It's
-   equally important to detect congestion via congestion control, which
-   is handled in the QUIC layer [QUIC-RECOVERY].
+   Warp encodes the delivery information at the start each stream via a
+   "HEADERS" frame (Section 5.1).  This is meant to be easy to parse for
+   a relay.
+
+   A relay SHOULD prioritize streams (Section 4.3) based on the delivery
+   order.  A relay MAY change the delivery order, in which case it
+   SHOULD update the value on the wire for future hops.
 
 
 
@@ -561,6 +561,20 @@ Curley, et al.            Expires 27 April 2023                [Page 10]
 
 Internet-Draft                    WARP                      October 2022
 
+
+   A relay that reads from a stream and then writes to another stream
+   will suffer from head-of-line blocking.  Packet loss will cause
+   stream data to be buffered in the QUIC library, awaiting an in order
+   flush, which will increase latency over additional hops.  To mitigate
+   this, a relay MAY read and write QUIC streams out of order according
+   to flow control limits.  See section 2.2 in [QUIC].
+
+4.6.  Congestion Control
+
+   As covered in the motivation section (Section 2), the ability to
+   prioritize or cancel streams is a form of congestion response.  It's
+   equally important to detect congestion via congestion control, which
+   is handled in the QUIC layer [QUIC-RECOVERY].
 
    Bufferbloat is caused by routers queueing packets for an indefinite
    amount of time rather than drop them.  This latency significantly
@@ -579,7 +593,7 @@ Internet-Draft                    WARP                      October 2022
    periodically pad the connection with QUIC PING frames to fill the
    congestion window.
 
-4.6.  Termination
+4.7.  Termination
 
    The QUIC connection can be terminated at any point with an error
    code.
@@ -588,6 +602,21 @@ Internet-Draft                    WARP                      October 2022
    code of 0 to indicate the clean termination of the broadcast.  The
    application SHOULD use a non-zero error code to indicate a fatal
    error.
+
+
+
+
+
+
+
+
+
+
+
+Curley, et al.            Expires 27 April 2023                [Page 11]
+
+Internet-Draft                    WARP                      October 2022
+
 
                       +======+======================+
                       | Code | Reason               |
@@ -605,18 +634,6 @@ Internet-Draft                    WARP                      October 2022
    on the message type.
 
    TODO document the encoding
-
-
-
-
-
-
-
-
-Curley, et al.            Expires 27 April 2023                [Page 11]
-
-Internet-Draft                    WARP                      October 2022
-
 
                       +======+=====================+
                       |   ID | Messages            |
@@ -648,6 +665,15 @@ Internet-Draft                    WARP                      October 2022
       can still arrive out of the intended order due to packet loss.
       This field is optional and the default value is 0.
 
+
+
+
+
+Curley, et al.            Expires 27 April 2023                [Page 12]
+
+Internet-Draft                    WARP                      October 2022
+
+
    *  "depends".  An list of dependencies by stream identifier.  The
       decoder SHOULD process the specified dependencies first.  The
       decoder MAY support stream processing via the decode timestamp
@@ -666,14 +692,6 @@ Internet-Draft                    WARP                      October 2022
    by a Movie Box (moov).  This Movie Box (moov) consists of Movie
    Header Boxes (mvhd), Track Header Boxes (tkhd), Track Boxes (trak),
    followed by a final Movie Extends Box (mvex).  These boxes MUST NOT
-
-
-
-Curley, et al.            Expires 27 April 2023                [Page 12]
-
-Internet-Draft                    WARP                      October 2022
-
-
    contain any samples and MUST have a duration of zero.  Note that a
    Common Media Application Format Header [CMAF] meets all these
    requirements.
@@ -705,8 +723,15 @@ Internet-Draft                    WARP                      October 2022
 
    *  MAY initiate a graceful shutdown by sending a GOAWAY message.
 
+
+
+Curley, et al.            Expires 27 April 2023                [Page 13]
+
+Internet-Draft                    WARP                      October 2022
+
+
    *  MUST close the QUIC connection after a timeout with the GOAWAY
-      error code (Section 4.6).
+      error code (Section 4.7).
 
    *  MAY close the QUIC connection with a different error code if there
       is a fatal error before shutdown.
@@ -722,13 +747,6 @@ Internet-Draft                    WARP                      October 2022
 
    *  SHOULD establish the connection in parallel which MUST use
       different QUIC connection.
-
-
-
-Curley, et al.            Expires 27 April 2023                [Page 13]
-
-Internet-Draft                    WARP                      October 2022
-
 
    *  SHOULD remain connected for two servers for a short period,
       processing segments from both in parallel.
@@ -757,6 +775,17 @@ Internet-Draft                    WARP                      October 2022
 
    TODO
 
+
+
+
+
+
+
+Curley, et al.            Expires 27 April 2023                [Page 14]
+
+Internet-Draft                    WARP                      October 2022
+
+
 8.  Appendix A.  Video Encoding
 
    In order to transport media, we first need to know how media is
@@ -778,13 +807,6 @@ Internet-Draft                    WARP                      October 2022
    *  A track for each language.
 
    *  A track for each camera feed.
-
-
-
-Curley, et al.            Expires 27 April 2023                [Page 14]
-
-Internet-Draft                    WARP                      October 2022
-
 
    Tracks can be muxed together into a single container or stream.  The
    goal of Warp is to independently deliver tracks, and even parts of a
@@ -811,6 +833,15 @@ Internet-Draft                    WARP                      October 2022
    to support seeking or joining a live stream.  However they can also
    improve compression when used at hard scene cuts.
 
+
+
+
+
+Curley, et al.            Expires 27 April 2023                [Page 15]
+
+Internet-Draft                    WARP                      October 2022
+
+
    A P-frame is a frame that references on one or more earlier frames.
    These frames are delta-encoded, such that they only encode the
    changes (typically motion).  This result in a massive file size
@@ -831,16 +862,6 @@ Internet-Draft                    WARP                      October 2022
 
    The goal of video codecs is to maximize compression.  One of the
    improvements is to allow a frame to reference later frames.
-
-
-
-
-
-
-Curley, et al.            Expires 27 April 2023                [Page 15]
-
-Internet-Draft                    WARP                      October 2022
-
 
    A B-frame is a frame that can reference one or more frames in the
    future, and any number of frames in the past.  These frames are more
@@ -869,6 +890,14 @@ Internet-Draft                    WARP                      October 2022
 
    For the example above, this would look like:
 
+
+
+
+Curley, et al.            Expires 27 April 2023                [Page 16]
+
+Internet-Draft                    WARP                      October 2022
+
+
    PTS: I B P B P I B P B P B
    DTS: I   PB  PBI   PB  PB
 
@@ -888,15 +917,6 @@ Internet-Draft                    WARP                      October 2022
    |   v   v v   v   |   v   v v   v   |   v   v
    |  I <-- P <-- P  |  I <-- P <-- P  |  I <-- P ...
    +-----------------+-----------------+--------------
-
-
-
-
-
-Curley, et al.            Expires 27 April 2023                [Page 16]
-
-Internet-Draft                    WARP                      October 2022
-
 
    This is a useful abstraction because GoPs can always be decoded
    independently.
@@ -923,6 +943,17 @@ Internet-Draft                    WARP                      October 2022
     360p |  I <- P <- P <- P <- P  |  I <- P <- P ...
          +-------------------------+------------------
 
+
+
+
+
+
+
+Curley, et al.            Expires 27 April 2023                [Page 17]
+
+Internet-Draft                    WARP                      October 2022
+
+
 8.4.  Audio
 
    Audio is dramatically simpler than video as it is not typically delta
@@ -942,17 +973,6 @@ Internet-Draft                    WARP                      October 2022
    This section provides a summary of some options available.
 
 9.1.  Video
-
-
-
-
-
-
-
-Curley, et al.            Expires 27 April 2023                [Page 17]
-
-Internet-Draft                    WARP                      October 2022
-
 
 9.1.1.  Group of Pictures
 
@@ -981,6 +1001,15 @@ Internet-Draft                    WARP                      October 2022
    When SVC is used, it is RECOMMENDED that each segment consist of a
    single layer and GoP.  For example:
 
+
+
+
+
+Curley, et al.            Expires 27 April 2023                [Page 18]
+
+Internet-Draft                    WARP                      October 2022
+
+
                   segment 3             segment 6
          +-------------------------+---------------
       4k |  P <- P <- P <- P <- P  |  P <- P <- P
@@ -999,16 +1028,6 @@ Internet-Draft                    WARP                      October 2022
          +-------------------------+---------------
     360p |  I <- P <- P <- P <- P  |  I <- P <- P
          +-------------------------+---------------
-
-
-
-
-
-
-Curley, et al.            Expires 27 April 2023                [Page 18]
-
-Internet-Draft                    WARP                      October 2022
-
 
 9.1.3.  Frames
 
@@ -1034,6 +1053,19 @@ Internet-Draft                    WARP                      October 2022
 
    The same GoP structure can be represented using eight segments:
 
+
+
+
+
+
+
+
+
+Curley, et al.            Expires 27 April 2023                [Page 19]
+
+Internet-Draft                    WARP                      October 2022
+
+
          2     3           5     6           8
    +--------+--------+-----------------+------------
    |     B  |  B     |     B  |  B     |     B     |
@@ -1051,20 +1083,6 @@ Internet-Draft                    WARP                      October 2022
 
    The same GoP structure can also be represented using six segments,
    although we've removed the ability to drop individual B-frames:
-
-
-
-
-
-
-
-
-
-
-Curley, et al.            Expires 27 April 2023                [Page 19]
-
-Internet-Draft                    WARP                      October 2022
-
 
       segment 2     segment 4   segment 6
    +-------------+-------------+---------
@@ -1097,6 +1115,13 @@ Internet-Draft                    WARP                      October 2022
    Audio (Section 8.4) is much simpler than video so there's fewer
    options.
 
+
+
+Curley, et al.            Expires 27 April 2023                [Page 20]
+
+Internet-Draft                    WARP                      October 2022
+
+
    The simplest configuration is to use a single segment for each audio
    track.  This may seem inefficient given the ease of dropping audio
    samples.  However, the audio bitrate is low and gaps cause quite a
@@ -1110,17 +1135,6 @@ Internet-Draft                    WARP                      October 2022
    An improvement is to periodically split audio samples into separate
    segments.  This gives the consumer the ability to skip ahead during
    severe congestion or temporary connectivity loss.
-
-
-
-
-
-
-
-Curley, et al.            Expires 27 April 2023                [Page 20]
-
-Internet-Draft                    WARP                      October 2022
-
 
        segment 1       segment 2    segment 3
    +---------------+---------------+---------
@@ -1156,6 +1170,14 @@ Internet-Draft                    WARP                      October 2022
    *  if video should be skipped before audio: audio delivery order <
       video delivery order
 
+
+
+
+Curley, et al.            Expires 27 April 2023                [Page 21]
+
+Internet-Draft                    WARP                      October 2022
+
+
    The delivery order may be changed if the content changes.  For
    example, switching from a live stream (skippable) to an advertisement
    (unskippable).
@@ -1169,14 +1191,6 @@ Contributors
    *  Cullen Jennings
 
    *  James Hurley
-
-
-
-
-Curley, et al.            Expires 27 April 2023                [Page 21]
-
-Internet-Draft                    WARP                      October 2022
-
 
    *  Jordi Cenzano
 
@@ -1208,6 +1222,18 @@ Normative References
               2119 Key Words", BCP 14, RFC 8174, DOI 10.17487/RFC8174,
               May 2017, <https://www.rfc-editor.org/info/rfc8174>.
 
+
+
+
+
+
+
+
+Curley, et al.            Expires 27 April 2023                [Page 22]
+
+Internet-Draft                    WARP                      October 2022
+
+
    [WebTransport]
               Frindell, A., Kinnear, E., and V. Vasiliev, "WebTransport
               over HTTP/3", Work in Progress, Internet-Draft, draft-
@@ -1223,16 +1249,6 @@ Informative References
               control-02, 7 March 2022,
               <https://www.ietf.org/archive/id/draft-cardwell-iccrg-bbr-
               congestion-control-02.txt>.
-
-
-
-
-
-
-Curley, et al.            Expires 27 April 2023                [Page 22]
-
-Internet-Draft                    WARP                      October 2022
-
 
    [CMAF]     "Information technology -- Multimedia application format
               (MPEG-A) -- Part 19: Common media application format
@@ -1261,22 +1277,6 @@ Authors' Addresses
    Cisco
 
    Email: snandaku@cisco.com
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
