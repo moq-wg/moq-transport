@@ -193,27 +193,27 @@ A goal of this draft is to cover a large spectrum of use-cases. Specifically:
 * Consolidated contribution and distribution.
 The primary difference between the two is the ability to fanout.
 How does a CDN know how to forward media to N consumers and how does it reduce the encoded bitrate during congestion?
-A single protocol can cover both use-cases provided intermediaries are informed on how to forward and drop media.
+A single protocol can cover both use-cases provided relays are informed on how to forward and drop media.
 
 * A configurable latency versus quality trade-off.
 The producer (broadcaster) chooses how to encode and transmit media based on the desired user experience.
 Each consumer (viewer) chooses how long to wait for media based on their desired user experience and network.
 We want an experience that can vary from real-time and lossy for one viewer, to delayed and loss-less for another viewer, without separate encodings or protocols.
 
-## Intermediaries
+## Relays
 The prevailing belief is that UDP-based protocols are more expensive and don't "scale".
 While it's true that UDP is more difficult to optimize than TCP, QUIC itself is proof that it is is possible to reach performance parity.
 In fact even some TCP-based protocols (ex. RTMP) don't "scale" either and are exclusively used for contribution as a result.
 
-The truth is that the ability to scale a media protocol depends on intermediary support: proxies, caches, CDNs, SFUs, etc.
+The truth is that the ability to scale a media protocol depends on relay support: proxies, caches, CDNs, SFUs, etc.
 The success of HTTP-based media protocols is due to the ability to leverage traditional HTTP CDNs.
 
-Meanwhile, it's difficult to build a CDN for media protocols that were not designed with intermediaries in mind.
-For example, an intermediary has to parse the underlying codec to determine which RTP packets should be dropped first, and the decision is not deterministic or consistent for each hop.
+Meanwhile, it's difficult to build a CDN for media protocols that were not designed with relays in mind.
+For example, an relay has to parse the underlying codec to determine which RTP packets should be dropped first, and the decision is not deterministic or consistent for each hop.
 
-A goal of this draft is to treat intermediaries as first class citizens.
-Any identification, reliability, ordering, prioritization, caching, etc is written to the wire in header designed for intermediaries.
-This ensures that intermediaries can easily route/fanout media to the final destination.
+A goal of this draft is to treat relays as first class citizens.
+Any identification, reliability, ordering, prioritization, caching, etc is written to the wire in header designed for relays.
+This ensures that relays can easily route/fanout media to the final destination.
 This also ensures that congestion response is consistent at every hop based on the preferences of the media producer.
 
 
