@@ -221,9 +221,7 @@ This also ensures that congestion response is consistent at every hop based on t
 Warp works by splitting media into segments that can be transferred over the network somewhat independently.
 
 * The encoder determines how to fragment the encoded bitstream into segments ({{media}}).
-* Each segment is encoded using a fragmented MP4 container ({{container}}).
 * Segments are assigned an intended delivery order that should be obeyed during congestion ({{delivery-order}})
-* Each segment is transferred over a QUIC stream, which are delivered independently according to the segment properties ({{properties}}).
 * The decoder receives each segment and skips any segments that do not arrive in time ({{decoder}}).
 
 ## Media
@@ -245,24 +243,9 @@ A segment:
 * MAY overlap with other segments. This means interleaved timestamps.
 * MAY reference frames in other segments, but only if listed as a dependency.
 
-## Container
 Segments are encoded using fragmented MP4 {{ISOBMFF}}.
 This is necessary to store timestamps and various metadata depending on the codec.
 A future draft of Warp may specify other container formats.
-
-Each segment MUST start with an initialization fragment, or MUST depend on a segment with an initialization fragment.
-An initialization fragment consists of a File Type Box (ftyp) followed by a Movie Box (moov).
-This Movie Box (moov) consists of Movie Header Boxes (mvhd), Track Header Boxes (tkhd), Track Boxes (trak), followed by a final Movie Extends Box (mvex).
-These boxes MUST NOT contain any samples and MUST have a duration of zero.
-Note that a Common Media Application Format Header [CMAF] meets all these requirements.
-
-Each segment MAY have a Segment Type Box (styp) followed by any number of media fragments.
-Each media fragment consists of a Movie Fragment Box (moof) followed by a Media Data Box (mdat).
-The Media Fragment Box (moof) MUST contain a Movie Fragment Header Box (mfhd) and Track Box (trak) with a Track ID (`track_ID`) matching a Track Box in the initialization fragment.
-Note that a Common Media Application Format Segment [CMAF] meets all these requirements.
-
-Media fragments can be packaged at any frequency, causing a trade-off between overhead and latency.
-It is RECOMMENDED that a media fragment consists of a single frame to minimize latency.
 
 ## Delivery Order
 Media is produced with an intended order, both in terms of when media should be presented (PTS) and when media should be decoded (DTS).
@@ -293,34 +276,6 @@ The amount of time the decoder is willing to wait for a segment (buffer duration
 A proxy MAY change the delivery order, in which case it SHOULD update the value on the wire for future hops.
 This is NOT RECOMMENDED unless the proxy knows additional information about the media.
 For example, a proxy could use the PTS as the delivery order to enable head-of-line blocking for content that should not be skipped, like an advertisement.
-
-## Properties
-Each segment has properties to go along with its contents.
-These are written on the wire and SHOULD be parsed by any Warp intermediaries.
-
-* `id`.
-An optional, numeric identifier for the segment.
-This value is only used for association and identification; a receiver MUST NOT assume it is monotically increasing.
-If non-zero, this value MUST be unique.
-The default value is 0.
-
-* `order`.
-An optional, numeric value indicating the delivery order ({{delivery-order}}).
-A sender SHOULD transmit segments with smallest value first, as bandwidth permits.
-If two segments use the same value, they SHOULD be round-robined.
-Note that segments can still arrive out of the intended order due to packet loss.
-The default value is 0.
-
-* `depends`.
-An optional list of dependencies segments by ID.
-The decoder SHOULD process the specified dependencies first.
-The decoder MAY support stream processing via the decode timestamp (DTS), such that it does not need to fully receive the dependency segments first.
-The segment SHOULD have a larger `order` than its dependencies, if present.
-The default value is 0, which means no dependency.
-
-* `track`.
-A numeric identifier of the track.
-This MAY be different than the track ID within the container.
 
 ## Decoder
 The decoder will receive multiple segments in parallel.
@@ -359,13 +314,15 @@ A stream consists of sequential messages.
 See messages ({{messages}}) for the list of messages and their encoding.
 These are similar to QUIC and HTTP/3 frames, but called messages to avoid the media terminology.
 
+Each stream MUST start with a `HEADERS` message that indicates how the stream should be transmitted.
+
 Messages SHOULD be sent over the same stream if ordering is desired.
 For example, `PAUSE` and `PLAY` messages SHOULD be sent on the same stream to avoid a race.
 
 ## Prioritization
 Warp utilizes stream prioritization to deliver the most important content during congestion.
 
-The encoder SHOULD assign a numeric delivery order to each stream.
+The media producer SHOULD assign a numeric order to each stream, as contained in the HEADERS message ({{headers}}).
 This is a strict prioritization scheme, such that any available bandwidth is allocated to streams in ascending order.
 The delivery order is determined at encode, written to the wire so it can be read by intermediaries, and will not be updated.
 This effectively creates a priority queue that can be maintained over multiple hops.
@@ -424,16 +381,57 @@ TODO document the encoding
 |------|----------------------|
 | ID   | Messages             |
 |-----:|:---------------------|
-| 0x0  | SEGMENT {{segment}}  |
+| 0x0  | HEADERS {{headers}}  |
 |------|----------------------|
-| 0x1  | APP {{app}}          |
+| 0x1  | SEGMENT {{segment}}  |
+|------|----------------------|
+| 0x2  | APP {{app}}          |
 |------|----------------------|
 | 0x10 | GOAWAY {{goaway}}    |
 |------|----------------------|
 
 
+
+## HEADERS
+The `HEADERS` message contains information required to deliver, cache, and forward a stream.
+This message SHOULD be parsed and obeyed by any Warp proxies.
+
+* `id`.
+An unique identifier for the stream.
+This field is optional and MUST be unique if set.
+
+* `order`.
+An numeric value indicating the delivery order ({{delivery-order}}).
+A sender SHOULD transmit streams with smallest value first, as bandwidth permits.
+If two streams use the same value, they SHOULD be round-robined.
+Note that streams can still arrive out of the intended order due to packet loss.
+This field is optional and the default value is 0.
+
+* `depends`.
+An list of dependencies by stream identifier.
+The decoder SHOULD process the specified dependencies first.
+The decoder MAY support stream processing via the decode timestamp (DTS), such that it does not need to fully receive the dependency segments first.
+The segment SHOULD have a larger `order` than its dependencies, if present.
+This field is optional.
+
+TODO use QPACK?
+
 ## SEGMENT
-A `SEGMENT` message consists of the segment properties ({{properties}}) followed by the container ({{container}}).
+A `SEGMENT` message consists of a segment in a fragmented MP4 container.
+
+Each segment MUST start with an initialization fragment, or MUST depend on a segment with an initialization fragment.
+An initialization fragment consists of a File Type Box (ftyp) followed by a Movie Box (moov).
+This Movie Box (moov) consists of Movie Header Boxes (mvhd), Track Header Boxes (tkhd), Track Boxes (trak), followed by a final Movie Extends Box (mvex).
+These boxes MUST NOT contain any samples and MUST have a duration of zero.
+Note that a Common Media Application Format Header [CMAF] meets all these requirements.
+
+Each segment MAY have a Segment Type Box (styp) followed by any number of media fragments.
+Each media fragment consists of a Movie Fragment Box (moof) followed by a Media Data Box (mdat).
+The Media Fragment Box (moof) MUST contain a Movie Fragment Header Box (mfhd) and Track Box (trak) with a Track ID (`track_ID`) matching a Track Box in the initialization fragment.
+Note that a Common Media Application Format Segment [CMAF] meets all these requirements.
+
+Media fragments can be packaged at any frequency, causing a trade-off between overhead and latency.
+It is RECOMMENDED that a media fragment consists of a single frame to minimize latency.
 
 ## APP
 The `APP` message contains arbitrary contents.
@@ -453,7 +451,6 @@ The client:
 * MUST establish a new WebTransport session to the provided URL upon receipt of a `GOAWAY` message.
 * SHOULD establish the connection in parallel which MUST use different QUIC connection.
 * SHOULD remain connected for two servers for a short period, processing segments from both in parallel.
-
 
 # Security Considerations
 TODO
