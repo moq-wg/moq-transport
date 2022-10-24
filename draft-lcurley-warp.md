@@ -329,14 +329,15 @@ The delivery order is written on the wire so it can be easily parsed by proxies.
 A proxy SHOULD obey the stream priority.
 
 ## Cancellation
-QUIC streams can be canceled by either endpoint with an error code.
+A QUIC stream MAY be canceled at any point with an error code.
+The producer does this via a `RESET_STREAM` frame while the consumer requests cancelation with a `STOP_SENDING` frame.
 
 When using `order`, lower priority streams will be starved during congestion, perhaps indefinitely.
 These streams will consume resources and flow control until they are canceled.
 When nearing resource limits, an endpoint SHOULD cancel the lowest priority stream with error code 0.
 
-When using `expires`, a stream SHOULD be canceled after the duration has elapsed.
-This is not a full replacement for prioritization, but can provide some congestion response by clearing parts of the queue.
+The producer or consumer MAY cancel streams in response to congestion.
+This can be useful when the sender does not support stream prioritization.
 
 ## Congestion Control
 As covered in the motivation section ({{motivation}}), the ability to prioritize or cancel streams is a form of congestion response.

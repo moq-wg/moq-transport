@@ -531,7 +531,9 @@ Internet-Draft                    WARP                      October 2022
 
 4.4.  Cancellation
 
-   QUIC streams can be canceled by either endpoint with an error code.
+   A QUIC stream MAY be canceled at any point with an error code.  The
+   producer does this via a "RESET_STREAM" frame while the consumer
+   requests cancelation with a "STOP_SENDING" frame.
 
    When using "order", lower priority streams will be starved during
    congestion, perhaps indefinitely.  These streams will consume
@@ -539,9 +541,9 @@ Internet-Draft                    WARP                      October 2022
    resource limits, an endpoint SHOULD cancel the lowest priority stream
    with error code 0.
 
-   When using "expires", a stream SHOULD be canceled after the duration
-   has elapsed.  This is not a full replacement for prioritization, but
-   can provide some congestion response by clearing parts of the queue.
+   The producer or consumer MAY cancel streams in response to
+   congestion.  This can be useful when the sender does not support
+   stream prioritization.
 
 4.5.  Congestion Control
 
@@ -550,10 +552,8 @@ Internet-Draft                    WARP                      October 2022
    equally important to detect congestion via congestion control, which
    is handled in the QUIC layer [QUIC-RECOVERY].
 
-   Bufferbloat is caused by routers queueing packets for an indefinite
-   amount of time rather than drop them.  This latency significantly
-   reduces the ability for the application to prioritize or drop media
-   in response to congestion.  Senders SHOULD use a congestion control
+
+
 
 
 
@@ -562,6 +562,10 @@ Curley, et al.            Expires 27 April 2023                [Page 10]
 Internet-Draft                    WARP                      October 2022
 
 
+   Bufferbloat is caused by routers queueing packets for an indefinite
+   amount of time rather than drop them.  This latency significantly
+   reduces the ability for the application to prioritize or drop media
+   in response to congestion.  Senders SHOULD use a congestion control
    algorithm that reduces this bufferbloat (ex.  [BBR]).  It is NOT
    RECOMMENDED to use a loss-based algorithm (ex.  [NewReno]) unless the
    network fully supports ECN.
@@ -601,10 +605,6 @@ Internet-Draft                    WARP                      October 2022
    on the message type.
 
    TODO document the encoding
-
-
-
-
 
 
 
