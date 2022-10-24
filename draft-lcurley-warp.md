@@ -251,18 +251,12 @@ A future draft of Warp may specify other container formats.
 Media is produced with an intended order, both in terms of when media should be presented (PTS) and when media should be decoded (DTS).
 As stated in motivation ({{latency}}), the network is unable to maintain this ordering during congestion without increasing latency.
 
-Warp responds to congestion by assigning each segment a numeric delivery order.
+The encoder determines how to behave during congestion by assigning each segment a numeric delivery order.
 The delivery order SHOULD be followed when possible to ensure that the most important media is delivered when throughput is limited.
 Note that the contents within each segment are still delivered in order; this delivery order only applies to the ordering between segments.
 
-The encoder determines the value assigned to each segment based the media encoding and desired user experience.
-Multiple segments MAY use the same value, in which case they SHOULD be delivered via round-robin.
-See the appendix for examples ({{appendix.examples}}).
-
-A sender SHOULD attempt to deliver segments based on this delivery order.
-This effectively involves creating a priority queue in ascending order, allocating any avaiable bandwidth to the next pending segment.
-Since each segment is sent over a dedicated QUIC stream, the next QUIC packet SHOULD contain a STREAM frame for the next pending segment, repeated until the congestion window is hit.
-The sender MAY ignore the delivery order for retransmits and MUST ignore it when flow control limits are reached.
+A sender MUST send each segment over a dedicated QUIC stream.
+The QUIC library should support prioritization ({{prioritization}}) such that streams are transmitted in delivery order.
 
 A receiver MUST NOT assume that segments will be received in delivery order for a number of reasons:
 
@@ -270,21 +264,19 @@ A receiver MUST NOT assume that segments will be received in delivery order for 
 * Packet loss or flow control MAY delay the delivery of individual streams.
 * The sender might not support QUIC stream prioritization.
 
-Segments arrive in delivery order, but media usually needs to be processed in decode order.
-The decoder SHOULD use a buffer to reassmble segments into decode order and it SHOULD skip segments after a configurable duration.
-The amount of time the decoder is willing to wait for a segment (buffer duration) is what ultimately determines the latency.
-
 A proxy MAY change the delivery order, in which case it SHOULD update the value on the wire for future hops.
 This is NOT RECOMMENDED unless the proxy knows additional information about the media.
 For example, a proxy could use the PTS as the delivery order to enable head-of-line blocking for content that should not be skipped, like an advertisement.
 
 ## Decoder
-The decoder will receive multiple segments in parallel.
-The decoder MUST synchronize segments using presentation timestamps within the bitstream.
-The decoder SHOULD use a buffer to reorder frames/samples from separate segments into decode order.
+The decoder will receive multiple segments in parallel and out of order.
 
-Segments are NOT REQUIRED to be aligned.
-A decoder MUST be prepared to skip over any gaps between segments.
+Segments arrive in delivery order, but media usually needs to be processed in decode order.
+The decoder SHOULD use a buffer to reassmble segments into decode order and it SHOULD skip segments after a configurable duration.
+The amount of time the decoder is willing to wait for a segment (buffer duration) is what ultimately determines the latency.
+
+Segments MUST synchronize segments using presentation timestamps within the bitstream.
+Segments are NOT REQUIRED to be aligned and the decoder MUST be prepared to skip over any gaps.
 
 
 # QUIC
@@ -323,18 +315,18 @@ For example, `PAUSE` and `PLAY` messages SHOULD be sent on the same stream to av
 ## Prioritization
 Warp utilizes stream prioritization to deliver the most important content during congestion.
 
-The media producer SHOULD assign a numeric order to each stream, as contained in the HEADERS message ({{headers}}).
-This is a strict prioritization scheme, such that any available bandwidth is allocated to streams in ascending order.
-The delivery order is determined at encode, written to the wire so it can be read by intermediaries, and will not be updated.
-This effectively creates a priority queue that can be maintained over multiple hops.
+The encoder may assign a numeric delivery order to each stream ({{delivery-order}})
+This is a strict prioritization scheme, such that any available bandwidth is allocated to streams in ascending priority order.
+The sender SHOULD prioritize streams based on the delivery order.
+If two streams have the same delivery order, they SHOULD receive equal bandwidth (round-robin).
 
 QUIC supports stream prioritization but does not standardize any mechanisms; see Section 2.3 in {{QUIC}}.
-QUIC libraries will need to expose a API to the application to set the priority of each stream.
+In order to support prioritization, a QUIC library MUST expose a API to set the priority of each stream.
+This is easy to implement; the next QUIC packet should contain a STREAM frame for the next pending stream in priority order.
+It is OPTIONAL to prioritize retransmissions within flow control limits.
 
-Senders SHOULD support prioritized streams, although it is OPTIONAL on a path with no expected congestion.
-Senders SHOULD use strict ordering, although relative weights MAY be acceptable if there are no other options.
-Senders MUST obey the order as written to the wire.
-Senders MAY choose to delay retransmitting lower priority streams when possible within QUIC flow control limits.
+The delivery order is written on the wire so it can be easily parsed by proxies.
+A proxy SHOULD obey the stream priority.
 
 ## Cancellation
 QUIC streams can be canceled by either endpoint with an error code.
