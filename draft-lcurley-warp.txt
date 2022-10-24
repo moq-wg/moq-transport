@@ -524,7 +524,7 @@ Internet-Draft                    WARP                      October 2022
 
    A QUIC stream MAY be canceled at any point with an error code.  The
    producer does this via a "RESET_STREAM" frame while the consumer
-   requests cancelation with a "STOP_SENDING" frame.
+   requests cancellation with a "STOP_SENDING" frame.
 
    When using "order", lower priority streams will be starved during
    congestion, perhaps indefinitely.  These streams will consume
@@ -758,7 +758,7 @@ Internet-Draft                    WARP                      October 2022
 
    The media producer prioritizes and transmits streams out of order.
    Streams might be starved indefinitely during congestion.  The
-   producer and consumer MUST cancel a stream, preferrably the lowest
+   producer and consumer MUST cancel a stream, preferably the lowest
    priority, after reaching a resource limit.
 
 7.  IANA Considerations
@@ -773,7 +773,7 @@ Internet-Draft                    WARP                      October 2022
 8.1.  Tracks
 
    A broadcast consists of one or more tracks.  Each track has a type
-   (audio, video, caption, etc) and uses a cooresponding codec.  There
+   (audio, video, caption, etc) and uses a corresponding codec.  There
    may be multiple tracks, including of the same type for a number of
    reasons.
 
@@ -956,7 +956,7 @@ Internet-Draft                    WARP                      October 2022
 
 9.  Appendix B.  Segment Examples
 
-   Warp offers a large degree of flexability on how segments are
+   Warp offers a large degree of flexibility on how segments are
    fragmented and prioritized.  There is no best solution; it depends on
    the desired complexity and user experience.
 

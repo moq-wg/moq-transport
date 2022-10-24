@@ -325,7 +325,7 @@ It is OPTIONAL to prioritize retransmissions.
 
 ## Cancellation
 A QUIC stream MAY be canceled at any point with an error code.
-The producer does this via a `RESET_STREAM` frame while the consumer requests cancelation with a `STOP_SENDING` frame.
+The producer does this via a `RESET_STREAM` frame while the consumer requests cancellation with a `STOP_SENDING` frame.
 
 When using `order`, lower priority streams will be starved during congestion, perhaps indefinitely.
 These streams will consume resources and flow control until they are canceled.
@@ -467,7 +467,7 @@ Endpoints SHOULD set flow control limits based on the anticipated media bitrate.
 
 The media producer prioritizes and transmits streams out of order.
 Streams might be starved indefinitely during congestion.
-The producer and consumer MUST cancel a stream, preferrably the lowest priority, after reaching a resource limit.
+The producer and consumer MUST cancel a stream, preferably the lowest priority, after reaching a resource limit.
 
 # IANA Considerations
 TODO
@@ -478,7 +478,7 @@ This section is an overview of media encoding.
 
 ## Tracks
 A broadcast consists of one or more tracks.
-Each track has a type (audio, video, caption, etc) and uses a cooresponding codec.
+Each track has a type (audio, video, caption, etc) and uses a corresponding codec.
 There may be multiple tracks, including of the same type for a number of reasons.
 
 For example:
@@ -607,7 +607,7 @@ S S S S S S S S S S S S S ...
 
 
 # Appendix B. Segment Examples {#appendix.examples}
-Warp offers a large degree of flexability on how segments are fragmented and prioritized.
+Warp offers a large degree of flexibility on how segments are fragmented and prioritized.
 There is no best solution; it depends on the desired complexity and user experience.
 
 This section provides a summary of some options available.
