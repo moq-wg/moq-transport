@@ -1,5 +1,5 @@
 ---
-title: "Warp - Layered Live Media Transport"
+title: "Warp - Segmented Live Media Transport"
 abbrev: WARP
 docname: draft-lcurley-warp-latest
 date: {DATE}
@@ -53,10 +53,10 @@ informative:
 
 --- abstract
 
-This document defines the core behavior for Warp, a layered live media transport protocol.
-Media is split into layers based on the underlying media encoding.
-Each layer is transmitted independently over a QUIC stream.
-QUIC streams are prioritized, allowing less important layers to be starved or dropped during congestion.
+This document defines the core behavior for Warp, a segmented live media transport protocol.
+Media is split into segments based on the underlying media encoding.
+Each segment is transmitted independently over a QUIC stream.
+QUIC streams are prioritized, allowing less important segments to be starved or dropped during congestion.
 
 --- middle
 
@@ -65,7 +65,7 @@ QUIC streams are prioritized, allowing less important layers to be starved or dr
 Warp is a live media transport protocol that utilizes the QUIC network protocol {{QUIC}}.
 
 {{motivation}} covers the background and rationale behind Warp.
-{{layers}} covers how media is encoded and split into layers.
+{{segments}} covers how media is encoded and split into segments.
 {{quic}} covers how QUIC is used to transfer media.
 {{messages}} covers how messages are encoded on the wire.
 
@@ -176,7 +176,7 @@ This added complexity significantly raises the implementation difficulty and hur
 
 A goal of this draft is to get the best of both worlds: a simple protocol that can still rapidly detect and respond to congestion.
 This is possible emergence of QUIC, designed to fix the shortcomings of TCP.
-This draft relies on QUIC streams to deliver media layers in priority order during congestion.
+This draft relies on QUIC streams to deliver media segments in priority order during congestion.
 
 ## Universal
 The media protocol ecosystem is fragmented; each protocol has it's own niche.
@@ -217,109 +217,100 @@ This ensures that intermediaries can easily route/fanout media to the final dest
 This also ensures that congestion response is consistent at every hop based on the preferences of the media producer.
 
 
-# Layers
-Warp is based on the concept of layered coding.
-A layer is a combination of a media bitstream and a set of properties.
+# Segments
+Warp works by splitting media into segments that can be transferred over the network somewhat independently.
+A segment is a fragmented MP4 {ISOBMFF} containing a single track and any number of frames/samples.
+Each segment has a set of properties, written separately on the wire, that dictates how it should be delivered.
 
-* The encoder determines how to split the encoded bitstream into layers ({{media}}).
-* Layers are assigned an intended delivery order that should be obeyed during congestion ({{delivery-order}})
-* Each layer is transferred over a QUIC stream, which are delivered independently according to the layer properties ({{properties}}).
-* The decoder receives each layer and skips any layers that do not arrive in time ({{decoder}}).
+* The encoder determines how to split the encoded bitstream into segments ({{media}}).
+* Segments are assigned an intended delivery order that should be obeyed during congestion ({{delivery-order}})
+* Each segment is transferred over a QUIC stream, which are delivered independently according to the segment properties ({{properties}}).
+* The decoder receives each segment and skips any segments that do not arrive in time ({{decoder}}).
 
 ## Media
 An encoder produces one or more codec bitstreams for each track.
 The bitstream is then fed to the decoder on the other end, after being transported over the network, in the same order its produced.
 The problem, as explained in motivation ({{latency}}), is that networks cannot sustain a continuous rate and thus queuing occurs.
 
-Warp works by splitting the codec bitstream into layers that can be transmitted independently.
-The producer determines how to split the bistream into layers: based on the track, GoP, frame/sample, or even slice.
-Depending on how the layers are produced, the consumer has the ability to decode layers out of order and skip over gaps.
+Warp works by splitting the codec bitstream into segments that can be transmitted independently.
+The producer determines how to split the bistream into segments: based on the track, GoP, frame/sample, or even slice.
+Depending on how the segments are produced, the consumer has the ability to decode segments out of order and skip over gaps.
 See the appendix for examples based on media encoding ({{appendix.examples}}).
 
 TOOD specify CMAF
 
-A layer MUST contain a single track.
-A layer MAY contain any number of samples which MUST be in decode order (increasing DTS).
-There MAY be gaps between samples, as specified by the presentation timestamp and duration within the container.
+A segment MUST contain a single track.
+A segment MAY contain any number of samples which MUST be in decode order (increasing DTS).
+There MAY be gaps between samples within a segment.
 
-The goal of layers is to produce a hierarchy.
-Layers MAY depend on any number of other layers and MAY overlap with other layers.
+Segments MAY depend on any number of other segments and MAY overlap with other segments.
+This allows the creation of a hierarchy for more sophisticated encoding and delivery (ex. SVC).
 
 ## Delivery Order {#delivery-order}
 Media is produced with an intended order, both in terms of when media should be presented (PTS) and when media should be decoded (DTS).
 As stated in motivation ({{latency}}), the network is unable to maintain this ordering during congestion without increasing latency.
 
-Warp responds to congestion by assigning each layer a numeric delivery order.
+Warp responds to congestion by assigning each segment a numeric delivery order.
 The delivery order SHOULD be followed when possible to ensure that the most important media is delivered when throughput is limited.
-Note that the contents within each layer are still delivered in order; this delivery order only applies to the ordering between layers.
+Note that the contents within each segment are still delivered in order; this delivery order only applies to the ordering between segments.
 
-The encoder determines the value assigned to each layer based the media encoding and desired user experience.
-Multiple layers MAY use the same value, in which case they SHOULD be delivered via round-robin.
+The encoder determines the value assigned to each segment based the media encoding and desired user experience.
+Multiple segments MAY use the same value, in which case they SHOULD be delivered via round-robin.
 See the appendix for examples ({{appendix.examples}}).
 
-A sender SHOULD attempt to deliver layers based on this delivery order.
-This effectively involves creating a priority queue in ascending order, allocating any avaiable bandwidth to the next pending layer.
-Since each layer is sent over a dedicated QUIC stream, the next QUIC packet SHOULD contain a STREAM frame for the next pending layer, repeated until the congestion window is hit.
+A sender SHOULD attempt to deliver segments based on this delivery order.
+This effectively involves creating a priority queue in ascending order, allocating any avaiable bandwidth to the next pending segment.
+Since each segment is sent over a dedicated QUIC stream, the next QUIC packet SHOULD contain a STREAM frame for the next pending segment, repeated until the congestion window is hit.
 The sender MAY ignore the delivery order for retransmits and MUST ignore it when flow control limits are reached.
 
-A receiver MUST NOT assume that layers will be received in delivery order for a number of reasons:
-* Newly encoded layers MAY have a smaller delivery order than outstanding layers.
+A receiver MUST NOT assume that segments will be received in delivery order for a number of reasons:
+* Newly encoded segments MAY have a smaller delivery order than outstanding segments.
 * Packet loss or flow control MAY delay the delivery of individual streams.
 * The sender might not support QUIC stream prioritization.
 
-Layers arrive in delivery order, but media usually needs to be processed in decode order.
-The decoder SHOULD use a buffer to reassmble layers into decode order and it SHOULD skip layers after a configurable duration.
-The amount of time the decoder is willing to wait for a layer (buffer duration) is what ultimately determines the latency.
+Segments arrive in delivery order, but media usually needs to be processed in decode order.
+The decoder SHOULD use a buffer to reassmble segments into decode order and it SHOULD skip segments after a configurable duration.
+The amount of time the decoder is willing to wait for a segment (buffer duration) is what ultimately determines the latency.
 
 A proxy MAY change the delivery order, in which case it SHOULD update the value on the wire for future hops.
 This is NOT RECOMMENDED unless the proxy knows additional information about the media.
 For example, a proxy could use the PTS as the delivery order to enable head-of-line blocking for content that should not be skipped, like an advertisement.
 
 ## Properties
-Each layer has properties to go along with its contents.
+Each segment has properties to go along with its contents.
 These are written on the wire and SHOULD be parsed by any Warp intermediaries.
 
 * `id`.
-A numeric identifier for the layer.
+An optional, numeric identifier for the segment.
+This value is only used for association and identification; a receiver MUST NOT assume it is monotically increasing.
 If non-zero, this value MUST be unique.
 The default value is 0.
 
 * `order`.
-A numeric value indicating the delivery order ({{delivery-order}}).
-A sender SHOULD transmit layers with smallest value first, as bandwidth permits.
-If two layers use the same value, they SHOULD be round-robined.
-Note that layers can still arrive out of the intended order due to packet loss.
+An optional, numeric value indicating the delivery order ({{delivery-order}}).
+A sender SHOULD transmit segments with smallest value first, as bandwidth permits.
+If two segments use the same value, they SHOULD be round-robined.
+Note that segments can still arrive out of the intended order due to packet loss.
 The default value is 0.
 
 * `depends`.
-A list of numeric layer IDs.
-This informs the decoder that it MUST receive and process the dependency layers first.
-The decoder MAY support stream processing, such that it does not need to fully receive the dependency layers first.
-The layer SHOULD have a larger `order` than its dependencies, if present.
+An optional list of dependencies segments by ID.
+The decoder SHOULD process the specified dependencies first.
+The decoder MAY support stream processing via the decode timestamp (DTS), such that it does not need to fully receive the dependency segments first.
+The segment SHOULD have a larger `order` than its dependencies, if present.
 The default value is 0, which means no dependency.
 
-* `cache`.
-TODO Indicates the layer should be cached for some amount of time since last access. What about fragments with an unbounded age? Should we send an `expire` message instead?
-
-* `expires`.
-TODO Indicates the layer should be dropped after some amount of time (ex. `RESET_STREAM`). Do we need clock sync for this? How does this interact with `cache`?
-
-* `timestamp`.
-TODO The presentation timestamp of the earliest (not always first) frame in the layer. What does an intermediary need this for?
-
-* `track`
-TODO The track identifier to be used in conjunction with the TRACK message.
-
-See the appendix for some example layers and properties. {{appendix.examples}}
+* `track`.
+A numeric identifier of the track.
+This MAY be different than the track ID within the container.
 
 ## Decoder
-The consumer will receive multiple layers over the network in parallel.
-The decoder MUST synchronize layers using presentation timestamps within the bitstream.
-The decoder might not support decoding each layer independently, so the consumer MAY need to reorder prior to passing a bitstream to the decoder.
+The decoder will receive multiple segments in parallel.
+The decoder MUST synchronize segments using presentation timestamps within the bitstream.
+The decoder SHOULD use a buffer to reorder frames/samples from separate segments into decode order.
 
-Layers are NOT REQUIRED to be aligned within or between tracks.
-For example, a low quality rendition may have more frequent I-frames, and thus layers, than a higher quality rendition.
-A decoder MUST be prepared to skip over any gaps between layers.
+Segments are NOT REQUIRED to be aligned.
+A decoder MUST be prepared to skip over any gaps between segments.
 
 
 # QUIC
@@ -342,8 +333,6 @@ The application SHOULD use the CONNECT request for authentication and negotiatio
 For example, including a authentication token and some identifier in the path.
 The application MAY use QUIC streams for more complicated behavior.
 
-TODO define auth inside the protocol?
-
 ## Streams
 Warp endpoints communicate over unidirectional QUIC streams.
 The application MAY use bidirectional QUIC streams for other purposes.
@@ -352,9 +341,9 @@ A stream consists of sequential messages.
 See messages ({{messages}}) for the list of messages and their encoding.
 These are similar to QUIC and HTTP/3 frames, but called messages to avoid the media terminology.
 
-Each stream MUST start with a `HEADERS` message. TODO better name.
+Each stream MUST start with a `HEADERS` message.
 This message includes information on how intermediaries should proxy or cache the stream.
-If a stream is used to transmit a layer, the header MUST match the layer properties ({{properties}}).
+If a stream is used to transmit a segment, the header MUST match the segment properties ({{properties}}).
 
 Messages SHOULD be sent over the same stream if ordering is desired.
 For example, `PAUSE` and `PLAY` messages SHOULD be sent on the same stream to avoid a race.
@@ -413,20 +402,17 @@ The application SHOULD use a non-zero error code to indicate a fatal error.
 | 0x1  | GOAWAY {{goaway}}    |
 |------|----------------------|
 
-TODO define more error codes
-
 # Messages
 Messages consist of a type identifier followed by contents, depending on the message type.
 
-TODO document varint identifier
-TODO more message types
+TODO document the encoding
 
 |------|----------------------|
 | ID   | Messages             |
 |-----:|:---------------------|
 | 0x0  | HEADERS {{headers}}  |
 |------|----------------------|
-| 0x1  | LAYER {{layer}}      |
+| 0x1  | SEGMENT {{segment}}  |
 |------|----------------------|
 | 0x2  | APP {{app}}          |
 |------|----------------------|
@@ -436,25 +422,15 @@ TODO more message types
 
 
 ## HEADERS
-The `HEADERS` message contains the information listed in layer properties ({{properties}}).
+The `HEADERS` message contains the information listed in segment properties ({{properties}}).
 
-TODO better name
-TODO document wire format
-TODO use QPACK?
-
-## LAYER
-A `LAYER` message consists of the layer bitstream.
-A `LAYER` message must be proceeded with a `HEADERS` message specifying the layer properties ({{properties}}).
-
-TODO document CMAF
-TODO document wire format
-TODO support multiple container formats
+## SEGMENT
+A `SEGMENT` message consists of the segment bitstream.
+A `SEGMENT` message must be proceeded with a `HEADERS` message specifying the segment properties ({{properties}}).
 
 ## APP
 The `APP` message contains arbitrary contents.
 A stream containing `APP` message SHOULD be cached and forwarded by intermediaries like any other stream; based on the `HEADERS` message ({{headers}}).
-
-TODO document wire format
 
 ## GOAWAY
 The `GOAWAY` message is sent by the server to force the client to reconnect.
@@ -468,11 +444,11 @@ The server SHOULD wait until the `GOAWAY` message and any pending streams have b
 
 A client that receives a `GOAWAY` message should establish a new WebTransport session to the provided URL.
 This session SHOULD be made in parallel and MUST use a different QUIC connection (not pooled).
-The optimal client will be connected for two servers for a short period, potentially receiving layers from both in parallel.
+The optimal client will be connected for two servers for a short period, potentially receiving segments from both in parallel.
 
 
 # Security Considerations
-TODO expand
+TODO
 
 ## Resource Exhaustion
 Live media requires significant bandwidth and resources.
@@ -490,8 +466,8 @@ If stream data is buffered, for example to decode segments in order, then the me
 # IANA Considerations
 TODO
 
-# Appendix A. Layer Examples {#appendix.examples}
-Warp offers a large degree of flexability on how layers are fragmented and prioritized.
+# Appendix A. Segment Examples {#appendix.examples}
+Warp offers a large degree of flexability on how segments are fragmented and prioritized.
 There is no best solution; it depends on the desired complexity and user experience.
 
 This section provides a summary of media encoding and some options available.
@@ -499,8 +475,10 @@ This section provides a summary of media encoding and some options available.
 ## Recommended
 Before explaining all of the options, there is a recommended approach:
 
-* a video layer per GoP ({{appendix.gop}})
-* an audio layer at roughly the same timestamp ({{appendix.segments}})
+* a video segment per GoP ({{appendix.gop}})
+* an audio segment at roughly the same timestamp ({{appendix.gos}})
+
+This matches the segment encoding of HLS/DASH and the same files may be used, provided there's only one track.
 
 The recommended delivery order ({{delivery-order}} depends on the desired user experience during congestion:
 
@@ -508,7 +486,6 @@ The recommended delivery order ({{delivery-order}} depends on the desired user e
 * if media should not be skipped: delivery order = -PTS
 * if video should be skipped before audio: audio delivery order < video delivery order
 
-TODO full section on delivery order.
 
 ## Tracks
 A broadcast consists of one or more tracks.
@@ -524,10 +501,6 @@ For example:
 
 Traditionally, these tracks could be muxed together into a single container or stream.
 The goal of Warp is to independently deliver tracks, and even parts of a track, so they must be demuxed.
-
-The simplest configuration is a single, continuous layer per track.
-This allows tracks to be prioritized during congestion, although no media can be dropped.
-The next section covers how to further split layers based on the type of media.
 
 ## Video
 
@@ -563,7 +536,7 @@ Encoders tuned for the lowest latency still have a lot of options for references
 The encoder outputs the bitstream in decode order, which means that each frame is output after its dependencies.
 This is only relevant for B-frames as they must be buffered until the frame they reference has been flushed.
 
-A layer MUST be in decode order.
+A segment MUST be in decode order.
 
 For the example above, this would look like:
 
@@ -578,13 +551,13 @@ A group of pictures (GoP) is consists of an I-frame and the frames that directly
 Each GoP can be decoded independently and thus can be transmitted independently.
 It is also safe to drop the tail of the GoP (in decode order) without causing decode errors.
 
-A layer MAY consist of an entire GoP.
-A layer MAY consist of multiple sequential GoPs.
+A segment MAY consist of an entire GoP.
+A segment MAY consist of multiple sequential GoPs.
 
-Our example GoP structure would be split into three layers.
+Our example GoP structure would be split into three segments.
 
 ~~~
-     layer 1         layer 2      layer 3
+    segment 1       segment 2    segment 3
 +---------------+---------------+---------
 | I  P  B  P  B | I  P  B  P  B | I  P  B
 +---------------+---------------+---------
@@ -592,30 +565,30 @@ Our example GoP structure would be split into three layers.
 
 
 ### Scalable Video Coding
-The concept of layers is borrowed from scalable video coding (SVC).
-When SVC is enabled, the encoder produces multiple bitstreams in a hierarchy.
-Dropping the top layer degrades the user experience in a configured way, such as reducing the resolution, picture quality, and/or frame rate.
+Some codecs support scalable video coding (SVC), in which the encoder produces multiple bitstreams in a hierarchy.
+This is layered coding, such that dropping the top layer degrades the user experience in a configured way.
+Examples include reducing the resolution, picture quality, and/or frame rate.
 
-A layer MAY consist of an entire SVC layer.
+A segment MAY consist of an entire SVC layer.
 
 Here is an example SVC encoding with 3 resolutions:
 
 ~~~
-                layer 3              layer 6
+               segment 3             segment 6
       +-------------------------+---------------
    4k |  P <- P <- P <- P <- P  |  P <- P <- P
       |  |    |    |    |    |  |  |    |    |
       |  v    v    v    v    v  |  v    v    v
       +-------------------------+--------------
 
-                layer 2              layer 5
+               segment 2             segment 5
       +-------------------------+---------------
 1080p |  P <- P <- P <- P <- P  |  P <- P <- P
       |  |    |    |    |    |  |  |    |    |
       |  v    v    v    v    v  |  v    v    v
       +-------------------------+--------------
 
-                layer 1              layer 4
+               segment 1             segment 4
       +-------------------------+---------------
  360p |  I <- P <- P <- P <- P  |  I <- P <- P
       +-------------------------+---------------
@@ -623,12 +596,12 @@ Here is an example SVC encoding with 3 resolutions:
 
 
 ### Frames
-With full knowledge of the encoding, the producer can split a GoP into multiple layers based on the frame.
+With full knowledge of the encoding, the producer can split a GoP into multiple segments based on the frame.
 However, this is highly dependent on the encoding, and the additional complexity might not improve the user experience.
 
-A layer MAY consist of a single frame.
+A segment MAY consist of a single frame.
 
-Our example GoP structure could be split into thirteen layers:
+Our example GoP structure could be split into thirteen segments:
 
 ~~~
       2     4           7     9           12
@@ -640,12 +613,12 @@ Our example GoP structure could be split into thirteen layers:
    1     3     5     6     8     10    11    13
 ~~~
 
-To reduce the number of layers, frames can be appended to a layer they depend on.
-Layers are delivered in order so this is simpler and produces the same user experience.
+To reduce the number of segments, frames can be combined with their dependency.
+QUIC streams will deliver each segment in order so this produces the same result as reordering within the application.
 
-A layer MAY consist of multiple frames within the same GoP.
+A segment MAY consist of multiple frames within the same GoP.
 
-The same GoP structure can be represented using eight layers:
+The same GoP structure can be represented using eight segments:
 
 ~~~
       2     3           5     6           8
@@ -657,53 +630,43 @@ The same GoP structure can be represented using eight layers:
          1                 4              7
 ~~~
 
-We can further reduce the number of layers by combining some frames that don't depend on each other.
-The only restriction is that frames can only reference frames earlier in the layer, or within a dependency layer.
-For example, non-reference frames can have their own layer so they can be prioritized or dropped separate from reference frames.
+We can further reduce the number of segments by combining frames that don't depend on each other.
+The only restriction is that frames can only reference frames earlier in the segment, or within a dependency segment.
+For example, non-reference frames can have their own segment so they can be prioritized or dropped separate from reference frames.
 
-The same GoP structure can also be represented using six layers, although we've removed our ability to drop individual B-frames:
+The same GoP structure can also be represented using six segments, although we've removed the ability to drop individual B-frames:
 
 ~~~
-    layer 2       layer 4     layer 6
-+-------------+-------------+--------
+   segment 2     segment 4   segment 6
++-------------+-------------+---------
 |    B   B    |    B   B    |    B
-+-------------+-------------+--------
++-------------+-------------+---------
 |  I   P   P  |  I   P   P  |  I   P
-+-------------+-------------+--------
-    layer 1       layer 3     layer 5
++-------------+-------------+---------
+   segment 1     segment 3   segment 5
 ~~~
 
 Note that this is identical to our SVC example; we've effectively implemented our own temporal coding scheme.
 
-### Slices
-Frames actually consist of multiple slices that reference other slices.
-It's conceptually simpler to work with frames instead of slices, but splitting slices into layers may be useful.
-For example, intra-refresh splits an I-frame into multiple I-slices (TODO terminology) and spread over multiple frames to smooth out the bitrate.
-TODO are slices necessary?
-
-A layer MAY consist of a single slice.
-A layer MAY consist of multiple slices that are part of the same GoP.
-
 ### Init
-For the most byte-conscious applications, initialization data can be sent over its own layer.
-Multiple layers can depend on this initialization layer to avoid redundant transmissions.
-For example: this is the init segment in CMAF (`moov` with no samples), which contains the SPS/PPS NALUs for h.264.
+For the most byte-conscious applications, initialization data can be sent as its own segment.
+Multiple segments can depend on this initialization segment to avoid redundant transmissions.
 
-A layer MAY consist of no samples.
+A segment MAY consist of no samples.
 
-Our example layer per GoP would have an extra layer added:
+Our example segment per GoP would have an extra segment added:
 
 ~~~
-     layer 2         layer 3      layer 4
+    segment 2       segment 3    segment 4
 +---------------+---------------+---------
 | I  P  B  P  B | I  P  B  P  B | I  P  B
 +---------------+---------------+---------
 |                     init
 +-----------------------------------------
-                     layer 1
+                    segment 1
 ~~~
 
-An initialization layer MUST be cached in memory until it expires.
+An initialization segment MUST be cached in memory until it expires.
 TODO How do we do this?
 
 ## Audio
@@ -720,48 +683,46 @@ S S S S S S S S S S S S S
 ~~~
 
 ### Simple
-The simplest configuration is to use a single layer for each audio track.
+The simplest configuration is to use a single segment for each audio track.
 This may seem inefficient given the ease of dropping audio samples.
 However, the audio bitrate is low and gaps cause quite a poor user experience, when compared to video.
 
-A layer SHOULD consist of multiple audio frames.
+A segment SHOULD consist of multiple audio frames.
 
 ~~~
-          layer 1
+         segment 1
 +---------------------------
 | S S S S S S S S S S S S S
 +---------------------------
 ~~~
 
 ### Periodic Refresh
-An improvement is to periodically split audio samples into separate layers.
+An improvement is to periodically split audio samples into separate segments.
 This gives the consumer the ability to skip ahead during severe congestion or temporary connectivity loss.
 
 ~~~
-     layer 1         layer 2      layer 3
+    segment 1       segment 2    segment 3
 +---------------+---------------+---------
 | S  S  S  S  S | S  S  S  S  S | S  S  S
 +---------------+---------------+---------
 ~~~
 
-This frequency of audio layers is configurable, at the cost of additional overhead.
-It's NOT RECOMMENDED to create a layer for each audio frame because of this overhead.
+This frequency of audio segments is configurable, at the cost of additional overhead.
+It's NOT RECOMMENDED to create a segment for each audio frame because of this overhead.
 
-### Segments {#appendix.segments}
+### Group of Samples {#appendix.gos}
 Video can only recover from severe congestion with an I-frame, so there's not much point recovering audio at a separate interval.
-It is RECOMMENDED to create a new audio layer at each video I-frame.
+It is RECOMMENDED to create a new audio segment at each video I-frame.
 
 ~~~
-     layer 1         layer 3      layer 5
+    segment 1       segment 3    segment 5
 +---------------+---------------+---------
 | S  S  S  S  S | S  S  S  S  S | S  S  S
 +---------------+---------------+---------
 | I  P  B  P  B | I  P  B  P  B | I  P  B
 +---------------+---------------+---------
-     layer 2         layer 4      layer 6
+    segment 2       segment 4    segment 6
 ~~~
-
-This is effectively how HLS/DASH segments work, with the exception that the most recent layers are still pending.
 
 --- back
 
