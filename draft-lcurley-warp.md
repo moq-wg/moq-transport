@@ -431,7 +431,7 @@ The `APP` message contains arbitrary contents.
 ## GOAWAY
 The `GOAWAY` message is sent by the server to force the client to reconnect.
 This is useful for server maintenance or reassignments without severing the QUIC connection.
-A server MAY use QUIC load balancing instead of a GOAWAY message.
+The server MAY be a producer or consumer.
 
 The server:
 
