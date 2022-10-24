@@ -235,9 +235,8 @@ The problem, as explained in motivation ({{latency}}), is that networks cannot s
 Warp works by splitting the codec bitstream into segments that can be transmitted independently.
 The producer determines how to split the bistream into segments: based on the track, GoP, frame/sample, or even slice.
 Depending on how the segments are produced, the consumer has the ability to decode segments out of order and skip over gaps.
-See the appendix for examples based on media encoding ({{appendix.examples}}).
 
-TOOD specify CMAF
+See the appendix for an overview of media encoding ({{appendix.encoding}}) and for fragmentation examples ({{appendix.examples}})
 
 A segment MUST contain a single track.
 A segment MAY contain any number of samples which MUST be in decode order (increasing DTS).
@@ -246,7 +245,9 @@ There MAY be gaps between samples within a segment.
 Segments MAY depend on any number of other segments and MAY overlap with other segments.
 This allows the creation of a hierarchy for more sophisticated encoding and delivery (ex. SVC).
 
-## Delivery Order {#delivery-order}
+TOOD specify CMAF
+
+## Delivery Order
 Media is produced with an intended order, both in terms of when media should be presented (PTS) and when media should be decoded (DTS).
 As stated in motivation ({{latency}}), the network is unable to maintain this ordering during congestion without increasing latency.
 
@@ -466,26 +467,9 @@ If stream data is buffered, for example to decode segments in order, then the me
 # IANA Considerations
 TODO
 
-# Appendix A. Segment Examples {#appendix.examples}
-Warp offers a large degree of flexability on how segments are fragmented and prioritized.
-There is no best solution; it depends on the desired complexity and user experience.
-
-This section provides a summary of media encoding and some options available.
-
-## Recommended
-Before explaining all of the options, there is a recommended approach:
-
-* a video segment per GoP ({{appendix.gop}})
-* an audio segment at roughly the same timestamp ({{appendix.gos}})
-
-This matches the segment encoding of HLS/DASH and the same files may be used, provided there's only one track.
-
-The recommended delivery order ({{delivery-order}} depends on the desired user experience during congestion:
-
-* if media should be skipped: delivery order = PTS
-* if media should not be skipped: delivery order = -PTS
-* if video should be skipped before audio: audio delivery order < video delivery order
-
+# Appendix A. Video Encoding {#appendix.encoding}
+In order to transport media, we first need to know how media is encoded.
+This section is an overview of media encoding.
 
 ## Tracks
 A broadcast consists of one or more tracks.
@@ -499,15 +483,28 @@ For example:
 * A track for each language.
 * A track for each camera feed.
 
-Traditionally, these tracks could be muxed together into a single container or stream.
-The goal of Warp is to independently deliver tracks, and even parts of a track, so they must be demuxed.
+Tracks can be muxed together into a single container or stream.
+The goal of Warp is to independently deliver tracks, and even parts of a track, so this is not allowed.
+Each Warp segment MUST contain a single track.
 
-## Video
+## Init {#appendix.init}
+Media codecs have a wide array of configuration options.
+For example, the resolution, the color space, the features enabled, etc.
 
-### Encoding
-Video is a sequence of frames with a display timestamp.
-To improve compression, frames are encoded as deltas and can reference number of frames in the past (P-frames) and/or in the future (B-frames).
-A frame with no dependencies (I-frame) is effectively an image file and is a seek point.
+Before playback can begin, the decoder needs to know how the configuration.
+This is done via a short payload at the very start of the media file.
+The initialization payload can be cached and reused between segments with the same configuration.
+
+## Video {#appendix.video}
+Video is a sequence of pictures (frames) with a presentation timestamp (PTS).
+
+An I-frame is a frame with no dependencies and is effectively an image file.
+These frames are usually inserted at a frequent interval to support seeking or joining a live stream.
+However they can also improve compression when used at hard scene cuts.
+
+A P-frame is a frame that references on one or more earlier frames.
+These frames are delta-encoded, such that they only encode the changes (typically motion).
+This result in a massive file size reduction for most content outside of few notorious cases (ex. confetti).
 
 A common encoding structure is to only reference the previous frame, as it is simple and minimizes latency:
 
@@ -515,10 +512,19 @@ A common encoding structure is to only reference the previous frame, as it is si
  I <- P <- P <- P   I <- P <- P <- P   I <- P ...
 ~~~
 
-Another common encoding structure is to use B-frames in a fixed pattern, which is easier for hardware encoding.
-B-frames reference one or more future frames, which improves the compression ratio but increases latency.
+There is no such thing as an optimal encoding structure.
+Encoders tuned for the best quality will produce a tangled spaghetti of references.
+Encoders tuned for the lowest latency can avoid reference frames to allow more to be dropped.
 
-This example is referenced in later sections:
+### B-Frames {#appendix.b-frame}
+The goal of video codecs is to maximize compression.
+One of the improvements is to allow a frame to reference later frames.
+
+A B-frame is a frame that can reference one or more frames in the future, and any number of frames in the past.
+These frames are more difficult to encode/decode as they require buffering and reordering.
+
+A common encoding structure is to use B-frames in a fixed pattern.
+Such a fixed pattern is not optimal, but it's simpler for hardware encoding:
 
 ~~~
     B     B         B     B         B
@@ -527,34 +533,84 @@ This example is referenced in later sections:
  I <-- P <-- P   I <-- P <-- P   I <-- P ...
 ~~~
 
-There is no such thing as an optimal encoding structure.
-Encoders tuned for the best quality will produce a tangled spaghetti of references.
-Encoders tuned for the lowest latency still have a lot of options for references.
+The encoder outputs the bitstream in decode order, which means that each frame is output after its references.
+This makes it easier for the decoder as all references are earlier in the bitstream and can be decoded immediately.
 
-
-### Decode Order
-The encoder outputs the bitstream in decode order, which means that each frame is output after its dependencies.
-This is only relevant for B-frames as they must be buffered until the frame they reference has been flushed.
-
-A segment MUST be in decode order.
+However, this causes problems with B-frames because they depend on a future frame, and some reordering has to occur.
+In order to keep track of this, frames have a decode timestamp (DTS) in addition to a presentation timestamp (PTS).
+A B-frame will have higher DTS value that its dependencies, while PTS and DTS will be the same for other frame types.
 
 For the example above, this would look like:
 
 ~~~
-encode order: I B P B P I B P B P I B P ..
-decode order: I P B P B I P B P B I P B ..
+PTS: I B P B P I B P B P B
+DTS: I   PB  PBI   PB  PB
+~~~
+
+B-frames add latency because of this reordering so they are usually not used for conversational latency.
+
+### Group of Pictures {#appendix.gop}
+A group of pictures (GoP) is an I-frame followed by any number of frames until the next I-frame.
+All frames MUST reference, either directly or indirectly, only the most recent I-frame.
+
+~~~
+        GoP               GoP            GoP
++-----------------+-----------------+---------------
+|     B     B     |     B     B     |     B
+|    / \   / \    |    / \   / \    |    / \
+|   v   v v   v   |   v   v v   v   |   v   v
+|  I <-- P <-- P  |  I <-- P <-- P  |  I <-- P ...
++-----------------+-----------------+--------------
+~~~
+
+This is a useful abstraction because GoPs can always be decoded independently.
+
+### Scalable Video Coding {#appendix.svc}
+Some codecs support scalable video coding (SVC), in which the encoder produces multiple bitstreams in a hierarchy.
+This layered coding means that dropping the top layer degrades the user experience in a configured way.
+Examples include reducing the resolution, picture quality, and/or frame rate.
+
+Here is an example SVC encoding with 3 resolutions:
+
+~~~
+      +-------------------------+------------------
+   4k |  P <- P <- P <- P <- P  |  P <- P <- P ...
+      |  |    |    |    |    |  |  |    |    |
+      |  v    v    v    v    v  |  v    v    v
+      +-------------------------+------------------
+1080p |  P <- P <- P <- P <- P  |  P <- P <- P ...
+      |  |    |    |    |    |  |  |    |    |
+      |  v    v    v    v    v  |  v    v    v
+      +-------------------------+------------------
+ 360p |  I <- P <- P <- P <- P  |  I <- P <- P ...
+      +-------------------------+------------------
+~~~
+
+## Audio {#appendix.audio}
+Audio is dramatically simpler than video as it is not typically delta encoded.
+Audio samples are grouped together (group of samples) at a configured rate, also called a "frame".
+
+The encoder spits out a continuous stream of samples (S):
+
+~~~
+S S S S S S S S S S S S S ...
 ~~~
 
 
-### Group of Pictures {#appendix.gop}
-A group of pictures (GoP) is consists of an I-frame and the frames that directly or indirectly reference it.
-Each GoP can be decoded independently and thus can be transmitted independently.
-It is also safe to drop the tail of the GoP (in decode order) without causing decode errors.
+# Appendix B. Segment Examples {#appendix.examples}
+Warp offers a large degree of flexability on how segments are fragmented and prioritized.
+There is no best solution; it depends on the desired complexity and user experience.
 
-A segment MAY consist of an entire GoP.
-A segment MAY consist of multiple sequential GoPs.
+This section provides a summary of some options available.
 
-Our example GoP structure would be split into three segments.
+## Video
+
+### Group of Pictures
+A group of pictures (GoP) is consists of an I-frame and all frames that directly or indirectly reference it ({{appendix.gop}}).
+The tail of a GoP can be dropped without causing decode errors, even if the encoding is otherwise unknown, making this the safest option.
+
+It is RECOMMENDED that each segment consist of a single GoP.
+For example:
 
 ~~~
     segment 1       segment 2    segment 3
@@ -563,15 +619,14 @@ Our example GoP structure would be split into three segments.
 +---------------+---------------+---------
 ~~~
 
+Depending on the video encoding, this approach may introduce unnecessary ordering and dependencies.
+A better option may be available below.
 
 ### Scalable Video Coding
-Some codecs support scalable video coding (SVC), in which the encoder produces multiple bitstreams in a hierarchy.
-This is layered coding, such that dropping the top layer degrades the user experience in a configured way.
-Examples include reducing the resolution, picture quality, and/or frame rate.
+Some codecs support scalable video coding (SVC), in which the encoder produces multiple bitstreams in a hierarchy ({{appendix.svc}}).
 
-A segment MAY consist of an entire SVC layer.
-
-Here is an example SVC encoding with 3 resolutions:
+When SVC is used, it is RECOMMENDED that each segment consist of a single layer and GoP.
+For example:
 
 ~~~
                segment 3             segment 6
@@ -596,12 +651,10 @@ Here is an example SVC encoding with 3 resolutions:
 
 
 ### Frames
-With full knowledge of the encoding, the producer can split a GoP into multiple segments based on the frame.
+With full knowledge of the encoding, the encoder MAY can split a GoP into multiple segments based on the frame.
 However, this is highly dependent on the encoding, and the additional complexity might not improve the user experience.
 
-A segment MAY consist of a single frame.
-
-Our example GoP structure could be split into thirteen segments:
+For example, we could split our example B-frame structure ({{appendix.b-frame}}) into 13 segments:
 
 ~~~
       2     4           7     9           12
@@ -613,10 +666,8 @@ Our example GoP structure could be split into thirteen segments:
    1     3     5     6     8     10    11    13
 ~~~
 
-To reduce the number of segments, frames can be combined with their dependency.
+To reduce the number of segments, segments can be merged with their dependency.
 QUIC streams will deliver each segment in order so this produces the same result as reordering within the application.
-
-A segment MAY consist of multiple frames within the same GoP.
 
 The same GoP structure can be represented using eight segments:
 
@@ -646,48 +697,31 @@ The same GoP structure can also be represented using six segments, although we'v
    segment 1     segment 3   segment 5
 ~~~
 
-Note that this is identical to our SVC example; we've effectively implemented our own temporal coding scheme.
-
 ### Init
-For the most byte-conscious applications, initialization data can be sent as its own segment.
-Multiple segments can depend on this initialization segment to avoid redundant transmissions.
+Initialization data ({{appendix.init}}) is required to initialize the decoder.
+Each segment MAY start with initialization data although this adds overhead.
 
-A segment MAY consist of no samples.
-
-Our example segment per GoP would have an extra segment added:
+Instead, it is RECOMMENDED to create a init segment.
+Each media segment can then depend on the init segment to avoid the redundant overhead.
+For example:
 
 ~~~
-    segment 2       segment 3    segment 4
+    segment 2       segment 3    segment 5
 +---------------+---------------+---------
 | I  P  B  P  B | I  P  B  P  B | I  P  B
 +---------------+---------------+---------
-|                     init
-+-----------------------------------------
-                    segment 1
+|              init             |  init
++-------------------------------+---------
+             segment 1           segment 4
 ~~~
 
-An initialization segment MUST be cached in memory until it expires.
-TODO How do we do this?
 
 ## Audio
+Audio ({{appendix.audio}}) is much simpler than video so there's fewer options.
 
-### Encoding
-Audio is dramatically simpler than video as it is not typically not delta encoded.
-Audio samples are grouped together (group of samples) at a configured rate, also called a "frame".
-
-In the below diagrams, each audio frame is denoted with an S.
-The encoder spits out a continuous stream of samples:
-
-~~~
-S S S S S S S S S S S S S
-~~~
-
-### Simple
 The simplest configuration is to use a single segment for each audio track.
 This may seem inefficient given the ease of dropping audio samples.
 However, the audio bitrate is low and gaps cause quite a poor user experience, when compared to video.
-
-A segment SHOULD consist of multiple audio frames.
 
 ~~~
          segment 1
@@ -696,7 +730,6 @@ A segment SHOULD consist of multiple audio frames.
 +---------------------------
 ~~~
 
-### Periodic Refresh
 An improvement is to periodically split audio samples into separate segments.
 This gives the consumer the ability to skip ahead during severe congestion or temporary connectivity loss.
 
@@ -710,8 +743,7 @@ This gives the consumer the ability to skip ahead during severe congestion or te
 This frequency of audio segments is configurable, at the cost of additional overhead.
 It's NOT RECOMMENDED to create a segment for each audio frame because of this overhead.
 
-### Group of Samples {#appendix.gos}
-Video can only recover from severe congestion with an I-frame, so there's not much point recovering audio at a separate interval.
+Since video can only recover from severe congestion with an I-frame, so there's not much point recovering audio at a separate interval.
 It is RECOMMENDED to create a new audio segment at each video I-frame.
 
 ~~~
@@ -724,7 +756,15 @@ It is RECOMMENDED to create a new audio segment at each video I-frame.
     segment 2       segment 4    segment 6
 ~~~
 
---- back
+## Delivery Order {#appendix.delivery-order}
+The delivery order ({{delivery-order}} depends on the desired user experience during congestion:
+
+* if media should be skipped: delivery order = PTS
+* if media should not be skipped: delivery order = -PTS
+* if video should be skipped before audio: audio delivery order < video delivery order
+
+The delivery order may be changed if the content changes.
+For example, switching from a live stream (skippable) to an advertisement (unskippable).
 
 # Contributors
 {:numbered="false"}
