@@ -256,6 +256,10 @@ The encoder determines how to behave during congestion by assigning each segment
 The delivery order SHOULD be followed when possible to ensure that the most important media is delivered when throughput is limited.
 Note that the contents within each segment are still delivered in order; this delivery order only applies to the ordering between segments.
 
+A segment MUST NOT have a smaller delivery order than a segment it depends on.
+Delivering segments out of dependency order will increase latency and can cause artifacting when memory limits are tight.
+This is especially problematic and can cause a deadlock if the receiver does release flow control until dependencies are received.
+
 A sender MUST send each segment over a dedicated QUIC stream.
 The QUIC library should support prioritization ({{prioritization}}) such that streams are transmitted in delivery order.
 
@@ -264,6 +268,22 @@ A receiver MUST NOT assume that segments will be received in delivery order for 
 * Newly encoded segments MAY have a smaller delivery order than outstanding segments.
 * Packet loss or flow control MAY delay the delivery of individual streams.
 * The sender might not support QUIC stream prioritization.
+
+## Dependencies
+Media encoding uses references to improve the compression.
+This creates hard and soft dependencies that need to be respected by the transport.
+See the appendex for an overview of media encoding ({{appendix.encoding}}).
+
+A segment MAY depend on any number of other segments.
+The encoder MUST indicate these dependecies on the wire via the `HEADERS` message ({{headers}}).
+
+The sender SHOULD NOT use this list of dependencies to determine which segment to transmit next.
+The sender SHOULD use the delivery order instead, which MUST respect dependencies.
+
+The decoder SHOULD process segments according to their dependencies.
+This means buffering a segment until the relevent timestamps have been processed in all dependencies.
+A decoder MAY drop dependencies at the risk of producing decoding errors and artifacts.
+
 
 ## Decoder
 The decoder will receive multiple segments in parallel and out of order.
@@ -406,11 +426,8 @@ An integer indicating the delivery order ({{delivery-order}}).
 This field is optional and the default value is 0.
 
 * `depends`.
-An list of dependencies by stream identifier.
-The decoder SHOULD process the specified dependencies first.
-The decoder MAY support stream processing via the decode timestamp (DTS), such that it does not need to fully receive the dependency segments first.
-The segment SHOULD have a larger `order` than its dependencies, if present.
-This field is optional.
+An list of dependencies by stream identifier ({{dependencies}}).
+This field is optional and the default value is an empty array.
 
 
 ## SEGMENT
