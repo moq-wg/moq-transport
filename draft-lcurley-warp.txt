@@ -357,6 +357,9 @@ Internet-Draft                    WARP                      October 2022
    *  Segments are assigned an intended delivery order that should be
       obeyed during congestion (Section 3.2)
 
+   *  Segments can be dependent on other segments, in which case
+      reordering is required (Section 3.3).
+
    *  The decoder receives each segment and skips any segments that do
       not arrive in time (Section 3.4).
 
@@ -383,9 +386,6 @@ Internet-Draft                    WARP                      October 2022
 
    *  MAY have gaps between frames/samples.
 
-   *  MAY overlap with other segments.  This means timestamps may be
-      interleaved between segments.
-
 
 
 
@@ -393,6 +393,9 @@ Curley, et al.            Expires 27 April 2023                 [Page 7]
 
 Internet-Draft                    WARP                      October 2022
 
+
+   *  MAY overlap with other segments.  This means timestamps may be
+      interleaved between segments.
 
    *  MAY reference frames in other segments, but only if listed as a
       dependency.
@@ -436,9 +439,6 @@ Internet-Draft                    WARP                      October 2022
       streams.
 
    *  The sender might not support QUIC stream prioritization.
-
-
-
 
 
 

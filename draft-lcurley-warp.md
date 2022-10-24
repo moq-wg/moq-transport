@@ -224,6 +224,7 @@ Warp works by splitting media into segments that can be transferred over QUIC st
 
 * The encoder determines how to fragment the encoded bitstream into segments ({{media}}).
 * Segments are assigned an intended delivery order that should be obeyed during congestion ({{delivery-order}})
+* Segments can be dependent on other segments, in which case reordering is required ({{dependencies}}).
 * The decoder receives each segment and skips any segments that do not arrive in time ({{decoder}}).
 
 ## Media
