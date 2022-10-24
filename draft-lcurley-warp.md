@@ -407,7 +407,6 @@ The decoder MAY support stream processing via the decode timestamp (DTS), such t
 The segment SHOULD have a larger `order` than its dependencies, if present.
 This field is optional.
 
-TODO use QPACK?
 
 ## SEGMENT
 A `SEGMENT` message consists of a segment in a fragmented MP4 container.
@@ -448,7 +447,6 @@ The client:
 * SHOULD remain connected for two servers for a short period, processing segments from both in parallel.
 
 # Security Considerations
-TODO
 
 ## Resource Exhaustion
 Live media requires significant bandwidth and resources.
@@ -768,4 +766,9 @@ For example, switching from a live stream (skippable) to an advertisement (unski
 # Contributors
 {:numbered="false"}
 
-TODO
+- Alan Frindell
+- Charles Krasic
+- Cullen Jennings
+- James Hurley
+- Jordi Cenzano
+- Mike English

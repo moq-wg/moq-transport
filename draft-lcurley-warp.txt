@@ -98,12 +98,12 @@ Table of Contents
      8.1.  Tracks  . . . . . . . . . . . . . . . . . . . . . . . . .  14
      8.2.  Init  . . . . . . . . . . . . . . . . . . . . . . . . . .  15
      8.3.  Video . . . . . . . . . . . . . . . . . . . . . . . . . .  15
-       8.3.1.  B-Frames  . . . . . . . . . . . . . . . . . . . . . .  16
+       8.3.1.  B-Frames  . . . . . . . . . . . . . . . . . . . . . .  15
        8.3.2.  Group of Pictures . . . . . . . . . . . . . . . . . .  16
        8.3.3.  Scalable Video Coding . . . . . . . . . . . . . . . .  17
      8.4.  Audio . . . . . . . . . . . . . . . . . . . . . . . . . .  17
    9.  Appendix B.  Segment Examples . . . . . . . . . . . . . . . .  17
-     9.1.  Video . . . . . . . . . . . . . . . . . . . . . . . . . .  18
+     9.1.  Video . . . . . . . . . . . . . . . . . . . . . . . . . .  17
        9.1.1.  Group of Pictures . . . . . . . . . . . . . . . . . .  18
        9.1.2.  Scalable Video Coding . . . . . . . . . . . . . . . .  18
 
@@ -118,7 +118,7 @@ Internet-Draft                    WARP                      October 2022
        9.1.4.  Init  . . . . . . . . . . . . . . . . . . . . . . . .  20
      9.2.  Audio . . . . . . . . . . . . . . . . . . . . . . . . . .  20
      9.3.  Delivery Order  . . . . . . . . . . . . . . . . . . . . .  21
-   Contributors  . . . . . . . . . . . . . . . . . . . . . . . . . .  22
+   Contributors  . . . . . . . . . . . . . . . . . . . . . . . . . .  21
    References  . . . . . . . . . . . . . . . . . . . . . . . . . . .  22
      Normative References  . . . . . . . . . . . . . . . . . . . . .  22
      Informative References  . . . . . . . . . . . . . . . . . . . .  22
@@ -655,8 +655,6 @@ Internet-Draft                    WARP                      October 2022
       segments first.  The segment SHOULD have a larger "order" than its
       dependencies, if present.  This field is optional.
 
-   TODO use QPACK?
-
 5.2.  SEGMENT
 
    A "SEGMENT" message consists of a segment in a fragmented MP4
@@ -666,6 +664,8 @@ Internet-Draft                    WARP                      October 2022
    depend on a segment with an initialization fragment.  An
    initialization fragment consists of a File Type Box (ftyp) followed
    by a Movie Box (moov).  This Movie Box (moov) consists of Movie
+   Header Boxes (mvhd), Track Header Boxes (tkhd), Track Boxes (trak),
+   followed by a final Movie Extends Box (mvex).  These boxes MUST NOT
 
 
 
@@ -674,8 +674,6 @@ Curley, et al.            Expires 27 April 2023                [Page 12]
 Internet-Draft                    WARP                      October 2022
 
 
-   Header Boxes (mvhd), Track Header Boxes (tkhd), Track Boxes (trak),
-   followed by a final Movie Extends Box (mvex).  These boxes MUST NOT
    contain any samples and MUST have a duration of zero.  Note that a
    Common Media Application Format Header [CMAF] meets all these
    requirements.
@@ -722,6 +720,8 @@ Internet-Draft                    WARP                      October 2022
    *  MUST establish a new WebTransport session to the provided URL upon
       receipt of a "GOAWAY" message.
 
+   *  SHOULD establish the connection in parallel which MUST use
+      different QUIC connection.
 
 
 
@@ -730,15 +730,10 @@ Curley, et al.            Expires 27 April 2023                [Page 13]
 Internet-Draft                    WARP                      October 2022
 
 
-   *  SHOULD establish the connection in parallel which MUST use
-      different QUIC connection.
-
    *  SHOULD remain connected for two servers for a short period,
       processing segments from both in parallel.
 
 6.  Security Considerations
-
-   TODO
 
 6.1.  Resource Exhaustion
 
@@ -778,6 +773,11 @@ Internet-Draft                    WARP                      October 2022
 
    *  A track for each codec.
 
+   *  A track for each resolution and bitrate.
+
+   *  A track for each language.
+
+   *  A track for each camera feed.
 
 
 
@@ -785,12 +785,6 @@ Curley, et al.            Expires 27 April 2023                [Page 14]
 
 Internet-Draft                    WARP                      October 2022
 
-
-   *  A track for each resolution and bitrate.
-
-   *  A track for each language.
-
-   *  A track for each camera feed.
 
    Tracks can be muxed together into a single container or stream.  The
    goal of Warp is to independently deliver tracks, and even parts of a
@@ -833,6 +827,12 @@ Internet-Draft                    WARP                      October 2022
    references.  Encoders tuned for the lowest latency can avoid
    reference frames to allow more to be dropped.
 
+8.3.1.  B-Frames
+
+   The goal of video codecs is to maximize compression.  One of the
+   improvements is to allow a frame to reference later frames.
+
+
 
 
 
@@ -841,11 +841,6 @@ Curley, et al.            Expires 27 April 2023                [Page 15]
 
 Internet-Draft                    WARP                      October 2022
 
-
-8.3.1.  B-Frames
-
-   The goal of video codecs is to maximize compression.  One of the
-   improvements is to allow a frame to reference later frames.
 
    A B-frame is a frame that can reference one or more frames in the
    future, and any number of frames in the past.  These frames are more
@@ -886,8 +881,13 @@ Internet-Draft                    WARP                      October 2022
    frames until the next I-frame.  All frames MUST reference, either
    directly or indirectly, only the most recent I-frame.
 
-
-
+           GoP               GoP            GoP
+   +-----------------+-----------------+---------------
+   |     B     B     |     B     B     |     B
+   |    / \   / \    |    / \   / \    |    / \
+   |   v   v v   v   |   v   v v   v   |   v   v
+   |  I <-- P <-- P  |  I <-- P <-- P  |  I <-- P ...
+   +-----------------+-----------------+--------------
 
 
 
@@ -897,14 +897,6 @@ Curley, et al.            Expires 27 April 2023                [Page 16]
 
 Internet-Draft                    WARP                      October 2022
 
-
-           GoP               GoP            GoP
-   +-----------------+-----------------+---------------
-   |     B     B     |     B     B     |     B
-   |    / \   / \    |    / \   / \    |    / \
-   |   v   v v   v   |   v   v v   v   |   v   v
-   |  I <-- P <-- P  |  I <-- P <-- P  |  I <-- P ...
-   +-----------------+-----------------+--------------
 
    This is a useful abstraction because GoPs can always be decoded
    independently.
@@ -947,16 +939,20 @@ Internet-Draft                    WARP                      October 2022
    fragmented and prioritized.  There is no best solution; it depends on
    the desired complexity and user experience.
 
+   This section provides a summary of some options available.
+
+9.1.  Video
+
+
+
+
+
 
 
 Curley, et al.            Expires 27 April 2023                [Page 17]
 
 Internet-Draft                    WARP                      October 2022
 
-
-   This section provides a summary of some options available.
-
-9.1.  Video
 
 9.1.1.  Group of Pictures
 
@@ -985,31 +981,6 @@ Internet-Draft                    WARP                      October 2022
    When SVC is used, it is RECOMMENDED that each segment consist of a
    single layer and GoP.  For example:
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Curley, et al.            Expires 27 April 2023                [Page 18]
-
-Internet-Draft                    WARP                      October 2022
-
-
                   segment 3             segment 6
          +-------------------------+---------------
       4k |  P <- P <- P <- P <- P  |  P <- P <- P
@@ -1028,6 +999,16 @@ Internet-Draft                    WARP                      October 2022
          +-------------------------+---------------
     360p |  I <- P <- P <- P <- P  |  I <- P <- P
          +-------------------------+---------------
+
+
+
+
+
+
+Curley, et al.            Expires 27 April 2023                [Page 18]
+
+Internet-Draft                    WARP                      October 2022
+
 
 9.1.3.  Frames
 
@@ -1053,19 +1034,6 @@ Internet-Draft                    WARP                      October 2022
 
    The same GoP structure can be represented using eight segments:
 
-
-
-
-
-
-
-
-
-Curley, et al.            Expires 27 April 2023                [Page 19]
-
-Internet-Draft                    WARP                      October 2022
-
-
          2     3           5     6           8
    +--------+--------+-----------------+------------
    |     B  |  B     |     B  |  B     |     B     |
@@ -1083,6 +1051,20 @@ Internet-Draft                    WARP                      October 2022
 
    The same GoP structure can also be represented using six segments,
    although we've removed the ability to drop individual B-frames:
+
+
+
+
+
+
+
+
+
+
+Curley, et al.            Expires 27 April 2023                [Page 19]
+
+Internet-Draft                    WARP                      October 2022
+
 
       segment 2     segment 4   segment 6
    +-------------+-------------+---------
@@ -1115,13 +1097,6 @@ Internet-Draft                    WARP                      October 2022
    Audio (Section 8.4) is much simpler than video so there's fewer
    options.
 
-
-
-Curley, et al.            Expires 27 April 2023                [Page 20]
-
-Internet-Draft                    WARP                      October 2022
-
-
    The simplest configuration is to use a single segment for each audio
    track.  This may seem inefficient given the ease of dropping audio
    samples.  However, the audio bitrate is low and gaps cause quite a
@@ -1135,6 +1110,17 @@ Internet-Draft                    WARP                      October 2022
    An improvement is to periodically split audio samples into separate
    segments.  This gives the consumer the ability to skip ahead during
    severe congestion or temporary connectivity loss.
+
+
+
+
+
+
+
+Curley, et al.            Expires 27 April 2023                [Page 20]
+
+Internet-Draft                    WARP                      October 2022
+
 
        segment 1       segment 2    segment 3
    +---------------+---------------+---------
@@ -1170,6 +1156,20 @@ Internet-Draft                    WARP                      October 2022
    *  if video should be skipped before audio: audio delivery order <
       video delivery order
 
+   The delivery order may be changed if the content changes.  For
+   example, switching from a live stream (skippable) to an advertisement
+   (unskippable).
+
+Contributors
+
+   *  Alan Frindell
+
+   *  Charles Krasic
+
+   *  Cullen Jennings
+
+   *  James Hurley
+
 
 
 
@@ -1178,13 +1178,9 @@ Curley, et al.            Expires 27 April 2023                [Page 21]
 Internet-Draft                    WARP                      October 2022
 
 
-   The delivery order may be changed if the content changes.  For
-   example, switching from a live stream (skippable) to an advertisement
-   (unskippable).
+   *  Jordi Cenzano
 
-Contributors
-
-   TODO
+   *  Mike English
 
 References
 
@@ -1221,8 +1217,12 @@ Normative References
 
 Informative References
 
-
-
+   [BBR]      Cardwell, N., Cheng, Y., Yeganeh, S. H., Swett, I., and V.
+              Jacobson, "BBR Congestion Control", Work in Progress,
+              Internet-Draft, draft-cardwell-iccrg-bbr-congestion-
+              control-02, 7 March 2022,
+              <https://www.ietf.org/archive/id/draft-cardwell-iccrg-bbr-
+              congestion-control-02.txt>.
 
 
 
@@ -1233,13 +1233,6 @@ Curley, et al.            Expires 27 April 2023                [Page 22]
 
 Internet-Draft                    WARP                      October 2022
 
-
-   [BBR]      Cardwell, N., Cheng, Y., Yeganeh, S. H., Swett, I., and V.
-              Jacobson, "BBR Congestion Control", Work in Progress,
-              Internet-Draft, draft-cardwell-iccrg-bbr-congestion-
-              control-02, 7 March 2022,
-              <https://www.ietf.org/archive/id/draft-cardwell-iccrg-bbr-
-              congestion-control-02.txt>.
 
    [CMAF]     "Information technology -- Multimedia application format
               (MPEG-A) -- Part 19: Common media application format
@@ -1268,6 +1261,13 @@ Authors' Addresses
    Cisco
 
    Email: snandaku@cisco.com
+
+
+
+
+
+
+
 
 
 
