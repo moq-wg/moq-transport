@@ -219,33 +219,50 @@ This also ensures that congestion response is consistent at every hop based on t
 
 # Segments
 Warp works by splitting media into segments that can be transferred over the network somewhat independently.
-A segment is a fragmented MP4 {ISOBMFF} containing a single track and any number of frames/samples.
-Each segment has a set of properties, written separately on the wire, that dictates how it should be delivered.
 
-* The encoder determines how to split the encoded bitstream into segments ({{media}}).
+* The encoder determines how to fragment the encoded bitstream into segments ({{media}}).
+* Each segment is encoded using a fragmented MP4 container ({{container}}).
 * Segments are assigned an intended delivery order that should be obeyed during congestion ({{delivery-order}})
 * Each segment is transferred over a QUIC stream, which are delivered independently according to the segment properties ({{properties}}).
 * The decoder receives each segment and skips any segments that do not arrive in time ({{decoder}}).
 
 ## Media
 An encoder produces one or more codec bitstreams for each track.
-The bitstream is then fed to the decoder on the other end, after being transported over the network, in the same order its produced.
+The bitstreams are fed to the decoder on the other end, after being transported over the network, in the same order its produced.
 The problem, as explained in motivation ({{latency}}), is that networks cannot sustain a continuous rate and thus queuing occurs.
+See the appendix for an overview of media encoding ({{appendix.encoding}}).
 
-Warp works by splitting the codec bitstream into segments that can be transmitted independently.
-The producer determines how to split the bistream into segments: based on the track, GoP, frame/sample, or even slice.
-Depending on how the segments are produced, the consumer has the ability to decode segments out of order and skip over gaps.
+Warp works by fragmenting the bitstream into segments that can be transmitted independently.
+Depending on how the segments are fragmented, the decoder has the ability to safely drop media during congestion.
+See the appendix for fragmentation examples ({{appendix.examples}})
 
-See the appendix for an overview of media encoding ({{appendix.encoding}}) and for fragmentation examples ({{appendix.examples}})
+A segment:
 
-A segment MUST contain a single track.
-A segment MAY contain any number of samples which MUST be in decode order (increasing DTS).
-There MAY be gaps between samples within a segment.
+* MUST contain a single track.
+* MUST be in decode order. This means an increasing DTS.
+* MAY contain any number of frames/samples.
+* MAY have gaps between frames/samples.
+* MAY overlap with other segments. This means interleaved timestamps.
+* MAY reference frames in other segments, but only if listed as a dependency.
 
-Segments MAY depend on any number of other segments and MAY overlap with other segments.
-This allows the creation of a hierarchy for more sophisticated encoding and delivery (ex. SVC).
+## Container
+Segments are encoded using fragmented MP4 {{ISOBMFF}}.
+This is necessary to store timestamps and various metadata depending on the codec.
+A future draft of Warp may specify other container formats.
 
-TOOD specify CMAF
+Each segment MUST start with an initialization fragment, or MUST depend on a segment with an initialization fragment.
+An initialization fragment consists of a File Type Box (ftyp) followed by a Movie Box (moov).
+This Movie Box (moov) consists of Movie Header Boxes (mvhd), Track Header Boxes (tkhd), Track Boxes (trak), followed by a final Movie Extends Box (mvex).
+These boxes MUST NOT contain any samples and MUST have a duration of zero.
+Note that a Common Media Application Format Header [CMAF] meets all these requirements.
+
+Each segment MAY have a Segment Type Box (styp) followed by any number of media fragments.
+Each media fragment consists of a Movie Fragment Box (moof) followed by a Media Data Box (mdat).
+The Media Fragment Box (moof) MUST contain a Movie Fragment Header Box (mfhd) and Track Box (trak) with a Track ID (`track_ID`) matching a Track Box in the initialization fragment.
+Note that a Common Media Application Format Segment [CMAF] meets all these requirements.
+
+Media fragments can be packaged at any frequency, causing a trade-off between overhead and latency.
+It is RECOMMENDED that a media fragment consists of a single frame to minimize latency.
 
 ## Delivery Order
 Media is produced with an intended order, both in terms of when media should be presented (PTS) and when media should be decoded (DTS).
@@ -342,19 +359,15 @@ A stream consists of sequential messages.
 See messages ({{messages}}) for the list of messages and their encoding.
 These are similar to QUIC and HTTP/3 frames, but called messages to avoid the media terminology.
 
-Each stream MUST start with a `HEADERS` message.
-This message includes information on how intermediaries should proxy or cache the stream.
-If a stream is used to transmit a segment, the header MUST match the segment properties ({{properties}}).
-
 Messages SHOULD be sent over the same stream if ordering is desired.
 For example, `PAUSE` and `PLAY` messages SHOULD be sent on the same stream to avoid a race.
 
 ## Prioritization
 Warp utilizes stream prioritization to deliver the most important content during congestion.
 
-The media producer SHOULD assign a numeric order to each stream, as contained in the HEADERS message ({{headers}}).
+The encoder SHOULD assign a numeric delivery order to each stream.
 This is a strict prioritization scheme, such that any available bandwidth is allocated to streams in ascending order.
-The order is determined at encode, written to the wire so it can be read by intermediaries, and will not be updated.
+The delivery order is determined at encode, written to the wire so it can be read by intermediaries, and will not be updated.
 This effectively creates a priority queue that can be maintained over multiple hops.
 
 QUIC supports stream prioritization but does not standardize any mechanisms; see Section 2.3 in {{QUIC}}.
@@ -377,12 +390,12 @@ This is not a full replacement for prioritization, but can provide some congesti
 
 ## Congestion Control
 As covered in the motivation section ({{motivation}}), the ability to prioritize or cancel streams is a form of congestion response.
-It's equally important to detect congestion via congestion control, which is handled in the QUIC layer.
+It's equally important to detect congestion via congestion control, which is handled in the QUIC layer {{QUIC-RECOVERY}}.
 
 Bufferbloat is caused by routers queueing packets for an indefinite amount of time rather than drop them.
 This latency significantly reduces the ability for the application to prioritize or drop media in response to congestion.
-Senders SHOULD use a congestion control algorithm that reduces this bufferbloat.
-It is NOT RECOMMENDED to use a loss-based algorithm (ex. Reno, CUBIC) unless the network fully supports ECN.
+Senders SHOULD use a congestion control algorithm that reduces this bufferbloat (ex. {{BBR}}).
+It is NOT RECOMMENDED to use a loss-based algorithm (ex. {{NewReno}}) unless the network fully supports ECN.
 
 Live media is application-limited, which means that the encoder determines the max bitrate rather than the network.
 Most TCP congestion control algorithms will only increase the congestion window if it is full, limiting the upwards mobility when application-limited.
@@ -411,41 +424,35 @@ TODO document the encoding
 |------|----------------------|
 | ID   | Messages             |
 |-----:|:---------------------|
-| 0x0  | HEADERS {{headers}}  |
+| 0x0  | SEGMENT {{segment}}  |
 |------|----------------------|
-| 0x1  | SEGMENT {{segment}}  |
-|------|----------------------|
-| 0x2  | APP {{app}}          |
+| 0x1  | APP {{app}}          |
 |------|----------------------|
 | 0x10 | GOAWAY {{goaway}}    |
 |------|----------------------|
 
 
-
-## HEADERS
-The `HEADERS` message contains the information listed in segment properties ({{properties}}).
-
 ## SEGMENT
-A `SEGMENT` message consists of the segment bitstream.
-A `SEGMENT` message must be proceeded with a `HEADERS` message specifying the segment properties ({{properties}}).
+A `SEGMENT` message consists of the segment properties ({{properties}}) followed by the container ({{container}}).
 
 ## APP
 The `APP` message contains arbitrary contents.
-A stream containing `APP` message SHOULD be cached and forwarded by intermediaries like any other stream; based on the `HEADERS` message ({{headers}}).
 
 ## GOAWAY
 The `GOAWAY` message is sent by the server to force the client to reconnect.
 This is useful for server maintenance or reassignments without severing the QUIC connection.
 A server MAY use QUIC load balancing instead of a GOAWAY message.
 
-The server initiates the graceful shutdown by sending a GOAWAY message.
-The server MUST close the QUIC connection after a timeout with the GOAWAY error code ({{termination}}).
-The server MAY close the QUIC connection with a different error code if there is a fatal error before shutdown.
-The server SHOULD wait until the `GOAWAY` message and any pending streams have been fully acknowledged, plus an extra delay to ensure they have been processed.
+The server:
+* MAY initiate a graceful shutdown by sending a GOAWAY message.
+* MUST close the QUIC connection after a timeout with the GOAWAY error code ({{termination}}).
+* MAY close the QUIC connection with a different error code if there is a fatal error before shutdown.
+* SHOULD wait until the `GOAWAY` message and any pending streams have been fully acknowledged, plus an extra delay to ensure they have been processed.
 
-A client that receives a `GOAWAY` message should establish a new WebTransport session to the provided URL.
-This session SHOULD be made in parallel and MUST use a different QUIC connection (not pooled).
-The optimal client will be connected for two servers for a short period, potentially receiving segments from both in parallel.
+The client:
+* MUST establish a new WebTransport session to the provided URL upon receipt of a `GOAWAY` message.
+* SHOULD establish the connection in parallel which MUST use different QUIC connection.
+* SHOULD remain connected for two servers for a short period, processing segments from both in parallel.
 
 
 # Security Considerations
