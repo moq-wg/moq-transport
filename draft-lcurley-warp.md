@@ -259,7 +259,7 @@ Note that the contents within each segment are still delivered in order; this de
 
 A segment MUST NOT have a smaller delivery order than a segment it depends on.
 Delivering segments out of dependency order will increase latency and can cause artifacting when memory limits are tight.
-This is especially problematic and can cause a deadlock if the receiver does release flow control until dependencies are received.
+This is especially problematic and can cause a deadlock if the receiver does not release flow control until dependencies are received.
 
 A sender MUST send each segment over a dedicated QUIC stream.
 The QUIC library should support prioritization ({{prioritization}}) such that streams are transmitted in delivery order.
@@ -362,9 +362,9 @@ This MUST be at the start of each stream so it is easy for a relay to parse.
 A relay SHOULD prioritize streams ({{prioritization}}) based on the delivery order.
 A relay MAY change the delivery order, in which case it SHOULD update the value on the wire for future hops.
 
-A relay that reads from a stream and then writes to another stream will suffer from head-of-line blocking.
-Packet loss will cause stream data to be buffered in the QUIC library, awaiting an in order flush, which will increase latency over additional hops.
-To mitigate this, a relay SHOULD read and write QUIC streams out of order according to flow control limits.
+A relay that reads from a stream and writes to stream in order will introduce head-of-line blocking.
+Packet loss will cause stream data to be buffered in the QUIC library, awaiting in order delivery, which will increase latency over additional hops.
+To mitigate this, a relay SHOULD read and write QUIC stream data out of order subject to flow control limits.
 See section 2.2 in {{QUIC}}.
 
 ## Congestion Control
