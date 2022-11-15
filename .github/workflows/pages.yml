@@ -32,11 +32,19 @@ jobs:
       - name: Setup Pages
         uses: actions/configure-pages@v2
 
-      - name: Build Docker
-        run:  docker build -t local < .github/workflows/pages.Dockerfile
+      - name: Setup kramdown-rfc
+        uses: actions/setup-ruby
+        with:
+          ruby-version: '2.x'
+        run: gem install kramdown-rfc
 
-      - name: Generate docs
-        run: docker run -v $PWD:/_site -w/_site local
+      - name: Setup xml2rfc
+        uses: actions/setup-python
+        with:
+          python-version: '3.x'
+
+      - name: Generate
+        run: make
 
       - name: Upload artifact
         # Automatically uploads an artifact from the './_site' directory by default
