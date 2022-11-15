@@ -6,5 +6,16 @@ All changes need to be made to the markdown file (.md).
 You can find a reference for the synatax [here](https://kramdown.gettalong.org/syntax.html).
 Each sentence is separated with a newline to reduce the number of merge conflicts.
 
-If you want to rebuild the xml/html/text files, you'll need to first install [kramdown-rfc2629](https://github.com/cabo/kramdown-rfc).
-There's a simple Makefile included: `make html`
+If you want to locally build, you'll need to install [kramdown-rfc2629](https://github.com/cabo/kramdown-rfc) and [xml2rfc](https://github.com/ietf-tools/xml2rfc):
+
+```bash
+gem install kramdown-rfc
+pip install xm2rfc
+```
+
+
+Then you can use the `Makefile` to build:
+
+```bash
+make html
+```
