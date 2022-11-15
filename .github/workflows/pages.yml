@@ -49,10 +49,7 @@ jobs:
     needs: build
 
     # Only deploy on a push to main
-    on:
-      push:
-        branches:
-          - main
+    if: github.ref == 'refs/heads/main'
 
     # Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
     permissions:
