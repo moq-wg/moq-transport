@@ -32,16 +32,21 @@ jobs:
       - name: Setup Pages
         uses: actions/configure-pages@v2
 
-      - name: Setup kramdown-rfc
+      - name: Setup Ruby
         uses: actions/setup-ruby
         with:
           ruby-version: '2.x'
+
+      - name: Setup kramdown-rfc
         run: gem install kramdown-rfc
 
-      - name: Setup xml2rfc
+      - name: Setup Python
         uses: actions/setup-python
         with:
           python-version: '3.x'
+
+      - name: Setup xml2rfc
+        run: pip install xml2rfc
 
       - name: Generate
         run: make
