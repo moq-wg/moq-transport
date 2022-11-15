@@ -1,6 +1,8 @@
 # Warp Draft
 Warp is a live media protocol that utilizes QUIC streams.
 
+[Latest Draft](https://kixelated.github.io/warp-draft/draft-lcurley-warp.html)
+
 ## Contributing
 All changes need to be made to the markdown file (.md).
 You can find a reference for the synatax [here](https://kramdown.gettalong.org/syntax.html).
@@ -12,7 +14,6 @@ If you want to locally build, you'll need to install [kramdown-rfc2629](https://
 gem install kramdown-rfc
 pip install xm2rfc
 ```
-
 
 Then you can use the `Makefile` to build:
 
