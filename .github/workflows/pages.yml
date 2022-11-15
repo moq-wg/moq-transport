@@ -1,13 +1,4 @@
-name: Deploy to Pages
-
-on:
-  # Runs on pushes targeting the default branch
-  push:
-    branches: ["main"]
-
-  # Allows you to run this workflow manually from the Actions tab
-  workflow_dispatch:
-
+name: Pages
 
 # Allow one concurrent deployment
 concurrency:
@@ -16,8 +7,14 @@ concurrency:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    # Build on a pull request or a push to main
+    on:
+      push:
+        branches:
+          - main
+      pull_request: {}
 
+    runs-on: ubuntu-latest
     steps:
       - name: Setup Ruby
         uses: actions/setup-ruby@v1
@@ -50,6 +47,12 @@ jobs:
 
   deploy:
     needs: build
+
+    # Only deploy on a push to main
+    on:
+      push:
+        branches:
+          - main
 
     # Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
     permissions:
