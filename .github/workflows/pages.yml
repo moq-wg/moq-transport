@@ -5,15 +5,15 @@ concurrency:
   group: "pages"
   cancel-in-progress: true
 
+# Build on a pull request or a push to main
+on:
+  push:
+    branches:
+      - main
+  pull_request: {}
+
 jobs:
   build:
-    # Build on a pull request or a push to main
-    on:
-      push:
-        branches:
-          - main
-      pull_request: {}
-
     runs-on: ubuntu-latest
     steps:
       - name: Setup Ruby
