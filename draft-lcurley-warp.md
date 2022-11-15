@@ -38,6 +38,8 @@ normative:
   QUIC: RFC9000
   QUIC-RECOVERY: RFC9002
   WebTransport: I-D.ietf-webtrans-http3
+  MIME-CODECS: RFC6381
+  LANGUAGE-TAG: RFC5646
 
   ISOBMFF:
     title: "Information technology — Coding of audio-visual objects — Part 12: ISO Base Media File Format"
@@ -409,6 +411,10 @@ TODO document the encoding
 |------|-----------------------|
 | 0x2  | APP ({{app}})         |
 |------|-----------------------|
+| 0x3  | TRACK ({{track}})     |
+|------|-----------------------|
+| 0x4  | PLAY ({{play}})       |
+|------|-----------------------|
 | 0x10 | GOAWAY ({{goaway}})   |
 |------|-----------------------|
 
@@ -421,6 +427,10 @@ This message SHOULD be parsed and obeyed by any Warp relays.
 * `id`.
 An unique identifier for the stream.
 This field is optional and MUST be unique if set.
+
+* `track_id`.
+The track identifier. {{track}}
+A decoder MAY choose to block until the cooresponding `TRACK` message is received.
 
 * `order`.
 An integer indicating the delivery order ({{delivery-order}}).
@@ -454,6 +464,78 @@ This is useful for metadata that would otherwise have to be shoved into the medi
 
 Relays MUST NOT differentiate between streams containing `SEGMENT` and `APP` frames.
 The same forwarding and caching behavior applies to both as specified in the`HEADERS` frame.
+
+## TRACK
+The `TRACK` message contains information about a specific track.
+The sender advertises tracks that are available.
+The receiver chooses which tracks to `PLAY` ({{play}}) based on this information.
+
+Tracks MAY be updated by sending a new `TRACK` message with an existing `track_id`.
+The most recently received `TRACK` message takes presendence, so they SHOULD be sent over the same control to preserve ordering.
+
+General properties:
+
+* `track_id`.
+A unique identifier for the track.
+
+* `group_id`.
+An optional identifier indicating that this track is part of a group.
+Tracks within the same group contain the same content but alternate encodings.
+For example: different resolutions, bitrates, languages, or codecs.
+
+* `active`.
+An boolean indicating that the track can be served.
+An inactive track SHOULD NOT be requested via `PLAY`.
+A track MAY be inactive because is has not started or it has ended.
+
+* `mime_type`.
+A MIME type indicating the media type, container, and codec. {MIME-CODEC}
+For example: `video/mp4; codecs=avc1.64001e` or `audio/mp4; codecs=mp4a.40.2`
+
+* `language`.
+An optional language tag. {LANGUAGE-TAG}
+For example: `en-US`
+Defaults to: `und` (unknown).
+
+* `max_bitrate`.
+An optional peak bitrate in bits per second.
+
+Video properties:
+
+* `width`.
+An optional integer width in pixels.
+
+* `height`
+An optional integer height in pixels.
+
+* `frame_rate`
+An optional decimal frame rate.
+
+Note that none of information is required to decode the media bitstream; that information is contained in init segments.
+A decoder MAY choose to display media before receiving the cooresponding `TRACK` message.
+
+
+## PLAY
+The `PLAY` message is sent by the receiver to indicate which tracks it wishes to receive.
+This is a hint; the sender SHOULD try to respect the request but it MAY transmit any tracks that it wants.
+
+* `track_ids`.
+An optional list of track identifiers.
+
+* `group_ids`.
+An optional list of group identifiers.
+The sender SHOULD transmit at least one track within each group and it SHOULD be the track with the highest sustainable `max_bitrate`, which can change.
+
+* `timestamp`.
+An optional timestamp indicating when this should take effect.
+A negative value is relative to the maximum timestamp known by the sender.
+The sender SHOULD transmit any segments newer than the timestamp, and MAY transmit any segments older than the timestamp.
+If the provided timestamp is in the future, the sender SHOULD follow prior `PLAY` messages until then.
+
+The receiver MAY perform receiver-side ABR by requesting one `track_id` in each group according to network conditions.
+However, the sender has direct access to the congestion controller, so the receiver SHOULD request `group_ids` to perform sender-side ABR instead.
+
+The sender MAY transmit default track(s) prior to the first `PLAY` message to avoid a round-trip on connect.
 
 
 ## GOAWAY
