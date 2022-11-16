@@ -79,6 +79,10 @@ Bitstream:
 
 : A continunous series of bytes.
 
+Client:
+
+: The party initiating a Warp session.
+
 Codec:
 
 : A compression algorithm for audio or video.
@@ -139,13 +143,19 @@ Rendition:
 
 : One or more tracks with the same content but different encodings.
 
+Server:
+
+: The party accepting an incoming Warp session.
+
 Slice:
 
 : A section of a video frame. There may be multiple slices per frame.
 
 Track:
 
-: An encoded bitstream, representing a single video/audio component that makes up the larger broadcast.
+: An encoded bitstream, representing a single video/audio component that makes up the larger broadcast. See {{tracks}}.
+
+This document uses the conventions detailed in Section 1.3 of {{!RFC9000}} when describing the binary encoding.
 
 
 # Motivation
@@ -276,7 +286,7 @@ This creates hard and soft dependencies that need to be respected by the transpo
 See the appendex for an overview of media encoding ({{appendix.encoding}}).
 
 A segment MAY depend on any number of other segments.
-The encoder MUST indicate these dependecies on the wire via the `HEADERS` message ({{headers}}).
+The encoder MUST indicate these dependecies on the wire via the segment headers.
 
 The sender SHOULD NOT use this list of dependencies to determine which segment to transmit next.
 The sender SHOULD use the delivery order instead, which MUST respect dependencies.
@@ -317,14 +327,9 @@ The application SHOULD use the CONNECT request for authentication.
 For example, including a authentication token and some identifier in the path.
 
 ## Streams
-Warp endpoints communicate over unidirectional QUIC streams.
-The application MAY use bidirectional QUIC streams for other purposes.
+Warp endpoints communicate over QUIC streams. Every stream is a sequence of messages, framed as described in {{messages}}.
 
-A stream consists of sequential messages.
-See messages ({{messages}}) for the list of messages and their encoding.
-These are similar to QUIC and HTTP/3 frames, but called messages to avoid the media terminology.
-
-Each stream MUST start with a `HEADERS` message ({{headers}}) to indicates how the stream should be transmitted.
+The first stream opened is a bidirectional stream where the peers exchange INIT messages ({{init}}). The subsequent streams MAY be either unidirectional and bidirectional. For exchanging media, an application would typically send a unidirectional stream containing a single SEGMENT message ({{segment}}).
 
 Messages SHOULD be sent over the same stream if ordering is desired.
 For example, `PAUSE` and `PLAY` messages SHOULD be sent on the same stream to avoid a race.
@@ -356,8 +361,7 @@ The sender MAY cancel streams in response to congestion.
 This can be useful when the sender does not support stream prioritization.
 
 ## Relays
-Warp encodes the delivery information for each stream via a `HEADERS` frame ({{headers}}).
-This MUST be at the start of each stream so it is easy for a relay to parse.
+Warp encodes the delivery information for each stream via segment headers.
 
 A relay SHOULD prioritize streams ({{prioritization}}) based on the delivery order.
 A relay MAY change the delivery order, in which case it SHOULD update the value on the wire for future hops.
@@ -395,28 +399,105 @@ The application SHOULD use a non-zero error code to indicate a fatal error.
 | 0x1  | GOAWAY ({{goaway}})  |
 |------|----------------------|
 
-# Messages
-Messages consist of a type identifier followed by contents, depending on the message type.
+# Tracks
 
-TODO document the encoding
+A Warp broadcast consists of one or more tracks. Each track has a *track format* associated with it; a track format defines how to interpret the track bitstream and the metadata associated with the track. This document defines a single format for a track based on [ISOBMFF]; additional documents may define new formats.
+
+Every Warp track has a *track descriptor* associated with it. A track descriptor contains information required to decode the track. The descriptor has the following format:
+
+~~~
+Track Descriptor {
+  Track ID (i),
+  Track Format (i),
+  Format-Specific Metadata (...),
+}
+~~~
+{: #warp-track-descriptor title="Warp Track Descriptor"}
+
+Here, Track ID is the unique ID that identifies the track within the broadcast. Track Format idetifies the format used by the track; for the ISOBMFF-based format described in this document, 0x00 is specified. In the case 0x00 is used, Format-Specific Metadata contains a `ftyp` box followed by a `moov` box.
+
+A track descriptor may appear in both the INIT message and a subsequent TRACK message.
+
+
+# Messages
+Both unidirectional and bidirectional Warp streams are sequences of length-deliminated messages.
+
+~~~
+Warp Message {
+  Message Type (i),
+  Message Length (i),
+  Message Payload (..),
+}
+~~~
+{: #warp-message-format title="Warp Message"}
+
+The Message Length field contains the length of the Message Payload field in bytes.
 
 |------|-----------------------|
 | ID   | Messages              |
 |-----:|:----------------------|
-| 0x0  | HEADERS ({{headers}}) |
+| 0x0  | SEGMENT ({{segment}}) |
 |------|-----------------------|
-| 0x1  | SEGMENT ({{segment}}) |
-|------|-----------------------|
-| 0x2  | APP ({{app}})         |
+| 0x1  | INIT ({{init}})       |
 |------|-----------------------|
 | 0x10 | GOAWAY ({{goaway}})   |
 |------|-----------------------|
 
+## INIT
 
+The `INIT` message is the first message that is exchanged by the client and the server; it allows the peers to establish the mutually supported version and agree on the initial configuration. It is a sequence of key-value pairs called *INIT parameters*; the semantics and the format of individual parameter values MAY depend on what party is sending it.
 
-## HEADERS
-The `HEADERS` message contains information required to deliver, cache, and forward a stream.
-This message SHOULD be parsed and obeyed by any Warp relays.
+The wire format of the INIT message is as follows:
+
+~~~
+INIT Parameter {
+  Parameter Key (i),
+  Parameter Value Length (i),
+  Parameter Value (..),
+}
+
+Client INIT Message Payload {
+  Number of Supported Versions (i),
+  Supported Version (i) ...,
+  INIT Parameters (..) ...,
+}
+
+Server INIT Message Payload {
+  Selected Version (i),
+  INIT Parameters (..) ...,
+}
+~~~
+{: #warp-init-format title="Warp INIT Message"}
+
+The Parameter Value Length field indicates the length of the Parameter Value.
+
+The client offers the list of the protocol versions it supports; the server MUST reply with one of the versions offered by the client. If the server does not support any of the versions offered by the client, or the client receives a server version that it did not offer, the corresponding peer MUST close the connection.
+
+The INIT parameters are described in the {{init-parameters}} section.
+
+## SEGMENT
+A `SEGMENT` message contains a single segment associated with a specified track, as well as associated metadata required to deliver, cache, and forward it.
+
+The format of the SEGMENT message is as follows:
+
+~~~
+SEGMENT Header {
+  Header Name Length (8),
+  Header Name (..),
+  Header Value Length (i),
+  Header Value (..),
+}
+
+SEGMENT Message {
+  Track ID (i),
+  Number of Segment Headers (i),
+  Segment Headers (..) ...,
+  Segment Payload (..)
+}
+~~~
+{: #warp-segment-format title="Warp SEGMENT Message"}
+
+This document defines the following headers:
 
 * `id`.
 An unique identifier for the stream.
@@ -430,10 +511,7 @@ This field is optional and the default value is 0.
 An list of dependencies by stream identifier ({{dependencies}}).
 This field is optional and the default value is an empty array.
 
-
-## SEGMENT
-A `SEGMENT` message consists of a segment in a fragmented MP4 container.
-
+The segment payload depends on the declared format of the track associated with it. In case when the format is CMAF:
 Each segment MUST start with an initialization fragment, or MUST depend on a segment with an initialization fragment.
 An initialization fragment consists of a File Type Box (ftyp) followed by a Movie Box (moov).
 This Movie Box (moov) consists of Movie Header Boxes (mvhd), Track Header Boxes (tkhd), Track Boxes (trak), followed by a final Movie Extends Box (mvex).
@@ -447,14 +525,6 @@ Note that a Common Media Application Format Segment [CMAF] meets all these requi
 
 Media fragments can be packaged at any frequency, causing a trade-off between overhead and latency.
 It is RECOMMENDED that a media fragment consists of a single frame to minimize latency.
-
-## APP
-The `APP` message contains arbitrary contents.
-This is useful for metadata that would otherwise have to be shoved into the media bitstream.
-
-Relays MUST NOT differentiate between streams containing `SEGMENT` and `APP` frames.
-The same forwarding and caching behavior applies to both as specified in the`HEADERS` frame.
-
 
 ## GOAWAY
 The `GOAWAY` message is sent by the server to force the client to reconnect.
@@ -474,6 +544,48 @@ The client:
 * SHOULD establish the connection in parallel which MUST use different QUIC connection.
 * SHOULD remain connected for two servers for a short period, processing segments from both in parallel.
 
+# INIT Parameters
+
+The INIT message ({{init}}) allows the peers to exchange arbitrary parameters before any media is exchanged. It is the main extensibility mechanism of Warp. The peers MUST ignore unknown parameters. TODO: describe GREASE for those.
+
+Every parameter MUST appear at most once within the INIT message. The peers SHOULD verify that and close the connection if a parameter appears more than once.
+
+The ROLE parameter is mandatory for the client. The INITIAL_TRACKS parameter is mandatory for any parry that is expected to send media. All of the other parameters are optional.
+
+## ROLE parameter
+
+The ROLE parameter (key 0x00) allows the client to specify what roles it expects the parties to have in the Warp connection. It has three possible values:
+
+0x01:
+
+: Only the client is expected to send media on the connection. This is commonly referred to as *the ingestion case*.
+
+0x02:
+
+: Only the server is expected to send media on the connection. This is commonly referred to as *the delivery case*.
+
+0x03:
+
+: Both the client and the server are expected to send media.
+
+The client MUST send a ROLE parameter with one of the three values specified above. The server MUST close the connection if the ROLE parameter is missing, is not one of the three above-specified values, or it is different from what the server expects based on the application in question.
+
+## INITIAL_TRACKS parameter
+
+If the peer is expected to send media according to the negotiated ROLE, it MUST send an INITIAL_TRACKS parameter enumerating the tracks it intends to send. The value of the parameter SHALL be formatted as follows:
+
+~~~
+INITIAL_TRACKS Track Listing {
+  Track Descriptor Length (i),
+  Track Descriptor (..),
+}
+
+INITIAL_TRACKS Parameter Value {
+  Track Listings (..) ...,
+}
+~~~
+{: #warp-initial-tracks title="Warp INITIAL_TRACKS Parameter" }
+
 # Security Considerations
 
 ## Resource Exhaustion
@@ -488,7 +600,13 @@ Streams might be starved indefinitely during congestion.
 The producer and consumer MUST cancel a stream, preferably the lowest priority, after reaching a resource limit.
 
 # IANA Considerations
-TODO
+
+TODO: fill out currently missing registries:
+* Warp version numbers
+* INIT parameters
+* Track format numbers
+* Message types
+* Segment headers
 
 # Appendix A. Video Encoding {#appendix.encoding}
 In order to transport media, we first need to know how media is encoded.
