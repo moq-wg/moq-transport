@@ -329,7 +329,7 @@ These are similar to QUIC and HTTP/3 frames, but called messages to avoid the me
 Each stream MUST start with a `HEADERS` message ({{headers}}) to indicates how the stream should be transmitted.
 
 Messages SHOULD be sent over the same stream if ordering is desired.
-For example, `PAUSE` and `PLAY` messages SHOULD be sent on the same stream to avoid a race.
+For example, `PLAY` messages SHOULD be sent on the same stream to avoid a race.
 
 ## Prioritization
 Warp utilizes stream prioritization to deliver the most important content during congestion.
@@ -471,7 +471,7 @@ The sender advertises tracks that are available.
 The receiver chooses which tracks to `PLAY` ({{play}}) based on this information.
 
 Tracks MAY be updated by sending a new `TRACK` message with an existing `track_id`.
-The most recently received `TRACK` message takes presendence, so they SHOULD be sent over the same control to preserve ordering.
+Messages with the same `track_id` SHOULD be sent over the same stream to preserve ordering.
 
 General properties:
 
@@ -511,31 +511,27 @@ An optional integer height in pixels.
 * `frame_rate`
 An optional decimal frame rate.
 
+
 Note that none of information is required to decode the media bitstream; that information is contained in init segments.
 A decoder MAY choose to display media before receiving the cooresponding `TRACK` message.
 
 
 ## PLAY
-The `PLAY` message is sent by the receiver to indicate which tracks it wishes to receive.
+The `PLAY` message is sent by the receiver to indicate that it wishes to receive a track.
 This is a hint; the sender SHOULD try to respect the request but it MAY transmit any tracks that it wants.
 
+* `play_id`.
+A identifier for the PLAY message.
+The next PLAY message with the same `play_id` will override this message.
+Messages with the same `play_id` SHOULD be sent over the same stream to preserve ordering.
+
 * `track_ids`.
-An optional list of track identifiers.
+A list of track identifiers in order of precidence.
+If the list is not empty, the sender SHOULD transmit at least one of the tracks based on availability and network conditions.
 
-* `group_ids`.
-An optional list of group identifiers.
-The sender SHOULD transmit at least one track within each group and it SHOULD be the track with the highest sustainable `max_bitrate`, which can change.
-
-* `timestamp`.
-An optional timestamp indicating when this should take effect.
-A negative value is relative to the maximum timestamp known by the sender.
-The sender SHOULD transmit any segments newer than the timestamp, and MAY transmit any segments older than the timestamp.
-If the provided timestamp is in the future, the sender SHOULD follow prior `PLAY` messages until then.
-
-The receiver MAY perform receiver-side ABR by requesting one `track_id` in each group according to network conditions.
-However, the sender has direct access to the congestion controller, so the receiver SHOULD request `group_ids` to perform sender-side ABR instead.
-
-The sender MAY transmit default track(s) prior to the first `PLAY` message to avoid a round-trip on connect.
+Before the receipt of the first `PLAY` message, the sender MAY choose default tracks to transmit.
+This both avoids a round-trip of startup latency and starts warming the connection.
+Upon the receipt of the first `PLAY` message, the sender SHOULD stop transmitting these default tracks.
 
 
 ## GOAWAY
