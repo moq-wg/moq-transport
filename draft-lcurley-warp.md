@@ -248,7 +248,7 @@ A segment:
 * MAY overlap with other segments. This means timestamps may be interleaved between segments.
 * MAY reference frames in other segments, but only if listed as a dependency.
 
-Segments are packaged using a specified container ({{containers}}).
+Segments are encoded using a specified container ({{containers}}).
 
 ## Delivery Order
 Media is produced with an intended order, both in terms of when media should be presented (PTS) and when media should be decoded (DTS).
@@ -326,7 +326,7 @@ See messages ({{messages}}) for the list of messages and their encoding.
 These are similar to QUIC and HTTP/3 frames, but called messages to avoid the media terminology.
 
 Messages SHOULD be sent over the same stream if ordering is desired.
-For example, `PLAY` messages SHOULD be sent on the same stream to avoid a race.
+For example, TRACK\_PUBLISH and TRACK\_SUBSCRIBE messages SHOULD be sent on the same stream to avoid a race.
 
 ## Prioritization
 Warp utilizes stream prioritization to deliver the most important content during congestion.
@@ -398,17 +398,17 @@ Messages consist of a type identifier followed by contents, depending on the mes
 
 TODO document the encoding
 
-|------|---------------------------|
-| ID   | Messages                  |
-|-----:|:--------------------------|
-| 0x0  | SEGMENT ({{segment}})     |
-|------|---------------------------|
-| 0x1  | PUBLISH ({{publish}})     |
-|------|---------------------------|
-| 0x2  | SUBSCRIBE ({{subscribe}}) |
-|------|---------------------------|
-| 0x10 | GOAWAY ({{goaway}})       |
-|------|---------------------------|
+|------|----------------------------------------|
+| ID   | Messages                               |
+|-----:|:---------------------------------------|
+| 0x0  | SEGMENT ({{segment}})                  |
+|------|----------------------------------------|
+| 0x1  | TRACK\_PUBLISH ({{track-publish}})     |
+|------|----------------------------------------|
+| 0x2  | TRACK\_SUBSCRIBE ({{track-subscribe}}) |
+|------|----------------------------------------|
+| 0x10 | GOAWAY ({{goaway}})                    |
+|------|----------------------------------------|
 
 
 ## SEGMENT
@@ -417,8 +417,12 @@ A SEGMENT message contains a single segment associated with a specified track, a
 Each SEGMENT message starts with a header, containing information useful for a relay:
 
 * `track_id`.
-The track identifier. {{track}}
-A decoder MUST block until the cooresponding PUBLISH message has been received.
+The track identifier. {{track-publish}}
+When using a container with an initialization payload, the decoder MUST block until the cooresponding TRACK\_PUBLISH message ({{track-publish}}) has been received.
+
+* `segment_id`.
+A unique identifier for each segment within a track.
+It is RECOMMENDED that this is an monotonically increasing sequence number, but the receiver MUST NOT assume that it is.
 
 * `order`.
 An integer indicating the delivery order ({{delivery-order}}).
@@ -426,28 +430,29 @@ This field is optional; the default value is 0.
 
 * `depends`.
 An list of dependencies by `segment_id` ({{dependencies}}).
-This field is optional; the default value is an empty array.
-
-* `uri`.
-An identifier for the payload, useful for backwards compatibility with HTTP caches.
-This field is optional.
+This field is optional; an empty array indicates the segment is independent.
 
 The remainder of the SEGMENT message is a payload depending on the track `mime_type`.
 This contains a media bitstream intended for the decoder and SHOULD NOT be processed by a relay.
 See the containers section ({{containers}}).
 
 
-## PUBLISH
-The sender advertises an available track via the PUBLISH message.
-The receiver can ask for tracks via the SUBSCRIBE ({{subscribe}}) message based on this information.
+## TRACK\_PUBLISH {#track-publish}
+The sender advertises an available track via the TRACK\_PUBLISH message.
+The receiver can ask for tracks via the TRACK\_SUBSCRIBE ({{track-subscribe}}) message based on this information.
 
-Tracks MAY be updated by sending a new PUBLISH message with an existing `track_id`.
-PUBLISH messages with the same `track_id` SHOULD be sent over the same stream to preserve ordering.
+Tracks MAY be updated by sending a new TRACK\_PUBLISH message with an existing `track_id`.
+TRACK\_PUBLISH messages with the same `track_id` SHOULD be sent over the same stream to preserve ordering.
 
-Each PUBLISH message starts with a header, containing information useful for a relay:
+Each TRACK\_PUBLISH message starts with a header, containing information useful for a relay:
 
-* `track_id`.
+* `publish_id`.
 A unique identifier for the track.
+
+* `active`.
+An boolean indicating that the track can be served.
+An inactive track SHOULD NOT be requested via TRACK\_SUBSCRIBE.
+A track MAY be inactive because is has not started yet, or it has ended.
 
 * `group_id`.
 An identifier indicating that this track is part of a group.
@@ -455,44 +460,41 @@ Tracks within the same group contain the same content but alternate encodings.
 For example: different resolutions, bitrates, languages, or codecs.
 This field is optional.
 
-* `active`.
-An boolean indicating that the track can be served.
-An inactive track SHOULD NOT be requested via SUBSCRIBE.
-A track MAY be inactive because is has not started or it has ended.
-
 * `mime_type`.
 A MIME type indicating the media type, container, and codec. {{MIME-CODECS}}
 For example: `video/mp4; codecs=avc1.64001e` or `audio/mp4; codecs=mp4a.40.2`
 
 * `max_bitrate`.
 The peak bandwidth in bits per second.
-This field is optional, but RECOMMENDED when there are multiple tracks in the same group with different bitrates.
+This field is optional but RECOMMENDED. when there are multiple tracks in the same group with different bitrates.
 
-* `uri`.
-An identifier for the payload, useful for backwards compatibility with HTTP caches.
-This field is optional.
 
-The remainder of the PUBLISH message is a payload depending on the `mime_type`.
+The remainder of the TRACK\_PUBLISH message is a payload depending on the `mime_type`.
 This contains any information required to initialize the decoder and SHOULD NOT be processed by a relay.
 See the containers section ({{containers}}).
 
-## SUBSCRIBE
-The receiver sends a SUBSCRIBE message to indicate that it wishes to receive tracks.
-This MUST coorespond to an existing PUBLISH ({{publish}}) message from the sender.
+
+## TRACK\_SUBSCRIBE {#track-subscribe}
+The receiver sends a TRACK\_SUBSCRIBE message to indicate that it wishes to receive a track.
+This MUST coorespond to an existing TRACK\_PUBLISH ({{track-publish}}) message from the sender.
 
 * `subscribe_id`.
-A identifier for the SUBSCRIBE message.
-The next SUBSCRIBE message with the same `subscribe_id` will override this message.
+An identifier for the TRACK\_SUBSCRIBE message.
+The next TRACK\_SUBSCRIBE message with the same `subscribe_id` will override this message.
 These messages SHOULD be sent over the same stream to preserve ordering.
 
-* `track_ids`.
-A list of track identifiers in order of precidence.
-If the list is not empty, the sender SHOULD transmit at least one of the tracks based on availability and network conditions.
+* `all`.
+A list of track identifiers that SHOULD be transmitted.
 
+* `any`.
+A list of track identifiers, at least one of which SHOULD be transmitted.
+The receiver SHOULD arrange the list in preferred order; for example 1080p takes precidence over 480p.
+The sender SHOULD choose the track to transmit in this preferred order based on availablity and network conditions.
 
-Prior to the receipt of the first SUBSCRIBE message, the sender MAY choose default tracks to transmit.
+Prior to the receipt of the first TRACK\_SUBSCRIBE message, the sender MAY choose default tracks to transmit.
 This can avoid a round-trip of startup latency when the decision is obvious, or at the very least start warming the connection.
-Upon the receipt of the first SUBSCRIBE message, the sender SHOULD stop transmitting these default tracks.
+Upon the receipt of the first PLAY message, the sender SHOULD stop transmitting these default tracks.
+The receiver MAY issue a `STOP_SENDING` for any pending streams containing an undesired track.
 
 
 ## GOAWAY
@@ -524,13 +526,13 @@ Future drafts and extensions may specify additional containers.
 ## fMP4
 The `video/mp4` and `audio/mp4` mimetype indicate a fragmented MP4 container {{ISOBMFF}}.
 
-The PUBLISH message ({{track}}) payload MUST be an initization segment.
+The TRACK\_PUBLISH message ({{track-publish}}) payload MUST be an initization segment.
 The SEGMENT message ({{segment}}) payload MUST be a media segment, which consists of any number of media fragments.
 
 An initialization segment consists of a File Type Box (ftyp) followed by a Movie Box (moov).
 This Movie Box (moov) consists of Movie Header Boxes (mvhd), Track Header Boxes (tkhd), Track Boxes (trak), followed by a final Movie Extends Box (mvex).
 These boxes MUST NOT contain any samples and MUST have a duration of zero.
-Note that a Common Media Application Format Header {{CMAF}} meets all these requirements.
+A Common Media Application Format Header {{CMAF}} meets all these requirements.
 
 A media segment consists of have a Segment Type Box (styp) followed by any number of media fragments.
 Each media fragment consists of a Movie Fragment Box (moof) followed by a Media Data Box (mdat).
