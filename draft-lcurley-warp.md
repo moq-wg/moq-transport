@@ -69,7 +69,7 @@ Warp is a live media transport protocol that utilizes the QUIC network protocol 
 * {{segments}} covers how media is encoded and split into segments.
 * {{quic}} covers how QUIC is used to transfer media.
 * {{messages}} covers how messages are encoded on the wire.
-* {{containers}} covers how media is encoded.
+* {{containers}} covers how media is packaged.
 
 
 ## Terms and Definitions
@@ -248,6 +248,8 @@ A segment:
 * MAY overlap with other segments. This means timestamps may be interleaved between segments.
 * MAY reference frames in other segments, but only if listed as a dependency.
 
+Segments are packaged using a specified container ({{containers}}).
+
 ## Delivery Order
 Media is produced with an intended order, both in terms of when media should be presented (PTS) and when media should be decoded (DTS).
 As stated in motivation ({{latency}}), the network is unable to maintain this ordering during congestion without increasing latency.
@@ -275,7 +277,7 @@ This creates hard and soft dependencies that need to be respected by the transpo
 See the appendex for an overview of media encoding ({{appendix.encoding}}).
 
 A segment MAY depend on any number of other segments.
-The encoder MUST indicate these dependecies on the wire via the SEGMENT message ({{segment}}).
+The encoder MUST indicate these dependecies on the wire via the SEGMENT header ({{segment}}).
 
 The sender SHOULD NOT use this list of dependencies to determine which segment to transmit next.
 The sender SHOULD use the delivery order instead, which MUST respect dependencies.
@@ -353,7 +355,7 @@ The sender MAY cancel streams in response to congestion.
 This can be useful when the sender does not support stream prioritization.
 
 ## Relays
-Warp encodes the delivery information for each stream via a SEGMENT message ({{segment}}).
+Warp encodes the delivery information for a stream via SEGMENT headers ({{segment}}).
 
 A relay SHOULD prioritize streams ({{prioritization}}) based on the delivery order.
 A relay MAY change the delivery order, in which case it SHOULD update the value on the wire for future hops.
@@ -410,7 +412,7 @@ TODO document the encoding
 
 
 ## SEGMENT
-The sender transmits a media segment ({{segments}}) via the SEGMENT message.
+A SEGMENT message contains a single segment associated with a specified track, as well as associated metadata required to deliver, cache, and forward it.
 
 Each SEGMENT message starts with a header, containing information useful for a relay:
 
@@ -474,7 +476,6 @@ The remainder of the TRACK message is a payload depending on the `mime_type`.
 This contains any information required to initialize the decoder and SHOULD NOT be processed by a relay.
 See the containers section ({{containers}}).
 
-
 ## SUBSCRIBE
 The receiver sends a SUBSCRIBE message to indicate that it wishes to receive tracks.
 This MUST coorespond to an existing TRACK ({{track}}) message from the sender.
@@ -512,28 +513,33 @@ The client:
 * SHOULD establish the connection in parallel which MUST use different QUIC connection.
 * SHOULD remain connected for two servers for a short period, processing segments from both in parallel.
 
+
 # Containers
+A media container contains the underlying codec bitstream.
+It also contains metadata, such as timestamps, which is required to decode and display the media.
+
 This draft currently specifies only a single media container.
 Future drafts and extensions may specify additional containers.
 
 ## fMP4
 The `video/mp4` and `audio/mp4` mimetype indicate a fragmented MP4 container {{ISOBMFF}}.
 
-The TRACK message ({{track}}) payload MUST be an initization fragment.
-The SEGMENT message ({{segment}}) payload MUST be a media fragment.
+The TRACK message ({{track}}) payload MUST be an initization segment.
+The SEGMENT message ({{segment}}) payload MUST be a media segment, which consists of any number of media fragments.
 
-An initialization fragment consists of a File Type Box (ftyp) followed by a Movie Box (moov).
+An initialization segment consists of a File Type Box (ftyp) followed by a Movie Box (moov).
 This Movie Box (moov) consists of Movie Header Boxes (mvhd), Track Header Boxes (tkhd), Track Boxes (trak), followed by a final Movie Extends Box (mvex).
 These boxes MUST NOT contain any samples and MUST have a duration of zero.
 Note that a Common Media Application Format Header {{CMAF}} meets all these requirements.
 
-A media fragment MAY have a Segment Type Box (styp) followed by any number of media fragments.
+A media segment consists of have a Segment Type Box (styp) followed by any number of media fragments.
 Each media fragment consists of a Movie Fragment Box (moof) followed by a Media Data Box (mdat).
 The Media Fragment Box (moof) MUST contain a Movie Fragment Header Box (mfhd) and Track Box (trak) with a Track ID (`track_ID`) matching a Track Box in the initialization fragment.
-Note that a Common Media Application Format Segment {{CMAF}} meets all these requirements.
+A Common Media Application Format Segment {{CMAF}} meets all these requirements.
 
 Media fragments can be packaged at any frequency, causing a trade-off between overhead and latency.
 It is RECOMMENDED that a media fragment consists of a single frame to minimize latency.
+
 
 # Security Considerations
 
