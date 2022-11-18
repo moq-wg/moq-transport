@@ -7,6 +7,7 @@ category: info
 
 ipr: trust200902
 area: General
+submissionType: IETF
 workgroup: Independent Submission
 keyword: Internet-Draft
 
@@ -39,7 +40,6 @@ normative:
   QUIC-RECOVERY: RFC9002
   WebTransport: I-D.ietf-webtrans-http3
   MIME-CODECS: RFC6381
-  LANGUAGE-TAG: RFC5646
 
   ISOBMFF:
     title: "Information technology — Coding of audio-visual objects — Part 12: ISO Base Media File Format"
@@ -69,6 +69,7 @@ Warp is a live media transport protocol that utilizes the QUIC network protocol 
 * {{segments}} covers how media is encoded and split into segments.
 * {{quic}} covers how QUIC is used to transfer media.
 * {{messages}} covers how messages are encoded on the wire.
+* {{containers}} covers how media is encoded.
 
 
 ## Terms and Definitions
@@ -247,10 +248,6 @@ A segment:
 * MAY overlap with other segments. This means timestamps may be interleaved between segments.
 * MAY reference frames in other segments, but only if listed as a dependency.
 
-Segments are encoded using fragmented MP4 {{ISOBMFF}}.
-This is necessary to store timestamps and various metadata depending on the codec.
-A future draft of Warp may specify other container formats.
-
 ## Delivery Order
 Media is produced with an intended order, both in terms of when media should be presented (PTS) and when media should be decoded (DTS).
 As stated in motivation ({{latency}}), the network is unable to maintain this ordering during congestion without increasing latency.
@@ -278,7 +275,7 @@ This creates hard and soft dependencies that need to be respected by the transpo
 See the appendex for an overview of media encoding ({{appendix.encoding}}).
 
 A segment MAY depend on any number of other segments.
-The encoder MUST indicate these dependecies on the wire via the `HEADERS` message ({{headers}}).
+The encoder MUST indicate these dependecies on the wire via the SEGMENT message ({{segment}}).
 
 The sender SHOULD NOT use this list of dependencies to determine which segment to transmit next.
 The sender SHOULD use the delivery order instead, which MUST respect dependencies.
@@ -326,8 +323,6 @@ A stream consists of sequential messages.
 See messages ({{messages}}) for the list of messages and their encoding.
 These are similar to QUIC and HTTP/3 frames, but called messages to avoid the media terminology.
 
-Each stream MUST start with a `HEADERS` message ({{headers}}) to indicates how the stream should be transmitted.
-
 Messages SHOULD be sent over the same stream if ordering is desired.
 For example, `PLAY` messages SHOULD be sent on the same stream to avoid a race.
 
@@ -358,8 +353,7 @@ The sender MAY cancel streams in response to congestion.
 This can be useful when the sender does not support stream prioritization.
 
 ## Relays
-Warp encodes the delivery information for each stream via a `HEADERS` frame ({{headers}}).
-This MUST be at the start of each stream so it is easy for a relay to parse.
+Warp encodes the delivery information for each stream via a SEGMENT message ({{segment}}).
 
 A relay SHOULD prioritize streams ({{prioritization}}) based on the delivery order.
 A relay MAY change the delivery order, in which case it SHOULD update the value on the wire for future hops.
@@ -402,136 +396,102 @@ Messages consist of a type identifier followed by contents, depending on the mes
 
 TODO document the encoding
 
-|------|-----------------------|
-| ID   | Messages              |
-|-----:|:----------------------|
-| 0x0  | HEADERS ({{headers}}) |
-|------|-----------------------|
-| 0x1  | SEGMENT ({{segment}}) |
-|------|-----------------------|
-| 0x2  | APP ({{app}})         |
-|------|-----------------------|
-| 0x3  | TRACK ({{track}})     |
-|------|-----------------------|
-| 0x4  | PLAY ({{play}})       |
-|------|-----------------------|
-| 0x10 | GOAWAY ({{goaway}})   |
-|------|-----------------------|
-
-
-
-## HEADERS
-The `HEADERS` message contains information required to deliver, cache, and forward a stream.
-This message SHOULD be parsed and obeyed by any Warp relays.
-
-* `id`.
-An unique identifier for the stream.
-This field is optional and MUST be unique if set.
-
-* `track_id`.
-The track identifier. {{track}}
-A decoder MAY choose to block until the cooresponding `TRACK` message is received.
-
-* `order`.
-An integer indicating the delivery order ({{delivery-order}}).
-This field is optional and the default value is 0.
-
-* `depends`.
-An list of dependencies by stream identifier ({{dependencies}}).
-This field is optional and the default value is an empty array.
+|------|---------------------------|
+| ID   | Messages                  |
+|-----:|:--------------------------|
+| 0x0  | SEGMENT ({{segment}})     |
+|------|---------------------------|
+| 0x1  | TRACK ({{track}})         |
+|------|---------------------------|
+| 0x2  | SUBSCRIBE ({{subscribe}}) |
+|------|---------------------------|
+| 0x10 | GOAWAY ({{goaway}})       |
+|------|---------------------------|
 
 
 ## SEGMENT
-A `SEGMENT` message consists of a segment in a fragmented MP4 container.
+The sender transmits a media segment ({{segments}}) via the SEGMENT message.
 
-Each segment MUST start with an initialization fragment, or MUST depend on a segment with an initialization fragment.
-An initialization fragment consists of a File Type Box (ftyp) followed by a Movie Box (moov).
-This Movie Box (moov) consists of Movie Header Boxes (mvhd), Track Header Boxes (tkhd), Track Boxes (trak), followed by a final Movie Extends Box (mvex).
-These boxes MUST NOT contain any samples and MUST have a duration of zero.
-Note that a Common Media Application Format Header [CMAF] meets all these requirements.
+Each SEGMENT message starts with a header, containing information useful for a relay:
 
-Each segment MAY have a Segment Type Box (styp) followed by any number of media fragments.
-Each media fragment consists of a Movie Fragment Box (moof) followed by a Media Data Box (mdat).
-The Media Fragment Box (moof) MUST contain a Movie Fragment Header Box (mfhd) and Track Box (trak) with a Track ID (`track_ID`) matching a Track Box in the initialization fragment.
-Note that a Common Media Application Format Segment [CMAF] meets all these requirements.
+* `track_id`.
+The track identifier. {{track}}
+A decoder MUST block until the cooresponding `TRACK` message has been received.
 
-Media fragments can be packaged at any frequency, causing a trade-off between overhead and latency.
-It is RECOMMENDED that a media fragment consists of a single frame to minimize latency.
+* `order`.
+An integer indicating the delivery order ({{delivery-order}}).
+This field is optional; the default value is 0.
 
-## APP
-The `APP` message contains arbitrary contents.
-This is useful for metadata that would otherwise have to be shoved into the media bitstream.
+* `depends`.
+An list of dependencies by `segment_id` ({{dependencies}}).
+This field is optional; the default value is an empty array.
 
-Relays MUST NOT differentiate between streams containing `SEGMENT` and `APP` frames.
-The same forwarding and caching behavior applies to both as specified in the`HEADERS` frame.
+* `uri`.
+An identifier for the payload, useful for backwards compatibility with HTTP caches.
+This field is optional.
+
+The remainder of the SEGMENT message is a payload depending on the track `mime_type`.
+This contains a media bitstream intended for the decoder and SHOULD NOT be processed by a relay.
+See the containers section ({{containers}}).
+
 
 ## TRACK
-The `TRACK` message contains information about a specific track.
-The sender advertises tracks that are available.
-The receiver chooses which tracks to `PLAY` ({{play}}) based on this information.
+The sender advertises available tracks via the TRACK message.
+The receiver can ask for tracks via the SUBSCRIBE ({{subscribe}}) message based on this information.
 
-Tracks MAY be updated by sending a new `TRACK` message with an existing `track_id`.
-Messages with the same `track_id` SHOULD be sent over the same stream to preserve ordering.
+Tracks MAY be updated by sending a new TRACK message with an existing `track_id`.
+TRACK messages with the same `track_id` SHOULD be sent over the same stream to preserve ordering.
 
-General properties:
+Each TRACK message starts with a header, containing information useful for a relay:
 
 * `track_id`.
 A unique identifier for the track.
 
 * `group_id`.
-An optional identifier indicating that this track is part of a group.
+An identifier indicating that this track is part of a group.
 Tracks within the same group contain the same content but alternate encodings.
 For example: different resolutions, bitrates, languages, or codecs.
+This field is optional.
 
 * `active`.
 An boolean indicating that the track can be served.
-An inactive track SHOULD NOT be requested via `PLAY`.
+An inactive track SHOULD NOT be requested via SUBSCRIBE.
 A track MAY be inactive because is has not started or it has ended.
 
 * `mime_type`.
-A MIME type indicating the media type, container, and codec. {MIME-CODEC}
+A MIME type indicating the media type, container, and codec. {{MIME-CODECS}}
 For example: `video/mp4; codecs=avc1.64001e` or `audio/mp4; codecs=mp4a.40.2`
 
-* `language`.
-An optional language tag. {LANGUAGE-TAG}
-For example: `en-US`
-Defaults to: `und` (unknown).
-
 * `max_bitrate`.
-An optional peak bitrate in bits per second.
+The peak bandwidth in bits per second.
+This field is optional, but RECOMMENDED when there are multiple tracks in the same group with different bitrates.
 
-Video properties:
+* `uri`.
+An identifier for the payload, useful for backwards compatibility with HTTP caches.
+This field is optional.
 
-* `width`.
-An optional integer width in pixels.
-
-* `height`
-An optional integer height in pixels.
-
-* `frame_rate`
-An optional decimal frame rate.
+The remainder of the TRACK message is a payload depending on the `mime_type`.
+This contains any information required to initialize the decoder and SHOULD NOT be processed by a relay.
+See the containers section ({{containers}}).
 
 
-Note that none of information is required to decode the media bitstream; that information is contained in init segments.
-A decoder MAY choose to display media before receiving the cooresponding `TRACK` message.
+## SUBSCRIBE
+The receiver sends a SUBSCRIBE message to indicate that it wishes to receive tracks.
+This MUST coorespond to an existing TRACK ({{track}}) message from the sender.
 
-
-## PLAY
-The `PLAY` message is sent by the receiver to indicate that it wishes to receive a track.
-This is a hint; the sender SHOULD try to respect the request but it MAY transmit any tracks that it wants.
-
-* `play_id`.
-A identifier for the PLAY message.
-The next PLAY message with the same `play_id` will override this message.
-Messages with the same `play_id` SHOULD be sent over the same stream to preserve ordering.
+* `subscribe_id`.
+A identifier for the SUBSCRIBE message.
+The next SUBSCRIBE message with the same `subscribe_id` will override this message.
+These messages SHOULD be sent over the same stream to preserve ordering.
 
 * `track_ids`.
 A list of track identifiers in order of precidence.
 If the list is not empty, the sender SHOULD transmit at least one of the tracks based on availability and network conditions.
 
-Before the receipt of the first `PLAY` message, the sender MAY choose default tracks to transmit.
-This both avoids a round-trip of startup latency and starts warming the connection.
-Upon the receipt of the first `PLAY` message, the sender SHOULD stop transmitting these default tracks.
+
+Prior to the receipt of the first SUBSCRIBE message, the sender MAY choose default tracks to transmit.
+This can avoid a round-trip of startup latency when the decision is obvious, or at the very least start warming the connection.
+Upon the receipt of the first SUBSCRIBE message, the sender SHOULD stop transmitting these default tracks.
 
 
 ## GOAWAY
@@ -551,6 +511,29 @@ The client:
 * MUST establish a new WebTransport session to the provided URL upon receipt of a `GOAWAY` message.
 * SHOULD establish the connection in parallel which MUST use different QUIC connection.
 * SHOULD remain connected for two servers for a short period, processing segments from both in parallel.
+
+# Containers
+This draft currently specifies only a single media container.
+Future drafts and extensions may specify additional containers.
+
+## fMP4
+The `video/mp4` and `audio/mp4` mimetype indicate a fragmented MP4 container {{ISOBMFF}}.
+
+The TRACK message ({{track}}) payload MUST be an initization fragment.
+The SEGMENT message ({{segment}}) payload MUST be a media fragment.
+
+An initialization fragment consists of a File Type Box (ftyp) followed by a Movie Box (moov).
+This Movie Box (moov) consists of Movie Header Boxes (mvhd), Track Header Boxes (tkhd), Track Boxes (trak), followed by a final Movie Extends Box (mvex).
+These boxes MUST NOT contain any samples and MUST have a duration of zero.
+Note that a Common Media Application Format Header {{CMAF}} meets all these requirements.
+
+A media fragment MAY have a Segment Type Box (styp) followed by any number of media fragments.
+Each media fragment consists of a Movie Fragment Box (moof) followed by a Media Data Box (mdat).
+The Media Fragment Box (moof) MUST contain a Movie Fragment Header Box (mfhd) and Track Box (trak) with a Track ID (`track_ID`) matching a Track Box in the initialization fragment.
+Note that a Common Media Application Format Segment {{CMAF}} meets all these requirements.
+
+Media fragments can be packaged at any frequency, causing a trade-off between overhead and latency.
+It is RECOMMENDED that a media fragment consists of a single frame to minimize latency.
 
 # Security Considerations
 
