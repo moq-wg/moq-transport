@@ -537,7 +537,7 @@ The SETUP message ({{setup}}) allows the peers to exchange arbitrary parameters 
 
 Every parameter MUST appear at most once within the SETUP message. The peers SHOULD verify that and close the connection if a parameter appears more than once.
 
-The ROLE parameter is mandatory for the client. The INITIAL_TRACKS parameter is mandatory for any parry that is expected to send media. All of the other parameters are optional.
+The ROLE parameter is mandatory for the client. All of the other parameters are optional.
 
 ## ROLE parameter
 
@@ -556,22 +556,6 @@ The ROLE parameter (key 0x00) allows the client to specify what roles it expects
 : Both the client and the server are expected to send media.
 
 The client MUST send a ROLE parameter with one of the three values specified above. The server MUST close the connection if the ROLE parameter is missing, is not one of the three above-specified values, or it is different from what the server expects based on the application in question.
-
-## INITIAL_TRACKS parameter
-
-If the peer is expected to send media according to the negotiated ROLE, it MUST send an INITIAL_TRACKS parameter enumerating the tracks it intends to send. The value of the parameter SHALL be formatted as follows:
-
-~~~
-INITIAL_TRACKS Track Listing {
-  Track Descriptor Length (i),
-  Track Descriptor (..),
-}
-
-INITIAL_TRACKS Parameter Value {
-  Track Listings (..) ...,
-}
-~~~
-{: #warp-initial-tracks title="Warp INITIAL_TRACKS Parameter" }
 
 # Containers
 A media container contains the underlying codec bitstream.
