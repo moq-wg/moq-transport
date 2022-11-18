@@ -7,6 +7,7 @@ category: info
 
 ipr: trust200902
 area: General
+submissionType: IETF
 workgroup: Independent Submission
 keyword: Internet-Draft
 
@@ -67,6 +68,7 @@ Warp is a live media transport protocol that utilizes the QUIC network protocol 
 * {{segments}} covers how media is encoded and split into segments.
 * {{quic}} covers how QUIC is used to transfer media.
 * {{messages}} covers how messages are encoded on the wire.
+* {{containers}} covers how media is packaged.
 
 
 ## Terms and Definitions
@@ -255,9 +257,7 @@ A segment:
 * MAY overlap with other segments. This means timestamps may be interleaved between segments.
 * MAY reference frames in other segments, but only if listed as a dependency.
 
-Segments are encoded using fragmented MP4 {{ISOBMFF}}.
-This is necessary to store timestamps and various metadata depending on the codec.
-A future draft of Warp may specify other container formats.
+Segments are encoded using a specified container ({{containers}}).
 
 ## Delivery Order
 Media is produced with an intended order, both in terms of when media should be presented (PTS) and when media should be decoded (DTS).
@@ -286,7 +286,7 @@ This creates hard and soft dependencies that need to be respected by the transpo
 See the appendex for an overview of media encoding ({{appendix.encoding}}).
 
 A segment MAY depend on any number of other segments.
-The encoder MUST indicate these dependecies on the wire via the segment headers.
+The encoder MUST indicate these dependecies on the wire via the SEGMENT header ({{segment}}).
 
 The sender SHOULD NOT use this list of dependencies to determine which segment to transmit next.
 The sender SHOULD use the delivery order instead, which MUST respect dependencies.
@@ -361,7 +361,7 @@ The sender MAY cancel streams in response to congestion.
 This can be useful when the sender does not support stream prioritization.
 
 ## Relays
-Warp encodes the delivery information for each stream via segment headers.
+Warp encodes the delivery information for a stream via SEGMENT headers ({{segment}}).
 
 A relay SHOULD prioritize streams ({{prioritization}}) based on the delivery order.
 A relay MAY change the delivery order, in which case it SHOULD update the value on the wire for future hops.
@@ -476,7 +476,7 @@ The client offers the list of the protocol versions it supports; the server MUST
 The INIT parameters are described in the {{init-parameters}} section.
 
 ## SEGMENT
-A `SEGMENT` message contains a single segment associated with a specified track, as well as associated metadata required to deliver, cache, and forward it.
+A SEGMENT message contains a single segment associated with a specified track, as well as associated metadata required to deliver, cache, and forward it.
 
 The format of the SEGMENT message is as follows:
 
@@ -511,20 +511,7 @@ This field is optional and the default value is 0.
 An list of dependencies by stream identifier ({{dependencies}}).
 This field is optional and the default value is an empty array.
 
-The segment payload depends on the declared format of the track associated with it. In case when the format is CMAF:
-Each segment MUST start with an initialization fragment, or MUST depend on a segment with an initialization fragment.
-An initialization fragment consists of a File Type Box (ftyp) followed by a Movie Box (moov).
-This Movie Box (moov) consists of Movie Header Boxes (mvhd), Track Header Boxes (tkhd), Track Boxes (trak), followed by a final Movie Extends Box (mvex).
-These boxes MUST NOT contain any samples and MUST have a duration of zero.
-Note that a Common Media Application Format Header [CMAF] meets all these requirements.
-
-Each segment MAY have a Segment Type Box (styp) followed by any number of media fragments.
-Each media fragment consists of a Movie Fragment Box (moof) followed by a Media Data Box (mdat).
-The Media Fragment Box (moof) MUST contain a Movie Fragment Header Box (mfhd) and Track Box (trak) with a Track ID (`track_ID`) matching a Track Box in the initialization fragment.
-Note that a Common Media Application Format Segment [CMAF] meets all these requirements.
-
-Media fragments can be packaged at any frequency, causing a trade-off between overhead and latency.
-It is RECOMMENDED that a media fragment consists of a single frame to minimize latency.
+The payload of the SEGMENT message consists of a fragmented MP4 container ({{fmp4}}).
 
 ## GOAWAY
 The `GOAWAY` message is sent by the server to force the client to reconnect.
@@ -585,6 +572,31 @@ INITIAL_TRACKS Parameter Value {
 }
 ~~~
 {: #warp-initial-tracks title="Warp INITIAL_TRACKS Parameter" }
+
+# Containers
+A media container contains the underlying codec bitstream.
+It also contains metadata, such as timestamps, which is required to decode and display the media.
+
+This draft currently specifies only a single media container.
+Future drafts and extensions may specify additional containers.
+
+## fMP4
+The `video/mp4` and `audio/mp4` mimetype indicate a fragmented MP4 container {{ISOBMFF}}.
+
+An initialization segment consists of a File Type Box (ftyp) followed by a Movie Box (moov).
+This Movie Box (moov) consists of Movie Header Boxes (mvhd), Track Header Boxes (tkhd), Track Boxes (trak), followed by a final Movie Extends Box (mvex).
+These boxes MUST NOT contain any samples and MUST have a duration of zero.
+A Common Media Application Format Header {{CMAF}} meets all these requirements.
+
+A media segment consists of have a Segment Type Box (styp) followed by any number of media fragments.
+Each media fragment consists of a Movie Fragment Box (moof) followed by a Media Data Box (mdat).
+The Media Fragment Box (moof) MUST contain a Movie Fragment Header Box (mfhd) and Track Box (trak) with a Track ID (`track_ID`) matching a Track Box in the initialization fragment.
+A Common Media Application Format Segment {{CMAF}} meets all these requirements.
+
+Each SEGMENT message ({{segment}}) MUST start with an initialization segment, or MUST depend on a SEGMENT that does. The rest of the SEGMENT message MAY be a media segment.
+
+Media fragments can be packaged at any frequency, causing a trade-off between overhead and latency.
+It is RECOMMENDED that a media fragment consists of a single frame to minimize latency.
 
 # Security Considerations
 
