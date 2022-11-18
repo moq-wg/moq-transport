@@ -329,7 +329,7 @@ For example, including a authentication token and some identifier in the path.
 ## Streams
 Warp endpoints communicate over QUIC streams. Every stream is a sequence of messages, framed as described in {{messages}}.
 
-The first stream opened is a bidirectional stream where the peers exchange INIT messages ({{init}}). The subsequent streams MAY be either unidirectional and bidirectional. For exchanging media, an application would typically send a unidirectional stream containing a single SEGMENT message ({{segment}}).
+The first stream opened is a bidirectional stream where the peers exchange SETUP messages ({{setup}}). The subsequent streams MAY be either unidirectional and bidirectional. For exchanging media, an application would typically send a unidirectional stream containing a single SEGMENT message ({{segment}}).
 
 Messages SHOULD be sent over the same stream if ordering is desired.
 For example, `PAUSE` and `PLAY` messages SHOULD be sent on the same stream to avoid a race.
@@ -416,7 +416,7 @@ Track Descriptor {
 
 Here, Track ID is the unique ID that identifies the track within the broadcast. Track Format idetifies the format used by the track; for the ISOBMFF-based format described in this document, 0x00 is specified. In the case 0x00 is used, Format-Specific Metadata contains a `ftyp` box followed by a `moov` box.
 
-A track descriptor may appear in both the INIT message and a subsequent TRACK message.
+A track descriptor may appear in both the SETUP message and a subsequent TRACK message.
 
 
 # Messages
@@ -438,42 +438,42 @@ The Message Length field contains the length of the Message Payload field in byt
 |-----:|:----------------------|
 | 0x0  | SEGMENT ({{segment}}) |
 |------|-----------------------|
-| 0x1  | INIT ({{init}})       |
+| 0x1  | SETUP ({{setup}})     |
 |------|-----------------------|
 | 0x10 | GOAWAY ({{goaway}})   |
 |------|-----------------------|
 
-## INIT
+## SETUP
 
-The `INIT` message is the first message that is exchanged by the client and the server; it allows the peers to establish the mutually supported version and agree on the initial configuration. It is a sequence of key-value pairs called *INIT parameters*; the semantics and the format of individual parameter values MAY depend on what party is sending it.
+The `SETUP` message is the first message that is exchanged by the client and the server; it allows the peers to establish the mutually supported version and agree on the initial configuration. It is a sequence of key-value pairs called *SETUP parameters*; the semantics and the format of individual parameter values MAY depend on what party is sending it.
 
-The wire format of the INIT message is as follows:
+The wire format of the SETUP message is as follows:
 
 ~~~
-INIT Parameter {
+SETUP Parameter {
   Parameter Key (i),
   Parameter Value Length (i),
   Parameter Value (..),
 }
 
-Client INIT Message Payload {
+Client SETUP Message Payload {
   Number of Supported Versions (i),
   Supported Version (i) ...,
-  INIT Parameters (..) ...,
+  SETUP Parameters (..) ...,
 }
 
-Server INIT Message Payload {
+Server SETUP Message Payload {
   Selected Version (i),
-  INIT Parameters (..) ...,
+  SETUP Parameters (..) ...,
 }
 ~~~
-{: #warp-init-format title="Warp INIT Message"}
+{: #warp-setup-format title="Warp SETUP Message"}
 
 The Parameter Value Length field indicates the length of the Parameter Value.
 
 The client offers the list of the protocol versions it supports; the server MUST reply with one of the versions offered by the client. If the server does not support any of the versions offered by the client, or the client receives a server version that it did not offer, the corresponding peer MUST close the connection.
 
-The INIT parameters are described in the {{init-parameters}} section.
+The SETUP parameters are described in the {{setup-parameters}} section.
 
 ## SEGMENT
 A SEGMENT message contains a single segment associated with a specified track, as well as associated metadata required to deliver, cache, and forward it.
@@ -531,11 +531,11 @@ The client:
 * SHOULD establish the connection in parallel which MUST use different QUIC connection.
 * SHOULD remain connected for two servers for a short period, processing segments from both in parallel.
 
-# INIT Parameters
+# SETUP Parameters
 
-The INIT message ({{init}}) allows the peers to exchange arbitrary parameters before any media is exchanged. It is the main extensibility mechanism of Warp. The peers MUST ignore unknown parameters. TODO: describe GREASE for those.
+The SETUP message ({{setup}}) allows the peers to exchange arbitrary parameters before any media is exchanged. It is the main extensibility mechanism of Warp. The peers MUST ignore unknown parameters. TODO: describe GREASE for those.
 
-Every parameter MUST appear at most once within the INIT message. The peers SHOULD verify that and close the connection if a parameter appears more than once.
+Every parameter MUST appear at most once within the SETUP message. The peers SHOULD verify that and close the connection if a parameter appears more than once.
 
 The ROLE parameter is mandatory for the client. The INITIAL_TRACKS parameter is mandatory for any parry that is expected to send media. All of the other parameters are optional.
 
@@ -615,7 +615,7 @@ The producer and consumer MUST cancel a stream, preferably the lowest priority, 
 
 TODO: fill out currently missing registries:
 * Warp version numbers
-* INIT parameters
+* SETUP parameters
 * Track format numbers
 * Message types
 * Segment headers
