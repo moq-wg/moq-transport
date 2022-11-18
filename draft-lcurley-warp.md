@@ -7,6 +7,7 @@ category: info
 
 ipr: trust200902
 area: General
+submissionType: IETF
 workgroup: Independent Submission
 keyword: Internet-Draft
 
