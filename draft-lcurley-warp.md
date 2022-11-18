@@ -276,7 +276,7 @@ This creates hard and soft dependencies that need to be respected by the transpo
 See the appendex for an overview of media encoding ({{appendix.encoding}}).
 
 A segment MAY depend on any number of other segments.
-The encoder MUST indicate these dependecies on the wire via the `HEADERS` message ({{headers}}).
+The encoder MUST indicate these dependecies on the wire via the SEGMENT header ({{segment}}).
 
 The sender SHOULD NOT use this list of dependencies to determine which segment to transmit next.
 The sender SHOULD use the delivery order instead, which MUST respect dependencies.
@@ -324,8 +324,6 @@ A stream consists of sequential messages.
 See messages ({{messages}}) for the list of messages and their encoding.
 These are similar to QUIC and HTTP/3 frames, but called messages to avoid the media terminology.
 
-Each stream MUST start with a `HEADERS` message ({{headers}}) to indicates how the stream should be transmitted.
-
 Messages SHOULD be sent over the same stream if ordering is desired.
 For example, `PAUSE` and `PLAY` messages SHOULD be sent on the same stream to avoid a race.
 
@@ -356,8 +354,7 @@ The sender MAY cancel streams in response to congestion.
 This can be useful when the sender does not support stream prioritization.
 
 ## Relays
-Warp encodes the delivery information for each stream via a `HEADERS` frame ({{headers}}).
-This MUST be at the start of each stream so it is easy for a relay to parse.
+Warp encodes the delivery information for a stream via SEGMENT headers ({{segment}}).
 
 A relay SHOULD prioritize streams ({{prioritization}}) based on the delivery order.
 A relay MAY change the delivery order, in which case it SHOULD update the value on the wire for future hops.
@@ -403,20 +400,16 @@ TODO document the encoding
 |------|-----------------------|
 | ID   | Messages              |
 |-----:|:----------------------|
-| 0x0  | HEADERS ({{headers}}) |
-|------|-----------------------|
-| 0x1  | SEGMENT ({{segment}}) |
-|------|-----------------------|
-| 0x2  | APP ({{app}})         |
+| 0x0  | SEGMENT ({{segment}}) |
 |------|-----------------------|
 | 0x10 | GOAWAY ({{goaway}})   |
 |------|-----------------------|
 
 
+## SEGMENT
+A SEGMENT message contains a single segment associated with a specified track, as well as associated metadata required to deliver, cache, and forward it.
 
-## HEADERS
-The `HEADERS` message contains information required to deliver, cache, and forward a stream.
-This message SHOULD be parsed and obeyed by any Warp relays.
+The header of the SEGMENT message is as follows:
 
 * `id`.
 An unique identifier for the stream.
@@ -430,9 +423,7 @@ This field is optional and the default value is 0.
 An list of dependencies by stream identifier ({{dependencies}}).
 This field is optional and the default value is an empty array.
 
-
-## SEGMENT
-A `SEGMENT` message consists of a segment in a fragmented MP4 container.
+The payload of the SEGMENT message is a fragmented MP4 container.
 
 Each segment MUST start with an initialization fragment, or MUST depend on a segment with an initialization fragment.
 An initialization fragment consists of a File Type Box (ftyp) followed by a Movie Box (moov).
@@ -447,13 +438,6 @@ Note that a Common Media Application Format Segment [CMAF] meets all these requi
 
 Media fragments can be packaged at any frequency, causing a trade-off between overhead and latency.
 It is RECOMMENDED that a media fragment consists of a single frame to minimize latency.
-
-## APP
-The `APP` message contains arbitrary contents.
-This is useful for metadata that would otherwise have to be shoved into the media bitstream.
-
-Relays MUST NOT differentiate between streams containing `SEGMENT` and `APP` frames.
-The same forwarding and caching behavior applies to both as specified in the`HEADERS` frame.
 
 
 ## GOAWAY
