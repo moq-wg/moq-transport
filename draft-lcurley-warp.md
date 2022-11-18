@@ -67,6 +67,7 @@ Warp is a live media transport protocol that utilizes the QUIC network protocol 
 * {{segments}} covers how media is encoded and split into segments.
 * {{quic}} covers how QUIC is used to transfer media.
 * {{messages}} covers how messages are encoded on the wire.
+* {{containers}} covers how media is packaged.
 
 
 ## Terms and Definitions
@@ -245,9 +246,7 @@ A segment:
 * MAY overlap with other segments. This means timestamps may be interleaved between segments.
 * MAY reference frames in other segments, but only if listed as a dependency.
 
-Segments are encoded using fragmented MP4 {{ISOBMFF}}.
-This is necessary to store timestamps and various metadata depending on the codec.
-A future draft of Warp may specify other container formats.
+Segments are encoded using a specified container ({{container}}).
 
 ## Delivery Order
 Media is produced with an intended order, both in terms of when media should be presented (PTS) and when media should be decoded (DTS).
@@ -432,21 +431,7 @@ This field is optional and the default value is an empty array.
 
 
 ## SEGMENT
-A `SEGMENT` message consists of a segment in a fragmented MP4 container.
-
-Each segment MUST start with an initialization fragment, or MUST depend on a segment with an initialization fragment.
-An initialization fragment consists of a File Type Box (ftyp) followed by a Movie Box (moov).
-This Movie Box (moov) consists of Movie Header Boxes (mvhd), Track Header Boxes (tkhd), Track Boxes (trak), followed by a final Movie Extends Box (mvex).
-These boxes MUST NOT contain any samples and MUST have a duration of zero.
-Note that a Common Media Application Format Header [CMAF] meets all these requirements.
-
-Each segment MAY have a Segment Type Box (styp) followed by any number of media fragments.
-Each media fragment consists of a Movie Fragment Box (moof) followed by a Media Data Box (mdat).
-The Media Fragment Box (moof) MUST contain a Movie Fragment Header Box (mfhd) and Track Box (trak) with a Track ID (`track_ID`) matching a Track Box in the initialization fragment.
-Note that a Common Media Application Format Segment [CMAF] meets all these requirements.
-
-Media fragments can be packaged at any frequency, causing a trade-off between overhead and latency.
-It is RECOMMENDED that a media fragment consists of a single frame to minimize latency.
+A `SEGMENT` message consists of a segment in a fragmented MP4 container ({{fMP4}}).
 
 ## APP
 The `APP` message contains arbitrary contents.
@@ -473,6 +458,33 @@ The client:
 * MUST establish a new WebTransport session to the provided URL upon receipt of a `GOAWAY` message.
 * SHOULD establish the connection in parallel which MUST use different QUIC connection.
 * SHOULD remain connected for two servers for a short period, processing segments from both in parallel.
+
+
+# Container
+A media container contains the underlying codec bitstream.
+It also contains metadata, such as timestamps, which is required to decode and display the media.
+
+This draft currently specifies only a single media container.
+Future drafts and extensions may specify additional containers.
+
+## fMP4
+The `video/mp4` and `audio/mp4` mimetype indicate a fragmented MP4 container {{ISOBMFF}}.
+
+An initialization segment consists of a File Type Box (ftyp) followed by a Movie Box (moov).
+This Movie Box (moov) consists of Movie Header Boxes (mvhd), Track Header Boxes (tkhd), Track Boxes (trak), followed by a final Movie Extends Box (mvex).
+These boxes MUST NOT contain any samples and MUST have a duration of zero.
+A Common Media Application Format Header {{CMAF}} meets all these requirements.
+
+A media segment consists of have a Segment Type Box (styp) followed by any number of media fragments.
+Each media fragment consists of a Movie Fragment Box (moof) followed by a Media Data Box (mdat).
+The Media Fragment Box (moof) MUST contain a Movie Fragment Header Box (mfhd) and Track Box (trak) with a Track ID (`track_ID`) matching a Track Box in the initialization fragment.
+A Common Media Application Format Segment {{CMAF}} meets all these requirements.
+
+Each SEGMENT message ({{segment}}) MUST start with an initialization segment, or MUST depend on a SEGMENT that does. The rest of the SEGMENT message MAY be a media segment.
+
+Media fragments can be packaged at any frequency, causing a trade-off between overhead and latency.
+It is RECOMMENDED that a media fragment consists of a single frame to minimize latency.
+
 
 # Security Considerations
 
