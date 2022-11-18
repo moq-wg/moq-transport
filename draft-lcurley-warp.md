@@ -246,7 +246,7 @@ A segment:
 * MAY overlap with other segments. This means timestamps may be interleaved between segments.
 * MAY reference frames in other segments, but only if listed as a dependency.
 
-Segments are encoded using a specified container ({{container}}).
+Segments are encoded using a specified container ({{containers}}).
 
 ## Delivery Order
 Media is produced with an intended order, both in terms of when media should be presented (PTS) and when media should be decoded (DTS).
@@ -431,7 +431,7 @@ This field is optional and the default value is an empty array.
 
 
 ## SEGMENT
-A `SEGMENT` message consists of a segment in a fragmented MP4 container ({{fMP4}}).
+A `SEGMENT` message consists of a segment in a fragmented MP4 container ({{fmp4}}).
 
 ## APP
 The `APP` message contains arbitrary contents.
@@ -460,7 +460,7 @@ The client:
 * SHOULD remain connected for two servers for a short period, processing segments from both in parallel.
 
 
-# Container
+# Containers
 A media container contains the underlying codec bitstream.
 It also contains metadata, such as timestamps, which is required to decode and display the media.
 
