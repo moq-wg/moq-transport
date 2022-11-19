@@ -81,6 +81,10 @@ Bitstream:
 
 : A continunous series of bytes.
 
+Client:
+
+: The party initiating a Warp session.
+
 Codec:
 
 : A compression algorithm for audio or video.
@@ -141,13 +145,19 @@ Rendition:
 
 : One or more tracks with the same content but different encodings.
 
+Server:
+
+: The party accepting an incoming Warp session.
+
 Slice:
 
 : A section of a video frame. There may be multiple slices per frame.
 
 Track:
 
-: An encoded bitstream, representing a single video/audio component that makes up the larger broadcast.
+: An encoded bitstream, representing a single video/audio component that makes up the larger broadcast. See {{tracks}}.
+
+This document uses the conventions detailed in Section 1.3 of {{!RFC9000}} when describing the binary encoding.
 
 
 # Motivation
@@ -317,12 +327,9 @@ The application SHOULD use the CONNECT request for authentication.
 For example, including a authentication token and some identifier in the path.
 
 ## Streams
-Warp endpoints communicate over unidirectional QUIC streams.
-The application MAY use bidirectional QUIC streams for other purposes.
+Warp endpoints communicate over QUIC streams. Every stream is a sequence of messages, framed as described in {{messages}}.
 
-A stream consists of sequential messages.
-See messages ({{messages}}) for the list of messages and their encoding.
-These are similar to QUIC and HTTP/3 frames, but called messages to avoid the media terminology.
+The first stream opened is a client-initiated bidirectional stream where the peers exchange SETUP messages ({{setup}}). The subsequent streams MAY be either unidirectional and bidirectional. For exchanging media, an application would typically send a unidirectional stream containing a single SEGMENT message ({{segment}}).
 
 Messages SHOULD be sent over the same stream if ordering is desired.
 For example, `PAUSE` and `PLAY` messages SHOULD be sent on the same stream to avoid a race.
@@ -392,24 +399,105 @@ The application SHOULD use a non-zero error code to indicate a fatal error.
 | 0x1  | GOAWAY ({{goaway}})  |
 |------|----------------------|
 
-# Messages
-Messages consist of a type identifier followed by contents, depending on the message type.
+# Tracks
 
-TODO document the encoding
+A Warp broadcast consists of one or more tracks. Each track has a *track format* associated with it; a track format defines how to interpret the track bitstream and the metadata associated with the track. This document defines a single format for a track based on [ISOBMFF]; additional documents may define new formats.
+
+Every Warp track has a *track descriptor* associated with it. A track descriptor contains information required to decode the track. The descriptor has the following format:
+
+~~~
+Track Descriptor {
+  Track ID (i),
+  Track Format (i),
+  Format-Specific Metadata (...),
+}
+~~~
+{: #warp-track-descriptor title="Warp Track Descriptor"}
+
+Here, Track ID is the unique ID that identifies the track within the broadcast. Track Format idetifies the format used by the track; for the ISOBMFF-based format described in this document, 0x00 is specified. In the case 0x00 is used, Format-Specific Metadata contains a `ftyp` box followed by a `moov` box.
+
+A track descriptor may appear in both the SETUP message and a subsequent TRACK message.
+
+
+# Messages
+Both unidirectional and bidirectional Warp streams are sequences of length-deliminated messages.
+
+~~~
+Warp Message {
+  Message Type (i),
+  Message Length (i),
+  Message Payload (..),
+}
+~~~
+{: #warp-message-format title="Warp Message"}
+
+The Message Length field contains the length of the Message Payload field in bytes.
 
 |------|-----------------------|
 | ID   | Messages              |
 |-----:|:----------------------|
 | 0x0  | SEGMENT ({{segment}}) |
 |------|-----------------------|
+| 0x1  | SETUP ({{setup}})     |
+|------|-----------------------|
 | 0x10 | GOAWAY ({{goaway}})   |
 |------|-----------------------|
 
+## SETUP
+
+The `SETUP` message is the first message that is exchanged by the client and the server; it allows the peers to establish the mutually supported version and agree on the initial configuration. It is a sequence of key-value pairs called *SETUP parameters*; the semantics and the format of individual parameter values MAY depend on what party is sending it.
+
+The wire format of the SETUP message is as follows:
+
+~~~
+SETUP Parameter {
+  Parameter Key (i),
+  Parameter Value Length (i),
+  Parameter Value (..),
+}
+
+Client SETUP Message Payload {
+  Number of Supported Versions (i),
+  Supported Version (i) ...,
+  SETUP Parameters (..) ...,
+}
+
+Server SETUP Message Payload {
+  Selected Version (i),
+  SETUP Parameters (..) ...,
+}
+~~~
+{: #warp-setup-format title="Warp SETUP Message"}
+
+The Parameter Value Length field indicates the length of the Parameter Value.
+
+The client offers the list of the protocol versions it supports; the server MUST reply with one of the versions offered by the client. If the server does not support any of the versions offered by the client, or the client receives a server version that it did not offer, the corresponding peer MUST close the connection.
+
+The SETUP parameters are described in the {{setup-parameters}} section.
 
 ## SEGMENT
 A SEGMENT message contains a single segment associated with a specified track, as well as associated metadata required to deliver, cache, and forward it.
 
-The header of the SEGMENT message is as follows:
+The format of the SEGMENT message is as follows:
+
+~~~
+SEGMENT Header {
+  Header Name Length (8),
+  Header Name (..),
+  Header Value Length (i),
+  Header Value (..),
+}
+
+SEGMENT Message {
+  Track ID (i),
+  Number of Segment Headers (i),
+  Segment Headers (..) ...,
+  Segment Payload (..)
+}
+~~~
+{: #warp-segment-format title="Warp SEGMENT Message"}
+
+This document defines the following headers:
 
 * `id`.
 An unique identifier for the stream.
@@ -443,6 +531,31 @@ The client:
 * SHOULD establish the connection in parallel which MUST use different QUIC connection.
 * SHOULD remain connected for two servers for a short period, processing segments from both in parallel.
 
+# SETUP Parameters
+
+The SETUP message ({{setup}}) allows the peers to exchange arbitrary parameters before any media is exchanged. It is the main extensibility mechanism of Warp. The peers MUST ignore unknown parameters. TODO: describe GREASE for those.
+
+Every parameter MUST appear at most once within the SETUP message. The peers SHOULD verify that and close the connection if a parameter appears more than once.
+
+The ROLE parameter is mandatory for the client. All of the other parameters are optional.
+
+## ROLE parameter
+
+The ROLE parameter (key 0x00) allows the client to specify what roles it expects the parties to have in the Warp connection. It has three possible values:
+
+0x01:
+
+: Only the client is expected to send media on the connection. This is commonly referred to as *the ingestion case*.
+
+0x02:
+
+: Only the server is expected to send media on the connection. This is commonly referred to as *the delivery case*.
+
+0x03:
+
+: Both the client and the server are expected to send media.
+
+The client MUST send a ROLE parameter with one of the three values specified above. The server MUST close the connection if the ROLE parameter is missing, is not one of the three above-specified values, or it is different from what the server expects based on the application in question.
 
 # Containers
 A media container contains the underlying codec bitstream.
@@ -469,7 +582,6 @@ Each SEGMENT message ({{segment}}) MUST start with an initialization segment, or
 Media fragments can be packaged at any frequency, causing a trade-off between overhead and latency.
 It is RECOMMENDED that a media fragment consists of a single frame to minimize latency.
 
-
 # Security Considerations
 
 ## Resource Exhaustion
@@ -484,7 +596,13 @@ Streams might be starved indefinitely during congestion.
 The producer and consumer MUST cancel a stream, preferably the lowest priority, after reaching a resource limit.
 
 # IANA Considerations
-TODO
+
+TODO: fill out currently missing registries:
+* Warp version numbers
+* SETUP parameters
+* Track format numbers
+* Message types
+* Segment headers
 
 # Appendix A. Video Encoding {#appendix.encoding}
 In order to transport media, we first need to know how media is encoded.
