@@ -466,43 +466,41 @@ A SEGMENT message contains a single segment associated with a specified track, a
 The format of the SEGMENT message is as follows:
 
 ~~~
-SEGMENT Header {
-  Header Name Length (8),
-  Header Name (..),
-  Header Value Length (i),
-  Header Value (..),
-}
-
 SEGMENT Message {
   Track ID (i),
-  Number of Segment Headers (i),
-  Segment Headers (..) ...,
-  Segment Payload (..)
+  Segment ID (i),
+  Order (i),
+  Dependency Count (i)
+  Dependency Segment IDs (..)
+  Payload (..)
 }
 ~~~
 {: #warp-segment-format title="Warp SEGMENT Message"}
 
 This document defines the following headers:
 
-* `track_id`.
+* Track ID:
 The track identifier.
-When using a container with an initialization payload, the decoder MUST block until the cooresponding PUBLISH message ({{publish}}) has been received.
+The decoder SHOULD block until the cooresponding PUBLISH message ({{publish}}) has been received.
 
-* `segment_id`.
+* Segment ID:
 A unique identifier for each segment within a track.
 It is RECOMMENDED that this is an monotonically increasing sequence number, but the receiver MUST NOT assume that it is.
 
-* `order`.
+* Order:
 An integer indicating the delivery order ({{delivery-order}}).
-This field is optional; the default value is 0.
 
-* `depends`.
-An list of dependencies by `segment_id` ({{dependencies}}).
-This field is optional; an empty array indicates the segment is independent.
+* Dependency Count:
+The number of dependency segment IDs that follow.
+A synchronization point (ex. i-frame) will have zero dependencies.
 
-The remainder of the SEGMENT message is a payload depending on the track `mime_type`.
+* Dependency Segment IDs:
+An list dependencies by Segment ID ({{dependencies}}), each of which is a variable integer.
+The decoder SHOULD block until the cooresponding SEGMENT messages have been received.
+
+* Payload:
+The format depends on the track container type ({{containers}}).
 This contains a media bitstream intended for the decoder and SHOULD NOT be processed by a relay.
-See the containers section ({{containers}}).
 
 
 ## PUBLISH {#publish}
@@ -565,12 +563,12 @@ An identifier for the subscription.
 A subscription MAY be updated by sending a SUBSCRIBE message with the same Subscribe ID.
 
 * Track Count
-The number of track IDs that follow, which are variable integers.
+The number of track IDs that follow.
 
 * Track IDs
-A list of track identifiers, at least one of which SHOULD be transmitted.
+A list of track identifiers, each of which is a variable integer.
 The receiver SHOULD arrange the list in preferred order; for example 1080p takes precidence over 480p.
-The sender SHOULD choose the track to transmit based on this preferred order, the track availablity, and network conditions.
+The sender SHOULD transmit at least one track based on this preferred order, the track availablity, and network conditions.
 
 
 When no tracks are specified, the receiver indicates that it wants to cancel the subscription with the same ID.
