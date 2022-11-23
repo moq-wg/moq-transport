@@ -39,7 +39,6 @@ normative:
   QUIC: RFC9000
   QUIC-RECOVERY: RFC9002
   WebTransport: I-D.ietf-webtrans-http3
-  MIME-CODECS: RFC6381
 
   ISOBMFF:
     title: "Information technology — Coding of audio-visual objects — Part 12: ISO Base Media File Format"
@@ -81,6 +80,10 @@ Commonly used terms in this document are described below.
 Bitstream:
 
 : A continunous series of bytes.
+
+Client:
+
+: The party initiating a Warp session.
 
 Codec:
 
@@ -142,13 +145,19 @@ Rendition:
 
 : One or more tracks with the same content but different encodings.
 
+Server:
+
+: The party accepting an incoming Warp session.
+
 Slice:
 
 : A section of a video frame. There may be multiple slices per frame.
 
 Track:
 
-: An encoded bitstream, representing a single video/audio component that makes up the larger broadcast.
+: An encoded bitstream, representing a single video/audio component that makes up the larger broadcast. See {{tracks}}.
+
+This document uses the conventions detailed in Section 1.3 of {{!RFC9000}} when describing the binary encoding.
 
 
 # Motivation
@@ -318,15 +327,12 @@ The application SHOULD use the CONNECT request for authentication.
 For example, including a authentication token and some identifier in the path.
 
 ## Streams
-Warp endpoints communicate over unidirectional QUIC streams.
-The application MAY use bidirectional QUIC streams for other purposes.
+Warp endpoints communicate over QUIC streams. Every stream is a sequence of messages, framed as described in {{messages}}.
 
-A stream consists of sequential messages.
-See messages ({{messages}}) for the list of messages and their encoding.
-These are similar to QUIC and HTTP/3 frames, but called messages to avoid the media terminology.
+The first stream opened is a client-initiated bidirectional stream where the peers exchange SETUP messages ({{setup}}). The subsequent streams MAY be either unidirectional and bidirectional. For exchanging media, an application would typically send a unidirectional stream containing a single SEGMENT message ({{segment}}).
 
 Messages SHOULD be sent over the same stream if ordering is desired.
-For example, TRACK\_PUBLISH and TRACK\_SUBSCRIBE messages SHOULD be sent on the same stream to avoid a race.
+For example, PUBLISH and SUBSCRIBE messages SHOULD be sent on the same stream to avoid a race.
 
 ## Prioritization
 Warp utilizes stream prioritization to deliver the most important content during congestion.
@@ -393,32 +399,94 @@ The application SHOULD use a non-zero error code to indicate a fatal error.
 | 0x1  | GOAWAY ({{goaway}})  |
 |------|----------------------|
 
-# Messages
-Messages consist of a type identifier followed by contents, depending on the message type.
 
-TODO document the encoding
+# Messages
+Both unidirectional and bidirectional Warp streams are sequences of length-deliminated messages.
+
+~~~
+Warp Message {
+  Message Type (i),
+  Message Length (i),
+  Message Payload (..),
+}
+~~~
+{: #warp-message-format title="Warp Message"}
+
+The Message Length field contains the length of the Message Payload field in bytes.
 
 |------|----------------------------------------|
 | ID   | Messages                               |
 |-----:|:---------------------------------------|
 | 0x0  | SEGMENT ({{segment}})                  |
 |------|----------------------------------------|
-| 0x1  | TRACK\_PUBLISH ({{track-publish}})     |
+| 0x1  | SETUP ({{setup}})                      |
 |------|----------------------------------------|
-| 0x2  | TRACK\_SUBSCRIBE ({{track-subscribe}}) |
+| 0x2  | PUBLISH ({{publish}})                  |
+|------|----------------------------------------|
+| 0x3  | SUBSCRIBE ({{subscribe}})              |
 |------|----------------------------------------|
 | 0x10 | GOAWAY ({{goaway}})                    |
 |------|----------------------------------------|
 
+## SETUP
+
+The `SETUP` message is the first message that is exchanged by the client and the server; it allows the peers to establish the mutually supported version and agree on the initial configuration. It is a sequence of key-value pairs called *SETUP parameters*; the semantics and the format of individual parameter values MAY depend on what party is sending it.
+
+The wire format of the SETUP message is as follows:
+
+~~~
+SETUP Parameter {
+  Parameter Key (i),
+  Parameter Value Length (i),
+  Parameter Value (..),
+}
+
+Client SETUP Message Payload {
+  Number of Supported Versions (i),
+  Supported Version (i) ...,
+  SETUP Parameters (..) ...,
+}
+
+Server SETUP Message Payload {
+  Selected Version (i),
+  SETUP Parameters (..) ...,
+}
+~~~
+{: #warp-setup-format title="Warp SETUP Message"}
+
+The Parameter Value Length field indicates the length of the Parameter Value.
+
+The client offers the list of the protocol versions it supports; the server MUST reply with one of the versions offered by the client. If the server does not support any of the versions offered by the client, or the client receives a server version that it did not offer, the corresponding peer MUST close the connection.
+
+The SETUP parameters are described in the {{setup-parameters}} section.
 
 ## SEGMENT
 A SEGMENT message contains a single segment associated with a specified track, as well as associated metadata required to deliver, cache, and forward it.
 
-Each SEGMENT message starts with a header, containing information useful for a relay:
+The format of the SEGMENT message is as follows:
+
+~~~
+SEGMENT Header {
+  Header Name Length (8),
+  Header Name (..),
+  Header Value Length (i),
+  Header Value (..),
+}
+
+SEGMENT Message {
+  Track ID (i),
+  Number of Segment Headers (i),
+  Segment Headers (..) ...,
+  Segment Payload (..)
+}
+~~~
+{: #warp-segment-format title="Warp SEGMENT Message"}
+
+This document defines the following headers:
 
 * `track_id`.
-The track identifier. {{track-publish}}
-When using a container with an initialization payload, the decoder MUST block until the cooresponding TRACK\_PUBLISH message ({{track-publish}}) has been received.
+The track identifier.
+When using a container with an initialization payload, the decoder MUST block until the cooresponding PUBLISH message ({{publish}}) has been received.
 
 * `segment_id`.
 A unique identifier for each segment within a track.
@@ -437,64 +505,90 @@ This contains a media bitstream intended for the decoder and SHOULD NOT be proce
 See the containers section ({{containers}}).
 
 
-## TRACK\_PUBLISH {#track-publish}
-The sender advertises an available track via the TRACK\_PUBLISH message.
-The receiver can ask for tracks via the TRACK\_SUBSCRIBE ({{track-subscribe}}) message based on this information.
+## PUBLISH {#publish}
+The sender advertises an available track via the PUBLISH message.
+The receiver can ask for tracks via the SUBSCRIBE ({{subscribe}}) message based on this information.
 
-Tracks MAY be updated by sending a new TRACK\_PUBLISH message with an existing `track_id`.
-TRACK\_PUBLISH messages with the same `track_id` SHOULD be sent over the same stream to preserve ordering.
+~~~
+PUBLISH Message {
+  Track ID (i),
+  Container Type (i),
+  Group ID (i),
+  Max Bitrate (i),
+  Init Length (i),
+  Init Payload (..),
+}
+~~~
+{: #warp-publish-format title="Warp PUBLISH Message"}
 
-Each TRACK\_PUBLISH message starts with a header, containing information useful for a relay:
+Each PUBLISH message starts with a header, containing information useful for a relay:
 
-* `publish_id`.
-A unique identifier for the track.
+* Track ID:
+An identifier for the track.
+The track MAY be updated by sending a PUBLISH message with the same Track ID.
 
-* `active`.
-An boolean indicating that the track can be served.
-An inactive track SHOULD NOT be requested via TRACK\_SUBSCRIBE.
-A track MAY be inactive because is has not started yet, or it has ended.
+* Container Type:
+The container type, as defined in {{containers}}.
 
-* `group_id`.
+* Group ID:
 An identifier indicating that this track is part of a group.
 Tracks within the same group contain the same content but alternate encodings.
 For example: different resolutions, bitrates, languages, or codecs.
-This field is optional.
+This field is optional; a value of 0 indicates no grouping.
 
-* `mime_type`.
-A MIME type indicating the media type, container, and codec. {{MIME-CODECS}}
-For example: `video/mp4; codecs=avc1.64001e` or `audio/mp4; codecs=mp4a.40.2`
-
-* `max_bitrate`.
+* Max Bitrate:
 The peak bandwidth in bits per second.
-This field is optional but RECOMMENDED. when there are multiple tracks in the same group with different bitrates.
+The sender MAY use this information to determine which track to transmit if there are multiple options.
+This field is optional; a value of 0 indicates unknown.
 
-
-The remainder of the TRACK\_PUBLISH message is a payload depending on the `mime_type`.
+* Init Payload:
+A payload depending on the Container Type ({{containers}}).
 This contains any information required to initialize the decoder and SHOULD NOT be processed by a relay.
-See the containers section ({{containers}}).
 
 
-## TRACK\_SUBSCRIBE {#track-subscribe}
-The receiver sends a TRACK\_SUBSCRIBE message to indicate that it wishes to receive a track.
-This MUST coorespond to an existing TRACK\_PUBLISH ({{track-publish}}) message from the sender.
+## SUBSCRIBE {#subscribe}
+The receiver sends a SUBSCRIBE message to indicate that it wishes to receive at least one of the specified tracks.
 
-* `subscribe_id`.
-An identifier for the TRACK\_SUBSCRIBE message.
-The next TRACK\_SUBSCRIBE message with the same `subscribe_id` will override this message.
-These messages SHOULD be sent over the same stream to preserve ordering.
+~~~
+SUBSCRIBE Message {
+  Subscribe ID (i),
+  Track Count (i),
+  Track IDs (..)
+}
+~~~
+{: #warp-subscribe-format title="Warp SUBSCRIBE Message"}
 
-* `all`.
-A list of track identifiers that SHOULD be transmitted.
+SUBSCRIBE messages contain the following fields:
 
-* `any`.
+* Subscribe ID:
+An identifier for the subscription.
+A subscription MAY be updated by sending a SUBSCRIBE message with the same Subscribe ID.
+
+* Track Count
+The number of track IDs that follow, which are variable integers.
+
+* Track IDs
 A list of track identifiers, at least one of which SHOULD be transmitted.
 The receiver SHOULD arrange the list in preferred order; for example 1080p takes precidence over 480p.
-The sender SHOULD choose the track to transmit in this preferred order based on availablity and network conditions.
+The sender SHOULD choose the track to transmit based on this preferred order, the track availablity, and network conditions.
 
-Prior to the receipt of the first TRACK\_SUBSCRIBE message, the sender MAY choose default tracks to transmit.
+
+When no tracks are specified, the receiver indicates that it wants to cancel the subscription with the same ID.
+
+When a single track is specified, the receiver indicates it wants that specific track.
+This is useful for indicating user preference (ex. send japanese audio) and receiver-side ABR (ex. send 480p)
+
+When multiple tracks are specified, the receiver indicates that the sender should choose one.
+This is useful for sender-side ABR (ex. send 1080p otherwise 480p) and track stitching (ex. send an advertisement otherwise the original content).
+
+The receiver MAY have multiple active subscriptions.
+The sender MUST avoid sending the same tracks twice when they overlap.
+
+Prior to the receipt of the first SUBSCRIBE message, the sender MAY choose default tracks to transmit.
 This can avoid a round-trip of startup latency when the decision is obvious, or at the very least start warming the connection.
-Upon the receipt of the first PLAY message, the sender SHOULD stop transmitting these default tracks.
-The receiver MAY issue a `STOP_SENDING` for any pending streams containing an undesired track.
+
+Upon the receipt of the first SUBSCRIBE message, the sender SHOULD stop transmitting these default tracks.
+The receiver MAY issue a STOP\_SENDING for any pending streams containing an undesired track.
 
 
 ## GOAWAY
@@ -515,6 +609,32 @@ The client:
 * SHOULD establish the connection in parallel which MUST use different QUIC connection.
 * SHOULD remain connected for two servers for a short period, processing segments from both in parallel.
 
+# SETUP Parameters
+
+The SETUP message ({{setup}}) allows the peers to exchange arbitrary parameters before any media is exchanged. It is the main extensibility mechanism of Warp. The peers MUST ignore unknown parameters. TODO: describe GREASE for those.
+
+Every parameter MUST appear at most once within the SETUP message. The peers SHOULD verify that and close the connection if a parameter appears more than once.
+
+The ROLE parameter is mandatory for the client. All of the other parameters are optional.
+
+## ROLE parameter
+
+The ROLE parameter (key 0x00) allows the client to specify what roles it expects the parties to have in the Warp connection. It has three possible values:
+
+0x01:
+
+: Only the client is expected to send media on the connection. This is commonly referred to as *the ingestion case*.
+
+0x02:
+
+: Only the server is expected to send media on the connection. This is commonly referred to as *the delivery case*.
+
+0x03:
+
+: Both the client and the server are expected to send media.
+
+The client MUST send a ROLE parameter with one of the three values specified above. The server MUST close the connection if the ROLE parameter is missing, is not one of the three above-specified values, or it is different from what the server expects based on the application in question.
+
 
 # Containers
 A media container contains the underlying codec bitstream.
@@ -523,10 +643,17 @@ It also contains metadata, such as timestamps, which is required to decode and d
 This draft currently specifies only a single media container.
 Future drafts and extensions may specify additional containers.
 
-## fMP4
-The `video/mp4` and `audio/mp4` mimetype indicate a fragmented MP4 container {{ISOBMFF}}.
+|------|-----------------|
+| ID   | Container       |
+|-----:|:----------------|
+| 0x0  | fMP4 ({{fmp4}}) |
+|------|-----------------|
 
-The TRACK\_PUBLISH message ({{track-publish}}) payload MUST be an initization segment.
+
+## fMP4
+A fragmented MP4 container {{ISOBMFF}}.
+
+The PUBLISH message ({{publish}}) payload MUST be an initization segment.
 The SEGMENT message ({{segment}}) payload MUST be a media segment, which consists of any number of media fragments.
 
 An initialization segment consists of a File Type Box (ftyp) followed by a Movie Box (moov).
@@ -542,7 +669,6 @@ A Common Media Application Format Segment {{CMAF}} meets all these requirements.
 Media fragments can be packaged at any frequency, causing a trade-off between overhead and latency.
 It is RECOMMENDED that a media fragment consists of a single frame to minimize latency.
 
-
 # Security Considerations
 
 ## Resource Exhaustion
@@ -557,7 +683,13 @@ Streams might be starved indefinitely during congestion.
 The producer and consumer MUST cancel a stream, preferably the lowest priority, after reaching a resource limit.
 
 # IANA Considerations
-TODO
+
+TODO: fill out currently missing registries:
+* Warp version numbers
+* SETUP parameters
+* Track format numbers
+* Message types
+* Segment headers
 
 # Appendix A. Video Encoding {#appendix.encoding}
 In order to transport media, we first need to know how media is encoded.
