@@ -528,7 +528,7 @@ An identifier for the track.
 The track MAY be updated by sending a PUBLISH message with the same Track ID.
 
 * Container Type:
-The container type, as defined in {{containers}}.
+The container type, as defined in Containers ({{containers}}).
 
 * Group ID:
 An identifier indicating that this track is part of a group.
@@ -653,9 +653,6 @@ Future drafts and extensions may specify additional containers.
 ## fMP4
 A fragmented MP4 container {{ISOBMFF}}.
 
-The PUBLISH message ({{publish}}) payload MUST be an initization segment.
-The SEGMENT message ({{segment}}) payload MUST be a media segment, which consists of any number of media fragments.
-
 An initialization segment consists of a File Type Box (ftyp) followed by a Movie Box (moov).
 This Movie Box (moov) consists of Movie Header Boxes (mvhd), Track Header Boxes (tkhd), Track Boxes (trak), followed by a final Movie Extends Box (mvex).
 These boxes MUST NOT contain any samples and MUST have a duration of zero.
@@ -668,6 +665,9 @@ A Common Media Application Format Segment {{CMAF}} meets all these requirements.
 
 Media fragments can be packaged at any frequency, causing a trade-off between overhead and latency.
 It is RECOMMENDED that a media fragment consists of a single frame to minimize latency.
+
+The PUBLISH message ({{publish}}) payload MUST be an initization segment.
+The SEGMENT message ({{segment}}) payload MUST be a media segment, which consists of any number of media fragments.
 
 # Security Considerations
 
