@@ -1,7 +1,9 @@
 # Warp Draft
 Warp is a live media protocol that utilizes QUIC streams.
 
-[Latest Draft](https://kixelated.github.io/warp-draft/draft-lcurley-warp.html)
+[Base Draft](https://kixelated.github.io/warp-draft/draft-lcurley-warp.html)
+[Terminology](https://kixelated.github.io/warp-draft/draft-moq-terminology.html)
+
 
 ## Contributing
 All changes need to be made to the markdown file (.md).
