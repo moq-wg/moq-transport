@@ -63,7 +63,7 @@ The flow that a single media stream follows from capture to consumption.
 
 ## Media Stream
 A physical stimulus is captured into a media stream.
-This media stram is usually compressed using a codec.
+This media stream is usually compressed using a codec.
 
 Known as:
 * "encoded stream". {{RTP-SEMANTICS}}
@@ -93,7 +93,7 @@ Examples include:
 * Fragment. {{CMAF}} (section 6.4.1)
 
 ## Transmission
-Containers are futher split so they can be transmitted over IP.
+Containers are further split so they can be transmitted over IP.
 These are sent over the network and may be lost.
 
 Examples:
@@ -103,7 +103,7 @@ Examples:
 
 ## Decoding
 The peer reassembles IP packets into containers, then fragments, and finally the encoded bitstream.
-This may not be a full reconstruction depending on the loss semantics of the protcol.
+This may not be a full reconstruction depending on the loss semantics of the protocol.
 The reassembled encoded bitstream is decoded and rendered.
 
 
