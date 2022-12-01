@@ -332,7 +332,7 @@ Warp endpoints communicate over QUIC streams. Every stream is a sequence of mess
 The first stream opened is a client-initiated bidirectional stream where the peers exchange SETUP messages ({{setup}}). The subsequent streams MAY be either unidirectional and bidirectional. For exchanging media, an application would typically send a unidirectional stream containing a single SEGMENT message ({{segment}}).
 
 Messages SHOULD be sent over the same stream if ordering is desired.
-For example, ANNOUNCE\_TRACK and SUBSCRIBE\_TRACK messages SHOULD be sent on the same stream to avoid a race.
+For example, PUBLISH\_TRACK and SUBSCRIBE\_TRACK messages SHOULD be sent on the same stream to avoid a race.
 
 ## Prioritization
 Warp utilizes stream prioritization to deliver the most important content during congestion.
@@ -421,7 +421,7 @@ The Message Length field contains the length of the Message Payload field in byt
 |------|----------------------------------------|
 | 0x1  | SETUP ({{setup}})                      |
 |------|----------------------------------------|
-| 0x2  | ANNOUNCE\_TRACK ({{announce-track}})   |
+| 0x2  | PUBLISH\_TRACK ({{publish-track}})   |
 |------|----------------------------------------|
 | 0x3  | SUBSCRIBE\_TRACK ({{subscribe-track}}) |
 |------|----------------------------------------|
@@ -481,7 +481,7 @@ This document defines the following headers:
 
 * Track ID:
 The track identifier.
-The decoder SHOULD block until the cooresponding ANNOUNCE\_TRACK message ({{announce-track}}) has been received.
+The decoder SHOULD block until the cooresponding PUBLISH\_TRACK message ({{publish-track}}) has been received.
 
 * Segment ID:
 A unique identifier for each segment within a track.
@@ -503,12 +503,12 @@ The format depends on the track format ({{track-format}}).
 This contains a media bitstream intended for the decoder and SHOULD NOT be processed by a relay.
 
 
-## ANNOUNCE\_TRACK {#announce-track}
-The sender advertises an available track via the ANNOUNCE\_TRACK message.
+## PUBLISH\_TRACK {#publish-track}
+The sender advertises an available track via the PUBLISH\_TRACK message.
 The receiver can ask for tracks via the SUBSCRIBE\_TRACK ({{subscribe-track}}) message based on this information.
 
 ~~~
-ANNOUNCE\_TRACK Message {
+PUBLISH\_TRACK Message {
   Track ID (i),
   Track Format (i),
   Max Bitrate (i),
@@ -516,13 +516,13 @@ ANNOUNCE\_TRACK Message {
   Init Payload (..),
 }
 ~~~
-{: #warp-publish-format title="Warp ANNOUNCE\_TRACK Message"}
+{: #warp-publish-format title="Warp PUBLISH\_TRACK Message"}
 
-Each ANNOUNCE\_TRACK message starts with a header, containing information useful for a relay:
+Each PUBLISH\_TRACK message starts with a header, containing information useful for a relay:
 
 * Track ID:
 An identifier for the track.
-The track MAY be updated by sending a ANNOUNCE\_TRACK message with the same Track ID.
+The track MAY be updated by sending a PUBLISH\_TRACK message with the same Track ID.
 
 * Track Format:
 The track format, as defined in {{track-format}}.
@@ -657,7 +657,7 @@ A Common Media Application Format Segment {{CMAF}} meets all these requirements.
 Media fragments can be packaged at any frequency, causing a trade-off between overhead and latency.
 It is RECOMMENDED that a media fragment consists of a single frame to minimize latency.
 
-The ANNOUNCE\_TRACK message ({{announce-track}}) payload MUST be an initization segment.
+The PUBLISH\_TRACK message ({{publish-track}}) payload MUST be an initization segment.
 The SEGMENT message ({{segment}}) payload MUST be a media segment, which consists of any number of media fragments.
 
 # Security Considerations
