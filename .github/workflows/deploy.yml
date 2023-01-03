@@ -26,7 +26,7 @@ jobs:
 
     steps:
       - name: Setup Ruby
-        uses: actions/setup-ruby@v1
+        uses: actions/setup-ruby@v2
         with:
           ruby-version: '2.x'
 
