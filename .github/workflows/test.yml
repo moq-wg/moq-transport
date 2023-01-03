@@ -11,7 +11,7 @@ jobs:
       - name: Setup Ruby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: 'head'
+          ruby-version: '2.7'
 
       - name: Setup kramdown-rfc
         run: gem install kramdown-rfc
