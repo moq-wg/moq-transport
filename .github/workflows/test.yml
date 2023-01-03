@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Setup Ruby
-        uses: actions/setup-ruby@v2
+        uses: ruby/setup-ruby@v1
         with:
           ruby-version: '2.x'
 
