@@ -199,7 +199,7 @@ However the media protocol is now responsible for fragmentation, congestion cont
 This added complexity significantly raises the implementation difficulty and hurts interoperability.
 
 A goal of this draft is to get the best of both worlds: a simple protocol that can still rapidly detect and respond to congestion.
-This is possible emergence of QUIC, designed to fix the shortcomings of TCP.
+This is possible with the emergence of QUIC, designed to fix the shortcomings of TCP.
 
 ## Universal
 The media protocol ecosystem is fragmented; each protocol has it's own niche.
