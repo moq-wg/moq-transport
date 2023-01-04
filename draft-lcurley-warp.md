@@ -1,5 +1,5 @@
 ---
-title: "Warp - Segmented Live Media Transport"
+title: "Warp - Live Media Transport over QUIC"
 abbrev: WARP
 docname: draft-lcurley-warp-latest
 date: {DATE}
@@ -54,9 +54,9 @@ informative:
 
 --- abstract
 
-This document defines the core behavior for Warp, a segmented live media transport protocol over QUIC.
-Media is split into segments based on the underlying media encoding and transmitted independently over QUIC streams.
-QUIC streams are prioritized based on the delivery order, allowing less important segments to be starved or dropped during congestion.
+This document defines the core behavior for Warp, a live media transport protocol over QUIC.
+Media is split into objects based on the underlying media encoding and transmitted independently over QUIC streams.
+QUIC streams are prioritized based on the delivery order, allowing less important objects to be starved or dropped during congestion.
 
 --- middle
 
@@ -65,10 +65,10 @@ QUIC streams are prioritized based on the delivery order, allowing less importan
 Warp is a live media transport protocol that utilizes the QUIC network protocol {{QUIC}}.
 
 * {{motivation}} covers the background and rationale behind Warp.
-* {{segments}} covers how media is encoded and split into segments.
+* {{objects}} covers how media is fragmented into objects.
 * {{quic}} covers how QUIC is used to transfer media.
 * {{messages}} covers how messages are encoded on the wire.
-* {{containers}} covers how media is packaged.
+* {{containers}} covers how media tracks are packaged.
 
 
 ## Terms and Definitions
@@ -141,10 +141,6 @@ Producer:
 
 : A QUIC endpoint sending media over the network. This could be the media encoder or middleware.
 
-Rendition:
-
-: One or more tracks with the same content but different encodings.
-
 Server:
 
 : The party accepting an incoming Warp session.
@@ -156,6 +152,11 @@ Slice:
 Track:
 
 : An encoded bitstream, representing a single video/audio component that makes up the larger broadcast. See {{tracks}}.
+
+Variant:
+
+: A track with the same content but different encoding as another track. For example, a different bitrate, codec, language, etc.
+
 
 This document uses the conventions detailed in Section 1.3 of {{!RFC9000}} when describing the binary encoding.
 
@@ -172,6 +173,7 @@ A Warp broadcast is globally identifiable via a URI. Within the broadcast, every
 Depending on the profile of the application using it, Warp supports both a mode of operation where the peer unilaterally sends a broadcast with the media tracks of its choice, and a mode where the peer has to explicitly subscribe to a broadcast and select media tracks it wishes to receive.
 
 As an example, consider a scenario where `example.org` hosts a simple live stream that anyone can subscribe to. That live stream would be a single Warp broadcast identified by the URL `https://example.org/livestream`. In the simplest implementation, it would provide only two media tracks, one with audio and one with video. In more complicated scenarios, it could provide multiple video formats of different levels of video quality; those tracks would be variants of each other. Note that the track IDs are opaque on the Warp level; if the player has not received the description of media tracks out of band in advance, it would have to request the broadcast description first.
+
 
 # Motivation
 
@@ -244,52 +246,52 @@ This ensures that relays can easily route/fanout media to the final destination.
 This also ensures that congestion response is consistent at every hop based on the preferences of the media producer.
 
 
-# Segments
-Warp works by splitting media into segments that can be transferred over QUIC streams.
+# Objects
+Warp works by splitting media into objects that can be transferred over QUIC streams.
 
-* The encoder determines how to fragment the encoded bitstream into segments ({{media}}).
-* Segments are assigned an intended delivery order that should be obeyed during congestion ({{delivery-order}})
-* Segments can be dependent on other segments, in which case reordering is required ({{dependencies}}).
-* The decoder receives each segment and skips any segments that do not arrive in time ({{decoder}}).
+* The encoder determines how to fragment the encoded bitstream into objects ({{media}}).
+* Objects are assigned an intended delivery order that should be obeyed during congestion ({{delivery-order}})
+* Objects can be dependent on other objects, in which case reordering is required ({{dependencies}}).
+* The decoder receives each objects and skips any objects that do not arrive in time ({{decoder}}).
 
 ## Media
 An encoder produces one or more codec bitstreams for each track.
 The decoder processes the codec bitstreams in the same order they were produced, with some possible exceptions based on the encoding.
 See the appendix for an overview of media encoding ({{appendix.encoding}}).
 
-Warp works by fragmenting the bitstream into segments that can be transmitted somewhat independently.
-Depending on how the segments are fragmented, the decoder has the ability to safely drop media during congestion.
+Warp works by fragmenting the bitstream into objects that can be transmitted somewhat independently.
+Depending on how the objects are fragmented, the decoder has the ability to safely drop media during congestion.
 See the appendix for fragmentation examples ({{appendix.examples}})
 
-A segment:
+A media object:
 
 * MUST contain a single track.
 * MUST be in decode order. This means an increasing DTS.
 * MAY contain any number of frames/samples.
 * MAY have gaps between frames/samples.
-* MAY overlap with other segments. This means timestamps may be interleaved between segments.
-* MAY reference frames in other segments, but only if listed as a dependency.
+* MAY overlap with other objects. This means timestamps may be interleaved between objects.
+* MAY reference frames in other objects, but only if listed as a dependency.
 
-Segments are encoded using a specified container ({{containers}}).
+Media objects are encoded using a specified container ({{containers}}).
 
 ## Delivery Order
 Media is produced with an intended order, both in terms of when media should be presented (PTS) and when media should be decoded (DTS).
 As stated in motivation ({{latency}}), the network is unable to maintain this ordering during congestion without increasing latency.
 
-The encoder determines how to behave during congestion by assigning each segment a numeric delivery order.
+The encoder determines how to behave during congestion by assigning each object a numeric delivery order.
 The delivery order SHOULD be followed when possible to ensure that the most important media is delivered when throughput is limited.
-Note that the contents within each segment are still delivered in order; this delivery order only applies to the ordering between segments.
+Note that the contents within each object are still delivered in order; this delivery order only applies to the ordering between objects.
 
-A segment MUST NOT have a smaller delivery order than a segment it depends on.
-Delivering segments out of dependency order will increase latency and can cause artifacting when memory limits are tight.
+An object MUST NOT have a smaller delivery order than an object it depends on.
+Delivering objects out of dependency order will increase latency and can cause artifacting when memory limits are tight.
 This is especially problematic and can cause a deadlock if the receiver does not release flow control until dependencies are received.
 
-A sender MUST send each segment over a dedicated QUIC stream.
+A sender MUST send each object over a dedicated QUIC stream.
 The QUIC library should support prioritization ({{prioritization}}) such that streams are transmitted in delivery order.
 
-A receiver MUST NOT assume that segments will be received in delivery order for a number of reasons:
+A receiver MUST NOT assume that objects will be received in delivery order for a number of reasons:
 
-* Newly encoded segments MAY have a smaller delivery order than outstanding segments.
+* Newly encoded objects MAY have a smaller delivery order than outstanding objects.
 * Packet loss or flow control MAY delay the delivery of individual streams.
 * The sender might not support QUIC stream prioritization.
 
@@ -298,26 +300,26 @@ Media encoding uses references to improve the compression.
 This creates hard and soft dependencies that need to be respected by the transport.
 See the appendex for an overview of media encoding ({{appendix.encoding}}).
 
-A segment MAY depend on any number of other segments.
-The encoder MUST indicate these dependecies on the wire via the SEGMENT header ({{segment}}).
+An object MAY depend on any number of other objects.
+The encoder MUST indicate these dependecies on the wire via the OBJECT header ({{object}}).
 
-The sender SHOULD NOT use this list of dependencies to determine which segment to transmit next.
+The sender SHOULD NOT use this list of dependencies to determine which object to transmit next.
 The sender SHOULD use the delivery order instead, which MUST respect dependencies.
 
-The decoder SHOULD process segments according to their dependencies.
-This means buffering a segment until the relevent timestamps have been processed in all dependencies.
+The decoder SHOULD process object according to their dependencies.
+This means buffering a object until the relevent timestamps have been processed in all dependencies.
 A decoder MAY drop dependencies at the risk of producing decoding errors and artifacts.
 
 
 ## Decoder
-The decoder will receive multiple segments in parallel and out of order.
+The decoder will receive multiple objects in parallel and out of order.
 
-Segments arrive in delivery order, but media usually needs to be processed in decode order.
-The decoder SHOULD use a buffer to reassmble segments into decode order and it SHOULD skip segments after a configurable duration.
-The amount of time the decoder is willing to wait for a segment (buffer duration) is what ultimately determines the end-to-end latency.
+Objects arrive in delivery order, but media usually needs to be processed in decode order.
+The decoder SHOULD use a buffer to reassmble objects into decode order and it SHOULD skip objects after a configurable duration.
+The amount of time the decoder is willing to wait for an object (buffer duration) is what ultimately determines the end-to-end latency.
 
-Segments MUST synchronize frames within and between tracks using presentation timestamps within the container.
-Segments are NOT REQUIRED to be aligned and the decoder MUST be prepared to skip over any gaps.
+Objects MUST synchronize frames within and between tracks using presentation timestamps within the container.
+Objects are NOT REQUIRED to be aligned and the decoder MUST be prepared to skip over any gaps.
 
 
 # QUIC
@@ -342,7 +344,7 @@ For example, including a authentication token and some identifier in the path.
 ## Streams
 Warp endpoints communicate over QUIC streams. Every stream is a sequence of messages, framed as described in {{messages}}.
 
-The first stream opened is a client-initiated bidirectional stream where the peers exchange SETUP messages ({{setup}}). The subsequent streams MAY be either unidirectional and bidirectional. For exchanging media, an application would typically send a unidirectional stream containing a single SEGMENT message ({{segment}}).
+The first stream opened is a client-initiated bidirectional stream where the peers exchange SETUP messages ({{setup}}). The subsequent streams MAY be either unidirectional and bidirectional. For exchanging media, an application would typically send a unidirectional stream containing a single OBJECT message ({{object}}).
 
 Messages SHOULD be sent over the same stream if ordering is desired.
 For example, `PAUSE` and `PLAY` messages SHOULD be sent on the same stream to avoid a race.
@@ -374,7 +376,7 @@ The sender MAY cancel streams in response to congestion.
 This can be useful when the sender does not support stream prioritization.
 
 ## Relays
-Warp encodes the delivery information for a stream via SEGMENT headers ({{segment}}).
+Warp encodes the delivery information for a stream via OBJECT headers ({{object}}).
 
 A relay SHOULD prioritize streams ({{prioritization}}) based on the delivery order.
 A relay MAY change the delivery order, in which case it SHOULD update the value on the wire for future hops.
@@ -449,7 +451,7 @@ The Message Length field contains the length of the Message Payload field in byt
 |------|-----------------------|
 | ID   | Messages              |
 |-----:|:----------------------|
-| 0x0  | SEGMENT ({{segment}}) |
+| 0x0  | OBJECT ({{object}})   |
 |------|-----------------------|
 | 0x1  | SETUP ({{setup}})     |
 |------|-----------------------|
@@ -488,27 +490,27 @@ The client offers the list of the protocol versions it supports; the server MUST
 
 The SETUP parameters are described in the {{setup-parameters}} section.
 
-## SEGMENT
-A SEGMENT message contains a single segment associated with a specified track, as well as associated metadata required to deliver, cache, and forward it.
+## OBJECT
+A OBJECT message contains a single media object associated with a specified track, as well as associated metadata required to deliver, cache, and forward it.
 
-The format of the SEGMENT message is as follows:
+The format of the OBJECT message is as follows:
 
 ~~~
-SEGMENT Header {
+OBJECT Header {
   Header Name Length (8),
   Header Name (..),
   Header Value Length (i),
   Header Value (..),
 }
 
-SEGMENT Message {
+OBJECT Message {
   Track ID (i),
-  Number of Segment Headers (i),
-  Segment Headers (..) ...,
-  Segment Payload (..)
+  Number of Object Headers (i),
+  Object Headers (..) ...,
+  Object Payload (..)
 }
 ~~~
-{: #warp-segment-format title="Warp SEGMENT Message"}
+{: #warp-object-format title="Warp OBJECT Message"}
 
 This document defines the following headers:
 
@@ -524,7 +526,7 @@ This field is optional and the default value is 0.
 An list of dependencies by stream identifier ({{dependencies}}).
 This field is optional and the default value is an empty array.
 
-The payload of the SEGMENT message consists of a fragmented MP4 container ({{fmp4}}).
+The payload of the OBJECT message consists of a fragmented MP4 container ({{fmp4}}).
 
 ## GOAWAY
 The `GOAWAY` message is sent by the server to force the client to reconnect.
@@ -542,7 +544,7 @@ The client:
 
 * MUST establish a new WebTransport session to the provided URL upon receipt of a `GOAWAY` message.
 * SHOULD establish the connection in parallel which MUST use different QUIC connection.
-* SHOULD remain connected for two servers for a short period, processing segments from both in parallel.
+* SHOULD remain connected for two servers for a short period, processing objects from both in parallel.
 
 # SETUP Parameters
 
@@ -590,7 +592,7 @@ Each media fragment consists of a Movie Fragment Box (moof) followed by a Media 
 The Media Fragment Box (moof) MUST contain a Movie Fragment Header Box (mfhd) and Track Box (trak) with a Track ID (`track_ID`) matching a Track Box in the initialization fragment.
 A Common Media Application Format Segment {{CMAF}} meets all these requirements.
 
-Each SEGMENT message ({{segment}}) MUST start with an initialization segment, or MUST depend on a SEGMENT that does. The rest of the SEGMENT message MAY be a media segment.
+Each OBJECT message ({{object}}) MUST start with an initialization segment, or MUST depend on a OBJECT that does. The rest of the OBJECT message MAY be a media segment.
 
 Media fragments can be packaged at any frequency, causing a trade-off between overhead and latency.
 It is RECOMMENDED that a media fragment consists of a single frame to minimize latency.
@@ -615,7 +617,7 @@ TODO: fill out currently missing registries:
 * SETUP parameters
 * Track format numbers
 * Message types
-* Segment headers
+* Object headers
 
 # Appendix A. Video Encoding {#appendix.encoding}
 In order to transport media, we first need to know how media is encoded.
@@ -635,7 +637,7 @@ For example:
 
 Tracks can be muxed together into a single container or stream.
 The goal of Warp is to independently deliver tracks, and even parts of a track, so this is not allowed.
-Each Warp segment MUST contain a single track.
+Each Warp object MUST contain a single track.
 
 ## Init {#appendix.init}
 Media codecs have a wide array of configuration options.
@@ -643,7 +645,7 @@ For example, the resolution, the color space, the features enabled, etc.
 
 Before playback can begin, the decoder needs to know the configuration.
 This is done via a short payload at the very start of the media file.
-The initialization payload MAY be cached and reused between segments with the same configuration.
+The initialization payload MAY be cached and reused between objects with the same configuration.
 
 ## Video {#appendix.video}
 Video is a sequence of pictures (frames) with a presentation timestamp (PTS).
@@ -751,8 +753,8 @@ S S S S S S S S S S S S S ...
 ~~~
 
 
-# Appendix B. Segment Examples {#appendix.examples}
-Warp offers a large degree of flexibility on how segments are fragmented and prioritized.
+# Appendix B. Object Examples {#appendix.examples}
+Warp offers a large degree of flexibility on how objects are fragmented and prioritized.
 There is no best solution; it depends on the desired complexity and user experience.
 
 This section provides a summary of some options available.
@@ -763,11 +765,11 @@ This section provides a summary of some options available.
 A group of pictures (GoP) is consists of an I-frame and all frames that directly or indirectly reference it ({{appendix.gop}}).
 The tail of a GoP can be dropped without causing decode errors, even if the encoding is otherwise unknown, making this the safest option.
 
-It is RECOMMENDED that each segment consist of a single GoP.
+It is RECOMMENDED that each object consist of a single GoP.
 For example:
 
 ~~~
-    segment 1       segment 2    segment 3
+     object 1        object 2     object 3
 +---------------+---------------+---------
 | I  P  B  P  B | I  P  B  P  B | I  P  B
 +---------------+---------------+---------
@@ -779,25 +781,25 @@ A better option may be available below.
 ### Scalable Video Coding
 Some codecs support scalable video coding (SVC), in which the encoder produces multiple bitstreams in a hierarchy ({{appendix.svc}}).
 
-When SVC is used, it is RECOMMENDED that each segment consist of a single layer and GoP.
+When SVC is used, it is RECOMMENDED that each object consist of a single layer and GoP.
 For example:
 
 ~~~
-               segment 3             segment 6
+                object 3              object 6
       +-------------------------+---------------
    4k |  P <- P <- P <- P <- P  |  P <- P <- P
       |  |    |    |    |    |  |  |    |    |
       |  v    v    v    v    v  |  v    v    v
       +-------------------------+--------------
 
-               segment 2             segment 5
+                object 2              object 5
       +-------------------------+---------------
 1080p |  P <- P <- P <- P <- P  |  P <- P <- P
       |  |    |    |    |    |  |  |    |    |
       |  v    v    v    v    v  |  v    v    v
       +-------------------------+--------------
 
-               segment 1             segment 4
+                object 1              object 4
       +-------------------------+---------------
  360p |  I <- P <- P <- P <- P  |  I <- P <- P
       +-------------------------+---------------
@@ -805,10 +807,10 @@ For example:
 
 
 ### Frames
-With full knowledge of the encoding, the encoder MAY can split a GoP into multiple segments based on the frame.
+With full knowledge of the encoding, the encoder MAY can split a GoP into multiple objects based on the frame.
 However, this is highly dependent on the encoding, and the additional complexity might not improve the user experience.
 
-For example, we could split our example B-frame structure ({{appendix.b-frame}}) into 13 segments:
+For example, we could split our example B-frame structure ({{appendix.b-frame}}) into 13 objects:
 
 ~~~
       2     4           7     9           12
@@ -820,10 +822,10 @@ For example, we could split our example B-frame structure ({{appendix.b-frame}})
    1     3     5     6     8     10    11    13
 ~~~
 
-To reduce the number of segments, segments can be merged with their dependency.
-QUIC streams will deliver each segment in order so this produces the same result as reordering within the application.
+Objects can be merged with their dependency to reduce the total number of objects.
+QUIC streams will deliver each object in order so the QUIC library performs the reordering.
 
-The same GoP structure can be represented using eight segments:
+The same GoP structure can be represented using eight objects:
 
 ~~~
       2     3           5     6           8
@@ -835,79 +837,79 @@ The same GoP structure can be represented using eight segments:
          1                 4              7
 ~~~
 
-We can further reduce the number of segments by combining frames that don't depend on each other.
-The only restriction is that frames can only reference frames earlier in the segment, or within a dependency segment.
-For example, non-reference frames can have their own segment so they can be prioritized or dropped separate from reference frames.
+We can further reduce the number of objects by combining frames that don't depend on each other.
+The only restriction is that frames can only reference frames earlier in the object, or within a dependency object.
+For example, non-reference frames can have their own object so they can be prioritized or dropped separate from reference frames.
 
-The same GoP structure can also be represented using six segments, although we've removed the ability to drop individual B-frames:
+The same GoP structure can also be represented using six objects, although we've removed the ability to drop individual B-frames:
 
 ~~~
-   segment 2     segment 4   segment 6
+    object 2      object 4    object 6
 +-------------+-------------+---------
 |    B   B    |    B   B    |    B
 +-------------+-------------+---------
 |  I   P   P  |  I   P   P  |  I   P
 +-------------+-------------+---------
-   segment 1     segment 3   segment 5
+    object 1      object 3    object 5
 ~~~
 
 ### Init
 Initialization data ({{appendix.init}}) is required to initialize the decoder.
-Each segment MAY start with initialization data although this adds overhead.
+Each object MAY start with initialization data although this adds overhead.
 
-Instead, it is RECOMMENDED to create a init segment.
-Each media segment can then depend on the init segment to avoid the redundant overhead.
+Instead, it is RECOMMENDED to create a init object.
+Each media object can then depend on the init object to avoid the redundant overhead.
 For example:
 
 ~~~
-    segment 2       segment 3    segment 5
+     object 2        object 3     object 5
 +---------------+---------------+---------
 | I  P  B  P  B | I  P  B  P  B | I  P  B
 +---------------+---------------+---------
 |              init             |  init
 +-------------------------------+---------
-             segment 1           segment 4
+              object 1            object 4
 ~~~
 
 
 ## Audio
 Audio ({{appendix.audio}}) is much simpler than video so there's fewer options.
 
-The simplest configuration is to use a single segment for each audio track.
+The simplest configuration is to use a single object for each audio track.
 This may seem inefficient given the ease of dropping audio samples.
 However, the audio bitrate is low and gaps cause quite a poor user experience, when compared to video.
 
 ~~~
-         segment 1
+          object 1
 +---------------------------
 | S S S S S S S S S S S S S
 +---------------------------
 ~~~
 
-An improvement is to periodically split audio samples into separate segments.
+An improvement is to periodically split audio samples into separate objects.
 This gives the consumer the ability to skip ahead during severe congestion or temporary connectivity loss.
 
 ~~~
-    segment 1       segment 2    segment 3
+     object 1        object 2     object 3
 +---------------+---------------+---------
 | S  S  S  S  S | S  S  S  S  S | S  S  S
 +---------------+---------------+---------
 ~~~
 
-This frequency of audio segments is configurable, at the cost of additional overhead.
-It's NOT RECOMMENDED to create a segment for each audio frame because of this overhead.
+This frequency of audio objects is configurable, at the cost of additional overhead.
+It's NOT RECOMMENDED to create a object for each audio frame because of this overhead.
 
 Since video can only recover from severe congestion with an I-frame, so there's not much point recovering audio at a separate interval.
-It is RECOMMENDED to create a new audio segment at each video I-frame.
+It is RECOMMENDED to create a new audio object at each video I-frame.
 
 ~~~
-    segment 1       segment 3    segment 5
+     object 1        object 3     object 5
 +---------------+---------------+---------
 | S  S  S  S  S | S  S  S  S  S | S  S  S
 +---------------+---------------+---------
 | I  P  B  P  B | I  P  B  P  B | I  P  B
 +---------------+---------------+---------
-    segment 2       segment 4    segment 6
+     object 2        object 4     object 6
 ~~~
 
 ## Delivery Order {#appendix.delivery-order}
