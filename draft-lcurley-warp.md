@@ -251,7 +251,6 @@ Warp works by splitting media into objects that can be transferred over QUIC str
 
 * The encoder determines how to fragment the encoded bitstream into objects ({{media}}).
 * Objects are assigned an intended delivery order that should be obeyed during congestion ({{delivery-order}})
-* Objects can be dependent on other objects, in which case reordering is required ({{dependencies}}).
 * The decoder receives each objects and skips any objects that do not arrive in time ({{decoder}}).
 
 ## Media
@@ -270,7 +269,6 @@ A media object:
 * MAY contain any number of frames/samples.
 * MAY have gaps between frames/samples.
 * MAY overlap with other objects. This means timestamps may be interleaved between objects.
-* MAY reference frames in other objects, but only if listed as a dependency.
 
 Media objects are encoded using a specified container ({{containers}}).
 
@@ -282,10 +280,6 @@ The encoder determines how to behave during congestion by assigning each object 
 The delivery order SHOULD be followed when possible to ensure that the most important media is delivered when throughput is limited.
 Note that the contents within each object are still delivered in order; this delivery order only applies to the ordering between objects.
 
-An object MUST NOT have a smaller delivery order than an object it depends on.
-Delivering objects out of dependency order will increase latency and can cause artifacting when memory limits are tight.
-This is especially problematic and can cause a deadlock if the receiver does not release flow control until dependencies are received.
-
 A sender MUST send each object over a dedicated QUIC stream.
 The QUIC library should support prioritization ({{prioritization}}) such that streams are transmitted in delivery order.
 
@@ -294,21 +288,6 @@ A receiver MUST NOT assume that objects will be received in delivery order for a
 * Newly encoded objects MAY have a smaller delivery order than outstanding objects.
 * Packet loss or flow control MAY delay the delivery of individual streams.
 * The sender might not support QUIC stream prioritization.
-
-## Dependencies
-Media encoding uses references to improve the compression.
-This creates hard and soft dependencies that need to be respected by the transport.
-See the appendex for an overview of media encoding ({{appendix.encoding}}).
-
-An object MAY depend on any number of other objects.
-The encoder MUST indicate these dependecies on the wire via the OBJECT header ({{object}}).
-
-The sender SHOULD NOT use this list of dependencies to determine which object to transmit next.
-The sender SHOULD use the delivery order instead, which MUST respect dependencies.
-
-The decoder SHOULD process object according to their dependencies.
-This means buffering a object until the relevent timestamps have been processed in all dependencies.
-A decoder MAY drop dependencies at the risk of producing decoding errors and artifacts.
 
 
 ## Decoder
@@ -522,10 +501,6 @@ This field is optional and MUST be unique if set.
 An integer indicating the delivery order ({{delivery-order}}).
 This field is optional and the default value is 0.
 
-* `depends`.
-An list of dependencies by stream identifier ({{dependencies}}).
-This field is optional and the default value is an empty array.
-
 The payload of the OBJECT message consists of a fragmented MP4 container ({{fmp4}}).
 
 ## GOAWAY
@@ -591,8 +566,6 @@ A media segment consists of have a Segment Type Box (styp) followed by any numbe
 Each media fragment consists of a Movie Fragment Box (moof) followed by a Media Data Box (mdat).
 The Media Fragment Box (moof) MUST contain a Movie Fragment Header Box (mfhd) and Track Box (trak) with a Track ID (`track_ID`) matching a Track Box in the initialization fragment.
 A Common Media Application Format Segment {{CMAF}} meets all these requirements.
-
-Each OBJECT message ({{object}}) MUST start with an initialization segment, or MUST depend on a OBJECT that does. The rest of the OBJECT message MAY be a media segment.
 
 Media fragments can be packaged at any frequency, causing a trade-off between overhead and latency.
 It is RECOMMENDED that a media fragment consists of a single frame to minimize latency.
@@ -838,7 +811,7 @@ The same GoP structure can be represented using eight objects:
 ~~~
 
 We can further reduce the number of objects by combining frames that don't depend on each other.
-The only restriction is that frames can only reference frames earlier in the object, or within a dependency object.
+The only restriction is that frames can only reference frames earlier in the object.
 For example, non-reference frames can have their own object so they can be prioritized or dropped separate from reference frames.
 
 The same GoP structure can also be represented using six objects, although we've removed the ability to drop individual B-frames:
