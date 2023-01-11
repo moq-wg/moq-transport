@@ -39,6 +39,7 @@ normative:
   QUIC: RFC9000
   QUIC-RECOVERY: RFC9002
   WebTransport: I-D.ietf-webtrans-http3
+  URI: RFC3986
 
   ISOBMFF:
     title: "Information technology — Coding of audio-visual objects — Part 12: ISO Base Media File Format"
@@ -158,7 +159,15 @@ Variant:
 : A track with the same content but different encoding as another track. For example, a different bitrate, codec, language, etc.
 
 
+## Notational Conventions
+
 This document uses the conventions detailed in Section 1.3 of {{!RFC9000}} when describing the binary encoding.
+
+This document also defines an additional field type for binary data:
+
+x (b):
+: Indicates that x consists of a variable length integer, followed by that many bytes of binary data.
+
 
 # Model
 
@@ -172,7 +181,7 @@ A Warp broadcast is globally identifiable via a URI. Within the broadcast, every
 
 Depending on the profile of the application using it, Warp supports both a mode of operation where the peer unilaterally sends a broadcast with the media tracks of its choice, and a mode where the peer has to explicitly subscribe to a broadcast and select media tracks it wishes to receive.
 
-As an example, consider a scenario where `example.org` hosts a simple live stream that anyone can subscribe to. That live stream would be a single Warp broadcast identified by the URL `https://example.org/livestream`. In the simplest implementation, it would provide only two media tracks, one with audio and one with video. In more complicated scenarios, it could provide multiple video formats of different levels of video quality; those tracks would be variants of each other. Note that the track IDs are opaque on the Warp level; if the player has not received the description of media tracks out of band in advance, it would have to request the broadcast description first.
+As an example, consider a scenario where `example.org` hosts a simple live stream that anyone can subscribe to. That live stream would be a single Warp broadcast identified by the URI `warp://example.org/livestream`. In the simplest implementation, it would provide only two media tracks, one with audio and one with video. In more complicated scenarios, it could provide multiple video formats of different levels of video quality; those tracks would be variants of each other. Note that the track IDs are opaque on the Warp level; if the player has not received the description of media tracks out of band in advance, it would have to request the broadcast description first.
 
 
 # Motivation
@@ -321,8 +330,8 @@ It is RECOMMENDED to use WebTransport over HTTP/3.
 The application SHOULD use the WebTransport CONNECT request for authentication.
 For example, including an authentication token in the path.
 
-An endpoint MAY terminate the connection with an error ({{termination}}) if the peer attempts an unauthorized action.
-For example, attempting to use a different role than pre-negotated ({{role}}) or using an invalid broadcast URL ({{message-catalog}}).
+An endpoint SHOULD terminate the connection with an error ({{termination}}) if the peer attempts an unauthorized action.
+For example, attempting to use a different role than pre-negotated ({{role}}) or using an invalid broadcast URI ({{message-catalog}}).
 
 ## Streams
 Warp endpoints communicate over QUIC streams. Every stream is a sequence of messages, framed as described in {{messages}}.
@@ -386,9 +395,7 @@ Senders SHOULD use a congestion control algorithm that is designed for applicati
 Senders MAY periodically pad the connection with QUIC PING frames to fill the congestion window.
 
 ## Termination
-The QUIC connection can be terminated at any point with an error code.
-
-An endpoint MAY terminate the QUIC connection with an error code of 0 to indicate the clean termination of the session.
+The WebTransport session can be terminated at any point with an error code.
 
 |------|--------------------|
 | Code | Reason             |
@@ -416,13 +423,10 @@ Both unidirectional and bidirectional Warp streams are sequences of length-delim
 ~~~
 Warp Message {
   Message Type (i),
-  Message Length (i),
   Message Payload (..),
 }
 ~~~
 {: #warp-message-format title="Warp Message"}
-
-The Message Length field contains the length of the Message Payload field in bytes.
 
 |------|-----------------------------------|
 | ID   | Messages                          |
@@ -470,6 +474,7 @@ The client offers the list of the protocol versions it supports; the server MUST
 
 The SETUP parameters are described in the {{setup-parameters}} section.
 
+
 ## OBJECT {#message-object}
 A OBJECT message contains a single media object associated with a specified track, as well as associated metadata required to deliver, cache, and forward it.
 
@@ -477,23 +482,20 @@ The format of the OBJECT message is as follows:
 
 ~~~
 OBJECT Message {
-  Broadcast ID (i),
+  Broadcast URI (b)
   Track ID (i),
   Object ID (i),
   Object Delivery Order (i),
-  Object Payload Size (i), 
-  Object Payload (..)
+  Object Payload (b),
 }
 ~~~
 {: #warp-object-format title="Warp OBJECT Message"}
 
-This document defines the following headers:
-
-* Broadcast ID:
-The broadcast identifier.
+* Broadcast URI:
+The broadcast URI as declared in CATALOG ({{message-catalog}}).
 
 * Track ID:
-The track identifier.
+The track identifier as declared in CATALOG ({{message-catalog}}).
 
 * Object ID:
 A unique identifier for each object within the track.
@@ -505,42 +507,36 @@ An integer indicating the object delivery order ({{delivery-order}}).
 The format depends on the track container ({{containers}}).
 This is a media bitstream intended for the decoder and SHOULD NOT be processed by a relay.
 
-* Object Payload Size:
-The size of the object payload in bytes.
-
 
 ## CATALOG {#message-catalog}
 The sender advertises an available broadcast and its tracks via the CATALOG message.
 
+The format of the CATALOG message is as follows:
+
 ~~~
 CATALOG Message {
-  Broadcast ID (i),
-  Broadcast URL Size (i),
-  Broadcast URL (..),
+  Broadcast URI (b),
   Track Count (i),
   Track Descriptors (..)
 }
 ~~~
 {: #warp-catalog-format title="Warp CATALOG Message"}
 
-* Broadcast ID:
+* Broadcast URI:
 A unique identifier for the broadcast within the session.
-
-* Broadcast URL:
-An optional, globally unique identifier for the broadcast.
-
-* Broadcast URL Size:
-The size of the broadcast URL in bytes.
+This URI {{URI}} MUST use the scheme "warp".
 
 * Track Count:
-The number of tracks in the broadcast and the following track descriptors.
+The number of tracks in the broadcast.
+
+
+For each track, there is a track descriptor with the format:
 
 ~~~
 Track Descriptor {
   Track ID (i),
   Container Format (i),
-  Container Init Size (i),
-  Container Init Payload (..)
+  Container Init Payload (b)
 }
 ~~~
 {: #warp-track-descriptor title="Warp Track Descriptor"}
@@ -551,27 +547,27 @@ A unique identifier for the track within the broadcast.
 * Container Format:
 The container format as defined in {{containers}}.
 
-* Container Init Size:
-The size of the container init payload in bytes.
-
 * Container Init Payload:
 A container-specific payload as defined in {{containers}}.
+This contains base information required to decode OBJECT messages, such as codec parameters.
 
 
 ## SUBSCRIBE {#message-subscribe}
 After receiving a CATALOG message ({{message-catalog}}, the receiver sends a SUBSCRIBE message to indicate that it wishes to receive the indicated tracks within a broadcast.
 
+The format of SUBSCRIBE is as follows:
+
 ~~~
 SUBSCRIBE Message {
-  Broadcast ID (i),
+  Broadcast URI (b),
   Track Count (i),
   Track IDs (..),
 }
 ~~~
 {: #warp-subscribe-format title="Warp SUBSCRIBE Message"}
 
-* Broadcast ID:
-The broadcast identifier.
+* Broadcast URI:
+The broadcast URI as defined in CATALOG ({{message-catalog}}).
 
 * Track Count:
 The number of track IDs that follow.
@@ -629,28 +625,28 @@ The ROLE parameter (key 0x00) allows the client to specify what roles it expects
 
 The client MUST send a ROLE parameter with one of the three values specified above. The server MUST close the connection if the ROLE parameter is missing, is not one of the three above-specified values, or it is different from what the server expects based on the application in question.
 
-# Container
+# Containers
 The container format describes how the underlying codec bitstream is encoded.
 This includes timestamps, metadata, and generally anything required to decode and display the media.
 
 This draft currently specifies only a single container format.
 Future drafts and extensions may specifiy additional formats.
 
-|------|-----------------|
-| ID   | Track Format    |
-|-----:|:----------------|
-| 0x0  | fMP4 ({{fmp4}}) |
-|------|-----------------|
+|------|------------------|
+| ID   | Container Format |
+|-----:|:-----------------|
+| 0x0  | fMP4 ({{fmp4}})  |
+|------|------------------|
 
 ## fMP4
 A fragmented MP4 container  {{ISOBMFF}}.
 
-The `Container Init Payload` in a CATALOG message ({{message-catalog}}) MUST consist of a File Type Box (ftyp) followed by a Movie Box (moov).
+The "Container Init Payload" in a CATALOG message ({{message-catalog}}) MUST consist of a File Type Box (ftyp) followed by a Movie Box (moov).
 This Movie Box (moov) consists of Movie Header Boxes (mvhd), Track Header Boxes (tkhd), Track Boxes (trak), followed by a final Movie Extends Box (mvex).
 These boxes MUST NOT contain any samples and MUST have a duration of zero.
 A Common Media Application Format Header {{CMAF}} meets all these requirements.
 
-The `Object Payload` in an OBJECT message ({{message-object}}) MUST consist of a Segment Type Box (styp) followed by any number of media fragments.
+The "Object Payload" in an OBJECT message ({{message-object}}) MUST consist of a Segment Type Box (styp) followed by any number of media fragments.
 Each media fragment consists of a Movie Fragment Box (moof) followed by a Media Data Box (mdat).
 The Media Fragment Box (moof) MUST contain a Movie Fragment Header Box (mfhd) and Track Box (trak) with a Track ID (`track_ID`) matching a Track Box in the initialization fragment.
 A Common Media Application Format Segment {{CMAF}} meets all these requirements.
