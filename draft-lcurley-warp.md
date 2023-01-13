@@ -181,7 +181,7 @@ A Warp broadcast is globally identifiable via a URI. Within the broadcast, every
 
 Depending on the profile of the application using it, Warp supports both a mode of operation where the peer unilaterally sends a broadcast with the media tracks of its choice, and a mode where the peer has to explicitly subscribe to a broadcast and select media tracks it wishes to receive.
 
-As an example, consider a scenario where `example.org` hosts a simple live stream that anyone can subscribe to. That live stream would be a single Warp broadcast identified by the URI `warp://example.org/livestream`. In the simplest implementation, it would provide only two media tracks, one with audio and one with video. In more complicated scenarios, it could provide multiple video formats of different levels of video quality; those tracks would be variants of each other. Note that the track IDs are opaque on the Warp level; if the player has not received the description of media tracks out of band in advance, it would have to request the broadcast description first.
+As an example, consider a scenario where `example.org` hosts a simple live stream that anyone can subscribe to. That live stream would be a single Warp broadcast identified by the URL `https://example.org/livestream`. In the simplest implementation, it would provide only two media tracks, one with audio and one with video. In more complicated scenarios, it could provide multiple video formats of different levels of video quality; those tracks would be variants of each other. Note that the track IDs are opaque on the Warp level; if the player has not received the description of media tracks out of band in advance, it would have to request the broadcast description first.
 
 
 # Motivation
@@ -345,7 +345,7 @@ Some messages MUST be sent over the same stream, for example SUBSCRIBE messages 
 ## Prioritization
 Warp utilizes stream prioritization to deliver the most important content during congestion.
 
-The encoder may assign a numeric delivery order to each object ({{delivery-order}})
+The producer may assign a numeric delivery order to each object ({{delivery-order}})
 This is a strict prioritization scheme, such that any available bandwidth is allocated to streams in ascending priority order.
 The sender SHOULD prioritize streams based on the delivery order.
 If two streams have the same delivery order, they SHOULD receive equal bandwidth (round-robin).
@@ -395,26 +395,33 @@ Senders SHOULD use a congestion control algorithm that is designed for applicati
 Senders MAY periodically pad the connection with QUIC PING frames to fill the congestion window.
 
 ## Termination
-The WebTransport session can be terminated at any point with an error code.
+The WebTransport session can be terminated at any point with CLOSE\_WEBTRANSPORT\_SESSION capsule, consisting of an integer code and string message.
+
+The application MAY use any error message and SHOULD use a relevant code, as defined below:
 
 |------|--------------------|
 | Code | Reason             |
 |-----:|:-------------------|
 | 0x0  | Session Terminated |
 |------|--------------------|
-| 0x1  | GOAWAY             |
+| 0x1  | Generic Error      |
 |------|--------------------|
 | 0x2  | Unauthorized       |
 |------|--------------------|
+| 0x10 | GOAWAY             |
+|------|--------------------|
 
-* Session Terminated:
-The endpoint no longer desires to send or receive media.
+* Session Terminated
+No error occured, however the endpoint no longer desires to send or receive media.
 
-* GOAWAY:
-The endpoint successfully drained the session after a GOAWAY was initiated ({{message-goaway}}).
+* Generic Error
+An unclassified error occured.
 
 * Unauthorized:
 The endpoint breached an agreement, which MAY have been pre-negotiated by the application.
+
+* GOAWAY:
+The endpoint successfully drained the session after a GOAWAY was initiated ({{message-goaway}}).
 
 
 # Messages
@@ -423,10 +430,14 @@ Both unidirectional and bidirectional Warp streams are sequences of length-delim
 ~~~
 Warp Message {
   Message Type (i),
+	Message Length (i),
   Message Payload (..),
 }
 ~~~
 {: #warp-message-format title="Warp Message"}
+
+The Message Length field contains the length of the Message Payload field in bytes.
+A length of 0 indicates the message is unbounded and continues until the end of the stream.
 
 |------|-----------------------------------|
 | ID   | Messages                          |
@@ -523,8 +534,7 @@ CATALOG Message {
 {: #warp-catalog-format title="Warp CATALOG Message"}
 
 * Broadcast URI:
-A unique identifier for the broadcast within the session.
-This URI {{URI}} MUST use the scheme "warp".
+A unique identifier {{URI}} for the broadcast within the session.
 
 * Track Count:
 The number of tracks in the broadcast.
@@ -551,6 +561,9 @@ The container format as defined in {{containers}}.
 A container-specific payload as defined in {{containers}}.
 This contains base information required to decode OBJECT messages, such as codec parameters.
 
+
+An endpoint MUST NOT send multiple CATALOG messages with the same Broadcast URI.
+A future draft will add the ability to add/remove/update tracks.
 
 ## SUBSCRIBE {#message-subscribe}
 After receiving a CATALOG message ({{message-catalog}}, the receiver sends a SUBSCRIBE message to indicate that it wishes to receive the indicated tracks within a broadcast.
