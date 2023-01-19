@@ -152,7 +152,7 @@ Slice:
 
 Track:
 
-: An encoded bitstream, representing a single video/audio component that makes up the larger broadcast.
+: An encoded bitstream, representing a single media component (ex. audio, video, subtitles) that makes up the larger broadcast.
 
 Variant:
 
@@ -339,7 +339,7 @@ Warp endpoints communicate over QUIC streams. Every stream is a sequence of mess
 The first stream opened is a client-initiated bidirectional stream where the peers exchange SETUP messages ({{message-setup}}). The subsequent streams MAY be either unidirectional and bidirectional. For exchanging media, an application would typically send a unidirectional stream containing a single OBJECT message ({{message-object}}).
 
 Messages SHOULD be sent over the same stream if ordering is desired.
-Some messages MUST be sent over the same stream, for example SUBSCRIBE messages ({{message-subscribe}}) with the same broadcast ID.
+Some messages MUST be sent over the same stream, for example SUBSCRIBE messages ({{message-subscribe}}) with the same broadcast URI.
 
 
 ## Prioritization
