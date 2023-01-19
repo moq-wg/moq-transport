@@ -34,6 +34,12 @@ author:
     organization: Cisco
     email: snandaku@cisco.com
 
+  -
+    ins: V. Vasiliev
+    name: Victor Vasiliev
+    organization: Google
+    email: vasilvv@google.com
+
 
 normative:
   QUIC: RFC9000
@@ -1002,3 +1008,5 @@ For example, switching from a live stream (skippable) to an advertisement (unski
 - James Hurley
 - Jordi Cenzano
 - Mike English
+- Will Law
+- Ali Begen
