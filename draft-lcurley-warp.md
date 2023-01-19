@@ -436,7 +436,7 @@ Both unidirectional and bidirectional Warp streams are sequences of length-delim
 ~~~
 Warp Message {
   Message Type (i),
-	Message Length (i),
+  Message Length (i),
   Message Payload (..),
 }
 ~~~
