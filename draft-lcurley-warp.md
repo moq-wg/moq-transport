@@ -39,6 +39,7 @@ normative:
   QUIC: RFC9000
   QUIC-RECOVERY: RFC9002
   WebTransport: I-D.ietf-webtrans-http3
+  URI: RFC3986
 
   ISOBMFF:
     title: "Information technology — Coding of audio-visual objects — Part 12: ISO Base Media File Format"
@@ -151,14 +152,22 @@ Slice:
 
 Track:
 
-: An encoded bitstream, representing a single video/audio component that makes up the larger broadcast. See {{tracks}}.
+: An encoded bitstream, representing a single media component (ex. audio, video, subtitles) that makes up the larger broadcast.
 
 Variant:
 
 : A track with the same content but different encoding as another track. For example, a different bitrate, codec, language, etc.
 
 
+## Notational Conventions
+
 This document uses the conventions detailed in Section 1.3 of {{!RFC9000}} when describing the binary encoding.
+
+This document also defines an additional field type for binary data:
+
+x (b):
+: Indicates that x consists of a variable length integer, followed by that many bytes of binary data.
+
 
 # Model
 
@@ -317,21 +326,26 @@ WebTransport can currently operate via HTTP/3 and HTTP/2, using QUIC or TCP unde
 As mentioned in the motivation ({{motivation}}) section, TCP introduces head-of-line blocking and will result in a worse experience.
 It is RECOMMENDED to use WebTransport over HTTP/3.
 
-The application SHOULD use the CONNECT request for authentication.
-For example, including a authentication token and some identifier in the path.
+## Authentication
+The application SHOULD use the WebTransport CONNECT request for authentication.
+For example, including an authentication token in the path.
+
+An endpoint SHOULD terminate the connection with an error ({{termination}}) if the peer attempts an unauthorized action.
+For example, attempting to use a different role than pre-negotated ({{role}}) or using an invalid broadcast URI ({{message-catalog}}).
 
 ## Streams
 Warp endpoints communicate over QUIC streams. Every stream is a sequence of messages, framed as described in {{messages}}.
 
-The first stream opened is a client-initiated bidirectional stream where the peers exchange SETUP messages ({{setup}}). The subsequent streams MAY be either unidirectional and bidirectional. For exchanging media, an application would typically send a unidirectional stream containing a single OBJECT message ({{object}}).
+The first stream opened is a client-initiated bidirectional stream where the peers exchange SETUP messages ({{message-setup}}). The subsequent streams MAY be either unidirectional and bidirectional. For exchanging media, an application would typically send a unidirectional stream containing a single OBJECT message ({{message-object}}).
 
 Messages SHOULD be sent over the same stream if ordering is desired.
-For example, `PAUSE` and `PLAY` messages SHOULD be sent on the same stream to avoid a race.
+Some messages MUST be sent over the same stream, for example SUBSCRIBE messages ({{message-subscribe}}) with the same broadcast URI.
+
 
 ## Prioritization
 Warp utilizes stream prioritization to deliver the most important content during congestion.
 
-The encoder may assign a numeric delivery order to each stream ({{delivery-order}})
+The producer may assign a numeric delivery order to each object ({{delivery-order}})
 This is a strict prioritization scheme, such that any available bandwidth is allocated to streams in ascending priority order.
 The sender SHOULD prioritize streams based on the delivery order.
 If two streams have the same delivery order, they SHOULD receive equal bandwidth (round-robin).
@@ -342,6 +356,7 @@ This is relatively easy to implement; the next QUIC packet should contain a STRE
 
 The sender MUST respect flow control even if means delivering streams out of delivery order.
 It is OPTIONAL to prioritize retransmissions.
+
 
 ## Cancellation
 A QUIC stream MAY be canceled at any point with an error code.
@@ -355,7 +370,7 @@ The sender MAY cancel streams in response to congestion.
 This can be useful when the sender does not support stream prioritization.
 
 ## Relays
-Warp encodes the delivery information for a stream via OBJECT headers ({{object}}).
+Warp encodes the delivery information for a stream via OBJECT headers ({{message-object}}).
 
 A relay SHOULD prioritize streams ({{prioritization}}) based on the delivery order.
 A relay MAY change the delivery order, in which case it SHOULD update the value on the wire for future hops.
@@ -380,37 +395,33 @@ Senders SHOULD use a congestion control algorithm that is designed for applicati
 Senders MAY periodically pad the connection with QUIC PING frames to fill the congestion window.
 
 ## Termination
-The QUIC connection can be terminated at any point with an error code.
+The WebTransport session can be terminated at any point with CLOSE\_WEBTRANSPORT\_SESSION capsule, consisting of an integer code and string message.
 
-The media producer MAY terminate the QUIC connection with an error code of 0 to indicate the clean termination of the broadcast.
-The application SHOULD use a non-zero error code to indicate a fatal error.
+The application MAY use any error message and SHOULD use a relevant code, as defined below:
 
-|------|----------------------|
-| Code | Reason               |
-|-----:|:---------------------|
-| 0x0  | Broadcast Terminated |
-|------|----------------------|
-| 0x1  | GOAWAY ({{goaway}})  |
-|------|----------------------|
+|------|--------------------|
+| Code | Reason             |
+|-----:|:-------------------|
+| 0x0  | Session Terminated |
+|------|--------------------|
+| 0x1  | Generic Error      |
+|------|--------------------|
+| 0x2  | Unauthorized       |
+|------|--------------------|
+| 0x10 | GOAWAY             |
+|------|--------------------|
 
-# Tracks
+* Session Terminated
+No error occured, however the endpoint no longer desires to send or receive media.
 
-A Warp broadcast consists of one or more tracks. Each track has a *track format* associated with it; a track format defines how to interpret the track bitstream and the metadata associated with the track. This document defines a single format for a track based on [ISOBMFF]; additional documents may define new formats.
+* Generic Error
+An unclassified error occured.
 
-Every Warp track has a *track descriptor* associated with it. A track descriptor contains information required to decode the track. The descriptor has the following format:
+* Unauthorized:
+The endpoint breached an agreement, which MAY have been pre-negotiated by the application.
 
-~~~
-Track Descriptor {
-  Track ID (i),
-  Track Format (i),
-  Format-Specific Metadata (...),
-}
-~~~
-{: #warp-track-descriptor title="Warp Track Descriptor"}
-
-Here, Track ID is the unique ID that identifies the track within the broadcast. Track Format idetifies the format used by the track; for the ISOBMFF-based format described in this document, 0x00 is specified. In the case 0x00 is used, Format-Specific Metadata contains a `ftyp` box followed by a `moov` box.
-
-A track descriptor may appear in both the SETUP message and a subsequent TRACK message.
+* GOAWAY:
+The endpoint successfully drained the session after a GOAWAY was initiated ({{message-goaway}}).
 
 
 # Messages
@@ -419,25 +430,30 @@ Both unidirectional and bidirectional Warp streams are sequences of length-delim
 ~~~
 Warp Message {
   Message Type (i),
-  Message Length (i),
+	Message Length (i),
   Message Payload (..),
 }
 ~~~
 {: #warp-message-format title="Warp Message"}
 
 The Message Length field contains the length of the Message Payload field in bytes.
+A length of 0 indicates the message is unbounded and continues until the end of the stream.
 
-|------|-----------------------|
-| ID   | Messages              |
-|-----:|:----------------------|
-| 0x0  | OBJECT ({{object}})   |
-|------|-----------------------|
-| 0x1  | SETUP ({{setup}})     |
-|------|-----------------------|
-| 0x10 | GOAWAY ({{goaway}})   |
-|------|-----------------------|
+|------|-----------------------------------|
+| ID   | Messages                          |
+|-----:|:----------------------------------|
+| 0x0  | OBJECT ({{message-object}})       |
+|------|-----------------------------------|
+| 0x1  | SETUP ({{message-setup}})         |
+|------|-----------------------------------|
+| 0x2  | CATALOG ({{message-catalog}})     |
+|------|-----------------------------------|
+| 0x3  | SUBSCRIBE ({{message-subscribe}}) |
+|------|-----------------------------------|
+| 0x10 | GOAWAY ({{message-goaway}})       |
+|------|-----------------------------------|
 
-## SETUP
+## SETUP {#message-setup}
 
 The `SETUP` message is the first message that is exchanged by the client and the server; it allows the peers to establish the mutually supported version and agree on the initial configuration. It is a sequence of key-value pairs called *SETUP parameters*; the semantics and the format of individual parameter values MAY depend on what party is sending it.
 
@@ -469,41 +485,116 @@ The client offers the list of the protocol versions it supports; the server MUST
 
 The SETUP parameters are described in the {{setup-parameters}} section.
 
-## OBJECT
+
+## OBJECT {#message-object}
 A OBJECT message contains a single media object associated with a specified track, as well as associated metadata required to deliver, cache, and forward it.
 
 The format of the OBJECT message is as follows:
 
 ~~~
-OBJECT Header {
-  Header Name Length (8),
-  Header Name (..),
-  Header Value Length (i),
-  Header Value (..),
-}
-
 OBJECT Message {
+  Broadcast URI (b)
   Track ID (i),
-  Number of Object Headers (i),
-  Object Headers (..) ...,
-  Object Payload (..)
+  Object ID (i),
+  Object Delivery Order (i),
+  Object Payload (b),
 }
 ~~~
 {: #warp-object-format title="Warp OBJECT Message"}
 
-This document defines the following headers:
+* Broadcast URI:
+The broadcast URI as declared in CATALOG ({{message-catalog}}).
 
-* `id`.
-An unique identifier for the stream.
-This field is optional and MUST be unique if set.
+* Track ID:
+The track identifier as declared in CATALOG ({{message-catalog}}).
 
-* `order`.
-An integer indicating the delivery order ({{delivery-order}}).
-This field is optional and the default value is 0.
+* Object ID:
+A unique identifier for each object within the track.
 
-The payload of the OBJECT message consists of a fragmented MP4 container ({{fmp4}}).
+* Object Delivery Order:
+An integer indicating the object delivery order ({{delivery-order}}).
 
-## GOAWAY
+* Object Payload:
+The format depends on the track container ({{containers}}).
+This is a media bitstream intended for the decoder and SHOULD NOT be processed by a relay.
+
+
+## CATALOG {#message-catalog}
+The sender advertises an available broadcast and its tracks via the CATALOG message.
+
+The format of the CATALOG message is as follows:
+
+~~~
+CATALOG Message {
+  Broadcast URI (b),
+  Track Count (i),
+  Track Descriptors (..)
+}
+~~~
+{: #warp-catalog-format title="Warp CATALOG Message"}
+
+* Broadcast URI:
+A unique identifier {{URI}} for the broadcast within the session.
+
+* Track Count:
+The number of tracks in the broadcast.
+
+
+For each track, there is a track descriptor with the format:
+
+~~~
+Track Descriptor {
+  Track ID (i),
+  Container Format (i),
+  Container Init Payload (b)
+}
+~~~
+{: #warp-track-descriptor title="Warp Track Descriptor"}
+
+* Track ID:
+A unique identifier for the track within the broadcast.
+
+* Container Format:
+The container format as defined in {{containers}}.
+
+* Container Init Payload:
+A container-specific payload as defined in {{containers}}.
+This contains base information required to decode OBJECT messages, such as codec parameters.
+
+
+An endpoint MUST NOT send multiple CATALOG messages with the same Broadcast URI.
+A future draft will add the ability to add/remove/update tracks.
+
+## SUBSCRIBE {#message-subscribe}
+After receiving a CATALOG message ({{message-catalog}}, the receiver sends a SUBSCRIBE message to indicate that it wishes to receive the indicated tracks within a broadcast.
+
+The format of SUBSCRIBE is as follows:
+
+~~~
+SUBSCRIBE Message {
+  Broadcast URI (b),
+  Track Count (i),
+  Track IDs (..),
+}
+~~~
+{: #warp-subscribe-format title="Warp SUBSCRIBE Message"}
+
+* Broadcast URI:
+The broadcast URI as defined in CATALOG ({{message-catalog}}).
+
+* Track Count:
+The number of track IDs that follow.
+This MAY be zero to unsubscribe to all tracks.
+
+* Track IDs:
+A list of varint track IDs.
+
+
+Only the most recent SUBSCRIBE message for a broadcast is active.
+SUBSCRIBE messages MUST be sent on the same QUIC stream to preserve ordering.
+
+
+## GOAWAY {#message-goaway}
 The `GOAWAY` message is sent by the server to force the client to reconnect.
 This is useful for server maintenance or reassignments without severing the QUIC connection.
 The server MAY be a producer or consumer.
@@ -523,13 +614,13 @@ The client:
 
 # SETUP Parameters
 
-The SETUP message ({{setup}}) allows the peers to exchange arbitrary parameters before any media is exchanged. It is the main extensibility mechanism of Warp. The peers MUST ignore unknown parameters. TODO: describe GREASE for those.
+The SETUP message ({{message-setup}}) allows the peers to exchange arbitrary parameters before any media is exchanged. It is the main extensibility mechanism of Warp. The peers MUST ignore unknown parameters. TODO: describe GREASE for those.
 
 Every parameter MUST appear at most once within the SETUP message. The peers SHOULD verify that and close the connection if a parameter appears more than once.
 
 The ROLE parameter is mandatory for the client. All of the other parameters are optional.
 
-## ROLE parameter
+## ROLE parameter {#role}
 
 The ROLE parameter (key 0x00) allows the client to specify what roles it expects the parties to have in the Warp connection. It has three possible values:
 
@@ -548,27 +639,34 @@ The ROLE parameter (key 0x00) allows the client to specify what roles it expects
 The client MUST send a ROLE parameter with one of the three values specified above. The server MUST close the connection if the ROLE parameter is missing, is not one of the three above-specified values, or it is different from what the server expects based on the application in question.
 
 # Containers
-A media container contains the underlying codec bitstream.
-It also contains metadata, such as timestamps, which is required to decode and display the media.
+The container format describes how the underlying codec bitstream is encoded.
+This includes timestamps, metadata, and generally anything required to decode and display the media.
 
-This draft currently specifies only a single media container.
-Future drafts and extensions may specify additional containers.
+This draft currently specifies only a single container format.
+Future drafts and extensions may specifiy additional formats.
+
+|------|------------------|
+| ID   | Container Format |
+|-----:|:-----------------|
+| 0x0  | fMP4 ({{fmp4}})  |
+|------|------------------|
 
 ## fMP4
-The `video/mp4` and `audio/mp4` mimetype indicate a fragmented MP4 container {{ISOBMFF}}.
+A fragmented MP4 container  {{ISOBMFF}}.
 
-An initialization segment consists of a File Type Box (ftyp) followed by a Movie Box (moov).
+The "Container Init Payload" in a CATALOG message ({{message-catalog}}) MUST consist of a File Type Box (ftyp) followed by a Movie Box (moov).
 This Movie Box (moov) consists of Movie Header Boxes (mvhd), Track Header Boxes (tkhd), Track Boxes (trak), followed by a final Movie Extends Box (mvex).
 These boxes MUST NOT contain any samples and MUST have a duration of zero.
 A Common Media Application Format Header {{CMAF}} meets all these requirements.
 
-A media segment consists of have a Segment Type Box (styp) followed by any number of media fragments.
+The "Object Payload" in an OBJECT message ({{message-object}}) MUST consist of a Segment Type Box (styp) followed by any number of media fragments.
 Each media fragment consists of a Movie Fragment Box (moof) followed by a Media Data Box (mdat).
 The Media Fragment Box (moof) MUST contain a Movie Fragment Header Box (mfhd) and Track Box (trak) with a Track ID (`track_ID`) matching a Track Box in the initialization fragment.
 A Common Media Application Format Segment {{CMAF}} meets all these requirements.
 
 Media fragments can be packaged at any frequency, causing a trade-off between overhead and latency.
 It is RECOMMENDED that a media fragment consists of a single frame to minimize latency.
+
 
 # Security Considerations
 
