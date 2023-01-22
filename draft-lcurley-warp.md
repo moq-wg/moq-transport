@@ -61,7 +61,7 @@ informative:
 
 --- abstract
 
-This document defines the core behavior for Warp, a live media transport protocol over QUIC.
+This document defines the core behavior for Warp, a media transport protocol over QUIC.
 Media is split into objects based on the underlying media encoding and transmitted independently over QUIC streams.
 QUIC streams are prioritized based on the delivery order, allowing less important objects to be starved or dropped during congestion.
 
@@ -315,6 +315,143 @@ The amount of time the decoder is willing to wait for an object (buffer duration
 Objects MUST synchronize frames within and between tracks using presentation timestamps within the container.
 Objects are NOT REQUIRED to be aligned and the decoder MUST be prepared to skip over any gaps.
 
+# Relays
+
+The Relays play an important role for enabling low latency media 
+delivery within the Warp/MOQ architecture. This specification allows 
+for the delivery protocol based on a publish/subscribe metaphor 
+where client endpoints, called publishers, publish media objects and 
+subscribers consume those media objects that is sent to, and received 
+from relays, that forms an overlay delivery network similar/in-parallel 
+to what CDN provides today. 
+
+The subscribe messages allow subscription to aspects of Media Represenations
+that enable matching to multiple published Media Objects, so a single subscribe 
+can allow a client to receive publishes for a wide class of media objects. 
+Media Objects are identified such that it is unique for the relay/delivery 
+network.
+
+Relays provide several benefits including
+
+* Scalability – Relays provide the fan-out necessary to scale up 
+                streams to production levels (millions) of concurrent 
+                subscribers.
+
+* Reliability - Reliability is achieved by providing alternate paths for 
+               routing content, relays can improve the overall reliability 
+               of the delivery system.
+
+* Performance – Relays are usually positioned as close to the edge of a 
+                network as possible and are well-connected to each other 
+                and to the Origin via high capacity managed networks. This 
+                topography minimizes the RTT over the unmanaged last 
+                mile to the end-user, improving the latency and throughput 
+                compared to the client connecting directly to the origin.'
+
+* Security –    Relays act to shield the origin from DDOS and other 
+                malicious attacks.
+
+
+## Relay - Subscriber Interactions
+
+Subscribers interact with "MoQ Relays" by sending subscriptions to
+aspects of media representations within a WarpMediaSession. Relays 
+forward the published media objects to the subscribers matching the
+`SubscrptionId` in the subscribe request. However, Relays MUST be 
+willing to act on behalf of the subscriptions before they can 
+forward the media, which implies that the subscriptions MUST to be
+authorized.
+
+Relays need to validate subscriptions in order to ensure the 
+protect against the malicious uses of the Relay resources (compute & storage). 
+Relays can be configured by the application, in one of the 
+following modes allowing them to participate in the media delivery
+
+1. Subscriptions carry enough authorization information, for the
+   Relays to authorize the subscription.
+
+2. Relays forward the received subsciptions towards the Origin 
+   for completing the authorization process. This 
+   may involve sending the messages directly to the Origin Relay or
+   possibly traverse another Relay. 
+
+
+In all the scenarios, the end-point client making the subscribe request is
+notified of the result of the subscription, wherever applicable.
+
+For cases where the subscriptions are successfully validated, 
+Relay proceeed to save the subscription information by maintaining the mapping 
+from the `SubscriptionId`s to the list of subscribers. This will enable 
+Relays to forward on-going publishes (live or from cache) to the subscribers, 
+if available, and also forward all the future publishes, until the subscriptions
+cases to exist. Relays make such forwarding and/or caching decisions, 
+based on match of the "MediaObjectId" against the list of subscriber.
+Such a match can be a partial or full match against the `SubscriptionId`
+depending on the implementation.
+
+Subscriptions received can be aggregated at the Relays. When a relay receives 
+a publish request with data, it will forward it both towards the 
+Origin and to any clients or relays that have a matching subscriptions. 
+This "short circuit" of distribution by a relay before the data has even 
+reached the Origin servers provides significant latency reduction for clients 
+closer to the relay
+
+
+## Relay - Publisher Interactions
+
+Publisher endpoints represent media sources with in the WARP architecture
+and they publish "Media Objects" as part of WarpMediaStreams within a given 
+WarpMediaSession.
+
+Publishers MAY be configured to publish the media objects to a "MoQ Relay" based 
+on the application configuration and topology. Like with subscriptions, the 
+publishes MUST be authorized by the Origin and the Relays MUST be willing to 
+forward the published media objects.
+
+Publishers begin with publishing "Catalog" messages that idenitfies the 
+various representations/WarpMediaStreams that the publisher is willing 
+to publish the media objects on. The "Catalog" messages MUST be 
+authorized in of the following wyas
+
+1. "Catalog" message carries enough authorization information, for the
+   Relays to authorize the WarpMediaStreams advertised.
+   todo: add details on sender-constrainted auth token
+
+2. Relays forward the received Catalog messaage towards Origin, 
+   for completing the authorization process. This may involve sending the 
+   messages directly to the Origin or possibly traverse another Relay.
+
+
+Once the Catalog message is authorized, Relay would be willing to 
+participate in forwarding the published media objects whose "MediaObjectId"
+prefix matches the WarpStreamId in the Catalog.
+
+The Relay keeps an outgoing queue of objects to be sent to the 
+each subscriber and objects are sent in strict priority/delivery order. 
+Relays MAY cache some of the information for short period of time and 
+the time cached may depend on the application and also by the local 
+cache policies.
+
+Relays makes use of priority/delivery order and other metadata properties 
+from the published media objects to make forward or drop decisions when 
+reacting to congestion as indicated by the underlying QUIC stack. 
+The same can be used to make caching decisions.
+
+## Relay Discovery and Failover
+
+Relays are discovered via application defined ways that is out of scope of this 
+document. A Relay that wants to shutdown can send a message to the client with 
+the address of new relay. Client moves to the new relay with all of its 
+Subscriptions and then Client unsubscribes from old relay and closes connection to it.
+
+## Implementation Considerations
+
+
+A relay that reads from a stream and writes to stream in order will introduce head-of-line blocking.
+Packet loss will cause stream data to be buffered in the QUIC library, awaiting in order delivery, which will increase latency over additional hops.
+To mitigate this, a relay SHOULD read and write QUIC stream data out of order subject to flow control limits.
+See section 2.2 in {{QUIC}}.
+
 
 # QUIC
 
@@ -374,17 +511,6 @@ When nearing resource limits, an endpoint SHOULD cancel the lowest priority stre
 
 The sender MAY cancel streams in response to congestion.
 This can be useful when the sender does not support stream prioritization.
-
-## Relays
-Warp encodes the delivery information for a stream via OBJECT headers ({{message-object}}).
-
-A relay SHOULD prioritize streams ({{prioritization}}) based on the delivery order.
-A relay MAY change the delivery order, in which case it SHOULD update the value on the wire for future hops.
-
-A relay that reads from a stream and writes to stream in order will introduce head-of-line blocking.
-Packet loss will cause stream data to be buffered in the QUIC library, awaiting in order delivery, which will increase latency over additional hops.
-To mitigate this, a relay SHOULD read and write QUIC stream data out of order subject to flow control limits.
-See section 2.2 in {{QUIC}}.
 
 ## Congestion Control
 As covered in the motivation section ({{motivation}}), the ability to prioritize or cancel streams is a form of congestion response.
@@ -448,7 +574,7 @@ A length of 0 indicates the message is unbounded and continues until the end of 
 |------|-----------------------------------|
 | ID   | Messages                          |
 |-----:|:----------------------------------|
-| 0x0  | OBJECT ({{message-object}})       |
+| 0x0  | PUBLISH ({{message-object}})       |
 |------|-----------------------------------|
 | 0x1  | SETUP ({{message-setup}})         |
 |------|-----------------------------------|
@@ -492,8 +618,8 @@ The client offers the list of the protocol versions it supports; the server MUST
 The SETUP parameters are described in the {{setup-parameters}} section.
 
 
-## OBJECT {#message-object}
-A OBJECT message contains a single media object associated with a specified track, as well as associated metadata required to deliver, cache, and forward it.
+## PUBLISH {#message-object}
+A PUBLISH message contains a single media object associated with a specified track, as well as associated metadata required to deliver, cache, and forward it.
 
 The format of the OBJECT message is as follows:
 
