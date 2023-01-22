@@ -175,19 +175,345 @@ x (b):
 : Indicates that x consists of a variable length integer, followed by that many bytes of binary data.
 
 
-# Model
+                                                                                                      
+# Data Model - Session, Stream, Groups and Objects {#data-model}
 
-The basic element of Warp is *a media object*. A media object is a single addressable cacheable unit that may either contain a sequence of media samples, or some media-specific metadata, and may have relay-related attributes such as TTL or delivery priority associated with it. A media object is a sequence of bytes with a finite length. A Warp media object is similar in function to what is often referred to as "segments" or "chunks" in other media protocols; however, they are different from the traditional notion of chunks. The first key distinction is that Warp media objects are not always expected to be fully available, and thus any relays have to be able to convey partial media objects. The second key distinction is that Warp media objects may not be fully decodable by themselves; an object will contain a description of the prerequisites if that is the case.
+>Note: This section expands on the currently specified model  by
+adding further elements that are relay friendly and defining generic terminology 
+that is applicable across multiple application domans envisioned by MoQ Working Group.
 
-*A media track* in Warp is a combination of *an init object* and a sequence of media objects. An init object is a format-specific self-contained description of the track that is required to decode any media object contained within the track, but can also be used as the metadata for track selection. If two media tracks carry semantically equivalent but differently encoded media, they are referred to as *variants* of each other.
+This section defines data model that expresses the relationship between various WARP 
+resources for realizing the client (publishers and subscribers) and relay functionality
+for executing the protocol defined in this specification. This section doesn't define 
+mapping of the proposed data model to its transport mappings, but capture the entities 
+that form core part of WARP media delivery.                                                                                            
 
-*A Warp broadcast* is a collection of multiple media tracks produced by a single origin. When subscribing to a broadcast, a peer has an option of subscribing to one, many or all media tracks within the broadcast.
 
-A Warp broadcast is globally identifiable via a URI. Within the broadcast, every media track is identified via *a track ID* that is unique within the broadcast. Within a single media track, every media object is identified by an *object ID* that is unique within the track.
+~~~~                                                                                          
+                    ┌────────────────────────┐                                                
+                    │     WarpMediaSession   │                                                
+                    └────────────────────────┘                                                
+                      │                                                                       
+                      │                                                                       
+                      │                                         WarpMediaStream                
+   ┌─────────────────┐│                                                                       
+   │Representation-1 │├───┬───┬──┬───┬─────────────┬───┬────────────────▶  t                  
+   └─────────────────┘│   │G1 │  │G2 │  ◉  ◉  ◉    │GN │                                      
+                      │   └───┘  └───┘             └───┘                                      
+                      │     ◉      ◉                 ◉                                        
+                      │     ◉      ◉                                                          
+                      │                             WarpMediaStream                            
+   ┌─────────────────┐│                                                                       
+   │Representation-2 │├───┬───┬─────┬───┬────┬───┬──────▶  t                                  
+   └─────────────────┘│   │G1 │     │G2 │    │G3 │                                            
+                      │   └─┬─┘     └─┬─┘    └─┬─┘                                            
+                      │     │         │        │                                              
+                      │   ┌─┴─┐     ┌─┴─┐    ┌─┴─┐                                            
+                      │   │O1 │     │O1 │    │O1 │                          WarpMediaStream    
+   ┌─────────────────┐│   └───┘     └───┘    └───┘                                            
+   │Representation-3 ││─────┬──────────┬───────┬──────────┬────────────┬──────────┬───▶   t   
+   └─────────────────┘│     │ Group-1  │       │ Group-2  │   ◉  ◉  ◉  │ Group-N  │           
+                      │     └────┬─────┘       └─────┬────┘            └─────┬────┘           
+                      │          │                   │                       │                
+                      │      ┌───┴───┐           ┌───┴───┐               ┌───┴───┐            
+                      │      │object1│           │object1│               │object1│            
+                      │      ├───────┤           ├───────┤               ├───────┤            
+                             │object2│           │object2│               │object2│            
+                             ├───────┤           ├───────┤               ├───────┤            
+                             │object3│           │object3│               │object3│            
+                             └───────┘           └───────┘               ├───────┤            
+                                 ◉                                       │object4│            
+                                 ◉                                       └───────┘            
+                             ┌───────┐                                                        
+                             │objectN│                                                        
+                             └───────┘                                                        
+~~~~
 
-Depending on the profile of the application using it, Warp supports both a mode of operation where the peer unilaterally sends a broadcast with the media tracks of its choice, and a mode where the peer has to explicitly subscribe to a broadcast and select media tracks it wishes to receive.
+## MoQMediaSession/WarpMediaSession 
 
-As an example, consider a scenario where `example.org` hosts a simple live stream that anyone can subscribe to. That live stream would be a single Warp broadcast identified by the URL `https://example.org/livestream`. In the simplest implementation, it would provide only two media tracks, one with audio and one with video. In more complicated scenarios, it could provide multiple video formats of different levels of video quality; those tracks would be variants of each other. Note that the track IDs are opaque on the Warp level; if the player has not received the description of media tracks out of band in advance, it would have to request the broadcast description first.
+WarpMediaSession represents a highest level abstraction or a container from 
+a media application perspective using WARP as the media delivery protocol. 
+Each WarpMediaSession is composed of publishers sending various representations 
+(describing their capabilities) of the media sources and subscribers consuming a  
+subset of the published representations with Relays enabling the media delivery,
+wherever applicable.
+
+A WarpMediaSession can represent a Broadcast for a live media 
+session or an Interactive conference meeting session or some other applicaiton
+defined session semantics.
+
+`
+Example WarpMediaSession URL for a broadcast 
+  acme.tv/broadcasts/channel8/
+  acme.tv/broadcasts/channel8/
+`
+
+## Media Representation
+
+Media Representation identify capabilities of a publisher's media source(s) 
+within a WarpMediaSession. Representations identifies things such as
+media source type, codec info, bitrate and other attribute qualities. 
+There can be one or more media resources supported by the publisher 
+Media Resources are defined by the application.
+
+Informatively, in certain systems, the Media Resources can be 
+thought of represented as URI as shown below:
+
+Media Representation URIs as advertised by Alice for a 
+live broadcast under the session acme.tv/broadcasts/channel8/
+
+`
+  acme.tv/broadcasts/channel8/alice/hd 
+  acme.tv/broadcasts/channel8/alice/sd
+`
+
+## WarpStream/MoqStream
+
+Media within WARP is part of one or more WarpStreams. 
+There is one WarpStream per media representation advertised 
+by the media publisher. WarpStreams are made up of group of media objects. 
+A WarpStream is identified by its `WarpStreamId`, which MUST be globally
+unique and assigned by the application's Origin server. The mechanisms for 
+such an assignment is application specific and is out of scope of the 
+Warp Media Delivery Protocol. 
+
+Note: MoqStreams shouldn't be confused with QUIC Streams, although certain 
+applications might allow mapping of MOQStreams to one or more QUIC Streams.								
+
+Todo: add informative ways such an streamid represents. add examples 
+
+## WarpObjectGroup/MoqObjectGroup
+
+Media Objects within a WarpStream belongs to a conceptual group, 
+called WarpObjectsGroup (or also referred to as Group). A Group 
+(a.k.a group of objects) represent an independent 
+composition of set of objects, where there exists some form of 
+dependency relationship (such as temporal dependency or something else) 
+between the objects within the group. Groups, thus can be independently 
+consumable by the subscriber applications. Each group is identified 
+by its `GroupId`. `GroupId` always starts at 0 and increases sequentially 
+at the original media publisher.
+
+A typical example of a WarpObjectGroup for video media delivery would be 
+a group of pictures.
+
+The scope and granularity such grouping of media objects is application defined 
+and controlled. Below provide some of the ways (but not a exhaustive list), 
+a given application can setup such a grouping.
+
+* Each video GOP boundary is mapped to a WarpObjectGroup.  
+  In this grouping, a given WarpObjectGroup has one or more video 
+  frames represented as WarpMediaObjects.
+
+* Each video frame boundary is mapped to a WarpObjectGroup. 
+  In this grouping, each WarpObjectGroup has one WarpMediaObject 
+  corresponding to the encoded video frame.
+
+* Each slice of a encoded video frame is mapped to a WarpObjectGroup. 
+  In this grouping, each WarpObjectGroup has one WarpMediaObject that 
+  corresponds a slice of encoded video output.
+
+* Each WarpObjectGroup can represent the entire GOP sequence spanning 
+  the lifetime of the WarpMediaStream.
+
+* Each audio frame is mapped to a WarpObjectGroup. In this grouping, each 
+   WarpObjectGroup has a single audio frame as the WarpMediaObject.
+
+
+## WarpMediaObject/MoqMediaObject/Media Object
+
+Media Objects within Warp belong to a group and carry encoded and 
+encrypted media data. Each object within a group, is identified by 
+sequentially increasing integer, called ObjectId, starting at 0. 
+Media Objects have associated header/metadata that is authenticated (but 
+not end-to-end encrypted). The metadata contains priority/delivery order, 
+time to live, other information aiding the caching/forwarding decision at 
+the Relays. Media Objects represent the cacheable entity 
+within the Warp architecture. For the purposes of publishing, 
+caching and retrieval, a Media Object is fully identified by the following 
+components within a given WarpMediaSession
+
+`
+MediaObjectId :=   WarpStreamId  | GroupId | ObjectId
+`
+
+## Scope / Goals of the Data Model
+
+### Subscribers
+
+One of the goals of the proposed data model is to facilitate subscribers, 
+within a WarpMediSession, to request the right granularity of the media 
+resources in a way that is independent of application and a 
+given transport mapping.
+
+To that extent, the proposed data model enables following ways for the subscribers 
+(end-points or Relays) to ask for the data:
+
+    -  Request a specific WarpStream. Such a request enables subscribers to 
+       receive everything being published and all future media objects under a 
+       given representation.
+
+    -  Request media to be delivered everything in group currenly being published and 
+       all future media objects starting from  "a specific group in a WarpStream" 
+       thus allowing subscribers to control a time scale closer the beginning 
+       of a given group, say beginning of a GOP sequence.
+
+    -  Request media to be delivered starting from a given object and all future
+       published objects, under a given group within a WarpStream. This allows 
+       subscribers to sync to the closest timepoint
+       ex: start receiving the most recent audio frame or media catalog.
+
+Subcribers obtain the appropriate identifiers for the resources they
+are interested to receive via out-of-band mechanisms.
+
+
+### Relays
+
+Relays within the MoQ architecture take incoming published media objects and 
+forward the same to multiple subscribers in a low latency way and 
+they can optional cache the data as necessary.
+In order for the relays to perform above functions, a given data model must 
+enable forwarding and/or caching strategies that allows for the appropriate 
+retrieval semantics efficiently and for high performace implementations. 
+
+Let’s consider the example as show in the picture below, where a large number of 
+subscribers are interested in media streams from the publisher Alice. In this scenario, 
+the publisher Alice has a live brodcast on channel8 with video streams at 3 
+different quality (HD, 4K and SD)
+
+More specifically, 
+
+1. Subscriber - S1 is interested in the just the low quality version of the media,
+               and asks for the all the media groups/objects under the specific 
+               representation for "sd" quality, starting at group 12
+
+2. Subscriber - S2 is fine with receiving highest quality video streams published 
+               by Alice, hence asks for the all the media objects under these 
+               representations 4k.
+
+3. Rest of the Subscribers (say Sn,…) are fine with getting just the Hi-def and 
+low quality streams of the video from Alice, and asks for the representaions 
+"sd" and "hd" qualities.
+
+On the other hand, Relay at the edge subscribes to all the media from "channel8" 
+due to able to serve varying requests from the subscribers
+
+Note: The notation for identifying the resources for subscritpion are for 
+      illustration purposes only.
+
+~~~~                                                                                                                            
+                                                    
+                                                      sub: acme.tv/brodcasts/channel8/alice/sd/group12                                                                          .    
+                                                               ─────.                               
+                                                      ┌──────(  S1   )                              
+                                                      │       `─────'                               
+                                                      │                                             
+            sub: acme.tv/broadcasts/channel8          │   
+┌──────────────┐                ┌──────────────┐      │   
+│              │                │              │      │  sub: acme.tv/brodcasts/channel8/alice/
+|              |                |              |      |       4k        
+│   Ingest     │ ◀──────────────┤  Relay-Edge  │◀─────┘       .─────.                               
+│              │                │              │◀────────────(  S2   )                              
+└──────▲───────┘                └──────────────┘◀─────┐       `─────'                               
+     │                                              │          ◉                                  
+     │                                              │          ◉                                  
+  .─────.                                           │          ◉                                  
+ ( Alice )                                          │                                             
+  `─────'                                           │        .─────.                              
+                                                    └───────(  SN   )                             
+pub: acme.tv/broadcasts/channel8/alice/hd                    `─────'                              
+pub: acme.tv/broadcasts/channel8/alice/sd                                                                   
+pub: acme.tv/broadcasts/channel8/alice/4k            sub: acme.tv/brodcasts/channel8/alice/sd  
+                                                     sub: acme.tv/brodcasts/channel8/alice/hd   
+
+~~~~                                                                                                                             
+  
+ 
+This example showcases where Relays can optimize their delivery by prefetching at an 
+higher level of granularity (i.e subscribing to media from channnel8) and also performing efficient 
+lookups when delivering the published media via performing more specific matches.
+
+
+Similarly, below example shows an Interactive media session 
+
+~~~~ 
+    pub: acme.com/meetings/m123/bob/video                                                     
+  pub: acme.com/meetings/m123/bob/audio                    
+                                                                            sub:acme.com/meetings/m123/bob/audio
+              .─────.     sub:acme.com/meetings/m123/alice/audio             sub:acme.com/meetings/m123/alice/audio     
+             (  Bob  )                                                     .─────.
+              `─────'     sub:acme.com/meetings/m123/alice/video     ┌──────(  S1   )
+                 │                                                   │       `─────'
+                 │        sub:acme.com/meetings/m123/bob/audio       │
+                 │                                                   │
+                 │        sub:acme.com/meetings/m123/bob/video       │
+                 │                                                   │
+          ┌──────▼───────┐                ┌──────────────┐           │
+          │              │                │              │           │
+          │ Relay-Edge   │ ◀──────────────┤  Relay-Edge  │◀────------┘
+          │              │                │              │
+          └──────▲───────┘                └──────────────┘◀─────┐
+                 │                                              │
+                 │                                              │
+                 │                                              │
+                 │                                              │
+              .─────.                                           │
+             ( Alice )                                          │
+              `─────'                                           │        .─────.
+                                                                └───────(  S2   )
+     pub: acme.com/meetings/m123/alice/video                             `─────'
+   pub: acme.com/meetings/m123/alice/audio
+                                                        sub:acme.com/meetings/m123/alice/audio
+                                                        sub:acme.com/meetings/m123/alice/video
+                                                         sub:acme.com/meetings/m123/bob/audio
+                                                         sub:acme.com/meetings/m123/bob/video
+
+~~~~
+
+The above picture shows Warp media delivery, where 
+a tree topography is formed with multiple relays in the network. 
+The example  has 4 participants with Alice and Bob
+being the publishers and rest being the subscribers. 
+Both Alice and Bob are capable of publishing audio and video
+identified by their appropriate names. S1 subscribes 
+to audio stream from alice, whereas S2 subscribers
+to all the streams being published. Relay at the Edge
+forwards the unique subscriptions to the downstream Realys,
+as needed, to setup the delivery network.
+
+
+### Publishers
+
+Publishers generate media objects with in a WarpMediaSession. A given
+publishers start by obtaining `WarpStreamId` via out-of-band 
+mechanism, say, as part of session bootstrap with the Origin server.
+
+For each Media Object being produced under a given WarpStream, publishers
+generate MediaObjectId that are composed of the current WarpStream, the 
+group and object being published.
+
+## Terminology Mappings
+
+This section provides mapping of some commonly used terms across different 
+application domains to data model used in WARP. Such a mapping is for
+informative purposes only and provided for clarifying ambiguities.
+
+### Media Objects
+
+A Warp media object is similar in function to what is often referred 
+to as "segments" or "chunks" or "media frames" in other media protocols; 
+however, they are different from the traditional notion of chunks. The first 
+key distinction is that Warp media objects are not always expected to be 
+fully available, and thus any relays have to be able to 
+convey partial media objects. The second key distinction is that 
+Warp media objects may not be fully decodable by themselves; an 
+object will contain a description of the prerequisites if that is the case.
+
+### WarpMediaSession
+TODO: Add details
+
+### WarpStream
+TODO: Add detials on the relationship between WarpStream and Tracks 
 
 
 # Motivation
@@ -262,7 +588,7 @@ This also ensures that congestion response is consistent at every hop based on t
 
 
 # Objects
-Warp works by splitting media into objects that can be transferred over QUIC streams.
+Warp works by splitting media into objects that can be transferred over QUIC streams
 
 * The encoder determines how to fragment the encoded bitstream into objects ({{media}}).
 * Objects are assigned an intended delivery order that should be obeyed during congestion ({{delivery-order}})
