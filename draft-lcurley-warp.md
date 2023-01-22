@@ -574,7 +574,7 @@ A length of 0 indicates the message is unbounded and continues until the end of 
 |------|-----------------------------------|
 | ID   | Messages                          |
 |-----:|:----------------------------------|
-| 0x0  | PUBLISH ({{message-object}})       |
+| 0x0  | OBJECT ({{message-object}})       |
 |------|-----------------------------------|
 | 0x1  | SETUP ({{message-setup}})         |
 |------|-----------------------------------|
@@ -618,7 +618,7 @@ The client offers the list of the protocol versions it supports; the server MUST
 The SETUP parameters are described in the {{setup-parameters}} section.
 
 
-## PUBLISH {#message-object}
+## OBJECT {#message-object}
 A PUBLISH message contains a single media object associated with a specified track, as well as associated metadata required to deliver, cache, and forward it.
 
 The format of the OBJECT message is as follows:
