@@ -619,7 +619,7 @@ The SETUP parameters are described in the {{setup-parameters}} section.
 
 
 ## OBJECT {#message-object}
-A PUBLISH message contains a single media object associated with a specified track, as well as associated metadata required to deliver, cache, and forward it.
+A OBJECT message contains a single media object associated with a specified track, as well as associated metadata required to deliver, cache, and forward it.
 
 The format of the OBJECT message is as follows:
 
