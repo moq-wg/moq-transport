@@ -408,7 +408,7 @@ on the application configuration and topology. Like with subscriptions, the
 publishes MUST be authorized by the Origin and the Relays MUST be willing to 
 forward the published media objects.
 
-Publishers begin with publishing "Catalog" messages that idenitfies the 
+Publishers begin with publishing "Catalog" messages that identify the 
 various representations/WarpMediaStreams that the publisher is willing 
 to publish the media objects on. The "Catalog" messages MUST be 
 authorized in one of the following ways
