@@ -419,7 +419,7 @@ authorized in of the following wyas
 
 2. Relays forward the received Catalog messaage towards Origin, 
    for completing the authorization process. This may involve sending the 
-   messages directly to the Origin or possibly traverse another Relay.
+   messages directly to the Origin or possibly traversing another Relay.
 
 
 Once the Catalog message is authorized, Relay would be willing to 
