@@ -337,9 +337,9 @@ Relays provide several benefits including
                 streams to production levels (millions) of concurrent 
                 subscribers.
 
-* Reliability - Reliability is achieved by providing alternate paths for 
-               routing content, relays can improve the overall reliability 
-               of the delivery system.
+* Reliability - relays can improve the overall reliability 
+               of the delivery system by providing alternate paths for 
+               routing content.
 
 * Performance – Relays are usually positioned as close to the edge of a 
                 network as possible and are well-connected to each other 
