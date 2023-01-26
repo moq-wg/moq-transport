@@ -439,7 +439,7 @@ The same can be used to make caching decisions.
 
 ## Relay Discovery and Failover
 
-Relays are discovered via application defined ways that is out of scope of this 
+Relays are discovered via application defined ways that are out of scope of this 
 document. A Relay that wants to shutdown can send a message to the client with 
 the address of new relay. Client moves to the new relay with all of its 
 Subscriptions and then Client unsubscribes from old relay and closes connection to it.
