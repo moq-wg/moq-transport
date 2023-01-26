@@ -411,7 +411,7 @@ forward the published media objects.
 Publishers begin with publishing "Catalog" messages that idenitfies the 
 various representations/WarpMediaStreams that the publisher is willing 
 to publish the media objects on. The "Catalog" messages MUST be 
-authorized in of the following wyas
+authorized in one of the following ways
 
 1. "Catalog" message carries enough authorization information, for the
    Relays to authorize the WarpMediaStreams advertised.
