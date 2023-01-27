@@ -357,7 +357,7 @@ Relays provide several benefits including
 Subscribers interact with "MoQ Relays" by sending subscriptions to
 aspects of media representations within a WarpMediaSession. Relays 
 forward the published media objects to the subscribers matching the
-`SubscrptionId` in the subscribe request. However, Relays MUST be 
+`SubscriptionId` in the subscribe request. However, Relays MUST be 
 willing to act on behalf of the subscriptions before they can 
 forward the media, which implies that the subscriptions MUST to be
 authorized.
