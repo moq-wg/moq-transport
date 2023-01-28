@@ -342,7 +342,7 @@ MediaObjectId :=   WarpStreamId  | GroupId | ObjectId
 ### Subscribers
 
 One of the goals of the proposed data model is to facilitate subscribers, 
-within a WarpMediSession, to request the right granularity of the media 
+within a WarpMediaSession, to request the right granularity of the media 
 resources in a way that is independent of application and a 
 given transport mapping.
 
