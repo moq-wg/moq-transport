@@ -353,7 +353,7 @@ To that extent, the proposed data model enables following ways for the subscribe
        receive everything being published and all future media objects under a 
        given representation.
 
-    -  Request media to be delivered everything in group currenly being published and 
+    -  Request media to be delivered everything in group currently being published and 
        all future media objects starting from  "a specific group in a WarpStream" 
        thus allowing subscribers to control a time scale closer the beginning 
        of a given group, say beginning of a GOP sequence.
