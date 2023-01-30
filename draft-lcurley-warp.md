@@ -324,6 +324,9 @@ given transport mapping.
 To that extent, the proposed data model enables following ways for the subscribers 
 (end-points or Relays) to ask for the data:
 
+    -  Request a specific MediaSession.  Such a request enables subscribers to 
+       receive all future mediastreams,  mediagroups and mediaobjects under a 
+       given MediaSession.
     -  Request a specific MediaStream. Such a request enables subscribers to 
        receive all future media groups and objects under a 
        given MediaStream.
