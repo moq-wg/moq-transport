@@ -178,9 +178,15 @@ x (b):
                                                                                                       
 # Data Model - MediaSessions, MediaStream, MediaGroups and MediaObjects {#data-model}
 
->Note: This section expands on the currently specified model  by
-adding further elements that are relay friendly and defining generic terminology 
-that is applicable across multiple application domains envisioned by the MoQ Working Group.
+>Note: This section auguments the currently specified model by
+- adding terminology that can be generically applicable across multiple MOQ application domains
+- Clarifying the relationships between the entities of the data model
+- Definining object grouping that enables variety of use-cases (low latency publish and retrieval,
+   allowing for alternate forms of grouping (slices, tiles in a VR application) and so on
+- Allow Relays to operate on data model independent of application logic 
+
+>Note: Once the data model concepts are discussed, the PR will apply the decisions to the
+       rest of the document as appropriate
 
 This section defines a data model that expresses the relationship between various WARP 
 resources for realizing the client (publishers and subscribers) and relay functionality
