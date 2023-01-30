@@ -233,7 +233,7 @@ that form a core part of WARP media delivery.
 
 MediaSession represents a highest level abstraction or a container from 
 a media application perspective using WARP as the media delivery protocol. 
-A MediaSession has a defined start and contains one or more MediaStreams produced by a publisher over time.
+A MediaSession has a defined start and contains one or more MediaStreams produced by a publisher and optionally transferred by relays and consumed by subscribers over time. 
 
 A MediaSession may represent a Broadcast for a live media 
 session, an Interactive conference meeting session, a tile-based VR delivery or another media application. 
