@@ -178,7 +178,7 @@ x (b):
                                                                                                       
 # Data Model - MediaSessions, MediaStream, MediaGroups and MediaObjects {#data-model}
 
->Note: This section auguments the currently specified model by
+>Note: This section address some of the shortcomings with the currently specified model by
 - adding terminology that can be generically applicable across multiple MOQ application domains
 - Clarifying the relationships between the entities of the data model
 - Definining object grouping that enables variety of use-cases (low latency publish and retrieval,
@@ -288,7 +288,8 @@ and controlled. Some examples of how this grouping might be defined:
 * Each video frame boundary is mapped to a MediaGroup. 
   There would be a multiple MediaObjects in each mediaGroup, each containing a slice of a video frame. 
 
-* A single MediaGroup is mapped to the entire GOP sequence spanning the lifetime of the MediaStream. Each Media Object contains a slice of that media Group. 
+* A single MediaGroup is mapped to the entire GOP sequence spanning the lifetime of the MediaStream. Each 
+Media Object contains a slice of that media Group. 
 
 * Each audio frame is mapped to a MediaGroup. In this grouping, each 
    MediaGroup has a single audio frame as the MediaObject.
@@ -305,7 +306,8 @@ Examples of valid Group IDs
 ## Media Object
 
 Media Objects are the children of MediaGroups and carry a binary payload. Payload examples would include encoded and 
-encrypted media data, or caption data or the acceleration data of a racing car. Media Objects have associated header/metadata that is authenticated (but not end-to-end encrypted). The metadata contains priority/delivery order, 
+encrypted media data, or caption data or the acceleration data of a racing car. Media Objects have associated 
+header/metadata that is authenticated (but not end-to-end encrypted). The metadata contains priority/delivery order, 
 time to live, and other information aiding the caching/forwarding decision at the Relays. 
 
 Each MediaObject is identified by a sequentially increasing integer, called MediaObjectId, starting at 0. 
@@ -316,7 +318,8 @@ caching and retrieval, a Media Object is fully identified by the combination of 
 `
 Object cache key :=   MediaSessionID | MediaStreamId | MediaGroupId | MediaObjectId
 `
-These identitiers are stored as separate fields in the header of each MediaObject, to facilitate unambiguous extraction by each relay. 
+These identitiers are stored as separate fields in the header of each MediaObject, to facilitate unambiguous 
+extraction by each relay. 
 
 ## Scope / Goals of the Data Model
 
@@ -331,15 +334,18 @@ To that extent, the proposed data model enables following ways for the subscribe
 (end-points or Relays) to ask for the data:
 
     -  Request a specific MediaSession.  Such a request enables subscribers to 
-       receive all future mediastreams,  mediagroups and mediaobjects under a 
+       receive all future MediaStreams, MediaGroups and MediaoOjects under a 
        given MediaSession.
     -  Request a specific MediaStream. Such a request enables subscribers to 
-       receive all future media groups and objects under a 
+       receive all future MediaGroups and MediaObjects under a 
        given MediaStream.
     -  Request a specific MediaStream starting at a specific MediaGroup. Since the MediaGroup 
        identification is ordinal, subscribers may request for example content starting from 
        the last, or 3rd last, MediaGroup available in the cache, or from the first one for 
        which MediaGroupID  > N
+    - Request a specific MediaSession. Such a request enables subscribers to 
+       receive all future MediaStreams, MediaGroups and MediaObjects under a 
+       given MediaSession.
        
 The MediSession ID to given to each subscriber via an out-of-band mechanism. The subscriber uses this 
 MediaSessionID to request the CATALOG, which in turn provides information to the client about the 
@@ -409,7 +415,9 @@ pub: acme.tv/broadcasts/channel8/alice/4k            sub: acme.tv/brodcasts/chan
 
 ~~~~                                                                                                                             
   
-The relay does not intercept and parse the CATALOG messages, therefore it does not know the entireity of the content being produced by Alice. It simply aggregates and forwards all subscription requests that it receives. 
+The relay does not intercept and parse the CATALOG messages, therefore it does not know the entireity of 
+the content being produced by Alice. It simply aggregates and forwards all subscription requests that 
+it receives. 
 
 Similarly, below example shows an Interactive media session 
 
@@ -465,7 +473,8 @@ Publishers generate media objects within a MediaSession. A
 publisher starts by obtaining a `MediaSessionId` via an out-of-band 
 mechanism such as a session bootstrap with the Origin server.
 
-Each MediaObject produced by a publisher contains header fields which identify the MediaSession and MediaStream to which it belongs. 
+Each MediaObject produced by a publisher contains header fields which identify the MediaSession 
+and MediaStream to which it belongs. 
 
 ## Terminology Mappings
 
