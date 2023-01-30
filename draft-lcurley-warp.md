@@ -262,8 +262,6 @@ Examples of valid MediaStreamIDs:
   23
   desktopScreenShare
 `
-Note - MediaStreams should not be confused with QUIC streams although certain 
-applications might allow mapping of MediaStreams to one or more QUIC Streams.		
 
 ## MediaGroup
 
