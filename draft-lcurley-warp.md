@@ -440,7 +440,7 @@ Similarly, below example shows an Interactive media session
 The above picture shows Warp media delivery, where 
 a tree topography is formed with multiple relays in the network. 
 The example  has 4 participants with Alice and Bob
-being the publishers and S! and S2 being the subscribers. 
+being the publishers and S1 and S2 being the subscribers. 
 Both Alice and Bob are capable of publishing audio and video
 identified by their appropriate names. S1 subscribes 
 to audio stream from alice, whereas S2 subscribes
