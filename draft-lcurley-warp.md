@@ -330,10 +330,14 @@ To that extent, the proposed data model enables following ways for the subscribe
     -  Request a specific MediaStream. Such a request enables subscribers to 
        receive all future media groups and objects under a 
        given MediaStream.
-
-    -  Request a specific MediaStream starting at a specific MediaGroup. Since the MediaGroup identification is ordinal, subsubscribers may request for example content starting from the last, or 3rd last, MediaGroup available in the cache, or from the first one for which MediaGroupID  > N
+    -  Request a specific MediaStream starting at a specific MediaGroup. Since the MediaGroup 
+       identification is ordinal, subscribers may request for example content starting from 
+       the last, or 3rd last, MediaGroup available in the cache, or from the first one for 
+       which MediaGroupID  > N
        
-The MediSession ID to given to each subscriber via an out-of-band mechanism. The subscriber uses this MediaSessionID to request the CATALOG, which in turn provides information to the client about the MediaStreamIDs which it can use to construct its subscription requests. 
+The MediSession ID to given to each subscriber via an out-of-band mechanism. The subscriber uses this 
+MediaSessionID to request the CATALOG, which in turn provides information to the client about the 
+MediaStreamIDs which it can use to construct its subscription requests. 
 
 
 ### Relays
