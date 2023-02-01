@@ -181,6 +181,8 @@ The basic element of Warp is *a media object*. A media object is a single addres
 
 *A media track* in Warp is a combination of *an init object* and a sequence of media objects. An init object is a format-specific self-contained description of the track that is required to decode any media object contained within the track, but can also be used as the metadata for track selection. If two media tracks carry semantically equivalent but differently encoded media, they are referred to as *variants* of each other.
 
+*A join point* is an annotation attached to the media object that indicates that a subscriber to a specific track can start decoding the track from that point. It can optionally contain a set of metadata (like timestamps) that can be used for seeking. An object that is annotated as a join point MUST be decodable without having access to any earlier objects.
+
 *A Warp broadcast* is a collection of multiple media tracks produced by a single origin. When subscribing to a broadcast, a peer has an option of subscribing to one, many or all media tracks within the broadcast.
 
 A Warp broadcast is globally identifiable via a URI. Within the broadcast, every media track is identified via *a track ID* that is unique within the broadcast. Within a single media track, every media object is identified by an *object ID* that is unique within the track.
@@ -498,15 +500,27 @@ A OBJECT message contains a single media object associated with a specified trac
 The format of the OBJECT message is as follows:
 
 ~~~
+Join Point Description {
+  Number of Attributes (i),
+  Attribute Key (b),
+  Attribute Value (b)
+}
+
 OBJECT Message {
+  Is a Join Point (1),
+  Reserved (7),
   Broadcast URI (b)
   Track ID (i),
   Object ID (i),
   Object Delivery Order (i),
+  [ Join Point Description (...) ],
   Object Payload (b),
 }
 ~~~
 {: #warp-object-format title="Warp OBJECT Message"}
+
+* Is a Join Point:
+A boolean flag that is set to true if the object is a join point for the track.
 
 * Broadcast URI:
 The broadcast URI as declared in CATALOG ({{message-catalog}}).
@@ -519,6 +533,9 @@ A unique identifier for each object within the track.
 
 * Object Delivery Order:
 An integer indicating the object delivery order ({{delivery-order}}).
+
+* Join Point Description:
+A set of key-value pairs containing metadata that can be used for seeking. This field is present only if "Is a Join Point" is set to true.
 
 * Object Payload:
 The format depends on the track container ({{containers}}).
