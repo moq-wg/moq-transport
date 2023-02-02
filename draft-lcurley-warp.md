@@ -90,7 +90,7 @@ Bitstream:
 
 Client:
 
-: The party initiating a Warp session.
+: The party initiating a Warp connection.
 
 Codec:
 
@@ -150,7 +150,7 @@ Producer:
 
 Server:
 
-: The party accepting an incoming Warp session.
+: The party accepting an incoming Warp connection.
 
 Slice:
 
@@ -546,7 +546,7 @@ CATALOG Message {
 {: #warp-catalog-format title="Warp CATALOG Message"}
 
 * Broadcast URI:
-A unique identifier {{URI}} for the broadcast within the session.
+A unique identifier {{URI}} for the broadcast within a single Warp connection.
 
 * Track Count:
 The number of tracks in the broadcast.
