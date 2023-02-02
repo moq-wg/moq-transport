@@ -430,7 +430,7 @@ The endpoint breached an agreement, which MAY have been pre-negotiated by the ap
 The endpoint successfully drained the session after a GOAWAY was initiated ({{message-goaway}}).
 
 
-# Protocol Messages
+# Messages
 Both unidirectional and bidirectional Warp streams are sequences of length-deliminated messages.
 
 ~~~
