@@ -320,9 +320,9 @@ Objects are NOT REQUIRED to be aligned and the decoder MUST be prepared to skip 
 The Relays play an important role for enabling low latency media 
 delivery within the Warp/MOQ architecture. This specification allows 
 for a delivery protocol based on a publish/subscribe metaphor 
-where client endpoints, called publishers, publish media objects and 
-subscribers consume those media objects that is sent to, and received 
-from relays, that forms an overlay delivery network similar/in-parallel 
+where some endpoints, called publishers, publish media objects and 
+some endpoints, called subscribers, consume those media objects.
+Some relays can leverage this publish/subscribe metaphor to form an overlay delivery network similar/in-parallel
 to what CDN provides today. 
 
 The subscribe messages allow subscription to aspects of Media Represenations
