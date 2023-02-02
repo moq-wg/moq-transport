@@ -430,7 +430,7 @@ The endpoint breached an agreement, which MAY have been pre-negotiated by the ap
 The endpoint successfully drained the session after a GOAWAY was initiated ({{message-goaway}}).
 
 
-# Messages
+# Protocol Messages
 Both unidirectional and bidirectional Warp streams are sequences of length-deliminated messages.
 
 ~~~
@@ -501,7 +501,8 @@ The format of the OBJECT message is as follows:
 OBJECT Message {
   Broadcast URI (b)
   Track ID (i),
-  Object ID (i),
+  Group Sequence (i),
+  Object Sequence (i),
   Object Delivery Order (i),
   Object Payload (b),
 }
@@ -514,8 +515,11 @@ The broadcast URI as declared in CATALOG ({{message-catalog}}).
 * Track ID:
 The track identifier as declared in CATALOG ({{message-catalog}}).
 
-* Object ID:
-A unique identifier for each object within the track.
+* Group Sequence :
+An integer always starts at 0 and increases sequentially at the original media publisher.
+
+* Object Sequence:
+An integer always starts at 0 with in Group and increases sequentially.
 
 * Object Delivery Order:
 An integer indicating the object delivery order ({{delivery-order}}).
@@ -571,35 +575,67 @@ This contains base information required to decode OBJECT messages, such as codec
 An endpoint MUST NOT send multiple CATALOG messages with the same Broadcast URI.
 A future draft will add the ability to add/remove/update tracks.
 
-## SUBSCRIBE {#message-subscribe}
+## Subscring to Media {#message-subscribe}
 After receiving a CATALOG message ({{message-catalog}}, the receiver sends a SUBSCRIBE message to indicate that it wishes to receive the indicated tracks within a broadcast.
+
+Entities that intend to receive media objects will do so via sendiing `SUBSCRIBE` messages 
+by listing one or more SubscriptionIds corresponding to  Media Representation(s)
+of interest, as defined in the `CATALOG` Message. All the subscriptions MUST be authorized 
+at the Origin Server and/or possibly at the Edge Relay (if trusted via the out-of-band configuration).
 
 The format of SUBSCRIBE is as follows:
 
 ~~~
 SUBSCRIBE Message {
-  Broadcast URI (b),
-  Track Count (i),
-  Track IDs (..),
+  SubscriptionID Count (i),
+  Subscription IDs (..),
+  Relay Token Length(i),
+  Relay Token(...)...,
+  [Encrypted Payload Length(i)],
+  [Encrypted Payload(...)...],
 }
 ~~~
 {: #warp-subscribe-format title="Warp SUBSCRIBE Message"}
 
-* Broadcast URI:
-The broadcast URI as defined in CATALOG ({{message-catalog}}).
-
-* Track Count:
-The number of track IDs that follow.
-This MAY be zero to unsubscribe to all tracks.
-
-* Track IDs:
-A list of varint track IDs.
-
+TODO: Explain the fields
 
 Only the most recent SUBSCRIBE message for a broadcast is active.
-SUBSCRIBE messages MUST be sent on the same QUIC stream to preserve ordering.
+A client can renew its subscriptions at any point by sending a new 
+`SUBSCRIBE`. Such subscriptions MUST refresh the existing subscriptions 
+for that set of SubscriptionIds. A renewal period of 5 seconds is RECOMMENDED.
+`SUBSCRIBE` messages MUST be sent on the same QUIC stream to preserve ordering.
 
 
+## UnSubscring to Media {#message-unsubscribe}
+After receiving a CATALOG message ({{message-catalog}}, the receiver sends a SUBSCRIBE message to indicate that it wishes to receive the indicated tracks within a broadcast.
+
+Entities that intend to receive media objects will do so via sendiing `SUBSCRIBE` messages 
+by listing one or more SubscriptionIds corresponding to  Media Representation(s)
+of interest, as defined in the `CATALOG` Message. All the subscriptions MUST be authorized 
+at the Origin Server and/or possibly at the Edge Relay (if trusted via the out-of-band configuration).
+
+The format of SUBSCRIBE is as follows:
+
+~~~
+SUBSCRIBE Message {
+  SubscriptionID Count (i),
+  Subscription IDs (..),
+  Relay Token Length(i),
+  Relay Token(...)...,
+  [Encrypted Payload Length(i)],
+  [Encrypted Payload(...)...],
+}
+~~~
+{: #warp-subscribe-format title="Warp SUBSCRIBE Message"}
+
+TODO: Explain the fields
+
+Only the most recent SUBSCRIBE message for a broadcast is active.
+A client can renew its subscriptions at any point by sending a new 
+`SUBSCRIBE`. Such subscriptions MUST refresh the existing subscriptions 
+for that set of SubscriptionIds. A renewal period of 5 seconds is RECOMMENDED.
+`SUBSCRIBE` messages MUST be sent on the same QUIC stream to preserve ordering.
+ 
 ## GOAWAY {#message-goaway}
 The `GOAWAY` message is sent by the server to force the client to reconnect.
 This is useful for server maintenance or reassignments without severing the QUIC connection.
