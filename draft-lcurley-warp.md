@@ -515,13 +515,15 @@ The broadcast URI as declared in CATALOG ({{message-catalog}}).
 * Track ID:
 The track identifier as declared in CATALOG ({{message-catalog}}).
 
-* Group Sequence :
-An integer always starts at 0 and increases sequentially at the original media publisher.
-Group sequences are scoped under a Track.
+* Group Sequence:
+An integer indicating the OBJECT is a member of the indicated group.
+A group is indepdendently decodable (ex. a GoP) and can be used as an entry point in the track.
+The group sequence number MUST be incremented for each indepdendently decodable OBJECT.
 
 * Object Sequence:
-An integer always starts at 0 with in a Group and increases sequentially.
-Object Sequences are scoped to a Group.
+A monotonically increasing integer for each object.
+This indicates the decode order of the track, analogous to the decode timestamp.
+The ability to decode an OBJECT MUST NOT depend on the delivery of another OBJECT with a higher sequence number.
 
 * Object Delivery Order:
 An integer indicating the object delivery order ({{delivery-order}}).
