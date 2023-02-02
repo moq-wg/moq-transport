@@ -516,14 +516,13 @@ The broadcast URI as declared in CATALOG ({{message-catalog}}).
 The track identifier as declared in CATALOG ({{message-catalog}}).
 
 * Group Sequence:
-An integer indicating the OBJECT is a member of the indicated group.
-A group is indepdendently decodable (ex. a GoP) and can be used as an entry point in the track.
-The group sequence number MUST be incremented for each indepdendently decodable OBJECT.
+An integer indicating the OBJECT is a member of the indicated group within a track.
+A group is indepdendently decodable (ex. a GoP) and can be used as an entry point for a decoder.
+The group sequence number MUST be incremented for each indepdendently decodable OBJECT within the track.
 
 * Object Sequence:
-A monotonically increasing integer for each object.
-This indicates the decode order of the track, analogous to the decode timestamp.
-The ability to decode an OBJECT MUST NOT depend on the delivery of another OBJECT with a higher sequence number.
+A monotonically increasing integer for each object indicating the decode order within a group.
+The ability to decode an OBJECT MUST NOT depend on the delivery of another OBJECT with a higher sequence number within the same group.
 
 * Object Delivery Order:
 An integer indicating the object delivery order ({{delivery-order}}).
