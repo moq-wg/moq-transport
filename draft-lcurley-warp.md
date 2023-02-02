@@ -325,7 +325,7 @@ some endpoints, called subscribers, consume those media objects.
 Some relays can leverage this publish/subscribe metaphor to form an overlay delivery network similar/in-parallel
 to what CDN provides today. While this type of overlay is expected to be a major application of relays, other types of relays can also be defined to offer various types of services.
 
-The subscribe messages allow subscription to aspects of Media Represenations
+The subscribe messages allow subscription to aspects of Media Representations
 that enable matching to multiple published Media Objects, so a single subscribe 
 can allow a client to receive publishes for a wide class of media objects. 
 Media Objects are identified such that it is unique for the relay/delivery 
