@@ -501,7 +501,8 @@ The format of the OBJECT message is as follows:
 OBJECT Message {
   Broadcast URI (b)
   Track ID (i),
-  Object ID (i),
+  Group Sequence (i),
+  Object Sequence (i),
   Object Delivery Order (i),
   Object Payload (b),
 }
@@ -514,8 +515,13 @@ The broadcast URI as declared in CATALOG ({{message-catalog}}).
 * Track ID:
 The track identifier as declared in CATALOG ({{message-catalog}}).
 
-* Object ID:
-A unique identifier for each object within the track.
+* Group Sequence :
+An integer always starts at 0 and increases sequentially at the original media publisher.
+Group sequences are scoped under a Track.
+
+* Object Sequence:
+An integer always starts at 0 with in a Group and increases sequentially.
+Object Sequences are scoped to a Group.
 
 * Object Delivery Order:
 An integer indicating the object delivery order ({{delivery-order}}).
