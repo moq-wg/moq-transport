@@ -517,9 +517,11 @@ The track identifier as declared in CATALOG ({{message-catalog}}).
 
 * Group Sequence :
 An integer always starts at 0 and increases sequentially at the original media publisher.
+Group sequences are scoped under a Track.
 
 * Object Sequence:
 An integer always starts at 0 with in Group and increases sequentially.
+Object Sequences are scoped to a Group.
 
 * Object Delivery Order:
 An integer indicating the object delivery order ({{delivery-order}}).
