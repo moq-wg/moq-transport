@@ -258,8 +258,27 @@ This is the fatal flaw of many UDP-based protocols.
 A goal of this draft is to treat relays as first class citizens.
 Any identification, reliability, ordering, prioritization, caching, etc is written to the wire in a header that is easy to parse.
 This ensures that relays can easily route/fanout media to the final destination.
-This also ensures that congestion response is consistent at every hop based on the preferences of the media producer.
 
+## Bandwidth management and congestion response
+In point to point scenarios, it may be possible for publishers to notice network
+congestion and to manage encoding parameters to fit into the available bandwidth.
+This is generally not possible at relays, especially in cases involving large fan-out.
+The expected response is that receivers will notice the reduced bandwidth and adapt
+by subscribing to a more compressed version of the media stream. However, until such
+end-to-end adaptation happens, relays need to have a way to discard excess load and
+avoid building lengthy queues.
+
+Congestion response at relays results in dropping some of the media stream content.
+Such pruning of the media stream needs to be done cautiously. For example, relays
+should avoid dropping a reference frame in a video stream, because that would prevent
+proper decoding of following frames until the next reference frame is received. In
+contrast, some interpolation frames can be dropped with little consequence. However,
+we have to assume that the media stream will often be encrypted end-to-end, and that
+relays cannot just peer into the data to understand what parts could be dropped and
+what parts should not.
+
+A goal of this draft is to specify enough "meta data" in protocol headers to allow
+adequate congestion response in relays.
 
 # Objects
 Warp works by splitting media into objects that can be transferred over QUIC streams.
@@ -287,6 +306,10 @@ A media object:
 
 Media objects are encoded using a specified container ({{containers}}).
 
+Media objects may be encrypted end-to-end, with the decrypted content only accessible to authorized
+receivers, but not to relays. This confers an "atomic" property to objects, as dropping any part of an
+encrypted object would prevent decryption of the whole object.
+
 ## Delivery Order
 Media is produced with an intended order, both in terms of when media should be presented (PTS) and when media should be decoded (DTS).
 As stated in motivation ({{latency}}), the network is unable to maintain this ordering during congestion without increasing latency.
@@ -303,6 +326,39 @@ A receiver MUST NOT assume that objects will be received in delivery order for a
 * Newly encoded objects MAY have a smaller delivery order than outstanding objects.
 * Packet loss or flow control MAY delay the delivery of individual streams.
 * The sender might not support QUIC stream prioritization.
+
+## Groups
+Objects are marked with metadata that facilitate congestion response in relays. That information
+also facilitate synchronization to intermediate points, as needing when "fast forwarding" or
+"rewinding" a media stream. In warp, this is implemented by arranging objects in groups, with the
+following properties:
+
+* The beginning of a group is a potential synchronization point,
+* If a decoder has received all previous objects from the beginning of a group
+  up to the current one, then the current one can be properly decoded and rendered.
+
+The group property enables a simple form of congestion response at relays. Relays experiencing
+congestion could drop the "tail" of a group, expecting that receivers will resume decoding at
+the start of the next group.
+
+## Intra group priorities
+The simple policy of adapting to congestion by dropping the tail of a group is very robust,
+but can result in suboptimal experience, as users will notice a periodic effect when tails are
+dropped and decoding resumes to the beginning of the next group. Relays can implement a more
+fine grained response if some objects are marked as "lesser priority" or "drop candidates".
+This might provide a better user experience, such as "lowering the frame rate" for video
+stream.
+
+This marking of priorities is only possible if the encoder of the media stream supports it. If
+the chosen encoding does not, relays cannot respond to congestion by selectively dropping objects
+in a group and will have to fall back to "dropping the tail."
+
+DISCUSS: it is unclear whether the draft should support a single level of drop priority
+such as "this object may be dropped" or multiple levels such as "this object is marked as drop
+priority 2, and should not be dropped if objects marked at priority 3 or higher  can be dropped
+instead. It is also unclear whether drop should have a latching effect, such as "if an object
+marked as drop priority 2 has been dropped, we expect that all objects at higher drop priority
+shall also be dropped until the next object at drop priority 2 is encountered." 
 
 
 ## Decoder
@@ -342,7 +398,8 @@ For example, attempting to use a different role than pre-negotated ({{role}}) or
 ## Streams
 Warp endpoints communicate over QUIC streams. Every stream is a sequence of messages, framed as described in {{messages}}.
 
-The first stream opened is a client-initiated bidirectional stream where the peers exchange SETUP messages ({{message-setup}}). The subsequent streams MAY be either unidirectional and bidirectional. For exchanging media, an application would typically send a unidirectional stream containing a single OBJECT message ({{message-object}}).
+The first stream opened is a client-initiated bidirectional stream where the peers exchange SETUP messages ({{message-setup}}). The subsequent streams MAY be either unidirectional and bidirectional. For exchanging media, an application would typically send a unidirectional stream containing all the OBJECT messages ({{message-object}}) belonging to a single group.
+
 
 Messages SHOULD be sent over the same stream if ordering is desired.
 Some messages MUST be sent over the same stream, for example SUBSCRIBE messages ({{message-subscribe}}) with the same broadcast URI.
