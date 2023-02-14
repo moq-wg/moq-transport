@@ -330,10 +330,8 @@ A receiver MUST NOT assume that objects will be received in delivery order for a
 ## Groups
 Objects are marked with metadata that facilitate congestion response in relays. That information
 also facilitate synchronization to intermediate points, as needing when "fast forwarding" or
-"rewinding" a media stream. In warp, this is implemented by arranging objects in groups, with the
-following properties:
+"rewinding" a media stream. Applications can define groups however they see fit, as long as the following property applies:
 
-* The beginning of a group is a potential synchronization point,
 * If a decoder has received all previous objects from the beginning of a group
   up to the current one, then the current one can be properly decoded and rendered.
 
