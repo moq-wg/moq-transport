@@ -65,8 +65,6 @@ This document defines the core behavior for Warp, a live media transport protoco
 Media is split into objects based on the underlying media encoding and transmitted independently over QUIC streams.
 QUIC streams are prioritized based on the delivery order, allowing less important objects to be starved or dropped during congestion.
 
-Testing.
-
 --- middle
 
 
@@ -178,7 +176,66 @@ x (b):
 
 
                                                                                                       
-# Data Model - MediaSessions, MediaStream, MediaGroups and MediaObjects {#data-model}
+# Data Model - Sessions, Media Streams, Tracks, Consumers and Relays
+
+------ Christian's proposal starts here ------
+
+Media applications are generally composed by combining multiple media streams to
+present the desired experience to media users. The actual combination can vary
+widely, from listening to a simple audio stream, to combining a mosaic of video
+streams and multiple layers of audio possibly coming from multiple sources, to
+immersion in a virtual reality experience combining multiple meshes, textures
+and sound sources. Our goal is to build these experiences by combining a
+series of "media streams", delivered either directly to the user or through
+a network of relays.
+
+
+## Media Streams, Tracks and Objects
+
+When discussing the user experience, we focus on media streams, such as for example
+the view of a participant in a video-conference. However, the media transport over QUIC
+does not directly operate on the "abstract" view of a participant, but on the an encoding
+of that view, suitable for transport over the Internet. In what follows, we call that
+encoding a "Track".
+
+### Track
+
+A track is a transform of a media stream using a specific encoding process, a set of
+parameters for that encoding, and possibly an encryption process. The MoQ transport
+is designed to transport tracks.
+
+### Objects and Groups
+
+The binary content of a track is composed of a set of objects. The decomposition of the
+track into objects is arbitrary. For real time applications, an object will often correspond
+to an unit of capture, such as for example the encoding of a single video frame, but
+different applications may well group several such units together, or follow whatever
+arrangement makes sense for the application.
+
+In the definition of the transport, we assume that objects may be encrypted, and that
+relays will not be able to decrypt the object. Many applications are expected to use
+authenticated encryption, which makes the transmission of the object an "all or nothing"
+proposal, since truncated delivery would cause authentication failure and the rejection
+of the message. The MoQ transport treats objects as atomic units.
+
+The objects that compose a given track are organized as a series of "groups", each
+containing a series of objects.
+
+DISCUSS: we need to add here text on synchronization points, congestion responses,
+and potentially priorities.
+
+DISCUSS: we need to add here text on in order delivery, etc.
+
+## Composition (building sessions out of tracks)
+
+Explain how to build sessions out of track.
+Explain why this is not considered part of the base transport protocol.
+Provide examples for scenarios.
+
+
+## Consumers, Relays, Publishers and Emitters
+
+------ Christian's proposal ends here ------
 
 >Note: This section address some of the shortcomings with the currently specified model by
 - adding terminology that can be generically applicable across multiple MOQ application domains
