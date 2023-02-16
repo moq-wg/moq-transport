@@ -270,7 +270,108 @@ that they will in most case receive the track's object through relays, much
 like readers of web pages often receive these pages through a content
 distribution network.
 
+### Subscribing through a relay
 
+A subscriber will subscribe to a media track by sending to the relay a "subscribe"
+command that carries the identifier of the desired track. The relay will have
+to decide whether to authorize that query or not. If it decides to allow the subscription,
+it will also have to find out how to provide the desired content.
+
+The authorization process can be implemented in three stages: identifying the "origin"
+of the requested track, verifying that the relay is willing to act on behalf of that
+origin, and then asking that origin whether the subscriber is
+authorized to access the specified content. This requires that the "origin" can
+be obtained by parsing the track identifier. We thus assume that the track indentifier
+includes two components: the origin identifier, and the track reference at the origin.
+
+~~~
+    +-----------+-----------------+
+    | Origin ID | Track reference |
+    +-----------+-----------------+
+   -- Two parts track identifier --
+
+~~~
+
+Given the origin identifier, the rely will check whether it is authorized to service
+that origin. This step depends on the way the relay is managed. Some relays will
+accept all traffic from a set of subscribers, other will only accept traffic if they
+have some business agreement with the origin. The only requirements for the MoQ transport
+are to be able to identify the origin and, in some cases, the subscriber.
+
+The relay will then have to check whether the origin is willing to let the subscriber
+access the track. For example, if the track is part of a real time conference, the
+origin will check whether the subscriber is an authorized participant to the conference.
+The relay will do that by sending an "authorization request" towards the origin.
+The authorization request may contain a track identifier and some client data, such as
+for example some kind of token.
+
+DISCUSS: authorization may require more than a single token provided by
+the subscriber and passed to the origin. Many authorization processes involve multiple
+rounds of challenges and responses. The subscriber may also want to verify that it
+is in contact with the expected origin. At a minimum, this needs discussion in a
+security section.
+
+Many multimedia experiences involve multiple tracks, originating from the same origin.
+Repeating the authorization process for each of these tracks seems wasteful. Some
+origins may want to authorize the subscriber once per conference, or once per "broadcast",
+instead of once per track. This can be implemented by using a hierarchical structure,
+splitting the "track reference" into a "broadcast reference" and the actual "track reference".
+
+~~~
+    +-----------+---------------------+-----------------+
+    | Origin ID | Broadcast reference | Track reference |
+    +-----------+---------------------+-----------------+
+    <----- Broadcast identifier ------>
+    <---------------- Track identifier ----------------->
+
+            -- Three parts track identifier --
+~~~
+
+The origin could then send to the relay an authorization response that would be valid for
+all identifiers starting by the specified broadcast reference.
+
+Structuring the track identifier as a three parts identifier may reduce the number of
+transactions between relays and origin, but it also carry a small privacy risk, as the relays
+can now track which users subscribe to what broadcast ID.
+
+DISCUSS: does this discussion of subscribing and authorizing even belong in the data model?
+
+### Publishing through relays
+
+Some media publications clearly separate how content is uploaded to a "content management
+center" (CMS) and then how that content is broadcast to subscribers. In that model, subscribers
+can use the MoQ transport to obtain media streams from the CMS acting as "origin", while
+uploading the content could use an entirely different "ingress" system. Some other media
+experience are more symmetric. For example, in a video conference, participants may publish
+their own video and audio tracks. These tracks will be "posted" by the participants, acting
+as publishers.
+
+Posting a track through the relay starts with a "post" transaction that describes the
+track identifier. That transaction will have to be authorized by the origin, using mechanisms
+similar to authorizing subscriptions.
+
+DISCUSS: do we need more details here?
+
+### Relays and caches
+
+TODO: copy existing text.
+
+### Restoring connections through relays
+
+The transmission of a track can be interrupted by various events, such as loss of
+connectivity between subscriber and relay. Once connectivity is restored, the subscriber
+will want to resume reception, ideally with as few visible gaps in the transmission as possible,
+and certainly without having to "replay" media that was already presented.
+
+There is no guarantee that the restored connectivity will have the same characteristics
+as the previous instance. The throughput might be lower, forcing the subscriber to select
+a media track with lower definition. The network addresses might be different, with the
+subscriber connecting to a different relay.
+
+DISCUSS: do we need to describe here the "subscribe intent"? Do we want to reuse the
+concept of "groups" or are these specific to tracks? Timestamps may be very useful,
+but do we need to attach timestamps to objects? Or do we want to have some indirection,
+such as "resume at timestamp T" is translated as "restart track X at group G"?
 
 
 ------ Christian's proposal ends here ------
