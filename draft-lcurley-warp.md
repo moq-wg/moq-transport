@@ -198,7 +198,7 @@ does not directly operate on the "abstract" view of a participant, but on the an
 of that view, suitable for transport over the Internet. In what follows, we call that
 encoding a "Track".
 
-### Track
+### Tracks
 
 A track is a transform of a media stream using a specific encoding process, a set of
 parameters for that encoding, and possibly an encryption process. The MoQ transport
@@ -226,14 +226,52 @@ and potentially priorities.
 
 DISCUSS: we need to add here text on in order delivery, etc.
 
-## Composition (building sessions out of tracks)
+## Composition
 
-Explain how to build sessions out of track.
-Explain why this is not considered part of the base transport protocol.
-Provide examples for scenarios.
+Different applications will organize the user experience in different way. For
+example, a conferencing application will let participants send and receive audio
+and video streams from each other, as well as other media streams, such as maybe
+a demonstration video, or sharing of a participant's computer screen. The number
+of active streams in a conference will often vary over time, as new particpants
+"get the floor" or start sharing screens. A broadcast
+application may provide a set of video streams presenting different views of an
+event, the corresponding sound tracks, and perhaps a running commentary. A
+virtual reality application will have its own set of media streams. In some
+cases, audio streams will be available in several languages, or subtitle streams
+in different languages may complement the original videos and audio streams.
+
+### Catalog and track selection
+
+The MoQ transport tries to not make assumptions about the user experience, or the
+number and type of media streams handled by an application. We simply assume that
+the users will receive a "catalog" or "manifest" describing the broadcast. For some
+applications, the content of this catalog will be established at the very beginning
+of the session. In other case, the catalog will have to be updated by a stream of
+events as new media streams get added or removed from the media experience.
+
+The only assumption required by the MoQ transport is that users can select the tracks
+that they want to receive, so they can subscribe to these tracks using MoQ. If a
+media streams is available in multiple formats or multiple languages, we expect that
+the catalog will provide sufficient information to let subscribers choose and request
+the appropriate track. We will discuss later how subscribers who encounter congestion
+could, for example, unsubscribe from the high definition track of a video media and
+subscribe instead to a lower definition track, or maybe decide to forgo the video
+experience and simply receive the audio track.
+
+DISCUSS: some applications could consider the catalog as just a particular media track.
+This provides an interesting simplification, because then the identifier of the
+catalog track can be used to identify the "media session". 
 
 
-## Consumers, Relays, Publishers and Emitters
+## Relays, Subscribers, Publishers and Origins
+
+User will receive the content of a track by "subscribing" to it. We expect
+that they will in most case receive the track's object through relays, much
+like readers of web pages often receive these pages through a content
+distribution network.
+
+
+
 
 ------ Christian's proposal ends here ------
 
