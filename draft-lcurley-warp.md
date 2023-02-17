@@ -275,7 +275,9 @@ proper decoding of following frames until the next reference frame is received. 
 contrast, some interpolation frames can be dropped with little consequence. However,
 we have to assume that the media stream will often be encrypted end-to-end, and that
 relays cannot just peer into the data to understand what parts could be dropped and
-what parts should not.
+what parts should not. Even without encryption, we don't want to mandate that the
+relay understand the codec used by the media, which also imposes treating objects as
+opaque sets of bytes.
 
 A goal of this draft is to specify enough "meta data" in protocol headers to allow
 adequate congestion response in relays.
@@ -396,7 +398,7 @@ For example, attempting to use a different role than pre-negotated ({{role}}) or
 ## Streams
 Warp endpoints communicate over QUIC streams. Every stream is a sequence of messages, framed as described in {{messages}}.
 
-The first stream opened is a client-initiated bidirectional stream where the peers exchange SETUP messages ({{message-setup}}). The subsequent streams MAY be either unidirectional and bidirectional. For exchanging media, an application would typically send a unidirectional stream containing all the OBJECT messages ({{message-object}}) belonging to a single group.
+The first stream opened is a client-initiated bidirectional stream where the peers exchange SETUP messages ({{message-setup}}). The subsequent streams MAY be either unidirectional and bidirectional. For exchanging media, OBJECT messages belonging to a group are delivered over one or more unidirectional streams based on application's preferred mapping of the OBJECT's group to underlying QUIC Stream(s).
 
 
 Messages SHOULD be sent over the same stream if ordering is desired.
