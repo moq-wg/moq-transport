@@ -176,7 +176,205 @@ x (b):
 
 
                                                                                                       
-# Data Model - MediaSessions, MediaStream, MediaGroups and MediaObjects {#data-model}
+# Data Model - Sessions, Media Streams, Tracks, Consumers and Relays
+
+------ Christian's proposal starts here ------
+
+Media applications are generally composed by combining multiple media streams to
+present the desired experience to media users. The actual combination can vary
+widely, from listening to a simple audio stream, to combining a mosaic of video
+streams and multiple layers of audio possibly coming from multiple sources, to
+immersion in a virtual reality experience combining multiple meshes, textures
+and sound sources. Our goal is to build these experiences by combining a
+series of "media streams", delivered either directly to the user or through
+a network of relays.
+
+
+## Media Streams, Tracks and Objects
+
+When discussing the user experience, we focus on media streams, such as for example
+the view of a participant in a video-conference. However, the media transport over QUIC
+does not directly operate on the "abstract" view of a participant, but on the an encoding
+of that view, suitable for transport over the Internet. In what follows, we call that
+encoding a "Track".
+
+### Tracks
+
+A track is a transform of a media stream using a specific encoding process, a set of
+parameters for that encoding, and possibly an encryption process. The MoQ transport
+is designed to transport tracks.
+
+### Objects and Groups
+
+The binary content of a track is composed of a set of objects. The decomposition of the
+track into objects is arbitrary. For real time applications, an object will often correspond
+to an unit of capture, such as for example the encoding of a single video frame, but
+different applications may well group several such units together, or follow whatever
+arrangement makes sense for the application.
+
+In the definition of the transport, we assume that objects may be encrypted, and that
+relays will not be able to decrypt the object. Many applications are expected to use
+authenticated encryption, which makes the transmission of the object an "all or nothing"
+proposal, since truncated delivery would cause authentication failure and the rejection
+of the message. The MoQ transport treats objects as atomic units.
+
+The objects that compose a given track are organized as a series of "groups", each
+containing a series of objects.
+
+DISCUSS: we need to add here text on synchronization points, congestion responses,
+and potentially priorities.
+
+DISCUSS: we need to add here text on in order delivery, etc.
+
+## Composition
+
+Different applications will organize the user experience in different way. For
+example, a conferencing application will let participants send and receive audio
+and video streams from each other, as well as other media streams, such as maybe
+a demonstration video, or sharing of a participant's computer screen. The number
+of active streams in a conference will often vary over time, as new particpants
+"get the floor" or start sharing screens. A broadcast
+application may provide a set of video streams presenting different views of an
+event, the corresponding sound tracks, and perhaps a running commentary. A
+virtual reality application will have its own set of media streams. In some
+cases, audio streams will be available in several languages, or subtitle streams
+in different languages may complement the original videos and audio streams.
+
+### Catalog and track selection
+
+The MoQ transport tries to not make assumptions about the user experience, or the
+number and type of media streams handled by an application. We simply assume that
+the users will receive a "catalog" or "manifest" describing the broadcast. For some
+applications, the content of this catalog will be established at the very beginning
+of the session. In other case, the catalog will have to be updated by a stream of
+events as new media streams get added or removed from the media experience.
+
+The only assumption required by the MoQ transport is that users can select the tracks
+that they want to receive, so they can subscribe to these tracks using MoQ. If a
+media streams is available in multiple formats or multiple languages, we expect that
+the catalog will provide sufficient information to let subscribers choose and request
+the appropriate track. We will discuss later how subscribers who encounter congestion
+could, for example, unsubscribe from the high definition track of a video media and
+subscribe instead to a lower definition track, or maybe decide to forgo the video
+experience and simply receive the audio track.
+
+DISCUSS: some applications could consider the catalog as just a particular media track.
+This provides an interesting simplification, because then the identifier of the
+catalog track can be used to identify the "media session". 
+
+
+## Relays, Subscribers, Publishers and Origins
+
+User will receive the content of a track by "subscribing" to it. We expect
+that they will in most case receive the track's object through relays, much
+like readers of web pages often receive these pages through a content
+distribution network.
+
+### Subscribing through a relay
+
+A subscriber will subscribe to a media track by sending to the relay a "subscribe"
+command that carries the identifier of the desired track. The relay will have
+to decide whether to authorize that query or not. If it decides to allow the subscription,
+it will also have to find out how to provide the desired content.
+
+The authorization process can be implemented in three stages: identifying the "origin"
+of the requested track, verifying that the relay is willing to act on behalf of that
+origin, and then asking that origin whether the subscriber is
+authorized to access the specified content. This requires that the "origin" can
+be obtained by parsing the track identifier. We thus assume that the track indentifier
+includes two components: the origin identifier, and the track reference at the origin.
+
+~~~
+    +-----------+-----------------+
+    | Origin ID | Track reference |
+    +-----------+-----------------+
+   -- Two parts track identifier --
+
+~~~
+
+Given the origin identifier, the rely will check whether it is authorized to service
+that origin. This step depends on the way the relay is managed. Some relays will
+accept all traffic from a set of subscribers, other will only accept traffic if they
+have some business agreement with the origin. The only requirements for the MoQ transport
+are to be able to identify the origin and, in some cases, the subscriber.
+
+The relay will then have to check whether the origin is willing to let the subscriber
+access the track. For example, if the track is part of a real time conference, the
+origin will check whether the subscriber is an authorized participant to the conference.
+The relay will do that by sending an "authorization request" towards the origin.
+The authorization request may contain a track identifier and some client data, such as
+for example some kind of token.
+
+DISCUSS: authorization may require more than a single token provided by
+the subscriber and passed to the origin. Many authorization processes involve multiple
+rounds of challenges and responses. The subscriber may also want to verify that it
+is in contact with the expected origin. At a minimum, this needs discussion in a
+security section.
+
+Many multimedia experiences involve multiple tracks, originating from the same origin.
+Repeating the authorization process for each of these tracks seems wasteful. Some
+origins may want to authorize the subscriber once per conference, or once per "broadcast",
+instead of once per track. This can be implemented by using a hierarchical structure,
+splitting the "track reference" into a "broadcast reference" and the actual "track reference".
+
+~~~
+    +-----------+---------------------+-----------------+
+    | Origin ID | Broadcast reference | Track reference |
+    +-----------+---------------------+-----------------+
+    <----- Broadcast identifier ------>
+    <---------------- Track identifier ----------------->
+
+            -- Three parts track identifier --
+~~~
+
+The origin could then send to the relay an authorization response that would be valid for
+all identifiers starting by the specified broadcast reference.
+
+Structuring the track identifier as a three parts identifier may reduce the number of
+transactions between relays and origin, but it also carry a small privacy risk, as the relays
+can now track which users subscribe to what broadcast ID.
+
+DISCUSS: does this discussion of subscribing and authorizing even belong in the data model?
+
+### Publishing through relays
+
+Some media publications clearly separate how content is uploaded to a "content management
+center" (CMS) and then how that content is broadcast to subscribers. In that model, subscribers
+can use the MoQ transport to obtain media streams from the CMS acting as "origin", while
+uploading the content could use an entirely different "ingress" system. Some other media
+experience are more symmetric. For example, in a video conference, participants may publish
+their own video and audio tracks. These tracks will be "posted" by the participants, acting
+as publishers.
+
+Posting a track through the relay starts with a "post" transaction that describes the
+track identifier. That transaction will have to be authorized by the origin, using mechanisms
+similar to authorizing subscriptions.
+
+DISCUSS: do we need more details here?
+
+### Relays and caches
+
+TODO: copy existing text.
+
+### Restoring connections through relays
+
+The transmission of a track can be interrupted by various events, such as loss of
+connectivity between subscriber and relay. Once connectivity is restored, the subscriber
+will want to resume reception, ideally with as few visible gaps in the transmission as possible,
+and certainly without having to "replay" media that was already presented.
+
+There is no guarantee that the restored connectivity will have the same characteristics
+as the previous instance. The throughput might be lower, forcing the subscriber to select
+a media track with lower definition. The network addresses might be different, with the
+subscriber connecting to a different relay.
+
+DISCUSS: do we need to describe here the "subscribe intent"? Do we want to reuse the
+concept of "groups" or are these specific to tracks? Timestamps may be very useful,
+but do we need to attach timestamps to objects? Or do we want to have some indirection,
+such as "resume at timestamp T" is translated as "restart track X at group G"?
+
+
+------ Christian's proposal ends here ------
 
 >Note: This section address some of the shortcomings with the currently specified model by
 - adding terminology that can be generically applicable across multiple MOQ application domains
@@ -811,7 +1009,8 @@ The format of the OBJECT message is as follows:
 OBJECT Message {
   Broadcast URI (b)
   Track ID (i),
-  Object ID (i),
+  Group Sequence (i),
+  Object Sequence (i),
   Object Delivery Order (i),
   Object Payload (b),
 }
@@ -824,8 +1023,13 @@ The broadcast URI as declared in CATALOG ({{message-catalog}}).
 * Track ID:
 The track identifier as declared in CATALOG ({{message-catalog}}).
 
-* Object ID:
-A unique identifier for each object within the track.
+* Group Sequence :
+An integer always starts at 0 and increases sequentially at the original media publisher.
+Group sequences are scoped under a Track.
+
+* Object Sequence:
+An integer always starts at 0 with in a Group and increases sequentially.
+Object Sequences are scoped to a Group.
 
 * Object Delivery Order:
 An integer indicating the object delivery order ({{delivery-order}}).
