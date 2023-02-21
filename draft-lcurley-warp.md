@@ -72,7 +72,9 @@ QUIC streams are prioritized based on the delivery order, allowing less importan
 Warp is a live media transport protocol that utilizes the QUIC network protocol {{QUIC}}.
 
 * {{motivation}} covers the background and rationale behind Warp.
+* {{model}} covers the data model and its interactions.
 * {{objects}} covers how media is fragmented into objects.
+* {{relays-moq}} covers specifics of role of MoQ relays.
 * {{quic}} covers how QUIC is used to transfer media.
 * {{messages}} covers how messages are encoded on the wire.
 * {{containers}} covers how media tracks are packaged.
@@ -177,17 +179,104 @@ x (b):
 
 # Model
 
-The basic element of Warp is *a media object*. A media object is a single addressable cacheable unit that may either contain a sequence of media samples, or some media-specific metadata, and may have relay-related attributes such as TTL or delivery priority associated with it. A media object is a sequence of bytes with a finite length. A Warp media object is similar in function to what is often referred to as "segments" or "chunks" in other media protocols; however, they are different from the traditional notion of chunks. The first key distinction is that Warp media objects are not always expected to be fully available, and thus any relays have to be able to convey partial media objects. The second key distinction is that Warp media objects may not be fully decodable by themselves; an object will contain a description of the prerequisites if that is the case.
+Media applications are generally composed by combining multiple media streams to present the desired experience to media users. The actual combination can vary widely, from listening to a simple audio stream, to combining a mosaic of video streams and multiple layers of audio possibly coming from multiple sources, to immersion in a virtual reality experience combining multiple meshes, textures and sound sources. Our goal is to build these experiences by combining a series of "media streams", delivered either directly to the user or through a network of relays.
 
-*A media track* in Warp is a combination of *an init object* and a sequence of media objects. An init object is a format-specific self-contained description of the track that is required to decode any media object contained within the track, but can also be used as the metadata for track selection. If two media tracks carry semantically equivalent but differently encoded media, they are referred to as *variants* of each other.
+## Media Streams, Tracks, Objects, Emissions
 
-*A Warp broadcast* is a collection of multiple media tracks produced by a single origin. When subscribing to a broadcast, a peer has an option of subscribing to one, many or all media tracks within the broadcast.
+When discussing the user experience, we focus on media streams, such as for example the view of a participant in a live broacast or a video conference. However, the media transport over QUIC does not directly operate on the "abstract" view of a participant, but on the an encoding of that view, suitable for transport over the Internet. In what follows, we call that encoding a "Track".
 
-A Warp broadcast is globally identifiable via a URI. Within the broadcast, every media track is identified via *a track ID* that is unique within the broadcast. Within a single media track, every media object is identified by an *object ID* that is unique within the track.
+### Tracks
 
-Depending on the profile of the application using it, Warp supports both a mode of operation where the peer unilaterally sends a broadcast with the media tracks of its choice, and a mode where the peer has to explicitly subscribe to a broadcast and select media tracks it wishes to receive.
+A track is a transform of a media stream using a specific encoding process, a set of parameters for that encoding, and possibly an encryption process. The MoQ transport is designed to transport tracks. 
 
-As an example, consider a scenario where `example.org` hosts a simple live stream that anyone can subscribe to. That live stream would be a single Warp broadcast identified by the URL `https://example.org/livestream`. In the simplest implementation, it would provide only two media tracks, one with audio and one with video. In more complicated scenarios, it could provide multiple video formats of different levels of video quality; those tracks would be variants of each other. Note that the track IDs are opaque on the Warp level; if the player has not received the description of media tracks out of band in advance, it would have to request the broadcast description first.
+Tracks are identified within MoQ transport by their TrackIds, which can be encoded in one of the following ways
+
+~~~
+    +-----------+-----------------+
+    | Origin ID | Track reference |
+    +-----------+-----------------+
+   -- Two parts track identifier --
+
+~~~
+
+OR
+
+~~~
+ 
+  +-----------+---------------------+-----------------+
+  | Origin ID | Emission reference  | Track reference |
+  +-----------+---------------------+-----------------+
+  <----- Emission identifier ------>
+  <---------------- Track identifier ----------------->
+
+          -- Three parts track identifier --
+
+~~~
+
+See {{relays-moq}} for  futher details on the above representations and its usages.
+
+Origin ID is also referered to as EmitterId in this document.
+
+Each track is considered to have the following properties
+
+- A single emitter/origin.
+- A single decoding configuration.
+- A single security configuration.
+
+
+### Objects and Groups
+
+The binary content of a track is composed of a set of objects. The decomposition of the track into objects is arbitrary. For real time applications, an object will often correspond to an unit of capture, such as for example the encoding of a single video frame, but different applications may well group several such units together, or follow whatever arrangement makes sense for the application.
+
+The objects that compose a given track are organized as a series of "groups", each containing a series of objects. The scope and granularity of the grouping of objects is application defined and controlled. Some examples of how this grouping might be defined:
+
+* Each video Group of Pictures (GOP) is mapped to a group. The group would hold multiple objects, each holding one encoded video frame.
+
+* Each video frame boundary is mapped to a group. There would be a single object in each group, containing a single encoded video frame. 
+  
+* Each video frame boundary is mapped to a group. There would be a multiple objects in each group, each pertainimg to a slice of a video frame. 
+
+* A single group is mapped to the entire track, thus spanning its lifetime. Each object mapping to a slice of that. 
+
+* Each audio frame is mapped to a group. In this grouping, each group has a single audio frame as the object.
+
+Each group is identified by its integer `GroupId` and it  always starts at 0 and increases sequentially at the original media publisher.   Each Object is identified by a sequentially increasing integer, called `ObjectId`, starting at 0. 
+
+
+Objects represent single addressable cacheable unit within the MoQ architecture.  They carry associated header/metadata that is authenticated (but not end-to-end encrypted) and contains priority/delivery order, time to live, and other information aiding the caching/forwarding decision at the Relays. Objects are not always expected to be fully available, and thus relays have to be able to convey partial objects. Also objects may not be fully decodable by themselves; the object and application context shall provide the necessary prerequisites if that is the case.
+
+For the purposes of publishing, caching and retrieval, a Object is fully identified by the combination of the following identifiers:
+
+```
+Object cache key :=  TrackId | GroupId | ObjectId
+```
+
+DISCUSS: we need to add here text on synchronization points, congestion responses, and potentially priorities.
+
+DISCUSS: we need to add here text on in order delivery, etc.
+
+### Emissions
+
+An Emission is a logical concept and represents a grouping of a tracks from a single Origin (aka Emitter). Emissions are semantically equivalent to a broadcast in live streaming, a conference in interactive conference or a similar grouping.
+
+## Composition
+
+Different applications will organize the user experience in different way. For example, a conferencing application will let participants send and receive audio and video streams from each other, as well as other media streams, such as maybe a demonstration video, or sharing of a participant's computer screen. The number of active media streams in a conference will often vary over time, as new particpants "get the floor" or start sharing screens. A broadcast application may provide a set of video streams presenting different views of an event, the corresponding sound tracks, and perhaps a running commentary. A virtual reality application will have its own set of media streams related to photorealistic rendering and mapped textures. In some cases, audio streams will be available in several languages, or subtitle streams in different languages may complement the original videos and audio streams.
+
+A Compositon is a collection of multiple media tracks that may or may not belong to a single emisssion and thus may not be scoped a single origin.
+
+### Catalog and track selection
+
+The MoQ transport tries to not make assumptions about the user experience, or the number and type of media streams handled by an application. We simply assume that the users will receive a "catalog" describing the composition. For some applications, the content of this catalog will be established at the very beginning of the session. In other case, the catalog will have to be updated by a stream of events as new media streams get added or removed from the media experience.
+
+The only assumption required by the MoQ transport is that users can select the tracks that they want to receive, so they can subscribe to these tracks using MoQ. If a media streams is available in multiple formats or multiple languages, we expect that the catalog will provide sufficient information to let subscribers choose and request
+the appropriate track. We will discuss later how subscribers who encounter congestion could, for example, unsubscribe from the high definition track of a video media and subscribe instead to a lower definition track, or maybe decide to forgo the video experience and simply receive the audio track.
+
+Depending on the profile of the application using it, Warp supports both a mode of operation where the peer unilaterally sends a composition with the media tracks of its choice, and a mode where the peer has to explicitly subscribe to a composition and select media tracks it wishes to receive.
+
+DISCUSS: some applications could consider the catalog as just a particular media track. This provides an interesting simplification, because then the identifier of the catalog track can be used to identify the "media session". 
+
+As an example, consider a scenario where the emitter `example.org` hosts a simple live stream that anyone can subscribe to. That live stream would be a single Warp broadcast providing only two media tracks, one with audio (identified by the TrackId `https://example.org/livestream/audio`) and one with video (identified by the TrackId `https://example.org/livestream/video`). In more complicated scenarios, it could provide multiple video formats of different levels of video quality, each representing individual tracks.
 
 
 # Motivation
@@ -315,6 +404,140 @@ The amount of time the decoder is willing to wait for an object (buffer duration
 Objects MUST synchronize frames within and between tracks using presentation timestamps within the container.
 Objects are NOT REQUIRED to be aligned and the decoder MUST be prepared to skip over any gaps.
 
+
+# Relays {#relays-moq}
+
+The Relays play an important role for enabling low latency media delivery within the MoQ architecture. This specification allows for a delivery protocol based on a publish/subscribe metaphor where some endpoints, called publishers, publish media objects and 
+some endpoints, called subscribers, consume those media objects. Some relays can leverage this publish/subscribe metaphor to form an overlay delivery network similar/in-parallel to what CDN provides today. While this type of overlay is expected to be a major application of relays, other types of relays can also be defined to offer various types of services.
+
+Objects are received by "subscribing" to it. We expect that they will in most case receive the objects through relays, much like readers of web pages often receive these pages through a content distribution network. Objects are identified such that it is unique for 
+the relay/delivery network.
+
+Relays provide several benefits including
+
+* Scalability – Relays provide the fan-out necessary to scale up 
+                streams to production levels (millions) of concurrent 
+                subscribers.
+
+* Reliability - relays can improve the overall reliability 
+               of the delivery system by providing alternate paths for 
+               routing content.
+
+* Performance – Relays are usually positioned as close to the edge of a 
+                network as possible and are well-connected to each other 
+                and to the Origin via high capacity managed networks. This 
+                topography minimizes the RTT over the unmanaged last 
+                mile to the end-user, improving the latency and throughput 
+                compared to the client connecting directly to the origin.'
+
+* Security –    Relays act to shield the origin from DDOS and other 
+                malicious attacks.
+
+
+## Relay - Subscriber Interactions
+
+Subscribers interact with "MoQ Relays" by sending a "subscribe" command for the desired content identifed by its `SubscriptionId`.  We expect that they will in most case receive the published object through relays, much like readers of web pages often receive these pages through a content distribution network. `SubscriptionId` typically identifies objects belonging to desired track or a emission for example. Relays forward the published objects to the subscribers matching the `SubscriptionId` in the subscribe request. 
+
+However, Relays MUST be willing to act on behalf of the subscriptions before they can 
+forward the media, which implies that the subscriptions MUST to be authorized. If it decides to allow the subscription, it will also have to find out how to provide the desired content. 
+
+The authorization process can be implemented in three stages: identifying the "origin"
+of the requested track, verifying that the relay is willing to act on behalf of that
+origin, and then asking that origin whether the subscriber is
+authorized to access the specified content. This requires that the "origin" can
+be obtained by parsing the track identifier. We thus assume that the track identifier
+includes two components: the origin identifier, and the track reference at the origin.
+
+~~~
+    +-----------+-----------------+
+    | Origin ID | Track reference |
+    +-----------+-----------------+
+   -- Two parts track identifier --
+
+~~~
+
+Given the origin identifier, the relay will check whether it is authorized to service
+that origin. This step depends on the way the relay is managed. Some relays will
+accept all traffic from a set of subscribers, other will only accept traffic if they
+have some business agreement with the origin. The only requirements for the MoQ transport
+are to be able to identify the origin and, in some cases, the subscriber.
+
+The relay will then have to check whether the origin is willing to let the subscriber
+access the subscription. For example, if the track is part of a realtime conference, the
+origin will check whether the subscriber is an authorized participant to the conference.
+Relays can be configured by the application, in one of the following modes allowing them to participate in the media delivery:
+
+1. Subscriptions carry enough authorization information, for the Relays to authorize the subscription.
+
+2. Relays forward the received subsciptions towards the Origin for completing the authorization process. This may involve sending the messages directly to the Origin Relay or possibly traverse another Relay. 
+
+In all the scenarios, the end-point client making the subscribe request is
+notified of the result of the subscription.
+
+
+Many multimedia experiences involve multiple tracks, originating from the same origin.
+Repeating the authorization process for each of these tracks seems wasteful. Some
+origins may want to authorize the subscriber once per conference, or once per broadcast,
+instead of once per `SubscriptionId`. This can be implemented by using a hierarchical structure, splitting the "track reference" into a "emission reference" and the actual "track reference".
+
+~~~
+    +-----------+---------------------+-----------------+
+    | Origin ID | Emission reference | Track reference |
+    +-----------+---------------------+-----------------+
+    <----- Emission identifier ------>
+    <---------------- Track identifier ----------------->
+
+            -- Three parts track identifier --
+~~~
+
+The origin could then send to the relay an authorization response that would be valid for
+all identifiers starting by the specified broadcast reference.
+
+Structuring the track identifier as a three parts identifier may reduce the number of
+transactions between relays and origin, but it also carry a small privacy risk, as the relays can now track which users subscribe to what broadcast ID.
+
+DISCUSS: Should we add a note for the flows where origin id can be omitted if the media
+is sourced and consumed from within the provider's delivery network.
+
+For cases where the subscriptions are successfully validated, Relay proceeed to save the subscription information by maintaining the mapping from the `SubscriptionId`s to the list of subscribers. This will enable Relays to forward on-going publishes (live or from cache) to the subscribers, if available, and also forward all the future publishes, until the subscriptions cases to exist. Relays make such forwarding and/or caching decisions, 
+based on match of the identfiers associated in the object's header against the list of subscribers.
+
+Subscriptions received can be aggregated at the Relays. When a relay receives a publish request with data, it will forward it both towards the Origin and to any clients or relays that have a matching subscriptions. This "short circuit" of distribution by a relay before the data has even reached the Origin servers provides significant latency reduction for clients closer to the relay.
+
+## Relay - Publisher Interactions
+
+Some media publications clearly separate how the content is uploaded to a "content management center" (CMS) and then how that content is broadcast to subscribers. In that model, subscribers can use the MoQ transport to obtain media streams from the CMS acting as "origin", while uploading the content could use an entirely different "ingress" system. Some other media experience are more symmetric. For example, in a video conference, participants may publish their own video and audio tracks. These tracks will be "published" by the participants, acting as publishers.
+
+Publishers MAY be configured to publish the objects to a relays based on the application configuration and topology. Publishing a track through the relay starts with a "publish" transaction that describes the track identifier. That transaction will have to be authorized by the origin, using mechanisms similar to authorizing subscriptions
+
+Publishers begin with publishing "Catalog" messages that identify the various media tracks that the publisher is willing to publish the objects on. The "Catalog" messages MUST be 
+authorized in one of the following ways
+
+1. "Catalog" message carries enough authorization information, for the Relays to authorize the tracks advertised.
+
+2. Relays forward the received Catalog messaage towards Origin, for completing the authorization process. This may involve sending the messages directly to the Origin or possibly traversing another Relay.
+
+"Catalog" message content themselves are opaque to the Relays other than the information needed to authorize the message. Once the Catalog message is authorized, Relay would be willing to participate in forwarding the published media objects whose track identifer matches with the ones listed in the Catalog message.
+
+The Relay keeps an outgoing queue of objects to be sent to the each subscriber and objects are sent in strict priority/delivery order. Relays MAY cache some of the information for short period of time and the time cached may depend on the application and also by the local cache policies.
+
+Relays makes use of priority/delivery order and other metadata properties from the published  objects to make forward or drop decisions when reacting to congestion as indicated by the underlying QUIC stack. The same can be used to make caching decisions.
+
+## Relay Discovery and Failover
+
+Relays are discovered via application defined ways that are out of scope of this 
+document. A Relay that wants to shutdown can send a message to the client with 
+the address of new relay. Client moves to the new relay with all of its 
+Subscriptions and then Client unsubscribes from old relay and closes connection to it.
+
+## Restoring connections through relays
+
+The transmission of a track can be interrupted by various events, such as loss of connectivity between subscriber and relay. Once connectivity is restored, the subscriber will want to resume reception, ideally with as few visible gaps in the transmission as possible, and certainly without having to "replay" media that was already presented.
+
+There is no guarantee that the restored connectivity will have the same characteristics as the previous instance. The throughput might be lower, forcing the subscriber to select a media track with lower definition. The network addresses might be different, with the
+subscriber connecting to a different relay.
+
+DISCUSS: do we need to describe here the "subscribe intent"? Do we want to reuse the concept of "groups" or are these specific to tracks? Timestamps may be very useful, but do we need to attach timestamps to objects? Or do we want to have some indirection, such as "resume at timestamp T" is translated as "restart track X at group G"?
 
 # QUIC
 
