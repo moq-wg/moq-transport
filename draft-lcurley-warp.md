@@ -321,6 +321,8 @@ Objects are NOT REQUIRED to be aligned and the decoder MUST be prepared to skip 
 ## Establishment
 A connection is established using WebTransport {{WebTransport}}.
 
+DISCUSS: Add details on the connecting over raw QUIC Support.
+
 To summarize:
 The client issues a HTTP CONNECT request with the intention of establishing a new WebTransport session.
 The server returns an 200 OK response if the WebTransport session has been established, or an error status otherwise.
@@ -328,8 +330,7 @@ The server returns an 200 OK response if the WebTransport session has been estab
 A WebTransport session exposes the basic QUIC service abstractions.
 Specifically, either endpoint may create independent streams which are reliably delivered in order until canceled.
 
-WebTransport can currently operate via HTTP/3 and HTTP/2, using QUIC or TCP under the hood respectively.
-As mentioned in the motivation ({{motivation}}) section, TCP introduces head-of-line blocking and will result in a worse experience.
+WebTransport can currently operate via HTTP/3 and HTTP/2, using QUIC or TCP under the hood respectively. As mentioned in the motivation ({{motivation}}) section, TCP introduces head-of-line blocking and will result in a worse experience.
 It is RECOMMENDED to use WebTransport over HTTP/3.
 
 ## Authentication
@@ -340,13 +341,16 @@ An endpoint SHOULD terminate the connection with an error ({{termination}}) if t
 For example, attempting to use a different role than pre-negotated ({{role}}) or using an invalid broadcast URI ({{message-catalog}}).
 
 ## Streams
-Warp endpoints communicate over QUIC streams. Every stream is a sequence of messages, framed as described in {{messages}}.
 
-The first stream opened is a client-initiated bidirectional stream where the peers exchange SETUP messages ({{message-setup}}). The subsequent streams MAY be either unidirectional and bidirectional. For exchanging media, an application would typically send a unidirectional stream containing a single OBJECT message ({{message-object}}).
+Warp endpoints communicate over QUIC streams. Every stream is a sequence of messages, framed as described in {{messages}}. The first stream opened is a client-initiated bidirectional stream where the peers exchange SETUP messages ({{message-setup}}).
 
-Messages SHOULD be sent over the same stream if ordering is desired.
-Some messages MUST be sent over the same stream, for example SUBSCRIBE messages ({{message-subscribe}}) with the same broadcast URI.
+### Control and Data Channels
 
+When a endpoint client or relay begins a transaction with the relay/origin, new bilateral QUIC Stream is opened. This stream will act as the "control channel" for the exchange of data, carrying a series of control messages in both directions. There is one control channel setup per track. Control Channels are "one way". If a peer both sends and receive media, there will be different control channels for sending and receiving.
+
+For exchanging media, OBJECT messages ({{message-object}}) belonging to a group are delivered over one or more unidirectional streams, called data channels,  based on application's preferred mapping of the OBJECT's group to underlying QUIC Stream(s).
+
+The control channel will remain open as long as the peers are still sending or receiving the media. If either peer closes the control stream, the other peer will close its end of the stream and discard the state associated with the media transfer. The latter resulting in termination or clean up of stream states associated with the date channels.
 
 ## Prioritization
 Warp utilizes stream prioritization to deliver the most important content during congestion.
@@ -431,6 +435,7 @@ The endpoint successfully drained the session after a GOAWAY was initiated ({{me
 
 
 # Messages
+
 Both unidirectional and bidirectional Warp streams are sequences of length-deliminated messages.
 
 ~~~
@@ -445,19 +450,21 @@ Warp Message {
 The Message Length field contains the length of the Message Payload field in bytes.
 A length of 0 indicates the message is unbounded and continues until the end of the stream.
 
-|------|-----------------------------------|
-| ID   | Messages                          |
-|-----:|:----------------------------------|
-| 0x0  | OBJECT ({{message-object}})       |
-|------|-----------------------------------|
-| 0x1  | SETUP ({{message-setup}})         |
-|------|-----------------------------------|
-| 0x2  | CATALOG ({{message-catalog}})     |
-|------|-----------------------------------|
-| 0x3  | SUBSCRIBE ({{message-subscribe}}) |
-|------|-----------------------------------|
-| 0x10 | GOAWAY ({{message-goaway}})       |
-|------|-----------------------------------|
+|------|----------------------------------------------|
+| ID   | Messages                                     |
+|-----:|:---------------------------------------------|
+| 0x0  | OBJECT ({{message-object}})                  |
+|------|----------------------------------------------|
+| 0x1  | SETUP ({{message-setup}})                    |
+|------|----------------------------------------------|
+| 0x2  | CATALOG ({{message-catalog}})                |
+|------|----------------------------------------------|
+| 0x3  | SUBSCRIBE ({{message-subscribe}})            |
+|------|----------------------------------------------|
+| 0x4  | SUBSCRIBE_REPLY ({{message-subscribe-reply}})|
+|------|----------------------------------------------|
+| 0x10 | GOAWAY ({{message-goaway}})                  |
+|------|----------------------------------------------|
 
 ## SETUP {#message-setup}
 
@@ -491,6 +498,91 @@ The client offers the list of the protocol versions it supports; the server MUST
 
 The SETUP parameters are described in the {{setup-parameters}} section.
 
+## Subscribing to the media
+
+Entities that intend to receive objects will do so via subscriptions. Subscriptions are sent from the end-point clients and/or Relays to the Origin (via relays, if present) and are typically processed by the Relays.  All the subscriptions MUST be authorized at the Origin Server and/or possibly at the Edge Relay (if trusted via the out-of-band configuration).
+
+### SUBSCRIBE {#message-subscribe}
+
+The format of SUBSCRIBE is defined as below
+
+~~~
+SUBSCRIBE Message {
+  Subscription ID Length(i),
+  Subscription ID (...)...,  
+  Media ID (i),
+  Encrypted Payload Length(i),
+  Encrypted Payload (...)...
+}
+~~~
+{: #warp-subscribe-format title="Warp SUBSCRIBE Message"}
+
+After receiving a CATALOG message ({{message-catalog}}), the receiver sends a SUBSCRIBE message to indicate that it wishes to receive the indicated tracks within a broadcast.
+
+* Subscription ID:
+Identifies a given track from the Catalog or the Composition(broadcast) encompassing
+all the tracks.
+
+* Media ID:
+Represents an handle to the subscription to be provided by the peer over the data channel(s). Given that media corresponding to a subscription can potentially arrive over multiple data channels, the Media ID provides the necessary mapping between the control and the data channel. Media ID also serves as compression identifier for containing the size of object headers instead of carrying complete track/catalog/broadcast identifier information in every object message.
+
+* Encrypted Pyload: 
+Carries client’s authorization information obtained out-of-band. Such information typically is in form of a token authorizing client’s subscription to the given SubscriptionId. The payload may be possibly encrypted and accessible only by the Origin or the MoQ Relay depending on the configuration.
+
+
+Subscriptions are typically long-lived transactions and they stay active until one of the following happens:
+
+- a client local policy dictates expiration of a subscription.
+- optionally, a server policy dicates subscription expiration.
+- the underlying transport is disconnected
+
+A endpoint client can renew its subscriptions at any point by sending a new `SUBSCRIBE`. Such subscriptions MUST refresh the existing subscriptions for that name and thus only the most recent SUBSCRIBE message is considered active. A renewal period of 5 seconds is RECOMMENDED.
+
+
+
+DISCUSS: Do we need transaction identifier ?
+
+DISCUSS: Should we talk about intent to subscribe on replay or syncup ?
+
+### SUBSCRIBE_REPLY {#message-subscribe-reply}
+
+A `SUBSCRIBE_REPLY` provides result of the subscription. This message is sent by the Origin (except when redirected) when it’s successfully validates the subscription request, signs it with its public key.
+
+The format of SUBSCRIBE_REPLY is defined as below
+
+~~~
+enum Response
+{
+  OK(0),
+  EXPIRED(1)
+  FAIL(2),
+  REDIRECT(2)
+}
+
+
+SUBSCRIBE_REPLY Message {
+  Subscription ID Length(i),
+  Subscription ID (...)..., 
+  Response respoonse
+  [Reason Phrase Length (i),
+  [Reason Phrase (..)],
+  [Relay Redirect URL Length(i)],
+  [Relay Redirect URL(...)...],
+  Signature(32)
+}
+~~~
+{: #warp-subscribe-reply-format title="Warp SUBSCRIBE_REPLY Message"}
+
+
+* Subscription ID:
+Identifies the mapping subscription identifier in the SUBSCRIBE message.
+
+* Response:
+Provides result of the subscription. A response of `OK` is considered as successful subscription and the application should be ready to receive media matching the subscription. A response of `EXPIRED` or `FAIL` imply failed subscription  with further details provided in the Reason Phrase, enabling the application to take appropriate action. In the case of `REDIRECT` response, the subscriber MUST move to the Relay that is identified in the `Relay Redirect URL` to setup the subscription.
+
+* Signature: 
+Signature over all the fields up unitl the Signautre field and signed by the Origin.
+
 
 ## OBJECT {#message-object}
 A OBJECT message contains a single media object associated with a specified track, as well as associated metadata required to deliver, cache, and forward it.
@@ -503,7 +595,8 @@ OBJECT Message {
   Track ID (i),
   Group Sequence (i),
   Object Sequence (i),
-  Object Delivery Order (i),
+  Delivery Order (i)
+  Flags (8),
   Object Payload (b),
 }
 ~~~
@@ -523,8 +616,17 @@ Group sequences are scoped under a Track.
 An integer always starts at 0 with in a Group and increases sequentially.
 Object Sequences are scoped to a Group.
 
-* Object Delivery Order:
+* Delivery Order:
 An integer indicating the object delivery order ({{delivery-order}}).
+
+* Flags:
+A octet bitstring capturing object's relative characteristics as defined by the application. It is made up of following components 
+```
+Flags := Reserved (2) | LatencyMode(1) | IsDiscardable (1) | Priority (3).
+```
+LatencyMode is an hint to Relays to identify the latency profile of the media 
+being carried and has 2 possible values of "Realtime" and "NonRealTime". `IsDiscardable` 
+hint specifies if the current object can be discarded under congestion. `Priority` is a 3 bit field provididong a strict ordered priority of the objects within a given group.
 
 * Object Payload:
 The format depends on the track container ({{containers}}).
@@ -576,35 +678,6 @@ This contains base information required to decode OBJECT messages, such as codec
 
 An endpoint MUST NOT send multiple CATALOG messages with the same Broadcast URI.
 A future draft will add the ability to add/remove/update tracks.
-
-## SUBSCRIBE {#message-subscribe}
-After receiving a CATALOG message ({{message-catalog}}, the receiver sends a SUBSCRIBE message to indicate that it wishes to receive the indicated tracks within a broadcast.
-
-The format of SUBSCRIBE is as follows:
-
-~~~
-SUBSCRIBE Message {
-  Broadcast URI (b),
-  Track Count (i),
-  Track IDs (..),
-}
-~~~
-{: #warp-subscribe-format title="Warp SUBSCRIBE Message"}
-
-* Broadcast URI:
-The broadcast URI as defined in CATALOG ({{message-catalog}}).
-
-* Track Count:
-The number of track IDs that follow.
-This MAY be zero to unsubscribe to all tracks.
-
-* Track IDs:
-A list of varint track IDs.
-
-
-Only the most recent SUBSCRIBE message for a broadcast is active.
-SUBSCRIBE messages MUST be sent on the same QUIC stream to preserve ordering.
-
 
 ## GOAWAY {#message-goaway}
 The `GOAWAY` message is sent by the server to force the client to reconnect.
