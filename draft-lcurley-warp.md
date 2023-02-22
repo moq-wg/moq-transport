@@ -602,6 +602,7 @@ The format of PUBLISH is defined as below
 PUBLISH Message {
   Emission ID (...)...,  
   Media ID (i),
+  Latency Mode(1),
   Encrypted Payload Length(i),
   Encrypted Payload (...)...
 }
@@ -614,6 +615,10 @@ Identifies one of the emissions that the publishers intends to advertise for aut
 
 * Media ID:
 Represents an handle to the emission to be used over the data channel(s). Given that media corresponding to the emission can potentially be sent over multiple data channels, the Media ID provides the necessary mapping between the control and the data channel. Media ID also serves as compression identifier for containing the size of object headers instead of carrying complete track/catalog/broadcast identifier information in every object message.
+
+* Latency Mode:
+Hint to Relays to identify the latency profile of the media 
+being carried and has 2 possible values of "Realtime" and "NonRealTime"
 
 * Encrypted Pyload: 
 Carries client’s authorization information obtained out-of-band. Such information typically is in form of a token authorizing client’s emission to the given EmissionId. The payload may be possibly encrypted and accessible only by the Origin or the MoQ Relay depending on the configuration.
