@@ -463,6 +463,10 @@ A length of 0 indicates the message is unbounded and continues until the end of 
 |------|----------------------------------------------|
 | 0x4  | SUBSCRIBE_REPLY ({{message-subscribe-reply}})|
 |------|----------------------------------------------|
+| 0x5  | PUBLISH ({{message-publish}})                |
+|------|----------------------------------------------|
+| 0x6  | PUBLISH_REPLY ({{message-publish-reply}})    |
+|------|----------------------------------------------|
 | 0x10 | GOAWAY ({{message-goaway}})                  |
 |------|----------------------------------------------|
 
@@ -517,7 +521,6 @@ SUBSCRIBE Message {
 ~~~
 {: #warp-subscribe-format title="Warp SUBSCRIBE Message"}
 
-After receiving a CATALOG message ({{message-catalog}}), the receiver sends a SUBSCRIBE message to indicate that it wishes to receive the indicated tracks within a broadcast.
 
 * Subscription ID:
 Identifies a given track from the Catalog or the Composition(broadcast) encompassing
@@ -537,7 +540,6 @@ Subscriptions are typically long-lived transactions and they stay active until o
 - the underlying transport is disconnected
 
 A endpoint client can renew its subscriptions at any point by sending a new `SUBSCRIBE`. Such subscriptions MUST refresh the existing subscriptions for that name and thus only the most recent SUBSCRIBE message is considered active. A renewal period of 5 seconds is RECOMMENDED.
-
 
 
 DISCUSS: Do we need transaction identifier ?
@@ -582,6 +584,80 @@ Provides result of the subscription. A response of `OK` is considered as success
 
 * Signature: 
 Signature over all the fields up unitl the Signautre field and signed by the Origin.
+
+
+## Publishing Media
+
+Entities intending to publish objects proceeed by setting up the control channel 
+for each emission (such as track, catalog) to carryout the necessary authorizations. This is done by exchaning control messages defined in this section.
+
+### PUBLISH {#message-publish}
+
+The `PUBLISH` control message sets up authorization for one or more emissions that the publisher intends to publish media with. The authorization is carried out based on authorization information, typically some foom of the tokenn, obtained via out of band mechanisms. Publishes needs to meet the authorization requirements akin to subscription requests.
+
+
+The format of PUBLISH is defined as below
+
+~~~
+PUBLISH Message {
+  Emission ID (...)...,  
+  Media ID (i),
+  Encrypted Payload Length(i),
+  Encrypted Payload (...)...
+}
+~~~
+{: #warp-publish-format title="Warp PUBLISH Message"}
+
+
+* Emission ID:
+Identifies one of the emissions that the publishers intends to advertise for authorization,.
+
+* Media ID:
+Represents an handle to the emission to be used over the data channel(s). Given that media corresponding to the emission can potentially be sent over multiple data channels, the Media ID provides the necessary mapping between the control and the data channel. Media ID also serves as compression identifier for containing the size of object headers instead of carrying complete track/catalog/broadcast identifier information in every object message.
+
+* Encrypted Pyload: 
+Carries client’s authorization information obtained out-of-band. Such information typically is in form of a token authorizing client’s emission to the given EmissionId. The payload may be possibly encrypted and accessible only by the Origin or the MoQ Relay depending on the configuration.
+
+DISCUSS: Do we need transaction identifier ?
+
+DISCUSS: Should we talk about intent to subscribe on replay or syncup ?
+
+### PUBLISH_REPLY {#message-publish-reply}
+
+The `PUBLISH_REPLY` control message provides result of request to publish. This message is sent by the Origin (except when redirected) when it’s successfully validates the pubication request, signs it with its public key. The `PUBLISH_REPLY` message is sent over the control channel over which the `PUBLISH` control message arrived.
+
+The format of PUBLISH_REPLY is defined as below
+
+~~~
+enum Response
+{
+  OK(0),
+  FAIL(2),
+  REDIRECT(2)
+}
+
+
+PUBLISH_REPLY Message {
+  EmissionId ID Length(i),
+  Emission ID (...)..., 
+  Response respoonse
+  [Reason Phrase Length (i),
+  [Reason Phrase (..)],
+  Signature(32)
+}
+~~~
+{: #warp-publish-reply-format title="Warp PUBLISH_REPLY Message"}
+
+
+* EmissionId ID:
+Identifies the mapping subscription identifier in the PUBLISH message.
+
+* Response:
+Provides result of the subscription. A response of `OK` is considered as successful subscription and the application should be ready to receive media matching the subscription. A response of `FAIL` imply failed subscription  with further details provided in the Reason Phrase, enabling the application to take appropriate action. In the case of `REDIRECT` response, the subscriber MUST move to the Relay that is identified in the `Relay Redirect URL` to setup the subscription.
+
+* Signature: 
+Signature over all the fields up unitl the Signautre field and signed by the Origin.
+
 
 
 ## OBJECT {#message-object}
