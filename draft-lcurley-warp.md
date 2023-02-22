@@ -346,7 +346,7 @@ Warp endpoints communicate over QUIC streams. Every stream is a sequence of mess
 
 ### Control and Data Channels
 
-When a endpoint client or relay begins a transaction with the relay/origin, new bilateral QUIC Stream is opened. This stream will act as the "control channel" for the exchange of data, carrying a series of control messages in both directions. There is one control channel setup per track. Control Channels are "one way". If a peer both sends and receive media, there will be different control channels for sending and receiving.
+When a endpoint client or relay begins a transaction with the relay/origin, new bilateral QUIC Stream is opened. This stream will act as the "control channel" for the exchange of data, carrying a series of control messages in both directions. There is one control channel setup per emission/subscription. Control Channels are "one way" and are setup hop-by-hop between the participating MoQ entities (endpoints, relays, origin,...). If a peer both sends and receive media, there will be different control channels for sending and receiving.
 
 For exchanging media, OBJECT messages ({{message-object}}) belonging to a group are delivered over one or more unidirectional streams, called data channels,  based on application's preferred mapping of the OBJECT's group to underlying QUIC Stream(s).
 
@@ -500,7 +500,7 @@ The SETUP parameters are described in the {{setup-parameters}} section.
 
 ## Subscribing to the media
 
-Entities that intend to receive objects will do so via subscriptions. Subscriptions are sent from the end-point clients and/or Relays to the Origin (via relays, if present) and are typically processed by the Relays.  All the subscriptions MUST be authorized at the Origin Server and/or possibly at the Edge Relay (if trusted via the out-of-band configuration).
+Entities that intend to receive objects will do so via subscriptions. Subscriptions are sent from the end-point clients and/or Relays to the Origin (via relays, if present) and are typically processed by the Relays. Subscriptions are sent over the control channel that is set up for a given SubscriptionId.  All the subscriptions MUST be authorized at the Origin Server and/or possibly at the Edge Relay (if trusted via the out-of-band configuration).
 
 ### SUBSCRIBE {#message-subscribe}
 
@@ -517,11 +517,9 @@ SUBSCRIBE Message {
 ~~~
 {: #warp-subscribe-format title="Warp SUBSCRIBE Message"}
 
-After receiving a CATALOG message ({{message-catalog}}), the receiver sends a SUBSCRIBE message to indicate that it wishes to receive the indicated tracks within a broadcast.
 
 * Subscription ID:
-Identifies a given track from the Catalog or the Composition(broadcast) encompassing
-all the tracks.
+Identifies a given emission to request for authorization.
 
 * Media ID:
 Represents an handle to the subscription to be provided by the peer over the data channel(s). Given that media corresponding to a subscription can potentially arrive over multiple data channels, the Media ID provides the necessary mapping between the control and the data channel. Media ID also serves as compression identifier for containing the size of object headers instead of carrying complete track/catalog/broadcast identifier information in every object message.
@@ -539,14 +537,13 @@ Subscriptions are typically long-lived transactions and they stay active until o
 A endpoint client can renew its subscriptions at any point by sending a new `SUBSCRIBE`. Such subscriptions MUST refresh the existing subscriptions for that name and thus only the most recent SUBSCRIBE message is considered active. A renewal period of 5 seconds is RECOMMENDED.
 
 
-
 DISCUSS: Do we need transaction identifier ?
 
 DISCUSS: Should we talk about intent to subscribe on replay or syncup ?
 
 ### SUBSCRIBE_REPLY {#message-subscribe-reply}
 
-A `SUBSCRIBE_REPLY` provides result of the subscription. This message is sent by the Origin (except when redirected) when it’s successfully validates the subscription request, signs it with its public key.
+A `SUBSCRIBE_REPLY` provides result of the subscription. This message is sent by the Origin when it’s successfully validates the subscription request, also signs it with its public key.
 
 The format of SUBSCRIBE_REPLY is defined as below
 
