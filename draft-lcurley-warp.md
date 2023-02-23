@@ -510,7 +510,6 @@ The format of SUBSCRIBE control message is defined as below
 SUBSCRIBE Message {
   Subscription ID Length(i),
   Subscription ID (...)...,  
-  Media ID (i),
   [Group ID (i)],
   [Object ID(i)],
   Encrypted Payload Length(i),
@@ -522,9 +521,6 @@ SUBSCRIBE Message {
 
 * Subscription ID:
 Identifies content of interest, such as a track or emission for receiving objects. Optional fields `Group ID` and `Object ID` identifies further details corresponding to the subcribed objects.
-
-* Media ID:
-Represents an handle to the subscription to be provided by the peer over the data channel(s). Given that media corresponding to a subscription can potentially arrive over multiple data channels, the Media ID provides the necessary mapping between the control and the data channel. Media ID also serves as compression identifier for containing the size of object headers instead of carrying complete track/catalog/broadcast identifier information in every object message.
 
 * Encrypted Payload: 
 Carries client’s authorization information obtained out-of-band. Such information typically is in form of a token, authorizing client’s subscription to the given SubscriptionId. The payload may be possibly encrypted and accessible only by the Origin or the MoQ Relay depending on the configuration. For cases where the relays don't have access to the keying material for accessing the payload, the relays MUST forward the payload towards the Origin (possibly via other relays) in the onward `SUBSCRIBE` messages.
@@ -561,6 +557,7 @@ enum Response
 SUBSCRIBE_REPLY Message {
   Subscription ID Length(i),
   Subscription ID (...)..., 
+  [Media ID (i)],
   Response response,
   [Reason Phrase Length (i),
   [Reason Phrase (...)...],
@@ -575,6 +572,9 @@ Identifies the mapping subscription identifier in the SUBSCRIBE message.
 
 * Response:
 Provides result of the subscription. A response of `OK` is considered as successful subscription and the application should be ready to receive media matching the subscription. A response of `EXPIRED` or `FAIL` imply failed subscription  with further details provided in the Reason Phrase, enabling the application to take appropriate action. In the case of `REDIRECT` response, the subscriber MUST move to the Relay that is identified in the `Relay Redirect URL` to setup the subscription.
+
+* Media ID:
+Represents an handle to the subscription to be provided by the peer over the data channel(s) and is populated for successful subscriptions. Given that media corresponding to a subscription can potentially arrive over multiple data channels, the Media ID provides the necessary mapping between the control and the corresponding data channels. Media ID also serves as compression identifier for containing the size of object headers instead of carrying complete track/catalog/broadcast identifier information in every object message.
 
 * Signature: 
 Signature over all the fields up unitl the Signautre field and signed by the Origin.
