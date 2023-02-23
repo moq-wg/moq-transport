@@ -585,19 +585,19 @@ Signature over all the fields up unitl the Signautre field and signed by the Ori
 
 ## Publishing Media
 
-Entities intending to publish objects proceeed by setting up the control channel 
-for each emission (such as track, catalog) to carryout the necessary authorizations. This is done by exchaning control messages defined in this section.
+Entities intending to publish objects proceed by setting up the control channel 
+for each emission component (such as track, catalog) to carryout the necessary authorizations. This is done by exchanging control messages defined in this section.
 
 ### PUBLISH {#message-publish}
 
-The `PUBLISH` control message sets up authorization for one or more emissions that the publisher intends to publish media with. The authorization is carried out based on authorization information, typically some foom of the tokenn, obtained via out of band mechanisms. Publishes needs to meet the authorization requirements akin to subscription requests.
-
+The `PUBLISH` control message sets up authorization for track that the publisher intends to publish media with.
 
 The format of PUBLISH is defined as below
 
 ~~~
 PUBLISH Message {
-  Emission ID (...)...,  
+  Track ID Length(i),
+  Track ID (...)...,
   Media ID (i),
   Latency Mode(1),
   Encrypted Payload Length(i),
@@ -607,26 +607,25 @@ PUBLISH Message {
 {: #warp-publish-format title="Warp PUBLISH Message"}
 
 
-* Emission ID:
-Identifies one of the emissions that the publishers intends to advertise for authorization,.
+* Track ID:
+Identifies component of an emission, such as Track, Catalog, that the publisher intends to advertise for delivering media.
 
 * Media ID:
-Represents an handle to the emission to be used over the data channel(s). Given that media corresponding to the emission can potentially be sent over multiple data channels, the Media ID provides the necessary mapping between the control and the data channel. Media ID also serves as compression identifier for containing the size of object headers instead of carrying complete track/catalog/broadcast identifier information in every object message.
+Represents an handle to the track to be used over the data channel(s). Given that media corresponding to the track can potentially be sent over multiple data channels, the Media ID provides the necessary mapping between the control and the data channel. Media ID also serves as compression identifier for containing the size of object headers instead of carrying complete and long identifier information in every object message.
 
 * Latency Mode:
-Hint to Relays to identify the latency profile of the media 
-being carried and has 2 possible values of "Realtime" and "NonRealTime"
+Hint to Relays to identify the latency profile of the media being carried and has 2 possible values of "Realtime" and "NonRealTime". Latency Mode can be used by Relay to make decisions for purging cache entries or support appropriate behavior in response to the congestion.
 
 * Encrypted Pyload: 
-Carries client’s authorization information obtained out-of-band. Such information typically is in form of a token authorizing client’s emission to the given EmissionId. The payload may be possibly encrypted and accessible only by the Origin or the MoQ Relay depending on the configuration.
+Carries endpoint client’s authorization information obtained out-of-band. Such information typically, is in the form of a token authorizing client’s publish media for the given track. The payload may be possibly encrypted and accessible only by the Origin or the MoQ Relay depending on the configuration.  For cases where the relays don't have access to the keying material for accessing the payload, the relays MUST forward the payload towards the Origin (possibly via other relays) in the onward `PUBLISH` messages.
 
 DISCUSS: Do we need transaction identifier ?
 
-DISCUSS: Should we talk about intent to subscribe on replay or syncup ?
+DISCUSS: How does PUBLISH and CATALOG Interact ? Need to revisit this once the open issue on Catalog is resolved probably ?
 
 ### PUBLISH_REPLY {#message-publish-reply}
 
-The `PUBLISH_REPLY` control message provides result of request to publish. This message is sent by the Origin (except when redirected) when it’s successfully validates the pubication request, signs it with its public key. The `PUBLISH_REPLY` message is sent over the control channel over which the `PUBLISH` control message arrived.
+The `PUBLISH_REPLY` control message provides result of request to publish. This message is sent by the Origin when it’s successfully validates the publish request and signs it with its public key. The `PUBLISH_REPLY` message is sent over the control channel over which the `PUBLISH` control message arrived.
 
 The format of PUBLISH_REPLY is defined as below
 
@@ -635,13 +634,12 @@ enum Response
 {
   OK(0),
   FAIL(2),
-  REDIRECT(2)
 }
 
 
 PUBLISH_REPLY Message {
-  EmissionId ID Length(i),
-  Emission ID (...)..., 
+  Track ID Length(i),
+  Track ID (...)..., 
   Response respoonse
   [Reason Phrase Length (i),
   [Reason Phrase (..)],
@@ -651,15 +649,16 @@ PUBLISH_REPLY Message {
 {: #warp-publish-reply-format title="Warp PUBLISH_REPLY Message"}
 
 
-* EmissionId ID:
-Identifies the mapping subscription identifier in the PUBLISH message.
+* Track ID:
+Identifies the mapping TrackId in the PUBLISH message.
 
 * Response:
-Provides result of the subscription. A response of `OK` is considered as successful subscription and the application should be ready to receive media matching the subscription. A response of `FAIL` imply failed subscription  with further details provided in the Reason Phrase, enabling the application to take appropriate action. In the case of `REDIRECT` response, the subscriber MUST move to the Relay that is identified in the `Relay Redirect URL` to setup the subscription.
+Provides result of the publish request. A response of `OK` is considered as successful and the application can now proceed to send objects for the corresponding track. A response of `FAIL` imply failed publish request, with further details provided in the Reason Phrase, enabling the application to take appropriate action.
 
 * Signature: 
 Signature over all the fields up unitl the Signautre field and signed by the Origin.
 
+DISCUSS : Should we add Support redirect to a different relay ?
 
 
 ## OBJECT {#message-object}
@@ -669,7 +668,6 @@ The format of the OBJECT message is as follows:
 
 ~~~
 OBJECT Message {
-  Broadcast URI (b)
   Track ID (i),
   Group Sequence (i),
   Object Sequence (i),
