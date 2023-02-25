@@ -525,13 +525,13 @@ Identifies content of interest, such as a track or emission for receiving object
 * Encrypted Payload: 
 Carries client’s authorization information obtained out-of-band. Such information typically is in form of a token, authorizing client’s subscription to the given SubscriptionId. The payload may be possibly encrypted and accessible only by the Origin or the MoQ Relay depending on the configuration. For cases where the relays don't have access to the keying material for accessing the payload, the relays MUST forward the payload towards the Origin (possibly via other relays) in the onward `SUBSCRIBE` messages.
 
-Subscriptions are typically long-lived transactions and they stay active until one of the following happens:
+Subscriptions transactions stay active until one of the following happens:
 
 - a client local policy dictates expiration of a subscription.
 - optionally, a server policy dicates subscription expiration.
 - the underlying transport is disconnected
 
-A endpoint client can renew its subscriptions at any point by sending a new `SUBSCRIBE`. Such subscriptions MUST refresh the existing subscriptions and thus only the most recent SUBSCRIBE message is considered active. A renewal period of 5 seconds is RECOMMENDED.
+A endpoint client MUST renew its subscriptions by sending a new `SUBSCRIBE` to keep them active. Such subscriptions MUST refresh the existing subscriptions and thus only the most recent SUBSCRIBE message is considered active. A renewal period of 5 seconds is RECOMMENDED.
 
 
 DISCUSS: Do we need transaction identifier ?
