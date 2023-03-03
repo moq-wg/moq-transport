@@ -318,8 +318,8 @@ Objects are NOT REQUIRED to be aligned and the decoder MUST be prepared to skip 
 A connection is established using WebTransport {{WebTransport}}.
 
 To summarize:
-The client issues a HTTP CONNECT request with the intention of establishing a new WebTransport session.
-The server returns an OK response if the WebTransport session has been established, or an error otherwise.
+The client issues a HTTP CONNECT request to a URL.
+The server returns an "200 OK" response to establish the WebTransport session, or an error status code otherwise.
 
 A WebTransport session exposes the basic QUIC service abstractions.
 Specifically, either endpoint may create independent streams which are reliably delivered in order until canceled.
@@ -333,7 +333,13 @@ The server uses the HTTP CONNECT request to identify client and the requested br
 The application dictates how this information is encoded into the request.
 For example, an authentication token and broadcast ID could be included in the path.
 
-The server MAY return an error status code for any reason, such as a "403 Forbidden" when unauthorized.
+The server MAY return an error status code for any reason. Examples include:
+* "400 Bad Request" when the broadcast and/or authorization cannot be parsed.
+* "401 Unauthorized" when the client cannot be identified.
+* "403 Forbidden" when the client is unauthorized to access the specified broadcast.
+* "404 Not Found" when the broadcast cannot be identified.
+* "307 Temporary Redirect" when the client should be served at a different url.
+
 Otherwise the server MUST respond with a "200 OK" to establish the WebTransport session.
 
 ## Streams
