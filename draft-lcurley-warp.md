@@ -319,7 +319,7 @@ A connection is established using WebTransport {{WebTransport}}.
 
 To summarize:
 The client issues a HTTP CONNECT request with the intention of establishing a new WebTransport session.
-The server returns an 200 OK response if the WebTransport session has been established, or an error status otherwise.
+The server returns an OK response if the WebTransport session has been established, or an error otherwise.
 
 A WebTransport session exposes the basic QUIC service abstractions.
 Specifically, either endpoint may create independent streams which are reliably delivered in order until canceled.
@@ -328,12 +328,13 @@ WebTransport can currently operate via HTTP/3 and HTTP/2, using QUIC or TCP unde
 As mentioned in the motivation ({{motivation}}) section, TCP introduces head-of-line blocking and will result in a worse experience.
 It is RECOMMENDED to use WebTransport over HTTP/3.
 
-## Authentication
-The application SHOULD use the WebTransport CONNECT request for authentication.
-For example, including an authentication token in the path.
+### CONNECT request
+The server uses the HTTP CONNECT request to identify client and the requested broadcast.
+The application dictates how this information is encoded into the request.
+For example, an authentication token and broadcast ID could be included in the path.
 
-An endpoint SHOULD terminate the connection with an error ({{termination}}) if the peer attempts an unauthorized action.
-For example, attempting to use a different role than pre-negotated ({{role}}).
+The server MAY return an error status code for any reason, such as a "403 Forbidden" when unauthorized.
+Otherwise the server MUST respond with a "200 OK" to establish the WebTransport session.
 
 ## Streams
 Warp endpoints communicate over QUIC streams. Every stream is a sequence of messages, framed as described in {{messages}}.
