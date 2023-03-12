@@ -177,11 +177,39 @@ x (b):
 
 # Model
 
-The basic element of Warp is *a media object*. A media object is a single addressable cacheable unit that may either contain a sequence of media samples, or some media-specific metadata, and may have relay-related attributes such as TTL or delivery priority associated with it. A media object is a sequence of bytes with a finite length. A Warp media object is similar in function to what is often referred to as "segments" or "chunks" in other media protocols; however, they are different from the traditional notion of chunks. The first key distinction is that Warp media objects are not always expected to be fully available, and thus any relays have to be able to convey partial media objects. The second key distinction is that Warp media objects may not be fully decodable by themselves; an object will contain a description of the prerequisites if that is the case.
+## Object
 
-*A media track* in Warp is a combination of *an init object* and a sequence of media objects. An init object is a format-specific self-contained description of the track that is required to decode any media object contained within the track, but can also be used as the metadata for track selection. If two media tracks carry semantically equivalent but differently encoded media, they are referred to as *variants* of each other.
+An Object is the smallest unit that makes sense to decode and may not be independently decodable.  An Object MUST belong to a group.
 
-*A Warp broadcast* is a collection of multiple media tracks produced by a single origin. When subscribing to a broadcast, a peer has an option of subscribing to one, many or all media tracks within the broadcast.
+Few examples include, for video media an object could be an H.264 P frame or could be just a single slice from inside the P Frame. For audio media, it could be a single audio frame.
+
+Objects are not partially decodable. The end to end encryption and
+authentication operations are performed across the whole object, thus
+rendering partial objects unusable. Objects MUST be uniquely identifiable within the MoQ delivery system. Objects carry associated header/metadata containining priority, time to live, and other information aiding the caching/forwarding decision at the Relays. Objects MAY be optionally cached at Relays, however its contents 
+are opaque to the Relays.
+
+## Object Group
+
+Groups are composition of objects and they carry the necessary dependecy information needed to process the objects in the group. An Object MUST belong to a group. The first object in the group MUST have the necessary dependency information needed to processs the rest of the objects. However, certain grouping MAY allow other objects within the group to carry dependency information. In such cases, the objects that carry information required to resolve dependencies MUST be marked appropriately in their headers. 
+
+A group shall provide following utilities
+
+* A way for subscribers to specifiy the appropriate consumption
+  point for enabling joins, rewinds and replay the objects, for
+  certain media usecases.
+
+* A way to specify refresh points within a group, serving as decode
+  points, points of switching between qualties for audio/video media
+
+* Serve as checkpoint for relays to implement appropriate congestion
+  responses.
+
+## Track
+
+A media track in Warp is a combination of *an init object* and a sequence of media objects. An init object is a format-specific self-contained description of the track that is required to decode any media object contained within the track, but can also be used as the metadata for track selection. If two media tracks carry semantically equivalent but differently encoded media, they are referred to as *variants* of each other.
+
+## Broadcast
+A Warp broadcast is a collection of multiple media tracks produced by a single origin. When subscribing to a broadcast, a peer has an option of subscribing to one, many or all media tracks within the broadcast.
 
 A Warp broadcast is globally identifiable via a URI. Within the broadcast, every media track is identified via *a track ID* that is unique within the broadcast. Within a single media track, every media object is identified by an *object ID* that is unique within the track.
 
