@@ -191,6 +191,12 @@ The client issues a CONNECT request with a URL which the server uses for identif
 All control messages and prioritization occur within the context of a single WebTransport session, which means a single track bundle.
 Multiple WebTransport sessions may be pooled over a single QUIC connection for efficiency.
 
+As an example, consider a scenario where `example.org` hosts a simple live stream that anyone can subscribe to.
+That live stream would be a single track bundle, accessible via the WebTransport URL: `https://example.org/livestream`.
+In the simple scenario, the track bundle would contain only two media tracks, one with audio and one with video.
+In more complicated scenarios, it could provide multiple video formats of different levels of video quality; those tracks would be variants of each other.
+Note that the track IDs are opaque on the Warp level; if the player has not received the description of media tracks out of band in advance, it would have to request the broadcast description first.
+
 
 # Motivation
 
@@ -335,7 +341,7 @@ As mentioned in the motivation ({{motivation}}) section, TCP introduces head-of-
 It is RECOMMENDED to use WebTransport over HTTP/3.
 
 ### CONNECT
-The server uses the HTTP CONNECT request to identify client and the requested track bundle.
+The server uses the HTTP CONNECT request to identify the client and the requested track bundle.
 The application dictates how this information is encoded into the request.
 For example, a broadcast ID and authentication token could be included in the path.
 
