@@ -179,7 +179,7 @@ x (b):
 
 The basic element of Warp is *a media object*. A media object is a single addressable cacheable unit that may either contain a sequence of media samples, or some media-specific metadata, and may have relay-related attributes such as TTL or delivery priority associated with it. A media object is a sequence of bytes with a finite length. A Warp media object is similar in function to what is often referred to as "segments" or "chunks" in other media protocols; however, they are different from the traditional notion of chunks. The first key distinction is that Warp media objects are not always expected to be fully available, and thus any relays have to be able to convey partial media objects. The second key distinction is that Warp media objects may not be fully decodable by themselves; an object will contain a description of the prerequisites if that is the case.
 
-An object group is a sequence of media objects. Beginning of an object group can be used as a point at which the receiver can start receiving a track without having any other object groups available.
+An object group is a sequence of media objects. Beginning of an object group can be used as a point at which the receiver can start receiving a track without having any other object groups available. Object groups have an ID that identifies them uniquely within a track.
 
 DISCUSS: We need to determine what are the exact requirements we need to impose on how the media objects depend on each other. Such requirements would need to address the use case (a join point), while being flexible enough to accomodate scenarios like B-frames and temporal scaling.
 
