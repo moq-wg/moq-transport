@@ -184,7 +184,7 @@ The basic element of Warp is *a media object*. A media object is a single addres
 A *track bundle* is a collection of tracks intended to be delivered together.
 Objects within a track bundle may be prioritized relative to each other via the delivery order property.
 This allows objects to be prioritized within a track (ex. newer > older) and between tracks (ex. audio > video).
-The track bundle may contain a catalog indicating the available tracks.
+The track bundle contains a catalog indicating the available tracks.
 
 A WebTransport *session* is established for each track bundle.
 The client issues a CONNECT request with a URL which the server uses for identification and authentication.
@@ -193,9 +193,9 @@ Multiple WebTransport sessions may be pooled over a single QUIC connection for e
 
 As an example, consider a scenario where `example.org` hosts a simple live stream that anyone can subscribe to.
 That live stream would be a single track bundle, accessible via the WebTransport URL: `https://example.org/livestream`.
-In the simple scenario, the track bundle would contain only two media tracks, one with audio and one with video.
-In more complicated scenarios, it could provide multiple video formats of different levels of video quality; those tracks would be variants of each other.
-Note that the track IDs are opaque on the Warp level; if the player has not received the description of media tracks out of band in advance, it would have to request the broadcast description first.
+In a simple scenario, the track bundle would contain only two media tracks, one with audio and one with video.
+In a more complicated scenario, the track bundle could multiple tracks with different formats, encodings, bitrates, and quality levels, possibly for the same content.
+The receiver learns about each available track within the bundle via the catalog, and can choose to subscribe to a subset.
 
 
 # Motivation
