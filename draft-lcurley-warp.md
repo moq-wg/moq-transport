@@ -341,16 +341,11 @@ As mentioned in the motivation ({{motivation}}) section, TCP introduces head-of-
 It is RECOMMENDED to use WebTransport over HTTP/3.
 
 ### CONNECT
-The server uses the HTTP CONNECT request to identify the client and the requested track bundle.
-The application dictates how this information is encoded into the request.
+The server uses the HTTP CONNECT request for identification and authorization of a track bundle.
+The specific mechanism is left up to the application.
 For example, a broadcast ID and authentication token could be included in the path.
 
-The server MAY return an error status code for any reason. Examples include:
-* "400 Bad Request" when the request cannot be parsed.
-* "401 Unauthorized" when the client cannot be identified.
-* "403 Forbidden" when the client is unauthorized to access the specified resource.
-* "404 Not Found" when the broadcast cannot be identified.
-
+The server MAY return an error status code for any reason, for example a 403 when the client is forbidden.
 Otherwise the server MUST respond with a "200 OK" to establish the WebTransport session.
 
 ## Streams
@@ -542,6 +537,7 @@ This is a media bitstream intended for the decoder and SHOULD NOT be processed b
 
 ## CATALOG {#message-catalog}
 The sender advertises tracks via the CATALOG message.
+The receiver can then SUBSCRIBE to the indiciated tracks by ID.
 
 The format of the CATALOG message is as follows:
 
@@ -554,7 +550,7 @@ CATALOG Message {
 {: #warp-catalog-format title="Warp CATALOG Message"}
 
 * Track Count:
-The number of tracks.
+The number of tracks within the catalog.
 
 
 For each track, there is a track descriptor with the format:
