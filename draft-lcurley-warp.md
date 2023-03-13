@@ -177,20 +177,59 @@ x (b):
 
 # Model
 
-The basic element of Warp is *a media object*. A media object is a single addressable cacheable unit that may either contain a sequence of media samples, or some media-specific metadata, and may have relay-related attributes such as TTL or delivery priority associated with it. A media object is a sequence of bytes with a finite length. A Warp media object is similar in function to what is often referred to as "segments" or "chunks" in other media protocols; however, they are different from the traditional notion of chunks. The first key distinction is that Warp media objects are not always expected to be fully available, and thus any relays have to be able to convey partial media objects. The second key distinction is that Warp media objects may not be fully decodable by themselves; an object will contain a description of the prerequisites if that is the case.
+## Objects
 
-*A media track* in Warp is a combination of *an init object* and a sequence of media objects. An init object is a format-specific self-contained description of the track that is required to decode any media object contained within the track, but can also be used as the metadata for track selection. If two media tracks carry semantically equivalent but differently encoded media, they are referred to as *variants* of each other.
+The basic element of Warp is an *object*. An object is a single addressable
+cacheable unit whose payload is a sequence of bytes.  An object MAY depend on other 
+objects to be decoded. An object MUST belong to a group {{groups}}. Objects carry 
+associated metadata such as priority, TTL or other information usable by a relay, 
+but relays MUST treat object payloads as opaque.
 
-A *track bundle* is a collection of tracks intended to be delivered together.
+DISCUSS: Can an object be partially decodable by an endpoint?
+
+Authors agree that an object is always partially *forwardable* by a relay but
+disagree on whether a partial object can be used by a receiving endpoint.
+
+Option 1: A receiver MAY start decoding an object before it has been completely received
+
+Example: sending an entire GOP as a single object.  A receiver can decode the
+GOP from the beginning without having the entire object present, and the object's
+tail could be dropped.  Sending a GOP as a group of not-partially-decodable
+objects might incur additional overhead on the wire and/or additional processing of 
+video segments at a sender to find object boundaries.
+
+Partial decodability could be another property of an object.
+
+Option 2: A receiver MUST NOT start decoding an object before it has completely arrived
+
+Objects could be end-to-end encrypted and the receiver might not be able to
+decrypt or authenticate an object until it is fully present.  Allowing Objects
+to span more than one useable unit may create more than one viable application
+mapping from media to wire format, which could be confusing for protocol users.
+
+## Groups
+
+An object group is a sequence of media objects. Beginning of an object group can be used as a point at which the receiver can start consuming a track without having any other object groups available. Object groups have an ID that identifies them uniquely within a track.
+
+DISCUSS: We need to determine what are the exact requirements we need to impose on how the media objects depend on each other. Such requirements would need to address the use case (a join point), while being flexible enough to accomodate scenarios like B-frames and temporal scaling.
+
+## Track
+
+A media track in Warp is a combination of *an init object* and a sequence of media object groups. An init object is a format-specific self-contained description of the track that is required to decode any media object contained within the track, but can also be used as the metadata for track selection. If two media tracks carry semantically equivalent but differently encoded media, they are referred to as *variants* of each other.
+
+## Track Bundle
+A track bundle is a collection of tracks intended to be delivered together.
 Objects within a track bundle may be prioritized relative to each other via the delivery order property.
 This allows objects to be prioritized within a track (ex. newer > older) and between tracks (ex. audio > video).
 The track bundle contains a catalog indicating the available tracks.
 
-A WebTransport *session* is established for each track bundle.
+## Session
+A WebTransport session is established for each track bundle.
 The client issues a CONNECT request with a URL which the server uses for identification and authentication.
 All control messages and prioritization occur within the context of a single WebTransport session, which means a single track bundle.
 Multiple WebTransport sessions may be pooled over a single QUIC connection for efficiency.
 
+## Example
 As an example, consider a scenario where `example.org` hosts a simple live stream that anyone can subscribe to.
 That live stream would be a single track bundle, accessible via the WebTransport URL: `https://example.org/livestream`.
 In a simple scenario, the track bundle would contain only two media tracks, one with audio and one with video.
