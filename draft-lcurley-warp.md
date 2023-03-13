@@ -217,14 +217,24 @@ DISCUSS: We need to determine what are the exact requirements we need to impose 
 
 A media track in Warp is a combination of *an init object* and a sequence of media object groups. An init object is a format-specific self-contained description of the track that is required to decode any media object contained within the track, but can also be used as the metadata for track selection. If two media tracks carry semantically equivalent but differently encoded media, they are referred to as *variants* of each other.
 
-## Broadcast
-A Warp broadcast is a collection of multiple media tracks produced by a single origin. When subscribing to a broadcast, a peer has an option of subscribing to one, many or all media tracks within the broadcast.
+## Track Bundle
+A track bundle is a collection of tracks intended to be delivered together.
+Objects within a track bundle may be prioritized relative to each other via the delivery order property.
+This allows objects to be prioritized within a track (ex. newer > older) and between tracks (ex. audio > video).
+The track bundle contains a catalog indicating the available tracks.
 
-A Warp broadcast is globally identifiable via a URI. Within the broadcast, every media track is identified via *a track ID* that is unique within the broadcast. Within a single media track, every media object is identified by an *object ID* that is unique within the track.
+## Session
+A WebTransport session is established for each track bundle.
+The client issues a CONNECT request with a URL which the server uses for identification and authentication.
+All control messages and prioritization occur within the context of a single WebTransport session, which means a single track bundle.
+Multiple WebTransport sessions may be pooled over a single QUIC connection for efficiency.
 
-Depending on the profile of the application using it, Warp supports both a mode of operation where the peer unilaterally sends a broadcast with the media tracks of its choice, and a mode where the peer has to explicitly subscribe to a broadcast and select media tracks it wishes to receive.
-
-As an example, consider a scenario where `example.org` hosts a simple live stream that anyone can subscribe to. That live stream would be a single Warp broadcast identified by the URL `https://example.org/livestream`. In the simplest implementation, it would provide only two media tracks, one with audio and one with video. In more complicated scenarios, it could provide multiple video formats of different levels of video quality; those tracks would be variants of each other. Note that the track IDs are opaque on the Warp level; if the player has not received the description of media tracks out of band in advance, it would have to request the broadcast description first.
+## Example
+As an example, consider a scenario where `example.org` hosts a simple live stream that anyone can subscribe to.
+That live stream would be a single track bundle, accessible via the WebTransport URL: `https://example.org/livestream`.
+In a simple scenario, the track bundle would contain only two media tracks, one with audio and one with video.
+In a more complicated scenario, the track bundle could multiple tracks with different formats, encodings, bitrates, and quality levels, possibly for the same content.
+The receiver learns about each available track within the bundle via the catalog, and can choose to subscribe to a subset.
 
 
 # Motivation
@@ -359,8 +369,8 @@ Objects are NOT REQUIRED to be aligned and the decoder MUST be prepared to skip 
 A connection is established using WebTransport {{WebTransport}}.
 
 To summarize:
-The client issues a HTTP CONNECT request with the intention of establishing a new WebTransport session.
-The server returns an 200 OK response if the WebTransport session has been established, or an error status otherwise.
+The client issues a HTTP CONNECT request to a URL.
+The server returns an "200 OK" response to establish the WebTransport session, or an error status code otherwise.
 
 A WebTransport session exposes the basic QUIC service abstractions.
 Specifically, either endpoint may create independent streams which are reliably delivered in order until canceled.
@@ -369,12 +379,13 @@ WebTransport can currently operate via HTTP/3 and HTTP/2, using QUIC or TCP unde
 As mentioned in the motivation ({{motivation}}) section, TCP introduces head-of-line blocking and will result in a worse experience.
 It is RECOMMENDED to use WebTransport over HTTP/3.
 
-## Authentication
-The application SHOULD use the WebTransport CONNECT request for authentication.
-For example, including an authentication token in the path.
+### CONNECT
+The server uses the HTTP CONNECT request for identification and authorization of a track bundle.
+The specific mechanism is left up to the application.
+For example, an identifier and authentication token could be included in the path.
 
-An endpoint SHOULD terminate the connection with an error ({{termination}}) if the peer attempts an unauthorized action.
-For example, attempting to use a different role than pre-negotated ({{role}}) or using an invalid broadcast URI ({{message-catalog}}).
+The server MAY return an error status code for any reason, for example a 403 when the client is forbidden.
+Otherwise the server MUST respond with a "200 OK" to establish the WebTransport session.
 
 ## Streams
 Warp endpoints communicate over QUIC streams. Every stream is a sequence of messages, framed as described in {{messages}}.
@@ -382,7 +393,6 @@ Warp endpoints communicate over QUIC streams. Every stream is a sequence of mess
 The first stream opened is a client-initiated bidirectional stream where the peers exchange SETUP messages ({{message-setup}}). The subsequent streams MAY be either unidirectional and bidirectional. For exchanging media, an application would typically send a unidirectional stream containing a single OBJECT message ({{message-object}}).
 
 Messages SHOULD be sent over the same stream if ordering is desired.
-Some messages MUST be sent over the same stream, for example SUBSCRIBE messages ({{message-subscribe}}) with the same broadcast URI.
 
 
 ## Prioritization
@@ -536,7 +546,6 @@ The format of the OBJECT message is as follows:
 
 ~~~
 OBJECT Message {
-  Broadcast URI (b)
   Track ID (i),
   Group Sequence (i),
   Object Sequence (i),
@@ -545,9 +554,6 @@ OBJECT Message {
 }
 ~~~
 {: #warp-object-format title="Warp OBJECT Message"}
-
-* Broadcast URI:
-The broadcast URI as declared in CATALOG ({{message-catalog}}).
 
 * Track ID:
 The track identifier as declared in CATALOG ({{message-catalog}}).
@@ -569,24 +575,21 @@ This is a media bitstream intended for the decoder and SHOULD NOT be processed b
 
 
 ## CATALOG {#message-catalog}
-The sender advertises an available broadcast and its tracks via the CATALOG message.
+The sender advertises tracks via the CATALOG message.
+The receiver can then SUBSCRIBE to the indiciated tracks by ID.
 
 The format of the CATALOG message is as follows:
 
 ~~~
 CATALOG Message {
-  Broadcast URI (b),
   Track Count (i),
   Track Descriptors (..)
 }
 ~~~
 {: #warp-catalog-format title="Warp CATALOG Message"}
 
-* Broadcast URI:
-A unique identifier {{URI}} for the broadcast within the session.
-
 * Track Count:
-The number of tracks in the broadcast.
+The number of tracks within the catalog.
 
 
 For each track, there is a track descriptor with the format:
@@ -601,7 +604,7 @@ Track Descriptor {
 {: #warp-track-descriptor title="Warp Track Descriptor"}
 
 * Track ID:
-A unique identifier for the track within the broadcast.
+A unique identifier for the track within the track bundle.
 
 * Container Format:
 The container format as defined in {{containers}}.
@@ -611,25 +614,21 @@ A container-specific payload as defined in {{containers}}.
 This contains base information required to decode OBJECT messages, such as codec parameters.
 
 
-An endpoint MUST NOT send multiple CATALOG messages with the same Broadcast URI.
+An endpoint MUST NOT send multiple CATALOG messages.
 A future draft will add the ability to add/remove/update tracks.
 
 ## SUBSCRIBE {#message-subscribe}
-After receiving a CATALOG message ({{message-catalog}}, the receiver sends a SUBSCRIBE message to indicate that it wishes to receive the indicated tracks within a broadcast.
+After receiving a CATALOG message ({{message-catalog}}, the receiver sends a SUBSCRIBE message to indicate that it wishes to receive the indicated tracks.
 
 The format of SUBSCRIBE is as follows:
 
 ~~~
 SUBSCRIBE Message {
-  Broadcast URI (b),
   Track Count (i),
   Track IDs (..),
 }
 ~~~
 {: #warp-subscribe-format title="Warp SUBSCRIBE Message"}
-
-* Broadcast URI:
-The broadcast URI as defined in CATALOG ({{message-catalog}}).
 
 * Track Count:
 The number of track IDs that follow.
@@ -639,7 +638,7 @@ This MAY be zero to unsubscribe to all tracks.
 A list of varint track IDs.
 
 
-Only the most recent SUBSCRIBE message for a broadcast is active.
+Only the most recent SUBSCRIBE message is active.
 SUBSCRIBE messages MUST be sent on the same QUIC stream to preserve ordering.
 
 
