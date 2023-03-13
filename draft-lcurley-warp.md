@@ -209,12 +209,13 @@ mapping from media to wire format, which could be confusing for protocol users.
 
 ## Groups
 
-Removed the Group section as Victor is going to summarize PR# 90 and the
-previous text in this PR.
+An object group is a sequence of media objects. Beginning of an object group can be used as a point at which the receiver can start consuming a track without having any other object groups available. Object groups have an ID that identifies them uniquely within a track.
+
+DISCUSS: We need to determine what are the exact requirements we need to impose on how the media objects depend on each other. Such requirements would need to address the use case (a join point), while being flexible enough to accomodate scenarios like B-frames and temporal scaling.
 
 ## Track
 
-A media track in Warp is a combination of *an init object* and a sequence of media objects. An init object is a format-specific self-contained description of the track that is required to decode any media object contained within the track, but can also be used as the metadata for track selection. If two media tracks carry semantically equivalent but differently encoded media, they are referred to as *variants* of each other.
+A media track in Warp is a combination of *an init object* and a sequence of media object groups. An init object is a format-specific self-contained description of the track that is required to decode any media object contained within the track, but can also be used as the metadata for track selection. If two media tracks carry semantically equivalent but differently encoded media, they are referred to as *variants* of each other.
 
 ## Broadcast
 A Warp broadcast is a collection of multiple media tracks produced by a single origin. When subscribing to a broadcast, a peer has an option of subscribing to one, many or all media tracks within the broadcast.
