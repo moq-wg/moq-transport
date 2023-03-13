@@ -181,7 +181,7 @@ x (b):
 
 The basic element of Warp is an *object*. An object is a single addressable
 cacheable unit whose payload is a sequence of bytes.  An object MAY depend on other 
-objects to be decoded. An object MUST belong to a group {{Groups}}. Objects carry 
+objects to be decoded. An object MUST belong to a group {{groups}}. Objects carry 
 associated metadata such as priority, TTL or other information useable by a relay, 
 but relays MUST treat object payloads as opaque.
 
