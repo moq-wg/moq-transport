@@ -181,9 +181,15 @@ The basic element of Warp is *a media object*. A media object is a single addres
 
 *A media track* in Warp is a combination of *an init object* and a sequence of media objects. An init object is a format-specific self-contained description of the track that is required to decode any media object contained within the track, but can also be used as the metadata for track selection. If two media tracks carry semantically equivalent but differently encoded media, they are referred to as *variants* of each other.
 
-*A Warp broadcast* is a collection of multiple media tracks produced by a single source. The sender has the ability to publish one or more tracks and the receiver has the ability to subscribe to zero or more tracks. Depending on the the application, the sender may decide to unilaterally push tracks without an explicit subscription to reduce latency.
+A *track bundle* is a collection of tracks intended to be delivered together.
+Objects within a track bundle may be prioritized relative to each other via the delivery order property.
+This allows objects to be prioritized within a track (ex. newer > older) and between tracks (ex. audio > video).
+The track bundle may contain a catalog indicating the available tracks.
 
-*A WebTransport session* is established for each Warp broadcast. The client issues a CONNECT request with a URL to the server. The server parses the URL based on the application, using it to identify the broadcast and authorize the user. Multiple broadcasts require multiple WebTransport sessions, which can be pooled over a single QUIC connection for efficiency.
+A WebTransport *session* is established for each track bundle.
+The client issues a CONNECT request with a URL which the server uses for identification and authentication.
+All control messages and prioritization occur within the context of a single WebTransport session, which means a single track bundle.
+Multiple WebTransport sessions may be pooled over a single QUIC connection for efficiency.
 
 
 # Motivation
@@ -328,15 +334,15 @@ WebTransport can currently operate via HTTP/3 and HTTP/2, using QUIC or TCP unde
 As mentioned in the motivation ({{motivation}}) section, TCP introduces head-of-line blocking and will result in a worse experience.
 It is RECOMMENDED to use WebTransport over HTTP/3.
 
-### CONNECT request
-The server uses the HTTP CONNECT request to identify client and the requested broadcast.
+### CONNECT
+The server uses the HTTP CONNECT request to identify client and the requested track bundle.
 The application dictates how this information is encoded into the request.
-For example, an authentication token and broadcast ID could be included in the path.
+For example, a broadcast ID and authentication token could be included in the path.
 
 The server MAY return an error status code for any reason. Examples include:
-* "400 Bad Request" when the broadcast and/or authorization cannot be parsed.
+* "400 Bad Request" when the request cannot be parsed.
 * "401 Unauthorized" when the client cannot be identified.
-* "403 Forbidden" when the client is unauthorized to access the specified broadcast.
+* "403 Forbidden" when the client is unauthorized to access the specified resource.
 * "404 Not Found" when the broadcast cannot be identified.
 * "307 Temporary Redirect" when the client should be served at a different url.
 
