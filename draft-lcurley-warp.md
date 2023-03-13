@@ -501,10 +501,10 @@ The format of the OBJECT message is as follows:
 OBJECT Message {
   Broadcast URI (b)
   Track ID (i),
+  Group ID (i),
   Group Sequence (i),
-  Object Sequence (i),
-  Object Delivery Order (i),
-  Object Payload (b),
+  Delivery Order (i),
+  Payload (b),
 }
 ~~~
 {: #warp-object-format title="Warp OBJECT Message"}
@@ -515,19 +515,20 @@ The broadcast URI as declared in CATALOG ({{message-catalog}}).
 * Track ID:
 The track identifier as declared in CATALOG ({{message-catalog}}).
 
+* Group ID:
+Indicates the object is a member of a group within a track.
+Objects within a group MUST only depend on other objects within the same group.
+The group ID is scoped to the track; multiple tracks may use the same group ID.
+
 * Group Sequence:
-An integer indicating the OBJECT is a member of the indicated group within a track.
-A group is indepdendently decodable (ex. a GoP) and can be used as an entry point for a decoder.
-The group sequence number MUST be incremented for each indepdendently decodable OBJECT within the track.
+A monotonically increasing integer (starting at 0) for each object within a group.
+An object MUST only depend on other objects with a smaller sequence within the group.
+This means that sequence 0 MUST be independent, while other sequences MAY depend on prior sequences.
 
-* Object Sequence:
-A monotonically increasing integer for each object indicating the decode order within a group.
-The ability to decode an OBJECT MUST NOT depend on the delivery of another OBJECT with a higher sequence number within the same group.
-
-* Object Delivery Order:
+* Delivery Order:
 An integer indicating the object delivery order ({{delivery-order}}).
 
-* Object Payload:
+* Payload:
 The format depends on the track container ({{containers}}).
 This is a media bitstream intended for the decoder and SHOULD NOT be processed by a relay.
 
