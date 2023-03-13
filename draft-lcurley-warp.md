@@ -344,7 +344,6 @@ The server MAY return an error status code for any reason. Examples include:
 * "401 Unauthorized" when the client cannot be identified.
 * "403 Forbidden" when the client is unauthorized to access the specified resource.
 * "404 Not Found" when the broadcast cannot be identified.
-* "307 Temporary Redirect" when the client should be served at a different url.
 
 Otherwise the server MUST respond with a "200 OK" to establish the WebTransport session.
 
