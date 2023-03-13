@@ -343,7 +343,7 @@ It is RECOMMENDED to use WebTransport over HTTP/3.
 ### CONNECT
 The server uses the HTTP CONNECT request for identification and authorization of a track bundle.
 The specific mechanism is left up to the application.
-For example, a broadcast ID and authentication token could be included in the path.
+For example, an identifier and authentication token could be included in the path.
 
 The server MAY return an error status code for any reason, for example a 403 when the client is forbidden.
 Otherwise the server MUST respond with a "200 OK" to establish the WebTransport session.
@@ -565,7 +565,7 @@ Track Descriptor {
 {: #warp-track-descriptor title="Warp Track Descriptor"}
 
 * Track ID:
-A unique identifier for the track
+A unique identifier for the track within the track bundle.
 
 * Container Format:
 The container format as defined in {{containers}}.
