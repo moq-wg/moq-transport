@@ -195,8 +195,8 @@ Option 1: Objects can be partially decodable
 Example: sending an entire GOP as a single object.  A receiver can decode the
 GOP from the begining without having the entire object present, and the object's
 tail could be dropped.  Sending a GOP as a group of not-partially-decoable
-objects might incur additional overhead on the wire and reprocessing of existing
-HLS segments to find object boundaries.
+objects might incur additional overhead on the wire and/or additional processing of 
+video segments at a sender to find object boundaries.
 
 Partial decoability could be another property of an object.
 
