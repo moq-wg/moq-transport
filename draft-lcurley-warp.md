@@ -177,32 +177,40 @@ x (b):
 
 # Model
 
-## Object
+## Objects
 
-An Object is the smallest unit that makes sense to decode and may not be independently decodable.  An Object MUST belong to a group.
+The basic element of Warp is an *object*. An object is a single addressable
+cacheable unit whose payload is a sequence of bytes.  An object is not
+necessarily independently decodable. An object MUST belong to a group
+{{Groups}}. Objects carry associated metadata such as priority, TTL or other
+information useable by a relay, but relays MUST treat object payloads as opaque.
 
-Few examples include, for video media an object could be an H.264 P frame or could be just a single slice from inside the P Frame. For audio media, it could be a single audio frame.
+DISCUSS: Can an object be partially decodable by an endpoint?
 
-Objects are not partially decodable. The end to end encryption and
-authentication operations are performed across the whole object, thus
-rendering partial objects unusable. Objects MUST be uniquely identifiable within the MoQ delivery system. Objects carry associated header/metadata containining priority, time to live, and other information aiding the caching/forwarding decision at the Relays. Objects MAY be optionally cached at Relays, however its contents 
-are opaque to the Relays.
+Authors agree that an object is always partially *forwardable* by a relay but
+disagree on whether a partial object can be used by a receiving endpoint.
 
-## Object Group
+Option 1: Objects can be partially decodable
 
-Groups are composition of objects and they carry the necessary dependecy information needed to process the objects in the group. An Object MUST belong to a group. The first object in the group MUST have the necessary dependency information needed to processs the rest of the objects. However, certain grouping MAY allow other objects within the group to carry dependency information. In such cases, the objects that carry information required to resolve dependencies MUST be marked appropriately in their headers. 
+Example: sending an entire GOP as a single object.  A receiver can decode the
+GOP from the begining without having the entire object present, and the object's
+tail could be dropped.  Sending a GOP as a group of not-partially-decoable
+objects might incur additional overhead on the wire and reprocessing of existing
+HLS segments to find object boundaries.
 
-A group shall provide following utilities
+Partial decoability could be another property of an object.
 
-* A way for subscribers to specifiy the appropriate consumption
-  point for enabling joins, rewinds and replay the objects, for
-  certain media usecases.
+Option 2: Objects cannot be partially decodable
 
-* A way to specify refresh points within a group, serving as decode
-  points, points of switching between qualties for audio/video media
+Objects could be end-to-end encrypted and the receiver might not be able to
+decrypt or authenticate an object until it is fully present.  Allowing Objects
+to span more than one useable unit may create more than one viable application
+mapping from media to wire format, which could be confusing for protocol users.
 
-* Serve as checkpoint for relays to implement appropriate congestion
-  responses.
+## Groups
+
+Removed the Group section as Victor is going to summarize PR# 90 and the
+previous text in this PR.
 
 ## Track
 
