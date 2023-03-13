@@ -179,7 +179,9 @@ x (b):
 
 The basic element of Warp is *a media object*. A media object is a single addressable cacheable unit that may either contain a sequence of media samples, or some media-specific metadata, and may have relay-related attributes such as TTL or delivery priority associated with it. A media object is a sequence of bytes with a finite length. A Warp media object is similar in function to what is often referred to as "segments" or "chunks" in other media protocols; however, they are different from the traditional notion of chunks. The first key distinction is that Warp media objects are not always expected to be fully available, and thus any relays have to be able to convey partial media objects. The second key distinction is that Warp media objects may not be fully decodable by themselves; an object will contain a description of the prerequisites if that is the case.
 
-A *group* is a collection of objects. An object can depend on another objects, but only within the same group and with a smaller sequence number. This guarantees that an object is decodable if all prior members of the group have been delivered.
+A *group* is a collection of objects.
+An object can depend on another objects, but only within the same group.
+A sender can use this property to selectively transmit objects based on the group, for example only transmitting the newest group to a new subscriber.
 
 *A media track* in Warp is a combination of *an init object* and a sequence of media objects. An init object is a format-specific self-contained description of the track that is required to decode any media object contained within the track, but can also be used as the metadata for track selection. If two media tracks carry semantically equivalent but differently encoded media, they are referred to as *variants* of each other.
 
@@ -496,6 +498,7 @@ The SETUP parameters are described in the {{setup-parameters}} section.
 
 ## OBJECT {#message-object}
 A OBJECT message contains a single media object associated with a specified track, as well as associated metadata required to deliver, cache, and forward it.
+The object is uniquely identified by the combination of the Track ID, Group ID, and Object ID.
 
 The format of the OBJECT message is as follows:
 
@@ -504,7 +507,7 @@ OBJECT Message {
   Broadcast URI (b)
   Track ID (i),
   Group ID (i),
-  Group Sequence (i),
+  Object ID (i),
   Delivery Order (i),
   Payload (b),
 }
@@ -518,14 +521,11 @@ The broadcast URI as declared in CATALOG ({{message-catalog}}).
 The track identifier as declared in CATALOG ({{message-catalog}}).
 
 * Group ID:
-Indicates the object is a member of a group within a track.
+The object is a member of this group within a track.
 Objects within a group MUST only depend on other objects within the same group.
-The group ID is scoped to the track; multiple tracks may use the same group ID.
 
-* Group Sequence:
-A monotonically increasing integer (starting at 0) for each object within a group.
-An object MUST only depend on other objects with a smaller sequence within the group.
-This means that sequence 0 MUST be independent, while other sequences MAY depend on prior sequences.
+* Object ID:
+A unique identifier for each object with a group.
 
 * Delivery Order:
 An integer indicating the object delivery order ({{delivery-order}}).
