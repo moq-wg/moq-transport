@@ -180,17 +180,17 @@ x (b):
 ## Objects
 
 The basic element of Warp is an *object*. An object is a single addressable
-cacheable unit whose payload is a sequence of bytes.  An object is not
-necessarily independently decodable. An object MUST belong to a group
-{{Groups}}. Objects carry associated metadata such as priority, TTL or other
-information useable by a relay, but relays MUST treat object payloads as opaque.
+cacheable unit whose payload is a sequence of bytes.  An object MAY depend on other 
+objects to be decoded. An object MUST belong to a group {{Groups}}. Objects carry 
+associated metadata such as priority, TTL or other information useable by a relay, 
+but relays MUST treat object payloads as opaque.
 
 DISCUSS: Can an object be partially decodable by an endpoint?
 
 Authors agree that an object is always partially *forwardable* by a relay but
 disagree on whether a partial object can be used by a receiving endpoint.
 
-Option 1: Objects can be partially decodable
+Option 1: A receiver MAY start decoding an object before it has been completely received
 
 Example: sending an entire GOP as a single object.  A receiver can decode the
 GOP from the begining without having the entire object present, and the object's
@@ -200,7 +200,7 @@ video segments at a sender to find object boundaries.
 
 Partial decoability could be another property of an object.
 
-Option 2: Objects cannot be partially decodable
+Option 2: A receiver MUST NOT start decoding an object before it has completely arrived
 
 Objects could be end-to-end encrypted and the receiver might not be able to
 decrypt or authenticate an object until it is fully present.  Allowing Objects
