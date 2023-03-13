@@ -181,7 +181,8 @@ The basic element of Warp is *a media object*. A media object is a single addres
 
 A *group* is a collection of objects.
 An object can depend on another objects, but only within the same group.
-A sender can use this property to selectively transmit objects based on the group, for example only transmitting the newest group to a new subscriber.
+A sender can use this property to selectively transmit objects based on the group.
+For example, the sender could only transmit the newest group to a new subscriber, as the objects within are guaranteed to be decodable.
 
 *A media track* in Warp is a combination of *an init object* and a sequence of media objects. An init object is a format-specific self-contained description of the track that is required to decode any media object contained within the track, but can also be used as the metadata for track selection. If two media tracks carry semantically equivalent but differently encoded media, they are referred to as *variants* of each other.
 
