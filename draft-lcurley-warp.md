@@ -177,11 +177,47 @@ x (b):
 
 # Model
 
-The basic element of Warp is *a media object*. A media object is a single addressable cacheable unit that may either contain a sequence of media samples, or some media-specific metadata, and may have relay-related attributes such as TTL or delivery priority associated with it. A media object is a sequence of bytes with a finite length. A Warp media object is similar in function to what is often referred to as "segments" or "chunks" in other media protocols; however, they are different from the traditional notion of chunks. The first key distinction is that Warp media objects are not always expected to be fully available, and thus any relays have to be able to convey partial media objects. The second key distinction is that Warp media objects may not be fully decodable by themselves; an object will contain a description of the prerequisites if that is the case.
+## Objects
 
-*A media track* in Warp is a combination of *an init object* and a sequence of media objects. An init object is a format-specific self-contained description of the track that is required to decode any media object contained within the track, but can also be used as the metadata for track selection. If two media tracks carry semantically equivalent but differently encoded media, they are referred to as *variants* of each other.
+The basic element of Warp is an *object*. An object is a single addressable
+cacheable unit whose payload is a sequence of bytes.  An object MAY depend on other 
+objects to be decoded. An object MUST belong to a group {{groups}}. Objects carry 
+associated metadata such as priority, TTL or other information usable by a relay, 
+but relays MUST treat object payloads as opaque.
 
-*A Warp broadcast* is a collection of multiple media tracks produced by a single origin. When subscribing to a broadcast, a peer has an option of subscribing to one, many or all media tracks within the broadcast.
+DISCUSS: Can an object be partially decodable by an endpoint?
+
+Authors agree that an object is always partially *forwardable* by a relay but
+disagree on whether a partial object can be used by a receiving endpoint.
+
+Option 1: A receiver MAY start decoding an object before it has been completely received
+
+Example: sending an entire GOP as a single object.  A receiver can decode the
+GOP from the beginning without having the entire object present, and the object's
+tail could be dropped.  Sending a GOP as a group of not-partially-decodable
+objects might incur additional overhead on the wire and/or additional processing of 
+video segments at a sender to find object boundaries.
+
+Partial decodability could be another property of an object.
+
+Option 2: A receiver MUST NOT start decoding an object before it has completely arrived
+
+Objects could be end-to-end encrypted and the receiver might not be able to
+decrypt or authenticate an object until it is fully present.  Allowing Objects
+to span more than one useable unit may create more than one viable application
+mapping from media to wire format, which could be confusing for protocol users.
+
+## Groups
+
+Removed the Group section as Victor is going to summarize PR# 90 and the
+previous text in this PR.
+
+## Track
+
+A media track in Warp is a combination of *an init object* and a sequence of media objects. An init object is a format-specific self-contained description of the track that is required to decode any media object contained within the track, but can also be used as the metadata for track selection. If two media tracks carry semantically equivalent but differently encoded media, they are referred to as *variants* of each other.
+
+## Broadcast
+A Warp broadcast is a collection of multiple media tracks produced by a single origin. When subscribing to a broadcast, a peer has an option of subscribing to one, many or all media tracks within the broadcast.
 
 A Warp broadcast is globally identifiable via a URI. Within the broadcast, every media track is identified via *a track ID* that is unique within the broadcast. Within a single media track, every media object is identified by an *object ID* that is unique within the track.
 
