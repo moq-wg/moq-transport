@@ -75,6 +75,7 @@ Warp is a live media transport protocol that utilizes the QUIC network protocol 
 * {{motivation}} covers the background and rationale behind Warp.
 * {{objects}} covers how media is fragmented into objects.
 * {{quic}} covers how QUIC is used to transfer media.
+* {{relays-moq}} covers behavior at the relay entities.
 * {{messages}} covers how messages are encoded on the wire.
 * {{containers}} covers how media tracks are packaged.
 
@@ -409,6 +410,72 @@ The amount of time the decoder is willing to wait for an object (buffer duration
 Objects MUST synchronize frames within and between tracks using presentation timestamps within the container.
 Objects are NOT REQUIRED to be aligned and the decoder MUST be prepared to skip over any gaps.
 
+# Relays {#relays-moq}
+
+The Relays play an important role for enabling low latency media delivery within the MoQ architecture. This specification allows for a delivery protocol based on a publish/subscribe metaphor where some endpoints, called publishers, publish media objects and 
+some endpoints, called subscribers, consume those media objects. Relays leverage this publish/subscribe metaphor to form an overlay delivery network similar/in-parallel to what CDN provides today.
+
+Relays provide several benefits including
+
+* Scalability – Relays provide the fan-out necessary to scale up 
+                streams to production levels (millions) of concurrent 
+                subscribers.
+
+* Reliability - Relays can improve the overall reliability 
+               of the delivery system by providing alternate paths for 
+               routing content.
+
+* Performance – Relays are usually positioned as close to the edge of a 
+                network as possible and are well-connected to each other 
+                and to the Origin via high capacity managed networks. This topography minimizes the RTT over the unmanaged last 
+                mile to the end-user, improving the latency and throughput 
+                compared to the client connecting directly to the origin.'
+
+* Security –    Relays act to shield the origin from DDOS and other 
+                malicious attacks.
+
+
+Relays serves as policy enforcement points by validating subscribe 
+and publish requests to the tracks.
+
+## Subscriber Interactions
+
+Subscribers interact with the "Relays" by sending a "SUBSCRIBE REQEUST"  ({{message-subscribe-req}}) control message for the tracks of interest. Relays MUST be willing to act on behalf of the subscriptions before they can forward the media, which implies that the subscriptions MUST be authorized and it is done as follows:
+
+1. Provider for the tracks MUST be authorized. This requires identifying the Provider of the requested track and verifying that the Relay is authorized to serve that Provider. "Track Prefix" component of the "Track Name" MUST identify the Provider. Specifics of Provider authorization depends on the way the relay is managed and is typically based on prior business agreement with the Provider.
+
+2. Verify that the subscriber is authorized to access the specified content. Subscriptions MUST carrying enough authorization information proving the subscriber has access to the requested track. 
+
+In all the scenarios, the end-point client making the subscribe
+request is notified of the result of the subscription, via "SUBSCRIBE REPLY" ({{message-subscribe-reply}}) control message.
+
+For cases where the subscriptions are successfully validated, Relay proceeed to save the subscription information by maintaining the mapping from the track information to the list of subscribers. This will enable Relays to forward on-going publishes (live or from cache) to the subscribers, if available, and also forward all the future publishes, until the subscriptions cases to exist. Relays make such forwarding and/or caching decisions, based on match of the identfiers associated in the object's header against the list of subscribers.
+
+## Publisher Interactions
+
+Publishers MAY be configured to publish the objects to a Relays based
+on the application configuration and topology.  Publishing set of
+tracks through the Relay starts with a "PUBLISH" control messages
+that identifies the tracks via their Track Names ({{model-track}}). 
+
+As specified with subscriber interactions, Relays MUST be authorized to serve a given track's Provider and the publisher MUST be authorized to publish content on the tracks advertised in the "PUBLISH" message.
+
+Relays makes use of priority order and other metadata properties from
+the published objects to make forward or drop decisions when reacting
+to congestion as indicated by the underlying QUIC stack.  The same
+can be used to make caching decisions.
+
+## Relay Discovery and Failover
+
+Relays are discovered via application defined ways that are out of scope of this document. A Relay that wants to shutdown can send a message to the client with  the address of new relay. Client moves to the new relay with all of its Subscriptions and then Client unsubscribes from old relay and closes connection to it.
+
+## Restoring connections through relays
+
+The transmission of a track can be interrupted by various events, such as loss of connectivity between subscriber and relay. Once connectivity is restored, the subscriber will want to resume reception, ideally with as few visible gaps in the transmission as possible, and certainly without having to "replay" media that was already presented.
+
+There is no guarantee that the restored connectivity will have the same characteristics as the previous instance. The throughput might be lower, forcing the subscriber to select a media track with lower definition. The network addresses might be different, with the subscriber connecting to a different relay.
+
+DISCUSS: do we need to describe here the "subscribe intent"? Do we want to reuse the concept of "groups" or are these specific to tracks? Timestamps may be very useful, but do we need to attach timestamps to objects? Or do we want to have some indirection, such as "resume at timestamp T" is translated as "restart track X at group G"?
 
 # QUIC
 
