@@ -46,6 +46,7 @@ normative:
   QUIC-RECOVERY: RFC9002
   WebTransport: I-D.ietf-webtrans-http3
   URI: RFC3986
+  MOQ-ARCH: I-D.nandakumar-moq-arch-00
 
   ISOBMFF:
     title: "Information technology — Coding of audio-visual objects — Part 12: ISO Base Media File Format"
@@ -164,6 +165,13 @@ Variant:
 
 : A track with the same content but different encoding as another track. For example, a different bitrate, codec, language, etc.
 
+Provider: 
+
+: Entity capable of hosting media application
+session based on the MOQ Transport protocol.  It is responsible for
+authorizing the publishers/subscribers, managing the names used
+for Tracks and is scoped under a domain for a specific application.
+In certain deployments, a provider is also responsible for establishing trust between clients and relays for delivering media.
 
 ## Notational Conventions
 
@@ -177,11 +185,11 @@ x (b):
 
 # Model
 
-## Objects
+## Objects {#model-object}
 
 The basic element of Warp is an *object*. An object is a single addressable
 cacheable unit whose payload is a sequence of bytes.  An object MAY depend on other 
-objects to be decoded. An object MUST belong to a group {{groups}}. Objects carry 
+objects to be decoded. An object MUST belong to a group {{model-group}}. Objects carry 
 associated metadata such as priority, TTL or other information usable by a relay, 
 but relays MUST treat object payloads as opaque.
 
@@ -207,15 +215,54 @@ decrypt or authenticate an object until it is fully present.  Allowing Objects
 to span more than one useable unit may create more than one viable application
 mapping from media to wire format, which could be confusing for protocol users.
 
-## Groups
+## Groups {#model-group}
 
 An object group is a sequence of media objects. Beginning of an object group can be used as a point at which the receiver can start consuming a track without having any other object groups available. Object groups have an ID that identifies them uniquely within a track.
 
 DISCUSS: We need to determine what are the exact requirements we need to impose on how the media objects depend on each other. Such requirements would need to address the use case (a join point), while being flexible enough to accomodate scenarios like B-frames and temporal scaling.
 
-## Track
+## Track {#model-track}
 
-A media track in Warp is a combination of *an init object* and a sequence of media object groups. An init object is a format-specific self-contained description of the track that is required to decode any media object contained within the track, but can also be used as the metadata for track selection. If two media tracks carry semantically equivalent but differently encoded media, they are referred to as *variants* of each other.
+Tracks form the central concept within the MoQ Transport protocol for
+delivering media and is made up of sequence of objects ({{model-object}}) organized in the form of groups ({{model-group}}).
+
+A track is a transform of a uncompresss media using a specific encoding process, a set of parameters for that encoding, and possibly an encryption process. The MoQ Transport protocol is designed 
+to transport tracks.
+
+Tracks have the following properties:
+
+* A Track MUST be owned by a single authorized MoQ Entity, such as an
+  Emitter (section 2.1.1 {{MOQ-ARCH}}) or a Catalog Maker (section 2.1.5 {{MOQ-ARCH}}), under a single Provider.
+
+* Tracks MUST have a single encoding configuration.
+
+* Tracks MUST have a single security configuration, when exists.
+
+* Tracks MAY contain *an init object*, a format-specific self-contained description of the track that is required to decode any object contained within the track, but can also be used as the metadata for track selection.
+
+
+### Identification
+
+Tracks are identified by a globally unique identifier, called "Track Name" which is made of 2 components called "Track Prefix" and "Track Suffix" respectively.
+
+"Track Prefix" MUST identify the owning provider by a standardized identifier, such as domain name or equivalent, then followed by the application context specific "Track Suffix", encoded as an opaque string.
+
+~~~
+Example: 1
+Track Prefix = https://www.example.org/livestream/stream123
+Track Suffix = audio
+Track Name = https://www.example.org/livestream/audio
+
+
+Example: 2
+Track Prefix = https://www.example.org
+Track Suffix = meetings/meeting123/video
+Track Name = https://www.example.org/meetings/meeting123/video
+
+~~~
+
+In both the examples above, the "Track Prefix" identifies the provider domain as "example.org" and "Track Suffix" captures individual tracks as defined by the applications under that domain.
+
 
 ## Track Bundle
 A track bundle is a collection of tracks intended to be delivered together.
