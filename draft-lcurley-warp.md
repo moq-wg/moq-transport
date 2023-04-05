@@ -676,7 +676,7 @@ OBJECT Message {
 {: #warp-object-format title="Warp OBJECT Message"}
 
 * Track ID:
-The track identifier as declared in CATALOG ({{message-catalog}}).
+The track identifier obtained as part of subscription and/or publish control message exchanges.
 
 * Group Sequence :
 An integer always starts at 0 and increases sequentially at the original media publisher.
