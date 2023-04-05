@@ -552,6 +552,10 @@ A length of 0 indicates the message is unbounded and continues until the end of 
 |------|----------------------------------------------|
 | 0x4  | SUBSCRIBE REPLY ({{message-subscribe-reply}})|
 |------|----------------------------------------------|
+| 0x5  | PUBLISH REQUEST ({{message-publish-req}})    |
+|------|----------------------------------------------|
+| 0x6  | PUBLISH REPLY ({{message-publish-reply}})    |
+|------|----------------------------------------------|
 | 0x10 | GOAWAY ({{message-goaway}})                  |
 |------|----------------------------------------------|
 
@@ -776,7 +780,38 @@ Provides result of the transaction, where a value of `Ok` indicates successful s
 * Track ID:
 Identifies the hop-by-hop identifier mapping the given Track Name to be populated in the Object messages ({{message-object}}). This field is optional and is provided in cases where the end point is unable to use the `Track ID` proposed by the peer in the request message. If populated, the `Track ID` field in the Object's header messages MUST be populated with the value in this field otherwise the `Track ID` value MUST correspond to one in the request message for a given track.
 
+## PUBLISH REQUEST {#message-publish-req}
 
+The `PUBLISH` control message sets up authorization for tracks that the publisher intends to publish media with.
+
+The format of PUBLISH is defined as below
+
+~~~
+PUBLISH REQUEST Message {
+  TRACK INFO Track
+}
+~~~
+{: #warp-publish-format title="Warp PUBLISH Message"}
+
+* Track:
+Identifies track information in `TRACK INFO`. The same rules as defined in {{message-subscribe-req}} will apply here as well.
+
+## PUBLISH REPLY {#message-publish-reply}
+
+The `PUBLISH REPLY` control message provides result of request to publish via the `PUBLISH REQUEST` message.
+
+The format of PUBLISH REPLY is defined as below
+
+~~~
+PUBLISH REPLY Message {
+ TRACK RESPONSE Track
+}
+~~~
+{: #warp-publish-reply-format title="Warp PUBLISH REPLY Message"}
+
+
+* Track:
+Captures the result of publish as by `TRACK RESPONSE` and the same rules apply as defined in {{message-subscribe-reply}}.
 
 ## GOAWAY {#message-goaway}
 The `GOAWAY` message is sent by the server to force the client to reconnect.
