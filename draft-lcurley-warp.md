@@ -503,10 +503,15 @@ TODO: This section shall cover relay handling of subscriptions.
 TODO: This section shall cover relay handling of publishes.
 
 ## Relay Discovery and Failover
-TODO: This section shall cover aspects of relay failover and protocol interactions
+Relays are discovered via application defined ways that are out of scope of this document. A Relay that wants to shutdown can send a message to the client with  the address of new relay. Client moves to the new relay with all of its Subscriptions and then Client unsubscribes from old relay and closes connection to it.
 
 ## Restoring connections through relays
-TODO: This section shall cover reconnect considerations for clients when moving between the Relays
+
+The transmission of a track can be interrupted by various events, such as loss of connectivity between subscriber and relay. Once connectivity is restored, the subscriber will want to resume reception, ideally with as few visible gaps in the transmission as possible, and certainly without having to "replay" media that was already presented.
+
+There is no guarantee that the restored connectivity will have the same characteristics as the previous instance. The throughput might be lower, forcing the subscriber to select a media track with lower definition. The network addresses might be different, with the subscriber connecting to a different relay.
+
+DISCUSS: do we need to describe here the "subscribe intent"? Do we want to reuse the concept of "groups" or are these specific to tracks? Timestamps may be very useful, but do we need to attach timestamps to objects? Or do we want to have some indirection, such as "resume at timestamp T" is translated as "restart track X at group G"?
 
 # Messages
 Both unidirectional and bidirectional Warp streams are sequences of length-deliminated messages.
