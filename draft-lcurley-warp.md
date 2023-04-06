@@ -238,12 +238,14 @@ Tracks have the following properties:
 
 * Tracks MUST have a single security configuration, when exists.
 
-* Tracks MAY contain *an init object*, a format-specific self-contained description of the track that is required to decode any object contained within the track, but can also be used as the metadata for track selection.
-
 
 ### Identification
 
 Tracks are identified by a globally unique identifier, called "Track Name" which is made of 2 components called "Track Prefix" and "Track Suffix" respectively.
+
+~~~
+Track Name := Track Prefix + "#" + Track Suffix
+~~~
 
 "Track Prefix" MUST identify the owning provider by a standardized identifier, such as domain name or equivalent, then followed by the application context specific "Track Suffix", encoded as an opaque string.
 
@@ -251,13 +253,13 @@ Tracks are identified by a globally unique identifier, called "Track Name" which
 Example: 1
 Track Prefix = https://www.example.org/livestream/stream123
 Track Suffix = audio
-Track Name = https://www.example.org/livestream/audio
+Track Name = https://www.example.org/livestream/stream123#audio
 
 
 Example: 2
-Track Prefix = https://www.example.org
-Track Suffix = meetings/meeting123/video
-Track Name = https://www.example.org/meetings/meeting123/video
+Track Prefix = https://www.example.org/meetings
+Track Suffix = meeting123/video
+Track Name = https://www.example.org/meetings#meeting123/video
 
 ~~~
 
