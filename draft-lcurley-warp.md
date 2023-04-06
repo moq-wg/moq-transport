@@ -497,7 +497,17 @@ Relays serves as policy enforcement points by validating subscribe
 and publish requests to the tracks.
 
 ## Subscriber Interactions
-TODO: This section shall cover relay handling of subscriptions.
+
+Subscribers interact with the Relays by sending a "SUBSCRIBE REQEUST"  ({{message-subscribe-req}}) control message for the tracks of interest. Relays MUST be willing to act on behalf of the subscriptions before they can forward the media, which implies that the subscriptions MUST be authorized and it is done as follows:
+
+1. Provider for the tracks MUST be authorized. This requires identifying the Provider of the requested track and verifying that the Relay is authorized to serve that Provider. "Track Prefix" component of the "Track Name" MUST identify the Provider. Specifics of Provider authorization depends on the way the relay is managed and is typically based on prior business agreement with the Provider.
+
+2. Verify that the subscriber is authorized to access the specified content. Subscriptions MUST carrying enough authorization information proving the subscriber has access to the requested track. 
+
+In all the scenarios, the end-point client making the subscribe
+request is notified of the result of the subscription, via "SUBSCRIBE REPLY" ({{message-subscribe-reply}}) control message.
+
+For cases where the subscriptions are successfully validated, Relay proceeed to save the subscription information by maintaining the mapping from the track information to the list of subscribers. This will enable Relays to forward on-going publishes (live or from cache) to the subscribers, if available, and also forward all the future publishes, until the subscriptions cases to exist. Relays make such forwarding and/or caching decisions, based on match of the identfiers associated in the object's header against the list of subscribers.
 
 ## Publisher Interactions
 TODO: This section shall cover relay handling of publishes.
