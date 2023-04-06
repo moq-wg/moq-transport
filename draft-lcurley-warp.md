@@ -239,12 +239,14 @@ Tracks have the following properties:
 
 * Tracks MUST have a single security configuration, when exists.
 
-* Tracks MAY contain *an init object*, a format-specific self-contained description of the track that is required to decode any object contained within the track, but can also be used as the metadata for track selection.
-
 
 ### Identification
 
 Tracks are identified by a globally unique identifier, called "Track Name" which is made of 2 components called "Track Prefix" and "Track Suffix" respectively.
+
+~~~
+Track Name := Track Prefix + "#" + Track Suffix
+~~~
 
 "Track Prefix" MUST identify the owning provider by a standardized identifier, such as domain name or equivalent, then followed by the application context specific "Track Suffix", encoded as an opaque string.
 
@@ -252,17 +254,17 @@ Tracks are identified by a globally unique identifier, called "Track Name" which
 Example: 1
 Track Prefix = https://www.example.org/livestream/stream123
 Track Suffix = audio
-Track Name = https://www.example.org/livestream/audio
+Track Name = https://www.example.org/livestream/stream123#audio
 
 
 Example: 2
-Track Prefix = https://www.example.org
-Track Suffix = meetings/meeting123/video
-Track Name = https://www.example.org/meetings/meeting123/video
+Track Prefix = https://www.example.org/meetings
+Track Suffix = meeting123/video
+Track Name = https://www.example.org/meetings#meeting123/video
 
 ~~~
 
-In both the examples above, the "Track Prefix" identifies the provider domain as "example.org" and "Track Suffix" captures individual tracks as defined by the applications under that domain.
+In both the examples above, the "Track Pre  fix" identifies the provider domain as "example.org" and "Track Suffix" captures individual tracks as defined by the applications under that domain.
 
 
 ## Track Bundle
@@ -410,72 +412,6 @@ The amount of time the decoder is willing to wait for an object (buffer duration
 Objects MUST synchronize frames within and between tracks using presentation timestamps within the container.
 Objects are NOT REQUIRED to be aligned and the decoder MUST be prepared to skip over any gaps.
 
-# Relays {#relays-moq}
-
-The Relays play an important role for enabling low latency media delivery within the MoQ architecture. This specification allows for a delivery protocol based on a publish/subscribe metaphor where some endpoints, called publishers, publish media objects and 
-some endpoints, called subscribers, consume those media objects. Relays leverage this publish/subscribe metaphor to form an overlay delivery network similar/in-parallel to what CDN provides today.
-
-Relays provide several benefits including
-
-* Scalability – Relays provide the fan-out necessary to scale up 
-                streams to production levels (millions) of concurrent 
-                subscribers.
-
-* Reliability - Relays can improve the overall reliability 
-               of the delivery system by providing alternate paths for 
-               routing content.
-
-* Performance – Relays are usually positioned as close to the edge of a 
-                network as possible and are well-connected to each other 
-                and to the Origin via high capacity managed networks. This topography minimizes the RTT over the unmanaged last 
-                mile to the end-user, improving the latency and throughput 
-                compared to the client connecting directly to the origin.'
-
-* Security –    Relays act to shield the origin from DDOS and other 
-                malicious attacks.
-
-
-Relays serves as policy enforcement points by validating subscribe 
-and publish requests to the tracks.
-
-## Subscriber Interactions
-
-Subscribers interact with the "Relays" by sending a "SUBSCRIBE REQEUST"  ({{message-subscribe-req}}) control message for the tracks of interest. Relays MUST be willing to act on behalf of the subscriptions before they can forward the media, which implies that the subscriptions MUST be authorized and it is done as follows:
-
-1. Provider for the tracks MUST be authorized. This requires identifying the Provider of the requested track and verifying that the Relay is authorized to serve that Provider. "Track Prefix" component of the "Track Name" MUST identify the Provider. Specifics of Provider authorization depends on the way the relay is managed and is typically based on prior business agreement with the Provider.
-
-2. Verify that the subscriber is authorized to access the specified content. Subscriptions MUST carrying enough authorization information proving the subscriber has access to the requested track. 
-
-In all the scenarios, the end-point client making the subscribe
-request is notified of the result of the subscription, via "SUBSCRIBE REPLY" ({{message-subscribe-reply}}) control message.
-
-For cases where the subscriptions are successfully validated, Relay proceeed to save the subscription information by maintaining the mapping from the track information to the list of subscribers. This will enable Relays to forward on-going publishes (live or from cache) to the subscribers, if available, and also forward all the future publishes, until the subscriptions cases to exist. Relays make such forwarding and/or caching decisions, based on match of the identfiers associated in the object's header against the list of subscribers.
-
-## Publisher Interactions
-
-Publishers MAY be configured to publish the objects to a Relays based
-on the application configuration and topology.  Publishing set of
-tracks through the Relay starts with a "PUBLISH" control messages
-that identifies the tracks via their Track Names ({{model-track}}). 
-
-As specified with subscriber interactions, Relays MUST be authorized to serve a given track's Provider and the publisher MUST be authorized to publish content on the tracks advertised in the "PUBLISH" message.
-
-Relays makes use of priority order and other metadata properties from
-the published objects to make forward or drop decisions when reacting
-to congestion as indicated by the underlying QUIC stack.  The same
-can be used to make caching decisions.
-
-## Relay Discovery and Failover
-
-Relays are discovered via application defined ways that are out of scope of this document. A Relay that wants to shutdown can send a message to the client with  the address of new relay. Client moves to the new relay with all of its Subscriptions and then Client unsubscribes from old relay and closes connection to it.
-
-## Restoring connections through relays
-
-The transmission of a track can be interrupted by various events, such as loss of connectivity between subscriber and relay. Once connectivity is restored, the subscriber will want to resume reception, ideally with as few visible gaps in the transmission as possible, and certainly without having to "replay" media that was already presented.
-
-There is no guarantee that the restored connectivity will have the same characteristics as the previous instance. The throughput might be lower, forcing the subscriber to select a media track with lower definition. The network addresses might be different, with the subscriber connecting to a different relay.
-
-DISCUSS: do we need to describe here the "subscribe intent"? Do we want to reuse the concept of "groups" or are these specific to tracks? Timestamps may be very useful, but do we need to attach timestamps to objects? Or do we want to have some indirection, such as "resume at timestamp T" is translated as "restart track X at group G"?
 
 # QUIC
 
@@ -590,6 +526,39 @@ The endpoint breached an agreement, which MAY have been pre-negotiated by the ap
 * GOAWAY:
 The endpoint successfully drained the session after a GOAWAY was initiated ({{message-goaway}}).
 
+# Relays {#relays-moq}
+
+The Relays play an important role for enabling low latency media delivery within the MoQ architecture. This specification allows for a delivery protocol based on a publish/subscribe metaphor where some endpoints, called publishers, publish media objects and 
+some endpoints, called subscribers, consume those media objects. Relays leverage this publish/subscribe metaphor to form an overlay delivery network similar/in-parallel to what CDN provides today.
+
+Relays provide several benefits including
+
+* Scalability – Relays provide the fan-out necessary to scale up 
+  streams to production levels (millions) of concurrent subscribers.
+
+* Reliability - Relays can improve the overall reliability 
+  of the delivery system by providing alternate paths for routing content.
+
+* Performance – Relays are usually positioned as close to the edge  of a network as possible and are well-connected to each other and to the Origin via high capacity managed networks. This topography minimizes the RTT over the unmanaged last mile to the end-user, improving the latency and throughput  compared to the client connecting directly to the origin.'
+
+* Security –    Relays act to shield the origin from DDOS and other malicious attacks.
+
+
+Relays serves as policy enforcement points by validating subscribe 
+and publish requests to the tracks.
+
+## Subscriber Interactions
+TODO: This section shall cover relay handling of subscriptions.
+
+## Publisher Interactions
+TODO: This section shall cover relay handling of publishes.
+
+## Relay Discovery and Failover
+TODO: This section shall cover aspects of relay failover and protocol interactions
+
+## Restoring connections through relays
+TODO: This section shall cover reconnect considerations for clients when moving between the Relays
+
 
 # Messages
 Both unidirectional and bidirectional Warp streams are sequences of length-deliminated messages.
@@ -606,25 +575,19 @@ Warp Message {
 The Message Length field contains the length of the Message Payload field in bytes.
 A length of 0 indicates the message is unbounded and continues until the end of the stream.
 
-|------|----------------------------------------------|
-| ID   | Messages                                     |
-|-----:|:---------------------------------------------|
-| 0x0  | OBJECT ({{message-object}})                  |
-|------|----------------------------------------------|
-| 0x1  | SETUP ({{message-setup}})                    |
-|------|----------------------------------------------|
-| 0x2  | CATALOG ({{message-catalog}})                |
-|------|----------------------------------------------|
-| 0x3  | SUBSCRIBE REQUEST ({{message-subscribe-req}})|
-|------|----------------------------------------------|
-| 0x4  | SUBSCRIBE REPLY ({{message-subscribe-reply}})|
-|------|----------------------------------------------|
-| 0x5  | PUBLISH REQUEST ({{message-publish-req}})    |
-|------|----------------------------------------------|
-| 0x6  | PUBLISH REPLY ({{message-publish-reply}})    |
-|------|----------------------------------------------|
-| 0x10 | GOAWAY ({{message-goaway}})                  |
-|------|----------------------------------------------|
+|------|-----------------------------------|
+| ID   | Messages                          |
+|-----:|:----------------------------------|
+| 0x0  | OBJECT ({{message-object}})       |
+|------|-----------------------------------|
+| 0x1  | SETUP ({{message-setup}})         |
+|------|-----------------------------------|
+| 0x2  | CATALOG ({{message-catalog}})     |
+|------|-----------------------------------|
+| 0x3  | SUBSCRIBE ({{message-subscribe}}) |
+|------|-----------------------------------|
+| 0x10 | GOAWAY ({{message-goaway}})       |
+|------|-----------------------------------|
 
 ## SETUP {#message-setup}
 
@@ -676,7 +639,7 @@ OBJECT Message {
 {: #warp-object-format title="Warp OBJECT Message"}
 
 * Track ID:
-The track identifier obtained as part of subscription and/or publish control message exchanges.
+The track identifier as declared in CATALOG ({{message-catalog}}).
 
 * Group Sequence :
 An integer always starts at 0 and increases sequentially at the original media publisher.
@@ -737,148 +700,30 @@ This contains base information required to decode OBJECT messages, such as codec
 An endpoint MUST NOT send multiple CATALOG messages.
 A future draft will add the ability to add/remove/update tracks.
 
-## SUBSCRIBE REQUEST {#message-subscribe-req}
-
-Entities that intend to receive media will do so via subscriptions to
-one or more tracks. The information for the tracks can be obtained via catalog or from incoming SUBSCRIBE messages.
+## SUBSCRIBE {#message-subscribe}
+After receiving a CATALOG message ({{message-catalog}}, the receiver sends a SUBSCRIBE message to indicate that it wishes to receive the indicated tracks.
 
 The format of SUBSCRIBE is as follows:
 
 ~~~
 SUBSCRIBE Message {
-  TRACK INFO Track
+  Track Count (i),
+  Track IDs (..),
 }
 ~~~
 {: #warp-subscribe-format title="Warp SUBSCRIBE Message"}
 
-* Track:
-Identifies the track information as defined in `TRACK INFO`.
+* Track Count:
+The number of track IDs that follow.
+This MAY be zero to unsubscribe to all tracks.
 
-The `TRACK INFO` structure is as defined below
-
-~~~
-TRACK INFO {
-  Track Name Length(i),
-  Track Name(...)...,
-  Track ID (i),
-  Track Authorization Info Length(i),
-  Track Authorization Info (...)...
-  [Group Sequence (i)],
-  [Object Sequence (i)],
-}
-~~~
-{: #warp-track-info-format title="Warp TRACK INFO Content"}
+* Track IDs:
+A list of varint track IDs.
 
 
-* Track Name:
-Identifies the fully qualified track name as defined in ({{model-track}}).
+Only the most recent SUBSCRIBE message is active.
+SUBSCRIBE messages MUST be sent on the same QUIC stream to preserve ordering.
 
-* Track ID:
-A proposal serving as short hop-by-hop identifier to be used in the OBJECT ({{message-object}}) message header for the requested tack. Given that the media corresponding to a track can potentially be delivered over multiple data streams, the `Track ID` provides the necessary mapping between the "Track Name" in the control message and the corresponding data streams. It also serves as a compression identifier for containing the size of object headers instead of carrying complete "Track Name" information in every object message. A client MUST choose an `Track ID` value that is unique within a QUIC Connection.
-
-* Group Sequence:
-Identifies the group within the track to start delivering 
-the objects. This field is optional and when omitted, the
-publisher MUST deliver the objects from the most recent 
-group.
-
-* Object ID:
-Identifies the object within the track to start the media 
-delivery. The group MUST either match the `Group Sequence` if provided
-or MUST be the most recent group. This field is optional and 
-when omitted, the publisher MUST deliver starting from the 
-beginning of the selected group, i.e., starting at Object Sequence of 0.
-
-* Track Authorization Info: 
-Carries track authorization, typically in the form of a token, authorizing client’s subscription to the track. The specifics of obtaining the authorization information is out of scope for this specification.
-
-Subscriptions stay active until one of the following happens:
-
-- a client local policy dictates expiration of a subscription.
-- optionally, a server policy dicates subscription expiration.
-- the underlying transport is disconnected.
-
-A client MUST renew its subscriptions by sending a new `SUBSCRIBE` to keep them active. Such subscriptions MUST refresh the existing subscriptions and thus only the most recent SUBSCRIBE message is considered active. A renewal period of 5 seconds is RECOMMENDED.
-
-## SUBSCRIBE REPLY {#message-subscribe-reply}
-
-A `SUBSCRIBE REPLY` control message provides results of the subscription. 
-
-~~~
-SUBSCRIBE REPLY
-{
-  TRACK RESPONSE Track
-}
-~~~
-{: #warp-subscribe-reply format title="Warp SUBSCRIBE REPLY Message"}
-
-* Track:
-Captures the result of subscription as defined in `TRACK RESPONSE`
-
-The `TRACK RESPONSE` structure is as defined below
-
-~~~
-enum Track Result
-{
-  Ok(0),
-  Expired(1),
-  Fail(2)
-}
-
-TRACK RESPONSE {
-  Track Name Length(i),
-  Track Name(...)...,
-  Track Result Response,
-  [ Reason Phrase Length (i) ],
-  [ Reason Phrase (...) ],
-  [ Track ID(i) ]
-}
-~~~
-{: #warp-track-response-format title="Warp TRACK RESPONSE Content"}
-
-
-* Track Name:
-Identifies the track in the request message for which this
-response is provided.
-
-* Response:
-Provides result of the transaction, where a value of `Ok` indicates successful subscription. For failed or expired responses, the "Reason Phrase" shall be populated with appropriate reason code.
-
-* Track ID:
-Identifies the hop-by-hop identifier mapping the given Track Name to be populated in the Object messages ({{message-object}}). This field is optional and is provided in cases where the end point is unable to use the `Track ID` proposed by the peer in the request message. If populated, the `Track ID` field in the Object's header messages MUST be populated with the value in this field otherwise the `Track ID` value MUST correspond to one in the request message for a given track.
-
-## PUBLISH REQUEST {#message-publish-req}
-
-The `PUBLISH` control message sets up authorization for tracks that the publisher intends to publish media with.
-
-The format of PUBLISH is defined as below
-
-~~~
-PUBLISH REQUEST Message {
-  TRACK INFO Track
-}
-~~~
-{: #warp-publish-format title="Warp PUBLISH Message"}
-
-* Track:
-Identifies track information in `TRACK INFO`. The same rules as defined in {{message-subscribe-req}} will apply here as well.
-
-## PUBLISH REPLY {#message-publish-reply}
-
-The `PUBLISH REPLY` control message provides result of request to publish via the `PUBLISH REQUEST` message.
-
-The format of PUBLISH REPLY is defined as below
-
-~~~
-PUBLISH REPLY Message {
- TRACK RESPONSE Track
-}
-~~~
-{: #warp-publish-reply-format title="Warp PUBLISH REPLY Message"}
-
-
-* Track:
-Captures the result of publish as by `TRACK RESPONSE` and the same rules apply as defined in {{message-subscribe-reply}}.
 
 ## GOAWAY {#message-goaway}
 The `GOAWAY` message is sent by the server to force the client to reconnect.
