@@ -500,7 +500,11 @@ and publish requests to the tracks.
 TODO: This section shall cover relay handling of subscriptions.
 
 ## Publisher Interactions
-TODO: This section shall cover relay handling of publishes.
+Publishers MAY be configured to publish the objects to a Relays based on the application configuration and topology.  Publishing set of tracks through the Relay starts with a "PUBLISH" control messages that identifies the tracks via their Track Names ({{model-track}}). 
+
+As specified with subscriber interactions, Relays MUST be authorized to serve a given track's Provider and the publisher MUST be authorized to publish content on the tracks advertised in the "PUBLISH" message.
+
+Relays makes use of priority order and other metadata properties from the published objects to make forward or drop decisions when reacting to congestion as indicated by the underlying QUIC stack.  The same can be used to make caching decisions.
 
 ## Relay Discovery and Failover
 TODO: This section shall cover aspects of relay failover and protocol interactions
