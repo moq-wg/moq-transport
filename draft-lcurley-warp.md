@@ -73,6 +73,7 @@ Warp is a live media transport protocol that utilizes the QUIC network protocol 
 
 * {{motivation}} covers the background and rationale behind Warp.
 * {{objects}} covers how media is fragmented into objects.
+* {{transport-usages}} covers aspects of setting up a MoQ transport connection.
 * {{quic}} covers how QUIC is used to transfer media.
 * {{messages}} covers how messages are encoded on the wire.
 * {{containers}} covers how media tracks are packaged.
@@ -363,9 +364,14 @@ Objects MUST synchronize frames within and between tracks using presentation tim
 Objects are NOT REQUIRED to be aligned and the decoder MUST be prepared to skip over any gaps.
 
 
-# QUIC
+# Transport Usages {#transport-usages}
 
-## Establishment
+Following subsections define usages of MoQ over WebTransport and over Native QUIC. 
+
+## WebTransport
+MoQ can benefit from an infrastructure designed for HTTP3 by running over WebTransport.
+
+### Establishment
 A connection is established using WebTransport {{WebTransport}}.
 
 To summarize:
@@ -386,6 +392,23 @@ For example, an identifier and authentication token could be included in the pat
 
 The server MAY return an error status code for any reason, for example a 403 when the client is forbidden.
 Otherwise the server MUST respond with a "200 OK" to establish the WebTransport session.
+
+## Native QUIC
+MoQ can run directly over QUIC. In that case, the following apply:
+
+*  Connection setup corresponds to the establishment of a QUIC
+  connection, in which the ALPN value indicates use of MoQ.  For
+  versions implementing this draft, the ALPN value is set to "moq-
+  n00".
+
+*  Bilateral and unilateral streams are mapped directly to equivalent QUIC streams.
+
+TODO: Add futher details on specifcs of each transport in setting up the session and catalog retrieval.
+
+# QUIC
+
+## Connection 
+As defined in {{transport-usages}}, either WebTransport or Native QUIC can be used to setup underlying QUIC primitives for carrying out the protocol defined in this specification. 
 
 ## Streams
 Warp endpoints communicate over QUIC streams. Every stream is a sequence of messages, framed as described in {{messages}}.
@@ -686,6 +709,20 @@ The ROLE parameter (key 0x00) allows the client to specify what roles it expects
 
 The client MUST send a ROLE parameter with one of the three values specified above. The server MUST close the connection if the ROLE parameter is missing, is not one of the three above-specified values, or it is different from what the server expects based on the application in question.
 
+
+# Security Considerations
+
+## Resource Exhaustion
+Live media requires significant bandwidth and resources.
+Failure to set limits will quickly cause resource exhaustion.
+
+Warp uses QUIC flow control to impose resource limits at the network layer.
+Endpoints SHOULD set flow control limits based on the anticipated media bitrate.
+
+The media producer prioritizes and transmits streams out of order.
+Streams might be starved indefinitely during congestion.
+The producer and consumer MUST cancel a stream, preferably the lowest priority, after reaching a resource limit.
+
 # Containers
 The container format describes how the underlying codec bitstream is encoded.
 This includes timestamps, metadata, and generally anything required to decode and display the media.
@@ -715,19 +752,6 @@ A Common Media Application Format Segment {{CMAF}} meets all these requirements.
 Media fragments can be packaged at any frequency, causing a trade-off between overhead and latency.
 It is RECOMMENDED that a media fragment consists of a single frame to minimize latency.
 
-
-# Security Considerations
-
-## Resource Exhaustion
-Live media requires significant bandwidth and resources.
-Failure to set limits will quickly cause resource exhaustion.
-
-Warp uses QUIC flow control to impose resource limits at the network layer.
-Endpoints SHOULD set flow control limits based on the anticipated media bitrate.
-
-The media producer prioritizes and transmits streams out of order.
-Streams might be starved indefinitely during congestion.
-The producer and consumer MUST cancel a stream, preferably the lowest priority, after reaching a resource limit.
 
 # IANA Considerations
 
