@@ -74,7 +74,7 @@ Warp is a live media transport protocol that utilizes the QUIC network protocol 
 * {{motivation}} covers the background and rationale behind Warp.
 * {{objects}} covers how media is fragmented into objects.
 * {{quic}} covers how QUIC is used to transfer media.
-* {{congestion-response}} covers protocol considerations for delaing with congestion overall.
+* {{priority-congestion}} covers protocol considerations on prioritization schemes and congestion response overall.
 * {{relays-moq}} covers behavior at the relay entities.
 * {{messages}} covers how messages are encoded on the wire.
 * {{containers}} covers how media tracks are packaged.
@@ -310,8 +310,9 @@ This ensures that relays can easily route/fanout media to the final destination.
 This also ensures that congestion response is consistent at every hop based on the preferences of the media producer.
 
 ## Bandwidth Management and Congestion Response
-TODO: Add text descibing congestion response at Relays. This requires addressing details on reactions to congestion via starve or drop, relay performing local choices or susbcribers adapting to change in network bandwidth. This should refer to {{congestion-response}}.
-
+TODO: Add motivation text regarding bw management techniques in
+response to congestion. Also refer to {{priority-congestion}} for
+further details.
 
 # Objects
 Warp works by splitting media into objects that can be transferred over QUIC streams.
@@ -359,8 +360,7 @@ A receiver MUST NOT assume that objects will be received in delivery order for a
 TODO: Refer to Congestion Response and Priorirization Section for further details on various proposals.
 
 ## Groups
-TODO: Add text describing interation of group and intra object priorities within a group and their relation to congestion response.
-Add how it refers to {{congestion-response}}
+TODO: Add text describing interation of group and intra object priorities within a group and their relation to congestion response. Add how it refers to {{priority-congestion}}
 
 ## Decoder
 The decoder will receive multiple objects in parallel and out of order.
@@ -408,7 +408,7 @@ Messages SHOULD be sent over the same stream if ordering is desired.
 ## Prioritization
 Warp utilizes stream prioritization to deliver the most important content during congestion.
 
-TODO: Revisit the prioritization scheme and possibly move some fo this to {{congestion-response}}.
+TODO: Revisit the prioritization scheme and possibly move some of this to {{priority-congestion}}.
 
 The producer may assign a numeric delivery order to each object ({{delivery-order}})
 
@@ -460,7 +460,7 @@ Most TCP congestion control algorithms will only increase the congestion window 
 Senders SHOULD use a congestion control algorithm that is designed for application-limited flows (ex. GCC).
 Senders MAY periodically pad the connection with QUIC PING frames to fill the congestion window.
 
-TODO: update this section to refer to {{congestion-response}}
+TODO: update this section to refer to {{priority-congestion}}
 
 ## Termination
 The WebTransport session can be terminated at any point with CLOSE\_WEBTRANSPORT\_SESSION capsule, consisting of an integer code and string message.
@@ -491,16 +491,17 @@ The endpoint breached an agreement, which MAY have been pre-negotiated by the ap
 * GOAWAY:
 The endpoint successfully drained the session after a GOAWAY was initiated ({{message-goaway}}).
 
-# Congestion Response Considerations {#congestion-response}
+# Prioritization and Congestion Response Considerations {#priority-congestion}
 
 TODO: This is a placeholder section to capture details on
-how the Moq Transport protocol deals with congestion overall. Having its own section helps reduce merge conflicts and allows us to reference it from other parts.
+how the Moq Transport protocol deals with prioritization and congestion overall. Having its own section helps reduce merge conflicts and allows us to reference it from other parts.
 
-This section is expected to cover:
+This section is expected to cover detailson:
 
-- Object Metadata Details
-- Proposal sections on sendOrder, object priorities model
-- Mapping and adaptation considerations to one object per stream vs multiple objects per stream
+- Prioritization Schemes
+- Congestion Algorithms and impacts 
+- Mapping considerations for one object per stream vs multiple objects per stream
+- considerations for merging multiple streams across domans onto single connection and interactions with specific prioritization schemes
 
 # Relays {#relays-moq}
 
@@ -534,7 +535,9 @@ TODO: This section shall cover aspects of relay failover and protocol interactio
 TODO: This section shall cover reconnect considerations for clients when moving between the Relays
 
 ## Congestion Response at Relays
-TODO: Refer to {{congestion-response}}
+TODO: Refer to {{priority-congestion}}. Add details describe 
+relays behavior when merging or splitting streams and interactions
+with congestion response.
 
 # Messages
 Both unidirectional and bidirectional Warp streams are sequences of length-deliminated messages.
