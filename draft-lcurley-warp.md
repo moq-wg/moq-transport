@@ -366,10 +366,10 @@ Objects are NOT REQUIRED to be aligned and the decoder MUST be prepared to skip 
 
 # Transport Usages {#transport-usages}
 
-Following subsections define usages of MoQ over WebTransport and over Native QUIC. 
+Following subsections define usages of MoQ Tranport protocol over WebTransport and over Native QUIC. 
 
 ## WebTransport
-MoQ can benefit from an infrastructure designed for HTTP3 by running over WebTransport.
+MoQ Transport can benefit from an infrastructure designed for HTTP3 by running over WebTransport.
 
 ### Establishment
 A connection is established using WebTransport {{WebTransport}}.
@@ -394,16 +394,18 @@ The server MAY return an error status code for any reason, for example a 403 whe
 Otherwise the server MUST respond with a "200 OK" to establish the WebTransport session.
 
 ## Native QUIC
-MoQ can run directly over QUIC. In that case, the following apply:
+MoQ Transport can run directly over QUIC. In that case, the following apply:
 
-*  Connection setup corresponds to the establishment of a QUIC
+* Connection setup corresponds to the establishment of a QUIC
   connection, in which the ALPN value indicates use of MoQ.  For
   versions implementing this draft, the ALPN value is set to "moq-
   n00".
 
-*  Bilateral and unilateral streams are mapped directly to equivalent QUIC streams.
+* Bilateral and unilateral streams are mapped directly to equivalent QUIC streams.
 
-TODO: Add futher details on specifcs of each transport in setting up the session and catalog retrieval.
+
+Once the connection setup is successful, the rest of the MoQ Transport protocol's usage of QUIC is common across the WebTransport and Native QUIC transports.
+
 
 # QUIC
 
@@ -710,19 +712,6 @@ The ROLE parameter (key 0x00) allows the client to specify what roles it expects
 The client MUST send a ROLE parameter with one of the three values specified above. The server MUST close the connection if the ROLE parameter is missing, is not one of the three above-specified values, or it is different from what the server expects based on the application in question.
 
 
-# Security Considerations
-
-## Resource Exhaustion
-Live media requires significant bandwidth and resources.
-Failure to set limits will quickly cause resource exhaustion.
-
-Warp uses QUIC flow control to impose resource limits at the network layer.
-Endpoints SHOULD set flow control limits based on the anticipated media bitrate.
-
-The media producer prioritizes and transmits streams out of order.
-Streams might be starved indefinitely during congestion.
-The producer and consumer MUST cancel a stream, preferably the lowest priority, after reaching a resource limit.
-
 # Containers
 The container format describes how the underlying codec bitstream is encoded.
 This includes timestamps, metadata, and generally anything required to decode and display the media.
@@ -752,6 +741,19 @@ A Common Media Application Format Segment {{CMAF}} meets all these requirements.
 Media fragments can be packaged at any frequency, causing a trade-off between overhead and latency.
 It is RECOMMENDED that a media fragment consists of a single frame to minimize latency.
 
+
+# Security Considerations
+
+## Resource Exhaustion
+Live media requires significant bandwidth and resources.
+Failure to set limits will quickly cause resource exhaustion.
+
+Warp uses QUIC flow control to impose resource limits at the network layer.
+Endpoints SHOULD set flow control limits based on the anticipated media bitrate.
+
+The media producer prioritizes and transmits streams out of order.
+Streams might be starved indefinitely during congestion.
+The producer and consumer MUST cancel a stream, preferably the lowest priority, after reaching a resource limit.
 
 # IANA Considerations
 
