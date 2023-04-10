@@ -46,7 +46,6 @@ normative:
   QUIC-RECOVERY: RFC9002
   WebTransport: I-D.ietf-webtrans-http3
   URI: RFC3986
-  MOQ-ARCH: I-D.nandakumar-moq-arch-00
 
   ISOBMFF:
     title: "Information technology — Coding of audio-visual objects — Part 12: ISO Base Media File Format"
@@ -58,6 +57,7 @@ informative:
     date: 2020-03
   NewReno: RFC6582
   BBR: I-D.cardwell-iccrg-bbr-congestion-control-02
+  MOQ-ARCH: I-D.nandakumar-moq-arch-00
 
 
 --- abstract
@@ -165,6 +165,10 @@ Variant:
 
 : A track with the same content but different encoding as another track. For example, a different bitrate, codec, language, etc.
 
+Track Name:
+
+: See {{track-name}}.
+
 Provider: 
 
 : Entity capable of hosting media application
@@ -223,46 +227,28 @@ DISCUSS: We need to determine what are the exact requirements we need to impose 
 
 ## Track {#model-track}
 
-Tracks form the central concept within the MoQ Transport protocol for
-delivering media and is made up of sequence of objects ({{model-object}}) organized in the form of groups ({{model-group}}).
+A Track is the central concept within the MoQ Transport protocol for delivering media and is made up of sequence of objects ({{model-object}}) organized in the form of groups ({{model-group}}).
 
-A track is a transform of a uncompresss media using a specific encoding process, a set of parameters for that encoding, and possibly an encryption process. The MoQ Transport protocol is designed 
-to transport tracks.
+A track is a transform of a uncompresss media or metadata using a specific encoding process, a set of parameters for that encoding, and possibly an encryption process. The MoQ Transport protocol is designed to transport tracks.
 
-Tracks have the following properties:
-
-* A Track MUST be owned by a single authorized MoQ Entity, such as an
-  Emitter (section 2.1.1 {{MOQ-ARCH}}) or a Catalog Maker (section 2.1.5 {{MOQ-ARCH}}), under a single Provider.
-
-* Tracks MUST have a single encoding configuration.
-
-* Tracks MUST have a single security configuration, when exists.
-
-* Tracks MAY contain *an init object*, a format-specific self-contained description of the track that is required to decode any object contained within the track, but can also be used as the metadata for track selection.
+A Track is produced by an authorized MoQ Entity, such as an
+Emitter (section 2.1.1 {{MOQ-ARCH}}) or a Catalog Maker (section 2.1.5 {{MOQ-ARCH}}), under a single Provider.
 
 
-### Identification
+### Identification {#track-name}
 
 Tracks are identified by a globally unique identifier, called "Track Name" which is made of 2 components called "Track Prefix" and "Track Suffix" respectively.
 
-"Track Prefix" MUST identify the owning provider by a standardized identifier, such as domain name or equivalent, then followed by the application context specific "Track Suffix", encoded as an opaque string.
+"Track Prefix" MUST identify the owning provider by a standardized identifier, such as domain name or equivalent, then followed by the application context specific "Track Suffix", encoded as an opaque string. The catalog for a given MoQ Application MUST define the specifics of Track Name for each track advertised.
 
 ~~~
 Example: 1
 Track Prefix = https://www.example.org/livestream/stream123
 Track Suffix = audio
-Track Name = https://www.example.org/livestream/audio
-
-
-Example: 2
-Track Prefix = https://www.example.org
-Track Suffix = meetings/meeting123/video
-Track Name = https://www.example.org/meetings/meeting123/video
-
+Track Name = https://www.example.org/livestream/stream123/audio
 ~~~
 
-In both the examples above, the "Track Prefix" identifies the provider domain as "example.org" and "Track Suffix" captures individual tracks as defined by the applications under that domain.
-
+In the example above, the Track Name identifies an URL with the "Track Prefix" identifies the provider domain as "example.org" and "Track Suffix" captures individual tracks as defined by the applications under that domain.
 
 ## Track Bundle
 A track bundle is a collection of tracks intended to be delivered together.
