@@ -1,7 +1,7 @@
 ---
-title: "Warp - Live Transport over QUIC"
+title: "Warp - Live Media Transport over QUIC"
 abbrev: WARP
-docname: draft-lcurley-warp-transport-latest
+docname: draft-lcurley-warp-latest
 date: {DATE}
 category: info
 
@@ -53,15 +53,15 @@ informative:
 
 --- abstract
 
-This document defines a transport to deliver media and similar streamable formats over QUIC.
-The payload is fragmented (based on the encoding) such that fragments can be dropped or delayed in the event of congestion.
-A simple set of instructions is written on the wire such that relays will exhibit the same behavior regardless of the hop.
+This document defines the core behavior for Warp, a live media transport protocol over QUIC.
+Media is split into objects based on the underlying media encoding and transmitted independently over QUIC streams.
+QUIC streams are prioritized based on the delivery order, allowing less important objects to be starved or dropped during congestion.
 
 --- middle
 
 
 ## Introduction
-Warp is a live transport protocol that utilizes the QUIC network protocol {{QUIC}}.
+Warp is a live media transport protocol that utilizes the QUIC network protocol {{QUIC}}.
 
 * {{model}} is an overview of how the high level concept interact.
 * {{quic}} covers how QUIC is used to transfer data.
@@ -73,6 +73,10 @@ Warp is a live transport protocol that utilizes the QUIC network protocol {{QUIC
 {::boilerplate bcp14-tagged}
 
 Commonly used terms in this document are described below.
+
+Bitstream:
+
+: A continunous series of bytes.
 
 Client:
 
@@ -361,7 +365,7 @@ OBJECT Message {
 {: #warp-object-format title="Warp OBJECT Message"}
 
 * Track ID:
-The track identifier.
+The track identifier, as negotiated by the application.
 
 * Group Sequence :
 An integer always starts at 0 and increases sequentially at the original media publisher.
