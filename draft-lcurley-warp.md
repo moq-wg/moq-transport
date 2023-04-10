@@ -169,6 +169,11 @@ Track Name:
 
 : See {{track-name}}.
 
+Track ID:
+
+: An hop-by-hop variable length integer for a Track Name that is carried in Object message header. Track ID is setup
+as part of Publish/Subscribe control message exchanges. See {{message-subscribe-reply}}
+
 Provider: 
 
 : Entity capable of hosting media application
@@ -654,13 +659,12 @@ A future draft will add the ability to add/remove/update tracks.
 
 ## SUBSCRIBE REQUEST {#message-subscribe-req}
 
-Entities that intend to receive media will do so via subscriptions to
-one or more tracks. The information for the tracks can be obtained via catalog or from incoming SUBSCRIBE messages.
+Entities that intend to receive media will do so via subscriptions to one or more tracks. The information for the tracks can be obtained via catalog or from incoming SUBSCRIBE REQUEST messages.
 
 The format of SUBSCRIBE is as follows:
 
 ~~~
-SUBSCRIBE Message {
+SUBSCRIBE REQUEST Message {
   TRACK INFO Track
 }
 ~~~
@@ -675,11 +679,8 @@ The `TRACK INFO` structure is as defined below
 TRACK INFO {
   Track Name Length(i),
   Track Name(...)...,
-  Track ID (i),
   Track Authorization Info Length(i),
   Track Authorization Info (...)...
-  [Group Sequence (i)],
-  [Object Sequence (i)],
 }
 ~~~
 {: #warp-track-info-format title="Warp TRACK INFO Content"}
@@ -688,30 +689,17 @@ TRACK INFO {
 * Track Name:
 Identifies the fully qualified track name as defined in ({{model-track}}).
 
-* Track ID:
-A proposal serving as short hop-by-hop identifier to be used in the OBJECT ({{message-object}}) message header for the requested tack. Given that the media corresponding to a track can potentially be delivered over multiple data streams, the `Track ID` provides the necessary mapping between the "Track Name" in the control message and the corresponding data streams. It also serves as a compression identifier for containing the size of object headers instead of carrying complete "Track Name" information in every object message. A client MUST choose an `Track ID` value that is unique within a QUIC Connection.
-
-* Group Sequence:
-Identifies the group within the track to start delivering 
-the objects. This field is optional and when omitted, the
-publisher MUST deliver the objects from the most recent 
-group.
-
-* Object Sequence:
-Identifies the object within the track to start the media 
-delivery. The group MUST either match the `Group Sequence` if provided
-or MUST be the most recent group. This field is optional and 
-when omitted, the publisher MUST deliver starting from the 
-beginning of the selected group, i.e., starting at Object Sequence of 0.
-
 * Track Authorization Info: 
-Carries track authorization, typically in the form of a token, authorizing client’s subscription to the track. The specifics of obtaining the authorization information is out of scope for this specification.
+Carries track authorization, typically in the form of a token, authorizing the client’s subscription to the track. The specifics of obtaining the authorization information is out of scope for this specification.
 
 Subscriptions stay active until one of the following happens:
 
 - a client local policy dictates expiration of a subscription.
 - optionally, a server policy dicates subscription expiration.
 - the underlying transport is disconnected.
+
+On successful subscription, the publisher MUST deliver objects
+from the beginnig of the most recent group in the track, i.e, starting at Object Sequence of 0.
 
 A client MUST renew its subscriptions by sending a new `SUBSCRIBE` to keep them active. Such subscriptions MUST refresh the existing subscriptions and thus only the most recent SUBSCRIBE message is considered active. A renewal period of 5 seconds is RECOMMENDED.
 
@@ -736,17 +724,16 @@ The `TRACK RESPONSE` structure is as defined below
 enum Track Result
 {
   Ok(0),
-  Expired(1),
-  Fail(2)
+  Fail(1)
 }
 
 TRACK RESPONSE {
   Track Name Length(i),
   Track Name(...)...,
   Track Result Response,
+  [Track ID(i)],
   [ Reason Phrase Length (i) ],
   [ Reason Phrase (...) ],
-  [ Track ID(i) ]
 }
 ~~~
 {: #warp-track-response-format title="Warp TRACK RESPONSE Content"}
@@ -757,11 +744,10 @@ Identifies the track in the request message for which this
 response is provided.
 
 * Response:
-Provides result of the transaction, where a value of `Ok` indicates successful subscription. For failed or expired responses, the "Reason Phrase" shall be populated with appropriate reason code.
+Provides result of the transaction, where a value of `Ok` indicates successful subscription. For failed response, the "Reason Phrase" is populated with appropriate reason code.
 
 * Track ID:
-Identifies the hop-by-hop identifier mapping the given Track Name to be populated in the Object messages ({{message-object}}). This field is optional and is provided in cases where the end point is unable to use the `Track ID` proposed by the peer in the request message. If populated, the `Track ID` field in the Object's header messages MUST be populated with the value in this field otherwise the `Track ID` value MUST correspond to one in the request message for a given track.
-
+A short hop-by-hop identifier to be used in the OBJECT ({{message-object}}) message header for the requested tack. Given that the media corresponding to a track can potentially be delivered over multiple data streams, the `Track ID` provides the necessary mapping between the "Track Name" in the control message and the corresponding data streams. It also serves as a compression identifier for containing the size of object headers instead of carrying complete "Track Name" information in every object message. The `Track ID` chosen MUST be unique within the QUIC Connection and is populated for successful subscriptions.
 
 
 ## GOAWAY {#message-goaway}
