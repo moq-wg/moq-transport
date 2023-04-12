@@ -69,12 +69,13 @@ QUIC streams are prioritized based on the delivery order, allowing less importan
 
 
 ## Introduction
-Warp is a live media transport protocol that utilizes the QUIC network protocol {{QUIC}}.
+Warp is a live media transport protocol that utilizes the QUIC network protocol {{QUIC}},
+either directly or via WebTransport {{WebTransport}}.
 
 * {{motivation}} covers the background and rationale behind Warp.
 * {{objects}} covers how media is fragmented into objects.
-* {{transport-usages}} covers aspects of setting up a MoQ transport connection.
-* {{quic}} covers how QUIC is used to transfer media.
+* {{transport-protocols}} covers aspects of setting up a MoQ transport session.
+* {{stream-mapping}} covers how QUIC is used to transfer media.
 * {{messages}} covers how messages are encoded on the wire.
 * {{containers}} covers how media tracks are packaged.
 
@@ -161,6 +162,10 @@ Track:
 
 : An encoded bitstream, representing a single media component (ex. audio, video, subtitles) that makes up the larger broadcast.
 
+Transport session:
+
+: Either a raw QUIC connection, or a WebTransport session used to transmit the data.
+
 Variant:
 
 : A track with the same content but different encoding as another track. For example, a different bitrate, codec, language, etc.
@@ -225,10 +230,10 @@ This allows objects to be prioritized within a track (ex. newer > older) and bet
 The track bundle contains a catalog indicating the available tracks.
 
 ## Session
-A WebTransport session is established for each track bundle.
+A transport session is established for each track bundle.
 The client issues a CONNECT request with a URL which the server uses for identification and authentication.
-All control messages and prioritization occur within the context of a single WebTransport session, which means a single track bundle.
-Multiple WebTransport sessions may be pooled over a single QUIC connection for efficiency.
+All control messages and prioritization occur within the context of a single transport session, which means a single track bundle.
+When WebTransport is used, multiple transport sessions may be pooled over a single QUIC connection for efficiency.
 
 ## Example
 As an example, consider a scenario where `example.org` hosts a simple live stream that anyone can subscribe to.
@@ -364,55 +369,38 @@ Objects MUST synchronize frames within and between tracks using presentation tim
 Objects are NOT REQUIRED to be aligned and the decoder MUST be prepared to skip over any gaps.
 
 
-# Transport Usages {#transport-usages}
+# Supported Transport Protocols  {#transport-protocols}
 
-Following subsections define usages of MoQ Tranport protocol over WebTransport and over Native QUIC. 
+This document defines a protocol that can be used interchangeably both over a raw QUIC connection [QUIC], and over WebTransport [WebTransport].
+Both provide streams and datagrams with similar semantics (see {{?I-D.ietf-webtrans-overview, Section 4}});
+thus, the main difference lies in how the servers are identified and how the connection is established.
 
 ## WebTransport
-MoQ Transport can benefit from an infrastructure designed for HTTP3 by running over WebTransport.
 
-### Establishment
-A connection is established using WebTransport {{WebTransport}}.
+A Warp server that is accessible via WebTransport can be identified using an HTTPS URI ({{!RFC9110, Section 4.2.2}}).
+A Warp transport session can be established by sending an extended CONNECT request to the host and the path indicated by the URI,
+as described in {{WebTransport, Section 3}}.
 
-To summarize:
-The client issues a HTTP CONNECT request to a URL.
-The server returns an "200 OK" response to establish the WebTransport session, or an error status code otherwise.
+## Raw QUIC
 
-A WebTransport session exposes the basic QUIC service abstractions.
-Specifically, either endpoint may create independent streams which are reliably delivered in order until canceled.
+A Warp server that is accessible via raw QUIC can be identified by a URI with a "moq" scheme.
+The "moq" URI scheme is defined as follows, using definitions from {{!RFC3986}}:
 
-WebTransport can currently operate via HTTP/3 and HTTP/2, using QUIC or TCP under the hood respectively.
-As mentioned in the motivation ({{motivation}}) section, TCP introduces head-of-line blocking and will result in a worse experience.
-It is RECOMMENDED to use WebTransport over HTTP/3.
+~~~~~~~~~~~~~~~
+moq-URI = "moq" "://" authority path-abempty [ "?" query ]
+~~~~~~~~~~~~~~~
 
-### CONNECT
-The server uses the HTTP CONNECT request for identification and authorization of a track bundle.
-The specific mechanism is left up to the application.
-For example, an identifier and authentication token could be included in the path.
+The `authority` portion MUST NOT contain a non-empty `userinfo` portion.
+The `moq` URI scheme supports the `/.well-known/` path prefix defined in {{!RFC8615}}.
 
-The server MAY return an error status code for any reason, for example a 403 when the client is forbidden.
-Otherwise the server MUST respond with a "200 OK" to establish the WebTransport session.
+The client can establish a connection to a MoQ server identified by a given URI
+by setting up a QUIC connection to the host and port identified by the `authority` section of the URI.
+The `path-abempty` and `query` portions of the URI are communicated to the server using
+the PATH parameter ({{path}}).
+The ALPN value {{!RFC7301}} used by the protocol is `moq-00`.
 
-## Native QUIC
-MoQ Transport can run directly over QUIC. In that case, the following apply:
+# Stream Mapping  {#stream-mapping}
 
-* Connection setup corresponds to the establishment of a QUIC
-  connection, in which the ALPN value indicates use of MoQ.  For
-  versions implementing this draft, the ALPN value is set to "moq-
-  n00".
-
-* Bilateral and unilateral streams are mapped directly to equivalent QUIC streams.
-
-
-Once the connection setup is successful, the rest of the MoQ Transport protocol's usage of QUIC is common across the WebTransport and Native QUIC transports.
-
-
-# QUIC
-
-## Connection 
-As defined in {{transport-usages}}, either WebTransport or Native QUIC can be used to setup underlying QUIC primitives for carrying out the protocol defined in this specification. 
-
-## Streams
 Warp endpoints communicate over QUIC streams. Every stream is a sequence of messages, framed as described in {{messages}}.
 
 The first stream opened is a client-initiated bidirectional stream where the peers exchange SETUP messages ({{message-setup}}). The subsequent streams MAY be either unidirectional and bidirectional. For exchanging media, an application would typically send a unidirectional stream containing a single OBJECT message ({{message-object}}).
@@ -473,7 +461,9 @@ Senders SHOULD use a congestion control algorithm that is designed for applicati
 Senders MAY periodically pad the connection with QUIC PING frames to fill the congestion window.
 
 ## Termination
-The WebTransport session can be terminated at any point with CLOSE\_WEBTRANSPORT\_SESSION capsule, consisting of an integer code and string message.
+The transport session can be terminated at any point.
+When raw QUIC is used, the session is closed using the CONNECTION\_CLOSE frame ({{QUIC, Section 19.19}}).
+When WebTransport is used, the session is closed using the CLOSE\_WEBTRANSPORT\_SESSION capsule ({{WebTransport, Section 5}}).
 
 The application MAY use any error message and SHOULD use a relevant code, as defined below:
 
@@ -681,7 +671,7 @@ The server:
 
 The client:
 
-* MUST establish a new WebTransport session to the provided URL upon receipt of a `GOAWAY` message.
+* MUST establish a new transport session to the provided URL upon receipt of a `GOAWAY` message.
 * SHOULD establish the connection in parallel which MUST use different QUIC connection.
 * SHOULD remain connected for two servers for a short period, processing objects from both in parallel.
 
@@ -711,6 +701,15 @@ The ROLE parameter (key 0x00) allows the client to specify what roles it expects
 
 The client MUST send a ROLE parameter with one of the three values specified above. The server MUST close the connection if the ROLE parameter is missing, is not one of the three above-specified values, or it is different from what the server expects based on the application in question.
 
+## PATH parameter {#path}
+
+The PATH parameter (key 0x01) allows the client to specify the path of the MoQ URI when using raw QUIC ({{raw-quic}}).
+It MUST NOT be used by the server, or when WebTransport is used.
+If the peer receives a PATH parameter from the server, or when WebTransport is used, it MUST close the connection.
+
+When connecting to a server using a URI with the "moq" scheme,
+the client MUST set the PATH parameter to the `path-abempty` portion of the URI;
+if `query` is present, the client MUST concatenate `?`, followed by the `query` portion of the URI to the parameter.
 
 # Containers
 The container format describes how the underlying codec bitstream is encoded.
@@ -763,6 +762,8 @@ TODO: fill out currently missing registries:
 * Track format numbers
 * Message types
 * Object headers
+
+TODO: register the URI scheme and the ALPN
 
 # Appendix A. Video Encoding {#appendix.encoding}
 In order to transport media, we first need to know how media is encoded.
