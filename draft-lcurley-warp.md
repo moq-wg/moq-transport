@@ -482,17 +482,6 @@ The endpoint successfully drained the session after a GOAWAY was initiated ({{me
 The Relays play an important role for enabling low latency media delivery within the MoQ architecture. This specification allows for a delivery protocol based on a publish/subscribe metaphor where some endpoints, called publishers, publish media objects and
 some endpoints, called subscribers, consume those media objects. Relays leverage this publish/subscribe metaphor to form an overlay delivery network similar/in-parallel to what CDN provides today.
 
-Relays provide several benefits including
-
-* Scalability – Relays provide the fan-out necessary to scale up streams to production levels (millions) of concurrent subscribers.
-
-* Reliability - Relays can improve the overall reliability of the delivery system by providing alternate paths for routing content.
-
-* Performance – Relays are usually positioned as close to the edge  of a network as possible and are well-connected to each other and to the Origin via high capacity managed networks. This topography minimizes the RTT over the unmanaged last mile to the end-user, improving the latency and throughput  compared to the client connecting directly to the origin.'
-
-* Security – Relays act to shield the origin from DDOS and other malicious attacks.
-
-
 Relays serves as policy enforcement points by validating subscribe
 and publish requests to the tracks.
 
