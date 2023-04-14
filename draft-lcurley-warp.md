@@ -164,7 +164,7 @@ Track:
 
 Transport session:
 
-: Either a raw QUIC connection, or a WebTransport session used to transmit the data.
+: Either a native QUIC connection, or a WebTransport session used to transmit the data.
 
 Variant:
 
@@ -371,7 +371,7 @@ Objects are NOT REQUIRED to be aligned and the decoder MUST be prepared to skip 
 
 # Supported Transport Protocols  {#transport-protocols}
 
-This document defines a protocol that can be used interchangeably both over a raw QUIC connection [QUIC], and over WebTransport [WebTransport].
+This document defines a protocol that can be used interchangeably both over a QUIC connection directly [QUIC], and over WebTransport [WebTransport].
 Both provide streams and datagrams with similar semantics (see {{?I-D.ietf-webtrans-overview, Section 4}});
 thus, the main difference lies in how the servers are identified and how the connection is established.
 
@@ -381,9 +381,9 @@ A Warp server that is accessible via WebTransport can be identified using an HTT
 A Warp transport session can be established by sending an extended CONNECT request to the host and the path indicated by the URI,
 as described in {{WebTransport, Section 3}}.
 
-## Raw QUIC
+## Native QUIC
 
-A Warp server that is accessible via raw QUIC can be identified by a URI with a "moq" scheme.
+A Warp server that is accessible via native QUIC can be identified by a URI with a "moq" scheme.
 The "moq" URI scheme is defined as follows, using definitions from {{!RFC3986}}:
 
 ~~~~~~~~~~~~~~~
@@ -462,7 +462,7 @@ Senders MAY periodically pad the connection with QUIC PING frames to fill the co
 
 ## Termination
 The transport session can be terminated at any point.
-When raw QUIC is used, the session is closed using the CONNECTION\_CLOSE frame ({{QUIC, Section 19.19}}).
+When native QUIC is used, the session is closed using the CONNECTION\_CLOSE frame ({{QUIC, Section 19.19}}).
 When WebTransport is used, the session is closed using the CLOSE\_WEBTRANSPORT\_SESSION capsule ({{WebTransport, Section 5}}).
 
 The application MAY use any error message and SHOULD use a relevant code, as defined below:
@@ -703,7 +703,7 @@ The client MUST send a ROLE parameter with one of the three values specified abo
 
 ## PATH parameter {#path}
 
-The PATH parameter (key 0x01) allows the client to specify the path of the MoQ URI when using raw QUIC ({{raw-quic}}).
+The PATH parameter (key 0x01) allows the client to specify the path of the MoQ URI when using native QUIC ({{native-quic}}).
 It MUST NOT be used by the server, or when WebTransport is used.
 If the peer receives a PATH parameter from the server, or when WebTransport is used, it MUST close the connection.
 
