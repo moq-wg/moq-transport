@@ -46,7 +46,6 @@ normative:
   QUIC-RECOVERY: RFC9002
   WebTransport: I-D.ietf-webtrans-http3
   URI: RFC3986
-  MOQ-ARCH: I-D.nandakumar-moq-arch-00
 
   ISOBMFF:
     title: "Information technology — Coding of audio-visual objects — Part 12: ISO Base Media File Format"
@@ -58,7 +57,6 @@ informative:
     date: 2020-03
   NewReno: RFC6582
   BBR: I-D.cardwell-iccrg-bbr-congestion-control-02
-
 
 --- abstract
 
@@ -74,7 +72,10 @@ Warp is a live media transport protocol that utilizes the QUIC network protocol 
 
 * {{motivation}} covers the background and rationale behind Warp.
 * {{objects}} covers how media is fragmented into objects.
+* {{transport-usages}} covers aspects of setting up a MoQ transport connection.
 * {{quic}} covers how QUIC is used to transfer media.
+* {{priority-congestion}} covers protocol considerations on prioritization schemes and congestion response overall.
+* {{relays-moq}} covers behavior at the relay entities.
 * {{messages}} covers how messages are encoded on the wire.
 * {{containers}} covers how media tracks are packaged.
 
@@ -165,6 +166,10 @@ Variant:
 
 : A track with the same content but different encoding as another track. For example, a different bitrate, codec, language, etc.
 
+Track Name:
+
+: See {{track-name}}.
+
 Provider: 
 
 : Entity capable of hosting media application
@@ -223,52 +228,36 @@ DISCUSS: We need to determine what are the exact requirements we need to impose 
 
 ## Track {#model-track}
 
-Tracks form the central concept within the MoQ Transport protocol for
-delivering media and is made up of sequence of objects ({{model-object}}) organized in the form of groups ({{model-group}}).
+A Track is the central concept within the MoQ Transport protocol for delivering media and is made up of sequence of objects ({{model-object}}) organized in the form of groups ({{model-group}}).
 
-A track is a transform of a uncompresss media using a specific encoding process, a set of parameters for that encoding, and possibly an encryption process. The MoQ Transport protocol is designed 
-to transport tracks.
+A track is a transform of a uncompresss media or metadata using a specific encoding process, a set of parameters for that encoding, and possibly an encryption process. The MoQ Transport protocol is designed to transport tracks.
 
-Tracks have the following properties:
+### Identification {#track-name}
 
-* A Track MUST be owned by a single authorized MoQ Entity, such as an
-  Emitter (section 2.1.1 {{MOQ-ARCH}}) or a Catalog Maker (section 2.1.5 {{MOQ-ARCH}}), under a single Provider.
+Tracks are identified by a globally unique identifier, called "Track URI" with the scheme shown below:
 
-* Tracks MUST have a single encoding configuration.
+~~~~~~~~~~~~~~~
+Track URI = "moq" "://" Track Namespace  "/"  Track Name
+~~~~~~~~~~~~~~~
 
-* Tracks MUST have a single security configuration, when exists.
-
-* Tracks MAY contain *an init object*, a format-specific self-contained description of the track that is required to decode any object contained within the track, but can also be used as the metadata for track selection.
-
-
-### Identification
-
-Tracks are identified by a globally unique identifier, called "Track Name" which is made of 2 components called "Track Prefix" and "Track Suffix" respectively.
-
-"Track Prefix" MUST identify the owning provider by a standardized identifier, such as domain name or equivalent, then followed by the application context specific "Track Suffix", encoded as an opaque string.
+"Track Namespace" MUST identify a globaly unique identifier, such as domain name or IANA PEN or something equivalent. 
+This is followed by the application context specific "Track Name", encoded as an opaque string. 
 
 ~~~
 Example: 1
-Track Prefix = https://www.example.org/livestream/stream123
-Track Suffix = audio
-Track Name = https://www.example.org/livestream/audio
-
+Track Namespace = acme.meetings.com
+Track Name = meeting123/audio
+Track URI = moq://meetings.com/meeting123/audio
 
 Example: 2
-Track Prefix = https://www.example.org
-Track Suffix = meetings/meeting123/video
-Track Name = https://www.example.org/meetings/meeting123/video
-
+Track Namespace = livestream.tv
+Track Name = uaCafDkl123/audio
+Track URI = moq://livestream.tv/uaCafDkl123/audio
 ~~~
 
-In both the examples above, the "Track Prefix" identifies the provider domain as "example.org" and "Track Suffix" captures individual tracks as defined by the applications under that domain.
+### Connection URL
 
-
-## Track Bundle
-A track bundle is a collection of tracks intended to be delivered together.
-Objects within a track bundle may be prioritized relative to each other via the delivery order property.
-This allows objects to be prioritized within a track (ex. newer > older) and between tracks (ex. audio > video).
-The track bundle contains a catalog indicating the available tracks.
+Each track MAY have an associated hop-by-hop "Connection URL" that specifies the network host to setup the transport connection. The syntax of the `Connection URL` and connection setup procedures are specific to the underlying transport protocol usage {{transport-usages}}.
 
 ## Session
 A WebTransport session is established for each track bundle.
@@ -354,6 +343,10 @@ Any identification, reliability, ordering, prioritization, caching, etc is writt
 This ensures that relays can easily route/fanout media to the final destination.
 This also ensures that congestion response is consistent at every hop based on the preferences of the media producer.
 
+## Bandwidth Management and Congestion Response
+TODO: Add motivation text regarding bw management techniques in
+response to congestion. Also refer to {{priority-congestion}} for
+further details.
 
 # Objects
 Warp works by splitting media into objects that can be transferred over QUIC streams.
@@ -398,6 +391,10 @@ A receiver MUST NOT assume that objects will be received in delivery order for a
 * Packet loss or flow control MAY delay the delivery of individual streams.
 * The sender might not support QUIC stream prioritization.
 
+TODO: Refer to Congestion Response and Priorirization Section for further details on various proposals.
+
+## Groups
+TODO: Add text describing interation of group and intra object priorities within a group and their relation to congestion response. Add how it refers to {{priority-congestion}}
 
 ## Decoder
 The decoder will receive multiple objects in parallel and out of order.
@@ -410,9 +407,14 @@ Objects MUST synchronize frames within and between tracks using presentation tim
 Objects are NOT REQUIRED to be aligned and the decoder MUST be prepared to skip over any gaps.
 
 
-# QUIC
+# Transport Usages {#transport-usages}
 
-## Establishment
+Following subsections define usages of MoQ Tranport protocol over WebTransport and over Native QUIC. 
+
+## WebTransport
+MoQ Transport can benefit from an infrastructure designed for HTTP3 by running over WebTransport.
+
+### Establishment
 A connection is established using WebTransport {{WebTransport}}.
 
 To summarize:
@@ -434,6 +436,25 @@ For example, an identifier and authentication token could be included in the pat
 The server MAY return an error status code for any reason, for example a 403 when the client is forbidden.
 Otherwise the server MUST respond with a "200 OK" to establish the WebTransport session.
 
+## Native QUIC
+MoQ Transport can run directly over QUIC. In that case, the following apply:
+
+* Connection setup corresponds to the establishment of a QUIC
+  connection, in which the ALPN value indicates use of MoQ.  For
+  versions implementing this draft, the ALPN value is set to "moq-
+  n00".
+
+* Bilateral and unilateral streams are mapped directly to equivalent QUIC streams.
+
+
+Once the connection setup is successful, the rest of the MoQ Transport protocol's usage of QUIC is common across the WebTransport and Native QUIC transports.
+
+
+# QUIC
+
+## Connection 
+As defined in {{transport-usages}}, either WebTransport or Native QUIC can be used to setup underlying QUIC primitives for carrying out the protocol defined in this specification. 
+
 ## Streams
 Warp endpoints communicate over QUIC streams. Every stream is a sequence of messages, framed as described in {{messages}}.
 
@@ -445,7 +466,10 @@ Messages SHOULD be sent over the same stream if ordering is desired.
 ## Prioritization
 Warp utilizes stream prioritization to deliver the most important content during congestion.
 
+TODO: Revisit the prioritization scheme and possibly move some of this to {{priority-congestion}}.
+
 The producer may assign a numeric delivery order to each object ({{delivery-order}})
+
 This is a strict prioritization scheme, such that any available bandwidth is allocated to streams in ascending priority order.
 The sender SHOULD prioritize streams based on the delivery order.
 If two streams have the same delivery order, they SHOULD receive equal bandwidth (round-robin).
@@ -494,6 +518,8 @@ Most TCP congestion control algorithms will only increase the congestion window 
 Senders SHOULD use a congestion control algorithm that is designed for application-limited flows (ex. GCC).
 Senders MAY periodically pad the connection with QUIC PING frames to fill the congestion window.
 
+TODO: update this section to refer to {{priority-congestion}}
+
 ## Termination
 The WebTransport session can be terminated at any point with CLOSE\_WEBTRANSPORT\_SESSION capsule, consisting of an integer code and string message.
 
@@ -523,6 +549,42 @@ The endpoint breached an agreement, which MAY have been pre-negotiated by the ap
 * GOAWAY:
 The endpoint successfully drained the session after a GOAWAY was initiated ({{message-goaway}}).
 
+# Prioritization and Congestion Response Considerations {#priority-congestion}
+
+TODO: This is a placeholder section to capture details on
+how the Moq Transport protocol deals with prioritization and congestion overall. Having its own section helps reduce merge conflicts and allows us to reference it from other parts.
+
+This section is expected to cover detailson:
+
+- Prioritization Schemes
+- Congestion Algorithms and impacts 
+- Mapping considerations for one object per stream vs multiple objects per stream
+- considerations for merging multiple streams across domans onto single connection and interactions with specific prioritization schemes
+
+# Relays {#relays-moq}
+
+The Relays play an important role for enabling low latency media delivery within the MoQ architecture. This specification allows for a delivery protocol based on a publish/subscribe metaphor where some endpoints, called publishers, publish media objects and
+some endpoints, called subscribers, consume those media objects. Relays leverage this publish/subscribe metaphor to form an overlay delivery network similar/in-parallel to what CDN provides today.
+
+Relays serves as policy enforcement points by validating subscribe
+and publish requests to the tracks.
+
+## Subscriber Interactions
+TODO: This section shall cover relay handling of subscriptions.
+
+## Publisher Interactions
+TODO: This section shall cover relay handling of publishes.
+
+## Relay Discovery and Failover
+TODO: This section shall cover aspects of relay failover and protocol interactions
+
+## Restoring connections through relays
+TODO: This section shall cover reconnect considerations for clients when moving between the Relays
+
+## Congestion Response at Relays
+TODO: Refer to {{priority-congestion}}. Add details describe 
+relays behavior when merging or splitting streams and interactions
+with congestion response.
 
 # Messages
 Both unidirectional and bidirectional Warp streams are sequences of length-deliminated messages.
@@ -609,7 +671,7 @@ OBJECT Message {
 {: #warp-object-format title="Warp OBJECT Message"}
 
 * Track ID:
-The track identifier as declared in CATALOG ({{message-catalog}}).
+The track identifier obtained as part of subscription and/or publish control message exchanges.
 
 * Group Sequence :
 An integer always starts at 0 and increases sequentially at the original media publisher.
@@ -672,58 +734,46 @@ A future draft will add the ability to add/remove/update tracks.
 
 ## SUBSCRIBE REQUEST {#message-subscribe-req}
 
-Entities that intend to receive media will do so via subscriptions to
-one or more tracks. The information for the tracks can be obtained via catalog or from incoming SUBSCRIBE messages.
+Entities that intend to receive media will do so via subscriptions to one or more tracks. The information for the tracks can be obtained via catalog or from incoming SUBSCRIBE REQUEST messages.
 
-The format of SUBSCRIBE is as follows:
+The format of SUBSCRIBE REQUEST is as follows:
 
 ~~~
-SUBSCRIBE Message {
+SUBSCRIBE REQUEST Message {
   TRACK INFO Track
 }
 ~~~
-{: #warp-subscribe-format title="Warp SUBSCRIBE Message"}
+{: #warp-subscribe-format title="Warp SUBSCRIBE REQUEST Message"}
 
 * Track:
 Identifies the track information as defined in `TRACK INFO`.
 
-The `TRACK INFO` structure is as defined below
+The `TRACK INFO` structure is defined as below:
 
 ~~~
+TrackInfo Parameter {
+  TrackInfo Parameter ID (i),
+  TrackInfo Parameter Length (i),
+  TrackInfo Parameter Value (..),
+}
+
 TRACK INFO {
-  Track Name Length(i),
-  Track Name(...)...,
+  Track URI Length(i),
+  Track URI(...),
   Track ID (i),
-  Track Authorization Info Length(i),
-  Track Authorization Info (...)...
-  [Group Sequence (i)],
-  [Object Sequence (i)],
+  TrackInfo Parameters (..) ...
 }
 ~~~
 {: #warp-track-info-format title="Warp TRACK INFO Content"}
 
 
-* Track Name:
+* Track URI:
 Identifies the fully qualified track name as defined in ({{model-track}}).
 
-* Track ID:
-A proposal serving as short hop-by-hop identifier to be used in the OBJECT ({{message-object}}) message header for the requested tack. Given that the media corresponding to a track can potentially be delivered over multiple data streams, the `Track ID` provides the necessary mapping between the "Track Name" in the control message and the corresponding data streams. It also serves as a compression identifier for containing the size of object headers instead of carrying complete "Track Name" information in every object message. A client MUST choose an `Track ID` value that is unique within a QUIC Connection.
+* Track ID: 
+A short hop-by-hop identifier to be used in the OBJECT ({{message-object}}) message header for the requested track. Given that the media corresponding to a track can potentially be delivered over multiple data streams, the Track ID provides the necessary mapping between the "Track Name" in the control message and the corresponding data streams. It also serves as a compression identifier for containing the size of OBJECT message header instead of carrying complete "Track URI" information in every OBJECT message. A client MUST choose an Track ID value that is unique within a QUIC Connection.
 
-* Group Sequence:
-Identifies the group within the track to start delivering 
-the objects. This field is optional and when omitted, the
-publisher MUST deliver the objects from the most recent 
-group.
-
-* Object ID:
-Identifies the object within the track to start the media 
-delivery. The group MUST either match the `Group Sequence` if provided
-or MUST be the most recent group. This field is optional and 
-when omitted, the publisher MUST deliver starting from the 
-beginning of the selected group, i.e., starting at Object Sequence of 0.
-
-* Track Authorization Info: 
-Carries track authorization, typically in the form of a token, authorizing client’s subscription to the track. The specifics of obtaining the authorization information is out of scope for this specification.
+TrackInfo Parameters are defined in {{track-params}}.
 
 Subscriptions stay active until one of the following happens:
 
@@ -731,7 +781,8 @@ Subscriptions stay active until one of the following happens:
 - optionally, a server policy dicates subscription expiration.
 - the underlying transport is disconnected.
 
-A client MUST renew its subscriptions by sending a new `SUBSCRIBE` to keep them active. Such subscriptions MUST refresh the existing subscriptions and thus only the most recent SUBSCRIBE message is considered active. A renewal period of 5 seconds is RECOMMENDED.
+On successful subscription, the publisher MUST deliver objects
+from the group sequence and object sequence as defined in {{track-params}}.
 
 ## SUBSCRIBE REPLY {#message-subscribe-reply}
 
@@ -754,17 +805,16 @@ The `TRACK RESPONSE` structure is as defined below
 enum Track Result
 {
   Ok(0),
-  Expired(1),
-  Fail(2)
+  Fail(1)
 }
 
 TRACK RESPONSE {
   Track Name Length(i),
   Track Name(...)...,
   Track Result Response,
+  [Track ID(i)],
   [ Reason Phrase Length (i) ],
   [ Reason Phrase (...) ],
-  [ Track ID(i) ]
 }
 ~~~
 {: #warp-track-response-format title="Warp TRACK RESPONSE Content"}
@@ -775,16 +825,17 @@ Identifies the track in the request message for which this
 response is provided.
 
 * Response:
-Provides result of the transaction, where a value of `Ok` indicates successful subscription. For failed or expired responses, the "Reason Phrase" shall be populated with appropriate reason code.
+Provides result of the transaction, where a value of `Ok` indicates successful subscription. For failed response, the "Reason Phrase" 
+is populated with appropriate reason and Reason Phrase Length carrying its length.
 
 * Track ID:
-Identifies the hop-by-hop identifier mapping the given Track Name to be populated in the Object messages ({{message-object}}). This field is optional and is provided in cases where the end point is unable to use the `Track ID` proposed by the peer in the request message. If populated, the `Track ID` field in the Object's header messages MUST be populated with the value in this field otherwise the `Track ID` value MUST correspond to one in the request message for a given track.
+Identifies the hop-by-hop identifier mapping the given Track Name to be populated in the OBJECT messages ({{message-object}}) and MUST only be present if the `Response` is `Ok`. This field is populated with either the `Track ID` value provided in the request or the one chosen by client processing the request. The Track ID field in the OBJECT's header messages MUST be populated with the value in this field. 
 
 ## PUBLISH REQUEST {#message-publish-req}
 
-The `PUBLISH` control message sets up authorization for tracks that the publisher intends to publish media with.
+The `PUBLISH REQUEST` control message sets up authorization for tracks that the publisher intends to publish media with.
 
-The format of PUBLISH is defined as below
+The format of PUBLISH is defined as below:
 
 ~~~
 PUBLISH REQUEST Message {
@@ -794,7 +845,8 @@ PUBLISH REQUEST Message {
 {: #warp-publish-format title="Warp PUBLISH Message"}
 
 * Track:
-Identifies track information in `TRACK INFO`. The same rules as defined in {{message-subscribe-req}} will apply here as well.
+Identifies track information in `TRACK INFO`. The same rules as defined in {{message-subscribe-req}} will apply here as well. 
+
 
 ## PUBLISH REPLY {#message-publish-reply}
 
@@ -856,6 +908,21 @@ The ROLE parameter (key 0x00) allows the client to specify what roles it expects
 : Both the client and the server are expected to send media.
 
 The client MUST send a ROLE parameter with one of the three values specified above. The server MUST close the connection if the ROLE parameter is missing, is not one of the three above-specified values, or it is different from what the server expects based on the application in question.
+
+# TrackInfo Parameters {#track-params}
+
+The TrackInfo parameters are described as below. Every parameter MUST appear at most once. The peers SHOULD verify that and close the connection if a parameter appears more than once.
+The Parameter Value Length field indicates the length of the Parameter Value.
+
+### Group Sequence
+
+The Group Sequence (key 0x00) identifies the group within the track to start delivering the objects. The publisher MUST deliver the objects from the most recent group, when this parameter is omitted.
+
+### Object Sequence 
+The Object Sequence (key 0x01) identifies the object within the track to start the media delivery. The `Group Sequence` parameter MUST be set to identify the group under which to the deliver the objects. The publisher MUST deliver starting from the beginning of the selected group when this parameter is omitted.
+
+### Track Authorization Info
+Track Authorization Info (key 0x02) identifies the mandatory parameter carrying track's authorization, typically in the form of a token, authorizing the client’s subscription to the track. The specifics of obtaining the authorization information is out of scope for this specification.
 
 # Containers
 The container format describes how the underlying codec bitstream is encoded.
