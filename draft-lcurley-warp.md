@@ -57,8 +57,6 @@ informative:
     date: 2020-03
   NewReno: RFC6582
   BBR: I-D.cardwell-iccrg-bbr-congestion-control-02
-  MOQ-ARCH: I-D.nandakumar-moq-arch-00
-
 
 --- abstract
 
@@ -734,49 +732,44 @@ A future draft will add the ability to add/remove/update tracks.
 
 Entities that intend to receive media will do so via subscriptions to one or more tracks. The information for the tracks can be obtained via catalog or from incoming SUBSCRIBE REQUEST messages.
 
-The format of SUBSCRIBE is as follows:
+The format of SUBSCRIBE REQUEST is as follows:
 
 ~~~
 SUBSCRIBE REQUEST Message {
   TRACK INFO Track
 }
 ~~~
-{: #warp-subscribe-format title="Warp SUBSCRIBE Message"}
+{: #warp-subscribe-format title="Warp SUBSCRIBE REQUEST Message"}
 
 * Track:
 Identifies the track information as defined in `TRACK INFO`.
 
-The `TRACK INFO` structure is as defined below
+The `TRACK INFO` structure is defined as below:
 
 ~~~
+TrackInfo Parameter {
+  TrackInfo Parameter ID (i),
+  TrackInfo Parameter Length (i),
+  TrackInfo Parameter Value (..),
+}
+
 TRACK INFO {
-  Track Name Length(i),
-  Track Name(...),
+  Track URI Length(i),
+  Track URI(...),
   Track ID (i),
-  Track Authorization Info Length(i),
-  Track Authorization Info (...),
-  [Group Sequence (i)],
-  [Object Sequence (i)]
+  TrackInfo Parameters (..) ...
 }
 ~~~
 {: #warp-track-info-format title="Warp TRACK INFO Content"}
 
 
-* Track Name:
+* Track URI:
 Identifies the fully qualified track name as defined in ({{model-track}}).
 
 * Track ID: 
-A proposal serving as short hop-by-hop identifier to be used in the OBJECT ({{message-object}}) message header for the requested tack. Given that the media corresponding to a track can potentially be delivered over multiple data streams, the Track ID provides the necessary mapping between the "Track Name" in the control message and the corresponding data streams. It also serves as a compression identifier for containing the size of object headers instead of carrying complete "Track Name" information in every object message. A client MUST choose an Track ID value that is unique within a QUIC Connection.
+A short hop-by-hop identifier to be used in the OBJECT ({{message-object}}) message header for the requested track. Given that the media corresponding to a track can potentially be delivered over multiple data streams, the Track ID provides the necessary mapping between the "Track Name" in the control message and the corresponding data streams. It also serves as a compression identifier for containing the size of OBJECT message header instead of carrying complete "Track URI" information in every OBJECT message. A client MUST choose an Track ID value that is unique within a QUIC Connection.
 
-* Group Sequence: 
-Identifies the group within the track to start delivering the objects. This field is optional and when omitted, the publisher MUST deliver the objects from the most recent group.
-
-* Object Sequence: 
-Identifies the object within the track to start the media delivery. The `Group Sequence` field MUST be set to identify the group under which to
-the deliver the objects. This field is optional and when omitted, the publisher MUST deliver starting from the beginning of the selected group.
-
-* Track Authorization Info: 
-Carries track authorization, typically in the form of a token, authorizing the client’s subscription to the track. The specifics of obtaining the authorization information is out of scope for this specification.
+TrackInfo Parameters are defined in {{track-params}}.
 
 Subscriptions stay active until one of the following happens:
 
@@ -785,7 +778,7 @@ Subscriptions stay active until one of the following happens:
 - the underlying transport is disconnected.
 
 On successful subscription, the publisher MUST deliver objects
-from the beginnig of the most recent group in the track, i.e, starting at Object Sequence of 0.
+from the group sequence and object sequence as defined in {{track-params}}.
 
 ## SUBSCRIBE REPLY {#message-subscribe-reply}
 
@@ -829,11 +822,10 @@ response is provided.
 
 * Response:
 Provides result of the transaction, where a value of `Ok` indicates successful subscription. For failed response, the "Reason Phrase" 
-is populated with appropriate reason.
-
+is populated with appropriate reason and Reason Phrase Length carrying its length.
 
 * Track ID:
-Identifies the hop-by-hop identifier mapping the given Track Name to be populated in the Object messages ({{message-object}}) and MUST only be present if the `Response` is `Ok`. This field is populated with either the `Track ID` value provided in the request or the one chosen by client processing the request. The Track ID field in the Object's header messages MUST be populated with the value in this field. 
+Identifies the hop-by-hop identifier mapping the given Track Name to be populated in the OBJECT messages ({{message-object}}) and MUST only be present if the `Response` is `Ok`. This field is populated with either the `Track ID` value provided in the request or the one chosen by client processing the request. The Track ID field in the OBJECT's header messages MUST be populated with the value in this field. 
 
 ## GOAWAY {#message-goaway}
 The `GOAWAY` message is sent by the server to force the client to reconnect.
@@ -879,6 +871,20 @@ The ROLE parameter (key 0x00) allows the client to specify what roles it expects
 
 The client MUST send a ROLE parameter with one of the three values specified above. The server MUST close the connection if the ROLE parameter is missing, is not one of the three above-specified values, or it is different from what the server expects based on the application in question.
 
+# TrackInfo Parameters {#track-params}
+
+The TrackInfo parameters are described as below. Every parameter MUST appear at most once. The peers SHOULD verify that and close the connection if a parameter appears more than once.
+The Parameter Value Length field indicates the length of the Parameter Value.
+
+### Group Sequence
+
+The Group Sequence (key 0x00) identifies the group within the track to start delivering the objects. The publisher MUST deliver the objects from the most recent group, when this parameter is omitted.
+
+### Object Sequence 
+The Object Sequence (key 0x01) identifies the object within the track to start the media delivery. The `Group Sequence` parameter MUST be set to identify the group under which to the deliver the objects. The publisher MUST deliver starting from the beginning of the selected group when this parameter is omitted.
+
+### Track Authorization Info
+Track Authorization Info (key 0x02) identifies the mandatory parameter carrying track's authorization, typically in the form of a token, authorizing the client’s subscription to the track. The specifics of obtaining the authorization information is out of scope for this specification.
 
 # Containers
 The container format describes how the underlying codec bitstream is encoded.
