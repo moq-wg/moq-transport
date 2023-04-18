@@ -234,30 +234,32 @@ A Track is the central concept within the MoQ Transport protocol for delivering 
 
 A track is a transform of a uncompresss media or metadata using a specific encoding process, a set of parameters for that encoding, and possibly an encryption process. The MoQ Transport protocol is designed to transport tracks.
 
-A Track is produced by an authorized MoQ Entity, such as an
-Emitter (section 2.1.1 {{MOQ-ARCH}}) or a Catalog Maker (section 2.1.5 {{MOQ-ARCH}}), under a single Provider.
-
-
 ### Identification {#track-name}
 
-Tracks are identified by a globally unique identifier, called "Track Name" which is made of 2 components called "Track Prefix" and "Track Suffix" respectively.
+Tracks are identified by a globally unique identifier, called "Track URI" with the scheme shown below:
 
-"Track Prefix" MUST identify the owning provider by a standardized identifier, such as domain name or equivalent, then followed by the application context specific "Track Suffix", encoded as an opaque string. The catalog for a given MoQ Application MUST define the specifics of Track Name for each track advertised.
+~~~~~~~~~~~~~~~
+Track URI = "moq" "://" Track Namespace  "/"  Track Name
+~~~~~~~~~~~~~~~
+
+"Track Namespace" MUST identify a globaly unique identifier, such as domain name or IANA PEN or something equivalent. 
+This is followed by the application context specific "Track Name", encoded as an opaque string. 
 
 ~~~
 Example: 1
-Track Prefix = https://www.example.org/livestream/stream123
-Track Suffix = audio
-Track Name = https://www.example.org/livestream/stream123/audio
+Track Namespace = acme.meetings.com
+Track Name = meeting123/audio
+Track URI = moq://meetings.com/meeting123/audio
+
+Example: 2
+Track Namespace = livestream.tv
+Track Name = uaCafDkl123/audio
+Track URI = moq://livestream.tv/uaCafDkl123/audio
 ~~~
 
-In the example above, the Track Name identifies an URL with the "Track Prefix" identifies the provider domain as "example.org" and "Track Suffix" captures individual tracks as defined by the applications under that domain.
+### Connection URL
 
-## Track Bundle
-A track bundle is a collection of tracks intended to be delivered together.
-Objects within a track bundle may be prioritized relative to each other via the delivery order property.
-This allows objects to be prioritized within a track (ex. newer > older) and between tracks (ex. audio > video).
-The track bundle contains a catalog indicating the available tracks.
+Each track MAY have an associated hop-by-hop "Connection URL" that specifies the network host to setup the transport connection. The syntax of the `Connection URL` and connection setup procedures are specific to the underlying transport protocol usage {{transport-usages}}.
 
 ## Session
 A WebTransport session is established for each track bundle.
