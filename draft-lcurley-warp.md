@@ -809,8 +809,8 @@ enum Track Result
 }
 
 TRACK RESPONSE {
-  Track Name Length(i),
-  Track Name(...)...,
+  Track URI Length(i),
+  Track URI(...),
   Track Result Response,
   [Track ID(i)],
   [ Reason Phrase Length (i) ],
@@ -820,7 +820,7 @@ TRACK RESPONSE {
 {: #warp-track-response-format title="Warp TRACK RESPONSE Content"}
 
 
-* Track Name:
+* Track URI:
 Identifies the track in the request message for which this
 response is provided.
 
