@@ -845,7 +845,14 @@ PUBLISH REQUEST Message {
 {: #warp-publish-format title="Warp PUBLISH Message"}
 
 * Track:
-Identifies track information in `TRACK INFO`. The same rules as defined in {{message-subscribe-req}} will apply here as well. 
+Identifies track information in `TRACK INFO`. 
+
+### TRACK INFO
+
+The rules as defined in {{message-subscribe-req}} applies here as well.
+More specifically, `Track URI` MUST identify the fully qualified track identifier {{track-name}} for publishing media. `Track ID` MUST represent a publisher 
+chosen proposal for a short hop-by-hop identifer to be used in OBJECT message 
+header for the advertised track. 
 
 
 ## PUBLISH REPLY {#message-publish-reply}
@@ -863,7 +870,14 @@ PUBLISH REPLY Message {
 
 
 * Track:
-Captures the result of publish as by `TRACK RESPONSE` and the same rules apply as defined in {{message-subscribe-reply}}.
+Captures the result of publish as by `TRACK RESPONSE` 
+
+### TRACK RESPONSE
+The rules as defined in {{message-subscribe-reply}} applies here as well.
+More specifically, the `TRACK ID` MUST reflect the one chosen by the publisher
+or the one chosen by the peer processing the `PUBLISH REQUEST` message. 
+In certain scenarios, the peer processing the `PUBLISH REQUEST` MUST be prepared 
+to handle OBJECT messages with the `Track ID` matching the one in the `PUBLISH REQUEST`, either by buffering or dropping them as defined by the implementation.
 
 ## GOAWAY {#message-goaway}
 The `GOAWAY` message is sent by the server to force the client to reconnect.
