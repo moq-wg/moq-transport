@@ -612,9 +612,9 @@ A length of 0 indicates the message is unbounded and continues until the end of 
 |------|----------------------------------------------|
 | 0x3  | SUBSCRIBE REQUEST ({{message-subscribe-req}})|
 |------|----------------------------------------------|
-| 0x4  | SUBSCRIBE OK ({{message-subscribe-ok}})      |
+| 0x5  | SUBSCRIBE OK ({{message-subscribe-ok}})      |
 |------|----------------------------------------------|
-| 0x4  | SUBSCRIBE ERROR ({{message-subscribe-error}})|
+| 0x6  | SUBSCRIBE ERROR ({{message-subscribe-error}})|
 |------|----------------------------------------------|
 | 0x6  | PUBLISH REQUEST ({{message-publish-req}})    |
 |------|----------------------------------------------|
