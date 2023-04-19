@@ -616,9 +616,11 @@ A length of 0 indicates the message is unbounded and continues until the end of 
 |------|----------------------------------------------|
 | 0x4  | SUBSCRIBE ERROR ({{message-subscribe-error}})|
 |------|----------------------------------------------|
-| 0x5  | PUBLISH REQUEST ({{message-publish-req}})    |
+| 0x6  | PUBLISH REQUEST ({{message-publish-req}})    |
 |------|----------------------------------------------|
-| 0x6  | PUBLISH REPLY ({{message-publish-reply}})    |
+| 0x7  | PUBLISH OK ({{message-publish-ok}})          |
+|------|----------------------------------------------|
+| 0x8  | PUBLISH ERROR ({{message-publish-error}})    |
 |------|----------------------------------------------|
 | 0x10 | GOAWAY ({{message-goaway}})                  |
 |------|----------------------------------------------|
@@ -781,7 +783,7 @@ SUBSCRIBE OK
   Expires (i),
 }
 ~~~
-{: #warp-subscribe-ok format title="Warp SUBSCRIBE OK Message"}
+{: #warp-publish-ok format title="Warp SUBSCRIBE OK Message"}
 
 * Track URI:
 Identifies the track in the request message for which this
@@ -818,7 +820,6 @@ response is provided.
 * Reason Phrase:
 Provides the reason for subscription error and `Reason Phrase Length` carries its length.
 
-
 ## PUBLISH REQUEST {#message-publish-req}
 
 The `PUBLISH REQUEST` control message sets up authorization for tracks that the publisher intends to publish media with.
@@ -827,45 +828,69 @@ The format of PUBLISH is defined as below:
 
 ~~~
 PUBLISH REQUEST Message {
-  TRACK INFO Track
+  Track URI Length(i),
+  Track URI(...),
+  Track ID (i),
+  Track Authorization Info Length(i),
+  Track Authorization Info (...),
 }
 ~~~
-{: #warp-publish-format title="Warp PUBLISH Message"}
+{: #warp-publish-format title="Warp PUBLISH REQUEST Message"}
 
-* Track:
-Identifies track information in `TRACK INFO`. 
+* Track URI:
+Identifies the fully qualified track name as defined in ({{model-track}}).
 
-### TRACK INFO
+* Track ID: 
+Session specific identifier to be used in OBJECT ({{message-object}}) message headers for the advertised track. Peer processing the request message MAY choosen a different `TRACK ID` in the response (see {{message-publish-ok}}). Track ID maps the Track URI in the control message to the corresponding data streams. Track IDs are generally shorter than Track URIs and thus reduce the overhead in OBJECT messages. 
 
-The rules as defined in {{message-subscribe-req}} applies here as well.
-More specifically, `Track URI` MUST identify the fully qualified track identifier {{track-name}} for publishing media. `Track ID` MUST represent a publisher 
-chosen proposal for a short hop-by-hop identifer to be used in OBJECT message 
-header for the advertised track. 
+* Track Authorization Info: 
+Carries track authorization information. The specifics of obtaining the authorization information is out of scope for this specification.
 
+## PUBLISH OK {#message-publish-ok}
 
-## PUBLISH REPLY {#message-publish-reply}
-
-The `PUBLISH REPLY` control message provides result of request to publish via the `PUBLISH REQUEST` message.
-
-The format of PUBLISH REPLY is defined as below
+A `PUBLISH OK` control message is sent for successful publish requests. 
 
 ~~~
-PUBLISH REPLY Message {
- TRACK RESPONSE Track
+PUBLISH OK
+{
+  Track URI Length(i),
+  Track URI(...),
+  Track ID(i),
 }
 ~~~
-{: #warp-publish-reply-format title="Warp PUBLISH REPLY Message"}
+{: #warp-subscribe-ok format title="Warp PUBLISH OK Message"}
 
+* Track URI:
+Identifies the track in the request message for which this
+response is provided.
 
-* Track:
-Captures the result of publish as by `TRACK RESPONSE` 
+* Track ID:
+Maps the Track URI. This field is populated with either the `Track ID` value provided in the request or the one chosen by the peer processing the request. The Track ID field in the OBJECT's header messages MUST be populated with the value in this field. 
 
-### TRACK RESPONSE
-The rules as defined in {{message-subscribe-reply}} applies here as well.
-More specifically, the `TRACK ID` MUST reflect the one chosen by the publisher
-or the one chosen by the peer processing the `PUBLISH REQUEST` message. 
-In certain scenarios, the peer processing the `PUBLISH REQUEST` MUST be prepared 
-to handle OBJECT messages with the `Track ID` matching the one in the `PUBLISH REQUEST`, either by buffering or dropping them as defined by the implementation.
+In certain scenarios, the peer processing the `PUBLISH REQUEST` MUST be prepared to handle OBJECT messages with the `Track ID` matching the one in the `PUBLISH REQUEST`, either by buffering or dropping them as defined by the implementation.
+
+## PUBLISH ERROR {#message-publish-error}
+
+A `PUBLISH ERROR` control message idetifies unsuccesful publish requests. 
+
+~~~
+PUBLISH ERROR
+{
+  Track URI Length(i),
+  Track URI(...),
+  Reason Phrase Length (i),
+  Reason Phrase (...),
+}
+~~~
+{: #warp-publish-error format title="Warp PUBLISH ERROR Message"}
+
+* Track URI:
+Identifies the track in the request message for which this
+response is provided.
+
+* Reason Phrase:
+Provides the reason for subscription error and `Reason Phrase Length` carries its length.
+
 
 ## GOAWAY {#message-goaway}
 The `GOAWAY` message is sent by the server to force the client to reconnect.
