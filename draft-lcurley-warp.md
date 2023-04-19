@@ -612,7 +612,9 @@ A length of 0 indicates the message is unbounded and continues until the end of 
 |------|----------------------------------------------|
 | 0x3  | SUBSCRIBE REQUEST ({{message-subscribe-req}})|
 |------|----------------------------------------------|
-| 0x4  | SUBSCRIBE REPLY ({{message-subscribe-reply}})|
+| 0x4  | SUBSCRIBE OK ({{message-subscribe-ok}})      |
+|------|----------------------------------------------|
+| 0x4  | SUBSCRIBE ERROR ({{message-subscribe-error}})|
 |------|----------------------------------------------|
 | 0x10 | GOAWAY ({{message-goaway}})                  |
 |------|----------------------------------------------|
@@ -735,97 +737,83 @@ Entities that intend to receive media will do so via subscriptions to one or mor
 The format of SUBSCRIBE REQUEST is as follows:
 
 ~~~
-SUBSCRIBE REQUEST Message {
-  TRACK INFO Track
-}
-~~~
-{: #warp-subscribe-format title="Warp SUBSCRIBE REQUEST Message"}
-
-* Track:
-Identifies the track information as defined in `TRACK INFO`.
-
-The `TRACK INFO` structure is defined as below:
-
-~~~
 TrackInfo Parameter {
   TrackInfo Parameter ID (i),
   TrackInfo Parameter Length (i),
   TrackInfo Parameter Value (..),
 }
 
-TRACK INFO {
+SUBSCRIBE REQUEST Message {
   Track URI Length(i),
   Track URI(...),
   Track ID (i),
   TrackInfo Parameters (..) ...
 }
 ~~~
-{: #warp-track-info-format title="Warp TRACK INFO Content"}
+{: #warp-subscribe-format title="Warp SUBSCRIBE REQUEST Message"}
 
 
 * Track URI:
 Identifies the fully qualified track name as defined in ({{model-track}}).
 
 * Track ID: 
-A short hop-by-hop identifier to be used in the OBJECT ({{message-object}}) message header for the requested track. Given that the media corresponding to a track can potentially be delivered over multiple data streams, the Track ID provides the necessary mapping between the "Track Name" in the control message and the corresponding data streams. It also serves as a compression identifier for containing the size of OBJECT message header instead of carrying complete "Track URI" information in every OBJECT message. A client MUST choose an Track ID value that is unique within a QUIC Connection.
+An session specific identifier used in OBJECT ({{message-object}}) message headers for the requested track. Given that the media corresponding to a track can potentially be delivered over multiple data streams, the Track ID maps the Track URI in the control message to the corresponding data streams. Track IDs are generally shorter than Track URIs and thus reduce the overhead in OBJECT messages.
 
 TrackInfo Parameters are defined in {{track-params}}.
-
-Subscriptions stay active until one of the following happens:
-
-- a client local policy dictates expiration of a subscription.
-- optionally, a server policy dicates subscription expiration.
-- the underlying transport is disconnected.
 
 On successful subscription, the publisher MUST deliver objects
 from the group sequence and object sequence as defined in {{track-params}}.
 
-## SUBSCRIBE REPLY {#message-subscribe-reply}
+## SUBSCRIBE OK {#message-subscribe-ok}
 
-A `SUBSCRIBE REPLY` control message provides results of the subscription. 
+A `SUBSCRIBE OK` control message is sent for successful subscriptions. 
 
 ~~~
-SUBSCRIBE REPLY
+SUBSCRIBE OK
 {
-  TRACK RESPONSE Track
-}
-~~~
-{: #warp-subscribe-reply format title="Warp SUBSCRIBE REPLY Message"}
-
-* Track:
-Captures the result of subscription as defined in `TRACK RESPONSE`
-
-The `TRACK RESPONSE` structure is as defined below
-
-~~~
-enum Track Result
-{
-  Ok(0),
-  Fail(1)
-}
-
-TRACK RESPONSE {
   Track URI Length(i),
   Track URI(...),
-  Track Result Response,
-  [Track ID(i)],
-  [ Reason Phrase Length (i) ],
-  [ Reason Phrase (...) ],
+  Track ID(i),
+  Expires (i),
 }
 ~~~
-{: #warp-track-response-format title="Warp TRACK RESPONSE Content"}
-
+{: #warp-subscribe-ok format title="Warp SUBSCRIBE OK Message"}
 
 * Track URI:
 Identifies the track in the request message for which this
 response is provided.
 
-* Response:
-Provides result of the transaction, where a value of `Ok` indicates successful subscription. For failed response, the "Reason Phrase" 
-is populated with appropriate reason and Reason Phrase Length carrying its length.
-
 * Track ID:
-Identifies the hop-by-hop identifier mapping the given Track Name to be populated in the OBJECT messages ({{message-object}}) and MUST only be present if the `Response` is `Ok`. This field is populated with either the `Track ID` value provided in the request or the one chosen by client processing the request. The Track ID field in the OBJECT's header messages MUST be populated with the value in this field. 
+Maps the Track URI. This field is populated with either the `Track ID` value provided in the request or the one chosen by the peer processing the request. The Track ID field in the OBJECT's header messages MUST be populated with the value in this field. 
+
+* Expires:
+Time in milliseconds after which the subscription is no longer valid.
+
+Subscriptions stay active until it expires or the underlying transport is disconnected.
+
+
+## SUBSCRIBE ERROR {#message-subscribe-error}
+
+A `SUBSCRIBE ERROR` control message is sent for unsuccessful subscriptions. 
+
+~~~
+SUBSCRIBE ERROR
+{
+  Track URI Length(i),
+  Track URI(...),
+  Reason Phrase Length (i),
+  Reason Phrase (...),
+}
+~~~
+{: #warp-subscribe-error format title="Warp SUBSCRIBE ERROR Message"}
+
+* Track URI:
+Identifies the track in the request message for which this
+response is provided.
+
+* Reason Phrase:
+Provides the reason for subscription error and `Reason Phrase Length` carries its length.
+
 
 ## GOAWAY {#message-goaway}
 The `GOAWAY` message is sent by the server to force the client to reconnect.
@@ -876,15 +864,15 @@ The client MUST send a ROLE parameter with one of the three values specified abo
 The TrackInfo parameters are described as below. Every parameter MUST appear at most once. The peers SHOULD verify that and close the connection if a parameter appears more than once.
 The Parameter Value Length field indicates the length of the Parameter Value.
 
-### Group Sequence
+### GROUP SEQUENCE Parameter
 
-The Group Sequence (key 0x00) identifies the group within the track to start delivering the objects. The publisher MUST deliver the objects from the most recent group, when this parameter is omitted.
+The GROUP SEQUENCE parameter (key 0x00) identifies the group within the track to start delivering the objects. The publisher MUST deliver the objects from the most recent group, when this parameter is omitted.
 
-### Object Sequence 
-The Object Sequence (key 0x01) identifies the object within the track to start the media delivery. The `Group Sequence` parameter MUST be set to identify the group under which to the deliver the objects. The publisher MUST deliver starting from the beginning of the selected group when this parameter is omitted.
+### OBJECT SEQUENCE 
+The OBJECT SEQUENCE parameter (key 0x01) identifies the object within the track to start the media delivery. The `GROUP SEQUENCE` parameter MUST be set to identify the group under which to the deliver the objects. The publisher MUST deliver from the beginning of the selected group when this parameter is omitted.
 
-### Track Authorization Info
-Track Authorization Info (key 0x02) identifies the mandatory parameter carrying track's authorization, typically in the form of a token, authorizing the client’s subscription to the track. The specifics of obtaining the authorization information is out of scope for this specification.
+### AUTHORIZATION INFO
+AUTHORIZATION INFO parameter (key 0x02) identifies the mandatory parameter carrying track's authorization, authorizing the client’s subscription to the track. The specifics of obtaining the authorization information is out of scope for this specification.
 
 # Containers
 The container format describes how the underlying codec bitstream is encoded.
