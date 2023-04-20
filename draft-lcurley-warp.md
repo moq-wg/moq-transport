@@ -825,10 +825,10 @@ PUBLISH REQUEST Message {
 {: #warp-publish-format title="Warp PUBLISH REQUEST Message"}
 
 * Track URI:
-Identifies the fully qualified track name as defined in ({{model-track}}).
+Identifies the fully qualified track name as defined in ({{track-uri}}).
 
 * Track ID: 
-Session specific identifier to be used in OBJECT ({{message-object}}) message headers for the advertised track. Peer processing the request message MAY choosen a different `TRACK ID` in the response (see {{message-publish-ok}}). Track ID maps the Track URI in the control message to the corresponding data streams. Track IDs are generally shorter than Track URIs and thus reduce the overhead in OBJECT messages. 
+Session specific identifier that maps the Track URI to the Track ID in OBJECT ({{message-object}}) message headers for the advertised track. Peer processing the request message MAY end up choosing a different Track ID (see {{message-publish-ok}}). Track IDs are generally shorter than Track URIs and thus reduce the overhead in OBJECT messages.
 
 * Track Authorization Info: 
 Carries track authorization information. The specifics of obtaining the authorization information is out of scope for this specification.
@@ -842,7 +842,7 @@ PUBLISH OK
 {
   Track URI Length(i),
   Track URI(...),
-  Track ID(i),
+  Track ID(i)
 }
 ~~~
 {: #warp-subscribe-ok format title="Warp PUBLISH OK Message"}
@@ -852,9 +852,7 @@ Identifies the track in the request message for which this
 response is provided.
 
 * Track ID:
-Maps the Track URI. This field is populated with either the `Track ID` value provided in the request or the one chosen by the peer processing the request. The Track ID field in the OBJECT's header messages MUST be populated with the value in this field. 
-
-In certain scenarios, the peer processing the `PUBLISH REQUEST` MUST be prepared to handle OBJECT messages with the `Track ID` matching the one in the `PUBLISH REQUEST`, either by buffering or dropping them as defined by the implementation.
+Maps the Track URI. This field is populated with either the Track ID value provided in the request or the one chosen by the peer processing the request. The Track ID field in the OBJECT ({{message-object}}) message headers MUST be populated with the value in this field.
 
 ## PUBLISH ERROR {#message-publish-error}
 
