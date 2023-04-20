@@ -57,7 +57,6 @@ informative:
     date: 2020-03
   NewReno: RFC6582
   BBR: I-D.cardwell-iccrg-bbr-congestion-control-02
-  MOQ-ARCH: I-D.nandakumar-moq-arch-00
 
 
 --- abstract
