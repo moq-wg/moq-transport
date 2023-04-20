@@ -183,7 +183,7 @@ x (b):
 
 The basic element of Warp is an *object*. An object is a single addressable
 cacheable unit whose payload is a sequence of bytes.  An object MAY depend on other 
-objects to be decoded. An object MUST belong to a group {{model-group}}. Objects carry 
+objects to be decoded. All objects belong to a group {{model-group}}. Objects carry 
 associated metadata such as priority, TTL or other information usable by a relay, 
 but relays MUST treat object payloads as opaque.
 
@@ -219,7 +219,7 @@ DISCUSS: We need to determine what are the exact requirements we need to impose 
 
 A Track is the central concept within the MoQ Transport protocol for delivering media and is made up of sequence of objects ({{model-object}}) organized in the form of groups ({{model-group}}).
 
-A track is a transform of a uncompresss media or metadata using a specific encoding process, a set of parameters for that encoding, and possibly an encryption process. The MoQ Transport protocol is designed to transport tracks.
+A track is a transform of a uncompressed media or metadata using a specific encoding process, a set of parameters for that encoding, and possibly an encryption process. The MoQ Transport protocol is designed to transport tracks.
 
 ### Track URI {#track-uri}
 
@@ -235,7 +235,7 @@ Track URI = "moq" "://" Track Namespace  "/"  Track Name
 Example: 1
 Track Namespace = acme.meetings.com
 Track Name = meeting123/audio
-Track URI = moq://meetings.com/meeting123/audio
+Track URI = moq://acme.meetings.com/meeting123/audio
 
 Example: 2
 Track Namespace = livestream.tv
