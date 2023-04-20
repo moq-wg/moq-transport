@@ -168,18 +168,6 @@ Variant:
 
 : A track with the same content but different encoding as another track. For example, a different bitrate, codec, language, etc.
 
-Track Name:
-
-: See {{track-name}}.
-
-Provider: 
-
-: Entity capable of hosting media application
-session based on the MOQ Transport protocol.  It is responsible for
-authorizing the publishers/subscribers, managing the names used
-for Tracks and is scoped under a domain for a specific application.
-In certain deployments, a provider is also responsible for establishing trust between clients and relays for delivering media.
-
 ## Notational Conventions
 
 This document uses the conventions detailed in Section 1.3 of {{!RFC9000}} when describing the binary encoding.
@@ -234,7 +222,7 @@ A Track is the central concept within the MoQ Transport protocol for delivering 
 
 A track is a transform of a uncompresss media or metadata using a specific encoding process, a set of parameters for that encoding, and possibly an encryption process. The MoQ Transport protocol is designed to transport tracks.
 
-### Identification {#track-name}
+### Track URI {#track-uri}
 
 Tracks are identified by a globally unique identifier, called "Track URI" with the scheme shown below:
 
@@ -242,8 +230,7 @@ Tracks are identified by a globally unique identifier, called "Track URI" with t
 Track URI = "moq" "://" Track Namespace  "/"  Track Name
 ~~~~~~~~~~~~~~~
 
-"Track Namespace" MUST identify a globaly unique identifier, such as domain name or IANA PEN or something equivalent. 
-This is followed by the application context specific "Track Name", encoded as an opaque string. 
+"Track Namespace" MUST identify a globaly unique identifier, such as domain name or something equivalent. This is followed by the application context specific "Track Name", encoded as an opaque string. 
 
 ~~~
 Example: 1
@@ -259,7 +246,7 @@ Track URI = moq://livestream.tv/uaCafDkl123/audio
 
 ### Connection URL
 
-Each track MAY have an associated hop-by-hop "Connection URL" that specifies the network host to setup the transport connection. The syntax of the `Connection URL` and connection setup procedures are specific to the underlying transport protocol usage {{transport-usages}}.
+Each track MAY have an associated hop-by-hop Connection URL that specifies the network host to setup the transport connection. The syntax of the Connection URL and the associated connection setup procedures are specific to the underlying transport protocol usage {{transport-usages}}.
 
 ## Session
 A WebTransport session is established for each track bundle.
