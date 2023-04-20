@@ -741,7 +741,7 @@ SUBSCRIBE REQUEST Message {
 
 
 * Track URI:
-Identifies the track as defined in ({{model-track}}).
+Identifies the track as defined in ({{track-uri}}).
 
 * Track ID: 
 Session specific identifier that maps the Track URI to the Track ID in OBJECT ({{message-object}}) message headers for the advertised track. Peer processing the request message MAY end up choosing a different Track ID (see {{message-subscribe-ok}}). Track IDs are generally shorter than Track URIs and thus reduce the overhead in OBJECT messages.
