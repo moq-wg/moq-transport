@@ -167,7 +167,6 @@ Variant:
 
 : A track with the same content but different encoding as another track. For example, a different bitrate, codec, language, etc.
 
-
 ## Notational Conventions
 
 This document uses the conventions detailed in Section 1.3 of {{!RFC9000}} when describing the binary encoding.
@@ -180,11 +179,11 @@ x (b):
 
 # Model
 
-## Objects
+## Objects {#model-object}
 
 The basic element of Warp is an *object*. An object is a single addressable
 cacheable unit whose payload is a sequence of bytes.  An object MAY depend on other 
-objects to be decoded. An object MUST belong to a group {{groups}}. Objects carry 
+objects to be decoded. All objects belong to a group {{model-group}}. Objects carry 
 associated metadata such as priority, TTL or other information usable by a relay, 
 but relays MUST treat object payloads as opaque.
 
@@ -210,21 +209,44 @@ decrypt or authenticate an object until it is fully present.  Allowing Objects
 to span more than one useable unit may create more than one viable application
 mapping from media to wire format, which could be confusing for protocol users.
 
-## Groups
+## Groups {#model-group}
 
 An object group is a sequence of media objects. Beginning of an object group can be used as a point at which the receiver can start consuming a track without having any other object groups available. Object groups have an ID that identifies them uniquely within a track.
 
 DISCUSS: We need to determine what are the exact requirements we need to impose on how the media objects depend on each other. Such requirements would need to address the use case (a join point), while being flexible enough to accomodate scenarios like B-frames and temporal scaling.
 
-## Track
+## Track {#model-track}
 
-A media track in Warp is a combination of *an init object* and a sequence of media object groups. An init object is a format-specific self-contained description of the track that is required to decode any media object contained within the track, but can also be used as the metadata for track selection. If two media tracks carry semantically equivalent but differently encoded media, they are referred to as *variants* of each other.
+A Track is the central concept within the MoQ Transport protocol for delivering media and is made up of sequence of objects ({{model-object}}) organized in the form of groups ({{model-group}}).
 
-## Track Bundle
-A track bundle is a collection of tracks intended to be delivered together.
-Objects within a track bundle may be prioritized relative to each other via the delivery order property.
-This allows objects to be prioritized within a track (ex. newer > older) and between tracks (ex. audio > video).
-The track bundle contains a catalog indicating the available tracks.
+A track is a transform of a uncompressed media or metadata using a specific encoding process, a set of parameters for that encoding, and possibly an encryption process. The MoQ Transport protocol is designed to transport tracks.
+
+### Full Track Name {#track-fn}
+
+Tracks are identified by a globally unique identifier, called "Full Track Name" and defined as shown below:
+
+~~~~~~~~~~~~~~~
+Full Track Name = Track Namespace  "/"  Track Name
+~~~~~~~~~~~~~~~
+
+This document does not define the exact mechanism of naming Track Namespaces. Applications building on top of MoQ MUST ensure that the mechanism used guarantees global uniqueness; for instance, an application could use domain names as track namespaces. Track Namespace is followed by the application context specific Track Name, encoded as an opaque string. 
+
+
+~~~
+Example: 1
+Track Namespace = videoconferencing.example.com
+Track Name = meeting123/audio
+Full Track Name = videoconferencing.example.com/meeting123/audio
+
+Example: 2
+Track Namespace = livestream.example
+Track Name = uaCafDkl123/audio
+Full Track Name = livestream.example/uaCafDkl123/audio
+~~~
+
+### Connection URL
+
+Each track MAY have one or more associated connection URLs specifying network hosts through which a track may be accessed. The syntax of the Connection URL and the associated connection setup procedures are specific to the underlying transport protocol usage {{transport-usages}}.
 
 ## Session
 A WebTransport session is established for each track bundle.
