@@ -846,7 +846,7 @@ Identifies the track in the request message for which this
 response is provided.
 
 * Track ID: 
-Session specific identifier that maps the Track URI to the Track ID in OBJECT ({{message-object}}) message headers for the advertised track. Track IDs are generally shorter than Track URIs and thus reduce the overhead in OBJECT messages.
+Session specific identifier that maps the Full Track Name to the Track ID in OBJECT ({{message-object}}) message headers for the advertised track. Track IDs are generally shorter than Full Track Names and thus reduce the overhead in OBJECT messages.
 
 ## PUBLISH ERROR {#message-publish-error}
 
