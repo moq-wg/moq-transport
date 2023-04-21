@@ -908,6 +908,7 @@ TODO: fill out currently missing registries:
 * Warp version numbers
 * SETUP parameters
 * Track Request parameters
+* Subscribe Error codes
 * Track format numbers
 * Message types
 * Object headers
