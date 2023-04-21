@@ -814,23 +814,18 @@ The format of PUBLISH is defined as below:
 
 ~~~
 PUBLISH REQUEST Message {
-  Track URI Length(i),
-  Track URI(...),
-  Track ID (i),
-  Track Authorization Info Length(i),
-  Track Authorization Info (...),
+  Full Track Name Length(i),
+  Full Track Name(...),
+  Track Request Parameters (..) ...
 }
 ~~~
 {: #warp-publish-format title="Warp PUBLISH REQUEST Message"}
 
-* Track URI:
-Identifies the fully qualified track name as defined in ({{track-uri}}).
+* Full Track Name:
+Identifies the fully qualified track name as defined in ({{track-fn}}).
 
-* Track ID: 
-Session specific identifier that maps the Track URI to the Track ID in OBJECT ({{message-object}}) message headers for the advertised track. Peer processing the request message MAY end up choosing a different Track ID (see {{message-publish-ok}}). Track IDs are generally shorter than Track URIs and thus reduce the overhead in OBJECT messages.
-
-* Track Authorization Info: 
-Carries track authorization information. The specifics of obtaining the authorization information is out of scope for this specification.
+* Track Request Parameters: 
+AUTHORIZATION INFO (see {{track-req-params}}) is be the only parameter applicable for the publish requests.
 
 ## PUBLISH OK {#message-publish-ok}
 
@@ -839,19 +834,19 @@ A `PUBLISH OK` control message is sent for successful publish requests.
 ~~~
 PUBLISH OK
 {
-  Track URI Length(i),
-  Track URI(...),
+  Full Track Name Length(i),
+  Full Track Name(...),
   Track ID(i)
 }
 ~~~
 {: #warp-subscribe-ok format title="Warp PUBLISH OK Message"}
 
-* Track URI:
+* Full Track Name:
 Identifies the track in the request message for which this
 response is provided.
 
-* Track ID:
-Maps the Track URI. This field is populated with either the Track ID value provided in the request or the one chosen by the peer processing the request. The Track ID field in the OBJECT ({{message-object}}) message headers MUST be populated with the value in this field.
+* Track ID: 
+Session specific identifier that maps the Track URI to the Track ID in OBJECT ({{message-object}}) message headers for the advertised track. Track IDs are generally shorter than Track URIs and thus reduce the overhead in OBJECT messages.
 
 ## PUBLISH ERROR {#message-publish-error}
 
@@ -860,17 +855,21 @@ A `PUBLISH ERROR` control message idetifies unsuccesful publish requests.
 ~~~
 PUBLISH ERROR
 {
-  Track URI Length(i),
-  Track URI(...),
+  Full Track Name Length(i),
+  Full Track Name(...),
+  Error Code (i),
   Reason Phrase Length (i),
   Reason Phrase (...),
 }
 ~~~
 {: #warp-publish-error format title="Warp PUBLISH ERROR Message"}
 
-* Track URI:
+* Full Track Name:
 Identifies the track in the request message for which this
 response is provided.
+
+* Error Code:
+Identifies an integer error code for subscription failure.
 
 * Reason Phrase:
 Provides the reason for subscription error and `Reason Phrase Length` carries its length.
