@@ -57,7 +57,7 @@ informative:
     date: 2020-03
   NewReno: RFC6582
   BBR: I-D.cardwell-iccrg-bbr-congestion-control-02
-  
+
 --- abstract
 
 This document defines the core behavior for Warp, a live media transport protocol over QUIC.
@@ -858,7 +858,7 @@ The GROUP SEQUENCE parameter (key 0x00) identifies the group within the track to
 The OBJECT SEQUENCE parameter (key 0x01) identifies the object with the track to start delivering the media. The `GROUP SEQUENCE` parameter MUST be set to identify the group under which to start the media delivery. The publisher MUST start delivering from the beginning of the selected group when this parameter is omitted.
 
 ### AUTHORIZATION INFO Parameter
-AUTHORIZATION INFO parameter (key 0x02) identifies the mandatory parameter carrying track's authorization, authorizing the client’s subscription to the track. The specifics of obtaining the authorization information is out of scope for this specification.
+AUTHORIZATION INFO parameter (key 0x02) identifies track's authorization information. This parameter is populated for cases where the authorization is required at the track level.
 
 # Containers
 The container format describes how the underlying codec bitstream is encoded.
