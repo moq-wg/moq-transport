@@ -58,7 +58,6 @@ informative:
   NewReno: RFC6582
   BBR: I-D.cardwell-iccrg-bbr-congestion-control-02
 
-
 --- abstract
 
 This document defines the core behavior for Warp, a live media transport protocol over QUIC.
@@ -69,11 +68,15 @@ QUIC streams are prioritized based on the delivery order, allowing less importan
 
 
 ## Introduction
-Warp is a live media transport protocol that utilizes the QUIC network protocol {{QUIC}}.
+Warp is a live media transport protocol that utilizes the QUIC network protocol {{QUIC}},
+either directly or via WebTransport {{WebTransport}}.
 
 * {{motivation}} covers the background and rationale behind Warp.
 * {{objects}} covers how media is fragmented into objects.
-* {{quic}} covers how QUIC is used to transfer media.
+* {{transport-protocols}} covers aspects of setting up a MoQ transport session.
+* {{stream-mapping}} covers how QUIC is used to transfer media.
+* {{priority-congestion}} covers protocol considerations on prioritization schemes and congestion response overall.
+* {{relays-moq}} covers behavior at the relay entities.
 * {{messages}} covers how messages are encoded on the wire.
 * {{containers}} covers how media tracks are packaged.
 
@@ -160,10 +163,13 @@ Track:
 
 : An encoded bitstream, representing a single media component (ex. audio, video, subtitles) that makes up the larger broadcast.
 
+Transport session:
+
+: Either a native QUIC connection, or a WebTransport session used to transmit the data.
+
 Variant:
 
 : A track with the same content but different encoding as another track. For example, a different bitrate, codec, language, etc.
-
 
 ## Notational Conventions
 
@@ -177,17 +183,87 @@ x (b):
 
 # Model
 
-The basic element of Warp is *a media object*. A media object is a single addressable cacheable unit that may either contain a sequence of media samples, or some media-specific metadata, and may have relay-related attributes such as TTL or delivery priority associated with it. A media object is a sequence of bytes with a finite length. A Warp media object is similar in function to what is often referred to as "segments" or "chunks" in other media protocols; however, they are different from the traditional notion of chunks. The first key distinction is that Warp media objects are not always expected to be fully available, and thus any relays have to be able to convey partial media objects. The second key distinction is that Warp media objects may not be fully decodable by themselves; an object will contain a description of the prerequisites if that is the case.
+## Objects {#model-object}
 
-*A media track* in Warp is a combination of *an init object* and a sequence of media objects. An init object is a format-specific self-contained description of the track that is required to decode any media object contained within the track, but can also be used as the metadata for track selection. If two media tracks carry semantically equivalent but differently encoded media, they are referred to as *variants* of each other.
+The basic element of Warp is an *object*. An object is a single addressable
+cacheable unit whose payload is a sequence of bytes.  An object MAY depend on other 
+objects to be decoded. All objects belong to a group {{model-group}}. Objects carry 
+associated metadata such as priority, TTL or other information usable by a relay, 
+but relays MUST treat object payloads as opaque.
 
-*A Warp broadcast* is a collection of multiple media tracks produced by a single origin. When subscribing to a broadcast, a peer has an option of subscribing to one, many or all media tracks within the broadcast.
+DISCUSS: Can an object be partially decodable by an endpoint?
 
-A Warp broadcast is globally identifiable via a URI. Within the broadcast, every media track is identified via *a track ID* that is unique within the broadcast. Within a single media track, every media object is identified by an *object ID* that is unique within the track.
+Authors agree that an object is always partially *forwardable* by a relay but
+disagree on whether a partial object can be used by a receiving endpoint.
 
-Depending on the profile of the application using it, Warp supports both a mode of operation where the peer unilaterally sends a broadcast with the media tracks of its choice, and a mode where the peer has to explicitly subscribe to a broadcast and select media tracks it wishes to receive.
+Option 1: A receiver MAY start decoding an object before it has been completely received
 
-As an example, consider a scenario where `example.org` hosts a simple live stream that anyone can subscribe to. That live stream would be a single Warp broadcast identified by the URL `https://example.org/livestream`. In the simplest implementation, it would provide only two media tracks, one with audio and one with video. In more complicated scenarios, it could provide multiple video formats of different levels of video quality; those tracks would be variants of each other. Note that the track IDs are opaque on the Warp level; if the player has not received the description of media tracks out of band in advance, it would have to request the broadcast description first.
+Example: sending an entire GOP as a single object.  A receiver can decode the
+GOP from the beginning without having the entire object present, and the object's
+tail could be dropped.  Sending a GOP as a group of not-partially-decodable
+objects might incur additional overhead on the wire and/or additional processing of 
+video segments at a sender to find object boundaries.
+
+Partial decodability could be another property of an object.
+
+Option 2: A receiver MUST NOT start decoding an object before it has completely arrived
+
+Objects could be end-to-end encrypted and the receiver might not be able to
+decrypt or authenticate an object until it is fully present.  Allowing Objects
+to span more than one useable unit may create more than one viable application
+mapping from media to wire format, which could be confusing for protocol users.
+
+## Groups {#model-group}
+
+An object group is a sequence of media objects. Beginning of an object group can be used as a point at which the receiver can start consuming a track without having any other object groups available. Object groups have an ID that identifies them uniquely within a track.
+
+DISCUSS: We need to determine what are the exact requirements we need to impose on how the media objects depend on each other. Such requirements would need to address the use case (a join point), while being flexible enough to accomodate scenarios like B-frames and temporal scaling.
+
+## Track {#model-track}
+
+A Track is the central concept within the MoQ Transport protocol for delivering media and is made up of sequence of objects ({{model-object}}) organized in the form of groups ({{model-group}}).
+
+A track is a transform of a uncompressed media or metadata using a specific encoding process, a set of parameters for that encoding, and possibly an encryption process. The MoQ Transport protocol is designed to transport tracks.
+
+### Full Track Name {#track-fn}
+
+Tracks are identified by a globally unique identifier, called "Full Track Name" and defined as shown below:
+
+~~~~~~~~~~~~~~~
+Full Track Name = Track Namespace  "/"  Track Name
+~~~~~~~~~~~~~~~
+
+This document does not define the exact mechanism of naming Track Namespaces. Applications building on top of MoQ MUST ensure that the mechanism used guarantees global uniqueness; for instance, an application could use domain names as track namespaces. Track Namespace is followed by the application context specific Track Name, encoded as an opaque string. 
+
+
+~~~
+Example: 1
+Track Namespace = videoconferencing.example.com
+Track Name = meeting123/audio
+Full Track Name = videoconferencing.example.com/meeting123/audio
+
+Example: 2
+Track Namespace = livestream.example
+Track Name = uaCafDkl123/audio
+Full Track Name = livestream.example/uaCafDkl123/audio
+~~~
+
+### Connection URL
+
+Each track MAY have one or more associated connection URLs specifying network hosts through which a track may be accessed. The syntax of the Connection URL and the associated connection setup procedures are specific to the underlying transport protocol usage {{transport-protocols}}.
+
+## Session
+A transport session is established for each track bundle.
+The client issues a CONNECT request with a URL which the server uses for identification and authentication.
+All control messages and prioritization occur within the context of a single transport session, which means a single track bundle.
+When WebTransport is used, multiple transport sessions may be pooled over a single QUIC connection for efficiency.
+
+## Example
+As an example, consider a scenario where `example.org` hosts a simple live stream that anyone can subscribe to.
+That live stream would be a single track bundle, accessible via the WebTransport URL: `https://example.org/livestream`.
+In a simple scenario, the track bundle would contain only two media tracks, one with audio and one with video.
+In a more complicated scenario, the track bundle could multiple tracks with different formats, encodings, bitrates, and quality levels, possibly for the same content.
+The receiver learns about each available track within the bundle via the catalog, and can choose to subscribe to a subset.
 
 
 # Motivation
@@ -260,6 +336,10 @@ Any identification, reliability, ordering, prioritization, caching, etc is writt
 This ensures that relays can easily route/fanout media to the final destination.
 This also ensures that congestion response is consistent at every hop based on the preferences of the media producer.
 
+## Bandwidth Management and Congestion Response
+TODO: Add motivation text regarding bw management techniques in
+response to congestion. Also refer to {{priority-congestion}} for
+further details.
 
 # Objects
 Warp works by splitting media into objects that can be transferred over QUIC streams.
@@ -304,6 +384,10 @@ A receiver MUST NOT assume that objects will be received in delivery order for a
 * Packet loss or flow control MAY delay the delivery of individual streams.
 * The sender might not support QUIC stream prioritization.
 
+TODO: Refer to Congestion Response and Priorirization Section for further details on various proposals.
+
+## Groups
+TODO: Add text describing interation of group and intra object priorities within a group and their relation to congestion response. Add how it refers to {{priority-congestion}}
 
 ## Decoder
 The decoder will receive multiple objects in parallel and out of order.
@@ -316,42 +400,55 @@ Objects MUST synchronize frames within and between tracks using presentation tim
 Objects are NOT REQUIRED to be aligned and the decoder MUST be prepared to skip over any gaps.
 
 
-# QUIC
+# Supported Transport Protocols  {#transport-protocols}
 
-## Establishment
-A connection is established using WebTransport {{WebTransport}}.
+This document defines a protocol that can be used interchangeably both over a QUIC connection directly [QUIC], and over WebTransport [WebTransport].
+Both provide streams and datagrams with similar semantics (see {{?I-D.ietf-webtrans-overview, Section 4}});
+thus, the main difference lies in how the servers are identified and how the connection is established.
 
-To summarize:
-The client issues a HTTP CONNECT request with the intention of establishing a new WebTransport session.
-The server returns an 200 OK response if the WebTransport session has been established, or an error status otherwise.
+## WebTransport
 
-A WebTransport session exposes the basic QUIC service abstractions.
-Specifically, either endpoint may create independent streams which are reliably delivered in order until canceled.
+A Warp server that is accessible via WebTransport can be identified using an HTTPS URI ({{!RFC9110, Section 4.2.2}}).
+A Warp transport session can be established by sending an extended CONNECT request to the host and the path indicated by the URI,
+as described in {{WebTransport, Section 3}}.
 
-WebTransport can currently operate via HTTP/3 and HTTP/2, using QUIC or TCP under the hood respectively.
-As mentioned in the motivation ({{motivation}}) section, TCP introduces head-of-line blocking and will result in a worse experience.
-It is RECOMMENDED to use WebTransport over HTTP/3.
+## Native QUIC
 
-## Authentication
-The application SHOULD use the WebTransport CONNECT request for authentication.
-For example, including an authentication token in the path.
+A Warp server that is accessible via native QUIC can be identified by a URI with a "moq" scheme.
+The "moq" URI scheme is defined as follows, using definitions from {{!RFC3986}}:
 
-An endpoint SHOULD terminate the connection with an error ({{termination}}) if the peer attempts an unauthorized action.
-For example, attempting to use a different role than pre-negotated ({{role}}) or using an invalid broadcast URI ({{message-catalog}}).
+~~~~~~~~~~~~~~~
+moq-URI = "moq" "://" authority path-abempty [ "?" query ]
+~~~~~~~~~~~~~~~
 
-## Streams
+The `authority` portion MUST NOT contain a non-empty `userinfo` portion.
+The `moq` URI scheme supports the `/.well-known/` path prefix defined in {{!RFC8615}}.
+
+This protocol does not specify any semantics on the `path-abempty` and `query` portions of the URI.
+The contents of those is left up to the application.
+
+The client can establish a connection to a MoQ server identified by a given URI
+by setting up a QUIC connection to the host and port identified by the `authority` section of the URI.
+The `path-abempty` and `query` portions of the URI are communicated to the server using
+the PATH parameter ({{path}}).
+The ALPN value {{!RFC7301}} used by the protocol is `moq-00`.
+
+# Stream Mapping  {#stream-mapping}
+
 Warp endpoints communicate over QUIC streams. Every stream is a sequence of messages, framed as described in {{messages}}.
 
 The first stream opened is a client-initiated bidirectional stream where the peers exchange SETUP messages ({{message-setup}}). The subsequent streams MAY be either unidirectional and bidirectional. For exchanging media, an application would typically send a unidirectional stream containing a single OBJECT message ({{message-object}}).
 
 Messages SHOULD be sent over the same stream if ordering is desired.
-Some messages MUST be sent over the same stream, for example SUBSCRIBE messages ({{message-subscribe}}) with the same broadcast URI.
 
 
 ## Prioritization
 Warp utilizes stream prioritization to deliver the most important content during congestion.
 
+TODO: Revisit the prioritization scheme and possibly move some of this to {{priority-congestion}}.
+
 The producer may assign a numeric delivery order to each object ({{delivery-order}})
+
 This is a strict prioritization scheme, such that any available bandwidth is allocated to streams in ascending priority order.
 The sender SHOULD prioritize streams based on the delivery order.
 If two streams have the same delivery order, they SHOULD receive equal bandwidth (round-robin).
@@ -400,8 +497,12 @@ Most TCP congestion control algorithms will only increase the congestion window 
 Senders SHOULD use a congestion control algorithm that is designed for application-limited flows (ex. GCC).
 Senders MAY periodically pad the connection with QUIC PING frames to fill the congestion window.
 
+TODO: update this section to refer to {{priority-congestion}}
+
 ## Termination
-The WebTransport session can be terminated at any point with CLOSE\_WEBTRANSPORT\_SESSION capsule, consisting of an integer code and string message.
+The transport session can be terminated at any point.
+When native QUIC is used, the session is closed using the CONNECTION\_CLOSE frame ({{QUIC, Section 19.19}}).
+When WebTransport is used, the session is closed using the CLOSE\_WEBTRANSPORT\_SESSION capsule ({{WebTransport, Section 5}}).
 
 The application MAY use any error message and SHOULD use a relevant code, as defined below:
 
@@ -429,6 +530,42 @@ The endpoint breached an agreement, which MAY have been pre-negotiated by the ap
 * GOAWAY:
 The endpoint successfully drained the session after a GOAWAY was initiated ({{message-goaway}}).
 
+# Prioritization and Congestion Response Considerations {#priority-congestion}
+
+TODO: This is a placeholder section to capture details on
+how the Moq Transport protocol deals with prioritization and congestion overall. Having its own section helps reduce merge conflicts and allows us to reference it from other parts.
+
+This section is expected to cover detailson:
+
+- Prioritization Schemes
+- Congestion Algorithms and impacts 
+- Mapping considerations for one object per stream vs multiple objects per stream
+- considerations for merging multiple streams across domans onto single connection and interactions with specific prioritization schemes
+
+# Relays {#relays-moq}
+
+The Relays play an important role for enabling low latency media delivery within the MoQ architecture. This specification allows for a delivery protocol based on a publish/subscribe metaphor where some endpoints, called publishers, publish media objects and
+some endpoints, called subscribers, consume those media objects. Relays leverage this publish/subscribe metaphor to form an overlay delivery network similar/in-parallel to what CDN provides today.
+
+Relays serves as policy enforcement points by validating subscribe
+and publish requests to the tracks.
+
+## Subscriber Interactions
+TODO: This section shall cover relay handling of subscriptions.
+
+## Publisher Interactions
+TODO: This section shall cover relay handling of publishes.
+
+## Relay Discovery and Failover
+TODO: This section shall cover aspects of relay failover and protocol interactions
+
+## Restoring connections through relays
+TODO: This section shall cover reconnect considerations for clients when moving between the Relays
+
+## Congestion Response at Relays
+TODO: Refer to {{priority-congestion}}. Add details describe 
+relays behavior when merging or splitting streams and interactions
+with congestion response.
 
 # Messages
 Both unidirectional and bidirectional Warp streams are sequences of length-deliminated messages.
@@ -445,19 +582,23 @@ Warp Message {
 The Message Length field contains the length of the Message Payload field in bytes.
 A length of 0 indicates the message is unbounded and continues until the end of the stream.
 
-|------|-----------------------------------|
-| ID   | Messages                          |
-|-----:|:----------------------------------|
-| 0x0  | OBJECT ({{message-object}})       |
-|------|-----------------------------------|
-| 0x1  | SETUP ({{message-setup}})         |
-|------|-----------------------------------|
-| 0x2  | CATALOG ({{message-catalog}})     |
-|------|-----------------------------------|
-| 0x3  | SUBSCRIBE ({{message-subscribe}}) |
-|------|-----------------------------------|
-| 0x10 | GOAWAY ({{message-goaway}})       |
-|------|-----------------------------------|
+|------|----------------------------------------------|
+| ID   | Messages                                     |
+|-----:|:---------------------------------------------|
+| 0x0  | OBJECT ({{message-object}})                  |
+|------|----------------------------------------------|
+| 0x1  | SETUP ({{message-setup}})                    |
+|------|----------------------------------------------|
+| 0x2  | CATALOG ({{message-catalog}})                |
+|------|----------------------------------------------|
+| 0x3  | SUBSCRIBE REQUEST ({{message-subscribe-req}})|
+|------|----------------------------------------------|
+| 0x4  | SUBSCRIBE OK ({{message-subscribe-ok}})      |
+|------|----------------------------------------------|
+| 0x5  | SUBSCRIBE ERROR ({{message-subscribe-error}})|
+|------|----------------------------------------------|
+| 0x10 | GOAWAY ({{message-goaway}})                  |
+|------|----------------------------------------------|
 
 ## SETUP {#message-setup}
 
@@ -499,7 +640,6 @@ The format of the OBJECT message is as follows:
 
 ~~~
 OBJECT Message {
-  Broadcast URI (b)
   Track ID (i),
   Group Sequence (i),
   Object Sequence (i),
@@ -509,11 +649,8 @@ OBJECT Message {
 ~~~
 {: #warp-object-format title="Warp OBJECT Message"}
 
-* Broadcast URI:
-The broadcast URI as declared in CATALOG ({{message-catalog}}).
-
 * Track ID:
-The track identifier as declared in CATALOG ({{message-catalog}}).
+The track identifier obtained as part of subscription and/or publish control message exchanges.
 
 * Group Sequence :
 An integer always starts at 0 and increases sequentially at the original media publisher.
@@ -532,24 +669,21 @@ This is a media bitstream intended for the decoder and SHOULD NOT be processed b
 
 
 ## CATALOG {#message-catalog}
-The sender advertises an available broadcast and its tracks via the CATALOG message.
+The sender advertises tracks via the CATALOG message.
+The receiver can then SUBSCRIBE to the indiciated tracks by ID.
 
 The format of the CATALOG message is as follows:
 
 ~~~
 CATALOG Message {
-  Broadcast URI (b),
   Track Count (i),
   Track Descriptors (..)
 }
 ~~~
 {: #warp-catalog-format title="Warp CATALOG Message"}
 
-* Broadcast URI:
-A unique identifier {{URI}} for the broadcast within the session.
-
 * Track Count:
-The number of tracks in the broadcast.
+The number of tracks within the catalog.
 
 
 For each track, there is a track descriptor with the format:
@@ -564,7 +698,7 @@ Track Descriptor {
 {: #warp-track-descriptor title="Warp Track Descriptor"}
 
 * Track ID:
-A unique identifier for the track within the broadcast.
+A unique identifier for the track within the track bundle.
 
 * Container Format:
 The container format as defined in {{containers}}.
@@ -574,36 +708,90 @@ A container-specific payload as defined in {{containers}}.
 This contains base information required to decode OBJECT messages, such as codec parameters.
 
 
-An endpoint MUST NOT send multiple CATALOG messages with the same Broadcast URI.
+An endpoint MUST NOT send multiple CATALOG messages.
 A future draft will add the ability to add/remove/update tracks.
 
-## SUBSCRIBE {#message-subscribe}
-After receiving a CATALOG message ({{message-catalog}}, the receiver sends a SUBSCRIBE message to indicate that it wishes to receive the indicated tracks within a broadcast.
+## SUBSCRIBE REQUEST {#message-subscribe-req}
 
-The format of SUBSCRIBE is as follows:
+Entities that intend to receive media will do so via subscriptions to one or more tracks. The information for the tracks can be obtained via catalog or from incoming SUBSCRIBE REQUEST messages.
+
+The format of SUBSCRIBE REQUEST is as follows:
 
 ~~~
-SUBSCRIBE Message {
-  Broadcast URI (b),
-  Track Count (i),
-  Track IDs (..),
+Track Request Parameter {
+  Track Request Parameter Key (i),
+  Track Request Parameter Length (i),
+  Track Request Parameter Value (..),
+}
+
+SUBSCRIBE REQUEST Message {
+  Full Track Name Length(i),
+  Full Track Name(...),
+  Track Request Parameters (..) ...
 }
 ~~~
-{: #warp-subscribe-format title="Warp SUBSCRIBE Message"}
-
-* Broadcast URI:
-The broadcast URI as defined in CATALOG ({{message-catalog}}).
-
-* Track Count:
-The number of track IDs that follow.
-This MAY be zero to unsubscribe to all tracks.
-
-* Track IDs:
-A list of varint track IDs.
+{: #warp-subscribe-format title="Warp SUBSCRIBE REQUEST Message"}
 
 
-Only the most recent SUBSCRIBE message for a broadcast is active.
-SUBSCRIBE messages MUST be sent on the same QUIC stream to preserve ordering.
+* Full Track Name:
+Identifies the track as defined in ({{track-fn}}).
+
+* Track Request Parameters:
+ As defined in {{track-req-params}}.
+
+On successful subscription, the publisher SHOULD start delivering objects
+from the group sequence and object sequence as defined in the `Track Request Parameters`.
+
+## SUBSCRIBE OK {#message-subscribe-ok}
+
+A `SUBSCRIBE OK` control message is sent for successful subscriptions. 
+
+~~~
+SUBSCRIBE OK
+{
+  Full Track Name Length(i),
+  Full Track Name(...),
+  Track ID(i),
+  Expires (i)
+}
+~~~
+{: #warp-subscribe-ok format title="Warp SUBSCRIBE OK Message"}
+
+* Full Track Name:
+Identifies the track in the request message for which this
+response is provided.
+
+* Track ID: 
+Session specific identifier that maps the Full Track Name to the Track ID in OBJECT ({{message-object}}) message headers for the advertised track. Track IDs are generally shorter than Full Track Names and thus reduce the overhead in OBJECT messages. 
+
+* Expires:
+Time in milliseconds after which the subscription is no longer valid. A value of 0 implies that the subscription stays active until its explicitly unsubscribed or the underlying transport is disconnected.
+
+## SUBSCRIBE ERROR {#message-subscribe-error}
+
+A `SUBSCRIBE ERROR` control message is sent for unsuccessful subscriptions. 
+
+~~~
+SUBSCRIBE ERROR
+{
+  Full Track Name Length(i),
+  Full Track Name(...),
+  Error Code (i),
+  Reason Phrase Length (i),
+  Reason Phrase (...),
+}
+~~~
+{: #warp-subscribe-error format title="Warp SUBSCRIBE ERROR Message"}
+
+* Full Track Name:
+Identifies the track in the request message for which this
+response is provided.
+
+* Error Code:
+Identifies an integer error code for subscription failure.
+
+* Reason Phrase:
+Provides the reason for subscription error and `Reason Phrase Length` field carries its length.
 
 
 ## GOAWAY {#message-goaway}
@@ -620,7 +808,7 @@ The server:
 
 The client:
 
-* MUST establish a new WebTransport session to the provided URL upon receipt of a `GOAWAY` message.
+* MUST establish a new transport session to the provided URL upon receipt of a `GOAWAY` message.
 * SHOULD establish the connection in parallel which MUST use different QUIC connection.
 * SHOULD remain connected for two servers for a short period, processing objects from both in parallel.
 
@@ -649,6 +837,30 @@ The ROLE parameter (key 0x00) allows the client to specify what roles it expects
 : Both the client and the server are expected to send media.
 
 The client MUST send a ROLE parameter with one of the three values specified above. The server MUST close the connection if the ROLE parameter is missing, is not one of the three above-specified values, or it is different from what the server expects based on the application in question.
+
+## PATH parameter {#path}
+
+The PATH parameter (key 0x01) allows the client to specify the path of the MoQ URI when using native QUIC ({{native-quic}}).
+It MUST NOT be used by the server, or when WebTransport is used.
+If the peer receives a PATH parameter from the server, or when WebTransport is used, it MUST close the connection.
+
+When connecting to a server using a URI with the "moq" scheme,
+the client MUST set the PATH parameter to the `path-abempty` portion of the URI;
+if `query` is present, the client MUST concatenate `?`, followed by the `query` portion of the URI to the parameter.
+
+# Track Request Parameters {#track-req-params}
+
+The Track Request Parameters identify properties of the track requested in either the PUBLISH REQUEST or SUSBCRIBE REQUEST control messages. Every parameter MUST appear at most once. The peers MUST close the connection if there are duplicates. The Parameter Value Length field indicates the length of the Parameter Value.
+
+### GROUP SEQUENCE Parameter
+
+The GROUP SEQUENCE parameter (key 0x00) identifies the group within the track to start delivering the objects. The publisher MUST start delivering the objects from the most recent group, when this parameter is omitted.
+
+### OBJECT SEQUENCE Parameter
+The OBJECT SEQUENCE parameter (key 0x01) identifies the object with the track to start delivering the media. The `GROUP SEQUENCE` parameter MUST be set to identify the group under which to start the media delivery. The publisher MUST start delivering from the beginning of the selected group when this parameter is omitted.
+
+### AUTHORIZATION INFO Parameter
+AUTHORIZATION INFO parameter (key 0x02) identifies track's authorization information. This parameter is populated for cases where the authorization is required at the track level.
 
 # Containers
 The container format describes how the underlying codec bitstream is encoded.
@@ -698,9 +910,13 @@ The producer and consumer MUST cancel a stream, preferably the lowest priority, 
 TODO: fill out currently missing registries:
 * Warp version numbers
 * SETUP parameters
+* Track Request parameters
+* Subscribe Error codes
 * Track format numbers
 * Message types
 * Object headers
+
+TODO: register the URI scheme and the ALPN
 
 # Appendix A. Video Encoding {#appendix.encoding}
 In order to transport media, we first need to know how media is encoded.
