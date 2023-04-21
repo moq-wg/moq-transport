@@ -58,7 +58,6 @@ informative:
   NewReno: RFC6582
   BBR: I-D.cardwell-iccrg-bbr-congestion-control-02
 
-
 --- abstract
 
 This document defines the core behavior for Warp, a live media transport protocol over QUIC.
@@ -590,19 +589,23 @@ Warp Message {
 The Message Length field contains the length of the Message Payload field in bytes.
 A length of 0 indicates the message is unbounded and continues until the end of the stream.
 
-|------|-----------------------------------|
-| ID   | Messages                          |
-|-----:|:----------------------------------|
-| 0x0  | OBJECT ({{message-object}})       |
-|------|-----------------------------------|
-| 0x1  | SETUP ({{message-setup}})         |
-|------|-----------------------------------|
-| 0x2  | CATALOG ({{message-catalog}})     |
-|------|-----------------------------------|
-| 0x3  | SUBSCRIBE ({{message-subscribe}}) |
-|------|-----------------------------------|
-| 0x10 | GOAWAY ({{message-goaway}})       |
-|------|-----------------------------------|
+|------|----------------------------------------------|
+| ID   | Messages                                     |
+|-----:|:---------------------------------------------|
+| 0x0  | OBJECT ({{message-object}})                  |
+|------|----------------------------------------------|
+| 0x1  | SETUP ({{message-setup}})                    |
+|------|----------------------------------------------|
+| 0x2  | CATALOG ({{message-catalog}})                |
+|------|----------------------------------------------|
+| 0x3  | SUBSCRIBE REQUEST ({{message-subscribe-req}})|
+|------|----------------------------------------------|
+| 0x4  | SUBSCRIBE OK ({{message-subscribe-ok}})      |
+|------|----------------------------------------------|
+| 0x5  | SUBSCRIBE ERROR ({{message-subscribe-error}})|
+|------|----------------------------------------------|
+| 0x10 | GOAWAY ({{message-goaway}})                  |
+|------|----------------------------------------------|
 
 ## SETUP {#message-setup}
 
@@ -654,7 +657,7 @@ OBJECT Message {
 {: #warp-object-format title="Warp OBJECT Message"}
 
 * Track ID:
-The track identifier as declared in CATALOG ({{message-catalog}}).
+The track identifier obtained as part of subscription and/or publish control message exchanges.
 
 * Group Sequence :
 An integer always starts at 0 and increases sequentially at the original media publisher.
@@ -715,29 +718,87 @@ This contains base information required to decode OBJECT messages, such as codec
 An endpoint MUST NOT send multiple CATALOG messages.
 A future draft will add the ability to add/remove/update tracks.
 
-## SUBSCRIBE {#message-subscribe}
-After receiving a CATALOG message ({{message-catalog}}, the receiver sends a SUBSCRIBE message to indicate that it wishes to receive the indicated tracks.
+## SUBSCRIBE REQUEST {#message-subscribe-req}
 
-The format of SUBSCRIBE is as follows:
+Entities that intend to receive media will do so via subscriptions to one or more tracks. The information for the tracks can be obtained via catalog or from incoming SUBSCRIBE REQUEST messages.
+
+The format of SUBSCRIBE REQUEST is as follows:
 
 ~~~
-SUBSCRIBE Message {
-  Track Count (i),
-  Track IDs (..),
+Track Request Parameter {
+  Track Request Parameter Key (i),
+  Track Request Parameter Length (i),
+  Track Request Parameter Value (..),
+}
+
+SUBSCRIBE REQUEST Message {
+  Full Track Name Length(i),
+  Full Track Name(...),
+  Track Request Parameters (..) ...
 }
 ~~~
-{: #warp-subscribe-format title="Warp SUBSCRIBE Message"}
-
-* Track Count:
-The number of track IDs that follow.
-This MAY be zero to unsubscribe to all tracks.
-
-* Track IDs:
-A list of varint track IDs.
+{: #warp-subscribe-format title="Warp SUBSCRIBE REQUEST Message"}
 
 
-Only the most recent SUBSCRIBE message is active.
-SUBSCRIBE messages MUST be sent on the same QUIC stream to preserve ordering.
+* Full Track Name:
+Identifies the track as defined in ({{track-fn}}).
+
+* Track Request Parameters:
+ As defined in {{track-req-params}}.
+
+On successful subscription, the publisher SHOULD start delivering objects
+from the group sequence and object sequence as defined in the `Track Request Parameters`.
+
+## SUBSCRIBE OK {#message-subscribe-ok}
+
+A `SUBSCRIBE OK` control message is sent for successful subscriptions. 
+
+~~~
+SUBSCRIBE OK
+{
+  Full Track Name Length(i),
+  Full Track Name(...),
+  Track ID(i),
+  Expires (i)
+}
+~~~
+{: #warp-subscribe-ok format title="Warp SUBSCRIBE OK Message"}
+
+* Full Track Name:
+Identifies the track in the request message for which this
+response is provided.
+
+* Track ID: 
+Session specific identifier that maps the Full Track Name to the Track ID in OBJECT ({{message-object}}) message headers for the advertised track. Track IDs are generally shorter than Full Track Names and thus reduce the overhead in OBJECT messages. 
+
+* Expires:
+Time in milliseconds after which the subscription is no longer valid. A value of 0 implies that the subscription stays active until its explicitly unsubscribed or the underlying transport is disconnected.
+
+## SUBSCRIBE ERROR {#message-subscribe-error}
+
+A `SUBSCRIBE ERROR` control message is sent for unsuccessful subscriptions. 
+
+~~~
+SUBSCRIBE ERROR
+{
+  Full Track Name Length(i),
+  Full Track Name(...),
+  Error Code (i),
+  Reason Phrase Length (i),
+  Reason Phrase (...),
+}
+~~~
+{: #warp-subscribe-error format title="Warp SUBSCRIBE ERROR Message"}
+
+* Full Track Name:
+Identifies the track in the request message for which this
+response is provided.
+
+* Error Code:
+Identifies an integer error code for subscription failure.
+
+* Reason Phrase:
+Provides the reason for subscription error and `Reason Phrase Length` field carries its length.
 
 
 ## GOAWAY {#message-goaway}
@@ -784,6 +845,19 @@ The ROLE parameter (key 0x00) allows the client to specify what roles it expects
 
 The client MUST send a ROLE parameter with one of the three values specified above. The server MUST close the connection if the ROLE parameter is missing, is not one of the three above-specified values, or it is different from what the server expects based on the application in question.
 
+# Track Request Parameters {#track-req-params}
+
+The Track Request Parameters identify properties of the track requested in either the PUBLISH REQUEST or SUSBCRIBE REQUEST control messages. Every parameter MUST appear at most once. The peers MUST close the connection if there are duplicates. The Parameter Value Length field indicates the length of the Parameter Value.
+
+### GROUP SEQUENCE Parameter
+
+The GROUP SEQUENCE parameter (key 0x00) identifies the group within the track to start delivering the objects. The publisher MUST start delivering the objects from the most recent group, when this parameter is omitted.
+
+### OBJECT SEQUENCE Parameter
+The OBJECT SEQUENCE parameter (key 0x01) identifies the object with the track to start delivering the media. The `GROUP SEQUENCE` parameter MUST be set to identify the group under which to start the media delivery. The publisher MUST start delivering from the beginning of the selected group when this parameter is omitted.
+
+### AUTHORIZATION INFO Parameter
+AUTHORIZATION INFO parameter (key 0x02) identifies track's authorization information. This parameter is populated for cases where the authorization is required at the track level.
 
 # Containers
 The container format describes how the underlying codec bitstream is encoded.
@@ -833,6 +907,8 @@ The producer and consumer MUST cancel a stream, preferably the lowest priority, 
 TODO: fill out currently missing registries:
 * Warp version numbers
 * SETUP parameters
+* Track Request parameters
+* Subscribe Error codes
 * Track format numbers
 * Message types
 * Object headers
