@@ -833,6 +833,9 @@ is typical of clients in a realtime conferencing publishing media through the
 relays or a broadcaster streaming to a server or publishing across distribution 
 network boundaries.
 
+NOTE: The scope and use-cases for publish request is being actively discussed and 
+the proposals will be revisited
+
 ## PUBLISH OK {#message-publish-ok}
 
 A `PUBLISH OK` control message is sent for successful publish requests. 
