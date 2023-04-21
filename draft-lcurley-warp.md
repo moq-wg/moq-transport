@@ -847,7 +847,7 @@ The client MUST send a ROLE parameter with one of the three values specified abo
 
 # Track Request Parameters {#track-req-params}
 
-The Track Request Parameters identify properties of the track requesting in either the PUBLISH REQUEST or SUSBCRIBE REQUEST control messages. Every parameter MUST appear at most once. The peers MUST close the connection if there are duplicates. The Parameter Value Length field indicates the length of the Parameter Value.
+The Track Request Parameters identify properties of the track requested in either the PUBLISH REQUEST or SUSBCRIBE REQUEST control messages. Every parameter MUST appear at most once. The peers MUST close the connection if there are duplicates. The Parameter Value Length field indicates the length of the Parameter Value.
 
 ### GROUP SEQUENCE Parameter
 
