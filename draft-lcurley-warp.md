@@ -220,31 +220,32 @@ A Track is the central concept within the MoQ Transport protocol for delivering 
 
 A track is a transform of a uncompressed media or metadata using a specific encoding process, a set of parameters for that encoding, and possibly an encryption process. The MoQ Transport protocol is designed to transport tracks.
 
-### Track URI {#track-uri}
+### Full Track Name {#track-fn}
 
-Tracks are identified by a globally unique identifier, called "Track URI" with the scheme shown below:
+Tracks are identified by a globally unique identifier, called "Track Full Name" and defined as shown below:
 
 ~~~~~~~~~~~~~~~
-Track URI = "moq" "://" Track Namespace  "/"  Track Name
+Full Track Name = Track Namespace  "/"  Track Name
 ~~~~~~~~~~~~~~~
 
-"Track Namespace" MUST identify a globaly unique identifier, such as domain name or something equivalent. This is followed by the application context specific "Track Name", encoded as an opaque string. 
+This document does not define the exact mechanism of naming Track Namespaces. Applications building on top of MoQ MUST ensure that the mechanism used guarantees global uniqueness; for instance, an application could use domain names as track namespaces. Track Namespace is followed by the application context specific Track Name, encoded as an opaque string. 
+
 
 ~~~
 Example: 1
-Track Namespace = acme.meetings.com
+Track Namespace = videoconferencing.example.com
 Track Name = meeting123/audio
-Track URI = moq://acme.meetings.com/meeting123/audio
+Track URI = videoconferencing.example.com/meeting123/audio
 
 Example: 2
-Track Namespace = livestream.tv
+Track Namespace = livestream.example
 Track Name = uaCafDkl123/audio
-Track URI = moq://livestream.tv/uaCafDkl123/audio
+Track URI = livestream.example/uaCafDkl123/audio
 ~~~
 
 ### Connection URL
 
-Each track MAY have an associated hop-by-hop Connection URL that specifies the network host to setup the transport connection. The syntax of the Connection URL and the associated connection setup procedures are specific to the underlying transport protocol usage {{transport-usages}}.
+Each track MAY have one or more associated connection URLs specifying network hosts through which a track may be accessed. The syntax of the Connection URL and the associated connection setup procedures are specific to the underlying transport protocol usage {{transport-usages}}.
 
 ## Session
 A WebTransport session is established for each track bundle.
