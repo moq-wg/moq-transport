@@ -62,7 +62,7 @@ informative:
 
 This document defines the core behavior for Warp, a live media transport protocol over QUIC.
 Media is split into objects based on the underlying media encoding and transmitted independently over QUIC streams.
-QUIC streams are prioritized based on the delivery order, allowing less important objects to be starved or dropped during congestion.
+QUIC streams are prioritized based on the send order, allowing less important objects to be starved or dropped during congestion.
 
 --- middle
 
@@ -235,7 +235,6 @@ Full Track Name = Track Namespace  "/"  Track Name
 
 This document does not define the exact mechanism of naming Track Namespaces. Applications building on top of MoQ MUST ensure that the mechanism used guarantees global uniqueness; for instance, an application could use domain names as track namespaces. Track Namespace is followed by the application context specific Track Name, encoded as an opaque string. 
 
-
 ~~~
 Example: 1
 Track Namespace = videoconferencing.example.com
@@ -251,6 +250,7 @@ Full Track Name = livestream.example/uaCafDkl123/audio
 ### Connection URL
 
 Each track MAY have one or more associated connection URLs specifying network hosts through which a track may be accessed. The syntax of the Connection URL and the associated connection setup procedures are specific to the underlying transport protocol usage {{transport-protocols}}.
+
 
 ## Session
 A transport session is established for each track bundle.
@@ -345,7 +345,7 @@ further details.
 Warp works by splitting media into objects that can be transferred over QUIC streams.
 
 * The encoder determines how to fragment the encoded bitstream into objects ({{media}}).
-* Objects are assigned an intended delivery order that should be obeyed during congestion ({{delivery-order}})
+* Objects are assigned an intended send order that should be obeyed during congestion ({{send-order}})
 * The decoder receives each objects and skips any objects that do not arrive in time ({{decoder}}).
 
 ## Media
@@ -367,21 +367,21 @@ A media object:
 
 Media objects are encoded using a specified container ({{containers}}).
 
-## Delivery Order
+## Send Order
 Media is produced with an intended order, both in terms of when media should be presented (PTS) and when media should be decoded (DTS).
 As stated in motivation ({{latency}}), the network is unable to maintain this ordering during congestion without increasing latency.
 
-The encoder determines how to behave during congestion by assigning each object a numeric delivery order.
-The delivery order SHOULD be followed when possible to ensure that the most important media is delivered when throughput is limited.
-Note that the contents within each object are still delivered in order; this delivery order only applies to the ordering between objects.
+The encoder determines how to behave during congestion by assigning each object a numeric send order.
+The send order SHOULD be followed when possible to ensure that the most important media is delivered when throughput is limited.
+Note that the contents within each object are still delivered in order; this send order only applies to the ordering between objects.
 
 A sender MUST send each object over a dedicated QUIC stream.
-The QUIC library should support prioritization ({{prioritization}}) such that streams are transmitted in delivery order.
+The QUIC library should support prioritization ({{prioritization}}) such that streams are transmitted in send order.
 
-A receiver MUST NOT assume that objects will be received in delivery order for a number of reasons:
+A receiver MUST NOT assume that objects will be received in send order for a number of reasons:
 
-* Newly encoded objects MAY have a smaller delivery order than outstanding objects.
-* Packet loss or flow control MAY delay the delivery of individual streams.
+* Newly encoded objects MAY have a smaller send order than outstanding objects.
+* Packet loss or flow control MAY delay the send of individual streams.
 * The sender might not support QUIC stream prioritization.
 
 TODO: Refer to Congestion Response and Priorirization Section for further details on various proposals.
@@ -392,7 +392,7 @@ TODO: Add text describing interation of group and intra object priorities within
 ## Decoder
 The decoder will receive multiple objects in parallel and out of order.
 
-Objects arrive in delivery order, but media usually needs to be processed in decode order.
+Objects arrive in send order, but media usually needs to be processed in decode order.
 The decoder SHOULD use a buffer to reassmble objects into decode order and it SHOULD skip objects after a configurable duration.
 The amount of time the decoder is willing to wait for an object (buffer duration) is what ultimately determines the end-to-end latency.
 
@@ -447,17 +447,17 @@ Warp utilizes stream prioritization to deliver the most important content during
 
 TODO: Revisit the prioritization scheme and possibly move some of this to {{priority-congestion}}.
 
-The producer may assign a numeric delivery order to each object ({{delivery-order}})
+The producer may assign a numeric delivery order to each object ({{send-order}})
 
 This is a strict prioritization scheme, such that any available bandwidth is allocated to streams in ascending priority order.
-The sender SHOULD prioritize streams based on the delivery order.
-If two streams have the same delivery order, they SHOULD receive equal bandwidth (round-robin).
+The sender SHOULD prioritize streams based on the send order.
+If two streams have the same send order, they SHOULD receive equal bandwidth (round-robin).
 
 QUIC supports stream prioritization but does not standardize any mechanisms; see Section 2.3 in {{QUIC}}.
 In order to support prioritization, a QUIC library MUST expose a API to set the priority of each stream.
 This is relatively easy to implement; the next QUIC packet should contain a STREAM frame for the next pending stream in priority order.
 
-The sender MUST respect flow control even if means delivering streams out of delivery order.
+The sender MUST respect flow control even if means delivering streams out of send order.
 It is OPTIONAL to prioritize retransmissions.
 
 
@@ -475,8 +475,8 @@ This can be useful when the sender does not support stream prioritization.
 ## Relays
 Warp encodes the delivery information for a stream via OBJECT headers ({{message-object}}).
 
-A relay SHOULD prioritize streams ({{prioritization}}) based on the delivery order.
-A relay MAY change the delivery order, in which case it SHOULD update the value on the wire for future hops.
+A relay SHOULD prioritize streams ({{prioritization}}) based on the send order.
+A relay MAY change the send order, in which case it SHOULD update the value on the wire for future hops.
 
 A relay that reads from a stream and writes to stream in order will introduce head-of-line blocking.
 Packet loss will cause stream data to be buffered in the QUIC library, awaiting in order delivery, which will increase latency over additional hops.
@@ -643,7 +643,7 @@ OBJECT Message {
   Track ID (i),
   Group Sequence (i),
   Object Sequence (i),
-  Object Delivery Order (i),
+  Object Send Order (i),
   Object Payload (b),
 }
 ~~~
@@ -660,8 +660,8 @@ Group sequences are scoped under a Track.
 An integer always starts at 0 with in a Group and increases sequentially.
 Object Sequences are scoped to a Group.
 
-* Object Delivery Order:
-An integer indicating the object delivery order ({{delivery-order}}).
+* Object Send Order:
+An integer indicating the object send order ({{send-order}}).
 
 * Object Payload:
 The format depends on the track container ({{containers}}).
@@ -1211,14 +1211,14 @@ It is RECOMMENDED to create a new audio object at each video I-frame.
      object 2        object 4     object 6
 ~~~
 
-## Delivery Order {#appendix.delivery-order}
-The delivery order ({{delivery-order}} depends on the desired user experience during congestion:
+## Send Order {#appendix.send-order}
+The send order ({{send-order}} depends on the desired user experience during congestion:
 
-* if media should be skipped: delivery order = PTS
-* if media should not be skipped: delivery order = -PTS
-* if video should be skipped before audio: audio delivery order < video delivery order
+* if media should be skipped: send order = PTS
+* if media should not be skipped: send order = -PTS
+* if video should be skipped before audio: audio send order < video send order
 
-The delivery order may be changed if the content changes.
+The send order may be changed if the content changes.
 For example, switching from a live stream (skippable) to an advertisement (unskippable).
 
 # Contributors
