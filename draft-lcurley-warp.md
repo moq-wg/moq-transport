@@ -393,6 +393,9 @@ moq-URI = "moq" "://" authority path-abempty [ "?" query ]
 The `authority` portion MUST NOT contain a non-empty `userinfo` portion.
 The `moq` URI scheme supports the `/.well-known/` path prefix defined in {{!RFC8615}}.
 
+This protocol does not specify any semantics on the `path-abempty` and `query` portions of the URI.
+The contents of those is left up to the application.
+
 The client can establish a connection to a MoQ server identified by a given URI
 by setting up a QUIC connection to the host and port identified by the `authority` section of the URI.
 The `path-abempty` and `query` portions of the URI are communicated to the server using
