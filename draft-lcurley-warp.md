@@ -805,7 +805,6 @@ Identifies an integer error code for subscription failure.
 
 * Reason Phrase:
 Provides the reason for subscription error and `Reason Phrase Length` field carries its length.
-<<<<<<< HEAD
 
 ## PUBLISH REQUEST {#message-publish-req}
 
