@@ -768,7 +768,7 @@ SUBSCRIBE OK
   Expires (i)
 }
 ~~~
-{: #warp-publish-ok format title="Warp SUBSCRIBE OK Message"}
+{: #warp-subscribe-ok format title="Warp SUBSCRIBE OK Message"}
 
 * Full Track Name:
 Identifies the track in the request message for which this
@@ -805,6 +805,7 @@ Identifies an integer error code for subscription failure.
 
 * Reason Phrase:
 Provides the reason for subscription error and `Reason Phrase Length` field carries its length.
+<<<<<<< HEAD
 
 ## PUBLISH REQUEST {#message-publish-req}
 
@@ -825,7 +826,10 @@ PUBLISH REQUEST Message {
 Identifies the fully qualified track name as defined in ({{track-fn}}).
 
 * Track Request Parameters: 
-AUTHORIZATION INFO (see {{track-req-params}}) is be the only parameter applicable for the publish requests.
+AUTHORIZATION INFO (see {{track-req-params}}) is the only parameter applicable for the publish requests.
+
+Note: The scope and use-cases for publish request is being actively discussed and 
+the proposals will be revisited.
 
 ## PUBLISH OK {#message-publish-ok}
 
@@ -839,7 +843,7 @@ PUBLISH OK
   Track ID(i)
 }
 ~~~
-{: #warp-subscribe-ok format title="Warp PUBLISH OK Message"}
+{: #warp-publish-ok format title="Warp PUBLISH OK Message"}
 
 * Full Track Name:
 Identifies the track in the request message for which this
@@ -982,6 +986,7 @@ TODO: fill out currently missing registries:
 * Warp version numbers
 * SETUP parameters
 * Track Request parameters
+* Subscribe Error codes
 * Track format numbers
 * Message types
 * Object headers
