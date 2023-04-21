@@ -223,7 +223,7 @@ A track is a transform of a uncompressed media or metadata using a specific enco
 
 ### Full Track Name {#track-fn}
 
-Tracks are identified by a globally unique identifier, called "Track Full Name" and defined as shown below:
+Tracks are identified by a globally unique identifier, called "Full Track Name" and defined as shown below:
 
 ~~~~~~~~~~~~~~~
 Full Track Name = Track Namespace  "/"  Track Name
@@ -236,12 +236,12 @@ This document does not define the exact mechanism of naming Track Namespaces. Ap
 Example: 1
 Track Namespace = videoconferencing.example.com
 Track Name = meeting123/audio
-Track URI = videoconferencing.example.com/meeting123/audio
+Full Track Name = videoconferencing.example.com/meeting123/audio
 
 Example: 2
 Track Namespace = livestream.example
 Track Name = uaCafDkl123/audio
-Track URI = livestream.example/uaCafDkl123/audio
+Full Track Name = livestream.example/uaCafDkl123/audio
 ~~~
 
 ### Connection URL
