@@ -828,8 +828,11 @@ Identifies the fully qualified track name as defined in ({{track-fn}}).
 * Track Request Parameters: 
 AUTHORIZATION INFO (see {{track-req-params}}) is the only parameter applicable for the publish requests.
 
-Note: The scope and use-cases for publish request is being actively discussed and 
-the proposals will be revisited.
+`PUBLISH REQUEST` message enables flows where a publisher advertises the tracks to its peer, 
+where the peer is lacking sufficient information on available tracks to issue subscriptions. This
+is typical of clients in a realtime conferencing publishing media through the 
+relays or a broadcaster streaming to a server or publishing across distribution 
+network boundaries.
 
 ## PUBLISH OK {#message-publish-ok}
 
