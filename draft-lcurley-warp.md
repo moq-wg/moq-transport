@@ -260,6 +260,10 @@ Any identification, reliability, ordering, prioritization, caching, etc is writt
 This ensures that relays can easily route/fanout media to the final destination.
 
 ## Bandwidth management and congestion response
+TODO: Add motivation text regarding bw management techniques in
+response to congestion. Also refer to {{priority-congestion}} for
+further details.
+
 In point to point scenarios, it may be possible for publishers to notice network
 congestion and to manage encoding parameters to fit into the available bandwidth.
 This is generally not possible at relays, especially in cases involving large fan-out.
@@ -329,7 +333,11 @@ A receiver MUST NOT assume that objects will be received in delivery order for a
 * Packet loss or flow control MAY delay the delivery of individual streams.
 * The sender might not support QUIC stream prioritization.
 
+TODO: Refer to Congestion Response and Priorirization Section for further details on various proposals.
+
 ## Groups
+TODO: Add text describing interation of group and intra object priorities within a group and their relation to congestion response. Add how it refers to {{priority-congestion}}
+
 Objects are marked with metadata that facilitate congestion response in relays. That information
 also facilitate synchronization to intermediate points, as needing when "fast forwarding" or
 "rewinding" a media stream. Applications can define groups however they see fit, as long as the following property applies:
