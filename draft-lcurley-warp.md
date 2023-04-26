@@ -186,32 +186,20 @@ x (b):
 ## Objects {#model-object}
 
 The basic element of Warp is an *object*. An object is a single addressable
-cacheable unit whose payload is a sequence of bytes.  An object MAY depend on other 
-objects to be decoded. All objects belong to a group {{model-group}}. Objects carry 
-associated metadata such as priority, TTL or other information usable by a relay, 
+unit whose payload is a sequence of bytes.  An object MAY depend on other
+objects to be decoded: such objects are members of the same group {{model-group}}. Objects carry
+associated metadata such as priority, TTL or other information usable by a relay,
 but relays MUST treat object payloads as opaque.
 
-DISCUSS: Can an object be partially decodable by an endpoint?
+The application is solely responsible for the contents of objects.
+This includes the underlying encoding, compression, any end-to-end encryption, or authentication.
+A relay MUST NOT combine, split, or otherwise modify object payloads.
 
-Authors agree that an object is always partially *forwardable* by a relay but
-disagree on whether a partial object can be used by a receiving endpoint.
+The application MAY be able to partially decode an object.
+A sender SHOULD transmit incomplete objects to avoid incurring additional latency.
+A sender MAY drop or deprioritize the remainder of an object during congestion,
+potentially rendering the object undecodable in favor of a higher priority object.
 
-Option 1: A receiver MAY start decoding an object before it has been completely received
-
-Example: sending an entire GOP as a single object.  A receiver can decode the
-GOP from the beginning without having the entire object present, and the object's
-tail could be dropped.  Sending a GOP as a group of not-partially-decodable
-objects might incur additional overhead on the wire and/or additional processing of 
-video segments at a sender to find object boundaries.
-
-Partial decodability could be another property of an object.
-
-Option 2: A receiver MUST NOT start decoding an object before it has completely arrived
-
-Objects could be end-to-end encrypted and the receiver might not be able to
-decrypt or authenticate an object until it is fully present.  Allowing Objects
-to span more than one useable unit may create more than one viable application
-mapping from media to wire format, which could be confusing for protocol users.
 
 ## Groups {#model-group}
 
