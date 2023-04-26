@@ -214,10 +214,21 @@ to span more than one useable unit may create more than one viable application
 mapping from media to wire format, which could be confusing for protocol users.
 
 ## Groups {#model-group}
+A *group* is an independent sequence of objects.
+Each group is a join point, such that a new subscriber can begin receiving a track without prior progress.
 
-An object group is a sequence of media objects. Beginning of an object group can be used as a point at which the receiver can start consuming a track without having any other object groups available. Object groups have an ID that identifies them uniquely within a track.
+An object MUST be decodable after the delivery of all prior objects within the same group.
+This implies that the first object within a group MUST NOT depend on other objects.
+The application MAY use the sequence number to perform ordering and detect gaps within a group.
 
-DISCUSS: We need to determine what are the exact requirements we need to impose on how the media objects depend on each other. Such requirements would need to address the use case (a join point), while being flexible enough to accomodate scenarios like B-frames and temporal scaling.
+A sender SHOULD selectively transmit objects based on group membership.
+For example, the sender could transmit only the newest group to new subscriber, as the objects are then guaranteed to be decodable.
+However, the sender MUST still transmit objects based on the priority {{send-order}}, not based on the group sequence number.
+
+A decoder MAY use objects from prior groups when using a self-correcting encoding scheme.
+For example, an audio decoder should not be reinitialized at group boundaries, otherwise it causes a noticeable blip.
+Likewise, an video decoder may temporarily reference a prior group when using intra-refresh encoding.
+
 
 ## Track {#model-track}
 
@@ -653,12 +664,12 @@ OBJECT Message {
 The track identifier obtained as part of subscription and/or publish control message exchanges.
 
 * Group Sequence :
-An integer always starts at 0 and increases sequentially at the original media publisher.
-Group sequences are scoped under a Track.
+The object is a member of the indicated group {{model-group}} within the track.
+The sequence starts at 0, increasing sequentially for each group within the track.
 
 * Object Sequence:
-An integer always starts at 0 with in a Group and increases sequentially.
-Object Sequences are scoped to a Group.
+The order of the object within the group.
+The sequence starts at 0, increasing sequentially for each object within the group.
 
 * Object Send Order:
 An integer indicating the object send order ({{send-order}}).
