@@ -381,7 +381,7 @@ way to meet several important goals, such as:
 
 The working group has been considering two alternatives: mark objects belonging to a track
 with and explicit "send order"; and, define algorithms combining tracks, priorities and object
-order within a group. The two proposals are listed in {{send-order}} and {{ordering-by-priority}}.
+order within a group. The two proposals are listed in {{send-order}} and {{ordering-by-priorities}}.
 We expect further work before a consensus is reached.
 
 ### Send Order
