@@ -367,7 +367,24 @@ A media object:
 
 Media objects are encoded using a specified container ({{containers}}).
 
-## Send Order
+## Order Priorities and Options
+
+At the point of this writing, the working group has not reached consensus on the proper
+way to meet several important goals, such as:
+
+* Ensure that media objects are delivered in the order intended by the emitter
+* Allow nodes and relays to skip or delay some objects to deal with congestion
+* Ensure that emitters can accurately predict the behavior of relays
+* Ensure that when relay have to skip and delay objects belonging to different
+  tracks they do it in a predictable way if tracks are explicitly coordinated
+  and in a fair way if they are not.
+
+The working group has been considering two alternatives: mark objects belonging to a track
+with and explicit "send order"; and, define algorithms combining tracks, priorities and object
+order within a group. The two proposals are listed in {{send-order}} and {{ordering-by-priority}}.
+We expect further work before a consensus is reached.
+
+### Send Order
 Media is produced with an intended order, both in terms of when media should be presented (PTS) and when media should be decoded (DTS).
 As stated in motivation ({{latency}}), the network is unable to maintain this ordering during congestion without increasing latency.
 
@@ -385,6 +402,29 @@ A receiver MUST NOT assume that objects will be received in send order for a num
 * The sender might not support QUIC stream prioritization.
 
 TODO: Refer to Congestion Response and Priorirization Section for further details on various proposals.
+
+### Ordering by Priorities
+
+Media is produced as a set of layers, such as for example low definition and high definition,
+or low frame rate and high frame rate. Each media object belonging to a track and a group has two attributes: the object-id, and the priority (or layer).
+
+When nodes or relays have to choose which object to send next, they apply the following rules:
+
+* within the same group, objects with a lower priority number (e.g. P1) are always sent
+  before objects with a numerically greater priority number (e.g., P2)
+* within the same group, and the same priority level, objects with a lower object-id are
+  always sent before objects with a higher object-id.
+* objects from later groups are normally always send
+  before objects of previous groups.
+
+The latter rule is generally agreed as a way to ensure media freshness, and to recover quickly
+if queues and delays accumulate during a congestion period. However, there may be cases when
+finishing the transmission of an ongoing group results in better user experience than strict
+adherence to the freshness rule. We expect that that the working group will eventually reach
+consensus and define meta data that control this behavior.
+
+There have been proposals to allow emitters to coordinate the allocation of layer priorities
+across multiple coordinated tracks. At this point, these proposals have not reached consensus.
 
 ## Groups
 TODO: Add text describing interation of group and intra object priorities within a group and their relation to congestion response. Add how it refers to {{priority-congestion}}
@@ -450,7 +490,15 @@ TODO: Revisit the prioritization scheme and possibly move some of this to {{prio
 The producer may assign a numeric delivery order to each object ({{send-order}})
 
 This is a strict prioritization scheme, such that any available bandwidth is allocated to streams in ascending priority order.
-The sender SHOULD prioritize streams based on the send order.
+
+As explained in {{order-priorities-and-options}}, the working group has not reached consensus
+on how the emitters mark objects so that relays can apply their preferences. This leads to at
+least two possible implementations:
+
+* if using the "send order" logic, the sender SHOULD prioritize streams based on the send order.
+
+* if using the "priority" logic, the sender SHOULD send objects in streams corresponding to the object priority, and should mark these streams with the corresponding priority value.
+
 If two streams have the same send order, they SHOULD receive equal bandwidth (round-robin).
 
 QUIC supports stream prioritization but does not standardize any mechanisms; see Section 2.3 in {{QUIC}}.
