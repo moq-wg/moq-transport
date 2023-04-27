@@ -185,21 +185,17 @@ x (b):
 
 ## Objects {#model-object}
 
-The basic element of Warp is an *object*. An object is a single addressable
-unit whose payload is a sequence of bytes.  An object MAY depend on other
-objects: such objects are members of the same group {{model-group}}. Objects carry
-associated metadata such as priority, TTL or other information usable by a relay,
-but relays MUST treat object payloads as opaque.
+The basic element of Warp is an *object*.
+An object is an addressable unit whose payload is a sequence of bytes.
+All objects belong to a group, indicating ordering and potential dependencies. {{model-group}}
+Objects carry associated metadata such as priority, TTL, or other information usable by a relay, but relays MUST treat the object payload as opaque.
 
 The application is solely responsible for the contents of objects.
 This includes the underlying encoding, compression, any end-to-end encryption, or authentication.
 A relay MUST NOT combine, split, or otherwise modify object payloads.
 
-The application MAY be able to partially decode an object.
-A sender SHOULD transmit incomplete objects to avoid incurring additional latency.
-A sender MAY drop or deprioritize the remainder of an object during congestion,
-potentially rendering the object undecodable in favor of a higher priority object.
-
+An endpoint SHOULD transmit objects based on their priority.
+An object MAY arrive out of the intended order or dropped altogether.
 
 ## Groups {#model-group}
 
