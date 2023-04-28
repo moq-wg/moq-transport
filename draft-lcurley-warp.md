@@ -195,7 +195,7 @@ This includes the underlying encoding, compression, any end-to-end encryption, o
 A relay MUST NOT combine, split, or otherwise modify object payloads.
 
 An endpoint SHOULD transmit objects based on their priority.
-An object MAY arrive out of the intended order or dropped altogether.
+An object MAY arrive out of order or dropped altogether.
 
 ## Groups {#model-group}
 
