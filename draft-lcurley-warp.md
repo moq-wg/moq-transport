@@ -214,8 +214,8 @@ to span more than one useable unit may create more than one viable application
 mapping from media to wire format, which could be confusing for protocol users.
 
 ## Groups {#model-group}
-A *group* is an independent sequence of objects.
-Each group is a join point, such that a new subscriber can begin receiving a track without prior progress.
+A *group* is sequence of objects.
+Each group is independent and behaves as a join point for new subscribers.
 
 An object MUST be decodable after the delivery of all prior objects within the same group.
 This implies that the first object within a group MUST NOT depend on other objects.
