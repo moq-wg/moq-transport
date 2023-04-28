@@ -380,7 +380,7 @@ way to meet several important goals, such as:
   and in a fair way if they are not.
 
 The working group has been considering two alternatives: mark objects belonging to a track
-with and explicit "send order"; and, define algorithms combining tracks, priorities and object
+with an explicit "send order"; and, define algorithms combining tracks, priorities and object
 order within a group. The two proposals are listed in {{send-order}} and {{ordering-by-priorities}}.
 We expect further work before a consensus is reached.
 
@@ -414,7 +414,7 @@ When nodes or relays have to choose which object to send next, they apply the fo
   before objects with a numerically greater priority number (e.g., P2)
 * within the same group, and the same priority level, objects with a lower object-id are
   always sent before objects with a higher object-id.
-* objects from later groups are normally always send
+* objects from later groups are normally always sent
   before objects of previous groups.
 
 The latter rule is generally agreed as a way to ensure media freshness, and to recover quickly
