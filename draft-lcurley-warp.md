@@ -214,20 +214,14 @@ to span more than one useable unit may create more than one viable application
 mapping from media to wire format, which could be confusing for protocol users.
 
 ## Groups {#model-group}
-A *group* is sequence of objects.
-Each group is independent and behaves as a join point for new subscribers.
+A *group* is collection of objects, part of a larger track ({{model-track}}).
 
-An object MUST be decodable after the delivery of all prior objects within the same group.
-This implies that the first object within a group MUST NOT depend on other objects.
-The application MAY use the sequence number to perform ordering and detect gaps within a group.
+A group behaves as a join point for subscriptions.
+A new subscriber may not want to receive the entire track, and will instead opt to receive only the latest group(s).
+The sender then selectively transmits objects based on their group membership.
 
-A sender SHOULD selectively transmit objects based on group membership.
-For example, the sender could transmit only the newest group to new subscriber, as the objects are then guaranteed to be decodable.
-However, the sender MUST still transmit objects based on the priority {{send-order}}, not based on the group sequence number.
-
-A decoder MAY use objects from prior groups when using a self-correcting encoding scheme.
-For example, an audio decoder should not be reinitialized at group boundaries, otherwise it causes a noticeable blip.
-Likewise, an video decoder may temporarily reference a prior group when using intra-refresh encoding.
+The application is responsible for how objects are placed into groups.
+In general, objects within a group SHOULD NOT depend on objects in other groups.
 
 
 ## Track {#model-track}
