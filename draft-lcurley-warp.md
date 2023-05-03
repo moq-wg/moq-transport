@@ -194,9 +194,6 @@ The application is solely responsible for the contents of objects.
 This includes the underlying encoding, compression, any end-to-end encryption, or authentication.
 A relay MUST NOT combine, split, or otherwise modify object payloads.
 
-An endpoint SHOULD transmit objects based on their priority.
-An object MAY arrive out of order or dropped altogether.
-
 ## Groups {#model-group}
 
 An object group is a sequence of media objects. Beginning of an object group can be used as a point at which the receiver can start consuming a track without having any other object groups available. Object groups have an ID that identifies them uniquely within a track.
