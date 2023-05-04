@@ -624,7 +624,8 @@ Relays MUST match the track id in the OBJECT message header against the active s
 __Note to authors: This above send behavior is common across all senders and once we have a sufficient text defined elsewhere, we can just refer to the appropriate section.__
 
 ## Relay Discovery and Failover
-Relays are discovered via application defined ways that are out of scope of this document. A Relay that wants to shutdown can send a message to the client with  the address of new relay. Client moves to the new relay with all of its Subscriptions and then Client unsubscribes from old relay and closes connection to it.
+
+Relays are discovered via application defined ways that are out of scope of this document. A Relay that wants to shutdown can send a message to the client with the address of new relay. Client moves to the new relay with all of its Subscriptions and then Client unsubscribes from old relay and closes connection to it.
 
 ## Restoring connections through relays
 
