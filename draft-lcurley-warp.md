@@ -602,31 +602,26 @@ and publish requests to the tracks.
 
 Subscribers interact with the Relays by sending a "SUBSCRIBE REQUEST"  ({{message-subscribe-req}}) control message for the tracks of interest. Relays MUST be willing to act on behalf of the subscriptions before they can forward the media, which implies that the subscriptions MUST be authorized and it is done as follows:
 
-1. For cases where the "Track Namespace" component of the "Full Track Name" the Origin domain, Relays MUST ensure the Origin is authorized. Specifics of the authorization process depends on the way the relay is managed and is typically based on prior business agreement with the Provider.
-
-2. Verify that the subscriber is authorized to access the specified content. Subscriptions MUST carrying enough authorization information proving the subscriber has access to the requested track. 
+- Verify that the subscriber is authorized to access the specified content associated with the "Full Track Name". Subscriptions MUST carry enough authorization information proving the subscriber has access to the requested track. Specifics of the authorization process depends on the way the relay is managed and is typically based on prior business agreement with the Origin, for example.
 
 In all the scenarios, the end-point client making the subscribe
 request is notified of the result of the subscription, via "SUBSCRIBE OK" ({{message-subscribe-ok}}) or the "SUBSCRIBE ERROR" {{message-subscribe-error}} control message.
 
-For cases where the subscriptions are successfully validated, Relay proceeed to save the subscription information by maintaining the mapping from the track information to the list of subscribers. This will enable Relays to forward on-going publishes (live or from cache) to the subscribers, if available, and also forward all the future publishes, until the subscriptions cases to exist. A given susbcription MAY cease to exist because of its expiry or publisher of the track stops producing media. 
-
-Relays make such forwarding and/or caching decisions, based on match of the identfiers for the track associated in the object's header against the list of subscribers.
-
+For successful subscriptions, Relay proceeds to save the subscription information by maintaining mapping from the track information to the list of subscribers. This will enable Relays to forward on-going publishes (live or from cache) to the subscribers, if available, and also forward all the future publishes, until the subscriptions cases to exist. A given susbcription ceases to exist because its expired or the publisher of the track stops producing media. 
 
 ## Publisher Interactions
 
-Publishers MAY be configured to publish the objects to a Relays based on the application configuration and topology. Publishing set of tracks through the Relay starts with a "ANNOUNCE" control messages that identifies the tracks via their Full Track Names ({{model-track}}). 
+Publishers MAY be configured to publish the objects to a Relays based on the application configuration and topology. Publishing set of tracks through the Relay starts with a "ANNOUNCE" control message
 
-The "ANNOUNCE" message advertises set of tracks and their authorization information. For each track in the "ANNOUNCE" message,: 
+The "ANNOUNCE" message advertises set of tracks, identified via their Full Track Names ({{model-track}}) and carry necessary authorization information. Relays MUST 
 
-1. For cases where the "Track Namespace" component of the "Full Track Name" is the Origin domain, Relays MUST ensure the Origin is authorized. 
-
-2. Verify that the publisher is authorized to produce on the specified track by validating the authorization information.
+- Verify that the publisher is authorized to produce media for a given "Full Track Name" by validating the authorization information. Specifics of the authorization process depends on the way the relay is managed and is typically based on prior business agreement with the Origin, for example.
 
 Relays respond with "ANNOUNCE OK" and/or "ANNONCE ERROR" control messages reflecting the authorization status.
 
-Relays match the identifiers for the tracks in the OBJECT message published against the list of active subscribers for making forwarding decisions. Relays makes use of priority order and other metadata properties from the published objects to make forward or drop decisions when reacting to congestion as indicated by the underlying QUIC stack.  The same can be used to make caching decisions.
+Relays MUST match the track id in the OBJECT message header against the active subscribers for a given track. Relays MUST NOT depend on OBJECT payload content for making forwarding decisions and MUST only depend on the fields, such as priority order and other metadata properties in the OBJECT message header. Unless determined by congestion response, Relays MUST forward the OBJECT message to the matching subscribers. 
+
+__Note to authors: This above send behavior is common across all senders and once we have a sufficient text defined elsewhere, we can just refer to the appropriate section.__
 
 ## Relay Discovery and Failover
 Relays are discovered via application defined ways that are out of scope of this document. A Relay that wants to shutdown can send a message to the client with  the address of new relay. Client moves to the new relay with all of its Subscriptions and then Client unsubscribes from old relay and closes connection to it.
