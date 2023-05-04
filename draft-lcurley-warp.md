@@ -604,11 +604,11 @@ A length of 0 indicates the message is unbounded and continues until the end of 
 |------|----------------------------------------------|
 | 0x5  | SUBSCRIBE ERROR ({{message-subscribe-error}})|
 |------|----------------------------------------------|
-| 0x6  | PUBLISH REQUEST ({{message-publish-req}})    |
+| 0x6  | ANNOUNCE  ({{message-announce}})              |
 |------|----------------------------------------------|
-| 0x7  | PUBLISH OK ({{message-publish-ok}})          |
+| 0x7  | ANNOUNCE OK ({{message-announce-ok}})        |
 |------|----------------------------------------------|
-| 0x8  | PUBLISH ERROR ({{message-publish-error}})    |
+| 0x8  | ANNOUNCE ERROR ({{message-announce-error}})  |
 |------|----------------------------------------------|
 | 0x10 | GOAWAY ({{message-goaway}})                  |
 |------|----------------------------------------------|
@@ -680,7 +680,6 @@ An integer indicating the object delivery order ({{delivery-order}}).
 The format depends on the track container ({{containers}}).
 This is a media bitstream intended for the decoder and SHOULD NOT be processed by a relay.
 
-
 ## CATALOG {#message-catalog}
 The sender advertises tracks via the CATALOG message.
 The receiver can then SUBSCRIBE to the indiciated tracks by ID.
@@ -723,6 +722,7 @@ This contains base information required to decode OBJECT messages, such as codec
 
 An endpoint MUST NOT send multiple CATALOG messages.
 A future draft will add the ability to add/remove/update tracks.
+
 
 ## SUBSCRIBE REQUEST {#message-subscribe-req}
 
@@ -806,63 +806,82 @@ Identifies an integer error code for subscription failure.
 * Reason Phrase:
 Provides the reason for subscription error and `Reason Phrase Length` field carries its length.
 
-## PUBLISH REQUEST {#message-publish-req}
+## ANNOUNCE {#message-announce}
 
-The `PUBLISH REQUEST` control message sets up authorization for tracks that the publisher intends to publish media with.
-
-The format of PUBLISH is defined as below:
+The publisher advertises the tracks via the `ANNOUNCE` control message. The `ANNOUNCE` message sets up authorization for tracks that the publisher intends to publish media with. The receiver can then SUBSCRIBE to the advertised tracks.
 
 ~~~
-PUBLISH REQUEST Message {
+ANNOUNCE Message {
+  Track Info Count (i),
+  Track Info (..) ...
+}
+~~~
+{: #warp-announce-format title="Warp ANNOUNCE Message"}
+
+* Track Count:
+The number of tracks being announced.
+
+For each track, there is a track info with the format:
+
+~~~
+Track Info {
   Full Track Name Length(i),
   Full Track Name(...),
   Track Request Parameters (..) ...
 }
 ~~~
-{: #warp-publish-format title="Warp PUBLISH REQUEST Message"}
-
-* Full Track Name:
-Identifies the fully qualified track name as defined in ({{track-fn}}).
-
-* Track Request Parameters: 
-AUTHORIZATION INFO (see {{track-req-params}}) is the only parameter applicable for the publish requests.
-
-`PUBLISH REQUEST` message enables flows where a publisher advertises the tracks to its peer, 
-where the peer is lacking sufficient information on available tracks to issue subscriptions. This
-is typical of clients in a realtime conferencing publishing media through the 
-relays or a broadcaster streaming to a server or publishing across distribution 
-network boundaries.
-
-NOTE: The scope and use-cases for publish request is being actively discussed and 
-the proposals will be revisited
-
-## PUBLISH OK {#message-publish-ok}
-
-A `PUBLISH OK` control message is sent for successful publish requests. 
-
-~~~
-PUBLISH OK
-{
-  Full Track Name Length(i),
-  Full Track Name(...),
-  Track ID(i)
-}
-~~~
-{: #warp-publish-ok format title="Warp PUBLISH OK Message"}
+{: #warp-track-info title="Warp Track Info"}
 
 * Full Track Name:
 Identifies the track in the request message for which this
 response is provided.
 
-* Track ID: 
-Session specific identifier that maps the Full Track Name to the Track ID in OBJECT ({{message-object}}) message headers for the advertised track. Track IDs are generally shorter than Full Track Names and thus reduce the overhead in OBJECT messages.
+* Track Request Parameters: 
+AUTHORIZATION INFO (see {{track-req-params}}) is the only parameter applicable for the announce messages.
 
-## PUBLISH ERROR {#message-publish-error}
+Additionally the `ANNOUNCE` message enables flows where publisher advertises the tracks to its peer (say Relays) and the peer lacks sufficient information on available tracks to issue subscriptions. This is typical of clients in a realtime conferencing publishing media through the relays or a broadcaster streaming to a server or publishing across distribution network boundaries.
 
-A `PUBLISH ERROR` control message idetifies unsuccesful publish requests. 
+
+## ANNOUNCE OK {#message-announce-ok}
+
+A `ANNOUNCE OK` control message is sent for successful announcement implying successful authorization. 
 
 ~~~
-PUBLISH ERROR
+ANNOUNCE OK
+{
+  Track Name Count (i),
+  Track Name (..)...
+}
+~~~
+{: #warp-announce-ok format title="Warp ANNOUNCE OK Message"}
+
+* Track Name Count:
+The number of tracks that were successfully authorized. 
+ 
+* Track Name:
+List of tracks identified by their Full Track Name selected from the
+`Track Info` list in the `ANNOUNCE` message.
+
+## ANNOUNCE ERROR {#message-announce-error}
+
+A `ANNOUNCE ERROR` control message is sent for the tracks that failed their authorization at the peer.
+
+~~~
+ANNOUNCE ERROR
+{
+  Error Track Info Count(i),
+  Error Track Info (..)...,
+}
+~~~
+{: #warp-announce-error format title="Warp ANNOUNCE ERROR Message"}
+
+* Error Track Info Count:
+Count of tracks that failed authorization
+
+For each track, the Error Track Info is defined as below:
+
+~~~
+Error Track Info
 {
   Full Track Name Length(i),
   Full Track Name(...),
@@ -871,7 +890,7 @@ PUBLISH ERROR
   Reason Phrase (...),
 }
 ~~~
-{: #warp-publish-error format title="Warp PUBLISH ERROR Message"}
+{: #warp-error-track-info format title="Warp Error Track Info"}
 
 * Full Track Name:
 Identifies the track in the request message for which this
@@ -881,8 +900,7 @@ response is provided.
 Identifies an integer error code for subscription failure.
 
 * Reason Phrase:
-Provides the reason for subscription error and `Reason Phrase Length` carries its length.
-
+Provides the reason for subscription error and `Reason Phrase Length` field carries its length.
 
 ## GOAWAY {#message-goaway}
 The `GOAWAY` message is sent by the server to force the client to reconnect.
