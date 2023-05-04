@@ -615,11 +615,18 @@ Relays make such forwarding and/or caching decisions, based on match of the iden
 
 
 ## Publisher Interactions
-Publishers MAY be configured to publish the objects to a Relays based on the application configuration and topology.  Publishing set of tracks through the Relay starts with a "PUBLISH" control messages that identifies the tracks via their Track Names ({{model-track}}). 
 
-As specified with subscriber interactions, Relays MUST be authorized to serve a given track's Provider and the publisher MUST be authorized to publish content on the tracks advertised in the "PUBLISH" message.
+Publishers MAY be configured to publish the objects to a Relays based on the application configuration and topology. Publishing set of tracks through the Relay starts with a "ANNOUNCE" control messages that identifies the tracks via their Full Track Names ({{model-track}}). 
 
-Relays makes use of priority order and other metadata properties from the published objects to make forward or drop decisions when reacting to congestion as indicated by the underlying QUIC stack.  The same can be used to make caching decisions.
+The "ANNOUNCE" message advertises set of tracks and their authorization information. For each track in the "ANNOUNCE" message,: 
+
+1. For cases where the "Track Namespace" component of the "Full Track Name" is the Origin domain, Relays MUST ensure the Origin is authorized. 
+
+2. Verify that the publisher is authorized to produce on the specified track by validating the authorization information.
+
+Relays respond with "ANNOUNCE OK" and/or "ANNONCE ERROR" control messages reflecting the authorization status.
+
+Relays match the identifiers for the tracks in the OBJECT message published against the list of active subscribers for making forwarding decisions. Relays makes use of priority order and other metadata properties from the published objects to make forward or drop decisions when reacting to congestion as indicated by the underlying QUIC stack.  The same can be used to make caching decisions.
 
 ## Relay Discovery and Failover
 TODO: This section shall cover aspects of relay failover and protocol interactions
