@@ -609,10 +609,6 @@ request is notified of the result of the subscription, via "SUBSCRIBE OK" ({{mes
 
 For successful subscriptions, Relay proceeds to save the subscription information by maintaining mapping from the track information to the list of subscribers. This will enable Relays to forward on-going publishes (live or from cache) to the subscribers, if available, and also forward all the future publishes, until the subscriptions cases to exist. A given susbcription ceases to exist because its expired or the publisher of the track stops producing media. 
 
-Relays MUST use track id in the OBJECT message for matching against the active subscribers to performing forwarding and/or caching decisions. Unless determined by congestion response, Relays MUST forward the OBJECT message to the matching subscribers. 
-
-__Note to authors: This above send behavior is common across all senders and once we have a sufficient text defined, we can just refer to the appropriate section.__
-
 ## Publisher Interactions
 TODO: This section shall cover relay handling of publishes.
 
