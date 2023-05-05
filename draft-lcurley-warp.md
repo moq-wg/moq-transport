@@ -659,7 +659,6 @@ The track identifier obtained as part of subscription and/or publish control mes
 
 * Group Sequence :
 The object is a member of the indicated group {{model-group}} within the track.
-The sequence starts at 0, increasing sequentially for each group within the track.
 
 * Object Sequence:
 The order of the object within the group.
