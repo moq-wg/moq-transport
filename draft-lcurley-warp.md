@@ -195,10 +195,15 @@ This includes the underlying encoding, compression, any end-to-end encryption, o
 A relay MUST NOT combine, split, or otherwise modify object payloads.
 
 ## Groups {#model-group}
+A *group* is collection of objects, part of a larger track ({{model-track}}).
 
-An object group is a sequence of media objects. Beginning of an object group can be used as a point at which the receiver can start consuming a track without having any other object groups available. Object groups have an ID that identifies them uniquely within a track.
+A group behaves as a join point for subscriptions.
+A new subscriber may not want to receive the entire track, and will instead opt to receive only the latest group(s).
+The sender then selectively transmits objects based on their group membership.
 
-DISCUSS: We need to determine what are the exact requirements we need to impose on how the media objects depend on each other. Such requirements would need to address the use case (a join point), while being flexible enough to accomodate scenarios like B-frames and temporal scaling.
+The application is responsible for how objects are placed into groups.
+In general, objects within a group SHOULD NOT depend on objects in other groups.
+
 
 ## Track {#model-track}
 
@@ -682,12 +687,11 @@ OBJECT Message {
 The track identifier obtained as part of subscription and/or publish control message exchanges.
 
 * Group Sequence :
-An integer always starts at 0 and increases sequentially at the original media publisher.
-Group sequences are scoped under a Track.
+The object is a member of the indicated group {{model-group}} within the track.
 
 * Object Sequence:
-An integer always starts at 0 with in a Group and increases sequentially.
-Object Sequences are scoped to a Group.
+The order of the object within the group.
+The sequence starts at 0, increasing sequentially for each object within the group.
 
 * Object Send Order:
 An integer indicating the object send order ({{send-order}}).
