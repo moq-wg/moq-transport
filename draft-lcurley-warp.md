@@ -808,7 +808,7 @@ Provides the reason for subscription error and `Reason Phrase Length` field carr
 
 ## ANNOUNCE {#message-announce}
 
-The publisher advertises the tracks via the `ANNOUNCE` control message. The `ANNOUNCE` message sets up authorization for tracks that the publisher intends to publish media with. The receiver can then SUBSCRIBE to the advertised tracks.
+The publisher advertises the tracks via the `ANNOUNCE` control message. The `ANNOUNCE` message provides for the relays to discover tracks being published, enable appropriate routing for serving subscriptions and set up authorization for tracks that the publisher intends to publish media with. The receiver can then SUBSCRIBE to the advertised tracks.
 
 ~~~
 ANNOUNCE Message {
@@ -833,13 +833,12 @@ Track Info {
 {: #warp-track-info title="Warp Track Info"}
 
 * Full Track Name:
-Identifies the track in the request message for which this
-response is provided.
+Identifies the track as defined in ({{track-fn}}).
 
 * Track Request Parameters: 
 AUTHORIZATION INFO (see {{track-req-params}}) is the only parameter applicable for the announce messages.
 
-Additionally the `ANNOUNCE` message enables flows where publisher advertises the tracks to its peer (say Relays) and the peer lacks sufficient information on available tracks to issue subscriptions. This is typical of clients in a realtime conferencing publishing media through the relays or a broadcaster streaming to a server or publishing across distribution network boundaries.
+`ANNOUNCE` message enables flows where the peer lacks sufficient information on available tracks to issue subscriptions.
 
 
 ## ANNOUNCE OK {#message-announce-ok}
@@ -859,8 +858,7 @@ ANNOUNCE OK
 The number of tracks that were successfully authorized. 
  
 * Track Name:
-List of tracks identified by their Full Track Name selected from the
-`Track Info` list in the `ANNOUNCE` message.
+List of tracks identified by their Full Track Name selected from the `Track Info` list in the `ANNOUNCE` message.
 
 ## ANNOUNCE ERROR {#message-announce-error}
 
