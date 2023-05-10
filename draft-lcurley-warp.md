@@ -604,7 +604,7 @@ A length of 0 indicates the message is unbounded and continues until the end of 
 |------|----------------------------------------------|
 | 0x5  | SUBSCRIBE ERROR ({{message-subscribe-error}})|
 |------|----------------------------------------------|
-| 0x6  | ANNOUNCE  ({{message-announce}})              |
+| 0x6  | ANNOUNCE  ({{message-announce}})             |
 |------|----------------------------------------------|
 | 0x7  | ANNOUNCE OK ({{message-announce-ok}})        |
 |------|----------------------------------------------|
@@ -808,7 +808,13 @@ Provides the reason for subscription error and `Reason Phrase Length` field carr
 
 ## ANNOUNCE {#message-announce}
 
-The publisher advertises the tracks via the `ANNOUNCE` control message. The `ANNOUNCE` message provides for the relays to discover tracks being published, enable appropriate routing for serving subscriptions and set up authorization for tracks that the publisher intends to publish media with. The receiver can then SUBSCRIBE to the advertised tracks.
+The publisher advertises the tracks via the `ANNOUNCE` control message. The `ANNOUNCE` message provides a way for relays to :
+
+- Discover tracks being published by a publisher, 
+- Enable appropriate routing for serving subscriptions and 
+- Set up authorization for tracks that the publisher intends to publish media with. 
+
+The receiver can then SUBSCRIBE to the advertised tracks.
 
 ~~~
 ANNOUNCE Message {
@@ -838,12 +844,14 @@ Identifies the track as defined in ({{track-fn}}).
 * Track Request Parameters: 
 AUTHORIZATION INFO (see {{track-req-params}}) is the only parameter applicable for the announce messages.
 
+
 `ANNOUNCE` message enables flows where the peer lacks sufficient information on available tracks to issue subscriptions.
 
+DISCUSS: There seems to be need to discuss on how bi-directional routing is going to work with dynamic publishers. CDN's of today have a mechanism for handling ingest from multiple publishers. Can that mechanism be extended to MoQ? Or is a new mechanism, along the lines of ANNOUNCE, required to meet the pub/sub routing demands of applications such as real-time conferencing?
 
 ## ANNOUNCE OK {#message-announce-ok}
 
-A `ANNOUNCE OK` control message is sent for successful announcement implying successful authorization. 
+`ANNOUNCE OK` control message is sent for announcements successfully authorized.
 
 ~~~
 ANNOUNCE OK
@@ -862,7 +870,7 @@ List of tracks identified by their Full Track Name selected from the `Track Info
 
 ## ANNOUNCE ERROR {#message-announce-error}
 
-A `ANNOUNCE ERROR` control message is sent for the tracks that failed their authorization at the peer.
+A `ANNOUNCE ERROR` control message is sent for the tracks that failed authorization.
 
 ~~~
 ANNOUNCE ERROR
