@@ -610,25 +610,26 @@ For successful subscriptions, relays proceed to save the subscription informatio
 
 ## Publisher Interactions
 
-Publishers MAY be configured to publish the objects to a Relays based on the application configuration and topology. Publishing set of tracks through the Relay starts with a "ANNOUNCE" control message
+Publishing through the relay starts with publisher sending "ANNOUNCE" control message for the set of tracks, identified via their Full Track Names ({{model-track}}). Relays MUST ensure that publishers are authorized by:
 
-The "ANNOUNCE" message advertises set of tracks, identified via their Full Track Names ({{model-track}}) and carry necessary authorization information. Relays MUST 
+- Verifying that the publisher is authorized to publish the content associated with the "Full Track Name". The authorization information can be part of annoucement themselves or part of the encompassing session. Specifics of the authorization process depends on the way the relay is managed and is typically based on prior business agreement with the Origin, for example.
 
-- Verify that the publisher is authorized to produce media for a given "Full Track Name" by validating the authorization information. Specifics of the authorization process depends on the way the relay is managed and is typically based on prior business agreement with the Origin, for example.
+Relays respond with "ANNOUNCE OK" and/or "ANNONCE ERROR" control messages providing the results of announcement.
 
-Relays respond with "ANNOUNCE OK" and/or "ANNONCE ERROR" control messages reflecting the authorization status.
-
-Relays MUST match the track id in the OBJECT message header against the active subscribers for a given track. Relays MUST NOT depend on OBJECT payload content for making forwarding decisions and MUST only depend on the fields, such as priority order and other metadata properties in the OBJECT message header. Unless determined by congestion response, Relays MUST forward the OBJECT message to the matching subscribers. 
+OBJECT message header carry short hop-by-hop `Track Id` that maps to the "Full Track Name". Relays MUST use the `Track Id` in the incoming OBJECT messages to find active subscribers with track information matching the `Track Id`. Relays MUST NOT depend on OBJECT payload content for making forwarding decisions and MUST only depend on the fields, such as priority order and other metadata properties in the OBJECT message header. Unless determined by congestion response, Relays MUST forward the OBJECT message to the matching subscribers. 
 
 __Note to authors: This above send behavior is common across all senders and once we have a sufficient text defined elsewhere, we can just refer to the appropriate section.__
 
 ## Relay Discovery and Failover
+
 TODO: This section shall cover aspects of relay failover and protocol interactions
 
 ## Restoring connections through relays
+
 TODO: This section shall cover reconnect considerations for clients when moving between the Relays
 
 ## Congestion Response at Relays
+
 TODO: Refer to {{priority-congestion}}. Add details describe 
 relays behavior when merging or splitting streams and interactions
 with congestion response.
