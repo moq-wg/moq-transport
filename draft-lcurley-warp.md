@@ -185,39 +185,25 @@ x (b):
 
 ## Objects {#model-object}
 
-The basic element of Warp is an *object*. An object is a single addressable
-cacheable unit whose payload is a sequence of bytes.  An object MAY depend on other 
-objects to be decoded. All objects belong to a group {{model-group}}. Objects carry 
-associated metadata such as priority, TTL or other information usable by a relay, 
-but relays MUST treat object payloads as opaque.
+The basic element of Warp is an *object*.
+An object is an addressable unit whose payload is a sequence of bytes.
+All objects belong to a group, indicating ordering and potential dependencies. {{model-group}}
+Objects carry associated metadata such as priority, TTL, or other information usable by a relay, but relays MUST treat the object payload as opaque.
 
-DISCUSS: Can an object be partially decodable by an endpoint?
-
-Authors agree that an object is always partially *forwardable* by a relay but
-disagree on whether a partial object can be used by a receiving endpoint.
-
-Option 1: A receiver MAY start decoding an object before it has been completely received
-
-Example: sending an entire GOP as a single object.  A receiver can decode the
-GOP from the beginning without having the entire object present, and the object's
-tail could be dropped.  Sending a GOP as a group of not-partially-decodable
-objects might incur additional overhead on the wire and/or additional processing of 
-video segments at a sender to find object boundaries.
-
-Partial decodability could be another property of an object.
-
-Option 2: A receiver MUST NOT start decoding an object before it has completely arrived
-
-Objects could be end-to-end encrypted and the receiver might not be able to
-decrypt or authenticate an object until it is fully present.  Allowing Objects
-to span more than one useable unit may create more than one viable application
-mapping from media to wire format, which could be confusing for protocol users.
+The application is solely responsible for the contents of objects.
+This includes the underlying encoding, compression, any end-to-end encryption, or authentication.
+A relay MUST NOT combine, split, or otherwise modify object payloads.
 
 ## Groups {#model-group}
+A *group* is collection of objects, part of a larger track ({{model-track}}).
 
-An object group is a sequence of media objects. Beginning of an object group can be used as a point at which the receiver can start consuming a track without having any other object groups available. Object groups have an ID that identifies them uniquely within a track.
+A group behaves as a join point for subscriptions.
+A new subscriber may not want to receive the entire track, and will instead opt to receive only the latest group(s).
+The sender then selectively transmits objects based on their group membership.
 
-DISCUSS: We need to determine what are the exact requirements we need to impose on how the media objects depend on each other. Such requirements would need to address the use case (a join point), while being flexible enough to accomodate scenarios like B-frames and temporal scaling.
+The application is responsible for how objects are placed into groups.
+In general, objects within a group SHOULD NOT depend on objects in other groups.
+
 
 ## Track {#model-track}
 
@@ -602,11 +588,14 @@ and publish requests to the tracks.
 
 Subscribers interact with the Relays by sending a "SUBSCRIBE REQUEST"  ({{message-subscribe-req}}) control message for the tracks of interest. Relays MUST ensure subscribers are authorized for the tracks. This is done by
 
-- Verifying that the subscriber is authorized to access the content associated with the "Full Track Name". The authorization information can be part of subscriptions themselves or part of the encompassing session. Specifics of the authorization process depends on the way the relay is managed and is typically based on prior business agreement with the Origin, for example.
+- Verifying that the subscriber is authorized to access the content associated with the "Full Track Name". The authorization information can be part of subscriptions themselves or part of the encompassing session. Specifics of where the authorization happens, either at the relays or forwarded for further processing, depends on the way the relay is managed and is application specific (typically based on prior business agreement). If forwarded, the authorization information from the original subscribe request MUST be identical.
 
-In all the scenarios, the end-point client making the subscribe request is notified of the result of the subscription, via "SUBSCRIBE OK" ({{message-subscribe-ok}}) or the "SUBSCRIBE ERROR" {{message-subscribe-error}} control message.
+In all the scenarios, the end-point making the subscribe request is notified of the result of the subscription, via "SUBSCRIBE OK" ({{message-subscribe-ok}}) or the "SUBSCRIBE ERROR" {{message-subscribe-error}} control message.
 
-For successful subscriptions, relays proceed to save the subscription information by maintaining mapping from the track information to the list of subscriber. This will enable relays to forward on-going publishes (live or from cache) to the subscribers, if available, and also forward all the future publishes, until the subscriptions cases to exist. A given susbcription ceases to exist because its expired or the publisher of the track stops producing media. Relays MAY perform subscription aggregations, wherein only the unique subscriptions per "Full Track Name" are forwarded upstream for further processing.
+For successful subscriptions, relays proceed to save the subscription information by maintaining mapping from the track information to the list of subscribers. This will enable relays to forward any on-going matching publishes (live or from cache), if available and also forward all the future publishes for the requested track. Subscriptions stay active until it is expired or the publisher of the track stops producing media or other reasons that result in error (see {{message-subscribe-error}}).
+
+Relays MAY aggregate subscriptions for a given track when multiple subscribers request for the same track. Subscriptions aggregation allows relays to forward only the unique subscriptions per track for futher processing, say to setup routing for delivering media, rather than forwarding all the subscriptions received. When the authorization information is carried in the subscribes, the relay needs to verify the authorization information in the subscribe request, in order to deduplicate the subscriptions.
+
 
 ## Publisher Interactions
 
@@ -720,12 +709,11 @@ OBJECT Message {
 The track identifier obtained as part of subscription and/or publish control message exchanges.
 
 * Group Sequence :
-An integer always starts at 0 and increases sequentially at the original media publisher.
-Group sequences are scoped under a Track.
+The object is a member of the indicated group {{model-group}} within the track.
 
 * Object Sequence:
-An integer always starts at 0 with in a Group and increases sequentially.
-Object Sequences are scoped to a Group.
+The order of the object within the group.
+The sequence starts at 0, increasing sequentially for each object within the group.
 
 * Object Send Order:
 An integer indicating the object send order ({{send-order}}).
