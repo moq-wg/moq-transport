@@ -588,11 +588,14 @@ and publish requests to the tracks.
 
 Subscribers interact with the Relays by sending a "SUBSCRIBE REQUEST"  ({{message-subscribe-req}}) control message for the tracks of interest. Relays MUST ensure subscribers are authorized for the tracks. This is done by
 
-- Verifying that the subscriber is authorized to access the content associated with the "Full Track Name". The authorization information can be part of subscriptions themselves or part of the encompassing session. Specifics of the authorization process depends on the way the relay is managed and is typically based on prior business agreement with the Origin, for example.
+- Verifying that the subscriber is authorized to access the content associated with the "Full Track Name". The authorization information can be part of subscriptions themselves or part of the encompassing session. Specifics of where the authorization happens, either at the relays or forwarded for further processing, depends on the way the relay is managed and is application specific (typically based on prior business agreement). If forwarded, the authorization information from the original subscribe request MUST be identical.
 
-In all the scenarios, the end-point client making the subscribe request is notified of the result of the subscription, via "SUBSCRIBE OK" ({{message-subscribe-ok}}) or the "SUBSCRIBE ERROR" {{message-subscribe-error}} control message.
+In all the scenarios, the end-point making the subscribe request is notified of the result of the subscription, via "SUBSCRIBE OK" ({{message-subscribe-ok}}) or the "SUBSCRIBE ERROR" {{message-subscribe-error}} control message.
 
-For successful subscriptions, relays proceed to save the subscription information by maintaining mapping from the track information to the list of subscriber. This will enable relays to forward on-going publishes (live or from cache) to the subscribers, if available, and also forward all the future publishes, until the subscriptions cases to exist. A given susbcription ceases to exist because its expired or the publisher of the track stops producing media. Relays MAY perform subscription aggregations, wherein only the unique subscriptions per "Full Track Name" are forwarded upstream for further processing.
+For successful subscriptions, relays proceed to save the subscription information by maintaining mapping from the track information to the list of subscribers. This will enable relays to forward any on-going matching publishes (live or from cache), if available and also forward all the future publishes for the requested track. Subscriptions stay active until it is expired or the publisher of the track stops producing media or other reasons that result in error (see {{message-subscribe-error}}).
+
+Relays MAY aggregate subscriptions for a given track when multiple subscribers request for the same track. Subscriptions aggregation allows relays to forward only the unique subscriptions per track for futher processing, say to setup routing for delivering media, rather than forwarding all the subscriptions received. When the authorization information is carried in the subscribes, the relay needs to verify the authorization information in the subscribe request, in order to deduplicate the subscriptions.
+
 
 ## Publisher Interactions
 TODO: This section shall cover relay handling of publishes.
