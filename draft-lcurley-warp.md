@@ -243,10 +243,9 @@ Track Name = uaCafDkl123/audio
 Full Track Name = livestream.example.com/uaCafDkl123/audio
 
 Example: 3
-Track Namespace = security-camera.example.com/camera1/
+Track Namespace = security-camera.example.com/camera1
 Track Name = hd-video
 Full Track Name = security-camera.example.com/camera1/hd-video
-
 
 ~~~
 
@@ -873,10 +872,10 @@ ANNOUNCE ERROR
 Identifies the track namespace in the ANNOUNCE message for which this response is provided.
 
 * Error Code:
-Identifies an integer error code for subscription failure.
+Identifies an integer error code for announcement failure.
 
 * Reason Phrase:
-Provides the reason for subscription error and `Reason Phrase Length` field carries its length.
+Provides the reason for announcement error and `Reason Phrase Length` field carries its length.
 
 
 ## GOAWAY {#message-goaway}
