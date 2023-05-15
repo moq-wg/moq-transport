@@ -62,18 +62,19 @@ informative:
 
 This document defines the core behavior for Warp, a live media transport protocol over QUIC.
 Media is split into objects based on the underlying media encoding and transmitted independently over QUIC streams.
-QUIC streams are prioritized based on the delivery order, allowing less important objects to be starved or dropped during congestion.
+QUIC streams are prioritized based on the send order, allowing less important objects to be starved or dropped during congestion.
 
 --- middle
 
 
 ## Introduction
-Warp is a live media transport protocol that utilizes the QUIC network protocol {{QUIC}}.
+Warp is a live media transport protocol that utilizes the QUIC network protocol {{QUIC}},
+either directly or via WebTransport {{WebTransport}}.
 
 * {{motivation}} covers the background and rationale behind Warp.
 * {{objects}} covers how media is fragmented into objects.
-* {{transport-usages}} covers aspects of setting up a MoQ transport connection.
-* {{quic}} covers how QUIC is used to transfer media.
+* {{transport-protocols}} covers aspects of setting up a MoQ transport session.
+* {{stream-mapping}} covers how QUIC is used to transfer media.
 * {{priority-congestion}} covers protocol considerations on prioritization schemes and congestion response overall.
 * {{relays-moq}} covers behavior at the relay entities.
 * {{messages}} covers how messages are encoded on the wire.
@@ -162,6 +163,10 @@ Track:
 
 : An encoded bitstream, representing a single media component (ex. audio, video, subtitles) that makes up the larger broadcast.
 
+Transport session:
+
+: Either a native QUIC connection, or a WebTransport session used to transmit the data.
+
 Variant:
 
 : A track with the same content but different encoding as another track. For example, a different bitrate, codec, language, etc.
@@ -180,39 +185,25 @@ x (b):
 
 ## Objects {#model-object}
 
-The basic element of Warp is an *object*. An object is a single addressable
-cacheable unit whose payload is a sequence of bytes.  An object MAY depend on other 
-objects to be decoded. All objects belong to a group {{model-group}}. Objects carry 
-associated metadata such as priority, TTL or other information usable by a relay, 
-but relays MUST treat object payloads as opaque.
+The basic element of Warp is an *object*.
+An object is an addressable unit whose payload is a sequence of bytes.
+All objects belong to a group, indicating ordering and potential dependencies. {{model-group}}
+Objects carry associated metadata such as priority, TTL, or other information usable by a relay, but relays MUST treat the object payload as opaque.
 
-DISCUSS: Can an object be partially decodable by an endpoint?
-
-Authors agree that an object is always partially *forwardable* by a relay but
-disagree on whether a partial object can be used by a receiving endpoint.
-
-Option 1: A receiver MAY start decoding an object before it has been completely received
-
-Example: sending an entire GOP as a single object.  A receiver can decode the
-GOP from the beginning without having the entire object present, and the object's
-tail could be dropped.  Sending a GOP as a group of not-partially-decodable
-objects might incur additional overhead on the wire and/or additional processing of 
-video segments at a sender to find object boundaries.
-
-Partial decodability could be another property of an object.
-
-Option 2: A receiver MUST NOT start decoding an object before it has completely arrived
-
-Objects could be end-to-end encrypted and the receiver might not be able to
-decrypt or authenticate an object until it is fully present.  Allowing Objects
-to span more than one useable unit may create more than one viable application
-mapping from media to wire format, which could be confusing for protocol users.
+The application is solely responsible for the contents of objects.
+This includes the underlying encoding, compression, any end-to-end encryption, or authentication.
+A relay MUST NOT combine, split, or otherwise modify object payloads.
 
 ## Groups {#model-group}
+A *group* is collection of objects, part of a larger track ({{model-track}}).
 
-An object group is a sequence of media objects. Beginning of an object group can be used as a point at which the receiver can start consuming a track without having any other object groups available. Object groups have an ID that identifies them uniquely within a track.
+A group behaves as a join point for subscriptions.
+A new subscriber may not want to receive the entire track, and will instead opt to receive only the latest group(s).
+The sender then selectively transmits objects based on their group membership.
 
-DISCUSS: We need to determine what are the exact requirements we need to impose on how the media objects depend on each other. Such requirements would need to address the use case (a join point), while being flexible enough to accomodate scenarios like B-frames and temporal scaling.
+The application is responsible for how objects are placed into groups.
+In general, objects within a group SHOULD NOT depend on objects in other groups.
+
 
 ## Track {#model-track}
 
@@ -229,7 +220,6 @@ Full Track Name = Track Namespace  "/"  Track Name
 ~~~~~~~~~~~~~~~
 
 This document does not define the exact mechanism of naming Track Namespaces. Applications building on top of MoQ MUST ensure that the mechanism used guarantees global uniqueness; for instance, an application could use domain names as part of track namespaces. Track Namespace is followed by the application context specific Track Name, encoded as an opaque string. 
-
 
 ~~~
 Example: 1
@@ -251,13 +241,14 @@ Full Track Name = security-camera.example.com/camera1/hd-video
 
 ### Connection URL
 
-Each track MAY have one or more associated connection URLs specifying network hosts through which a track may be accessed. The syntax of the Connection URL and the associated connection setup procedures are specific to the underlying transport protocol usage {{transport-usages}}.
+Each track MAY have one or more associated connection URLs specifying network hosts through which a track may be accessed. The syntax of the Connection URL and the associated connection setup procedures are specific to the underlying transport protocol usage {{transport-protocols}}.
+
 
 ## Session
-A WebTransport session is established for each track bundle.
+A transport session is established for each track bundle.
 The client issues a CONNECT request with a URL which the server uses for identification and authentication.
-All control messages and prioritization occur within the context of a single WebTransport session, which means a single track bundle.
-Multiple WebTransport sessions may be pooled over a single QUIC connection for efficiency.
+All control messages and prioritization occur within the context of a single transport session, which means a single track bundle.
+When WebTransport is used, multiple transport sessions may be pooled over a single QUIC connection for efficiency.
 
 ## Example
 As an example, consider a scenario where `example.org` hosts a simple live stream that anyone can subscribe to.
@@ -346,7 +337,7 @@ further details.
 Warp works by splitting media into objects that can be transferred over QUIC streams.
 
 * The encoder determines how to fragment the encoded bitstream into objects ({{media}}).
-* Objects are assigned an intended delivery order that should be obeyed during congestion ({{delivery-order}})
+* Objects are assigned an intended send order that should be obeyed during congestion ({{send-order}})
 * The decoder receives each objects and skips any objects that do not arrive in time ({{decoder}}).
 
 ## Media
@@ -368,24 +359,64 @@ A media object:
 
 Media objects are encoded using a specified container ({{containers}}).
 
-## Delivery Order
+## Order Priorities and Options
+
+At the point of this writing, the working group has not reached consensus on the proper
+way to meet several important goals, such as:
+
+* Ensure that media objects are delivered in the order intended by the emitter
+* Allow nodes and relays to skip or delay some objects to deal with congestion
+* Ensure that emitters can accurately predict the behavior of relays
+* Ensure that when relay have to skip and delay objects belonging to different
+  tracks they do it in a predictable way if tracks are explicitly coordinated
+  and in a fair way if they are not.
+
+The working group has been considering two alternatives: mark objects belonging to a track
+with an explicit "send order"; and, define algorithms combining tracks, priorities and object
+order within a group. The two proposals are listed in {{send-order}} and {{ordering-by-priorities}}.
+We expect further work before a consensus is reached.
+
+### Send Order
 Media is produced with an intended order, both in terms of when media should be presented (PTS) and when media should be decoded (DTS).
 As stated in motivation ({{latency}}), the network is unable to maintain this ordering during congestion without increasing latency.
 
-The encoder determines how to behave during congestion by assigning each object a numeric delivery order.
-The delivery order SHOULD be followed when possible to ensure that the most important media is delivered when throughput is limited.
-Note that the contents within each object are still delivered in order; this delivery order only applies to the ordering between objects.
+The encoder determines how to behave during congestion by assigning each object a numeric send order.
+The send order SHOULD be followed when possible to ensure that the most important media is delivered when throughput is limited.
+Note that the contents within each object are still delivered in order; this send order only applies to the ordering between objects.
 
 A sender MUST send each object over a dedicated QUIC stream.
-The QUIC library should support prioritization ({{prioritization}}) such that streams are transmitted in delivery order.
+The QUIC library should support prioritization ({{prioritization}}) such that streams are transmitted in send order.
 
-A receiver MUST NOT assume that objects will be received in delivery order for a number of reasons:
+A receiver MUST NOT assume that objects will be received in send order for a number of reasons:
 
-* Newly encoded objects MAY have a smaller delivery order than outstanding objects.
-* Packet loss or flow control MAY delay the delivery of individual streams.
+* Newly encoded objects MAY have a smaller send order than outstanding objects.
+* Packet loss or flow control MAY delay the send of individual streams.
 * The sender might not support QUIC stream prioritization.
 
 TODO: Refer to Congestion Response and Priorirization Section for further details on various proposals.
+
+### Ordering by Priorities
+
+Media is produced as a set of layers, such as for example low definition and high definition,
+or low frame rate and high frame rate. Each media object belonging to a track and a group has two attributes: the object-id, and the priority (or layer).
+
+When nodes or relays have to choose which object to send next, they apply the following rules:
+
+* within the same group, objects with a lower priority number (e.g. P1) are always sent
+  before objects with a numerically greater priority number (e.g., P2)
+* within the same group, and the same priority level, objects with a lower object-id are
+  always sent before objects with a higher object-id.
+* objects from later groups are normally always sent
+  before objects of previous groups.
+
+The latter rule is generally agreed as a way to ensure media freshness, and to recover quickly
+if queues and delays accumulate during a congestion period. However, there may be cases when
+finishing the transmission of an ongoing group results in better user experience than strict
+adherence to the freshness rule. We expect that that the working group will eventually reach
+consensus and define meta data that control this behavior.
+
+There have been proposals to allow emitters to coordinate the allocation of layer priorities
+across multiple coordinated tracks. At this point, these proposals have not reached consensus.
 
 ## Groups
 TODO: Add text describing interation of group and intra object priorities within a group and their relation to congestion response. Add how it refers to {{priority-congestion}}
@@ -393,7 +424,7 @@ TODO: Add text describing interation of group and intra object priorities within
 ## Decoder
 The decoder will receive multiple objects in parallel and out of order.
 
-Objects arrive in delivery order, but media usually needs to be processed in decode order.
+Objects arrive in send order, but media usually needs to be processed in decode order.
 The decoder SHOULD use a buffer to reassmble objects into decode order and it SHOULD skip objects after a configurable duration.
 The amount of time the decoder is willing to wait for an object (buffer duration) is what ultimately determines the end-to-end latency.
 
@@ -401,55 +432,41 @@ Objects MUST synchronize frames within and between tracks using presentation tim
 Objects are NOT REQUIRED to be aligned and the decoder MUST be prepared to skip over any gaps.
 
 
-# Transport Usages {#transport-usages}
+# Supported Transport Protocols  {#transport-protocols}
 
-Following subsections define usages of MoQ Tranport protocol over WebTransport and over Native QUIC. 
+This document defines a protocol that can be used interchangeably both over a QUIC connection directly [QUIC], and over WebTransport [WebTransport].
+Both provide streams and datagrams with similar semantics (see {{?I-D.ietf-webtrans-overview, Section 4}});
+thus, the main difference lies in how the servers are identified and how the connection is established.
 
 ## WebTransport
-MoQ Transport can benefit from an infrastructure designed for HTTP3 by running over WebTransport.
 
-### Establishment
-A connection is established using WebTransport {{WebTransport}}.
-
-To summarize:
-The client issues a HTTP CONNECT request to a URL.
-The server returns an "200 OK" response to establish the WebTransport session, or an error status code otherwise.
-
-A WebTransport session exposes the basic QUIC service abstractions.
-Specifically, either endpoint may create independent streams which are reliably delivered in order until canceled.
-
-WebTransport can currently operate via HTTP/3 and HTTP/2, using QUIC or TCP under the hood respectively.
-As mentioned in the motivation ({{motivation}}) section, TCP introduces head-of-line blocking and will result in a worse experience.
-It is RECOMMENDED to use WebTransport over HTTP/3.
-
-### CONNECT
-The server uses the HTTP CONNECT request for identification and authorization of a track bundle.
-The specific mechanism is left up to the application.
-For example, an identifier and authentication token could be included in the path.
-
-The server MAY return an error status code for any reason, for example a 403 when the client is forbidden.
-Otherwise the server MUST respond with a "200 OK" to establish the WebTransport session.
+A Warp server that is accessible via WebTransport can be identified using an HTTPS URI ({{!RFC9110, Section 4.2.2}}).
+A Warp transport session can be established by sending an extended CONNECT request to the host and the path indicated by the URI,
+as described in {{WebTransport, Section 3}}.
 
 ## Native QUIC
-MoQ Transport can run directly over QUIC. In that case, the following apply:
 
-* Connection setup corresponds to the establishment of a QUIC
-  connection, in which the ALPN value indicates use of MoQ.  For
-  versions implementing this draft, the ALPN value is set to "moq-
-  n00".
+A Warp server that is accessible via native QUIC can be identified by a URI with a "moq" scheme.
+The "moq" URI scheme is defined as follows, using definitions from {{!RFC3986}}:
 
-* Bilateral and unilateral streams are mapped directly to equivalent QUIC streams.
+~~~~~~~~~~~~~~~
+moq-URI = "moq" "://" authority path-abempty [ "?" query ]
+~~~~~~~~~~~~~~~
 
+The `authority` portion MUST NOT contain a non-empty `userinfo` portion.
+The `moq` URI scheme supports the `/.well-known/` path prefix defined in {{!RFC8615}}.
 
-Once the connection setup is successful, the rest of the MoQ Transport protocol's usage of QUIC is common across the WebTransport and Native QUIC transports.
+This protocol does not specify any semantics on the `path-abempty` and `query` portions of the URI.
+The contents of those is left up to the application.
 
+The client can establish a connection to a MoQ server identified by a given URI
+by setting up a QUIC connection to the host and port identified by the `authority` section of the URI.
+The `path-abempty` and `query` portions of the URI are communicated to the server using
+the PATH parameter ({{path}}).
+The ALPN value {{!RFC7301}} used by the protocol is `moq-00`.
 
-# QUIC
+# Stream Mapping  {#stream-mapping}
 
-## Connection 
-As defined in {{transport-usages}}, either WebTransport or Native QUIC can be used to setup underlying QUIC primitives for carrying out the protocol defined in this specification. 
-
-## Streams
 Warp endpoints communicate over QUIC streams. Every stream is a sequence of messages, framed as described in {{messages}}.
 
 The first stream opened is a client-initiated bidirectional stream where the peers exchange SETUP messages ({{message-setup}}). The subsequent streams MAY be either unidirectional and bidirectional. For exchanging media, an application would typically send a unidirectional stream containing a single OBJECT message ({{message-object}}).
@@ -462,17 +479,25 @@ Warp utilizes stream prioritization to deliver the most important content during
 
 TODO: Revisit the prioritization scheme and possibly move some of this to {{priority-congestion}}.
 
-The producer may assign a numeric delivery order to each object ({{delivery-order}})
+The producer may assign a numeric delivery order to each object ({{send-order}})
 
 This is a strict prioritization scheme, such that any available bandwidth is allocated to streams in ascending priority order.
-The sender SHOULD prioritize streams based on the delivery order.
-If two streams have the same delivery order, they SHOULD receive equal bandwidth (round-robin).
+
+As explained in {{order-priorities-and-options}}, the working group has not reached consensus
+on how the emitters mark objects so that relays can apply their preferences. This leads to at
+least two possible implementations:
+
+* if using the "send order" logic, the sender SHOULD prioritize streams based on the send order.
+
+* if using the "priority" logic, the sender SHOULD send objects in streams corresponding to the object priority, and should mark these streams with the corresponding priority value.
+
+If two streams have the same send order, they SHOULD receive equal bandwidth (round-robin).
 
 QUIC supports stream prioritization but does not standardize any mechanisms; see Section 2.3 in {{QUIC}}.
 In order to support prioritization, a QUIC library MUST expose a API to set the priority of each stream.
 This is relatively easy to implement; the next QUIC packet should contain a STREAM frame for the next pending stream in priority order.
 
-The sender MUST respect flow control even if means delivering streams out of delivery order.
+The sender MUST respect flow control even if means delivering streams out of send order.
 It is OPTIONAL to prioritize retransmissions.
 
 
@@ -490,8 +515,8 @@ This can be useful when the sender does not support stream prioritization.
 ## Relays
 Warp encodes the delivery information for a stream via OBJECT headers ({{message-object}}).
 
-A relay SHOULD prioritize streams ({{prioritization}}) based on the delivery order.
-A relay MAY change the delivery order, in which case it SHOULD update the value on the wire for future hops.
+A relay SHOULD prioritize streams ({{prioritization}}) based on the send order.
+A relay MAY change the send order, in which case it SHOULD update the value on the wire for future hops.
 
 A relay that reads from a stream and writes to stream in order will introduce head-of-line blocking.
 Packet loss will cause stream data to be buffered in the QUIC library, awaiting in order delivery, which will increase latency over additional hops.
@@ -515,7 +540,9 @@ Senders MAY periodically pad the connection with QUIC PING frames to fill the co
 TODO: update this section to refer to {{priority-congestion}}
 
 ## Termination
-The WebTransport session can be terminated at any point with CLOSE\_WEBTRANSPORT\_SESSION capsule, consisting of an integer code and string message.
+The transport session can be terminated at any point.
+When native QUIC is used, the session is closed using the CONNECTION\_CLOSE frame ({{QUIC, Section 19.19}}).
+When WebTransport is used, the session is closed using the CLOSE\_WEBTRANSPORT\_SESSION capsule ({{WebTransport, Section 5}}).
 
 The application MAY use any error message and SHOULD use a relevant code, as defined below:
 
@@ -662,7 +689,7 @@ OBJECT Message {
   Track ID (i),
   Group Sequence (i),
   Object Sequence (i),
-  Object Delivery Order (i),
+  Object Send Order (i),
   Object Payload (b),
 }
 ~~~
@@ -672,15 +699,14 @@ OBJECT Message {
 The track identifier obtained as part of subscription and/or publish control message exchanges.
 
 * Group Sequence :
-An integer always starts at 0 and increases sequentially at the original media publisher.
-Group sequences are scoped under a Track.
+The object is a member of the indicated group {{model-group}} within the track.
 
 * Object Sequence:
-An integer always starts at 0 with in a Group and increases sequentially.
-Object Sequences are scoped to a Group.
+The order of the object within the group.
+The sequence starts at 0, increasing sequentially for each object within the group.
 
-* Object Delivery Order:
-An integer indicating the object delivery order ({{delivery-order}}).
+* Object Send Order:
+An integer indicating the object send order ({{send-order}}).
 
 * Object Payload:
 The format depends on the track container ({{containers}}).
@@ -892,7 +918,7 @@ The server:
 
 The client:
 
-* MUST establish a new WebTransport session to the provided URL upon receipt of a `GOAWAY` message.
+* MUST establish a new transport session to the provided URL upon receipt of a `GOAWAY` message.
 * SHOULD establish the connection in parallel which MUST use different QUIC connection.
 * SHOULD remain connected for two servers for a short period, processing objects from both in parallel.
 
@@ -921,6 +947,16 @@ The ROLE parameter (key 0x00) allows the client to specify what roles it expects
 : Both the client and the server are expected to send media.
 
 The client MUST send a ROLE parameter with one of the three values specified above. The server MUST close the connection if the ROLE parameter is missing, is not one of the three above-specified values, or it is different from what the server expects based on the application in question.
+
+## PATH parameter {#path}
+
+The PATH parameter (key 0x01) allows the client to specify the path of the MoQ URI when using native QUIC ({{native-quic}}).
+It MUST NOT be used by the server, or when WebTransport is used.
+If the peer receives a PATH parameter from the server, or when WebTransport is used, it MUST close the connection.
+
+When connecting to a server using a URI with the "moq" scheme,
+the client MUST set the PATH parameter to the `path-abempty` portion of the URI;
+if `query` is present, the client MUST concatenate `?`, followed by the `query` portion of the URI to the parameter.
 
 # Track Request Parameters {#track-req-params}
 
@@ -990,6 +1026,8 @@ TODO: fill out currently missing registries:
 * Track format numbers
 * Message types
 * Object headers
+
+TODO: register the URI scheme and the ALPN
 
 # Appendix A. Video Encoding {#appendix.encoding}
 In order to transport media, we first need to know how media is encoded.
@@ -1284,14 +1322,14 @@ It is RECOMMENDED to create a new audio object at each video I-frame.
      object 2        object 4     object 6
 ~~~
 
-## Delivery Order {#appendix.delivery-order}
-The delivery order ({{delivery-order}} depends on the desired user experience during congestion:
+## Send Order {#appendix.send-order}
+The send order ({{send-order}} depends on the desired user experience during congestion:
 
-* if media should be skipped: delivery order = PTS
-* if media should not be skipped: delivery order = -PTS
-* if video should be skipped before audio: audio delivery order < video delivery order
+* if media should be skipped: send order = PTS
+* if media should not be skipped: send order = -PTS
+* if video should be skipped before audio: audio send order < video send order
 
-The delivery order may be changed if the content changes.
+The send order may be changed if the content changes.
 For example, switching from a live stream (skippable) to an advertisement (unskippable).
 
 # Contributors
