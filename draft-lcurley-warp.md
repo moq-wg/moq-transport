@@ -610,7 +610,7 @@ Publishing through the relay starts with publisher sending "ANNOUNCE" control me
 
 Relays MUST ensure that publishers are authorized by:
 
-- Verifying that the publisher is authorized to publish the content associated with the set of tracks whose Full Track Name share a common prefix with the announced namespace. Specifics of where the authorization happens, either at the relays or forwarded for further processing, depends on the way the relay is managed and is application specific (typically based on prior business agreement). If forwarded, the authorization information from the original annouce control message MUST be identical.
+- Verifying that the publisher is authorized to publish the content associated with the set of tracks whose Full Track Name share a common prefix with the announced namespace. Specifics of where the authorization happens, either at the relays or forwarded for further processing, depends on the way the relay is managed and is application specific (typically based on prior business agreement).
 
 Relays respond with "ANNOUNCE OK" and/or "ANNONCE ERROR" control messages providing the results of announcement.
 
