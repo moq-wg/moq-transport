@@ -605,15 +605,27 @@ Relays MAY aggregate subscriptions for a given track when multiple subscribers r
 
 
 ## Publisher Interactions
-TODO: This section shall cover relay handling of publishes.
+
+Publishing through the relay starts with publisher sending "ANNOUNCE" control message with a `Track Namespace` ({{model-track}}).
+
+Relays MUST ensure that publishers are authorized by:
+
+- Verifying that the publisher is authorized to publish the content associated with the set of tracks whose Track Namespace matches the announced namespace. Specifics of where the authorization happens, either at the relays or forwarded for further processing, depends on the way the relay is managed and is application specific (typically based on prior business agreement).
+
+Relays respond with "ANNOUNCE OK" and/or "ANNONCE ERROR" control messages providing the results of announcement.
+
+OBJECT message header carry short hop-by-hop Track Id that maps to the Full Track Name (see {{message-subscribe-ok}}). Relays use the Track ID of an incoming OBJECT message to identify its track and find the active subscribers for that track. Relays MUST NOT depend on OBJECT payload content for making forwarding decisions and MUST only depend on the fields, such as priority order and other metadata properties in the OBJECT message header. Unless determined by congestion response, Relays MUST forward the OBJECT message to the matching subscribers. 
 
 ## Relay Discovery and Failover
+
 TODO: This section shall cover aspects of relay failover and protocol interactions
 
 ## Restoring connections through relays
+
 TODO: This section shall cover reconnect considerations for clients when moving between the Relays
 
 ## Congestion Response at Relays
+
 TODO: Refer to {{priority-congestion}}. Add details describe 
 relays behavior when merging or splitting streams and interactions
 with congestion response.
