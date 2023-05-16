@@ -840,7 +840,7 @@ Provides the reason for subscription error and `Reason Phrase Length` field carr
 
 ## ANNOUNCE {#message-announce}
 
-The publisher advertises the tracks via the `ANNOUNCE` control message. The receiver can then SUBSCRIBE to the advertised tracks.
+The publisher advertises the tracks via the `ANNOUNCE` control message. The `ANNOUNCE` message allows discovery of tracks being published by a publisher and verify publisher's authorization for all the tracks sharing the announced namespace.
 
 ~~~
 ANNOUNCE Message {
@@ -856,11 +856,6 @@ Identifies a track's namespace as defined in ({{track-fn}})
 
 * Track Request Parameters: 
 As defined in {{track-req-params}}.
-
-The `ANNOUNCE` message allows for relays to:
-
-- Discover tracks being published by a publisher and enable setting up appropriate routing for serving subscriptions for tracks whose track full name shares common prefix with the announced namepace.
-- Verify authorization for all the tracks sharing the namespace.
  
 
 ## ANNOUNCE OK {#message-announce-ok}
