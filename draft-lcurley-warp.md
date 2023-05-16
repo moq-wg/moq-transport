@@ -219,18 +219,24 @@ Tracks are identified by a globally unique identifier, called "Full Track Name" 
 Full Track Name = Track Namespace  "/"  Track Name
 ~~~~~~~~~~~~~~~
 
-This document does not define the exact mechanism of naming Track Namespaces. Applications building on top of MoQ MUST ensure that the mechanism used guarantees global uniqueness; for instance, an application could use domain names as track namespaces. Track Namespace is followed by the application context specific Track Name, encoded as an opaque string. 
+This document does not define the exact mechanism of naming Track Namespaces. Applications building on top of MoQ MUST ensure that the mechanism used guarantees global uniqueness; for instance, an application could use domain names as part of track namespaces. Track Namespace is followed by the application context specific Track Name, encoded as an opaque string. 
 
 ~~~
 Example: 1
-Track Namespace = videoconferencing.example.com
-Track Name = meeting123/audio
-Full Track Name = videoconferencing.example.com/meeting123/audio
+Track Namespace = videoconferencing.example.com/meetings/m123/participants/alice
+Track Name = audio
+Full Track Name = videoconferencing.example.com/meetings/m123/participants/alice/audio
 
 Example: 2
-Track Namespace = livestream.example
+Track Namespace = livestream.example.com
 Track Name = uaCafDkl123/audio
-Full Track Name = livestream.example/uaCafDkl123/audio
+Full Track Name = livestream.example.com/uaCafDkl123/audio
+
+Example: 3
+Track Namespace = security-camera.example.com/camera1
+Track Name = hd-video
+Full Track Name = security-camera.example.com/camera1/hd-video
+
 ~~~
 
 ### Connection URL
@@ -631,6 +637,12 @@ A length of 0 indicates the message is unbounded and continues until the end of 
 |------|----------------------------------------------|
 | 0x5  | SUBSCRIBE ERROR ({{message-subscribe-error}})|
 |------|----------------------------------------------|
+| 0x6  | ANNOUNCE  ({{message-announce}})             |
+|------|----------------------------------------------|
+| 0x7  | ANNOUNCE OK ({{message-announce-ok}})        |
+|------|----------------------------------------------|
+| 0x8  | ANNOUNCE ERROR ({{message-announce-error}})  |
+|------|----------------------------------------------|
 | 0x10 | GOAWAY ({{message-goaway}})                  |
 |------|----------------------------------------------|
 
@@ -700,7 +712,6 @@ An integer indicating the object send order ({{send-order}}).
 The format depends on the track container ({{containers}}).
 This is a media bitstream intended for the decoder and SHOULD NOT be processed by a relay.
 
-
 ## CATALOG {#message-catalog}
 The sender advertises tracks via the CATALOG message.
 The receiver can then SUBSCRIBE to the indiciated tracks by ID.
@@ -743,6 +754,7 @@ This contains base information required to decode OBJECT messages, such as codec
 
 An endpoint MUST NOT send multiple CATALOG messages.
 A future draft will add the ability to add/remove/update tracks.
+
 
 ## SUBSCRIBE REQUEST {#message-subscribe-req}
 
@@ -826,6 +838,66 @@ Identifies an integer error code for subscription failure.
 * Reason Phrase:
 Provides the reason for subscription error and `Reason Phrase Length` field carries its length.
 
+## ANNOUNCE {#message-announce}
+
+The publisher advertises the tracks via the `ANNOUNCE` control message. The `ANNOUNCE` message allows discovery of tracks being published by a publisher and verify publisher's authorization for all the tracks sharing the announced namespace.
+
+~~~
+ANNOUNCE Message {
+  Track Namespace Length(i),
+  Track Namespace,
+  Track Request Parameters (..) ...,
+}
+~~~
+{: #warp-announce-format title="Warp ANNOUNCE Message"}
+
+* Track Namespace:
+Identifies a track's namespace as defined in ({{track-fn}})
+
+* Track Request Parameters: 
+As defined in {{track-req-params}}.
+ 
+
+## ANNOUNCE OK {#message-announce-ok}
+
+`ANNOUNCE OK` control message is sent for announcements successfully authorized.
+
+~~~
+ANNOUNCE OK
+{
+  Track Namespace
+}
+~~~
+{: #warp-announce-ok format title="Warp ANNOUNCE OK Message"}
+ 
+* Track Namespace:
+Identifies the track namespace in the ANNOUNCE message for which this response is provided.
+
+## ANNOUNCE ERROR {#message-announce-error}
+
+A `ANNOUNCE ERROR` control message is sent for the tracks that failed authorization.
+
+~~~
+ANNOUNCE ERROR
+{
+  Track Namespace Length(i),
+  Track Namespace(...),
+  Error Code (i),
+  Reason Phrase Length (i),
+  Reason Phrase (...),  
+}
+~~~
+{: #warp-announce-error format title="Warp ANNOUNCE ERROR Message"}
+
+* Track Namespace:
+Identifies the track namespace in the ANNOUNCE message for which this response is provided.
+
+* Error Code:
+Identifies an integer error code for announcement failure.
+
+* Reason Phrase:
+Provides the reason for announcement error and `Reason Phrase Length` field carries its length.
+
 
 ## GOAWAY {#message-goaway}
 The `GOAWAY` message is sent by the server to force the client to reconnect.
@@ -883,17 +955,17 @@ if `query` is present, the client MUST concatenate `?`, followed by the `query` 
 
 # Track Request Parameters {#track-req-params}
 
-The Track Request Parameters identify properties of the track requested in either the PUBLISH REQUEST or SUSBCRIBE REQUEST control messages. Every parameter MUST appear at most once. The peers MUST close the connection if there are duplicates. The Parameter Value Length field indicates the length of the Parameter Value.
+The Track Request Parameters identify properties of the track requested in either the ANNOUNCE or SUSBCRIBE REQUEST control messages. Every parameter MUST appear at most once. The peers MUST close the connection if there are duplicates. The Parameter Value Length field indicates the length of the Parameter Value.
 
 ### GROUP SEQUENCE Parameter
 
-The GROUP SEQUENCE parameter (key 0x00) identifies the group within the track to start delivering the objects. The publisher MUST start delivering the objects from the most recent group, when this parameter is omitted.
+The GROUP SEQUENCE parameter (key 0x00) identifies the group within the track to start delivering the objects. The publisher MUST start delivering the objects from the most recent group, when this parameter is omitted. This parameter is applicable in SUBSCRIBE REQUEST message.
 
 ### OBJECT SEQUENCE Parameter
-The OBJECT SEQUENCE parameter (key 0x01) identifies the object with the track to start delivering the media. The `GROUP SEQUENCE` parameter MUST be set to identify the group under which to start the media delivery. The publisher MUST start delivering from the beginning of the selected group when this parameter is omitted.
+The OBJECT SEQUENCE parameter (key 0x01) identifies the object with the track to start delivering the media. The `GROUP SEQUENCE` parameter MUST be set to identify the group under which to start the media delivery. The publisher MUST start delivering from the beginning of the selected group when this parameter is omitted. This parameter is applicable in SUBSCRIBE REQUEST message.
 
 ### AUTHORIZATION INFO Parameter
-AUTHORIZATION INFO parameter (key 0x02) identifies track's authorization information. This parameter is populated for cases where the authorization is required at the track level.
+AUTHORIZATION INFO parameter (key 0x02) identifies track's authorization information. This parameter is populated for cases where the authorization is required at the track level. This parameter is applicable in SUBSCRIBE REQUEST and ANNOUNCE messages.
 
 # Containers
 The container format describes how the underlying codec bitstream is encoded.
@@ -945,6 +1017,7 @@ TODO: fill out currently missing registries:
 * SETUP parameters
 * Track Request parameters
 * Subscribe Error codes
+* Announce Error codes
 * Track format numbers
 * Message types
 * Object headers
