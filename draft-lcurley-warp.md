@@ -1,5 +1,5 @@
 ---
-title: "Warp - Live Media Transport over QUIC"
+title: "Warp - Live Transport over QUIC"
 abbrev: WARP
 docname: draft-lcurley-warp-latest
 date: {DATE}
@@ -45,40 +45,31 @@ normative:
   QUIC: RFC9000
   QUIC-RECOVERY: RFC9002
   WebTransport: I-D.ietf-webtrans-http3
-  URI: RFC3986
-
-  ISOBMFF:
-    title: "Information technology — Coding of audio-visual objects — Part 12: ISO Base Media File Format"
-    date: 2015-12
 
 informative:
-  CMAF:
-    title: "Information technology -- Multimedia application format (MPEG-A) -- Part 19: Common media application format (CMAF) for segmented media"
-    date: 2020-03
   NewReno: RFC6582
   BBR: I-D.cardwell-iccrg-bbr-congestion-control-02
 
 --- abstract
 
-This document defines the core behavior for Warp, a live media transport protocol over QUIC.
-Media is split into objects based on the underlying media encoding and transmitted independently over QUIC streams.
-QUIC streams are prioritized based on the send order, allowing less important objects to be starved or dropped during congestion.
+This document defines the core behavior for Warp, a live transport protocol over QUIC.
+The application fragments a live stream into objects, including a header that describes the basic relationship between objects.
+Objects are starved/dropped during congestion based on priorities in order to minimize latency.
 
 --- middle
 
 
 ## Introduction
-Warp is a live media transport protocol that utilizes the QUIC network protocol {{QUIC}},
+Warp is a live transport protocol that utilizes the QUIC network protocol {{QUIC}},
 either directly or via WebTransport {{WebTransport}}.
 
 * {{motivation}} covers the background and rationale behind Warp.
-* {{objects}} covers how media is fragmented into objects.
+* {{objects}} covers how data is fragmented into objects.
 * {{transport-protocols}} covers aspects of setting up a MoQ transport session.
-* {{stream-mapping}} covers how QUIC is used to transfer media.
+* {{stream-mapping}} covers how QUIC is used to objects over streams.
 * {{priority-congestion}} covers protocol considerations on prioritization schemes and congestion response overall.
 * {{relays-moq}} covers behavior at the relay entities.
 * {{messages}} covers how messages are encoded on the wire.
-* {{containers}} covers how media tracks are packaged.
 
 
 ## Terms and Definitions
@@ -87,89 +78,62 @@ either directly or via WebTransport {{WebTransport}}.
 
 Commonly used terms in this document are described below.
 
-Bitstream:
+Endpoint:
 
-: A continunous series of bytes.
+: A QUIC endpoint: either a client or a server.
+
+Session:
+
+: An QUIC connection identified via a URL after a handshake.
 
 Client:
 
-: The party initiating a Warp session.
+: The endpoint that initiates the QUIC connection and Warp session.
 
-Codec:
+Server:
 
-: A compression algorithm for audio or video.
+: The endpoint that accepts incoming QUIC connections and Warp sessions.
+
+Publisher:
+
+: An endpoint that publishes tracks and transmits objects over the network.
+
+Subscriber:
+
+: An endpoint that requests tracks and receives objects over the network.
+
+Producer:
+
+: The initial publisher that encodes tracks and objects.
+
+Consumer:
+
+: The final subscriber that decodes tracks and objects.
+
+Relay:
+
+: An endpoint that subscribes to endpoints and publishes to other endpoints. Relays typically perform deduplication and caching as part of a distributed system.
+
+Application:
+
+: An entity that uses Warp to send or receive live data.
+
+Track:
+
+: A live stream, fragmented into objects that are generated over time.
+
+Group:
+
+: A collection of objects, used to denote join points for new subscribers.
+
+Object:
+
+: A byte slice of a track, including a header indicating the relationship between objects.
 
 Congestion:
 
 : Packet loss and queuing caused by degraded or overloaded networks.
 
-Consumer:
-
-: A QUIC endpoint receiving media over the network. This could be the media player or middleware.
-
-Container:
-
-: A file format containing timestamps and the codec bitstream
-
-Decoder:
-
-: A endpoint responsible for a deflating a compressed media stream into raw frames.
-
-Decode Timestamp (DTS):
-
-: A timestamp indicating the order that frames/samples should be fed to the decoder.
-
-Encoder:
-
-: A component responsible for creating a compressed media stream out of raw frames.
-
-Frame:
-
-: An video image or group of audio samples to be rendered at a specific point in time.
-
-I-frame:
-
-: A frame that does not depend on the contents of other frames; effectively an image.
-
-Group of pictures (GoP):
-
-: A I-frame followed by a sequential series of dependent frames.
-
-Group of samples:
-
-: A sequential series of audio samples starting at a given timestamp.
-
-Player:
-
-: A component responsible for presenting frames to a viewer based on the presentation timestamp.
-
-Presentation Timestamp (PTS):
-
-: A timestamp indicating when a frames/samples should be presented to the viewer.
-
-Producer:
-
-: A QUIC endpoint sending media over the network. This could be the media encoder or middleware.
-
-Server:
-
-: The party accepting an incoming Warp session.
-
-Slice:
-
-: A section of a video frame. There may be multiple slices per frame.
-
-Track:
-
-: An encoded bitstream, representing a single media component (ex. audio, video, subtitles) that makes up the larger broadcast.
-
-Transport session:
-
-: Either a native QUIC connection, or a WebTransport session used to transmit the data.
-
-Variant:
-
-: A track with the same content but different encoding as another track. For example, a different bitrate, codec, language, etc.
 
 ## Notational Conventions
 
@@ -207,9 +171,9 @@ In general, objects within a group SHOULD NOT depend on objects in other groups.
 
 ## Track {#model-track}
 
-A Track is the central concept within the MoQ Transport protocol for delivering media and is made up of sequence of objects ({{model-object}}) organized in the form of groups ({{model-group}}).
-
-A track is a transform of a uncompressed media or metadata using a specific encoding process, a set of parameters for that encoding, and possibly an encryption process. The MoQ Transport protocol is designed to transport tracks.
+A *track* is a sequence of objects ({{model-object}}) organized into groups ({{model-group}}).
+A subscriber can request individual tracks at group boundaries, including any new objects while the track is active.
+The application is responsible for determining how tracks are named, encoded, or otherwise used.
 
 ### Full Track Name {#track-fn}
 
@@ -219,25 +183,8 @@ Tracks are identified by a globally unique identifier, called "Full Track Name" 
 Full Track Name = Track Namespace  "/"  Track Name
 ~~~~~~~~~~~~~~~
 
-This document does not define the exact mechanism of naming Track Namespaces. Applications building on top of MoQ MUST ensure that the mechanism used guarantees global uniqueness; for instance, an application could use domain names as part of track namespaces. Track Namespace is followed by the application context specific Track Name, encoded as an opaque string. 
+This document does not define the exact mechanism of naming Track Namespaces. Applications building on top of MoQ MUST ensure that the mechanism used guarantees global uniqueness; for instance, an application could use domain names as part of track namespaces. Track Namespace is followed by the application context specific Track Name, encoded as an opaque string.
 
-~~~
-Example: 1
-Track Namespace = videoconferencing.example.com/meetings/m123/participants/alice
-Track Name = audio
-Full Track Name = videoconferencing.example.com/meetings/m123/participants/alice/audio
-
-Example: 2
-Track Namespace = livestream.example.com
-Track Name = uaCafDkl123/audio
-Full Track Name = livestream.example.com/uaCafDkl123/audio
-
-Example: 3
-Track Namespace = security-camera.example.com/camera1
-Track Name = hd-video
-Full Track Name = security-camera.example.com/camera1/hd-video
-
-~~~
 
 ### Connection URL
 
@@ -250,121 +197,66 @@ The client issues a CONNECT request with a URL which the server uses for identif
 All control messages and prioritization occur within the context of a single transport session, which means a single track bundle.
 When WebTransport is used, multiple transport sessions may be pooled over a single QUIC connection for efficiency.
 
-## Example
-As an example, consider a scenario where `example.org` hosts a simple live stream that anyone can subscribe to.
-That live stream would be a single track bundle, accessible via the WebTransport URL: `https://example.org/livestream`.
-In a simple scenario, the track bundle would contain only two media tracks, one with audio and one with video.
-In a more complicated scenario, the track bundle could multiple tracks with different formats, encodings, bitrates, and quality levels, possibly for the same content.
-The receiver learns about each available track within the bundle via the catalog, and can choose to subscribe to a subset.
-
 
 # Motivation
 
 ## Latency
-In a perfect world, we could deliver live media at the same rate it is produced.
-The end-to-end latency of a broadcast would be fixed and only subject to encoding and transmission delays.
+In a perfect world, we could deliver live content at the same rate it is produced.
+The end-to-end latency would be fixed and only subject to encoding and transmission delays.
 Unfortunately, networks have variable throughput, primarily due to congestion.
 
-Attempting to deliver media encoded at a higher bitrate than the network can support causes queuing.
-This queuing can occur anywhere in the path between the encoder and decoder.
+Attempting to deliver content encoded at a higher bitrate than the network can support causes queuing.
+This queuing can occur anywhere in the path between the producer and consumer.
 For example: the application, the OS socket, a wifi router, within an ISP, or generally anywhere in transit.
 
-If nothing is done, new frames will be appended to the end of a growing queue and will take longer to arrive than their predecessors, increasing latency.
+If nothing is done, new data will be appended to the end of a growing queue and will take longer to arrive than their predecessors, increasing latency.
 Our job is to minimize the growth of this queue, and if necessary, bypass the queue entirely by dropping content.
 
-The speed at which a media protocol can detect and respond to queuing determines the latency.
-We can generally classify existing media protocols into two categories based on the underlying network protocol:
+The speed at which a live protocol can detect and respond to queuing determines the latency.
+TCP-based protocols are simple, but are slow to detect congestion and suffer from head-of-line blocking.
+UDP-based protocols can avoid queuing, but the application is now responsible for fragmentation, congestion control, retransmissions, receiver feedback, reassembly, and more.
 
-* TCP-based media protocols (ex. RTMP, HLS, DASH) are popular due to their simplicity.
-Media is served/consumed in decode order while any networking is handled by the TCP layer.
-However, these protocols primarily see usage at higher latency targets due to their relatively slow detection and response to queuing.
-
-* UDP-based media protocols (ex. RTP, WebRTC, SRT) can side-step the issues with TCP and provide lower latency with better queue management.
-However the media protocol is now responsible for fragmentation, congestion control, retransmissions, receiver feedback, reassembly, and more.
-This added complexity significantly raises the implementation difficulty and hurts interoperability.
-
-A goal of this draft is to get the best of both worlds: a simple protocol that can still rapidly detect and respond to congestion.
-This is possible with the emergence of QUIC, designed to fix the shortcomings of TCP.
+A goal of this draft is to get the best of both worlds: a simple protocol that can still rapidly detect and respond to congestion using QUIC streams.
 
 ## Universal
-The media protocol ecosystem is fragmented; each protocol has it's own niche.
+The live media protocol ecosystem is fragmented; each protocol has it's own niche.
 Specialization is often a good thing, but we believe there's enough overlap to warrant consolidation.
 
-For example, a service might simultaneously ingest via WebRTC, SRT, RTMP, and/or a custom UDP protocol depending on the broadcaster.
-The same service might then simultaneously distribute via WebRTC, LL-HLS, HLS, (or the DASH variants) and/or a custom UDP protocol depending on the viewer.
+For example, a service might simultaneously ingest via WebRTC, SRT, RTMP, etc.
+The same service might then simultaneously distribute via WebRTC, LL-HLS, HLS/DASH, etc.
+And then distribute other live content over other protocols: for example updates, chat, metadata, etc.
 
-These media protocols are often radically different and not interoperable; requiring transcoding or transmuxing.
-This cost is further increased by the need to maintain separate stacks with different expertise requirements.
-
-A goal of this draft is to cover a large spectrum of use-cases. Specifically:
-
-* Consolidated contribution and distribution.
-The primary difference between the two is the ability to fanout.
-How does a CDN know how to forward media to N consumers and how does it reduce the encoded bitrate during congestion?
-A single protocol can cover both use-cases provided relays are informed on how to forward and drop media.
-
-* A configurable latency versus quality trade-off.
-The producer (broadcaster) chooses how to encode and transmit media based on the desired user experience.
-Each consumer (viewer) chooses how long to wait for media based on their desired user experience and network.
-We want an experience that can vary from real-time and lossy for one viewer, to delayed and loss-less for another viewer, without separate encodings or protocols.
-
-A related goal is to not reinvent how media is encoded.
-The same codec bitstream and container should be usable between different protocols.
+This draft attempts to build a unified base live transport for media and similar use-cases.
+Any live content can be fragmented into objects and annotated to achieve the intended behavior.
+The goal is not to reinvent how content is encoded, just delivered.
 
 ## Relays
 The prevailing belief is that UDP-based protocols are more expensive and don't "scale".
 While it's true that UDP is more difficult to optimize than TCP, QUIC itself is proof that it is possible to reach performance parity.
-In fact even some TCP-based protocols (ex. RTMP) don't "scale" either and are exclusively used for contribution as a result.
 
-The ability to scale a media protocol actually depends on relay support: proxies, caches, CDNs, SFUs, etc.
-The success of HTTP-based media protocols is due to the ability to leverage traditional HTTP CDNs.
+The ability to scale a protocol actually depends on relay support: proxies, caches, CDNs, SFUs, etc.
+The success of HTTP-based protocols is due to the ability for a HTTP CDN to cache and deduplicate requests.
 
-It's difficult to build a CDN for media protocols that were not designed with relays in mind.
-For example, an relay has to parse the underlying codec to determine which RTP packets should be dropped first, and the decision is not deterministic or consistent for each hop.
-This is the fatal flaw of many UDP-based protocols.
+It's difficult to build a CDN for live protocols that were not designed with relays in mind.
+This is the fatal flaw of many applications, as they relay on relays to perform bespoke parsing and decision making based on the contents.
 
 A goal of this draft is to treat relays as first class citizens.
 Any identification, reliability, ordering, prioritization, caching, etc is written to the wire in a header that is easy to parse.
-This ensures that relays can easily route/fanout media to the final destination.
-This also ensures that congestion response is consistent at every hop based on the preferences of the media producer.
+This ensures that relays can easily route content and respond to congestion in a specified, deterministic manner.
 
 ## Bandwidth Management and Congestion Response
-TODO: Add motivation text regarding bw management techniques in
-response to congestion. Also refer to {{priority-congestion}} for
-further details.
+TODO: Add motivation text regarding bw management techniques in response to congestion. Also refer to {{priority-congestion}} for further details.
 
 # Objects
-Warp works by splitting media into objects that can be transferred over QUIC streams.
-
-* The encoder determines how to fragment the encoded bitstream into objects ({{media}}).
-* Objects are assigned an intended send order that should be obeyed during congestion ({{send-order}})
-* The decoder receives each objects and skips any objects that do not arrive in time ({{decoder}}).
-
-## Media
-An encoder produces one or more codec bitstreams for each track.
-The decoder processes the codec bitstreams in the same order they were produced, with some possible exceptions based on the encoding.
-See the appendix for an overview of media encoding ({{appendix.encoding}}).
-
-Warp works by fragmenting the bitstream into objects that can be transmitted somewhat independently.
-Depending on how the objects are fragmented, the decoder has the ability to safely drop media during congestion.
-See the appendix for fragmentation examples ({{appendix.examples}})
-
-A media object:
-
-* MUST contain a single track.
-* MUST be in decode order. This means an increasing DTS.
-* MAY contain any number of frames/samples.
-* MAY have gaps between frames/samples.
-* MAY overlap with other objects. This means timestamps may be interleaved between objects.
-
-Media objects are encoded using a specified container ({{containers}}).
+Warp works by transferring objects over QUIC streams.
+The application determines how live content is fragmented into tracks, groups, and objects.
 
 ## Order Priorities and Options
 
 At the point of this writing, the working group has not reached consensus on the proper
 way to meet several important goals, such as:
 
-* Ensure that media objects are delivered in the order intended by the emitter
+* Ensure that objects are delivered in the order intended by the emitter
 * Allow nodes and relays to skip or delay some objects to deal with congestion
 * Ensure that emitters can accurately predict the behavior of relays
 * Ensure that when relay have to skip and delay objects belonging to different
@@ -393,12 +285,12 @@ A receiver MUST NOT assume that objects will be received in send order for a num
 * Packet loss or flow control MAY delay the send of individual streams.
 * The sender might not support QUIC stream prioritization.
 
-TODO: Refer to Congestion Response and Priorirization Section for further details on various proposals.
+TODO: Refer to Congestion Response and Prioritization Section for further details on various proposals.
 
 ### Ordering by Priorities
 
 Media is produced as a set of layers, such as for example low definition and high definition,
-or low frame rate and high frame rate. Each media object belonging to a track and a group has two attributes: the object-id, and the priority (or layer).
+or low frame rate and high frame rate. Each object belonging to a track and a group has two attributes: the object-id, and the priority (or layer).
 
 When nodes or relays have to choose which object to send next, they apply the following rules:
 
@@ -409,7 +301,7 @@ When nodes or relays have to choose which object to send next, they apply the fo
 * objects from later groups are normally always sent
   before objects of previous groups.
 
-The latter rule is generally agreed as a way to ensure media freshness, and to recover quickly
+The latter rule is generally agreed as a way to ensure freshness, and to recover quickly
 if queues and delays accumulate during a congestion period. However, there may be cases when
 finishing the transmission of an ongoing group results in better user experience than strict
 adherence to the freshness rule. We expect that that the working group will eventually reach
@@ -419,17 +311,7 @@ There have been proposals to allow emitters to coordinate the allocation of laye
 across multiple coordinated tracks. At this point, these proposals have not reached consensus.
 
 ## Groups
-TODO: Add text describing interation of group and intra object priorities within a group and their relation to congestion response. Add how it refers to {{priority-congestion}}
-
-## Decoder
-The decoder will receive multiple objects in parallel and out of order.
-
-Objects arrive in send order, but media usually needs to be processed in decode order.
-The decoder SHOULD use a buffer to reassmble objects into decode order and it SHOULD skip objects after a configurable duration.
-The amount of time the decoder is willing to wait for an object (buffer duration) is what ultimately determines the end-to-end latency.
-
-Objects MUST synchronize frames within and between tracks using presentation timestamps within the container.
-Objects are NOT REQUIRED to be aligned and the decoder MUST be prepared to skip over any gaps.
+TODO: Add text describing iteration of group and intra object priorities within a group and their relation to congestion response. Add how it refers to {{priority-congestion}}
 
 
 # Supported Transport Protocols  {#transport-protocols}
@@ -469,7 +351,7 @@ The ALPN value {{!RFC7301}} used by the protocol is `moq-00`.
 
 Warp endpoints communicate over QUIC streams. Every stream is a sequence of messages, framed as described in {{messages}}.
 
-The first stream opened is a client-initiated bidirectional stream where the peers exchange SETUP messages ({{message-setup}}). The subsequent streams MAY be either unidirectional and bidirectional. For exchanging media, an application would typically send a unidirectional stream containing a single OBJECT message ({{message-object}}).
+The first stream opened is a client-initiated bidirectional stream where the peers exchange SETUP messages ({{message-setup}}). The subsequent streams MAY be either unidirectional and bidirectional. For exchanging content, an application would typically send a unidirectional stream containing a single OBJECT message ({{message-object}}).
 
 Messages SHOULD be sent over the same stream if ordering is desired.
 
@@ -528,11 +410,11 @@ As covered in the motivation section ({{motivation}}), the ability to prioritize
 It's equally important to detect congestion via congestion control, which is handled in the QUIC layer {{QUIC-RECOVERY}}.
 
 Bufferbloat is caused by routers queueing packets for an indefinite amount of time rather than drop them.
-This latency significantly reduces the ability for the application to prioritize or drop media in response to congestion.
+This latency significantly reduces the ability for the application to prioritize or drop content in response to congestion.
 Senders SHOULD use a congestion control algorithm that reduces this bufferbloat (ex. {{BBR}}).
 It is NOT RECOMMENDED to use a loss-based algorithm (ex. {{NewReno}}) unless the network fully supports ECN.
 
-Live media is application-limited, which means that the encoder determines the max bitrate rather than the network.
+Live content is typically application-limited, which means that the encoder is the limiting factor and not the network.
 Most TCP congestion control algorithms will only increase the congestion window if it is full, limiting the upwards mobility when application-limited.
 Senders SHOULD use a congestion control algorithm that is designed for application-limited flows (ex. GCC).
 Senders MAY periodically pad the connection with QUIC PING frames to fill the congestion window.
@@ -559,10 +441,10 @@ The application MAY use any error message and SHOULD use a relevant code, as def
 |------|--------------------|
 
 * Session Terminated
-No error occured, however the endpoint no longer desires to send or receive media.
+No error occurred, however the endpoint wishes to terminate.
 
 * Generic Error
-An unclassified error occured.
+An unclassified error occurred.
 
 * Unauthorized:
 The endpoint breached an agreement, which MAY have been pre-negotiated by the application.
@@ -575,17 +457,17 @@ The endpoint successfully drained the session after a GOAWAY was initiated ({{me
 TODO: This is a placeholder section to capture details on
 how the Moq Transport protocol deals with prioritization and congestion overall. Having its own section helps reduce merge conflicts and allows us to reference it from other parts.
 
-This section is expected to cover detailson:
+This section is expected to cover details on:
 
 - Prioritization Schemes
-- Congestion Algorithms and impacts 
+- Congestion Algorithms and impacts
 - Mapping considerations for one object per stream vs multiple objects per stream
-- considerations for merging multiple streams across domans onto single connection and interactions with specific prioritization schemes
+- considerations for merging multiple streams across domains onto single connection and interactions with specific prioritization schemes
 
 # Relays {#relays-moq}
 
-The Relays play an important role for enabling low latency media delivery within the MoQ architecture. This specification allows for a delivery protocol based on a publish/subscribe metaphor where some endpoints, called publishers, publish media objects and
-some endpoints, called subscribers, consume those media objects. Relays leverage this publish/subscribe metaphor to form an overlay delivery network similar/in-parallel to what CDN provides today.
+The Relays play an important role for enabling low latency delivery within the MoQ architecture. This specification allows for a delivery protocol based on a publish/subscribe metaphor where some endpoints, called publishers, publish objects and
+some endpoints, called subscribers, consume those objects. Relays leverage this publish/subscribe metaphor to form an overlay delivery network similar/in-parallel to what CDN provides today.
 
 Relays serves as policy enforcement points by validating subscribe
 and publish requests to the tracks.
@@ -596,11 +478,11 @@ Subscribers interact with the Relays by sending a "SUBSCRIBE REQUEST"  ({{messag
 
 - Verifying that the subscriber is authorized to access the content associated with the "Full Track Name". The authorization information can be part of subscriptions themselves or part of the encompassing session. Specifics of where the authorization happens, either at the relays or forwarded for further processing, depends on the way the relay is managed and is application specific (typically based on prior business agreement).
 
-For successful subscriptions, relays proceed to save the subscription information by maintaining mapping from the track information to the list of subscribers. This will enable relays to forward matching publishes on the requested track. Subscriptions stay active until it is expired or the publisher of the track stops producing media or other reasons that result in error (see {{message-subscribe-error}}).
+For successful subscriptions, relays proceed to save the subscription information by maintaining mapping from the track information to the list of subscribers. This will enable relays to forward matching publishes on the requested track. Subscriptions stay active until it is expired or the publisher of the track stops producing objects or other reasons that result in error (see {{message-subscribe-error}}).
 
 In all the scenarios, the end-point making the subscribe request is notified of the result of the subscription, via "SUBSCRIBE OK" ({{message-subscribe-ok}}) or the "SUBSCRIBE ERROR" {{message-subscribe-error}} control message.
 
-Relays MAY aggregate subscriptions for a given track when multiple subscribers request for the same track. Subscriptions aggregation allows relays to share the cache and forward only the unique subscriptions per track for futher processing, say to setup routing for delivering media, rather than forwarding all the subscriptions received. When the authorization information is carried in the subscribes, the relay MUST authorize the subscribe requests, in order to deduplicate and serve the subscriptions from the shared cache.
+Relays MAY aggregate subscriptions for a given track when multiple subscribers request for the same track. Subscriptions aggregation allows relays to share the cache and forward only the unique subscriptions per track for further processing, say to setup routing for delivering objects, rather than forwarding all the subscriptions received. When the authorization information is carried in the subscribes, the relay MUST authorize the subscribe requests, in order to deduplicate and serve the subscriptions from the shared cache.
 
 
 ## Publisher Interactions
@@ -611,9 +493,9 @@ Relays MUST ensure that publishers are authorized by:
 
 - Verifying that the publisher is authorized to publish the content associated with the set of tracks whose Track Namespace matches the announced namespace. Specifics of where the authorization happens, either at the relays or forwarded for further processing, depends on the way the relay is managed and is application specific (typically based on prior business agreement).
 
-Relays respond with "ANNOUNCE OK" and/or "ANNONCE ERROR" control messages providing the results of announcement.
+Relays respond with "ANNOUNCE OK" and/or "ANNOUNCE ERROR" control messages providing the results of announcement.
 
-OBJECT message header carry short hop-by-hop Track Id that maps to the Full Track Name (see {{message-subscribe-ok}}). Relays use the Track ID of an incoming OBJECT message to identify its track and find the active subscribers for that track. Relays MUST NOT depend on OBJECT payload content for making forwarding decisions and MUST only depend on the fields, such as priority order and other metadata properties in the OBJECT message header. Unless determined by congestion response, Relays MUST forward the OBJECT message to the matching subscribers. 
+OBJECT message header carry short hop-by-hop Track Id that maps to the Full Track Name (see {{message-subscribe-ok}}). Relays use the Track ID of an incoming OBJECT message to identify its track and find the active subscribers for that track. Relays MUST NOT depend on OBJECT payload content for making forwarding decisions and MUST only depend on the fields, such as priority order and other metadata properties in the OBJECT message header. Unless determined by congestion response, Relays MUST forward the OBJECT message to the matching subscribers.
 
 ## Relay Discovery and Failover
 
@@ -625,12 +507,12 @@ TODO: This section shall cover reconnect considerations for clients when moving 
 
 ## Congestion Response at Relays
 
-TODO: Refer to {{priority-congestion}}. Add details describe 
+TODO: Refer to {{priority-congestion}}. Add details describe
 relays behavior when merging or splitting streams and interactions
 with congestion response.
 
 # Messages
-Both unidirectional and bidirectional Warp streams are sequences of length-deliminated messages.
+Both unidirectional and bidirectional Warp streams are sequences of length-delimited messages.
 
 ~~~
 Warp Message {
@@ -650,8 +532,6 @@ A length of 0 indicates the message is unbounded and continues until the end of 
 | 0x0  | OBJECT ({{message-object}})                  |
 |------|----------------------------------------------|
 | 0x1  | SETUP ({{message-setup}})                    |
-|------|----------------------------------------------|
-| 0x2  | CATALOG ({{message-catalog}})                |
 |------|----------------------------------------------|
 | 0x3  | SUBSCRIBE REQUEST ({{message-subscribe-req}})|
 |------|----------------------------------------------|
@@ -702,7 +582,7 @@ The SETUP parameters are described in the {{setup-parameters}} section.
 
 
 ## OBJECT {#message-object}
-A OBJECT message contains a single media object associated with a specified track, as well as associated metadata required to deliver, cache, and forward it.
+A OBJECT message contains a byte slice associated with a specified track, as well as associated metadata required to deliver, cache, and forward it.
 
 The format of the OBJECT message is as follows:
 
@@ -731,56 +611,12 @@ The sequence starts at 0, increasing sequentially for each object within the gro
 An integer indicating the object send order ({{send-order}}).
 
 * Object Payload:
-The format depends on the track container ({{containers}}).
-This is a media bitstream intended for the decoder and SHOULD NOT be processed by a relay.
-
-## CATALOG {#message-catalog}
-The sender advertises tracks via the CATALOG message.
-The receiver can then SUBSCRIBE to the indiciated tracks by ID.
-
-The format of the CATALOG message is as follows:
-
-~~~
-CATALOG Message {
-  Track Count (i),
-  Track Descriptors (..)
-}
-~~~
-{: #warp-catalog-format title="Warp CATALOG Message"}
-
-* Track Count:
-The number of tracks within the catalog.
-
-
-For each track, there is a track descriptor with the format:
-
-~~~
-Track Descriptor {
-  Track ID (i),
-  Container Format (i),
-  Container Init Payload (b)
-}
-~~~
-{: #warp-track-descriptor title="Warp Track Descriptor"}
-
-* Track ID:
-A unique identifier for the track within the track bundle.
-
-* Container Format:
-The container format as defined in {{containers}}.
-
-* Container Init Payload:
-A container-specific payload as defined in {{containers}}.
-This contains base information required to decode OBJECT messages, such as codec parameters.
-
-
-An endpoint MUST NOT send multiple CATALOG messages.
-A future draft will add the ability to add/remove/update tracks.
+An opaque payload intended for the consumer and SHOULD NOT be processed by a relay.
 
 
 ## SUBSCRIBE REQUEST {#message-subscribe-req}
 
-Entities that intend to receive media will do so via subscriptions to one or more tracks. The information for the tracks can be obtained via catalog or from incoming SUBSCRIBE REQUEST messages.
+Entities that intend to receive content will do so via subscriptions to one or more tracks.
 
 The format of SUBSCRIBE REQUEST is as follows:
 
@@ -811,7 +647,7 @@ from the group sequence and object sequence as defined in the `Track Request Par
 
 ## SUBSCRIBE OK {#message-subscribe-ok}
 
-A `SUBSCRIBE OK` control message is sent for successful subscriptions. 
+A `SUBSCRIBE OK` control message is sent for successful subscriptions.
 
 ~~~
 SUBSCRIBE OK
@@ -828,15 +664,15 @@ SUBSCRIBE OK
 Identifies the track in the request message for which this
 response is provided.
 
-* Track ID: 
-Session specific identifier that maps the Full Track Name to the Track ID in OBJECT ({{message-object}}) message headers for the advertised track. Track IDs are generally shorter than Full Track Names and thus reduce the overhead in OBJECT messages. 
+* Track ID:
+Session specific identifier that maps the Full Track Name to the Track ID in OBJECT ({{message-object}}) message headers for the advertised track. Track IDs are generally shorter than Full Track Names and thus reduce the overhead in OBJECT messages.
 
 * Expires:
 Time in milliseconds after which the subscription is no longer valid. A value of 0 implies that the subscription stays active until its explicitly unsubscribed or the underlying transport is disconnected.
 
 ## SUBSCRIBE ERROR {#message-subscribe-error}
 
-A `SUBSCRIBE ERROR` control message is sent for unsuccessful subscriptions. 
+A `SUBSCRIBE ERROR` control message is sent for unsuccessful subscriptions.
 
 ~~~
 SUBSCRIBE ERROR
@@ -876,9 +712,9 @@ ANNOUNCE Message {
 * Track Namespace:
 Identifies a track's namespace as defined in ({{track-fn}})
 
-* Track Request Parameters: 
+* Track Request Parameters:
 As defined in {{track-req-params}}.
- 
+
 
 ## ANNOUNCE OK {#message-announce-ok}
 
@@ -891,7 +727,7 @@ ANNOUNCE OK
 }
 ~~~
 {: #warp-announce-ok format title="Warp ANNOUNCE OK Message"}
- 
+
 * Track Namespace:
 Identifies the track namespace in the ANNOUNCE message for which this response is provided.
 
@@ -906,7 +742,7 @@ ANNOUNCE ERROR
   Track Namespace(...),
   Error Code (i),
   Reason Phrase Length (i),
-  Reason Phrase (...),  
+  Reason Phrase (...),
 }
 ~~~
 {: #warp-announce-error format title="Warp ANNOUNCE ERROR Message"}
@@ -941,7 +777,7 @@ The client:
 
 # SETUP Parameters
 
-The SETUP message ({{message-setup}}) allows the peers to exchange arbitrary parameters before any media is exchanged. It is the main extensibility mechanism of Warp. The peers MUST ignore unknown parameters. TODO: describe GREASE for those.
+The SETUP message ({{message-setup}}) allows the peers to exchange arbitrary parameters before any objects are exchanged. It is the main extensibility mechanism of Warp. The peers MUST ignore unknown parameters. TODO: describe GREASE for those.
 
 Every parameter MUST appear at most once within the SETUP message. The peers SHOULD verify that and close the connection if a parameter appears more than once.
 
@@ -953,15 +789,15 @@ The ROLE parameter (key 0x00) allows the client to specify what roles it expects
 
 0x01:
 
-: Only the client is expected to send media on the connection. This is commonly referred to as *the ingestion case*.
+: Only the client is expected to send object on the connection. This is commonly referred to as *the ingestion case*.
 
 0x02:
 
-: Only the server is expected to send media on the connection. This is commonly referred to as *the delivery case*.
+: Only the server is expected to send objects on the connection. This is commonly referred to as *the delivery case*.
 
 0x03:
 
-: Both the client and the server are expected to send media.
+: Both the client and the server are expected to send objects.
 
 The client MUST send a ROLE parameter with one of the three values specified above. The server MUST close the connection if the ROLE parameter is missing, is not one of the three above-specified values, or it is different from what the server expects based on the application in question.
 
@@ -981,54 +817,25 @@ The Track Request Parameters identify properties of the track requested in eithe
 
 ### GROUP SEQUENCE Parameter
 
-The GROUP SEQUENCE parameter (key 0x00) identifies the group within the track to start delivering the objects. The publisher MUST start delivering the objects from the most recent group, when this parameter is omitted. This parameter is applicable in SUBSCRIBE REQUEST message.
+The GROUP SEQUENCE parameter (key 0x00) identifies the group within the track to start delivering objects. The publisher MUST start delivering the objects from the most recent group, when this parameter is omitted. This parameter is applicable in SUBSCRIBE REQUEST message.
 
 ### OBJECT SEQUENCE Parameter
-The OBJECT SEQUENCE parameter (key 0x01) identifies the object with the track to start delivering the media. The `GROUP SEQUENCE` parameter MUST be set to identify the group under which to start the media delivery. The publisher MUST start delivering from the beginning of the selected group when this parameter is omitted. This parameter is applicable in SUBSCRIBE REQUEST message.
+The OBJECT SEQUENCE parameter (key 0x01) identifies the object with the track to start delivering objects. The `GROUP SEQUENCE` parameter MUST be set to identify the group under which to start delivery. The publisher MUST start delivering from the beginning of the selected group when this parameter is omitted. This parameter is applicable in SUBSCRIBE REQUEST message.
 
 ### AUTHORIZATION INFO Parameter
 AUTHORIZATION INFO parameter (key 0x02) identifies track's authorization information. This parameter is populated for cases where the authorization is required at the track level. This parameter is applicable in SUBSCRIBE REQUEST and ANNOUNCE messages.
-
-# Containers
-The container format describes how the underlying codec bitstream is encoded.
-This includes timestamps, metadata, and generally anything required to decode and display the media.
-
-This draft currently specifies only a single container format.
-Future drafts and extensions may specifiy additional formats.
-
-|------|------------------|
-| ID   | Container Format |
-|-----:|:-----------------|
-| 0x0  | fMP4 ({{fmp4}})  |
-|------|------------------|
-
-## fMP4
-A fragmented MP4 container  {{ISOBMFF}}.
-
-The "Container Init Payload" in a CATALOG message ({{message-catalog}}) MUST consist of a File Type Box (ftyp) followed by a Movie Box (moov).
-This Movie Box (moov) consists of Movie Header Boxes (mvhd), Track Header Boxes (tkhd), Track Boxes (trak), followed by a final Movie Extends Box (mvex).
-These boxes MUST NOT contain any samples and MUST have a duration of zero.
-A Common Media Application Format Header {{CMAF}} meets all these requirements.
-
-The "Object Payload" in an OBJECT message ({{message-object}}) MUST consist of a Segment Type Box (styp) followed by any number of media fragments.
-Each media fragment consists of a Movie Fragment Box (moof) followed by a Media Data Box (mdat).
-The Media Fragment Box (moof) MUST contain a Movie Fragment Header Box (mfhd) and Track Box (trak) with a Track ID (`track_ID`) matching a Track Box in the initialization fragment.
-A Common Media Application Format Segment {{CMAF}} meets all these requirements.
-
-Media fragments can be packaged at any frequency, causing a trade-off between overhead and latency.
-It is RECOMMENDED that a media fragment consists of a single frame to minimize latency.
 
 
 # Security Considerations
 
 ## Resource Exhaustion
-Live media requires significant bandwidth and resources.
+Live content requires significant bandwidth and resources.
 Failure to set limits will quickly cause resource exhaustion.
 
 Warp uses QUIC flow control to impose resource limits at the network layer.
-Endpoints SHOULD set flow control limits based on the anticipated media bitrate.
+Endpoints SHOULD set flow control limits based on the anticipated bitrate.
 
-The media producer prioritizes and transmits streams out of order.
+The producer prioritizes and transmits streams out of order.
 Streams might be starved indefinitely during congestion.
 The producer and consumer MUST cancel a stream, preferably the lowest priority, after reaching a resource limit.
 
@@ -1046,308 +853,6 @@ TODO: fill out currently missing registries:
 
 TODO: register the URI scheme and the ALPN
 
-# Appendix A. Video Encoding {#appendix.encoding}
-In order to transport media, we first need to know how media is encoded.
-This section is an overview of media encoding.
-
-## Tracks
-A broadcast consists of one or more tracks.
-Each track has a type (audio, video, caption, etc) and uses a corresponding codec.
-There may be multiple tracks, including of the same type for a number of reasons.
-
-For example:
-
-* A track for each codec.
-* A track for each resolution and bitrate.
-* A track for each language.
-* A track for each camera feed.
-
-Tracks can be muxed together into a single container or stream.
-The goal of Warp is to independently deliver tracks, and even parts of a track, so this is not allowed.
-Each Warp object MUST contain a single track.
-
-## Init {#appendix.init}
-Media codecs have a wide array of configuration options.
-For example, the resolution, the color space, the features enabled, etc.
-
-Before playback can begin, the decoder needs to know the configuration.
-This is done via a short payload at the very start of the media file.
-The initialization payload MAY be cached and reused between objects with the same configuration.
-
-## Video {#appendix.video}
-Video is a sequence of pictures (frames) with a presentation timestamp (PTS).
-
-An I-frame is a frame with no dependencies and is effectively an image file.
-These frames are usually inserted at a frequent interval to support seeking or joining a live stream.
-However they can also improve compression when used at scene boundaries.
-
-A P-frame is a frame that references on one or more earlier frames.
-These frames are delta-encoded, such that they only encode the changes (motion).
-This result in a massive file size reduction for most content outside of few notorious cases (ex. confetti).
-
-A common encoding structure is to only reference the previous frame, as it is simple and minimizes latency:
-
-~~~
- I <- P <- P <- P   I <- P <- P <- P   I <- P ...
-~~~
-
-There is no such thing as an optimal encoding structure.
-Encoders tuned for the best quality will produce a tangled spaghetti of references.
-Encoders tuned for the lowest latency can avoid reference frames to allow more to be dropped.
-
-### B-Frames {#appendix.b-frame}
-The goal of video codecs is to maximize compression.
-One of the improvements is to allow a frame to reference later frames.
-
-A B-frame is a frame that can reference one or more frames in the future, and any number of frames in the past.
-These frames are more difficult to encode/decode as they require buffering and reordering.
-
-A common encoding structure is to use B-frames in a fixed pattern.
-Such a fixed pattern is not optimal, but it's simpler for hardware encoding:
-
-~~~
-    B     B         B     B         B
-   / \   / \       / \   / \       / \
-  v   v v   v     v   v v   v     v   v
- I <-- P <-- P   I <-- P <-- P   I <-- P ...
-~~~
-
-### Timestamps
-Each frame is assigned a presentation timestamp (PTS), indicating when it should be shown relative to other frames.
-
-The encoder outputs the bitstream in decode order, which means that each frame is output after its references.
-This makes it easier for the decoder as all references are earlier in the bitstream and can be decoded immediately.
-
-However, this causes problems with B-frames because they depend on a future frame, and some reordering has to occur.
-In order to keep track of this, frames have a decode timestamp (DTS) in addition to a presentation timestamp (PTS).
-A B-frame will have higher DTS value that its dependencies, while PTS and DTS will be the same for other frame types.
-
-For the example above, this would look like:
-
-~~~
-     0 1 2 3 4 5 6 7 8 9 10
-PTS: I B P B P I B P B P B
-DTS: I   PB  PBI   PB  PB
-~~~
-
-B-frames add latency because of this reordering so they are usually not used for conversational latency.
-
-### Group of Pictures {#appendix.gop}
-A group of pictures (GoP) is an I-frame followed by any number of frames until the next I-frame.
-All frames MUST reference, either directly or indirectly, only the most recent I-frame.
-
-~~~
-        GoP               GoP            GoP
-+-----------------+-----------------+---------------
-|     B     B     |     B     B     |     B
-|    / \   / \    |    / \   / \    |    / \
-|   v   v v   v   |   v   v v   v   |   v   v
-|  I <-- P <-- P  |  I <-- P <-- P  |  I <-- P ...
-+-----------------+-----------------+--------------
-~~~
-
-This is a useful abstraction because GoPs can always be decoded independently.
-
-### Scalable Video Coding {#appendix.svc}
-Some codecs support scalable video coding (SVC), in which the encoder produces multiple bitstreams in a hierarchy.
-This layered coding means that dropping the top layer degrades the user experience in a configured way.
-Examples include reducing the resolution, picture quality, and/or frame rate.
-
-Here is an example SVC encoding with 3 resolutions:
-
-~~~
-      +-------------------------+------------------
-   4k |  P <- P <- P <- P <- P  |  P <- P <- P ...
-      |  |    |    |    |    |  |  |    |    |
-      |  v    v    v    v    v  |  v    v    v
-      +-------------------------+------------------
-1080p |  P <- P <- P <- P <- P  |  P <- P <- P ...
-      |  |    |    |    |    |  |  |    |    |
-      |  v    v    v    v    v  |  v    v    v
-      +-------------------------+------------------
- 360p |  I <- P <- P <- P <- P  |  I <- P <- P ...
-      +-------------------------+------------------
-~~~
-
-## Audio {#appendix.audio}
-Audio is dramatically simpler than video as it is not typically delta encoded.
-Audio samples are grouped together (group of samples) at a configured rate, also called a "frame".
-
-The encoder spits out a continuous stream of samples (S):
-
-~~~
-S S S S S S S S S S S S S ...
-~~~
-
-
-# Appendix B. Object Examples {#appendix.examples}
-Warp offers a large degree of flexibility on how objects are fragmented and prioritized.
-There is no best solution; it depends on the desired complexity and user experience.
-
-This section provides a summary of some options available.
-
-## Video
-
-### Group of Pictures
-A group of pictures (GoP) is consists of an I-frame and all frames that directly or indirectly reference it ({{appendix.gop}}).
-The tail of a GoP can be dropped without causing decode errors, even if the encoding is otherwise unknown, making this the safest option.
-
-It is RECOMMENDED that each object consist of a single GoP.
-For example:
-
-~~~
-     object 1        object 2     object 3
-+---------------+---------------+---------
-| I  P  B  P  B | I  P  B  P  B | I  P  B
-+---------------+---------------+---------
-~~~
-
-Depending on the video encoding, this approach may introduce unnecessary ordering and dependencies.
-A better option may be available below.
-
-### Scalable Video Coding
-Some codecs support scalable video coding (SVC), in which the encoder produces multiple bitstreams in a hierarchy ({{appendix.svc}}).
-
-When SVC is used, it is RECOMMENDED that each object consist of a single layer and GoP.
-For example:
-
-~~~
-                object 3              object 6
-      +-------------------------+---------------
-   4k |  P <- P <- P <- P <- P  |  P <- P <- P
-      |  |    |    |    |    |  |  |    |    |
-      |  v    v    v    v    v  |  v    v    v
-      +-------------------------+--------------
-
-                object 2              object 5
-      +-------------------------+---------------
-1080p |  P <- P <- P <- P <- P  |  P <- P <- P
-      |  |    |    |    |    |  |  |    |    |
-      |  v    v    v    v    v  |  v    v    v
-      +-------------------------+--------------
-
-                object 1              object 4
-      +-------------------------+---------------
- 360p |  I <- P <- P <- P <- P  |  I <- P <- P
-      +-------------------------+---------------
-~~~
-
-
-### Frames
-With full knowledge of the encoding, the encoder MAY can split a GoP into multiple objects based on the frame.
-However, this is highly dependent on the encoding, and the additional complexity might not improve the user experience.
-
-For example, we could split our example B-frame structure ({{appendix.b-frame}}) into 13 objects:
-
-~~~
-      2     4           7     9           12
-+--------+--------+--------+--------+-----------+
-|     B  |  B     |     B  |  B     |     B     |
-|-----+--+--+-----+-----+--+--+-----+-----+-----+
-|  I  |  P  |  P  |  I  |  P  |  P  |  I  |  P  |
-+-----+-----+-----+-----+-----+-----+-----+-----+
-   1     3     5     6     8     10    11    13
-~~~
-
-Objects can be merged with their dependency to reduce the total number of objects.
-QUIC streams will deliver each object in order so the QUIC library performs the reordering.
-
-The same GoP structure can be represented using eight objects:
-
-~~~
-      2     3           5     6           8
-+--------+--------+-----------------+------------
-|     B  |  B     |     B  |  B     |     B     |
-+--------+--------+--------+--------+-----------+
-|  I     P     P  |  I     P     P  |  I     P
-+-----------------+-----------------+------------
-         1                 4              7
-~~~
-
-We can further reduce the number of objects by combining frames that don't depend on each other.
-The only restriction is that frames can only reference frames earlier in the object.
-For example, non-reference frames can have their own object so they can be prioritized or dropped separate from reference frames.
-
-The same GoP structure can also be represented using six objects, although we've removed the ability to drop individual B-frames:
-
-~~~
-    object 2      object 4    object 6
-+-------------+-------------+---------
-|    B   B    |    B   B    |    B
-+-------------+-------------+---------
-|  I   P   P  |  I   P   P  |  I   P
-+-------------+-------------+---------
-    object 1      object 3    object 5
-~~~
-
-### Init
-Initialization data ({{appendix.init}}) is required to initialize the decoder.
-Each object MAY start with initialization data although this adds overhead.
-
-Instead, it is RECOMMENDED to create a init object.
-Each media object can then depend on the init object to avoid the redundant overhead.
-For example:
-
-~~~
-     object 2        object 3     object 5
-+---------------+---------------+---------
-| I  P  B  P  B | I  P  B  P  B | I  P  B
-+---------------+---------------+---------
-|              init             |  init
-+-------------------------------+---------
-              object 1            object 4
-~~~
-
-
-## Audio
-Audio ({{appendix.audio}}) is much simpler than video so there's fewer options.
-
-The simplest configuration is to use a single object for each audio track.
-This may seem inefficient given the ease of dropping audio samples.
-However, the audio bitrate is low and gaps cause quite a poor user experience, when compared to video.
-
-~~~
-          object 1
-+---------------------------
-| S S S S S S S S S S S S S
-+---------------------------
-~~~
-
-An improvement is to periodically split audio samples into separate objects.
-This gives the consumer the ability to skip ahead during severe congestion or temporary connectivity loss.
-
-~~~
-     object 1        object 2     object 3
-+---------------+---------------+---------
-| S  S  S  S  S | S  S  S  S  S | S  S  S
-+---------------+---------------+---------
-~~~
-
-This frequency of audio objects is configurable, at the cost of additional overhead.
-It's NOT RECOMMENDED to create a object for each audio frame because of this overhead.
-
-Since video can only recover from severe congestion with an I-frame, so there's not much point recovering audio at a separate interval.
-It is RECOMMENDED to create a new audio object at each video I-frame.
-
-~~~
-     object 1        object 3     object 5
-+---------------+---------------+---------
-| S  S  S  S  S | S  S  S  S  S | S  S  S
-+---------------+---------------+---------
-| I  P  B  P  B | I  P  B  P  B | I  P  B
-+---------------+---------------+---------
-     object 2        object 4     object 6
-~~~
-
-## Send Order {#appendix.send-order}
-The send order ({{send-order}} depends on the desired user experience during congestion:
-
-* if media should be skipped: send order = PTS
-* if media should not be skipped: send order = -PTS
-* if video should be skipped before audio: audio send order < video send order
-
-The send order may be changed if the content changes.
-For example, switching from a live stream (skippable) to an advertisement (unskippable).
 
 # Contributors
 {:numbered="false"}
