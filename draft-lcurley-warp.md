@@ -594,26 +594,37 @@ and publish requests to the tracks.
 
 Subscribers interact with the Relays by sending a "SUBSCRIBE REQUEST"  ({{message-subscribe-req}}) control message for the tracks of interest. Relays MUST ensure subscribers are authorized for the tracks. This is done by
 
-- Verifying that the subscriber is authorized to access the content associated with the "Full Track Name". The authorization information can be part of subscriptions themselves or part of the encompassing session. Specifics of where the authorization happens, either at the relays or forwarded for further processing, depends on the way the relay is managed and is application specific (typically based on prior business agreement). If forwarded, the authorization information from the original subscribe request MUST be identical.
+- Verifying that the subscriber is authorized to access the content associated with the "Full Track Name". The authorization information can be part of subscriptions themselves or part of the encompassing session. Specifics of where the authorization happens, either at the relays or forwarded for further processing, depends on the way the relay is managed and is application specific (typically based on prior business agreement).
 
 For successful subscriptions, relays proceed to save the subscription information by maintaining mapping from the track information to the list of subscribers. This will enable relays to forward matching publishes on the requested track. Subscriptions stay active until it is expired or the publisher of the track stops producing media or other reasons that result in error (see {{message-subscribe-error}}).
 
 In all the scenarios, the end-point making the subscribe request is notified of the result of the subscription, via "SUBSCRIBE OK" ({{message-subscribe-ok}}) or the "SUBSCRIBE ERROR" {{message-subscribe-error}} control message.
 
-
 Relays MAY aggregate subscriptions for a given track when multiple subscribers request for the same track. Subscriptions aggregation allows relays to share the cache and forward only the unique subscriptions per track for futher processing, say to setup routing for delivering media, rather than forwarding all the subscriptions received. When the authorization information is carried in the subscribes, the relay MUST authorize the subscribe requests, in order to deduplicate and serve the subscriptions from the shared cache.
 
 
 ## Publisher Interactions
-TODO: This section shall cover relay handling of publishes.
+
+Publishing through the relay starts with publisher sending "ANNOUNCE" control message with a `Track Namespace` ({{model-track}}).
+
+Relays MUST ensure that publishers are authorized by:
+
+- Verifying that the publisher is authorized to publish the content associated with the set of tracks whose Track Namespace matches the announced namespace. Specifics of where the authorization happens, either at the relays or forwarded for further processing, depends on the way the relay is managed and is application specific (typically based on prior business agreement).
+
+Relays respond with "ANNOUNCE OK" and/or "ANNONCE ERROR" control messages providing the results of announcement.
+
+OBJECT message header carry short hop-by-hop Track Id that maps to the Full Track Name (see {{message-subscribe-ok}}). Relays use the Track ID of an incoming OBJECT message to identify its track and find the active subscribers for that track. Relays MUST NOT depend on OBJECT payload content for making forwarding decisions and MUST only depend on the fields, such as priority order and other metadata properties in the OBJECT message header. Unless determined by congestion response, Relays MUST forward the OBJECT message to the matching subscribers. 
 
 ## Relay Discovery and Failover
+
 TODO: This section shall cover aspects of relay failover and protocol interactions
 
 ## Restoring connections through relays
+
 TODO: This section shall cover reconnect considerations for clients when moving between the Relays
 
 ## Congestion Response at Relays
+
 TODO: Refer to {{priority-congestion}}. Add details describe 
 relays behavior when merging or splitting streams and interactions
 with congestion response.
