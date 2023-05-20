@@ -66,7 +66,7 @@ either directly or via WebTransport {{WebTransport}}.
 * {{motivation}} covers the background and rationale behind Warp.
 * {{objects}} covers how data is fragmented into objects.
 * {{transport-protocols}} covers aspects of setting up a MoQ transport session.
-* {{stream-mapping}} covers how QUIC is used to objects over streams.
+* {{stream-mapping}} covers how QUIC is used to transfer data.
 * {{priority-congestion}} covers protocol considerations on prioritization schemes and congestion response overall.
 * {{relays-moq}} covers behavior at the relay entities.
 * {{messages}} covers how messages are encoded on the wire.
@@ -78,61 +78,33 @@ either directly or via WebTransport {{WebTransport}}.
 
 Commonly used terms in this document are described below.
 
-Endpoint:
-
-: A QUIC endpoint: either a client or a server.
-
-Session:
-
-: An QUIC connection identified via a URL after a handshake.
-
 Client:
 
-: The endpoint that initiates the QUIC connection and Warp session.
-
-Server:
-
-: The endpoint that accepts incoming QUIC connections and Warp sessions.
-
-Publisher:
-
-: An endpoint that publishes tracks and transmits objects over the network.
-
-Subscriber:
-
-: An endpoint that requests tracks and receives objects over the network.
-
-Producer:
-
-: The initial publisher that encodes tracks and objects.
-
-Consumer:
-
-: The final subscriber that decodes tracks and objects.
-
-Relay:
-
-: An endpoint that subscribes to endpoints and publishes to other endpoints. Relays typically perform deduplication and caching as part of a distributed system.
-
-Application:
-
-: An entity that uses Warp to send or receive live data.
-
-Track:
-
-: A live stream, fragmented into objects that are generated over time.
-
-Group:
-
-: A collection of objects, used to denote join points for new subscribers.
-
-Object:
-
-: A byte slice of a track, including a header indicating the relationship between objects.
+: The party initiating a Warp session.
 
 Congestion:
 
 : Packet loss and queuing caused by degraded or overloaded networks.
+
+Consumer:
+
+: A QUIC endpoint receiving media over the network. This could be a consumer or a relay.
+
+Producer:
+
+: A QUIC endpoint sending media over the network. This could be a producer or a relay.
+
+Server:
+
+: The party accepting an incoming Warp session.
+
+Track:
+
+: An encoded bitstream, representing a single component that makes up the larger application.
+
+Transport session:
+
+: Either a native QUIC connection, or a WebTransport session used to transmit the data.
 
 
 ## Notational Conventions
@@ -173,7 +145,6 @@ In general, objects within a group SHOULD NOT depend on objects in other groups.
 
 A *track* is a sequence of objects ({{model-object}}) organized into groups ({{model-group}}).
 A subscriber can request individual tracks at group boundaries, including any new objects while the track is active.
-The application is responsible for determining how tracks are named, encoded, or otherwise used.
 
 ### Full Track Name {#track-fn}
 
@@ -184,6 +155,26 @@ Full Track Name = Track Namespace  "/"  Track Name
 ~~~~~~~~~~~~~~~
 
 This document does not define the exact mechanism of naming Track Namespaces. Applications building on top of MoQ MUST ensure that the mechanism used guarantees global uniqueness; for instance, an application could use domain names as part of track namespaces. Track Namespace is followed by the application context specific Track Name, encoded as an opaque string.
+
+This document does not define the exact mechanism of naming Track Namespaces. Applications building on top of MoQ MUST ensure that the mechanism used guarantees global uniqueness; for instance, an application could use domain names as part of track namespaces. Track Namespace is followed by the application context specific Track Name, encoded as an opaque string.
+
+~~~
+Example: 1
+Track Namespace = videoconferencing.example.com/meetings/m123/participants/alice
+Track Name = audio
+Full Track Name = videoconferencing.example.com/meetings/m123/participants/alice/audio
+
+Example: 2
+Track Namespace = livestream.example.com
+Track Name = uaCafDkl123/audio
+Full Track Name = livestream.example.com/uaCafDkl123/audio
+
+Example: 3
+Track Namespace = security-camera.example.com/camera1
+Track Name = hd-video
+Full Track Name = security-camera.example.com/camera1/hd-video
+
+~~~
 
 
 ### Connection URL
@@ -212,7 +203,7 @@ For example: the application, the OS socket, a wifi router, within an ISP, or ge
 If nothing is done, new data will be appended to the end of a growing queue and will take longer to arrive than their predecessors, increasing latency.
 Our job is to minimize the growth of this queue, and if necessary, bypass the queue entirely by dropping content.
 
-The speed at which a live protocol can detect and respond to queuing determines the latency.
+The speed at which protocol can detect and respond to queuing determines the latency.
 TCP-based protocols are simple, but are slow to detect congestion and suffer from head-of-line blocking.
 UDP-based protocols can avoid queuing, but the application is now responsible for fragmentation, congestion control, retransmissions, receiver feedback, reassembly, and more.
 
@@ -226,7 +217,7 @@ For example, a service might simultaneously ingest via WebRTC, SRT, RTMP, etc.
 The same service might then simultaneously distribute via WebRTC, LL-HLS, HLS/DASH, etc.
 And then distribute other live content over other protocols: for example updates, chat, metadata, etc.
 
-This draft attempts to build a unified base live transport for media and similar use-cases.
+This draft attempts to build a unified base transport protocol for media and similar use-cases.
 Any live content can be fragmented into objects and annotated to achieve the intended behavior.
 The goal is not to reinvent how content is encoded, just delivered.
 
@@ -234,7 +225,7 @@ The goal is not to reinvent how content is encoded, just delivered.
 The prevailing belief is that UDP-based protocols are more expensive and don't "scale".
 While it's true that UDP is more difficult to optimize than TCP, QUIC itself is proof that it is possible to reach performance parity.
 
-The ability to scale a protocol actually depends on relay support: proxies, caches, CDNs, SFUs, etc.
+The ability to scale a live content transport actually depends on relay support: proxies, caches, CDNs, SFUs, etc.
 The success of HTTP-based protocols is due to the ability for a HTTP CDN to cache and deduplicate requests.
 
 It's difficult to build a CDN for live protocols that were not designed with relays in mind.
@@ -409,7 +400,7 @@ See section 2.2 in {{QUIC}}.
 As covered in the motivation section ({{motivation}}), the ability to prioritize or cancel streams is a form of congestion response.
 It's equally important to detect congestion via congestion control, which is handled in the QUIC layer {{QUIC-RECOVERY}}.
 
-Bufferbloat is caused by routers queueing packets for an indefinite amount of time rather than drop them.
+Bufferbloat occurs when routers queue packets for too long instead of dropping the packet, and can introduce significant latency.
 This latency significantly reduces the ability for the application to prioritize or drop content in response to congestion.
 Senders SHOULD use a congestion control algorithm that reduces this bufferbloat (ex. {{BBR}}).
 It is NOT RECOMMENDED to use a loss-based algorithm (ex. {{NewReno}}) unless the network fully supports ECN.
@@ -441,7 +432,7 @@ The application MAY use any error message and SHOULD use a relevant code, as def
 |------|--------------------|
 
 * Session Terminated
-No error occurred, however the endpoint wishes to terminate.
+No error occurred, however the endpoint wishes to terminate the session.
 
 * Generic Error
 An unclassified error occurred.
@@ -582,7 +573,7 @@ The SETUP parameters are described in the {{setup-parameters}} section.
 
 
 ## OBJECT {#message-object}
-A OBJECT message contains a byte slice associated with a specified track, as well as associated metadata required to deliver, cache, and forward it.
+A OBJECT message contains a range of contiguous bytes from from the specified track, as well as associated metadata required to deliver, cache, and forward it.
 
 The format of the OBJECT message is as follows:
 
@@ -789,7 +780,7 @@ The ROLE parameter (key 0x00) allows the client to specify what roles it expects
 
 0x01:
 
-: Only the client is expected to send object on the connection. This is commonly referred to as *the ingestion case*.
+: Only the client is expected to send objects on the connection. This is commonly referred to as *the ingestion case*.
 
 0x02:
 
