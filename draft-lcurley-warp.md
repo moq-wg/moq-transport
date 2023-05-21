@@ -62,6 +62,7 @@ Objects are starved/dropped during congestion based on priorities in order to mi
 ## Introduction
 Warp is a live transport protocol that utilizes the QUIC network protocol {{QUIC}},
 either directly or via WebTransport {{WebTransport}}.
+It was originally developed for live media, but has been generalized for similar use-cases.
 
 * {{motivation}} covers the background and rationale behind Warp.
 * {{objects}} covers how data is fragmented into objects.
@@ -215,7 +216,7 @@ Specialization is often a good thing, but we believe there's enough overlap to w
 
 For example, a service might simultaneously ingest via WebRTC, SRT, RTMP, etc.
 The same service might then simultaneously distribute via WebRTC, LL-HLS, HLS/DASH, etc.
-And then distribute other live content over other protocols: for example updates, chat, metadata, etc.
+Other similar live content would then be distributed other yet additional protocols: for example updates, chat, metadata, etc.
 
 This draft attempts to build a unified base transport protocol for media and similar use-cases.
 Any live content can be fragmented into objects and annotated to achieve the intended behavior.
