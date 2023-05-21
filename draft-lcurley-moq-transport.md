@@ -52,7 +52,7 @@ informative:
 
 --- abstract
 
-This document defines the core behavior for MoQTransport, a live transport protocol over QUIC.
+This document defines the core behavior for MoQTransport, a live media transport protocol over QUIC.
 The application fragments a live stream into objects, including a header that describes the basic relationship between objects.
 Objects are starved/dropped during congestion based on priorities in order to minimize latency.
 
@@ -60,14 +60,14 @@ Objects are starved/dropped during congestion based on priorities in order to mi
 
 
 ## Introduction
-MoQTransport is a live transport protocol that utilizes the QUIC network protocol {{QUIC}},
+MoQTransport is a live media transport protocol that utilizes the QUIC network protocol {{QUIC}},
 either directly or via WebTransport {{WebTransport}}.
 It was originally developed for live media, but has been generalized for similar use-cases.
 
 * {{motivation}} covers the background and rationale behind MoQ transport.
-* {{objects}} covers how data is fragmented into objects.
+* {{objects}} covers how live content is fragmented into objects.
 * {{transport-protocols}} covers aspects of setting up a MoQ transport session.
-* {{stream-mapping}} covers how QUIC is used to transfer data.
+* {{stream-mapping}} covers how QUIC is used to transfer objects.
 * {{priority-congestion}} covers protocol considerations on prioritization schemes and congestion response overall.
 * {{relays-moq}} covers behavior at the relay entities.
 * {{messages}} covers how messages are encoded on the wire.
@@ -154,8 +154,6 @@ Tracks are identified by a globally unique identifier, called "Full Track Name" 
 ~~~~~~~~~~~~~~~
 Full Track Name = Track Namespace  "/"  Track Name
 ~~~~~~~~~~~~~~~
-
-This document does not define the exact mechanism of naming Track Namespaces. Applications building on top of MoQ MUST ensure that the mechanism used guarantees global uniqueness; for instance, an application could use domain names as part of track namespaces. Track Namespace is followed by the application context specific Track Name, encoded as an opaque string.
 
 This document does not define the exact mechanism of naming Track Namespaces. Applications building on top of MoQ MUST ensure that the mechanism used guarantees global uniqueness; for instance, an application could use domain names as part of track namespaces. Track Namespace is followed by the application context specific Track Name, encoded as an opaque string.
 

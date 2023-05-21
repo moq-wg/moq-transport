@@ -1,4 +1,5 @@
 .refcache
 *.html
 *.xml
+*.xml.new
 *.txt
