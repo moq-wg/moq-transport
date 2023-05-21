@@ -1,7 +1,7 @@
-# Warp Draft
-Warp is a live media protocol that utilizes QUIC streams.
+# MoQ Transport
+MoQ Transport is a live media protocol that utilizes QUIC streams.
 
-[Latest Draft](https://kixelated.github.io/warp-draft/draft-lcurley-warp.html)
+[Latest Draft](https://kixelated.github.io/warp-draft/draft-lcurley-moq-transport.html)
 
 ## Contributing
 All changes need to be made to the markdown file (.md).

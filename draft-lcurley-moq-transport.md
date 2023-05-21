@@ -1,7 +1,7 @@
 ---
-title: "Warp - Live Media Transport over QUIC"
-abbrev: WARP
-docname: draft-lcurley-warp-latest
+title: "Media over QUIC - Transport"
+abbrev: moq-transport
+docname: draft-lcurley-moq-transport-latest
 date: {DATE}
 category: info
 
@@ -52,7 +52,7 @@ informative:
 
 --- abstract
 
-This document defines the core behavior for Warp, a live media transport protocol over QUIC.
+This document defines the core behavior for MoQTransport, a live media transport protocol over QUIC.
 The application fragments a live stream into objects, including a header that describes the basic relationship between objects.
 Objects are starved/dropped during congestion based on priorities in order to minimize latency.
 
@@ -60,11 +60,11 @@ Objects are starved/dropped during congestion based on priorities in order to mi
 
 
 ## Introduction
-Warp is a live media transport protocol that utilizes the QUIC network protocol {{QUIC}},
+MoQTransport is a live media transport protocol that utilizes the QUIC network protocol {{QUIC}},
 either directly or via WebTransport {{WebTransport}}.
 It was originally developed for live media, but has been generalized for similar use-cases.
 
-* {{motivation}} covers the background and rationale behind Warp.
+* {{motivation}} covers the background and rationale behind MoQ transport.
 * {{objects}} covers how live content is fragmented into objects.
 * {{transport-protocols}} covers aspects of setting up a MoQ transport session.
 * {{stream-mapping}} covers how QUIC is used to transfer objects.
@@ -81,7 +81,7 @@ Commonly used terms in this document are described below.
 
 Client:
 
-: The party initiating a Warp session.
+: The party initiating a session.
 
 Congestion:
 
@@ -97,7 +97,7 @@ Producer:
 
 Server:
 
-: The party accepting an incoming Warp session.
+: The party accepting an incoming session.
 
 Track:
 
@@ -122,7 +122,7 @@ x (b):
 
 ## Objects {#model-object}
 
-The basic element of Warp is an *object*.
+The basic element of MoQTransport is an *object*.
 An object is an addressable unit whose payload is a sequence of bytes.
 All objects belong to a group, indicating ordering and potential dependencies. {{model-group}}
 Objects carry associated metadata such as priority, TTL, or other information usable by a relay, but relays MUST treat the object payload as opaque.
@@ -238,7 +238,7 @@ This ensures that relays can easily route content and respond to congestion in a
 TODO: Add motivation text regarding bw management techniques in response to congestion. Also refer to {{priority-congestion}} for further details.
 
 # Objects
-Warp works by transferring objects over QUIC streams.
+MoQTransport works by transferring objects over QUIC streams.
 The application determines how live content is fragmented into tracks, groups, and objects.
 
 ## Order Priorities and Options
@@ -312,13 +312,13 @@ thus, the main difference lies in how the servers are identified and how the con
 
 ## WebTransport
 
-A Warp server that is accessible via WebTransport can be identified using an HTTPS URI ({{!RFC9110, Section 4.2.2}}).
-A Warp transport session can be established by sending an extended CONNECT request to the host and the path indicated by the URI,
+A MoQTransport server that is accessible via WebTransport can be identified using an HTTPS URI ({{!RFC9110, Section 4.2.2}}).
+A MoQTransport session can be established by sending an extended CONNECT request to the host and the path indicated by the URI,
 as described in {{WebTransport, Section 3}}.
 
 ## Native QUIC
 
-A Warp server that is accessible via native QUIC can be identified by a URI with a "moq" scheme.
+A MoQTransport server that is accessible via native QUIC can be identified by a URI with a "moq" scheme.
 The "moq" URI scheme is defined as follows, using definitions from {{!RFC3986}}:
 
 ~~~~~~~~~~~~~~~
@@ -339,7 +339,7 @@ The ALPN value {{!RFC7301}} used by the protocol is `moq-00`.
 
 # Stream Mapping  {#stream-mapping}
 
-Warp endpoints communicate over QUIC streams. Every stream is a sequence of messages, framed as described in {{messages}}.
+MoQTransport endpoints communicate over QUIC streams. Every stream is a sequence of messages, framed as described in {{messages}}.
 
 The first stream opened is a client-initiated bidirectional stream where the peers exchange SETUP messages ({{message-setup}}). The subsequent streams MAY be either unidirectional and bidirectional. For exchanging content, an application would typically send a unidirectional stream containing a single OBJECT message ({{message-object}}).
 
@@ -347,7 +347,7 @@ Messages SHOULD be sent over the same stream if ordering is desired.
 
 
 ## Prioritization
-Warp utilizes stream prioritization to deliver the most important content during congestion.
+MoQTransport utilizes stream prioritization to deliver the most important content during congestion.
 
 TODO: Revisit the prioritization scheme and possibly move some of this to {{priority-congestion}}.
 
@@ -385,7 +385,7 @@ The sender MAY cancel streams in response to congestion.
 This can be useful when the sender does not support stream prioritization.
 
 ## Relays
-Warp encodes the delivery information for a stream via OBJECT headers ({{message-object}}).
+MoQTransport encodes the delivery information for a stream via OBJECT headers ({{message-object}}).
 
 A relay SHOULD prioritize streams ({{prioritization}}) based on the send order.
 A relay MAY change the send order, in which case it SHOULD update the value on the wire for future hops.
@@ -502,16 +502,16 @@ relays behavior when merging or splitting streams and interactions
 with congestion response.
 
 # Messages
-Both unidirectional and bidirectional Warp streams are sequences of length-delimited messages.
+Both unidirectional and bidirectional QUIC streams contain sequences of length-delimited messages.
 
 ~~~
-Warp Message {
+MoQTransport Message {
   Message Type (i),
   Message Length (i),
   Message Payload (..),
 }
 ~~~
-{: #warp-message-format title="Warp Message"}
+{: #moq-transport-message-format title="MoQTransport Message"}
 
 The Message Length field contains the length of the Message Payload field in bytes.
 A length of 0 indicates the message is unbounded and continues until the end of the stream.
@@ -562,7 +562,7 @@ Server SETUP Message Payload {
   SETUP Parameters (..) ...,
 }
 ~~~
-{: #warp-setup-format title="Warp SETUP Message"}
+{: #moq-transport-setup-format title="MoQTransport SETUP Message"}
 
 The Parameter Value Length field indicates the length of the Parameter Value.
 
@@ -585,7 +585,7 @@ OBJECT Message {
   Object Payload (b),
 }
 ~~~
-{: #warp-object-format title="Warp OBJECT Message"}
+{: #moq-transport-object-format title="MoQTransport OBJECT Message"}
 
 * Track ID:
 The track identifier obtained as part of subscription and/or publish control message exchanges.
@@ -623,7 +623,7 @@ SUBSCRIBE REQUEST Message {
   Track Request Parameters (..) ...
 }
 ~~~
-{: #warp-subscribe-format title="Warp SUBSCRIBE REQUEST Message"}
+{: #moq-transport-subscribe-format title="MoQTransport SUBSCRIBE REQUEST Message"}
 
 
 * Full Track Name:
@@ -648,7 +648,7 @@ SUBSCRIBE OK
   Expires (i)
 }
 ~~~
-{: #warp-subscribe-ok format title="Warp SUBSCRIBE OK Message"}
+{: #moq-transport-subscribe-ok format title="MoQTransport SUBSCRIBE OK Message"}
 
 * Full Track Name:
 Identifies the track in the request message for which this
@@ -674,7 +674,7 @@ SUBSCRIBE ERROR
   Reason Phrase (...),
 }
 ~~~
-{: #warp-subscribe-error format title="Warp SUBSCRIBE ERROR Message"}
+{: #moq-transport-subscribe-error format title="MoQTransport SUBSCRIBE ERROR Message"}
 
 * Full Track Name:
 Identifies the track in the request message for which this
@@ -697,7 +697,7 @@ ANNOUNCE Message {
   Track Request Parameters (..) ...,
 }
 ~~~
-{: #warp-announce-format title="Warp ANNOUNCE Message"}
+{: #moq-transport-announce-format title="MoQTransport ANNOUNCE Message"}
 
 * Track Namespace:
 Identifies a track's namespace as defined in ({{track-fn}})
@@ -716,7 +716,7 @@ ANNOUNCE OK
   Track Namespace
 }
 ~~~
-{: #warp-announce-ok format title="Warp ANNOUNCE OK Message"}
+{: #moq-transport-announce-ok format title="MoQTransport ANNOUNCE OK Message"}
 
 * Track Namespace:
 Identifies the track namespace in the ANNOUNCE message for which this response is provided.
@@ -735,7 +735,7 @@ ANNOUNCE ERROR
   Reason Phrase (...),
 }
 ~~~
-{: #warp-announce-error format title="Warp ANNOUNCE ERROR Message"}
+{: #moq-transport-announce-error format title="MoQTransport ANNOUNCE ERROR Message"}
 
 * Track Namespace:
 Identifies the track namespace in the ANNOUNCE message for which this response is provided.
@@ -767,7 +767,7 @@ The client:
 
 # SETUP Parameters
 
-The SETUP message ({{message-setup}}) allows the peers to exchange arbitrary parameters before any objects are exchanged. It is the main extensibility mechanism of Warp. The peers MUST ignore unknown parameters. TODO: describe GREASE for those.
+The SETUP message ({{message-setup}}) allows the peers to exchange arbitrary parameters before any objects are exchanged. It is the main extensibility mechanism of MoQTransport. The peers MUST ignore unknown parameters. TODO: describe GREASE for those.
 
 Every parameter MUST appear at most once within the SETUP message. The peers SHOULD verify that and close the connection if a parameter appears more than once.
 
@@ -775,7 +775,7 @@ The ROLE parameter is mandatory for the client. All of the other parameters are 
 
 ## ROLE parameter {#role}
 
-The ROLE parameter (key 0x00) allows the client to specify what roles it expects the parties to have in the Warp connection. It has three possible values:
+The ROLE parameter (key 0x00) allows the client to specify what roles it expects the parties to have in the MoQTransport connection. It has three possible values:
 
 0x01:
 
@@ -822,7 +822,7 @@ AUTHORIZATION INFO parameter (key 0x02) identifies track's authorization informa
 Live content requires significant bandwidth and resources.
 Failure to set limits will quickly cause resource exhaustion.
 
-Warp uses QUIC flow control to impose resource limits at the network layer.
+MoQTransport uses QUIC flow control to impose resource limits at the network layer.
 Endpoints SHOULD set flow control limits based on the anticipated bitrate.
 
 The producer prioritizes and transmits streams out of order.
@@ -832,7 +832,7 @@ The producer and consumer MUST cancel a stream, preferably the lowest priority, 
 # IANA Considerations
 
 TODO: fill out currently missing registries:
-* Warp version numbers
+* MoQTransport version numbers
 * SETUP parameters
 * Track Request parameters
 * Subscribe Error codes
