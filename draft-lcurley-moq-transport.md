@@ -52,25 +52,37 @@ informative:
 
 --- abstract
 
-This document defines the core behavior for MoQTransport, a live media transport protocol over QUIC.
-The application fragments a live stream into objects, including a header that describes the basic relationship between objects.
-Objects are starved/dropped during congestion based on priorities in order to minimize latency.
+This document defines the core behavior for MoQTransport, a media transport protocol over QUIC.  MoQTransport allows a producer of media to publish data and have it consumed via subscription by a multiplicity of endpoints. It supports intermediate content distribution networks and is designed for high scale and low latency distribution. The core subscribeable entities are tracks, consisting of a sequence of objects, organized into groups. Objects carry headers describing the relationship between objects and instructing relays in applying deterministic congestion responses. MoQTransport is a generic protocol is designed to work in concert with multiple MoQ Streaming Formats, each of which define alternate schemes for carrying media content over MoQT. 
 
 --- middle
 
 
 ## Introduction
-MoQTransport is a live media transport protocol that utilizes the QUIC network protocol {{QUIC}},
-either directly or via WebTransport {{WebTransport}}.
-It was originally developed for live media, but has been generalized for similar use-cases.
+MoQTransport (MoQT) is a transport protocol that utilizes the QUIC network protocol {{QUIC}}, either directly or via WebTransport {{WebTransport}}, for the dissemination of media. MoQT utilizes a publish/subscribe workflow in which producers of media publish data in response to subscription requests from a multiplicity of endpoints. MoQT supports live, as well as near-live and Video on Demand (VOD) use-cases. MoQT supports delivery over intermediate content distribution networks and is architected for high scale and low latency distribution. In live mode, MoQT faciltates a broad sprectrum of latency regimes, from real-time, to interactive and non-interactive. 
 
-* {{motivation}} covers the background and rationale behind MoQ transport.
-* {{objects}} covers how live content is fragmented into objects.
-* {{transport-protocols}} covers aspects of setting up a MoQ transport session.
+MoQTransport is a generic protocol is designed to work in concert with multiple MoQ Streaming Formats. These MoQ Streaming Formats define how content is encoded, packaged, and mapping to MoQT objects, along with policies for discovery, subscription and congestion response. 
+
+* {{objects}} covers how media is fragmented into objects.
+* {{transport-protocols}} covers aspects of setting up a MoQTransport session.
 * {{stream-mapping}} covers how QUIC is used to transfer objects.
 * {{priority-congestion}} covers protocol considerations on prioritization schemes and congestion response overall.
 * {{relays-moq}} covers behavior at the relay entities.
 * {{messages}} covers how messages are encoded on the wire.
+
+### Motivation
+The development of MoQT is driven by goals in a number of areas - specifically latency, the robustness of QUIC, workflow efficiency and relay support.
+
+#### Latency
+HTTP Adaptive Streaming (HAS) has been successful at achieiving scale although often at the cost of latency. Latency is necessary to correct for variable network throughput. Ideally live content is consumed at the same rate it is produced. End-to-end latency would be fixed and only subject to encoding and transmission delays. Unfortunately, networks have variable throughput, primarily due to congestion. Attempting to deliver content encoded at a higher bitrate than the network can support causes queuing along the path from producer to consumer. The speed at which a protocol can detect and respond to queuing determines the overall latency. TCP-based protocols are simple, but are slow to detect congestion and suffer from head-of-line blocking. UDP-based protocols can avoid queuing, but the application is now responsible for the complexity of fragmentation, congestion control, retransmissions, receiver feedback, reassembly, and more. One goal of MoQTransport is to achieve the best of both these worlds: leverage the features of QUIC to create a simple yet flexible low latency protocol that can rapidly detect and respond to congestion. 
+
+#### Leveraging QUIC
+Applying {{QUIC}} to HAS via HTTP/3 does not yield generalized improvements in throughput. One reason for this is that sending segments down a single QUIC stream still allows head-of-line blocking to occur. Only by leveraging the parallel nature of QUIC streams can improved throughput be achieved in the face of loss. A goal of MoQT is to design a streaming protocol to leverage the transmission benefits afforded by parallel  QUIC streams as well exercising options for flexible loss recovery.
+
+#### Workflow efficiency
+Internet delivered media today has protocols optimized for ingest and separate protocols optimzed for distribution. This protocol switch in the distribution chain necessitates intermediary origins which re-package the media content. While specialization can have its benefits, there are gains in efficiency to be had in not having to re-package content. A goal of MoQT is to develop a single protocol which can be used for transmission from contribution to distribution. A related goal is the ability to support existing encoding and packaging schemas, both for backwards compatibility and for interoperability with the established content preparation ecosystem. 
+
+#### Relays
+An integral feature of a protocol being successfull is its ability to deliver media at scale. Greatest scale is achieved when third-party networks, indepdent of both the publisher and subscriber, can be leveraged to relay the content. These relays must cache content for distribution efficiency while simulatanesouly routing content and deterministically responding to congestion in a multi-tenant network. A goal of MoQT is to treat relays as first-class citizens of the protocol and ensure that objects are structured such that information necssary for distribution is available to relays while the media content istelf remains opaque and private. 
 
 
 ## Terms and Definitions
@@ -81,7 +93,7 @@ Commonly used terms in this document are described below.
 
 Client:
 
-: The party initiating a session.
+: The party initiating a transport session.
 
 Congestion:
 
@@ -89,23 +101,35 @@ Congestion:
 
 Consumer:
 
-: A QUIC endpoint receiving media over the network. This could be a consumer or a relay.
+: A QUIC endpoint receiving media over the network. This could be an endpoint or a relay.
+
+Endpoint:
+
+: The original producer or the final consumer in a transmission chain. 
+
+Group:
+
+: A temporal sequence of objects. A group respresents a subscription point to a track. The media data within the group must not depend on the data in any other groups. 
+
+Object:
+
+: An object is an addressable unit whose payload is a sequence of bytes. Objects form the base element in the MoQTransport model. 
 
 Producer:
 
-: A QUIC endpoint sending media over the network. This could be a producer or a relay.
+: A QUIC endpoint sending media over the network. This could be an endpoint or a relay.
 
 Server:
 
-: The party accepting an incoming session.
+: The party accepting an incoming transport session.
 
 Track:
 
-: An encoded bitstream, representing a single component that makes up the larger application.
+: An encoded bitstream. Tracks contain a sequential series of groups and are the subscribeable entity with MoQT.
 
 Transport session:
 
-: Either a native QUIC connection, or a WebTransport session used to transmit the data.
+: A native QUIC connection, or a WebTransport session, used to transmit data.
 
 
 ## Notational Conventions
@@ -118,44 +142,35 @@ x (b):
 : Indicates that x consists of a variable length integer, followed by that many bytes of binary data.
 
 
-# Model
+# Object Model 
+
+MoQT has a hierarchical object model, comprised of objects, groups and tracks. 
 
 ## Objects {#model-object}
 
 The basic element of MoQTransport is an *object*.
 An object is an addressable unit whose payload is a sequence of bytes.
 All objects belong to a group, indicating ordering and potential dependencies. {{model-group}}
-Objects carry associated metadata such as priority, TTL, or other information usable by a relay, but relays MUST treat the object payload as opaque.
-
-The application is solely responsible for the contents of objects.
-This includes the underlying encoding, compression, any end-to-end encryption, or authentication.
-A relay MUST NOT combine, split, or otherwise modify object payloads.
+Objects are comprised of two parts: metadata, such as priority, or TTL; and a payload.  The metadata is visible to relays but the payload is only visible to the producer and consumer. The application is solely responsible for the content of the object payload.  
 
 ## Groups {#model-group}
-A *group* is collection of objects, part of a larger track ({{model-track}}).
-
-A group behaves as a join point for subscriptions.
-A new subscriber may not want to receive the entire track, and will instead opt to receive only the latest group(s).
+A *group* is a collection of objects and is a sub-unit of a track ({{model-track}}).
+Objects within a group SHOULD NOT depend on objects in other groups.
+A group behaves as a join point for subscriptions. 
+A new subscriber may not want to receive the entire track, and may instead opt to receive only the latest group(s).
 The sender then selectively transmits objects based on their group membership.
-
-The application is responsible for how objects are placed into groups.
-In general, objects within a group SHOULD NOT depend on objects in other groups.
 
 
 ## Track {#model-track}
 
-A *track* is a sequence of objects ({{model-object}}) organized into groups ({{model-group}}).
-A subscriber can request individual tracks at group boundaries, including any new objects while the track is active.
+A *track* is a sequence of groups ({{model-group}}). It is the entity against which a consumer issues a subscrption request. 
+A subscriber can request to receive individual tracks starting at a group boundary, including any new objects pushed by the producer while the track is active.
 
-### Full Track Name {#track-fn}
+# Track naming {#track-name}
 
-Tracks are identified by a globally unique identifier, called "Full Track Name" and defined as shown below:
+Tracks are identified by a unique string identifier, called the "Full Track Name" and defined as the concatenation of a Track Namespace and a Track Name, both of which are of variable length. The Full Track Name SHOULD be sufficiently unique to unambiguosuly distinguish the track from all other tracks being published on the distribution network. 
 
-~~~~~~~~~~~~~~~
-Full Track Name = Track Namespace  "/"  Track Name
-~~~~~~~~~~~~~~~
-
-This document does not define the exact mechanism of naming Track Namespaces. Applications building on top of MoQ MUST ensure that the mechanism used guarantees global uniqueness; for instance, an application could use domain names as part of track namespaces. Track Namespace is followed by the application context specific Track Name, encoded as an opaque string.
+This document does not define the exact mechanism of naming Track Namespaces. Applications building on top of MoQ SHOULD ensure that the mechanism used guarantees network uniqueness. One option would be for an application to use domain names as part of the track namespace. Some examples of valid full track names are shown below:
 
 ~~~
 Example: 1
@@ -173,150 +188,39 @@ Track Namespace = security-camera.example.com/camera1
 Track Name = hd-video
 Full Track Name = security-camera.example.com/camera1/hd-video
 
+Example: 4
+Track Namespace = video
+Track Name = "" (empty string)
+Full Track Name = video
+
+Example: 5
+Track Namespace = "" (empty string)
+Track Name = audio
+Full Track Name = audio
+
+Example: 6
+Track Namespace = 12345
+Track Name = 6789
+Full Track Name = 123456789
+
 ~~~
 
 
-### Connection URL
+# Sessions
 
-Each track MAY have one or more associated connection URLs specifying network hosts through which a track may be accessed. The syntax of the Connection URL and the associated connection setup procedures are specific to the underlying transport protocol usage {{transport-protocols}}.
-
-
-## Session
-A transport session is established for each track bundle.
-The client issues a CONNECT request with a URL which the server uses for identification and authentication.
-All control messages and prioritization occur within the context of a single transport session, which means a single track bundle.
-When WebTransport is used, multiple transport sessions may be pooled over a single QUIC connection for efficiency.
-
-
-# Motivation
-
-## Latency
-In a perfect world, we could deliver live content at the same rate it is produced.
-The end-to-end latency would be fixed and only subject to encoding and transmission delays.
-Unfortunately, networks have variable throughput, primarily due to congestion.
-
-Attempting to deliver content encoded at a higher bitrate than the network can support causes queuing.
-This queuing can occur anywhere in the path between the producer and consumer.
-For example: the application, the OS socket, a wifi router, within an ISP, or generally anywhere in transit.
-
-If nothing is done, new data will be appended to the end of a growing queue and will take longer to arrive than their predecessors, increasing latency.
-Our job is to minimize the growth of this queue, and if necessary, bypass the queue entirely by dropping content.
-
-The speed at which protocol can detect and respond to queuing determines the latency.
-TCP-based protocols are simple, but are slow to detect congestion and suffer from head-of-line blocking.
-UDP-based protocols can avoid queuing, but the application is now responsible for fragmentation, congestion control, retransmissions, receiver feedback, reassembly, and more.
-
-A goal of this draft is to get the best of both worlds: a simple protocol that can still rapidly detect and respond to congestion using QUIC streams.
-
-## Universal
-The live media protocol ecosystem is fragmented; each protocol has it's own niche.
-Specialization is often a good thing, but we believe there's enough overlap to warrant consolidation.
-
-For example, a service might simultaneously ingest via WebRTC, SRT, RTMP, etc.
-The same service might then simultaneously distribute via WebRTC, LL-HLS, HLS/DASH, etc.
-Other similar live content would then be distributed other yet additional protocols: for example updates, chat, metadata, etc.
-
-This draft attempts to build a unified base transport protocol for media and similar use-cases.
-Any live content can be fragmented into objects and annotated to achieve the intended behavior.
-The goal is not to reinvent how content is encoded, just delivered.
-
-## Relays
-The prevailing belief is that UDP-based protocols are more expensive and don't "scale".
-While it's true that UDP is more difficult to optimize than TCP, QUIC itself is proof that it is possible to reach performance parity.
-
-The ability to scale a live content transport actually depends on relay support: proxies, caches, CDNs, SFUs, etc.
-The success of HTTP-based protocols is due to the ability for a HTTP CDN to cache and deduplicate requests.
-
-It's difficult to build a CDN for live protocols that were not designed with relays in mind.
-This is the fatal flaw of many applications, as they relay on relays to perform bespoke parsing and decision making based on the contents.
-
-A goal of this draft is to treat relays as first class citizens.
-Any identification, reliability, ordering, prioritization, caching, etc is written to the wire in a header that is easy to parse.
-This ensures that relays can easily route content and respond to congestion in a specified, deterministic manner.
-
-## Bandwidth Management and Congestion Response
-TODO: Add motivation text regarding bw management techniques in response to congestion. Also refer to {{priority-congestion}} for further details.
-
-# Objects
-MoQTransport works by transferring objects over QUIC streams.
-The application determines how live content is fragmented into tracks, groups, and objects.
-
-## Order Priorities and Options
-
-At the point of this writing, the working group has not reached consensus on the proper
-way to meet several important goals, such as:
-
-* Ensure that objects are delivered in the order intended by the emitter
-* Allow nodes and relays to skip or delay some objects to deal with congestion
-* Ensure that emitters can accurately predict the behavior of relays
-* Ensure that when relay have to skip and delay objects belonging to different
-  tracks they do it in a predictable way if tracks are explicitly coordinated
-  and in a fair way if they are not.
-
-The working group has been considering two alternatives: mark objects belonging to a track
-with an explicit "send order"; and, define algorithms combining tracks, priorities and object
-order within a group. The two proposals are listed in {{send-order}} and {{ordering-by-priorities}}.
-We expect further work before a consensus is reached.
-
-### Send Order
-Media is produced with an intended order, both in terms of when media should be presented (PTS) and when media should be decoded (DTS).
-As stated in motivation ({{latency}}), the network is unable to maintain this ordering during congestion without increasing latency.
-
-The encoder determines how to behave during congestion by assigning each object a numeric send order.
-The send order SHOULD be followed when possible to ensure that the most important media is delivered when throughput is limited.
-Note that the contents within each object are still delivered in order; this send order only applies to the ordering between objects.
-
-A sender MUST send each object over a dedicated QUIC stream.
-The QUIC library should support prioritization ({{prioritization}}) such that streams are transmitted in send order.
-
-A receiver MUST NOT assume that objects will be received in send order for a number of reasons:
-
-* Newly encoded objects MAY have a smaller send order than outstanding objects.
-* Packet loss or flow control MAY delay the send of individual streams.
-* The sender might not support QUIC stream prioritization.
-
-TODO: Refer to Congestion Response and Prioritization Section for further details on various proposals.
-
-### Ordering by Priorities
-
-Media is produced as a set of layers, such as for example low definition and high definition,
-or low frame rate and high frame rate. Each object belonging to a track and a group has two attributes: the object-id, and the priority (or layer).
-
-When nodes or relays have to choose which object to send next, they apply the following rules:
-
-* within the same group, objects with a lower priority number (e.g. P1) are always sent
-  before objects with a numerically greater priority number (e.g., P2)
-* within the same group, and the same priority level, objects with a lower object-id are
-  always sent before objects with a higher object-id.
-* objects from later groups are normally always sent
-  before objects of previous groups.
-
-The latter rule is generally agreed as a way to ensure freshness, and to recover quickly
-if queues and delays accumulate during a congestion period. However, there may be cases when
-finishing the transmission of an ongoing group results in better user experience than strict
-adherence to the freshness rule. We expect that that the working group will eventually reach
-consensus and define meta data that control this behavior.
-
-There have been proposals to allow emitters to coordinate the allocation of layer priorities
-across multiple coordinated tracks. At this point, these proposals have not reached consensus.
-
-## Groups
-TODO: Add text describing iteration of group and intra object priorities within a group and their relation to congestion response. Add how it refers to {{priority-congestion}}
-
-
-# Supported Transport Protocols  {#transport-protocols}
+## Session establishment {#session-establishment}
 
 This document defines a protocol that can be used interchangeably both over a QUIC connection directly [QUIC], and over WebTransport [WebTransport].
 Both provide streams and datagrams with similar semantics (see {{?I-D.ietf-webtrans-overview, Section 4}});
 thus, the main difference lies in how the servers are identified and how the connection is established.
 
-## WebTransport
+### WebTransport
 
 A MoQTransport server that is accessible via WebTransport can be identified using an HTTPS URI ({{!RFC9110, Section 4.2.2}}).
 A MoQTransport session can be established by sending an extended CONNECT request to the host and the path indicated by the URI,
 as described in {{WebTransport, Section 3}}.
 
-## Native QUIC
+### QUIC
 
 A MoQTransport server that is accessible via native QUIC can be identified by a URI with a "moq" scheme.
 The "moq" URI scheme is defined as follows, using definitions from {{!RFC3986}}:
@@ -325,55 +229,23 @@ The "moq" URI scheme is defined as follows, using definitions from {{!RFC3986}}:
 moq-URI = "moq" "://" authority path-abempty [ "?" query ]
 ~~~~~~~~~~~~~~~
 
-The `authority` portion MUST NOT contain a non-empty `userinfo` portion.
+The `authority` portion MUST NOT contain a non-empty `host` portion.
 The `moq` URI scheme supports the `/.well-known/` path prefix defined in {{!RFC8615}}.
 
 This protocol does not specify any semantics on the `path-abempty` and `query` portions of the URI.
-The contents of those is left up to the application.
+The contents of those are left up to the application.
 
 The client can establish a connection to a MoQ server identified by a given URI
 by setting up a QUIC connection to the host and port identified by the `authority` section of the URI.
 The `path-abempty` and `query` portions of the URI are communicated to the server using
-the PATH parameter ({{path}}).
+the PATH parameter ({{path}}) which is sent in the SETUP message at the start of the session. 
 The ALPN value {{!RFC7301}} used by the protocol is `moq-00`.
 
-# Stream Mapping  {#stream-mapping}
+## Session initialization {#session-init}
 
-MoQTransport endpoints communicate over QUIC streams. Every stream is a sequence of messages, framed as described in {{messages}}.
+The first stream opened is a client-initiated bidirectional stream where the peers exchange SETUP messages ({{message-setup}}). The subsequent streams MAY be either unidirectional and bidirectional. For exchanging content, an application would typically send a unidirectional stream containing a single OBJECT message ({{message-object}}), as putting more than one object into one stream may create head-of-line blocking delays.  However if one object has a hard dependency on another object, putting them on the same stream could be a valid choice. 
 
-The first stream opened is a client-initiated bidirectional stream where the peers exchange SETUP messages ({{message-setup}}). The subsequent streams MAY be either unidirectional and bidirectional. For exchanging content, an application would typically send a unidirectional stream containing a single OBJECT message ({{message-object}}).
-
-Messages SHOULD be sent over the same stream if ordering is desired.
-
-
-## Prioritization
-MoQTransport utilizes stream prioritization to deliver the most important content during congestion.
-
-TODO: Revisit the prioritization scheme and possibly move some of this to {{priority-congestion}}.
-
-The producer may assign a numeric delivery order to each object ({{send-order}})
-
-This is a strict prioritization scheme, such that any available bandwidth is allocated to streams in ascending priority order.
-
-As explained in {{order-priorities-and-options}}, the working group has not reached consensus
-on how the emitters mark objects so that relays can apply their preferences. This leads to at
-least two possible implementations:
-
-* if using the "send order" logic, the sender SHOULD prioritize streams based on the send order.
-
-* if using the "priority" logic, the sender SHOULD send objects in streams corresponding to the object priority, and should mark these streams with the corresponding priority value.
-
-If two streams have the same send order, they SHOULD receive equal bandwidth (round-robin).
-
-QUIC supports stream prioritization but does not standardize any mechanisms; see Section 2.3 in {{QUIC}}.
-In order to support prioritization, a QUIC library MUST expose a API to set the priority of each stream.
-This is relatively easy to implement; the next QUIC packet should contain a STREAM frame for the next pending stream in priority order.
-
-The sender MUST respect flow control even if means delivering streams out of send order.
-It is OPTIONAL to prioritize retransmissions.
-
-
-## Cancellation
+## Cancellation {#session-cancellation}
 A QUIC stream MAY be canceled at any point with an error code.
 The producer does this via a `RESET_STREAM` frame while the consumer requests cancellation with a `STOP_SENDING` frame.
 
@@ -384,34 +256,8 @@ When nearing resource limits, an endpoint SHOULD cancel the lowest priority stre
 The sender MAY cancel streams in response to congestion.
 This can be useful when the sender does not support stream prioritization.
 
-## Relays
-MoQTransport encodes the delivery information for a stream via OBJECT headers ({{message-object}}).
 
-A relay SHOULD prioritize streams ({{prioritization}}) based on the send order.
-A relay MAY change the send order, in which case it SHOULD update the value on the wire for future hops.
-
-A relay that reads from a stream and writes to stream in order will introduce head-of-line blocking.
-Packet loss will cause stream data to be buffered in the QUIC library, awaiting in order delivery, which will increase latency over additional hops.
-To mitigate this, a relay SHOULD read and write QUIC stream data out of order subject to flow control limits.
-See section 2.2 in {{QUIC}}.
-
-## Congestion Control
-As covered in the motivation section ({{motivation}}), the ability to prioritize or cancel streams is a form of congestion response.
-It's equally important to detect congestion via congestion control, which is handled in the QUIC layer {{QUIC-RECOVERY}}.
-
-Bufferbloat occurs when routers queue packets for too long instead of dropping the packet, and can introduce significant latency.
-This latency significantly reduces the ability for the application to prioritize or drop content in response to congestion.
-Senders SHOULD use a congestion control algorithm that reduces this bufferbloat (ex. {{BBR}}).
-It is NOT RECOMMENDED to use a loss-based algorithm (ex. {{NewReno}}) unless the network fully supports ECN.
-
-Live content is typically application-limited, which means that the encoder is the limiting factor and not the network.
-Most TCP congestion control algorithms will only increase the congestion window if it is full, limiting the upwards mobility when application-limited.
-Senders SHOULD use a congestion control algorithm that is designed for application-limited flows (ex. GCC).
-Senders MAY periodically pad the connection with QUIC PING frames to fill the congestion window.
-
-TODO: update this section to refer to {{priority-congestion}}
-
-## Termination
+## Termination {#session-termination}
 The transport session can be terminated at any point.
 When native QUIC is used, the session is closed using the CONNECTION\_CLOSE frame ({{QUIC, Section 19.19}}).
 When WebTransport is used, the session is closed using the CLOSE\_WEBTRANSPORT\_SESSION capsule ({{WebTransport, Section 5}}).
@@ -442,7 +288,7 @@ The endpoint breached an agreement, which MAY have been pre-negotiated by the ap
 * GOAWAY:
 The endpoint successfully drained the session after a GOAWAY was initiated ({{message-goaway}}).
 
-# Prioritization and Congestion Response Considerations {#priority-congestion}
+# Prioritization and Congestion Response {#priority-congestion}
 
 TODO: This is a placeholder section to capture details on
 how the Moq Transport protocol deals with prioritization and congestion overall. Having its own section helps reduce merge conflicts and allows us to reference it from other parts.
@@ -452,27 +298,77 @@ This section is expected to cover details on:
 - Prioritization Schemes
 - Congestion Algorithms and impacts
 - Mapping considerations for one object per stream vs multiple objects per stream
-- considerations for merging multiple streams across domains onto single connection and interactions with specific prioritization schemes
+- Considerations for merging multiple streams across domains onto single connection and interactions with specific prioritization schemes
+
+## Order Priorities and Options
+
+At the point of this writing, the working group has not reached consensus on several important goals, such as:
+
+* Ensuring that objects are delivered in the order intended by the emitter
+* Allowing nodes and relays to skip or delay some objects to deal with congestion
+* Ensuring that emitters can accurately predict the behavior of relays
+* Ensuring that when relays have to skip and delay objects belonging to different
+  tracks that they do it in a predictable way if tracks are explicitly coordinated
+  and in a fair way if they are not.
+
+The working group has been considering two alternatives: marking objects belonging to a track
+with an explicit "send order"; and, defining algorithms combining tracks, priorities and object
+order within a group. The two proposals are listed in {{send-order}} and {{ordering-by-priorities}}.
+We expect further work before a consensus is reached.
+
+### Send Order
+Media is produced with an intended order, both in terms of when media should be presented (PTS) and when media should be decoded (DTS).
+As stated in the introduction, the network is unable to maintain this ordering during congestion without increasing latency.
+
+The encoder determines how to behave during congestion by assigning each object a numeric send order.
+The send order SHOULD be followed when possible to ensure that the most important media is delivered when throughput is limited.
+Note that the contents within each object are still delivered in order; this send order only applies to the ordering between objects.
+
+A sender MUST send each object over a dedicated QUIC stream.
+The QUIC library should support prioritization ({{prioritization}}) such that streams are transmitted in send order.
+
+A receiver MUST NOT assume that objects will be received in send order for a number of reasons:
+
+* Newly encoded objects MAY have a smaller send order than outstanding objects.
+* Packet loss or flow control MAY delay the send of individual streams.
+* The sender might not support QUIC stream prioritization.
+
+### Ordering by Priorities
+
+Media is produced as a set of layers, such as for example low definition and high definition,
+or low frame rate and high frame rate. Each object belonging to a track and a group has two attributes: the object-id, and the priority (or layer).
+
+When nodes or relays have to choose which object to send next, they apply the following rules:
+
+* within the same group, objects with a lower priority number (e.g. P1) are always sent
+  before objects with a numerically greater priority number (e.g., P2)
+* within the same group, and the same priority level, objects with a lower object-id are
+  always sent before objects with a higher object-id.
+* objects from later groups are normally always sent
+  before objects of previous groups.
+
+The latter rule is generally agreed as a way to ensure freshness, and to recover quickly
+if queues and delays accumulate during a congestion period. However, there may be cases when
+finishing the transmission of an ongoing group results in better user experience than strict
+adherence to the freshness rule. We expect that that the working group will eventually reach
+consensus and define meta data that controls this behavior.
+
+There have been proposals to allow emitters to coordinate the allocation of layer priorities
+across multiple coordinated tracks. At this point, these proposals have not reached consensus.
 
 # Relays {#relays-moq}
 
-The Relays play an important role for enabling low latency delivery within the MoQ architecture. This specification allows for a delivery protocol based on a publish/subscribe metaphor where some endpoints, called publishers, publish objects and
-some endpoints, called subscribers, consume those objects. Relays leverage this publish/subscribe metaphor to form an overlay delivery network similar/in-parallel to what CDN provides today.
-
-Relays serves as policy enforcement points by validating subscribe
-and publish requests to the tracks.
+Relays are leveraged to enable distribution scale in the MoQ architecture. Relays can be used to form an overlay delivery network similar to the funcitionality that Content Delivery Networks (CDNs) provide today. Additionally, relays serve as policy enforcement points by validating subscribe and publish requests at the edge of a network. 
 
 ## Subscriber Interactions
 
-Subscribers interact with the Relays by sending a "SUBSCRIBE REQUEST"  ({{message-subscribe-req}}) control message for the tracks of interest. Relays MUST ensure subscribers are authorized for the tracks. This is done by
+Subscribers interact with the Relays by sending a "SUBSCRIBE REQUEST"  ({{message-subscribe-req}}) control message for the tracks of interest. Relays MUST ensure subscribers are authorized to subscribe to the requested tracks. This is done by verifying that the subscriber is authorized to access the content associated with the "Full Track Name". The authorization information can be part of subscription request itself or part of the encompassing session. The specifics of how a relay authorizes a user are outside the scope of this specification.
 
-- Verifying that the subscriber is authorized to access the content associated with the "Full Track Name". The authorization information can be part of subscriptions themselves or part of the encompassing session. Specifics of where the authorization happens, either at the relays or forwarded for further processing, depends on the way the relay is managed and is application specific (typically based on prior business agreement).
+The endpoint making the subscribe request is notified of the result of the subscription, via "SUBSCRIBE OK" ({{message-subscribe-ok}}) or the "SUBSCRIBE ERROR" {{message-subscribe-error}} control message.
 
-For successful subscriptions, relays proceed to save the subscription information by maintaining mapping from the track information to the list of subscribers. This will enable relays to forward matching publishes on the requested track. Subscriptions stay active until it is expired or the publisher of the track stops producing objects or other reasons that result in error (see {{message-subscribe-error}}).
+For successful subscriptions, the sender maintains a list of subscribers for each full track name. Each new OBJECT belonging to the track MUST be forwarded to each active subscriber, unless determined by congestion response. A subscription remains active until it expires, or until the publisher of the track stops producing objects or there is a susbcruption error (see {{message-subscribe-error}}).
 
-In all the scenarios, the end-point making the subscribe request is notified of the result of the subscription, via "SUBSCRIBE OK" ({{message-subscribe-ok}}) or the "SUBSCRIBE ERROR" {{message-subscribe-error}} control message.
-
-Relays MAY aggregate subscriptions for a given track when multiple subscribers request for the same track. Subscriptions aggregation allows relays to share the cache and forward only the unique subscriptions per track for further processing, say to setup routing for delivering objects, rather than forwarding all the subscriptions received. When the authorization information is carried in the subscribes, the relay MUST authorize the subscribe requests, in order to deduplicate and serve the subscriptions from the shared cache.
+Relays MAY aggregate authorized subscriptions for a given track when multiple subscribers request the same track. Subscription aggregation allows relays to make only a single forward subscription for the track. The published content received from the forward subscription reuqest is cached and shared among the pending subscribers. 
 
 
 ## Publisher Interactions
@@ -500,6 +396,19 @@ TODO: This section shall cover reconnect considerations for clients when moving 
 TODO: Refer to {{priority-congestion}}. Add details describe
 relays behavior when merging or splitting streams and interactions
 with congestion response.
+
+## Relays (reorg)
+MoQTransport encodes the delivery information for a stream via OBJECT headers ({{message-object}}).
+
+A relay MUST treat the object payload as opaque. 
+A relay MUST NOT combine, split, or otherwise modify object payloads.
+A relay SHOULD prioritize streams ({{prioritization}}) based on the send order.
+A relay MAY change the send order, in which case it SHOULD update the value on the wire for future hops.
+
+A relay that reads from a stream and writes to stream in order will introduce head-of-line blocking.
+Packet loss will cause stream data to be buffered in the QUIC library, awaiting in order delivery, which will increase latency over additional hops.
+To mitigate this, a relay SHOULD read and write QUIC stream data out of order subject to flow control limits.
+See section 2.2 in {{QUIC}}.
 
 # Messages
 Both unidirectional and bidirectional QUIC streams contain sequences of length-delimited messages.
@@ -627,7 +536,7 @@ SUBSCRIBE REQUEST Message {
 
 
 * Full Track Name:
-Identifies the track as defined in ({{track-fn}}).
+Identifies the track as defined in ({{track-name}}).
 
 * Track Request Parameters:
  As defined in {{track-req-params}}.
@@ -700,7 +609,7 @@ ANNOUNCE Message {
 {: #moq-transport-announce-format title="MoQTransport ANNOUNCE Message"}
 
 * Track Namespace:
-Identifies a track's namespace as defined in ({{track-fn}})
+Identifies a track's namespace as defined in ({{track-name}})
 
 * Track Request Parameters:
 As defined in {{track-req-params}}.
