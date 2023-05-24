@@ -358,12 +358,6 @@ This can be useful when the sender does not support stream prioritization.
 MoQTransport encodes the delivery information for a stream via OBJECT headers ({{message-object}}).
 
 A relay SHOULD prioritize streams ({{prioritization}}) based on the send order.
-A relay MAY change the send order, in which case it SHOULD update the value on the wire for future hops.
-
-A relay that reads from a stream and writes to stream in order will introduce head-of-line blocking.
-Packet loss will cause stream data to be buffered in the QUIC library, awaiting in order delivery, which will increase latency over additional hops.
-To mitigate this, a relay SHOULD read and write QUIC stream data out of order subject to flow control limits.
-See section 2.2 in {{QUIC}}.
 
 ## Congestion Control
 As covered in the motivation section ({{motivation}}), the ability to prioritize or cancel streams is a form of congestion response.
@@ -512,6 +506,13 @@ TODO: This section shall cover reconnect considerations for clients when moving 
 TODO: Refer to {{priority-congestion}}. Add details describe
 relays behavior when merging or splitting streams and interactions
 with congestion response.
+
+A relay MAY change the send order, in which case it SHOULD update the value on the wire for future hops.
+
+A relay that reads from a stream and writes to stream in order will introduce head-of-line blocking.
+Packet loss will cause stream data to be buffered in the QUIC library, awaiting in order delivery, which will increase latency over additional hops.
+To mitigate this, a relay SHOULD read and write QUIC stream data out of order subject to flow control limits.
+See section 2.2 in {{QUIC}}.
 
 # Messages
 Both unidirectional and bidirectional QUIC streams contain sequences of length-delimited messages.
