@@ -158,13 +158,13 @@ A tuple of a track name and a track namespace together is known as *a full track
 Full Track Name = Track Namespace  "/"  Track Name
 ~~~~~~~~~~~~~~~
 
-A *MoQ scope* is a set of MoQ servers (as identified by their connection URIs) for which
-subscribing to the same full track name would result in the subscriber receiving the same track with the same data on it.
+A *MoQ scope* is a set of MoQ servers (as identified by their connection URIs) for which full track names are guaranteed to be unique.
+This implies that within a single MoQ scope, subscribing to the same full track name would result in the subscriber receiving the same track with the same data on it.
 It is up to the application building on top of MoQ to define how broad or narrow the scope has to be.
 An application that deals with connections between devices on a local network may limit the scope to a single connection;
 by contrast, an application that uses multiple CDNs to serve media may require the scope to include all of those CDNs.
 
-The full track name is the only piece of information that is used to identify the track within a given scope.
+The full track name is the only piece of information that is used to identify the track within a given MoQ scope.
 MoQTransport does not provide any in-band content negotiation methods similar to the ones defined by HTTP
 ({{?RFC9110, Section 10}}); if, at a given moment in time, two tracks within the same scope contain different data,
 they have to have different full track names. This makes full track name suitable for use a key for caching.
