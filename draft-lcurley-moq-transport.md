@@ -150,8 +150,7 @@ A subscriber can request individual tracks at group boundaries, including any ne
 ### Track Naming and Scopes {#track-fn}
 
 In MoQTransport, every track has a *track name* and a *track namespace* associated with it.
-If two or more different tracks belong to the same track namespace, they have to be announced atomically
-(see {{message-announce}}). A track name identifies an individual track within the namespace.
+A track name identifies an individual track within the namespace.
 
 A tuple of a track name and a track namespace together is known as *a full track name*:
 
