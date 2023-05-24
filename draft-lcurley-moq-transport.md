@@ -270,48 +270,6 @@ with an explicit "send order"; and, define algorithms combining tracks, prioriti
 order within a group. The two proposals are listed in {{send-order}} and {{ordering-by-priorities}}.
 We expect further work before a consensus is reached.
 
-### Send Order
-Media is produced with an intended order, both in terms of when media should be presented (PTS) and when media should be decoded (DTS).
-As stated in motivation ({{latency}}), the network is unable to maintain this ordering during congestion without increasing latency.
-
-The encoder determines how to behave during congestion by assigning each object a numeric send order.
-The send order SHOULD be followed when possible to ensure that the most important media is delivered when throughput is limited.
-Note that the contents within each object are still delivered in order; this send order only applies to the ordering between objects.
-
-A sender MUST send each object over a dedicated QUIC stream.
-The QUIC library should support prioritization ({{prioritization}}) such that streams are transmitted in send order.
-
-A receiver MUST NOT assume that objects will be received in send order for a number of reasons:
-
-* Newly encoded objects MAY have a smaller send order than outstanding objects.
-* Packet loss or flow control MAY delay the send of individual streams.
-* The sender might not support QUIC stream prioritization.
-
-TODO: Refer to Congestion Response and Prioritization Section for further details on various proposals.
-
-### Ordering by Priorities
-
-Media is produced as a set of layers, such as for example low definition and high definition,
-or low frame rate and high frame rate. Each object belonging to a track and a group has two attributes: the object-id, and the priority (or layer).
-
-When nodes or relays have to choose which object to send next, they apply the following rules:
-
-* within the same group, objects with a lower priority number (e.g. P1) are always sent
-  before objects with a numerically greater priority number (e.g., P2)
-* within the same group, and the same priority level, objects with a lower object-id are
-  always sent before objects with a higher object-id.
-* objects from later groups are normally always sent
-  before objects of previous groups.
-
-The latter rule is generally agreed as a way to ensure freshness, and to recover quickly
-if queues and delays accumulate during a congestion period. However, there may be cases when
-finishing the transmission of an ongoing group results in better user experience than strict
-adherence to the freshness rule. We expect that that the working group will eventually reach
-consensus and define meta data that control this behavior.
-
-There have been proposals to allow emitters to coordinate the allocation of layer priorities
-across multiple coordinated tracks. At this point, these proposals have not reached consensus.
-
 ## Groups
 TODO: Add text describing iteration of group and intra object priorities within a group and their relation to congestion response. Add how it refers to {{priority-congestion}}
 
@@ -465,6 +423,48 @@ This section is expected to cover details on:
 - Congestion Algorithms and impacts
 - Mapping considerations for one object per stream vs multiple objects per stream
 - considerations for merging multiple streams across domains onto single connection and interactions with specific prioritization schemes
+
+### Send Order
+Media is produced with an intended order, both in terms of when media should be presented (PTS) and when media should be decoded (DTS).
+As stated in motivation ({{latency}}), the network is unable to maintain this ordering during congestion without increasing latency.
+
+The encoder determines how to behave during congestion by assigning each object a numeric send order.
+The send order SHOULD be followed when possible to ensure that the most important media is delivered when throughput is limited.
+Note that the contents within each object are still delivered in order; this send order only applies to the ordering between objects.
+
+A sender MUST send each object over a dedicated QUIC stream.
+The QUIC library should support prioritization ({{prioritization}}) such that streams are transmitted in send order.
+
+A receiver MUST NOT assume that objects will be received in send order for a number of reasons:
+
+* Newly encoded objects MAY have a smaller send order than outstanding objects.
+* Packet loss or flow control MAY delay the send of individual streams.
+* The sender might not support QUIC stream prioritization.
+
+TODO: Refer to Congestion Response and Prioritization Section for further details on various proposals.
+
+### Ordering by Priorities
+
+Media is produced as a set of layers, such as for example low definition and high definition,
+or low frame rate and high frame rate. Each object belonging to a track and a group has two attributes: the object-id, and the priority (or layer).
+
+When nodes or relays have to choose which object to send next, they apply the following rules:
+
+* within the same group, objects with a lower priority number (e.g. P1) are always sent
+  before objects with a numerically greater priority number (e.g., P2)
+* within the same group, and the same priority level, objects with a lower object-id are
+  always sent before objects with a higher object-id.
+* objects from later groups are normally always sent
+  before objects of previous groups.
+
+The latter rule is generally agreed as a way to ensure freshness, and to recover quickly
+if queues and delays accumulate during a congestion period. However, there may be cases when
+finishing the transmission of an ongoing group results in better user experience than strict
+adherence to the freshness rule. We expect that that the working group will eventually reach
+consensus and define meta data that control this behavior.
+
+There have been proposals to allow emitters to coordinate the allocation of layer priorities
+across multiple coordinated tracks. At this point, these proposals have not reached consensus.
 
 # Relays {#relays-moq}
 
