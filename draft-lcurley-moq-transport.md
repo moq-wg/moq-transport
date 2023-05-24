@@ -63,7 +63,7 @@ MoQTransport (MoQT) is a transport protocol that utilizes the QUIC network proto
 MoQTransport is a generic protocol is designed to work in concert with multiple MoQ Streaming Formats. These MoQ Streaming Formats define how content is encoded, packaged, and mapping to MoQT objects, along with policies for discovery, subscription and congestion response.
 
 * {{model}} describes the object model employed by MoQT
-* {{session}} covers aspects of setting up a MoQTransport session.
+* {{session}} covers aspects of setting up a MoQT session.
 * {{priority-congestion}} covers protocol considerations on prioritization schemes and congestion response overall.
 * {{relays-moq}} covers behavior at the relay entities.
 * {{message}} covers how messages are encoded on the wire.
