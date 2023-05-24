@@ -329,7 +329,7 @@ The send order SHOULD be followed when possible, to ensure that the most importa
 Note that the contents within each object are still delivered in order; this send order only applies to the ordering between objects.
 
 A sender MUST send each object over a dedicated QUIC stream.
-The QUIC library should support prioritization ({{prioritization}}) such that streams are transmitted in send order.
+The QUIC library should support prioritization ({{priority-congestion}}) such that streams are transmitted in send order.
 
 A receiver MUST NOT assume that objects will be received in send order, for the following reasons:
 
@@ -405,7 +405,7 @@ MoQTransport encodes the delivery information for a stream via OBJECT headers ({
 
 A relay MUST treat the object payload as opaque. 
 A relay MUST NOT combine, split, or otherwise modify object payloads.
-A relay SHOULD prioritize streams ({{prioritization}}) based on the send order.
+A relay SHOULD prioritize streams ({{priority-congestion}}) based on the send order.
 A relay MAY change the send order, in which case it SHOULD update the value on the wire for future hops.
 
 A relay that reads from a stream and writes to stream in order will introduce head-of-line blocking.
@@ -508,7 +508,7 @@ The client MUST send a ROLE parameter with one of the three values specified abo
 
 #### PATH parameter {#path}
 
-The PATH parameter (key 0x01) allows the client to specify the path of the MoQ URI when using native QUIC ({{native-quic}}).
+The PATH parameter (key 0x01) allows the client to specify the path of the MoQ URI when using native QUIC {{QUIC}}.
 It MUST NOT be used by the server, or when WebTransport is used.
 If the peer receives a PATH parameter from the server, or when WebTransport is used, it MUST close the connection.
 
@@ -717,7 +717,7 @@ The server can be a producer or a consumer.
 The server:
 
 * MAY initiate a graceful shutdown by sending a GOAWAY message.
-* MUST close the QUIC connection after a timeout with the GOAWAY error code ({{termination}}).
+* MUST close the QUIC connection after a timeout with the GOAWAY error code ({{session-termination}}).
 * MAY close the QUIC connection with a different error code if there is a fatal error before shutdown.
 * SHOULD wait until the `GOAWAY` message and any pending streams have been fully acknowledged, plus an extra delay to ensure they have been processed.
 
