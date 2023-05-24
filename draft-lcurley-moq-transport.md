@@ -155,7 +155,7 @@ A track name identifies an individual track within the namespace.
 A tuple of a track name and a track namespace together is known as *a full track name*:
 
 ~~~~~~~~~~~~~~~
-Full Track Name = Track Namespace  "/"  Track Name
+Full Track Name = Track Namespace Track Name
 ~~~~~~~~~~~~~~~
 
 A *MoQ scope* is a set of MoQ servers (as identified by their connection URIs) for which full track names are guaranteed to be unique.
