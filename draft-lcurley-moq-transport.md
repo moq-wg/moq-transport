@@ -147,15 +147,27 @@ In general, objects within a group SHOULD NOT depend on objects in other groups.
 A *track* is a sequence of objects ({{model-object}}) organized into groups ({{model-group}}).
 A subscriber can request individual tracks at group boundaries, including any new objects while the track is active.
 
-### Full Track Name {#track-fn}
+### Track Naming and Scopes {#track-fn}
 
-Tracks are identified by a globally unique identifier, called "Full Track Name" and defined as shown below:
+In MoQTransport, every track has a *track name* and a *track namespace* associated with it.
+A track name identifies an individual track within the namespace.
+
+A tuple of a track name and a track namespace together is known as *a full track name*:
 
 ~~~~~~~~~~~~~~~
-Full Track Name = Track Namespace  "/"  Track Name
+Full Track Name = Track Namespace Track Name
 ~~~~~~~~~~~~~~~
 
-This document does not define the exact mechanism of naming Track Namespaces. Applications building on top of MoQ MUST ensure that the mechanism used guarantees global uniqueness; for instance, an application could use domain names as part of track namespaces. Track Namespace is followed by the application context specific Track Name, encoded as an opaque string.
+A *MoQ scope* is a set of MoQ servers (as identified by their connection URIs) for which full track names are guaranteed to be unique.
+This implies that within a single MoQ scope, subscribing to the same full track name would result in the subscriber receiving the data for the same track.
+It is up to the application building on top of MoQ to define how broad or narrow the scope has to be.
+An application that deals with connections between devices on a local network may limit the scope to a single connection;
+by contrast, an application that uses multiple CDNs to serve media may require the scope to include all of those CDNs.
+
+The full track name is the only piece of information that is used to identify the track within a given MoQ scope and is used as key for caching.
+MoQTransport does not provide any in-band content negotiation methods similar to the ones defined by HTTP
+({{?RFC9110, Section 10}}); if, at a given moment in time, two tracks within the same scope contain different data,
+they have to have different full track names.
 
 ~~~
 Example: 1
