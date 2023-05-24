@@ -72,6 +72,55 @@ It was originally developed for live media, but has been generalized for similar
 * {{relays-moq}} covers behavior at the relay entities.
 * {{messages}} covers how messages are encoded on the wire.
 
+### Motivation
+
+#### Latency
+In a perfect world, we could deliver live content at the same rate it is produced.
+The end-to-end latency would be fixed and only subject to encoding and transmission delays.
+Unfortunately, networks have variable throughput, primarily due to congestion.
+
+Attempting to deliver content encoded at a higher bitrate than the network can support causes queuing.
+This queuing can occur anywhere in the path between the producer and consumer.
+For example: the application, the OS socket, a wifi router, within an ISP, or generally anywhere in transit.
+
+If nothing is done, new data will be appended to the end of a growing queue and will take longer to arrive than their predecessors, increasing latency.
+Our job is to minimize the growth of this queue, and if necessary, bypass the queue entirely by dropping content.
+
+The speed at which protocol can detect and respond to queuing determines the latency.
+TCP-based protocols are simple, but are slow to detect congestion and suffer from head-of-line blocking.
+UDP-based protocols can avoid queuing, but the application is now responsible for fragmentation, congestion control, retransmissions, receiver feedback, reassembly, and more.
+
+A goal of this draft is to get the best of both worlds: a simple protocol that can still rapidly detect and respond to congestion using QUIC streams.
+
+#### Universal
+The live media protocol ecosystem is fragmented; each protocol has it's own niche.
+Specialization is often a good thing, but we believe there's enough overlap to warrant consolidation.
+
+For example, a service might simultaneously ingest via WebRTC, SRT, RTMP, etc.
+The same service might then simultaneously distribute via WebRTC, LL-HLS, HLS/DASH, etc.
+Other similar live content would then be distributed other yet additional protocols: for example updates, chat, metadata, etc.
+
+This draft attempts to build a unified base transport protocol for media and similar use-cases.
+Any live content can be fragmented into objects and annotated to achieve the intended behavior.
+The goal is not to reinvent how content is encoded, just delivered.
+
+#### Relays
+The prevailing belief is that UDP-based protocols are more expensive and don't "scale".
+While it's true that UDP is more difficult to optimize than TCP, QUIC itself is proof that it is possible to reach performance parity.
+
+The ability to scale a live content transport actually depends on relay support: proxies, caches, CDNs, SFUs, etc.
+The success of HTTP-based protocols is due to the ability for a HTTP CDN to cache and deduplicate requests.
+
+It's difficult to build a CDN for live protocols that were not designed with relays in mind.
+This is the fatal flaw of many applications, as they relay on relays to perform bespoke parsing and decision making based on the contents.
+
+A goal of this draft is to treat relays as first class citizens.
+Any identification, reliability, ordering, prioritization, caching, etc is written to the wire in a header that is easy to parse.
+This ensures that relays can easily route content and respond to congestion in a specified, deterministic manner.
+
+#### Bandwidth Management and Congestion Response
+TODO: Add motivation text regarding bw management techniques in response to congestion. Also refer to {{priority-congestion}} for further details.
+
 
 ## Terms and Definitions
 
@@ -199,55 +248,6 @@ The client issues a CONNECT request with a URL which the server uses for identif
 All control messages and prioritization occur within the context of a single transport session, which means a single track bundle.
 When WebTransport is used, multiple transport sessions may be pooled over a single QUIC connection for efficiency.
 
-
-# Motivation
-
-## Latency
-In a perfect world, we could deliver live content at the same rate it is produced.
-The end-to-end latency would be fixed and only subject to encoding and transmission delays.
-Unfortunately, networks have variable throughput, primarily due to congestion.
-
-Attempting to deliver content encoded at a higher bitrate than the network can support causes queuing.
-This queuing can occur anywhere in the path between the producer and consumer.
-For example: the application, the OS socket, a wifi router, within an ISP, or generally anywhere in transit.
-
-If nothing is done, new data will be appended to the end of a growing queue and will take longer to arrive than their predecessors, increasing latency.
-Our job is to minimize the growth of this queue, and if necessary, bypass the queue entirely by dropping content.
-
-The speed at which protocol can detect and respond to queuing determines the latency.
-TCP-based protocols are simple, but are slow to detect congestion and suffer from head-of-line blocking.
-UDP-based protocols can avoid queuing, but the application is now responsible for fragmentation, congestion control, retransmissions, receiver feedback, reassembly, and more.
-
-A goal of this draft is to get the best of both worlds: a simple protocol that can still rapidly detect and respond to congestion using QUIC streams.
-
-## Universal
-The live media protocol ecosystem is fragmented; each protocol has it's own niche.
-Specialization is often a good thing, but we believe there's enough overlap to warrant consolidation.
-
-For example, a service might simultaneously ingest via WebRTC, SRT, RTMP, etc.
-The same service might then simultaneously distribute via WebRTC, LL-HLS, HLS/DASH, etc.
-Other similar live content would then be distributed other yet additional protocols: for example updates, chat, metadata, etc.
-
-This draft attempts to build a unified base transport protocol for media and similar use-cases.
-Any live content can be fragmented into objects and annotated to achieve the intended behavior.
-The goal is not to reinvent how content is encoded, just delivered.
-
-## Relays
-The prevailing belief is that UDP-based protocols are more expensive and don't "scale".
-While it's true that UDP is more difficult to optimize than TCP, QUIC itself is proof that it is possible to reach performance parity.
-
-The ability to scale a live content transport actually depends on relay support: proxies, caches, CDNs, SFUs, etc.
-The success of HTTP-based protocols is due to the ability for a HTTP CDN to cache and deduplicate requests.
-
-It's difficult to build a CDN for live protocols that were not designed with relays in mind.
-This is the fatal flaw of many applications, as they relay on relays to perform bespoke parsing and decision making based on the contents.
-
-A goal of this draft is to treat relays as first class citizens.
-Any identification, reliability, ordering, prioritization, caching, etc is written to the wire in a header that is easy to parse.
-This ensures that relays can easily route content and respond to congestion in a specified, deterministic manner.
-
-## Bandwidth Management and Congestion Response
-TODO: Add motivation text regarding bw management techniques in response to congestion. Also refer to {{priority-congestion}} for further details.
 
 # Objects
 MoQTransport works by transferring objects over QUIC streams.
