@@ -52,37 +52,36 @@ informative:
 
 --- abstract
 
-This document defines the core behavior for MoQTransport, a media transport protocol over QUIC.  MoQTransport allows a producer of media to publish data and have it consumed via subscription by a multiplicity of endpoints. It supports intermediate content distribution networks and is designed for high scale and low latency distribution. The core subscribeable entities are tracks, consisting of a sequence of objects, organized into groups. Objects carry headers describing the relationship between objects and instructing relays in applying deterministic congestion responses. MoQTransport is a generic protocol is designed to work in concert with multiple MoQ Streaming Formats, each of which define alternate schemes for carrying media content over MoQT. 
+This document defines the core behavior for MoQTransport, a media transport protocol over QUIC.  MoQTransport allows a producer of media to publish data and have it consumed via subscription by a multiplicity of endpoints. It supports intermediate content distribution networks and is designed for high scale and low latency distribution. The core subscribable entities are tracks, consisting of a sequence of objects organized into groups. MoQTransport is a generic protocol, designed to work in concert with multiple MoQ Streaming Formats, each of which define alternate schemes for carrying media content over MoQT.
 
 --- middle
 
 
 ## Introduction
-MoQTransport (MoQT) is a transport protocol that utilizes the QUIC network protocol {{QUIC}}, either directly or via WebTransport {{WebTransport}}, for the dissemination of media. MoQT utilizes a publish/subscribe workflow in which producers of media publish data in response to subscription requests from a multiplicity of endpoints. MoQT supports live, as well as near-live and Video on Demand (VOD) use-cases. MoQT supports delivery over intermediate content distribution networks and is architected for high scale and low latency distribution. In live mode, MoQT faciltates a broad sprectrum of latency regimes, from real-time, to interactive and non-interactive. 
+MoQTransport (MoQT) is a transport protocol that utilizes the QUIC network protocol {{QUIC}}, either directly or via WebTransport {{WebTransport}}, for the dissemination of media. MoQT utilizes a publish/subscribe workflow in which producers of media publish data in response to subscription requests from a multiplicity of endpoints. MoQT supports live, as well as near-live and Video on Demand (VOD) use-cases. MoQT supports delivery over intermediate content distribution networks and is architected for high scale and low latency distribution. In live mode, MoQT facilitates a broad spectrum of latency regimes, from real-time, to interactive and non-interactive.
 
-MoQTransport is a generic protocol is designed to work in concert with multiple MoQ Streaming Formats. These MoQ Streaming Formats define how content is encoded, packaged, and mapping to MoQT objects, along with policies for discovery, subscription and congestion response. 
+MoQTransport is a generic protocol is designed to work in concert with multiple MoQ Streaming Formats. These MoQ Streaming Formats define how content is encoded, packaged, and mapping to MoQT objects, along with policies for discovery, subscription and congestion response.
 
-* {{objects}} covers how media is fragmented into objects.
-* {{transport-protocols}} covers aspects of setting up a MoQTransport session.
-* {{stream-mapping}} covers how QUIC is used to transfer objects.
+* {{model}} describes the object model employed by MoQT
+* {{session}} covers aspects of setting up a MoQTransport session.
 * {{priority-congestion}} covers protocol considerations on prioritization schemes and congestion response overall.
 * {{relays-moq}} covers behavior at the relay entities.
-* {{messages}} covers how messages are encoded on the wire.
+* {{message}} covers how messages are encoded on the wire.
 
 ### Motivation
 The development of MoQT is driven by goals in a number of areas - specifically latency, the robustness of QUIC, workflow efficiency and relay support.
 
 #### Latency
-HTTP Adaptive Streaming (HAS) has been successful at achieiving scale although often at the cost of latency. Latency is necessary to correct for variable network throughput. Ideally live content is consumed at the same rate it is produced. End-to-end latency would be fixed and only subject to encoding and transmission delays. Unfortunately, networks have variable throughput, primarily due to congestion. Attempting to deliver content encoded at a higher bitrate than the network can support causes queuing along the path from producer to consumer. The speed at which a protocol can detect and respond to queuing determines the overall latency. TCP-based protocols are simple, but are slow to detect congestion and suffer from head-of-line blocking. UDP-based protocols can avoid queuing, but the application is now responsible for the complexity of fragmentation, congestion control, retransmissions, receiver feedback, reassembly, and more. One goal of MoQTransport is to achieve the best of both these worlds: leverage the features of QUIC to create a simple yet flexible low latency protocol that can rapidly detect and respond to congestion. 
+HTTP Adaptive Streaming (HAS) has been successful at achieving scale although often at the cost of latency. Latency is necessary to correct for variable network throughput. Ideally live content is consumed at the same rate it is produced. End-to-end latency would be fixed and only subject to encoding and transmission delays. Unfortunately, networks have variable throughput, primarily due to congestion. Attempting to deliver content encoded at a higher bitrate than the network can support causes queuing along the path from producer to consumer. The speed at which a protocol can detect and respond to queuing determines the overall latency. TCP-based protocols are simple but are slow to detect congestion and suffer from head-of-line blocking. UDP-based protocols can avoid queuing, but the application is now responsible for the complexity of fragmentation, congestion control, retransmissions, receiver feedback, reassembly, and more. One goal of MoQTransport is to achieve the best of both these worlds: leverage the features of QUIC to create a simple yet flexible low latency protocol that can rapidly detect and respond to congestion.
 
 #### Leveraging QUIC
 Applying {{QUIC}} to HAS via HTTP/3 does not yield generalized improvements in throughput. One reason for this is that sending segments down a single QUIC stream still allows head-of-line blocking to occur. Only by leveraging the parallel nature of QUIC streams can improved throughput be achieved in the face of loss. A goal of MoQT is to design a streaming protocol to leverage the transmission benefits afforded by parallel  QUIC streams as well exercising options for flexible loss recovery.
 
 #### Workflow efficiency
-Internet delivered media today has protocols optimized for ingest and separate protocols optimzed for distribution. This protocol switch in the distribution chain necessitates intermediary origins which re-package the media content. While specialization can have its benefits, there are gains in efficiency to be had in not having to re-package content. A goal of MoQT is to develop a single protocol which can be used for transmission from contribution to distribution. A related goal is the ability to support existing encoding and packaging schemas, both for backwards compatibility and for interoperability with the established content preparation ecosystem. 
+Internet delivered media today has protocols optimized for ingest and separate protocols optimized for distribution. This protocol switch in the distribution chain necessitates intermediary origins which re-package the media content. While specialization can have its benefits, there are gains in efficiency to be had in not having to re-package content. A goal of MoQT is to develop a single protocol which can be used for transmission from contribution to distribution. A related goal is the ability to support existing encoding and packaging schemas, both for backwards compatibility and for interoperability with the established content preparation ecosystem.
 
 #### Relays
-An integral feature of a protocol being successfull is its ability to deliver media at scale. Greatest scale is achieved when third-party networks, indepdent of both the publisher and subscriber, can be leveraged to relay the content. These relays must cache content for distribution efficiency while simulatanesouly routing content and deterministically responding to congestion in a multi-tenant network. A goal of MoQT is to treat relays as first-class citizens of the protocol and ensure that objects are structured such that information necssary for distribution is available to relays while the media content istelf remains opaque and private. 
+An integral feature of a protocol being successful is its ability to deliver media at scale. Greatest scale is achieved when third-party networks, independent of both the publisher and subscriber, can be leveraged to relay the content. These relays must cache content for distribution efficiency while simultaneously routing content and deterministically responding to congestion in a multi-tenant network. A goal of MoQT is to treat relays as first-class citizens of the protocol and ensure that objects are structured such that information necessary for distribution is available to relays while the media content itself remains opaque and private.
 
 
 ## Terms and Definitions
@@ -109,7 +108,7 @@ Endpoint:
 
 Group:
 
-: A temporal sequence of objects. A group respresents a subscription point to a track. The media data within the group must not depend on the data in any other groups. 
+: A temporal sequence of objects. A group represents a subscription point in a track. The media data within the group must not depend on the data in any other groups. 
 
 Object:
 
@@ -125,7 +124,7 @@ Server:
 
 Track:
 
-: An encoded bitstream. Tracks contain a sequential series of groups and are the subscribeable entity with MoQT.
+: An encoded bitstream. Tracks contain a sequential series of groups and are the subscribable entity with MoQT.
 
 Transport session:
 
@@ -142,16 +141,16 @@ x (b):
 : Indicates that x consists of a variable length integer, followed by that many bytes of binary data.
 
 
-# Object Model 
+# Object Model {#model}
 
-MoQT has a hierarchical object model, comprised of objects, groups and tracks. 
+MoQT is a transport that moves entitites called messages {{message}}. Messages are divided into two classes: control messages and objects. Control messages are used to setup connections, announce content, issues subscriptions etc. All media data is carried inside object messages. MoQT has a hierarchical object model for data, comprised of objects, groups and tracks.
 
 ## Objects {#model-object}
 
-The basic element of MoQTransport is an *object*.
+The basic data element of MoQTransport is an *object*.
 An object is an addressable unit whose payload is a sequence of bytes.
 All objects belong to a group, indicating ordering and potential dependencies. {{model-group}}
-Objects are comprised of two parts: metadata, such as priority, or TTL; and a payload.  The metadata is visible to relays but the payload is only visible to the producer and consumer. The application is solely responsible for the content of the object payload.  
+Objects are comprised of two parts: metadata and a payload.  The metadata is visible to relays but the payload is only visible to the producer and consumer. The application is solely responsible for the content of the object payload.
 
 ## Groups {#model-group}
 A *group* is a collection of objects and is a sub-unit of a track ({{model-track}}).
@@ -163,12 +162,12 @@ The sender then selectively transmits objects based on their group membership.
 
 ## Track {#model-track}
 
-A *track* is a sequence of groups ({{model-group}}). It is the entity against which a consumer issues a subscrption request. 
+A *track* is a sequence of groups ({{model-group}}). It is the entity against which a consumer issues a subscription request. 
 A subscriber can request to receive individual tracks starting at a group boundary, including any new objects pushed by the producer while the track is active.
 
 # Track naming {#track-name}
 
-Tracks are identified by a unique string identifier, called the "Full Track Name" and defined as the concatenation of a Track Namespace and a Track Name, both of which are of variable length. The Full Track Name SHOULD be sufficiently unique to unambiguosuly distinguish the track from all other tracks being published on the distribution network. 
+Tracks are identified by a unique string identifier, called the "Full Track Name" and defined as the concatenation of a Track Namespace and a Track Name, both of which are of variable length. The Full Track Name SHOULD be sufficiently unique to unambiguously distinguish the track from all other tracks being published on the distribution network.
 
 This document does not define the exact mechanism of naming Track Namespaces. Applications building on top of MoQ SHOULD ensure that the mechanism used guarantees network uniqueness. One option would be for an application to use domain names as part of the track namespace. Some examples of valid full track names are shown below:
 
@@ -204,9 +203,14 @@ Track Name = 6789
 Full Track Name = 123456789
 
 ~~~
+## Catalog tracks {#catalog}
+Catalogs are special tracks whose payloads are used by MoQT Streaming Formats to describe the availability of other tracks, as well as initialization and selection data for those tracks. This allows producers of content to aggregate a collection of tracks and offer to them to clients for selection. In order that a client can subscribe to the catalog track without a priori knowledge of the track name, catalog tracks have a reserved Track Name of lowercase "catalog".
 
+All producers of content MUST produce a catalog track which describes the availability of the tracks which they are capable of publishing. 
+Producers MUST update the catalog tracks when new tracks are added or existing tracks deleted. 
+The payload of the catalog track objects is defined by the MoQStreaming Format being used by the publisher, with the exception that the first varint of the payload MUST be unencrypted and MUST hold the type of the MoQStreaming Format, as registered in the  IANA registration table {{iana}} for MoQtransport Streaming Formats.
 
-# Sessions
+# Sessions {#session}
 
 ## Session establishment {#session-establishment}
 
@@ -243,7 +247,7 @@ The ALPN value {{!RFC7301}} used by the protocol is `moq-00`.
 
 ## Session initialization {#session-init}
 
-The first stream opened is a client-initiated bidirectional stream where the peers exchange SETUP messages ({{message-setup}}). The subsequent streams MAY be either unidirectional and bidirectional. For exchanging content, an application would typically send a unidirectional stream containing a single OBJECT message ({{message-object}}), as putting more than one object into one stream may create head-of-line blocking delays.  However if one object has a hard dependency on another object, putting them on the same stream could be a valid choice. 
+The first stream opened is a client-initiated bidirectional stream where the peers exchange SETUP messages ({{message-setup}}). The subsequent streams MAY be either unidirectional or bidirectional. For exchanging content, an application would typically send a unidirectional stream containing a single OBJECT message ({{message-object}}), as putting more than one object into one stream may create head-of-line blocking delays.  However, if one object has a hard dependency on another object, putting them on the same stream could be a valid choice.
 
 ## Cancellation {#session-cancellation}
 A QUIC stream MAY be canceled at any point with an error code.
@@ -277,7 +281,7 @@ The application MAY use any error message and SHOULD use a relevant code, as def
 |------|--------------------|
 
 * Session Terminated
-No error occurred, however the endpoint wishes to terminate the session.
+No error occurred; however the endpoint wishes to terminate the session.
 
 * Generic Error
 An unclassified error occurred.
@@ -291,14 +295,14 @@ The endpoint successfully drained the session after a GOAWAY was initiated ({{me
 # Prioritization and Congestion Response {#priority-congestion}
 
 TODO: This is a placeholder section to capture details on
-how the Moq Transport protocol deals with prioritization and congestion overall. Having its own section helps reduce merge conflicts and allows us to reference it from other parts.
+how the MoQTransport protocol deals with prioritization and congestion overall. Having its own section helps reduce merge conflicts and allows us to reference it from other parts.
 
 This section is expected to cover details on:
 
-- Prioritization Schemes
-- Congestion Algorithms and impacts
-- Mapping considerations for one object per stream vs multiple objects per stream
-- Considerations for merging multiple streams across domains onto single connection and interactions with specific prioritization schemes
+- Prioritization Schemes.
+- Congestion Algorithms and impacts.
+- Mapping considerations for one object per stream vs multiple objects per stream.
+- Considerations for merging multiple streams across domains onto single connection and interactions with specific prioritization schemes.
 
 ## Order Priorities and Options
 
@@ -321,16 +325,16 @@ Media is produced with an intended order, both in terms of when media should be 
 As stated in the introduction, the network is unable to maintain this ordering during congestion without increasing latency.
 
 The encoder determines how to behave during congestion by assigning each object a numeric send order.
-The send order SHOULD be followed when possible to ensure that the most important media is delivered when throughput is limited.
+The send order SHOULD be followed when possible, to ensure that the most important media is delivered when throughput is limited.
 Note that the contents within each object are still delivered in order; this send order only applies to the ordering between objects.
 
 A sender MUST send each object over a dedicated QUIC stream.
 The QUIC library should support prioritization ({{prioritization}}) such that streams are transmitted in send order.
 
-A receiver MUST NOT assume that objects will be received in send order for a number of reasons:
+A receiver MUST NOT assume that objects will be received in send order, for the following reasons:
 
-* Newly encoded objects MAY have a smaller send order than outstanding objects.
-* Packet loss or flow control MAY delay the send of individual streams.
+* Newly encoded objects can have a smaller send order than outstanding objects.
+* Packet loss or flow control can delay the send of individual streams.
 * The sender might not support QUIC stream prioritization.
 
 ### Ordering by Priorities
@@ -340,11 +344,11 @@ or low frame rate and high frame rate. Each object belonging to a track and a gr
 
 When nodes or relays have to choose which object to send next, they apply the following rules:
 
-* within the same group, objects with a lower priority number (e.g. P1) are always sent
+* Within the same group, objects with a lower priority number (e.g. P1) are always sent
   before objects with a numerically greater priority number (e.g., P2)
-* within the same group, and the same priority level, objects with a lower object-id are
+* Within the same group, and the same priority level, objects with a lower object-id are
   always sent before objects with a higher object-id.
-* objects from later groups are normally always sent
+* Objects from later groups are normally always sent
   before objects of previous groups.
 
 The latter rule is generally agreed as a way to ensure freshness, and to recover quickly
@@ -358,7 +362,7 @@ across multiple coordinated tracks. At this point, these proposals have not reac
 
 # Relays {#relays-moq}
 
-Relays are leveraged to enable distribution scale in the MoQ architecture. Relays can be used to form an overlay delivery network similar to the funcitionality that Content Delivery Networks (CDNs) provide today. Additionally, relays serve as policy enforcement points by validating subscribe and publish requests at the edge of a network. 
+Relays are leveraged to enable distribution scale in the MoQ architecture. Relays can be used to form an overlay delivery network, similar in functionality to  Content Delivery Networks (CDNs). Additionally, relays serve as policy enforcement points by validating subscribe and publish requests at the edge of a network.
 
 ## Subscriber Interactions
 
@@ -366,9 +370,9 @@ Subscribers interact with the Relays by sending a "SUBSCRIBE REQUEST"  ({{messag
 
 The endpoint making the subscribe request is notified of the result of the subscription, via "SUBSCRIBE OK" ({{message-subscribe-ok}}) or the "SUBSCRIBE ERROR" {{message-subscribe-error}} control message.
 
-For successful subscriptions, the sender maintains a list of subscribers for each full track name. Each new OBJECT belonging to the track MUST be forwarded to each active subscriber, unless determined by congestion response. A subscription remains active until it expires, or until the publisher of the track stops producing objects or there is a susbcruption error (see {{message-subscribe-error}}).
+For successful subscriptions, the sender maintains a list of subscribers for each full track name. Each new OBJECT belonging to the track MUST be forwarded to each active subscriber, unless determined by congestion response. A subscription remains active until it expires, or until the publisher of the track stops producing objects or there is a subscription error (see {{message-subscribe-error}}).
 
-Relays MAY aggregate authorized subscriptions for a given track when multiple subscribers request the same track. Subscription aggregation allows relays to make only a single forward subscription for the track. The published content received from the forward subscription reuqest is cached and shared among the pending subscribers. 
+Relays MAY aggregate authorized subscriptions for a given track when multiple subscribers request the same track. Subscription aggregation allows relays to make only a single forward subscription for the track. The published content received from the forward subscription request is cached and shared among the pending subscribers.
 
 
 ## Publisher Interactions
@@ -385,16 +389,15 @@ OBJECT message header carry short hop-by-hop Track Id that maps to the Full Trac
 
 ## Relay Discovery and Failover
 
-TODO: This section shall cover aspects of relay failover and protocol interactions
+TODO: This section shall cover aspects of relay failover and protocol interactions.
 
 ## Restoring connections through relays
 
-TODO: This section shall cover reconnect considerations for clients when moving between the Relays
+TODO: This section shall cover reconnect considerations for clients when moving between the Relays.
 
 ## Congestion Response at Relays
 
-TODO: Refer to {{priority-congestion}}. Add details describe
-relays behavior when merging or splitting streams and interactions
+TODO: Refer to {{priority-congestion}}. Add details to describe relay behavior when merging or splitting streams and interactions
 with congestion response.
 
 ## Relays (reorg)
@@ -410,7 +413,7 @@ Packet loss will cause stream data to be buffered in the QUIC library, awaiting 
 To mitigate this, a relay SHOULD read and write QUIC stream data out of order subject to flow control limits.
 See section 2.2 in {{QUIC}}.
 
-# Messages
+# Messages {#message}
 Both unidirectional and bidirectional QUIC streams contain sequences of length-delimited messages.
 
 ~~~
@@ -449,7 +452,7 @@ A length of 0 indicates the message is unbounded and continues until the end of 
 
 ## SETUP {#message-setup}
 
-The `SETUP` message is the first message that is exchanged by the client and the server; it allows the peers to establish the mutually supported version and agree on the initial configuration. It is a sequence of key-value pairs called *SETUP parameters*; the semantics and the format of individual parameter values MAY depend on what party is sending it.
+The `SETUP` message is the first message that is exchanged by the client and the server; it allows the peers to establish the mutually supported version and agree on the initial configuration before any objects are exchanged. It is a sequence of key-value pairs called *SETUP parameters*; the semantics and format of which can vary based on whether the client or server is sending. To ensure future extensibility of MoQTransport, the peers MUST ignore unknown setup parameters. TODO: describe GREASE for those.
 
 The wire format of the SETUP message is as follows:
 
@@ -478,6 +481,40 @@ The Parameter Value Length field indicates the length of the Parameter Value.
 The client offers the list of the protocol versions it supports; the server MUST reply with one of the versions offered by the client. If the server does not support any of the versions offered by the client, or the client receives a server version that it did not offer, the corresponding peer MUST close the connection.
 
 The SETUP parameters are described in the {{setup-parameters}} section.
+
+### SETUP Parameters {#setup-parameters}
+
+Every parameter MUST appear at most once within the SETUP message. The peers SHOULD verify that and close the connection if a parameter appears more than once.
+
+The ROLE parameter is mandatory for the client. All of the other parameters are optional.
+
+#### ROLE parameter {#role}
+
+The ROLE parameter (key 0x00) allows the client to specify what roles it expects the parties to have in the MoQTransport connection. It has three possible values:
+
+0x01:
+
+: Only the client is expected to send objects on the connection. This is commonly referred to as *the ingestion case*.
+
+0x02:
+
+: Only the server is expected to send objects on the connection. This is commonly referred to as *the delivery case*.
+
+0x03:
+
+: Both the client and the server are expected to send objects.
+
+The client MUST send a ROLE parameter with one of the three values specified above. The server MUST close the connection if the ROLE parameter is missing, is not one of the three above-specified values, or it is different from what the server expects based on the application.
+
+#### PATH parameter {#path}
+
+The PATH parameter (key 0x01) allows the client to specify the path of the MoQ URI when using native QUIC ({{native-quic}}).
+It MUST NOT be used by the server, or when WebTransport is used.
+If the peer receives a PATH parameter from the server, or when WebTransport is used, it MUST close the connection.
+
+When connecting to a server using a URI with the "moq" scheme,
+the client MUST set the PATH parameter to the `path-abempty` portion of the URI;
+if `query` is present, the client MUST concatenate `?`, followed by the `query` portion of the URI to the parameter.
 
 
 ## OBJECT {#message-object}
@@ -515,7 +552,7 @@ An opaque payload intended for the consumer and SHOULD NOT be processed by a rel
 
 ## SUBSCRIBE REQUEST {#message-subscribe-req}
 
-Entities that intend to receive content will do so via subscriptions to one or more tracks.
+A receiver issues a SUBSCRIBE REQUEST to a publisher to request a track.
 
 The format of SUBSCRIBE REQUEST is as follows:
 
@@ -527,8 +564,8 @@ Track Request Parameter {
 }
 
 SUBSCRIBE REQUEST Message {
-  Full Track Name Length(i),
-  Full Track Name(...),
+  Full Track Name Length (i),
+  Full Track Name (...),
   Track Request Parameters (..) ...
 }
 ~~~
@@ -560,18 +597,17 @@ SUBSCRIBE OK
 {: #moq-transport-subscribe-ok format title="MoQTransport SUBSCRIBE OK Message"}
 
 * Full Track Name:
-Identifies the track in the request message for which this
-response is provided.
+Identifies the track for which this response is provided.
 
 * Track ID:
-Session specific identifier that maps the Full Track Name to the Track ID in OBJECT ({{message-object}}) message headers for the advertised track. Track IDs are generally shorter than Full Track Names and thus reduce the overhead in OBJECT messages.
+Session specific identifier that is used as an alias for the Full Track Name in the Track ID field of the OBJECT ({{message-object}}) message headers of the requested track. Track IDs are generally shorter than Full Track Names and thus reduce the overhead in OBJECT messages.
 
 * Expires:
-Time in milliseconds after which the subscription is no longer valid. A value of 0 implies that the subscription stays active until its explicitly unsubscribed or the underlying transport is disconnected.
+Time in milliseconds after which the subscription is no longer valid. A value of 0 indicates that the subscription stays active until it is explicitly unsubscribed.
 
 ## SUBSCRIBE ERROR {#message-subscribe-error}
 
-A `SUBSCRIBE ERROR` control message is sent for unsuccessful subscriptions.
+A publisher sends a SUBSCRIBE ERROR control message in response to a failed SUBSCRIBE REQUEST.
 
 ~~~
 SUBSCRIBE ERROR
@@ -597,7 +633,7 @@ Provides the reason for subscription error and `Reason Phrase Length` field carr
 
 ## ANNOUNCE {#message-announce}
 
-The publisher advertises the tracks via the `ANNOUNCE` control message. The `ANNOUNCE` message allows discovery of tracks being published by a publisher and verify publisher's authorization for all the tracks sharing the announced namespace.
+The publisher sends the ANNOUNCE control message to advertise where the receiver can route SUBSCRIBE REQUESTs for tracks within the announced Track Namespace. The receiver verifies the publisher is authorized to publish tracks under this namespace.
 
 ~~~
 ANNOUNCE Message {
@@ -612,12 +648,26 @@ ANNOUNCE Message {
 Identifies a track's namespace as defined in ({{track-name}})
 
 * Track Request Parameters:
-As defined in {{track-req-params}}.
+The parameters are defined in {{track-req-params}}.
+
+### Track Request Parameters {#track-req-params}
+
+The Track Request Parameters identify properties of the track requested in either the ANNOUNCE or SUSBCRIBE REQUEST control messages. The peers MUST close the connection if there are duplicates. The Parameter Value Length field indicates the length of the Parameter Value.
+
+#### GROUP SEQUENCE Parameter
+
+The GROUP SEQUENCE parameter (key 0x00) identifies the group within the track to start delivering objects. The publisher MUST start delivering the objects from the most recent group, when this parameter is omitted. This parameter is applicable in SUBSCRIBE REQUEST message.
+
+#### OBJECT SEQUENCE Parameter
+The OBJECT SEQUENCE parameter (key 0x01) identifies the object with the track to start delivering objects. The `GROUP SEQUENCE` parameter MUST be set to identify the group under which to start delivery. The publisher MUST start delivering from the beginning of the selected group when this parameter is omitted. This parameter is applicable in SUBSCRIBE REQUEST message.
+
+#### AUTHORIZATION INFO Parameter
+AUTHORIZATION INFO parameter (key 0x02) identifies track's authorization information. This parameter is populated for cases where the authorization is required at the track level. This parameter is applicable in SUBSCRIBE REQUEST and ANNOUNCE messages.
 
 
 ## ANNOUNCE OK {#message-announce-ok}
 
-`ANNOUNCE OK` control message is sent for announcements successfully authorized.
+The receiver sends an `ANNOUNCE OK` control message to acknowledge the successful authorization and acceptance of an ANNOUCE message.
 
 ~~~
 ANNOUNCE OK
@@ -632,7 +682,7 @@ Identifies the track namespace in the ANNOUNCE message for which this response i
 
 ## ANNOUNCE ERROR {#message-announce-error}
 
-A `ANNOUNCE ERROR` control message is sent for the tracks that failed authorization.
+The receiver sends an  `ANNOUNCE ERROR` control message for tracks that failed authorization.
 
 ~~~
 ANNOUNCE ERROR
@@ -652,14 +702,17 @@ Identifies the track namespace in the ANNOUNCE message for which this response i
 * Error Code:
 Identifies an integer error code for announcement failure.
 
+* Reason Phrase Length:
+The length in bytes of the reason phrase.
+
 * Reason Phrase:
-Provides the reason for announcement error and `Reason Phrase Length` field carries its length.
+Provides the reason for the announcement error.
 
 
 ## GOAWAY {#message-goaway}
-The `GOAWAY` message is sent by the server to force the client to reconnect.
+The server sends a `GOAWAY` message to force the client to reconnect.
 This is useful for server maintenance or reassignments without severing the QUIC connection.
-The server MAY be a producer or consumer.
+The server can be a producer or a consumer.
 
 The server:
 
@@ -670,62 +723,12 @@ The server:
 
 The client:
 
-* MUST establish a new transport session to the provided URL upon receipt of a `GOAWAY` message.
-* SHOULD establish the connection in parallel which MUST use different QUIC connection.
-* SHOULD remain connected for two servers for a short period, processing objects from both in parallel.
-
-# SETUP Parameters
-
-The SETUP message ({{message-setup}}) allows the peers to exchange arbitrary parameters before any objects are exchanged. It is the main extensibility mechanism of MoQTransport. The peers MUST ignore unknown parameters. TODO: describe GREASE for those.
-
-Every parameter MUST appear at most once within the SETUP message. The peers SHOULD verify that and close the connection if a parameter appears more than once.
-
-The ROLE parameter is mandatory for the client. All of the other parameters are optional.
-
-## ROLE parameter {#role}
-
-The ROLE parameter (key 0x00) allows the client to specify what roles it expects the parties to have in the MoQTransport connection. It has three possible values:
-
-0x01:
-
-: Only the client is expected to send objects on the connection. This is commonly referred to as *the ingestion case*.
-
-0x02:
-
-: Only the server is expected to send objects on the connection. This is commonly referred to as *the delivery case*.
-
-0x03:
-
-: Both the client and the server are expected to send objects.
-
-The client MUST send a ROLE parameter with one of the three values specified above. The server MUST close the connection if the ROLE parameter is missing, is not one of the three above-specified values, or it is different from what the server expects based on the application in question.
-
-## PATH parameter {#path}
-
-The PATH parameter (key 0x01) allows the client to specify the path of the MoQ URI when using native QUIC ({{native-quic}}).
-It MUST NOT be used by the server, or when WebTransport is used.
-If the peer receives a PATH parameter from the server, or when WebTransport is used, it MUST close the connection.
-
-When connecting to a server using a URI with the "moq" scheme,
-the client MUST set the PATH parameter to the `path-abempty` portion of the URI;
-if `query` is present, the client MUST concatenate `?`, followed by the `query` portion of the URI to the parameter.
-
-# Track Request Parameters {#track-req-params}
-
-The Track Request Parameters identify properties of the track requested in either the ANNOUNCE or SUSBCRIBE REQUEST control messages. Every parameter MUST appear at most once. The peers MUST close the connection if there are duplicates. The Parameter Value Length field indicates the length of the Parameter Value.
-
-### GROUP SEQUENCE Parameter
-
-The GROUP SEQUENCE parameter (key 0x00) identifies the group within the track to start delivering objects. The publisher MUST start delivering the objects from the most recent group, when this parameter is omitted. This parameter is applicable in SUBSCRIBE REQUEST message.
-
-### OBJECT SEQUENCE Parameter
-The OBJECT SEQUENCE parameter (key 0x01) identifies the object with the track to start delivering objects. The `GROUP SEQUENCE` parameter MUST be set to identify the group under which to start delivery. The publisher MUST start delivering from the beginning of the selected group when this parameter is omitted. This parameter is applicable in SUBSCRIBE REQUEST message.
-
-### AUTHORIZATION INFO Parameter
-AUTHORIZATION INFO parameter (key 0x02) identifies track's authorization information. This parameter is populated for cases where the authorization is required at the track level. This parameter is applicable in SUBSCRIBE REQUEST and ANNOUNCE messages.
-
+* MUST establish a new transport session upon receipt of a `GOAWAY` message, assuming it wants to continue operation. 
+* SHOULD establish the new transport session using a different QUIC connection to that on which it received the GOAWAY message.
+* SHOULD remain connected on both connections for a short period, processing objects from both in parallel.
 
 # Security Considerations
+TODO: Expand this section. 
 
 ## Resource Exhaustion
 Live content requires significant bandwidth and resources.
@@ -734,13 +737,14 @@ Failure to set limits will quickly cause resource exhaustion.
 MoQTransport uses QUIC flow control to impose resource limits at the network layer.
 Endpoints SHOULD set flow control limits based on the anticipated bitrate.
 
-The producer prioritizes and transmits streams out of order.
-Streams might be starved indefinitely during congestion.
-The producer and consumer MUST cancel a stream, preferably the lowest priority, after reaching a resource limit.
+Endpoints MAY impose a MAX STREAM count limit which would restrict the number of concurrent streams which a MoQTransport Streaming Format could have in flight.
 
-# IANA Considerations
+The producer prioritizes and transmits streams out of order. Streams might be starved indefinitely during congestion. The producer and consumer MUST cancel a stream, preferably the lowest priority, after reaching a resource limit.
+
+# IANA Considerations {#iana}
 
 TODO: fill out currently missing registries:
+
 * MoQTransport version numbers
 * SETUP parameters
 * Track Request parameters
@@ -751,6 +755,8 @@ TODO: fill out currently missing registries:
 * Object headers
 
 TODO: register the URI scheme and the ALPN
+
+TODO: the MoQTransport spec should establish the IANA registration table for MoQtransport Streaming Formats. Each MoQTransport streaming format can then register its type in that table. The MoQT Streaming Format type MUST be carried as the leading varint in catalog track objects.
 
 
 # Contributors
