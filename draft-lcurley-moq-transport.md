@@ -159,7 +159,7 @@ Full Track Name = Track Namespace  "/"  Track Name
 ~~~~~~~~~~~~~~~
 
 A *MoQ scope* is a set of MoQ servers (as identified by their connection URIs) for which full track names are guaranteed to be unique.
-This implies that within a single MoQ scope, subscribing to the same full track name would result in the subscriber receiving the same track with the same data on it.
+This implies that within a single MoQ scope, subscribing to the same full track name would result in the subscriber receiving the data for the same track.
 It is up to the application building on top of MoQ to define how broad or narrow the scope has to be.
 An application that deals with connections between devices on a local network may limit the scope to a single connection;
 by contrast, an application that uses multiple CDNs to serve media may require the scope to include all of those CDNs.
