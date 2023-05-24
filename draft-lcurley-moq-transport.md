@@ -583,6 +583,42 @@ The client offers the list of the protocol versions it supports; the server MUST
 
 The SETUP parameters are described in the {{setup-parameters}} section.
 
+### SETUP Parameters
+
+The SETUP message ({{message-setup}}) allows the peers to exchange arbitrary parameters before any objects are exchanged. It is the main extensibility mechanism of MoQTransport. The peers MUST ignore unknown parameters. TODO: describe GREASE for those.
+
+Every parameter MUST appear at most once within the SETUP message. The peers SHOULD verify that and close the connection if a parameter appears more than once.
+
+The ROLE parameter is mandatory for the client. All of the other parameters are optional.
+
+#### ROLE parameter {#role}
+
+The ROLE parameter (key 0x00) allows the client to specify what roles it expects the parties to have in the MoQTransport connection. It has three possible values:
+
+0x01:
+
+: Only the client is expected to send objects on the connection. This is commonly referred to as *the ingestion case*.
+
+0x02:
+
+: Only the server is expected to send objects on the connection. This is commonly referred to as *the delivery case*.
+
+0x03:
+
+: Both the client and the server are expected to send objects.
+
+The client MUST send a ROLE parameter with one of the three values specified above. The server MUST close the connection if the ROLE parameter is missing, is not one of the three above-specified values, or it is different from what the server expects based on the application in question.
+
+#### PATH parameter {#path}
+
+The PATH parameter (key 0x01) allows the client to specify the path of the MoQ URI when using native QUIC ({{native-quic}}).
+It MUST NOT be used by the server, or when WebTransport is used.
+If the peer receives a PATH parameter from the server, or when WebTransport is used, it MUST close the connection.
+
+When connecting to a server using a URI with the "moq" scheme,
+the client MUST set the PATH parameter to the `path-abempty` portion of the URI;
+if `query` is present, the client MUST concatenate `?`, followed by the `query` portion of the URI to the parameter.
+
 
 ## OBJECT {#message-object}
 A OBJECT message contains a range of contiguous bytes from from the specified track, as well as associated metadata required to deliver, cache, and forward it.
@@ -777,42 +813,6 @@ The client:
 * MUST establish a new transport session to the provided URL upon receipt of a `GOAWAY` message.
 * SHOULD establish the connection in parallel which MUST use different QUIC connection.
 * SHOULD remain connected for two servers for a short period, processing objects from both in parallel.
-
-# SETUP Parameters
-
-The SETUP message ({{message-setup}}) allows the peers to exchange arbitrary parameters before any objects are exchanged. It is the main extensibility mechanism of MoQTransport. The peers MUST ignore unknown parameters. TODO: describe GREASE for those.
-
-Every parameter MUST appear at most once within the SETUP message. The peers SHOULD verify that and close the connection if a parameter appears more than once.
-
-The ROLE parameter is mandatory for the client. All of the other parameters are optional.
-
-## ROLE parameter {#role}
-
-The ROLE parameter (key 0x00) allows the client to specify what roles it expects the parties to have in the MoQTransport connection. It has three possible values:
-
-0x01:
-
-: Only the client is expected to send objects on the connection. This is commonly referred to as *the ingestion case*.
-
-0x02:
-
-: Only the server is expected to send objects on the connection. This is commonly referred to as *the delivery case*.
-
-0x03:
-
-: Both the client and the server are expected to send objects.
-
-The client MUST send a ROLE parameter with one of the three values specified above. The server MUST close the connection if the ROLE parameter is missing, is not one of the three above-specified values, or it is different from what the server expects based on the application in question.
-
-## PATH parameter {#path}
-
-The PATH parameter (key 0x01) allows the client to specify the path of the MoQ URI when using native QUIC ({{native-quic}}).
-It MUST NOT be used by the server, or when WebTransport is used.
-If the peer receives a PATH parameter from the server, or when WebTransport is used, it MUST close the connection.
-
-When connecting to a server using a URI with the "moq" scheme,
-the client MUST set the PATH parameter to the `path-abempty` portion of the URI;
-if `query` is present, the client MUST concatenate `?`, followed by the `query` portion of the URI to the parameter.
 
 # Track Request Parameters {#track-req-params}
 
