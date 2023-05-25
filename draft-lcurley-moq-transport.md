@@ -130,7 +130,7 @@ Commonly used terms in this document are described below.
 
 Client:
 
-: The party initiating a session.
+: The party initiating a transport session.
 
 Congestion:
 
@@ -138,23 +138,23 @@ Congestion:
 
 Consumer:
 
-: A QUIC endpoint receiving media over the network. This could be a consumer or a relay.
+: A QUIC endpoint receiving media over the network. This could be an endpoint or a relay.
 
 Producer:
 
-: A QUIC endpoint sending media over the network. This could be a producer or a relay.
+: A QUIC endpoint sending media over the network. This could be an endpoint or a relay.
 
 Server:
 
-: The party accepting an incoming session.
+: The party accepting an incoming transport session.
 
 Track:
 
-: An encoded bitstream, representing a single component that makes up the larger application.
+: An encoded bitstream. Tracks contain a sequential series of groups and are the subscribable entity with MoQT.
 
 Transport session:
 
-: Either a native QUIC connection, or a WebTransport session used to transmit the data.
+: A native QUIC connection, or a WebTransport session, used to transmit data.
 
 
 ## Notational Conventions
