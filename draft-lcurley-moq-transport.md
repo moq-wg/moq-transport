@@ -52,39 +52,39 @@ informative:
 
 --- abstract
 
-This document defines the core behavior for MoQTransport, a media transport protocol over QUIC.  MoQTransport allows a producer of media to publish data and have it consumed via subscription by a multiplicity of endpoints. It supports intermediate content distribution networks and is designed for high scale and low latency distribution. The core subscribable entities are tracks, consisting of a sequence of objects organized into groups. MoQTransport is a generic protocol, designed to work in concert with multiple MoQ Streaming Formats, each of which define alternate schemes for carrying media content over MoQT.
+This document defines the core behavior for MoQTransport, a media transport protocol over QUIC.  MoQTransport allows a producer of media to publish data and have it consumed via subscription by a multiplicity of endpoints. It supports intermediate content distribution networks and is designed for high scale and low latency distribution. The core subscribable entities are tracks, consisting of a sequence of objects organized into groups. MoQTransport is a generic protocol, designed to work in concert with multiple MoQTransport Streaming Formats, each of which define alternate schemes for carrying media content over MoQTransport.
 
 --- middle
 
 
-## Introduction
-MoQTransport (MoQT) is a transport protocol that utilizes QUIC Transport {{QUIC}}, either directly or via WebTransport {{WebTransport}}, for the dissemination of media. MoQT utilizes a publish/subscribe workflow in which producers of media publish data in response to subscription requests from a multiplicity of endpoints. MoQT supports live, as well as near-live and Video on Demand (VOD) use-cases. MoQT supports delivery over intermediate content distribution networks and is architected for high scale and low latency distribution. In live mode, MoQT facilitates a broad spectrum of latency regimes, from real-time, to interactive and non-interactive.
+# Introduction
+MoQTransport is a transport protocol that utilizes QUIC Transport {{QUIC}}, either directly or via WebTransport {{WebTransport}}, for the dissemination of media. MoQTransport utilizes a publish/subscribe workflow in which producers of media publish data in response to subscription requests from a multiplicity of endpoints. MoQTransport supports live, as well as near-live and Video on Demand (VOD) use-cases. MoQTransport supports delivery over intermediate content distribution networks and is architected for high scale and low latency distribution. In live mode, MoQTransport facilitates a broad spectrum of latency regimes, from real-time, to interactive and non-interactive.
 
-MoQTransport is a generic protocol is designed to work in concert with multiple MoQ Streaming Formats. These MoQ Streaming Formats define how content is encoded, packaged, and mapped to MoQT objects, along with policies for discovery, subscription and congestion response.
+MoQTransport is a generic protocol is designed to work in concert with multiple MoQTransport Streaming Formats. These MoQTransport Streaming Formats define how content is encoded, packaged, and mapped to MoQTransport objects, along with policies for discovery, subscription and congestion response.
 
-* {{model}} describes the object model employed by MoQT
-* {{session}} covers aspects of setting up a MoQT session.
+* {{model}} describes the object model employed by MoQTransport
+* {{session}} covers aspects of setting up a MoQTransport session.
 * {{priority-congestion}} covers protocol considerations on prioritization schemes and congestion response overall.
 * {{relays-moq}} covers behavior at the relay entities.
 * {{message}} covers how messages are encoded on the wire.
 
-### Motivation
-The development of MoQT is driven by goals in a number of areas - specifically latency, the robustness of QUIC, workflow efficiency and relay support.
+## Motivation
+The development of MoQTransport is driven by goals in a number of areas - specifically latency, the robustness of QUIC, workflow efficiency and relay support.
 
-#### Latency
+### Latency
 HTTP Adaptive Streaming (HAS) has been successful at achieving scale although often at the cost of latency. Latency is necessary to correct for variable network throughput. Ideally live content is consumed at the same rate it is produced. End-to-end latency would be fixed and only subject to encoding and transmission delays. Unfortunately, networks have variable throughput, primarily due to congestion. Attempting to deliver content encoded at a higher bitrate than the network can support causes queuing along the path from producer to consumer. The speed at which a protocol can detect and respond to queuing determines the overall latency. TCP-based protocols are simple but are slow to detect congestion and suffer from head-of-line blocking. UDP-based protocols can avoid queuing, but the application is now responsible for the complexity of fragmentation, congestion control, retransmissions, receiver feedback, reassembly, and more. One goal of MoQTransport is to achieve the best of both these worlds: leverage the features of QUIC to create a simple yet flexible low latency protocol that can rapidly detect and respond to congestion.
 
-#### Leveraging QUIC
-Applying {{QUIC}} to HAS via HTTP/3 does not yield generalized improvements in throughput. One reason for this is that sending segments down a single QUIC stream still allows head-of-line blocking to occur. Only by leveraging the parallel nature of QUIC streams can improved throughput be achieved in the face of loss. A goal of MoQT is to design a streaming protocol to leverage the transmission benefits afforded by parallel  QUIC streams as well exercising options for flexible loss recovery.
+### Leveraging QUIC
+Applying {{QUIC}} to HAS via HTTP/3 does not yield generalized improvements in throughput. One reason for this is that sending segments down a single QUIC stream still allows head-of-line blocking to occur. Only by leveraging the parallel nature of QUIC streams can improved throughput be achieved in the face of loss. A goal of MoQTransport is to design a streaming protocol to leverage the transmission benefits afforded by parallel  QUIC streams as well exercising options for flexible loss recovery.
 
-#### Workflow efficiency
-Internet delivered media today has protocols optimized for ingest and separate protocols optimized for distribution. This protocol switch in the distribution chain necessitates intermediary origins which re-package the media content. While specialization can have its benefits, there are gains in efficiency to be had in not having to re-package content. A goal of MoQT is to develop a single protocol which can be used for transmission from contribution to distribution. A related goal is the ability to support existing encoding and packaging schemas, both for backwards compatibility and for interoperability with the established content preparation ecosystem.
+### Workflow efficiency
+Internet delivered media today has protocols optimized for ingest and separate protocols optimized for distribution. This protocol switch in the distribution chain necessitates intermediary origins which re-package the media content. While specialization can have its benefits, there are gains in efficiency to be had in not having to re-package content. A goal of MoQTransport is to develop a single protocol which can be used for transmission from contribution to distribution. A related goal is the ability to support existing encoding and packaging schemas, both for backwards compatibility and for interoperability with the established content preparation ecosystem.
 
-#### Relays
-An integral feature of a protocol being successful is its ability to deliver media at scale. Greatest scale is achieved when third-party networks, independent of both the publisher and subscriber, can be leveraged to relay the content. These relays must cache content for distribution efficiency while simultaneously routing content and deterministically responding to congestion in a multi-tenant network. A goal of MoQT is to treat relays as first-class citizens of the protocol and ensure that objects are structured such that information necessary for distribution is available to relays while the media content itself remains opaque and private.
+### Relays
+An integral feature of a protocol being successful is its ability to deliver media at scale. Greatest scale is achieved when third-party networks, independent of both the publisher and subscriber, can be leveraged to relay the content. These relays must cache content for distribution efficiency while simultaneously routing content and deterministically responding to congestion in a multi-tenant network. A goal of MoQTransport is to treat relays as first-class citizens of the protocol and ensure that objects are structured such that information necessary for distribution is available to relays while the media content itself remains opaque and private.
 
 
-## Terms and Definitions
+# Terms and Definitions
 
 {::boilerplate bcp14-tagged}
 
@@ -124,14 +124,14 @@ Server:
 
 Track:
 
-: An encoded bitstream. Tracks contain a sequential series of one or more groups and are the subscribable entity with MoQT.
+: An encoded bitstream. Tracks contain a sequential series of one or more groups and are the subscribable entity with MoQTransport.
 
 Transport session:
 
 : A native QUIC connection, or a WebTransport session.
 
 
-## Notational Conventions
+# Notational Conventions
 
 This document uses the conventions detailed in Section 1.3 of {{!RFC9000}} when describing the binary encoding.
 
@@ -143,7 +143,7 @@ x (b):
 
 # Object Model {#model}
 
-MoQT is a transport that moves entitites called messages {{message}}. Messages are divided into two classes: control messages and objects. Control messages are used to setup connections, announce content, issues subscriptions etc. All media data is carried inside object messages. MoQT has a hierarchical object model for data, comprised of objects, groups and tracks.
+MoQTransport is a transport that moves entitites called messages {{message}}. Messages are divided into two classes: control messages and objects. Control messages are used to setup connections, announce content, issues subscriptions etc. All media data is carried inside object messages. MoQTransport has a hierarchical object model for data, comprised of objects, groups and tracks.
 
 ## Objects {#model-object}
 
@@ -755,17 +755,19 @@ TODO: fill out currently missing registries:
 
 TODO: register the URI scheme and the ALPN
 
-TODO: the MoQTransport spec should establish the IANA registration table for MoQtransport Streaming Formats. Each MoQTransport streaming format can then register its type in that table. The MoQT Streaming Format type MUST be carried as the leading varint in catalog track objects.
+TODO: the MoQTransport spec should establish the IANA registration table for MoQTransport Streaming Formats. Each MoQTransport Streaming Format can then register its type in that table. The MoQTransport Streaming Format type MUST be carried as the leading varint in catalog track objects.
 
 
 # Contributors
 {:numbered="false"}
 
 - Alan Frindell
+- Ali Begen
 - Charles Krasic
+- Christian Huitema
 - Cullen Jennings
 - James Hurley
 - Jordi Cenzano
 - Mike English
 - Will Law
-- Ali Begen
+
