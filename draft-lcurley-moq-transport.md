@@ -167,36 +167,32 @@ x (b):
 : Indicates that x consists of a variable length integer, followed by that many bytes of binary data.
 
 
-# Model
+# Object Model {#model}
 
 ## Objects {#model-object}
 
-The basic element of MoQTransport is an *object*.
+The basic data element of MoQTransport is an *object*.
 An object is an addressable unit whose payload is a sequence of bytes.
 All objects belong to a group, indicating ordering and potential dependencies. {{model-group}}
-Objects carry associated metadata such as priority, TTL, or other information usable by a relay, but relays MUST treat the object payload as opaque.
-
-The application is solely responsible for the contents of objects.
-This includes the underlying encoding, compression, any end-to-end encryption, or authentication.
-A relay MUST NOT combine, split, or otherwise modify object payloads.
+Objects are comprised of two parts: metadata and a payload.  The metadata is visible to relays but the payload is only visible to the producer and consumer. The application is solely responsible for the content of the object payload.
 
 ## Groups {#model-group}
-A *group* is collection of objects, part of a larger track ({{model-track}}).
 
-A group behaves as a join point for subscriptions.
-A new subscriber may not want to receive the entire track, and will instead opt to receive only the latest group(s).
+A *group* is a collection of objects and is a sub-unit of a track ({{model-track}}).
+Objects within a group SHOULD NOT depend on objects in other groups.
+A group behaves as a join point for subscriptions. 
+A new subscriber may not want to receive the entire track, and may instead opt to receive only the latest group(s).
 The sender then selectively transmits objects based on their group membership.
-
-The application is responsible for how objects are placed into groups.
-In general, objects within a group SHOULD NOT depend on objects in other groups.
-
 
 ## Track {#model-track}
 
-A *track* is a sequence of objects ({{model-object}}) organized into groups ({{model-group}}).
-A subscriber can request individual tracks at group boundaries, including any new objects while the track is active.
+A *track* is a sequence of groups ({{model-group}}). It is the entity
+against which a consumer issues a subscription request.  A subscriber
+can request to receive individual tracks starting at a group boundary,
+including any new objects pushed by the producer while the track is
+active.
 
-### Track Naming and Scopes {#track-fn}
+### Track Naming and Scopes {#track-name}
 
 In MoQTransport, every track has a *track name* and a *track namespace* associated with it.
 A track name identifies an individual track within the namespace.
