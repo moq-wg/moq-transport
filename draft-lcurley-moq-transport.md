@@ -234,6 +234,21 @@ Track Namespace = security-camera.example.com/camera1
 Track Name = hd-video
 Full Track Name = security-camera.example.com/camera1/hd-video
 
+Example: 4
+Track Namespace = video
+Track Name = "" (empty string)
+Full Track Name = video
+
+Example: 5
+Track Namespace = "" (empty string)
+Track Name = audio
+Full Track Name = audio
+
+Example: 6
+Track Namespace = 12345
+Track Name = 6789
+Full Track Name = 123456789
+
 ~~~
 
 
