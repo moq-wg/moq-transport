@@ -553,7 +553,9 @@ A length of 0 indicates the message is unbounded and continues until the end of 
 
 ## SETUP {#message-setup}
 
-The `SETUP` message is the first message that is exchanged by the client and the server; it allows the peers to establish the mutually supported version and agree on the initial configuration. It is a sequence of key-value pairs called *SETUP parameters*; the semantics and the format of individual parameter values MAY depend on what party is sending it.
+The `SETUP` message is the first message that is exchanged by the client and the server; it allows the peers to establish the mutually supported version and agree on the initial configuration before any objects are exchanged. It is a sequence of key-value pairs called *SETUP parameters*; the semantics and format of which can vary based on whether the client or server is sending. 
+To ensure future extensibility of MoQTransport, the peers MUST ignore
+unknown setup parameters. TODO: describe GREASE for those.
 
 The wire format of the SETUP message is as follows:
 
@@ -584,8 +586,6 @@ The client offers the list of the protocol versions it supports; the server MUST
 The SETUP parameters are described in the {{setup-parameters}} section.
 
 ### SETUP Parameters
-
-The SETUP message ({{message-setup}}) allows the peers to exchange arbitrary parameters before any objects are exchanged. It is the main extensibility mechanism of MoQTransport. The peers MUST ignore unknown parameters. TODO: describe GREASE for those.
 
 Every parameter MUST appear at most once within the SETUP message. The peers SHOULD verify that and close the connection if a parameter appears more than once.
 
