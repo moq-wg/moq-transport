@@ -237,9 +237,6 @@ Full Track Name = security-camera.example.com/camera1/hd-video
 ~~~
 
 
-### Connection URL
-
-Each track MAY have one or more associated connection URLs specifying network hosts through which a track may be accessed. The syntax of the Connection URL and the associated connection setup procedures are specific to the underlying transport protocol usage {{transport-protocols}}.
 
 
 ## Session
