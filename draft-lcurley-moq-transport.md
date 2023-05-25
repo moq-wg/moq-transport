@@ -470,31 +470,13 @@ and publish requests to the tracks.
 
 ## Subscriber Interactions
 
-Subscribers interact with the Relays by sending a "SUBSCRIBE REQUEST"
-({{message-subscribe-req}}) control message for the tracks of
-interest. Relays MUST ensure subscribers are authorized to subscribe to
-the requested tracks. This is done by verifying that the subscriber is
-authorized to access the content associated with the "Full Track
-Name". The authorization information can be part of subscription request
-itself or part of the encompassing session. The specifics of how a relay
-authorizes a user are outside the scope of this specification.
+Subscribers interact with the Relays by sending a "SUBSCRIBE REQUEST"  ({{message-subscribe-req}}) control message for the tracks of interest. Relays MUST ensure subscribers are authorized to subscribe to the requested tracks. This is done by verifying that the subscriber is authorized to access the content associated with the "Full Track Name". The authorization information can be part of subscription request itself or part of the encompassing session. The specifics of how a relay authorizes a user are outside the scope of this specification.
 
-The endpoint making the subscribe request is notified of the result of
-the subscription, via "SUBSCRIBE OK" ({{message-subscribe-ok}}) or the
-"SUBSCRIBE ERROR" {{message-subscribe-error}} control message.
+The endpoint making the subscribe request is notified of the result of the subscription, via "SUBSCRIBE OK" ({{message-subscribe-ok}}) or the "SUBSCRIBE ERROR" {{message-subscribe-error}} control message.
 
-For successful subscriptions, the sender maintains a list of subscribers
-for each full track name. Each new OBJECT belonging to the track MUST be
-forwarded to each active subscriber, unless determined by congestion
-response. A subscription remains active until it expires, or until the
-publisher of the track stops producing objects or there is a
-subscription error (see {{message-subscribe-error}}).
+For successful subscriptions, the sender maintains a list of subscribers for each full track name. Each new OBJECT belonging to the track MUST be forwarded to each active subscriber, unless determined by congestion response. A subscription remains active until it expires, or until the publisher of the track stops producing objects or there is a subscription error (see {{message-subscribe-error}}).
 
-Relays MAY aggregate authorized subscriptions for a given track when
-multiple subscribers request the same track. Subscription aggregation
-allows relays to make only a single forward subscription for the
-track. The published content received from the forward subscription
-request is cached and shared among the pending subscribers.
+Relays MAY aggregate authorized subscriptions for a given track when multiple subscribers request the same track. Subscription aggregation allows relays to make only a single forward subscription for the track. The published content received from the forward subscription request is cached and shared among the pending subscribers.
 
 
 ## Publisher Interactions
