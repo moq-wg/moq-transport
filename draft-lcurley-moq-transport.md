@@ -462,11 +462,11 @@ across multiple coordinated tracks. At this point, these proposals have not reac
 
 # Relays {#relays-moq}
 
-The Relays play an important role for enabling low latency delivery within the MoQ architecture. This specification allows for a delivery protocol based on a publish/subscribe metaphor where some endpoints, called publishers, publish objects and
-some endpoints, called subscribers, consume those objects. Relays leverage this publish/subscribe metaphor to form an overlay delivery network similar/in-parallel to what CDN provides today.
-
-Relays serves as policy enforcement points by validating subscribe
-and publish requests to the tracks.
+Relays are leveraged to enable distribution scale in the MoQ
+architecture. Relays can be used to form an overlay delivery network,
+similar in functionality to Content Delivery Networks
+(CDNs). Additionally, relays serve as policy enforcement points by
+validating subscribe and publish requests at the edge of a network.
 
 ## Subscriber Interactions
 
