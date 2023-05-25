@@ -165,18 +165,27 @@ The sender then selectively transmits objects based on their group membership.
 A *track* is a sequence of groups ({{model-group}}). It is the entity against which a consumer issues a subscription request. 
 A subscriber can request to receive individual tracks starting at a group boundary, including any new objects pushed by the producer while the track is active.
 
-# Track Naming and Scopes {#track-name}
+### Track Naming and Scopes {#track-name}
 
-In MoQTransport, every track has a *track name* and a *track namespace* associated with it. A track name identifies an individual track within the namespace.
-A tuple of a track name and a track namespace together is known as a *full track name*:
+In MoQTransport, every track has a *track name* and a *track namespace* associated with it.
+A track name identifies an individual track within the namespace.
+
+A tuple of a track name and a track namespace together is known as *a full track name*:
 
 ~~~~~~~~~~~~~~~
 Full Track Name = Track Namespace Track Name
 ~~~~~~~~~~~~~~~
 
-A *MoQ scope* is a set of MoQ servers (as identified by their connection URIs) for which full track names are guaranteed to be unique. This implies that within a single MoQ scope, subscribing to the same full track name would result in the subscriber receiving the data for the same track. It is up to the application building on top of MoQ to define how broad or narrow the scope has to be. An application that deals with connections between devices on a local network may limit the scope to a single connection; by contrast, an application that uses multiple CDNs to serve media may require the scope to include all of those CDNs.
+A *MoQ scope* is a set of MoQ servers (as identified by their connection URIs) for which full track names are guaranteed to be unique.
+This implies that within a single MoQ scope, subscribing to the same full track name would result in the subscriber receiving the data for the same track.
+It is up to the application building on top of MoQ to define how broad or narrow the scope has to be.
+An application that deals with connections between devices on a local network may limit the scope to a single connection;
+by contrast, an application that uses multiple CDNs to serve media may require the scope to include all of those CDNs.
 
-The full track name is the only piece of information that is used to identify the track within a given MoQ scope and is used as key for caching. MoQTransport does not provide any in-band content negotiation methods similar to the ones defined by HTTP ({{?RFC9110, Section 10}}); if, at a given moment in time, two tracks within the same scope contain different data, they have to have different full track names.
+The full track name is the only piece of information that is used to identify the track within a given MoQ scope and that is used as a key for caching.
+MoQTransport does not provide any in-band content negotiation methods similar to the ones defined by HTTP
+({{?RFC9110, Section 10}}); if, at a given moment in time, two tracks within the same scope contain different data,
+they have to have different full track names.
 
 ~~~
 Example: 1
@@ -196,7 +205,7 @@ Full Track Name = security-camera.example.com/camera1/hd-video
 
 ~~~
 
-## Connection URL
+### Track Connection URL
 Each track MAY have one or more associated connection URLs specifying network hosts through which a track may be accessed. The syntax of the Connection URL and the associated connection setup procedures are specific to the underlying transport protocol usage {{session}}.
 
 # Sessions {#session}
