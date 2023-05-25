@@ -140,6 +140,18 @@ Consumer:
 
 : A QUIC endpoint receiving media over the network. This could be a consumer or a relay.
 
+Endpoint:
+
+: The original producer or the final consumer in a transmission chain. 
+
+Group:
+
+: A temporal sequence of objects. A group represents a subscription point in a track. The media data within the group must not depend on the data in any other groups. 
+
+Object:
+
+: An object is an addressable unit whose payload is a sequence of bytes. Objects form the base element in the MoQTransport model. 
+
 Producer:
 
 : A QUIC endpoint sending media over the network. This could be a producer or a relay.
