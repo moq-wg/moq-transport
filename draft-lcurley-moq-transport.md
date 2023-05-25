@@ -253,22 +253,6 @@ When WebTransport is used, multiple transport sessions may be pooled over a sing
 MoQTransport works by transferring objects over QUIC streams.
 The application determines how live content is fragmented into tracks, groups, and objects.
 
-## Order Priorities and Options
-
-At the point of this writing, the working group has not reached consensus on the proper
-way to meet several important goals, such as:
-
-* Ensure that objects are delivered in the order intended by the emitter
-* Allow nodes and relays to skip or delay some objects to deal with congestion
-* Ensure that emitters can accurately predict the behavior of relays
-* Ensure that when relay have to skip and delay objects belonging to different
-  tracks they do it in a predictable way if tracks are explicitly coordinated
-  and in a fair way if they are not.
-
-The working group has been considering two alternatives: mark objects belonging to a track
-with an explicit "send order"; and, define algorithms combining tracks, priorities and object
-order within a group. The two proposals are listed in {{send-order}} and {{ordering-by-priorities}}.
-We expect further work before a consensus is reached.
 
 ## Groups
 TODO: Add text describing iteration of group and intra object priorities within a group and their relation to congestion response. Add how it refers to {{priority-congestion}}
@@ -316,33 +300,6 @@ The first stream opened is a client-initiated bidirectional stream where the pee
 Messages SHOULD be sent over the same stream if ordering is desired.
 
 
-## Prioritization
-MoQTransport utilizes stream prioritization to deliver the most important content during congestion.
-
-TODO: Revisit the prioritization scheme and possibly move some of this to {{priority-congestion}}.
-
-The producer may assign a numeric delivery order to each object ({{send-order}})
-
-This is a strict prioritization scheme, such that any available bandwidth is allocated to streams in ascending priority order.
-
-As explained in {{order-priorities-and-options}}, the working group has not reached consensus
-on how the emitters mark objects so that relays can apply their preferences. This leads to at
-least two possible implementations:
-
-* if using the "send order" logic, the sender SHOULD prioritize streams based on the send order.
-
-* if using the "priority" logic, the sender SHOULD send objects in streams corresponding to the object priority, and should mark these streams with the corresponding priority value.
-
-If two streams have the same send order, they SHOULD receive equal bandwidth (round-robin).
-
-QUIC supports stream prioritization but does not standardize any mechanisms; see Section 2.3 in {{QUIC}}.
-In order to support prioritization, a QUIC library MUST expose a API to set the priority of each stream.
-This is relatively easy to implement; the next QUIC packet should contain a STREAM frame for the next pending stream in priority order.
-
-The sender MUST respect flow control even if means delivering streams out of send order.
-It is OPTIONAL to prioritize retransmissions.
-
-
 ## Cancellation
 A QUIC stream MAY be canceled at any point with an error code.
 The producer does this via a `RESET_STREAM` frame while the consumer requests cancellation with a `STOP_SENDING` frame.
@@ -354,26 +311,6 @@ When nearing resource limits, an endpoint SHOULD cancel the lowest priority stre
 The sender MAY cancel streams in response to congestion.
 This can be useful when the sender does not support stream prioritization.
 
-## Relays
-MoQTransport encodes the delivery information for a stream via OBJECT headers ({{message-object}}).
-
-A relay SHOULD prioritize streams ({{prioritization}}) based on the send order.
-
-## Congestion Control
-As covered in the motivation section ({{motivation}}), the ability to prioritize or cancel streams is a form of congestion response.
-It's equally important to detect congestion via congestion control, which is handled in the QUIC layer {{QUIC-RECOVERY}}.
-
-Bufferbloat occurs when routers queue packets for too long instead of dropping the packet, and can introduce significant latency.
-This latency significantly reduces the ability for the application to prioritize or drop content in response to congestion.
-Senders SHOULD use a congestion control algorithm that reduces this bufferbloat (ex. {{BBR}}).
-It is NOT RECOMMENDED to use a loss-based algorithm (ex. {{NewReno}}) unless the network fully supports ECN.
-
-Live content is typically application-limited, which means that the encoder is the limiting factor and not the network.
-Most TCP congestion control algorithms will only increase the congestion window if it is full, limiting the upwards mobility when application-limited.
-Senders SHOULD use a congestion control algorithm that is designed for application-limited flows (ex. GCC).
-Senders MAY periodically pad the connection with QUIC PING frames to fill the congestion window.
-
-TODO: update this section to refer to {{priority-congestion}}
 
 ## Termination
 The transport session can be terminated at any point.
@@ -417,6 +354,24 @@ This section is expected to cover details on:
 - Congestion Algorithms and impacts
 - Mapping considerations for one object per stream vs multiple objects per stream
 - considerations for merging multiple streams across domains onto single connection and interactions with specific prioritization schemes
+
+
+## Order Priorities and Options
+
+At the point of this writing, the working group has not reached consensus on several important goals, such as:
+
+* Ensuring that objects are delivered in the order intended by the emitter
+* Allowing nodes and relays to skip or delay some objects to deal with congestion
+* Ensuring that emitters can accurately predict the behavior of relays
+* Ensuring that when relays have to skip and delay objects belonging to different
+  tracks that they do it in a predictable way if tracks are explicitly coordinated
+  and in a fair way if they are not.
+
+The working group has been considering two alternatives: marking objects belonging to a track
+with an explicit "send order"; and, defining algorithms combining tracks, priorities and object
+order within a group. The two proposals are listed in {{send-order}} and {{ordering-by-priorities}}.
+We expect further work before a consensus is reached.
+
 
 ### Send Order
 Media is produced with an intended order, both in terms of when media should be presented (PTS) and when media should be decoded (DTS).
