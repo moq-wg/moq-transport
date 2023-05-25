@@ -64,13 +64,12 @@ MoQTransport is a live media transport protocol that utilizes the QUIC network p
 either directly or via WebTransport {{WebTransport}}.
 It was originally developed for live media, but has been generalized for similar use-cases.
 
-* {{motivation}} covers the background and rationale behind MoQ transport.
-* {{objects}} covers how live content is fragmented into objects.
-* {{transport-protocols}} covers aspects of setting up a MoQ transport session.
-* {{stream-mapping}} covers how QUIC is used to transfer objects.
+* {{model}} describes the object model employed by MoQT
+* {{session}} covers aspects of setting up a MoQT session.
 * {{priority-congestion}} covers protocol considerations on prioritization schemes and congestion response overall.
 * {{relays-moq}} covers behavior at the relay entities.
-* {{messages}} covers how messages are encoded on the wire.
+* {{message}} covers how messages are encoded on the wire.
+
 
 ### Motivation
 
@@ -343,7 +342,7 @@ The sender MUST respect flow control even if means delivering streams out of sen
 It is OPTIONAL to prioritize retransmissions.
 
 
-## Cancellation
+## Cancellation  {#session-cancellation}
 A QUIC stream MAY be canceled at any point with an error code.
 The producer does this via a `RESET_STREAM` frame while the consumer requests cancellation with a `STOP_SENDING` frame.
 
@@ -375,7 +374,7 @@ Senders MAY periodically pad the connection with QUIC PING frames to fill the co
 
 TODO: update this section to refer to {{priority-congestion}}
 
-## Termination
+## Termination  {#session-termination}
 The transport session can be terminated at any point.
 When native QUIC is used, the session is closed using the CONNECTION\_CLOSE frame ({{QUIC, Section 19.19}}).
 When WebTransport is used, the session is closed using the CLOSE\_WEBTRANSPORT\_SESSION capsule ({{WebTransport, Section 5}}).
@@ -514,7 +513,7 @@ Packet loss will cause stream data to be buffered in the QUIC library, awaiting 
 To mitigate this, a relay SHOULD read and write QUIC stream data out of order subject to flow control limits.
 See section 2.2 in {{QUIC}}.
 
-# Messages
+# Messages {#message}
 Both unidirectional and bidirectional QUIC streams contain sequences of length-delimited messages.
 
 ~~~
@@ -583,7 +582,7 @@ The client offers the list of the protocol versions it supports; the server MUST
 
 The SETUP parameters are described in the {{setup-parameters}} section.
 
-### SETUP Parameters
+### SETUP Parameters {#setup-parameters}
 
 The SETUP message ({{message-setup}}) allows the peers to exchange arbitrary parameters before any objects are exchanged. It is the main extensibility mechanism of MoQTransport. The peers MUST ignore unknown parameters. TODO: describe GREASE for those.
 
@@ -842,7 +841,7 @@ The producer prioritizes and transmits streams out of order.
 Streams might be starved indefinitely during congestion.
 The producer and consumer MUST cancel a stream, preferably the lowest priority, after reaching a resource limit.
 
-# IANA Considerations
+# IANA Considerations {#iana}
 
 TODO: fill out currently missing registries:
 * MoQTransport version numbers
