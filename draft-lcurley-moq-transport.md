@@ -58,9 +58,9 @@ This document defines the core behavior for MoQTransport, a media transport prot
 
 
 ## Introduction
-MoQTransport (MoQT) is a transport protocol that utilizes the QUIC network protocol {{QUIC}}, either directly or via WebTransport {{WebTransport}}, for the dissemination of media. MoQT utilizes a publish/subscribe workflow in which producers of media publish data in response to subscription requests from a multiplicity of endpoints. MoQT supports live, as well as near-live and Video on Demand (VOD) use-cases. MoQT supports delivery over intermediate content distribution networks and is architected for high scale and low latency distribution. In live mode, MoQT facilitates a broad spectrum of latency regimes, from real-time, to interactive and non-interactive.
+MoQTransport (MoQT) is a transport protocol that utilizes QUIC Transport {{QUIC}}, either directly or via WebTransport {{WebTransport}}, for the dissemination of media. MoQT utilizes a publish/subscribe workflow in which producers of media publish data in response to subscription requests from a multiplicity of endpoints. MoQT supports live, as well as near-live and Video on Demand (VOD) use-cases. MoQT supports delivery over intermediate content distribution networks and is architected for high scale and low latency distribution. In live mode, MoQT facilitates a broad spectrum of latency regimes, from real-time, to interactive and non-interactive.
 
-MoQTransport is a generic protocol is designed to work in concert with multiple MoQ Streaming Formats. These MoQ Streaming Formats define how content is encoded, packaged, and mapping to MoQT objects, along with policies for discovery, subscription and congestion response.
+MoQTransport is a generic protocol is designed to work in concert with multiple MoQ Streaming Formats. These MoQ Streaming Formats define how content is encoded, packaged, and mapped to MoQT objects, along with policies for discovery, subscription and congestion response.
 
 * {{model}} describes the object model employed by MoQT
 * {{session}} covers aspects of setting up a MoQT session.
@@ -104,15 +104,15 @@ Consumer:
 
 Endpoint:
 
-: The original producer or the final consumer in a transmission chain. 
+: The original producer or the final consumer in a transmission chain. TODO - does this apply to the hop or the complete transmission chain? 
 
 Group:
 
-: A temporal sequence of objects. A group represents a subscription point in a track. The media data within the group must not depend on the data in any other groups. 
+: A temporal sequence of one or more objects. A group represents a subscription point in a track. 
 
 Object:
 
-: An object is an addressable unit whose payload is a sequence of bytes. Objects form the base element in the MoQTransport model. 
+: An object is an addressable unit whose payload is a sequence of bytes. Objects form the base element in the MoQTransport data model {{model-object}}.
 
 Producer:
 
@@ -124,11 +124,11 @@ Server:
 
 Track:
 
-: An encoded bitstream. Tracks contain a sequential series of groups and are the subscribable entity with MoQT.
+: An encoded bitstream. Tracks contain a sequential series of one or more groups and are the subscribable entity with MoQT.
 
 Transport session:
 
-: A native QUIC connection, or a WebTransport session, used to transmit data.
+: A native QUIC connection, or a WebTransport session.
 
 
 ## Notational Conventions
@@ -150,13 +150,13 @@ MoQT is a transport that moves entitites called messages {{message}}. Messages a
 The basic data element of MoQTransport is an *object*.
 An object is an addressable unit whose payload is a sequence of bytes.
 All objects belong to a group, indicating ordering and potential dependencies. {{model-group}}
-Objects are comprised of two parts: metadata and a payload.  The metadata is visible to relays but the payload is only visible to the producer and consumer. The application is solely responsible for the content of the object payload.
+Objects are comprised of two parts: metadata and a payload.  The metadata is never encrypted and is always visible to relays. The payload portion may be encrypted, in which case it is only visible to the producer and consumer. The application is solely responsible for the content of the object payload. This includes the underlying encoding, compression, any end-to-end encryption, or authentication. A relay MUST NOT combine, split, or otherwise modify object payloads.
 
 ## Groups {#model-group}
 A *group* is a collection of objects and is a sub-unit of a track ({{model-track}}).
 Objects within a group SHOULD NOT depend on objects in other groups.
 A group behaves as a join point for subscriptions. 
-A new subscriber may not want to receive the entire track, and may instead opt to receive only the latest group(s).
+A new subscriber might not want to receive the entire track, and can instead opt to receive only the latest group(s).
 The sender then selectively transmits objects based on their group membership.
 
 
@@ -165,50 +165,39 @@ The sender then selectively transmits objects based on their group membership.
 A *track* is a sequence of groups ({{model-group}}). It is the entity against which a consumer issues a subscription request. 
 A subscriber can request to receive individual tracks starting at a group boundary, including any new objects pushed by the producer while the track is active.
 
-# Track naming {#track-name}
+# Track Naming and Scopes {#track-name}
 
-Tracks are identified by a unique string identifier, called the "Full Track Name" and defined as the concatenation of a Track Namespace and a Track Name, both of which are of variable length. The Full Track Name SHOULD be sufficiently unique to unambiguously distinguish the track from all other tracks being published on the distribution network.
+In MoQTransport, every track has a *track name* and a *track namespace* associated with it. A track name identifies an individual track within the namespace.
+A tuple of a track name and a track namespace together is known as a *full track name*:
 
-This document does not define the exact mechanism of naming Track Namespaces. Applications building on top of MoQ SHOULD ensure that the mechanism used guarantees network uniqueness. One option would be for an application to use domain names as part of the track namespace. Some examples of valid full track names are shown below:
+~~~~~~~~~~~~~~~
+Full Track Name = Track Namespace Track Name
+~~~~~~~~~~~~~~~
+
+A *MoQ scope* is a set of MoQ servers (as identified by their connection URIs) for which full track names are guaranteed to be unique. This implies that within a single MoQ scope, subscribing to the same full track name would result in the subscriber receiving the data for the same track. It is up to the application building on top of MoQ to define how broad or narrow the scope has to be. An application that deals with connections between devices on a local network may limit the scope to a single connection; by contrast, an application that uses multiple CDNs to serve media may require the scope to include all of those CDNs.
+
+The full track name is the only piece of information that is used to identify the track within a given MoQ scope and is used as key for caching. MoQTransport does not provide any in-band content negotiation methods similar to the ones defined by HTTP ({{?RFC9110, Section 10}}); if, at a given moment in time, two tracks within the same scope contain different data, they have to have different full track names.
 
 ~~~
 Example: 1
-Track Namespace = videoconferencing.example.com/meetings/m123/participants/alice
+Track Namespace = videoconferencing.example.com/meetings/m123/participants/alice/
 Track Name = audio
 Full Track Name = videoconferencing.example.com/meetings/m123/participants/alice/audio
 
 Example: 2
 Track Namespace = livestream.example.com
-Track Name = uaCafDkl123/audio
+Track Name = /uaCafDkl123/audio
 Full Track Name = livestream.example.com/uaCafDkl123/audio
 
 Example: 3
-Track Namespace = security-camera.example.com/camera1
+Track Namespace = security-camera.example.com/camera1/
 Track Name = hd-video
 Full Track Name = security-camera.example.com/camera1/hd-video
 
-Example: 4
-Track Namespace = video
-Track Name = "" (empty string)
-Full Track Name = video
-
-Example: 5
-Track Namespace = "" (empty string)
-Track Name = audio
-Full Track Name = audio
-
-Example: 6
-Track Namespace = 12345
-Track Name = 6789
-Full Track Name = 123456789
-
 ~~~
-## Catalog tracks {#catalog}
-Catalogs are special tracks whose payloads are used by MoQT Streaming Formats to describe the availability of other tracks, as well as initialization and selection data for those tracks. This allows producers of content to aggregate a collection of tracks and offer to them to clients for selection. In order that a client can subscribe to the catalog track without a priori knowledge of the track name, catalog tracks have a reserved Track Name of lowercase "catalog".
 
-All producers of content MUST produce a catalog track which describes the availability of the tracks which they are capable of publishing. 
-Producers MUST update the catalog tracks when new tracks are added or existing tracks deleted. 
-The payload of the catalog track objects is defined by the MoQStreaming Format being used by the publisher, with the exception that the first varint of the payload MUST be unencrypted and MUST hold the type of the MoQStreaming Format, as registered in the  IANA registration table {{iana}} for MoQtransport Streaming Formats.
+## Connection URL
+Each track MAY have one or more associated connection URLs specifying network hosts through which a track may be accessed. The syntax of the Connection URL and the associated connection setup procedures are specific to the underlying transport protocol usage {{session}}.
 
 # Sessions {#session}
 
@@ -260,6 +249,8 @@ When nearing resource limits, an endpoint SHOULD cancel the lowest priority stre
 The sender MAY cancel streams in response to congestion.
 This can be useful when the sender does not support stream prioritization.
 
+TODO: this section actually describes stream cancellation, not session cancellation. Is this section required, or can it be deleted, or added to a new "workflow" section?
+
 
 ## Termination {#session-termination}
 The transport session can be terminated at any point.
@@ -294,8 +285,7 @@ The endpoint successfully drained the session after a GOAWAY was initiated ({{me
 
 # Prioritization and Congestion Response {#priority-congestion}
 
-TODO: This is a placeholder section to capture details on
-how the MoQTransport protocol deals with prioritization and congestion overall. Having its own section helps reduce merge conflicts and allows us to reference it from other parts.
+TODO: This is a placeholder section to capture details on how the MoQTransport protocol deals with prioritization and congestion overall.
 
 This section is expected to cover details on:
 
@@ -320,7 +310,7 @@ with an explicit "send order"; and, defining algorithms combining tracks, priori
 order within a group. The two proposals are listed in {{send-order}} and {{ordering-by-priorities}}.
 We expect further work before a consensus is reached.
 
-### Send Order
+### Proposal - Send Order {#send-order}
 Media is produced with an intended order, both in terms of when media should be presented (PTS) and when media should be decoded (DTS).
 As stated in the introduction, the network is unable to maintain this ordering during congestion without increasing latency.
 
@@ -329,7 +319,7 @@ The send order SHOULD be followed when possible, to ensure that the most importa
 Note that the contents within each object are still delivered in order; this send order only applies to the ordering between objects.
 
 A sender MUST send each object over a dedicated QUIC stream.
-The QUIC library should support prioritization ({{priority-congestion}}) such that streams are transmitted in send order.
+The QUIC library SHOULD support prioritization ({{priority-congestion}}) such that streams are transmitted in send order.
 
 A receiver MUST NOT assume that objects will be received in send order, for the following reasons:
 
@@ -337,7 +327,7 @@ A receiver MUST NOT assume that objects will be received in send order, for the 
 * Packet loss or flow control can delay the send of individual streams.
 * The sender might not support QUIC stream prioritization.
 
-### Ordering by Priorities
+### Proposal - Order by Priorities {#ordering-by-priorities}
 
 Media is produced as a set of layers, such as for example low definition and high definition,
 or low frame rate and high frame rate. Each object belonging to a track and a group has two attributes: the object-id, and the priority (or layer).
@@ -400,13 +390,13 @@ TODO: This section shall cover reconnect considerations for clients when moving 
 TODO: Refer to {{priority-congestion}}. Add details to describe relay behavior when merging or splitting streams and interactions
 with congestion response.
 
-## Relays (reorg)
+## Relay Object Handling
 MoQTransport encodes the delivery information for a stream via OBJECT headers ({{message-object}}).
 
 A relay MUST treat the object payload as opaque. 
 A relay MUST NOT combine, split, or otherwise modify object payloads.
-A relay SHOULD prioritize streams ({{priority-congestion}}) based on the send order.
-A relay MAY change the send order, in which case it SHOULD update the value on the wire for future hops.
+A relay SHOULD prioritize streams ({{priority-congestion}}) based on the send order/priority.
+A relay MAY change the send order/priority, in which case it SHOULD update the value on the wire for future hops.
 
 A relay that reads from a stream and writes to stream in order will introduce head-of-line blocking.
 Packet loss will cause stream data to be buffered in the QUIC library, awaiting in order delivery, which will increase latency over additional hops.
@@ -544,7 +534,7 @@ The order of the object within the group.
 The sequence starts at 0, increasing sequentially for each object within the group.
 
 * Object Send Order:
-An integer indicating the object send order ({{send-order}}).
+An integer indicating the object Send Order {{send-order} or Priority {{ordering-by-priorities}} value.
 
 * Object Payload:
 An opaque payload intended for the consumer and SHOULD NOT be processed by a relay.
@@ -667,7 +657,7 @@ AUTHORIZATION INFO parameter (key 0x02) identifies track's authorization informa
 
 ## ANNOUNCE OK {#message-announce-ok}
 
-The receiver sends an `ANNOUNCE OK` control message to acknowledge the successful authorization and acceptance of an ANNOUCE message.
+The receiver sends an `ANNOUNCE OK` control message to acknowledge the successful authorization and acceptance of an ANNOUNCE message.
 
 ~~~
 ANNOUNCE OK
