@@ -241,6 +241,24 @@ Full Track Name = security-camera.example.com/camera1/hd-video
 
 Each track MAY have one or more associated connection URLs specifying network hosts through which a track may be accessed. The syntax of the Connection URL and the associated connection setup procedures are specific to the underlying transport protocol usage {{transport-protocols}}.
 
+## Catalog tracks {#catalog}
+
+Catalogs are special tracks whose payloads are used by MoQT Streaming
+Formats to describe the availability of other tracks, as well as
+initialization and selection data for those tracks. This allows
+producers of content to aggregate a collection of tracks and offer to
+them to clients for selection. In order that a client can subscribe to
+the catalog track without a priori knowledge of the track name, catalog
+tracks have a reserved Track Name of lowercase "catalog".
+
+All producers of content MUST produce a catalog track which describes
+the availability of the tracks which they are capable of publishing.
+Producers MUST update the catalog tracks when new tracks are added or
+existing tracks deleted.  The payload of the catalog track objects is
+defined by the MoQStreaming Format being used by the publisher, with the
+exception that the first varint of the payload MUST be unencrypted and
+MUST hold the type of the MoQStreaming Format, as registered in the IANA
+registration table {{iana}} for MoQtransport Streaming Formats.
 
 ## Session
 A transport session is established for each track bundle.
