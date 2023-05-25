@@ -507,6 +507,12 @@ TODO: Refer to {{priority-congestion}}. Add details describe
 relays behavior when merging or splitting streams and interactions
 with congestion response.
 
+MoQTransport encodes the delivery information for a stream via OBJECT headers ({{message-object}}).
+
+A relay MUST treat the object payload as opaque. 
+A relay MUST NOT combine, split, or otherwise modify object payloads.
+A relay SHOULD prioritize streams ({{priority-congestion}}) based on the
+send order. 
 A relay MAY change the send order, in which case it SHOULD update the value on the wire for future hops.
 
 A relay that reads from a stream and writes to stream in order will introduce head-of-line blocking.
