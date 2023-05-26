@@ -70,8 +70,8 @@ supports wide range of use-cases with different resiliency and latency (live, in
 
 MoQTransport is a generic protocol is designed to work in concert with
 multiple MoQ Streaming Formats. These MoQ Streaming Formats define how
-content is encoded, packaged, and mapping to MoQT objects, along with
-policies for discovery, subscription and congestion response.
+content is encoded, packaged, and mapped to MoQT objects, along with
+policies for discovery and subscription.
 
 * {{motivation}} covers the background and rationale behind MoQ transport.
 * {{objects}} covers how live content is fragmented into objects.
