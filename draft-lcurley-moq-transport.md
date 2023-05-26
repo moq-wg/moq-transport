@@ -212,6 +212,8 @@ x (b):
 
 # Object Model {#model}
 
+MoQT has a hierarchical object model for data, comprised of objects, groups and tracks.
+
 ## Objects {#model-object}
 
 The basic data element of MoQTransport is an *object*.
@@ -286,37 +288,9 @@ Full Track Name = security-camera.example.com/camera1/hd-video
 
 Each track MAY have one or more associated connection URLs specifying network hosts through which a track may be accessed. The syntax of the Connection URL and the associated connection setup procedures are specific to the underlying transport protocol usage {{transport-protocols}}.
 
-
-## Session
-A transport session is established for each track bundle.
-The client issues a CONNECT request with a URL which the server uses for identification and authentication.
-All control messages and prioritization occur within the context of a single transport session, which means a single track bundle.
-When WebTransport is used, multiple transport sessions may be pooled over a single QUIC connection for efficiency.
+# Sessions {#session}
 
 
-# Objects
-MoQTransport works by transferring objects over QUIC streams.
-The application determines how live content is fragmented into tracks, groups, and objects.
-
-## Order Priorities and Options
-
-At the point of this writing, the working group has not reached consensus on the proper
-way to meet several important goals, such as:
-
-* Ensure that objects are delivered in the order intended by the emitter
-* Allow nodes and relays to skip or delay some objects to deal with congestion
-* Ensure that emitters can accurately predict the behavior of relays
-* Ensure that when relay have to skip and delay objects belonging to different
-  tracks they do it in a predictable way if tracks are explicitly coordinated
-  and in a fair way if they are not.
-
-The working group has been considering two alternatives: mark objects belonging to a track
-with an explicit "send order"; and, define algorithms combining tracks, priorities and object
-order within a group. The two proposals are listed in {{send-order}} and {{ordering-by-priorities}}.
-We expect further work before a consensus is reached.
-
-## Groups
-TODO: Add text describing iteration of group and intra object priorities within a group and their relation to congestion response. Add how it refers to {{priority-congestion}}
 
 
 # Supported Transport Protocols  {#transport-protocols}
@@ -352,40 +326,9 @@ The `path-abempty` and `query` portions of the URI are communicated to the serve
 the PATH parameter ({{path}}).
 The ALPN value {{!RFC7301}} used by the protocol is `moq-00`.
 
-# Stream Mapping  {#stream-mapping}
+## Session initialization {#session-init}
 
-MoQTransport endpoints communicate over QUIC streams. Every stream is a sequence of messages, framed as described in {{messages}}.
-
-The first stream opened is a client-initiated bidirectional stream where the peers exchange SETUP messages ({{message-setup}}). The subsequent streams MAY be either unidirectional and bidirectional. For exchanging content, an application would typically send a unidirectional stream containing a single OBJECT message ({{message-object}}).
-
-Messages SHOULD be sent over the same stream if ordering is desired.
-
-
-## Prioritization
-MoQTransport utilizes stream prioritization to deliver the most important content during congestion.
-
-TODO: Revisit the prioritization scheme and possibly move some of this to {{priority-congestion}}.
-
-The producer may assign a numeric delivery order to each object ({{send-order}})
-
-This is a strict prioritization scheme, such that any available bandwidth is allocated to streams in ascending priority order.
-
-As explained in {{order-priorities-and-options}}, the working group has not reached consensus
-on how the emitters mark objects so that relays can apply their preferences. This leads to at
-least two possible implementations:
-
-* if using the "send order" logic, the sender SHOULD prioritize streams based on the send order.
-
-* if using the "priority" logic, the sender SHOULD send objects in streams corresponding to the object priority, and should mark these streams with the corresponding priority value.
-
-If two streams have the same send order, they SHOULD receive equal bandwidth (round-robin).
-
-QUIC supports stream prioritization but does not standardize any mechanisms; see Section 2.3 in {{QUIC}}.
-In order to support prioritization, a QUIC library MUST expose a API to set the priority of each stream.
-This is relatively easy to implement; the next QUIC packet should contain a STREAM frame for the next pending stream in priority order.
-
-The sender MUST respect flow control even if means delivering streams out of send order.
-It is OPTIONAL to prioritize retransmissions.
+The first stream opened is a client-initiated bidirectional stream where the peers exchange SETUP messages ({{message-setup}}). The subsequent streams MAY be either unidirectional or bidirectional. For exchanging content, an application would typically send a unidirectional stream containing a single OBJECT message ({{message-object}}), as putting more than one object into one stream may create head-of-line blocking delays.  However, if one object has a hard dependency on another object, putting them on the same stream could be a valid choice.
 
 
 ## Cancellation  {#session-cancellation}
@@ -399,26 +342,6 @@ When nearing resource limits, an endpoint SHOULD cancel the lowest priority stre
 The sender MAY cancel streams in response to congestion.
 This can be useful when the sender does not support stream prioritization.
 
-## Relays
-MoQTransport encodes the delivery information for a stream via OBJECT headers ({{message-object}}).
-
-A relay SHOULD prioritize streams ({{prioritization}}) based on the send order.
-
-## Congestion Control
-As covered in the motivation section ({{motivation}}), the ability to prioritize or cancel streams is a form of congestion response.
-It's equally important to detect congestion via congestion control, which is handled in the QUIC layer {{QUIC-RECOVERY}}.
-
-Bufferbloat occurs when routers queue packets for too long instead of dropping the packet, and can introduce significant latency.
-This latency significantly reduces the ability for the application to prioritize or drop content in response to congestion.
-Senders SHOULD use a congestion control algorithm that reduces this bufferbloat (ex. {{BBR}}).
-It is NOT RECOMMENDED to use a loss-based algorithm (ex. {{NewReno}}) unless the network fully supports ECN.
-
-Live content is typically application-limited, which means that the encoder is the limiting factor and not the network.
-Most TCP congestion control algorithms will only increase the congestion window if it is full, limiting the upwards mobility when application-limited.
-Senders SHOULD use a congestion control algorithm that is designed for application-limited flows (ex. GCC).
-Senders MAY periodically pad the connection with QUIC PING frames to fill the congestion window.
-
-TODO: update this section to refer to {{priority-congestion}}
 
 ## Termination  {#session-termination}
 The transport session can be terminated at any point.
@@ -462,6 +385,24 @@ This section is expected to cover details on:
 - Congestion Algorithms and impacts
 - Mapping considerations for one object per stream vs multiple objects per stream
 - considerations for merging multiple streams across domains onto single connection and interactions with specific prioritization schemes
+
+
+## Order Priorities and Options
+
+At the point of this writing, the working group has not reached consensus on several important goals, such as:
+
+* Ensuring that objects are delivered in the order intended by the emitter
+* Allowing nodes and relays to skip or delay some objects to deal with congestion
+* Ensuring that emitters can accurately predict the behavior of relays
+* Ensuring that when relays have to skip and delay objects belonging to different
+  tracks that they do it in a predictable way if tracks are explicitly coordinated
+  and in a fair way if they are not.
+
+The working group has been considering two alternatives: marking objects belonging to a track
+with an explicit "send order"; and, defining algorithms combining tracks, priorities and object
+order within a group. The two proposals are listed in {{send-order}} and {{ordering-by-priorities}}.
+We expect further work before a consensus is reached.
+
 
 ### Send Order
 Media is produced with an intended order, both in terms of when media should be presented (PTS) and when media should be decoded (DTS).
@@ -507,23 +448,21 @@ across multiple coordinated tracks. At this point, these proposals have not reac
 
 # Relays {#relays-moq}
 
-The Relays play an important role for enabling low latency delivery within the MoQ architecture. This specification allows for a delivery protocol based on a publish/subscribe metaphor where some endpoints, called publishers, publish objects and
-some endpoints, called subscribers, consume those objects. Relays leverage this publish/subscribe metaphor to form an overlay delivery network similar/in-parallel to what CDN provides today.
-
-Relays serves as policy enforcement points by validating subscribe
-and publish requests to the tracks.
+Relays are leveraged to enable distribution scale in the MoQ
+architecture. Relays can be used to form an overlay delivery network,
+similar in functionality to Content Delivery Networks
+(CDNs). Additionally, relays serve as policy enforcement points by
+validating subscribe and publish requests at the edge of a network.
 
 ## Subscriber Interactions
 
-Subscribers interact with the Relays by sending a "SUBSCRIBE REQUEST"  ({{message-subscribe-req}}) control message for the tracks of interest. Relays MUST ensure subscribers are authorized for the tracks. This is done by
+Subscribers interact with the Relays by sending a "SUBSCRIBE REQUEST"  ({{message-subscribe-req}}) control message for the tracks of interest. Relays MUST ensure subscribers are authorized to access the content associated with the Full Track Name. The authorization information can be part of subscription request itself or part of the encompassing session. The specifics of how a relay authorizes a user are outside the scope of this specification.
 
-- Verifying that the subscriber is authorized to access the content associated with the "Full Track Name". The authorization information can be part of subscriptions themselves or part of the encompassing session. Specifics of where the authorization happens, either at the relays or forwarded for further processing, depends on the way the relay is managed and is application specific (typically based on prior business agreement).
+The subscriber making the subscribe request is notified of the result of the subscription, via "SUBSCRIBE OK" ({{message-subscribe-ok}}) or the "SUBSCRIBE ERROR" {{message-subscribe-error}} control message.
 
-For successful subscriptions, relays proceed to save the subscription information by maintaining mapping from the track information to the list of subscribers. This will enable relays to forward matching publishes on the requested track. Subscriptions stay active until it is expired or the publisher of the track stops producing objects or other reasons that result in error (see {{message-subscribe-error}}).
+For successful subscriptions, the publisher maintains a list of subscribers for each full track name. Each new OBJECT belonging to the track is forwarded to each active subscriber, dependent on the congestion response. A subscription remains active until it expires, until the publisher of the track stops producing objects or there is a subscription error (see {{message-subscribe-error}}).
 
-In all the scenarios, the end-point making the subscribe request is notified of the result of the subscription, via "SUBSCRIBE OK" ({{message-subscribe-ok}}) or the "SUBSCRIBE ERROR" {{message-subscribe-error}} control message.
-
-Relays MAY aggregate subscriptions for a given track when multiple subscribers request for the same track. Subscriptions aggregation allows relays to share the cache and forward only the unique subscriptions per track for further processing, say to setup routing for delivering objects, rather than forwarding all the subscriptions received. When the authorization information is carried in the subscribes, the relay MUST authorize the subscribe requests, in order to deduplicate and serve the subscriptions from the shared cache.
+Relays MAY aggregate authorized subscriptions for a given track when multiple subscribers request the same track. Subscription aggregation allows relays to make only a single forward subscription for the track. The published content received from the forward subscription request is cached and shared among the pending subscribers.
 
 
 ## Publisher Interactions
@@ -540,11 +479,11 @@ OBJECT message header carry short hop-by-hop Track Id that maps to the Full Trac
 
 ## Relay Discovery and Failover
 
-TODO: This section shall cover aspects of relay failover and protocol interactions
+TODO: This section shall cover aspects of relay failover and protocol interactions.
 
 ## Restoring connections through relays
 
-TODO: This section shall cover reconnect considerations for clients when moving between the Relays
+TODO: This section shall cover reconnect considerations for clients when moving between the Relays.
 
 ## Congestion Response at Relays
 
@@ -552,7 +491,12 @@ TODO: Refer to {{priority-congestion}}. Add details describe
 relays behavior when merging or splitting streams and interactions
 with congestion response.
 
-A relay MAY change the send order, in which case it SHOULD update the value on the wire for future hops.
+## Relay Object Handling
+MoQTransport encodes the delivery information for a stream via OBJECT headers ({{message-object}}).
+
+A relay MUST treat the object payload as opaque. 
+A relay MUST NOT combine, split, or otherwise modify object payloads.
+A relay SHOULD prioritize streams ({{priority-congestion}}) based on the send order/priority.
 
 A relay that reads from a stream and writes to stream in order will introduce head-of-line blocking.
 Packet loss will cause stream data to be buffered in the QUIC library, awaiting in order delivery, which will increase latency over additional hops.
@@ -880,8 +824,9 @@ The client:
 Live content requires significant bandwidth and resources.
 Failure to set limits will quickly cause resource exhaustion.
 
-MoQTransport uses QUIC flow control to impose resource limits at the network layer.
-Endpoints SHOULD set flow control limits based on the anticipated bitrate.
+MoQTransport uses QUIC flow control to impose resource limits at the
+network layer.  Endpoints SHOULD set flow control limits based on the
+anticipated bitrate.
 
 The producer prioritizes and transmits streams out of order.
 Streams might be starved indefinitely during congestion.
@@ -900,6 +845,11 @@ TODO: fill out currently missing registries:
 * Object headers
 
 TODO: register the URI scheme and the ALPN
+
+TODO: the MoQTransport spec should establish the IANA registration table
+for MoQtransport Streaming Formats. Each MoQTransport streaming format
+can then register its type in that table. The MoQT Streaming Format type
+MUST be carried as the leading varint in catalog track objects.
 
 
 # Contributors
