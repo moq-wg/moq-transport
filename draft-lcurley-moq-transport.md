@@ -461,7 +461,7 @@ The latter rule is generally agreed as a way to ensure freshness, and to recover
 if queues and delays accumulate during a congestion period. However, there may be cases when
 finishing the transmission of an ongoing group results in better user experience than strict
 adherence to the freshness rule. We expect that that the working group will eventually reach
-consensus and define meta data that control this behavior.
+consensus and define meta data that controls this behavior.
 
 There have been proposals to allow emitters to coordinate the allocation of layer priorities
 across multiple coordinated tracks. At this point, these proposals have not reached consensus.
