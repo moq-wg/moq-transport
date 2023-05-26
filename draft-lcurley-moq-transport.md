@@ -213,6 +213,8 @@ x (b):
 
 # Object Model {#model}
 
+MoQT has a hierarchical object model for data, comprised of objects, groups and tracks.
+
 ## Objects {#model-object}
 
 The basic data element of MoQTransport is an *object*.
