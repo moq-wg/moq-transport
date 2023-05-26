@@ -155,6 +155,9 @@ TODO: Add motivation text regarding bw management techniques in response to cong
 
 {::boilerplate bcp14-tagged}
 
+TODO: The terms defined here doesn't capture the ongoing discussions within the Working Group (either as part of requirements or architecture documents). This section will be updated to reflect 
+the discussions.
+
 Commonly used terms in this document are described below.
 
 Client:
@@ -168,6 +171,18 @@ Congestion:
 Consumer:
 
 : A QUIC endpoint receiving media over the network. This could be a consumer or a relay.
+
+Endpoint:
+
+: A QUIC Client or a QUIC Server. 
+
+Group:
+
+: A temporal sequence of objects. A group represents a join point in a track. See ({{model-group}}).
+
+Object:
+
+: An object is an addressable unit whose payload is a sequence of bytes. Objects form the base element in the MoQTransport model. See ({{model-object}}).
 
 Producer:
 
@@ -183,7 +198,7 @@ Track:
 
 Transport session:
 
-: Either a native QUIC connection, or a WebTransport session used to transmit the data.
+: Either a native QUIC connection, or a WebTransport session.
 
 
 ## Notational Conventions
