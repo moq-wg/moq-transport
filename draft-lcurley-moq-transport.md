@@ -83,7 +83,7 @@ relay support.
 HTTP Adaptive Streaming (HAS) has been successful at achieving scale
 although often at the cost of latency. Latency is necessary to correct
 for variable network throughput. Ideally live content is consumed at the
-same rate it is produced. End-to-end latency would be fixed and only
+same bitrate it is produced. End-to-end latency would be fixed and only
 subject to encoding and transmission delays. Unfortunately, networks
 have variable throughput, primarily due to congestion. Attempting to
 deliver content encoded at a higher bitrate than the network can support
@@ -100,16 +100,16 @@ detect and respond to congestion.
 
 #### Leveraging QUIC
 
-Applying {{QUIC}} to HAS via HTTP/3 does not yield generalized
-improvements in throughput. One reason for this is that sending segments
-down a single QUIC stream still allows head-of-line blocking to
-occur. Only by leveraging the parallel nature of QUIC streams can
-improved throughput be achieved in the face of loss. A goal of MoQT is
+The parallel nature of QUIC streams can provide improvements 
+in the face of loss. A goal of MoQT is
 to design a streaming protocol to leverage the transmission benefits
 afforded by parallel QUIC streams as well exercising options for
-flexible loss recovery.
+flexible loss recovery. Applying {{QUIC}} to HAS via HTTP/3 has 
+not yet yielded generalized improvements in throughput. One reason 
+for this is that sending segments down a single QUIC stream still 
+allows head-of-line blocking to occur.
 
-#### Workflow efficiency
+#### Universal
 
 Internet delivered media today has protocols optimized for ingest and
 separate protocols optimized for distribution. This protocol switch in
