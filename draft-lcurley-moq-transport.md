@@ -420,7 +420,7 @@ The send order SHOULD be followed when possible, to ensure that the most importa
 Note that the contents within each object are still delivered in order; this send order only applies to the ordering between objects.
 
 A sender MUST send each object over a dedicated QUIC stream.
-The QUIC library should support prioritization ({{prioritization-congestion}}) such that streams are transmitted in send order.
+The QUIC library should support prioritization ({{priority-congestion}}) such that streams are transmitted in send order.
 
 A receiver MUST NOT assume that objects will be received in send order,
 for the following reasons:
@@ -673,7 +673,7 @@ SUBSCRIBE REQUEST Message {
 
 
 * Full Track Name:
-Identifies the track as defined in ({{track-fn}}).
+Identifies the track as defined in ({{track-name}}).
 
 * Track Request Parameters:
  As defined in {{track-req-params}}.
@@ -749,7 +749,7 @@ ANNOUNCE Message {
 {: #moq-transport-announce-format title="MoQTransport ANNOUNCE Message"}
 
 * Track Namespace:
-Identifies a track's namespace as defined in ({{track-fn}})
+Identifies a track's namespace as defined in ({{track-name}})
 
 * Track Request Parameters:
 As defined in {{track-req-params}}.
@@ -819,7 +819,7 @@ The server MAY be a producer or consumer.
 The server:
 
 * MAY initiate a graceful shutdown by sending a GOAWAY message.
-* MUST close the QUIC connection after a timeout with the GOAWAY error code ({{termination}}).
+* MUST close the QUIC connection after a timeout with the GOAWAY error code ({{session-termination}}).
 * MAY close the QUIC connection with a different error code if there is a fatal error before shutdown.
 * SHOULD wait until the `GOAWAY` message and any pending streams have been fully acknowledged, plus an extra delay to ensure they have been processed.
 
