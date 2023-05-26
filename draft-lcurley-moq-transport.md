@@ -501,16 +501,16 @@ OBJECT message header carry short hop-by-hop Track Id that maps to the Full Trac
 
 ## Relay Discovery and Failover
 
-TODO: This section shall cover aspects of relay failover and protocol interactions
+TODO: This section shall cover aspects of relay failover and protocol interactions.
 
 ## Restoring connections through relays
 
-TODO: This section shall cover reconnect considerations for clients when moving between the Relays
+TODO: This section shall cover reconnect considerations for clients when moving between the Relays.
 
 ## Congestion Response at Relays
 
-TODO: Refer to {{priority-congestion}}. Add details describe
-relays behavior when merging or splitting streams and interactions
+TODO: Refer to {{priority-congestion}}. Add details to describe
+relay behavior when merging or splitting streams and interactions
 with congestion response.
 
 A relay MAY change the send order, in which case it SHOULD update the value on the wire for future hops.
