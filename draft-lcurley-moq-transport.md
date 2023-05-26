@@ -66,11 +66,7 @@ network protocol {{QUIC}}, either directly or via WebTransport
 {{WebTransport}}, for the dissemination of media. MoQT utilizes a
 publish/subscribe workflow in which producers of media publish data in
 response to subscription requests from a multiplicity of endpoints. MoQT
-supports live, as well as near-live and Video on Demand (VOD)
-use-cases. MoQT supports delivery over intermediate content distribution
-networks and is architected for high scale and low latency
-distribution. In live mode, MoQT facilitates a broad spectrum of latency
-regimes, from real-time, to interactive and non-interactive.
+supports wide range of use-cases with different resiliency and latency (live, interactive) needs without compromising the scalability and cost effectiveness associated with content delivery networks.
 
 MoQTransport is a generic protocol is designed to work in concert with
 multiple MoQ Streaming Formats. These MoQ Streaming Formats define how
