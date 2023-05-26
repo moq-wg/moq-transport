@@ -213,6 +213,8 @@ x (b):
 
 # Object Model {#model}
 
+MoQT has a hierarchical object model for data, comprised of objects, groups and tracks.
+
 ## Objects {#model-object}
 
 The basic data element of MoQTransport is an *object*.
@@ -287,17 +289,7 @@ Full Track Name = security-camera.example.com/camera1/hd-video
 
 Each track MAY have one or more associated connection URLs specifying network hosts through which a track may be accessed. The syntax of the Connection URL and the associated connection setup procedures are specific to the underlying transport protocol usage {{transport-protocols}}.
 
-
-## Session
-A transport session is established for each track bundle.
-The client issues a CONNECT request with a URL which the server uses for identification and authentication.
-All control messages and prioritization occur within the context of a single transport session, which means a single track bundle.
-When WebTransport is used, multiple transport sessions may be pooled over a single QUIC connection for efficiency.
-
-
-# Objects
-MoQTransport works by transferring objects over QUIC streams.
-The application determines how live content is fragmented into tracks, groups, and objects.
+# Sessions {#session}
 
 ## Order Priorities and Options
 
@@ -316,8 +308,6 @@ with an explicit "send order"; and, define algorithms combining tracks, prioriti
 order within a group. The two proposals are listed in {{send-order}} and {{ordering-by-priorities}}.
 We expect further work before a consensus is reached.
 
-## Groups
-TODO: Add text describing iteration of group and intra object priorities within a group and their relation to congestion response. Add how it refers to {{priority-congestion}}
 
 
 # Supported Transport Protocols  {#transport-protocols}
@@ -353,13 +343,9 @@ The `path-abempty` and `query` portions of the URI are communicated to the serve
 the PATH parameter ({{path}}).
 The ALPN value {{!RFC7301}} used by the protocol is `moq-00`.
 
-# Stream Mapping  {#stream-mapping}
+## Session initialization {#session-init}
 
-MoQTransport endpoints communicate over QUIC streams. Every stream is a sequence of messages, framed as described in {{messages}}.
-
-The first stream opened is a client-initiated bidirectional stream where the peers exchange SETUP messages ({{message-setup}}). The subsequent streams MAY be either unidirectional and bidirectional. For exchanging content, an application would typically send a unidirectional stream containing a single OBJECT message ({{message-object}}).
-
-Messages SHOULD be sent over the same stream if ordering is desired.
+The first stream opened is a client-initiated bidirectional stream where the peers exchange SETUP messages ({{message-setup}}). The subsequent streams MAY be either unidirectional or bidirectional. For exchanging content, an application would typically send a unidirectional stream containing a single OBJECT message ({{message-object}}), as putting more than one object into one stream may create head-of-line blocking delays.  However, if one object has a hard dependency on another object, putting them on the same stream could be a valid choice.
 
 
 ## Prioritization
