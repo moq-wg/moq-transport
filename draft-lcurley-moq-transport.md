@@ -261,14 +261,14 @@ they have to have different full track names.
 
 ~~~
 Example: 1
-Track Namespace = videoconferencing.example.com/meetings/m123/participants/alice/
+Track Namespace = live.example.com/meeting/123/member/alice/
 Track Name = audio
-Full Track Name = videoconferencing.example.com/meetings/m123/participants/alice/audio
+Full Track Name = live.example.com/meeting/123/member/alice/audio
 
 Example: 2
-Track Namespace = livestream.example.com/
+Track Namespace = live.example.com/
 Track Name = uaCafDkl123/audio
-Full Track Name = livestream.example.com/uaCafDkl123/audio
+Full Track Name = live.example.com/uaCafDkl123/audio
 
 Example: 3
 Track Namespace = security-camera.example.com/camera1/
