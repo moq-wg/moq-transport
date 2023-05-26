@@ -611,7 +611,7 @@ The client MUST send a ROLE parameter with one of the three values specified abo
 
 #### PATH parameter {#path}
 
-The PATH parameter (key 0x01) allows the client to specify the path of the MoQ URI when using native QUIC ({{native-quic}}).
+The PATH parameter (key 0x01) allows the client to specify the path of the MoQ URI when using native QUIC ({{QUIC}}).
 It MUST NOT be used by the server, or when WebTransport is used.
 If the peer receives a PATH parameter from the server, or when WebTransport is used, it MUST close the connection.
 
