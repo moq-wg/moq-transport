@@ -417,10 +417,10 @@ how the Moq Transport protocol deals with prioritization and congestion overall.
 
 This section is expected to cover details on:
 
-- Prioritization Schemes
-- Congestion Algorithms and impacts
-- Mapping considerations for one object per stream vs multiple objects per stream
-- considerations for merging multiple streams across domains onto single connection and interactions with specific prioritization schemes
+- Prioritization Schemes.
+- Congestion Algorithms and impacts.
+- Mapping considerations for one object per stream vs multiple objects per stream.
+- Considerations for merging multiple streams across domains onto single connection and interactions with specific prioritization schemes.
 
 ### Send Order
 Media is produced with an intended order, both in terms of when media should be presented (PTS) and when media should be decoded (DTS).
