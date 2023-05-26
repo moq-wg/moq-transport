@@ -308,8 +308,6 @@ with an explicit "send order"; and, define algorithms combining tracks, prioriti
 order within a group. The two proposals are listed in {{send-order}} and {{ordering-by-priorities}}.
 We expect further work before a consensus is reached.
 
-## Groups
-TODO: Add text describing iteration of group and intra object priorities within a group and their relation to congestion response. Add how it refers to {{priority-congestion}}
 
 
 # Supported Transport Protocols  {#transport-protocols}
