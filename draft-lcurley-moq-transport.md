@@ -1,5 +1,5 @@
 ---
-title: "Media over QUIC Transport"
+title: "Media Over QUIC Transport"
 abbrev: moq-transport
 docname: draft-lcurley-moq-transport-latest
 date: {DATE}
@@ -43,17 +43,14 @@ author:
 
 normative:
   QUIC: RFC9000
-  QUIC-RECOVERY: RFC9002
   WebTransport: I-D.ietf-webtrans-http3
 
 informative:
-  NewReno: RFC6582
-  BBR: I-D.cardwell-iccrg-bbr-congestion-control-02
 
 --- abstract
 
-This document defines the core behavior for MoQTransport, a media
-transport protocol over QUIC. MoQTransport allows a producer of media
+This document defines the core behavior for Media Over QUIC Transport(MOQT), a media
+transport protocol over QUIC. MOQT allows a producer of media
 to publish data and have it consumed via subscription by a multiplicity
 of endpoints. It supports intermediate content distribution networks and
 is designed for high scale and low latency distribution.
@@ -63,20 +60,20 @@ is designed for high scale and low latency distribution.
 
 # Introduction
 
-MoQTransport (MoQT) is a transport protocol that utilizes the QUIC
+Media Over QUIC Transport (MOQT) is a transport protocol that utilizes the QUIC
 network protocol {{QUIC}}, either directly or via WebTransport
-{{WebTransport}}, for the dissemination of media. MoQT utilizes a
+{{WebTransport}}, for the dissemination of media. MOQT utilizes a
 publish/subscribe workflow in which producers of media publish data in
-response to subscription requests from a multiplicity of endpoints. MoQT
+response to subscription requests from a multiplicity of endpoints. MOQT
 supports wide range of use-cases with different resiliency and latency (live, interactive) needs without compromising the scalability and cost effectiveness associated with content delivery networks.
 
-MoQTransport is a generic protocol is designed to work in concert with
+MOQT is a generic protocol is designed to work in concert with
 multiple MoQ Streaming Formats. These MoQ Streaming Formats define how
-content is encoded, packaged, and mapped to MoQT objects, along with
+content is encoded, packaged, and mapped to MOQT objects, along with
 policies for discovery and subscription.
 
-* {{model}} describes the object model employed by MoQT
-* {{session}} covers aspects of setting up a MoQT session.
+* {{model}} describes the object model employed by MOQT
+* {{session}} covers aspects of setting up a MOQT session.
 * {{priority-congestion}} covers protocol considerations on prioritization schemes and congestion response overall.
 * {{relays-moq}} covers behavior at the relay entities.
 * {{message}} covers how messages are encoded on the wire.
@@ -84,7 +81,7 @@ policies for discovery and subscription.
 
 ## Motivation
 
-The development of MoQT is driven by goals in a number of areas -
+The development of MOQT is driven by goals in a number of areas -
 specifically latency, the robustness of QUIC, workflow efficiency and
 relay support.
 
@@ -103,7 +100,7 @@ overall latency. TCP-based protocols are simple but are slow to detect
 congestion and suffer from head-of-line blocking. UDP-based protocols
 can avoid queuing, but the application is now responsible for the
 complexity of fragmentation, congestion control, retransmissions,
-receiver feedback, reassembly, and more. One goal of MoQTransport is to
+receiver feedback, reassembly, and more. One goal of MOQT is to
 achieve the best of both these worlds: leverage the features of QUIC to
 create a simple yet flexible low latency protocol that can rapidly
 detect and respond to congestion.
@@ -111,7 +108,7 @@ detect and respond to congestion.
 ### Leveraging QUIC
 
 The parallel nature of QUIC streams can provide improvements 
-in the face of loss. A goal of MoQT is
+in the face of loss. A goal of MOQT is
 to design a streaming protocol to leverage the transmission benefits
 afforded by parallel QUIC streams as well exercising options for
 flexible loss recovery. Applying {{QUIC}} to HAS via HTTP/3 has 
@@ -126,7 +123,7 @@ separate protocols optimized for distribution. This protocol switch in
 the distribution chain necessitates intermediary origins which
 re-package the media content. While specialization can have its
 benefits, there are gains in efficiency to be had in not having to
-re-package content. A goal of MoQT is to develop a single protocol which
+re-package content. A goal of MOQT is to develop a single protocol which
 can be used for transmission from contribution to distribution. A
 related goal is the ability to support existing encoding and packaging
 schemas, both for backwards compatibility and for interoperability with
@@ -140,7 +137,7 @@ networks, independent of both the publisher and subscriber, can be
 leveraged to relay the content. These relays must cache content for
 distribution efficiency while simultaneously routing content and
 deterministically responding to congestion in a multi-tenant network. A
-goal of MoQT is to treat relays as first-class citizens of the protocol
+goal of MOQT is to treat relays as first-class citizens of the protocol
 and ensure that objects are structured such that information necessary
 for distribution is available to relays while the media content itself
 remains opaque and private.
@@ -176,7 +173,7 @@ Group:
 
 Object:
 
-: An object is an addressable unit whose payload is a sequence of bytes. Objects form the base element in the MoQTransport model. See ({{model-object}}).
+: An object is an addressable unit whose payload is a sequence of bytes. Objects form the base element in the MOQT model. See ({{model-object}}).
 
 Producer:
 
@@ -189,7 +186,7 @@ Server:
 Track:
 
 : An encoded bitstream. Tracks contain a sequential series of one or
-  more groups and are the subscribable entity with MoQT.
+  more groups and are the subscribable entity with MOQT.
 
 Transport session:
 
@@ -198,7 +195,7 @@ Transport session:
 
 ## Notational Conventions
 
-This document uses the conventions detailed in Section 1.3 of {{!RFC9000}} when describing the binary encoding.
+This document uses the conventions detailed in Section 1.3 of {{!QUIC}} when describing the binary encoding.
 
 This document also defines an additional field type for binary data:
 
@@ -208,11 +205,11 @@ x (b):
 
 # Object Model {#model}
 
-MoQT has a hierarchical object model for data, comprised of objects, groups and tracks.
+MOQT has a hierarchical object model for data, comprised of objects, groups and tracks.
 
 ## Objects {#model-object}
 
-The basic data element of MoQTransport is an *object*.
+The basic data element of MOQT is an *object*.
 An object is an addressable unit whose payload is a sequence of bytes.
 All objects belong to a group, indicating ordering and potential dependencies. {{model-group}}
 Objects are comprised of two parts: metadata and a payload.  The
@@ -241,7 +238,7 @@ active.
 
 ### Track Naming and Scopes {#track-name}
 
-In MoQTransport, every track has a *track name* and a *track namespace* associated with it.
+In MOQT, every track has a *track name* and a *track namespace* associated with it.
 A track name identifies an individual track within the namespace.
 
 A tuple of a track name and a track namespace together is known as *a full track name*:
@@ -258,7 +255,7 @@ by contrast, an application that uses multiple CDNs to serve media may require t
 
 The full track name is the only piece of information that is used to
 identify the track within a given MoQ scope and is used as cache key.
-MoQTransport does not provide any in-band content negotiation methods similar to the ones defined by HTTP
+MOQT does not provide any in-band content negotiation methods similar to the ones defined by HTTP
 ({{?RFC9110, Section 10}}); if, at a given moment in time, two tracks within the same scope contain different data,
 they have to have different full track names.
 
@@ -301,13 +298,13 @@ thus, the main difference lies in how the servers are identified and how the con
 
 ### WebTransport
 
-A MoQTransport server that is accessible via WebTransport can be identified using an HTTPS URI ({{!RFC9110, Section 4.2.2}}).
-A MoQTransport session can be established by sending an extended CONNECT request to the host and the path indicated by the URI,
+A MOQT server that is accessible via WebTransport can be identified using an HTTPS URI ({{!RFC9110, Section 4.2.2}}).
+A MOQT session can be established by sending an extended CONNECT request to the host and the path indicated by the URI,
 as described in {{WebTransport, Section 3}}.
 
 ### QUIC
 
-A MoQTransport server that is accessible via native QUIC can be identified by a URI with a "moq" scheme.
+A MOQT server that is accessible via native QUIC can be identified by a URI with a "moq" scheme.
 The "moq" URI scheme is defined as follows, using definitions from {{!RFC3986}}:
 
 ~~~~~~~~~~~~~~~
@@ -380,7 +377,7 @@ The endpoint successfully drained the session after a GOAWAY was initiated ({{me
 # Prioritization and Congestion Response {#priority-congestion}
 
 TODO: This is a placeholder section to capture details on
-how the MoQTransport protocol deals with prioritization and congestion overall. 
+how the MOQT protocol deals with prioritization and congestion overall. 
 
 This section is expected to cover details on:
 
@@ -495,7 +492,7 @@ relay behavior when merging or splitting streams and interactions
 with congestion response.
 
 ## Relay Object Handling
-MoQTransport encodes the delivery information for a stream via OBJECT headers ({{message-object}}).
+MOQT encodes the delivery information for a stream via OBJECT headers ({{message-object}}).
 
 A relay MUST treat the object payload as opaque. 
 A relay MUST NOT combine, split, or otherwise modify object payloads.
@@ -510,13 +507,13 @@ See section 2.2 in {{QUIC}}.
 Both unidirectional and bidirectional QUIC streams contain sequences of length-delimited messages.
 
 ~~~
-MoQTransport Message {
+MOQT Message {
   Message Type (i),
   Message Length (i),
   Message Payload (..),
 }
 ~~~
-{: #moq-transport-message-format title="MoQTransport Message"}
+{: #moq-transport-message-format title="MOQT Message"}
 
 The Message Length field contains the length of the Message Payload field in bytes.
 A length of 0 indicates the message is unbounded and continues until the end of the stream.
@@ -546,7 +543,7 @@ A length of 0 indicates the message is unbounded and continues until the end of 
 ## SETUP {#message-setup}
 
 The `SETUP` message is the first message that is exchanged by the client and the server; it allows the peers to establish the mutually supported version and agree on the initial configuration before any objects are exchanged. It is a sequence of key-value pairs called *SETUP parameters*; the semantics and format of which can vary based on whether the client or server is sending. 
-To ensure future extensibility of MoQTransport, the peers MUST ignore
+To ensure future extensibility of MOQT, the peers MUST ignore
 unknown setup parameters. TODO: describe GREASE for those.
 
 The wire format of the SETUP message is as follows:
@@ -569,7 +566,7 @@ Server SETUP Message Payload {
   SETUP Parameters (..) ...,
 }
 ~~~
-{: #moq-transport-setup-format title="MoQTransport SETUP Message"}
+{: #moq-transport-setup-format title="MOQT SETUP Message"}
 
 The Parameter Value Length field indicates the length of the Parameter Value.
 
@@ -585,7 +582,7 @@ The ROLE parameter is mandatory for the client. All of the other parameters are 
 
 #### ROLE parameter {#role}
 
-The ROLE parameter (key 0x00) allows the client to specify what roles it expects the parties to have in the MoQTransport connection. It has three possible values:
+The ROLE parameter (key 0x00) allows the client to specify what roles it expects the parties to have in the MOQT connection. It has three possible values:
 
 0x01:
 
@@ -626,7 +623,7 @@ OBJECT Message {
   Object Payload (b),
 }
 ~~~
-{: #moq-transport-object-format title="MoQTransport OBJECT Message"}
+{: #moq-transport-object-format title="MOQT OBJECT Message"}
 
 * Track ID:
 The track identifier obtained as part of subscription and/or publish control message exchanges.
@@ -664,7 +661,7 @@ SUBSCRIBE REQUEST Message {
   Track Request Parameters (..) ...
 }
 ~~~
-{: #moq-transport-subscribe-format title="MoQTransport SUBSCRIBE REQUEST Message"}
+{: #moq-transport-subscribe-format title="MOQT SUBSCRIBE REQUEST Message"}
 
 
 * Full Track Name:
@@ -689,7 +686,7 @@ SUBSCRIBE OK
   Expires (i)
 }
 ~~~
-{: #moq-transport-subscribe-ok format title="MoQTransport SUBSCRIBE OK Message"}
+{: #moq-transport-subscribe-ok format title="MOQT SUBSCRIBE OK Message"}
 
 * Full Track Name:
 Identifies the track for which this response is provided.
@@ -714,7 +711,7 @@ SUBSCRIBE ERROR
   Reason Phrase (...),
 }
 ~~~
-{: #moq-transport-subscribe-error format title="MoQTransport SUBSCRIBE ERROR Message"}
+{: #moq-transport-subscribe-error format title="MOQT SUBSCRIBE ERROR Message"}
 
 * Full Track Name:
 Identifies the track in the request message for which this
@@ -740,7 +737,7 @@ ANNOUNCE Message {
   Track Request Parameters (..) ...,
 }
 ~~~
-{: #moq-transport-announce-format title="MoQTransport ANNOUNCE Message"}
+{: #moq-transport-announce-format title="MOQT ANNOUNCE Message"}
 
 * Track Namespace:
 Identifies a track's namespace as defined in ({{track-name}})
@@ -773,7 +770,7 @@ ANNOUNCE OK
   Track Namespace
 }
 ~~~
-{: #moq-transport-announce-ok format title="MoQTransport ANNOUNCE OK Message"}
+{: #moq-transport-announce-ok format title="MOQT ANNOUNCE OK Message"}
 
 * Track Namespace:
 Identifies the track namespace in the ANNOUNCE message for which this response is provided.
@@ -792,7 +789,7 @@ ANNOUNCE ERROR
   Reason Phrase (...),
 }
 ~~~
-{: #moq-transport-announce-error format title="MoQTransport ANNOUNCE ERROR Message"}
+{: #moq-transport-announce-error format title="MOQT ANNOUNCE ERROR Message"}
 
 * Track Namespace:
 Identifies the track namespace in the ANNOUNCE message for which this response is provided.
@@ -830,12 +827,12 @@ TODO: Expand this section.
 Live content requires significant bandwidth and resources.
 Failure to set limits will quickly cause resource exhaustion.
 
-MoQTransport uses QUIC flow control to impose resource limits at the
+MOQT uses QUIC flow control to impose resource limits at the
 network layer.  Endpoints SHOULD set flow control limits based on the
 anticipated bitrate.
 
 Endpoints MAY impose a MAX STREAM count limit which would restrict the
-number of concurrent streams which a MoQTransport Streaming Format could
+number of concurrent streams which a MOQT Streaming Format could
 have in flight.
 
 The producer prioritizes and transmits streams out of order.
@@ -845,7 +842,7 @@ The producer and consumer MUST cancel a stream, preferably the lowest priority, 
 # IANA Considerations {#iana}
 
 TODO: fill out currently missing registries:
-* MoQTransport version numbers
+* MOQT version numbers
 * SETUP parameters
 * Track Request parameters
 * Subscribe Error codes
@@ -856,9 +853,9 @@ TODO: fill out currently missing registries:
 
 TODO: register the URI scheme and the ALPN
 
-TODO: the MoQTransport spec should establish the IANA registration table
-for MoQtransport Streaming Formats. Each MoQTransport streaming format
-can then register its type in that table. The MoQT Streaming Format type
+TODO: the MOQT spec should establish the IANA registration table
+for MOQT Streaming Formats. Each MOQT streaming format
+can then register its type in that table. The MOQT Streaming Format type
 MUST be carried as the leading varint in catalog track objects.
 
 
