@@ -608,7 +608,7 @@ The client MUST send a ROLE parameter with one of the three values specified abo
 
 #### PATH parameter {#path}
 
-The PATH parameter (key 0x01) allows the client to specify the path of the MoQ URI when using native QUIC ({{native-quic}}).
+The PATH parameter (key 0x01) allows the client to specify the path of the MoQ URI when using native QUIC ({{QUIC}}).
 It MUST NOT be used by the server, or when WebTransport is used.
 If the peer receives a PATH parameter from the server, or when WebTransport is used, it MUST close the connection.
 
@@ -729,6 +729,9 @@ response is provided.
 * Error Code:
 Identifies an integer error code for subscription failure.
 
+* Reason Phrase Length:
+The length in bytes of the reason phrase.
+
 * Reason Phrase:
 Provides the reason for subscription error and `Reason Phrase Length` field carries its length.
 
@@ -827,6 +830,7 @@ The client:
 * SHOULD remain connected for two servers for a short period, processing objects from both in parallel.
 
 # Security Considerations
+TODO: Expand this section. 
 
 ## Resource Exhaustion
 Live content requires significant bandwidth and resources.
@@ -835,6 +839,10 @@ Failure to set limits will quickly cause resource exhaustion.
 MoQTransport uses QUIC flow control to impose resource limits at the
 network layer.  Endpoints SHOULD set flow control limits based on the
 anticipated bitrate.
+
+Endpoints MAY impose a MAX STREAM count limit which would restrict the
+number of concurrent streams which a MoQTransport Streaming Format could
+have in flight.
 
 The producer prioritizes and transmits streams out of order.
 Streams might be starved indefinitely during congestion.
