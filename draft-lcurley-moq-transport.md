@@ -494,11 +494,11 @@ across multiple coordinated tracks. At this point, these proposals have not reac
 
 # Relays {#relays-moq}
 
-The Relays play an important role for enabling low latency delivery within the MoQ architecture. This specification allows for a delivery protocol based on a publish/subscribe metaphor where some endpoints, called publishers, publish objects and
-some endpoints, called subscribers, consume those objects. Relays leverage this publish/subscribe metaphor to form an overlay delivery network similar/in-parallel to what CDN provides today.
-
-Relays serves as policy enforcement points by validating subscribe
-and publish requests to the tracks.
+Relays are leveraged to enable distribution scale in the MoQ
+architecture. Relays can be used to form an overlay delivery network,
+similar in functionality to Content Delivery Networks
+(CDNs). Additionally, relays serve as policy enforcement points by
+validating subscribe and publish requests at the edge of a network.
 
 ## Subscriber Interactions
 
@@ -527,11 +527,11 @@ OBJECT message header carry short hop-by-hop Track Id that maps to the Full Trac
 
 ## Relay Discovery and Failover
 
-TODO: This section shall cover aspects of relay failover and protocol interactions
+TODO: This section shall cover aspects of relay failover and protocol interactions.
 
 ## Restoring connections through relays
 
-TODO: This section shall cover reconnect considerations for clients when moving between the Relays
+TODO: This section shall cover reconnect considerations for clients when moving between the Relays.
 
 ## Congestion Response at Relays
 
@@ -539,7 +539,12 @@ TODO: Refer to {{priority-congestion}}. Add details describe
 relays behavior when merging or splitting streams and interactions
 with congestion response.
 
-A relay MAY change the send order, in which case it SHOULD update the value on the wire for future hops.
+## Relay Object Handling
+MoQTransport encodes the delivery information for a stream via OBJECT headers ({{message-object}}).
+
+A relay MUST treat the object payload as opaque. 
+A relay MUST NOT combine, split, or otherwise modify object payloads.
+A relay SHOULD prioritize streams ({{priority-congestion}}) based on the send order/priority.
 
 A relay that reads from a stream and writes to stream in order will introduce head-of-line blocking.
 Packet loss will cause stream data to be buffered in the QUIC library, awaiting in order delivery, which will increase latency over additional hops.
