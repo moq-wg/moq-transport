@@ -380,7 +380,7 @@ The endpoint successfully drained the session after a GOAWAY was initiated ({{me
 # Prioritization and Congestion Response {#priority-congestion}
 
 TODO: This is a placeholder section to capture details on
-how the Moq Transport protocol deals with prioritization and congestion overall. 
+how the MoQTransport protocol deals with prioritization and congestion overall. 
 
 This section is expected to cover details on:
 
