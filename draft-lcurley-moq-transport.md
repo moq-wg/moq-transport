@@ -870,8 +870,9 @@ The client:
 Live content requires significant bandwidth and resources.
 Failure to set limits will quickly cause resource exhaustion.
 
-MoQTransport uses QUIC flow control to impose resource limits at the network layer.
-Endpoints SHOULD set flow control limits based on the anticipated bitrate.
+MoQTransport uses QUIC flow control to impose resource limits at the
+network layer.  Endpoints SHOULD set flow control limits based on the
+anticipated bitrate.
 
 The producer prioritizes and transmits streams out of order.
 Streams might be starved indefinitely during congestion.
@@ -890,6 +891,11 @@ TODO: fill out currently missing registries:
 * Object headers
 
 TODO: register the URI scheme and the ALPN
+
+TODO: the MoQTransport spec should establish the IANA registration table
+for MoQtransport Streaming Formats. Each MoQTransport streaming format
+can then register its type in that table. The MoQT Streaming Format type
+MUST be carried as the leading varint in catalog track objects.
 
 
 # Contributors
