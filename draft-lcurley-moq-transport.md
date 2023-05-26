@@ -169,13 +169,6 @@ x (b):
 
 # Model
 
-MoQT is a transport that moves entitites called messages
-{{message}}. Messages are divided into two classes: control messages and
-objects. Control messages are used to setup connections, announce
-content, issues subscriptions etc. All media data is carried inside
-object messages. MoQT has a hierarchical object model for data,
-comprised of objects, groups and tracks.
-
 ## Objects {#model-object}
 
 The basic element of MoQTransport is an *object*.
