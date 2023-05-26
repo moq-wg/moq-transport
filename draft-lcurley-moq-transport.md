@@ -52,9 +52,11 @@ informative:
 
 --- abstract
 
-This document defines the core behavior for MoQTransport, a live media transport protocol over QUIC.
-The application fragments a live stream into objects, including a header that describes the basic relationship between objects.
-Objects are starved/dropped during congestion based on priorities in order to minimize latency.
+This document defines the core behavior for MoQTransport, a media
+transport protocol over QUIC.  MoQTransport allows a producer of media
+to publish data and have it consumed via subscription by a multiplicity
+of endpoints. It supports intermediate content distribution networks and
+is designed for high scale and low latency distribution.
 
 --- middle
 
