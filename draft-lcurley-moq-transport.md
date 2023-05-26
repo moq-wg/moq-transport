@@ -422,7 +422,8 @@ This section is expected to cover details on:
 - Mapping considerations for one object per stream vs multiple objects per stream.
 - Considerations for merging multiple streams across domains onto single connection and interactions with specific prioritization schemes.
 
-### Send Order
+### Proposal - Send Order {#send-order}
+
 Media is produced with an intended order, both in terms of when media should be presented (PTS) and when media should be decoded (DTS).
 As stated in motivation ({{latency}}), the network is unable to maintain this ordering during congestion without increasing latency.
 
@@ -441,7 +442,7 @@ A receiver MUST NOT assume that objects will be received in send order for a num
 
 TODO: Refer to Congestion Response and Prioritization Section for further details on various proposals.
 
-### Ordering by Priorities
+### Proposal - Ordering by Priorities {#ordering-by-priorities}
 
 Media is produced as a set of layers, such as for example low definition and high definition,
 or low frame rate and high frame rate. Each object belonging to a track and a group has two attributes: the object-id, and the priority (or layer).
