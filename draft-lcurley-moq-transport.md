@@ -49,7 +49,7 @@ informative:
 
 --- abstract
 
-This document defines the core behavior for Media Over QUIC Transport(MOQT), a media
+This document defines the core behavior for Media Over QUIC Transport (MOQT), a media
 transport protocol over QUIC. MOQT allows a producer of media
 to publish data and have it consumed via subscription by a multiplicity
 of endpoints. It supports intermediate content distribution networks and
@@ -854,9 +854,7 @@ TODO: fill out currently missing registries:
 TODO: register the URI scheme and the ALPN
 
 TODO: the MOQT spec should establish the IANA registration table
-for MOQT Streaming Formats. Each MOQT streaming format
-can then register its type in that table. The MOQT Streaming Format type
-MUST be carried as the leading varint in catalog track objects.
+for Media Over QUIC Transport Streaming Formats. Each MOQT streaming format can then register its type in that table. The MOQT Streaming Format type MUST be carried as the leading varint in catalog track objects.
 
 
 # Contributors
