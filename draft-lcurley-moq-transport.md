@@ -1,5 +1,5 @@
 ---
-title: "Media over QUIC - Transport"
+title: "Media over QUIC Transport"
 abbrev: moq-transport
 docname: draft-lcurley-moq-transport-latest
 date: {DATE}
@@ -53,7 +53,7 @@ informative:
 --- abstract
 
 This document defines the core behavior for MoQTransport, a media
-transport protocol over QUIC.  MoQTransport allows a producer of media
+transport protocol over QUIC. MoQTransport allows a producer of media
 to publish data and have it consumed via subscription by a multiplicity
 of endpoints. It supports intermediate content distribution networks and
 is designed for high scale and low latency distribution.
@@ -61,7 +61,7 @@ is designed for high scale and low latency distribution.
 --- middle
 
 
-## Introduction
+# Introduction
 
 MoQTransport (MoQT) is a transport protocol that utilizes the QUIC
 network protocol {{QUIC}}, either directly or via WebTransport
@@ -82,13 +82,13 @@ policies for discovery and subscription.
 * {{message}} covers how messages are encoded on the wire.
 
 
-### Motivation
+## Motivation
 
 The development of MoQT is driven by goals in a number of areas -
 specifically latency, the robustness of QUIC, workflow efficiency and
 relay support.
 
-#### Latency
+### Latency
 
 HTTP Adaptive Streaming (HAS) has been successful at achieving scale
 although often at the cost of latency. Latency is necessary to correct
@@ -108,7 +108,7 @@ achieve the best of both these worlds: leverage the features of QUIC to
 create a simple yet flexible low latency protocol that can rapidly
 detect and respond to congestion.
 
-#### Leveraging QUIC
+### Leveraging QUIC
 
 The parallel nature of QUIC streams can provide improvements 
 in the face of loss. A goal of MoQT is
@@ -119,7 +119,7 @@ not yet yielded generalized improvements in throughput. One reason
 for this is that sending segments down a single QUIC stream still 
 allows head-of-line blocking to occur.
 
-#### Universal
+### Universal
 
 Internet delivered media today has protocols optimized for ingest and
 separate protocols optimized for distribution. This protocol switch in
@@ -132,7 +132,7 @@ related goal is the ability to support existing encoding and packaging
 schemas, both for backwards compatibility and for interoperability with
 the established content preparation ecosystem.
 
-#### Relays
+### Relays
 
 An integral feature of a protocol being successful is its ability to
 deliver media at scale. Greatest scale is achieved when third-party
@@ -144,11 +144,6 @@ goal of MoQT is to treat relays as first-class citizens of the protocol
 and ensure that objects are structured such that information necessary
 for distribution is available to relays while the media content itself
 remains opaque and private.
-
-
-#### Bandwidth Management and Congestion Response
-TODO: Add motivation text regarding bw management techniques in response to congestion. Also refer to {{priority-congestion}} for further details.
-
 
 ## Terms and Definitions
 
