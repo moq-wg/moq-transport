@@ -153,7 +153,7 @@ Group:
 
 Object:
 
-: An object is an addressable unit whose payload is a sequence of bytes. Objects form the base element in the MoQTransport model. See ({{model-object}})
+: An object is an addressable unit whose payload is a sequence of bytes. Objects form the base element in the MoQTransport model. See ({{model-object}}).
 
 Producer:
 
@@ -169,7 +169,7 @@ Track:
 
 Transport session:
 
-: Either a native QUIC connection, or a WebTransport session used to transmit the data.
+: Either a native QUIC connection, or a WebTransport session.
 
 
 ## Notational Conventions
