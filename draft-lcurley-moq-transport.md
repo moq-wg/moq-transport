@@ -863,10 +863,11 @@ TODO: register the URI scheme and the ALPN
 {:numbered="false"}
 
 - Alan Frindell
+- Ali Begen
 - Charles Krasic
+- Christian Huitema
 - Cullen Jennings
 - James Hurley
 - Jordi Cenzano
 - Mike English
 - Will Law
-- Ali Begen
