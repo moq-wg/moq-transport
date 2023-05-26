@@ -1,5 +1,5 @@
 ---
-title: "Media over QUIC - Transport"
+title: "Media over QUIC Transport"
 abbrev: moq-transport
 docname: draft-lcurley-moq-transport-latest
 date: {DATE}
