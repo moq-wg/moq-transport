@@ -261,24 +261,25 @@ It is up to the application building on top of MoQ to define how broad or narrow
 An application that deals with connections between devices on a local network may limit the scope to a single connection;
 by contrast, an application that uses multiple CDNs to serve media may require the scope to include all of those CDNs.
 
-The full track name is the only piece of information that is used to identify the track within a given MoQ scope and is used as key for caching.
+The full track name is the only piece of information that is used to
+identify the track within a given MoQ scope and is used as cache key.
 MoQTransport does not provide any in-band content negotiation methods similar to the ones defined by HTTP
 ({{?RFC9110, Section 10}}); if, at a given moment in time, two tracks within the same scope contain different data,
 they have to have different full track names.
 
 ~~~
 Example: 1
-Track Namespace = videoconferencing.example.com/meetings/m123/participants/alice
+Track Namespace = videoconferencing.example.com/meetings/m123/participants/alice/
 Track Name = audio
 Full Track Name = videoconferencing.example.com/meetings/m123/participants/alice/audio
 
 Example: 2
-Track Namespace = livestream.example.com
+Track Namespace = livestream.example.com/
 Track Name = uaCafDkl123/audio
 Full Track Name = livestream.example.com/uaCafDkl123/audio
 
 Example: 3
-Track Namespace = security-camera.example.com/camera1
+Track Namespace = security-camera.example.com/camera1/
 Track Name = hd-video
 Full Track Name = security-camera.example.com/camera1/hd-video
 
@@ -287,7 +288,10 @@ Full Track Name = security-camera.example.com/camera1/hd-video
 
 ### Connection URL
 
-Each track MAY have one or more associated connection URLs specifying network hosts through which a track may be accessed. The syntax of the Connection URL and the associated connection setup procedures are specific to the underlying transport protocol usage {{transport-protocols}}.
+Each track MAY have one or more associated connection URLs specifying
+network hosts through which a track may be accessed. The syntax of the
+Connection URL and the associated connection setup procedures are
+specific to the underlying transport protocol usage {{session}}.
 
 # Sessions {#session}
 
@@ -385,11 +389,10 @@ how the Moq Transport protocol deals with prioritization and congestion overall.
 
 This section is expected to cover details on:
 
-- Prioritization Schemes
-- Congestion Algorithms and impacts
-- Mapping considerations for one object per stream vs multiple objects per stream
-- considerations for merging multiple streams across domains onto single connection and interactions with specific prioritization schemes
-
+- Prioritization Schemes.
+- Congestion Algorithms and impacts.
+- Mapping considerations for one object per stream vs multiple objects per stream.
+- Considerations for merging multiple streams across domains onto single connection and interactions with specific prioritization schemes.
 
 ## Order Priorities and Options
 
@@ -407,27 +410,28 @@ with an explicit "send order"; and, defining algorithms combining tracks, priori
 order within a group. The two proposals are listed in {{send-order}} and {{ordering-by-priorities}}.
 We expect further work before a consensus is reached.
 
+### Proposal - Send Order {#send-order}
 
-### Send Order
 Media is produced with an intended order, both in terms of when media should be presented (PTS) and when media should be decoded (DTS).
-As stated in motivation ({{latency}}), the network is unable to maintain this ordering during congestion without increasing latency.
+As stated in the introduction, the network is unable to maintain this ordering during congestion without increasing latency.
 
 The encoder determines how to behave during congestion by assigning each object a numeric send order.
-The send order SHOULD be followed when possible to ensure that the most important media is delivered when throughput is limited.
+The send order SHOULD be followed when possible, to ensure that the most important media is delivered when throughput is limited.
 Note that the contents within each object are still delivered in order; this send order only applies to the ordering between objects.
 
 A sender MUST send each object over a dedicated QUIC stream.
-The QUIC library should support prioritization ({{prioritization}}) such that streams are transmitted in send order.
+The QUIC library should support prioritization ({{prioritization-congestion}}) such that streams are transmitted in send order.
 
-A receiver MUST NOT assume that objects will be received in send order for a number of reasons:
+A receiver MUST NOT assume that objects will be received in send order,
+for the following reasons:
 
-* Newly encoded objects MAY have a smaller send order than outstanding objects.
-* Packet loss or flow control MAY delay the send of individual streams.
+* Newly encoded objects can have a smaller send order than outstanding objects.
+* Packet loss or flow control can delay the send of individual streams.
 * The sender might not support QUIC stream prioritization.
 
 TODO: Refer to Congestion Response and Prioritization Section for further details on various proposals.
 
-### Ordering by Priorities
+### Proposal - Ordering by Priorities {#ordering-by-priorities}
 
 Media is produced as a set of layers, such as for example low definition and high definition,
 or low frame rate and high frame rate. Each object belonging to a track and a group has two attributes: the object-id, and the priority (or layer).
@@ -445,7 +449,7 @@ The latter rule is generally agreed as a way to ensure freshness, and to recover
 if queues and delays accumulate during a congestion period. However, there may be cases when
 finishing the transmission of an ongoing group results in better user experience than strict
 adherence to the freshness rule. We expect that that the working group will eventually reach
-consensus and define meta data that control this behavior.
+consensus and define meta data that controls this behavior.
 
 There have been proposals to allow emitters to coordinate the allocation of layer priorities
 across multiple coordinated tracks. At this point, these proposals have not reached consensus.
@@ -491,8 +495,8 @@ TODO: This section shall cover reconnect considerations for clients when moving 
 
 ## Congestion Response at Relays
 
-TODO: Refer to {{priority-congestion}}. Add details describe
-relays behavior when merging or splitting streams and interactions
+TODO: Refer to {{priority-congestion}}. Add details to describe
+relay behavior when merging or splitting streams and interactions
 with congestion response.
 
 ## Relay Object Handling
