@@ -293,19 +293,19 @@ Each track MAY have one or more associated connection URLs specifying network ho
 
 
 
-# Supported Transport Protocols  {#transport-protocols}
+## Session establishment {#session-establishment}
 
 This document defines a protocol that can be used interchangeably both over a QUIC connection directly [QUIC], and over WebTransport [WebTransport].
 Both provide streams and datagrams with similar semantics (see {{?I-D.ietf-webtrans-overview, Section 4}});
 thus, the main difference lies in how the servers are identified and how the connection is established.
 
-## WebTransport
+### WebTransport
 
 A MoQTransport server that is accessible via WebTransport can be identified using an HTTPS URI ({{!RFC9110, Section 4.2.2}}).
 A MoQTransport session can be established by sending an extended CONNECT request to the host and the path indicated by the URI,
 as described in {{WebTransport, Section 3}}.
 
-## Native QUIC
+### QUIC
 
 A MoQTransport server that is accessible via native QUIC can be identified by a URI with a "moq" scheme.
 The "moq" URI scheme is defined as follows, using definitions from {{!RFC3986}}:
@@ -314,16 +314,16 @@ The "moq" URI scheme is defined as follows, using definitions from {{!RFC3986}}:
 moq-URI = "moq" "://" authority path-abempty [ "?" query ]
 ~~~~~~~~~~~~~~~
 
-The `authority` portion MUST NOT contain a non-empty `userinfo` portion.
+The `authority` portion MUST NOT contain a non-empty `host` portion.
 The `moq` URI scheme supports the `/.well-known/` path prefix defined in {{!RFC8615}}.
 
 This protocol does not specify any semantics on the `path-abempty` and `query` portions of the URI.
-The contents of those is left up to the application.
+The contents of those are left up to the application.
 
 The client can establish a connection to a MoQ server identified by a given URI
 by setting up a QUIC connection to the host and port identified by the `authority` section of the URI.
 The `path-abempty` and `query` portions of the URI are communicated to the server using
-the PATH parameter ({{path}}).
+the PATH parameter ({{path}}) which is sent in the SETUP message at the start of the session.
 The ALPN value {{!RFC7301}} used by the protocol is `moq-00`.
 
 ## Session initialization {#session-init}
@@ -342,6 +342,9 @@ When nearing resource limits, an endpoint SHOULD cancel the lowest priority stre
 The sender MAY cancel streams in response to congestion.
 This can be useful when the sender does not support stream prioritization.
 
+TODO: this section actually describes stream cancellation, not session
+cancellation. Is this section required, or can it be deleted, or added
+to a new "workflow" section.
 
 ## Termination  {#session-termination}
 The transport session can be terminated at any point.
@@ -363,7 +366,7 @@ The application MAY use any error message and SHOULD use a relevant code, as def
 |------|--------------------|
 
 * Session Terminated
-No error occurred, however the endpoint wishes to terminate the session.
+No error occurred; however the endpoint wishes to terminate the session.
 
 * Generic Error
 An unclassified error occurred.
@@ -374,10 +377,10 @@ The endpoint breached an agreement, which MAY have been pre-negotiated by the ap
 * GOAWAY:
 The endpoint successfully drained the session after a GOAWAY was initiated ({{message-goaway}}).
 
-# Prioritization and Congestion Response Considerations {#priority-congestion}
+# Prioritization and Congestion Response {#priority-congestion}
 
 TODO: This is a placeholder section to capture details on
-how the Moq Transport protocol deals with prioritization and congestion overall. Having its own section helps reduce merge conflicts and allows us to reference it from other parts.
+how the Moq Transport protocol deals with prioritization and congestion overall. 
 
 This section is expected to cover details on:
 
