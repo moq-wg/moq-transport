@@ -213,7 +213,8 @@ It is up to the application building on top of MoQ to define how broad or narrow
 An application that deals with connections between devices on a local network may limit the scope to a single connection;
 by contrast, an application that uses multiple CDNs to serve media may require the scope to include all of those CDNs.
 
-The full track name is the only piece of information that is used to identify the track within a given MoQ scope and is used as key for caching.
+The full track name is the only piece of information that is used to
+identify the track within a given MoQ scope and that  is used as a key for caching.
 MoQTransport does not provide any in-band content negotiation methods similar to the ones defined by HTTP
 ({{?RFC9110, Section 10}}); if, at a given moment in time, two tracks within the same scope contain different data,
 they have to have different full track names.
