@@ -174,14 +174,20 @@ x (b):
 The basic data element of MoQTransport is an *object*.
 An object is an addressable unit whose payload is a sequence of bytes.
 All objects belong to a group, indicating ordering and potential dependencies. {{model-group}}
-Objects are comprised of two parts: metadata and a payload.  The metadata is visible to relays but the payload is only visible to the producer and consumer. The application is solely responsible for the content of the object payload.
+Objects are comprised of two parts: metadata and a payload.  The
+metadata is never encrypted and is always visible to relays. The payload
+portion may be encrypted, in which case it is only visible to the
+producer and consumer. The application is solely responsible for the
+content of the object payload. This includes the underlying encoding,
+compression, any end-to-end encryption, or authentication. A relay MUST
+NOT combine, split, or otherwise modify object payloads.
 
 ## Groups {#model-group}
 
 A *group* is a collection of objects and is a sub-unit of a track ({{model-track}}).
 Objects within a group SHOULD NOT depend on objects in other groups.
 A group behaves as a join point for subscriptions. 
-A new subscriber may not want to receive the entire track, and may instead opt to receive only the latest group(s).
+A new subscriber might not want to receive the entire track, and may instead opt to receive only the latest group(s).
 The sender then selectively transmits objects based on their group membership.
 
 ## Track {#model-track}
