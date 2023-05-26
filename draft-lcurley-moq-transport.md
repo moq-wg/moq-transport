@@ -146,11 +146,12 @@ Endpoint:
 
 Group:
 
-: A temporal sequence of objects. A group represents a subscription point in a track. The media data within the group must not depend on the data in any other groups. 
+: A temporal sequence of one or more objects. A group represents a subscription point in a track. The media data within the group must not depend on the data in any other groups. 
 
 Object:
 
-: An object is an addressable unit whose payload is a sequence of bytes. Objects form the base element in the MoQTransport model. 
+: An object is an addressable unit whose payload is a sequence of bytes. Objects form the base element in the MoQTransport data model {{model-object}}.
+
 
 Producer:
 
@@ -166,7 +167,7 @@ Track:
 
 Transport session:
 
-: Either a native QUIC connection, or a WebTransport session used to transmit the data.
+: Either a native QUIC connection, or a WebTransport session.
 
 
 ## Notational Conventions
