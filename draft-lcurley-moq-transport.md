@@ -343,13 +343,9 @@ The `path-abempty` and `query` portions of the URI are communicated to the serve
 the PATH parameter ({{path}}).
 The ALPN value {{!RFC7301}} used by the protocol is `moq-00`.
 
-# Stream Mapping  {#stream-mapping}
+## Session initialization {#session-init}
 
-MoQTransport endpoints communicate over QUIC streams. Every stream is a sequence of messages, framed as described in {{messages}}.
-
-The first stream opened is a client-initiated bidirectional stream where the peers exchange SETUP messages ({{message-setup}}). The subsequent streams MAY be either unidirectional and bidirectional. For exchanging content, an application would typically send a unidirectional stream containing a single OBJECT message ({{message-object}}).
-
-Messages SHOULD be sent over the same stream if ordering is desired.
+The first stream opened is a client-initiated bidirectional stream where the peers exchange SETUP messages ({{message-setup}}). The subsequent streams MAY be either unidirectional or bidirectional. For exchanging content, an application would typically send a unidirectional stream containing a single OBJECT message ({{message-object}}), as putting more than one object into one stream may create head-of-line blocking delays.  However, if one object has a hard dependency on another object, putting them on the same stream could be a valid choice.
 
 
 ## Prioritization
