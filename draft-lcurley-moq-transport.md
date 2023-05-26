@@ -732,6 +732,9 @@ response is provided.
 * Error Code:
 Identifies an integer error code for subscription failure.
 
+* Reason Phrase Length:
+The length in bytes of the reason phrase.
+
 * Reason Phrase:
 Provides the reason for subscription error and `Reason Phrase Length` field carries its length.
 
@@ -830,6 +833,7 @@ The client:
 * SHOULD remain connected for two servers for a short period, processing objects from both in parallel.
 
 # Security Considerations
+TODO: Expand this section. 
 
 ## Resource Exhaustion
 Live content requires significant bandwidth and resources.
@@ -837,6 +841,7 @@ Failure to set limits will quickly cause resource exhaustion.
 
 MoQTransport uses QUIC flow control to impose resource limits at the network layer.
 Endpoints SHOULD set flow control limits based on the anticipated bitrate.
+
 
 The producer prioritizes and transmits streams out of order.
 Streams might be starved indefinitely during congestion.
