@@ -874,4 +874,5 @@ MUST be carried as the leading varint in catalog track objects.
 - James Hurley
 - Jordi Cenzano
 - Mike English
+- Mo Zanaty
 - Will Law
