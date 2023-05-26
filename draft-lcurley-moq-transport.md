@@ -126,7 +126,7 @@ TODO: Add motivation text regarding bw management techniques in response to cong
 
 {::boilerplate bcp14-tagged}
 
-OPEN ISSUE: The terms defined here doesn't capture the ongoing discussions within the Working Group (either as part of requirements or architecture documents). This section will be updated to reflect 
+TODO: The terms defined here doesn't capture the ongoing discussions within the Working Group (either as part of requirements or architecture documents). This section will be updated to reflect 
 the discussions.
 
 Commonly used terms in this document are described below.
@@ -145,7 +145,7 @@ Consumer:
 
 Endpoint:
 
-: The original producer or the final consumer in a transmission chain. 
+: A QUIC Client or a QUIC Server. 
 
 Group:
 
