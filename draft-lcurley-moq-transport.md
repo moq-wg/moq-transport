@@ -52,17 +52,28 @@ informative:
 
 --- abstract
 
-This document defines the core behavior for MoQTransport, a live media transport protocol over QUIC.
-The application fragments a live stream into objects, including a header that describes the basic relationship between objects.
-Objects are starved/dropped during congestion based on priorities in order to minimize latency.
+This document defines the core behavior for MoQTransport, a media
+transport protocol over QUIC.  MoQTransport allows a producer of media
+to publish data and have it consumed via subscription by a multiplicity
+of endpoints. It supports intermediate content distribution networks and
+is designed for high scale and low latency distribution.
 
 --- middle
 
 
 ## Introduction
-MoQTransport is a live media transport protocol that utilizes the QUIC network protocol {{QUIC}},
-either directly or via WebTransport {{WebTransport}}.
-It was originally developed for live media, but has been generalized for similar use-cases.
+
+MoQTransport (MoQT) is a transport protocol that utilizes the QUIC
+network protocol {{QUIC}}, either directly or via WebTransport
+{{WebTransport}}, for the dissemination of media. MoQT utilizes a
+publish/subscribe workflow in which producers of media publish data in
+response to subscription requests from a multiplicity of endpoints. MoQT
+supports wide range of use-cases with different resiliency and latency (live, interactive) needs without compromising the scalability and cost effectiveness associated with content delivery networks.
+
+MoQTransport is a generic protocol is designed to work in concert with
+multiple MoQ Streaming Formats. These MoQ Streaming Formats define how
+content is encoded, packaged, and mapped to MoQT objects, along with
+policies for discovery and subscription.
 
 * {{motivation}} covers the background and rationale behind MoQ transport.
 * {{objects}} covers how live content is fragmented into objects.
@@ -74,49 +85,67 @@ It was originally developed for live media, but has been generalized for similar
 
 ### Motivation
 
+The development of MoQT is driven by goals in a number of areas -
+specifically latency, the robustness of QUIC, workflow efficiency and
+relay support.
+
 #### Latency
-In a perfect world, we could deliver live content at the same rate it is produced.
-The end-to-end latency would be fixed and only subject to encoding and transmission delays.
-Unfortunately, networks have variable throughput, primarily due to congestion.
 
-Attempting to deliver content encoded at a higher bitrate than the network can support causes queuing.
-This queuing can occur anywhere in the path between the producer and consumer.
-For example: the application, the OS socket, a wifi router, within an ISP, or generally anywhere in transit.
+HTTP Adaptive Streaming (HAS) has been successful at achieving scale
+although often at the cost of latency. Latency is necessary to correct
+for variable network throughput. Ideally live content is consumed at the
+same bitrate it is produced. End-to-end latency would be fixed and only
+subject to encoding and transmission delays. Unfortunately, networks
+have variable throughput, primarily due to congestion. Attempting to
+deliver content encoded at a higher bitrate than the network can support
+causes queuing along the path from producer to consumer. The speed at
+which a protocol can detect and respond to queuing determines the
+overall latency. TCP-based protocols are simple but are slow to detect
+congestion and suffer from head-of-line blocking. UDP-based protocols
+can avoid queuing, but the application is now responsible for the
+complexity of fragmentation, congestion control, retransmissions,
+receiver feedback, reassembly, and more. One goal of MoQTransport is to
+achieve the best of both these worlds: leverage the features of QUIC to
+create a simple yet flexible low latency protocol that can rapidly
+detect and respond to congestion.
 
-If nothing is done, new data will be appended to the end of a growing queue and will take longer to arrive than their predecessors, increasing latency.
-Our job is to minimize the growth of this queue, and if necessary, bypass the queue entirely by dropping content.
+#### Leveraging QUIC
 
-The speed at which protocol can detect and respond to queuing determines the latency.
-TCP-based protocols are simple, but are slow to detect congestion and suffer from head-of-line blocking.
-UDP-based protocols can avoid queuing, but the application is now responsible for fragmentation, congestion control, retransmissions, receiver feedback, reassembly, and more.
-
-A goal of this draft is to get the best of both worlds: a simple protocol that can still rapidly detect and respond to congestion using QUIC streams.
+The parallel nature of QUIC streams can provide improvements 
+in the face of loss. A goal of MoQT is
+to design a streaming protocol to leverage the transmission benefits
+afforded by parallel QUIC streams as well exercising options for
+flexible loss recovery. Applying {{QUIC}} to HAS via HTTP/3 has 
+not yet yielded generalized improvements in throughput. One reason 
+for this is that sending segments down a single QUIC stream still 
+allows head-of-line blocking to occur.
 
 #### Universal
-The live media protocol ecosystem is fragmented; each protocol has it's own niche.
-Specialization is often a good thing, but we believe there's enough overlap to warrant consolidation.
 
-For example, a service might simultaneously ingest via WebRTC, SRT, RTMP, etc.
-The same service might then simultaneously distribute via WebRTC, LL-HLS, HLS/DASH, etc.
-Other similar live content would then be distributed other yet additional protocols: for example updates, chat, metadata, etc.
-
-This draft attempts to build a unified base transport protocol for media and similar use-cases.
-Any live content can be fragmented into objects and annotated to achieve the intended behavior.
-The goal is not to reinvent how content is encoded, just delivered.
+Internet delivered media today has protocols optimized for ingest and
+separate protocols optimized for distribution. This protocol switch in
+the distribution chain necessitates intermediary origins which
+re-package the media content. While specialization can have its
+benefits, there are gains in efficiency to be had in not having to
+re-package content. A goal of MoQT is to develop a single protocol which
+can be used for transmission from contribution to distribution. A
+related goal is the ability to support existing encoding and packaging
+schemas, both for backwards compatibility and for interoperability with
+the established content preparation ecosystem.
 
 #### Relays
-The prevailing belief is that UDP-based protocols are more expensive and don't "scale".
-While it's true that UDP is more difficult to optimize than TCP, QUIC itself is proof that it is possible to reach performance parity.
 
-The ability to scale a live content transport actually depends on relay support: proxies, caches, CDNs, SFUs, etc.
-The success of HTTP-based protocols is due to the ability for a HTTP CDN to cache and deduplicate requests.
+An integral feature of a protocol being successful is its ability to
+deliver media at scale. Greatest scale is achieved when third-party
+networks, independent of both the publisher and subscriber, can be
+leveraged to relay the content. These relays must cache content for
+distribution efficiency while simultaneously routing content and
+deterministically responding to congestion in a multi-tenant network. A
+goal of MoQT is to treat relays as first-class citizens of the protocol
+and ensure that objects are structured such that information necessary
+for distribution is available to relays while the media content itself
+remains opaque and private.
 
-It's difficult to build a CDN for live protocols that were not designed with relays in mind.
-This is the fatal flaw of many applications, as they relay on relays to perform bespoke parsing and decision making based on the contents.
-
-A goal of this draft is to treat relays as first class citizens.
-Any identification, reliability, ordering, prioritization, caching, etc is written to the wire in a header that is easy to parse.
-This ensures that relays can easily route content and respond to congestion in a specified, deterministic manner.
 
 #### Bandwidth Management and Congestion Response
 TODO: Add motivation text regarding bw management techniques in response to congestion. Also refer to {{priority-congestion}} for further details.
@@ -125,6 +154,9 @@ TODO: Add motivation text regarding bw management techniques in response to cong
 ## Terms and Definitions
 
 {::boilerplate bcp14-tagged}
+
+TODO: The terms defined here doesn't capture the ongoing discussions within the Working Group (either as part of requirements or architecture documents). This section will be updated to reflect 
+the discussions.
 
 Commonly used terms in this document are described below.
 
@@ -140,6 +172,18 @@ Consumer:
 
 : A QUIC endpoint receiving media over the network. This could be a consumer or a relay.
 
+Endpoint:
+
+: A QUIC Client or a QUIC Server. 
+
+Group:
+
+: A temporal sequence of objects. A group represents a join point in a track. See ({{model-group}}).
+
+Object:
+
+: An object is an addressable unit whose payload is a sequence of bytes. Objects form the base element in the MoQTransport model. See ({{model-object}}).
+
 Producer:
 
 : A QUIC endpoint sending media over the network. This could be a producer or a relay.
@@ -154,7 +198,7 @@ Track:
 
 Transport session:
 
-: Either a native QUIC connection, or a WebTransport session used to transmit the data.
+: Either a native QUIC connection, or a WebTransport session.
 
 
 ## Notational Conventions
@@ -863,10 +907,11 @@ TODO: register the URI scheme and the ALPN
 {:numbered="false"}
 
 - Alan Frindell
+- Ali Begen
 - Charles Krasic
+- Christian Huitema
 - Cullen Jennings
 - James Hurley
 - Jordi Cenzano
 - Mike English
 - Will Law
-- Ali Begen
