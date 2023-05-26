@@ -62,9 +62,18 @@ is designed for high scale and low latency distribution.
 
 
 ## Introduction
-MoQTransport is a live media transport protocol that utilizes the QUIC network protocol {{QUIC}},
-either directly or via WebTransport {{WebTransport}}.
-It was originally developed for live media, but has been generalized for similar use-cases.
+
+MoQTransport (MoQT) is a transport protocol that utilizes the QUIC
+network protocol {{QUIC}}, either directly or via WebTransport
+{{WebTransport}}, for the dissemination of media. MoQT utilizes a
+publish/subscribe workflow in which producers of media publish data in
+response to subscription requests from a multiplicity of endpoints. MoQT
+supports wide range of use-cases with different resiliency and latency (live, interactive) needs without compromising the scalability and cost effectiveness associated with content delivery networks.
+
+MoQTransport is a generic protocol is designed to work in concert with
+multiple MoQ Streaming Formats. These MoQ Streaming Formats define how
+content is encoded, packaged, and mapped to MoQT objects, along with
+policies for discovery and subscription.
 
 * {{motivation}} covers the background and rationale behind MoQ transport.
 * {{objects}} covers how live content is fragmented into objects.
