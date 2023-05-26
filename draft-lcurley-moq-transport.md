@@ -126,6 +126,9 @@ TODO: Add motivation text regarding bw management techniques in response to cong
 
 {::boilerplate bcp14-tagged}
 
+OPEN ISSUE: The terms defined here doesn't capture the ongoing discussions within the Working Group (either as part of requirements or architecture documents). This section will be updated to reflect 
+the discussions.
+
 Commonly used terms in this document are described below.
 
 Client:
@@ -146,11 +149,11 @@ Endpoint:
 
 Group:
 
-: A temporal sequence of objects. A group represents a subscription point in a track. The media data within the group must not depend on the data in any other groups. 
+: A temporal sequence of objects. A group represents a join point in a track. See ({{model-group}}).
 
 Object:
 
-: An object is an addressable unit whose payload is a sequence of bytes. Objects form the base element in the MoQTransport model. 
+: An object is an addressable unit whose payload is a sequence of bytes. Objects form the base element in the MoQTransport model. See ({{model-object}})
 
 Producer:
 
