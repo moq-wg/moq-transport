@@ -289,17 +289,7 @@ Full Track Name = security-camera.example.com/camera1/hd-video
 
 Each track MAY have one or more associated connection URLs specifying network hosts through which a track may be accessed. The syntax of the Connection URL and the associated connection setup procedures are specific to the underlying transport protocol usage {{transport-protocols}}.
 
-
-## Session
-A transport session is established for each track bundle.
-The client issues a CONNECT request with a URL which the server uses for identification and authentication.
-All control messages and prioritization occur within the context of a single transport session, which means a single track bundle.
-When WebTransport is used, multiple transport sessions may be pooled over a single QUIC connection for efficiency.
-
-
-# Objects
-MoQTransport works by transferring objects over QUIC streams.
-The application determines how live content is fragmented into tracks, groups, and objects.
+# Sessions {#session}
 
 ## Order Priorities and Options
 
