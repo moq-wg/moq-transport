@@ -213,7 +213,7 @@ MOQT has a hierarchical object model for data, comprised of objects, groups and 
 
 ## Objects {#model-object}
 
-The basic data element of MOQT is an *object*.
+The basic data element of MOQT is an object.
 An object is an addressable unit whose payload is a sequence of bytes.
 All objects belong to a group, indicating ordering and potential dependencies. {{model-group}}
 Objects are comprised of two parts: metadata and a payload.  The
@@ -226,7 +226,7 @@ NOT combine, split, or otherwise modify object payloads.
 
 ## Groups {#model-group}
 
-A *group* is a collection of objects and is a sub-unit of a track ({{model-track}}).
+A group is a collection of objects and is a sub-unit of a track ({{model-track}}).
 Objects within a group SHOULD NOT depend on objects in other groups.
 A group behaves as a join point for subscriptions. 
 A new subscriber might not want to receive the entire track, and may instead opt to receive only the latest group(s).
@@ -234,7 +234,7 @@ The sender then selectively transmits objects based on their group membership.
 
 ## Track {#model-track}
 
-A *track* is a sequence of groups ({{model-group}}). It is the entity
+A track is a sequence of groups ({{model-group}}). It is the entity
 against which a consumer issues a subscription request.  A subscriber
 can request to receive individual tracks starting at a group boundary,
 including any new objects pushed by the producer while the track is
@@ -242,16 +242,16 @@ active.
 
 ### Track Naming and Scopes {#track-name}
 
-In MOQT, every track has a *track name* and a *track namespace* associated with it.
+In MOQT, every track has a track name and a track namespace associated with it.
 A track name identifies an individual track within the namespace.
 
-A tuple of a track name and a track namespace together is known as *a full track name*:
+A tuple of a track name and a track namespace together is known as a full track name:
 
 ~~~~~~~~~~~~~~~
 Full Track Name = Track Namespace Track Name
 ~~~~~~~~~~~~~~~
 
-A *MOQT scope* is a set of servers (as identified by their connection URIs) for which full track names are guaranteed to be unique.
+A MOQT scope is a set of servers (as identified by their connection URIs) for which full track names are guaranteed to be unique.
 This implies that within a single MOQT scope, subscribing to the same full track name would result in the subscriber receiving the data for the same track.
 It is up to the application using MOQT to define how broad or narrow the scope has to be.
 An application that deals with connections between devices on a local network may limit the scope to a single connection;
@@ -549,7 +549,7 @@ A length of 0 indicates the message is unbounded and continues until the end of 
 
 ## SETUP {#message-setup}
 
-The `SETUP` message is the first message that is exchanged by the client and the server; it allows the peers to establish the mutually supported version and agree on the initial configuration before any objects are exchanged. It is a sequence of key-value pairs called *SETUP parameters*; the semantics and format of which can vary based on whether the client or server is sending. 
+The `SETUP` message is the first message that is exchanged by the client and the server; it allows the peers to establish the mutually supported version and agree on the initial configuration before any objects are exchanged. It is a sequence of key-value pairs called SETUP parameters; the semantics and format of which can vary based on whether the client or server is sending. 
 To ensure future extensibility of MOQT, the peers MUST ignore
 unknown setup parameters. TODO: describe GREASE for those.
 
@@ -593,11 +593,11 @@ The ROLE parameter (key 0x00) allows the client to specify what roles it expects
 
 0x01:
 
-: Only the client is expected to send objects on the connection. This is commonly referred to as *the ingestion case*.
+: Only the client is expected to send objects on the connection. This is commonly referred to as the ingestion case.
 
 0x02:
 
-: Only the server is expected to send objects on the connection. This is commonly referred to as *the delivery case*.
+: Only the server is expected to send objects on the connection. This is commonly referred to as the delivery case.
 
 0x03:
 
