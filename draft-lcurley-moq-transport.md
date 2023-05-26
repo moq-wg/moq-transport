@@ -52,7 +52,7 @@ informative:
 
 --- abstract
 
-This document defines the core behavior for MoQTransport(moqt), a live media transport protocol over QUIC.
+This document defines the core behavior for MoQTransport, a live media transport protocol over QUIC.
 The application fragments a live stream into objects, including a header that describes the basic relationship between objects.
 Objects are starved/dropped during congestion based on priorities in order to minimize latency.
 
