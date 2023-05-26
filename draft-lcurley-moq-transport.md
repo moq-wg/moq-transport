@@ -138,11 +138,11 @@ Congestion:
 
 Consumer:
 
-: A QUIC endpoint receiving media over the network. This could be an endpoint or a relay.
+: A QUIC endpoint receiving media over the network.
 
 Producer:
 
-: A QUIC endpoint sending media over the network. This could be an endpoint or a relay.
+: A QUIC endpoint sending media over the network.
 
 Server:
 
