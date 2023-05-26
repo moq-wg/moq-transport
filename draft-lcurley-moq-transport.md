@@ -425,19 +425,20 @@ This section is expected to cover details on:
 ### Proposal - Send Order {#send-order}
 
 Media is produced with an intended order, both in terms of when media should be presented (PTS) and when media should be decoded (DTS).
-As stated in motivation ({{latency}}), the network is unable to maintain this ordering during congestion without increasing latency.
+As stated in the introduction, the network is unable to maintain this ordering during congestion without increasing latency.
 
 The encoder determines how to behave during congestion by assigning each object a numeric send order.
-The send order SHOULD be followed when possible to ensure that the most important media is delivered when throughput is limited.
+The send order SHOULD be followed when possible, to ensure that the most important media is delivered when throughput is limited.
 Note that the contents within each object are still delivered in order; this send order only applies to the ordering between objects.
 
 A sender MUST send each object over a dedicated QUIC stream.
-The QUIC library should support prioritization ({{prioritization}}) such that streams are transmitted in send order.
+The QUIC library should support prioritization ({{prioritization-congestion}}) such that streams are transmitted in send order.
 
-A receiver MUST NOT assume that objects will be received in send order for a number of reasons:
+A receiver MUST NOT assume that objects will be received in send order,
+for the following reasons:
 
-* Newly encoded objects MAY have a smaller send order than outstanding objects.
-* Packet loss or flow control MAY delay the send of individual streams.
+* Newly encoded objects can have a smaller send order than outstanding objects.
+* Packet loss or flow control can delay the send of individual streams.
 * The sender might not support QUIC stream prioritization.
 
 TODO: Refer to Congestion Response and Prioritization Section for further details on various proposals.
