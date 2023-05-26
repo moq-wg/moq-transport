@@ -647,7 +647,7 @@ The order of the object within the group.
 The sequence starts at 0, increasing sequentially for each object within the group.
 
 * Object Send Order:
-Object's Send Order {{send-order}} or Priority {{ordering-by-priorities}} value.
+An integer indicating the object send order {{send-order}} or priority {{ordering-by-priorities}} value.
 
 * Object Payload:
 An opaque payload intended for the consumer and SHOULD NOT be processed by a relay.
