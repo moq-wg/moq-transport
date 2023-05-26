@@ -52,17 +52,28 @@ informative:
 
 --- abstract
 
-This document defines the core behavior for MoQTransport, a live media transport protocol over QUIC.
-The application fragments a live stream into objects, including a header that describes the basic relationship between objects.
-Objects are starved/dropped during congestion based on priorities in order to minimize latency.
+This document defines the core behavior for MoQTransport, a media
+transport protocol over QUIC.  MoQTransport allows a producer of media
+to publish data and have it consumed via subscription by a multiplicity
+of endpoints. It supports intermediate content distribution networks and
+is designed for high scale and low latency distribution.
 
 --- middle
 
 
 ## Introduction
-MoQTransport is a live media transport protocol that utilizes the QUIC network protocol {{QUIC}},
-either directly or via WebTransport {{WebTransport}}.
-It was originally developed for live media, but has been generalized for similar use-cases.
+
+MoQTransport (MoQT) is a transport protocol that utilizes the QUIC
+network protocol {{QUIC}}, either directly or via WebTransport
+{{WebTransport}}, for the dissemination of media. MoQT utilizes a
+publish/subscribe workflow in which producers of media publish data in
+response to subscription requests from a multiplicity of endpoints. MoQT
+supports wide range of use-cases with different resiliency and latency (live, interactive) needs without compromising the scalability and cost effectiveness associated with content delivery networks.
+
+MoQTransport is a generic protocol is designed to work in concert with
+multiple MoQ Streaming Formats. These MoQ Streaming Formats define how
+content is encoded, packaged, and mapped to MoQT objects, along with
+policies for discovery and subscription.
 
 * {{motivation}} covers the background and rationale behind MoQ transport.
 * {{objects}} covers how live content is fragmented into objects.
@@ -879,10 +890,11 @@ TODO: register the URI scheme and the ALPN
 {:numbered="false"}
 
 - Alan Frindell
+- Ali Begen
 - Charles Krasic
+- Christian Huitema
 - Cullen Jennings
 - James Hurley
 - Jordi Cenzano
 - Mike English
 - Will Law
-- Ali Begen
