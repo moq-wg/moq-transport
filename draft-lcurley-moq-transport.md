@@ -150,7 +150,8 @@ Server:
 
 Track:
 
-: An encoded bitstream. Tracks contain a sequential series of groups and are the subscribable entity with MoQT.
+: An encoded bitstream. Tracks contain a sequential series of one or
+  more groups and are the subscribable entity with MoQT.
 
 Transport session:
 
