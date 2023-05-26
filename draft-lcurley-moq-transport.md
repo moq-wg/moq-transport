@@ -842,6 +842,9 @@ Failure to set limits will quickly cause resource exhaustion.
 MoQTransport uses QUIC flow control to impose resource limits at the network layer.
 Endpoints SHOULD set flow control limits based on the anticipated bitrate.
 
+Endpoints MAY impose a MAX STREAM count limit which would restrict the
+number of concurrent streams which a MoQTransport Streaming Format could
+have in flight.
 
 The producer prioritizes and transmits streams out of order.
 Streams might be starved indefinitely during congestion.
