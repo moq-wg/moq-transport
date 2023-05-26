@@ -553,7 +553,7 @@ A length of 0 indicates the message is unbounded and continues until the end of 
 
 ## SETUP {#message-setup}
 
-The `SETUP` message is the first message that is exchanged by the client and the server; it allows the peers to establish the mutually supported version and agree on the initial configuration. It is a sequence of key-value pairs called *SETUP parameters*; the semantics and the format of individual parameter values MAY depend on what party is sending it.
+The `SETUP` message is the first message that is exchanged by the client and the server; it allows the peers to establish the mutually supported version and agree on the initial configuration before any objects are exchanged. It is a sequence of key-value pairs called *SETUP parameters*; the semantics and format of which can vary based on whether the client or server is sending. To ensure future extensibility of MoQTransport, the peers MUST ignore unknown setup parameters. TODO: describe GREASE for those.
 
 The wire format of the SETUP message is as follows:
 
@@ -607,7 +607,7 @@ The ROLE parameter (key 0x00) allows the client to specify what roles it expects
 
 : Both the client and the server are expected to send objects.
 
-The client MUST send a ROLE parameter with one of the three values specified above. The server MUST close the connection if the ROLE parameter is missing, is not one of the three above-specified values, or it is different from what the server expects based on the application in question.
+The client MUST send a ROLE parameter with one of the three values specified above. The server MUST close the connection if the ROLE parameter is missing, is not one of the three above-specified values, or it is different from what the server expects based on the application.
 
 #### PATH parameter {#path}
 
@@ -647,7 +647,7 @@ The order of the object within the group.
 The sequence starts at 0, increasing sequentially for each object within the group.
 
 * Object Send Order:
-An integer indicating the object send order ({{send-order}}).
+An integer indicating the object send order {{send-order}} or priority {{ordering-by-priorities}} value.
 
 * Object Payload:
 An opaque payload intended for the consumer and SHOULD NOT be processed by a relay.
@@ -655,7 +655,7 @@ An opaque payload intended for the consumer and SHOULD NOT be processed by a rel
 
 ## SUBSCRIBE REQUEST {#message-subscribe-req}
 
-Entities that intend to receive content will do so via subscriptions to one or more tracks.
+A receiver issues a SUBSCRIBE REQUEST to a publisher to request a track.
 
 The format of SUBSCRIBE REQUEST is as follows:
 
@@ -667,8 +667,8 @@ Track Request Parameter {
 }
 
 SUBSCRIBE REQUEST Message {
-  Full Track Name Length(i),
-  Full Track Name(...),
+  Full Track Name Length (i),
+  Full Track Name (...),
   Track Request Parameters (..) ...
 }
 ~~~
@@ -676,7 +676,7 @@ SUBSCRIBE REQUEST Message {
 
 
 * Full Track Name:
-Identifies the track as defined in ({{track-fn}}).
+Identifies the track as defined in ({{track-name}}).
 
 * Track Request Parameters:
  As defined in {{track-req-params}}.
@@ -700,18 +700,17 @@ SUBSCRIBE OK
 {: #moq-transport-subscribe-ok format title="MoQTransport SUBSCRIBE OK Message"}
 
 * Full Track Name:
-Identifies the track in the request message for which this
-response is provided.
+Identifies the track for which this response is provided.
 
 * Track ID:
-Session specific identifier that maps the Full Track Name to the Track ID in OBJECT ({{message-object}}) message headers for the advertised track. Track IDs are generally shorter than Full Track Names and thus reduce the overhead in OBJECT messages.
+Session specific identifier that is used as an alias for the Full Track Name in the Track ID field of the OBJECT ({{message-object}}) message headers of the requested track. Track IDs are generally shorter than Full Track Names and thus reduce the overhead in OBJECT messages.
 
 * Expires:
-Time in milliseconds after which the subscription is no longer valid. A value of 0 implies that the subscription stays active until its explicitly unsubscribed or the underlying transport is disconnected.
+Time in milliseconds after which the subscription is no longer valid. A value of 0 indicates that the subscription stays active until it is explicitly unsubscribed.
 
 ## SUBSCRIBE ERROR {#message-subscribe-error}
 
-A `SUBSCRIBE ERROR` control message is sent for unsuccessful subscriptions.
+A publisher sends a SUBSCRIBE ERROR control message in response to a failed SUBSCRIBE REQUEST.
 
 ~~~
 SUBSCRIBE ERROR
@@ -737,7 +736,7 @@ Provides the reason for subscription error and `Reason Phrase Length` field carr
 
 ## ANNOUNCE {#message-announce}
 
-The publisher advertises the tracks via the `ANNOUNCE` control message. The `ANNOUNCE` message allows discovery of tracks being published by a publisher and verify publisher's authorization for all the tracks sharing the announced namespace.
+The publisher sends the ANNOUNCE control message to advertise where the receiver can route SUBSCRIBE REQUESTs for tracks within the announced Track Namespace. The receiver verifies the publisher is authorized to publish tracks under this namespace.
 
 ~~~
 ANNOUNCE Message {
@@ -749,14 +748,15 @@ ANNOUNCE Message {
 {: #moq-transport-announce-format title="MoQTransport ANNOUNCE Message"}
 
 * Track Namespace:
-Identifies a track's namespace as defined in ({{track-fn}})
+Identifies a track's namespace as defined in ({{track-name}})
 
 * Track Request Parameters:
-As defined in {{track-req-params}}.
+The parameters are defined in {{track-req-params}}.
 
 ### Track Request Parameters {#track-req-params}
 
-The Track Request Parameters identify properties of the track requested in either the ANNOUNCE or SUSBCRIBE REQUEST control messages. Every parameter MUST appear at most once. The peers MUST close the connection if there are duplicates. The Parameter Value Length field indicates the length of the Parameter Value.
+The Track Request Parameters identify properties of the track requested in either the ANNOUNCE or SUSBCRIBE REQUEST control messages. The peers MUST close the connection if there are duplicates. The Parameter Value Length field indicates the length of the Parameter Value.
+
 
 #### GROUP SEQUENCE Parameter
 
@@ -768,11 +768,9 @@ The OBJECT SEQUENCE parameter (key 0x01) identifies the object with the track to
 #### AUTHORIZATION INFO Parameter
 AUTHORIZATION INFO parameter (key 0x02) identifies track's authorization information. This parameter is populated for cases where the authorization is required at the track level. This parameter is applicable in SUBSCRIBE REQUEST and ANNOUNCE messages.
 
-
-
 ## ANNOUNCE OK {#message-announce-ok}
 
-`ANNOUNCE OK` control message is sent for announcements successfully authorized.
+The receiver sends an `ANNOUNCE OK` control message to acknowledge the successful authorization and acceptance of an ANNOUNCE message.
 
 ~~~
 ANNOUNCE OK
@@ -787,7 +785,7 @@ Identifies the track namespace in the ANNOUNCE message for which this response i
 
 ## ANNOUNCE ERROR {#message-announce-error}
 
-A `ANNOUNCE ERROR` control message is sent for the tracks that failed authorization.
+The receiver sends an  `ANNOUNCE ERROR` control message for tracks that failed authorization.
 
 ~~~
 ANNOUNCE ERROR
@@ -812,22 +810,23 @@ Provides the reason for announcement error and `Reason Phrase Length` field carr
 
 
 ## GOAWAY {#message-goaway}
-The `GOAWAY` message is sent by the server to force the client to reconnect.
+The server sends a `GOAWAY` message to force the client to reconnect.
 This is useful for server maintenance or reassignments without severing the QUIC connection.
-The server MAY be a producer or consumer.
+The server can be a producer or a consumer.
 
 The server:
 
 * MAY initiate a graceful shutdown by sending a GOAWAY message.
-* MUST close the QUIC connection after a timeout with the GOAWAY error code ({{termination}}).
+* MUST close the QUIC connection after a timeout with the GOAWAY error code ({{session-termination}}).
 * MAY close the QUIC connection with a different error code if there is a fatal error before shutdown.
 * SHOULD wait until the `GOAWAY` message and any pending streams have been fully acknowledged, plus an extra delay to ensure they have been processed.
 
 The client:
 
-* MUST establish a new transport session to the provided URL upon receipt of a `GOAWAY` message.
-* SHOULD establish the connection in parallel which MUST use different QUIC connection.
-* SHOULD remain connected for two servers for a short period, processing objects from both in parallel.
+* MUST establish a new transport session upon receipt of a `GOAWAY` message, assuming it wants to continue operation. 
+* SHOULD establish the new transport session using a different QUIC connection to that on which it received the GOAWAY message.
+* SHOULD remain connected on both connections for a short period, processing objects from both in parallel.
+
 
 # Security Considerations
 
