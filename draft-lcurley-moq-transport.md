@@ -53,14 +53,13 @@ informative:
 --- abstract
 
 This document defines the core behavior for MoQTransport, a media
-transport protocol over QUIC.  MoQTransport allows a producer of media
-to publish data and have it consumed via subscription by a multiplicity
-of endpoints. It supports intermediate content distribution networks and
-is designed for high scale and low latency distribution. The core
-subscribable entities are tracks, consisting of a sequence of objects
-organized into groups. MoQTransport is a generic protocol, designed to
-work in concert with multiple MoQ Streaming Formats, each of which
-define alternate schemes for carrying media content over MoQT.
+transport protocol over QUIC. It aims at supporting multiple
+application classes with varying latency requirements. 
+It is based on a publish/subscribe metaphor where entities
+publish and subscribe to data that is sent through, and received
+from, relays in the cloud. The data is delivered in the strict
+priority order.
+
 
 --- middle
 
