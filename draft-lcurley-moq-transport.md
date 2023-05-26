@@ -72,10 +72,14 @@ multiple MoQ Streaming Formats. These MoQ Streaming Formats define how
 content is encoded, packaged, and mapped to MOQT objects, along with
 policies for discovery and subscription.
 
-* {{model}} describes the object model employed by MOQT
+* {{model}} describes the object model employed by MOQT.
+
 * {{session}} covers aspects of setting up a MOQT session.
+
 * {{priority-congestion}} covers protocol considerations on prioritization schemes and congestion response overall.
+
 * {{relays-moq}} covers behavior at the relay entities.
+
 * {{message}} covers how messages are encoded on the wire.
 
 
@@ -285,10 +289,8 @@ network hosts through which a track may be accessed. The syntax of the
 Connection URL and the associated connection setup procedures are
 specific to the underlying transport protocol usage {{session}}.
 
+
 # Sessions {#session}
-
-
-
 
 ## Session establishment {#session-establishment}
 
@@ -329,6 +331,7 @@ The first stream opened is a client-initiated bidirectional stream where the pee
 
 
 ## Cancellation  {#session-cancellation}
+
 A QUIC stream MAY be canceled at any point with an error code.
 The producer does this via a `RESET_STREAM` frame while the consumer requests cancellation with a `STOP_SENDING` frame.
 
@@ -362,10 +365,10 @@ The application MAY use any error message and SHOULD use a relevant code, as def
 | 0x10 | GOAWAY             |
 |------|--------------------|
 
-* Session Terminated
+* Session Terminated:
 No error occurred; however the endpoint wishes to terminate the session.
 
-* Generic Error
+* Generic Error:
 An unclassified error occurred.
 
 * Unauthorized:
@@ -446,6 +449,7 @@ consensus and define meta data that controls this behavior.
 There have been proposals to allow emitters to coordinate the allocation of layer priorities
 across multiple coordinated tracks. At this point, these proposals have not reached consensus.
 
+
 # Relays {#relays-moq}
 
 Relays are leveraged to enable distribution scale in the MoQ
@@ -492,6 +496,7 @@ relay behavior when merging or splitting streams and interactions
 with congestion response.
 
 ## Relay Object Handling
+
 MOQT encodes the delivery information for a stream via OBJECT headers ({{message-object}}).
 
 A relay MUST treat the object payload as opaque. 
@@ -503,7 +508,9 @@ Packet loss will cause stream data to be buffered in the QUIC library, awaiting 
 To mitigate this, a relay SHOULD read and write QUIC stream data out of order subject to flow control limits.
 See section 2.2 in {{QUIC}}.
 
+
 # Messages {#message}
+
 Both unidirectional and bidirectional QUIC streams contain sequences of length-delimited messages.
 
 ~~~
@@ -608,8 +615,8 @@ When connecting to a server using a URI with the "moq" scheme,
 the client MUST set the PATH parameter to the `path-abempty` portion of the URI;
 if `query` is present, the client MUST concatenate `?`, followed by the `query` portion of the URI to the parameter.
 
-
 ## OBJECT {#message-object}
+
 A OBJECT message contains a range of contiguous bytes from from the specified track, as well as associated metadata required to deliver, cache, and forward it.
 
 The format of the OBJECT message is as follows:
@@ -668,7 +675,7 @@ SUBSCRIBE REQUEST Message {
 Identifies the track as defined in ({{track-name}}).
 
 * Track Request Parameters:
- As defined in {{track-req-params}}.
+As defined in {{track-req-params}}.
 
 On successful subscription, the publisher SHOULD start delivering objects
 from the group sequence and object sequence as defined in the `Track Request Parameters`.
@@ -696,6 +703,7 @@ Session specific identifier that is used as an alias for the Full Track Name in 
 
 * Expires:
 Time in milliseconds after which the subscription is no longer valid. A value of 0 indicates that the subscription stays active until it is explicitly unsubscribed.
+
 
 ## SUBSCRIBE ERROR {#message-subscribe-error}
 
@@ -726,6 +734,7 @@ The length in bytes of the reason phrase.
 * Reason Phrase:
 Provides the reason for subscription error and `Reason Phrase Length` field carries its length.
 
+
 ## ANNOUNCE {#message-announce}
 
 The publisher sends the ANNOUNCE control message to advertise where the receiver can route SUBSCRIBE REQUESTs for tracks within the announced Track Namespace. The receiver verifies the publisher is authorized to publish tracks under this namespace.
@@ -755,9 +764,11 @@ The Track Request Parameters identify properties of the track requested in eithe
 The GROUP SEQUENCE parameter (key 0x00) identifies the group within the track to start delivering objects. The publisher MUST start delivering the objects from the most recent group, when this parameter is omitted. This parameter is applicable in SUBSCRIBE REQUEST message.
 
 #### OBJECT SEQUENCE Parameter
+
 The OBJECT SEQUENCE parameter (key 0x01) identifies the object with the track to start delivering objects. The `GROUP SEQUENCE` parameter MUST be set to identify the group under which to start delivery. The publisher MUST start delivering from the beginning of the selected group when this parameter is omitted. This parameter is applicable in SUBSCRIBE REQUEST message.
 
 #### AUTHORIZATION INFO Parameter
+
 AUTHORIZATION INFO parameter (key 0x02) identifies track's authorization information. This parameter is populated for cases where the authorization is required at the track level. This parameter is applicable in SUBSCRIBE REQUEST and ANNOUNCE messages.
 
 ## ANNOUNCE OK {#message-announce-ok}
@@ -802,6 +813,7 @@ Provides the reason for announcement error and `Reason Phrase Length` field carr
 
 
 ## GOAWAY {#message-goaway}
+
 The server sends a `GOAWAY` message to force the client to reconnect.
 This is useful for server maintenance or reassignments without severing the QUIC connection.
 The server can be a producer or a consumer.
@@ -820,10 +832,12 @@ The client:
 * SHOULD remain connected on both connections for a short period, processing objects from both in parallel.
 
 
-# Security Considerations
+# Security Considerations {#security}
+
 TODO: Expand this section. 
 
 ## Resource Exhaustion
+
 Live content requires significant bandwidth and resources.
 Failure to set limits will quickly cause resource exhaustion.
 
