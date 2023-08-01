@@ -6,7 +6,7 @@ date: {DATE}
 category: std 
 
 ipr: trust200902
-area: General
+area: Applications and Real-Time
 submissionType: IETF
 workgroup: MOQ 
 keyword: Internet-Draft
