@@ -1,14 +1,14 @@
 ---
 title: "Media over QUIC Transport"
 abbrev: moq-transport
-docname: draft-lcurley-moq-transport-latest
+docname: draft-ietf-moq-transport-00
 date: {DATE}
-category: info
+category: std 
 
 ipr: trust200902
-area: General
+area: Applications and Real-Time
 submissionType: IETF
-workgroup: Independent Submission
+workgroup: MOQ 
 keyword: Internet-Draft
 
 stand_alone: yes

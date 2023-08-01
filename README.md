@@ -1,7 +1,7 @@
 # MoQ Transport
 MoQ Transport is a live media protocol that utilizes QUIC streams.
 
-[Latest Draft](https://moq-wg.github.io/moq-transport/draft-lcurley-moq-transport.html)
+[Latest Draft](https://moq-wg.github.io/moq-transport/draft-ietf-moq-transport.html)
 
 
 ## Contributing
