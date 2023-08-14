@@ -680,8 +680,13 @@ Server SETUP Message Payload {
 ~~~
 {: #moq-transport-setup-format title="MOQT SETUP Message"}
 
-The Parameter Value Length field indicates the length of the Parameter
-Value.
+The available versions and SETUP parameters are detailed in the next sections.
+
+### Versions {#setup-versions}
+
+MoQ Transport versions are a 32-bit unsigned integer, encoded as a varint.
+This version of the specification is identified by the number 0x00000001.
+Versions with the most significant 16 bits of the version number cleared are reserved for use in future IETF consensus documents.
 
 The client offers the list of the protocol versions it supports; the
 server MUST reply with one of the versions offered by the client. If the
@@ -689,7 +694,11 @@ server does not support any of the versions offered by the client, or
 the client receives a server version that it did not offer, the
 corresponding peer MUST close the connection.
 
-The SETUP parameters are described in the {{setup-parameters}} section.
+\[\[RFC editor: please remove the remainder of this section before
+publication.]]
+
+The version number for the final version of this specification (0x00000001), is reserved for the version of the protocol that is published as an RFC.
+Version numbers used to identify IETF drafts are created by adding the draft number to 0xff000000. For example, draft-ietf-moq-transport-13 would be identified as 0xff00000D.
 
 ### SETUP Parameters {#setup-parameters}
 
