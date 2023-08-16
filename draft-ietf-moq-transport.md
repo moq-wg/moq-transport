@@ -882,37 +882,6 @@ ANNOUNCE Message {
 * Track Request Parameters: The parameters are defined in
 {{track-req-params}}.
 
-### Track Request Parameters {#track-req-params}
-
-The Track Request Parameters identify properties of the track requested
-in either the ANNOUNCE or SUSBCRIBE REQUEST control messages. The peers
-MUST close the connection if there are duplicates. The Parameter Value
-Length field indicates the length of the Parameter Value.
-
-
-#### GROUP SEQUENCE Parameter
-
-The GROUP SEQUENCE parameter (key 0x00) identifies the group within the
-track to start delivering objects. The publisher MUST start delivering
-the objects from the most recent group, when this parameter is
-omitted. This parameter is applicable in SUBSCRIBE REQUEST message.
-
-#### OBJECT SEQUENCE Parameter
-
-The OBJECT SEQUENCE parameter (key 0x01) identifies the object with the
-track to start delivering objects. The `GROUP SEQUENCE` parameter MUST
-be set to identify the group under which to start delivery. The
-publisher MUST start delivering from the beginning of the selected group
-when this parameter is omitted. This parameter is applicable in
-SUBSCRIBE REQUEST message.
-
-#### AUTHORIZATION INFO Parameter
-
-AUTHORIZATION INFO parameter (key 0x02) identifies track's authorization
-information. This parameter is populated for cases where the
-authorization is required at the track level. This parameter is
-applicable in SUBSCRIBE REQUEST and ANNOUNCE messages.
-
 ## ANNOUNCE OK {#message-announce-ok}
 
 The receiver sends an `ANNOUNCE OK` control message to acknowledge the
@@ -921,6 +890,7 @@ successful authorization and acceptance of an ANNOUNCE message.
 ~~~
 ANNOUNCE OK
 {
+  Track Namespace Length(i),
   Track Namespace
 }
 ~~~
@@ -957,7 +927,7 @@ Phrase Length` field carries its length.
 
 ## GOAWAY {#message-goaway}
 
-The server sends a `GOAWAY` message to force the client to reconnect.
+The pub sends a `GOAWAY` message to force the client to reconnect.
 This is useful for server maintenance or reassignments without severing
 the QUIC connection.  The server can be a producer or a consumer.
 
@@ -981,6 +951,37 @@ The client:
 * SHOULD remain connected on both connections for a short period,
   processing objects from both in parallel.
 
+
+## Track Request Parameters {#track-req-params}
+
+The Track Request Parameters identify properties of the track requested
+in either the ANNOUNCE or SUSBCRIBE REQUEST control messages. The peers
+MUST close the connection if there are duplicates. The Parameter Value
+Length field indicates the length of the Parameter Value.
+
+
+### GROUP SEQUENCE Parameter
+
+The GROUP SEQUENCE parameter (key 0x00) identifies the group within the
+track to start delivering objects. The publisher MUST start delivering
+the objects from the most recent group, when this parameter is
+omitted. This parameter is applicable in SUBSCRIBE REQUEST message.
+
+### OBJECT SEQUENCE Parameter
+
+The OBJECT SEQUENCE parameter (key 0x01) identifies the object with the
+track to start delivering objects. The `GROUP SEQUENCE` parameter MUST
+be set to identify the group under which to start delivery. The
+publisher MUST start delivering from the beginning of the selected group
+when this parameter is omitted. This parameter is applicable in
+SUBSCRIBE REQUEST message.
+
+### AUTHORIZATION INFO Parameter
+
+AUTHORIZATION INFO parameter (key 0x02) identifies track's authorization
+information. This parameter is populated for cases where the
+authorization is required at the track level. This parameter is
+applicable in SUBSCRIBE REQUEST and ANNOUNCE messages.
 
 # Security Considerations {#security}
 
