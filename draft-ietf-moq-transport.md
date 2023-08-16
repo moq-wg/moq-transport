@@ -927,7 +927,7 @@ Phrase Length` field carries its length.
 
 ## GOAWAY {#message-goaway}
 
-The pub sends a `GOAWAY` message to force the client to reconnect.
+The server sends a `GOAWAY` message to force the client to reconnect.
 This is useful for server maintenance or reassignments without severing
 the QUIC connection.  The server can be a producer or a consumer.
 
