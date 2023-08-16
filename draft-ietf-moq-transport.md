@@ -781,12 +781,6 @@ A receiver issues a SUBSCRIBE REQUEST to a publisher to request a track.
 The format of SUBSCRIBE REQUEST is as follows:
 
 ~~~
-Track Request Parameter {
-  Track Request Parameter Key (i),
-  Track Request Parameter Length (i),
-  Track Request Parameter Value (..),
-}
-
 SUBSCRIBE REQUEST Message {
   Full Track Name Length (i),
   Full Track Name (...),
@@ -958,6 +952,17 @@ The Track Request Parameters identify properties of the track requested
 in either the ANNOUNCE or SUSBCRIBE REQUEST control messages. The peers
 MUST close the connection if there are duplicates. The Parameter Value
 Length field indicates the length of the Parameter Value.
+
+The format of `Track Request Parameter` is as follows:
+
+~~~
+Track Request Parameter {
+  Track Request Parameter Key (i),
+  Track Request Parameter Length (i),
+  Track Request Parameter Value (..),
+}
+~~~
+{: #moq-track-request-param format title="MOQT Track Request Parameter"}
 
 
 ### GROUP SEQUENCE Parameter
