@@ -1065,7 +1065,7 @@ The receiver sends an `UNANNOUNCE OK` control message to acknowledge the
 successful authorization and acceptance of the `UNANNOUNCE` message.
 
 ~~~
-ANNOUNCE OK
+UNANNOUNCE OK
 {
   Track Namespace Length(i),
   Track Namespace
@@ -1082,7 +1082,7 @@ The receiver sends an `UNANNOUNCE ERROR` on failing to validate the
 `UNANNOUNCE` message.
 
 ~~~
-ANNOUNCE ERROR
+UNANNOUNCE ERROR
 {
   Track Namespace Length(i),
   Track Namespace(...),
@@ -1160,7 +1160,7 @@ TODO: fill out currently missing registries:
 * Track Request parameters
 * Subscribe Error codes
 * Announce Error codes
-* UnAnnounce Error codes
+* Unannounce Error codes
 * Unsubscribe Error codes
 * Track format numbers
 * Message types
