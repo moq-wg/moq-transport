@@ -651,6 +651,12 @@ continues until the end of the stream.
 |-------|--------------------------------------------------|
 | 0x11  | ANNOUNCE ERROR ({{message-announce-error}})      |
 |-------|--------------------------------------------------|
+| 0x12  | UNANNOUNCE  ({{message-unannounce}})                 |
+|-------|--------------------------------------------------|
+| 0x13  | UNANNOUNCE OK ({{message-unannounce-ok}})            |
+|-------|--------------------------------------------------|
+| 0x14  | UNANNOUNCE ERROR ({{message-unannounce-error}})      |
+|-------|--------------------------------------------------|
 | 0x12  | GOAWAY ({{message-goaway}})                      |
 |-------|--------------------------------------------------|
 
@@ -993,7 +999,9 @@ successful authorization and acceptance of an ANNOUNCE message.
 ~~~
 ANNOUNCE OK
 {
-  Track Namespace
+  Track Namespace Length(i),
+  Track Namespace,
+  
 }
 ~~~
 {: #moq-transport-announce-ok format title="MOQT ANNOUNCE OK Message"}
@@ -1022,6 +1030,73 @@ ANNOUNCE ERROR
 message for which this response is provided.
 
 * Error Code: Identifies an integer error code for announcement failure.
+
+* Reason Phrase: Provides the reason for announcement error and `Reason
+Phrase Length` field carries its length.
+
+
+## UNANNOUNCE {#message-unannounce}
+
+The publisher sends the `UNANNOUNCE` control message to indicate 
+its intent to stop accepting new SUBSCRIBE REQUESTs for tracks 
+within the announced Track Namespace. On successfully validating 
+the message, the receiver MUST stop routing new SUBSCRIBE REQUESTs
+to the publisher sending the `UNANNOUNCE` message.
+
+
+~~~
+UNANNOUNCE Message {
+  Track Namespace Length(i),
+  Track Namespace,
+  Track Request Parameters (..) ...,
+}
+~~~
+{: #moq-transport-unannounce-format title="MOQT UNANNOUNCE Message"}
+
+* Track Namespace: Identifies a track's namespace as defined in
+({{track-name}}).
+
+* Track Request Parameters: The parameters are defined in
+{{track-req-params}}.
+
+## UNANNOUNCE OK {#message-unannounce-ok}
+
+The receiver sends an `UNANNOUNCE OK` control message to acknowledge the
+successful authorization and acceptance of the `UNANNOUNCE` message.
+
+~~~
+ANNOUNCE OK
+{
+  Track Namespace Length(i),
+  Track Namespace
+}
+~~~
+{: #moq-transport-unannounce-ok format title="MOQT UNANNOUNCE OK Message"}
+
+* Track Namespace: Identifies the track namespace in the UNANNOUNCE
+message for which this response is provided.
+
+## UNANNOUNCE ERROR {#message-unannounce-error}
+
+The receiver sends an `UNANNOUNCE ERROR` on failing to validate the
+`UNANNOUNCE` message.
+
+~~~
+ANNOUNCE ERROR
+{
+  Track Namespace Length(i),
+  Track Namespace(...),
+  Error Code (i),
+  Reason Phrase Length (i),
+  Reason Phrase (...),
+}
+~~~
+{: #moq-transport-unannounce-error format title="MOQT UNANNOUNCE ERROR Message"}
+
+* Track Namespace: Identifies the track namespace in the UNANNOUNCE
+message for which this response is provided.
+
+* Error Code: Identifies an integer error code for the failure.
 
 * Reason Phrase: Provides the reason for announcement error and `Reason
 Phrase Length` field carries its length.
@@ -1085,6 +1160,7 @@ TODO: fill out currently missing registries:
 * Track Request parameters
 * Subscribe Error codes
 * Announce Error codes
+* UnAnnounce Error codes
 * Unsubscribe Error codes
 * Track format numbers
 * Message types
