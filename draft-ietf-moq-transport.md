@@ -657,7 +657,7 @@ continues until the end of the stream.
 |-------|--------------------------------------------------|
 | 0x14  | UNANNOUNCE ERROR ({{message-unannounce-error}})      |
 |-------|--------------------------------------------------|
-| 0x12  | GOAWAY ({{message-goaway}})                      |
+| 0x15  | GOAWAY ({{message-goaway}})                      |
 |-------|--------------------------------------------------|
 
 ## SETUP {#message-setup}
