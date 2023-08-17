@@ -1039,10 +1039,7 @@ Phrase Length` field carries its length.
 
 The publisher sends the `UNANNOUNCE` control message to indicate 
 its intent to stop accepting new SUBSCRIBE REQUESTs for tracks 
-within the announced Track Namespace. On successfully validating 
-the message, the receiver MUST stop routing new SUBSCRIBE REQUESTs
-to the publisher sending the `UNANNOUNCE` message.
-
+within the provided Track Namespace. 
 
 ~~~
 UNANNOUNCE Message {
@@ -1059,10 +1056,14 @@ UNANNOUNCE Message {
 * Track Request Parameters: The parameters are defined in
 {{track-req-params}}.
 
+The publisher MAY respond with `SUBSCRIBE ERROR` message ({{message-subscribe-error}}) with an appropriate error for any SUBSCRIBE REQUESTs received for track(s) matching the track namespace after sending the unannounce message.
+
 ## UNANNOUNCE OK {#message-unannounce-ok}
 
 The receiver sends an `UNANNOUNCE OK` control message to acknowledge the
-successful authorization and acceptance of the `UNANNOUNCE` message.
+successful authorization and acceptance of the `UNANNOUNCE` message. 
+For tracks within the track namespace provided in the unannounce message, the receiver MUST unsubscribe from all the tracks and stop routing new SUBSCRIBE REQUESTs to the publisher.
+
 
 ~~~
 UNANNOUNCE OK
