@@ -44,6 +44,10 @@ author:
 normative:
   QUIC: RFC9000
   WebTransport: I-D.ietf-webtrans-http3
+  MOQUsages:
+    title: "MOQ Usages for audio and video applications"
+    date: July 2023
+    target: https://datatracker.ietf.org/doc/html/draft-jennings-moq-usages-00
 
 informative:
 
@@ -981,6 +985,83 @@ The client:
 * SHOULD remain connected on both connections for a short period,
   processing objects from both in parallel.
 
+
+# Experimental Features
+
+Several subsections identify certain experimental additions 
+to the MOQT protocol to help towards:
+
+* Architecture and design discussions, 
+* Gather development and deployment experience across application usecases, 
+* Enable interoperability across implementations,
+* Enable real world data collections from the experiments to help the working group make appropriate decision for the core transport protocol on these features.
+
+
+## Object Model QUIC Mapping
+
+This section discusses considerations for using QUIC streams once the application maps its data (such as tracks, audio frame, video frame, video gop) to the MOQT object model ({model}). 
+
+Applications needs facilities to make appropriate choices when using QUIC transport to meet their goals in terms of latency and/or flexibility or managing implementation complexities. See Section 2 of {{MOQUsages}} for related discussions.
+
+
+### Transport Delivery Mode
+
+The transport delivery mode identifies a publisher's intent of mapping the objects, groups and tracks to the underlying QUIC transport.
+
+Publisher provides its intended delivery mode in the `SUBSCRIBE OK` message {{message-subscribe-ok}} which is extended by introducing a new field as 
+shown below
+
+~~~
+SUBSCRIBE OK
+{
+  Full Track Name Length(i),
+  Full Track Name(...),
+  Track ID(i),
+  Expires (i),
+  Transport Delivery Mode (i)
+}
+~~~
+
+
+Following delivery modes are defined:
+
+
+* StreamPerObject(0): 
+In this mode, the publisher intends to use one QUIC Stream per MOQT Object.
+
+* Stream Per Group(1):
+In this mode, the publisher intends to use one QUIC Stream per MOQT Group. All the objects from a given Group share the same QUIC stream.
+
+* Stream Per Priority(2):
+In this mode, the publisher intends to use one QUIC Stream per priority 
+as determined by the MOQT object priorty value. 
+
+* Stream Per Track(3):
+In this mode, the publisher intends to use one QUIC Stream for a given track.
+
+
+## Subscription Hints
+
+Certain use-cases requires a way for the subscriber to state  
+their preference on when should the publisher start 
+delivering objects for the requested track. It can do
+so by providing subscription hints as track request 
+parameter defined below.
+
+### Subscription Hint Track Request Parameter
+
+* latest (0):
+The "latest" subsciption hint identifies delivery of the objects for the
+requested track to begin from the most recent group and object sequence.
+
+* catchup (1):
+The "catchup" subsciption hint identifies delivery of the objects for the
+requested track from the beginning of the group provided in the GroupSequence 
+track request param. In the case where the requested objects.
+
+* waitup(2): 
+The "waitup" subsciption hint identifies delivery of the objects for the
+requested track  from the beginning of the new group.
 
 # Security Considerations {#security}
 
