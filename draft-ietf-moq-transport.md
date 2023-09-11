@@ -639,25 +639,15 @@ continues until the end of the stream.
 |-------|--------------------------------------------------|
 | 0x5   | SUBSCRIBE ERROR ({{message-subscribe-error}})    |
 |-------|--------------------------------------------------|
-| 0x6   | UNSUBSCRIBE REQUEST ({{message-unsubscribe-req}})|
+| 0x6   | ANNOUNCE  ({{message-announce}})                 |
 |-------|--------------------------------------------------|
-| 0x7   | UNSUBSCRIBE OK ({{message-unsubscribe-ok}})      |
+| 0x7   | ANNOUNCE OK ({{message-announce-ok}})            |
 |-------|--------------------------------------------------|
-| 0x8   | UNSUBSCRIBE ERROR ({{message-unsubscribe-error}})|
+| 0x8   | ANNOUNCE ERROR ({{message-announce-error}})      |
 |-------|--------------------------------------------------|
-| 0x9   | ANNOUNCE  ({{message-announce}})                 |
+| 0x9   | UNANNOUNCE  ({{message-unannounce}})             |
 |-------|--------------------------------------------------|
-| 0x10  | ANNOUNCE OK ({{message-announce-ok}})            |
-|-------|--------------------------------------------------|
-| 0x11  | ANNOUNCE ERROR ({{message-announce-error}})      |
-|-------|--------------------------------------------------|
-| 0x12  | UNANNOUNCE  ({{message-unannounce}})                 |
-|-------|--------------------------------------------------|
-| 0x13  | UNANNOUNCE OK ({{message-unannounce-ok}})            |
-|-------|--------------------------------------------------|
-| 0x14  | UNANNOUNCE ERROR ({{message-unannounce-error}})      |
-|-------|--------------------------------------------------|
-| 0x15  | GOAWAY ({{message-goaway}})                      |
+| 0x10  | GOAWAY ({{message-goaway}})                      |
 |-------|--------------------------------------------------|
 
 ## SETUP {#message-setup}
@@ -866,72 +856,6 @@ this response is provided.
 Phrase Length` field carries its length.
 
 
-## UNSUBSCRIBE REQUEST {#message-unsubscribe-req}
-
-A subscriber issues a `UNSUBSCRIBE REQUEST` message to a publisher indicating it is no longer interested in receiving media for the specified track.
-
-The format of `UNSUBSCRIBE REQUEST` is as follows:
-
-~~~
-UNSUBSCRIBE REQUEST Message {
-  Full Track Name Length (i),
-  Full Track Name (...),
-  Track Request Parameters (..) ...
-}
-~~~
-{: #moq-transport-unsubscribe-format title="MOQT UNSUBSCRIBE REQUEST Message"}
-
-* Full Track Name: Identifies the track as defined in ({{track-name}}).
-
-* Track Request Parameters: As defined in {{track-req-params}}.
-
-
-## UNSUBSCRIBE OK {#message-unsubscribe-ok}
-
-A `UNSUBSCRIBE OK` control message is sent in response to a successful `UNSUBSCRIBE REQUEST` message.
-
-~~~
-UNSUBSCRIBE OK
-{
-  Full Track Name Length(i),
-  Full Track Name(...),
-}
-~~~
-{: #moq-transport-unsubscribe-ok format title="MOQT UNSUBSCRIBE OK Message"}
-
-* Full Track Name: Identifies the track for which this response is
-provided.
-
-On successfully validating the `UNSUBSCRIBE REQUEST` message, the publisher SHOULD cease delivering objects for the track to the subscriber.
-
-
-## UNSUBSCRIBE ERROR {#message-unsubscribe-error}
-
-A publisher sends a `UNSUBSCRIBE ERROR` control message in response to a
-failed `UNSUBSCRIBE REQUEST` message
-
-~~~
-UNSUBSCRIBE ERROR
-{
-  Full Track Name Length(i),
-  Full Track Name(...),
-  Error Code (i),
-  Reason Phrase Length (i),
-  Reason Phrase (...),
-}
-~~~
-{: #moq-transport-unsubscribe-error format title="MOQT UNSUBSCRIBE ERROR Message"}
-
-* Full Track Name: Identifies the track in the request message for which
-this response is provided.
-
-* Error Code: Identifies an integer error code for the failure.
-
-* Reason Phrase Length: The length in bytes of the reason phrase.
-
-* Reason Phrase: Provides the reason for unsubscription error and `Reason
-Phrase Length` field carries its length.
-
 ## ANNOUNCE {#message-announce}
 
 The publisher sends the ANNOUNCE control message to advertise where the
@@ -1000,69 +924,19 @@ Phrase Length` field carries its length.
 ## UNANNOUNCE {#message-unannounce}
 
 The publisher sends the `UNANNOUNCE` control message to indicate 
-its intent to stop accepting new SUBSCRIBE REQUESTs for tracks 
+its intent to stop serving new subscriptions for tracks 
 within the provided Track Namespace. 
 
 ~~~
 UNANNOUNCE Message {
   Track Namespace Length(i),
-  Track Namespace,
-  Track Request Parameters (..) ...,
+  Track Namespace(...),
 }
 ~~~
 {: #moq-transport-unannounce-format title="MOQT UNANNOUNCE Message"}
 
 * Track Namespace: Identifies a track's namespace as defined in
 ({{track-name}}).
-
-* Track Request Parameters: The parameters are defined in
-{{track-req-params}}.
-
-The publisher MAY respond with `SUBSCRIBE ERROR` message ({{message-subscribe-error}}) with an appropriate error for any SUBSCRIBE REQUESTs received for track(s) matching the track namespace after sending the unannounce message.
-
-## UNANNOUNCE OK {#message-unannounce-ok}
-
-The receiver sends an `UNANNOUNCE OK` control message to acknowledge the
-successful authorization and acceptance of the `UNANNOUNCE` message. 
-For tracks within the track namespace provided in the unannounce message, the receiver MUST unsubscribe from all the tracks and stop routing new SUBSCRIBE REQUESTs to the publisher.
-
-
-~~~
-UNANNOUNCE OK
-{
-  Track Namespace Length(i),
-  Track Namespace
-}
-~~~
-{: #moq-transport-unannounce-ok format title="MOQT UNANNOUNCE OK Message"}
-
-* Track Namespace: Identifies the track namespace in the UNANNOUNCE
-message for which this response is provided.
-
-## UNANNOUNCE ERROR {#message-unannounce-error}
-
-The receiver sends an `UNANNOUNCE ERROR` on failing to validate the
-`UNANNOUNCE` message.
-
-~~~
-UNANNOUNCE ERROR
-{
-  Track Namespace Length(i),
-  Track Namespace(...),
-  Error Code (i),
-  Reason Phrase Length (i),
-  Reason Phrase (...),
-}
-~~~
-{: #moq-transport-unannounce-error format title="MOQT UNANNOUNCE ERROR Message"}
-
-* Track Namespace: Identifies the track namespace in the UNANNOUNCE
-message for which this response is provided.
-
-* Error Code: Identifies an integer error code for the failure.
-
-* Reason Phrase: Provides the reason for announcement error and `Reason
-Phrase Length` field carries its length.
 
 
 ## GOAWAY {#message-goaway}
@@ -1165,8 +1039,6 @@ TODO: fill out currently missing registries:
 * Track Request parameters
 * Subscribe Error codes
 * Announce Error codes
-* Unannounce Error codes
-* Unsubscribe Error codes
 * Track format numbers
 * Message types
 * Object headers
