@@ -639,19 +639,15 @@ continues until the end of the stream.
 |-------|--------------------------------------------------|
 | 0x5   | SUBSCRIBE ERROR ({{message-subscribe-error}})    |
 |-------|--------------------------------------------------|
-| 0x6   | UNSUBSCRIBE REQUEST ({{message-unsubscribe-req}})|
+| 0x6   | ANNOUNCE  ({{message-announce}})                 |
 |-------|--------------------------------------------------|
-| 0x7   | UNSUBSCRIBE OK ({{message-unsubscribe-ok}})      |
+| 0x7   | ANNOUNCE OK ({{message-announce-ok}})            |
 |-------|--------------------------------------------------|
-| 0x8   | UNSUBSCRIBE ERROR ({{message-unsubscribe-error}})|
+| 0x8   | ANNOUNCE ERROR ({{message-announce-error}})      |
 |-------|--------------------------------------------------|
-| 0x9   | ANNOUNCE  ({{message-announce}})                 |
+| 0x9   | UNSUBSCRIBE ({{message-unsubscribe}})            |
 |-------|--------------------------------------------------|
-| 0x10  | ANNOUNCE OK ({{message-announce-ok}})            |
-|-------|--------------------------------------------------|
-| 0x11  | ANNOUNCE ERROR ({{message-announce-error}})      |
-|-------|--------------------------------------------------|
-| 0x12  | GOAWAY ({{message-goaway}})                      |
+| 0x10  | GOAWAY ({{message-goaway}})                      |
 |-------|--------------------------------------------------|
 
 ## SETUP {#message-setup}
@@ -860,71 +856,21 @@ this response is provided.
 Phrase Length` field carries its length.
 
 
-## UNSUBSCRIBE REQUEST {#message-unsubscribe-req}
+## UNSUBSCRIBE {#message-unsubscribe}
 
-A subscriber issues a `UNSUBSCRIBE REQUEST` message to a publisher indicating it is no longer interested in receiving media for the specified track.
+A subscriber issues a `UNSUBSCRIBE` message to a publisher indicating it is no longer interested in receiving media for the specified track.
 
-The format of `UNSUBSCRIBE REQUEST` is as follows:
+The format of `UNSUBSCRIBE` is as follows:
 
 ~~~
-UNSUBSCRIBE REQUEST Message {
+UNSUBSCRIBE Message {
   Full Track Name Length (i),
   Full Track Name (...),
-  Track Request Parameters (..) ...
 }
 ~~~
-{: #moq-transport-unsubscribe-format title="MOQT UNSUBSCRIBE REQUEST Message"}
+{: #moq-transport-unsubscribe-format title="MOQT UNSUBSCRIBE Message"}
 
 * Full Track Name: Identifies the track as defined in ({{track-name}}).
-
-* Track Request Parameters: As defined in {{track-req-params}}.
-
-
-## UNSUBSCRIBE OK {#message-unsubscribe-ok}
-
-A `UNSUBSCRIBE OK` control message is sent in response to a successful `UNSUBSCRIBE REQUEST` message.
-
-~~~
-UNSUBSCRIBE OK
-{
-  Full Track Name Length(i),
-  Full Track Name(...),
-}
-~~~
-{: #moq-transport-unsubscribe-ok format title="MOQT UNSUBSCRIBE OK Message"}
-
-* Full Track Name: Identifies the track for which this response is
-provided.
-
-On successfully validating the `UNSUBSCRIBE REQUEST` message, the publisher SHOULD cease delivering objects for the track to the subscriber.
-
-
-## UNSUBSCRIBE ERROR {#message-unsubscribe-error}
-
-A publisher sends a `UNSUBSCRIBE ERROR` control message in response to a
-failed `UNSUBSCRIBE REQUEST` message
-
-~~~
-UNSUBSCRIBE ERROR
-{
-  Full Track Name Length(i),
-  Full Track Name(...),
-  Error Code (i),
-  Reason Phrase Length (i),
-  Reason Phrase (...),
-}
-~~~
-{: #moq-transport-unsubscribe-error format title="MOQT UNSUBSCRIBE ERROR Message"}
-
-* Full Track Name: Identifies the track in the request message for which
-this response is provided.
-
-* Error Code: Identifies an integer error code for the failure.
-
-* Reason Phrase Length: The length in bytes of the reason phrase.
-
-* Reason Phrase: Provides the reason for unsubscription error and `Reason
-Phrase Length` field carries its length.
 
 ## ANNOUNCE {#message-announce}
 
@@ -1091,7 +1037,6 @@ TODO: fill out currently missing registries:
 * Track Request parameters
 * Subscribe Error codes
 * Announce Error codes
-* Unsubscribe Error codes
 * Track format numbers
 * Message types
 * Object headers
