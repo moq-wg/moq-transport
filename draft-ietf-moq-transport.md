@@ -1051,16 +1051,16 @@ parameter defined below.
 ### Subscription Hint Track Request Parameter
 
 * latest (0):
-The "latest" subsciption hint identifies delivery of the objects for the
+The "latest" subscription hint identifies delivery of the objects for the
 requested track to begin from the most recent group and object sequence.
 
 * catchup (1):
-The "catchup" subsciption hint identifies delivery of the objects for the
+The "catchup" subscription hint identifies delivery of the objects for the
 requested track from the beginning of the group provided in the GroupSequence 
-track request param. In the case where the requested objects.
+track request param.
 
 * waitup(2): 
-The "waitup" subsciption hint identifies delivery of the objects for the
+The "waitup" subscription hint identifies delivery of the objects for the
 requested track  from the beginning of the new group.
 
 # Security Considerations {#security}
