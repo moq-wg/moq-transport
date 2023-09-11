@@ -787,12 +787,6 @@ A receiver issues a SUBSCRIBE REQUEST to a publisher to request a track.
 The format of SUBSCRIBE REQUEST is as follows:
 
 ~~~
-Track Request Parameter {
-  Track Request Parameter Key (i),
-  Track Request Parameter Length (i),
-  Track Request Parameter Value (..),
-}
-
 SUBSCRIBE REQUEST Message {
   Full Track Name Length (i),
   Full Track Name (...),
@@ -954,37 +948,6 @@ ANNOUNCE Message {
 * Track Request Parameters: The parameters are defined in
 {{track-req-params}}.
 
-### Track Request Parameters {#track-req-params}
-
-The Track Request Parameters identify properties of the track requested
-in either the ANNOUNCE or SUSBCRIBE REQUEST control messages. The peers
-MUST close the connection if there are duplicates. The Parameter Value
-Length field indicates the length of the Parameter Value.
-
-
-#### GROUP SEQUENCE Parameter
-
-The GROUP SEQUENCE parameter (key 0x00) identifies the group within the
-track to start delivering objects. The publisher MUST start delivering
-the objects from the most recent group, when this parameter is
-omitted. This parameter is applicable in SUBSCRIBE REQUEST message.
-
-#### OBJECT SEQUENCE Parameter
-
-The OBJECT SEQUENCE parameter (key 0x01) identifies the object with the
-track to start delivering objects. The `GROUP SEQUENCE` parameter MUST
-be set to identify the group under which to start delivery. The
-publisher MUST start delivering from the beginning of the selected group
-when this parameter is omitted. This parameter is applicable in
-SUBSCRIBE REQUEST message.
-
-#### AUTHORIZATION INFO Parameter
-
-AUTHORIZATION INFO parameter (key 0x02) identifies track's authorization
-information. This parameter is populated for cases where the
-authorization is required at the track level. This parameter is
-applicable in SUBSCRIBE REQUEST, UNSUBSCRIBE and ANNOUNCE messages.
-
 ## ANNOUNCE OK {#message-announce-ok}
 
 The receiver sends an `ANNOUNCE OK` control message to acknowledge the
@@ -993,6 +956,7 @@ successful authorization and acceptance of an ANNOUNCE message.
 ~~~
 ANNOUNCE OK
 {
+  Track Namespace Length(i),
   Track Namespace
 }
 ~~~
@@ -1053,6 +1017,48 @@ The client:
 * SHOULD remain connected on both connections for a short period,
   processing objects from both in parallel.
 
+
+## Track Request Parameters {#track-req-params}
+
+The Track Request Parameters identify properties of the track requested
+in either the ANNOUNCE or SUSBCRIBE REQUEST control messages. The peers
+MUST close the connection if there are duplicates. The Parameter Value
+Length field indicates the length of the Parameter Value.
+
+The format of `Track Request Parameter` is as follows:
+
+~~~
+Track Request Parameter {
+  Track Request Parameter Key (i),
+  Track Request Parameter Length (i),
+  Track Request Parameter Value (..),
+}
+~~~
+{: #moq-track-request-param format title="MOQT Track Request Parameter"}
+
+
+### GROUP SEQUENCE Parameter
+
+The GROUP SEQUENCE parameter (key 0x00) identifies the group within the
+track to start delivering objects. The publisher MUST start delivering
+the objects from the most recent group, when this parameter is
+omitted. This parameter is applicable in SUBSCRIBE REQUEST message.
+
+### OBJECT SEQUENCE Parameter
+
+The OBJECT SEQUENCE parameter (key 0x01) identifies the object with the
+track to start delivering objects. The `GROUP SEQUENCE` parameter MUST
+be set to identify the group under which to start delivery. The
+publisher MUST start delivering from the beginning of the selected group
+when this parameter is omitted. This parameter is applicable in
+SUBSCRIBE REQUEST message.
+
+### AUTHORIZATION INFO Parameter
+
+AUTHORIZATION INFO parameter (key 0x02) identifies track's authorization
+information. This parameter is populated for cases where the
+authorization is required at the track level. This parameter is
+applicable in SUBSCRIBE REQUEST and ANNOUNCE messages.
 
 # Security Considerations {#security}
 
