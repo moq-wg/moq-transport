@@ -645,7 +645,7 @@ continues until the end of the stream.
 |-------|--------------------------------------------------|
 | 0x8   | ANNOUNCE ERROR ({{message-announce-error}})      |
 |-------|--------------------------------------------------|
-| 0x9   | UNANNOUNCE  ({{message-unannounce}})             |
+| 0xA   | UNANNOUNCE  ({{message-unannounce}})             |
 |-------|--------------------------------------------------|
 | 0x10  | GOAWAY ({{message-goaway}})                      |
 |-------|--------------------------------------------------|
@@ -930,7 +930,7 @@ within the provided Track Namespace.
 ~~~
 UNANNOUNCE Message {
   Track Namespace Length(i),
-  Track Namespace(...),
+  Track Namespace(..),
 }
 ~~~
 {: #moq-transport-unannounce-format title="MOQT UNANNOUNCE Message"}
