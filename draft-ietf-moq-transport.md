@@ -626,27 +626,29 @@ The Message Length field contains the length of the Message Payload
 field in bytes.  A length of 0 indicates the message is unbounded and
 continues until the end of the stream.
 
-|------|----------------------------------------------|
-| ID   | Messages                                     |
-|-----:|:---------------------------------------------|
-| 0x0  | OBJECT ({{message-object}})                  |
-|------|----------------------------------------------|
-| 0x1  | SETUP ({{message-setup}})                    |
-|------|----------------------------------------------|
-| 0x3  | SUBSCRIBE REQUEST ({{message-subscribe-req}})|
-|------|----------------------------------------------|
-| 0x4  | SUBSCRIBE OK ({{message-subscribe-ok}})      |
-|------|----------------------------------------------|
-| 0x5  | SUBSCRIBE ERROR ({{message-subscribe-error}})|
-|------|----------------------------------------------|
-| 0x6  | ANNOUNCE  ({{message-announce}})             |
-|------|----------------------------------------------|
-| 0x7  | ANNOUNCE OK ({{message-announce-ok}})        |
-|------|----------------------------------------------|
-| 0x8  | ANNOUNCE ERROR ({{message-announce-error}})  |
-|------|----------------------------------------------|
-| 0x10 | GOAWAY ({{message-goaway}})                  |
-|------|----------------------------------------------|
+|-------|--------------------------------------------------|
+| ID    | Messages                                         |
+|------:|:-------------------------------------------------|
+| 0x0   | OBJECT ({{message-object}})                      |
+|-------|--------------------------------------------------|
+| 0x1   | SETUP ({{message-setup}})                        |
+|-------|--------------------------------------------------|
+| 0x3   | SUBSCRIBE REQUEST ({{message-subscribe-req}})    |
+|-------|--------------------------------------------------|
+| 0x4   | SUBSCRIBE OK ({{message-subscribe-ok}})          |
+|-------|--------------------------------------------------|
+| 0x5   | SUBSCRIBE ERROR ({{message-subscribe-error}})    |
+|-------|--------------------------------------------------|
+| 0x6   | ANNOUNCE  ({{message-announce}})                 |
+|-------|--------------------------------------------------|
+| 0x7   | ANNOUNCE OK ({{message-announce-ok}})            |
+|-------|--------------------------------------------------|
+| 0x8   | ANNOUNCE ERROR ({{message-announce-error}})      |
+|-------|--------------------------------------------------|
+| 0xA   | UNANNOUNCE  ({{message-unannounce}})             |
+|-------|--------------------------------------------------|
+| 0x10  | GOAWAY ({{message-goaway}})                      |
+|-------|--------------------------------------------------|
 
 ## SETUP {#message-setup}
 
@@ -864,7 +866,7 @@ publish tracks under this namespace.
 ~~~
 ANNOUNCE Message {
   Track Namespace Length(i),
-  Track Namespace,
+  Track Namespace(..),
   Track Request Parameters (..) ...,
 }
 ~~~
@@ -885,7 +887,7 @@ successful authorization and acceptance of an ANNOUNCE message.
 ANNOUNCE OK
 {
   Track Namespace Length(i),
-  Track Namespace
+  Track Namespace(..),
 }
 ~~~
 {: #moq-transport-announce-ok format title="MOQT ANNOUNCE OK Message"}
@@ -917,6 +919,24 @@ message for which this response is provided.
 
 * Reason Phrase: Provides the reason for announcement error and `Reason
 Phrase Length` field carries its length.
+
+
+## UNANNOUNCE {#message-unannounce}
+
+The publisher sends the `UNANNOUNCE` control message to indicate 
+its intent to stop serving new subscriptions for tracks 
+within the provided Track Namespace. 
+
+~~~
+UNANNOUNCE Message {
+  Track Namespace Length(i),
+  Track Namespace(..),
+}
+~~~
+{: #moq-transport-unannounce-format title="MOQT UNANNOUNCE Message"}
+
+* Track Namespace: Identifies a track's namespace as defined in
+({{track-name}}).
 
 
 ## GOAWAY {#message-goaway}
@@ -1013,6 +1033,7 @@ reaching a resource limit.
 # IANA Considerations {#iana}
 
 TODO: fill out currently missing registries:
+
 * MOQT version numbers
 * SETUP parameters
 * Track Request parameters
