@@ -645,9 +645,11 @@ continues until the end of the stream.
 |-------|--------------------------------------------------|
 | 0x8   | ANNOUNCE ERROR ({{message-announce-error}})      |
 |-------|--------------------------------------------------|
-| 0xA   | UNANNOUNCE  ({{message-unannounce}})             |
+| 0x9   | UNANNOUNCE  ({{message-unannounce}})             |
 |-------|--------------------------------------------------|
 | 0x10  | GOAWAY ({{message-goaway}})                      |
+|-------|--------------------------------------------------|
+| 0xA   | UNSUBSCRIBE ({{message-unsubscribe}})            |
 |-------|--------------------------------------------------|
 
 ## SETUP {#message-setup}
@@ -855,6 +857,22 @@ this response is provided.
 * Reason Phrase: Provides the reason for subscription error and `Reason
 Phrase Length` field carries its length.
 
+
+## UNSUBSCRIBE {#message-unsubscribe}
+
+A subscriber issues a `UNSUBSCRIBE` message to a publisher indicating it is no longer interested in receiving media for the specified track.
+
+The format of `UNSUBSCRIBE` is as follows:
+
+~~~
+UNSUBSCRIBE Message {
+  Full Track Name Length (i),
+  Full Track Name (...),
+}
+~~~
+{: #moq-transport-unsubscribe-format title="MOQT UNSUBSCRIBE Message"}
+
+* Full Track Name: Identifies the track as defined in ({{track-name}}).
 
 ## ANNOUNCE {#message-announce}
 
