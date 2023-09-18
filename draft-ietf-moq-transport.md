@@ -649,6 +649,8 @@ continues until the end of the stream.
 |-------|--------------------------------------------------|
 | 0x10  | GOAWAY ({{message-goaway}})                      |
 |-------|--------------------------------------------------|
+| 0xA   | UNANNOUNCE  ({{message-unannounce}})             |
+|-------|--------------------------------------------------|
 
 ## SETUP {#message-setup}
 
@@ -882,7 +884,7 @@ publish tracks under this namespace.
 ~~~
 ANNOUNCE Message {
   Track Namespace Length(i),
-  Track Namespace,
+  Track Namespace(..),
   Track Request Parameters (..) ...,
 }
 ~~~
@@ -903,7 +905,7 @@ successful authorization and acceptance of an ANNOUNCE message.
 ANNOUNCE OK
 {
   Track Namespace Length(i),
-  Track Namespace
+  Track Namespace(..),
 }
 ~~~
 {: #moq-transport-announce-ok format title="MOQT ANNOUNCE OK Message"}
@@ -935,6 +937,24 @@ message for which this response is provided.
 
 * Reason Phrase: Provides the reason for announcement error and `Reason
 Phrase Length` field carries its length.
+
+
+## UNANNOUNCE {#message-unannounce}
+
+The publisher sends the `UNANNOUNCE` control message to indicate 
+its intent to stop serving new subscriptions for tracks 
+within the provided Track Namespace. 
+
+~~~
+UNANNOUNCE Message {
+  Track Namespace Length(i),
+  Track Namespace(..),
+}
+~~~
+{: #moq-transport-unannounce-format title="MOQT UNANNOUNCE Message"}
+
+* Track Namespace: Identifies a track's namespace as defined in
+({{track-name}}).
 
 
 ## GOAWAY {#message-goaway}
