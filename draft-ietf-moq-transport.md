@@ -887,7 +887,7 @@ successful authorization and acceptance of an ANNOUNCE message.
 ANNOUNCE OK
 {
   Track Namespace Length(i),
-  Track Namespace(...),
+  Track Namespace(..),
 }
 ~~~
 {: #moq-transport-announce-ok format title="MOQT ANNOUNCE OK Message"}
