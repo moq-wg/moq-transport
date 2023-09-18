@@ -866,7 +866,7 @@ publish tracks under this namespace.
 ~~~
 ANNOUNCE Message {
   Track Namespace Length(i),
-  Track Namespace(...),
+  Track Namespace(..),
   Track Request Parameters (..) ...,
 }
 ~~~
