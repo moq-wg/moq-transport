@@ -757,8 +757,7 @@ OBJECT Message {
 ~~~
 {: #moq-transport-object-format title="MOQT OBJECT Message"}
 
-* Track ID: The track identifier obtained as part of subscription and/or
-publish control message exchanges.
+* Track ID: The track identifier as specified in the SUBSCRIBE REQUEST {{message-subscribe-req}}.
 
 * Group Sequence : The object is a member of the indicated group
 {{model-group}} within the track.
@@ -788,6 +787,7 @@ Track Request Parameter {
 }
 
 SUBSCRIBE REQUEST Message {
+  Track ID (i),
   Full Track Name Length (i),
   Full Track Name (...),
   Track Request Parameters (..) ...
@@ -795,6 +795,9 @@ SUBSCRIBE REQUEST Message {
 ~~~
 {: #moq-transport-subscribe-format title="MOQT SUBSCRIBE REQUEST Message"}
 
+* Track ID: A session specific identifier for the track.
+  Messages that reference a track, such as OBJECT ({{message-object}}),
+  reference this Track ID instead of the Full Track Name to reduce overhead.
 
 * Full Track Name: Identifies the track as defined in ({{track-name}}).
 
@@ -811,21 +814,13 @@ A `SUBSCRIBE OK` control message is sent for successful subscriptions.
 ~~~
 SUBSCRIBE OK
 {
-  Full Track Name Length(i),
-  Full Track Name(...),
-  Track ID(i),
+  Track ID (i),
   Expires (i)
 }
 ~~~
 {: #moq-transport-subscribe-ok format title="MOQT SUBSCRIBE OK Message"}
 
-* Full Track Name: Identifies the track for which this response is
-provided.
-
-* Track ID: Session specific identifier that is used as an alias for the
-Full Track Name in the Track ID field of the OBJECT ({{message-object}})
-message headers of the requested track. Track IDs are generally shorter
-than Full Track Names and thus reduce the overhead in OBJECT messages.
+* Track ID: The track identifier as specified in the SUBSCRIBE REQUEST {{message-subscribe-req}}.
 
 * Expires: Time in milliseconds after which the subscription is no
 longer valid. A value of 0 indicates that the subscription stays active
@@ -840,8 +835,7 @@ failed SUBSCRIBE REQUEST.
 ~~~
 SUBSCRIBE ERROR
 {
-  Full Track Name Length(i),
-  Full Track Name(...),
+  Track ID (i),
   Error Code (i),
   Reason Phrase Length (i),
   Reason Phrase (...),
@@ -849,8 +843,7 @@ SUBSCRIBE ERROR
 ~~~
 {: #moq-transport-subscribe-error format title="MOQT SUBSCRIBE ERROR Message"}
 
-* Full Track Name: Identifies the track in the request message for which
-this response is provided.
+* Track ID: The track identifier as specified in the SUBSCRIBE REQUEST {{message-subscribe-req}}.
 
 * Error Code: Identifies an integer error code for subscription failure.
 
