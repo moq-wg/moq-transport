@@ -674,12 +674,15 @@ SETUP Parameter {
 Client SETUP Message Payload {
   Number of Supported Versions (i),
   Supported Version (i) ...,
-  SETUP Parameters (..) ...,
+  Role (i),
+  [Length of Path (i)],
+  [Path (..) ....],
+  Parameters (..) ...,
 }
 
 Server SETUP Message Payload {
   Selected Version (i),
-  SETUP Parameters (..) ...,
+  Parameters (..) ...,
 }
 ~~~
 {: #moq-transport-setup-format title="MOQT SETUP Message"}
@@ -704,18 +707,9 @@ publication.]]
 The version number for the final version of this specification (0x00000001), is reserved for the version of the protocol that is published as an RFC.
 Version numbers used to identify IETF drafts are created by adding the draft number to 0xff000000. For example, draft-ietf-moq-transport-13 would be identified as 0xff00000D.
 
-### SETUP Parameters {#setup-parameters}
+### Role {#role}
 
-Every parameter MUST appear at most once within the SETUP message. The
-peers SHOULD verify that and close the connection if a parameter appears
-more than once.
-
-The ROLE parameter is mandatory for the client. All of the other
-parameters are optional.
-
-#### ROLE parameter {#role}
-
-The ROLE parameter (key 0x00) allows the client to specify what roles it
+The Role field allows the client to specify what roles it
 expects the parties to have in the MOQT connection. It has three
 possible values:
 
@@ -733,23 +727,25 @@ possible values:
 
 : Both the client and the server are expected to send objects.
 
-The client MUST send a ROLE parameter with one of the three values
-specified above. The server MUST close the connection if the ROLE
-parameter is missing, is not one of the three above-specified values, or
-it is different from what the server expects based on the application.
+The server MUST close the connection if the Role field is not one of the three
+three above-specified values, or it is different from what the server expects
+based on the application.
 
-#### PATH parameter {#path}
+### Path {#path}
 
-The PATH parameter (key 0x01) allows the client to specify the path of
-the MoQ URI when using native QUIC ({{QUIC}}).  It MUST NOT be used by
-the server, or when WebTransport is used.  If the peer receives a PATH
-parameter from the server, or when WebTransport is used, it MUST close
-the connection.
+The Length of Path and Path fields are only present for connections over native
+QUIC. The Path field allows the client to specify the path of the MoQ URI when
+using native QUIC ({{QUIC}}). 
 
 When connecting to a server using a URI with the "moq" scheme, the
 client MUST set the PATH parameter to the `path-abempty` portion of the
 URI; if `query` is present, the client MUST concatenate `?`, followed by
 the `query` portion of the URI to the parameter.
+
+###  Parameters {#setup-parameters}
+
+The Parameters field offers an extension point for future capabilities
+negotiation. Its semantics are described in {{params}}.
 
 ## OBJECT {#message-object}
 
@@ -797,7 +793,7 @@ The format of SUBSCRIBE REQUEST is as follows:
 SUBSCRIBE REQUEST Message {
   Full Track Name Length (i),
   Full Track Name (...),
-  Track Request Parameters (..) ...
+  Parameters (..) ...
 }
 ~~~
 {: #moq-transport-subscribe-format title="MOQT SUBSCRIBE REQUEST Message"}
@@ -805,7 +801,7 @@ SUBSCRIBE REQUEST Message {
 
 * Full Track Name: Identifies the track as defined in ({{track-name}}).
 
-* Track Request Parameters: As defined in {{track-req-params}}.
+* Parameters: As defined in {{params}}.
 
 On successful subscription, the publisher SHOULD start delivering
 objects from the group sequence and object sequence as defined in the
@@ -894,7 +890,7 @@ publish tracks under this namespace.
 ANNOUNCE Message {
   Track Namespace Length(i),
   Track Namespace(..),
-  Track Request Parameters (..) ...,
+  Parameters (..) ...,
 }
 ~~~
 {: #moq-transport-announce-format title="MOQT ANNOUNCE Message"}
@@ -903,7 +899,7 @@ ANNOUNCE Message {
 ({{track-name}})
 
 * Track Request Parameters: The parameters are defined in
-{{track-req-params}}.
+{{params}}.
 
 ## ANNOUNCE OK {#message-announce-ok}
 
@@ -993,31 +989,38 @@ The client:
   processing objects from both in parallel.
 
 
-## Track Request Parameters {#track-req-params}
+## Parameters {#params}
 
-The Track Request Parameters identify properties of the track requested
-in either the ANNOUNCE or SUSBCRIBE REQUEST control messages. The peers
-MUST close the connection if there are duplicates. The Parameter Value
-Length field indicates the length of the Parameter Value.
+Some messages include a Parameters field that contain a series of Type-
+Length-Value encoded optional parameters.
 
-The format of `Track Request Parameter` is as follows:
+Senders MUST NOT repeat the same parameter type in a message. Receivers
+SHOULD check that there are no duplicate parameters and close the connection
+if found.
+
+Receivers do not process unrecognized parameter types, using the Parameter
+Length field to skip to the next parameter.
+
+The format of `Parameter` is as follows:
 
 ~~~
-Track Request Parameter {
-  Track Request Parameter Key (i),
-  Track Request Parameter Length (i),
-  Track Request Parameter Value (..),
+Parameter {
+  Parameter Key (i),
+  Parameter Length (i),
+  Parameter Value (..),
 }
 ~~~
 {: #moq-track-request-param format title="MOQT Track Request Parameter"}
 
+The Parameter Length field encodes the length of the Parameter Value field.
 
 ### GROUP SEQUENCE Parameter
 
 The GROUP SEQUENCE parameter (key 0x00) identifies the group within the
 track to start delivering objects. The publisher MUST start delivering
 the objects from the most recent group, when this parameter is
-omitted. This parameter is applicable in SUBSCRIBE REQUEST message.
+omitted. This parameter is applicable in SUBSCRIBE REQUEST message and will be
+ignored otherwise.
 
 ### OBJECT SEQUENCE Parameter
 
@@ -1026,14 +1029,15 @@ track to start delivering objects. The `GROUP SEQUENCE` parameter MUST
 be set to identify the group under which to start delivery. The
 publisher MUST start delivering from the beginning of the selected group
 when this parameter is omitted. This parameter is applicable in
-SUBSCRIBE REQUEST message.
+SUBSCRIBE REQUEST message and will be ignored otherwise.
 
 ### AUTHORIZATION INFO Parameter
 
 AUTHORIZATION INFO parameter (key 0x02) identifies track's authorization
 information. This parameter is populated for cases where the
 authorization is required at the track level. This parameter is
-applicable in SUBSCRIBE REQUEST and ANNOUNCE messages.
+applicable in SUBSCRIBE REQUEST and ANNOUNCE messages and will be ignored
+otherwise.
 
 # Security Considerations {#security}
 
@@ -1062,8 +1066,7 @@ reaching a resource limit.
 TODO: fill out currently missing registries:
 
 * MOQT version numbers
-* SETUP parameters
-* Track Request parameters
+* Parameters
 * Subscribe Error codes
 * Announce Error codes
 * Track format numbers
