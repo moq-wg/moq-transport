@@ -615,8 +615,6 @@ length-delimited messages.
 
 An endpoint that receives an unknown message type MUST close the connection.
 
-
-~~~
 MOQT Message {
   Message Type (i),
   Message Payload (..),
@@ -947,7 +945,7 @@ ANNOUNCE ERROR
 {: #moq-transport-announce-error format title="MOQT ANNOUNCE ERROR Message"}
 
 * Track Namespace: Identifies the track namespace in the ANNOUNCE
-message for which 44this response is provided.
+message for which this response is provided.
 
 * Error Code: Identifies an integer error code for announcement failure.
 
@@ -983,7 +981,7 @@ The server:
 
 * MAY initiate a graceful shutdown by sending a GOAWAY message.
 * MUST close the QUIC connection after a timeout with the GOAWAY error
-  code ({{session-te99rmination}}).
+  code ({{session-termination}}).
 * MAY close the QUIC connection with a different error code if there is
   a fatal error before shutdown.
 * SHOULD wait until the `GOAWAY` message and any pending streams have
