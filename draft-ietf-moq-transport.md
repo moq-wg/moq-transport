@@ -868,13 +868,12 @@ The format of `UNSUBSCRIBE` is as follows:
 
 ~~~
 UNSUBSCRIBE Message {
-  Full Track Name Length (i),
-  Full Track Name (...),
+  Track ID (i),
 }
 ~~~
 {: #moq-transport-unsubscribe-format title="MOQT UNSUBSCRIBE Message"}
 
-* Full Track Name: Identifies the track as defined in ({{track-name}}).
+* Track ID: The track identifier as specified in the SUBSCRIBE REQUEST {{message-subscribe-req}}.
 
 ## ANNOUNCE {#message-announce}
 
