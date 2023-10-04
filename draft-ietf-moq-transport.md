@@ -652,6 +652,119 @@ continues until the end of the stream.
 | 0xA   | UNSUBSCRIBE ({{message-unsubscribe}})            |
 |-------|--------------------------------------------------|
 
+## Parameters {#params}
+
+Some messages include a Parameters field that encode optional message
+elements. There are two formats that encode a type, length, and value in
+some form.
+
+Senders MUST NOT repeat the same parameter type in a message. Receivers
+SHOULD check that there are no duplicate parameters and close the connection
+if found.
+
+Receivers do not process unrecognized parameter types, using the encoded length
+to skip to the next parameter.
+
+The format of each parameter is determined by the least significant bit of the
+type. If this bit is "1", it is an Integer Parameter. If this bit is
+"0", it is a String Parameter.
+
+The format of both Parameters is as follows:
+
+~~~
+Integer Parameter {
+  Parameter Type (i),
+  Parameter Value (i),
+}
+~~~
+{: #moq-integer-param format title="MOQT Integer Parameter"}
+
+String Parameter {
+  Parameter Type (i),
+  Parameter Length (i),
+  Parameter Value (..),
+}
+~~~
+{: #moq-string-param format title="MOQT String Parameter"}
+
+Parameter Type is an integer that indicates the semantic meaning of the
+parameter. SETUP message parameters use a namespace constant across all MoQ
+Transport versions. All other messages use a version-specific namespace. For
+example, the integer '1' can refer to different parameters for SETUP messages
+and other message types.
+
+The Parameter Length field of the String Parameter encodes the length
+of the Parameter Value field in bytes.
+
+Boolean parameters (e.g., to advertise support for a capability) can use the
+String Parameter format with a zero length.
+
+### SETUP Parameters {#setup-params}
+
+Setup Parameters are common across all versions of MoQ. A client MUST
+include parameters required in the SETUP message for every version for which it
+advertises support in that message.
+
+This document specifies the following SETUP Parameters:
+
+#### Role {#role}
+
+The Role parameter has a type of 0x01 is therefore an integer type. It allows
+the client to specify what roles it expects the parties to have in the MOQT
+connection. It has three possible values:
+
+0x01:
+
+: Only the client is expected to send objects on the connection. This is
+  commonly referred to as the ingestion case.
+
+0x02:
+
+: Only the server is expected to send objects on the connection. This is
+  commonly referred to as the delivery case.
+
+0x03:
+
+: Both the client and the server are expected to send objects.
+
+
+#### Path {#path}
+
+The Path parameter has a type of 0x02 and is therefore a string type.
+
+The Path field allows the client to specify the path of the MoQ URI when
+using native QUIC ({{QUIC}}). 
+
+When connecting to a server using a URI with the "moq" scheme, the
+client MUST set the PATH parameter to the `path-abempty` portion of the
+URI; if `query` is present, the client MUST concatenate `?`, followed by
+the `query` portion of the URI to the parameter.
+
+### Version-specific parameters {#version-specific-params}
+
+These parameters only apply to version 1 and messages other than SETUP.
+
+#### GROUP SEQUENCE Parameter
+
+The GROUP SEQUENCE parameter (type 0x01) identifies the group within the
+track to start delivering objects. The publisher MUST start delivering
+the objects from the most recent group, when this parameter is
+omitted.
+
+#### AUTHORIZATION INFO Parameter
+
+AUTHORIZATION INFO parameter (key 0x02) identifies track's authorization
+information. This parameter is populated for cases where the
+authorization is required at the track level.
+
+#### OBJECT SEQUENCE Parameter
+
+The OBJECT SEQUENCE parameter (key 0x03) identifies the object with the
+track to start delivering objects. The `GROUP SEQUENCE` parameter MUST
+be set to identify the group under which to start delivery. The
+publisher MUST start delivering from the beginning of the selected group
+when this parameter is omitted.
+
 ## SETUP {#message-setup}
 
 The `SETUP` message is the first message that is exchanged by the client
@@ -665,18 +778,9 @@ MUST ignore unknown setup parameters. TODO: describe GREASE for those.
 The wire format of the SETUP message is as follows:
 
 ~~~
-SETUP Parameter {
-  Parameter Key (i),
-  Parameter Value Length (i),
-  Parameter Value (..),
-}
-
 Client SETUP Message Payload {
   Number of Supported Versions (i),
   Supported Version (i) ...,
-  Role (i),
-  [Length of Path (i)],
-  [Path (..) ....],
   Parameters (..) ...,
 }
 
@@ -707,45 +811,19 @@ publication.]]
 The version number for the final version of this specification (0x00000001), is reserved for the version of the protocol that is published as an RFC.
 Version numbers used to identify IETF drafts are created by adding the draft number to 0xff000000. For example, draft-ietf-moq-transport-13 would be identified as 0xff00000D.
 
-### Role {#role}
+###  Parameters
 
-The Role field allows the client to specify what roles it
-expects the parties to have in the MOQT connection. It has three
-possible values:
+The possible values for parameters in the SETUP message are described in {{setup-params}}.
 
-0x01:
+The client MUST include the Role parameter if it advertises support for version 1. If the
+server supports version 1, the Role is missing, or the role is not what the
+server expects, it MUST close the connection.
 
-: Only the client is expected to send objects on the connection. This is
-  commonly referred to as the ingestion case.
+The client MUST include the Path parameter if it advertises support for version
+1, and the MoQ Transport is operating directly over raw QUIC. If the server
+supports version 1, it MUST close the connection with an error.
 
-0x02:
-
-: Only the server is expected to send objects on the connection. This is
-  commonly referred to as the delivery case.
-
-0x03:
-
-: Both the client and the server are expected to send objects.
-
-The server MUST close the connection if the Role field is not one of the three
-three above-specified values, or it is different from what the server expects
-based on the application.
-
-### Path {#path}
-
-The Length of Path and Path fields are only present for connections over native
-QUIC. The Path field allows the client to specify the path of the MoQ URI when
-using native QUIC ({{QUIC}}). 
-
-When connecting to a server using a URI with the "moq" scheme, the
-client MUST set the PATH parameter to the `path-abempty` portion of the
-URI; if `query` is present, the client MUST concatenate `?`, followed by
-the `query` portion of the URI to the parameter.
-
-###  Parameters {#setup-parameters}
-
-The Parameters field offers an extension point for future capabilities
-negotiation. Its semantics are described in {{params}}.
+Under all other circumstances, these parameters are ignored. 
 
 ## OBJECT {#message-object}
 
@@ -801,7 +879,8 @@ SUBSCRIBE REQUEST Message {
 
 * Full Track Name: Identifies the track as defined in ({{track-name}}).
 
-* Parameters: As defined in {{params}}.
+* Parameters: As defined in {{version-specific params}}. All are optional
+but valid for this message.
 
 On successful subscription, the publisher SHOULD start delivering
 objects from the group sequence and object sequence as defined in the
@@ -899,7 +978,8 @@ ANNOUNCE Message {
 ({{track-name}})
 
 * Track Request Parameters: The parameters are defined in
-{{params}}.
+{{version-specific-params}}. The Authorization Info is optional but is
+applicable to this message. All other parameters are ignored.
 
 ## ANNOUNCE OK {#message-announce-ok}
 
@@ -988,56 +1068,6 @@ The client:
 * SHOULD remain connected on both connections for a short period,
   processing objects from both in parallel.
 
-
-## Parameters {#params}
-
-Some messages include a Parameters field that contain a series of Type-
-Length-Value encoded optional parameters.
-
-Senders MUST NOT repeat the same parameter type in a message. Receivers
-SHOULD check that there are no duplicate parameters and close the connection
-if found.
-
-Receivers do not process unrecognized parameter types, using the Parameter
-Length field to skip to the next parameter.
-
-The format of `Parameter` is as follows:
-
-~~~
-Parameter {
-  Parameter Key (i),
-  Parameter Length (i),
-  Parameter Value (..),
-}
-~~~
-{: #moq-track-request-param format title="MOQT Track Request Parameter"}
-
-The Parameter Length field encodes the length of the Parameter Value field.
-
-### GROUP SEQUENCE Parameter
-
-The GROUP SEQUENCE parameter (key 0x00) identifies the group within the
-track to start delivering objects. The publisher MUST start delivering
-the objects from the most recent group, when this parameter is
-omitted. This parameter is applicable in SUBSCRIBE REQUEST message and will be
-ignored otherwise.
-
-### OBJECT SEQUENCE Parameter
-
-The OBJECT SEQUENCE parameter (key 0x01) identifies the object with the
-track to start delivering objects. The `GROUP SEQUENCE` parameter MUST
-be set to identify the group under which to start delivery. The
-publisher MUST start delivering from the beginning of the selected group
-when this parameter is omitted. This parameter is applicable in
-SUBSCRIBE REQUEST message and will be ignored otherwise.
-
-### AUTHORIZATION INFO Parameter
-
-AUTHORIZATION INFO parameter (key 0x02) identifies track's authorization
-information. This parameter is populated for cases where the
-authorization is required at the track level. This parameter is
-applicable in SUBSCRIBE REQUEST and ANNOUNCE messages and will be ignored
-otherwise.
 
 # Security Considerations {#security}
 
