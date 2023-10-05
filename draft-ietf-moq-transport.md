@@ -626,31 +626,33 @@ The Message Length field contains the length of the Message Payload
 field in bytes.  A length of 0 indicates the message is unbounded and
 continues until the end of the stream.
 
-|-------|--------------------------------------------------|
-| ID    | Messages                                         |
-|------:|:-------------------------------------------------|
-| 0x0   | OBJECT ({{message-object}})                      |
-|-------|--------------------------------------------------|
-| 0x1   | SETUP ({{message-setup}})                        |
-|-------|--------------------------------------------------|
-| 0x3   | SUBSCRIBE REQUEST ({{message-subscribe-req}})    |
-|-------|--------------------------------------------------|
-| 0x4   | SUBSCRIBE OK ({{message-subscribe-ok}})          |
-|-------|--------------------------------------------------|
-| 0x5   | SUBSCRIBE ERROR ({{message-subscribe-error}})    |
-|-------|--------------------------------------------------|
-| 0x6   | ANNOUNCE  ({{message-announce}})                 |
-|-------|--------------------------------------------------|
-| 0x7   | ANNOUNCE OK ({{message-announce-ok}})            |
-|-------|--------------------------------------------------|
-| 0x8   | ANNOUNCE ERROR ({{message-announce-error}})      |
-|-------|--------------------------------------------------|
-| 0x9   | UNANNOUNCE  ({{message-unannounce}})             |
-|-------|--------------------------------------------------|
-| 0x10  | GOAWAY ({{message-goaway}})                      |
-|-------|--------------------------------------------------|
-| 0xA   | UNSUBSCRIBE ({{message-unsubscribe}})            |
-|-------|--------------------------------------------------|
+|-------|---------------------------------------------------|
+| ID    | Messages                                          |
+|------:|:--------------------------------------------------|
+| 0x0   | OBJECT ({{message-object}})                       |
+|-------|---------------------------------------------------|
+| 0x1   | SETUP ({{message-setup}})                         |
+|-------|---------------------------------------------------|
+| 0x3   | SUBSCRIBE REQUEST ({{message-subscribe-req}})     |
+|-------|---------------------------------------------------|
+| 0x4   | SUBSCRIBE OK ({{message-subscribe-ok}})           |
+|-------|---------------------------------------------------|
+| 0x5   | SUBSCRIBE ERROR ({{message-subscribe-error}})     |
+|-------|---------------------------------------------------|
+| 0x11  | SUBSCRIBE CONFIRM ({{message-subscribe-confirm}}) |
+|-------|---------------------------------------------------|
+| 0x6   | ANNOUNCE  ({{message-announce}})                  |
+|-------|---------------------------------------------------|
+| 0x7   | ANNOUNCE OK ({{message-announce-ok}})             |
+|-------|---------------------------------------------------|
+| 0x8   | ANNOUNCE ERROR ({{message-announce-error}})       |
+|-------|---------------------------------------------------|
+| 0x9   | UNANNOUNCE  ({{message-unannounce}})              |
+|-------|---------------------------------------------------|
+| 0x10  | GOAWAY ({{message-goaway}})                       |
+|-------|---------------------------------------------------|
+| 0xA   | UNSUBSCRIBE ({{message-unsubscribe}})             |
+|-------|---------------------------------------------------|
 
 ## SETUP {#message-setup}
 
@@ -797,6 +799,7 @@ The format of SUBSCRIBE REQUEST is as follows:
 SUBSCRIBE REQUEST Message {
   Full Track Name Length (i),
   Full Track Name (...),
+  Suggested Track ID (i),
   Track Request Parameters (..) ...
 }
 ~~~
@@ -804,6 +807,12 @@ SUBSCRIBE REQUEST Message {
 
 
 * Full Track Name: Identifies the track as defined in ({{track-name}}).
+
+* Suggested Track ID: Value of Track ID suggested by the subscribing endpoint.
+  This value can be used as an alias for the full track name in the
+  Track ID field of the OBJECT ({{message-object}})
+  message headers of the requested track. Track IDs are generally shorter
+  than Full Track Names and thus reduce the overhead in OBJECT messages.
 
 * Track Request Parameters: As defined in {{track-req-params}}.
 
@@ -820,7 +829,7 @@ SUBSCRIBE OK
 {
   Full Track Name Length(i),
   Full Track Name(...),
-  Track ID(i),
+  Server Track ID(i),
   Expires (i)
 }
 ~~~
@@ -829,15 +838,22 @@ SUBSCRIBE OK
 * Full Track Name: Identifies the track for which this response is
 provided.
 
-* Track ID: Session specific identifier that is used as an alias for the
-Full Track Name in the Track ID field of the OBJECT ({{message-object}})
-message headers of the requested track. Track IDs are generally shorter
+* Server Track ID: Session specific identifier that is used as an alias
+for the Full Track Name in the Track ID field of the OBJECT
+({{message-object}}) message headers of the requested track.
+Track IDs are generally shorter
 than Full Track Names and thus reduce the overhead in OBJECT messages.
 
 * Expires: Time in milliseconds after which the subscription is no
 longer valid. A value of 0 indicates that the subscription stays active
 until it is explicitly unsubscribed.
 
+There is a race
+condition between OBJECT messages and the SUBSCRIBE OK message
+if the Server Track ID value does not match
+the Suggested Track ID value set by the client.
+See {{message-subscribe-confirm}} for resolution of that race
+condition.
 
 ## SUBSCRIBE ERROR {#message-subscribe-error}
 
@@ -866,6 +882,45 @@ this response is provided.
 * Reason Phrase: Provides the reason for subscription error and `Reason
 Phrase Length` field carries its length.
 
+## SUBSCRIBE CONFIRM {#message-subscribe-confirm}
+
+A receiver sends a SUBSCRIBE CONFIRM control message to validate
+the Track ID selected by the server. This message SHOULD be sent
+if the value of the Track ID(i) sent in the SUBSCRIBE OK does
+not match the value of the Suggested Track ID proposed by the
+receiver.
+~~~
+SUBSCRIBE CONFIRM
+{
+  Track ID(i)
+}
+~~~
+
+* Track ID: The Track ID parameter MUST be set to the value of the
+  Server Track ID parameter received in the SUBSCRIBE OK message.
+
+The SUBSCRIBE CONFIRM message is designed to mitigate the race condition
+between the arrival of the SUBSCRIBE OK message and the arrival of the
+first OBJECT messages sent by the publisher. Before arrival of the
+SUBSCRIBE CONFIRM message, the Track ID parameter of the OBJECT
+messages SHOULD be set to the Suggested Track ID provided by the client.
+After arrival of the message, the Track ID parameter MUST be set
+to the Server Track ID parameter provided in the SUBSCRIBE OK message.
+
+There is no explicit acknowledgement of the SUBSCRIBE CONFIRM message.
+The receiver needs a way to free
+resource associated with the Suggested Track ID, but there would
+be a race condition between the arrival of an acknowledgement
+and the arrival of the last OBJECT messages referring to the
+Suggested Track ID. Instead, the receiver SHOULD monitor the incoming OBJECT
+messages and free the resource associated with the Suggested Track ID
+when it observes that the server has switched to using the Server
+Track ID.
+
+Setting the Track ID to an unknown Track ID or to a Track ID already
+confirmed is a protocol violation. Sending the message when the
+Server Track ID matches the Suggested Track ID is also a procotol
+violation.
 
 ## UNSUBSCRIBE {#message-unsubscribe}
 
