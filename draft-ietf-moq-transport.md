@@ -820,6 +820,29 @@ On successful subscription, the publisher SHOULD start delivering
 objects from the group sequence and object sequence as defined in the
 `Track Request Parameters`.
 
+### Selecting Track ID values {#track-id-values}
+
+Track-IDs are used unambiguously by the
+receiver to identify the track to which an Object belongs. Receivers MUST
+ensure that each Suggested Track ID is only used for one single track
+in the scope of the connections. 
+
+DISCUSS: can we have two subscriptions for the same track in a given connection?
+If yes, uniqueness should be "per subscription".
+
+Track-IDs can be provided by either the receiver or the publisher
+(see {{message-subscribe-ok}} and {{message-subscribe-confirm}}). To
+guarantee uniqueness, we differentiate two Track-ID scopes:
+
+* Track-IDs chosen by a client MUST be odd numbers
+* Track-IDs chosen by a server MUST be even numbers
+
+DISCUSS: we use here "client" and "server" instead of "receiver" and
+"publisher", so that servers that receive a track from a client can use
+the same track ID when publishing the track to another client. Is this
+the right choice?
+
+
 ## SUBSCRIBE OK {#message-subscribe-ok}
 
 A `SUBSCRIBE OK` control message is sent for successful subscriptions.
@@ -838,11 +861,9 @@ SUBSCRIBE OK
 * Full Track Name: Identifies the track for which this response is
 provided.
 
-* Server Track ID: Session specific identifier that is used as an alias
+* Publisher Track ID: Session specific identifier that is used as an alias
 for the Full Track Name in the Track ID field of the OBJECT
 ({{message-object}}) message headers of the requested track.
-Track IDs are generally shorter
-than Full Track Names and thus reduce the overhead in OBJECT messages.
 
 * Expires: Time in milliseconds after which the subscription is no
 longer valid. A value of 0 indicates that the subscription stays active
@@ -850,10 +871,11 @@ until it is explicitly unsubscribed.
 
 There is a race
 condition between OBJECT messages and the SUBSCRIBE OK message
-if the Server Track ID value does not match
+if the Publisher Track ID value does not match
 the Suggested Track ID value set by the client.
 See {{message-subscribe-confirm}} for resolution of that race
-condition.
+condition. See {{track-id-values}} for selection of Track ID
+values.
 
 ## SUBSCRIBE ERROR {#message-subscribe-error}
 
@@ -885,8 +907,8 @@ Phrase Length` field carries its length.
 ## SUBSCRIBE CONFIRM {#message-subscribe-confirm}
 
 A receiver sends a SUBSCRIBE CONFIRM control message to validate
-the Track ID selected by the server. This message SHOULD be sent
-if the value of the Track ID(i) sent in the SUBSCRIBE OK does
+the Track ID selected by the publisher. This message SHOULD be sent
+if the value of the Publisher Track ID(i) sent in the SUBSCRIBE OK does
 not match the value of the Suggested Track ID proposed by the
 receiver.
 ~~~
@@ -897,13 +919,13 @@ SUBSCRIBE CONFIRM
 ~~~
 
 * Track ID: The Track ID parameter MUST be set to the value of the
-  Server Track ID parameter received in the SUBSCRIBE OK message.
+  Publisher Track ID parameter received in the SUBSCRIBE OK message.
 
 The SUBSCRIBE CONFIRM message is designed to mitigate the race condition
 between the arrival of the SUBSCRIBE OK message and the arrival of the
 first OBJECT messages sent by the publisher. Before arrival of the
 SUBSCRIBE CONFIRM message, the Track ID parameter of the OBJECT
-messages SHOULD be set to the Suggested Track ID provided by the client.
+messages MUST be set to the Suggested Track ID provided by the client.
 After arrival of the message, the Track ID parameter MUST be set
 to the Server Track ID parameter provided in the SUBSCRIBE OK message.
 
