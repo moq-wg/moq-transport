@@ -615,6 +615,7 @@ length-delimited messages.
 
 An endpoint that receives an unknown message type MUST close the connection.
 
+~~~
 MOQT Message {
   Message Type (i),
   Message Payload (..),
