@@ -422,74 +422,80 @@ pre-negotiated by the application.
 message is unsupported or otherwise took too long to complete. See session
 migration {{session-migration}}.
 
-## Migration {#session-migration}}
+## Migration {#session-migration}
 
 MoqTransport requires a long-lived and stateful session. However, a service
 provider needs the ability to shutdown/restart a server without waiting for all
-sessions to drain naturally, as that can take days. It's possible to migrate
-QUIC connections between hosts by exporting *all* session state but it's
-difficult and error-prone.
+sessions to drain naturally, as that can take days for long-form media.
 
-MoqTransport instead relies on the GOAWAY message ({{message-goaway}}). The
-server sends a GOAWAY message to signal the client should migrate any
-subscriptions to a new session. The GOAWAY message MAY contain a URI for the new
-session, useful in some load balancing schemes, otherwise the current URI is
-reused.
+MoqTransport accomplishes this via the GOAWAY message ({{message-goaway}}). The
+server sends a GOAWAY message which signals the client to establish a new
+session and migrate any active subscriptions. The GOAWAY message MAY contain a
+URI for the new session, useful in some load balancing schemes, otherwise the
+current URI is reused.
 
-The client starts the session migration process upon receipt of the GOAWAY
-message. It's RECOMMENDED that this session migration is transparent to the
-application; see see the following section ({{session-migration-graceful}}).
-If the client does not support graceful migration, it SHOULD terminate session
-with the GOAWAY Failure error code ({{session-termination}}). This is both a
-signal to the application that it is reposible for any retry logic and a signal
-to the server that there was user impact.
+It's RECOMMENDED that session migration is performed transparently to the
+application. See the following section ({{session-migration-graceful}}) for a
+suggested algorithm.
 
-The server SHOULD terminate the session with a GOAWAY error code
-({{session-termination}}) after a timeout, otherwise a misbehaving client could
-prevent a drain. The grace period SHOULD be at least a few seconds to give the
-client enough time to receive the GOAWAY, establish a new MoqTransport session,
-and migrate any active subscriptions.
+If an endpoint does not support graceful migration, it SHOULD terminate the
+session immediately with a GOAWAY Failure error code ({{session-termination}}).
+Additionally, the server SHOULD terminate the session with GOAWAY Failure after
+a sufficient timeout, otherwise a misbehaving client could prevent the drain.
+The GOAWAY Failure error SHOULD be exposed to the application so it has the
+option to perform retry logic.
 
-### Graceful Migration {#session-migration-graceful}
-The application should be unaware that the underlying QUIC has changed. This
-means that all active subscriptions are maintained and data continues to flow
-unimpeded. In order to accomplish this, it is RECOMMENDED that the client
-briefly maintain two simultaneous sessions.
+### Graceful {#session-migration-graceful}
+A graceful session migration involves migrating all subscriptions between
+sessions without impeding data flow. The application should be unaware that
+a session migration even occured.
 
-Upon receipt of GOAWAY, the client establishes a new MoqTransport session in the
-background to the provided URI. This may take a few round trips to resolve the
-address and perform any handshakes. Once established, the client migrates any
-active subscriptions depending on if the client is a publisher, a subscriber, or
-both:
+The client SHOULD establish the new MoqTransport session in the background
+since it may take a few round trips to resolve the address and perform any
+handshakes. Once the the new session is established, any active subscriptions
+and announcements are removed from the old session and issued on the new
+session.
 
-A **publisher** needs to move all active announcements to the new session. The
-client sends an ANNOUNCE to the new session for each active announcement. The
-migration is complete after the receipt of all cooresponding ANNOUNCE\_OK
-messages.
+An endpoint MAY choose to abruptly transition between sessions. However it is
+RECOMMENDED that both sessions are simultaneously active for a brief window
+while subscriptions are individually migrated. The client and server migrate any
+active announcements and subscriptions depending on their role(s) as covered
+below.
 
-*DISCUSS:* This requires that service providers route all subscriptions to the
-newest ANNOUNCE message. If this is a requirement, then we need some text.
-Otherwise, we need to support a service potentially round-robining which would
-read:
+The client terminates the old session once there are no more active
+subscriptions or announcements. The client MAY choose to delay if OBJECTs are
+still being sent/received as queues are drained, but should be prepared to
+receive a GOAWAY Failure from the server if it waits too long.
 
-> Upon receipt of ANNOUNCE\_OK, the client sends an UNANNOUNCE to the old
-session. The migration is complete once every UNANNOUNCE has been acknowledged
-via UNANNOUNCE\_OK.
+#### Publisher
+A publisher needs to migrate all active announcements to the new session. For
+each active announcement:
 
-- A **subscriber** needs to move all active subscriptions to the new session.
-For each subscription, the client sends a UNSUBSCRIBE message to the old session
-and a SUBSCRIBE to the new session, starting at the maximum received
-group/object thus far. The client MUST discard any duplicate OBJECTs received
-while both session are active. The migration is complete after the receipt of
-all cooreponding SUBSCRIBE\_OK messages.
+1. The publisher sends an ANNOUNCE on the new session.
+2. The publisher receives an ANNOUNCE\_OK on the new session.
+3. The publisher sends an UNANNOUNCE on the old session.
+4. The publisher receives an ANNOUNCE\_ERROR on the old session, acknowledging
+   the UNANNOUNCE.
 
-*DISCUSS:* This is doubles the bandwidth usage for at least an RTT. Ideally,
-there would be a switch point in the future (ex. unsubscribe at group max+2) but
-this depends on predictable group/object intervals. I don't see how you could
-support tracks with infrequent tracks, like the catalog. An upside of the
-duplication is that it warms the new session's congestion controller.
+Once these steps are complete, new subscriptions will arrive on the new session
+instead of the old session. The publisher may receive new subscriptions in the
+meantime which should be served normally.
 
-The client cleanly terminates the session once the migration is complete.
+#### Subscriber
+A subscriber needs to move all active subscriptions to the new session. For each
+active subscription:
+
+1. The client sends a SUBSCRIBE message on the new session, starting one past
+   the maximum received object sequence.
+2. The client sends an UNSUBSCRIBE message on the old session.
+3. The client receives a SUBSCRIBE\_OK on the new session.
+4. The client receives a SUBSCRIBE\_ERROR on the old session, acknowledging the
+   UNSUBSCRIBE.
+
+The SUBSCRIBE and UNSUBSCRIBE are sent in parallel to avoid underutilizing the
+network, however this results in overutilizing the network for at least an RTT.
+The endpoint may receive duplicate OBJECT messages across both sessions which
+MUST be discarded.
 
 # Prioritization and Congestion Response {#priority-congestion}
 
