@@ -419,7 +419,7 @@ pre-negotiated by the application.
 
 * GOAWAY Failure: The session was closed because the GOAWAY ({{message-goaway}})
   message is unsupported or otherwise took too long to complete. See session
-  migration {{session-migration}}.
+  migration ({{session-migration}}).
 
 ## Migration {#session-migration}
 
