@@ -3,12 +3,12 @@ title: "Media over QUIC Transport"
 abbrev: moq-transport
 docname: draft-ietf-moq-transport-00
 date: {DATE}
-category: std 
+category: std
 
 ipr: trust200902
 area: Applications and Real-Time
 submissionType: IETF
-workgroup: MOQ 
+workgroup: MOQ
 keyword: Internet-Draft
 
 stand_alone: yes
@@ -998,7 +998,7 @@ The server sends a `GOAWAY` message to initiate session migration
 
 The server MUST terminate the session with a Protocol Violation
 ({{session-termination}}) if it receives a GOAWAY message. The client MUST
-terminate the session with a Protocol Violation ({{session-termination}} if it
+terminate the session with a Protocol Violation ({{session-termination}}) if it
 receives multiple GOAWAY messages.
 
 ~~~
