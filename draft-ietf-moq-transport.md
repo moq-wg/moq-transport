@@ -396,7 +396,7 @@ code, as defined below:
 |------|--------------------|
 | Code | Reason             |
 |-----:|:-------------------|
-| 0x0  | Session Terminated |
+| 0x0  | No Error           |
 |------|--------------------|
 | 0x1  | Generic Error      |
 |------|--------------------|
@@ -407,8 +407,7 @@ code, as defined below:
 | 0x10 | GOAWAY Failure     |
 |------|--------------------|
 
-* Session Terminated: No error occurred; however the endpoint wishes to
-terminate the session.
+* No Error: The session is being terminated without an error.
 
 * Generic Error: An unclassified error occurred.
 
@@ -419,8 +418,8 @@ pre-negotiated by the application.
   disallowed by the specification.
 
 * GOAWAY Failure: The session was closed because the GOAWAY ({{message-goaway}})
-message is unsupported or otherwise took too long to complete. See session
-migration {{session-migration}}.
+  message is unsupported or otherwise took too long to complete. See session
+  migration {{session-migration}}.
 
 ## Migration {#session-migration}
 
@@ -430,72 +429,18 @@ sessions to drain naturally, as that can take days for long-form media.
 
 MoqTransport accomplishes this via the GOAWAY message ({{message-goaway}}). The
 server sends a GOAWAY message which signals the client to establish a new
-session and migrate any active subscriptions. The GOAWAY message MAY contain a
-URI for the new session, useful in some load balancing schemes, otherwise the
-current URI is reused.
+session. The GOAWAY message MAY contain a URI for the new session, useful in
+some load balancing schemes, otherwise the current URI is reused.
+The server SHOULD terminate the session with GOAWAY Failure after
+a sufficient timeout, otherwise a misbehaving client could prevent a drain.
 
 It's RECOMMENDED that session migration is performed transparently to the
-application. See the following section ({{session-migration-graceful}}) for a
-suggested algorithm.
-
-If an endpoint does not support graceful migration, it SHOULD terminate the
-session immediately with a GOAWAY Failure error code ({{session-termination}}).
-Additionally, the server SHOULD terminate the session with GOAWAY Failure after
-a sufficient timeout, otherwise a misbehaving client could prevent the drain.
-The GOAWAY Failure error SHOULD be exposed to the application so it has the
-option to perform retry logic.
-
-### Graceful {#session-migration-graceful}
-A graceful session migration involves migrating all subscriptions between
-sessions without impeding data flow. The application should be unaware that
-a session migration even occured.
-
-The client SHOULD establish the new MoqTransport session in the background
-since it may take a few round trips to resolve the address and perform any
-handshakes. Once the the new session is established, any active subscriptions
-and announcements are removed from the old session and issued on the new
-session.
-
-An endpoint MAY choose to abruptly transition between sessions. However it is
-RECOMMENDED that both sessions are simultaneously active for a brief window
-while subscriptions are individually migrated. The client and server migrate any
-active announcements and subscriptions depending on their role(s) as covered
-below.
-
-The client terminates the old session once there are no more active
-subscriptions or announcements. The client MAY choose to delay if OBJECTs are
-still being sent/received as queues are drained, but should be prepared to
-receive a GOAWAY Failure from the server if it waits too long.
-
-#### Publisher
-A publisher needs to migrate all active announcements to the new session. For
-each active announcement:
-
-1. The publisher sends an ANNOUNCE on the new session.
-2. The publisher receives an ANNOUNCE\_OK on the new session.
-3. The publisher sends an UNANNOUNCE on the old session.
-4. The publisher receives an ANNOUNCE\_ERROR on the old session, acknowledging
-   the UNANNOUNCE.
-
-Once these steps are complete, new subscriptions will arrive on the new session
-instead of the old session. The publisher may receive new subscriptions in the
-meantime which should be served normally.
-
-#### Subscriber
-A subscriber needs to move all active subscriptions to the new session. For each
-active subscription:
-
-1. The client sends a SUBSCRIBE message on the new session, starting one past
-   the maximum received object sequence.
-2. The client sends an UNSUBSCRIBE message on the old session.
-3. The client receives a SUBSCRIBE\_OK on the new session.
-4. The client receives a SUBSCRIBE\_ERROR on the old session, acknowledging the
-   UNSUBSCRIBE.
-
-The SUBSCRIBE and UNSUBSCRIBE are sent in parallel to avoid underutilizing the
-network, however this results in overutilizing the network for at least an RTT.
-The endpoint may receive duplicate OBJECT messages across both sessions which
-MUST be discarded.
+application. This involves establishing the new session in the background and
+migrating all active subscriptions/announcements from the old session. The
+client terminates the old session with NO\_ERROR once there are no more active
+subscriptions. The client MAY choose to delay if OBJECTs are queued on the
+network, but needs to be prepared to receive a GOAWAY Failure from the server if
+it waits too long.
 
 # Prioritization and Congestion Response {#priority-congestion}
 
@@ -1058,14 +1003,15 @@ receives multiple GOAWAY messages.
 
 ~~~
 GOAWAY Message {
-  Session URI (b)
+  New Session URI (b)
 }
 ~~~
 {: #moq-transport-goaway-format title="MOQT GOAWAY Message"}
 
-* Session URI: The new session URI. If this is zero bytes long, the current URI
-  is reused. The new session URI SHOULD use the same scheme as the current URI
-  to ensure compatibility.
+* New Session URI: The client MUST use this URI for the new session if provded.
+  If the URI is zero bytes long, the current URI is reused instead. The new
+  session URI SHOULD use the same scheme as the current URL to ensure
+  compatibility.
 
 
 ## Track Request Parameters {#track-req-params}
