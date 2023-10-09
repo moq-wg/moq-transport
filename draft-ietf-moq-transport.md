@@ -659,8 +659,7 @@ Senders MUST NOT repeat the same parameter type in a message. Receivers
 SHOULD check that there are no duplicate parameters and close the connection
 if found.
 
-Receivers do not process unrecognized parameter types, using the encoded length
-to skip to the next parameter.
+Receivers ignore unrecognized parameters.
 
 The format of each parameter is determined by the least significant bit of the
 type. If this bit is "1", it is an Integer Parameter. If this bit is
@@ -685,16 +684,13 @@ String Parameter {
 {: #moq-string-param format title="MOQT String Parameter"}
 
 Parameter Type is an integer that indicates the semantic meaning of the
-parameter. SETUP message parameters use a namespace constant across all MoQ
-Transport versions. All other messages use a version-specific namespace. For
+parameter. SETUP message parameters use a namespace that is constant across all
+MoQ Transport versions. All other messages use a version-specific namespace. For
 example, the integer '1' can refer to different parameters for SETUP messages
-and other message types.
+and for all other message types.
 
 The Parameter Length field of the String Parameter encodes the length
 of the Parameter Value field in bytes.
-
-Boolean parameters (e.g., to advertise support for a capability) can use the
-String Parameter format with a zero length.
 
 ### SETUP Parameters {#setup-params}
 
@@ -743,24 +739,24 @@ These parameters only apply to version 1 and messages other than SETUP.
 
 #### GROUP SEQUENCE Parameter
 
-The GROUP SEQUENCE parameter (type 0x01) identifies the group within the
-track to start delivering objects. The publisher MUST start delivering
-the objects from the most recent group, when this parameter is
+The GROUP SEQUENCE parameter (type 0x01) identifies the group ({{model-group}})
+within the track to start delivering objects. The publisher MUST start
+delivering the objects from the most recent group when this parameter is
 omitted.
+
+#### OBJECT SEQUENCE Parameter
+
+The OBJECT SEQUENCE parameter (key 0x03) identifies the object
+({{model-object}}) within the track to start delivering objects. The `GROUP
+SEQUENCE` parameter MUST be set to identify the group under which to start
+delivery. The publisher MUST start delivering from the beginning of the selected
+group when this parameter is omitted.
 
 #### AUTHORIZATION INFO Parameter
 
 AUTHORIZATION INFO parameter (key 0x02) identifies track's authorization
 information. This parameter is populated for cases where the
 authorization is required at the track level.
-
-#### OBJECT SEQUENCE Parameter
-
-The OBJECT SEQUENCE parameter (key 0x03) identifies the object with the
-track to start delivering objects. The `GROUP SEQUENCE` parameter MUST
-be set to identify the group under which to start delivery. The
-publisher MUST start delivering from the beginning of the selected group
-when this parameter is omitted.
 
 ## SETUP {#message-setup}
 
@@ -983,9 +979,9 @@ ANNOUNCE Message {
 * Track Namespace: Identifies a track's namespace as defined in
 ({{track-name}})
 
-* Track Request Parameters: The parameters are defined in
-{{version-specific-params}}. The Authorization Info is optional but is
-applicable to this message. All other parameters are ignored.
+* Parameters: The parameters are defined in {{version-specific-params}}. The
+Authorization Info parameter is applicable to this message, but not mandatory.
+All other parameters are ignored.
 
 ## ANNOUNCE OK {#message-announce-ok}
 
