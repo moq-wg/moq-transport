@@ -779,13 +779,13 @@ Client SETUP Message Payload {
   Number of Supported Versions (i),
   Supported Version (i) ...,
   Number of Parameters (i) ...,
-  SETUP Parameters (..) ...,
+  Parameters (..) ...,
 }
 
 Server SETUP Message Payload {
   Selected Version (i),
   Number of Parameters (i) ...,
-  SETUP Parameters (..) ...,
+  Parameters (..) ...,
 }
 ~~~
 {: #moq-transport-setup-format title="MOQT SETUP Message"}
@@ -876,7 +876,7 @@ SUBSCRIBE REQUEST Message {
   Full Track Name Length (i),
   Full Track Name (...),
   Number of Parameters (i),
-  Track Request Parameters (..) ...
+  Parameters (..) ...
 }
 ~~~
 {: #moq-transport-subscribe-format title="MOQT SUBSCRIBE REQUEST Message"}
@@ -975,7 +975,7 @@ ANNOUNCE Message {
   Track Namespace Length (i),
   Track Namespace (..),
   Number of Parameters (i),
-  Track Request Parameters (..) ...,
+  Parameters (..) ...,
 }
 ~~~
 {: #moq-transport-announce-format title="MOQT ANNOUNCE Message"}
