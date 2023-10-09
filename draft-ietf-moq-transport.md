@@ -880,7 +880,7 @@ SUBSCRIBE REQUEST Message {
 
 * Full Track Name: Identifies the track as defined in ({{track-name}}).
 
-* Parameters: As defined in {{version-specific params}}. All are optional
+* Parameters: As defined in {{version-specific-params}}. All are optional
 but valid for this message.
 
 On successful subscription, the publisher SHOULD start delivering
