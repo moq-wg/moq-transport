@@ -675,6 +675,7 @@ Integer Parameter {
 ~~~
 {: #moq-integer-param format title="MOQT Integer Parameter"}
 
+~~~
 String Parameter {
   Parameter Type (i),
   Parameter Length (i),
