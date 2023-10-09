@@ -613,18 +613,15 @@ limits.  See section 2.2 in {{QUIC}}.
 Both unidirectional and bidirectional QUIC streams contain sequences of
 length-delimited messages.
 
+An endpoint that receives an unknown message type MUST close the connection.
+
 ~~~
 MOQT Message {
   Message Type (i),
-  Message Length (i),
   Message Payload (..),
 }
 ~~~
 {: #moq-transport-message-format title="MOQT Message"}
-
-The Message Length field contains the length of the Message Payload
-field in bytes.  A length of 0 indicates the message is unbounded and
-continues until the end of the stream.
 
 |-------|--------------------------------------------------|
 | ID    | Messages                                         |
@@ -781,11 +778,13 @@ The wire format of the SETUP message is as follows:
 Client SETUP Message Payload {
   Number of Supported Versions (i),
   Supported Version (i) ...,
+  Number of Parameters (i) ...,
   Parameters (..) ...,
 }
 
 Server SETUP Message Payload {
   Selected Version (i),
+  Number of Parameters (i) ...,
   Parameters (..) ...,
 }
 ~~~
@@ -839,6 +838,7 @@ OBJECT Message {
   Group Sequence (i),
   Object Sequence (i),
   Object Send Order (i),
+  Object Payload Length (i),
   Object Payload (b),
 }
 ~~~
@@ -857,6 +857,10 @@ group.
 * Object Send Order: An integer indicating the object send order
 {{send-order}} or priority {{ordering-by-priorities}} value.
 
+* Object Payload Length: The length of the following Object Payload. The
+sender MAY encode a zero in this field, which means that the message
+continues to the end of the stream.
+
 * Object Payload: An opaque payload intended for the consumer and SHOULD
 NOT be processed by a relay.
 
@@ -871,6 +875,7 @@ The format of SUBSCRIBE REQUEST is as follows:
 SUBSCRIBE REQUEST Message {
   Full Track Name Length (i),
   Full Track Name (...),
+  Number of Parameters (i),
   Parameters (..) ...
 }
 ~~~
@@ -893,9 +898,9 @@ A `SUBSCRIBE OK` control message is sent for successful subscriptions.
 ~~~
 SUBSCRIBE OK
 {
-  Full Track Name Length(i),
-  Full Track Name(...),
-  Track ID(i),
+  Full Track Name Length (i),
+  Full Track Name (...),
+  Track ID (i),
   Expires (i)
 }
 ~~~
@@ -922,8 +927,8 @@ failed SUBSCRIBE REQUEST.
 ~~~
 SUBSCRIBE ERROR
 {
-  Full Track Name Length(i),
-  Full Track Name(...),
+  Full Track Name Length (i),
+  Full Track Name (...),
   Error Code (i),
   Reason Phrase Length (i),
   Reason Phrase (...),
@@ -967,8 +972,9 @@ publish tracks under this namespace.
 
 ~~~
 ANNOUNCE Message {
-  Track Namespace Length(i),
-  Track Namespace(..),
+  Track Namespace Length (i),
+  Track Namespace (..),
+  Number of Parameters (i),
   Parameters (..) ...,
 }
 ~~~
@@ -989,8 +995,8 @@ successful authorization and acceptance of an ANNOUNCE message.
 ~~~
 ANNOUNCE OK
 {
-  Track Namespace Length(i),
-  Track Namespace(..),
+  Track Namespace Length (i),
+  Track Namespace (..),
 }
 ~~~
 {: #moq-transport-announce-ok format title="MOQT ANNOUNCE OK Message"}
