@@ -1,7 +1,7 @@
 ---
 title: "Media over QUIC Transport"
 abbrev: moq-transport
-docname: draft-ietf-moq-transport-00
+docname: draft-ietf-moq-transport-latest
 date: {DATE}
 category: std 
 
