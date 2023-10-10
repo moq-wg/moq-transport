@@ -721,6 +721,8 @@ connection. It has three possible values:
 
 : Both the client and the server are expected to send objects.
 
+[TODO: Move the explicit values into an IANA table and refer to constants
+ here.]
 
 #### Path {#path}
 
