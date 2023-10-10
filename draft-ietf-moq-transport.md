@@ -626,11 +626,11 @@ MOQT Message {
 |-------|----------------------------------------------------|
 | ID    | Messages                                           |
 |------:|:---------------------------------------------------|
-| 0x0   | OBJECT without payload length ({{message-object}}) |
+| 0x0   | OBJECT with payload length ({{message-object}})    |
 |-------|----------------------------------------------------|
 | 0x1   | SETUP ({{message-setup}})                          |
 |-------|----------------------------------------------------|
-| 0x2   | OBJECT with payload length ({{message-object}})    |
+| 0x2   | OBJECT without payload length ({{message-object}}) |
 |-------|----------------------------------------------------|
 | 0x3   | SUBSCRIBE REQUEST ({{message-subscribe-req}})      |
 |-------|----------------------------------------------------|
@@ -757,8 +757,8 @@ the `query` portion of the URI to the parameter.
 A OBJECT message contains a range of contiguous bytes from from the
 specified track, as well as associated metadata required to deliver,
 cache, and forward it. There are two subtypes of this message. When the
-message type is 0x00, the optional Object Payload Length field is not
-present. When the message type ix 0x02, the field is present.
+message type is 0x00, the optional Object Payload Length field is 
+present. When the message type ix 0x02, the field is not present.
 
 The format of the OBJECT message is as follows:
 
