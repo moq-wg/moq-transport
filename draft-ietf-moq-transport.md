@@ -623,31 +623,33 @@ MOQT Message {
 ~~~
 {: #moq-transport-message-format title="MOQT Message"}
 
-|-------|--------------------------------------------------|
-| ID    | Messages                                         |
-|------:|:-------------------------------------------------|
-| 0x0   | OBJECT ({{message-object}})                      |
-|-------|--------------------------------------------------|
-| 0x1   | SETUP ({{message-setup}})                        |
-|-------|--------------------------------------------------|
-| 0x3   | SUBSCRIBE REQUEST ({{message-subscribe-req}})    |
-|-------|--------------------------------------------------|
-| 0x4   | SUBSCRIBE OK ({{message-subscribe-ok}})          |
-|-------|--------------------------------------------------|
-| 0x5   | SUBSCRIBE ERROR ({{message-subscribe-error}})    |
-|-------|--------------------------------------------------|
-| 0x6   | ANNOUNCE  ({{message-announce}})                 |
-|-------|--------------------------------------------------|
-| 0x7   | ANNOUNCE OK ({{message-announce-ok}})            |
-|-------|--------------------------------------------------|
-| 0x8   | ANNOUNCE ERROR ({{message-announce-error}})      |
-|-------|--------------------------------------------------|
-| 0x9   | UNANNOUNCE  ({{message-unannounce}})             |
-|-------|--------------------------------------------------|
-| 0x10  | GOAWAY ({{message-goaway}})                      |
-|-------|--------------------------------------------------|
-| 0xA   | UNSUBSCRIBE ({{message-unsubscribe}})            |
-|-------|--------------------------------------------------|
+|-------|----------------------------------------------------|
+| ID    | Messages                                           |
+|------:|:---------------------------------------------------|
+| 0x0   | OBJECT with payload length ({{message-object}})    |
+|-------|----------------------------------------------------|
+| 0x1   | SETUP ({{message-setup}})                          |
+|-------|----------------------------------------------------|
+| 0x2   | OBJECT without payload length ({{message-object}}) |
+|-------|----------------------------------------------------|
+| 0x3   | SUBSCRIBE REQUEST ({{message-subscribe-req}})      |
+|-------|----------------------------------------------------|
+| 0x4   | SUBSCRIBE OK ({{message-subscribe-ok}})            |
+|-------|----------------------------------------------------|
+| 0x5   | SUBSCRIBE ERROR ({{message-subscribe-error}})      |
+|-------|----------------------------------------------------|
+| 0x6   | ANNOUNCE  ({{message-announce}})                   |
+|-------|----------------------------------------------------|
+| 0x7   | ANNOUNCE OK ({{message-announce-ok}})              |
+|-------|----------------------------------------------------|
+| 0x8   | ANNOUNCE ERROR ({{message-announce-error}})        |
+|-------|----------------------------------------------------|
+| 0x9   | UNANNOUNCE  ({{message-unannounce}})               |
+|-------|----------------------------------------------------|
+| 0xA   | UNSUBSCRIBE ({{message-unsubscribe}})              |
+|-------|----------------------------------------------------|
+| 0x10  | GOAWAY ({{message-goaway}})                        |
+|-------|----------------------------------------------------|
 
 ## Parameters {#params}
 
@@ -827,7 +829,9 @@ Under all other circumstances, these parameters are ignored.
 
 A OBJECT message contains a range of contiguous bytes from from the
 specified track, as well as associated metadata required to deliver,
-cache, and forward it.
+cache, and forward it. There are two subtypes of this message. When the
+message type is 0x00, the optional Object Payload Length field is 
+present. When the message type ix 0x02, the field is not present.
 
 The format of the OBJECT message is as follows:
 
@@ -837,7 +841,7 @@ OBJECT Message {
   Group Sequence (i),
   Object Sequence (i),
   Object Send Order (i),
-  Object Payload Length (i),
+  [Object Payload Length (i),]
   Object Payload (b),
 }
 ~~~
@@ -856,9 +860,8 @@ group.
 * Object Send Order: An integer indicating the object send order
 {{send-order}} or priority {{ordering-by-priorities}} value.
 
-* Object Payload Length: The length of the following Object Payload. The
-sender MAY encode a zero in this field, which means that the message
-continues to the end of the stream.
+* Object Payload Length: The length of the following Object Payload. If this
+field is absent, the object payload continues to the end of the stream.
 
 * Object Payload: An opaque payload intended for the consumer and SHOULD
 NOT be processed by a relay.
