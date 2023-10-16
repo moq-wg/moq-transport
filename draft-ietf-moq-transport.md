@@ -50,7 +50,8 @@ informative:
 --- abstract
 
 This document defines the core behavior for Media over QUIC Transport
-(MOQT), a media transport protocol over QUIC. MOQT allows a producer of
+(MOQT), a media transport protocol designed to operate over QUIC and
+WebTransport, which have similar functionality. MOQT allows a producer of
 media to publish data and have it consumed via subscription by a
 multiplicity of endpoints. It supports intermediate content distribution
 networks and is designed for high scale and low latency distribution.
@@ -60,8 +61,8 @@ networks and is designed for high scale and low latency distribution.
 
 # Introduction
 
-Media Over QUIC Transport (MOQT) is a transport protocol that utilizes
-the QUIC network protocol {{QUIC}}, either directly or via WebTransport
+Media Over QUIC Transport (MOQT) is a protocol that is optimized
+for the QUIC protocol {{QUIC}}, either directly or via WebTransport
 {{WebTransport}}, for the dissemination of media. MOQT utilizes a
 publish/subscribe workflow in which producers of media publish data in
 response to subscription requests from a multiplicity of endpoints. MOQT
@@ -168,11 +169,11 @@ Congestion:
 
 Consumer:
 
-: A QUIC endpoint receiving media over the network.
+: An endpoint receiving media over the network.
 
 Endpoint:
 
-: A QUIC Client or a QUIC Server. 
+: A Client or Server. 
 
 Group:
 
@@ -187,7 +188,7 @@ Object:
 
 Producer:
 
-: A QUIC endpoint sending media over the network.
+: An endpoint sending media over the network.
 
 Server:
 
@@ -369,14 +370,14 @@ sent on unidirectional streams.  Because there are no other uses of
 bidirectional streams, a peer MAY currently close the connection if it
 receives a second bidirectional stream.
 
-The control stream MUST NOT be abruptly closed at the QUIC layer.  Doing so
-results in the session being closed as a 'Protocol Violation'.
+The control stream MUST NOT be abruptly closed at the underlying transport
+layer.  Doing so results in the session being closed as a 'Protocol Violation'.
 
 ## Stream Cancellation
 
-QUIC streams aside from the control stream MAY be canceled due to congestion
+Streams aside from the control stream MAY be canceled due to congestion
 or other reasons by either the sender or receiver. Early termination of a
-QUIC stream does not affect the MoQ application state, and therefore has no
+stream does not affect the MoQ application state, and therefore has no
 effect on outstanding subscriptions.
 
 ## Termination  {#session-termination}
@@ -462,9 +463,9 @@ throughput is limited.  Note that the contents within each object are
 still delivered in order; this send order only applies to the ordering
 between objects.
 
-A sender MUST send each object over a dedicated QUIC stream.  The QUIC
-library should support prioritization ({{priority-congestion}}) such
-that streams are transmitted in send order.
+A sender MUST send each object over a dedicated stream.  The library
+should support prioritization ({{priority-congestion}}) such that
+streams are transmitted in send order.
 
 A receiver MUST NOT assume that objects will be received in send order,
 for the following reasons:
@@ -472,7 +473,7 @@ for the following reasons:
 * Newly encoded objects can have a smaller send order than outstanding
   objects.
 * Packet loss or flow control can delay the send of individual streams.
-* The sender might not support QUIC stream prioritization.
+* The sender might not support stream prioritization.
 
 TODO: Refer to Congestion Response and Prioritization Section for
 further details on various proposals.
@@ -606,14 +607,14 @@ avoid incurring additional latency.
 
 A relay that reads from a stream and writes to stream in order will
 introduce head-of-line blocking.  Packet loss will cause stream data to
-be buffered in the QUIC library, awaiting in order delivery, which will
+be buffered in the library, awaiting in order delivery, which will
 increase latency over additional hops.  To mitigate this, a relay SHOULD
-read and write QUIC stream data out of order subject to flow control
+read and write stream data out of order subject to flow control
 limits.  See section 2.2 in {{QUIC}}.
 
 # Messages {#message}
 
-Both unidirectional and bidirectional QUIC streams contain sequences of
+Both unidirectional and bidirectional streams contain sequences of
 length-delimited messages.
 
 An endpoint that receives an unknown message type MUST close the connection.
@@ -1061,8 +1062,8 @@ TODO: Expand this section.
 Live content requires significant bandwidth and resources.  Failure to
 set limits will quickly cause resource exhaustion.
 
-MOQT uses QUIC flow control to impose resource limits at the network
-layer.  Endpoints SHOULD set flow control limits based on the
+MOQT uses stream limits and flow control to impose resource limits at
+the network layer.  Endpoints SHOULD set flow control limits based on the
 anticipated bitrate.
 
 Endpoints MAY impose a MAX STREAM count limit which would restrict the
