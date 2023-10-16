@@ -364,6 +364,11 @@ a control message on a different stream closes the session as a
 peer receiving an Object on the control stream closes the session as a
 'Protocol Violation'.
 
+This draft only specifies a single use of bidirectional streams. Objects are
+sent on unidirectional streams.  Because there are no other uses of
+bidirectional streams, a peer MAY currently close the connection if it
+receives a second bidirectional stream.
+
 The control stream MUST NOT be abruptly closed at the QUIC layer.  Doing so
 results in the session being closed as a 'Protocol Violation'.
 
