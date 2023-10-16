@@ -374,10 +374,10 @@ results in the session being closed as a 'Protocol Violation'.
 
 ## Stream Cancellation
 
-A QUIC stream MAY be canceled due to congestion or other reasons by either
-the sender or receiver. Early termination of a QUIC stream does not
-affect the MoQ application state, and therefore has no effect on outstanding
-subscriptions.
+QUIC streams aside from the control stream MAY be canceled due to congestion
+or other reasons by either the sender or receiver. Early termination of a
+QUIC stream does not affect the MoQ application state, and therefore has no
+effect on outstanding subscriptions.
 
 ## Termination  {#session-termination}
 
