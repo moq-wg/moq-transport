@@ -352,17 +352,20 @@ PATH parameter ({{path}}) which is sent in the SETUP message at the
 start of the session.  The ALPN value {{!RFC7301}} used by the protocol
 is `moq-00`.
 
+
 ## Session initialization {#session-init}
 
-The first stream opened is a client-initiated bidirectional stream where
-the peers exchange SETUP messages ({{message-setup}}). The subsequent
-streams MAY be either unidirectional or bidirectional. For exchanging
-content, an application would typically send a unidirectional stream
-containing a single OBJECT message ({{message-object}}), as putting more
-than one object into one stream may create head-of-line blocking delays.
-However, if one object has a hard dependency on another object, putting
-them on the same stream could be a valid choice.
+The first stream opened is a client-initiated bidirectional control stream
+where the peers exchange SETUP messages ({{message-setup}}).  All messages
+defined in this draft are sent on the control stream after the SETUP message.
+Control messages MUST NOT be sent on any other stream, and a peer receiving
+a control message on a different stream closes the session as a
+'Protocol Violation'. Objects MUST NOT be sent on the control stream, and a
+peer receiving an Object on the control stream closes the session as a
+'Protocol Violation'.
 
+The control stream MUST NOT be abruptly closed at the QUIC layer.  Doing so
+results in the session being closed as a 'Protocol Violation'.
 
 ## Cancellation  {#session-cancellation}
 
