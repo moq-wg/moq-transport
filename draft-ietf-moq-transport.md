@@ -104,8 +104,8 @@ deliver content encoded at a higher bitrate than the network can support
 causes queuing along the path from producer to consumer. The speed at
 which a protocol can detect and respond to queuing determines the
 overall latency. TCP-based protocols are simple but are slow to detect
-congestion and suffer from head-of-line blocking. UDP-based protocols
-can avoid queuing, but the application is now responsible for the
+congestion and suffer from head-of-line blocking. Protocols directly over
+UDP can avoid queuing, but the application is now responsible for the
 complexity of fragmentation, congestion control, retransmissions,
 receiver feedback, reassembly, and more. One goal of MOQT is to achieve
 the best of both these worlds: leverage the features of QUIC to create a
