@@ -802,7 +802,7 @@ The format of SUBSCRIBE REQUEST is as follows:
 
 ~~~
 SUBSCRIBE REQUEST Message {
-  Namespace (b),
+  Track Namespace (b),
   Track Name (b),
   Number of Parameters (i),
   Track Request Parameters (..) ...
@@ -810,7 +810,8 @@ SUBSCRIBE REQUEST Message {
 ~~~
 {: #moq-transport-subscribe-format title="MOQT SUBSCRIBE REQUEST Message"}
 
-* Namespace: Identifies the namespace of the track as defined in ({{track-name}}).
+* Track Namespace: Identifies the namespace of the track as defined in
+({{track-name}}).
 
 * Track Name: Identifies the track name as defined in ({{track-name}}).
 
@@ -827,16 +828,18 @@ A `SUBSCRIBE OK` control message is sent for successful subscriptions.
 ~~~
 SUBSCRIBE OK
 {
-  Full Track Name Length (i),
-  Full Track Name (...),
+  Track Namespace (b),
+  Track Name (b),
   Track ID (i),
   Expires (i)
 }
 ~~~
 {: #moq-transport-subscribe-ok format title="MOQT SUBSCRIBE OK Message"}
 
-* Full Track Name: Identifies the track for which this response is
-provided.
+* Track Namespace: Identifies the namespace of the track as defined in
+({{track-name}}).
+
+* Track Name: Identifies the track name as defined in ({{track-name}}).
 
 * Track ID: Session specific identifier that is used as an alias for the
 Full Track Name in the Track ID field of the OBJECT ({{message-object}})
@@ -856,8 +859,8 @@ failed SUBSCRIBE REQUEST.
 ~~~
 SUBSCRIBE ERROR
 {
-  Full Track Name Length (i),
-  Full Track Name (...),
+  Track Namespace (b),
+  Track Name (b),
   Error Code (i),
   Reason Phrase Length (i),
   Reason Phrase (...),
@@ -865,8 +868,10 @@ SUBSCRIBE ERROR
 ~~~
 {: #moq-transport-subscribe-error format title="MOQT SUBSCRIBE ERROR Message"}
 
-* Full Track Name: Identifies the track in the request message for which
-this response is provided.
+* Track Namespace: Identifies the namespace of the track as defined in
+({{track-name}}).
+
+* Track Name: Identifies the track name as defined in ({{track-name}}).
 
 * Error Code: Identifies an integer error code for subscription failure.
 
@@ -884,13 +889,16 @@ The format of `UNSUBSCRIBE` is as follows:
 
 ~~~
 UNSUBSCRIBE Message {
-  Full Track Name Length (i),
-  Full Track Name (...),
+  Track Namespace (b),
+  Track Name (b),
 }
 ~~~
 {: #moq-transport-unsubscribe-format title="MOQT UNSUBSCRIBE Message"}
 
-* Full Track Name: Identifies the track as defined in ({{track-name}}).
+* Track Namespace: Identifies the namespace of the track as defined in
+({{track-name}}).
+
+* Track Name: Identifies the track name as defined in ({{track-name}}).
 
 ## ANNOUNCE {#message-announce}
 
@@ -901,8 +909,7 @@ publish tracks under this namespace.
 
 ~~~
 ANNOUNCE Message {
-  Track Namespace Length (i),
-  Track Namespace (..),
+  Track Namespace (b),
   Number of Parameters (i),
   Track Request Parameters (..) ...,
 }
@@ -923,8 +930,7 @@ successful authorization and acceptance of an ANNOUNCE message.
 ~~~
 ANNOUNCE OK
 {
-  Track Namespace Length (i),
-  Track Namespace (..),
+  Track Namespace (b),
 }
 ~~~
 {: #moq-transport-announce-ok format title="MOQT ANNOUNCE OK Message"}
@@ -940,8 +946,7 @@ failed authorization.
 ~~~
 ANNOUNCE ERROR
 {
-  Track Namespace Length(i),
-  Track Namespace(...),
+  Track Namespace(b),
   Error Code (i),
   Reason Phrase Length (i),
   Reason Phrase (...),
@@ -966,8 +971,7 @@ within the provided Track Namespace.
 
 ~~~
 UNANNOUNCE Message {
-  Track Namespace Length(i),
-  Track Namespace(..),
+  Track Namespace(b),
 }
 ~~~
 {: #moq-transport-unannounce-format title="MOQT UNANNOUNCE Message"}
