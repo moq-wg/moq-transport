@@ -363,24 +363,12 @@ than one object into one stream may create head-of-line blocking delays.
 However, if one object has a hard dependency on another object, putting
 them on the same stream could be a valid choice.
 
+## Stream Cancellation
 
-## Cancellation  {#session-cancellation}
-
-A QUIC stream MAY be canceled at any point with an error code.  The
-producer does this via a `RESET_STREAM` frame while the consumer
-requests cancellation with a `STOP_SENDING` frame.
-
-When using `order`, lower priority streams will be starved during
-congestion, perhaps indefinitely.  These streams will consume resources
-and flow control until they are canceled.  When nearing resource limits,
-an endpoint SHOULD cancel the lowest priority stream with error code 0.
-
-The sender MAY cancel streams in response to congestion.  This can be
-useful when the sender does not support stream prioritization.
-
-TODO: this section actually describes stream cancellation, not session
-cancellation. Is this section required, or can it be deleted, or added
-to a new "workflow" section.
+A QUIC stream MAY be canceled due to congestion or other reasons by either
+the sender or receiver. Early termination of a QUIC stream does not
+affect the MoQ application state, and therefore has no effect on outstanding
+subscriptions.
 
 ## Termination  {#session-termination}
 
