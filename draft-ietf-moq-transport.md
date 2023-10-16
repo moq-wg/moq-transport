@@ -597,13 +597,15 @@ combine, split, or otherwise modify object payloads.  A relay SHOULD
 prioritize streams ({{priority-congestion}}) based on the send
 order/priority.
 
+A sender SHOULD begin sending incomplete objects when available to
+avoid incurring additional latency.
+
 A relay that reads from a stream and writes to stream in order will
 introduce head-of-line blocking.  Packet loss will cause stream data to
 be buffered in the QUIC library, awaiting in order delivery, which will
 increase latency over additional hops.  To mitigate this, a relay SHOULD
 read and write QUIC stream data out of order subject to flow control
 limits.  See section 2.2 in {{QUIC}}.
-
 
 # Messages {#message}
 
