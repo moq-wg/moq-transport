@@ -172,7 +172,7 @@ Consumer:
 
 Endpoint:
 
-: A QUIC Client or a QUIC Server. 
+: A QUIC Client or a QUIC Server.
 
 Group:
 
@@ -404,7 +404,7 @@ code, as defined below:
 |------|--------------------|
 | 0x3  | Protocol Violation |
 |------|--------------------|
-| 0x10 | GOAWAY Failure     |
+| 0x10 | GOAWAY Timeout     |
 |------|--------------------|
 
 * No Error: The session is being terminated without an error.
@@ -417,9 +417,9 @@ pre-negotiated by the application.
 * Protocol Violation: The remote endpoint performed an action that was
   disallowed by the specification.
 
-* GOAWAY Failure: The session was closed because the GOAWAY ({{message-goaway}})
-  message is unsupported or otherwise took too long to complete. See session
-  migration ({{session-migration}}).
+* GOAWAY Timeout: The session was closed because the client took too long to
+  close the session in response to a GOAWAY ({{message-goaway}}) message.
+  See session migration ({{session-migration}}).
 
 ## Migration {#session-migration}
 
@@ -441,6 +441,12 @@ client terminates the old session with NO\_ERROR once there are no more active
 subscriptions. The client MAY choose to delay if OBJECTs are queued on the
 network, but needs to be prepared to receive a GOAWAY Failure from the server if
 it waits too long.
+
+The GOAWAY message does not change the state of active subscriptions.
+It is RECOMMENDED that the subscriber close existing subscriptions with an
+UNSUBSCRIBE message and the client close the connection once all subscriptions
+have terminated. An endpoint MAY reject new subscriptions while in the draining
+state.
 
 # Prioritization and Congestion Response {#priority-congestion}
 
@@ -976,9 +982,9 @@ Phrase Length` field carries its length.
 
 ## UNANNOUNCE {#message-unannounce}
 
-The publisher sends the `UNANNOUNCE` control message to indicate 
-its intent to stop serving new subscriptions for tracks 
-within the provided Track Namespace. 
+The publisher sends the `UNANNOUNCE` control message to indicate
+its intent to stop serving new subscriptions for tracks
+within the provided Track Namespace.
 
 ~~~
 UNANNOUNCE Message {
@@ -1058,7 +1064,7 @@ applicable in SUBSCRIBE REQUEST and ANNOUNCE messages.
 
 # Security Considerations {#security}
 
-TODO: Expand this section. 
+TODO: Expand this section.
 
 ## Resource Exhaustion
 
