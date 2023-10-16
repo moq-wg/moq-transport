@@ -519,7 +519,7 @@ validating subscribe and publish requests at the edge of a network.
 
 ## Subscriber Interactions
 
-Subscribers interact with the Relays by sending a "SUBSCRIBE REQUEST"
+Subscribers interact with the Relays by sending a SUBSCRIBE_REQUEST
 ({{message-subscribe-req}}) control message for the tracks of
 interest. Relays MUST ensure subscribers are authorized to access the
 content associated with the Full Track Name. The authorization
@@ -528,10 +528,10 @@ encompassing session. The specifics of how a relay authorizes a user are
 outside the scope of this specification.
 
 The subscriber making the subscribe request is notified of the result of
-the subscription, via "SUBSCRIBE OK" ({{message-subscribe-ok}}) or the
-"SUBSCRIBE ERROR" {{message-subscribe-error}} control message. 
-The entity receiving the SUBSCRIBE MUST send only a single response to
-a given SUBSCRIBE of either an OK or ERROR.
+the subscription, via SUBSCRIBE_OK ({{message-subscribe-ok}}) or the
+SUBSCRIBE_ERROR {{message-subscribe-error}} control message. 
+The entity receiving the SUBSCRIBE_REQUEST MUST send only a single response to
+a given SUBSCRIBE_REQUEST of either an OK or ERROR.
 
 For successful subscriptions, the publisher maintains a list of
 subscribers for each full track name. Each new OBJECT belonging to the
@@ -549,7 +549,7 @@ request is cached and shared among the pending subscribers.
 
 ## Publisher Interactions
 
-Publishing through the relay starts with publisher sending "ANNOUNCE"
+Publishing through the relay starts with publisher sending ANNOUNCE
 control message with a `Track Namespace` ({{model-track}}).
 
 Relays MUST ensure that publishers are authorized by:
@@ -561,7 +561,7 @@ Relays MUST ensure that publishers are authorized by:
   the way the relay is managed and is application specific (typically
   based on prior business agreement).
 
-Relays respond with "ANNOUNCE OK" and/or "ANNOUNCE ERROR" control
+Relays respond with ANNOUNCE_OK and/or ANNOUNCE_ERROR control
 messages providing the results of announcement.
 The entity receiving the ANNOUNCE MUST send only a single response to
 a given ANNOUNCE of either an OK or ERROR.
@@ -635,17 +635,17 @@ MOQT Message {
 |-------|----------------------------------------------------|
 | 0x2   | OBJECT without payload length ({{message-object}}) |
 |-------|----------------------------------------------------|
-| 0x3   | SUBSCRIBE REQUEST ({{message-subscribe-req}})      |
+| 0x3   | SUBSCRIBE_REQUEST ({{message-subscribe-req}})      |
 |-------|----------------------------------------------------|
-| 0x4   | SUBSCRIBE OK ({{message-subscribe-ok}})            |
+| 0x4   | SUBSCRIBE_OK ({{message-subscribe-ok}})            |
 |-------|----------------------------------------------------|
-| 0x5   | SUBSCRIBE ERROR ({{message-subscribe-error}})      |
+| 0x5   | SUBSCRIBE_ERROR ({{message-subscribe-error}})      |
 |-------|----------------------------------------------------|
 | 0x6   | ANNOUNCE  ({{message-announce}})                   |
 |-------|----------------------------------------------------|
-| 0x7   | ANNOUNCE OK ({{message-announce-ok}})              |
+| 0x7   | ANNOUNCE_OK ({{message-announce-ok}})              |
 |-------|----------------------------------------------------|
-| 0x8   | ANNOUNCE ERROR ({{message-announce-error}})        |
+| 0x8   | ANNOUNCE_ERROR ({{message-announce-error}})        |
 |-------|----------------------------------------------------|
 | 0x9   | UNANNOUNCE  ({{message-unannounce}})               |
 |-------|----------------------------------------------------|
@@ -797,21 +797,21 @@ field is absent, the object payload continues to the end of the stream.
 NOT be processed by a relay.
 
 
-## SUBSCRIBE REQUEST {#message-subscribe-req}
+## SUBSCRIBE_REQUEST {#message-subscribe-req}
 
-A receiver issues a SUBSCRIBE REQUEST to a publisher to request a track.
+A receiver issues a SUBSCRIBE_REQUEST to a publisher to request a track.
 
-The format of SUBSCRIBE REQUEST is as follows:
+The format of SUBSCRIBE_REQUEST is as follows:
 
 ~~~
-SUBSCRIBE REQUEST Message {
+SUBSCRIBE_REQUEST Message {
   Track Namespace (b),
   Track Name (b),
   Number of Parameters (i),
   Track Request Parameters (..) ...
 }
 ~~~
-{: #moq-transport-subscribe-format title="MOQT SUBSCRIBE REQUEST Message"}
+{: #moq-transport-subscribe-format title="MOQT SUBSCRIBE_REQUEST Message"}
 
 * Track Namespace: Identifies the namespace of the track as defined in
 ({{track-name}}).
@@ -824,12 +824,12 @@ On successful subscription, the publisher SHOULD start delivering
 objects from the group sequence and object sequence as defined in the
 `Track Request Parameters`.
 
-## SUBSCRIBE OK {#message-subscribe-ok}
+## SUBSCRIBE_OK {#message-subscribe-ok}
 
-A `SUBSCRIBE OK` control message is sent for successful subscriptions.
+A SUBSCRIBE_OK control message is sent for successful subscriptions.
 
 ~~~
-SUBSCRIBE OK
+SUBSCRIBE_OK
 {
   Track Namespace (b),
   Track Name (b),
@@ -837,7 +837,7 @@ SUBSCRIBE OK
   Expires (i)
 }
 ~~~
-{: #moq-transport-subscribe-ok format title="MOQT SUBSCRIBE OK Message"}
+{: #moq-transport-subscribe-ok format title="MOQT SUBSCRIBE_OK Message"}
 
 * Track Namespace: Identifies the namespace of the track as defined in
 ({{track-name}}).
@@ -854,13 +854,13 @@ longer valid. A value of 0 indicates that the subscription stays active
 until it is explicitly unsubscribed.
 
 
-## SUBSCRIBE ERROR {#message-subscribe-error}
+## SUBSCRIBE_ERROR {#message-subscribe-error}
 
-A publisher sends a SUBSCRIBE ERROR control message in response to a
-failed SUBSCRIBE REQUEST.
+A publisher sends a SUBSCRIBE_ERROR control message in response to a
+failed SUBSCRIBE_REQUEST.
 
 ~~~
-SUBSCRIBE ERROR
+SUBSCRIBE_ERROR
 {
   Track Namespace (b),
   Track Name (b),
@@ -869,7 +869,7 @@ SUBSCRIBE ERROR
   Reason Phrase (...),
 }
 ~~~
-{: #moq-transport-subscribe-error format title="MOQT SUBSCRIBE ERROR Message"}
+{: #moq-transport-subscribe-error format title="MOQT SUBSCRIBE_ERROR Message"}
 
 * Track Namespace: Identifies the namespace of the track as defined in
 ({{track-name}}).
@@ -906,7 +906,7 @@ UNSUBSCRIBE Message {
 ## ANNOUNCE {#message-announce}
 
 The publisher sends the ANNOUNCE control message to advertise where the
-receiver can route SUBSCRIBE REQUESTs for tracks within the announced
+receiver can route SUBSCRIBE_REQUESTs for tracks within the announced
 Track Namespace. The receiver verifies the publisher is authorized to
 publish tracks under this namespace.
 
@@ -925,29 +925,29 @@ ANNOUNCE Message {
 * Track Request Parameters: The parameters are defined in
 {{track-req-params}}.
 
-## ANNOUNCE OK {#message-announce-ok}
+## ANNOUNCE_OK {#message-announce-ok}
 
-The receiver sends an `ANNOUNCE OK` control message to acknowledge the
+The receiver sends an ANNOUNCE_OK control message to acknowledge the
 successful authorization and acceptance of an ANNOUNCE message.
 
 ~~~
-ANNOUNCE OK
+ANNOUNCE_OK
 {
   Track Namespace (b),
 }
 ~~~
-{: #moq-transport-announce-ok format title="MOQT ANNOUNCE OK Message"}
+{: #moq-transport-announce-ok format title="MOQT ANNOUNCE_OK Message"}
 
 * Track Namespace: Identifies the track namespace in the ANNOUNCE
 message for which this response is provided.
 
-## ANNOUNCE ERROR {#message-announce-error}
+## ANNOUNCE_ERROR {#message-announce-error}
 
-The receiver sends an `ANNOUNCE ERROR` control message for tracks that
+The receiver sends an ANNOUNCE_ERROR control message for tracks that
 failed authorization.
 
 ~~~
-ANNOUNCE ERROR
+ANNOUNCE_ERROR
 {
   Track Namespace(b),
   Error Code (i),
@@ -955,7 +955,7 @@ ANNOUNCE ERROR
   Reason Phrase (...),
 }
 ~~~
-{: #moq-transport-announce-error format title="MOQT ANNOUNCE ERROR Message"}
+{: #moq-transport-announce-error format title="MOQT ANNOUNCE_ERROR Message"}
 
 * Track Namespace: Identifies the track namespace in the ANNOUNCE
 message for which this response is provided.
@@ -1013,7 +1013,7 @@ The client:
 ## Track Request Parameters {#track-req-params}
 
 The Track Request Parameters identify properties of the track requested
-in either the ANNOUNCE or SUSBCRIBE REQUEST control messages. The peers
+in either the ANNOUNCE or SUSBCRIBE_REQUEST control messages. The peers
 MUST close the connection if there are duplicates. The Parameter Value
 Length field indicates the length of the Parameter Value.
 
@@ -1034,7 +1034,7 @@ Track Request Parameter {
 The GROUP SEQUENCE parameter (key 0x00) identifies the group within the
 track to start delivering objects. The publisher MUST start delivering
 the objects from the most recent group, when this parameter is
-omitted. This parameter is applicable in SUBSCRIBE REQUEST message.
+omitted. This parameter is applicable in SUBSCRIBE_REQUEST message.
 
 ### OBJECT SEQUENCE Parameter
 
@@ -1043,14 +1043,14 @@ track to start delivering objects. The `GROUP SEQUENCE` parameter MUST
 be set to identify the group under which to start delivery. The
 publisher MUST start delivering from the beginning of the selected group
 when this parameter is omitted. This parameter is applicable in
-SUBSCRIBE REQUEST message.
+SUBSCRIBE_REQUEST message.
 
 ### AUTHORIZATION INFO Parameter
 
 AUTHORIZATION INFO parameter (key 0x02) identifies track's authorization
 information. This parameter is populated for cases where the
 authorization is required at the track level. This parameter is
-applicable in SUBSCRIBE REQUEST and ANNOUNCE messages.
+applicable in SUBSCRIBE_REQUEST and ANNOUNCE messages.
 
 # Security Considerations {#security}
 
