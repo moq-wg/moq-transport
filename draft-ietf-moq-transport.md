@@ -529,7 +529,9 @@ outside the scope of this specification.
 
 The subscriber making the subscribe request is notified of the result of
 the subscription, via "SUBSCRIBE OK" ({{message-subscribe-ok}}) or the
-"SUBSCRIBE ERROR" {{message-subscribe-error}} control message.
+"SUBSCRIBE ERROR" {{message-subscribe-error}} control message. 
+The entity receiving the SUBSCRIBE MUST send only a single response to
+a given SUBSCRIBE of either an OK or ERROR.
 
 For successful subscriptions, the publisher maintains a list of
 subscribers for each full track name. Each new OBJECT belonging to the
@@ -561,6 +563,8 @@ Relays MUST ensure that publishers are authorized by:
 
 Relays respond with "ANNOUNCE OK" and/or "ANNOUNCE ERROR" control
 messages providing the results of announcement.
+The entity receiving the ANNOUNCE MUST send only a single response to
+a given ANNOUNCE of either an OK or ERROR.
 
 OBJECT message header carry short hop-by-hop Track Id that maps to the
 Full Track Name (see {{message-subscribe-ok}}). Relays use the Track ID
