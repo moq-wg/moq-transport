@@ -802,16 +802,17 @@ The format of SUBSCRIBE REQUEST is as follows:
 
 ~~~
 SUBSCRIBE REQUEST Message {
-  Full Track Name Length (i),
-  Full Track Name (...),
+  Namespace (b),
+  Track Name (b),
   Number of Parameters (i),
   Track Request Parameters (..) ...
 }
 ~~~
 {: #moq-transport-subscribe-format title="MOQT SUBSCRIBE REQUEST Message"}
 
+* Namespace: Identifies the namespace of the track as defined in ({{track-name}}).
 
-* Full Track Name: Identifies the track as defined in ({{track-name}}).
+* Track Name: Identifies the track name as defined in ({{track-name}}).
 
 * Track Request Parameters: As defined in {{track-req-params}}.
 
