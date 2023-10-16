@@ -372,23 +372,12 @@ receives a second bidirectional stream.
 The control stream MUST NOT be abruptly closed at the QUIC layer.  Doing so
 results in the session being closed as a 'Protocol Violation'.
 
-## Cancellation  {#session-cancellation}
+## Stream Cancellation
 
-A QUIC stream MAY be canceled at any point with an error code.  The
-producer does this via a `RESET_STREAM` frame while the consumer
-requests cancellation with a `STOP_SENDING` frame.
-
-When using `order`, lower priority streams will be starved during
-congestion, perhaps indefinitely.  These streams will consume resources
-and flow control until they are canceled.  When nearing resource limits,
-an endpoint SHOULD cancel the lowest priority stream with error code 0.
-
-The sender MAY cancel streams in response to congestion.  This can be
-useful when the sender does not support stream prioritization.
-
-TODO: this section actually describes stream cancellation, not session
-cancellation. Is this section required, or can it be deleted, or added
-to a new "workflow" section.
+QUIC streams aside from the control stream MAY be canceled due to congestion
+or other reasons by either the sender or receiver. Early termination of a
+QUIC stream does not affect the MoQ application state, and therefore has no
+effect on outstanding subscriptions.
 
 ## Termination  {#session-termination}
 
