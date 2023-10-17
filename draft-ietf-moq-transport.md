@@ -1043,13 +1043,13 @@ StartPoint Payload {
 
 A subscriber can request the starting point to be one of the following values, as idenitfied by the `Mode` parameter:
 
-* Current: Has value of `0x1` and specifies delivering objects from the beginning of the current group of objects. The optional parameter `GroupCount`, if specified, MUST be ignored when processing the hint. 
+* Current: Has value of `0x1` and specifies delivering objects from the beginning of the current group of objects. The optional parameter `GroupCount`, if specified, MUST be ignored when processing this hint. 
 
-* Previous: Has value of `0x2` and specifies delivering objects from earlier group(s). The optional parameter `GroupCount` MUST be specified and it specifies the number of groups to go back from the current group.
+* Previous: Has value of `0x2` and specifies delivering objects from earlier group(s) relative to the current group. The optional parameter `GroupCount` MUST be specified and it specifies the number of groups to go back from the current group to determine the start point.
 
-* Next: Has value of `0x3` and specifies delivering objects from future group(s). The optional parameter `GroupCount` MUST be specified and it specifies the number of groups, from the current group,  to wait for before delivering the objects.
+* Next: Has value of `0x3` and specifies delivering objects from future group(s). The optional parameter `GroupCount` MUST be specified and it specifies the number of groups, from the current group, to wait on before delivering the objects.
 
-* Now: Has value of `0x4` and specifies delivering object from the current group and the object sequence. The optional parameter `GroupCount`, if specified, MUST be ignored when processing the hint.
+* Now: Has value of `0x4` and specifies start delivering from the current group and the object sequence. The optional parameter `GroupCount`, if specified, MUST be ignored when processing the hint.
 
 
 Publishers processing the StartPoint hint needs to take following into consideration:
@@ -1058,7 +1058,7 @@ Publishers processing the StartPoint hint needs to take following into considera
 
 - If the GroupCount cannot be satisfied, the publisher MUST send SUBSCRIBE ERROR message with an appropriate error code (TODO: need to define this).
 
-- If the GroupCount can be partially satisfied, the publisher SHOULD respond with SUBSCRIBE OK and start delivering the objects from the publisher chosen 
+- If the GroupCount can be satisfied, the publisher SHOULD respond with SUBSCRIBE OK and start delivering the objects.
 
 
 TODO: Add a note in the security consideration section.
@@ -1066,7 +1066,7 @@ TODO: Add a note in the security consideration section.
 
 ### Interval Hint
 
-The `Interval` subscription hint allows subscribers to request for the range of objects by specifying values pertaining to start group/object sequence and end group/object sequence. 
+The `Interval` subscription hint allows subscribers to request for  range of objects by specifying values pertaining to start group/object and end group/object sequences. 
 
 The payload for Interval hint has the following structure:
 
@@ -1080,9 +1080,9 @@ Interval Payload {
 }
 ~~~
 
-The `StartGroupSequence` and `StartObjectSequence` parameters specifies the starting group and object sequence from where the objects within a tracks needs to be delivered. The `EndGroupSequence` and `EndObjectSequence` parameters identify the ending group and object sequence values respectively. Such requests are "closed/bounded interval" requests and subscription is terminated when the objects defined by the range are delivered. For cases where the requested range cannot be satisfied, publishers MUST respond with SUBSCRIBE ERROR message with Error Code set to TODO.
+The `StartGroupSequence` and `StartObjectSequence` parameters specifies the starting group and object sequence from where the objects within a tracks needs to be delivered. The `EndGroupSequence` and `EndObjectSequence` parameters identify the ending group and object sequence values respectively. Such requests are "closed/bounded interval" requests and subscription is terminated when the objects defined by the requested range are published. if the requested range cannot be satisfied, publishers MUST send SUBSCRIBE ERROR message with Error Code set to TODO.
 
-Additionally subscribers can include only the `StartGroupSequence` and `StartObjectSequence` parameters to indicate  "open/unbounded interval" requests, wherin only the absolute start point for object delivery is specified. If either of the  `StartGroupSequence` and `StartObjectSequence` cannot be satisfied, publishers MUST respond with SUBSCRIBE ERROR message with Error Code set to TODO.
+Additionally subscribers can include only the `StartGroupSequence` and `StartObjectSequence` parameters to indicate "open/unbounded interval" requests, wherin only the absolute start point for object delivery is specified. If either of the  `StartGroupSequence` and `StartObjectSequence` cannot be satisfied, publishers MUST respond with SUBSCRIBE ERROR message with Error Code set to TODO.
 
 ## Track Request Parameters {#track-req-params}
 
