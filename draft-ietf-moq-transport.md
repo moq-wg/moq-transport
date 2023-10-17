@@ -562,10 +562,10 @@ Relays MUST ensure that publishers are authorized by:
   the way the relay is managed and is application specific (typically
   based on prior business agreement).
 
-Relays respond with ANNOUNCE_OK or ANNOUNCE_ERROR control messages
-providing the results of announcement. The entity receiving the
+Relays respond with an ANNOUNCE_OK or ANNOUNCE_ERROR control message
+providing the result of announcement. The entity receiving the
 ANNOUNCE MUST send only a single response to a given ANNOUNCE of
-either an ANNOUNCE_OK or ANNOUNCE_ERROR.
+either ANNOUNCE_OK or ANNOUNCE_ERROR.
 
 OBJECT message header carry short hop-by-hop Track Id that maps to the
 Full Track Name (see {{message-subscribe-ok}}). Relays use the Track ID
