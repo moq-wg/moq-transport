@@ -172,7 +172,7 @@ Consumer:
 
 Endpoint:
 
-: A QUIC Client or a QUIC Server.
+: A QUIC Client or a QUIC Server. 
 
 Group:
 
@@ -529,7 +529,7 @@ outside the scope of this specification.
 
 The subscriber making the subscribe request is notified of the result of
 the subscription, via "SUBSCRIBE OK" ({{message-subscribe-ok}}) or the
-"SUBSCRIBE ERROR" {{message-subscribe-error}} control message. 
+"SUBSCRIBE ERROR" {{message-subscribe-error}} control message.
 The entity receiving the SUBSCRIBE MUST send only a single response to
 a given SUBSCRIBE of either an OK or ERROR.
 
@@ -917,14 +917,18 @@ The format of `SUBSCRIBE_FIN` is as follows:
 
 ~~~
 SUBSCRIBE_FIN Message {
-  Track ID (i),
+  Track Namespace (b),
+  Track Name (b),
   Final Group (i),
   Final Object (i),
 }
 ~~~
 {: #moq-transport-subscribe-fin-format title="MOQT SUBSCRIBE_FIN Message"}
 
-* Track ID: Track ID for the terminating track.
+* Track Namespace: Identifies the namespace of the track as defined in
+({{track-name}}).
+
+* Track Name: Identifies the track name as defined in ({{track-name}}).
 
 * Final Group: The largest Group Sequence sent by the publisher in an OBJECT
 message in this track.
@@ -941,7 +945,8 @@ The format of `SUBSCRIBE_RST` is as follows:
 
 ~~~
 SUBSCRIBE_RST Message {
-  Track ID (i),
+  Track Namespace (b),
+  Track Name (b),
   Error Code (i),
   Reason Phrase Length (i),
   Reason Phrase (...),
@@ -951,7 +956,10 @@ SUBSCRIBE_RST Message {
 ~~~
 {: #moq-transport-subscribe-rst format title="MOQT SUBSCRIBE RST Message"}
 
-* Track ID: Track ID for the terminating track.
+* Track Namespace: Identifies the namespace of the track as defined in
+({{track-name}}).
+
+* Track Name: Identifies the track name as defined in ({{track-name}}).
 
 * Error Code: Identifies an integer error code for subscription failure.
 
