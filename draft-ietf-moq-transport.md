@@ -426,27 +426,28 @@ pre-negotiated by the application.
 MoqTransport requires a long-lived and stateful session. However, a service
 provider needs the ability to shutdown/restart a server without waiting for all
 sessions to drain naturally, as that can take days for long-form media.
+MoqTransport avoids this via the GOAWAY message ({{message-goaway}}).
 
-MoqTransport accomplishes this via the GOAWAY message ({{message-goaway}}). The
-server sends a GOAWAY message which signals the client to establish a new
-session. The GOAWAY message MAY contain a URI for the new session, useful in
-some load balancing schemes, otherwise the current URI is reused.
-The server SHOULD terminate the session with GOAWAY Failure after
-a sufficient timeout, otherwise a misbehaving client could prevent a drain.
+The server sends a GOAWAY message, signaling that the client should establish a
+new session and migrate any active subscriptions. The GOAWAY message may contain
+a new URI for the new session, useful in some load balancing schemes, otherwise
+the current URI is reused. The server SHOULD terminate the session with GOAWAY
+Timeout after a sufficient timeout if a stubborn client is preventing a drain.
 
-It's RECOMMENDED that session migration is performed transparently to the
-application. This involves establishing the new session in the background and
-migrating all active subscriptions/announcements from the old session. The
-client terminates the old session with NO\_ERROR once there are no more active
-subscriptions. The client MAY choose to delay if OBJECTs are queued on the
-network, but needs to be prepared to receive a GOAWAY Failure from the server if
-it waits too long.
+The GOAWAY message does not impact subscription state. A subscriber SHOULD
+terminate existing subscriptions while a publisher MAY reject new subscriptions
+while in this draining state. Note that server may be a subscriber, in which
+case it should send a GOAWAY message followed by any UNSUBSCRIBE messages.
 
-The GOAWAY message does not change the state of active subscriptions.
-It is RECOMMENDED that the subscriber close existing subscriptions with an
-UNSUBSCRIBE message and the client close the connection once all subscriptions
-have terminated. An endpoint MAY reject new subscriptions while in the draining
-state.
+The client receives a GOAWAY message and determines when to terminate the
+session. It's RECOMMENDED that the client waits until all active subscriptions
+have terminated and then closes the session with NO\_ERROR. This should be
+performed transparently to the application which involves establishing the new
+session in the background and migrating all active subscriptions/announcements
+from the old session. The client may choose to delay closing the session if
+OBJECTs are queued or inflight, but needs to be prepared to receive a GOAWAY
+Timeout from the server if it takes too long.
+
 
 # Prioritization and Congestion Response {#priority-congestion}
 
