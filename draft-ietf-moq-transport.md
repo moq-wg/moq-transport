@@ -797,6 +797,7 @@ The format of SUBSCRIBE REQUEST is as follows:
 SUBSCRIBE REQUEST Message {
   Full Track Name Length (i),
   Full Track Name (...),
+  Subscription Hints (..) ...
   Track Request Parameters (..) ...
 }
 ~~~
@@ -807,9 +808,12 @@ SUBSCRIBE REQUEST Message {
 
 * Track Request Parameters: As defined in {{track-req-params}}.
 
+* Subscription Hints: As defined in {{sub-hints}}.
+
 On successful subscription, the publisher SHOULD start delivering
 objects from the group sequence and object sequence as defined in the
 `Track Request Parameters`.
+
 
 ## SUBSCRIBE OK {#message-subscribe-ok}
 
@@ -992,6 +996,93 @@ The client:
 * SHOULD remain connected on both connections for a short period,
   processing objects from both in parallel.
 
+
+## Subscription Hints {#sub-hints}
+
+Subscription hints provide a way for a subscriber to indicate, to the publisher, its preferences for receiving objects from a given track.
+
+Subscription Hints have the following structure:
+
+~~~
+SUBSCRIPTION HINT {
+  HintType (8),
+  Payload (b)
+}
+~~~
+{: #moq-transport-subscription-hint format title="MOQT Subscription HInt"}
+
+The `HintType` parameter identifies one of the following values:
+
+
+|------------|-------------------------|
+| Hint Type  | Hint                    |                               
+|-----------:|:------------------------|
+| 0x0        | Reserved                |
+|------------|-------------------------|
+| 0x1        | StartPoint              |
+|------------|-------------------------|
+| 0x2        | Interval                |
+|------------|-------------------------|
+| 0x3 - 0xFF | Reserved for future use |
+|------------|-------------------------|
+
+The  `Payload` is specific to the chosen `HintType` as descirbed in the following subsections.
+
+### StartPoint Hint
+
+The `StartPoint` subscription hint identifies a starting point within the track for delivering objects. The requested start point specified is relative to publisher's current view of the state within the track. A publisher's current view of the track is defined as the most recent group and object for the track received (or in the cache), if available, at the time of request.
+
+The payload for StartPoint hint has the following structure:
+
+~~~
+StartPoint Payload {
+  Mode (i),
+  [GroupCount (i)]
+}
+~~~
+
+A subscriber can request the starting point to be one of the following values, as idenitfied by the `Mode` parameter:
+
+* Current: Has value of `0x1` and specifies delivering objects from the beginning of the current group of objects. The optional parameter `GroupCount`, if specified, MUST be ignored when processing the hint. 
+
+* Previous: Has value of `0x2` and specifies delivering objects from earlier group(s). The optional parameter `GroupCount` MUST be specified and it specifies the number of groups to go back from the current group.
+
+* Next: Has value of `0x3` and specifies delivering objects from future group(s). The optional parameter `GroupCount` MUST be specified and it specifies the number of groups, from the current group,  to wait for before delivering the objects.
+
+* Now: Has value of `0x4` and specifies delivering object from the current group and the object sequence. The optional parameter `GroupCount`, if specified, MUST be ignored when processing the hint.
+
+
+Publishers processing the StartPoint hint needs to take following into consideration:
+
+- If the StartPoint mode is not understood, the publisher MUST send SUBSCRIBE ERROR message with an appropriate error code (TODO: need to define this).
+
+- If the GroupCount cannot be satisfied, the publisher MUST send SUBSCRIBE ERROR message with an appropriate error code (TODO: need to define this).
+
+- If the GroupCount can be partially satisfied, the publisher SHOULD respond with SUBSCRIBE OK and start delivering the objects from the publisher chosen 
+
+
+TODO: Add a note in the security consideration section.
+
+
+### Interval Hint
+
+The `Interval` subscription hint allows subscribers to request for the range of objects by specifying values pertaining to start group/object sequence and end group/object sequence. 
+
+The payload for Interval hint has the following structure:
+
+~~~
+
+Interval Payload {
+  StartGroupSequence,
+  StartObjectSequence,
+  [EndGroupSequence],
+  [EndObjectSequence]
+}
+~~~
+
+The `StartGroupSequence` and `StartObjectSequence` parameters specifies the starting group and object sequence from where the objects within a tracks needs to be delivered. The `EndGroupSequence` and `EndObjectSequence` parameters identify the ending group and object sequence values respectively. Such requests are "closed/bounded interval" requests and subscription is terminated when the objects defined by the range are delivered. For cases where the requested range cannot be satisfied, publishers MUST respond with SUBSCRIBE ERROR message with Error Code set to TODO.
+
+Additionally subscribers can include only the `StartGroupSequence` and `StartObjectSequence` parameters to indicate  "open/unbounded interval" requests, wherin only the absolute start point for object delivery is specified. If either of the  `StartGroupSequence` and `StartObjectSequence` cannot be satisfied, publishers MUST respond with SUBSCRIBE ERROR message with Error Code set to TODO.
 
 ## Track Request Parameters {#track-req-params}
 
