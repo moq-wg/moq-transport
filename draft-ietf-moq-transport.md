@@ -531,7 +531,7 @@ The subscriber making the subscribe request is notified of the result of
 the subscription, via SUBSCRIBE_OK ({{message-subscribe-ok}}) or the
 SUBSCRIBE_ERROR {{message-subscribe-error}} control message. 
 The entity receiving the SUBSCRIBE_REQUEST MUST send only a single response to
-a given SUBSCRIBE_REQUEST of either an SUBSCRIBE_OK or SUBSCRIBE_ERROR.
+a given SUBSCRIBE_REQUEST of either SUBSCRIBE_OK or SUBSCRIBE_ERROR.
 
 For successful subscriptions, the publisher maintains a list of
 subscribers for each full track name. Each new OBJECT belonging to the
