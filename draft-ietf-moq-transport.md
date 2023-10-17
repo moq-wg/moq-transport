@@ -50,7 +50,8 @@ informative:
 --- abstract
 
 This document defines the core behavior for Media over QUIC Transport
-(MOQT), a media transport protocol over QUIC. MOQT allows a producer of
+(MOQT), a media transport protocol designed to operate over QUIC and
+WebTransport, which have similar functionality. MOQT allows a producer of
 media to publish data and have it consumed via subscription by a
 multiplicity of endpoints. It supports intermediate content distribution
 networks and is designed for high scale and low latency distribution.
@@ -60,8 +61,8 @@ networks and is designed for high scale and low latency distribution.
 
 # Introduction
 
-Media Over QUIC Transport (MOQT) is a transport protocol that utilizes
-the QUIC network protocol {{QUIC}}, either directly or via WebTransport
+Media Over QUIC Transport (MOQT) is a protocol that is optimized
+for the QUIC protocol {{QUIC}}, either directly or via WebTransport
 {{WebTransport}}, for the dissemination of media. MOQT utilizes a
 publish/subscribe workflow in which producers of media publish data in
 response to subscription requests from a multiplicity of endpoints. MOQT
@@ -168,11 +169,11 @@ Congestion:
 
 Consumer:
 
-: A QUIC endpoint receiving media over the network.
+: An endpoint receiving media over the network.
 
 Endpoint:
 
-: A QUIC Client or a QUIC Server.
+: A Client or Server. 
 
 Group:
 
@@ -187,7 +188,7 @@ Object:
 
 Producer:
 
-: A QUIC endpoint sending media over the network.
+: An endpoint sending media over the network.
 
 Server:
 
@@ -317,7 +318,10 @@ over a QUIC connection directly [QUIC], and over WebTransport
 [WebTransport].  Both provide streams and datagrams with similar
 semantics (see {{?I-D.ietf-webtrans-overview, Section 4}}); thus, the
 main difference lies in how the servers are identified and how the
-connection is established.
+connection is established.  There is no definition of the protocol
+over other transports, such as TCP, and applicaitons using MoQ might
+need to fallback to another protocol when QUIC or WebTransport aren't
+available.
 
 ### WebTransport
 
@@ -369,14 +373,14 @@ sent on unidirectional streams.  Because there are no other uses of
 bidirectional streams, a peer MAY currently close the connection if it
 receives a second bidirectional stream.
 
-The control stream MUST NOT be abruptly closed at the QUIC layer.  Doing so
-results in the session being closed as a 'Protocol Violation'.
+The control stream MUST NOT be abruptly closed at the underlying transport
+layer.  Doing so results in the session being closed as a 'Protocol Violation'.
 
 ## Stream Cancellation
 
-QUIC streams aside from the control stream MAY be canceled due to congestion
+Streams aside from the control stream MAY be canceled due to congestion
 or other reasons by either the sender or receiver. Early termination of a
-QUIC stream does not affect the MoQ application state, and therefore has no
+stream does not affect the MoQ application state, and therefore has no
 effect on outstanding subscriptions.
 
 ## Termination  {#session-termination}
@@ -495,9 +499,9 @@ throughput is limited.  Note that the contents within each object are
 still delivered in order; this send order only applies to the ordering
 between objects.
 
-A sender MUST send each object over a dedicated QUIC stream.  The QUIC
-library should support prioritization ({{priority-congestion}}) such
-that streams are transmitted in send order.
+A sender MUST send each object over a dedicated stream.  The library
+should support prioritization ({{priority-congestion}}) such that
+streams are transmitted in send order.
 
 A receiver MUST NOT assume that objects will be received in send order,
 for the following reasons:
@@ -505,7 +509,7 @@ for the following reasons:
 * Newly encoded objects can have a smaller send order than outstanding
   objects.
 * Packet loss or flow control can delay the send of individual streams.
-* The sender might not support QUIC stream prioritization.
+* The sender might not support stream prioritization.
 
 TODO: Refer to Congestion Response and Prioritization Section for
 further details on various proposals.
@@ -552,7 +556,7 @@ validating subscribe and publish requests at the edge of a network.
 
 ## Subscriber Interactions
 
-Subscribers interact with the Relays by sending a "SUBSCRIBE REQUEST"
+Subscribers interact with the Relays by sending a SUBSCRIBE
 ({{message-subscribe-req}}) control message for the tracks of
 interest. Relays MUST ensure subscribers are authorized to access the
 content associated with the Full Track Name. The authorization
@@ -561,10 +565,10 @@ encompassing session. The specifics of how a relay authorizes a user are
 outside the scope of this specification.
 
 The subscriber making the subscribe request is notified of the result of
-the subscription, via "SUBSCRIBE OK" ({{message-subscribe-ok}}) or the
-"SUBSCRIBE ERROR" {{message-subscribe-error}} control message.
+the subscription, via SUBSCRIBE_OK ({{message-subscribe-ok}}) or the
+SUBSCRIBE_ERROR {{message-subscribe-error}} control message. 
 The entity receiving the SUBSCRIBE MUST send only a single response to
-a given SUBSCRIBE of either an OK or ERROR.
+a given SUBSCRIBE of either SUBSCRIBE_OK or SUBSCRIBE_ERROR.
 
 For successful subscriptions, the publisher maintains a list of
 subscribers for each full track name. Each new OBJECT belonging to the
@@ -583,7 +587,7 @@ request is cached and shared among the pending subscribers.
 
 ## Publisher Interactions
 
-Publishing through the relay starts with publisher sending "ANNOUNCE"
+Publishing through the relay starts with publisher sending ANNOUNCE
 control message with a `Track Namespace` ({{model-track}}).
 
 Relays MUST ensure that publishers are authorized by:
@@ -595,10 +599,10 @@ Relays MUST ensure that publishers are authorized by:
   the way the relay is managed and is application specific (typically
   based on prior business agreement).
 
-Relays respond with "ANNOUNCE OK" and/or "ANNOUNCE ERROR" control
-messages providing the results of announcement.
-The entity receiving the ANNOUNCE MUST send only a single response to
-a given ANNOUNCE of either an OK or ERROR.
+Relays respond with an ANNOUNCE_OK or ANNOUNCE_ERROR control message
+providing the result of announcement. The entity receiving the
+ANNOUNCE MUST send only a single response to a given ANNOUNCE of
+either ANNOUNCE_OK or ANNOUNCE_ERROR.
 
 OBJECT message header carry short hop-by-hop Track Id that maps to the
 Full Track Name (see {{message-subscribe-ok}}). Relays use the Track ID
@@ -640,14 +644,14 @@ avoid incurring additional latency.
 
 A relay that reads from a stream and writes to stream in order will
 introduce head-of-line blocking.  Packet loss will cause stream data to
-be buffered in the QUIC library, awaiting in order delivery, which will
+be buffered in the library, awaiting in order delivery, which will
 increase latency over additional hops.  To mitigate this, a relay SHOULD
-read and write QUIC stream data out of order subject to flow control
+read and write stream data out of order subject to flow control
 limits.  See section 2.2 in {{QUIC}}.
 
 # Messages {#message}
 
-Both unidirectional and bidirectional QUIC streams contain sequences of
+Both unidirectional and bidirectional streams contain sequences of
 length-delimited messages.
 
 An endpoint that receives an unknown message type MUST close the connection.
@@ -669,17 +673,17 @@ MOQT Message {
 |-------|----------------------------------------------------|
 | 0x2   | OBJECT without payload length ({{message-object}}) |
 |-------|----------------------------------------------------|
-| 0x3   | SUBSCRIBE REQUEST ({{message-subscribe-req}})      |
+| 0x3   | SUBSCRIBE ({{message-subscribe-req}})      |
 |-------|----------------------------------------------------|
-| 0x4   | SUBSCRIBE OK ({{message-subscribe-ok}})            |
+| 0x4   | SUBSCRIBE_OK ({{message-subscribe-ok}})            |
 |-------|----------------------------------------------------|
-| 0x5   | SUBSCRIBE ERROR ({{message-subscribe-error}})      |
+| 0x5   | SUBSCRIBE_ERROR ({{message-subscribe-error}})      |
 |-------|----------------------------------------------------|
 | 0x6   | ANNOUNCE  ({{message-announce}})                   |
 |-------|----------------------------------------------------|
-| 0x7   | ANNOUNCE OK ({{message-announce-ok}})              |
+| 0x7   | ANNOUNCE_OK ({{message-announce-ok}})              |
 |-------|----------------------------------------------------|
-| 0x8   | ANNOUNCE ERROR ({{message-announce-error}})        |
+| 0x8   | ANNOUNCE_ERROR ({{message-announce-error}})        |
 |-------|----------------------------------------------------|
 | 0x9   | UNANNOUNCE  ({{message-unannounce}})               |
 |-------|----------------------------------------------------|
@@ -835,21 +839,21 @@ field is absent, the object payload continues to the end of the stream.
 NOT be processed by a relay.
 
 
-## SUBSCRIBE REQUEST {#message-subscribe-req}
+## SUBSCRIBE {#message-subscribe-req}
 
-A receiver issues a SUBSCRIBE REQUEST to a publisher to request a track.
+A receiver issues a SUBSCRIBE to a publisher to request a track.
 
-The format of SUBSCRIBE REQUEST is as follows:
+The format of SUBSCRIBE is as follows:
 
 ~~~
-SUBSCRIBE REQUEST Message {
+SUBSCRIBE Message {
   Track Namespace (b),
   Track Name (b),
   Number of Parameters (i),
   Track Request Parameters (..) ...
 }
 ~~~
-{: #moq-transport-subscribe-format title="MOQT SUBSCRIBE REQUEST Message"}
+{: #moq-transport-subscribe-format title="MOQT SUBSCRIBE Message"}
 
 * Track Namespace: Identifies the namespace of the track as defined in
 ({{track-name}}).
@@ -862,12 +866,12 @@ On successful subscription, the publisher SHOULD start delivering
 objects from the group sequence and object sequence as defined in the
 `Track Request Parameters`.
 
-## SUBSCRIBE OK {#message-subscribe-ok}
+## SUBSCRIBE_OK {#message-subscribe-ok}
 
-A `SUBSCRIBE OK` control message is sent for successful subscriptions.
+A SUBSCRIBE_OK control message is sent for successful subscriptions.
 
 ~~~
-SUBSCRIBE OK
+SUBSCRIBE_OK
 {
   Track Namespace (b),
   Track Name (b),
@@ -875,7 +879,7 @@ SUBSCRIBE OK
   Expires (i)
 }
 ~~~
-{: #moq-transport-subscribe-ok format title="MOQT SUBSCRIBE OK Message"}
+{: #moq-transport-subscribe-ok format title="MOQT SUBSCRIBE_OK Message"}
 
 * Track Namespace: Identifies the namespace of the track as defined in
 ({{track-name}}).
@@ -892,13 +896,13 @@ longer valid. A value of 0 indicates that the subscription stays active
 until it is explicitly unsubscribed.
 
 
-## SUBSCRIBE ERROR {#message-subscribe-error}
+## SUBSCRIBE_ERROR {#message-subscribe-error}
 
-A publisher sends a SUBSCRIBE ERROR control message in response to a
-failed SUBSCRIBE REQUEST.
+A publisher sends a SUBSCRIBE_ERROR control message in response to a
+failed SUBSCRIBE.
 
 ~~~
-SUBSCRIBE ERROR
+SUBSCRIBE_ERROR
 {
   Track Namespace (b),
   Track Name (b),
@@ -907,7 +911,7 @@ SUBSCRIBE ERROR
   Reason Phrase (...),
 }
 ~~~
-{: #moq-transport-subscribe-error format title="MOQT SUBSCRIBE ERROR Message"}
+{: #moq-transport-subscribe-error format title="MOQT SUBSCRIBE_ERROR Message"}
 
 * Track Namespace: Identifies the namespace of the track as defined in
 ({{track-name}}).
@@ -1010,7 +1014,7 @@ message in the `Final Group` for this track.
 ## ANNOUNCE {#message-announce}
 
 The publisher sends the ANNOUNCE control message to advertise where the
-receiver can route SUBSCRIBE REQUESTs for tracks within the announced
+receiver can route SUBSCRIBEs for tracks within the announced
 Track Namespace. The receiver verifies the publisher is authorized to
 publish tracks under this namespace.
 
@@ -1029,29 +1033,29 @@ ANNOUNCE Message {
 * Track Request Parameters: The parameters are defined in
 {{track-req-params}}.
 
-## ANNOUNCE OK {#message-announce-ok}
+## ANNOUNCE_OK {#message-announce-ok}
 
-The receiver sends an `ANNOUNCE OK` control message to acknowledge the
+The receiver sends an ANNOUNCE_OK control message to acknowledge the
 successful authorization and acceptance of an ANNOUNCE message.
 
 ~~~
-ANNOUNCE OK
+ANNOUNCE_OK
 {
   Track Namespace (b),
 }
 ~~~
-{: #moq-transport-announce-ok format title="MOQT ANNOUNCE OK Message"}
+{: #moq-transport-announce-ok format title="MOQT ANNOUNCE_OK Message"}
 
 * Track Namespace: Identifies the track namespace in the ANNOUNCE
 message for which this response is provided.
 
-## ANNOUNCE ERROR {#message-announce-error}
+## ANNOUNCE_ERROR {#message-announce-error}
 
-The receiver sends an `ANNOUNCE ERROR` control message for tracks that
+The receiver sends an ANNOUNCE_ERROR control message for tracks that
 failed authorization.
 
 ~~~
-ANNOUNCE ERROR
+ANNOUNCE_ERROR
 {
   Track Namespace(b),
   Error Code (i),
@@ -1059,7 +1063,7 @@ ANNOUNCE ERROR
   Reason Phrase (...),
 }
 ~~~
-{: #moq-transport-announce-error format title="MOQT ANNOUNCE ERROR Message"}
+{: #moq-transport-announce-error format title="MOQT ANNOUNCE_ERROR Message"}
 
 * Track Namespace: Identifies the track namespace in the ANNOUNCE
 message for which this response is provided.
@@ -1112,7 +1116,7 @@ GOAWAY Message {
 ## Track Request Parameters {#track-req-params}
 
 The Track Request Parameters identify properties of the track requested
-in either the ANNOUNCE or SUSBCRIBE REQUEST control messages. The peers
+in the ANNOUNCE or SUBSCRIBE control messages. The peers
 MUST close the connection if there are duplicates. The Parameter Value
 Length field indicates the length of the Parameter Value.
 
@@ -1133,7 +1137,7 @@ Track Request Parameter {
 The GROUP SEQUENCE parameter (key 0x00) identifies the group within the
 track to start delivering objects. The publisher MUST start delivering
 the objects from the most recent group, when this parameter is
-omitted. This parameter is applicable in SUBSCRIBE REQUEST message.
+omitted. This parameter is applicable in SUBSCRIBE message.
 
 ### OBJECT SEQUENCE Parameter
 
@@ -1142,14 +1146,14 @@ track to start delivering objects. The `GROUP SEQUENCE` parameter MUST
 be set to identify the group under which to start delivery. The
 publisher MUST start delivering from the beginning of the selected group
 when this parameter is omitted. This parameter is applicable in
-SUBSCRIBE REQUEST message.
+SUBSCRIBE message.
 
 ### AUTHORIZATION INFO Parameter
 
 AUTHORIZATION INFO parameter (key 0x02) identifies track's authorization
 information. This parameter is populated for cases where the
 authorization is required at the track level. This parameter is
-applicable in SUBSCRIBE REQUEST and ANNOUNCE messages.
+applicable in SUBSCRIBE and ANNOUNCE messages.
 
 # Security Considerations {#security}
 
@@ -1160,8 +1164,8 @@ TODO: Expand this section.
 Live content requires significant bandwidth and resources.  Failure to
 set limits will quickly cause resource exhaustion.
 
-MOQT uses QUIC flow control to impose resource limits at the network
-layer.  Endpoints SHOULD set flow control limits based on the
+MOQT uses stream limits and flow control to impose resource limits at
+the network layer.  Endpoints SHOULD set flow control limits based on the
 anticipated bitrate.
 
 Endpoints MAY impose a MAX STREAM count limit which would restrict the
