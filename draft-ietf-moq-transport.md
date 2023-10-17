@@ -1084,7 +1084,7 @@ The client:
 ## Track Request Parameters {#track-req-params}
 
 The Track Request Parameters identify properties of the track requested
-in either the ANNOUNCE or SUSBCRIBE_REQUEST control messages. The peers
+in the ANNOUNCE or SUBSCRIBE control messages. The peers
 MUST close the connection if there are duplicates. The Parameter Value
 Length field indicates the length of the Parameter Value.
 
