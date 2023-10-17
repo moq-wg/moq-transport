@@ -519,7 +519,7 @@ validating subscribe and publish requests at the edge of a network.
 
 ## Subscriber Interactions
 
-Subscribers interact with the Relays by sending a SUBSCRIBE_REQUEST
+Subscribers interact with the Relays by sending a SUBSCRIBE
 ({{message-subscribe-req}}) control message for the tracks of
 interest. Relays MUST ensure subscribers are authorized to access the
 content associated with the Full Track Name. The authorization
@@ -530,8 +530,8 @@ outside the scope of this specification.
 The subscriber making the subscribe request is notified of the result of
 the subscription, via SUBSCRIBE_OK ({{message-subscribe-ok}}) or the
 SUBSCRIBE_ERROR {{message-subscribe-error}} control message. 
-The entity receiving the SUBSCRIBE_REQUEST MUST send only a single response to
-a given SUBSCRIBE_REQUEST of either SUBSCRIBE_OK or SUBSCRIBE_ERROR.
+The entity receiving the SUBSCRIBE MUST send only a single response to
+a given SUBSCRIBE of either SUBSCRIBE_OK or SUBSCRIBE_ERROR.
 
 For successful subscriptions, the publisher maintains a list of
 subscribers for each full track name. Each new OBJECT belonging to the
@@ -636,7 +636,7 @@ MOQT Message {
 |-------|----------------------------------------------------|
 | 0x2   | OBJECT without payload length ({{message-object}}) |
 |-------|----------------------------------------------------|
-| 0x3   | SUBSCRIBE_REQUEST ({{message-subscribe-req}})      |
+| 0x3   | SUBSCRIBE ({{message-subscribe-req}})      |
 |-------|----------------------------------------------------|
 | 0x4   | SUBSCRIBE_OK ({{message-subscribe-ok}})            |
 |-------|----------------------------------------------------|
@@ -802,21 +802,21 @@ field is absent, the object payload continues to the end of the stream.
 NOT be processed by a relay.
 
 
-## SUBSCRIBE_REQUEST {#message-subscribe-req}
+## SUBSCRIBE {#message-subscribe-req}
 
-A receiver issues a SUBSCRIBE_REQUEST to a publisher to request a track.
+A receiver issues a SUBSCRIBE to a publisher to request a track.
 
-The format of SUBSCRIBE_REQUEST is as follows:
+The format of SUBSCRIBE is as follows:
 
 ~~~
-SUBSCRIBE_REQUEST Message {
+SUBSCRIBE Message {
   Track Namespace (b),
   Track Name (b),
   Number of Parameters (i),
   Track Request Parameters (..) ...
 }
 ~~~
-{: #moq-transport-subscribe-format title="MOQT SUBSCRIBE_REQUEST Message"}
+{: #moq-transport-subscribe-format title="MOQT SUBSCRIBE Message"}
 
 * Track Namespace: Identifies the namespace of the track as defined in
 ({{track-name}}).
@@ -862,7 +862,7 @@ until it is explicitly unsubscribed.
 ## SUBSCRIBE_ERROR {#message-subscribe-error}
 
 A publisher sends a SUBSCRIBE_ERROR control message in response to a
-failed SUBSCRIBE_REQUEST.
+failed SUBSCRIBE.
 
 ~~~
 SUBSCRIBE_ERROR
@@ -977,7 +977,7 @@ message in the `Final Group` for this track.
 ## ANNOUNCE {#message-announce}
 
 The publisher sends the ANNOUNCE control message to advertise where the
-receiver can route SUBSCRIBE_REQUESTs for tracks within the announced
+receiver can route SUBSCRIBEs for tracks within the announced
 Track Namespace. The receiver verifies the publisher is authorized to
 publish tracks under this namespace.
 
@@ -1105,7 +1105,7 @@ Track Request Parameter {
 The GROUP SEQUENCE parameter (key 0x00) identifies the group within the
 track to start delivering objects. The publisher MUST start delivering
 the objects from the most recent group, when this parameter is
-omitted. This parameter is applicable in SUBSCRIBE_REQUEST message.
+omitted. This parameter is applicable in SUBSCRIBE message.
 
 ### OBJECT SEQUENCE Parameter
 
@@ -1114,14 +1114,14 @@ track to start delivering objects. The `GROUP SEQUENCE` parameter MUST
 be set to identify the group under which to start delivery. The
 publisher MUST start delivering from the beginning of the selected group
 when this parameter is omitted. This parameter is applicable in
-SUBSCRIBE_REQUEST message.
+SUBSCRIBE message.
 
 ### AUTHORIZATION INFO Parameter
 
 AUTHORIZATION INFO parameter (key 0x02) identifies track's authorization
 information. This parameter is populated for cases where the
 authorization is required at the track level. This parameter is
-applicable in SUBSCRIBE_REQUEST and ANNOUNCE messages.
+applicable in SUBSCRIBE and ANNOUNCE messages.
 
 # Security Considerations {#security}
 
