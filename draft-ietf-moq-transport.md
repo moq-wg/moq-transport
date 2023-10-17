@@ -319,7 +319,7 @@ semantics (see {{?I-D.ietf-webtrans-overview, Section 4}}); thus, the
 main difference lies in how the servers are identified and how the
 connection is established.  There is no definition of the protocol
 over other transports, such as TCP, and applicaitons using MoQ might
-need to fallback to another protocol when QUIC and WebTransport aren't
+need to fallback to another protocol when QUIC or WebTransport aren't
 available.
 
 ### WebTransport
