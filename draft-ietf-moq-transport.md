@@ -3,12 +3,12 @@ title: "Media over QUIC Transport"
 abbrev: moq-transport
 docname: draft-ietf-moq-transport-latest
 date: {DATE}
-category: std 
+category: std
 
 ipr: trust200902
 area: Applications and Real-Time
 submissionType: IETF
-workgroup: MOQ 
+workgroup: MOQ
 keyword: Internet-Draft
 
 stand_alone: yes
@@ -529,7 +529,7 @@ outside the scope of this specification.
 
 The subscriber making the subscribe request is notified of the result of
 the subscription, via "SUBSCRIBE OK" ({{message-subscribe-ok}}) or the
-"SUBSCRIBE ERROR" {{message-subscribe-error}} control message. 
+"SUBSCRIBE ERROR" {{message-subscribe-error}} control message.
 The entity receiving the SUBSCRIBE MUST send only a single response to
 a given SUBSCRIBE of either an OK or ERROR.
 
@@ -537,8 +537,9 @@ For successful subscriptions, the publisher maintains a list of
 subscribers for each full track name. Each new OBJECT belonging to the
 track is forwarded to each active subscriber, dependent on the
 congestion response. A subscription remains active until it expires,
-until the publisher of the track stops producing objects or there is a
-subscription error (see {{message-subscribe-error}}).
+until the publisher of the track terminates the track with a SUBSCRIBE_FIN
+(see {{message-subscribe-fin}}) or a SUBSCRIBE_RST
+(see {{message-subscribe-rst}}).
 
 Relays MAY aggregate authorized subscriptions for a given track when
 multiple subscribers request the same track. Subscription aggregation
@@ -651,6 +652,10 @@ MOQT Message {
 |-------|----------------------------------------------------|
 | 0xA   | UNSUBSCRIBE ({{message-unsubscribe}})              |
 |-------|----------------------------------------------------|
+| 0xB   | SUBSCRIBE_FIN ({{message-subscribe-fin}})          |
+|-------|----------------------------------------------------|
+| 0xC   | SUBSCRIBE_RST ({{message-subscribe-rst}})          |
+|-------|----------------------------------------------------|
 | 0x10  | GOAWAY ({{message-goaway}})                        |
 |-------|----------------------------------------------------|
 
@@ -760,7 +765,7 @@ the `query` portion of the URI to the parameter.
 A OBJECT message contains a range of contiguous bytes from from the
 specified track, as well as associated metadata required to deliver,
 cache, and forward it. There are two subtypes of this message. When the
-message type is 0x00, the optional Object Payload Length field is 
+message type is 0x00, the optional Object Payload Length field is
 present. When the message type ix 0x02, the field is not present.
 
 The format of the OBJECT message is as follows:
@@ -903,6 +908,72 @@ UNSUBSCRIBE Message {
 
 * Track Name: Identifies the track name as defined in ({{track-name}}).
 
+## SUBSCRIBE_FIN {#message-subscribe-fin}
+
+A publisher issues a `SUBSCRIBE_FIN` message to all subscribers indicating it
+is done publishing objects on the subscribed track.
+
+The format of `SUBSCRIBE_FIN` is as follows:
+
+~~~
+SUBSCRIBE_FIN Message {
+  Track Namespace (b),
+  Track Name (b),
+  Final Group (i),
+  Final Object (i),
+}
+~~~
+{: #moq-transport-subscribe-fin-format title="MOQT SUBSCRIBE_FIN Message"}
+
+* Track Namespace: Identifies the namespace of the track as defined in
+({{track-name}}).
+
+* Track Name: Identifies the track name as defined in ({{track-name}}).
+
+* Final Group: The largest Group Sequence sent by the publisher in an OBJECT
+message in this track.
+
+* Final Object: The largest Object Sequence sent by the publisher in an OBJECT
+message in the `Final Group` for this track.
+
+## SUBSCRIBE_RST {#message-subscribe-rst}
+
+A publisher issues a `SUBSCRIBE_RST` message to all subscribers indicating there
+wan an error publishing to the given track and subscription is terminated.
+
+The format of `SUBSCRIBE_RST` is as follows:
+
+~~~
+SUBSCRIBE_RST Message {
+  Track Namespace (b),
+  Track Name (b),
+  Error Code (i),
+  Reason Phrase Length (i),
+  Reason Phrase (...),
+  Final Group (i),
+  Final Object (i),
+}
+~~~
+{: #moq-transport-subscribe-rst format title="MOQT SUBSCRIBE RST Message"}
+
+* Track Namespace: Identifies the namespace of the track as defined in
+({{track-name}}).
+
+* Track Name: Identifies the track name as defined in ({{track-name}}).
+
+* Error Code: Identifies an integer error code for subscription failure.
+
+* Reason Phrase Length: The length in bytes of the reason phrase.
+
+* Reason Phrase: Provides the reason for subscription error and `Reason
+Phrase Length` field carries its length.
+
+* Final Group: The largest Group Sequence sent by the publisher in an OBJECT
+message in this track.
+
+* Final Object: The largest Object Sequence sent by the publisher in an OBJECT
+message in the `Final Group` for this track.
+
 ## ANNOUNCE {#message-announce}
 
 The publisher sends the ANNOUNCE control message to advertise where the
@@ -968,9 +1039,9 @@ Phrase Length` field carries its length.
 
 ## UNANNOUNCE {#message-unannounce}
 
-The publisher sends the `UNANNOUNCE` control message to indicate 
-its intent to stop serving new subscriptions for tracks 
-within the provided Track Namespace. 
+The publisher sends the `UNANNOUNCE` control message to indicate
+its intent to stop serving new subscriptions for tracks
+within the provided Track Namespace.
 
 ~~~
 UNANNOUNCE Message {
@@ -1054,7 +1125,7 @@ applicable in SUBSCRIBE REQUEST and ANNOUNCE messages.
 
 # Security Considerations {#security}
 
-TODO: Expand this section. 
+TODO: Expand this section.
 
 ## Resource Exhaustion
 
