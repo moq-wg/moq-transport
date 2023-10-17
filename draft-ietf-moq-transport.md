@@ -1073,10 +1073,10 @@ The payload for Interval hint has the following structure:
 ~~~
 
 Interval Payload {
-  StartGroupSequence,
-  StartObjectSequence,
-  [EndGroupSequence],
-  [EndObjectSequence]
+  StartGroupSequence(i),
+  StartObjectSequence(i),
+  [EndGroupSequence(i)],
+  [EndObjectSequence(i)]
 }
 ~~~
 
