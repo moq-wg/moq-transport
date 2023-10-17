@@ -1,7 +1,7 @@
 ---
 title: "Media over QUIC Transport"
 abbrev: moq-transport
-docname: draft-ietf-moq-transport-00
+docname: draft-ietf-moq-transport-latest
 date: {DATE}
 category: std
 
@@ -352,35 +352,32 @@ PATH parameter ({{path}}) which is sent in the SETUP message at the
 start of the session.  The ALPN value {{!RFC7301}} used by the protocol
 is `moq-00`.
 
+
 ## Session initialization {#session-init}
 
-The first stream opened is a client-initiated bidirectional stream where
-the peers exchange SETUP messages ({{message-setup}}). The subsequent
-streams MAY be either unidirectional or bidirectional. For exchanging
-content, an application would typically send a unidirectional stream
-containing a single OBJECT message ({{message-object}}), as putting more
-than one object into one stream may create head-of-line blocking delays.
-However, if one object has a hard dependency on another object, putting
-them on the same stream could be a valid choice.
+The first stream opened is a client-initiated bidirectional control stream
+where the peers exchange SETUP messages ({{message-setup}}).  All messages
+defined in this draft are sent on the control stream after the SETUP message.
+Control messages MUST NOT be sent on any other stream, and a peer receiving
+a control message on a different stream closes the session as a
+'Protocol Violation'. Objects MUST NOT be sent on the control stream, and a
+peer receiving an Object on the control stream closes the session as a
+'Protocol Violation'.
 
+This draft only specifies a single use of bidirectional streams. Objects are
+sent on unidirectional streams.  Because there are no other uses of
+bidirectional streams, a peer MAY currently close the connection if it
+receives a second bidirectional stream.
 
-## Cancellation  {#session-cancellation}
+The control stream MUST NOT be abruptly closed at the QUIC layer.  Doing so
+results in the session being closed as a 'Protocol Violation'.
 
-A QUIC stream MAY be canceled at any point with an error code.  The
-producer does this via a `RESET_STREAM` frame while the consumer
-requests cancellation with a `STOP_SENDING` frame.
+## Stream Cancellation
 
-When using `order`, lower priority streams will be starved during
-congestion, perhaps indefinitely.  These streams will consume resources
-and flow control until they are canceled.  When nearing resource limits,
-an endpoint SHOULD cancel the lowest priority stream with error code 0.
-
-The sender MAY cancel streams in response to congestion.  This can be
-useful when the sender does not support stream prioritization.
-
-TODO: this section actually describes stream cancellation, not session
-cancellation. Is this section required, or can it be deleted, or added
-to a new "workflow" section.
+QUIC streams aside from the control stream MAY be canceled due to congestion
+or other reasons by either the sender or receiver. Early termination of a
+QUIC stream does not affect the MoQ application state, and therefore has no
+effect on outstanding subscriptions.
 
 ## Termination  {#session-termination}
 
@@ -566,13 +563,16 @@ outside the scope of this specification.
 The subscriber making the subscribe request is notified of the result of
 the subscription, via "SUBSCRIBE OK" ({{message-subscribe-ok}}) or the
 "SUBSCRIBE ERROR" {{message-subscribe-error}} control message.
+The entity receiving the SUBSCRIBE MUST send only a single response to
+a given SUBSCRIBE of either an OK or ERROR.
 
 For successful subscriptions, the publisher maintains a list of
 subscribers for each full track name. Each new OBJECT belonging to the
 track is forwarded to each active subscriber, dependent on the
 congestion response. A subscription remains active until it expires,
-until the publisher of the track stops producing objects or there is a
-subscription error (see {{message-subscribe-error}}).
+until the publisher of the track terminates the track with a SUBSCRIBE_FIN
+(see {{message-subscribe-fin}}) or a SUBSCRIBE_RST
+(see {{message-subscribe-rst}}).
 
 Relays MAY aggregate authorized subscriptions for a given track when
 multiple subscribers request the same track. Subscription aggregation
@@ -597,6 +597,8 @@ Relays MUST ensure that publishers are authorized by:
 
 Relays respond with "ANNOUNCE OK" and/or "ANNOUNCE ERROR" control
 messages providing the results of announcement.
+The entity receiving the ANNOUNCE MUST send only a single response to
+a given ANNOUNCE of either an OK or ERROR.
 
 OBJECT message header carry short hop-by-hop Track Id that maps to the
 Full Track Name (see {{message-subscribe-ok}}). Relays use the Track ID
@@ -633,6 +635,9 @@ combine, split, or otherwise modify object payloads.  A relay SHOULD
 prioritize streams ({{priority-congestion}}) based on the send
 order/priority.
 
+A sender SHOULD begin sending incomplete objects when available to
+avoid incurring additional latency.
+
 A relay that reads from a stream and writes to stream in order will
 introduce head-of-line blocking.  Packet loss will cause stream data to
 be buffered in the QUIC library, awaiting in order delivery, which will
@@ -640,50 +645,52 @@ increase latency over additional hops.  To mitigate this, a relay SHOULD
 read and write QUIC stream data out of order subject to flow control
 limits.  See section 2.2 in {{QUIC}}.
 
-
 # Messages {#message}
 
 Both unidirectional and bidirectional QUIC streams contain sequences of
 length-delimited messages.
 
+An endpoint that receives an unknown message type MUST close the connection.
+
 ~~~
 MOQT Message {
   Message Type (i),
-  Message Length (i),
   Message Payload (..),
 }
 ~~~
 {: #moq-transport-message-format title="MOQT Message"}
 
-The Message Length field contains the length of the Message Payload
-field in bytes.  A length of 0 indicates the message is unbounded and
-continues until the end of the stream.
-
-|-------|--------------------------------------------------|
-| ID    | Messages                                         |
-|------:|:-------------------------------------------------|
-| 0x0   | OBJECT ({{message-object}})                      |
-|-------|--------------------------------------------------|
-| 0x1   | SETUP ({{message-setup}})                        |
-|-------|--------------------------------------------------|
-| 0x3   | SUBSCRIBE REQUEST ({{message-subscribe-req}})    |
-|-------|--------------------------------------------------|
-| 0x4   | SUBSCRIBE OK ({{message-subscribe-ok}})          |
-|-------|--------------------------------------------------|
-| 0x5   | SUBSCRIBE ERROR ({{message-subscribe-error}})    |
-|-------|--------------------------------------------------|
-| 0x6   | ANNOUNCE  ({{message-announce}})                 |
-|-------|--------------------------------------------------|
-| 0x7   | ANNOUNCE OK ({{message-announce-ok}})            |
-|-------|--------------------------------------------------|
-| 0x8   | ANNOUNCE ERROR ({{message-announce-error}})      |
-|-------|--------------------------------------------------|
-| 0x9   | UNANNOUNCE  ({{message-unannounce}})             |
-|-------|--------------------------------------------------|
-| 0x10  | GOAWAY ({{message-goaway}})                      |
-|-------|--------------------------------------------------|
-| 0xA   | UNSUBSCRIBE ({{message-unsubscribe}})            |
-|-------|--------------------------------------------------|
+|-------|----------------------------------------------------|
+| ID    | Messages                                           |
+|------:|:---------------------------------------------------|
+| 0x0   | OBJECT with payload length ({{message-object}})    |
+|-------|----------------------------------------------------|
+| 0x1   | SETUP ({{message-setup}})                          |
+|-------|----------------------------------------------------|
+| 0x2   | OBJECT without payload length ({{message-object}}) |
+|-------|----------------------------------------------------|
+| 0x3   | SUBSCRIBE REQUEST ({{message-subscribe-req}})      |
+|-------|----------------------------------------------------|
+| 0x4   | SUBSCRIBE OK ({{message-subscribe-ok}})            |
+|-------|----------------------------------------------------|
+| 0x5   | SUBSCRIBE ERROR ({{message-subscribe-error}})      |
+|-------|----------------------------------------------------|
+| 0x6   | ANNOUNCE  ({{message-announce}})                   |
+|-------|----------------------------------------------------|
+| 0x7   | ANNOUNCE OK ({{message-announce-ok}})              |
+|-------|----------------------------------------------------|
+| 0x8   | ANNOUNCE ERROR ({{message-announce-error}})        |
+|-------|----------------------------------------------------|
+| 0x9   | UNANNOUNCE  ({{message-unannounce}})               |
+|-------|----------------------------------------------------|
+| 0xA   | UNSUBSCRIBE ({{message-unsubscribe}})              |
+|-------|----------------------------------------------------|
+| 0xB   | SUBSCRIBE_FIN ({{message-subscribe-fin}})          |
+|-------|----------------------------------------------------|
+| 0xC   | SUBSCRIBE_RST ({{message-subscribe-rst}})          |
+|-------|----------------------------------------------------|
+| 0x10  | GOAWAY ({{message-goaway}})                        |
+|-------|----------------------------------------------------|
 
 ## SETUP {#message-setup}
 
@@ -707,11 +714,13 @@ SETUP Parameter {
 Client SETUP Message Payload {
   Number of Supported Versions (i),
   Supported Version (i) ...,
+  Number of Parameters (i) ...,
   SETUP Parameters (..) ...,
 }
 
 Server SETUP Message Payload {
   Selected Version (i),
+  Number of Parameters (i) ...,
   SETUP Parameters (..) ...,
 }
 ~~~
@@ -788,7 +797,9 @@ the `query` portion of the URI to the parameter.
 
 A OBJECT message contains a range of contiguous bytes from from the
 specified track, as well as associated metadata required to deliver,
-cache, and forward it.
+cache, and forward it. There are two subtypes of this message. When the
+message type is 0x00, the optional Object Payload Length field is
+present. When the message type ix 0x02, the field is not present.
 
 The format of the OBJECT message is as follows:
 
@@ -798,6 +809,7 @@ OBJECT Message {
   Group Sequence (i),
   Object Sequence (i),
   Object Send Order (i),
+  [Object Payload Length (i),]
   Object Payload (b),
 }
 ~~~
@@ -816,6 +828,9 @@ group.
 * Object Send Order: An integer indicating the object send order
 {{send-order}} or priority {{ordering-by-priorities}} value.
 
+* Object Payload Length: The length of the following Object Payload. If this
+field is absent, the object payload continues to the end of the stream.
+
 * Object Payload: An opaque payload intended for the consumer and SHOULD
 NOT be processed by a relay.
 
@@ -828,15 +843,18 @@ The format of SUBSCRIBE REQUEST is as follows:
 
 ~~~
 SUBSCRIBE REQUEST Message {
-  Full Track Name Length (i),
-  Full Track Name (...),
+  Track Namespace (b),
+  Track Name (b),
+  Number of Parameters (i),
   Track Request Parameters (..) ...
 }
 ~~~
 {: #moq-transport-subscribe-format title="MOQT SUBSCRIBE REQUEST Message"}
 
+* Track Namespace: Identifies the namespace of the track as defined in
+({{track-name}}).
 
-* Full Track Name: Identifies the track as defined in ({{track-name}}).
+* Track Name: Identifies the track name as defined in ({{track-name}}).
 
 * Track Request Parameters: As defined in {{track-req-params}}.
 
@@ -851,16 +869,18 @@ A `SUBSCRIBE OK` control message is sent for successful subscriptions.
 ~~~
 SUBSCRIBE OK
 {
-  Full Track Name Length(i),
-  Full Track Name(...),
-  Track ID(i),
+  Track Namespace (b),
+  Track Name (b),
+  Track ID (i),
   Expires (i)
 }
 ~~~
 {: #moq-transport-subscribe-ok format title="MOQT SUBSCRIBE OK Message"}
 
-* Full Track Name: Identifies the track for which this response is
-provided.
+* Track Namespace: Identifies the namespace of the track as defined in
+({{track-name}}).
+
+* Track Name: Identifies the track name as defined in ({{track-name}}).
 
 * Track ID: Session specific identifier that is used as an alias for the
 Full Track Name in the Track ID field of the OBJECT ({{message-object}})
@@ -880,8 +900,8 @@ failed SUBSCRIBE REQUEST.
 ~~~
 SUBSCRIBE ERROR
 {
-  Full Track Name Length(i),
-  Full Track Name(...),
+  Track Namespace (b),
+  Track Name (b),
   Error Code (i),
   Reason Phrase Length (i),
   Reason Phrase (...),
@@ -889,8 +909,10 @@ SUBSCRIBE ERROR
 ~~~
 {: #moq-transport-subscribe-error format title="MOQT SUBSCRIBE ERROR Message"}
 
-* Full Track Name: Identifies the track in the request message for which
-this response is provided.
+* Track Namespace: Identifies the namespace of the track as defined in
+({{track-name}}).
+
+* Track Name: Identifies the track name as defined in ({{track-name}}).
 
 * Error Code: Identifies an integer error code for subscription failure.
 
@@ -908,13 +930,82 @@ The format of `UNSUBSCRIBE` is as follows:
 
 ~~~
 UNSUBSCRIBE Message {
-  Full Track Name Length (i),
-  Full Track Name (...),
+  Track Namespace (b),
+  Track Name (b),
 }
 ~~~
 {: #moq-transport-unsubscribe-format title="MOQT UNSUBSCRIBE Message"}
 
-* Full Track Name: Identifies the track as defined in ({{track-name}}).
+* Track Namespace: Identifies the namespace of the track as defined in
+({{track-name}}).
+
+* Track Name: Identifies the track name as defined in ({{track-name}}).
+
+## SUBSCRIBE_FIN {#message-subscribe-fin}
+
+A publisher issues a `SUBSCRIBE_FIN` message to all subscribers indicating it
+is done publishing objects on the subscribed track.
+
+The format of `SUBSCRIBE_FIN` is as follows:
+
+~~~
+SUBSCRIBE_FIN Message {
+  Track Namespace (b),
+  Track Name (b),
+  Final Group (i),
+  Final Object (i),
+}
+~~~
+{: #moq-transport-subscribe-fin-format title="MOQT SUBSCRIBE_FIN Message"}
+
+* Track Namespace: Identifies the namespace of the track as defined in
+({{track-name}}).
+
+* Track Name: Identifies the track name as defined in ({{track-name}}).
+
+* Final Group: The largest Group Sequence sent by the publisher in an OBJECT
+message in this track.
+
+* Final Object: The largest Object Sequence sent by the publisher in an OBJECT
+message in the `Final Group` for this track.
+
+## SUBSCRIBE_RST {#message-subscribe-rst}
+
+A publisher issues a `SUBSCRIBE_RST` message to all subscribers indicating there
+wan an error publishing to the given track and subscription is terminated.
+
+The format of `SUBSCRIBE_RST` is as follows:
+
+~~~
+SUBSCRIBE_RST Message {
+  Track Namespace (b),
+  Track Name (b),
+  Error Code (i),
+  Reason Phrase Length (i),
+  Reason Phrase (...),
+  Final Group (i),
+  Final Object (i),
+}
+~~~
+{: #moq-transport-subscribe-rst format title="MOQT SUBSCRIBE RST Message"}
+
+* Track Namespace: Identifies the namespace of the track as defined in
+({{track-name}}).
+
+* Track Name: Identifies the track name as defined in ({{track-name}}).
+
+* Error Code: Identifies an integer error code for subscription failure.
+
+* Reason Phrase Length: The length in bytes of the reason phrase.
+
+* Reason Phrase: Provides the reason for subscription error and `Reason
+Phrase Length` field carries its length.
+
+* Final Group: The largest Group Sequence sent by the publisher in an OBJECT
+message in this track.
+
+* Final Object: The largest Object Sequence sent by the publisher in an OBJECT
+message in the `Final Group` for this track.
 
 ## ANNOUNCE {#message-announce}
 
@@ -925,8 +1016,8 @@ publish tracks under this namespace.
 
 ~~~
 ANNOUNCE Message {
-  Track Namespace Length(i),
-  Track Namespace(..),
+  Track Namespace (b),
+  Number of Parameters (i),
   Track Request Parameters (..) ...,
 }
 ~~~
@@ -946,8 +1037,7 @@ successful authorization and acceptance of an ANNOUNCE message.
 ~~~
 ANNOUNCE OK
 {
-  Track Namespace Length(i),
-  Track Namespace(..),
+  Track Namespace (b),
 }
 ~~~
 {: #moq-transport-announce-ok format title="MOQT ANNOUNCE OK Message"}
@@ -963,8 +1053,7 @@ failed authorization.
 ~~~
 ANNOUNCE ERROR
 {
-  Track Namespace Length(i),
-  Track Namespace(...),
+  Track Namespace(b),
   Error Code (i),
   Reason Phrase Length (i),
   Reason Phrase (...),
@@ -989,8 +1078,7 @@ within the provided Track Namespace.
 
 ~~~
 UNANNOUNCE Message {
-  Track Namespace Length(i),
-  Track Namespace(..),
+  Track Namespace(b),
 }
 ~~~
 {: #moq-transport-unannounce-format title="MOQT UNANNOUNCE Message"}
