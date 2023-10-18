@@ -1053,7 +1053,7 @@ In the sections below, a publisher's current state of the track is defined by th
 `RelativeStartPrevious` subscription hint specifies the start point for object delivery from an earlier group relative to the current group. The  `GroupCount` hint attribute specifies the number of groups to go back from the current group to determine the start point.
 
 ~~~
-Previous HintValue {
+RelativeStartPrevious HintValue {
   GroupCount(i)
 }
 ~~~
@@ -1063,7 +1063,7 @@ Previous HintValue {
 `RelativeStartNext` subscription hint specifies the start point for object delivery to a future group relative to the current group. The `GroupCount` hint attribute specifies the number of groups to wait on before delivering the objects.
 
 ~~~
-Next HintValue {
+RelativeStartNext HintValue {
   GroupCount(i)
 }
 ~~~
