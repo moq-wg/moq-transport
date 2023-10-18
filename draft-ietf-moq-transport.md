@@ -1010,7 +1010,7 @@ SUBSCRIPTION HINT {
   Value (b)
 }
 ~~~
-{: #moq-transport-subscription-hint format title="MOQT Subscription HInt"}
+{: #moq-transport-subscription-hint format title="MOQT Subscription Hint"}
 
 The `HintType` parameter identifies one of the following values:
 
@@ -1021,7 +1021,7 @@ The `HintType` parameter identifies one of the following values:
 |------------|-------------------------|
 | 0x1        | AbsoluteStartPoint      |
 |------------|-------------------------|
-| 0x2        | Interval                |
+| 0x2        | Range                   |
 |------------|-------------------------|
 | 0x3 - 0xFF | Reserved for future use |
 |------------|-------------------------|
@@ -1044,6 +1044,8 @@ RelativeStartPoint Value {
   [GroupCount (i)]
 }
 ~~~
+{: #moq-transport-relative-start-point-hint format title="MOQT RelativeStartPoint Hint"}
+
 
 A subscriber can request the starting point to be one of the following values, as idenitfied by the `Mode` parameter:
 
@@ -1072,6 +1074,8 @@ AbsoluteStartPoint Value {
   TrackOffset start
 }
 ~~~
+{: #moq-transport-absolute-start-point-hint format title="MOQT AbsoluteStartPoint Hint"}
+
 
 * TrackOffset:  Identifies the group and optionally, the object sequence value within the track as the start point for the delivery. TrackOffset is defined as below.
 
@@ -1082,22 +1086,26 @@ TrackOffset {
   [ObjectSequence (i)]
 }
 ~~~
+{: #moq-transport-track-offset format title="MOQT TrackOffset"}
+
 
  The `Type` controls if both group and object sequences are provided. A value of 0x0 indicates only the group sequence is provided and a value of 0x1 indicates both the group and object 
  sequence values are provided.
 
-### Interval Hint
+### Range Hint
 
-The `Interval` subscription hint allows subscribers to request for range of objects by specifying values pertaining to start and end group/object sequences. 
+The `Range` subscription hint allows subscribers to request for range of objects by specifying values pertaining to start and end group/object sequences. 
 
 The value for Interval hint has the following structure:
 
 ~~~
-Interval Payload {
+Range Payload {
   TrackOffset start,
   TrackOffset end
 }
 ~~~
+{: #moq-transport-range-hint format title="MOQT Range Hint"}
+
 
 ## Track Request Parameters {#track-req-params}
 
