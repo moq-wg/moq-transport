@@ -212,8 +212,7 @@ This document also defines an additional field type for binary data:
 
 x (b):
 : Indicates that x consists of a variable length integer, followed by
-  that many bytes of binary data. For empty values, the lenght 
-  is set to 0.
+  that many bytes of binary data.
 
 
 # Object Model {#model}
