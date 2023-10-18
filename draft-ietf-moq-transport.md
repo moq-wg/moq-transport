@@ -212,7 +212,8 @@ This document also defines an additional field type for binary data:
 
 x (b):
 : Indicates that x consists of a variable length integer, followed by
-  that many bytes of binary data.
+  that many bytes of binary data. For empty values, the lenght 
+  is set to 0.
 
 
 # Object Model {#model}
@@ -815,6 +816,7 @@ On successful subscription, the publisher SHOULD start delivering
 objects from the group sequence and object sequence as defined in the
 `Track Request Parameters`.
 
+OPEN QUESTION: Should we disallow multiple hints ?
 
 ## SUBSCRIBE OK {#message-subscribe-ok}
 
@@ -1000,14 +1002,15 @@ The client:
 
 ## Subscription Hints {#sub-hints}
 
-Subscription hints provide a way for a subscriber to indicate, to the publisher, its preferences for receiving objects from a given track.
+Subscription hints provide a way for a subscriber to indicate, to the publisher, its preferences for receiving objects from a given track. 
 
 Subscription Hints have the following structure:
 
 ~~~
 SUBSCRIPTION HINT {
   HintType (i),
-  Value (b)
+  HintValueLength (i),
+  HintValue (b)
 }
 ~~~
 {: #moq-transport-subscription-hint format title="MOQT Subscription Hint"}
@@ -1017,94 +1020,96 @@ The `HintType` parameter identifies one of the following values:
 |------------|-------------------------|
 | Hint Type  | Hint                    |                               
 |-----------:|:------------------------|
-| 0x0        | RelativeStartPoint      |
+| 0x0        | Current                 |
 |------------|-------------------------|
-| 0x1        | AbsoluteStartPoint      |
+| 0x1        | Now                     |
 |------------|-------------------------|
-| 0x2        | Range                   |
+| 0x2        | RelativeStartPrevious   |
 |------------|-------------------------|
-| 0x3 - 0xFF | Reserved for future use |
+| 0x3        | RelativeStartNext       |
+|------------|-------------------------|
+| 0x4        | AbsoluteStart           |
+|------------|-------------------------|
+| 0x5        | AbsoluteInterval        |
 |------------|-------------------------|
 
-The `Value` is specific to the chosen `HintType` as descirbed in the following subsections.
+`HintValue` contains `HintValueLength` bytes, which encode attributes as specified by the HintType. If the HintType does not need extra hint attributes, the HintValueLength is 0, and the HintValue is empty.
 
-TODO: Define registry for specifying the hints.
+Future versions of the specification may define more hint types as needed.
 
-TODO: Define experimental range.
+In the sections below, a publisher's current state of the track is defined by the most recent group and object sequence received (or active in the cache), if available, at the time of request.
 
-### RelativeStartPoint Hint {#relative}
+### Current Hint
 
-The `RelativeStartPoint` subscription hint identifies a starting point relative to publisher's view of the ongoing state of the track for delivering objects. A publisher's current state of the track is defined by the most recent group and object sequence received (or active in the cache), if available, at the time of request.
+`Current` subscription hint specifies the start point for object delivery from the beginning of the current group. Current hint type defines no further hint attributes.
 
-The structure for the  RelativeStartPoint hint value is as follows:
+
+### Now Hint
+
+`Now` subscription hint specifies the start point for object delivery from the most recent object of the current group.  Now hint type defines no further hint attributes.
+
+
+### RelativeStartPrevious Hint
+
+`RelativeStartPrevious` subscription hint specifies the start point for object delivery from an earlier group relative to the current group. The  `GroupCount` hint attribute specifies the number of groups to go back from the current group to determine the start point.
 
 ~~~
-RelativeStartPoint Value {
-  Mode (i),
-  [GroupCount (i)]
+Previous HintValue {
+  GroupCount(i)
 }
 ~~~
-{: #moq-transport-relative-start-point-hint format title="MOQT RelativeStartPoint Hint"}
 
+### RelativeStartNext Hint
 
-A subscriber can request the starting point to be one of the following values, as idenitfied by the `Mode` parameter:
-
-* PREVIOUS: Start point for object delivery is from an earlier group relative to the current group. The optional parameter `GroupCount` MUST be specified and it specifies the number of groups to go back from the current group to determine the start point. The mode `PREVIOUS` has value of `0x1`.
-
-* NEXT: Start point for object delivery is set to a future group relative to the current group. The optional parameter `GroupCount` MUST be specified and it specifies the number of groups to wait on before delivering the objects. The mode `NEXT` has value of `0x2`.
-
-* CURRENT: Start point for object delivery is set to beginning of the current group. The optional parameter `GroupCount` MUST NOT be present. The mode `CURRENT` has value of `0x3`.
-
-* NOW: Start point for object delivery is set to most recent obect from the current group. The optional parameter `GroupCount` MUST NOT be present. The mode `NOW` has value of `0x4`
-
-
-If the RelativeStartPoint mode is not understood, the publisher MUST send SUBSCRIBE ERROR message with an appropriate error code (TODO: need to define this).
-
-TODO: Add a note in the security consideration section.
-
-
-### AbsoluteStartPoint Hint {#absolute}
-
-The `AbsoluteStartPoint` subscription hint allows subscribers to specify an absolute point in the track to start delivering objects, as indicated by the `TrackOffset`.
-
-The structure for AbsoluteStartPoint hint value is as follows:
+`RelativeStartNext` subscription hint specifies the start point for object delivery to a future group relative to the current group. The `GroupCount` hint attribute specifies the number of groups to wait on before delivering the objects.
 
 ~~~
-AbsoluteStartPoint Value {
+Next HintValue {
+  GroupCount(i)
+}
+~~~
+
+### AbsoluteStart Hint
+
+The `AbsoluteStart` subscription hint allows subscribers to specify an absolute point in the track to start delivering objects, as indicated by the `TrackOffset` hint attribute.
+
+The structure for AbsoluteStart hint value is as follows:
+
+~~~
+AbsoluteStart HintValue {
   TrackOffset start
 }
 ~~~
 {: #moq-transport-absolute-start-point-hint format title="MOQT AbsoluteStartPoint Hint"}
 
 
-* TrackOffset:  Identifies the group and optionally, the object sequence value within the track as the start point for the delivery. TrackOffset is defined as below.
+* TrackOffset:  Identifies the group and the object sequence value within the track as the start point for the delivery. TrackOffset is defined as below.
 
 ~~~
 TrackOffset {
-  Type (i),  // 0 = Group, 1 = Group and Object
   GroupSequence (i),
-  [ObjectSequence (i)]
+  ObjectSequence (i)
 }
 ~~~
 {: #moq-transport-track-offset format title="MOQT TrackOffset"}
 
+`ObjectSequence` set to 0x0 implies until the end of the group identified in `GroupSequence`.
 
- The `Type` controls if both group and object sequences are provided. A value of 0x0 indicates only the group sequence is provided and a value of 0x1 indicates both the group and object 
- sequence values are provided.
+### AbsoluteInterval Hint
 
-### Range Hint
+The `AbsoluteInterval` subscription hint allows subscribers to request for range of objects by specifying values pertaining to start and end group/object sequences. 
 
-The `Range` subscription hint allows subscribers to request for range of objects by specifying values pertaining to start and end group/object sequences. 
-
-The value for Interval hint has the following structure:
+The AbsoluteInterval hint value has the following structure:
 
 ~~~
-Range Payload {
+AbsoluteInterval HintValue {
   TrackOffset start,
   TrackOffset end
 }
 ~~~
 {: #moq-transport-range-hint format title="MOQT Range Hint"}
+
+The end track offset of the range is exclusive.
 
 
 ## Track Request Parameters {#track-req-params}
@@ -1125,22 +1130,6 @@ Track Request Parameter {
 ~~~
 {: #moq-track-request-param format title="MOQT Track Request Parameter"}
 
-
-### GROUP SEQUENCE Parameter
-
-The GROUP SEQUENCE parameter (key 0x00) identifies the group within the
-track to start delivering objects. The publisher MUST start delivering
-the objects from the most recent group, when this parameter is
-omitted. This parameter is applicable in SUBSCRIBE REQUEST message.
-
-### OBJECT SEQUENCE Parameter
-
-The OBJECT SEQUENCE parameter (key 0x01) identifies the object with the
-track to start delivering objects. The `GROUP SEQUENCE` parameter MUST
-be set to identify the group under which to start delivery. The
-publisher MUST start delivering from the beginning of the selected group
-when this parameter is omitted. This parameter is applicable in
-SUBSCRIBE REQUEST message.
 
 ### AUTHORIZATION INFO Parameter
 
