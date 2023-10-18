@@ -162,7 +162,7 @@ Commonly used terms in this document are described below.
 
 Client:
 
-: The endpoint initiating a MoQ transport session.
+: The party initiating a MoQ transport session.
 
 Server:
 
