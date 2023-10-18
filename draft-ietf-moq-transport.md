@@ -153,13 +153,6 @@ remains opaque and private.
 
 {::boilerplate bcp14-tagged}
 
-TODO: The terms defined here doesn't capture the ongoing discussions
-within the Working Group (either as part of requirements or architecture
-documents). This section will be updated to reflect the discussions.
-
-Commonly used terms in this document are described below.
-
-
 Client:
 
 : The party initiating a MoQ transport session.
