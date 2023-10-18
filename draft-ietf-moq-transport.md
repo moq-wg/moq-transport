@@ -1057,6 +1057,8 @@ RelativeStartPrevious HintValue {
   GroupCount(i)
 }
 ~~~
+{: #moq-transport-relative-start-previous-hint format title="MOQT RelativeStartPrevious Hint"}
+
 
 ### RelativeStartNext Hint
 
@@ -1067,6 +1069,7 @@ RelativeStartNext HintValue {
   GroupCount(i)
 }
 ~~~
+{: #moq-transport-relative-start-next-hint format title="MOQT RelativeStartNext Hint"}
 
 ### AbsoluteStart Hint
 
@@ -1079,7 +1082,7 @@ AbsoluteStart HintValue {
   TrackOffset start
 }
 ~~~
-{: #moq-transport-absolute-start-point-hint format title="MOQT AbsoluteStartPoint Hint"}
+{: #moq-transport-absolute-start-hint format title="MOQT AbsoluteStart Hint"}
 
 
 * TrackOffset:  Identifies the group and the object sequence value within the track as the start point for the delivery. TrackOffset is defined as below.
@@ -1106,7 +1109,7 @@ AbsoluteInterval HintValue {
   TrackOffset end
 }
 ~~~
-{: #moq-transport-range-hint format title="MOQT Range Hint"}
+{: #moq-transport-absolute-interval-hint format title="MOQT AbsoluteInterval Hint"}
 
 The end track offset of the range is exclusive.
 
