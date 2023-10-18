@@ -159,21 +159,34 @@ documents). This section will be updated to reflect the discussions.
 
 Commonly used terms in this document are described below.
 
+
 Client:
 
-: The party initiating a transport session.
+: The endpoint initiating a MoQ transport session.
 
-Congestion:
+Server:
 
-: Packet loss and queuing caused by degraded or overloaded networks.
+: The party accepting an incoming transport session.
+
+Endpoint:
+
+: A Client or Server. 
+
+Producer:
+
+: An endpoint sending media over the network.
 
 Consumer:
 
 : An endpoint receiving media over the network.
 
-Endpoint:
+Transport session:
 
-: A Client or Server. 
+: A raw QUIC connection or a WebTransport session.
+
+Congestion:
+
+: Packet loss and queuing caused by degraded or overloaded networks.
 
 Group:
 
@@ -186,22 +199,10 @@ Object:
   bytes. Objects form the base element in the MOQT model. See
   ({{model-object}}).
 
-Producer:
-
-: An endpoint sending media over the network.
-
-Server:
-
-: The party accepting an incoming transport session.
-
 Track:
 
 : An encoded bitstream. Tracks contain a sequential series of one or
   more groups and are the subscribable entity with MOQT.
-
-Transport session:
-
-: A raw QUIC connection or a WebTransport session.
 
 
 ## Notational Conventions
