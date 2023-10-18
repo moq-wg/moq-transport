@@ -436,13 +436,14 @@ the current URI is reused. The server SHOULD terminate the session with GOAWAY
 Timeout after a sufficient timeout if a stubborn client is preventing a drain.
 
 The GOAWAY message does not impact subscription state. A subscriber SHOULD
-terminate existing subscriptions while a publisher MAY reject new subscriptions
-while in this draining state. Note that server may be a subscriber, in which
-case it should send a GOAWAY message followed by any UNSUBSCRIBE messages.
+individually UNSUBSCRIBE for each existing subscription, while a publisher MAY
+reject new SUBSCRIBEs while in this draining state. Note that server may be a
+subscriber, in which case it should send a GOAWAY message followed by any
+UNSUBSCRIBE messages.
 
 The client receives a GOAWAY message and determines when to terminate the
-session. It's RECOMMENDED that the client waits until all active subscriptions
-have terminated and then closes the session with NO\_ERROR. This should be
+session. It's RECOMMENDED that the client waits until there are no more active
+subscriptions and then closes the session with NO\_ERROR. This should be
 performed transparently to the application which involves establishing the new
 session in the background and migrating all active subscriptions/announcements
 from the old session. The client may choose to delay closing the session if
