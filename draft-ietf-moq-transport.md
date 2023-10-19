@@ -441,12 +441,12 @@ MAY reject new SUBSCRIBEs while in the draining state. When the server is
 a subscriber, it SHOULD send a GOAWAY message prior to any UNSUBSCRIBE messages.
 
 After the client receives a GOAWAY, it's RECOMMENDED that the client waits until
-there are no more active subscriptions before closing the session with NO\_ERROR.
-Ideally this is transparent to the application, which involves establishing a new
-session in the background and migrating active subscriptions and announcements.
-The client can choose to delay closing the session if it expects more OBJECTs to
-be delivered. The server can send a 'GOAWAY Timeout' if the client doesn't close
-the session quickly enough.
+there are no more active subscriptions before closing the session with NO_ERROR.
+Ideally this is transparent to the application using MOQT, which involves
+establishing a new session in the background and migrating active subscriptions
+and announcements. The client can choose to delay closing the session if it
+expects more OBJECTs to be delivered. The server closes the session with a
+'GOAWAY Timeout' if the client doesn't close the session quickly enough.
 
 
 # Prioritization and Congestion Response {#priority-congestion}
