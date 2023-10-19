@@ -5,11 +5,12 @@ MoQ Transport is a live media protocol that utilizes QUIC streams.
 
 
 ## Contributing
-All changes need to be made to the markdown file (.md).
-You can find a reference for the synatax [here](https://kramdown.gettalong.org/syntax.html).
-Each sentence is separated with a newline to reduce the number of merge conflicts.
+All changes need to be made to the markdown file (.md). You can find a reference
+for the synatax [here](https://kramdown.gettalong.org/syntax.html).
 
-If you want to locally build, you'll need to install [kramdown-rfc2629](https://github.com/cabo/kramdown-rfc) and [xml2rfc](https://github.com/ietf-tools/xml2rfc):
+If you want to locally build, you'll need to install
+[kramdown-rfc2629](https://github.com/cabo/kramdown-rfc) and
+[xml2rfc](https://github.com/ietf-tools/xml2rfc):
 
 ```bash
 gem install kramdown-rfc

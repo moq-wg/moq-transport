@@ -163,7 +163,7 @@ Server:
 
 Endpoint:
 
-: A Client or Server. 
+: A Client or Server.
 
 Producer:
 
@@ -430,9 +430,10 @@ SHOULD terminate the session with 'GOAWAY Timeout' after a sufficient timeout if
 there are still open subscriptions on a connection.
 
 The GOAWAY message does not immediately impact subscription state. A subscriber
-SHOULD individually UNSUBSCRIBE for each existing subscription, while a publisher
-MAY reject new SUBSCRIBEs while in the draining state. When the server is
-a subscriber, it SHOULD send a GOAWAY message prior to any UNSUBSCRIBE messages.
+SHOULD individually UNSUBSCRIBE for each existing subscription, while a
+publisher MAY reject new SUBSCRIBEs while in the draining state. When the server
+is a subscriber, it SHOULD send a GOAWAY message prior to any UNSUBSCRIBE
+messages.
 
 After the client receives a GOAWAY, it's RECOMMENDED that the client waits until
 there are no more active subscriptions before closing the session with NO_ERROR.
@@ -729,7 +730,8 @@ The available versions and SETUP parameters are detailed in the next sections.
 
 MoQ Transport versions are a 32-bit unsigned integer, encoded as a varint.
 This version of the specification is identified by the number 0x00000001.
-Versions with the most significant 16 bits of the version number cleared are reserved for use in future IETF consensus documents.
+Versions with the most significant 16 bits of the version number cleared are
+reserved for use in future IETF consensus documents.
 
 The client offers the list of the protocol versions it supports; the
 server MUST reply with one of the versions offered by the client. If the
@@ -740,8 +742,11 @@ corresponding peer MUST close the connection.
 \[\[RFC editor: please remove the remainder of this section before
 publication.]]
 
-The version number for the final version of this specification (0x00000001), is reserved for the version of the protocol that is published as an RFC.
-Version numbers used to identify IETF drafts are created by adding the draft number to 0xff000000. For example, draft-ietf-moq-transport-13 would be identified as 0xff00000D.
+The version number for the final version of this specification (0x00000001), is
+reserved for the version of the protocol that is published as an RFC.
+Version numbers used to identify IETF drafts are created by adding the draft
+number to 0xff000000. For example, draft-ietf-moq-transport-13 would be
+identified as 0xff00000D.
 
 ### SETUP Parameters {#setup-parameters}
 
@@ -921,7 +926,8 @@ Phrase Length` field carries its length.
 
 ## UNSUBSCRIBE {#message-unsubscribe}
 
-A subscriber issues a `UNSUBSCRIBE` message to a publisher indicating it is no longer interested in receiving media for the specified track.
+A subscriber issues a `UNSUBSCRIBE` message to a publisher indicating it is no
+longer interested in receiving media for the specified track.
 
 The format of `UNSUBSCRIBE` is as follows:
 
