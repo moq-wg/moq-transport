@@ -431,24 +431,22 @@ MoqTransport avoids this via the GOAWAY message ({{message-goaway}}).
 
 The server sends a GOAWAY message, signaling that the client should establish a
 new session and migrate any active subscriptions. The GOAWAY message may contain
-a new URI for the new session, useful in some load balancing schemes, otherwise
-the current URI is reused. The server SHOULD terminate the session with GOAWAY
-Timeout after a sufficient timeout if a stubborn client is preventing a drain.
+a new URI for the new session, otherwise the current URI is reused. The server
+SHOULD terminate the session with 'GOAWAY Timeout' after a sufficient timeout if
+there are still open subscriptions on a connection.
 
-The GOAWAY message does not impact subscription state. A subscriber SHOULD
-individually UNSUBSCRIBE for each existing subscription, while a publisher MAY
-reject new SUBSCRIBEs while in this draining state. Note that the server may be
-a subscriber, in which case it should send a GOAWAY message followed by any
-UNSUBSCRIBE messages.
+The GOAWAY message does not immediately impact subscription state. A subscriber
+SHOULD individually UNSUBSCRIBE for each existing subscription, while a publisher
+MAY reject new SUBSCRIBEs while in the draining state. When the server is
+a subscriber, it SHOULD send a GOAWAY message prior to any UNSUBSCRIBE messages.
 
-The client receives a GOAWAY message and determines when to terminate the
-session. It's RECOMMENDED that the client waits until there are no more active
-subscriptions and then closes the session with NO\_ERROR. This should be
-performed transparently to the application which involves establishing the new
-session in the background and migrating all active subscriptions/announcements
-from the old session. The client may choose to delay closing the session if
-OBJECTs are queued or inflight, but needs to be prepared to receive a GOAWAY
-Timeout from the server if it takes too long.
+After the client receives a GOAWAY, it's RECOMMENDED that the client waits until
+there are no more active subscriptions before closing the session with NO\_ERROR.
+Ideally this is transparent to the application, which involves establishing a new
+session in the background and migrating active subscriptions and announcements.
+The client can choose to delay closing the session if it expects more OBJECTs to
+be delivered. The server can send a 'GOAWAY Timeout' if the client doesn't close
+the session quickly enough.
 
 
 # Prioritization and Congestion Response {#priority-congestion}
