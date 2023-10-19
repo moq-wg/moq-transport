@@ -437,8 +437,8 @@ Timeout after a sufficient timeout if a stubborn client is preventing a drain.
 
 The GOAWAY message does not impact subscription state. A subscriber SHOULD
 individually UNSUBSCRIBE for each existing subscription, while a publisher MAY
-reject new SUBSCRIBEs while in this draining state. Note that server may be a
-subscriber, in which case it should send a GOAWAY message followed by any
+reject new SUBSCRIBEs while in this draining state. Note that the server may be
+a subscriber, in which case it should send a GOAWAY message followed by any
 UNSUBSCRIBE messages.
 
 The client receives a GOAWAY message and determines when to terminate the
