@@ -391,25 +391,57 @@ code, as defined below:
 |------|--------------------|
 | Code | Reason             |
 |-----:|:-------------------|
-| 0x0  | Session Terminated |
+| 0x0  | No Error           |
 |------|--------------------|
 | 0x1  | Generic Error      |
 |------|--------------------|
 | 0x2  | Unauthorized       |
 |------|--------------------|
-| 0x10 | GOAWAY             |
+| 0x3  | Protocol Violation |
+|------|--------------------|
+| 0x10 | GOAWAY Timeout     |
 |------|--------------------|
 
-* Session Terminated: No error occurred; however the endpoint wishes to
-terminate the session.
+* No Error: The session is being terminated without an error.
 
 * Generic Error: An unclassified error occurred.
 
 * Unauthorized: The endpoint breached an agreement, which MAY have been
 pre-negotiated by the application.
 
-* GOAWAY: The endpoint successfully drained the session after a GOAWAY
-was initiated ({{message-goaway}}).
+* Protocol Violation: The remote endpoint performed an action that was
+  disallowed by the specification.
+
+* GOAWAY Timeout: The session was closed because the client took too long to
+  close the session in response to a GOAWAY ({{message-goaway}}) message.
+  See session migration ({{session-migration}}).
+
+## Migration {#session-migration}
+
+MoqTransport requires a long-lived and stateful session. However, a service
+provider needs the ability to shutdown/restart a server without waiting for all
+sessions to drain naturally, as that can take days for long-form media.
+MoqTransport avoids this via the GOAWAY message ({{message-goaway}}).
+
+The server sends a GOAWAY message, signaling that the client should establish a
+new session and migrate any active subscriptions. The GOAWAY message may contain
+a new URI for the new session, otherwise the current URI is reused. The server
+SHOULD terminate the session with 'GOAWAY Timeout' after a sufficient timeout if
+there are still open subscriptions on a connection.
+
+The GOAWAY message does not immediately impact subscription state. A subscriber
+SHOULD individually UNSUBSCRIBE for each existing subscription, while a publisher
+MAY reject new SUBSCRIBEs while in the draining state. When the server is
+a subscriber, it SHOULD send a GOAWAY message prior to any UNSUBSCRIBE messages.
+
+After the client receives a GOAWAY, it's RECOMMENDED that the client waits until
+there are no more active subscriptions before closing the session with NO_ERROR.
+Ideally this is transparent to the application using MOQT, which involves
+establishing a new session in the background and migrating active subscriptions
+and announcements. The client can choose to delay closing the session if it
+expects more OBJECTs to be delivered. The server closes the session with a
+'GOAWAY Timeout' if the client doesn't close the session quickly enough.
+
 
 # Prioritization and Congestion Response {#priority-congestion}
 
@@ -1053,30 +1085,25 @@ UNANNOUNCE Message {
 
 
 ## GOAWAY {#message-goaway}
+The server sends a `GOAWAY` message to initiate session migration
+({{session-migration}}) with an optional URI.
 
-The server sends a `GOAWAY` message to force the client to reconnect.
-This is useful for server maintenance or reassignments without severing
-the QUIC connection.  The server can be a producer or a consumer.
+The server MUST terminate the session with a Protocol Violation
+({{session-termination}}) if it receives a GOAWAY message. The client MUST
+terminate the session with a Protocol Violation ({{session-termination}}) if it
+receives multiple GOAWAY messages.
 
-The server:
+~~~
+GOAWAY Message {
+  New Session URI (b)
+}
+~~~
+{: #moq-transport-goaway-format title="MOQT GOAWAY Message"}
 
-* MAY initiate a graceful shutdown by sending a GOAWAY message.
-* MUST close the QUIC connection after a timeout with the GOAWAY error
-  code ({{session-termination}}).
-* MAY close the QUIC connection with a different error code if there is
-  a fatal error before shutdown.
-* SHOULD wait until the `GOAWAY` message and any pending streams have
-  been fully acknowledged, plus an extra delay to ensure they have been
-  processed.
-
-The client:
-
-* MUST establish a new transport session upon receipt of a `GOAWAY`
-  message, assuming it wants to continue operation.
-* SHOULD establish the new transport session using a different QUIC
-  connection to that on which it received the GOAWAY message.
-* SHOULD remain connected on both connections for a short period,
-  processing objects from both in parallel.
+* New Session URI: The client MUST use this URI for the new session if provded.
+  If the URI is zero bytes long, the current URI is reused instead. The new
+  session URI SHOULD use the same scheme as the current URL to ensure
+  compatibility.
 
 
 ## Track Request Parameters {#track-req-params}
