@@ -206,7 +206,7 @@ Transport session:
 
 ## Notational Conventions
 
-This document uses the conventions detailed in Section 1.3 of {{!QUIC}}
+This document uses the conventions detailed in ({{?RFC9000, Section 1.3}})
 when describing the binary encoding.
 
 This document also defines an additional field type for binary data:
