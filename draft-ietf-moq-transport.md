@@ -200,7 +200,7 @@ Track:
 
 ## Notational Conventions
 
-This document uses the conventions detailed in Section 1.3 of {{!QUIC}}
+This document uses the conventions detailed in ({{?RFC9000, Section 1.3}})
 when describing the binary encoding.
 
 This document also defines an additional field type for binary data:
@@ -527,7 +527,7 @@ outside the scope of this specification.
 
 The subscriber making the subscribe request is notified of the result of
 the subscription, via SUBSCRIBE_OK ({{message-subscribe-ok}}) or the
-SUBSCRIBE_ERROR {{message-subscribe-error}} control message. 
+SUBSCRIBE_ERROR {{message-subscribe-error}} control message.
 The entity receiving the SUBSCRIBE MUST send only a single response to
 a given SUBSCRIBE of either SUBSCRIBE_OK or SUBSCRIBE_ERROR.
 
