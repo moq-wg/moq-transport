@@ -659,12 +659,13 @@ The server replies with a SETUP message that indicates the chosen version,
 includes all parameters required for a handshake in that version, and parameters
 for every extension requested by the client that it supports.
 
-New versions of MOQT MUST specify which extensions can be used with that
-version. New extensions MUST specify the versions with which they can be used.
+New versions of MOQT MUST specify which existing extensions can be used with
+that version. New extensions MUST specify the existing versions with which they
+can be used.
 
-If a given extension carries the same information in multiple versions,
+If a given parameter carries the same information in multiple versions,
 but might have different optimal values in those versions, there SHOULD be
-separate SETUP parameter types for that extension in each version.
+separate SETUP parameters for that information in each version.
 
 # Messages {#message}
 
