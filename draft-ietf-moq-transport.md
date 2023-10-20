@@ -730,10 +730,10 @@ parameter using the value in the Parameter Length field.
 
 ### Version Specific Parameters {#version-specific-params}
 
-If a version-specific parameter appears in a message for which its meaning is
-not defined below, it MUST be ignored. Note that since SETUP parameters use a
-separate namespace, it is impossible for these parameters to appear in SETUP
-messages.
+Each version-specific parameter definition indicates the message types in which
+it can appear. If it appears in some other type of message, it MUST be ignored.
+Note that since SETUP parameters use a separate namespace, it is impossible for
+these parameters to appear in SETUP messages.
 
 #### GROUP SEQUENCE Parameter {#group-sequence}
 
