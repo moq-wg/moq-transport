@@ -650,7 +650,7 @@ any extensions to use.
 
 The client indicates the MOQT versions it supports in its SETUP message (see
 {{message-setup}}). It also includes the union of all Setup Parameters
-{{setup-parameters}} required for a handshake by any of those versions.
+{{setup-params}} required for a handshake by any of those versions.
 
 Within any MOQT version, clients request the use of extensions by adding SETUP
 parameters corresponding to that extension. No extensions are defined in this
