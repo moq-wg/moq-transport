@@ -642,6 +642,30 @@ increase latency over additional hops.  To mitigate this, a relay SHOULD
 read and write stream data out of order subject to flow control
 limits.  See section 2.2 in {{QUIC}}.
 
+# Version and Extension Negotiation {#version-negotiation}
+
+Endpoints use the exchange of SETUP messages to negotiate the MOQT version and
+any extensions to use.
+
+The client indicates the MOQT versions it supports in its SETUP message (see
+{{message-setup}}). It also includes the union of all Setup Parameters
+{{setup-params}} required for a handshake by any of those versions.
+
+Within any MOQT version, clients request the use of extensions by adding SETUP
+parameters corresponding to that extension. No extensions are defined in this
+document.
+
+The server replies with a SETUP message that indicates the chosen version,
+includes all parameters required for a handshake in that version, and parameters
+for every extension requested by the client that it supports.
+
+New versions of MOQT MUST specify which extensions can be used with that
+version. New extensions MUST specify the versions with which they can be used.
+
+If a given extension carries the same information in multiple versions,
+but might have different optimal values in those versions, there SHOULD be
+separate SETUP parameter types for that extension in each version.
+
 # Messages {#message}
 
 Both unidirectional and bidirectional streams contain sequences of
