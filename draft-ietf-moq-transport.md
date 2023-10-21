@@ -960,6 +960,47 @@ starting from the start object up to but not including the end object.
 If a publisher cannot satisfy the requested start or end for the subscription it
 MAY send a SUBSCRIBE_ERROR with code TBD.
 
+PROPOSAL 3: More explicit 
+
+There are 4 track request parameters that indicate group and object for
+the subscription to start and end at. Each of these has a flag that
+indicates if the value is the absolute value of the group or object or
+if it is a relative offset form to the currently largest group or
+currently largest object in the specified group.
+
+|--------------|-------|----------|--------------------|
+|Parameter     | Value | Required | Default            |
+|-------------:|:------|----------|--------------------|
+| START_GROUP_MODE   | 0x1   | No       | Relative   |
+|--------------|-------|----------|--------------------|
+| START_GROUP_DELTA  | 0x2   | No       | 0                  |
+|--------------|-------|----------|--------------------|
+| START_OBJECT_MODE   | 0x3   | No       | Relative   |
+|--------------|-------|----------|--------------------|
+| START_OBJECT_DELTA | 0x4   | No       | 0 |
+|--------------|-------|----------|--------------------|
+| END_GROUP_MODE     | 0x5   | No       | Relative               |
+|--------------|-------|----------|--------------------|
+| END_GROUP    | 0x6   | No       | Inf                 |
+|--------------|-------|----------|--------------------|
+| END_OBJECT_MODE   | 0x7   | No       |  Relative |
+|--------------|-------|----------|--------------------|
+| END_OBJECT   | 0x8   | No       |  Inf |
+|--------------|-------|----------|--------------------|
+
+The MODE values can be relative or absolute. 
+
+If the mode for a given GROUP_DELTA is absolute, the group to start or
+end at is the absolute value in the DELTA while if the mode is relative,
+then the group is the current group plus the signed value found in the
+delta.
+
+If the mode for a given OBJECT_DELTA is absolute, the object to start or
+end at is the absolute value in the DELTA while if the mode is relative,
+then the object is the largest object in the specified group plus the
+signed value found in the delta.
+
+
 ====================
 
 TODO: Issues related to more than one concurrent subscribe to the same track
