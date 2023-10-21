@@ -810,6 +810,10 @@ SUBSCRIBE REQUEST Message {
 On successful subscription, the publisher SHOULD start delivering
 objects from the group sequence and object sequence described below.
 
+====================
+
+PROPOSAL 1: 6 Track Request Parameters as discussed in the editors call
+
 Several track request parameters to SUBSCRIBE_REQUEST control the start and
 optional end of the subscription within the track.  For a live track, the
 largest group sequence is called the `Current Group` and the largest object
@@ -917,6 +921,46 @@ Parameters:
 ~~~
 
 TODO: Security Considerations related to these hints
+
+====================
+
+PROPOSAL 2: Simpler, trying to follow discussion on the PR through the day.
+
+SUBSCRIBE_REQUEST defines a Track Request Parameter START_POINT (0x0) whose
+value is a varint indicating where in the track to start the subscription.  For
+a live track, the largest group sequence is called the `Current Group` and the
+largest object sequence in that group is the `Current Object`.
+
+|-----------|-------|-------------|--------------|
+| Name      | Value | Start Group | Start Object |
+|----------:|:------|-------------|--------------|
+| Current   | 0x0   | Current     | 0            |
+| Now       | 0x1   | Current     | Current + 1  |
+| Previous  | 0x2   | Current - 1 | 0            |
+| Next      | 0x3   | Curernt + 1 | 0            |
+|------------------------------------------------|
+
+SUBSCRIBE_REQUEST also defines a Track Request Parameter RANGE (0x2) for
+requesting a closed range of objects.  The value is as follows:
+
+~~~
+Range Payload {
+  Start Group Sequence(i),
+  Start Object Sequence(i),
+  End Group Sequence(i),
+  End Object Sequence(i)
+}
+~~~
+
+Exactly one of START_POINT and RANGE MUST be specified.  If neither or both are
+present it is a Protocol Violation.  All Group and Object Sequence values are
+absolute values within the requested track.  The subscription is for all objects
+starting from the start object up to but not including the end object.
+
+If a publisher cannot satisfy the requested start or end for the subscription it
+MAY send a SUBSCRIBE_ERROR with code TBD.
+
+====================
 
 TODO: Issues related to more than one concurrent subscribe to the same track
 
@@ -1172,6 +1216,8 @@ leading varint in catalog track objects.
 --- back
 
 # Pseudo-code for Interpreting Subscribe Track Request Parameters
+
+From PROPOSAL 1:
 
 ~~~
 def get_start_object_and_group(params):
