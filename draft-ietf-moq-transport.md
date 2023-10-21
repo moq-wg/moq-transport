@@ -3,12 +3,12 @@ title: "Media over QUIC Transport"
 abbrev: moq-transport
 docname: draft-ietf-moq-transport-00
 date: {DATE}
-category: std 
+category: std
 
 ipr: trust200902
 area: Applications and Real-Time
 submissionType: IETF
-workgroup: MOQ 
+workgroup: MOQ
 keyword: Internet-Draft
 
 stand_alone: yes
@@ -172,7 +172,7 @@ Consumer:
 
 Endpoint:
 
-: A QUIC Client or a QUIC Server. 
+: A QUIC Client or a QUIC Server.
 
 Group:
 
@@ -797,8 +797,6 @@ The format of SUBSCRIBE REQUEST is as follows:
 SUBSCRIBE REQUEST Message {
   Full Track Name Length (i),
   Full Track Name (...),
-  Number of Hints (i),
-  Subscription Hints (..) ...
   Track Request Parameters (..) ...
 }
 ~~~
@@ -807,15 +805,120 @@ SUBSCRIBE REQUEST Message {
 
 * Full Track Name: Identifies the track as defined in ({{track-name}}).
 
-* Track Request Parameters: As defined in {{track-req-params}}.
-
-* Subscription Hints: As defined in {{sub-hints}}.
+* Track Request Parameters: As defined in {{track-req-params}} and below.
 
 On successful subscription, the publisher SHOULD start delivering
-objects from the group sequence and object sequence as defined in the
-`Track Request Parameters`.
+objects from the group sequence and object sequence described below.
 
-OPEN QUESTION: Should we disallow multiple hints ?
+Several track request parameters to SUBSCRIBE_REQUEST control the start and
+optional end of the subscription within the track.  For a live track, the
+largest group sequence is called the `Current Group` and the largest object
+sequence in that group is the `Current Object`.  The subscriber can specify an
+absolute group sequence and object sequence, identifying a particular group and
+object, or a group relative to the `Current Group` and a specific object.
+
+### Subscribe Hint Modes and Group Indexing {#subscribe-group}
+
+The following Subscribe Hint Modes are defined for determining the requested
+group:
+
+Absolute (0x0): The specified group is requested
+
+RelativePrevious (0x1): The specified group is an index relative to the `Current
+Group`. 0 indicates the current group, 1 indicates the previous group, and so on.
+
+RelativeNext (0x2): The specified group is an index relative to the `Current
+Group`. 0 indicates the next group after the current group, 1 indicates the
+second group after the current, and so on.
+
+The following table shows an example of how the RelativePrevious and RelativeNext
+index can be used.
+
+~~~
+Groups:                  0    1    2    3    4   [5]  [6] ...
+                                             ^
+                                      Current Group
+RelativePrevious Group:  3    2    1    0
+RelativeNext Group:                               0    1  ...
+~~~
+{: title="Relative Group Indexing"}
+
+### Subscription Hint Track Request Parameters
+
+There are 6 track request parameters that control the start and optional end of
+the subscription:
+
+|--------------|-------|----------|--------------------|
+|Parameter     | Value | Required | Default            |
+|-------------:|:------|----------|--------------------|
+| START_MODE   | 0x3   | No       | RelativePrevious   |
+|--------------|-------|----------|--------------------|
+| START_GROUP  | 0x0   | No       | 0                  |
+|--------------|-------|----------|--------------------|
+| START_OBJECT | 0x1   | No       | Current Object + 1 or 0|
+|--------------|-------|----------|--------------------|
+| END_MODE     | 0x4   | No       | None               |
+|--------------|-------|----------|--------------------|
+| END_GROUP    | 0x5   | No       | 0                  |
+|--------------|-------|----------|--------------------|
+| END_OBJECT   | 0x6   | No       | Current Object + 1 or 0|
+|--------------|-------|----------|--------------------|
+
+All six parameter values are encoded as varints and are optional.  A start group
+and object is always determined from the parameters.  An end group is only
+specified when END_MODE is present.  Specifying an END_GROUP or END_OBJECT
+without specifying END_MODE is a Protocol Violation.
+
+The start/end group is determined by examining the START/END_MODE and
+START/END_GROUP (or their defaults) and using the logic above (see
+{{subscribe-group}}).  Whenever START/END_OBJECT is specified, it is an
+absolute object sequence in the determined group. If START/END_MODE is
+RelativePrevious or omitted and START/END_GROUP is 0 or omitted, then
+START/END_OBJECT defaults to `Current Object` + 1 if not specified.  In all
+other cases, START_OBJECT defaults to 0.
+
+When both start and end are specified, the subscription is for all objects
+starting from the start object up to but not including the end object.
+
+If a publisher cannot satisfy the requested start or end for the subscription it
+MAY send a SUBSCRIBE_ERROR with code TBD.
+
+### Examples:
+
+~~~
+1. Now
+
+Parameters: *None*
+Start = Current Group, Current Object + 1
+
+2. Current
+
+Parameters: Start Object=0
+Start = Current Group, Object 0
+
+3. Previous
+
+Parameters: Start Mode = RelativePrev, Start Group=1
+Start = Previous Group, Object 0
+
+4. Next
+
+Parameters: Start Mode = RelativeNext
+Start = Current Group + 1, Object 0
+
+5. Range, All of group 3
+
+Parameters:
+ Start Mode = Absolute, Start Group = 3
+ End Mode = Absolute, End Group = 4
+
+ Start = Group 3, Object 0
+ End = Group 3, Object <last>
+~~~
+
+TODO: Security Considerations related to these hints
+
+TODO: Issues related to more than one concurrent subscribe to the same track
 
 ## SUBSCRIBE OK {#message-subscribe-ok}
 
@@ -956,9 +1059,9 @@ Phrase Length` field carries its length.
 
 ## UNANNOUNCE {#message-unannounce}
 
-The publisher sends the `UNANNOUNCE` control message to indicate 
-its intent to stop serving new subscriptions for tracks 
-within the provided Track Namespace. 
+The publisher sends the `UNANNOUNCE` control message to indicate
+its intent to stop serving new subscriptions for tracks
+within the provided Track Namespace.
 
 ~~~
 UNANNOUNCE Message {
@@ -999,121 +1102,6 @@ The client:
   processing objects from both in parallel.
 
 
-## Subscription Hints {#sub-hints}
-
-Subscription hints provide a way for a subscriber to indicate, to the publisher, its preferences for receiving objects from a given track. 
-
-Subscription Hints have the following structure:
-
-~~~
-SUBSCRIPTION HINT {
-  HintType (i),
-  HintValueLength (i),
-  HintValue (b)
-}
-~~~
-{: #moq-transport-subscription-hint format title="MOQT Subscription Hint"}
-
-The `HintType` parameter identifies one of the following values:
-
-|------------|-------------------------|
-| Hint Type  | Hint                    |                               
-|-----------:|:------------------------|
-| 0x0        | Current                 |
-|------------|-------------------------|
-| 0x1        | Now                     |
-|------------|-------------------------|
-| 0x2        | RelativeStartPrevious   |
-|------------|-------------------------|
-| 0x3        | RelativeStartNext       |
-|------------|-------------------------|
-| 0x4        | AbsoluteStart           |
-|------------|-------------------------|
-| 0x5        | AbsoluteInterval        |
-|------------|-------------------------|
-
-`HintValue` contains `HintValueLength` bytes, which encode attributes as specified by the HintType. If the HintType does not need extra hint attributes, the HintValueLength is 0, and the HintValue is empty.
-
-Future versions of the specification may define more hint types as needed.
-
-In the sections below, a publisher's current state of the track is defined by the most recent group and object sequence received (or active in the cache), if available, at the time of request.
-
-### Current Hint
-
-`Current` subscription hint specifies the start point for object delivery from the beginning of the current group. Current hint type defines no further hint attributes.
-
-
-### Now Hint
-
-`Now` subscription hint specifies the start point for object delivery from the most recent object of the current group.  Now hint type defines no further hint attributes.
-
-
-### RelativeStartPrevious Hint
-
-`RelativeStartPrevious` subscription hint specifies the start point for object delivery from an earlier group relative to the current group. The  `GroupCount` hint attribute specifies the number of groups to go back from the current group to determine the start point.
-
-~~~
-RelativeStartPrevious HintValue {
-  GroupCount(i)
-}
-~~~
-{: #moq-transport-relative-start-previous-hint format title="MOQT RelativeStartPrevious Hint"}
-
-
-### RelativeStartNext Hint
-
-`RelativeStartNext` subscription hint specifies the start point for object delivery to a future group relative to the current group. The `GroupCount` hint attribute specifies the number of groups to wait on before delivering the objects.
-
-~~~
-RelativeStartNext HintValue {
-  GroupCount(i)
-}
-~~~
-{: #moq-transport-relative-start-next-hint format title="MOQT RelativeStartNext Hint"}
-
-### AbsoluteStart Hint
-
-The `AbsoluteStart` subscription hint allows subscribers to specify an absolute point in the track to start delivering objects, as indicated by the `TrackOffset` hint attribute.
-
-The structure for AbsoluteStart hint value is as follows:
-
-~~~
-AbsoluteStart HintValue {
-  TrackOffset start
-}
-~~~
-{: #moq-transport-absolute-start-hint format title="MOQT AbsoluteStart Hint"}
-
-
-* TrackOffset:  Identifies the group and the object sequence value within the track as the start point for the delivery. TrackOffset is defined as below.
-
-~~~
-TrackOffset {
-  GroupSequence (i),
-  ObjectSequence (i)
-}
-~~~
-{: #moq-transport-track-offset format title="MOQT TrackOffset"}
-
-`ObjectSequence` set to 0x0 implies until the end of the group identified in `GroupSequence`.
-
-### AbsoluteInterval Hint
-
-The `AbsoluteInterval` subscription hint allows subscribers to request for range of objects by specifying values pertaining to start and end group/object sequences. 
-
-The AbsoluteInterval hint value has the following structure:
-
-~~~
-AbsoluteInterval HintValue {
-  TrackOffset start,
-  TrackOffset end
-}
-~~~
-{: #moq-transport-absolute-interval-hint format title="MOQT AbsoluteInterval Hint"}
-
-The end track offset of the range is exclusive.
-
-
 ## Track Request Parameters {#track-req-params}
 
 The Track Request Parameters identify properties of the track requested
@@ -1132,7 +1120,6 @@ Track Request Parameter {
 ~~~
 {: #moq-track-request-param format title="MOQT Track Request Parameter"}
 
-
 ### AUTHORIZATION INFO Parameter
 
 AUTHORIZATION INFO parameter (key 0x02) identifies track's authorization
@@ -1142,7 +1129,7 @@ applicable in SUBSCRIBE REQUEST and ANNOUNCE messages.
 
 # Security Considerations {#security}
 
-TODO: Expand this section. 
+TODO: Expand this section.
 
 ## Resource Exhaustion
 
@@ -1181,6 +1168,61 @@ TODO: the MOQT spec should establish the IANA registration table for MoQ
 Streaming Formats. Each MoQ streaming format can then register its type
 in that table. The MoQ Streaming Format type MUST be carried as the
 leading varint in catalog track objects.
+
+--- back
+
+# Pseudo-code for Interpreting Subscribe Track Request Parameters
+
+~~~
+def get_start_object_and_group(params):
+    start_mode = params['start_mode']
+    if start_mode is None:
+        start_mode = RelativePrev
+    return get_object_and_group(
+        start_mode, params['start_group'], params['start_object'])
+
+def get_end_object_and_group(params):
+    end_mode = params['end_mode']
+    if not end_mode:
+        return None, None
+
+    return get_object_and_group(
+        end_mode, params['end_group'], params['end_object'])
+
+def get_object_and_group(mode, params_group, params_object):
+    # Default is subscribe to current group
+    group = cur_group
+    # Object 0 is the default, with one exception, below
+    object = 0
+
+    if params_group is not None:
+        if mode == RelvativePrev:
+            rel_group = params_group
+            if rel_group > cur_group:
+                # negative group, error or start at 0
+                pass
+            group = cur_group - rel_group
+        elif mode == RelativeNext:
+            rel_group = params_group
+            group = cur_group + rel_group + 1
+        elif mode == Absolute:
+            group = params_group
+        else:
+            # Error bad mode
+            pass
+    elif mode == RelativeNext:
+      group = cur_group + 1
+    elif mode == Absolute:
+      group = 0
+
+    if params_object is not None:
+        # object is always absolute
+        object = params_object
+    elif mode == RelativePrev and group == cur_group:
+        object = cur_object + 1
+
+    return group, object
+~~~
 
 
 # Contributors
