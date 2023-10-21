@@ -842,7 +842,7 @@ index can be used.
 Groups:                  0    1    2    3    4   [5]  [6] ...
                                              ^
                                       Current Group
-RelativePrevious Group:  3    2    1    0
+RelativePrevious Group:  4    3    2    1    0
 RelativeNext Group:                               0    1  ...
 ~~~
 {: title="Relative Group Indexing"}
