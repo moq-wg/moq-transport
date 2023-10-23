@@ -1349,6 +1349,7 @@ Streaming Formats. Each MoQ streaming format can then register its type
 in that table. The MoQ Streaming Format type MUST be carried as the
 leading varint in catalog track objects.
 
+
 # Contributors
 {:numbered="false"}
 
