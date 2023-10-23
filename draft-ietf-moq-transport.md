@@ -887,7 +887,7 @@ starting from the start object up to but not including the end object.
 If a publisher cannot satisfy the requested start or end for the subscription it
 MAY send a SUBSCRIBE_ERROR with code TBD.
 
-### Examples:
+### Examples
 
 ~~~
 1. Now
@@ -960,7 +960,7 @@ starting from the start object up to but not including the end object.
 If a publisher cannot satisfy the requested start or end for the subscription it
 MAY send a SUBSCRIBE_ERROR with code TBD.
 
-PROPOSAL 3: More explicit 
+PROPOSAL 3: More explicit
 
 There are 4 track request parameters that indicate group and object for
 the subscription to start and end at. Each of these has a flag that
@@ -988,7 +988,7 @@ currently largest object in the specified group.
 | END_OBJECT   | 0x8   | No       |  Inf |
 |--------------|-------|----------|--------------------|
 
-The MODE values can be relative or absolute. 
+The MODE values can be relative or absolute.
 
 If the mode for a given GROUP_DELTA is absolute, the group to start or
 end at is the absolute value in the DELTA while if the mode is relative,
@@ -1002,6 +1002,147 @@ signed value found in the delta.
 
 
 ====================
+
+PROPOSAL 4
+
+A receiver issues a SUBSCRIBE REQUEST to a publisher to request a track.
+
+### Susbscribe Locations {#susbscribe-locations}
+
+The receiver specifies a start and optional end `Location` for the subscription.
+A location value may be an absolute group or object sequence, or it may be a
+delta relative to the largest group or the largest object in a group.
+
+~~~
+Location {
+  Mode (i),
+  [Value (i)]
+}
+~~~
+
+There are 4 modes:
+
+None (0x0): The Location is unspecified, Value is not present
+
+Absolute (0x1): Value is an absolute sequence
+
+RelativePrevious (0x2): Value is a delta from the largest sequence.  0 is the
+largest sequence, 1 is the largest sequence - 1, and so on.
+
+RelativeNext (0x3): Value is a delta from the largest sequence.  0 is the largest
+sequence + 1, 1 is the largest sequence + 2, and so on.
+
+The following table shows an example of how the RelativePrevious and RelativeNext
+values are used to determine the absolute sequence.
+
+~~~
+Sequence:                0    1    2    3    4   [5]  [6] ...
+                                             ^
+                                      Largest Sequence
+RelativePrevious Value:  4    3    2    1    0
+RelativeNext Value:                               0    1  ...
+~~~
+{: title="Relative Indexing"}
+
+
+The format of SUBSCRIBE REQUEST is as follows:
+
+### SUBSCRIBE REQUEST Format
+
+~~~
+SUBSCRIBE REQUEST Message {
+  Full Track Name Length (i),
+  Full Track Name (...),
+  StartGroup (Location),
+  StartObject (Location),
+  EndGroup (Location),
+  EndObject (Location),
+  Track Request Parameters (..) ...
+}
+~~~
+{: #moq-transport-subscribe-format-4 title="MOQT SUBSCRIBE REQUEST Message"}
+
+
+* Full Track Name: Identifies the track as defined in ({{track-name}}).
+
+* StartGroup: The Location of the requested group.  StartGroup's Mode MUST NOT be
+None.
+
+* StartObject: The Location of the requested object.  StartObject's Mode MUST NOT
+be None.
+
+DISCUSS: StartObject and EndObject could be optional, with a default of
+Absolute/0, or we can require the subscriber to be explicit.
+
+* EndGroup: The last Group requested in the subscription, inclusive.  EndGroup's
+Mode MAY be None if it is an open-ended subscription.
+
+* EndObject: The last Object requested in the subscription, exclusive.
+EndObject's Mode MUST NOT be None if EndGroup's Mode is NOT NONE.
+
+* Track Request Parameters: As defined in {{track-req-params}} and below.
+
+On successful subscription, the publisher SHOULD start delivering
+objects from the group sequence and object sequence described below.
+
+If a publisher cannot satisfy the requested start or end for the subscription it
+MAY send a SUBSCRIBE_ERROR with code TBD.
+
+### Examples
+
+~~~
+1. Now
+
+Start Group: Mode=RelativePrevious, Value=0
+Start Object: Mode=RelateiveNext, Value=0
+End Group: Mode=None
+End Object: Mode=None
+
+StartGroup=Largest Group
+StartObject=Largest Object + 1
+
+2. Current
+
+Start Group: Mode=RelativePrevious, Value=0
+Start Object: Mode=Absolute, Value=0
+End Group: Mode=None
+End Object: Mode=None
+
+StartGroup=Largest Group
+StartObject=0
+
+3. Previous
+
+Start Group: Mode=RelativePrevious, Value=1
+Start Object: Mode=Absolute, Value=0
+End Group: Mode=None
+End Object: Mode=None
+
+StartGroup=Largest Group - 1
+StartObject=0
+
+4. Next
+
+Start Group: Mode=RelativeNext, Value=0
+Start Object: Mode=Absolute, Value=0
+End Group: Mode=None
+End Object: Mode=None
+
+StartGroup=Largest Group + 1
+StartObject=0
+
+5. Range, All of group 3
+
+Start Group: Mode=Absolute, Value=3
+Start Object: Mode=Absolute, Value=0
+End Group: Mode=Absolute, Value=4
+End Object: Mode=Absolute, Value=0
+
+Start = Group 3, Object 0
+End = Group 3, Object <last>
+~~~
+
+TODO: Security Considerations related to these hints
 
 TODO: Issues related to more than one concurrent subscribe to the same track
 
@@ -1253,64 +1394,6 @@ TODO: the MOQT spec should establish the IANA registration table for MoQ
 Streaming Formats. Each MoQ streaming format can then register its type
 in that table. The MoQ Streaming Format type MUST be carried as the
 leading varint in catalog track objects.
-
---- back
-
-# Pseudo-code for Interpreting Subscribe Track Request Parameters
-
-From PROPOSAL 1:
-
-~~~
-def get_start_object_and_group(params):
-    start_mode = params['start_mode']
-    if start_mode is None:
-        start_mode = RelativePrev
-    return get_object_and_group(
-        start_mode, params['start_group'], params['start_object'])
-
-def get_end_object_and_group(params):
-    end_mode = params['end_mode']
-    if not end_mode:
-        return None, None
-
-    return get_object_and_group(
-        end_mode, params['end_group'], params['end_object'])
-
-def get_object_and_group(mode, params_group, params_object):
-    # Default is subscribe to current group
-    group = cur_group
-    # Object 0 is the default, with one exception, below
-    object = 0
-
-    if params_group is not None:
-        if mode == RelvativePrev:
-            rel_group = params_group
-            if rel_group > cur_group:
-                # negative group, error or start at 0
-                pass
-            group = cur_group - rel_group
-        elif mode == RelativeNext:
-            rel_group = params_group
-            group = cur_group + rel_group + 1
-        elif mode == Absolute:
-            group = params_group
-        else:
-            # Error bad mode
-            pass
-    elif mode == RelativeNext:
-      group = cur_group + 1
-    elif mode == Absolute:
-      group = 0
-
-    if params_object is not None:
-        # object is always absolute
-        object = params_object
-    elif mode == RelativePrev and group == cur_group:
-        object = cur_object + 1
-
-    return group, object
-~~~
-
 
 # Contributors
 {:numbered="false"}
