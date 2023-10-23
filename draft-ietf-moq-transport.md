@@ -346,7 +346,7 @@ The client can establish a connection to a MoQ server identified by a
 given URI by setting up a QUIC connection to the host and port
 identified by the `authority` section of the URI.  The `path-abempty`
 and `query` portions of the URI are communicated to the server using the
-PATH parameter ({{path}}) which is sent in the SETUP message at the
+PATH parameter ({{path}}) which is sent in the CLIENT_SETUP message at the
 start of the session.  The ALPN value {{!RFC7301}} used by the protocol
 is `moq-00`.
 
@@ -355,17 +355,17 @@ is `moq-00`.
 Endpoints use the exchange of SETUP messages to negotiate the MOQT version and
 any extensions to use.
 
-The client indicates the MOQT versions it supports in its SETUP message (see
-{{message-setup}}). It also includes the union of all Setup Parameters
+The client indicates the MOQT versions it supports in the CLIENT_SETUP message
+(see {{message-setup}}). It also includes the union of all Setup Parameters
 {{setup-params}} required for a handshake by any of those versions.
 
 Within any MOQT version, clients request the use of extensions by adding SETUP
 parameters corresponding to that extension. No extensions are defined in this
 document.
 
-The server replies with a SETUP message that indicates the chosen version,
-includes all parameters required for a handshake in that version, and parameters
-for every extension requested by the client that it supports.
+The server replies with a SERVER_SETUP message that indicates the chosen
+version, includes all parameters required for a handshake in that version, and
+parameters for every extension requested by the client that it supports.
 
 New versions of MOQT MUST specify which existing extensions can be used with
 that version. New extensions MUST specify the existing versions with which they
@@ -687,8 +687,6 @@ MOQT Message {
 |------:|:---------------------------------------------------|
 | 0x0   | OBJECT with payload length ({{message-object}})    |
 |-------|----------------------------------------------------|
-| 0x1   | SETUP ({{message-setup}})                          |
-|-------|----------------------------------------------------|
 | 0x2   | OBJECT without payload length ({{message-object}}) |
 |-------|----------------------------------------------------|
 | 0x3   | SUBSCRIBE ({{message-subscribe-req}})      |
@@ -712,6 +710,10 @@ MOQT Message {
 | 0xC   | SUBSCRIBE_RST ({{message-subscribe-rst}})          |
 |-------|----------------------------------------------------|
 | 0x10  | GOAWAY ({{message-goaway}})                        |
+|-------|----------------------------------------------------|
+| 0x40  | CLIENT_SETUP ({{message-setup}})                   |
+|-------|----------------------------------------------------|
+| 0x41  | SERVER_SETUP ({{message-setup}})                   |
 |-------|----------------------------------------------------|
 
 ## Parameters {#params}
@@ -782,33 +784,33 @@ information in a SUBSCRIBE or ANNOUNCE message. This parameter is populated for
 cases where the authorization is required at the track level. The value is an
 ASCII string.
 
-## SETUP {#message-setup}
+## CLIENT_SETUP and SERVER_SETUP {#message-setup}
 
-The `SETUP` message is the first message that is exchanged by the client
-and the server; it allows the peers to establish the mutually supported
-version and agree on the initial configuration before any objects are
-exchanged. It is a sequence of key-value pairs called SETUP parameters;
-the semantics and format of which can vary based on whether the client
-or server is sending.  To ensure future extensibility of MOQT, the peers
-MUST ignore unknown setup parameters. TODO: describe GREASE for those.
+The `CLIENT_SETUP` and `SERVER_SETUP` messages are the first messages exchanged
+by the client and the server; they allows the peers to establish the mutually
+supported version and agree on the initial configuration before any objects are
+exchanged. It is a sequence of key-value pairs called SETUP parameters; the
+semantics and format of which can vary based on whether the client or server is
+sending.  To ensure future extensibility of MOQT, the peers MUST ignore unknown
+setup parameters. TODO: describe GREASE for those.
 
-The wire format of the SETUP message is as follows:
+The wire format of the SETUP messages is as follows:
 
 ~~~
-Client SETUP Message Payload {
+CLIENT_SETUP Message Payload {
   Number of Supported Versions (i),
   Supported Version (i) ...,
   Number of Parameters (i) ...,
   SETUP Parameters (..) ...,
 }
 
-Server SETUP Message Payload {
+SERVER_SETUP Message Payload {
   Selected Version (i),
   Number of Parameters (i) ...,
   SETUP Parameters (..) ...,
 }
 ~~~
-{: #moq-transport-setup-format title="MOQT SETUP Message"}
+{: #moq-transport-setup-format title="MOQT SETUP Messages"}
 
 The available versions and SETUP parameters are detailed in the next sections.
 
