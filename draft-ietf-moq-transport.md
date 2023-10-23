@@ -922,14 +922,57 @@ NOT be processed by a relay.
 
 A receiver issues a SUBSCRIBE to a publisher to request a track.
 
-The format of SUBSCRIBE is as follows:
+### Susbscribe Locations {#susbscribe-locations}
+
+The receiver specifies a start and optional end `Location` for the subscription.
+A location value may be an absolute group or object sequence, or it may be a
+delta relative to the largest group or the largest object in a group.
 
 ~~~
-SUBSCRIBE Message {
-  Track Namespace (b),
-  Track Name (b),
-  Number of Parameters (i),
-  Parameters (..) ...
+Location {
+  Mode (i),
+  [Value (i)]
+}
+~~~
+
+There are 4 modes:
+
+None (0x0): The Location is unspecified, Value is not present
+
+Absolute (0x1): Value is an absolute sequence
+
+RelativePrevious (0x2): Value is a delta from the largest sequence.  0 is the
+largest sequence, 1 is the largest sequence - 1, and so on.
+
+RelativeNext (0x3): Value is a delta from the largest sequence.  0 is the largest
+sequence + 1, 1 is the largest sequence + 2, and so on.
+
+The following table shows an example of how the RelativePrevious and RelativeNext
+values are used to determine the absolute sequence.
+
+~~~
+Sequence:                0    1    2    3    4   [5]  [6] ...
+                                             ^
+                                      Largest Sequence
+RelativePrevious Value:  4    3    2    1    0
+RelativeNext Value:                               0    1  ...
+~~~
+{: title="Relative Indexing"}
+
+
+### SUBSCRIBE REQUEST Format
+
+The format of SUBSCRIBE REQUEST is as follows:
+
+~~~
+SUBSCRIBE REQUEST Message {
+  Full Track Name Length (i),
+  Full Track Name (...),
+  StartGroup (Location),
+  StartObject (Location),
+  EndGroup (Location),
+  EndObject (Location),
+  Track Request Parameters (..) ...
 }
 ~~~
 {: #moq-transport-subscribe-format title="MOQT SUBSCRIBE Message"}
@@ -939,11 +982,83 @@ SUBSCRIBE Message {
 
 * Track Name: Identifies the track name as defined in ({{track-name}}).
 
-* Parameters: As defined in {{version-specific-params}}.
+* StartGroup: The Location of the requested group.  StartGroup's Mode MUST NOT be
+None.
+
+* StartObject: The Location of the requested object.  StartObject's Mode MUST NOT
+be None.
+
+* EndGroup: The last Group requested in the subscription, inclusive.  EndGroup's
+Mode is None for an open-ended subscription.
+
+* EndObject: The last Object requested in the subscription, exclusive.
+EndObject's Mode MUST be None if EndGroup's Mode is None.  EndObject's Mode MUST
+NOT be None if EndGroup's Mode is not None.
+
+* Track Request Parameters: The parameters are defined in
+{{version-specific-params}}
 
 On successful subscription, the publisher SHOULD start delivering
-objects from the group sequence and object sequence as defined in the
-Parameters.
+objects from the group sequence and object sequence described above.
+
+If a publisher cannot satisfy the requested start or end for the subscription it
+MAY send a SUBSCRIBE_ERROR with code TBD. A publisher MUST NOT send objects
+from outside the requested start and end.
+
+### Examples
+
+~~~
+1. Now
+
+Start Group: Mode=RelativePrevious, Value=0
+Start Object: Mode=RelateiveNext, Value=0
+End Group: Mode=None
+End Object: Mode=None
+
+StartGroup=Largest Group
+StartObject=Largest Object + 1
+
+2. Current
+
+Start Group: Mode=RelativePrevious, Value=0
+Start Object: Mode=Absolute, Value=0
+End Group: Mode=None
+End Object: Mode=None
+
+StartGroup=Largest Group
+StartObject=0
+
+3. Previous
+
+Start Group: Mode=RelativePrevious, Value=1
+Start Object: Mode=Absolute, Value=0
+End Group: Mode=None
+End Object: Mode=None
+
+StartGroup=Largest Group - 1
+StartObject=0
+
+4. Next
+
+Start Group: Mode=RelativeNext, Value=0
+Start Object: Mode=Absolute, Value=0
+End Group: Mode=None
+End Object: Mode=None
+
+StartGroup=Largest Group + 1
+StartObject=0
+
+5. Range, All of group 3
+
+Start Group: Mode=Absolute, Value=3
+Start Object: Mode=Absolute, Value=0
+End Group: Mode=Absolute, Value=4
+End Object: Mode=Absolute, Value=0
+
+Start = Group 3, Object 0
+End = Group 3, Object <last>
+~~~
+
 
 ## SUBSCRIBE_OK {#message-subscribe-ok}
 
@@ -1194,7 +1309,7 @@ GOAWAY Message {
 
 # Security Considerations {#security}
 
-TODO: Expand this section.
+TODO: Expand this section, including subscriptions.
 
 ## Resource Exhaustion
 
