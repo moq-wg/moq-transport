@@ -1058,8 +1058,6 @@ Start = Group 3, Object 0
 End = Group 3, Object <last>
 ~~~
 
-TODO: Security Considerations related to these hints
-
 
 ## SUBSCRIBE_OK {#message-subscribe-ok}
 
