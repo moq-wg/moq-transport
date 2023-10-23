@@ -1001,7 +1001,8 @@ On successful subscription, the publisher SHOULD start delivering
 objects from the group sequence and object sequence described above.
 
 If a publisher cannot satisfy the requested start or end for the subscription it
-MAY send a SUBSCRIBE_ERROR with code TBD.
+MAY send a SUBSCRIBE_ERROR with code TBD. A publisher MUST NOT send objects
+from outside the requested start and end.
 
 ### Examples
 
