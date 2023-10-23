@@ -1078,7 +1078,8 @@ Absolute/0, or we can require the subscriber to be explicit.
 Mode MAY be None if it is an open-ended subscription.
 
 * EndObject: The last Object requested in the subscription, exclusive.
-EndObject's Mode MUST NOT be None if EndGroup's Mode is NOT NONE.
+EndObject's Mode MUST be None if EndGroup's Mode is None.  EndObject's Mode MUST
+NOT be None if EndGroup's Mode is NOT None.
 
 * Track Request Parameters: As defined in {{track-req-params}} and below.
 
