@@ -995,7 +995,8 @@ Mode is None for an open-ended subscription.
 EndObject's Mode MUST be None if EndGroup's Mode is None.  EndObject's Mode MUST
 NOT be None if EndGroup's Mode is not None.
 
-* Track Request Parameters: As defined in {{track-req-params}}.
+* Track Request Parameters: The parameters are defined in
+{{version-specific-params}}
 
 On successful subscription, the publisher SHOULD start delivering
 objects from the group sequence and object sequence described above.
