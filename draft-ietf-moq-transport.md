@@ -791,222 +791,6 @@ NOT be processed by a relay.
 
 A receiver issues a SUBSCRIBE REQUEST to a publisher to request a track.
 
-The format of SUBSCRIBE REQUEST is as follows:
-
-~~~
-SUBSCRIBE REQUEST Message {
-  Full Track Name Length (i),
-  Full Track Name (...),
-  Track Request Parameters (..) ...
-}
-~~~
-{: #moq-transport-subscribe-format title="MOQT SUBSCRIBE REQUEST Message"}
-
-
-* Full Track Name: Identifies the track as defined in ({{track-name}}).
-
-* Track Request Parameters: As defined in {{track-req-params}} and below.
-
-On successful subscription, the publisher SHOULD start delivering
-objects from the group sequence and object sequence described below.
-
-====================
-
-PROPOSAL 1: 6 Track Request Parameters as discussed in the editors call
-
-Several track request parameters to SUBSCRIBE_REQUEST control the start and
-optional end of the subscription within the track.  For a live track, the
-largest group sequence is called the `Current Group` and the largest object
-sequence in that group is the `Current Object`.  The subscriber can specify an
-absolute group sequence and object sequence, identifying a particular group and
-object, or a group relative to the `Current Group` and a specific object.
-
-### Subscribe Hint Modes and Group Indexing {#subscribe-group}
-
-The following Subscribe Hint Modes are defined for determining the requested
-group:
-
-Absolute (0x0): The specified group is requested
-
-RelativePrevious (0x1): The specified group is an index relative to the `Current
-Group`. 0 indicates the current group, 1 indicates the previous group, and so on.
-
-RelativeNext (0x2): The specified group is an index relative to the `Current
-Group`. 0 indicates the next group after the current group, 1 indicates the
-second group after the current, and so on.
-
-The following table shows an example of how the RelativePrevious and RelativeNext
-index can be used.
-
-~~~
-Groups:                  0    1    2    3    4   [5]  [6] ...
-                                             ^
-                                      Current Group
-RelativePrevious Group:  4    3    2    1    0
-RelativeNext Group:                               0    1  ...
-~~~
-{: title="Relative Group Indexing"}
-
-### Subscription Hint Track Request Parameters
-
-There are 6 track request parameters that control the start and optional end of
-the subscription:
-
-|--------------|-------|----------|--------------------|
-|Parameter     | Value | Required | Default            |
-|-------------:|:------|----------|--------------------|
-| START_MODE   | 0x3   | No       | RelativePrevious   |
-|--------------|-------|----------|--------------------|
-| START_GROUP  | 0x0   | No       | 0                  |
-|--------------|-------|----------|--------------------|
-| START_OBJECT | 0x1   | No       | Current Object + 1 or 0|
-|--------------|-------|----------|--------------------|
-| END_MODE     | 0x4   | No       | None               |
-|--------------|-------|----------|--------------------|
-| END_GROUP    | 0x5   | No       | 0                  |
-|--------------|-------|----------|--------------------|
-| END_OBJECT   | 0x6   | No       | Current Object + 1 or 0|
-|--------------|-------|----------|--------------------|
-
-All six parameter values are encoded as varints and are optional.  A start group
-and object is always determined from the parameters.  An end group is only
-specified when END_MODE is present.  Specifying an END_GROUP or END_OBJECT
-without specifying END_MODE is a Protocol Violation.
-
-The start/end group is determined by examining the START/END_MODE and
-START/END_GROUP (or their defaults) and using the logic above (see
-{{subscribe-group}}).  Whenever START/END_OBJECT is specified, it is an
-absolute object sequence in the determined group. If START/END_MODE is
-RelativePrevious or omitted and START/END_GROUP is 0 or omitted, then
-START/END_OBJECT defaults to `Current Object` + 1 if not specified.  In all
-other cases, START_OBJECT defaults to 0.
-
-When both start and end are specified, the subscription is for all objects
-starting from the start object up to but not including the end object.
-
-If a publisher cannot satisfy the requested start or end for the subscription it
-MAY send a SUBSCRIBE_ERROR with code TBD.
-
-### Examples
-
-~~~
-1. Now
-
-Parameters: *None*
-Start = Current Group, Current Object + 1
-
-2. Current
-
-Parameters: Start Object=0
-Start = Current Group, Object 0
-
-3. Previous
-
-Parameters: Start Mode = RelativePrev, Start Group=1
-Start = Previous Group, Object 0
-
-4. Next
-
-Parameters: Start Mode = RelativeNext
-Start = Current Group + 1, Object 0
-
-5. Range, All of group 3
-
-Parameters:
- Start Mode = Absolute, Start Group = 3
- End Mode = Absolute, End Group = 4
-
- Start = Group 3, Object 0
- End = Group 3, Object <last>
-~~~
-
-TODO: Security Considerations related to these hints
-
-====================
-
-PROPOSAL 2: Simpler, trying to follow discussion on the PR through the day.
-
-SUBSCRIBE_REQUEST defines a Track Request Parameter START_POINT (0x0) whose
-value is a varint indicating where in the track to start the subscription.  For
-a live track, the largest group sequence is called the `Current Group` and the
-largest object sequence in that group is the `Current Object`.
-
-|-----------|-------|-------------|--------------|
-| Name      | Value | Start Group | Start Object |
-|----------:|:------|-------------|--------------|
-| Current   | 0x0   | Current     | 0            |
-| Now       | 0x1   | Current     | Current + 1  |
-| Previous  | 0x2   | Current - 1 | 0            |
-| Next      | 0x3   | Curernt + 1 | 0            |
-|------------------------------------------------|
-
-SUBSCRIBE_REQUEST also defines a Track Request Parameter RANGE (0x2) for
-requesting a closed range of objects.  The value is as follows:
-
-~~~
-Range Payload {
-  Start Group Sequence(i),
-  Start Object Sequence(i),
-  End Group Sequence(i),
-  End Object Sequence(i)
-}
-~~~
-
-Exactly one of START_POINT and RANGE MUST be specified.  If neither or both are
-present it is a Protocol Violation.  All Group and Object Sequence values are
-absolute values within the requested track.  The subscription is for all objects
-starting from the start object up to but not including the end object.
-
-If a publisher cannot satisfy the requested start or end for the subscription it
-MAY send a SUBSCRIBE_ERROR with code TBD.
-
-PROPOSAL 3: More explicit
-
-There are 4 track request parameters that indicate group and object for
-the subscription to start and end at. Each of these has a flag that
-indicates if the value is the absolute value of the group or object or
-if it is a relative offset form to the currently largest group or
-currently largest object in the specified group.
-
-|--------------|-------|----------|--------------------|
-|Parameter     | Value | Required | Default            |
-|-------------:|:------|----------|--------------------|
-| START_GROUP_MODE   | 0x1   | No       | Relative   |
-|--------------|-------|----------|--------------------|
-| START_GROUP_DELTA  | 0x2   | No       | 0                  |
-|--------------|-------|----------|--------------------|
-| START_OBJECT_MODE   | 0x3   | No       | Relative   |
-|--------------|-------|----------|--------------------|
-| START_OBJECT_DELTA | 0x4   | No       | 0 |
-|--------------|-------|----------|--------------------|
-| END_GROUP_MODE     | 0x5   | No       | Relative               |
-|--------------|-------|----------|--------------------|
-| END_GROUP    | 0x6   | No       | Inf                 |
-|--------------|-------|----------|--------------------|
-| END_OBJECT_MODE   | 0x7   | No       |  Relative |
-|--------------|-------|----------|--------------------|
-| END_OBJECT   | 0x8   | No       |  Inf |
-|--------------|-------|----------|--------------------|
-
-The MODE values can be relative or absolute.
-
-If the mode for a given GROUP_DELTA is absolute, the group to start or
-end at is the absolute value in the DELTA while if the mode is relative,
-then the group is the current group plus the signed value found in the
-delta.
-
-If the mode for a given OBJECT_DELTA is absolute, the object to start or
-end at is the absolute value in the DELTA while if the mode is relative,
-then the object is the largest object in the specified group plus the
-signed value found in the delta.
-
-
-====================
-
-PROPOSAL 4
-
-A receiver issues a SUBSCRIBE REQUEST to a publisher to request a track.
-
 ### Susbscribe Locations {#susbscribe-locations}
 
 The receiver specifies a start and optional end `Location` for the subscription.
@@ -1045,9 +829,9 @@ RelativeNext Value:                               0    1  ...
 {: title="Relative Indexing"}
 
 
-The format of SUBSCRIBE REQUEST is as follows:
-
 ### SUBSCRIBE REQUEST Format
+
+The format of SUBSCRIBE REQUEST is as follows:
 
 ~~~
 SUBSCRIBE REQUEST Message {
@@ -1060,7 +844,7 @@ SUBSCRIBE REQUEST Message {
   Track Request Parameters (..) ...
 }
 ~~~
-{: #moq-transport-subscribe-format-4 title="MOQT SUBSCRIBE REQUEST Message"}
+{: #moq-transport-subscribe-format title="MOQT SUBSCRIBE REQUEST Message"}
 
 
 * Full Track Name: Identifies the track as defined in ({{track-name}}).
@@ -1071,20 +855,17 @@ None.
 * StartObject: The Location of the requested object.  StartObject's Mode MUST NOT
 be None.
 
-DISCUSS: StartObject and EndObject could be optional, with a default of
-Absolute/0, or we can require the subscriber to be explicit.
-
 * EndGroup: The last Group requested in the subscription, inclusive.  EndGroup's
-Mode MAY be None if it is an open-ended subscription.
+Mode is None for an open-ended subscription.
 
 * EndObject: The last Object requested in the subscription, exclusive.
 EndObject's Mode MUST be None if EndGroup's Mode is None.  EndObject's Mode MUST
-NOT be None if EndGroup's Mode is NOT None.
+NOT be None if EndGroup's Mode is not None.
 
-* Track Request Parameters: As defined in {{track-req-params}} and below.
+* Track Request Parameters: As defined in {{track-req-params}}.
 
 On successful subscription, the publisher SHOULD start delivering
-objects from the group sequence and object sequence described below.
+objects from the group sequence and object sequence described above.
 
 If a publisher cannot satisfy the requested start or end for the subscription it
 MAY send a SUBSCRIBE_ERROR with code TBD.
