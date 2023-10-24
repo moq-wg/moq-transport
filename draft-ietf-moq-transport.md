@@ -762,21 +762,6 @@ it can appear. If it appears in some other type of message, it MUST be ignored.
 Note that since SETUP parameters use a separate namespace, it is impossible for
 these parameters to appear in SETUP messages.
 
-#### GROUP SEQUENCE Parameter {#group-sequence}
-
-The GROUP SEQUENCE parameter (key 0x00) identifies the group within the
-track to start delivering objects in a SUBSCRIBE message. The publisher MUST
-start delivering the objects from the most recent group, when this parameter is
-omitted. The value is of type varint.
-
-#### OBJECT SEQUENCE Parameter {#object-sequence}
-
-The OBJECT SEQUENCE parameter (key 0x01) identifies the object with the
-track to start delivering objects in a SUBSCRIBE message. The `GROUP SEQUENCE`
-parameter MUST be set to identify the group under which to start delivery. The
-publisher MUST start delivering from the beginning of the selected group
-when this parameter is omitted. The value is of type varint.
-
 #### AUTHORIZATION INFO Parameter {#authorization-info}
 
 AUTHORIZATION INFO parameter (key 0x02) identifies a track's authorization
