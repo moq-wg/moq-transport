@@ -1077,7 +1077,6 @@ A SUBSCRIBE_OK control message is sent for successful subscriptions.
 SUBSCRIBE_OK
 {
   SubscribeID (i),
-  Track Name (b),
   Track Alias (i),
   Expires (i)
 }
