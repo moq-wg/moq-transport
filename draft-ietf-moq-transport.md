@@ -622,8 +622,8 @@ providing the result of announcement. The entity receiving the
 ANNOUNCE MUST send only a single response to a given ANNOUNCE of
 either ANNOUNCE_OK or ANNOUNCE_ERROR.
 
-OBJECT message header carry short hop-by-hop Track Id that maps to the
-Full Track Name (see {{message-subscribe-ok}}). Relays use the Track ID
+OBJECT message header carry short hop-by-hop `FullTrackName Alias` that maps to the
+Full Track Name (see {{message-subscribe-ok}}). Relays use the `FullTrackName Alias`
 of an incoming OBJECT message to identify its track and find the active
 subscribers for that track. Relays MUST NOT depend on OBJECT payload
 content for making forwarding decisions and MUST only depend on the
@@ -882,23 +882,23 @@ A OBJECT message contains a range of contiguous bytes from from the
 specified track, as well as associated metadata required to deliver,
 cache, and forward it. There are two subtypes of this message. When the
 message type is 0x00, the optional Object Payload Length field is
-present. When the message type ix 0x02, the field is not present.
+present. When the message type is 0x02, the field is not present.
 
 The format of the OBJECT message is as follows:
 
 ~~~
 OBJECT Message {
-  Track ID (i),
+  FullTrackName Alias (i),
   Group Sequence (i),
   Object Sequence (i),
   Object Send Order (i),
-  [Object Payload Length (i),]
+  [Object Payload Length (i)],
   Object Payload (b),
 }
 ~~~
 {: #moq-transport-object-format title="MOQT OBJECT Message"}
 
-* Track ID: The track identifier obtained as part of subscription and/or
+* FullTrackName Alias : The compressed full track name obtained as part of subscription and/or
 publish control message exchanges.
 
 * Group Sequence : The object is a member of the indicated group
@@ -960,14 +960,15 @@ RelativeNext Value:                               0    1  ...
 {: title="Relative Indexing"}
 
 
-### SUBSCRIBE REQUEST Format
+### SUBSCRIBE Format
 
-The format of SUBSCRIBE REQUEST is as follows:
+The format of SUBSCRIBE is as follows:
 
 ~~~
-SUBSCRIBE REQUEST Message {
+SUBSCRIBE Message {
   Full Track Name Length (i),
   Full Track Name (...),
+  Subscribe ID(i),
   StartGroup (Location),
   StartObject (Location),
   EndGroup (Location),
@@ -981,6 +982,8 @@ SUBSCRIBE REQUEST Message {
 ({{track-name}}).
 
 * Track Name: Identifies the track name as defined in ({{track-name}}).
+
+* Subscribe ID: Session unique identifer for a given SUBSCRIBE message.
 
 * StartGroup: The Location of the requested group.  StartGroup's Mode MUST NOT be
 None.
@@ -1069,7 +1072,8 @@ SUBSCRIBE_OK
 {
   Track Namespace (b),
   Track Name (b),
-  Track ID (i),
+  FullTrackName Alias (i),
+
   Expires (i)
 }
 ~~~
@@ -1080,9 +1084,9 @@ SUBSCRIBE_OK
 
 * Track Name: Identifies the track name as defined in ({{track-name}}).
 
-* Track ID: Session specific identifier that is used as an alias for the
-Full Track Name in the Track ID field of the OBJECT ({{message-object}})
-message headers of the requested track. Track IDs are generally shorter
+* FullTrackName Alias: Session specific identifier that is used as an alias for the
+Full Track Name in the `FullTrackName Alias` field of the OBJECT ({{message-object}})
+message headers of the requested track. FullTrackName Aliases are generally shorter
 than Full Track Names and thus reduce the overhead in OBJECT messages.
 
 * Expires: Time in milliseconds after which the subscription is no
@@ -1098,8 +1102,7 @@ failed SUBSCRIBE.
 ~~~
 SUBSCRIBE_ERROR
 {
-  Track Namespace (b),
-  Track Name (b),
+  Subscribe ID (i),
   Error Code (i),
   Reason Phrase Length (i),
   Reason Phrase (...),
@@ -1107,10 +1110,7 @@ SUBSCRIBE_ERROR
 ~~~
 {: #moq-transport-subscribe-error format title="MOQT SUBSCRIBE_ERROR Message"}
 
-* Track Namespace: Identifies the namespace of the track as defined in
-({{track-name}}).
-
-* Track Name: Identifies the track name as defined in ({{track-name}}).
+* Subscribe ID: Subscription identifier obtained from the SUBSCRIBE message.
 
 * Error Code: Identifies an integer error code for subscription failure.
 
@@ -1129,16 +1129,13 @@ The format of `UNSUBSCRIBE` is as follows:
 
 ~~~
 UNSUBSCRIBE Message {
-  Track Namespace (b),
-  Track Name (b),
+  Subscribe ID(i)
 }
 ~~~
 {: #moq-transport-unsubscribe-format title="MOQT UNSUBSCRIBE Message"}
 
-* Track Namespace: Identifies the namespace of the track as defined in
-({{track-name}}).
+* Subscribe ID: Subscription identifier matching SUBSCRIBE message.
 
-* Track Name: Identifies the track name as defined in ({{track-name}}).
 
 ## SUBSCRIBE_FIN {#message-subscribe-fin}
 
@@ -1149,18 +1146,14 @@ The format of `SUBSCRIBE_FIN` is as follows:
 
 ~~~
 SUBSCRIBE_FIN Message {
-  Track Namespace (b),
-  Track Name (b),
+  Subscribe ID(i),
   Final Group (i),
   Final Object (i),
 }
 ~~~
 {: #moq-transport-subscribe-fin-format title="MOQT SUBSCRIBE_FIN Message"}
 
-* Track Namespace: Identifies the namespace of the track as defined in
-({{track-name}}).
-
-* Track Name: Identifies the track name as defined in ({{track-name}}).
+* Subscribe ID: Subscription identifier matching SUBSCRIBE message.
 
 * Final Group: The largest Group Sequence sent by the publisher in an OBJECT
 message in this track.
@@ -1177,8 +1170,7 @@ The format of `SUBSCRIBE_RST` is as follows:
 
 ~~~
 SUBSCRIBE_RST Message {
-  Track Namespace (b),
-  Track Name (b),
+  Subscribe ID(i),
   Error Code (i),
   Reason Phrase Length (i),
   Reason Phrase (...),
@@ -1188,10 +1180,7 @@ SUBSCRIBE_RST Message {
 ~~~
 {: #moq-transport-subscribe-rst format title="MOQT SUBSCRIBE RST Message"}
 
-* Track Namespace: Identifies the namespace of the track as defined in
-({{track-name}}).
-
-* Track Name: Identifies the track name as defined in ({{track-name}}).
+* Subscribe ID: Subscription identifier matching SUBSCRIBE message.
 
 * Error Code: Identifies an integer error code for subscription failure.
 
