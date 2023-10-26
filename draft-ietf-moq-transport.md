@@ -1086,8 +1086,7 @@ SUBSCRIBE_ERROR
   Track Namespace (b),
   Track Name (b),
   Error Code (i),
-  Reason Phrase Length (i),
-  Reason Phrase (...),
+  Reason Phrase (b),
 }
 ~~~
 {: #moq-transport-subscribe-error format title="MOQT SUBSCRIBE_ERROR Message"}
@@ -1101,8 +1100,7 @@ SUBSCRIBE_ERROR
 
 * Reason Phrase Length: The length in bytes of the reason phrase.
 
-* Reason Phrase: Provides the reason for subscription error and `Reason
-Phrase Length` field carries its length.
+* Reason Phrase: Provides the reason for subscription error.
 
 
 ## UNSUBSCRIBE {#message-unsubscribe}
@@ -1165,8 +1163,7 @@ SUBSCRIBE_RST Message {
   Track Namespace (b),
   Track Name (b),
   Error Code (i),
-  Reason Phrase Length (i),
-  Reason Phrase (...),
+  Reason Phrase (b),
   Final Group (i),
   Final Object (i),
 }
@@ -1180,10 +1177,7 @@ SUBSCRIBE_RST Message {
 
 * Error Code: Identifies an integer error code for subscription failure.
 
-* Reason Phrase Length: The length in bytes of the reason phrase.
-
-* Reason Phrase: Provides the reason for subscription error and `Reason
-Phrase Length` field carries its length.
+* Reason Phrase: Provides the reason for subscription error.
 
 * Final Group: The largest Group Sequence sent by the publisher in an OBJECT
 message in this track.
@@ -1238,8 +1232,7 @@ ANNOUNCE_ERROR
 {
   Track Namespace(b),
   Error Code (i),
-  Reason Phrase Length (i),
-  Reason Phrase (...),
+  Reason Phrase (b),
 }
 ~~~
 {: #moq-transport-announce-error format title="MOQT ANNOUNCE_ERROR Message"}
@@ -1249,8 +1242,7 @@ message for which this response is provided.
 
 * Error Code: Identifies an integer error code for announcement failure.
 
-* Reason Phrase: Provides the reason for announcement error and `Reason
-Phrase Length` field carries its length.
+* Reason Phrase: Provides the reason for announcement error.
 
 
 ## UNANNOUNCE {#message-unannounce}
