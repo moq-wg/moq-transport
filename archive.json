@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2023-10-24T01:07:04.107188+00:00",
+  "timestamp": "2023-10-26T01:05:23.022868+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -7846,7 +7846,7 @@
       ],
       "body": "https://moq-wg.github.io/moq-transport/draft-lcurley-moq-transport.html#name-track-request-parameters\r\n\r\nFirst issue, it's in a weird section. The parameters mostly apply to 6.3 (all but one) but the section is in 6.6.1. \r\n\r\n<img width=\"298\" alt=\"Screenshot 2023-06-08 at 8 26 37 PM\" src=\"https://github.com/moq-wg/moq-transport/assets/432854/cc8de360-8a0a-4617-b6e4-629dd403f323\">\r\n\r\n\r\nSecond issue, the types are not defined. GROUP SEQUENCE and OBJECT SEQUENCE are presumably varints, while AUTHORIZATION information is presumably a varint size followed by bytes? The encoding needs to be specified otherwise it's impossible to implement.\r\n\r\nThird issue, and I hinted at it already, is that the parameters only apply to some messages and it's only mentioned at the very end. `This parameter is applicable in SUBSCRIBE REQUEST message`. The language is loose, and I'm not sure what I should do if I receive this parameter in an ANNOUNCE message.",
       "createdAt": "2023-06-09T03:36:05Z",
-      "updatedAt": "2023-10-16T21:29:15Z",
+      "updatedAt": "2023-10-25T17:01:01Z",
       "closedAt": null,
       "comments": [
         {
@@ -7897,6 +7897,13 @@
           "body": "If we converge on #256, yes this is fixed",
           "createdAt": "2023-10-05T18:57:05Z",
           "updatedAt": "2023-10-05T18:57:05Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I think we can close this now?  Draft-01 clearly specifies the types of the parameters, and #302 finishes removing OBJECT_SEQUENCE and OBJECT_GROUP.  Now all that's left is Auth, which is applicable to both messages that allow Track Request Parameters.",
+          "createdAt": "2023-10-25T17:01:01Z",
+          "updatedAt": "2023-10-25T17:01:01Z"
         }
       ]
     },
@@ -10788,7 +10795,7 @@
       ],
       "body": "If we allow more than one SUBSCRIBE for the same Full Track Name, then SUBSCRIBE_OK/SUBSCRIBE_ERROR become ambiguous.  \r\n\r\neg:\r\n\r\nC->S: SUBSCRIBE /foo, group sequence=1\r\nC->S: SUBSCRIBE /foo, group sequence=100\r\nS->C: SUBSCRIBE_OK /foo\r\nS->C: SUBSCRIBE_ERROR /foo",
       "createdAt": "2023-10-16T18:16:40Z",
-      "updatedAt": "2023-10-17T17:41:48Z",
+      "updatedAt": "2023-10-24T22:22:36Z",
       "closedAt": null,
       "comments": [
         {
@@ -10797,6 +10804,13 @@
           "body": "This has overlap with #209",
           "createdAt": "2023-10-17T17:41:47Z",
           "updatedAt": "2023-10-17T17:41:47Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Specific proposal by @kixelated in #272: https://github.com/moq-wg/moq-transport/issues/272#issuecomment-1765619883",
+          "createdAt": "2023-10-24T22:22:35Z",
+          "updatedAt": "2023-10-24T22:22:35Z"
         }
       ]
     },
@@ -10927,9 +10941,118 @@
       ],
       "body": "As mentioned in the sprawling #289, I think we should allow empty subscriptions, aka subscriptions that match no objects.\r\n\r\n- It would be nice to have a way to check if a track exists without receiving any OBJECTs. The MoQ equivalent of a HTTP HEAD request.\r\n- It could be useful to pre-warm the cache. An empty subscription could be the equivalent of \"I'm interested, but don't have the bandwidth to receive objects yet\". Again, similar to HTTP HEAD requests.\r\n\r\nFor example, a client could issue a `SUBSCRIBE /audio/japanese start=none` to accomplish two separate things:\r\n1. The `/audio/japanese` track exists if it gets a SUBSCRIBE_OK.\r\n2. The encoder/CDN starts producing the `/audio/japanese` track.\r\n3. The client could resubscribe at any point to immediately start receiving the track.",
       "createdAt": "2023-10-23T04:59:36Z",
-      "updatedAt": "2023-10-24T00:42:23Z",
+      "updatedAt": "2023-10-25T00:40:21Z",
       "closedAt": null,
-      "comments": []
+      "comments": [
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Can the same be accomplished with:\r\n\r\n```\r\nStartGroup=Absolute/0\r\nStartObject=Absolute/0\r\nEndGroup=Absolute/0\r\nEndObject=Absolute/0\r\n```\r\n\r\nor any other range request where start==end?\r\n\r\nIs it ok for the publisher sends SUBSCRIBE_OK and SUBSCRIBE_FIN, or does your use case require the publisher to hold the subscription open?\r\n\r\nAdding a new message is also an option.",
+          "createdAt": "2023-10-24T22:15:17Z",
+          "updatedAt": "2023-10-24T22:15:17Z"
+        },
+        {
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I think there's a few potential use-cases:\r\n\r\n1. Check if the track exists.\r\n2. Check if the track is active.\r\n3. Check if the track is active, and get notified when the track is closed.\r\n4. Check if the track exists and group/object N exists.\r\n\r\n\"exists\" vs \"active\" is tricky. If you request absolute/0, then it's totally valid for the relay to return OK so long as the objects haven't expired yet, even if the publisher sent a FIN a long time ago.\r\n\r\nBut what should the relay do if absolute/0 has expired? Should it return an error, even if the track is still actively producing objects? Requesting relative/0 is better, although what if that object has expired too? For example, a muted audio track.\r\n\r\nIMO\r\n\r\n1. ?\r\n2. SUBSCRIBE start/end=none ... UNSUBSCRIBE \r\n3. SUBSCRIBE start/end=none ... SUBSCRIBE_FIN\r\n4. SUBSCRIBE start/end=absolute/N ... SUBSCRIBE_FIN",
+          "createdAt": "2023-10-24T22:56:15Z",
+          "updatedAt": "2023-10-24T22:56:15Z"
+        },
+        {
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "body": "And a more concrete use-case that @acbegen and @wilaw might like.\r\n\r\nLet's say I have 3 renditions: `480p 720p 1080p`. The client starts watching a broadcast:\r\n\r\n```\r\n--> SUBSCRIBE 480p start=relative/1 end=none\r\n--> SUBSCRIBE 720p start=none       end=none\r\n```\r\n\r\nThis is a hint to the relay that the 720p track exists and it should start warming the cache. The relay is free to ignore the hint, but at the very least it will perform authentication. \r\n\r\n```\r\n<-- SUBSCRIBE_OK 480p start=absolute/69 end=none\r\n<-- SUBSCRIBE_OK 720p start=none        end=none\r\n```\r\n\r\nWhen the client decides that it has enough bandwidth for 720p, it will switch up at an aligned group:\r\n\r\n```\r\n--> RESUBSCRIBE 480p  start=absolute/69 end=absolute/72\r\n--> RESUBSCRIBE 720p  start=absolute/72 end=none\r\n--> SUBSCRIBE   1080p start=none        end=none\r\n```\r\n\r\n- If the relay warmed the cache, then this switch is instantaneous.\r\n- If the relay ignored the hint, then it takes at least an RTT to origin to fetch the 720p track.\r\n\r\nThe time it takes to switch renditions matters more when switching down in response to congestion. The buffer will deplete while the CDN fetches the rendition from origin, which pre-warming subscriptions will avoid.\r\n\r\nAnd just to complete the example, you have to pre-warm the 480p SUBSCRIBE again. This could either be done with multiple subscriptions, or waiting until the SUBSCRIBE_FIN arrives and then subscribing again. I'm not quite sure which approach is better.",
+          "createdAt": "2023-10-24T23:21:39Z",
+          "updatedAt": "2023-10-24T23:22:07Z"
+        },
+        {
+          "author": "wilaw",
+          "authorAssociation": "NONE",
+          "body": "I'm a little concerned about this use case, for the reasons below:\r\n\r\n> It would be nice to have a way to check if a track exists without receiving any OBJECTs. \r\n\r\nIs the assumption that the catalog, which declares the existence of the track, is not trustable? \r\n\r\n> It could be useful to pre-warm the cache. \r\n\r\nHow? If the relay went forward to the origin with the same start=none request then the origin should not actually send anything and therefore the cache would not fill. The only way this works is if the relay  goes forward with a different request with some !none start value. This non-deterministic behavior (ask one component for one thing and it asks for somehting else) can lead to scaling and debugging problems.\r\n\r\nI appreciate the benefits of cache warming, for fast start especially when the the edge relay is far from the origin. There are other ways to achieve this. One way can be by having a \"warming client\" make a conventional subscription request. This client may be an agent hosted on the edge relay for this purpose and its APi would be offered by the CDN and is outside the scope of moqt. \r\n\r\nAs a third point, empty subscriptions are also a DDOS attack vector. As a client, if  can make a hundred requests for streams that all then flow to a relay, but no content actually comes to me, it is a highly asymmetric (and therefore dangerous) DDOS tool. \r\n\r\n\r\n\r\n",
+          "createdAt": "2023-10-24T23:22:53Z",
+          "updatedAt": "2023-10-24T23:22:53Z"
+        },
+        {
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> I'm a little concerned about this use case, for the reasons below:\r\n> \r\n> > It would be nice to have a way to check if a track exists without receiving any OBJECTs.\r\n> \r\n> Is the assumption that the catalog, which declares the existence of the track, is not trustable?\r\n\r\nI think it's useful for applications that don't use a catalog. ex. Alan's chat protocol could check if a chat room or participant exists by performing an empty subscribe. \r\n\r\n> > It could be useful to pre-warm the cache.\r\n> \r\n> How? If the relay went forward to the origin with the same start=none request then the origin should not actually send anything and therefore the cache would not fill. The only way this works is if the relay goes forward with a different request with some !none start value. This non-deterministic behavior (ask one component for one thing and it asks for somehting else) can lead to scaling and debugging problems.\r\n\r\nThe relay doesn't have to forward ranges verbatim. Just like if a CDN receives a HEAD request, the relay MAY issue a GET request to the origin instead. I think this is actually pretty common?\r\n\r\nIn the MoQ case, the relay could request `start=relative/0` instead of `start=none` from the origin. It's completely up to the relay; it would only do this if there's sufficient bandwidth/cache available. It's a little bit of business logic though; maybe the customer can choose to enable it.\r\n\r\n>  I appreciate the benefits of cache warming, for fast start especially when the the edge relay is far from the origin. There are other ways to achieve this. One way can be by having a \"warming client\" make a conventional subscription request. This client may be an agent hosted on the edge relay for this purpose and its APi would be offered by the CDN and is outside the scope of moqt.\r\n\r\nJust keep in mind that we don't want the relay to have access to the catalog.\r\n\r\nSo you're asking applications to provide this functionality, requiring a custom service worker, a custom player, and hooks to notify the service worker on player start/stop. And the service worker itself doesn't actually want to receive these objects, so yeah there would need to be a non-standard API to actually warm a track.\r\n\r\nPlus it gets more complicated when you through in alternative renditions. Maybe the client has no intention of downloading AV1 tracks, or maybe it has no intention of downloading Japanese subtitles. This sort of selection criteria should be signaled to the service worker; pre-warming all tracks is a waste.\r\n\r\nI think this is the type of thing we build into the protocol instead of asking every application make a unique implementation. Warming would be completely optional for both the publisher and subscriber.\r\n\r\n> As a third point, empty subscriptions are also a DDOS attack vector. As a client, if can make a hundred requests for streams that all then flow to a relay, but no content actually comes to me, it is a highly asymmetric (and therefore dangerous) DDOS tool.\r\n\r\nI don't quite understand. \r\n\r\nThe CDN would deduplicate subscriptions so only one would ever reach the origin for a given track. If the relay already has an active subscription for the 480p track, then it wouldn't need to issue another subscribe upstream to serve empty subscriptions.\r\n\r\nBut if you're talking about using random track names, a client can already SUBSCRIBE to random track names (just like random HTTP paths) to DoS the origin.\r\n\r\nOr maybe you're talking about a client potentially pre-warming a bunch of valid tracks. Like somebody wrote a bot to scrape all Twitch broadcasts with zero viewers and issued an empty subscribe to them all. The CDN is completely in charge of determining if it pre-warms empty subscribes, which it should not do if it's near capacity or detects abuse.\r\n\r\nBut I don't think this is unique to empty subscribes. A client could perform a normal subscribe and then either immediately unsubscribe, close the connection, or set MAX_STREAMS_UNI=0 avoid receiving any objects. These empty subscribes follow the normal authentication logic, so the mitigation is going to be the same for both.",
+          "createdAt": "2023-10-24T23:51:24Z",
+          "updatedAt": "2023-10-24T23:54:48Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Individual Comment:\r\n\r\nLet's retitle this issue to be more specific about what the ask is.  \r\n\r\nEmpty subscriptions are possible with draft-01.  Their semantics are a bit undefined - eg: a relay or publisher has multiple options - SUBSCRIBE_ERROR, SUBSCRIBE_OK + SUBSCRIBE_FIN, SUBSCRIBE_OK and no FIN, in case the subscriber wants to do something else?  Do we need to mandate a particular behavior for better interoperability?\r\n\r\nThen there's a separate issue about supporting these use cases:\r\n\r\n> 1. Check if the track exists.\r\n> 2. Check if the track is active.\r\n> 3. Check if the track is active, and get notified when the track is closed.\r\n> 4. Check if the track exists and group/object N exists.\r\n\r\nIf these are required, then there's other ways to spell that without changing Subscribe - and none of these cases have anything to do with subscribing except maybe 3? A QUERY_TRACK (eg: HEAD) message that doesn't alter the subscribe state seems like a more apt vehicle.\r\n\r\nHow to pre-warm a cache seems out of scope.\r\n\r\n> set MAX_STREAMS_UNI=0 avoid receiving any objects\r\n\r\nI think we should open a separate issue about this case, and what the relay requirements are (if any) around backpressure.    The same thing can happen if a client runs out of streams and doesn't grant new credit in a timely way.  Are there obligations to keep the subscription open and/or cache at the relay for some period of time, or can a relay aggressively drop objects or reset subscriptions? A naive relay is going to get itself in big trouble very quickly.",
+          "createdAt": "2023-10-25T00:40:20Z",
+          "updatedAt": "2023-10-25T00:40:20Z"
+        }
+      ]
+    },
+    {
+      "number": 300,
+      "id": "I_kwDOG2Ho4M50096L",
+      "title": "GROUP_SEQUENCE and OBJECT_SEQUENCE are overcome by events",
+      "url": "https://github.com/moq-wg/moq-transport/issues/300",
+      "state": "OPEN",
+      "author": "martinduke",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [
+        "Editorial"
+      ],
+      "body": "These parameters have been replaced with explicit fields in the SUBSCRIBE message.\r\n\r\nAll that's left (outside of SETUP) is AUTHORIZATION_INFO in SUBSCRIBE and ANNOUNCE.\r\n\r\nI would just as soon get rid of non-setup parameters entirely and have an \"auth_info_length\" field in the messages which can be zero.\r\n\r\nAt a minimum, we need to eliminate GROUP_ and OBJECT_SEQUENCE.",
+      "createdAt": "2023-10-24T20:42:11Z",
+      "updatedAt": "2023-10-25T16:49:44Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> I would just as soon get rid of non-setup parameters entirely and have an \"auth_info_length\" field in the messages which can be zero.\r\n\r\n+1\r\n\r\nI would go even further and make a dedicated AUTH message.",
+          "createdAt": "2023-10-24T21:01:41Z",
+          "updatedAt": "2023-10-24T21:01:41Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Whoops, those were deleted but must have been re-added in a merge conflict.  ",
+          "createdAt": "2023-10-24T21:07:47Z",
+          "updatedAt": "2023-10-24T21:07:47Z"
+        }
+      ]
+    },
+    {
+      "number": 301,
+      "id": "I_kwDOG2Ho4M500-3Z",
+      "title": "Reason Phrase in SUBSCRIBE_ERROR is of type (b)",
+      "url": "https://github.com/moq-wg/moq-transport/issues/301",
+      "state": "OPEN",
+      "author": "martinduke",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [
+        "Editorial"
+      ],
+      "body": "When we added (b) we didn't update this.",
+      "createdAt": "2023-10-24T20:45:11Z",
+      "updatedAt": "2023-10-24T22:09:04Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "SUBSCRIBE_RST as well",
+          "createdAt": "2023-10-24T20:46:39Z",
+          "updatedAt": "2023-10-24T20:46:39Z"
+        },
+        {
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "and ANNOUNCE_ERROR",
+          "createdAt": "2023-10-24T20:48:16Z",
+          "updatedAt": "2023-10-24T20:48:16Z"
+        }
+      ]
     }
   ],
   "pulls": [
@@ -33553,21 +33676,21 @@
       "id": "PR_kwDOG2Ho4M5Z_GKs",
       "title": " Transport Delivery Mode and Subscription Hints",
       "url": "https://github.com/moq-wg/moq-transport/pull/246",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "suhasHere",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [],
       "body": "This is a placeholder PR to support the issues #244 and #245 .  \r\n\r\nAll the discussions have to be done on those above issues listed and the suggestions/outcoms from the discussions are to be reflected in this PR.\r\n\r\n",
       "createdAt": "2023-09-11T07:01:03Z",
-      "updatedAt": "2023-10-18T00:04:09Z",
+      "updatedAt": "2023-10-25T17:16:14Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "7a756b77b7879f5dee5d96192b5e10720c564446",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "experimental",
       "headRefOid": "b17213d383f34e5ebea09434e4b8b82d0caad42b",
-      "closedAt": null,
+      "closedAt": "2023-10-25T17:16:13Z",
       "mergedAt": null,
       "mergedBy": null,
       "mergeCommit": null,
@@ -33578,6 +33701,13 @@
           "body": "Can we close this now that we have #289 ?",
           "createdAt": "2023-10-18T00:04:08Z",
           "updatedAt": "2023-10-18T00:04:08Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Closed since Subscription Hints (Locations) landed in -01, and we're still discussing delivery modes.",
+          "createdAt": "2023-10-25T17:16:13Z",
+          "updatedAt": "2023-10-25T17:16:13Z"
         }
       ],
       "reviews": [
@@ -33725,21 +33855,21 @@
       "id": "PR_kwDOG2Ho4M5beqvR",
       "title": "Parameter Reform",
       "url": "https://github.com/moq-wg/moq-transport/pull/256",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "martinduke",
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
       "labels": [],
       "body": "Fixes #247, #251\r\n\r\n- Removes \"mandatory parameters\" from the SETUP message and just puts them in the main part of the message (retaining the notion of parameters as an extension point)\r\n\r\n- Unifies the two parameter namespaces into one (previously known as \"Track Request Parameters\")\r\n\r\n- Resolves the inconsistency about receiver reaction to duplicate parameters as a \"SHOULD\" close, not MUST. (Tracking the appearance of unknown parameter types is relatively resource-intensive)\r\n\r\n- Specifies that parameters that arrive in messages where they don't apply are ignored, without error.",
       "createdAt": "2023-09-28T19:51:03Z",
-      "updatedAt": "2023-10-18T04:42:06Z",
+      "updatedAt": "2023-10-25T17:18:31Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "fbde56a237942020d0b05f26cd10d8775edcb72a",
       "headRepository": "martinduke/moq-transport",
       "headRefName": "parameters",
       "headRefOid": "2987673c765dab48042ccf6b01d5d221e37bc8cb",
-      "closedAt": null,
+      "closedAt": "2023-10-25T17:18:30Z",
       "mergedAt": null,
       "mergedBy": null,
       "mergeCommit": null,
@@ -33806,6 +33936,20 @@
           "body": "My ideal solution would be to keep flexible SETUP parameters for version/extension negotiation, but use fixed encodings for other messages.",
           "createdAt": "2023-10-18T04:41:57Z",
           "updatedAt": "2023-10-18T04:42:06Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Are we planning to rebase this on main for the remaining issues, or should we close it?",
+          "createdAt": "2023-10-25T17:17:03Z",
+          "updatedAt": "2023-10-25T17:17:03Z"
+        },
+        {
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "I think this is rapidly becoming OBE, closing.",
+          "createdAt": "2023-10-25T17:18:30Z",
+          "updatedAt": "2023-10-25T17:18:30Z"
         }
       ],
       "reviews": [
@@ -38778,6 +38922,46 @@
           "body": "",
           "createdAt": "2023-10-24T00:42:06Z",
           "updatedAt": "2023-10-24T00:42:06Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 302,
+      "id": "PR_kwDOG2Ho4M5dr-CB",
+      "title": "Remove OBJECT_SEQUENCE and GROUP_SEQUENCE params",
+      "url": "https://github.com/moq-wg/moq-transport/pull/302",
+      "state": "OPEN",
+      "author": "afrind",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "This were replaced in Subscribe Locations (hints)\r\n\r\nFixes: #300",
+      "createdAt": "2023-10-24T21:50:29Z",
+      "updatedAt": "2023-10-24T21:57:29Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "7ceab8cef8648014daa382f9f215b7024fa553d8",
+      "headRepository": "moq-wg/moq-transport",
+      "headRefName": "remove-unused-params",
+      "headRefOid": "d80cbc7a065fc89bcc3a4d053f10f23aa3bed95a",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M5lFjLD",
+          "commit": {
+            "abbreviatedOid": "d80cbc7"
+          },
+          "author": "vasilvv",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2023-10-24T21:57:29Z",
+          "updatedAt": "2023-10-24T21:57:29Z",
           "comments": []
         }
       ]
