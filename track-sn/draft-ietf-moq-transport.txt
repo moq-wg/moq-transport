@@ -5,12 +5,12 @@
 MOQ                                                            L. Curley
 Internet-Draft                                                    Twitch
 Intended status: Standards Track                                K. Pugin
-Expires: 27 April 2024                                              Meta
+Expires: 29 April 2024                                              Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                                   Google
-                                                         25 October 2023
+                                                         27 October 2023
 
 
                        Media over QUIC Transport
@@ -52,7 +52,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 27 April 2024.
+   This Internet-Draft will expire on 29 April 2024.
 
 Copyright Notice
 
@@ -692,14 +692,15 @@ Table of Contents
    ANNOUNCE MUST send only a single response to a given ANNOUNCE of
    either ANNOUNCE_OK or ANNOUNCE_ERROR.
 
-   OBJECT message header carry short hop-by-hop Track Alias that maps to
-   the Full Track Name (see Section 6.5).  Relays use the Track Alias of
-   an incoming OBJECT message to identify its track and find the active
-   subscribers for that track.  Relays MUST NOT depend on OBJECT payload
-   content for making forwarding decisions and MUST only depend on the
-   fields, such as priority order and other metadata properties in the
-   OBJECT message header.  Unless determined by congestion response,
-   Relays MUST forward the OBJECT message to the matching subscribers.
+   OBJECT message header carry short hop-by-hop Full Track Name Alias
+   that maps to the Full Track Name (see Section 6.5).  Relays use the
+   Full Track Name Alias of an incoming OBJECT message to identify its
+   track and find the active subscribers for that track.  Relays MUST
+   NOT depend on OBJECT payload content for making forwarding decisions
+   and MUST only depend on the fields, such as priority order and other
+   metadata properties in the OBJECT message header.  Unless determined
+   by congestion response, Relays MUST forward the OBJECT message to the
+   matching subscribers.
 
 5.3.  Relay Discovery and Failover
 
@@ -958,7 +959,7 @@ Table of Contents
    The format of the OBJECT message is as follows:
 
    OBJECT Message {
-     Track Alias (i),
+     Full Track Name Alias (i),
      Group Sequence (i),
      Object Sequence (i),
      Object Send Order (i),
@@ -968,8 +969,8 @@ Table of Contents
 
                        Figure 4: MOQT OBJECT Message
 
-   *  Track Alias : The compressed full track name obtained as part of
-      subscription and/or publish control message exchanges.
+   *  Full Track Name Alias : The compressed full track name obtained as
+      part of subscription and/or publish control message exchanges.
 
    *  Group Sequence : The object is a member of the indicated group
       Section 2.2 within the track.
@@ -1145,7 +1146,7 @@ Table of Contents
    SUBSCRIBE_OK
    {
      SubscribeID (i),
-     Track Alias (i),
+     Full Track Name Alias (i),
      Expires (i)
    }
 
@@ -1154,11 +1155,11 @@ Table of Contents
    *  SubscribeID: Subscription Identifer from the incoming subscription
       request for which this message is the response.
 
-   *  Track Alias: Session specific identifier that is used as an alias
-      for the Full Track Name in the Track Alias field of the OBJECT
-      (Section 6.3) message headers of the requested track.  Track
-      Alias'es are generally shorter than Full Track Names and thus
-      reduce the overhead in OBJECT messages.
+   *  Full Track Name Alias: Session specific identifier that is used as
+      an alias for the Full Track Name in the Full Track Name Alias
+      field of the OBJECT (Section 6.3) message headers of the requested
+      track.  Full Track Name Alias is generally shorter than Full Track
+      Names and thus reduce the overhead in OBJECT messages.
 
    *  Expires: Time in milliseconds after which the subscription is no
       longer valid.  A value of 0 indicates that the subscription stays
