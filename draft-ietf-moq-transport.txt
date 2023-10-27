@@ -5,12 +5,12 @@
 MOQ                                                            L. Curley
 Internet-Draft                                                    Twitch
 Intended status: Standards Track                                K. Pugin
-Expires: 28 April 2024                                              Meta
+Expires: 29 April 2024                                              Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                                   Google
-                                                         26 October 2023
+                                                         27 October 2023
 
 
                        Media over QUIC Transport
@@ -52,7 +52,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 28 April 2024.
+   This Internet-Draft will expire on 29 April 2024.
 
 Copyright Notice
 
@@ -1150,8 +1150,7 @@ Table of Contents
      Track Namespace (b),
      Track Name (b),
      Error Code (i),
-     Reason Phrase Length (i),
-     Reason Phrase (...),
+     Reason Phrase (b),
    }
 
                    Figure 8: MOQT SUBSCRIBE_ERROR Message
@@ -1167,8 +1166,7 @@ Table of Contents
 
    *  Reason Phrase Length: The length in bytes of the reason phrase.
 
-   *  Reason Phrase: Provides the reason for subscription error and
-      Reason Phrase Length field carries its length.
+   *  Reason Phrase: Provides the reason for subscription error.
 
 6.7.  UNSUBSCRIBE
 
@@ -1231,8 +1229,7 @@ Table of Contents
      Track Namespace (b),
      Track Name (b),
      Error Code (i),
-     Reason Phrase Length (i),
-     Reason Phrase (...),
+     Reason Phrase (b),
      Final Group (i),
      Final Object (i),
    }
@@ -1248,10 +1245,7 @@ Table of Contents
    *  Error Code: Identifies an integer error code for subscription
       failure.
 
-   *  Reason Phrase Length: The length in bytes of the reason phrase.
-
-   *  Reason Phrase: Provides the reason for subscription error and
-      Reason Phrase Length field carries its length.
+   *  Reason Phrase: Provides the reason for subscription error.
 
    *  Final Group: The largest Group Sequence sent by the publisher in
       an OBJECT message in this track.
@@ -1303,8 +1297,7 @@ Table of Contents
    {
      Track Namespace(b),
      Error Code (i),
-     Reason Phrase Length (i),
-     Reason Phrase (...),
+     Reason Phrase (b),
    }
 
                    Figure 14: MOQT ANNOUNCE_ERROR Message
@@ -1315,8 +1308,7 @@ Table of Contents
    *  Error Code: Identifies an integer error code for announcement
       failure.
 
-   *  Reason Phrase: Provides the reason for announcement error and
-      Reason Phrase Length field carries its length.
+   *  Reason Phrase: Provides the reason for announcement error.
 
 6.13.  UNANNOUNCE
 
