@@ -622,8 +622,8 @@ providing the result of announcement. The entity receiving the
 ANNOUNCE MUST send only a single response to a given ANNOUNCE of
 either ANNOUNCE_OK or ANNOUNCE_ERROR.
 
-OBJECT message header carry short hop-by-hop `Track Alias` that maps to the
-Full Track Name (see {{message-subscribe-ok}}). Relays use the `Track Alias`
+OBJECT message header carry short hop-by-hop `Full Track Name Alias` that maps to the
+Full Track Name (see {{message-subscribe-ok}}). Relays use the `Full Track Name Alias`
 of an incoming OBJECT message to identify its track and find the active
 subscribers for that track. Relays MUST NOT depend on OBJECT payload
 content for making forwarding decisions and MUST only depend on the
@@ -888,7 +888,7 @@ The format of the OBJECT message is as follows:
 
 ~~~
 OBJECT Message {
-  Track Alias (i),
+  Full Track Name Alias (i),
   Group Sequence (i),
   Object Sequence (i),
   Object Send Order (i),
@@ -898,8 +898,7 @@ OBJECT Message {
 ~~~
 {: #moq-transport-object-format title="MOQT OBJECT Message"}
 
-* Track Alias : The compressed full track name obtained as part of subscription and/or
-publish control message exchanges.
+* Full Track Name Alias : The compressed full track name obtained as part of subscription and/or publish control message exchanges.
 
 * Group Sequence : The object is a member of the indicated group
 {{model-group}} within the track.
@@ -1077,20 +1076,16 @@ A SUBSCRIBE_OK control message is sent for successful subscriptions.
 SUBSCRIBE_OK
 {
   SubscribeID (i),
-  Track Alias (i),
+  Full Track Name Alias (i),
   Expires (i)
 }
 ~~~
 {: #moq-transport-subscribe-ok format title="MOQT SUBSCRIBE_OK Message"}
 
-* SubscribeID: Subscription Identifer from the incoming subscription request for which
-this message is the response.
+* SubscribeID: Subscription Identifer from the incoming subscription request for which this message is the response.
 
 
-* Track Alias: Session specific identifier that is used as an alias for the
-Full Track Name in the `Track Alias` field of the OBJECT ({{message-object}})
-message headers of the requested track. `Track Alias'es` are generally shorter
-than Full Track Names and thus reduce the overhead in OBJECT messages.
+* Full Track Name Alias: Session specific identifier that is used as an alias for the Full Track Name in the `Full Track Name Alias` field of the OBJECT ({{message-object}}) message headers of the requested track. `Full Track Name Alias` is generally shorter than Full Track Names and thus reduce the overhead in OBJECT messages.
 
 * Expires: Time in milliseconds after which the subscription is no
 longer valid. A value of 0 indicates that the subscription stays active
