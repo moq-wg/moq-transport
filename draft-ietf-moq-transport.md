@@ -388,8 +388,8 @@ peer receiving an Object on the control stream closes the session as a
 
 This draft only specifies a single use of bidirectional streams. Objects are
 sent on unidirectional streams.  Because there are no other uses of
-bidirectional streams, a peer MAY currently close the connection if it
-receives a second bidirectional stream.
+bidirectional streams, a peer MAY currently close the session as a
+'Protocol Violation' if it receives a second bidirectional stream.
 
 The control stream MUST NOT be abruptly closed at the underlying transport
 layer.  Doing so results in the session being closed as a 'Protocol Violation'.
@@ -431,7 +431,7 @@ code, as defined below:
 * Generic Error: An unclassified error occurred.
 
 * Unauthorized: The endpoint breached an agreement, which MAY have been
-pre-negotiated by the application.
+ pre-negotiated by the application.
 
 * Protocol Violation: The remote endpoint performed an action that was
   disallowed by the specification.
@@ -672,7 +672,7 @@ limits.  See section 2.2 in {{QUIC}}.
 Both unidirectional and bidirectional streams contain sequences of
 length-delimited messages.
 
-An endpoint that receives an unknown message type MUST close the connection.
+An endpoint that receives an unknown message type MUST close the session.
 
 ~~~
 MOQT Message {
@@ -722,8 +722,8 @@ Some messages include a Parameters field that encode optional message
 elements. They contain a type, length, and value.
 
 Senders MUST NOT repeat the same parameter type in a message. Receivers
-SHOULD check that there are no duplicate parameters and close the connection
-if found.
+SHOULD check that there are no duplicate parameters and close the session
+as a 'Protocol Violation' if found.
 
 Receivers ignore unrecognized parameters.
 
@@ -810,7 +810,7 @@ The client offers the list of the protocol versions it supports; the
 server MUST reply with one of the versions offered by the client. If the
 server does not support any of the versions offered by the client, or
 the client receives a server version that it did not offer, the
-corresponding peer MUST close the connection.
+corresponding peer MUST close the session.
 
 \[\[RFC editor: please remove the remainder of this section before
 publication.]]
@@ -844,7 +844,7 @@ possible values, which are of type varint:
 : Both the client and the server are expected to send objects.
 
 The client MUST send a ROLE parameter with one of the three values
-specified above. The server MUST close the connection if the ROLE
+specified above. The server MUST close the session if the ROLE
 parameter is missing, is not one of the three above-specified values, or
 it is different from what the server expects based on the application.
 
