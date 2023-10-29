@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2023-10-26T01:05:23.022868+00:00",
+  "timestamp": "2023-10-29T01:10:33.579566+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -1864,7 +1864,7 @@
       "labels": [],
       "body": "There were few discussions that discussed on dealing with congestion and needing more thinking around decisions around how and when to drop things. ",
       "createdAt": "2022-11-10T23:52:32Z",
-      "updatedAt": "2023-07-24T21:27:14Z",
+      "updatedAt": "2023-10-28T23:31:46Z",
       "closedAt": null,
       "comments": [
         {
@@ -1894,6 +1894,20 @@
           "body": "Yeah, I agree.\r\n\r\nIn fact, I think we can skip the BBR PROBE_RTT phase entirely because live video is sufficiently application-limited. It's meant to detect a local maxima caused by over-saturating the network, but that shouldn't be necessary since media will under-saturate the network.",
           "createdAt": "2022-11-14T18:23:20Z",
           "updatedAt": "2022-11-14T18:23:37Z"
+        },
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "You definitely don't want to ACK every packet individually.  If you want per-packet timestamps, I wrote a draft that was used by some internal projects.\r\nhttps://www.ietf.org/archive/id/draft-smith-quic-receive-ts-00.html\r\n\r\nIt can probably be improved, but it works with GCC and similar congestion controllers.\r\n\r\nI agree that if you're app-limited often enough, you should be able to skip PROBE_RTT in BBRv2/3.  I keep wanting to write a version of the BBR bandwidth estimator that uses timestamps, but it's hard for me to know how much better it'd be without just doing it.\r\n\r\nThis is an interesting topic, but is there a clear ack for the QUIC WG or text we should add to the existing draft?  I'm inclined to park this for now and wait for more deployment experience.",
+          "createdAt": "2023-10-28T18:31:08Z",
+          "updatedAt": "2023-10-28T18:31:08Z"
+        },
+        {
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "body": "This is one area where WebRTC has advantage over MoQ. While I don't think the draft should have any text, it would be good to have a plan we can point to. Getting your timestamp draft adopted eventually sounds like a good plan to me.",
+          "createdAt": "2023-10-28T23:30:49Z",
+          "updatedAt": "2023-10-28T23:31:46Z"
         }
       ]
     },
@@ -10993,7 +11007,7 @@
       "id": "I_kwDOG2Ho4M50096L",
       "title": "GROUP_SEQUENCE and OBJECT_SEQUENCE are overcome by events",
       "url": "https://github.com/moq-wg/moq-transport/issues/300",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "martinduke",
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
@@ -11002,8 +11016,8 @@
       ],
       "body": "These parameters have been replaced with explicit fields in the SUBSCRIBE message.\r\n\r\nAll that's left (outside of SETUP) is AUTHORIZATION_INFO in SUBSCRIBE and ANNOUNCE.\r\n\r\nI would just as soon get rid of non-setup parameters entirely and have an \"auth_info_length\" field in the messages which can be zero.\r\n\r\nAt a minimum, we need to eliminate GROUP_ and OBJECT_SEQUENCE.",
       "createdAt": "2023-10-24T20:42:11Z",
-      "updatedAt": "2023-10-25T16:49:44Z",
-      "closedAt": null,
+      "updatedAt": "2023-10-26T18:42:29Z",
+      "closedAt": "2023-10-26T18:42:29Z",
       "comments": [
         {
           "author": "kixelated",
@@ -11026,7 +11040,7 @@
       "id": "I_kwDOG2Ho4M500-3Z",
       "title": "Reason Phrase in SUBSCRIBE_ERROR is of type (b)",
       "url": "https://github.com/moq-wg/moq-transport/issues/301",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "martinduke",
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
@@ -11035,8 +11049,8 @@
       ],
       "body": "When we added (b) we didn't update this.",
       "createdAt": "2023-10-24T20:45:11Z",
-      "updatedAt": "2023-10-24T22:09:04Z",
-      "closedAt": null,
+      "updatedAt": "2023-10-27T01:33:44Z",
+      "closedAt": "2023-10-27T01:33:44Z",
       "comments": [
         {
           "author": "martinduke",
@@ -11051,6 +11065,37 @@
           "body": "and ANNOUNCE_ERROR",
           "createdAt": "2023-10-24T20:48:16Z",
           "updatedAt": "2023-10-24T20:48:16Z"
+        }
+      ]
+    },
+    {
+      "number": 304,
+      "id": "I_kwDOG2Ho4M51LKDV",
+      "title": "Does MoQ over QUIC require support for multiple sessions?",
+      "url": "https://github.com/moq-wg/moq-transport/issues/304",
+      "state": "OPEN",
+      "author": "ianswett",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "As it stands today, QUIC does not have a 'session' layer allowing multiple instances of the same application or different applications to share a single connection.\r\n\r\nAt the last interim, I believe a few people thought that both the WebTransport and raw QUIC deployments of MoQ should support multiple sessions over a single connection.\r\n\r\nThere are proposals to add a session layer, but they're early on.  I feel like this isn't a blocker, and more of a nice to have, and MoQ can use whatever is available when it's done, but wanted the WGs opinion.",
+      "createdAt": "2023-10-27T16:42:13Z",
+      "updatedAt": "2023-10-28T17:26:30Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "body": "my initial reaction is , we may don't need it ..  atleast for conferencing like use-cases, different meetings will use different connections (may also land on different middles boxes) .. \r\n\r\nI would love to explore the idea though and see if it can be simplified (esp not have pooling, if possible) .. @ianswett  can you please share the pointers to the proposals in this space ?\r\n\r\n",
+          "createdAt": "2023-10-28T03:37:11Z",
+          "updatedAt": "2023-10-28T03:37:11Z"
+        },
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "An example of a way to accomplish this: https://datatracker.ietf.org/doc/draft-seemann-quic-stream-groups/",
+          "createdAt": "2023-10-28T17:26:29Z",
+          "updatedAt": "2023-10-28T17:26:29Z"
         }
       ]
     }
@@ -38931,24 +38976,26 @@
       "id": "PR_kwDOG2Ho4M5dr-CB",
       "title": "Remove OBJECT_SEQUENCE and GROUP_SEQUENCE params",
       "url": "https://github.com/moq-wg/moq-transport/pull/302",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "afrind",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [],
       "body": "This were replaced in Subscribe Locations (hints)\r\n\r\nFixes: #300",
       "createdAt": "2023-10-24T21:50:29Z",
-      "updatedAt": "2023-10-24T21:57:29Z",
+      "updatedAt": "2023-10-26T18:42:28Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "7ceab8cef8648014daa382f9f215b7024fa553d8",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "remove-unused-params",
       "headRefOid": "d80cbc7a065fc89bcc3a4d053f10f23aa3bed95a",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "closedAt": "2023-10-26T18:42:28Z",
+      "mergedAt": "2023-10-26T18:42:28Z",
+      "mergedBy": "ianswett",
+      "mergeCommit": {
+        "oid": "94b209d57669cc9c54985e878894c404c41ea2dd"
+      },
       "comments": [],
       "reviews": [
         {
@@ -38963,8 +39010,235 @@
           "createdAt": "2023-10-24T21:57:29Z",
           "updatedAt": "2023-10-24T21:57:29Z",
           "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5lWZ_3",
+          "commit": {
+            "abbreviatedOid": "d80cbc7"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2023-10-26T18:42:23Z",
+          "updatedAt": "2023-10-26T18:42:23Z",
+          "comments": []
         }
       ]
+    },
+    {
+      "number": 303,
+      "id": "PR_kwDOG2Ho4M5d5qUu",
+      "title": "Switch types to (b)",
+      "url": "https://github.com/moq-wg/moq-transport/pull/303",
+      "state": "MERGED",
+      "author": "ianswett",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Fixes #301",
+      "createdAt": "2023-10-26T18:46:33Z",
+      "updatedAt": "2023-10-27T01:33:43Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "94b209d57669cc9c54985e878894c404c41ea2dd",
+      "headRepository": "moq-wg/moq-transport",
+      "headRefName": "ianswett-nolength",
+      "headRefOid": "0c737b193d73a467e33fc8de8c01b87bd6cf8875",
+      "closedAt": "2023-10-27T01:33:43Z",
+      "mergedAt": "2023-10-27T01:33:43Z",
+      "mergedBy": "ianswett",
+      "mergeCommit": {
+        "oid": "f8dd2386d2c2d471d76e4b19aaaa811f2e13ddfe"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M5lWmR4",
+          "commit": {
+            "abbreviatedOid": "0c737b1"
+          },
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2023-10-26T18:54:10Z",
+          "updatedAt": "2023-10-26T18:54:10Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 305,
+      "id": "PR_kwDOG2Ho4M5d_khr",
+      "title": "Add Subscribe Id support",
+      "url": "https://github.com/moq-wg/moq-transport/pull/305",
+      "state": "OPEN",
+      "author": "suhasHere",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "This PR is expected to be base PR to support multi-subscribe like flows that will follow up.\r\n\r\nIt adds support for SubscribeID and also renames the trackId to `Full Track Name Alias` to avoid the confusion and make the scope clear.\r\n\r\n",
+      "createdAt": "2023-10-27T17:14:58Z",
+      "updatedAt": "2023-10-28T17:33:45Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "f8dd2386d2c2d471d76e4b19aaaa811f2e13ddfe",
+      "headRepository": "moq-wg/moq-transport",
+      "headRefName": "track-sn",
+      "headRefOid": "6a826ac07c00e396d2db2ef1e645364fd282bb4e",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M5ldn6w",
+          "commit": {
+            "abbreviatedOid": "6a826ac"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "Individual Review:\r\n\r\nThanks for this PR.  Can you link it to the corresponding issues?",
+          "createdAt": "2023-10-27T17:37:58Z",
+          "updatedAt": "2023-10-27T17:43:44Z",
+          "comments": [
+            {
+              "originalPosition": 81,
+              "body": "Not sure you can enforce this MUST NOT - 'SHOULD NOT' or 'need not'?",
+              "createdAt": "2023-10-27T17:37:59Z",
+              "updatedAt": "2023-10-27T17:43:44Z"
+            },
+            {
+              "originalPosition": 63,
+              "body": "My recommendation is to be more prescriptive on subscribe ID assignment rather than just uniqueness - even/odd for client/server, monotonically increasing, cannot re-use IDs even after they have expired/closed.",
+              "createdAt": "2023-10-27T17:41:41Z",
+              "updatedAt": "2023-10-27T17:43:44Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5lfv-T",
+          "commit": {
+            "abbreviatedOid": "6a826ac"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "Thanks for writing this.  I agree we need a Subscribe ID and this looks like it's heading in the right direction.\r\n\r\nCan we remove the rename of Track ID from this PR and discuss it separately, since it's purely editorial?",
+          "createdAt": "2023-10-28T17:30:01Z",
+          "updatedAt": "2023-10-28T17:33:45Z",
+          "comments": [
+            {
+              "originalPosition": 36,
+              "body": "I'd prefer to keep this as Track ID for now, because it's so much shorter.  Or we could call it 'Track Alias' if that's slightly clearer?  Either way, let's discuss some other names on a PR and then we can do the rename in a separate PR from adding a Subscribe ID.",
+              "createdAt": "2023-10-28T17:30:01Z",
+              "updatedAt": "2023-10-28T17:33:45Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 306,
+      "id": "PR_kwDOG2Ho4M5eCIPp",
+      "title": "Clarify (b)",
+      "url": "https://github.com/moq-wg/moq-transport/pull/306",
+      "state": "OPEN",
+      "author": "ianswett",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Slightly clarifies what (b) is.",
+      "createdAt": "2023-10-28T17:40:05Z",
+      "updatedAt": "2023-10-28T17:40:05Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "f8dd2386d2c2d471d76e4b19aaaa811f2e13ddfe",
+      "headRepository": "moq-wg/moq-transport",
+      "headRefName": "ianswett-clarify-b",
+      "headRefOid": "291e1f4a895c9ab5465c85956c04194cde4fd67a",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": []
+    },
+    {
+      "number": 307,
+      "id": "PR_kwDOG2Ho4M5eCIs0",
+      "title": "Use session more and specify error codes",
+      "url": "https://github.com/moq-wg/moq-transport/pull/307",
+      "state": "OPEN",
+      "author": "ianswett",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Fixes #238 \r\n\r\nI also wonder if Connection URL should be renamed to Session URL?",
+      "createdAt": "2023-10-28T17:48:31Z",
+      "updatedAt": "2023-10-28T17:49:14Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "f8dd2386d2c2d471d76e4b19aaaa811f2e13ddfe",
+      "headRepository": "moq-wg/moq-transport",
+      "headRefName": "ianswett-more-session",
+      "headRefOid": "5382162d23a3f08b9843c076ecc11daaef742911",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M5lfx8Z",
+          "commit": {
+            "abbreviatedOid": "5382162"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2023-10-28T17:49:14Z",
+          "updatedAt": "2023-10-28T17:49:14Z",
+          "comments": [
+            {
+              "originalPosition": 45,
+              "body": "Should we add a 'VN Failed' error code?",
+              "createdAt": "2023-10-28T17:49:14Z",
+              "updatedAt": "2023-10-28T17:49:15Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 308,
+      "id": "PR_kwDOG2Ho4M5eCL_m",
+      "title": "Remove TODOs",
+      "url": "https://github.com/moq-wg/moq-transport/pull/308",
+      "state": "OPEN",
+      "author": "ianswett",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "I believe some of this is covered by the recently updated GOAWAY section and I'm not sure what else to add here.",
+      "createdAt": "2023-10-28T18:40:52Z",
+      "updatedAt": "2023-10-28T18:40:52Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "f8dd2386d2c2d471d76e4b19aaaa811f2e13ddfe",
+      "headRepository": "moq-wg/moq-transport",
+      "headRefName": "ianswett-remove-todos",
+      "headRefOid": "a92fbc26ca17082ad387ef837b5845ed9fa35869",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": []
     }
   ]
 }
