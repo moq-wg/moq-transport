@@ -907,7 +907,7 @@ NOT be processed by a relay.
 
 A receiver issues a SUBSCRIBE to a publisher to request a track.
 
-### Susbscribe Locations {#susbscribe-locations}
+### Subscribe Locations {#subscribe-locations}
 
 The receiver specifies a start and optional end `Location` for the subscription.
 A location value may be an absolute group or object sequence, or it may be a
