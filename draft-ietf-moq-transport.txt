@@ -5,12 +5,12 @@
 MOQ                                                            L. Curley
 Internet-Draft                                                    Twitch
 Intended status: Standards Track                                K. Pugin
-Expires: 29 April 2024                                              Meta
+Expires: 2 May 2024                                                 Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                                   Google
-                                                         27 October 2023
+                                                         30 October 2023
 
 
                        Media over QUIC Transport
@@ -52,7 +52,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 29 April 2024.
+   This Internet-Draft will expire on 2 May 2024.
 
 Copyright Notice
 
@@ -112,7 +112,7 @@ Table of Contents
        6.2.2.  SETUP Parameters
      6.3.  OBJECT
      6.4.  SUBSCRIBE
-       6.4.1.  Susbscribe Locations
+       6.4.1.  Subscribe Locations
        6.4.2.  SUBSCRIBE REQUEST Format
        6.4.3.  Examples
      6.5.  SUBSCRIBE_OK
@@ -976,7 +976,7 @@ Table of Contents
 
    A receiver issues a SUBSCRIBE to a publisher to request a track.
 
-6.4.1.  Susbscribe Locations
+6.4.1.  Subscribe Locations
 
    The receiver specifies a start and optional end Location for the
    subscription.  A location value may be an absolute group or object
