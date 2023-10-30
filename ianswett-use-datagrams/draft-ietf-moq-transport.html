@@ -2444,7 +2444,9 @@ a single datagram.  For larger objects, a stream needs to be used.
 Streams are by default reliable and datagrams are by default unreliable,
 but implementations can provide equivalent levels of reliability,
 including the support of a time-to-live parameter that indicates
-when to stop retransmitting lost data from the stream or datagram.<a href="#section-6.3-2" class="pilcrow">¶</a></p>
+when to stop retransmitting lost data from the stream or datagram.
+The choice of whether to use a datagram or stream is a hop-by-hop
+decision, because MTUs may differ.<a href="#section-6.3-2" class="pilcrow">¶</a></p>
 <p id="section-6.3-3">The format of the OBJECT message is as follows:<a href="#section-6.3-3" class="pilcrow">¶</a></p>
 <span id="name-moqt-object-message"></span><div id="moq-transport-object-format">
 <figure id="figure-4">
