@@ -313,7 +313,7 @@ over a QUIC connection directly [QUIC], and over WebTransport
 semantics (see {{?I-D.ietf-webtrans-overview, Section 4}}); thus, the
 main difference lies in how the servers are identified and how the
 connection is established.  There is no definition of the protocol
-over other transports, such as TCP, and applicaitons using MoQ might
+over other transports, such as TCP, and applications using MoQ might
 need to fallback to another protocol when QUIC or WebTransport aren't
 available.
 
@@ -669,9 +669,6 @@ limits.  See section 2.2 in {{QUIC}}.
 
 # Messages {#message}
 
-Both unidirectional and bidirectional streams contain sequences of
-length-delimited messages.
-
 An endpoint that receives an unknown message type MUST close the session.
 
 ~~~
@@ -868,6 +865,14 @@ specified track, as well as associated metadata required to deliver,
 cache, and forward it. There are two subtypes of this message. When the
 message type is 0x00, the optional Object Payload Length field is
 present. When the message type ix 0x02, the field is not present.
+
+OBJECT messages are transmitted over unidirectional streams and can
+also be transmitted over datagrams if the object or objects fit into
+a single datagram.  For larger objects, a stream needs to be used.
+Streams are by default reliable and datagrams are by default unreliable,
+but implementations can provide equivalent levels of reliability,
+including the support of a time-to-live parameter that indicates
+when to stop retransmitting lost data from the stream or datagram.
 
 The format of the OBJECT message is as follows:
 
