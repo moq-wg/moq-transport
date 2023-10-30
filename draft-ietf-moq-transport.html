@@ -1786,8 +1786,8 @@ peer receiving an Object on the control stream closes the session as a
 'Protocol Violation'.<a href="#section-3.3-1" class="pilcrow">¶</a></p>
 <p id="section-3.3-2">This draft only specifies a single use of bidirectional streams. Objects are
 sent on unidirectional streams.  Because there are no other uses of
-bidirectional streams, a peer <span class="bcp14">MAY</span> currently close the connection if it
-receives a second bidirectional stream.<a href="#section-3.3-2" class="pilcrow">¶</a></p>
+bidirectional streams, a peer <span class="bcp14">MAY</span> currently close the session as a
+'Protocol Violation' if it receives a second bidirectional stream.<a href="#section-3.3-2" class="pilcrow">¶</a></p>
 <p id="section-3.3-3">The control stream <span class="bcp14">MUST NOT</span> be abruptly closed at the underlying transport
 layer.  Doing so results in the session being closed as a 'Protocol Violation'.<a href="#section-3.3-3" class="pilcrow">¶</a></p>
 </section>
@@ -1854,7 +1854,7 @@ code, as defined below:<a href="#section-3.5-2" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-3.5-4.3">
             <p id="section-3.5-4.3.1">Unauthorized: The endpoint breached an agreement, which <span class="bcp14">MAY</span> have been
-pre-negotiated by the application.<a href="#section-3.5-4.3.1" class="pilcrow">¶</a></p>
+ pre-negotiated by the application.<a href="#section-3.5-4.3.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-3.5-4.4">
             <p id="section-3.5-4.4.1">Protocol Violation: The remote endpoint performed an action that was
@@ -2163,7 +2163,7 @@ limits.  See section 2.2 in <span>[<a href="#QUIC" class="cite xref">QUIC</a>]</
       </h2>
 <p id="section-6-1">Both unidirectional and bidirectional streams contain sequences of
 length-delimited messages.<a href="#section-6-1" class="pilcrow">¶</a></p>
-<p id="section-6-2">An endpoint that receives an unknown message type <span class="bcp14">MUST</span> close the connection.<a href="#section-6-2" class="pilcrow">¶</a></p>
+<p id="section-6-2">An endpoint that receives an unknown message type <span class="bcp14">MUST</span> close the session.<a href="#section-6-2" class="pilcrow">¶</a></p>
 <span id="name-moqt-message"></span><div id="moq-transport-message-format">
 <figure id="figure-1">
         <div class="alignLeft art-text artwork" id="section-6-3.1">
@@ -2257,8 +2257,8 @@ MOQT Message {
 <p id="section-6.1-1">Some messages include a Parameters field that encode optional message
 elements. They contain a type, length, and value.<a href="#section-6.1-1" class="pilcrow">¶</a></p>
 <p id="section-6.1-2">Senders <span class="bcp14">MUST NOT</span> repeat the same parameter type in a message. Receivers
-<span class="bcp14">SHOULD</span> check that there are no duplicate parameters and close the connection
-if found.<a href="#section-6.1-2" class="pilcrow">¶</a></p>
+<span class="bcp14">SHOULD</span> check that there are no duplicate parameters and close the session
+as a 'Protocol Violation' if found.<a href="#section-6.1-2" class="pilcrow">¶</a></p>
 <p id="section-6.1-3">Receivers ignore unrecognized parameters.<a href="#section-6.1-3" class="pilcrow">¶</a></p>
 <p id="section-6.1-4">The format of Parameters is as follows:<a href="#section-6.1-4" class="pilcrow">¶</a></p>
 <span id="name-moqt-parameter"></span><div id="moq-param">
@@ -2362,7 +2362,7 @@ reserved for use in future IETF consensus documents.<a href="#section-6.2.1-1" c
 server <span class="bcp14">MUST</span> reply with one of the versions offered by the client. If the
 server does not support any of the versions offered by the client, or
 the client receives a server version that it did not offer, the
-corresponding peer <span class="bcp14">MUST</span> close the connection.<a href="#section-6.2.1-2" class="pilcrow">¶</a></p>
+corresponding peer <span class="bcp14">MUST</span> close the session.<a href="#section-6.2.1-2" class="pilcrow">¶</a></p>
 <p id="section-6.2.1-3">[[RFC editor: please remove the remainder of this section before
 publication.]]<a href="#section-6.2.1-3" class="pilcrow">¶</a></p>
 <p id="section-6.2.1-4">The version number for the final version of this specification (0x00000001), is
@@ -2405,7 +2405,7 @@ commonly referred to as the delivery case.<a href="#section-6.2.2.1-2.4.1" class
             <dd class="break"></dd>
 </dl>
 <p id="section-6.2.2.1-3">The client <span class="bcp14">MUST</span> send a ROLE parameter with one of the three values
-specified above. The server <span class="bcp14">MUST</span> close the connection if the ROLE
+specified above. The server <span class="bcp14">MUST</span> close the session if the ROLE
 parameter is missing, is not one of the three above-specified values, or
 it is different from what the server expects based on the application.<a href="#section-6.2.2.1-3" class="pilcrow">¶</a></p>
 </section>
