@@ -873,6 +873,8 @@ Streams are by default reliable and datagrams are by default unreliable,
 but implementations can provide equivalent levels of reliability,
 including the support of a time-to-live parameter that indicates
 when to stop retransmitting lost data from the stream or datagram.
+The choice of whether to use a datagram or stream is a hop-by-hop
+decision, because MTUs may differ.
 
 The format of the OBJECT message is as follows:
 
