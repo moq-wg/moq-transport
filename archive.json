@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2023-10-29T01:10:33.579566+00:00",
+  "timestamp": "2023-10-31T01:07:09.455462+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -9061,7 +9061,7 @@
       "id": "I_kwDOG2Ho4M5u2hzf",
       "title": "Ensure use of connection/session are clear and specify error codes when closing a session.",
       "url": "https://github.com/moq-wg/moq-transport/issues/238",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "ianswett",
       "authorAssociation": "COLLABORATOR",
       "assignees": [
@@ -9072,8 +9072,8 @@
       ],
       "body": "Part of PR #234 has text \"MUST close the connection if there are duplicates\"\r\n\r\nIt seems like we should be closing the session, and we should specify an error code.",
       "createdAt": "2023-08-21T17:03:27Z",
-      "updatedAt": "2023-10-17T01:27:36Z",
-      "closedAt": null,
+      "updatedAt": "2023-10-30T23:12:35Z",
+      "closedAt": "2023-10-30T23:12:35Z",
       "comments": [
         {
           "author": "afrind",
@@ -10843,7 +10843,7 @@
       ],
       "body": "In HTTP, there are a number of restrictions on what characters are allowed in a path, headers, etc.\r\n\r\nI don't see any text restricting track names and track namespaces, but the examples are all ASCII, implying the namespace and name are not intended to be completely opaque and are instead intended to be human readable.\r\n\r\nThere's nothing in the spec that prohibits them being treated as opaque identifiers, but I'm unclear if that's the intent and I think it'd be good to explicitly say what we intend.",
       "createdAt": "2023-10-16T21:07:47Z",
-      "updatedAt": "2023-10-20T15:34:42Z",
+      "updatedAt": "2023-10-30T05:32:20Z",
       "closedAt": null,
       "comments": [
         {
@@ -10922,6 +10922,13 @@
           "body": "I am also strongly in favor of a utf-8 restriction. I'd like to inherit the usability achieved from a globally deployed and understood resource identifiers and to leverage the existing DNS and certificate system for authentication and routing. If we define names in terms of octets then we need to reinvent these conventions, or else have an unnecessarily  bi-furcated system in which some addressing occurs via binary octets and others occurs via utf-8 resource locators. ",
           "createdAt": "2023-10-20T15:34:42Z",
           "updatedAt": "2023-10-20T15:34:42Z"
+        },
+        {
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "body": "The AUTH parameter is currently defined as an ASCII string. Whatever we use for track names, can the auth token share the same encoding?",
+          "createdAt": "2023-10-30T05:32:20Z",
+          "updatedAt": "2023-10-30T05:32:20Z"
         }
       ]
     },
@@ -11080,7 +11087,7 @@
       "labels": [],
       "body": "As it stands today, QUIC does not have a 'session' layer allowing multiple instances of the same application or different applications to share a single connection.\r\n\r\nAt the last interim, I believe a few people thought that both the WebTransport and raw QUIC deployments of MoQ should support multiple sessions over a single connection.\r\n\r\nThere are proposals to add a session layer, but they're early on.  I feel like this isn't a blocker, and more of a nice to have, and MoQ can use whatever is available when it's done, but wanted the WGs opinion.",
       "createdAt": "2023-10-27T16:42:13Z",
-      "updatedAt": "2023-10-28T17:26:30Z",
+      "updatedAt": "2023-10-30T15:40:48Z",
       "closedAt": null,
       "comments": [
         {
@@ -11096,6 +11103,186 @@
           "body": "An example of a way to accomplish this: https://datatracker.ietf.org/doc/draft-seemann-quic-stream-groups/",
           "createdAt": "2023-10-28T17:26:29Z",
           "updatedAt": "2023-10-28T17:26:29Z"
+        },
+        {
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I think a session layer is inevitable. The only question is do we do it within QUIC, WebTransport, or MoqTransport.\r\n\r\nThere's been a desire to work at the track granularity. However, tracks are not independent, in fact they usually share some form of naming, grouping, prioritization, authentication, termination, etc. \r\n\r\nI think tracks should be bundled into a session and share:\r\n* a control stream\r\n* a prioritization domain\r\n* authentication\r\n* a namespace\r\n* a termination code?\r\n\r\nFor example, a conference call would be a single session.\r\n\r\nPersonally, I think a WebTransport session per MoqTransport session makes the most sense, so we don't have to implement our own pooling or session identification.",
+          "createdAt": "2023-10-30T04:47:43Z",
+          "updatedAt": "2023-10-30T04:48:42Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Individual Comment:\r\n\r\nHaving been part of WebTransport inventing a session layer, I prefer we wait for QUIC to define something and rely on that.",
+          "createdAt": "2023-10-30T15:40:48Z",
+          "updatedAt": "2023-10-30T15:40:48Z"
+        }
+      ]
+    },
+    {
+      "number": 309,
+      "id": "I_kwDOG2Ho4M51RAwJ",
+      "title": "Classify messages by ROLE",
+      "url": "https://github.com/moq-wg/moq-transport/issues/309",
+      "state": "OPEN",
+      "author": "kixelated",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [
+        "Editorial"
+      ],
+      "body": "Here is the SUBSCRIBE family of messages:\r\n\r\n```rust\r\nSUBSCRIBE = 0x3,\r\nSUBSCRIBE_OK = 0x4,\r\nSUBSCRIBE_ERROR = 0x5,\r\nUNSUBSCRIBE = 0xa,\r\nSUBSCRIBE_FIN = 0xb,\r\nSUBSCRIBE_RESET = 0xc,\r\n```\r\n\r\nI have two separate modules for publishing and subscribing as they are fully* independent in MoqTransport. Additionally, some applications will only publish or subscribe, so it's not necessary to implement/expose the full API surface.\r\n\r\nHowever, at a glance, it's not clear which messages are sent by each role. I think it would help a lot if we classified which role sends which messages:\r\n\r\n```rust\r\n// Sent by a subscriber\r\nSUBSCRIBE = 0x3,\r\nUNSUBSCRIBE = 0xa,\r\n\r\n// Sent by a publisher\r\nSUBSCRIBE_OK = 0x4,\r\nSUBSCRIBE_ERROR = 0x5,\r\nSUBSCRIBE_FIN = 0xb,\r\nSUBSCRIBE_RESET = 0xc,\r\n```\r\n\r\nFor example, I think it makes it a lot clearer that a subscriber needs to accept 3(!) possible error messages.",
+      "createdAt": "2023-10-30T03:18:02Z",
+      "updatedAt": "2023-10-30T04:20:12Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Here's from my documentation:\r\n\r\n```\r\nMessages sent by the publisher:\r\n- [Announce]\r\n- [Unannounce]\r\n- [SubscribeOk]\r\n- [SubscribeError]\r\n- [SubscribeReset]\r\n- [SubscribeFin]\r\n- [Object]\r\n\r\nMessages sent by the subscriber:\r\n- [Subscribe]\r\n- [Unsubscribe]\r\n- [AnnounceOk]\r\n- [AnnounceError]\r\n```",
+          "createdAt": "2023-10-30T04:20:12Z",
+          "updatedAt": "2023-10-30T04:20:12Z"
+        }
+      ]
+    },
+    {
+      "number": 310,
+      "id": "I_kwDOG2Ho4M51RQVy",
+      "title": "Consolidating SUBSCRIBE errors",
+      "url": "https://github.com/moq-wg/moq-transport/issues/310",
+      "state": "OPEN",
+      "author": "kixelated",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [
+        "Subscribe"
+      ],
+      "body": "As mentioned in #309, there are 3 different ways for a publisher to close a subscriber, each with minor differences.\r\n\r\n- `SUBSCRIBE_ERROR`: I never sent you an object.\r\n- `SUBSCRIBE_FIN`: There are no more objects to send after group/object X/Y.\r\n- `SUBSCRIBE_RESET`: There are more objects after group/object X/Y... but I won't send them.\r\n\r\nA few things:\r\n\r\n### 1. `SUBSCRIBE_ERROR` naming\r\nI think it should be renamed since it's not the only ERROR message. Maybe `SUBSCRIBE_REJECT`?\r\n\r\n### 2. `SUBSCRIBE_FIN` and `SUBSCRIBE_RESET` are virtually identical\r\nThe only difference is that one has an error code. Otherwise they both include a final group/object and it's up to the application/library to decide if they wait for the final object(s). I'd like to only implement this once but right now I have to copy/paste any code to handle these almost identical messages.\r\n\r\nWhat if we merged them and use error code 0 to signal a FIN. The reason phrase should be removed as part of #273.\r\n\r\n### 3. It's difficult to determine which messages are protocol violations\r\n\r\nThere really needs to be a state machine like #237 with this many ways to terminate a subscription.\r\n\r\nI think these are all protocol violations:\r\n- `SUBSCRIBE_OK` then `SUBSCRIBE_ERROR`\r\n- `SUBSCRIBE_ERROR` then `SUBSCRIBE_*` \r\n- `SUBSCRIBE_RESET/FIN` then `SUBSCRIBE_*`\r\n\r\nMy interpretation of the draft is that a `SUBSCRIBE_FIN` followed by a `SUBSCRIBE_RESET` is invalid, which is not obvious and unlike QUIC.\r\n> A subscription remains active until it expires, until the publisher of the track terminates the track with a SUBSCRIBE_FIN (see [Section 6.8](https://moq-wg.github.io/moq-transport/draft-ietf-moq-transport.html#message-subscribe-fin)) or a SUBSCRIBE_RST (see [Section 6.9](https://moq-wg.github.io/moq-transport/draft-ietf-moq-transport.html#message-subscribe-rst)).\r\n\r\n### 4. Do these error distinctions actually matter to the transport?\r\n\r\nI don't think so. The library/relay behavior doesn't change based on `SUBSCRIBE_RESET/FIN`. The only thing that miiiight differentiate between the two is the application, which can use errors codes for this purpose. At the very least I would merge these two messages.\r\n\r\nBut I would also like to explore a single way for the publisher to close a subscription. The application can signal the nuanced differences between errors (ex. error code 404 vs 410). The library/relay doesn't care, it just forwards the error code.",
+      "createdAt": "2023-10-30T04:11:24Z",
+      "updatedAt": "2023-10-30T04:12:12Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 312,
+      "id": "I_kwDOG2Ho4M51Rg53",
+      "title": "Clarify how to end a SUBSCRIBE at group N",
+      "url": "https://github.com/moq-wg/moq-transport/issues/312",
+      "state": "OPEN",
+      "author": "kixelated",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [
+        "Subscribe"
+      ],
+      "body": "If I wanted to receive all objects in group N, I would issue:\r\n\r\n```\r\nSUBSCRIBE\r\nend_group=absolute/N\r\nend_object=none\r\n```\r\n\r\nHowever the draft sneaks this restriction in, and it would actually be a protocol violation:\r\n\r\n> EndObject's Mode MUST NOT be None if EndGroup's Mode is not None.\r\n\r\nIt wasn't clear to me until chatting with Alan how you're supposed to do it:\r\n\r\n```\r\nSUBSCRIBE\r\nend_group=absolute/N+1\r\nend_object=absolute/0\r\n```\r\n\r\nIt's clarified in example 5, but I don't think this is obvious and it feels like an off-by-one. For example, if N was the last group in the broadcast, I can imagine some implementations incorrectly throwing an error or somehow mishandling it.",
+      "createdAt": "2023-10-30T05:11:53Z",
+      "updatedAt": "2023-10-30T15:51:26Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Individual Comment:\r\n\r\n> the draft sneaks this restriction in\r\n\r\nThis was discussed on the PR here: https://github.com/moq-wg/moq-transport/pull/289#discussion_r1368916351.\r\n\r\nGiven how subscribe locations work (end is exclusive), end=N+1/0 means \"including through the end of group N\".  The question is whether we should have more than one way to do things, and defaults when values are not present.",
+          "createdAt": "2023-10-30T15:48:50Z",
+          "updatedAt": "2023-10-30T15:48:50Z"
+        },
+        {
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> Individual Comment:\r\n> \r\n> > the draft sneaks this restriction in\r\n> \r\n> This was discussed on the PR here: [#289 (comment)](https://github.com/moq-wg/moq-transport/pull/289#discussion_r1368916351).\r\n\r\nSorry, bad choice of word there. I meant that it's not immediately obvious why the restriction exists, and what it impacts.",
+          "createdAt": "2023-10-30T15:51:25Z",
+          "updatedAt": "2023-10-30T15:51:25Z"
+        }
+      ]
+    },
+    {
+      "number": 313,
+      "id": "I_kwDOG2Ho4M51Ri1H",
+      "title": "SUBSCRIBE_RST/FIN with null final Group/Object",
+      "url": "https://github.com/moq-wg/moq-transport/issues/313",
+      "state": "OPEN",
+      "author": "kixelated",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "`SUBSCRIBE_RST` and `SUBSCRIBE_FIN` define:\r\n\r\n> Final Group: The largest Group Sequence sent by the publisher in an OBJECT message in this track.\r\n> Final Object: The largest Object Sequence sent by the publisher in an OBJECT message in the Final Group for this track.\r\n\r\nHowever, what happens if no objects were ever produced/sent?",
+      "createdAt": "2023-10-30T05:20:32Z",
+      "updatedAt": "2023-10-30T15:51:11Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Individual Comment:\r\n\r\nOops.  Two possible ways to handle this:\r\n\r\n1) Flag indicating presence of these fields (Use Location now that is defined elsewhere?)\r\n2) Change the semantics of the fields to be exclusive (eg: it is the first object NOT sent), so 0/0 means none.\r\n\r\n",
+          "createdAt": "2023-10-30T15:51:10Z",
+          "updatedAt": "2023-10-30T15:51:10Z"
+        }
+      ]
+    },
+    {
+      "number": 314,
+      "id": "I_kwDOG2Ho4M51RpRP",
+      "title": "VarInt parameters length mismatch",
+      "url": "https://github.com/moq-wg/moq-transport/issues/314",
+      "state": "OPEN",
+      "author": "kixelated",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [
+        "Parameters"
+      ],
+      "body": "Currently, VarInts have two lengths:\r\n\r\n1. In the parameter length.\r\n2. In the first two bits of the parameter value.\r\n\r\nThe decision in #294 was that the two MUST match, which is a good solution without a full #256 reform.\r\n\r\nHowever:\r\n\r\n> If the parameter value is a varint, but the self-encoded length of that varint does not match the Parameter Length field, the receiver MUST ignore the parameter using the value in the Parameter Length field.\r\n\r\nIgnoring seems like the wrong play. For example, we know the role parameter (0x0) is a VarInt in the current draft. However this text says I MUST ignore any errors when parsing this varint and pretend like the parameter was never sent, which is both unenforceable and a major foot-gun (silently ignoring parameters).\r\n\r\nI think we close the connection with an error if there's an error parsing a known parameter.",
+      "createdAt": "2023-10-30T05:47:46Z",
+      "updatedAt": "2023-10-30T05:48:02Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 315,
+      "id": "I_kwDOG2Ho4M51R1bM",
+      "title": "Group size",
+      "url": "https://github.com/moq-wg/moq-transport/issues/315",
+      "state": "OPEN",
+      "author": "vasilvv",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [
+        "Object Model"
+      ],
+      "body": "How big can a group be? I know we (probably) won't be able to set a fixed limit, but I feel like we need to answer this in order to know what kind of design assumptions to make.\r\n\r\nIs a single group expected to be small enough to fit in the cache?  Will the protocol work if a media track is just a single group that is being appended to for hours if not days?  I was thinking about stream mapping and the resource-use-at-relays problem earlier today, and realized we might not currently have a conclusive answer for those.",
+      "createdAt": "2023-10-30T06:33:27Z",
+      "updatedAt": "2023-10-30T22:14:13Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "body": "As it stands today, the group ID is merely an annotation used by SUBSCRIBE hints. It's a sync point only by convention; in actuality the relay has no idea if objects within a group depend on each other. The relay is expected to cache/serve/evict objects independently so the group size is irrelevant.\r\n\r\nFor example, a valid use-case is a single audio group with an object per frame. Each OBJECT would have an expires field of 30s, effectively dropping the head of the group as time progresses. The total number of objects per group is unbounded but the cache size is bounded.\r\n\r\nI strongly disagree with this. I want groups to actually be sync points, in which a relay knows that it should not evict OBJECT N without also evicting OBJECT N+1. Then the maximum size of the group actually matters.",
+          "createdAt": "2023-10-30T07:27:12Z",
+          "updatedAt": "2023-10-30T07:27:12Z"
+        },
+        {
+          "author": "wilaw",
+          "authorAssociation": "NONE",
+          "body": "IMO the size of a group (in bytes, or object count, or wallclock duration) should not be defined by the moq-transport spec. Limits such as these are driven by the physical characteristics of the caches and therefore should be provided by the relay (cache) provider. A streaming format (such as WARP) may choose to define a minimum object size to be supported for interop reasons between relays, but this should probably stay outside of moq-transport. ",
+          "createdAt": "2023-10-30T15:12:44Z",
+          "updatedAt": "2023-10-30T15:12:44Z"
+        },
+        {
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "body": "+1 to will's point.  Group Size vary depending on the application - video, audio, chat, something new \r\n\r\nIf any application needs to be aware of this, we can do the following\r\n1. Have catalog  specify the group size per track\r\n2. Have a MOQT message updated where the Publisher can specify  it per track in Subscribe OK. This might help as hint to caches if need be.",
+          "createdAt": "2023-10-30T21:15:48Z",
+          "updatedAt": "2023-10-30T21:16:19Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Individual Comment:\r\n\r\nThere may be something interesting for moqt here in expressing more information that's useful to a cache.  Maybe an explicit expiry time would be more useful than a TTL, or a TTL at the group rather than the object level?  \r\n\r\nCaches will evict stuff and can go fetch it if someone asks for it later.  Maybe what needs to be specified is what happens when a cache receives Objects 0-10, evicts 0-3, then gets a SUBSCRIBE for Absolute/0-10?",
+          "createdAt": "2023-10-30T22:14:13Z",
+          "updatedAt": "2023-10-30T22:14:13Z"
         }
       ]
     }
@@ -39080,7 +39267,7 @@
       "labels": [],
       "body": "This PR is expected to be base PR to support multi-subscribe like flows that will follow up.\r\n\r\nIt adds support for SubscribeID and also renames the trackId to `Full Track Name Alias` to avoid the confusion and make the scope clear.\r\n\r\n",
       "createdAt": "2023-10-27T17:14:58Z",
-      "updatedAt": "2023-10-28T17:33:45Z",
+      "updatedAt": "2023-10-30T17:33:53Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "f8dd2386d2c2d471d76e4b19aaaa811f2e13ddfe",
@@ -39138,6 +39325,90 @@
               "updatedAt": "2023-10-28T17:33:45Z"
             }
           ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5lhVUl",
+          "commit": {
+            "abbreviatedOid": "6a826ac"
+          },
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "The approach is good. A lot of editorial nits.",
+          "createdAt": "2023-10-30T04:27:58Z",
+          "updatedAt": "2023-10-30T04:37:00Z",
+          "comments": [
+            {
+              "originalPosition": 81,
+              "body": "I think we prohibit reusing `Subscribe IDs` until we flesh out resubscriptions in a separate PR.",
+              "createdAt": "2023-10-30T04:27:58Z",
+              "updatedAt": "2023-10-30T04:37:00Z"
+            },
+            {
+              "originalPosition": 63,
+              "body": "I don't think we need even/odd. Each publisher would have their own number space as they do currently.\r\n\r\nBut +1 to it being +1 for each SUBSCRIBE. It would be required for a cumulative MAX_SUBSCRIBES if go that direction.\r\n\r\nnit: Can you add a space so its `Subscribe ID` instead of `SubscribeID`?",
+              "createdAt": "2023-10-30T04:29:55Z",
+              "updatedAt": "2023-10-30T04:37:00Z"
+            },
+            {
+              "originalPosition": 36,
+              "body": "+1 to `Track Alias`",
+              "createdAt": "2023-10-30T04:32:19Z",
+              "updatedAt": "2023-10-30T04:37:00Z"
+            },
+            {
+              "originalPosition": 112,
+              "body": "Can you configure your editor to obey `.editorconfig` and word wrap at 80 characters? It's difficult to determine what changed.",
+              "createdAt": "2023-10-30T04:34:19Z",
+              "updatedAt": "2023-10-30T04:37:00Z"
+            },
+            {
+              "originalPosition": 175,
+              "body": "This definition is useless. Can you at least include a link back to the `SUBSCRIBE` section?",
+              "createdAt": "2023-10-30T04:35:41Z",
+              "updatedAt": "2023-10-30T04:37:00Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5lmkn3",
+          "commit": {
+            "abbreviatedOid": "6a826ac"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2023-10-30T16:36:49Z",
+          "updatedAt": "2023-10-30T16:36:49Z",
+          "comments": [
+            {
+              "originalPosition": 81,
+              "body": "good point, i will remove this line and add it in the follow up PR i am working on",
+              "createdAt": "2023-10-30T16:36:49Z",
+              "updatedAt": "2023-10-30T16:36:49Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5lnBhZ",
+          "commit": {
+            "abbreviatedOid": "6a826ac"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2023-10-30T17:33:53Z",
+          "updatedAt": "2023-10-30T17:33:53Z",
+          "comments": [
+            {
+              "originalPosition": 36,
+              "body": "+1 , i will update to",
+              "createdAt": "2023-10-30T17:33:53Z",
+              "updatedAt": "2023-10-30T17:33:53Z"
+            }
+          ]
         }
       ]
     },
@@ -39146,50 +39417,68 @@
       "id": "PR_kwDOG2Ho4M5eCIPp",
       "title": "Clarify (b)",
       "url": "https://github.com/moq-wg/moq-transport/pull/306",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "ianswett",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [],
       "body": "Slightly clarifies what (b) is.",
       "createdAt": "2023-10-28T17:40:05Z",
-      "updatedAt": "2023-10-28T17:40:05Z",
+      "updatedAt": "2023-10-30T15:27:28Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "f8dd2386d2c2d471d76e4b19aaaa811f2e13ddfe",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "ianswett-clarify-b",
       "headRefOid": "291e1f4a895c9ab5465c85956c04194cde4fd67a",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "closedAt": "2023-10-30T15:27:28Z",
+      "mergedAt": "2023-10-30T15:27:28Z",
+      "mergedBy": "ianswett",
+      "mergeCommit": {
+        "oid": "eb35a4d0c92923a2da19c0921ac094be5c03d279"
+      },
       "comments": [],
-      "reviews": []
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M5lhUu1",
+          "commit": {
+            "abbreviatedOid": "291e1f4"
+          },
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2023-10-30T04:23:53Z",
+          "updatedAt": "2023-10-30T04:23:53Z",
+          "comments": []
+        }
+      ]
     },
     {
       "number": 307,
       "id": "PR_kwDOG2Ho4M5eCIs0",
       "title": "Use session more and specify error codes",
       "url": "https://github.com/moq-wg/moq-transport/pull/307",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "ianswett",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [],
       "body": "Fixes #238 \r\n\r\nI also wonder if Connection URL should be renamed to Session URL?",
       "createdAt": "2023-10-28T17:48:31Z",
-      "updatedAt": "2023-10-28T17:49:14Z",
+      "updatedAt": "2023-10-30T23:12:34Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "f8dd2386d2c2d471d76e4b19aaaa811f2e13ddfe",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "ianswett-more-session",
       "headRefOid": "5382162d23a3f08b9843c076ecc11daaef742911",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "closedAt": "2023-10-30T23:12:34Z",
+      "mergedAt": "2023-10-30T23:12:34Z",
+      "mergedBy": "ianswett",
+      "mergeCommit": {
+        "oid": "769515acc19518a63da1f41f7492f25f6ab68f6f"
+      },
       "comments": [],
       "reviews": [
         {
@@ -39211,6 +39500,72 @@
               "updatedAt": "2023-10-28T17:49:15Z"
             }
           ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5lmBaH",
+          "commit": {
+            "abbreviatedOid": "5382162"
+          },
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "I would prefer:\r\n\r\n> close the session with a 'Protocol Violation'\r\n\r\ninstead of:\r\n\r\n> close the session as a 'Protocol Violation'",
+          "createdAt": "2023-10-30T15:34:16Z",
+          "updatedAt": "2023-10-30T15:35:15Z",
+          "comments": [
+            {
+              "originalPosition": 45,
+              "body": "I think so.",
+              "createdAt": "2023-10-30T15:34:16Z",
+              "updatedAt": "2023-10-30T15:35:15Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5lmuVG",
+          "commit": {
+            "abbreviatedOid": "5382162"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2023-10-30T16:55:25Z",
+          "updatedAt": "2023-10-30T16:55:25Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5lm8uG",
+          "commit": {
+            "abbreviatedOid": "5382162"
+          },
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "LGTM",
+          "createdAt": "2023-10-30T17:25:02Z",
+          "updatedAt": "2023-10-30T17:25:02Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5lo3vh",
+          "commit": {
+            "abbreviatedOid": "5382162"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2023-10-30T23:12:18Z",
+          "updatedAt": "2023-10-30T23:12:18Z",
+          "comments": [
+            {
+              "originalPosition": 45,
+              "body": "SG, will do in a different PR.",
+              "createdAt": "2023-10-30T23:12:18Z",
+              "updatedAt": "2023-10-30T23:12:18Z"
+            }
+          ]
         }
       ]
     },
@@ -39219,26 +39574,190 @@
       "id": "PR_kwDOG2Ho4M5eCL_m",
       "title": "Remove TODOs",
       "url": "https://github.com/moq-wg/moq-transport/pull/308",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "ianswett",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [],
       "body": "I believe some of this is covered by the recently updated GOAWAY section and I'm not sure what else to add here.",
       "createdAt": "2023-10-28T18:40:52Z",
-      "updatedAt": "2023-10-28T18:40:52Z",
+      "updatedAt": "2023-10-31T00:10:20Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "f8dd2386d2c2d471d76e4b19aaaa811f2e13ddfe",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "ianswett-remove-todos",
       "headRefOid": "a92fbc26ca17082ad387ef837b5845ed9fa35869",
+      "closedAt": "2023-10-31T00:10:20Z",
+      "mergedAt": "2023-10-31T00:10:20Z",
+      "mergedBy": "ianswett",
+      "mergeCommit": {
+        "oid": "5f8ba291c21839dc5addc8fb6c4cb59410c5fe0b"
+      },
+      "comments": [
+        {
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I don't think these TODOs have been covered yet. That being said, I would rather we file issues for these so there can be a conversation, rather than litter the draft with TODOs.",
+          "createdAt": "2023-10-30T02:09:57Z",
+          "updatedAt": "2023-10-30T02:09:57Z"
+        },
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I'm unsure what's unresolved, but if you can file new issues as appropriate and link them to this PR, that would be helpful.",
+          "createdAt": "2023-10-31T00:10:16Z",
+          "updatedAt": "2023-10-31T00:10:16Z"
+        }
+      ],
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M5lg--A",
+          "commit": {
+            "abbreviatedOid": "a92fbc2"
+          },
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2023-10-30T02:10:04Z",
+          "updatedAt": "2023-10-30T02:10:04Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 311,
+      "id": "PR_kwDOG2Ho4M5eEwMa",
+      "title": "susbscribe",
+      "url": "https://github.com/moq-wg/moq-transport/pull/311",
+      "state": "MERGED",
+      "author": "kixelated",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "",
+      "createdAt": "2023-10-30T04:51:52Z",
+      "updatedAt": "2023-10-30T07:30:58Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "f8dd2386d2c2d471d76e4b19aaaa811f2e13ddfe",
+      "headRepository": "moq-wg/moq-transport",
+      "headRefName": "susbscribe",
+      "headRefOid": "b674c4eb5cb5ae3444d0e28fe13b064c145a6c13",
+      "closedAt": "2023-10-30T07:30:55Z",
+      "mergedAt": "2023-10-30T07:30:55Z",
+      "mergedBy": "kixelated",
+      "mergeCommit": {
+        "oid": "6e08ca6ad06e4b32ea2f581e9912751e9c768bc3"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M5lhtwB",
+          "commit": {
+            "abbreviatedOid": "b674c4e"
+          },
+          "author": "vasilvv",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2023-10-30T06:26:05Z",
+          "updatedAt": "2023-10-30T06:26:05Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 316,
+      "id": "PR_kwDOG2Ho4M5eLL_P",
+      "title": "Describe how to use datagrams",
+      "url": "https://github.com/moq-wg/moq-transport/pull/316",
+      "state": "OPEN",
+      "author": "ianswett",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Fixes #35\r\n\r\nAlso fixes #38 because there is existing text about streams:\r\n```\r\n\"A relay that reads from a stream and writes to stream in order will\r\nintroduce head-of-line blocking.  Packet loss will cause stream data to\r\nbe buffered in the library, awaiting in order delivery, which will\r\nincrease latency over additional hops.  To mitigate this, a relay SHOULD\r\nread and write stream data out of order subject to flow control\r\nlimits.  See section 2.2 in {{QUIC}}.\"\r\n```\r\n",
+      "createdAt": "2023-10-30T23:23:25Z",
+      "updatedAt": "2023-10-31T00:07:12Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "c107110ff473a8e28283b14b16acae45371bdc75",
+      "headRepository": "moq-wg/moq-transport",
+      "headRefName": "ianswett-use-datagrams",
+      "headRefOid": "e7d3693711c13d74dfecf8eeb4ef0ad995bb8b95",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
       "mergeCommit": null,
       "comments": [],
-      "reviews": []
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M5lo9Zr",
+          "commit": {
+            "abbreviatedOid": "10a08be"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "Individual Review: \r\n\r\nShould we provide more guidance for publishers about the tradeoffs for sending an object on a stream vs a datagram?",
+          "createdAt": "2023-10-30T23:45:10Z",
+          "updatedAt": "2023-10-30T23:49:52Z",
+          "comments": [
+            {
+              "originalPosition": 25,
+              "body": "I think we need more specificity of how the maximum size is determined.  QUIC datagrams can have different maximum sizes (including 0 = disabled) at different hops.",
+              "createdAt": "2023-10-30T23:45:10Z",
+              "updatedAt": "2023-10-30T23:49:52Z"
+            },
+            {
+              "originalPosition": 25,
+              "body": "`a stream needs to ` or `a stream MUST` ?",
+              "createdAt": "2023-10-30T23:45:41Z",
+              "updatedAt": "2023-10-30T23:49:52Z"
+            },
+            {
+              "originalPosition": 26,
+              "body": "Should we mention that streams are subject to limits and datagrams are not?",
+              "createdAt": "2023-10-30T23:46:19Z",
+              "updatedAt": "2023-10-30T23:49:52Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5lo_3s",
+          "commit": {
+            "abbreviatedOid": "e7d3693"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "Thanks @afrind PTAL",
+          "createdAt": "2023-10-31T00:01:15Z",
+          "updatedAt": "2023-10-31T00:07:12Z",
+          "comments": [
+            {
+              "originalPosition": 25,
+              "body": "If it doesn't fit, what might the alternatives be?  We can use a MUST if you feel strongly.",
+              "createdAt": "2023-10-31T00:01:15Z",
+              "updatedAt": "2023-10-31T00:07:12Z"
+            },
+            {
+              "originalPosition": 25,
+              "body": "I added a sentence about how the decision of which to use is hop-by-hop.",
+              "createdAt": "2023-10-31T00:02:09Z",
+              "updatedAt": "2023-10-31T00:07:12Z"
+            },
+            {
+              "originalPosition": 26,
+              "body": "I added a sentence at the end.",
+              "createdAt": "2023-10-31T00:06:58Z",
+              "updatedAt": "2023-10-31T00:07:12Z"
+            }
+          ]
+        }
+      ]
     }
   ]
 }
