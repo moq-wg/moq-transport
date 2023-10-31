@@ -5,12 +5,12 @@
 MOQ                                                            L. Curley
 Internet-Draft                                                    Twitch
 Intended status: Standards Track                                K. Pugin
-Expires: 2 May 2024                                                 Meta
+Expires: 3 May 2024                                                 Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                                   Google
-                                                         30 October 2023
+                                                         31 October 2023
 
 
                        Media over QUIC Transport
@@ -52,7 +52,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 2 May 2024.
+   This Internet-Draft will expire on 3 May 2024.
 
 Copyright Notice
 
@@ -100,10 +100,8 @@ Table of Contents
    5.  Relays
      5.1.  Subscriber Interactions
      5.2.  Publisher Interactions
-     5.3.  Relay Discovery and Failover
-     5.4.  Restoring connections through relays
-     5.5.  Congestion Response at Relays
-     5.6.  Relay Object Handling
+     5.3.  Congestion Response at Relays
+     5.4.  Relay Object Handling
    6.  Messages
      6.1.  Parameters
        6.1.1.  Version Specific Parameters
@@ -702,23 +700,13 @@ Table of Contents
    OBJECT message header.  Unless determined by congestion response,
    Relays MUST forward the OBJECT message to the matching subscribers.
 
-5.3.  Relay Discovery and Failover
-
-   TODO: This section shall cover aspects of relay failover and protocol
-   interactions.
-
-5.4.  Restoring connections through relays
-
-   TODO: This section shall cover reconnect considerations for clients
-   when moving between the Relays.
-
-5.5.  Congestion Response at Relays
+5.3.  Congestion Response at Relays
 
    TODO: Refer to Section 4.  Add details to describe relay behavior
    when merging or splitting streams and interactions with congestion
    response.
 
-5.6.  Relay Object Handling
+5.4.  Relay Object Handling
 
    MOQT encodes the delivery information for a stream via OBJECT headers
    (Section 6.3).

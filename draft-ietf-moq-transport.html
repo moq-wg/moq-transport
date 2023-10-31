@@ -1037,7 +1037,7 @@ svg :is([fill="white"], [fill^="#fff"]) {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Curley, et al.</td>
-<td class="center">Expires 2 May 2024</td>
+<td class="center">Expires 3 May 2024</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1050,12 +1050,12 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dd class="internet-draft">draft-ietf-moq-transport-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2023-10-30" class="published">30 October 2023</time>
+<time datetime="2023-10-31" class="published">31 October 2023</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2024-05-02">2 May 2024</time></dd>
+<dd class="expires"><time datetime="2024-05-03">3 May 2024</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1117,7 +1117,7 @@ networks and is designed for high scale and low latency distribution.<a href="#s
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 2 May 2024.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 3 May 2024.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1253,16 +1253,10 @@ networks and is designed for high scale and low latency distribution.<a href="#s
                 <p id="section-toc.1-1.5.2.2.1"><a href="#section-5.2" class="auto internal xref">5.2</a>.  <a href="#name-publisher-interactions" class="internal xref">Publisher Interactions</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.3">
-                <p id="section-toc.1-1.5.2.3.1"><a href="#section-5.3" class="auto internal xref">5.3</a>.  <a href="#name-relay-discovery-and-failove" class="internal xref">Relay Discovery and Failover</a></p>
+                <p id="section-toc.1-1.5.2.3.1"><a href="#section-5.3" class="auto internal xref">5.3</a>.  <a href="#name-congestion-response-at-rela" class="internal xref">Congestion Response at Relays</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.4">
-                <p id="section-toc.1-1.5.2.4.1"><a href="#section-5.4" class="auto internal xref">5.4</a>.  <a href="#name-restoring-connections-throu" class="internal xref">Restoring connections through relays</a></p>
-</li>
-              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.5">
-                <p id="section-toc.1-1.5.2.5.1"><a href="#section-5.5" class="auto internal xref">5.5</a>.  <a href="#name-congestion-response-at-rela" class="internal xref">Congestion Response at Relays</a></p>
-</li>
-              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.6">
-                <p id="section-toc.1-1.5.2.6.1"><a href="#section-5.6" class="auto internal xref">5.6</a>.  <a href="#name-relay-object-handling" class="internal xref">Relay Object Handling</a></p>
+                <p id="section-toc.1-1.5.2.4.1"><a href="#section-5.4" class="auto internal xref">5.4</a>.  <a href="#name-relay-object-handling" class="internal xref">Relay Object Handling</a></p>
 </li>
             </ul>
 </li>
@@ -2105,53 +2099,35 @@ OBJECT message header. Unless determined by congestion response, Relays
 <span class="bcp14">MUST</span> forward the OBJECT message to the matching subscribers.<a href="#section-5.2-5" class="pilcrow">¶</a></p>
 </section>
 </div>
-<div id="relay-discovery-and-failover">
-<section id="section-5.3">
-        <h3 id="name-relay-discovery-and-failove">
-<a href="#section-5.3" class="section-number selfRef">5.3. </a><a href="#name-relay-discovery-and-failove" class="section-name selfRef">Relay Discovery and Failover</a>
-        </h3>
-<p id="section-5.3-1">TODO: This section shall cover aspects of relay failover and protocol
-interactions.<a href="#section-5.3-1" class="pilcrow">¶</a></p>
-</section>
-</div>
-<div id="restoring-connections-through-relays">
-<section id="section-5.4">
-        <h3 id="name-restoring-connections-throu">
-<a href="#section-5.4" class="section-number selfRef">5.4. </a><a href="#name-restoring-connections-throu" class="section-name selfRef">Restoring connections through relays</a>
-        </h3>
-<p id="section-5.4-1">TODO: This section shall cover reconnect considerations for clients when
-moving between the Relays.<a href="#section-5.4-1" class="pilcrow">¶</a></p>
-</section>
-</div>
 <div id="congestion-response-at-relays">
-<section id="section-5.5">
+<section id="section-5.3">
         <h3 id="name-congestion-response-at-rela">
-<a href="#section-5.5" class="section-number selfRef">5.5. </a><a href="#name-congestion-response-at-rela" class="section-name selfRef">Congestion Response at Relays</a>
+<a href="#section-5.3" class="section-number selfRef">5.3. </a><a href="#name-congestion-response-at-rela" class="section-name selfRef">Congestion Response at Relays</a>
         </h3>
-<p id="section-5.5-1">TODO: Refer to <a href="#priority-congestion" class="auto internal xref">Section 4</a>. Add details to describe relay
+<p id="section-5.3-1">TODO: Refer to <a href="#priority-congestion" class="auto internal xref">Section 4</a>. Add details to describe relay
 behavior when merging or splitting streams and interactions with
-congestion response.<a href="#section-5.5-1" class="pilcrow">¶</a></p>
+congestion response.<a href="#section-5.3-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="relay-object-handling">
-<section id="section-5.6">
+<section id="section-5.4">
         <h3 id="name-relay-object-handling">
-<a href="#section-5.6" class="section-number selfRef">5.6. </a><a href="#name-relay-object-handling" class="section-name selfRef">Relay Object Handling</a>
+<a href="#section-5.4" class="section-number selfRef">5.4. </a><a href="#name-relay-object-handling" class="section-name selfRef">Relay Object Handling</a>
         </h3>
-<p id="section-5.6-1">MOQT encodes the delivery information for a stream via OBJECT headers
-(<a href="#message-object" class="auto internal xref">Section 6.3</a>).<a href="#section-5.6-1" class="pilcrow">¶</a></p>
-<p id="section-5.6-2">A relay <span class="bcp14">MUST</span> treat the object payload as opaque.  A relay <span class="bcp14">MUST NOT</span>
+<p id="section-5.4-1">MOQT encodes the delivery information for a stream via OBJECT headers
+(<a href="#message-object" class="auto internal xref">Section 6.3</a>).<a href="#section-5.4-1" class="pilcrow">¶</a></p>
+<p id="section-5.4-2">A relay <span class="bcp14">MUST</span> treat the object payload as opaque.  A relay <span class="bcp14">MUST NOT</span>
 combine, split, or otherwise modify object payloads.  A relay <span class="bcp14">SHOULD</span>
 prioritize streams (<a href="#priority-congestion" class="auto internal xref">Section 4</a>) based on the send
-order/priority.<a href="#section-5.6-2" class="pilcrow">¶</a></p>
-<p id="section-5.6-3">A sender <span class="bcp14">SHOULD</span> begin sending incomplete objects when available to
-avoid incurring additional latency.<a href="#section-5.6-3" class="pilcrow">¶</a></p>
-<p id="section-5.6-4">A relay that reads from a stream and writes to stream in order will
+order/priority.<a href="#section-5.4-2" class="pilcrow">¶</a></p>
+<p id="section-5.4-3">A sender <span class="bcp14">SHOULD</span> begin sending incomplete objects when available to
+avoid incurring additional latency.<a href="#section-5.4-3" class="pilcrow">¶</a></p>
+<p id="section-5.4-4">A relay that reads from a stream and writes to stream in order will
 introduce head-of-line blocking.  Packet loss will cause stream data to
 be buffered in the library, awaiting in order delivery, which will
 increase latency over additional hops.  To mitigate this, a relay <span class="bcp14">SHOULD</span>
 read and write stream data out of order subject to flow control
-limits.  See section 2.2 in <span>[<a href="#QUIC" class="cite xref">QUIC</a>]</span>.<a href="#section-5.6-4" class="pilcrow">¶</a></p>
+limits.  See section 2.2 in <span>[<a href="#QUIC" class="cite xref">QUIC</a>]</span>.<a href="#section-5.4-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
