@@ -631,16 +631,6 @@ fields, such as priority order and other metadata properties in the
 OBJECT message header. Unless determined by congestion response, Relays
 MUST forward the OBJECT message to the matching subscribers.
 
-## Relay Discovery and Failover
-
-TODO: This section shall cover aspects of relay failover and protocol
-interactions.
-
-## Restoring connections through relays
-
-TODO: This section shall cover reconnect considerations for clients when
-moving between the Relays.
-
 ## Congestion Response at Relays
 
 TODO: Refer to {{priority-congestion}}. Add details to describe relay
