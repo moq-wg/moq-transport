@@ -5,12 +5,12 @@
 MOQ                                                            L. Curley
 Internet-Draft                                                    Twitch
 Intended status: Standards Track                                K. Pugin
-Expires: 2 May 2024                                                 Meta
+Expires: 3 May 2024                                                 Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                                   Google
-                                                         30 October 2023
+                                                         31 October 2023
 
 
                        Media over QUIC Transport
@@ -52,7 +52,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 2 May 2024.
+   This Internet-Draft will expire on 3 May 2024.
 
 Copyright Notice
 
@@ -945,7 +945,9 @@ Table of Contents
    reliability, including the support of a time-to-live parameter that
    indicates when to stop retransmitting lost data from the stream or
    datagram.  The choice of whether to use a datagram or stream is a
-   hop-by-hop decision, because MTUs may differ.
+   hop-by-hop decision, because MTUs may differ.  Datagrams do not have
+   flow control limits, but streams do, which may affect the decision of
+   which to use.
 
    The format of the OBJECT message is as follows:
 
