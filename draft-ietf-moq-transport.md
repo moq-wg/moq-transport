@@ -874,7 +874,8 @@ but implementations can provide equivalent levels of reliability,
 including the support of a time-to-live parameter that indicates
 when to stop retransmitting lost data from the stream or datagram.
 The choice of whether to use a datagram or stream is a hop-by-hop
-decision, because MTUs may differ.
+decision, because MTUs may differ.  Datagrams do not have flow control
+limits, but streams do, which may affect the decision of which to use.
 
 The format of the OBJECT message is as follows:
 
