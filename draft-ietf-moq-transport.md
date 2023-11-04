@@ -1070,6 +1070,7 @@ SUBSCRIBE_ERROR
   Track ID (i),
   Error Code (i),
   Reason Phrase (b),
+  New Track ID (i),
 }
 ~~~
 {: #moq-transport-subscribe-error format title="MOQT SUBSCRIBE_ERROR Message"}
@@ -1078,9 +1079,11 @@ SUBSCRIBE_ERROR
 
 * Error Code: Identifies an integer error code for subscription failure.
 
-* Reason Phrase Length: The length in bytes of the reason phrase.
-
 * Reason Phrase: Provides the reason for subscription error.
+
+* New Track ID: When not equal to Track ID, the subscriber SHOULD re-issue the SUBSCRIBE with this Track ID instead if possible.
+  It is RECOMMENDED that a publisher use an unguessable New Track ID to reduce the odds of a collision.
+  TODO: Add a registry for subscribe error codes and make this field conditional.
 
 
 ## UNSUBSCRIBE {#message-unsubscribe}
