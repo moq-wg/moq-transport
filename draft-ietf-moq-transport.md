@@ -622,8 +622,8 @@ providing the result of announcement. The entity receiving the
 ANNOUNCE MUST send only a single response to a given ANNOUNCE of
 either ANNOUNCE_OK or ANNOUNCE_ERROR.
 
-OBJECT message header carry short hop-by-hop `Full Track Name Alias` that maps to the
-Full Track Name (see {{message-subscribe-ok}}). Relays use the `Full Track Name Alias`
+OBJECT message header carry short hop-by-hop `Track Alias` that maps to the
+Full Track Name (see {{message-subscribe-ok}}). Relays use the `Track Alias`
 of an incoming OBJECT message to identify its track and find the active
 subscribers for that track. Relays MUST NOT depend on OBJECT payload
 content for making forwarding decisions and MUST only depend on the
@@ -888,7 +888,7 @@ The format of the OBJECT message is as follows:
 
 ~~~
 OBJECT Message {
-  Full Track Name Alias (i),
+  Track Alias (i),
   Group Sequence (i),
   Object Sequence (i),
   Object Send Order (i),
@@ -898,7 +898,7 @@ OBJECT Message {
 ~~~
 {: #moq-transport-object-format title="MOQT OBJECT Message"}
 
-* Full Track Name Alias : The compressed full track name obtained as part of subscription and/or publish control message exchanges.
+* Track Alias : The compressed full track name obtained as part of subscription and/or publish control message exchanges.
 
 * Group Sequence : The object is a member of the indicated group
 {{model-group}} within the track.
@@ -967,7 +967,7 @@ The format of SUBSCRIBE is as follows:
 SUBSCRIBE Message {
   Full Track Name Length (i),
   Full Track Name (...),
-  SubscribeID (i),
+  Subscribe ID (i),
   StartGroup (Location),
   StartObject (Location),
   EndGroup (Location),
@@ -982,8 +982,7 @@ SUBSCRIBE Message {
 
 * Track Name: Identifies the track name as defined in ({{track-name}}).
 
-* SubscribeID: Session unique identifier for the subscription. `SubscribeID` MUST uniquely identify a subscription within a session and is used by subscribers and publishers to identify a given subscription. Subscribers generate the `SubscribeID` and MUST be
-copied by the publisher when responding to the subscription requests.
+* Subscribe ID: Session unique identifier for the subscription. `Subscribe ID` is monotonically increasing variable length integer and it MUST uniquely identify a subscription within a session. `Subscribe ID` is used by subscribers and the publishers to identify a given subscription. Subscribers generate the `Subscribe ID` and it MUST be copied by the publisher when responding to the subscription requests.
 
 * StartGroup: The Location of the requested group.  StartGroup's Mode MUST NOT be
 None.
@@ -1009,9 +1008,7 @@ If a publisher cannot satisfy the requested start or end for the subscription it
 MAY send a SUBSCRIBE_ERROR with code TBD. A publisher MUST NOT send objects
 from outside the requested start and end.
 
-`SUBSCRIBE` with an existing `SubscribeID` updates the existing subscription and MUST NOT
-create a new subscription state within the publishers.
-
+TODO: Define the flow where subscribe request matches an existing subscribe id (subscription updates.)
 
 ### Examples
 
@@ -1075,8 +1072,8 @@ A SUBSCRIBE_OK control message is sent for successful subscriptions.
 ~~~
 SUBSCRIBE_OK
 {
-  SubscribeID (i),
-  Full Track Name Alias (i),
+  Track Alias (i),
+  Subscribe ID (i),
   Expires (i)
 }
 ~~~
@@ -1085,7 +1082,7 @@ SUBSCRIBE_OK
 * SubscribeID: Subscription Identifer from the incoming subscription request for which this message is the response.
 
 
-* Full Track Name Alias: Session specific identifier that is used as an alias for the Full Track Name in the `Full Track Name Alias` field of the OBJECT ({{message-object}}) message headers of the requested track. `Full Track Name Alias` is generally shorter than Full Track Names and thus reduce the overhead in OBJECT messages.
+* Track Alias: Session specific identifier that is used as an alias for the Full Track Name in the `Track Alias` field of the OBJECT ({{message-object}}) message headers of the requested track. `Track Alias` is generally shorter than Full Track Names and thus reduce the overhead in OBJECT messages.
 
 * Expires: Time in milliseconds after which the subscription is no
 longer valid. A value of 0 indicates that the subscription stays active
@@ -1100,7 +1097,7 @@ failed SUBSCRIBE.
 ~~~
 SUBSCRIBE_ERROR
 {
-  SubscribeID (i),
+  Subscribe ID (i),
   Error Code (i),
   Reason Phrase Length (i),
   Reason Phrase (...),
@@ -1108,8 +1105,7 @@ SUBSCRIBE_ERROR
 ~~~
 {: #moq-transport-subscribe-error format title="MOQT SUBSCRIBE_ERROR Message"}
 
-* SubscribeID: Subscription Identifer from the incoming subscription request for which
-this message is the response.
+* SubscribeID: Subscription Identifer as defined in {{message-subscribe-req}}.
 
 * Error Code: Identifies an integer error code for subscription failure.
 
@@ -1128,12 +1124,12 @@ The format of `UNSUBSCRIBE` is as follows:
 
 ~~~
 UNSUBSCRIBE Message {
-  SubscribeID (i)
+  Subscribe ID (i)
 }
 ~~~
 {: #moq-transport-unsubscribe-format title="MOQT UNSUBSCRIBE Message"}
 
-* SubscribeID: Identifies the subscription.
+* SubscribeID: Subscription Identifer as defined in {{message-subscribe-req}}.
 
 ## SUBSCRIBE_FIN {#message-subscribe-fin}
 
@@ -1144,14 +1140,14 @@ The format of `SUBSCRIBE_FIN` is as follows:
 
 ~~~
 SUBSCRIBE_FIN Message {
-  SubscribeID (i),
+  Subscribe ID (i),
   Final Group (i),
   Final Object (i),
 }
 ~~~
 {: #moq-transport-subscribe-fin-format title="MOQT SUBSCRIBE_FIN Message"}
 
-* SubscribeID: Identifies the subscription.
+* Subscribe ID: Subscription identifier as defined in {{message-subscribe-req}}.
 
 * Final Group: The largest Group Sequence sent by the publisher in an OBJECT
 message in this track.
@@ -1168,7 +1164,7 @@ The format of `SUBSCRIBE_RST` is as follows:
 
 ~~~
 SUBSCRIBE_RST Message {
-  SubscribeID (i),
+  Subscribe ID (i),
   Error Code (i),
   Reason Phrase Length (i),
   Reason Phrase (...),
@@ -1178,7 +1174,7 @@ SUBSCRIBE_RST Message {
 ~~~
 {: #moq-transport-subscribe-rst format title="MOQT SUBSCRIBE RST Message"}
 
-* SubscribeID: Identifies the subscription.
+* SubscribeI D: Subscription Identifier as defined in {{message-subscribe-req}}.
 
 * Error Code: Identifies an integer error code for subscription failure.
 
