@@ -5,12 +5,12 @@
 MOQ                                                            L. Curley
 Internet-Draft                                                    Twitch
 Intended status: Standards Track                                K. Pugin
-Expires: 29 April 2024                                              Meta
+Expires: 7 May 2024                                                 Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                                   Google
-                                                         27 October 2023
+                                                         4 November 2023
 
 
                        Media over QUIC Transport
@@ -52,7 +52,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 29 April 2024.
+   This Internet-Draft will expire on 7 May 2024.
 
 Copyright Notice
 
@@ -692,15 +692,14 @@ Table of Contents
    ANNOUNCE MUST send only a single response to a given ANNOUNCE of
    either ANNOUNCE_OK or ANNOUNCE_ERROR.
 
-   OBJECT message header carry short hop-by-hop Full Track Name Alias
-   that maps to the Full Track Name (see Section 6.5).  Relays use the
-   Full Track Name Alias of an incoming OBJECT message to identify its
-   track and find the active subscribers for that track.  Relays MUST
-   NOT depend on OBJECT payload content for making forwarding decisions
-   and MUST only depend on the fields, such as priority order and other
-   metadata properties in the OBJECT message header.  Unless determined
-   by congestion response, Relays MUST forward the OBJECT message to the
-   matching subscribers.
+   OBJECT message header carry short hop-by-hop Track Alias that maps to
+   the Full Track Name (see Section 6.5).  Relays use the Track Alias of
+   an incoming OBJECT message to identify its track and find the active
+   subscribers for that track.  Relays MUST NOT depend on OBJECT payload
+   content for making forwarding decisions and MUST only depend on the
+   fields, such as priority order and other metadata properties in the
+   OBJECT message header.  Unless determined by congestion response,
+   Relays MUST forward the OBJECT message to the matching subscribers.
 
 5.3.  Relay Discovery and Failover
 
@@ -959,7 +958,7 @@ Table of Contents
    The format of the OBJECT message is as follows:
 
    OBJECT Message {
-     Full Track Name Alias (i),
+     Track Alias (i),
      Group Sequence (i),
      Object Sequence (i),
      Object Send Order (i),
@@ -969,8 +968,8 @@ Table of Contents
 
                        Figure 4: MOQT OBJECT Message
 
-   *  Full Track Name Alias : The compressed full track name obtained as
-      part of subscription and/or publish control message exchanges.
+   *  Track Alias : The compressed full track name obtained as part of
+      subscription and/or publish control message exchanges.
 
    *  Group Sequence : The object is a member of the indicated group
       Section 2.2 within the track.
@@ -1035,7 +1034,7 @@ Table of Contents
    SUBSCRIBE Message {
      Full Track Name Length (i),
      Full Track Name (...),
-     SubscribeID (i),
+     Subscribe ID (i),
      StartGroup (Location),
      StartObject (Location),
      EndGroup (Location),
@@ -1051,12 +1050,13 @@ Table of Contents
    *  Track Name: Identifies the track name as defined in
       (Section 2.3.1).
 
-   *  SubscribeID: Session unique identifier for the subscription.
-      SubscribeID MUST uniquely identify a subscription within a session
-      and is used by subscribers and publishers to identify a given
-      subscription.  Subscribers generate the SubscribeID and MUST be
-      copied by the publisher when responding to the subscription
-      requests.
+   *  Subscribe ID: Session unique identifier for the subscription.
+      Subscribe ID is monotonically increasing variable length integer
+      and it MUST uniquely identify a subscription within a session.
+      Subscribe ID is used by subscribers and the publishers to identify
+      a given subscription.  Subscribers generate the Subscribe ID and
+      it MUST be copied by the publisher when responding to the
+      subscription requests.
 
    *  StartGroup: The Location of the requested group.  StartGroup's
       Mode MUST NOT be None.
@@ -1083,9 +1083,8 @@ Table of Contents
    publisher MUST NOT send objects from outside the requested start and
    end.
 
-   SUBSCRIBE with an existing SubscribeID updates the existing
-   subscription and MUST NOT create a new subscription state within the
-   publishers.
+   TODO: Define the flow where subscribe request matches an existing
+   subscribe id (subscription updates.)
 
 6.4.3.  Examples
 
@@ -1145,8 +1144,8 @@ Table of Contents
 
    SUBSCRIBE_OK
    {
-     SubscribeID (i),
-     Full Track Name Alias (i),
+     Track Alias (i),
+     Subscribe ID (i),
      Expires (i)
    }
 
@@ -1155,11 +1154,11 @@ Table of Contents
    *  SubscribeID: Subscription Identifer from the incoming subscription
       request for which this message is the response.
 
-   *  Full Track Name Alias: Session specific identifier that is used as
-      an alias for the Full Track Name in the Full Track Name Alias
-      field of the OBJECT (Section 6.3) message headers of the requested
-      track.  Full Track Name Alias is generally shorter than Full Track
-      Names and thus reduce the overhead in OBJECT messages.
+   *  Track Alias: Session specific identifier that is used as an alias
+      for the Full Track Name in the Track Alias field of the OBJECT
+      (Section 6.3) message headers of the requested track.  Track Alias
+      is generally shorter than Full Track Names and thus reduce the
+      overhead in OBJECT messages.
 
    *  Expires: Time in milliseconds after which the subscription is no
       longer valid.  A value of 0 indicates that the subscription stays
@@ -1172,7 +1171,7 @@ Table of Contents
 
    SUBSCRIBE_ERROR
    {
-     SubscribeID (i),
+     Subscribe ID (i),
      Error Code (i),
      Reason Phrase Length (i),
      Reason Phrase (...),
@@ -1180,8 +1179,7 @@ Table of Contents
 
                    Figure 8: MOQT SUBSCRIBE_ERROR Message
 
-   *  SubscribeID: Subscription Identifer from the incoming subscription
-      request for which this message is the response.
+   *  SubscribeID: Subscription Identifer as defined in Section 6.4.
 
    *  Error Code: Identifies an integer error code for subscription
       failure.
@@ -1200,12 +1198,12 @@ Table of Contents
    The format of UNSUBSCRIBE is as follows:
 
    UNSUBSCRIBE Message {
-     SubscribeID (i)
+     Subscribe ID (i)
    }
 
                      Figure 9: MOQT UNSUBSCRIBE Message
 
-   *  SubscribeID: Identifies the subscription.
+   *  SubscribeID: Subscription Identifer as defined in Section 6.4.
 
 6.8.  SUBSCRIBE_FIN
 
@@ -1215,14 +1213,14 @@ Table of Contents
    The format of SUBSCRIBE_FIN is as follows:
 
    SUBSCRIBE_FIN Message {
-     SubscribeID (i),
+     Subscribe ID (i),
      Final Group (i),
      Final Object (i),
    }
 
                    Figure 10: MOQT SUBSCRIBE_FIN Message
 
-   *  SubscribeID: Identifies the subscription.
+   *  Subscribe ID: Subscription identifier as defined in Section 6.4.
 
    *  Final Group: The largest Group Sequence sent by the publisher in
       an OBJECT message in this track.
@@ -1239,7 +1237,7 @@ Table of Contents
    The format of SUBSCRIBE_RST is as follows:
 
    SUBSCRIBE_RST Message {
-     SubscribeID (i),
+     Subscribe ID (i),
      Error Code (i),
      Reason Phrase Length (i),
      Reason Phrase (...),
@@ -1249,7 +1247,7 @@ Table of Contents
 
                    Figure 11: MOQT SUBSCRIBE RST Message
 
-   *  SubscribeID: Identifies the subscription.
+   *  SubscribeI D: Subscription Identifier as defined in Section 6.4.
 
    *  Error Code: Identifies an integer error code for subscription
       failure.
