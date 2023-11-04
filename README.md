@@ -1,23 +1,30 @@
-# MoQ Transport
-MoQ Transport is a live media protocol that utilizes QUIC streams.
+# Media over QUIC Transport
 
-[Latest Draft](https://moq-wg.github.io/moq-transport/draft-ietf-moq-transport.html)
+This is the working area for the IETF [MOQ Working Group](https://datatracker.ietf.org/wg/moq/documents/) Internet-Draft, "Media over QUIC Transport".
+
+* [Editor's Copy](https://moq-wg.github.io/moq-transport/draft-ietf-moq-transport.html)
+* [Datatracker Page](https://datatracker.ietf.org/doc/draft-ietf-moq-transport)
+* [Working Group Draft](https://datatracker.ietf.org/doc/html/draft-ietf-moq-transport)
+* [Compare Editor's Copy to Working Group Draft](https://moq-wg.github.io/moq-transport/#go.draft-ietf-moq-transport.diff)
 
 
 ## Contributing
-All changes need to be made to the markdown file (.md).
-You can find a reference for the synatax [here](https://kramdown.gettalong.org/syntax.html).
-Each sentence is separated with a newline to reduce the number of merge conflicts.
 
-If you want to locally build, you'll need to install [kramdown-rfc2629](https://github.com/cabo/kramdown-rfc) and [xml2rfc](https://github.com/ietf-tools/xml2rfc):
+See the
+[guidelines for contributions](https://github.com/moq-wg/moq-transport/blob/main/CONTRIBUTING.md).
 
-```bash
-gem install kramdown-rfc
-pip install xm2rfc
+Contributions can be made by creating pull requests.
+The GitHub interface supports creating pull requests using the Edit (✏) button.
+
+
+## Command Line Usage
+
+Formatted text and HTML versions of the draft can be built using `make`.
+
+```sh
+$ make
 ```
 
-Then you can use the `Makefile` to build:
+Command line usage requires that you have the necessary software installed.  See
+[the instructions](https://github.com/martinthomson/i-d-template/blob/main/doc/SETUP.md).
 
-```bash
-make html
-```
