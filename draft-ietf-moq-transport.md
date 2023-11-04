@@ -623,7 +623,7 @@ ANNOUNCE MUST send only a single response to a given ANNOUNCE of
 either ANNOUNCE_OK or ANNOUNCE_ERROR.
 
 OBJECT message header carry short hop-by-hop `Track Alias` that maps to the
-Full Track Name (see {{message-subscribe-ok}}). Relays use the `Track Alias`
+Full Track Name. Relays use the `Track Alias`
 of an incoming OBJECT message to identify its track and find the active
 subscribers for that track. Relays MUST NOT depend on OBJECT payload
 content for making forwarding decisions and MUST only depend on the
@@ -1072,7 +1072,6 @@ A SUBSCRIBE_OK control message is sent for successful subscriptions.
 ~~~
 SUBSCRIBE_OK
 {
-  Track Alias (i),
   Subscribe ID (i),
   Expires (i)
 }
@@ -1080,9 +1079,6 @@ SUBSCRIBE_OK
 {: #moq-transport-subscribe-ok format title="MOQT SUBSCRIBE_OK Message"}
 
 * SubscribeID: Subscription Identifer from the incoming subscription request for which this message is the response.
-
-
-* Track Alias: Session specific identifier that is used as an alias for the Full Track Name in the `Track Alias` field of the OBJECT ({{message-object}}) message headers of the requested track. `Track Alias` is generally shorter than Full Track Names and thus reduce the overhead in OBJECT messages.
 
 * Expires: Time in milliseconds after which the subscription is no
 longer valid. A value of 0 indicates that the subscription stays active
