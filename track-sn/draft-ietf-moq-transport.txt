@@ -693,13 +693,13 @@ Table of Contents
    either ANNOUNCE_OK or ANNOUNCE_ERROR.
 
    OBJECT message header carry short hop-by-hop Track Alias that maps to
-   the Full Track Name (see Section 6.5).  Relays use the Track Alias of
-   an incoming OBJECT message to identify its track and find the active
-   subscribers for that track.  Relays MUST NOT depend on OBJECT payload
-   content for making forwarding decisions and MUST only depend on the
-   fields, such as priority order and other metadata properties in the
-   OBJECT message header.  Unless determined by congestion response,
-   Relays MUST forward the OBJECT message to the matching subscribers.
+   the Full Track Name.  Relays use the Track Alias of an incoming
+   OBJECT message to identify its track and find the active subscribers
+   for that track.  Relays MUST NOT depend on OBJECT payload content for
+   making forwarding decisions and MUST only depend on the fields, such
+   as priority order and other metadata properties in the OBJECT message
+   header.  Unless determined by congestion response, Relays MUST
+   forward the OBJECT message to the matching subscribers.
 
 5.3.  Relay Discovery and Failover
 
@@ -1144,7 +1144,6 @@ Table of Contents
 
    SUBSCRIBE_OK
    {
-     Track Alias (i),
      Subscribe ID (i),
      Expires (i)
    }
@@ -1153,12 +1152,6 @@ Table of Contents
 
    *  SubscribeID: Subscription Identifer from the incoming subscription
       request for which this message is the response.
-
-   *  Track Alias: Session specific identifier that is used as an alias
-      for the Full Track Name in the Track Alias field of the OBJECT
-      (Section 6.3) message headers of the requested track.  Track Alias
-      is generally shorter than Full Track Names and thus reduce the
-      overhead in OBJECT messages.
 
    *  Expires: Time in milliseconds after which the subscription is no
       longer valid.  A value of 0 indicates that the subscription stays

@@ -2096,7 +2096,7 @@ providing the result of announcement. The entity receiving the
 ANNOUNCE <span class="bcp14">MUST</span> send only a single response to a given ANNOUNCE of
 either ANNOUNCE_OK or ANNOUNCE_ERROR.<a href="#section-5.2-4" class="pilcrow">¶</a></p>
 <p id="section-5.2-5">OBJECT message header carry short hop-by-hop <code>Track Alias</code> that maps to the
-Full Track Name (see <a href="#message-subscribe-ok" class="auto internal xref">Section 6.5</a>). Relays use the <code>Track Alias</code>
+Full Track Name. Relays use the <code>Track Alias</code>
 of an incoming OBJECT message to identify its track and find the active
 subscribers for that track. Relays <span class="bcp14">MUST NOT</span> depend on OBJECT payload
 content for making forwarding decisions and <span class="bcp14">MUST</span> only depend on the
@@ -2695,7 +2695,6 @@ End = Group 3, Object &lt;last&gt;
 <pre>
 SUBSCRIBE_OK
 {
-  Track Alias (i),
   Subscribe ID (i),
   Expires (i)
 }
@@ -2710,12 +2709,9 @@ SUBSCRIBE_OK
             <p id="section-6.5-3.1.1">SubscribeID: Subscription Identifer from the incoming subscription request for which this message is the response.<a href="#section-6.5-3.1.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-6.5-3.2">
-            <p id="section-6.5-3.2.1">Track Alias: Session specific identifier that is used as an alias for the Full Track Name in the <code>Track Alias</code> field of the OBJECT (<a href="#message-object" class="auto internal xref">Section 6.3</a>) message headers of the requested track. <code>Track Alias</code> is generally shorter than Full Track Names and thus reduce the overhead in OBJECT messages.<a href="#section-6.5-3.2.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="section-6.5-3.3">
-            <p id="section-6.5-3.3.1">Expires: Time in milliseconds after which the subscription is no
+            <p id="section-6.5-3.2.1">Expires: Time in milliseconds after which the subscription is no
 longer valid. A value of 0 indicates that the subscription stays active
-until it is explicitly unsubscribed.<a href="#section-6.5-3.3.1" class="pilcrow">¶</a></p>
+until it is explicitly unsubscribed.<a href="#section-6.5-3.2.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
