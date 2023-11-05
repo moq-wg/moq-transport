@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2023-11-02T01:06:53.917633+00:00",
+  "timestamp": "2023-11-05T01:11:54.776041+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -4583,7 +4583,7 @@
     {
       "number": 105,
       "id": "I_kwDOG2Ho4M5haueV",
-      "title": "Multiple messages per stream",
+      "title": "Multiple OBJECTs per stream with different priorities",
       "url": "https://github.com/moq-wg/moq-transport/issues/105",
       "state": "OPEN",
       "author": "kixelated",
@@ -4592,9 +4592,9 @@
       "labels": [
         "Object Model"
       ],
-      "body": "In the current draft, there's no concept of a data stream or a control stream. A sender could theoretically intermix OBJECT messages with SUBSCRIBE messages. There's also no limit to the number of messages on a stream, so a sender could send multiple OBJECT messages on the same stream. Each OBJECT message contains a sendOrder indicating the priority.\r\n\r\nThe problem is that prioritization occurs at the stream level in QUIC. It gets really weird when you share a stream with any OBJECT message.\r\n\r\nHere's some examples. The sendOrder of each object is in parentheses. \r\n\r\n- OBJECT (1) + OBJECT (1): This works fine\r\n- OBJECT (1) + OBJECT (2): This requires a QUIC library that can prioritize at stream offsets.\r\n- OBJECT (2) + OBJECT (1): This is impossible.\r\n\r\nControl messages are far smaller and far more important than media. While the text does not state it (yet), they should be maximum priority.\r\n- SUBSCRIBE (\u221e) + SUBSCRIBE(\u221e): This works fine.\r\n- SUBSCRIBE (\u221e) + OBJECT (1): This requires a QUIC library that can prioritize at stream offsets.\r\n- OBJECT(1) + SUBSCRIBE(\u221e): This is impossible.\r\n\r\n\r\nI think the outcome is pretty clear; messages must only be sent on streams if they share the same sendOrder.",
+      "body": "In the current draft, there's no concept of stream mapping. There's also no limit to the number of messages on a stream, so a sender could send multiple OBJECT messages on the same stream. Each OBJECT message contains a sendOrder indicating the priority.\r\n\r\nThe problem is that prioritization occurs at the stream level in QUIC. It gets really weird when you share a stream with any OBJECT message.\r\n\r\nHere's some examples. The sendOrder of each object is in parentheses. \r\n\r\n- OBJECT (1) + OBJECT (1): This works fine\r\n- OBJECT (1) + OBJECT (2): This requires a QUIC library that can prioritize at stream offsets.\r\n- OBJECT (2) + OBJECT (1): This is impossible.\r\n\r\nI think the outcome is pretty clear; messages must only be sent on streams if they share the same sendOrder. We miiiiight be able to support descending priorities but it's difficult in most implementations.",
       "createdAt": "2023-03-21T17:23:04Z",
-      "updatedAt": "2023-10-18T02:55:17Z",
+      "updatedAt": "2023-11-03T22:47:44Z",
       "closedAt": null,
       "comments": [
         {
@@ -4603,6 +4603,20 @@
           "body": "My proposal is to include the sendOrder as a header at the start of every stream.\r\n\r\nI would go a step further and say we should have the concept of data streams and control streams like HTTP/3. The first byte indicates the stream type.\r\n\r\n- Control streams are always maximum priority.\r\n- Data streams start with a header (ex. HEADERS) that indicates the sendOrder. There could be one or more payloads that follow (ex. DATA)\r\n\r\nThis has the side effect of making it easier to parse. In my MoQ player, I forward the stream to a decoder thread once I detect data. I'm actually not able to deal with trailing control messages, because that would require sending the stream back to the main thread.",
           "createdAt": "2023-03-21T17:28:08Z",
           "updatedAt": "2023-03-21T17:35:11Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "We've clarified that control messages and objects don't mix.  Do you want to keep this issue open to track the issue with sending multiple OBJECTs on the same stream with different sendOrder?  If so can you retitle and clarify the ask?",
+          "createdAt": "2023-11-03T20:52:25Z",
+          "updatedAt": "2023-11-03T20:52:25Z"
+        },
+        {
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> We've clarified that control messages and objects don't mix. Do you want to keep this issue open to track the issue with sending multiple OBJECTs on the same stream with different sendOrder? If so can you retitle and clarify the ask?\r\n\r\nYeah will do.",
+          "createdAt": "2023-11-03T22:39:47Z",
+          "updatedAt": "2023-11-03T22:39:57Z"
         }
       ]
     },
@@ -6513,7 +6527,7 @@
       ],
       "body": "#141 adds a `Track ID` field. This is used to compress a long string (in SUBSCRIBE) into a short varint (in OBJECT).\r\n\r\nThe problem is that the mapping from string to varint is indicated in the SUBSCRIBE_OK message, which is sent in parallel with OBJECT messages. This introduces a race condition, where packet loss will cause SUBSCRIBE_OK to arrive late. The receiver will be unable to associate OBJECT messages with tracks until the arrival of the SUBSCRIBE_OK.\r\n\r\nA correct implementation must buffer any OBJECT messages with unknown track IDs for an indefinite amount of time. Any other implementation will error or skip media due to decode errors. This also introduce a risk of resource exhaustion, for example if the stream containing SUBSCRIBE_OK is reset.",
       "createdAt": "2023-04-24T21:37:07Z",
-      "updatedAt": "2023-10-18T02:55:16Z",
+      "updatedAt": "2023-11-03T05:47:10Z",
       "closedAt": null,
       "comments": [
         {
@@ -6669,6 +6683,13 @@
           "body": " > The proponents of publisher chosen IDs have cited both memory and performance as potential reasons for requiring this (please add other reasons if I missed them).\r\n> \r\n> For memory it can save 8 bytes per subscription with confirmed ID. Is there any back-of-the-envelope math indicating this adds up to something significant? What's the target number of active subscriptions per-server (1M, 10M, 100M, 1B)?\r\n\r\nSubscriber IDs are only going to use 1-2 bytes if they increment from 0 like QUIC stream IDs. This is beyond inconsequential. The only time it might matter is if there's an attack involving spurious subscriptions, in which case I would like to see `MAX_SUBSCRIBES` regardless.\r\n\r\nNote that the publisher could choose to cache the object using a 8 byte VarInt. It could then use memcopy to set the ID on a per subscription basis. This will slightly increase the OBJECT overhead on the wire, but so will using a random hash for the subscription ID (nearly 8 bytes on average).\r\n\r\nAnd like Victor said in the meeting, this is a performance non-issue if your QUIC library supports something like `iov` for writes. Each QUIC stream would share a pointer to the underlying OBJECT payload. The only difference is that the OBJECT header would be different per subscription, but again you could use iov to avoid any copies.\r\n\r\nThat's actually supported by Quinn and I use it on moq-rs. QUIC streams share a `Bytes` struct which is ref counted under the hood. I don't bother doing it with the OBJECT header though because it's like 4 bytes long and it's fine to make a copy.\r\n\r\nIf your QUIC library doesn't support `iov`, well then you're making a copy per QUIC stream anyway, even if the bytes are identical. This publisher side optimization is ONLY relevant if your QUIC library accepts a single pointer for the entire stream payload.",
           "createdAt": "2023-10-05T04:04:06Z",
           "updatedAt": "2023-10-05T04:06:06Z"
+        },
+        {
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I started migrating to the current draft but I gave up.\r\n\r\nWith #258 every subscription is stored in a lookup table. When I receive an `OBJECT` or `SUBSCRIBE_*` message, I use a lookup table to fetch the current state. This is possible because `SUBSCRIBE` contains the `track_id`:\r\n\r\n```rust\r\nstruct Publisher {\r\n  // maps from track_id to subscription\r\n  subscriptions: HashMap<VarInt, track::Publisher>,\r\n}\r\n```\r\n\r\nI started implementing the current draft where `SUBSCRIBE_OK` contains `track_id`, and this is what I think is needed:\r\n```rust\r\nstruct Publisher {\r\n  // maps from (namespace, name) to subscription\r\n  subscriptions: HashMap<(String, String), track::Publisher>,\r\n\r\n  // maps from track_id to (namespace, name) after receiving SUBSCRIBE_OK\r\n  aliases: HashMap<VarInt, Deferred<(String, String)>>,\r\n}\r\n```\r\n\r\n`Deferred` doesn't exist in Rust but my point is that it's an asynchronous lookup table.  I need to check if there's an entry in `aliases` or create one, which will be resolved when/if `SUBSCRIBE_OK` arrives. My `OBJECT` decoder will block until `SUBSCRIBE_OK` arrives, which might actually never happen if an attacker sends OBJECTs with random `track_id`s.\r\n\r\nIt's just a pain in the butt. The performance arguments are moot if you need to perform a 2nd lookup for each OBJECT. I think you can avoid it with separate lookup tables, but that adds more complexity. The complexity is completely avoided if the subscriber chooses the `track_id`.\r\n\r\n#305 replaces `(String, String)` with `VarInt` but it's otherwise the same problem. ",
+          "createdAt": "2023-11-03T05:45:11Z",
+          "updatedAt": "2023-11-03T05:47:10Z"
         }
       ]
     },
@@ -8720,7 +8741,7 @@
       "id": "I_kwDOG2Ho4M5sq6Fc",
       "title": "How should a relay route ANNOUNCE messages?",
       "url": "https://github.com/moq-wg/moq-transport/issues/228",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "afrind",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
@@ -8730,8 +8751,8 @@
       ],
       "body": "ANNOUNCE tells a relay where to route SUBSCRIBE messages for a given namespace.  Should there be a different message that serves the same purpose for ANNOUNCE?\r\n\r\nContext: \r\n\r\nIn my fledgling [moq-chat](https://afrind.github.io/draft-frindell-moq-chat/draft-frindell-moq-chat.html) protocol, there is a server entity that maintains a catalog of all the participants/tracks in the chat.  In order to perform auth, and keep the catalog up to date, I rely on the server seeing the ANNOUNCE message when a participant tries to join the chat.  However, if the clients and server are connected by a relay, it's unclear how the relay would know to forward the ANNOUNCE from a new client to the server.\r\n\r\nOption 1:\r\n\r\nThis is \"business logic\", which is out of scope.\r\n\r\nOption 2:\r\n\r\nAdd another message that an endpoint can send to indicate it would like to receive ANNOUNCE messages matching a given namespace.  This would be an optional message, and could co-exist with option 1.\r\n\r\nOption 3 (I don't like this, including for completeness): \r\n\r\nSend it to every endpoint connected to the relay, and see if anyone gives ANNOUNCE OK.",
       "createdAt": "2023-07-26T21:17:39Z",
-      "updatedAt": "2023-10-18T02:55:12Z",
-      "closedAt": null,
+      "updatedAt": "2023-11-03T21:28:20Z",
+      "closedAt": "2023-11-03T21:28:20Z",
       "comments": [
         {
           "author": "suhasHere",
@@ -8795,6 +8816,13 @@
           "body": "> I haven't heard anyone state that they want something that looks like a gossip protocol. If someone has a use case for it, maybe they can put it forward. Otherwise, perhaps we can move forward with an assumption that is outside the design space for now.\r\n\r\nI agree how the ANNOUNCE message is routed inside a relay service provider is internal. But if there are multiple relay service providers involved, ANNOUNCE routing would be useful for relay service provider chaining. In other words, IGP for ANNOUNCE does not need to be standardized, but BGP should. ",
           "createdAt": "2023-08-02T01:59:44Z",
           "updatedAt": "2023-08-02T01:59:44Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I made a different proposal for how to accomplish chat functionality in \"pure moq\" without relying on routing announce.  See https://github.com/afrind/draft-frindell-moq-chat/pull/1.\r\n\r\nIt involves creating a \"control track namespace\".  The participants in the chat join and leave by sending an empty subscribe to a random, unique track name in control track namespace, with commands encoded in Track Request Parameters.  Love it? \r\n Hate it?  \r\n\r\nHappy to take the discussion over moq-chat repo, but since no one else wants ANNOUNCE to go more than one hop in moqt, I'll close this.",
+          "createdAt": "2023-11-03T21:28:20Z",
+          "updatedAt": "2023-11-03T21:28:20Z"
         }
       ]
     },
@@ -9948,7 +9976,7 @@
       ],
       "body": "This came out of discussion on #204\r\n\r\nWhen a relay receives an SUBSCRIBE it may need to issue its own SUBSCRIBE to a publisher that has previously ANNOUNCE'd a namespace matching that track.  The current draft doesn't specify how this match is done.  A relay could implement an exact match on Track Namespace (requires a tweak to SUBSCRIBE), or could do a longest prefix match on track name vs all ANNOUNCE'd namespaces, or possibly something else.  Is it ok to leave this up to implementations or should the draft specify this behavior more exactly?  If more than one matching type is allowed, does it need to be negotiated, and by whom (publisher, subscriber, or both)? ",
       "createdAt": "2023-09-27T18:02:09Z",
-      "updatedAt": "2023-10-04T02:22:02Z",
+      "updatedAt": "2023-11-04T15:42:57Z",
       "closedAt": null,
       "comments": [
         {
@@ -9964,6 +9992,13 @@
           "body": "ANNOUNCE is what my implementation expects as well. A producer can announce track namespaces at any point (after being connected).  Overloading connect URL  with track info is limiting ",
           "createdAt": "2023-10-04T02:22:02Z",
           "updatedAt": "2023-10-04T02:22:02Z"
+        },
+        {
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "This is going to be a slightly long comment but this is how I think this should work. \r\n\r\nThe catalog has two fields for the track namespace , and track name. We also specify in the catalog a way to form a URL from these two fields. See Teds proposal and that is catalog specific.  The things we put in these track namespaces and track name fields are already canonicalized  in a way defined by the catalog and URL. \r\n\r\nWhen the application using the moq transport puts these two fields into message, they are treated as just a bunch of bits and any comparison of them is done with bitwise compare. A relay that needs to check if a namespace matches another does not need to worry about string prep or escape encoding of the bits, the will all have been done when the catalog was formed. \r\n\r\nThis allows the relays to work faster by just doing bitwise compare yet at the same time allows us to use URI at the application level. The transport draft just needs to deal with a bag of bits. The catalog draft pushes the work to the URL definition, and the URL definition does the heavy lifting but that is where this type of stuff should be\r\n\r\n",
+          "createdAt": "2023-11-04T15:42:57Z",
+          "updatedAt": "2023-11-04T15:42:57Z"
         }
       ]
     },
@@ -10524,10 +10559,12 @@
       "author": "huitema",
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
-      "labels": [],
+      "labels": [
+        "Subscribe"
+      ],
       "body": "TL-DR: if we move the Track-ID out of the object field and into a stream or datagram header, we can copy object messages directly to the stream without having to reformat them.\r\n\r\nWe have been debating solutions to the track-ID problem, with two opposite goals:\r\n\r\n- have the server choose the track-id, so the \"object\" values can be copied as is to the output streams\r\n- have the client choose the track-id, and avoid the race condition between subscribe OK and first object messages.\r\n\r\nSee Issue #145, PR #258 and #262, and minutes from the October 2023 interim.\r\n\r\nThe debate is leading to a muddled compromise, in which a default behavior is \"client chooses\" with some TBD escape condition if the publisher really wants to choose -- which would have to be something better than an error return on every subscribe. I wonder if there is a simple solution.\r\n\r\nBig relays with large fan-out do not like having to reformat messages \"on the fly\". They would prefer being able to simply copy messages from their cache. This is difficult because of the current definition of the OBJECT message:\r\n~~~\r\nOBJECT Message {\r\n  Track ID (i),\r\n  Group Sequence (i),\r\n  Object Sequence (i),\r\n  Object Send Order (i),\r\n  Object Payload Length (i),\r\n  Object Payload (b),\r\n}\r\n~~~\r\nThe bits on the wire look like:\r\n\r\n| fields | Object Message ID | Track ID | Group, sequence, send order, payload length, object payload |\r\n|------|-----|-----|-----------------|\r\n| On receive | constant | variable length integer | value specific to the object |\r\n| On send | constant | different variable length integer | value specific to the object |\r\n\r\nIf the track-id is not the same for all receivers, the relays will need for every object to:\r\n\r\n- Find out what Track ID to use on the publishing connection, which requires decompressing the Track ID into a Full Track Name on receive, then mapping that Full Track Name to the receiver selected Track ID when publishing,\r\n- Reformat the Object message to incorporate the receiver chosen track ID.\r\n- Send the modified copy to the receiver\r\n\r\nYes, it is possible to use a scatter gather copy, so as to write three segments in place: the constant value message type, the track-id selected by the receiver, and the object specific part of the object message. Implementation would be reasonably simple if the cached value of the track ID was fixed length, e.g. an internal 64 bit identifier of the track. But this scatter-gather would have to be done for each object and each receiver, which is going to cost several instructions per message.\r\n\r\nWe can observe that in several of the proposed transport encoding, several messages will be sent on the single QUIC stream, and also that a single QUIC stream will typically carry only messages from a single track. Suppose that the stream data start with a \"Track-ID\" message:\r\n~~~\r\nTRACK-ID Message {\r\n  Track ID (i)\r\n}\r\n~~~\r\nFollowed by set of object messages:\r\n~~~\r\nOBJECT Message {\r\n  Group Sequence (i),\r\n  Object Sequence (i),\r\n  Object Send Order (i),\r\n  Object Payload Length (i),\r\n  Object Payload (b),\r\n}\r\n~~~\r\nIf the stream only includes objects of the same track, the Track-ID needs to be sent just once. The OBJECT Message would have no variable part, which is useful for caching. The cache itself will have to maintain a relation between cached objects and corresponding track, but it already does, so not a big change. We will save some byte per object message (the track-id varint), at the cost of the TRACK-ID message (one byte message ID plus track-id varint), which means one extra byte if a stream has just one Object, several fewer bytes if the stream has multiple objects. We will also save a couple instructions when pushing messages to streams.\r\n\r\nComments? Was this just the bad-idea fairy putting words in my mouth?",
       "createdAt": "2023-10-09T19:12:23Z",
-      "updatedAt": "2023-10-31T06:09:12Z",
+      "updatedAt": "2023-11-03T20:18:25Z",
       "closedAt": null,
       "comments": [
         {
@@ -10578,6 +10615,20 @@
           "body": "I implemented draft-01 and I have it working now, but I also faced this issue, I realized trackName <-> TrackId relation and how this is specified in the draft-01 created a lot of problems (at least in my implementation)\r\n- If we accept subscribe before announce then we need to rewrite objects (that seems bad)\r\n- Forcing announce first (seems a big constraint)\r\n\r\nSo, this raised the following question to me: why do we need TrackName? Can we just use trackId everywhere and let catalog have the friendly names?\r\n\r\nThis is the only variation I have made from draft-01 in my implementation:\r\n- Remove trackName and replace it with trackId\r\n    - Announce has trackId (obviously set in the encoder)\r\n    - Subscribe has trackId (it subscribe to a specific trackId)",
           "createdAt": "2023-10-31T06:09:12Z",
           "updatedAt": "2023-10-31T06:09:12Z"
+        },
+        {
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> So, this raised the following question to me: why do we need TrackName? Can we just use trackId everywhere and let catalog have the friendly names?\r\n\r\nThe main reason is wildcard subscriptions. I agree though, I think the track ID within a broadcast should just be an integer referenced in the catalog.\r\n\r\nHowever, you still need a way to distinguish between two different broadcasts (ex. two ANNOUNCE messages). My implementation gets around this by associating a single WebTransport session with a single broadcast, basically using the session layer to tell them apart. There's limitations to this approach, namely that it requires WebTransport pooling for efficiency, but I would very much like to use some form of QUIC session layer to isolate broadcasts anyway.\r\n\r\nIn MoQ terminology, I'm proposing a session and control stream per track namespace. SUBSCRIBE and OBJECT would use the `track_id` as referenced in the catalog so OBJECTs will NEVER rewritten across hops. The session layer would be provided by QUIC or WebTransport; basically each QUIC stream would start with a `session_id` to identify the track namespace.\r\n\r\nThis also eliminates head-of-line blocking between broadcasts, such as within a relay.",
+          "createdAt": "2023-11-03T06:38:42Z",
+          "updatedAt": "2023-11-03T06:45:18Z"
+        },
+        {
+          "author": "wilaw",
+          "authorAssociation": "NONE",
+          "body": ">  the track ID within a broadcast should just be an integer referenced in the catalog.\r\n\r\nBut since relays can't read catalogs, we still need a object naming scheme that disambiguates concurrent broadcasts, hence the concept of namespace|name tuple. \r\n\r\n> There's limitations to this approach, namely that it requires WebTransport pooling for efficiency,\r\n\r\nConsider the case of an edge relay which must forward thousands of parallel broadcasts to a parent. Requiring each broadcast to be in a unique WebTransport session is more constraining than allowing the relay to shard those broadcasts across streams over as many WebTransport sessions as it needs to optimize performance. \r\n",
+          "createdAt": "2023-11-03T09:26:54Z",
+          "updatedAt": "2023-11-03T09:26:54Z"
         }
       ]
     },
@@ -10658,10 +10709,12 @@
       "author": "fluffy",
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
-      "labels": [],
+      "labels": [
+        "Wire Format"
+      ],
       "body": "Reasons phrases either have useful information in them, in which case it should not be in a reason phrase, it should be in a well defined field in the protocol. Or they do not have useful information in which case they should not be there. \r\n\r\nI think we should get rid of reason phrases - if we need to describe more information about why an error happened, we should put that data in well defined fields. ",
       "createdAt": "2023-10-16T11:04:11Z",
-      "updatedAt": "2023-10-20T05:20:27Z",
+      "updatedAt": "2023-11-03T20:19:03Z",
       "closedAt": null,
       "comments": [
         {
@@ -10948,10 +11001,12 @@
       "author": "kixelated",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
-      "labels": [],
+      "labels": [
+        "Wire Format"
+      ],
       "body": "I think it would be a good idea to flesh out the error code space a little bit. Here's the list of errors that I catch in my implementation: [cache errors](https://github.com/kixelated/moq-rs/blob/d0fca054854bdccc036eaebc8a5d8504f1ce3670/moq-transport/src/cache/error.rs#L6), [session errors](https://github.com/kixelated/moq-rs/blob/d0fca054854bdccc036eaebc8a5d8504f1ce3670/moq-transport/src/session/error.rs#L4).\r\n\r\nNote: the only difference between the two is which abstraction throws the error; they shouldn't be separate in the draft. If you scroll down, I tried to assign them a relevant-ish HTTP status code but there wasn't always a clean fit.",
       "createdAt": "2023-10-17T03:18:53Z",
-      "updatedAt": "2023-10-18T00:47:35Z",
+      "updatedAt": "2023-11-03T20:18:52Z",
       "closedAt": null,
       "comments": []
     },
@@ -11167,9 +11222,17 @@
       ],
       "body": "As mentioned in #309, there are 3 different ways for a publisher to close a subscriber, each with minor differences.\r\n\r\n- `SUBSCRIBE_ERROR`: I never sent you an object.\r\n- `SUBSCRIBE_FIN`: There are no more objects to send after group/object X/Y.\r\n- `SUBSCRIBE_RESET`: There are more objects after group/object X/Y... but I won't send them.\r\n\r\nA few things:\r\n\r\n### 1. `SUBSCRIBE_ERROR` naming\r\nI think it should be renamed since it's not the only ERROR message. Maybe `SUBSCRIBE_REJECT`?\r\n\r\n### 2. `SUBSCRIBE_FIN` and `SUBSCRIBE_RESET` are virtually identical\r\nThe only difference is that one has an error code. Otherwise they both include a final group/object and it's up to the application/library to decide if they wait for the final object(s). I'd like to only implement this once but right now I have to copy/paste any code to handle these almost identical messages.\r\n\r\nWhat if we merged them and use error code 0 to signal a FIN. The reason phrase should be removed as part of #273.\r\n\r\n### 3. It's difficult to determine which messages are protocol violations\r\n\r\nThere really needs to be a state machine like #237 with this many ways to terminate a subscription.\r\n\r\nI think these are all protocol violations:\r\n- `SUBSCRIBE_OK` then `SUBSCRIBE_ERROR`\r\n- `SUBSCRIBE_ERROR` then `SUBSCRIBE_*` \r\n- `SUBSCRIBE_RESET/FIN` then `SUBSCRIBE_*`\r\n\r\nMy interpretation of the draft is that a `SUBSCRIBE_FIN` followed by a `SUBSCRIBE_RESET` is invalid, which is not obvious and unlike QUIC.\r\n> A subscription remains active until it expires, until the publisher of the track terminates the track with a SUBSCRIBE_FIN (see [Section 6.8](https://moq-wg.github.io/moq-transport/draft-ietf-moq-transport.html#message-subscribe-fin)) or a SUBSCRIBE_RST (see [Section 6.9](https://moq-wg.github.io/moq-transport/draft-ietf-moq-transport.html#message-subscribe-rst)).\r\n\r\n### 4. Do these error distinctions actually matter to the transport?\r\n\r\nI don't think so. The library/relay behavior doesn't change based on `SUBSCRIBE_RESET/FIN`. The only thing that miiiight differentiate between the two is the application, which can use errors codes for this purpose. At the very least I would merge these two messages.\r\n\r\nBut I would also like to explore a single way for the publisher to close a subscription. The application can signal the nuanced differences between errors (ex. error code 404 vs 410). The library/relay doesn't care, it just forwards the error code.",
       "createdAt": "2023-10-30T04:11:24Z",
-      "updatedAt": "2023-10-30T04:12:12Z",
+      "updatedAt": "2023-11-03T21:55:35Z",
       "closedAt": null,
-      "comments": []
+      "comments": [
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Individual Comment:\r\n\r\n> The library/relay behavior doesn't change based on SUBSCRIBE_RESET/FIN.\r\n\r\nThe inspiration for FIN vs RST in moq came from HTTP caching.  If a resource has no content-length, and the caching proxy has received N bytes, does it have the entire resource, or does it need to refetch the tail?  If that response was terminated with a FIN (H2 or H3), then it has the whole resource.  If it was terminated by a RST, it can't assume that it does.\r\n\r\nSo the value I see in these two messages is for a moq relay is similar.  A client connected to the relay and subscribed to a track, which fowarded the subscribe to a publisher.  The track was published to the relay and ended with a FIN.  Another client subscribes to this track from the beginning (Absolute/0,0) and no end.  Does the relay need to resubscribe upstream?\r\n\r\nNow suppose that the connection from the publisher to the relay closed abruptly, or the track was terminated with SUBSCRIBE_RST.  This is a signal to the relay that it's worth another subscribe to find out where the end of the track is.\r\n\r\nI can live if we consolidate the framing to a single message, and define a special error code to mean FIN, but I do think the transport needs to see the difference.",
+          "createdAt": "2023-11-03T21:55:34Z",
+          "updatedAt": "2023-11-03T21:55:34Z"
+        }
+      ]
     },
     {
       "number": 312,
@@ -11312,10 +11375,12 @@
       "author": "afrind",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
-      "labels": [],
+      "labels": [
+        "Editorial"
+      ],
       "body": "",
       "createdAt": "2023-10-31T23:07:00Z",
-      "updatedAt": "2023-10-31T23:07:00Z",
+      "updatedAt": "2023-11-03T20:03:27Z",
       "closedAt": null,
       "comments": []
     },
@@ -11328,10 +11393,12 @@
       "author": "kixelated",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
-      "labels": [],
+      "labels": [
+        "Object Model"
+      ],
       "body": "The current approach of allowing any OBJECTs to arrive on any stream makes it impossible for the receiver to know when a group ends.\r\n\r\nThere's a few conditions when you need to know the end of a group:\r\n\r\n1. A relay being told to terminate the subscription after group N (subscription hints).\r\n2. A relay knowing when to close a QUIC stream (if it writes a group per stream).\r\n3. A decoder deciding when to start decoding/rendering the next group (ex. GoP).\r\n\r\nLikewise there's a similar problem of knowing when there's an gap within a group. There's no way to signal that OBJECT X will never arrive, so the receiver should not wait for it.",
       "createdAt": "2023-11-01T03:30:02Z",
-      "updatedAt": "2023-11-01T05:19:45Z",
+      "updatedAt": "2023-11-03T20:55:17Z",
       "closedAt": null,
       "comments": [
         {
@@ -11354,6 +11421,176 @@
           "body": "Maybe this a duplicate of #315 ?",
           "createdAt": "2023-11-01T05:19:45Z",
           "updatedAt": "2023-11-01T05:19:45Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "The issue mentioning Last Object Previous Group is in #224",
+          "createdAt": "2023-11-03T20:55:17Z",
+          "updatedAt": "2023-11-03T20:55:17Z"
+        }
+      ]
+    },
+    {
+      "number": 319,
+      "id": "I_kwDOG2Ho4M51oMPk",
+      "title": "Subscriber rejecting ANNOUNCE",
+      "url": "https://github.com/moq-wg/moq-transport/issues/319",
+      "state": "OPEN",
+      "author": "kixelated",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [
+        "Announce"
+      ],
+      "body": "> Relays respond with an ANNOUNCE_OK or ANNOUNCE_ERROR control message providing the result of announcement. The entity receiving the ANNOUNCE MUST send only a single response to a given ANNOUNCE of either ANNOUNCE_OK or ANNOUNCE_ERROR.\r\n\r\nThe problem is not possible for the subscriber to reject an ANNOUNCE afterwards. This would be very useful, for example to inform a publisher that no more subscriptions will be routed to them for whatever reason. Examples:\r\n\r\n1. The auth parameter in ANNOUNCE has expired.\r\n2. Another publisher has sent an overriding ANNOUNCE (reconnect?)\r\n3. The broadcast has been closed remotely, ex. some moderation tool.\r\n\r\nWithout this message, the only recourse for the subscriber is to close the connection. This won't work if multiple ANNOUNCE messages are pooled over the same connection, nor is it clean.",
+      "createdAt": "2023-11-02T04:12:19Z",
+      "updatedAt": "2023-11-03T19:59:10Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I propose two options:\r\n\r\n1. `ANNOUNCE_RESET` can be sent after `ANNOUNCE_OK`.\r\n2.  We add `ANNOUNCE_RST` and `ANNOUNCE_FIN` to mirror `SUBSCRIBE`.\r\n\r\nI personally hate 3 separate messages for a subscriber to close an announce, or a publisher to close a subscription. See #310 ",
+          "createdAt": "2023-11-02T04:13:55Z",
+          "updatedAt": "2023-11-02T04:13:55Z"
+        }
+      ]
+    },
+    {
+      "number": 320,
+      "id": "I_kwDOG2Ho4M51s0Il",
+      "title": "Support datagrams for FEC data?",
+      "url": "https://github.com/moq-wg/moq-transport/issues/320",
+      "state": "OPEN",
+      "author": "rom1v",
+      "authorAssociation": "NONE",
+      "assignees": [],
+      "labels": [],
+      "body": "To get the lowest possible latency (and avoid retransmission), we may want to add FEC (like [RaptorQ](https://www.rfc-editor.org/rfc/rfc6330.html)) to send redundant packets, so that even if some packets are lost (but enough are received), we can still reconstruct the source data, without retransmission.\r\n\r\nThis is mentioned in the draft [Use Cases and Requirements for Media Transport Protocol Design](https://datatracker.ietf.org/doc/html/draft-ietf-moq-requirements-02#name-interactive-media):\r\n\r\n> It may make sense to use FEC [RFC6363] and codec-level packet loss concealment [RFC6716], rather than selectively retransmitting only lost packets. These mechanisms use more bytes, but do not require multiple round trips in order to recover from packet loss.\r\n\r\nIt makes sense to never retransmit such FEC packets if they are lost (that's the purpose), so we would like to send them in datagrams (over [QUIC](https://datatracker.ietf.org/doc/html/rfc9221) or [WebTransport](https://developer.mozilla.org/en-US/docs/Web/API/WebTransport/datagrams)).\r\n\r\nBut in [MOQT](https://datatracker.ietf.org/doc/html/draft-ietf-moq-transport-01#name-session-initialization), it seems that objects must always be sent over QUIC/WebTransport streams:\r\n\r\n> Objects are sent on unidirectional streams.\r\n\r\nTherefore, some Objects containing FEC payloads might be retransmitted by the transport layer (QUIC/WebTransport), which is undesirable.\r\n\r\nAre they any plan to support this FEC use case over datagrams?",
+      "createdAt": "2023-11-02T17:04:44Z",
+      "updatedAt": "2023-11-04T21:15:46Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "rom1v",
+          "authorAssociation": "NONE",
+          "body": "Oh, I just found #316.\r\n\r\nHowever, it says:\r\n\r\n> OBJECT messages are transmitted over unidirectional streams and can\r\n> also be transmitted over datagrams if the object or objects fit into\r\n> single datagram. **For larger objects, a stream needs to be used.**\r\n\r\nTypically, I think I would like to use 1 Object for a single video frame.\r\n\r\nBut if I use FEC and datagrams, each packet containing a single video frame will need to be split into _n_ FEC packets (most of them of 1280 bytes for example). In that case, I will need to define 1 `Object` = 1 FEC packet and combine several `Object`s at the application level to reconstruct frames, is it correct?\r\n",
+          "createdAt": "2023-11-02T17:12:53Z",
+          "updatedAt": "2023-11-02T17:21:46Z"
+        },
+        {
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "body": "So we're going to have trouble implementing FEC as it stands.\r\n\r\nA QUIC library can coalesce multiple QUIC datagrams per UDP packet. A FEC scheme that assumes QUIC datagrams are individual packets (not fate bound) won't work over generic implementations. This is especially a problem with MTU discovery, as even if you're sending 1.2kB datagrams, they might get bundled together into large packets. At the very least MoQ would have to require that QUIC datagrams MUST NOT be coalesced for this to work over generic relays. You kinda run into this same problem with FEC in general, as what looks like an individual packet at one layer might be coalesced into a jumbo packet at a lower layer.\r\n\r\n#316 just lets you can send individual OBJECTs as datagrams. It wouldn't be useful unless the application builds a FEC layer on MoQTransport, splitting each OBJECT into 1.2Kb OBJECTs. But you would have no way of preventing spurious retransmissions like you mentioned. It's also a burden for relays, as they're forced to proxy these numerous FEC OBJECTs even over pristine links.\r\n\r\nFrankly, I want FEC at the QUIC layer. Any FEC encoding should be applied over the entire connection, not individual frames/objects. I think we could combine this with priorities/hints in MoqTransport to designate important media, without building full-blown FEC into MoqTransport. One possibility: https://datatracker.ietf.org/doc/draft-michel-quic-fec/",
+          "createdAt": "2023-11-02T19:24:54Z",
+          "updatedAt": "2023-11-02T19:39:26Z"
+        },
+        {
+          "author": "englishm",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "Seconding @kixelated's suggestion that we probably want to have FEC at the underlying QUIC layer. Part of the value of MoQ is being able to benefit from these types of enhancements to QUIC itself as it continues to grow and mature.",
+          "createdAt": "2023-11-02T19:37:12Z",
+          "updatedAt": "2023-11-02T19:37:12Z"
+        },
+        {
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Yeah, and just one more point. Disclaimer, I haven't used FEC so I could be talking out of my ass.\r\n\r\nFEC is meant to conceal random loss which occurs on a link-by-link basis. The frequency and distribution of random loss is very different if you're on cellular, versus wifi, versus ethernet. All of these protocols have some form of FEC built but it can be inadequate, which is why the application wants to augment.\r\n\r\nI think performing FEC hop-by-hop within QUIC makes the most sense. This would support:\r\n- the FEC scheme could be dynamic, based on measured hop-by-hop properties.\r\n- viewer A could use a separate FEC scheme from viewer B. \r\n- QUIC paths could use different FEC schemes, ex. a path over a satellite link would be different from path over ethernet. \r\n- QUIC paths could work in tandem, for example the satellite path could be used to provide parity only.\r\n- a relay wouldn't be forced to use FEC within the backbone\r\n\r\nFEC end-to-end is an option for 1:1 but I just don't think it scales to multiple paths.",
+          "createdAt": "2023-11-02T20:07:28Z",
+          "updatedAt": "2023-11-02T20:07:28Z"
+        },
+        {
+          "author": "rom1v",
+          "authorAssociation": "NONE",
+          "body": "Thank you for your answers, very instructive!\r\n\r\n> Frankly, I want FEC at the QUIC layer. Any FEC encoding should be applied over the entire connection, not individual frames/objects. I think we could combine this with priorities/hints in MoqTransport to designate important media, without building full-blown FEC into MoqTransport. One possibility: https://datatracker.ietf.org/doc/draft-michel-quic-fec/\r\n\r\nThat would be awesome! I was not aware of such work, thank you for the link. :+1:\r\n\r\n> as what looks like an individual packet at one layer might be coalesced into a jumbo packet at a lower layer.\r\n\r\nI [faced a similar problem](https://github.com/quinn-rs/quinn/issues/1572) when I tried to simulate packet loss using `iptables`, due to UDP segmentation offload (several UDP packets were coalesced into one big UDP packet). However, it was just a local issue, UDP packets were still sent individually \"on the wire\".\r\n\r\nIndeed, if UDP packets are coalesced at a lower layer, FEC becomes useless. If this \"lower level\" is lower than UDP, it would also impact FEC at the QUIC layer though.\r\n\r\nTo give some more context, we are developing a prototype for remote gaming, experimenting with several custom protocols over QUIC and WebTransport.\r\n\r\nIn practice, if we use QUIC/WebTransport streams, it works pretty well, but we may experience stuttering due to packet loss: sometimes the game (mirrorring) freezes for few hundreds milliseconds (presumably on packet loss), then catches up.\r\n\r\nIf instead, we split each frame packet into [RaptorQ](https://www.rfc-editor.org/rfc/rfc6330.html) packets having a size computed from [`max_datagram_size()`](https://docs.rs/quinn/latest/quinn/struct.Connection.html#method.max_datagram_size), send them over QUIC/WebTransport datagrams, and reconstruct the source packets on the other side, then this avoids the problem in practice.\r\n\r\n> It's also a burden for relays\r\n\r\n> FEC end-to-end is an option for 1:1 but I just don't think it scales to multiple paths\r\n\r\nYes, I totally agree. It's not clear to me how it should work with relays.\r\n\r\nIn addition, if a burst of packet loss is too severe, data may be completely lost without retransmission: this is not good for a relay, which might want to record (without being impacted by packet loss).\r\n\r\nBut for the 1:1 remote gaming use case, I think FEC packets over datagrams may still be useful.",
+          "createdAt": "2023-11-03T10:43:37Z",
+          "updatedAt": "2023-11-03T10:43:37Z"
+        },
+        {
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> Indeed, if UDP packets are coalesced at a lower layer, FEC becomes useless. If this \"lower level\" is lower than UDP, it would also impact FEC at the QUIC layer though.\r\n\r\nYeah absolutely. UDP packets aren't necessarily independent nor are the loss events. It's a difficult problem to solve and it's understandable why FEC algorithms can get quite complicated.\r\n\r\n> To give some more context, we are developing a prototype for remote gaming, experimenting with several custom protocols over QUIC and WebTransport.\r\n\r\nI spent a while talking to JB at the last year about WebTransport and QUIC. I'm glad you're making great progress!\r\n\r\n> In practice, if we use QUIC/WebTransport streams, it works pretty well, but we may experience stuttering due to packet loss: sometimes the game (mirrorring) freezes for few hundreds milliseconds (presumably on packet loss), then catches up.\r\n\r\nYeah, it's quite difficult to tell random loss apart from queue loss. FEC will help with random loss, but it might actually exacerbate queue loss; depends on how the router decides to shed load.\r\n\r\nWhat congestion control algorithm are you using with QUIC? There's probably some improvements you can make there to avoid these freezes. Ah you linked the Quinn docs below, so that means New Reno (by default) or BBRv1 (experimental). \r\n\r\nNew Reno will absolutely cause random freezes like that, either due to bufferbloat or a sudden cwnd reduction. BBRv1 is much better in my experience but can also cause random freezes due to the PROBE_RTT phase. It's also not clear if it's even implemented correctly in Quinn given the experimental flag, and upgrading to BBRv2 or BBRv3 will definitely help live video.\r\n\r\nOh and check out [my recent blog post](https://quic.video/blog/replacing-webrtc/#detecting-queuing) if you haven't already. We'll need a QUIC extension if you want to use something like GCC to match WebRTC performance.\r\n\r\n> If instead, we split each frame packet into [RaptorQ](https://www.rfc-editor.org/rfc/rfc6330.html) packets having a size computed from [`max_datagram_size()`](https://docs.rs/quinn/latest/quinn/struct.Connection.html#method.max_datagram_size), send them over QUIC/WebTransport datagrams, and reconstruct the source packets on the other side, then this avoids the problem in practice.\r\n\r\nFEC can definitely help if you have a high RTTs, for example if you have a limited edge deployment. But if that's not the case then I'm not quite sure why it would help when using Reno or BBR.\r\n\r\nOh and with your QUIC streams, make sure you're prioritizing them otherwise they'll fight for limited bandwidth. It makes a huge difference and is comparable to manually dropping packets via datagrams.\r\n\r\n> But for the 1:1 remote gaming use case, I think FEC packets over datagrams may still be useful.\r\n\r\nYeah, FEC does make sense when latency is critical and RTTs are high.",
+          "createdAt": "2023-11-03T13:13:55Z",
+          "updatedAt": "2023-11-03T13:13:55Z"
+        },
+        {
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "I'm big fan of FEC but I think it is complicated at a level that I was waiting until the basic of MoQ were more stable before jumping into it. \r\n\r\nSome cases you might only want FEC on one link in which case doing it at the QUIC layer might make sense. In other cases only the application really knows what type of FEC would work best for the current application and network environment. There are also cases where you want the applications to be able to do end to end FEC without waiting for the relay network to support that form of FEC. And clearly what type of FEC is optimal is highly application dependent. \r\n\r\nRight now, I feel like the best experiments could be done with just putting the FEC on separate tracks and having it be application defined. This does have the issue with  some video frames  not fitting in a single MTU but, for now, an applications could deal with splitting up the frame. \r\n\r\n",
+          "createdAt": "2023-11-04T16:51:28Z",
+          "updatedAt": "2023-11-04T16:51:28Z"
+        },
+        {
+          "author": "francoismichel",
+          "authorAssociation": "NONE",
+          "body": "Hey, I am the author of  https://datatracker.ietf.org/doc/draft-michel-quic-fec/ .\r\nI am jumping in to let you know that I am in Prague this week, including at the Hackathon if you want to discuss. \r\n\r\nI have performed a few FEC experiments with different applications, including low latency video streaming ones such as GStreamer/FFMpeg, obtaining good results. Everything is in my thesis and in our coming papers.",
+          "createdAt": "2023-11-04T20:31:37Z",
+          "updatedAt": "2023-11-04T21:15:46Z"
+        }
+      ]
+    },
+    {
+      "number": 321,
+      "id": "I_kwDOG2Ho4M51s74I",
+      "title": "SUBSCRIBE REQUEST parameters",
+      "url": "https://github.com/moq-wg/moq-transport/issues/321",
+      "state": "CLOSED",
+      "author": "rom1v",
+      "authorAssociation": "NONE",
+      "assignees": [],
+      "labels": [],
+      "body": "Hi,\r\n\r\nI have just read the RFC, and I have a question about the `SUBSCRIBE REQUEST` description:\r\n\r\n```\r\nSUBSCRIBE REQUEST Message {\r\n  Full Track Name Length (i),\r\n  Full Track Name (...),\r\n  StartGroup (Location),\r\n  StartObject (Location),\r\n  EndGroup (Location),\r\n  EndObject (Location),\r\n  Track Request Parameters (..) ...\r\n}\r\n```\r\n\r\n> Track Request Parameters: The parameters are defined in [Section 6.1.1](https://datatracker.ietf.org/doc/html/draft-ietf-moq-transport-01#version-specific-params)\r\n\r\nIf I'm not mistaken, these Track Request Parameters are:\r\n - GROUP SEQUENCE Parameter\r\n - OBJECT SEQUENCE Parameter\r\n - AUTHORIZATION INFO Parameter\r\n\r\nIt seems to me that `StartGroup`/`EndGroup` and `StartObject`/`EndObject` overlap (i.e. are partially redundant) with `GROUP SEQUENCE` and `OBJECT SEQUENCE`, don't they?\r\n\r\nWhat if `StartGroup` and `GROUP SEQUENCE` refer to different groups?\r\n\r\n(I probably misunderstood something or miss context.)\r\n\r\nAnother small question:\r\n\r\n> EndObject's Mode MUST NOT be None if EndGroup's Mode is not None.\r\n\r\nIIUC, this means that it is not possible to subscribe for Groups 42 to 47 without specifying the last object number in group 47? (just a theoretical question)\r\n\r\nThank you for your time :slightly_smiling_face: ",
+      "createdAt": "2023-11-02T17:17:01Z",
+      "updatedAt": "2023-11-03T17:49:36Z",
+      "closedAt": "2023-11-03T17:49:36Z",
+      "comments": [
+        {
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "Group Sequence and Object Sequence should have been deleted",
+          "createdAt": "2023-11-02T18:18:00Z",
+          "updatedAt": "2023-11-02T18:18:00Z"
+        },
+        {
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Yeah we forgot to delete them before releasing draft-01. See: #302 \r\n\r\nAs for `EndGroup`, I agree and filed #312. You're apparently supposed to EndGroup+1 and EndObject=0 but I don't think that's obvious.",
+          "createdAt": "2023-11-02T19:02:32Z",
+          "updatedAt": "2023-11-02T19:02:52Z"
+        },
+        {
+          "author": "rom1v",
+          "authorAssociation": "NONE",
+          "body": "> Group Sequence and Object Sequence should have been deleted\r\n\r\nOh, ok, that makes more sense now :+1:\r\n\r\nThank you.",
+          "createdAt": "2023-11-03T10:46:04Z",
+          "updatedAt": "2023-11-03T10:46:04Z"
+        }
+      ]
+    },
+    {
+      "number": 322,
+      "id": "I_kwDOG2Ho4M51tU1T",
+      "title": "SUBSCRIBE_REQUEST encoding",
+      "url": "https://github.com/moq-wg/moq-transport/issues/322",
+      "state": "CLOSED",
+      "author": "martinduke",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [
+        "duplicate"
+      ],
+      "body": "The section wire diagram says there is a \"Full Track Name,\" but the text suggests there is a namespace and name.",
+      "createdAt": "2023-11-02T18:18:57Z",
+      "updatedAt": "2023-11-03T19:59:40Z",
+      "closedAt": "2023-11-03T19:59:40Z",
+      "comments": [
+        {
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "body": "See: #317 \r\n\r\n#277 was accidentally reverted",
+          "createdAt": "2023-11-02T18:59:58Z",
+          "updatedAt": "2023-11-02T18:59:58Z"
         }
       ]
     }
@@ -34889,18 +35126,26 @@
       "labels": [],
       "body": "Currently SUBSCRIBE_OK and OBJECT will race. If OBJECT wins (>50% chance for multi-threaded QUIC libraries), then the subscriber will receive an unknown OBJECT that needs to be buffered. Moving Track ID to SUBSCRIBE fixes this race, removes the need to buffer OBJECTs in the MoqT library, and simplifies the flow. See #145",
       "createdAt": "2023-09-29T04:17:03Z",
-      "updatedAt": "2023-09-29T21:48:15Z",
+      "updatedAt": "2023-11-04T16:15:41Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
-      "baseRefOid": "106f827d30f81d300aa5d8604424fe3906ac21d3",
+      "baseRefOid": "5f8ba291c21839dc5addc8fb6c4cb59410c5fe0b",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "subscribe-id",
-      "headRefOid": "b4a51e6bb6fb796bc5770acd1dfde8bd34b4ecc5",
+      "headRefOid": "a2c2e858bdc3545cd3c2b844432bdeb80898da5b",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
       "mergeCommit": null,
-      "comments": [],
+      "comments": [
+        {
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "body": "@fluffy @suhasHere I think #305 should immediately follow and split Track ID into Subscription ID and Track Alias.",
+          "createdAt": "2023-11-04T15:37:48Z",
+          "updatedAt": "2023-11-04T15:37:48Z"
+        }
+      ],
       "reviews": [
         {
           "id": "PRR_kwDOG2Ho4M5ibbNL",
@@ -34961,6 +35206,78 @@
               "updatedAt": "2023-09-29T21:50:34Z"
             }
           ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5mJi_V",
+          "commit": {
+            "abbreviatedOid": "b4a51e6"
+          },
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "CHANGES_REQUESTED",
+          "body": "Proposed somethings that I think would allow us to get to consensus on this one. ",
+          "createdAt": "2023-11-04T13:50:41Z",
+          "updatedAt": "2023-11-04T13:54:36Z",
+          "comments": [
+            {
+              "originalPosition": 61,
+              "body": "Add an error code for, use differnt track-id and add a field of proposed track-id",
+              "createdAt": "2023-11-04T13:51:38Z",
+              "updatedAt": "2023-11-04T13:54:36Z"
+            },
+            {
+              "originalPosition": 48,
+              "body": "sure simple use case that is given over and over again, eliminate the need to keep track of per hop rewrite information and do the rewrites. ",
+              "createdAt": "2023-11-04T13:53:54Z",
+              "updatedAt": "2023-11-04T13:54:36Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5mJsLi",
+          "commit": {
+            "abbreviatedOid": "a2c2e85"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2023-11-04T16:00:35Z",
+          "updatedAt": "2023-11-04T16:00:35Z",
+          "comments": [
+            {
+              "originalPosition": 80,
+              "body": "nit, if possible is redundant",
+              "createdAt": "2023-11-04T16:00:35Z",
+              "updatedAt": "2023-11-04T16:00:35Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5mJsMC",
+          "commit": {
+            "abbreviatedOid": "a2c2e85"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2023-11-04T16:00:47Z",
+          "updatedAt": "2023-11-04T16:00:47Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5mJsnl",
+          "commit": {
+            "abbreviatedOid": "a2c2e85"
+          },
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "This looks good and I really hope we can agree on this compromise. It's not perfect for everyone but I think it is the best we can get to now. ",
+          "createdAt": "2023-11-04T16:15:41Z",
+          "updatedAt": "2023-11-04T16:15:41Z",
+          "comments": []
         }
       ]
     },
@@ -39209,7 +39526,7 @@
       "labels": [],
       "body": "per https://github.com/moq-wg/moq-transport/issues/268 \r\n\r\nTODO: Denote need to register w/ IANA",
       "createdAt": "2023-10-23T22:16:25Z",
-      "updatedAt": "2023-10-24T00:42:06Z",
+      "updatedAt": "2023-11-04T16:49:53Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "759f52940e2370ed61b22ead62f09cbbac0a6960",
@@ -39233,6 +39550,19 @@
           "body": "",
           "createdAt": "2023-10-24T00:42:06Z",
           "updatedAt": "2023-10-24T00:42:06Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5mJtk2",
+          "commit": {
+            "abbreviatedOid": "5bd7fb2"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2023-11-04T16:49:53Z",
+          "updatedAt": "2023-11-04T16:49:53Z",
           "comments": []
         }
       ]
@@ -39346,13 +39676,13 @@
       "labels": [],
       "body": "This PR is expected to be base PR to support multi-subscribe like flows that will follow up.\r\n\r\nIt adds support for SubscribeID and also renames the trackId to `Full Track Name Alias` to avoid the confusion and make the scope clear.\r\n\r\n",
       "createdAt": "2023-10-27T17:14:58Z",
-      "updatedAt": "2023-10-30T17:33:53Z",
+      "updatedAt": "2023-11-04T16:38:36Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "f8dd2386d2c2d471d76e4b19aaaa811f2e13ddfe",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "track-sn",
-      "headRefOid": "6a826ac07c00e396d2db2ef1e645364fd282bb4e",
+      "headRefOid": "91f46311cd75f85607f1df1c7c32e0b397d70fdc",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -39488,6 +39818,39 @@
               "updatedAt": "2023-10-30T17:33:53Z"
             }
           ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5mHgsg",
+          "commit": {
+            "abbreviatedOid": "6a826ac"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2023-11-03T17:53:10Z",
+          "updatedAt": "2023-11-03T17:53:10Z",
+          "comments": [
+            {
+              "originalPosition": 23,
+              "body": "Individual Comment:\r\n\r\nAn alternate design is to put the Subscribe ID here, effectively merging it with Full Track Name Alias (I think this was Will's suggestion too).  Subscribe ID becomes an alias both for the name and the other subscribe params.  That simplifies a number of things, but the cost comes if we allow overlapping subscriptions to the same track and want to deduplicate objects among them.\r\n\r\nDeduplicating overlapping subscriptions is a pain to the subscriber, who needs to track the ranges of their open subscriptions to know which callers want a given object, and for the server to deduplicate the objects before sending.",
+              "createdAt": "2023-11-03T17:53:10Z",
+              "updatedAt": "2023-11-03T17:53:10Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5mJtRW",
+          "commit": {
+            "abbreviatedOid": "d9e58da"
+          },
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "LGTM. \r\n\r\nI like how this makes it clear what is the transaction identifier for subscribes and the compression alias for objects full track names. ",
+          "createdAt": "2023-11-04T16:38:17Z",
+          "updatedAt": "2023-11-04T16:38:17Z",
+          "comments": []
         }
       ]
     },
@@ -39759,7 +40122,7 @@
       "labels": [],
       "body": "Fixes #35\r\n\r\nAlso fixes #38 because there is existing text about streams:\r\n```\r\n\"A relay that reads from a stream and writes to stream in order will\r\nintroduce head-of-line blocking.  Packet loss will cause stream data to\r\nbe buffered in the library, awaiting in order delivery, which will\r\nincrease latency over additional hops.  To mitigate this, a relay SHOULD\r\nread and write stream data out of order subject to flow control\r\nlimits.  See section 2.2 in {{QUIC}}.\"\r\n```\r\n",
       "createdAt": "2023-10-30T23:23:25Z",
-      "updatedAt": "2023-10-31T16:43:47Z",
+      "updatedAt": "2023-11-04T16:36:33Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "c107110ff473a8e28283b14b16acae45371bdc75",
@@ -39791,6 +40154,13 @@
           "body": "Maybe move this discussion to an issue rather than a PR so we avoid another unicorn PR.",
           "createdAt": "2023-10-31T16:43:47Z",
           "updatedAt": "2023-10-31T16:43:47Z"
+        },
+        {
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "body": "this PR is right starting point. We will refine the text once we have more experience with implementation.",
+          "createdAt": "2023-11-04T16:36:18Z",
+          "updatedAt": "2023-11-04T16:36:18Z"
         }
       ],
       "reviews": [
@@ -39883,6 +40253,215 @@
               "updatedAt": "2023-10-31T02:30:04Z"
             }
           ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5mJtAf",
+          "commit": {
+            "abbreviatedOid": "e7d3693"
+          },
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "LGTM. \r\n\r\nI think this will make a significant difference for applications doing interactive audio on networks with significant amount of loss. ",
+          "createdAt": "2023-11-04T16:28:05Z",
+          "updatedAt": "2023-11-04T16:28:05Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5mJtOc",
+          "commit": {
+            "abbreviatedOid": "e7d3693"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2023-11-04T16:36:33Z",
+          "updatedAt": "2023-11-04T16:36:33Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 323,
+      "id": "PR_kwDOG2Ho4M5ektQb",
+      "title": "Reapply #277 (track namespace + track name in SUBSCRIBE)",
+      "url": "https://github.com/moq-wg/moq-transport/pull/323",
+      "state": "OPEN",
+      "author": "afrind",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "",
+      "createdAt": "2023-11-03T20:31:40Z",
+      "updatedAt": "2023-11-04T16:21:02Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "5f8ba291c21839dc5addc8fb6c4cb59410c5fe0b",
+      "headRepository": "moq-wg/moq-transport",
+      "headRefName": "reapply-277",
+      "headRefOid": "196010ed19ed479a8539449cb5470dad9a43420e",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Fixes: #317",
+          "createdAt": "2023-11-03T20:32:19Z",
+          "updatedAt": "2023-11-03T20:32:19Z"
+        }
+      ],
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M5mJoax",
+          "commit": {
+            "abbreviatedOid": "196010e"
+          },
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2023-11-04T15:10:54Z",
+          "updatedAt": "2023-11-04T15:10:54Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5mJsyY",
+          "commit": {
+            "abbreviatedOid": "196010e"
+          },
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "LGTM ",
+          "createdAt": "2023-11-04T16:21:02Z",
+          "updatedAt": "2023-11-04T16:21:02Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 324,
+      "id": "PR_kwDOG2Ho4M5ekv4_",
+      "title": "Clarify allowed messages during SETUP",
+      "url": "https://github.com/moq-wg/moq-transport/pull/324",
+      "state": "OPEN",
+      "author": "afrind",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "I think the intent of the draft was clear but this makes it explicit not to open a uni stream before setup exchange is done.\r\n\r\nFixes: #136",
+      "createdAt": "2023-11-03T20:42:29Z",
+      "updatedAt": "2023-11-04T20:14:29Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "5f8ba291c21839dc5addc8fb6c4cb59410c5fe0b",
+      "headRepository": "moq-wg/moq-transport",
+      "headRefName": "messages-during-handshake",
+      "headRefOid": "fcda3554f8e480ee6eb43078b903e774eaa390e6",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M5mJoYj",
+          "commit": {
+            "abbreviatedOid": "fcda355"
+          },
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2023-11-04T15:09:34Z",
+          "updatedAt": "2023-11-04T15:10:34Z",
+          "comments": [
+            {
+              "originalPosition": 25,
+              "body": "I think this implies that the server has to wait until SERVER SETUP is acknowledged? It can really only know that when it receives the first non-setup control message.\r\n\r\nReally the text should say \"until after the receipt of a SUBSCRIBE message\". It's used as both an acknowledgement of the SETUP handshake being completed and It's just a protocol violation to send OBJECTs without a SUBSCRIBE anyway. But I'm also fine with \"until the receipt of the first non-SETUP message\" just to keep things generic for the future.",
+              "createdAt": "2023-11-04T15:09:34Z",
+              "updatedAt": "2023-11-04T15:10:34Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5mJs0y",
+          "commit": {
+            "abbreviatedOid": "fcda355"
+          },
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2023-11-04T16:22:21Z",
+          "updatedAt": "2023-11-04T16:22:21Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5mJz3M",
+          "commit": {
+            "abbreviatedOid": "fcda355"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2023-11-04T20:14:28Z",
+          "updatedAt": "2023-11-04T20:14:29Z",
+          "comments": [
+            {
+              "originalPosition": 25,
+              "body": "Never trust transport acks at the app layer!  Definitely don't want to imply that.  I can update it to:\r\n\r\n`An endpoint MUST not open a unidirectional stream or send an OBJECT* message until after receiving a SUBSCRIBE and sending a SUBSCRIBE OK. `\r\n\r\nThat transitively means you can't do it during setup, since you can't send or receive a subscrbie* until after setup is complete.  Would that work?",
+              "createdAt": "2023-11-04T20:14:28Z",
+              "updatedAt": "2023-11-04T20:14:29Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 325,
+      "id": "PR_kwDOG2Ho4M5ema0Q",
+      "title": "fix typo",
+      "url": "https://github.com/moq-wg/moq-transport/pull/325",
+      "state": "OPEN",
+      "author": "fluffy",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [
+        "Editorial"
+      ],
+      "body": "",
+      "createdAt": "2023-11-04T16:34:57Z",
+      "updatedAt": "2023-11-04T16:53:46Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "5f8ba291c21839dc5addc8fb6c4cb59410c5fe0b",
+      "headRepository": "moq-wg/moq-transport",
+      "headRefName": "typo1",
+      "headRefOid": "e10ab8cd8deda7eb104d5003f92d092decea9c0a",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M5mJtRS",
+          "commit": {
+            "abbreviatedOid": "e10ab8c"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2023-11-04T16:38:13Z",
+          "updatedAt": "2023-11-04T16:38:13Z",
+          "comments": []
         }
       ]
     }
