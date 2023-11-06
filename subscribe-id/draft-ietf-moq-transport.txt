@@ -5,12 +5,12 @@
 MOQ                                                            L. Curley
 Internet-Draft                                                    Twitch
 Intended status: Standards Track                                K. Pugin
-Expires: 7 May 2024                                                 Meta
+Expires: 9 May 2024                                                 Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                                   Google
-                                                         4 November 2023
+                                                         6 November 2023
 
 
                        Media over QUIC Transport
@@ -52,7 +52,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 7 May 2024.
+   This Internet-Draft will expire on 9 May 2024.
 
 Copyright Notice
 
@@ -477,6 +477,8 @@ Table of Contents
                        +------+--------------------+
                        |  0x3 | Protocol Violation |
                        +------+--------------------+
+                       |  0x4 | Duplicate Track ID |
+                       +------+--------------------+
                        | 0x10 | GOAWAY Timeout     |
                        +------+--------------------+
 
@@ -491,6 +493,9 @@ Table of Contents
 
    *  Protocol Violation: The remote endpoint performed an action that
       was disallowed by the specification.
+
+   *  Duplicate Track ID: The endpoint attempted to use a Track ID that
+      was already in use.
 
    *  GOAWAY Timeout: The session was closed because the client took too
       long to close the session in response to a GOAWAY (Section 6.14)
@@ -1020,6 +1025,8 @@ Table of Contents
    *  Track ID: A session specific identifier for the track.  Messages
       that reference a track, such as OBJECT (Section 6.3), reference
       this Track ID instead of the Full Track Name to reduce overhead.
+      If the Track ID is already in use, the receiver MUST close the
+      session with a Duplicate Track ID error (Section 3.5).
 
    *  Track Namespace: Identifies the namespace of the track as defined
       in (Section 2.3.1).
@@ -1147,10 +1154,10 @@ Table of Contents
    *  Reason Phrase: Provides the reason for subscription error.
 
    *  New Track ID: When not equal to Track ID, the subscriber SHOULD
-      re-issue the SUBSCRIBE with this Track ID instead if possible.  It
-      is RECOMMENDED that a publisher use an unguessable New Track ID to
-      reduce the odds of a collision.  TODO: Add a registry for
-      subscribe error codes and make this field conditional.
+      re-issue the SUBSCRIBE with this Track ID instead.  If this Track
+      ID is already in use, the receiver MUST close the connection with
+      a Duplicate Track ID error (Section 3.5).  TODO: Add a registry
+      for subscribe error codes and make this field conditional.
 
 6.7.  UNSUBSCRIBE
 
