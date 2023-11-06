@@ -423,6 +423,8 @@ code, as defined below:
 |------|--------------------|
 | 0x3  | Protocol Violation |
 |------|--------------------|
+| 0x4  | Duplicate Track ID |
+|------|--------------------|
 | 0x10 | GOAWAY Timeout     |
 |------|--------------------|
 
@@ -435,6 +437,8 @@ code, as defined below:
 
 * Protocol Violation: The remote endpoint performed an action that was
   disallowed by the specification.
+
+* Duplicate Track ID: The endpoint attempted to use a Track ID that was already in use.
 
 * GOAWAY Timeout: The session was closed because the client took too long to
   close the session in response to a GOAWAY ({{message-goaway}}) message.
@@ -955,6 +959,7 @@ SUBSCRIBE REQUEST Message {
 * Track ID: A session specific identifier for the track.
   Messages that reference a track, such as OBJECT ({{message-object}}),
   reference this Track ID instead of the Full Track Name to reduce overhead.
+  If the Track ID is already in use, the receiver MUST close the session with a Duplicate Track ID error ({{session-termination}}).
 
 * Track Namespace: Identifies the namespace of the track as defined in
 ({{track-name}}).
@@ -1081,8 +1086,8 @@ SUBSCRIBE_ERROR
 
 * Reason Phrase: Provides the reason for subscription error.
 
-* New Track ID: When not equal to Track ID, the subscriber SHOULD re-issue the SUBSCRIBE with this Track ID instead if possible.
-  It is RECOMMENDED that a publisher use an unguessable New Track ID to reduce the odds of a collision.
+* New Track ID: When not equal to Track ID, the subscriber SHOULD re-issue the SUBSCRIBE with this Track ID instead.
+  If this Track ID is already in use, the receiver MUST close the connection with a Duplicate Track ID error ({{session-termination}}).
   TODO: Add a registry for subscribe error codes and make this field conditional.
 
 
