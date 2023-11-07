@@ -252,47 +252,23 @@ In MOQT, every track has a track name and a track namespace associated
 with it.  A track name identifies an individual track within the
 namespace.
 
-A tuple of a track name and a track namespace together is known as a
-full track name:
-
-~~~~~~~~~~~~~~~
-Full Track Name = Track Namespace Track Name
-~~~~~~~~~~~~~~~
-
 A MOQT scope is a set of servers (as identified by their connection
-URIs) for which full track names are guaranteed to be unique.  This
-implies that within a single MOQT scope, subscribing to the same full
-track name would result in the subscriber receiving the data for the
-same track.  It is up to the application using MOQT to define how broad
-or narrow the scope has to be.  An application that deals with
-connections between devices on a local network may limit the scope to a
-single connection; by contrast, an application that uses multiple CDNs
-to serve media may require the scope to include all of those CDNs.
+URIs) for which the tuple of Track Name and Track Namespace are
+guaranteed to be unique. Within a single MOQT scope, subscribing to the
+same Track Name and Track Namespace results in the subscriber receiving
+Objects for the same track.  It is up to the application using MOQT to
+define how broad or narrow the scope has to be.  An application that
+deals with connections between devices on a local network may limit the
+scope to a single connection; by contrast, an application that uses
+multiple CDNs to serve media may require the scope to include all of
+those CDNs.
 
-The full track name is the only piece of information that is used to
-identify the track within a given MOQT scope and is used as cache key.
+The tuple of Track Namespace and Track Name identify the track
+within a given MOQT scope and is used as cache key.
 MOQT does not provide any in-band content negotiation methods similar to
 the ones defined by HTTP ({{?RFC9110, Section 10}}); if, at a given
 moment in time, two tracks within the same scope contain different data,
-they have to have different full track names.
-
-~~~
-Example: 1
-Track Namespace = live.example.com/meeting/123/member/alice/
-Track Name = audio
-Full Track Name = live.example.com/meeting/123/member/alice/audio
-
-Example: 2
-Track Namespace = live.example.com/
-Track Name = uaCafDkl123/audio
-Full Track Name = live.example.com/uaCafDkl123/audio
-
-Example: 3
-Track Namespace = security-camera.example.com/camera1/
-Track Name = hd-video
-Full Track Name = security-camera.example.com/camera1/hd-video
-
-~~~
+they have to have different names and/or namespaces.
 
 
 ### Connection URL
@@ -577,7 +553,7 @@ validating subscribe and publish requests at the edge of a network.
 Subscribers interact with the Relays by sending a SUBSCRIBE
 ({{message-subscribe-req}}) control message for the tracks of
 interest. Relays MUST ensure subscribers are authorized to access the
-content associated with the Full Track Name. The authorization
+content associated with the track. The authorization
 information can be part of subscription request itself or part of the
 encompassing session. The specifics of how a relay authorizes a user are
 outside the scope of this specification.
@@ -589,10 +565,11 @@ The entity receiving the SUBSCRIBE MUST send only a single response to
 a given SUBSCRIBE of either SUBSCRIBE_OK or SUBSCRIBE_ERROR.
 
 For successful subscriptions, the publisher maintains a list of
-subscribers for each full track name. Each new OBJECT belonging to the
-track is forwarded to each active subscriber, dependent on the
-congestion response. A subscription remains active until it expires,
-until the publisher of the track terminates the track with a SUBSCRIBE_FIN
+subscribers for each track. Each new OBJECT belonging to the
+track within the subscription range is forwarded to each active
+subscriber, dependent on the congestion response. A subscription
+remains active until it expires, until the publisher of the track
+terminates the track with a SUBSCRIBE_FIN
 (see {{message-subscribe-fin}}) or a SUBSCRIBE_RST
 (see {{message-subscribe-rst}}).
 
