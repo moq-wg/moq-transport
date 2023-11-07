@@ -622,8 +622,8 @@ providing the result of announcement. The entity receiving the
 ANNOUNCE MUST send only a single response to a given ANNOUNCE of
 either ANNOUNCE_OK or ANNOUNCE_ERROR.
 
-OBJECT message header carry short hop-by-hop Track Id that maps to the
-Full Track Name (see {{message-subscribe-ok}}). Relays use the Track ID
+OBJECT message header carry short hop-by-hop `Track Alias` that maps to the
+Full Track Name (see {{message-subscribe-ok}}). Relays use the `Track Alias`
 of an incoming OBJECT message to identify its track and find the active
 subscribers for that track. Relays MUST NOT depend on OBJECT payload
 content for making forwarding decisions and MUST only depend on the
@@ -863,7 +863,7 @@ The format of the OBJECT message is as follows:
 
 ~~~
 OBJECT Message {
-  Track ID (i),
+  Track Alias (i),
   Group Sequence (i),
   Object Sequence (i),
   Object Send Order (i),
@@ -873,7 +873,7 @@ OBJECT Message {
 ~~~
 {: #moq-transport-object-format title="MOQT OBJECT Message"}
 
-* Track ID: The track identifier obtained as part of subscription and/or
+* Track Alias: The track alias obtained as part of subscription and/or
 publish control message exchanges.
 
 * Group Sequence : The object is a member of the indicated group
@@ -1044,7 +1044,7 @@ SUBSCRIBE_OK
 {
   Track Namespace (b),
   Track Name (b),
-  Track ID (i),
+  Track Alias (i),
   Expires (i)
 }
 ~~~
@@ -1055,9 +1055,9 @@ SUBSCRIBE_OK
 
 * Track Name: Identifies the track name as defined in ({{track-name}}).
 
-* Track ID: Session specific identifier that is used as an alias for the
-Full Track Name in the Track ID field of the OBJECT ({{message-object}})
-message headers of the requested track. Track IDs are generally shorter
+* Track Alias: Session specific identifier that is used as an alias for the
+Full Track Name in the Track Alias field of the OBJECT ({{message-object}})
+message headers of the requested track. Track Aliases are generally shorter
 than Full Track Names and thus reduce the overhead in OBJECT messages.
 
 * Expires: Time in milliseconds after which the subscription is no
