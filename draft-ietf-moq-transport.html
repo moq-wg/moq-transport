@@ -1278,7 +1278,7 @@ networks and is designed for high scale and low latency distribution.<a href="#s
                     <p id="section-toc.1-1.6.2.2.2.1.1"><a href="#section-6.2.1" class="auto internal xref">6.2.1</a>.  <a href="#name-versions" class="internal xref">Versions</a></p>
 </li>
                   <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.2.2.2">
-                    <p id="section-toc.1-1.6.2.2.2.2.1"><a href="#section-6.2.2" class="auto internal xref">6.2.2</a>.  <a href="#name-setup-parameters" class="internal xref">SETUP Parameters</a></p>
+                    <p id="section-toc.1-1.6.2.2.2.2.1"><a href="#section-6.2.2" class="auto internal xref">6.2.2</a>.  <a href="#name-setup-parameters" class="internal xref">Setup Parameters</a></p>
 </li>
                 </ul>
 </li>
@@ -1746,12 +1746,12 @@ is <code>moq-00</code>.<a href="#section-3.1.2-5" class="pilcrow">¶</a></p>
         <h3 id="name-version-and-extension-negot">
 <a href="#section-3.2" class="section-number selfRef">3.2. </a><a href="#name-version-and-extension-negot" class="section-name selfRef">Version and Extension Negotiation</a>
         </h3>
-<p id="section-3.2-1">Endpoints use the exchange of SETUP messages to negotiate the MOQT version and
+<p id="section-3.2-1">Endpoints use the exchange of Setup messages to negotiate the MOQT version and
 any extensions to use.<a href="#section-3.2-1" class="pilcrow">¶</a></p>
 <p id="section-3.2-2">The client indicates the MOQT versions it supports in the CLIENT_SETUP message
 (see <a href="#message-setup" class="auto internal xref">Section 6.2</a>). It also includes the union of all Setup Parameters
 <a href="#setup-params" class="auto internal xref">Section 6.2.2</a> required for a handshake by any of those versions.<a href="#section-3.2-2" class="pilcrow">¶</a></p>
-<p id="section-3.2-3">Within any MOQT version, clients request the use of extensions by adding SETUP
+<p id="section-3.2-3">Within any MOQT version, clients request the use of extensions by adding Setup
 parameters corresponding to that extension. No extensions are defined in this
 document.<a href="#section-3.2-3" class="pilcrow">¶</a></p>
 <p id="section-3.2-4">The server replies with a SERVER_SETUP message that indicates the chosen
@@ -1762,7 +1762,7 @@ that version. New extensions <span class="bcp14">MUST</span> specify the existin
 can be used.<a href="#section-3.2-5" class="pilcrow">¶</a></p>
 <p id="section-3.2-6">If a given parameter carries the same information in multiple versions,
 but might have different optimal values in those versions, there <span class="bcp14">SHOULD</span> be
-separate SETUP parameters for that information in each version.<a href="#section-3.2-6" class="pilcrow">¶</a></p>
+separate Setup parameters for that information in each version.<a href="#section-3.2-6" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="session-init">
@@ -1771,9 +1771,9 @@ separate SETUP parameters for that information in each version.<a href="#section
 <a href="#section-3.3" class="section-number selfRef">3.3. </a><a href="#name-session-initialization" class="section-name selfRef">Session initialization</a>
         </h3>
 <p id="section-3.3-1">The first stream opened is a client-initiated bidirectional control stream where
-the peers exchange SETUP messages (<a href="#message-setup" class="auto internal xref">Section 6.2</a>).  All messages defined in
+the peers exchange Setup messages (<a href="#message-setup" class="auto internal xref">Section 6.2</a>).  All messages defined in
 this draft except OBJECT and OBJECT_WITH_LENGTH are sent on the control stream
-after the SETUP message. Control messages <span class="bcp14">MUST NOT</span> be sent on any other stream,
+after the Setup message. Control messages <span class="bcp14">MUST NOT</span> be sent on any other stream,
 and a peer receiving a control message on a different stream closes the session
 as a 'Protocol Violation'. Objects <span class="bcp14">MUST NOT</span> be sent on the control stream, and a
 peer receiving an Object on the control stream closes the session as a 'Protocol
@@ -2253,9 +2253,9 @@ Parameter {
           </figcaption></figure>
 </div>
 <p id="section-6.1-6">Parameter Type is an integer that indicates the semantic meaning of the
-parameter. SETUP message parameters use a namespace that is constant across all
+parameter. Setup message parameters use a namespace that is constant across all
 MoQ Transport versions. All other messages use a version-specific namespace. For
-example, the integer '1' can refer to different parameters for SETUP messages
+example, the integer '1' can refer to different parameters for Setup messages
 and for all other message types.<a href="#section-6.1-6" class="pilcrow">¶</a></p>
 <p id="section-6.1-7">SETUP message parameter types are defined in <a href="#setup-params" class="auto internal xref">Section 6.2.2</a>. Version-
 specific parameter types are defined in <a href="#version-specific-params" class="auto internal xref">Section 6.1.1</a>.<a href="#section-6.1-7" class="pilcrow">¶</a></p>
@@ -2272,8 +2272,8 @@ parameter using the value in the Parameter Length field.<a href="#section-6.1-9"
           </h4>
 <p id="section-6.1.1-1">Each version-specific parameter definition indicates the message types in which
 it can appear. If it appears in some other type of message, it <span class="bcp14">MUST</span> be ignored.
-Note that since SETUP parameters use a separate namespace, it is impossible for
-these parameters to appear in SETUP messages.<a href="#section-6.1.1-1" class="pilcrow">¶</a></p>
+Note that since Setup parameters use a separate namespace, it is impossible for
+these parameters to appear in Setup messages.<a href="#section-6.1.1-1" class="pilcrow">¶</a></p>
 <div id="authorization-info">
 <section id="section-6.1.1.1">
             <h5 id="name-authorization-info-paramete">
@@ -2297,11 +2297,11 @@ ASCII string.<a href="#section-6.1.1.1-1" class="pilcrow">¶</a></p>
 <p id="section-6.2-1">The <code>CLIENT_SETUP</code> and <code>SERVER_SETUP</code> messages are the first messages exchanged
 by the client and the server; they allows the peers to establish the mutually
 supported version and agree on the initial configuration before any objects are
-exchanged. It is a sequence of key-value pairs called SETUP parameters; the
+exchanged. It is a sequence of key-value pairs called Setup parameters; the
 semantics and format of which can vary based on whether the client or server is
 sending.  To ensure future extensibility of MOQT, the peers <span class="bcp14">MUST</span> ignore unknown
 setup parameters. TODO: describe GREASE for those.<a href="#section-6.2-1" class="pilcrow">¶</a></p>
-<p id="section-6.2-2">The wire format of the SETUP messages is as follows:<a href="#section-6.2-2" class="pilcrow">¶</a></p>
+<p id="section-6.2-2">The wire format of the Setup messages are as follows:<a href="#section-6.2-2" class="pilcrow">¶</a></p>
 <span id="name-moqt-setup-messages"></span><div id="moq-transport-setup-format">
 <figure id="figure-3">
           <div class="alignLeft art-text artwork" id="section-6.2-3.1">
@@ -2310,21 +2310,21 @@ CLIENT_SETUP Message Payload {
   Number of Supported Versions (i),
   Supported Version (i) ...,
   Number of Parameters (i) ...,
-  SETUP Parameters (..) ...,
+  Setup Parameters (..) ...,
 }
 
 SERVER_SETUP Message Payload {
   Selected Version (i),
   Number of Parameters (i) ...,
-  SETUP Parameters (..) ...,
+  Setup Parameters (..) ...,
 }
 </pre>
 </div>
 <figcaption><a href="#figure-3" class="selfRef">Figure 3</a>:
-<a href="#name-moqt-setup-messages" class="selfRef">MOQT SETUP Messages</a>
+<a href="#name-moqt-setup-messages" class="selfRef">MOQT Setup Messages</a>
           </figcaption></figure>
 </div>
-<p id="section-6.2-4">The available versions and SETUP parameters are detailed in the next sections.<a href="#section-6.2-4" class="pilcrow">¶</a></p>
+<p id="section-6.2-4">The available versions and Setup parameters are detailed in the next sections.<a href="#section-6.2-4" class="pilcrow">¶</a></p>
 <div id="setup-versions">
 <section id="section-6.2.1">
           <h4 id="name-versions">
@@ -2351,7 +2351,7 @@ identified as 0xff00000D.<a href="#section-6.2.1-4" class="pilcrow">¶</a></p>
 <div id="setup-params">
 <section id="section-6.2.2">
           <h4 id="name-setup-parameters">
-<a href="#section-6.2.2" class="section-number selfRef">6.2.2. </a><a href="#name-setup-parameters" class="section-name selfRef">SETUP Parameters</a>
+<a href="#section-6.2.2" class="section-number selfRef">6.2.2. </a><a href="#name-setup-parameters" class="section-name selfRef">Setup Parameters</a>
           </h4>
 <div id="role">
 <section id="section-6.2.2.1">
@@ -3052,7 +3052,7 @@ reaching a resource limit.<a href="#section-7.1-4" class="pilcrow">¶</a></p>
           <p id="section-8-2.1.1">MOQT version numbers<a href="#section-8-2.1.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="section-8-2.2">
-          <p id="section-8-2.2.1">SETUP parameters<a href="#section-8-2.2.1" class="pilcrow">¶</a></p>
+          <p id="section-8-2.2.1">Setup parameters<a href="#section-8-2.2.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="section-8-2.3">
           <p id="section-8-2.3.1">Track Request parameters<a href="#section-8-2.3.1" class="pilcrow">¶</a></p>
