@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2023-11-05T01:11:54.776041+00:00",
+  "timestamp": "2023-11-07T01:08:25.515202+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -7782,7 +7782,7 @@
       ],
       "body": "I'm implementing moq-transport-00 now and ran into this. I thought we decided on a course of action but we must have gotten distracted with the actual important changes.\r\n\r\n### Problem\r\nThe `track ID` contained in the SUBSCRIBE OK message is used to map the full track name into an varint. However, as explained in #145, there's a race condition when the SUBSCRIBE OK message is delayed. OBJECTs will arrive and the receiver will have no idea what track they're for and will have to buffer them.\r\n\r\n### Proposal\r\nMove the `Track ID` from the `SUBSCRIBE OK` message to the `SUBSCRIBE` message. This moves the responsibility for choosing an ID from the sender to the receiver. The benefit is that a receiver never has to buffer OBJECTs waiting for a SUBSCRIBE OK, and can instead abort/discard unknown OBJECTs. The downside is that the sender has to use a different `Track ID` for each connection.\r\n\r\n`Full Track Name` would be removed from `SUBSCRIBE OK` and `SUBSCRIBE ERROR` since it would be redundant.",
       "createdAt": "2023-06-09T00:32:41Z",
-      "updatedAt": "2023-10-17T16:04:05Z",
+      "updatedAt": "2023-11-05T19:04:14Z",
       "closedAt": null,
       "comments": [
         {
@@ -7861,6 +7861,13 @@
           "body": "I think this issue was only tracking what to call Track ID -- isn't it still terminology?",
           "createdAt": "2023-10-17T16:04:04Z",
           "updatedAt": "2023-10-17T16:04:04Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "As for naming, Track Name Alias was the most recent suggestion to replace Track ID.",
+          "createdAt": "2023-11-05T19:04:14Z",
+          "updatedAt": "2023-11-05T19:04:14Z"
         }
       ]
     },
@@ -8580,7 +8587,7 @@
       ],
       "body": "While implementing MOQT relay,  I stumbled upon #204. Thinking through authorization implementation a bit more , I think the current spec needs to clarify this behavior.\r\n\r\nProposal is to say, when a conflicting announce happens,  the Relay MUST reject with an appropriate error type in the ANNOUNCE_ERROR message when the authorization disallows\r\n\r\n```\r\nERROR_CONFLICT_TRACK\r\n```\r\n\r\nHowever, if the authorization policy allows such an allocation of namespaces, then clarify Relay interaction to indicate the most recent ANNOUNCE wins. \r\n",
       "createdAt": "2023-07-24T17:42:27Z",
-      "updatedAt": "2023-10-18T02:55:14Z",
+      "updatedAt": "2023-11-06T16:06:26Z",
       "closedAt": null,
       "comments": [
         {
@@ -8603,6 +8610,20 @@
           "body": "Ah, I see.\r\n\r\nSo this issue is specific to two different producers announce the same namespace (eg: different auth fields in ANNOUNCE), and 227 is the generic case (two ANNOUNCE messages with the same namespace, regardless of auth)?\r\n\r\nI'll defer to you and @ianswett if it makes sense to keep separate or merge the discussion.\r\n\r\n",
           "createdAt": "2023-07-27T19:06:36Z",
           "updatedAt": "2023-07-27T19:06:36Z"
+        },
+        {
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "body": "After considering few more use-cases, for cases where we need to support make before break, it would be good to have multiple announces be allowed. \r\n\r\nSo here is the updated proposal\r\n\r\nProposal is to say, when a conflicting announce happens, the Relay MUST reject with an appropriate error type in the ANNOUNCE_ERROR message when the authorization disallows\r\n\r\n``` ERROR_CONFLICT_TRACK ```\r\n\r\nHowever, if the authorization policy allows such an allocation of namespaces, then clarify Relay interaction to indicate that multiple announces for the same namespace is allowed.",
+          "createdAt": "2023-11-06T15:42:25Z",
+          "updatedAt": "2023-11-06T15:42:25Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Individual Comment:\r\n\r\nBikeshed: ERROR_CONFLICT_TRACK -> ERROR_CONFLICTING_TRACK_NAMESPACE\r\n\r\nMaybe simplify it to say, \r\n\r\nIf a server receives multiple Announce's for the same namespace, it MAY send an Announce Error = ERROR_CONFLICTING_TRACK_NAMESPACE depending on authorization policy.\r\n\r\nTo clarify: if a server sends this error it doesn't support make-before-break?",
+          "createdAt": "2023-11-06T16:06:26Z",
+          "updatedAt": "2023-11-06T16:06:26Z"
         }
       ]
     },
@@ -8656,12 +8677,13 @@
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
       "labels": [
+        "Needs PR",
         "Needs Discussion",
         "Announce"
       ],
       "body": "\r\nWhen the relays received an ANNOUNCE with exact same name as previous ANNOUNCE, what happens? \r\n\r\nOptions seem to be replace previous ANNOUNCE data or return an error. \r\n\r\nThis is related to https://github.com/moq-wg/moq-transport/issues/225 and https://github.com/moq-wg/moq-transport/issues/204\r\n\r\nDiscussion to follow in thread \r\n\r\n",
       "createdAt": "2023-07-24T23:31:00Z",
-      "updatedAt": "2023-10-18T02:55:13Z",
+      "updatedAt": "2023-11-06T15:27:58Z",
       "closedAt": null,
       "comments": [
         {
@@ -9976,7 +9998,7 @@
       ],
       "body": "This came out of discussion on #204\r\n\r\nWhen a relay receives an SUBSCRIBE it may need to issue its own SUBSCRIBE to a publisher that has previously ANNOUNCE'd a namespace matching that track.  The current draft doesn't specify how this match is done.  A relay could implement an exact match on Track Namespace (requires a tweak to SUBSCRIBE), or could do a longest prefix match on track name vs all ANNOUNCE'd namespaces, or possibly something else.  Is it ok to leave this up to implementations or should the draft specify this behavior more exactly?  If more than one matching type is allowed, does it need to be negotiated, and by whom (publisher, subscriber, or both)? ",
       "createdAt": "2023-09-27T18:02:09Z",
-      "updatedAt": "2023-11-04T15:42:57Z",
+      "updatedAt": "2023-11-06T10:22:47Z",
       "closedAt": null,
       "comments": [
         {
@@ -9999,6 +10021,62 @@
           "body": "This is going to be a slightly long comment but this is how I think this should work. \r\n\r\nThe catalog has two fields for the track namespace , and track name. We also specify in the catalog a way to form a URL from these two fields. See Teds proposal and that is catalog specific.  The things we put in these track namespaces and track name fields are already canonicalized  in a way defined by the catalog and URL. \r\n\r\nWhen the application using the moq transport puts these two fields into message, they are treated as just a bunch of bits and any comparison of them is done with bitwise compare. A relay that needs to check if a namespace matches another does not need to worry about string prep or escape encoding of the bits, the will all have been done when the catalog was formed. \r\n\r\nThis allows the relays to work faster by just doing bitwise compare yet at the same time allows us to use URI at the application level. The transport draft just needs to deal with a bag of bits. The catalog draft pushes the work to the URL definition, and the URL definition does the heavy lifting but that is where this type of stuff should be\r\n\r\n",
           "createdAt": "2023-11-04T15:42:57Z",
           "updatedAt": "2023-11-04T15:42:57Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "@fluffy Just to clarify that when you say \"bitwise compare\" you also mean exact matching the entire namespace field from announce to the one in subscribe?",
+          "createdAt": "2023-11-05T13:12:59Z",
+          "updatedAt": "2023-11-05T13:12:59Z"
+        },
+        {
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> The catalog has two fields for the track namespace , and track name.\r\n\r\nI would like to decouple the media layer from the transport layer. A tool like ffmpeg should be able to generate a MoQ catalog without knowing the namespace it will be served from, much like a tool like zip should be able to generate a file without knowing the path it will be stored.\r\n\r\nHLS/DASH provides this functionality with absolute or relative paths. If the playlist contains relative paths, then it can be served from any HTTP host/path provided the segments are served from the same host/path. If you want to decouple the two (ex. application serves playlist, CDN serves segments), then you use absolute URLs.\r\n\r\nTo accomplish the same thing, the namespace should be optional in a MoQ catalog. This would mean media tracks are served from the same namespace as the catalog: whatever that might be.\r\n",
+          "createdAt": "2023-11-06T01:08:25Z",
+          "updatedAt": "2023-11-06T01:08:25Z"
+        },
+        {
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "body": "To expand further, I think that MoQ broadcasts should be namespace agnostic: a broadcast ingested with namespace XXX is NOT required to be delivered as XXX.\r\n\r\nI understand where Cullen is coming from: an application like WebEx can use the same namespace for contribution/distribution because it controls the full pipeline. The application has all of the information required for all future routing/identification so it can set it on the first hop and expect any relays to blindly proxy.\r\n\r\nHowever, for a more generic or distributed system, this is not true. A client like OBS knows nothing about how the broadcast will eventually be distributed, fanned out, or the requirements of potentially multiple CDNs that might be used, nor will those requirements be the same between vendors (present or future).\r\n\r\nSo I don't think we should require that input namespace == output namespace. In the HTTP world, this would be like requiring that all HTTP paths match the origin. It's quite restrictive and just means a CDN needs find another way to perform routing via a custom header/parameter.\r\n\r\nI propose we emulate the HTTP model where there's non in-band notification that a path/namespace was modified. An origin might serve `/foo.html` and a CDN might decide to serve it as `/customer/asdgsa13/foo.html`. Any namespace remapping from XXX -> YYY is business logic and not signaled over the wire. If you don't want any remapping, then that's a business agreement between you and the CDN, wherein you may need to encode namespaces in a vendor-specific way.",
+          "createdAt": "2023-11-06T01:39:07Z",
+          "updatedAt": "2023-11-06T01:40:52Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> I think that MoQ broadcasts should be namespace agnostic: a broadcast ingested with namespace XXX is NOT required to be delivered as XXX.\r\n\r\nI think we have agreement on that from past discussions.  \r\n\r\nCan the catalog draft have a mechanism to inherit the namespace for tracks from somewhere else, like a relative URL in an HTML page?\r\n\r\nI'm not sure this is relevant for how relays perform matching between SUBSCRIBE and ANNOUNCE though.  The only available information in announce *is the namespace*.",
+          "createdAt": "2023-11-06T08:58:36Z",
+          "updatedAt": "2023-11-06T08:58:36Z"
+        },
+        {
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> I'm not sure this is relevant for how relays perform matching between SUBSCRIBE and ANNOUNCE though. The only available information in announce _is the namespace_.\r\n\r\nYeah I'm probably rambling about something unrelated. But in order to support namespace remapping, the downstream ANNOUCE/SUBSCRIBE won't necessarily match the upstream ANNOUCE/SUBSCRIBE.",
+          "createdAt": "2023-11-06T09:09:49Z",
+          "updatedAt": "2023-11-06T09:15:43Z"
+        },
+        {
+          "author": "wilaw",
+          "authorAssociation": "NONE",
+          "body": "> To accomplish the same thing, the namespace should be optional in a MoQ catalog. This would mean media tracks are served from the same namespace as the catalog: \r\n\r\n> Can the catalog draft have a mechanism to inherit the namespace for tracks from somewhere else, like a relative URL in an HTML page?\r\n\r\nThis is a useful property. I opened [#33](https://github.com/moq-wg/catalog-format/issues/33) to address this issue and PR https://github.com/moq-wg/catalog-format/pull/34 to fix it. ",
+          "createdAt": "2023-11-06T10:03:42Z",
+          "updatedAt": "2023-11-06T10:03:42Z"
+        },
+        {
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "So if the input full track name does not equal output full track name ( for some version of matching the two ), what is it that tells the relays there is mapping between the two. I'm not objecting to some other way to do this, I just don't understand what it is that tells the relays to do that.  Keep in mind relays do not need to read the catalog. \r\n\r\n",
+          "createdAt": "2023-11-06T10:21:05Z",
+          "updatedAt": "2023-11-06T10:21:05Z"
+        },
+        {
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "To clarify the  \"bitwise compare\" ... yes I mean exact matching the entire namespace field from announce to the one in subscribe? If the namespace was utf-8 or even a url restricted utf-8, that would match. I am just aruging that a relay should not have to verify every string is a valid utf-8 string, it should just match the bits. ",
+          "createdAt": "2023-11-06T10:22:47Z",
+          "updatedAt": "2023-11-06T10:22:47Z"
         }
       ]
     },
@@ -10503,7 +10581,7 @@
       ],
       "body": "It would be useful to clarify whether multiple subscriptions are valid, and whether there are any constraints on them (ie: non-overlapping).\r\n\r\n@kixelated brought up the fact that a relay may have to issue overlapping subscribes because it doesn't know whether a relative or absolute subscription is earlier.\r\n\r\nA related question is how one updates a subscription, for example if you wanted to seek closer to realtime, and whether that is just UNSUBSCRIBE/SUBSCRIBE or a new SUBSCRIBE_UPDATE message.  There may be cases where SUBSCRIBE_UPDATE is more efficient and better at avoiding sending duplicate objects.",
       "createdAt": "2023-10-09T17:44:45Z",
-      "updatedAt": "2023-10-16T21:08:19Z",
+      "updatedAt": "2023-11-06T15:22:54Z",
       "closedAt": null,
       "comments": [
         {
@@ -10547,6 +10625,27 @@
           "body": "> subscription ID different from the Track ID \r\n\r\nIt's been brought up before that 'Track ID' could be renamed 'Subscription ID', but there wasn't clear consensus before.  Perhaps resolving whether multiple simultaneous subscriptions are allowed to the same track will illuminate the right naming - does it identify a track, or a track + subscribe parameters?",
           "createdAt": "2023-10-11T18:32:47Z",
           "updatedAt": "2023-10-11T18:32:47Z"
+        },
+        {
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Conclusions from IETF118 : \r\n- Support subscribe update when track name alias and subscribe id matches. \r\n- Track Name Alias is compression scheme for Full Track name and copied in every object\r\n- Subscribe ID is transaction identifier and will not be carried in the object header",
+          "createdAt": "2023-11-06T14:25:20Z",
+          "updatedAt": "2023-11-06T14:25:20Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Individual Comment:\r\n\r\nIf the OBJECT does not contain the subscribe ID, then we need to update Subscribe OK to resolve any relative groups or objects.  Otherwise, a receiver won't know if a particular object belongs to a particular subscription.  \r\n\r\nThere's also no point in sending duplicate objects, since they would all be identical.  This is why I inferred that \"MUST NOT deduplicate\" implies OBJECt includes subscribe ID.  Am I misreading this?",
+          "createdAt": "2023-11-06T15:12:44Z",
+          "updatedAt": "2023-11-06T15:12:44Z"
+        },
+        {
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> If the OBJECT does not contain the subscribe ID, then we need to update Subscribe OK to resolve any relative groups or objects. Otherwise, a receiver won't know if a particular object belongs to a particular subscription.\r\n\r\nYeah, we need SUBSCRIBE_OK to map from relative -> absolute anyway.\r\n\r\nFor example, a player wants to start rendering the broadcast 3 groups from latest. If it receives group N, can it render it? Without the mapping, no it cannot.\r\n\r\n> There's also no point in sending duplicate objects, since they would all be identical. This is why I inferred that \"MUST NOT deduplicate\" implies OBJECt includes subscribe ID. Am I misreading this?\r\n\r\nYeah... it wasn't clear if OBJECT contains subscribe ID. If the OBJECTs are byte-for-byte identical, why on earth MUST a publisher send duplicate objects?",
+          "createdAt": "2023-11-06T15:22:54Z",
+          "updatedAt": "2023-11-06T15:22:54Z"
         }
       ]
     },
@@ -10564,7 +10663,7 @@
       ],
       "body": "TL-DR: if we move the Track-ID out of the object field and into a stream or datagram header, we can copy object messages directly to the stream without having to reformat them.\r\n\r\nWe have been debating solutions to the track-ID problem, with two opposite goals:\r\n\r\n- have the server choose the track-id, so the \"object\" values can be copied as is to the output streams\r\n- have the client choose the track-id, and avoid the race condition between subscribe OK and first object messages.\r\n\r\nSee Issue #145, PR #258 and #262, and minutes from the October 2023 interim.\r\n\r\nThe debate is leading to a muddled compromise, in which a default behavior is \"client chooses\" with some TBD escape condition if the publisher really wants to choose -- which would have to be something better than an error return on every subscribe. I wonder if there is a simple solution.\r\n\r\nBig relays with large fan-out do not like having to reformat messages \"on the fly\". They would prefer being able to simply copy messages from their cache. This is difficult because of the current definition of the OBJECT message:\r\n~~~\r\nOBJECT Message {\r\n  Track ID (i),\r\n  Group Sequence (i),\r\n  Object Sequence (i),\r\n  Object Send Order (i),\r\n  Object Payload Length (i),\r\n  Object Payload (b),\r\n}\r\n~~~\r\nThe bits on the wire look like:\r\n\r\n| fields | Object Message ID | Track ID | Group, sequence, send order, payload length, object payload |\r\n|------|-----|-----|-----------------|\r\n| On receive | constant | variable length integer | value specific to the object |\r\n| On send | constant | different variable length integer | value specific to the object |\r\n\r\nIf the track-id is not the same for all receivers, the relays will need for every object to:\r\n\r\n- Find out what Track ID to use on the publishing connection, which requires decompressing the Track ID into a Full Track Name on receive, then mapping that Full Track Name to the receiver selected Track ID when publishing,\r\n- Reformat the Object message to incorporate the receiver chosen track ID.\r\n- Send the modified copy to the receiver\r\n\r\nYes, it is possible to use a scatter gather copy, so as to write three segments in place: the constant value message type, the track-id selected by the receiver, and the object specific part of the object message. Implementation would be reasonably simple if the cached value of the track ID was fixed length, e.g. an internal 64 bit identifier of the track. But this scatter-gather would have to be done for each object and each receiver, which is going to cost several instructions per message.\r\n\r\nWe can observe that in several of the proposed transport encoding, several messages will be sent on the single QUIC stream, and also that a single QUIC stream will typically carry only messages from a single track. Suppose that the stream data start with a \"Track-ID\" message:\r\n~~~\r\nTRACK-ID Message {\r\n  Track ID (i)\r\n}\r\n~~~\r\nFollowed by set of object messages:\r\n~~~\r\nOBJECT Message {\r\n  Group Sequence (i),\r\n  Object Sequence (i),\r\n  Object Send Order (i),\r\n  Object Payload Length (i),\r\n  Object Payload (b),\r\n}\r\n~~~\r\nIf the stream only includes objects of the same track, the Track-ID needs to be sent just once. The OBJECT Message would have no variable part, which is useful for caching. The cache itself will have to maintain a relation between cached objects and corresponding track, but it already does, so not a big change. We will save some byte per object message (the track-id varint), at the cost of the TRACK-ID message (one byte message ID plus track-id varint), which means one extra byte if a stream has just one Object, several fewer bytes if the stream has multiple objects. We will also save a couple instructions when pushing messages to streams.\r\n\r\nComments? Was this just the bad-idea fairy putting words in my mouth?",
       "createdAt": "2023-10-09T19:12:23Z",
-      "updatedAt": "2023-11-03T20:18:25Z",
+      "updatedAt": "2023-11-06T14:30:49Z",
       "closedAt": null,
       "comments": [
         {
@@ -10629,6 +10728,13 @@
           "body": ">  the track ID within a broadcast should just be an integer referenced in the catalog.\r\n\r\nBut since relays can't read catalogs, we still need a object naming scheme that disambiguates concurrent broadcasts, hence the concept of namespace|name tuple. \r\n\r\n> There's limitations to this approach, namely that it requires WebTransport pooling for efficiency,\r\n\r\nConsider the case of an edge relay which must forward thousands of parallel broadcasts to a parent. Requiring each broadcast to be in a unique WebTransport session is more constraining than allowing the relay to shard those broadcasts across streams over as many WebTransport sessions as it needs to optimize performance. \r\n",
           "createdAt": "2023-11-03T09:26:54Z",
           "updatedAt": "2023-11-03T09:26:54Z"
+        },
+        {
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Conclusion IETF 118\r\n- Track Alias defines compressed Full track name and carried in the object message\r\n- Subscribe ID defines transaction identifier for a given track and there can be more than one Subscribe ID for a given TrackId",
+          "createdAt": "2023-11-06T14:30:49Z",
+          "updatedAt": "2023-11-06T14:30:49Z"
         }
       ]
     },
@@ -10869,7 +10975,7 @@
       ],
       "body": "If we allow more than one SUBSCRIBE for the same Full Track Name, then SUBSCRIBE_OK/SUBSCRIBE_ERROR become ambiguous.  \r\n\r\neg:\r\n\r\nC->S: SUBSCRIBE /foo, group sequence=1\r\nC->S: SUBSCRIBE /foo, group sequence=100\r\nS->C: SUBSCRIBE_OK /foo\r\nS->C: SUBSCRIBE_ERROR /foo",
       "createdAt": "2023-10-16T18:16:40Z",
-      "updatedAt": "2023-10-24T22:22:36Z",
+      "updatedAt": "2023-11-06T14:26:50Z",
       "closedAt": null,
       "comments": [
         {
@@ -10885,6 +10991,13 @@
           "body": "Specific proposal by @kixelated in #272: https://github.com/moq-wg/moq-transport/issues/272#issuecomment-1765619883",
           "createdAt": "2023-10-24T22:22:35Z",
           "updatedAt": "2023-10-24T22:22:35Z"
+        },
+        {
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Conclusions from IETF118 : \r\n- Subscribe ID is used to differentiate different subscriptions within and across tracks\r\n",
+          "createdAt": "2023-11-06T14:26:50Z",
+          "updatedAt": "2023-11-06T14:26:50Z"
         }
       ]
     },
@@ -10903,7 +11016,7 @@
       ],
       "body": "In HTTP, there are a number of restrictions on what characters are allowed in a path, headers, etc.\r\n\r\nI don't see any text restricting track names and track namespaces, but the examples are all ASCII, implying the namespace and name are not intended to be completely opaque and are instead intended to be human readable.\r\n\r\nThere's nothing in the spec that prohibits them being treated as opaque identifiers, but I'm unclear if that's the intent and I think it'd be good to explicitly say what we intend.",
       "createdAt": "2023-10-16T21:07:47Z",
-      "updatedAt": "2023-10-30T05:32:20Z",
+      "updatedAt": "2023-11-06T14:25:31Z",
       "closedAt": null,
       "comments": [
         {
@@ -10989,6 +11102,13 @@
           "body": "The AUTH parameter is currently defined as an ASCII string. Whatever we use for track names, can the auth token share the same encoding?",
           "createdAt": "2023-10-30T05:32:20Z",
           "updatedAt": "2023-10-30T05:32:20Z"
+        },
+        {
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "Summary of IETF 118 meeting is there are no restrictions on at the moq transport layer but there may be a layers above this. This is to say the compare function for track namespace and track name are the equivalent of posix memcmp. ",
+          "createdAt": "2023-11-06T14:25:30Z",
+          "updatedAt": "2023-11-06T14:25:30Z"
         }
       ]
     },
@@ -11282,7 +11402,7 @@
       ],
       "body": "`SUBSCRIBE_RST` and `SUBSCRIBE_FIN` define:\r\n\r\n> Final Group: The largest Group Sequence sent by the publisher in an OBJECT message in this track.\r\n> Final Object: The largest Object Sequence sent by the publisher in an OBJECT message in the Final Group for this track.\r\n\r\nHowever, what happens if no objects were ever produced/sent?",
       "createdAt": "2023-10-30T05:20:32Z",
-      "updatedAt": "2023-10-31T04:43:01Z",
+      "updatedAt": "2023-11-06T15:04:49Z",
       "closedAt": null,
       "comments": [
         {
@@ -11291,6 +11411,27 @@
           "body": "Individual Comment:\r\n\r\nOops.  Two possible ways to handle this:\r\n\r\n1) Flag indicating presence of these fields (Use Location now that is defined elsewhere?)\r\n2) Change the semantics of the fields to be exclusive (eg: it is the first object NOT sent), so 0/0 means none.\r\n\r\n",
           "createdAt": "2023-10-30T15:51:10Z",
           "updatedAt": "2023-10-30T15:51:10Z"
+        },
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I'm inclined towards 0/0, because optional fields are more complex to parse and I would expect the existing logic to work correctly with 0/0.",
+          "createdAt": "2023-11-06T12:45:00Z",
+          "updatedAt": "2023-11-06T12:45:00Z"
+        },
+        {
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Let's say the last object delivered by the relay is `group=5 object=29`. Does the relay send RESET `group=5 object=30` or `RESET group=6 object=0`? Is the subscriber able to infer the presence of future objects? What if either of those objects actually exist in the cache?\r\n",
+          "createdAt": "2023-11-06T14:12:29Z",
+          "updatedAt": "2023-11-06T14:12:29Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Individual Comment:\r\n\r\nIf we use exclusive encoding then I'd say that the receiver shouldn't infer the existence of non-existence of the named object, and either 5/30 or 6/0 works, but 5/30 is preferable?",
+          "createdAt": "2023-11-06T15:04:49Z",
+          "updatedAt": "2023-11-06T15:04:49Z"
         }
       ]
     },
@@ -11326,7 +11467,7 @@
       ],
       "body": "How big can a group be? I know we (probably) won't be able to set a fixed limit, but I feel like we need to answer this in order to know what kind of design assumptions to make.\r\n\r\nIs a single group expected to be small enough to fit in the cache?  Will the protocol work if a media track is just a single group that is being appended to for hours if not days?  I was thinking about stream mapping and the resource-use-at-relays problem earlier today, and realized we might not currently have a conclusive answer for those.",
       "createdAt": "2023-10-30T06:33:27Z",
-      "updatedAt": "2023-10-31T04:11:10Z",
+      "updatedAt": "2023-11-05T10:25:16Z",
       "closedAt": null,
       "comments": [
         {
@@ -11363,6 +11504,13 @@
           "body": "> Individual Comment:\r\n> \r\n> There may be something interesting for moqt here in expressing more information that's useful to a cache. Maybe an explicit expiry time would be more useful than a TTL, or a TTL at the group rather than the object level?\r\n> \r\n> Caches will evict stuff and can go fetch it if someone asks for it later. Maybe what needs to be specified is what happens when a cache receives Objects 0-10, evicts 0-3, then gets a SUBSCRIBE for Absolute/0-10?\r\n\r\nYeah, the cache needs some dependency information if it has any hope of evicting objects before the maximum TTL. That should be the purpose of group in my opinion.",
           "createdAt": "2023-10-31T04:10:26Z",
           "updatedAt": "2023-10-31T04:11:10Z"
+        },
+        {
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "I think we should allow it to be pretty much any size and as we use a VarInt for the object id so it does not matter.   I guese I am not seeing a problem here from what we have today with pretty much no limit on number of of objects or number of groups.  \r\n\r\nSo I guess I am saying whatever max of VarInt is which I assume will be at least 2^60. ",
+          "createdAt": "2023-11-05T10:23:34Z",
+          "updatedAt": "2023-11-05T10:25:16Z"
         }
       ]
     },
@@ -11398,7 +11546,7 @@
       ],
       "body": "The current approach of allowing any OBJECTs to arrive on any stream makes it impossible for the receiver to know when a group ends.\r\n\r\nThere's a few conditions when you need to know the end of a group:\r\n\r\n1. A relay being told to terminate the subscription after group N (subscription hints).\r\n2. A relay knowing when to close a QUIC stream (if it writes a group per stream).\r\n3. A decoder deciding when to start decoding/rendering the next group (ex. GoP).\r\n\r\nLikewise there's a similar problem of knowing when there's an gap within a group. There's no way to signal that OBJECT X will never arrive, so the receiver should not wait for it.",
       "createdAt": "2023-11-01T03:30:02Z",
-      "updatedAt": "2023-11-03T20:55:17Z",
+      "updatedAt": "2023-11-06T09:42:21Z",
       "closedAt": null,
       "comments": [
         {
@@ -11428,6 +11576,34 @@
           "body": "The issue mentioning Last Object Previous Group is in #224",
           "createdAt": "2023-11-03T20:55:17Z",
           "updatedAt": "2023-11-03T20:55:17Z"
+        },
+        {
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "I think the best solutions to this is a header on the last object in the group that indicates it is the last object in the group. ",
+          "createdAt": "2023-11-05T11:35:24Z",
+          "updatedAt": "2023-11-05T11:35:24Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Individual Comment:\r\n\r\n> I think the best solutions to this is a header on the last object in the group that indicates it is the last object in the group.\r\n\r\nI share Luke's concern above about OBJECT being somewhat unreliable.  I think a GROUP_FIN message with stronger reliability guarantees would look similar on the wire but work better.\r\n\r\neg:\r\n\r\nInstead of \r\n\r\n```\r\nOBJECT(G1,O1)  OBJECT(G1,O2)  OBJECT(G1,O3,last)\r\n```\r\n\r\nHave\r\n\r\n\r\n```\r\nOBJECT(G1,O1)  OBJECT(G1,O2)  OBJECT(G1,O3), GROUP_FIN(G1, O3)\r\n```\r\n\r\nThis works better than implicit mapping from groups to streams.  A relay might need to close a connection with an open stream, but wouldn't want to reset it and wouldn't want the stream FIN to be interpreted as a group FIN.  I don't want to put GROUP_FIN on the control stream, but that would be the safest.\r\n\r\nI think the other messages Luke mentioned related to DROP are probably an orthogonal issue.",
+          "createdAt": "2023-11-05T13:07:06Z",
+          "updatedAt": "2023-11-05T13:07:06Z"
+        },
+        {
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "body": " > I think the other messages Luke mentioned related to DROP are probably an orthogonal issue.\r\n\r\nAgreed, I'm just bringing it up early because stream mapping has massive ramifications on what control messages we'll need in the future. If we can't utilize QUIC's STREAM_FIN, STREAM_RESET, STOP_SENDING, MAX_STREAMS... then we'll need our own, analogous control messages.",
+          "createdAt": "2023-11-06T01:43:32Z",
+          "updatedAt": "2023-11-06T01:44:52Z"
+        },
+        {
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "you guys have convinced me \r\n",
+          "createdAt": "2023-11-06T09:42:21Z",
+          "updatedAt": "2023-11-06T09:42:21Z"
         }
       ]
     },
@@ -11445,7 +11621,7 @@
       ],
       "body": "> Relays respond with an ANNOUNCE_OK or ANNOUNCE_ERROR control message providing the result of announcement. The entity receiving the ANNOUNCE MUST send only a single response to a given ANNOUNCE of either ANNOUNCE_OK or ANNOUNCE_ERROR.\r\n\r\nThe problem is not possible for the subscriber to reject an ANNOUNCE afterwards. This would be very useful, for example to inform a publisher that no more subscriptions will be routed to them for whatever reason. Examples:\r\n\r\n1. The auth parameter in ANNOUNCE has expired.\r\n2. Another publisher has sent an overriding ANNOUNCE (reconnect?)\r\n3. The broadcast has been closed remotely, ex. some moderation tool.\r\n\r\nWithout this message, the only recourse for the subscriber is to close the connection. This won't work if multiple ANNOUNCE messages are pooled over the same connection, nor is it clean.",
       "createdAt": "2023-11-02T04:12:19Z",
-      "updatedAt": "2023-11-03T19:59:10Z",
+      "updatedAt": "2023-11-06T15:25:27Z",
       "closedAt": null,
       "comments": [
         {
@@ -11454,6 +11630,20 @@
           "body": "I propose two options:\r\n\r\n1. `ANNOUNCE_RESET` can be sent after `ANNOUNCE_OK`.\r\n2.  We add `ANNOUNCE_RST` and `ANNOUNCE_FIN` to mirror `SUBSCRIBE`.\r\n\r\nI personally hate 3 separate messages for a subscriber to close an announce, or a publisher to close a subscription. See #310 ",
           "createdAt": "2023-11-02T04:13:55Z",
           "updatedAt": "2023-11-02T04:13:55Z"
+        },
+        {
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "very trivial bikeshed comment ...  I would prefer to call it something other RESET ( and also other places we use RESET ). I get the TCP analogy but I think that is the wrong way to think about this. I would prefer something like REVOKE. ",
+          "createdAt": "2023-11-06T09:36:02Z",
+          "updatedAt": "2023-11-06T09:36:02Z"
+        },
+        {
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "body": "how about ANNOUNCE_CANCEL  to cancel an open announce ?",
+          "createdAt": "2023-11-06T15:25:27Z",
+          "updatedAt": "2023-11-06T15:25:27Z"
         }
       ]
     },
@@ -11593,6 +11783,22 @@
           "updatedAt": "2023-11-02T18:59:58Z"
         }
       ]
+    },
+    {
+      "number": 326,
+      "id": "I_kwDOG2Ho4M519fr0",
+      "title": "Hints & sendOrder how can they work together",
+      "url": "https://github.com/moq-wg/moq-transport/issues/326",
+      "state": "OPEN",
+      "author": "jordicenzano",
+      "authorAssociation": "NONE",
+      "assignees": [],
+      "labels": [],
+      "body": "If we use hints on SUBSCRIBE (StartGroup, StartObject) I assume is to request objects from the past. Thinking about the live rewind or VOD (archived after live):\r\n- The objects have a sendOrder burnt-in, and since those were part of a live stream that sendOrder is probably increasing (meaning more recent, higher priority)\r\n- If player requests objects from 1h in the past, and relay respects the sendOrder the player will start receiving objects from the end of the live stream to the start. Also those will be sent at wire speed\r\n\r\nIt seems for VOD-like use cases we need a different type of delivery than live edge. Perhaps we should do sliding window and/or sendOrder updates?\r\n\r\nFinals questions:\r\n- Can we use current current hints to deliver VOD?\r\n- Do we need to add signals?",
+      "createdAt": "2023-11-06T12:40:25Z",
+      "updatedAt": "2023-11-06T12:40:25Z",
+      "closedAt": null,
+      "comments": []
     }
   ],
   "pulls": [
@@ -35126,13 +35332,13 @@
       "labels": [],
       "body": "Currently SUBSCRIBE_OK and OBJECT will race. If OBJECT wins (>50% chance for multi-threaded QUIC libraries), then the subscriber will receive an unknown OBJECT that needs to be buffered. Moving Track ID to SUBSCRIBE fixes this race, removes the need to buffer OBJECTs in the MoqT library, and simplifies the flow. See #145",
       "createdAt": "2023-09-29T04:17:03Z",
-      "updatedAt": "2023-11-04T16:15:41Z",
+      "updatedAt": "2023-11-06T09:09:14Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "5f8ba291c21839dc5addc8fb6c4cb59410c5fe0b",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "subscribe-id",
-      "headRefOid": "a2c2e858bdc3545cd3c2b844432bdeb80898da5b",
+      "headRefOid": "9c5184024127f8d9d2ed85d0b49e6884c162cee9",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -35278,6 +35484,79 @@
           "createdAt": "2023-11-04T16:15:41Z",
           "updatedAt": "2023-11-04T16:15:41Z",
           "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5mLDYK",
+          "commit": {
+            "abbreviatedOid": "9c51840"
+          },
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2023-11-06T02:27:05Z",
+          "updatedAt": "2023-11-06T02:27:05Z",
+          "comments": [
+            {
+              "originalPosition": 100,
+              "body": "@fluffy @suhasHere is this okay with you? There could be a race where:\r\n\r\nsubscriber:\r\n```\r\nsend SUBSCRIBE id=69 name=foo\r\nsend SUBSCRIBE id=420 name=bar\r\n```\r\n\r\npublisher:\r\n```\r\nrecv SUBSCRIBE id=69 name=foo\r\nsend SUBSCRIBE_ERROR id=69 new_id=420 # publisher remap from 69 -> 420\r\nrecv SUBSCRIBE id=420 name=bar\r\nsend SUBSCRIBE_ERROR id=420 new_id=1234 # publisher rename from 420 -> 1234\r\n```\r\n\r\nsubscriber:\r\n```\r\nrecv SUBSCRIBE_ERROR id=69 new_id=420\r\n# invalid: send SUBSCRIBE id=420 name=foo\r\n```\r\n\r\nThe subscriber could wait until it receives the anticipated `SUBSCRIBE_ERROR id=420`. However, I doubt anybody would ever implement this, and you would still need throw an error if you ever receive `SUBSCRIBE_OK id=420`. \r\n\r\nYou can avoid this race by sharding publisher/subscriber IDs. Or the publisher can use an unguessable track ID (ex. hash) and it's virtually impossible to ever encounter this, which I think is gud enough.",
+              "createdAt": "2023-11-06T02:27:05Z",
+              "updatedAt": "2023-11-06T03:51:09Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5mLDgf",
+          "commit": {
+            "abbreviatedOid": "9c51840"
+          },
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2023-11-06T02:28:06Z",
+          "updatedAt": "2023-11-06T02:28:07Z",
+          "comments": [
+            {
+              "originalPosition": 43,
+              "body": "I added this line. Two different tracks can't use the same ID in any scheme, and I think we should share the error code instead of making a new one.",
+              "createdAt": "2023-11-06T02:28:06Z",
+              "updatedAt": "2023-11-06T02:29:02Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5mLLZg",
+          "commit": {
+            "abbreviatedOid": "9c51840"
+          },
+          "author": "vasilvv",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "LGTM on the basis of this being an improvement over the current text in the draft.",
+          "createdAt": "2023-11-06T03:14:00Z",
+          "updatedAt": "2023-11-06T03:14:00Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5mMnkT",
+          "commit": {
+            "abbreviatedOid": "9c51840"
+          },
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2023-11-06T09:09:13Z",
+          "updatedAt": "2023-11-06T09:09:14Z",
+          "comments": [
+            {
+              "originalPosition": 100,
+              "body": "It seems like once we have separate the subscribe-id and track-id, this problem goes away ? Perhaps I misunderstand but agree on if a publisher ever suggests reusing a track-id that is already in use for a different track, that is totally borked and the connection should be closed with an error.  ",
+              "createdAt": "2023-11-06T09:09:14Z",
+              "updatedAt": "2023-11-06T09:09:14Z"
+            }
+          ]
         }
       ]
     },
@@ -39676,7 +39955,7 @@
       "labels": [],
       "body": "This PR is expected to be base PR to support multi-subscribe like flows that will follow up.\r\n\r\nIt adds support for SubscribeID and also renames the trackId to `Full Track Name Alias` to avoid the confusion and make the scope clear.\r\n\r\n",
       "createdAt": "2023-10-27T17:14:58Z",
-      "updatedAt": "2023-11-04T16:38:36Z",
+      "updatedAt": "2023-11-06T10:00:40Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "f8dd2386d2c2d471d76e4b19aaaa811f2e13ddfe",
@@ -39687,7 +39966,15 @@
       "mergedAt": null,
       "mergedBy": null,
       "mergeCommit": null,
-      "comments": [],
+      "comments": [
+        {
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "body": "@kixelated  @ianswett @afrind wondering if the latest commits address the feedback. thanks",
+          "createdAt": "2023-11-06T09:54:31Z",
+          "updatedAt": "2023-11-06T09:54:31Z"
+        }
+      ],
       "reviews": [
         {
           "id": "PRR_kwDOG2Ho4M5ldn6w",
@@ -39851,6 +40138,38 @@
           "createdAt": "2023-11-04T16:38:17Z",
           "updatedAt": "2023-11-04T16:38:17Z",
           "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5mNBo5",
+          "commit": {
+            "abbreviatedOid": "91f4631"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "The normative bits look fine.  PR needs some cleanup.  \r\n\r\nRecommend splitting ID -> Alias to another PR, so this subscribe ID doesn't get caught up with bikeshedding the field name.",
+          "createdAt": "2023-11-06T09:56:22Z",
+          "updatedAt": "2023-11-06T10:00:40Z",
+          "comments": [
+            {
+              "originalPosition": 6,
+              "body": "Still recommend this name change go in a separate PR",
+              "createdAt": "2023-11-06T09:56:22Z",
+              "updatedAt": "2023-11-06T10:00:40Z"
+            },
+            {
+              "originalPosition": 63,
+              "body": "Max 80 chars per line please, here and elsewhere.",
+              "createdAt": "2023-11-06T09:56:46Z",
+              "updatedAt": "2023-11-06T10:00:40Z"
+            },
+            {
+              "originalPosition": 191,
+              "body": "Typo",
+              "createdAt": "2023-11-06T09:57:51Z",
+              "updatedAt": "2023-11-06T10:00:40Z"
+            }
+          ]
         }
       ]
     },
@@ -40355,7 +40674,7 @@
       "labels": [],
       "body": "I think the intent of the draft was clear but this makes it explicit not to open a uni stream before setup exchange is done.\r\n\r\nFixes: #136",
       "createdAt": "2023-11-03T20:42:29Z",
-      "updatedAt": "2023-11-04T20:14:29Z",
+      "updatedAt": "2023-11-06T02:02:36Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "5f8ba291c21839dc5addc8fb6c4cb59410c5fe0b",
@@ -40418,6 +40737,26 @@
               "body": "Never trust transport acks at the app layer!  Definitely don't want to imply that.  I can update it to:\r\n\r\n`An endpoint MUST not open a unidirectional stream or send an OBJECT* message until after receiving a SUBSCRIBE and sending a SUBSCRIBE OK. `\r\n\r\nThat transitively means you can't do it during setup, since you can't send or receive a subscrbie* until after setup is complete.  Would that work?",
               "createdAt": "2023-11-04T20:14:28Z",
               "updatedAt": "2023-11-04T20:14:29Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5mK_u-",
+          "commit": {
+            "abbreviatedOid": "fcda355"
+          },
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2023-11-06T02:02:36Z",
+          "updatedAt": "2023-11-06T02:02:36Z",
+          "comments": [
+            {
+              "originalPosition": 25,
+              "body": "> That transitively means you can't do it during setup, since you can't send or receive a subscrbie* until after setup is complete.\r\n\r\nMostly true. Now that control messages are sent on the same stream as SETUP, you can abuse head-of-line blocking. If client only supports versions/extensions with the same SUBSCRIBE encoding, then the client can send the SUBSCRIBE immediately:\r\n\r\n```\r\n--> SETUP (stream 1)\r\n--> SUBSCRIBE (stream 1)\r\n<-- SETUP (stream 1)\r\n<-- SUBSCRIBE_OK (stream 1)\r\n<-- OBJECT (stream 2)\r\n```\r\n\r\nYour proposed text now allows this so that's gud. I think it can be simplified even further:\r\n\r\n> An endpoint MUST not send an OBJECT before receiving a corresponding SUBSCRIBE message.\r\n\r\nThis rules out publisher push, independent of the handshake itself. ",
+              "createdAt": "2023-11-06T02:02:36Z",
+              "updatedAt": "2023-11-06T02:02:45Z"
             }
           ]
         }
