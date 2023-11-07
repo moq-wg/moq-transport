@@ -352,14 +352,14 @@ is `moq-00`.
 
 ## Version and Extension Negotiation {#version-negotiation}
 
-Endpoints use the exchange of SETUP messages to negotiate the MOQT version and
+Endpoints use the exchange of Setup messages to negotiate the MOQT version and
 any extensions to use.
 
 The client indicates the MOQT versions it supports in the CLIENT_SETUP message
 (see {{message-setup}}). It also includes the union of all Setup Parameters
 {{setup-params}} required for a handshake by any of those versions.
 
-Within any MOQT version, clients request the use of extensions by adding SETUP
+Within any MOQT version, clients request the use of extensions by adding Setup
 parameters corresponding to that extension. No extensions are defined in this
 document.
 
@@ -373,13 +373,13 @@ can be used.
 
 If a given parameter carries the same information in multiple versions,
 but might have different optimal values in those versions, there SHOULD be
-separate SETUP parameters for that information in each version.
+separate Setup parameters for that information in each version.
 
 ## Session initialization {#session-init}
 
 The first stream opened is a client-initiated bidirectional control stream
-where the peers exchange SETUP messages ({{message-setup}}).  All messages
-defined in this draft are sent on the control stream after the SETUP message.
+where the peers exchange Setup messages ({{message-setup}}).  All messages
+defined in this draft are sent on the control stream after the Setup message.
 Control messages MUST NOT be sent on any other stream, and a peer receiving
 a control message on a different stream closes the session as a
 'Protocol Violation'. Objects MUST NOT be sent on the control stream, and a
@@ -729,9 +729,9 @@ Parameter {
 {: #moq-param format title="MOQT Parameter"}
 
 Parameter Type is an integer that indicates the semantic meaning of the
-parameter. SETUP message parameters use a namespace that is constant across all
+parameter. Setup message parameters use a namespace that is constant across all
 MoQ Transport versions. All other messages use a version-specific namespace. For
-example, the integer '1' can refer to different parameters for SETUP messages
+example, the integer '1' can refer to different parameters for Setup messages
 and for all other message types.
 
 SETUP message parameter types are defined in {{setup-params}}. Version-
@@ -749,8 +749,8 @@ parameter using the value in the Parameter Length field.
 
 Each version-specific parameter definition indicates the message types in which
 it can appear. If it appears in some other type of message, it MUST be ignored.
-Note that since SETUP parameters use a separate namespace, it is impossible for
-these parameters to appear in SETUP messages.
+Note that since Setup parameters use a separate namespace, it is impossible for
+these parameters to appear in Setup messages.
 
 #### AUTHORIZATION INFO Parameter {#authorization-info}
 
@@ -764,30 +764,30 @@ ASCII string.
 The `CLIENT_SETUP` and `SERVER_SETUP` messages are the first messages exchanged
 by the client and the server; they allows the peers to establish the mutually
 supported version and agree on the initial configuration before any objects are
-exchanged. It is a sequence of key-value pairs called SETUP parameters; the
+exchanged. It is a sequence of key-value pairs called Setup parameters; the
 semantics and format of which can vary based on whether the client or server is
 sending.  To ensure future extensibility of MOQT, the peers MUST ignore unknown
 setup parameters. TODO: describe GREASE for those.
 
-The wire format of the SETUP messages is as follows:
+The wire format of the Setup messages are as follows:
 
 ~~~
 CLIENT_SETUP Message Payload {
   Number of Supported Versions (i),
   Supported Version (i) ...,
   Number of Parameters (i) ...,
-  SETUP Parameters (..) ...,
+  Setup Parameters (..) ...,
 }
 
 SERVER_SETUP Message Payload {
   Selected Version (i),
   Number of Parameters (i) ...,
-  SETUP Parameters (..) ...,
+  Setup Parameters (..) ...,
 }
 ~~~
-{: #moq-transport-setup-format title="MOQT SETUP Messages"}
+{: #moq-transport-setup-format title="MOQT Setup Messages"}
 
-The available versions and SETUP parameters are detailed in the next sections.
+The available versions and Setup parameters are detailed in the next sections.
 
 ### Versions {#setup-versions}
 
@@ -811,7 +811,7 @@ Version numbers used to identify IETF drafts are created by adding the draft
 number to 0xff000000. For example, draft-ietf-moq-transport-13 would be
 identified as 0xff00000D.
 
-### SETUP Parameters {#setup-params}
+### Setup Parameters {#setup-params}
 
 #### ROLE parameter {#role}
 
@@ -1302,7 +1302,7 @@ reaching a resource limit.
 TODO: fill out currently missing registries:
 
 * MOQT version numbers
-* SETUP parameters
+* Setup parameters
 * Track Request parameters
 * Subscribe Error codes
 * Announce Error codes
