@@ -1209,7 +1209,7 @@ Table of Contents
 6.9.  SUBSCRIBE_RST
 
    A publisher issues a SUBSCRIBE_RST message to all subscribers
-   indicating there wan an error publishing to the given track and
+   indicating there was an error publishing to the given track and
    subscription is terminated.
 
    The format of SUBSCRIBE_RST is as follows:
