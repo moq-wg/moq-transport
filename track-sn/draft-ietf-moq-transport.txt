@@ -5,12 +5,12 @@
 MOQ                                                            L. Curley
 Internet-Draft                                                    Twitch
 Intended status: Standards Track                                K. Pugin
-Expires: 7 May 2024                                                 Meta
+Expires: 10 May 2024                                                Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                                   Google
-                                                         4 November 2023
+                                                         7 November 2023
 
 
                        Media over QUIC Transport
@@ -52,7 +52,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 7 May 2024.
+   This Internet-Draft will expire on 10 May 2024.
 
 Copyright Notice
 
@@ -692,10 +692,10 @@ Table of Contents
    ANNOUNCE MUST send only a single response to a given ANNOUNCE of
    either ANNOUNCE_OK or ANNOUNCE_ERROR.
 
-   OBJECT message header carry short hop-by-hop Track Alias that maps to
-   the Full Track Name.  Relays use the Track Alias of an incoming
-   OBJECT message to identify its track and find the active subscribers
-   for that track.  Relays MUST NOT depend on OBJECT payload content for
+   OBJECT message header carry short hop-by-hop Track ID that maps to
+   the Full Track Name.  Relays use the Track ID of an incoming OBJECT
+   message to identify its track and find the active subscribers for
+   that track.  Relays MUST NOT depend on OBJECT payload content for
    making forwarding decisions and MUST only depend on the fields, such
    as priority order and other metadata properties in the OBJECT message
    header.  Unless determined by congestion response, Relays MUST
@@ -958,7 +958,7 @@ Table of Contents
    The format of the OBJECT message is as follows:
 
    OBJECT Message {
-     Track Alias (i),
+     Track ID (i),
      Group Sequence (i),
      Object Sequence (i),
      Object Send Order (i),
@@ -968,7 +968,7 @@ Table of Contents
 
                        Figure 4: MOQT OBJECT Message
 
-   *  Track Alias : The compressed full track name obtained as part of
+   *  Track ID : The compressed full track name obtained as part of
       subscription and/or publish control message exchanges.
 
    *  Group Sequence : The object is a member of the indicated group
@@ -1124,7 +1124,6 @@ Table of Contents
    Start Object: Mode=Absolute, Value=0
    End Group: Mode=None
    End Object: Mode=None
-
    StartGroup=Largest Group + 1
    StartObject=0
 
@@ -1144,14 +1143,29 @@ Table of Contents
 
    SUBSCRIBE_OK
    {
+     Track Namespace (b),
+     Track Name (b),
+     Track ID (i),
      Subscribe ID (i),
      Expires (i)
    }
 
                     Figure 7: MOQT SUBSCRIBE_OK Message
 
-   *  SubscribeID: Subscription Identifer from the incoming subscription
-      request for which this message is the response.
+   *  Track Namespace: Identifies the namespace of the track as defined
+      in (Section 2.3.1).
+
+   *  Track Name: Identifies the track name as defined in
+      (Section 2.3.1).
+
+   *  Track ID: Session specific identifier that is used as an alias for
+      the Full Track Name in the Track ID field of the OBJECT
+      (Section 6.3) message headers of the requested track.  Track IDs
+      are generally shorter than Full Track Names and thus reduce the
+      overhead in OBJECT messages
+
+   *  Subscribe ID: Subscription Identifer from the incoming
+      subscription request for which this message is the response.
 
    *  Expires: Time in milliseconds after which the subscription is no
       longer valid.  A value of 0 indicates that the subscription stays
