@@ -377,14 +377,14 @@ separate SETUP parameters for that information in each version.
 
 ## Session initialization {#session-init}
 
-The first stream opened is a client-initiated bidirectional control stream
-where the peers exchange SETUP messages ({{message-setup}}).  All messages
-defined in this draft are sent on the control stream after the SETUP message.
-Control messages MUST NOT be sent on any other stream, and a peer receiving
-a control message on a different stream closes the session as a
-'Protocol Violation'. Objects MUST NOT be sent on the control stream, and a
-peer receiving an Object on the control stream closes the session as a
-'Protocol Violation'.
+The first stream opened is a client-initiated bidirectional control stream where
+the peers exchange SETUP messages ({{message-setup}}).  All messages defined in
+this draft except OBJECT and OBJECT_WITH_LENGTH are sent on the control stream
+after the SETUP message. Control messages MUST NOT be sent on any other stream,
+and a peer receiving a control message on a different stream closes the session
+as a 'Protocol Violation'. Objects MUST NOT be sent on the control stream, and a
+peer receiving an Object on the control stream closes the session as a 'Protocol
+Violation'.
 
 This draft only specifies a single use of bidirectional streams. Objects are
 sent on unidirectional streams.  Because there are no other uses of
