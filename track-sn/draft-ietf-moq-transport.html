@@ -2095,8 +2095,8 @@ based on prior business agreement).<a href="#section-5.2-3.1.1" class="pilcrow">
 providing the result of announcement. The entity receiving the
 ANNOUNCE <span class="bcp14">MUST</span> send only a single response to a given ANNOUNCE of
 either ANNOUNCE_OK or ANNOUNCE_ERROR.<a href="#section-5.2-4" class="pilcrow">¶</a></p>
-<p id="section-5.2-5">OBJECT message header carry short hop-by-hop <code>Track ID</code> that maps to the
-Full Track Name. Relays use the <code>Track ID</code>
+<p id="section-5.2-5">OBJECT message header carry short hop-by-hop Track ID that maps to the
+Full Track Name (see <a href="#message-subscribe-ok" class="auto internal xref">Section 6.5</a>). Relays use the Track ID
 of an incoming OBJECT message to identify its track and find the active
 subscribers for that track. Relays <span class="bcp14">MUST NOT</span> depend on OBJECT payload
 content for making forwarding decisions and <span class="bcp14">MUST</span> only depend on the
@@ -2765,7 +2765,7 @@ SUBSCRIBE_ERROR
 </div>
 <ul class="normal">
 <li class="normal" id="section-6.6-3.1">
-            <p id="section-6.6-3.1.1">SubscribeID: Subscription Identifer as defined in <a href="#message-subscribe-req" class="auto internal xref">Section 6.4</a>.<a href="#section-6.6-3.1.1" class="pilcrow">¶</a></p>
+            <p id="section-6.6-3.1.1">Subscribe ID: Subscription Identifer as defined in <a href="#message-subscribe-req" class="auto internal xref">Section 6.4</a>.<a href="#section-6.6-3.1.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-6.6-3.2">
             <p id="section-6.6-3.2.1">Error Code: Identifies an integer error code for subscription failure.<a href="#section-6.6-3.2.1" class="pilcrow">¶</a></p>
@@ -2803,7 +2803,7 @@ UNSUBSCRIBE Message {
 </div>
 <ul class="normal">
 <li class="normal" id="section-6.7-4.1">
-            <p id="section-6.7-4.1.1">SubscribeID: Subscription Identifer as defined in <a href="#message-subscribe-req" class="auto internal xref">Section 6.4</a>.<a href="#section-6.7-4.1.1" class="pilcrow">¶</a></p>
+            <p id="section-6.7-4.1.1">Subscribe ID: Subscription Identifer as defined in <a href="#message-subscribe-req" class="auto internal xref">Section 6.4</a>.<a href="#section-6.7-4.1.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
@@ -2874,7 +2874,7 @@ SUBSCRIBE_RST Message {
 </div>
 <ul class="normal">
 <li class="normal" id="section-6.9-4.1">
-            <p id="section-6.9-4.1.1">SubscribeI D: Subscription Identifier as defined in <a href="#message-subscribe-req" class="auto internal xref">Section 6.4</a>.<a href="#section-6.9-4.1.1" class="pilcrow">¶</a></p>
+            <p id="section-6.9-4.1.1">Subscribe ID: Subscription Identifier as defined in <a href="#message-subscribe-req" class="auto internal xref">Section 6.4</a>.<a href="#section-6.9-4.1.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-6.9-4.2">
             <p id="section-6.9-4.2.1">Error Code: Identifies an integer error code for subscription failure.<a href="#section-6.9-4.2.1" class="pilcrow">¶</a></p>

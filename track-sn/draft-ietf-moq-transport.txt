@@ -693,13 +693,13 @@ Table of Contents
    either ANNOUNCE_OK or ANNOUNCE_ERROR.
 
    OBJECT message header carry short hop-by-hop Track ID that maps to
-   the Full Track Name.  Relays use the Track ID of an incoming OBJECT
-   message to identify its track and find the active subscribers for
-   that track.  Relays MUST NOT depend on OBJECT payload content for
-   making forwarding decisions and MUST only depend on the fields, such
-   as priority order and other metadata properties in the OBJECT message
-   header.  Unless determined by congestion response, Relays MUST
-   forward the OBJECT message to the matching subscribers.
+   the Full Track Name (see Section 6.5).  Relays use the Track ID of an
+   incoming OBJECT message to identify its track and find the active
+   subscribers for that track.  Relays MUST NOT depend on OBJECT payload
+   content for making forwarding decisions and MUST only depend on the
+   fields, such as priority order and other metadata properties in the
+   OBJECT message header.  Unless determined by congestion response,
+   Relays MUST forward the OBJECT message to the matching subscribers.
 
 5.3.  Relay Discovery and Failover
 
@@ -1186,7 +1186,7 @@ Table of Contents
 
                    Figure 8: MOQT SUBSCRIBE_ERROR Message
 
-   *  SubscribeID: Subscription Identifer as defined in Section 6.4.
+   *  Subscribe ID: Subscription Identifer as defined in Section 6.4.
 
    *  Error Code: Identifies an integer error code for subscription
       failure.
@@ -1210,7 +1210,7 @@ Table of Contents
 
                      Figure 9: MOQT UNSUBSCRIBE Message
 
-   *  SubscribeID: Subscription Identifer as defined in Section 6.4.
+   *  Subscribe ID: Subscription Identifer as defined in Section 6.4.
 
 6.8.  SUBSCRIBE_FIN
 
@@ -1254,7 +1254,7 @@ Table of Contents
 
                    Figure 11: MOQT SUBSCRIBE RST Message
 
-   *  SubscribeI D: Subscription Identifier as defined in Section 6.4.
+   *  Subscribe ID: Subscription Identifier as defined in Section 6.4.
 
    *  Error Code: Identifies an integer error code for subscription
       failure.
