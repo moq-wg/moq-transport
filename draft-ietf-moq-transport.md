@@ -701,6 +701,8 @@ MOQT Message {
 |-------|----------------------------------------------------|
 | 0x10  | GOAWAY ({{message-goaway}})                        |
 |-------|----------------------------------------------------|
+| 0x11  | END ({{message-end}})                              |
+|-------|----------------------------------------------------|
 | 0x40  | CLIENT_SETUP ({{message-setup}})                   |
 |-------|----------------------------------------------------|
 | 0x41  | SERVER_SETUP ({{message-setup}})                   |
@@ -1268,11 +1270,43 @@ GOAWAY Message {
 ~~~
 {: #moq-transport-goaway-format title="MOQT GOAWAY Message"}
 
-* New Session URI: The client MUST use this URI for the new session if provded.
+* New Session URI: The client MUST use this URI for the new session if provided.
   If the URI is zero bytes long, the current URI is reused instead. The new
   session URI SHOULD use the same scheme as the current URL to ensure
   compatibility.
 
+
+## END {#message-end}
+
+A publisher sends a `END` message to indicate the termination condition when
+either a track, group or object ends.
+
+The format of `END` message is as shown below
+
+~~~
+END Message {
+  Type(i),
+  Track Alias (i)
+  Group Sequence (i),
+  Object Sequence (i)
+}
+~~~
+
+There are 3 possible values for the `Type` field as defined below.
+
+* Track (0x0) : The `END` message corresponds to termination of a track.
+
+* Group (0x1) : The `END` message corresponds to termination of a group.
+
+* Object (0x2) : The `END` message corresponds to termination of an object.
+
+In all the cases, the fields `Track Alias`, `Group Sequence` and
+`Object Sequence` identify the track, group and object respectively for
+which the termination condition applies.
+
+Also to note, when using object messages that is length aware, the receiver
+can compute the object competion by counting the length number of
+bytes received.
 
 # Security Considerations {#security}
 
