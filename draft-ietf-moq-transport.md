@@ -1144,7 +1144,7 @@ message in the `Final Group` for this track.
 ## SUBSCRIBE_RST {#message-subscribe-rst}
 
 A publisher issues a `SUBSCRIBE_RST` message to all subscribers indicating there
-wan an error publishing to the given track and subscription is terminated.
+was an error publishing to the given track and subscription is terminated.
 
 The format of `SUBSCRIBE_RST` is as follows:
 
