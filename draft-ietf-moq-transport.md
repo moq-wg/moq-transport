@@ -295,7 +295,7 @@ Full Track Name = security-camera.example.com/camera1/hd-video
 ~~~
 
 In this specification, both the Track Namespace and the Track Name are
-not constrained to a specific type of encoding. They carry a range of
+not constrained to a specific encoding. They carry a sequence of
 bytes and any comparison between two Track Namespaces/Track Names is
 done simply by exact compare of the bytes. Higher level specifications
 may constrain the information in these fields to UTF-8 or portions of
