@@ -622,8 +622,8 @@ providing the result of announcement. The entity receiving the
 ANNOUNCE MUST send only a single response to a given ANNOUNCE of
 either ANNOUNCE_OK or ANNOUNCE_ERROR.
 
-OBJECT message header carry short hop-by-hop `Track ID` that maps to the
-Full Track Name. Relays use the `Track ID`
+OBJECT message header carry short hop-by-hop Track ID that maps to the
+Full Track Name (see {{message-subscribe-ok}}). Relays use the Track ID
 of an incoming OBJECT message to identify its track and find the active
 subscribers for that track. Relays MUST NOT depend on OBJECT payload
 content for making forwarding decisions and MUST only depend on the
@@ -1121,7 +1121,7 @@ SUBSCRIBE_ERROR
 ~~~
 {: #moq-transport-subscribe-error format title="MOQT SUBSCRIBE_ERROR Message"}
 
-* SubscribeID: Subscription Identifer as defined in {{message-subscribe-req}}.
+* Subscribe ID: Subscription Identifer as defined in {{message-subscribe-req}}.
 
 * Error Code: Identifies an integer error code for subscription failure.
 
@@ -1145,7 +1145,7 @@ UNSUBSCRIBE Message {
 ~~~
 {: #moq-transport-unsubscribe-format title="MOQT UNSUBSCRIBE Message"}
 
-* SubscribeID: Subscription Identifer as defined in {{message-subscribe-req}}.
+* Subscribe ID: Subscription Identifer as defined in {{message-subscribe-req}}.
 
 ## SUBSCRIBE_FIN {#message-subscribe-fin}
 
@@ -1190,7 +1190,7 @@ SUBSCRIBE_RST Message {
 ~~~
 {: #moq-transport-subscribe-rst format title="MOQT SUBSCRIBE RST Message"}
 
-* SubscribeI D: Subscription Identifier as defined in {{message-subscribe-req}}.
+* Subscribe ID: Subscription Identifier as defined in {{message-subscribe-req}}.
 
 * Error Code: Identifies an integer error code for subscription failure.
 
