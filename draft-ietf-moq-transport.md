@@ -298,8 +298,8 @@ In this specification, both the Track Namespace and the Track Name are
 not constrained to a specific encoding. They carry a sequence of
 bytes and comparison between two Track Namespaces or Track Names is
 done simply by exact compare of the bytes. Higher level specifications
-may constrain the information in these fields to UTF-8 or portions of
-particular types or URLs. Any specification that does that needs to
+may constrain the information in these fields, for example by restricting
+them to UTF-8. Any specification that does that needs to
 specify the canonicalization into the bytes in the Track Namespace or
 Track Name such that comparison works correctly.
 
