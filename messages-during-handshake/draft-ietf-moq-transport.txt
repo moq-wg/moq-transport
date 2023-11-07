@@ -5,12 +5,12 @@
 MOQ                                                            L. Curley
 Internet-Draft                                                    Twitch
 Intended status: Standards Track                                K. Pugin
-Expires: 6 May 2024                                                 Meta
+Expires: 10 May 2024                                                Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                                   Google
-                                                         3 November 2023
+                                                         7 November 2023
 
 
                        Media over QUIC Transport
@@ -52,7 +52,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 6 May 2024.
+   This Internet-Draft will expire on 10 May 2024.
 
 Copyright Notice
 
@@ -443,9 +443,7 @@ Table of Contents
    Objects are sent on unidirectional streams.  Because there are no
    other uses of bidirectional streams, a peer MAY currently close the
    session as a 'Protocol Violation' if it receives a second
-   bidirectional stream.  An endpoint MUST NOT open a unidirectional
-   stream until after it has completed the exchange of SETUP messages is
-   complete.
+   bidirectional stream.
 
    The control stream MUST NOT be abruptly closed at the underlying
    transport layer.  Doing so results in the session being closed as a
