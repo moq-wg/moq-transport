@@ -622,8 +622,8 @@ providing the result of announcement. The entity receiving the
 ANNOUNCE MUST send only a single response to a given ANNOUNCE of
 either ANNOUNCE_OK or ANNOUNCE_ERROR.
 
-OBJECT message header carry short hop-by-hop `Track Alias` that maps to the
-Full Track Name. Relays use the `Track Alias`
+OBJECT message header carry short hop-by-hop `Track ID` that maps to the
+Full Track Name. Relays use the `Track ID`
 of an incoming OBJECT message to identify its track and find the active
 subscribers for that track. Relays MUST NOT depend on OBJECT payload
 content for making forwarding decisions and MUST only depend on the
@@ -888,7 +888,7 @@ The format of the OBJECT message is as follows:
 
 ~~~
 OBJECT Message {
-  Track Alias (i),
+  Track ID (i),
   Group Sequence (i),
   Object Sequence (i),
   Object Send Order (i),
@@ -898,7 +898,8 @@ OBJECT Message {
 ~~~
 {: #moq-transport-object-format title="MOQT OBJECT Message"}
 
-* Track Alias : The compressed full track name obtained as part of subscription and/or publish control message exchanges.
+* Track ID : The compressed full track name obtained as part of subscription
+and/or publish control message exchanges.
 
 * Group Sequence : The object is a member of the indicated group
 {{model-group}} within the track.
@@ -982,7 +983,12 @@ SUBSCRIBE Message {
 
 * Track Name: Identifies the track name as defined in ({{track-name}}).
 
-* Subscribe ID: Session unique identifier for the subscription. `Subscribe ID` is monotonically increasing variable length integer and it MUST uniquely identify a subscription within a session. `Subscribe ID` is used by subscribers and the publishers to identify a given subscription. Subscribers generate the `Subscribe ID` and it MUST be copied by the publisher when responding to the subscription requests.
+* Subscribe ID: Session unique identifier for the subscription. `Subscribe ID`
+is monotonically increasing variable length integer and it MUST uniquely
+identify a subscription within a session. `Subscribe ID` is used by
+subscribers and the publishers to identify a given subscription. Subscribers
+generate the `Subscribe ID` and it MUST be copied by the publisher when
+responding to the subscription requests.
 
 * StartGroup: The Location of the requested group.  StartGroup's Mode MUST NOT be
 None.
@@ -1008,7 +1014,8 @@ If a publisher cannot satisfy the requested start or end for the subscription it
 MAY send a SUBSCRIBE_ERROR with code TBD. A publisher MUST NOT send objects
 from outside the requested start and end.
 
-TODO: Define the flow where subscribe request matches an existing subscribe id (subscription updates.)
+TODO: Define the flow where subscribe request matches an existing subscribe id
+(subscription updates.)
 
 ### Examples
 
@@ -1049,7 +1056,6 @@ Start Group: Mode=RelativeNext, Value=0
 Start Object: Mode=Absolute, Value=0
 End Group: Mode=None
 End Object: Mode=None
-
 StartGroup=Largest Group + 1
 StartObject=0
 
@@ -1072,13 +1078,27 @@ A SUBSCRIBE_OK control message is sent for successful subscriptions.
 ~~~
 SUBSCRIBE_OK
 {
+  Track Namespace (b),
+  Track Name (b),
+  Track ID (i),
   Subscribe ID (i),
   Expires (i)
 }
 ~~~
 {: #moq-transport-subscribe-ok format title="MOQT SUBSCRIBE_OK Message"}
 
-* SubscribeID: Subscription Identifer from the incoming subscription request for which this message is the response.
+* Track Namespace: Identifies the namespace of the track as defined in
+({{track-name}}).
+
+* Track Name: Identifies the track name as defined in ({{track-name}}).
+
+* Track ID: Session specific identifier that is used as an alias for the
+Full Track Name in the Track ID field of the OBJECT ({{message-object}})
+message headers of the requested track. Track IDs are generally shorter than
+Full Track Names and thus reduce the overhead in OBJECT messages
+
+* Subscribe ID: Subscription Identifer from the incoming subscription request
+for which this message is the response.
 
 * Expires: Time in milliseconds after which the subscription is no
 longer valid. A value of 0 indicates that the subscription stays active
