@@ -390,8 +390,6 @@ This draft only specifies a single use of bidirectional streams. Objects are
 sent on unidirectional streams.  Because there are no other uses of
 bidirectional streams, a peer MAY currently close the session as a
 'Protocol Violation' if it receives a second bidirectional stream.
-An endpoint MUST NOT open a unidirectional stream until after it has completed
-the exchange of SETUP messages is complete.
 
 The control stream MUST NOT be abruptly closed at the underlying transport
 layer.  Doing so results in the session being closed as a 'Protocol Violation'.
