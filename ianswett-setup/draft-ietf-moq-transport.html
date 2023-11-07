@@ -1770,14 +1770,14 @@ separate Setup parameters for that information in each version.<a href="#section
         <h3 id="name-session-initialization">
 <a href="#section-3.3" class="section-number selfRef">3.3. </a><a href="#name-session-initialization" class="section-name selfRef">Session initialization</a>
         </h3>
-<p id="section-3.3-1">The first stream opened is a client-initiated bidirectional control stream
-where the peers exchange Setup messages (<a href="#message-setup" class="auto internal xref">Section 6.2</a>).  All messages
-defined in this draft are sent on the control stream after the Setup message.
-Control messages <span class="bcp14">MUST NOT</span> be sent on any other stream, and a peer receiving
-a control message on a different stream closes the session as a
-'Protocol Violation'. Objects <span class="bcp14">MUST NOT</span> be sent on the control stream, and a
-peer receiving an Object on the control stream closes the session as a
-'Protocol Violation'.<a href="#section-3.3-1" class="pilcrow">¶</a></p>
+<p id="section-3.3-1">The first stream opened is a client-initiated bidirectional control stream where
+the peers exchange Setup messages (<a href="#message-setup" class="auto internal xref">Section 6.2</a>).  All messages defined in
+this draft except OBJECT and OBJECT_WITH_LENGTH are sent on the control stream
+after the Setup message. Control messages <span class="bcp14">MUST NOT</span> be sent on any other stream,
+and a peer receiving a control message on a different stream closes the session
+as a 'Protocol Violation'. Objects <span class="bcp14">MUST NOT</span> be sent on the control stream, and a
+peer receiving an Object on the control stream closes the session as a 'Protocol
+Violation'.<a href="#section-3.3-1" class="pilcrow">¶</a></p>
 <p id="section-3.3-2">This draft only specifies a single use of bidirectional streams. Objects are
 sent on unidirectional streams.  Because there are no other uses of
 bidirectional streams, a peer <span class="bcp14">MAY</span> currently close the session as a
@@ -2089,8 +2089,8 @@ based on prior business agreement).<a href="#section-5.2-3.1.1" class="pilcrow">
 providing the result of announcement. The entity receiving the
 ANNOUNCE <span class="bcp14">MUST</span> send only a single response to a given ANNOUNCE of
 either ANNOUNCE_OK or ANNOUNCE_ERROR.<a href="#section-5.2-4" class="pilcrow">¶</a></p>
-<p id="section-5.2-5">OBJECT message header carry short hop-by-hop Track Id that maps to the
-Full Track Name (see <a href="#message-subscribe-ok" class="auto internal xref">Section 6.5</a>). Relays use the Track ID
+<p id="section-5.2-5">OBJECT message header carry short hop-by-hop <code>Track Alias</code> that maps to the
+Full Track Name (see <a href="#message-subscribe-ok" class="auto internal xref">Section 6.5</a>). Relays use the <code>Track Alias</code>
 of an incoming OBJECT message to identify its track and find the active
 subscribers for that track. Relays <span class="bcp14">MUST NOT</span> depend on OBJECT payload
 content for making forwarding decisions and <span class="bcp14">MUST</span> only depend on the
@@ -2422,7 +2422,7 @@ present. When the message type ix 0x02, the field is not present.<a href="#secti
           <div class="alignLeft art-text artwork" id="section-6.3-3.1">
 <pre>
 OBJECT Message {
-  Track ID (i),
+  Track Alias (i),
   Group Sequence (i),
   Object Sequence (i),
   Object Send Order (i),
@@ -2437,7 +2437,7 @@ OBJECT Message {
 </div>
 <ul class="normal">
 <li class="normal" id="section-6.3-4.1">
-            <p id="section-6.3-4.1.1">Track ID: The track identifier obtained as part of subscription and/or
+            <p id="section-6.3-4.1.1">Track Alias: The track alias obtained as part of subscription and/or
 publish control message exchanges.<a href="#section-6.3-4.1.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-6.3-4.2">
@@ -2520,8 +2520,8 @@ RelativeNext Value:                               0    1  ...
             <div class="alignLeft art-text artwork" id="section-6.4.2-2.1">
 <pre>
 SUBSCRIBE REQUEST Message {
-  Full Track Name Length (i),
-  Full Track Name (...),
+  Track Namespace (b),
+  Track Name (b),
   StartGroup (Location),
   StartObject (Location),
   EndGroup (Location),
@@ -2646,7 +2646,7 @@ SUBSCRIBE_OK
 {
   Track Namespace (b),
   Track Name (b),
-  Track ID (i),
+  Track Alias (i),
   Expires (i)
 }
 </pre>
@@ -2664,9 +2664,9 @@ SUBSCRIBE_OK
             <p id="section-6.5-3.2.1">Track Name: Identifies the track name as defined in (<a href="#track-name" class="auto internal xref">Section 2.3.1</a>).<a href="#section-6.5-3.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-6.5-3.3">
-            <p id="section-6.5-3.3.1">Track ID: Session specific identifier that is used as an alias for the
-Full Track Name in the Track ID field of the OBJECT (<a href="#message-object" class="auto internal xref">Section 6.3</a>)
-message headers of the requested track. Track IDs are generally shorter
+            <p id="section-6.5-3.3.1">Track Alias: Session specific identifier that is used as an alias for the
+Full Track Name in the Track Alias field of the OBJECT (<a href="#message-object" class="auto internal xref">Section 6.3</a>)
+message headers of the requested track. Track Aliases are generally shorter
 than Full Track Names and thus reduce the overhead in OBJECT messages.<a href="#section-6.5-3.3.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-6.5-3.4">
@@ -2803,7 +2803,7 @@ message in the <code>Final Group</code> for this track.<a href="#section-6.8-4.4
 <a href="#section-6.9" class="section-number selfRef">6.9. </a><a href="#name-subscribe_rst" class="section-name selfRef">SUBSCRIBE_RST</a>
         </h3>
 <p id="section-6.9-1">A publisher issues a <code>SUBSCRIBE_RST</code> message to all subscribers indicating there
-wan an error publishing to the given track and subscription is terminated.<a href="#section-6.9-1" class="pilcrow">¶</a></p>
+was an error publishing to the given track and subscription is terminated.<a href="#section-6.9-1" class="pilcrow">¶</a></p>
 <p id="section-6.9-2">The format of <code>SUBSCRIBE_RST</code> is as follows:<a href="#section-6.9-2" class="pilcrow">¶</a></p>
 <span id="name-moqt-subscribe-rst-message"></span><div id="moq-transport-subscribe-rst">
 <figure id="figure-11">
