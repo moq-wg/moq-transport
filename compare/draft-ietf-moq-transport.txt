@@ -5,12 +5,12 @@
 MOQ                                                            L. Curley
 Internet-Draft                                                    Twitch
 Intended status: Standards Track                                K. Pugin
-Expires: 10 May 2024                                                Meta
+Expires: 11 May 2024                                                Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                                   Google
-                                                         7 November 2023
+                                                         8 November 2023
 
 
                        Media over QUIC Transport
@@ -52,7 +52,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 10 May 2024.
+   This Internet-Draft will expire on 11 May 2024.
 
 Copyright Notice
 
@@ -353,7 +353,7 @@ Table of Contents
    Transport may constrain the information in these fields, for example
    by restricting them to UTF-8.  Any specification that does that needs
    to specify the canonicalization into the bytes in the Track Namespace
-   or Track Name such that comparison works correctly.
+   or Track Name such that exact comparison works.
 
 2.3.2.  Connection URL
 
