@@ -927,9 +927,6 @@ that was sent on the stream at the top of the stack has a value of  `N - D`.
      off the stack and repeat from the Step 2. If the stack is empty, close
      the connection with appropriate error code.
 
-TODO: More details are needed to determine when the stream can be closed.
-      Refer to disucssions on issue 318 on explicit markers for signaling
-      stream completion.
 
 #### Proposal 2 - Object Placement Mode
 
@@ -967,6 +964,10 @@ has a value of 0x4.
 Note: Certain considerations apply when using Datagram. See the
 section on datagram that follows from discussions in the PR316.s
 under the PR 316
+
+TODO: More details are needed to determine when a stream can be closed.
+      Refer to disucssions on issue 318 on explicit markers for signaling
+      stream completion.
 
 ## SUBSCRIBE {#message-subscribe-req}
 
