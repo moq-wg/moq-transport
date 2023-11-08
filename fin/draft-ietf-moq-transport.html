@@ -3024,33 +3024,43 @@ compatibility.<a href="#section-6.14-4.1.1" class="pilcrow">¶</a></p>
         <h3 id="name-end">
 <a href="#section-6.15" class="section-number selfRef">6.15. </a><a href="#name-end" class="section-name selfRef">END</a>
         </h3>
-<p id="section-6.15-1">A publisher sends <code>END</code> message to indicate the completion of either the track
-or group or an object. The <code>END</code> message <span class="bcp14">MUST NOT</span> be sent on the control stream.<a href="#section-6.15-1" class="pilcrow">¶</a></p>
+<p id="section-6.15-1">A publisher can optionally send <code>END</code> message to indicate the completion of
+either the track or group or an object. The <code>END</code> message <span class="bcp14">MUST NOT</span> be
+sent on the control stream.<a href="#section-6.15-1" class="pilcrow">¶</a></p>
 <p id="section-6.15-2">The format of <code>END</code> message is as shown below<a href="#section-6.15-2" class="pilcrow">¶</a></p>
 <div class="alignLeft art-text artwork" id="section-6.15-3">
 <pre>
 END Message {
   Type (i),
-  Track Alias (i)
+  Track Alias (i),
   Group (i),
-  Object (i)
+  [Object (i)]
 }
 </pre><a href="#section-6.15-3" class="pilcrow">¶</a>
 </div>
-<p id="section-6.15-4">There are 3 possible values for the <code>Type</code> field as defined below.<a href="#section-6.15-4" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-6.15-5.1">
-            <p id="section-6.15-5.1.1">Track (0x0) : The <code>END</code> message corresponds to completion of a track.<a href="#section-6.15-5.1.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="section-6.15-5.2">
-            <p id="section-6.15-5.2.1">Last Group (0x1) : The <code>END</code> message corresponds to completion of a group.<a href="#section-6.15-5.2.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="section-6.15-5.3">
-            <p id="section-6.15-5.3.1">Last Object (0x2) : The <code>END</code> message corresponds to completion of an object.<a href="#section-6.15-5.3.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-6.15-4.1">
+            <p id="section-6.15-4.1.1">Track Alias: Identifies the track corresponding to the <code>END</code> message.<a href="#section-6.15-4.1.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
-<p id="section-6.15-6">In all the cases, the fields <code>Track Alias</code>, <code>Group</code> and
-<code>Object</code> identify the track, group and object respectively.<a href="#section-6.15-6" class="pilcrow">¶</a></p>
+<p id="section-6.15-5">There are 3 possible values for the <code>Type</code> field as defined below.<a href="#section-6.15-5" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-6.15-6.1">
+            <p id="section-6.15-6.1.1">Track (0x0) : The <code>END</code> message corresponds to completion of a track. The
+<code>Group</code> and <code>Object</code> field identify the final group and object sequences
+for the track.<a href="#section-6.15-6.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-6.15-6.2">
+            <p id="section-6.15-6.2.1">Group (0x1) : The <code>END</code> message corresponds to completion of a group
+identified in the <code>Group</code> field. The <code>Object</code> field identifies the last
+object of the completed group.<a href="#section-6.15-6.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-6.15-6.3">
+            <p id="section-6.15-6.3.1">Object (0x2) : The <code>END</code> message corresponds to completion of an object,
+identified in the <code>Object</code> field whose group is indicated in the <code>Group</code>
+field.<a href="#section-6.15-6.3.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
 <p id="section-6.15-7">Sending <code>END</code> message is optional for cases where the completion
 condition can be determined by some other means. For example, when using
 Object messages <a href="#message-object" class="auto internal xref">Section 6.3</a> that is length aware, the receiver
