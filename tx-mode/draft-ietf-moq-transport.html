@@ -1037,7 +1037,7 @@ svg :is([fill="white"], [fill^="#fff"]) {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Curley, et al.</td>
-<td class="center">Expires 10 May 2024</td>
+<td class="center">Expires 11 May 2024</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1050,12 +1050,12 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dd class="internet-draft">draft-ietf-moq-transport-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2023-11-07" class="published">7 November 2023</time>
+<time datetime="2023-11-08" class="published">8 November 2023</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2024-05-10">10 May 2024</time></dd>
+<dd class="expires"><time datetime="2024-05-11">11 May 2024</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1117,7 +1117,7 @@ networks and is designed for high scale and low latency distribution.<a href="#s
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 10 May 2024.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 11 May 2024.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -2478,34 +2478,44 @@ field is absent, the object payload continues to the end of the stream.<a href="
           </h4>
 <p id="section-6.3.1-1">The publisher specifies its preference for mapping the elements of the
 object model - Tracks, Groups and Objects, to the underlying transport
-mechanisms such as QUIC Streams and QUIC Datagrams. A publisher chooses it preference driven by the application needs.<a href="#section-6.3.1-1" class="pilcrow">¶</a></p>
+mechanisms such as QUIC Streams and QUIC Datagrams. A publisher chooses it
+preference driven by the application needs.<a href="#section-6.3.1-1" class="pilcrow">¶</a></p>
 <div id="proposal-1-stream-placement-indicator-victors-proposal-and-text">
 <section id="section-6.3.1.1">
             <h5 id="name-proposal-1-stream-placement">
 <a href="#section-6.3.1.1" class="section-number selfRef">6.3.1.1. </a><a href="#name-proposal-1-stream-placement" class="section-name selfRef">Proposal 1 - Stream Placement Indicator (Victor's Proposal and Text)</a>
             </h5>
-<p id="section-6.3.1.1-1"><code>Stream Placement Indicator</code> specifies as variable length integer indicating
-the publisher's intention when choosing the QUIC stream to transport a given
-object. The details of the same is provided below:<a href="#section-6.3.1.1-1" class="pilcrow">¶</a></p>
-<p id="section-6.3.1.1-2">Let <code>N</code> be the object sequence of the current object and <code>D</code> be the
-stream placement indicator, and <code>S</code>` be a stack of stream that is initially
-empty.<a href="#section-6.3.1.1-2" class="pilcrow">¶</a></p>
-<p id="section-6.3.1.1-3">For every object to be transported:<a href="#section-6.3.1.1-3" class="pilcrow">¶</a></p>
-<ol start="1" type="1" class="normal type-1" id="section-6.3.1.1-4">
-<li id="section-6.3.1.1-4.1">
-                <p id="section-6.3.1.1-4.1.1">If <code>D</code> is zero, open a new stream, push it at the top of the stack.
-Send the object on the stream at the top of the stack.<a href="#section-6.3.1.1-4.1.1" class="pilcrow">¶</a></p>
+<p id="section-6.3.1.1-1"><code>Stream Placement Indicator</code> specifies as variable length integer informing
+the stream to choose for sending a given object.<a href="#section-6.3.1.1-1" class="pilcrow">¶</a></p>
+<p id="section-6.3.1.1-2">Each publisher follows the procedure defined below :<a href="#section-6.3.1.1-2" class="pilcrow">¶</a></p>
+<p id="section-6.3.1.1-3">Let <code>N</code> be the object sequence of the current object and <code>D</code> be the
+stream placement indicator, and <code>S</code> be a stack of streams that is initially
+empty.<a href="#section-6.3.1.1-3" class="pilcrow">¶</a></p>
+<p id="section-6.3.1.1-4">For each object to be sent:<a href="#section-6.3.1.1-4" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="normal type-1" id="section-6.3.1.1-5">
+<li id="section-6.3.1.1-5.1">
+                <p id="section-6.3.1.1-5.1.1">If <code>D</code> is zero, open a new stream and push it at the top of the stack.
+Send the object on the stream at the top of the stack.<a href="#section-6.3.1.1-5.1.1" class="pilcrow">¶</a></p>
 </li>
-              <li id="section-6.3.1.1-4.2">
-                <p id="section-6.3.1.1-4.2.1">If <code>D</code> is non-zero, check if the object sequence of the most recent object
-that sent on the stream at the top of the stack has a value of  <code>N - D</code>.<a href="#section-6.3.1.1-4.2.1" class="pilcrow">¶</a></p>
+              <li id="section-6.3.1.1-5.2">
+                <p id="section-6.3.1.1-5.2.1">If <code>D</code> is non-zero, check if the object sequence of the most recent object
+that was sent on the stream at the top of the stack has a value of  <code>N - D</code>.<a href="#section-6.3.1.1-5.2.1" class="pilcrow">¶</a></p>
 </li>
             </ol>
-<p id="section-6.3.1.1-5">2.1 If it is,  continue sending the object on the stream at the top of the
-      stack.<a href="#section-6.3.1.1-5" class="pilcrow">¶</a></p>
-<p id="section-6.3.1.1-6">2.2 If it is not, close the stream at the top of the stack, pop the stream
-     off the stack and repeat the Step 2. If the stack is empty, close
-     the connection with appropriate error code.<a href="#section-6.3.1.1-6" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-6.3.1.1-6.1">
+                <p id="section-6.3.1.1-6.1.1">If it is, continue sending the current object on the stream at the top
+of the stack.<a href="#section-6.3.1.1-6.1.1" class="pilcrow">¶</a></p>
+</li>
+              <li class="normal" id="section-6.3.1.1-6.2">
+                <p id="section-6.3.1.1-6.2.1">If it is not, close the stream at the top of the stack, pop the stream
+ off the stack and repeat from the Step 2. If the stack is empty, close
+ the connection with appropriate error code.<a href="#section-6.3.1.1-6.2.1" class="pilcrow">¶</a></p>
+</li>
+            </ul>
+<p id="section-6.3.1.1-7">TODO: More details are needed to determine when the stream can be closed.
+      Refer to disucssions on issue 318 on explicit markers for signaling
+      stream completion.<a href="#section-6.3.1.1-7" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="proposal-2-object-placement-mode">
@@ -2514,7 +2524,7 @@ that sent on the stream at the top of the stack has a value of  <code>N - D</cod
 <a href="#section-6.3.1.2" class="section-number selfRef">6.3.1.2. </a><a href="#name-proposal-2-object-placement" class="section-name selfRef">Proposal 2 - Object Placement Mode</a>
             </h5>
 <p id="section-6.3.1.2-1"><code>Object Placement Mode</code> is a enumeration of possible mappings of the object
-model to the underlying transport mechanism for delivering media.<a href="#section-6.3.1.2-1" class="pilcrow">¶</a></p>
+model to the underlying transport mechanisms.<a href="#section-6.3.1.2-1" class="pilcrow">¶</a></p>
 <div id="mode-streampergroup">
 <section id="section-6.3.1.2.1">
               <h6 id="name-mode-streampergroup">
@@ -2539,7 +2549,7 @@ over a single QUIC stream. <code>StreamPerObject</code> has a value of 0x1.<a hr
 <a href="#section-6.3.1.2.3" class="section-number selfRef">6.3.1.2.3. </a><a href="#name-mode-streampertrack" class="section-name selfRef">Mode: StreamPerTrack</a>
               </h6>
 <p id="section-6.3.1.2.3-1">The mode <code>StreamPerTrack</code> specifies that all the groups and objects for a
-given track is sent over a single QUIC stream. <code>StreamPerTrack</code> has a
+given track are sent over a single QUIC stream. <code>StreamPerTrack</code> has a
 value of 0x2.<a href="#section-6.3.1.2.3-1" class="pilcrow">¶</a></p>
 </section>
 </div>
@@ -2560,6 +2570,9 @@ value of 0x3.<a href="#section-6.3.1.2.4-1" class="pilcrow">¶</a></p>
               </h6>
 <p id="section-6.3.1.2.5-1">The mode <code>Datagram</code> specifies that objects are sent using QUIC datagrams and
 has a value of 0x4.<a href="#section-6.3.1.2.5-1" class="pilcrow">¶</a></p>
+<p id="section-6.3.1.2.5-2">Note: Certain considerations apply when using Datagram. See the
+section on datagram that follows from discussions in the PR316.s
+under the PR 316<a href="#section-6.3.1.2.5-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
