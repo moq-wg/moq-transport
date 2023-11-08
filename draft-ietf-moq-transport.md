@@ -294,6 +294,14 @@ Full Track Name = security-camera.example.com/camera1/hd-video
 
 ~~~
 
+In this specification, both the Track Namespace and the Track Name are
+not constrained to a specific encoding. They carry a sequence of
+bytes and comparison between two Track Namespaces or Track Names is
+done by exact comparison of the bytes. Specifications that use MoQ Transport
+may constrain the information in these fields, for example by restricting
+them to UTF-8. Any specification that does needs to specify the
+canonicalization into the bytes in the Track Namespace or Track Name
+such that exact comparison works.
 
 ### Connection URL
 
