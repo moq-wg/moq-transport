@@ -1278,35 +1278,36 @@ GOAWAY Message {
 
 ## END {#message-end}
 
-A publisher sends a `END` message to indicate the termination condition when
-either a track, group or object ends.
+A publisher sends `END` message to indicate the completion of either the track
+or group or an object. The `END` message MUST NOT be sent on the control stream.
 
 The format of `END` message is as shown below
 
 ~~~
 END Message {
-  Type(i),
+  Type (i),
   Track Alias (i)
-  Group Sequence (i),
-  Object Sequence (i)
+  Group (i),
+  Object (i)
 }
 ~~~
 
 There are 3 possible values for the `Type` field as defined below.
 
-* Track (0x0) : The `END` message corresponds to termination of a track.
+* Track (0x0) : The `END` message corresponds to completion of a track.
 
-* Group (0x1) : The `END` message corresponds to termination of a group.
+* Last Group (0x1) : The `END` message corresponds to completion of a group.
 
-* Object (0x2) : The `END` message corresponds to termination of an object.
+* Last Object (0x2) : The `END` message corresponds to completion of an object.
 
-In all the cases, the fields `Track Alias`, `Group Sequence` and
-`Object Sequence` identify the track, group and object respectively for
-which the termination condition applies.
+In all the cases, the fields `Track Alias`, `Group` and
+`Object` identify the track, group and object respectively.
 
-Also to note, when using object messages that is length aware, the receiver
-can compute the object competion by counting the length number of
-bytes received.
+Sending `END` message is optional for cases where the completion
+condition can be determined by some other means. For example, when using
+Object messages {{message-object}} that is length aware, the receiver
+can compute the object competion by counting the `Object Payload Length`
+number of bytes received.
 
 # Security Considerations {#security}
 
