@@ -301,7 +301,7 @@ done by exact comparison of the bytes. Specifications that use MoQ Transport
 may constrain the information in these fields, for example by restricting
 them to UTF-8. Any specification that does that needs to
 specify the canonicalization into the bytes in the Track Namespace or
-Track Name such that comparison works correctly.
+Track Name such that exact comparison works.
 
 ### Connection URL
 
