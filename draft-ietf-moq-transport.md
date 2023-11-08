@@ -897,38 +897,44 @@ NOT be processed by a relay.
 
 The publisher specifies its preference for mapping the elements of the
 object model - Tracks, Groups and Objects, to the underlying transport
-mechanisms such as QUIC Streams and QUIC Datagrams. A publisher chooses it preference driven by the application needs.
+mechanisms such as QUIC Streams and QUIC Datagrams. A publisher chooses it
+preference driven by the application needs.
 
 #### Proposal 1 - Stream Placement Indicator (Victor's Proposal and Text)
 
-`Stream Placement Indicator` specifies as variable length integer indicating
-the publisher's intention when choosing the QUIC stream to transport a given
-object. The details of the same is provided below:
+`Stream Placement Indicator` specifies as variable length integer informing
+the stream to choose for sending a given object.
+
+Each publisher follows the procedure defined below :
 
 Let `N` be the object sequence of the current object and `D` be the
-stream placement indicator, and `S`` be a stack of stream that is initially
+stream placement indicator, and `S` be a stack of streams that is initially
 empty.
 
-For every object to be transported:
+For each object to be sent:
 
-1. If `D` is zero, open a new stream, push it at the top of the stack.
+1. If `D` is zero, open a new stream and push it at the top of the stack.
 Send the object on the stream at the top of the stack.
 
 2. If `D` is non-zero, check if the object sequence of the most recent object
-that sent on the stream at the top of the stack has a value of  `N - D`.
+that was sent on the stream at the top of the stack has a value of  `N - D`.
 
-  2.1 If it is,  continue sending the object on the stream at the top of the
-      stack.
+  -  If it is, continue sending the current object on the stream at the top
+     of the stack.
 
-  2.2 If it is not, close the stream at the top of the stack, pop the stream
-     off the stack and repeat the Step 2. If the stack is empty, close
+
+  - If it is not, close the stream at the top of the stack, pop the stream
+     off the stack and repeat from the Step 2. If the stack is empty, close
      the connection with appropriate error code.
 
+TODO: More details are needed to determine when the stream can be closed.
+      Refer to disucssions on issue 318 on explicit markers for signaling
+      stream completion.
 
 #### Proposal 2 - Object Placement Mode
 
 `Object Placement Mode` is a enumeration of possible mappings of the object
-model to the underlying transport mechanism for delivering media.
+model to the underlying transport mechanisms.
 
 
 ##### Mode: StreamPerGroup
@@ -944,7 +950,7 @@ over a single QUIC stream. `StreamPerObject` has a value of 0x1.
 ##### Mode: StreamPerTrack
 
 The mode `StreamPerTrack` specifies that all the groups and objects for a
-given track is sent over a single QUIC stream. `StreamPerTrack` has a
+given track are sent over a single QUIC stream. `StreamPerTrack` has a
 value of 0x2.
 
 ##### Mode: StreamPerPriority
@@ -957,6 +963,10 @@ value of 0x3.
 
 The mode `Datagram` specifies that objects are sent using QUIC datagrams and
 has a value of 0x4.
+
+Note: Certain considerations apply when using Datagram. See the
+section on datagram that follows from discussions in the PR316.s
+under the PR 316
 
 ## SUBSCRIBE {#message-subscribe-req}
 
