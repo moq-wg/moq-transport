@@ -351,9 +351,9 @@ Table of Contents
    bytes and comparison between two Track Namespaces or Track Names is
    done by exact comparison of the bytes.  Specifications that use MoQ
    Transport may constrain the information in these fields, for example
-   by restricting them to UTF-8.  Any specification that does that needs
-   to specify the canonicalization into the bytes in the Track Namespace
-   or Track Name such that exact comparison works.
+   by restricting them to UTF-8.  Any specification that does needs to
+   specify the canonicalization into the bytes in the Track Namespace or
+   Track Name such that exact comparison works.
 
 2.3.2.  Connection URL
 
