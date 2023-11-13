@@ -749,9 +749,9 @@ The Parameter Length field of the String Parameter encodes the length
 of the Parameter Value field in bytes.
 
 Each parameter description will indicate the data type in the Parameter Value
-field. If the parameter value is a varint, but the self-encoded length of that
-varint does not match the Parameter Length field, the receiver MUST ignore the
-parameter using the value in the Parameter Length field.
+field. If a receiver understands a parameter type, and  the parameter value is a
+varint, but the self-encoded length of that varint does not match the Parameter
+Length field, the receiver MUST terminate the session.
 
 ### Version Specific Parameters {#version-specific-params}
 
