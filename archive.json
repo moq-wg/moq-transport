@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2023-11-12T01:12:31.632072+00:00",
+  "timestamp": "2023-11-14T01:07:56.968932+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -12305,7 +12305,7 @@
       "labels": [],
       "body": "Consider an edge relay, receiving and forwarding relative SUBSCRIBE requests for -5, -3, and -1 for the same track. The first object it receives back is group 37. It cannot tell where to place this object in the sequence and must therefore hold it until it knows more information. If the next object is Group 39, it still cannot forward it, because the head sate is undefined.\r\n\r\nWe can solve this problem simply by having the SUBSCRIBE_OK response indicate the latest group and object number:\r\n\r\nSUBSCRIBE_OK\r\n{\r\n  Track Namespace (b),\r\n  Track Name (b),\r\n  Track Alias (i),\r\n  Expires (i),\r\n  LastestGroup(i),\r\n  LastestObject(i)\r\n}\r\n\r\nOne consequence of adding these fields is that an edge, which has no active subscription for the track,  cannot send the SUBSCRIBE_OK response until it itself receives a SUBSCRIBE_OK after forwarding the SUBSCRIBE. This makes subscription an async process in which the acknowledgment of the subscription may take in some cases a RTT back to the origin. I think this is necessary for stable state management. \r\n",
       "createdAt": "2023-11-10T21:52:31Z",
-      "updatedAt": "2023-11-11T01:13:54Z",
+      "updatedAt": "2023-11-14T00:56:05Z",
       "closedAt": null,
       "comments": [
         {
@@ -12314,6 +12314,41 @@
           "body": "+1 this is required to build a relay and a non-realtime player.\r\n\r\n> One consequence of adding these fields is that an edge, which has no active subscription for the track, cannot send the SUBSCRIBE_OK response until it itself receives a SUBSCRIBE_OK after forwarding the SUBSCRIBE. This makes subscription an async process in which the acknowledgment of the subscription may take in some cases a RTT back to the origin.\r\n\r\nThis was required anyway, otherwise the relay would swallow any application SUBSCRIBE_ERROR codes. My mental model is that SUBSCRIBE_OK == HTTP response headers.",
           "createdAt": "2023-11-11T01:13:54Z",
           "updatedAt": "2023-11-11T01:13:54Z"
+        },
+        {
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> One consequence of adding these fields is that an edge, which has no active subscription for the track, cannot send the SUBSCRIBE_OK response until it itself receives a SUBSCRIBE_OK after forwarding the SUBSCRIBE\r\n\r\nMoqt is a pub/sub protocol and is hop-by-hop protocol. A subscribe ok means the susbcribe request was validated at the relay. A OK isn't tied to getting a OK from the original publisher. Its sub/sub-ok is a async operation ( like any typical pub/sub systems out there). An ok for subscribe means a promise that if there is a matching data ( either in cache or coming in from a live publisher at some point), it will be forwarded . ",
+          "createdAt": "2023-11-12T19:24:29Z",
+          "updatedAt": "2023-11-12T19:24:29Z"
+        },
+        {
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> Consider an edge relay, receiving and forwarding relative SUBSCRIBE requests for -5, -3, and -1 for the same track. The first object it receives back is group 37. It cannot tell where to place this object in the sequence and must therefore hold it until it knows more information\r\n\r\nClarifying question , if the use-case is something like VOD or non real-time flows, I think the same can be done by\r\n```\r\n1. Subscribe to live edge using relative offset and not the latest group/object\r\n2. Subscribe again to the right point by absolute offert\r\n```\r\n\r\n",
+          "createdAt": "2023-11-12T19:28:58Z",
+          "updatedAt": "2023-11-12T19:28:58Z"
+        },
+        {
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> > One consequence of adding these fields is that an edge, which has no active subscription for the track, cannot send the SUBSCRIBE_OK response until it itself receives a SUBSCRIBE_OK after forwarding the SUBSCRIBE\r\n> \r\n> Moqt is a pub/sub protocol and is hop-by-hop protocol. A subscribe ok means the susbcribe request was validated at the relay. A OK isn't tied to getting a OK from the original publisher. Its sub/sub-ok is a async operation ( like any typical pub/sub systems out there). An ok for subscribe means a promise that if there is a matching data ( either in cache or coming in from a live publisher at some point), it will be forwarded .\r\n\r\nI absolutely don't want this behavior.\r\n\r\nIt means that a generic relay will always return SUBSCRIBE_OK, even if it cannot route (or authenticate) a SUBSCRIBE. A typo or finished broadcast would be indistinguishable from a valid request unless OBJECTs start to flow. SUBSCRIBE_OK would be equivalent to HTTP 100 CONTINUE, which is truly useless, and there would be no equivalent to 200 OK or 404 Not Found.\r\n\r\nPub/sub doesn't mean black hole simulator either. I've only used RabbitMQ a long time ago, but if you tried to bind a queue (ie. SUBSCRIBE) to an exchange (ie. ANNOUNCE) it will return an error if the exchange doesn't exist. Is the justification that pub/sub protocols are _supposed_ to black hole, or is this behavior that you actually want?\r\n\r\nInstead of hanging indefinitely if a relay can't route a SUBSCRIBE, wouldn't it just be better to receive a 404 Not Found? You're allowed to try again, but now there's no timers or guess work as to if the SUBSCRIBE could be routed to an origin.",
+          "createdAt": "2023-11-13T01:17:41Z",
+          "updatedAt": "2023-11-13T01:35:50Z"
+        },
+        {
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> > Consider an edge relay, receiving and forwarding relative SUBSCRIBE requests for -5, -3, and -1 for the same track. The first object it receives back is group 37. It cannot tell where to place this object in the sequence and must therefore hold it until it knows more information\r\n> \r\n> Clarifying question , if the use-case is something like VOD or non real-time flows, I think the same can be done by\r\n> \r\n> ```\r\n> 1. Subscribe to live edge using relative offset and not the latest group/object\r\n> 2. Subscribe again to the right point by absolute offert\r\n> ```\r\n\r\nIt's for higher latency targets. HLS/DASH clients don't start at the latest segment, but rather start further back based on the target latency.\r\n\r\nIf I understand correctly, you're saying the relay:\r\n\r\n0. has an empty cache.\r\n1. receives a `SUBSCRIBE start=relative/3` and `SUBSCRIBE start=relative/5`.\r\n2. issues issues a live subscription upstream: `SUBSCRIBE start=relative/0`\r\n3. waits for the first OBJECT to arrive for that subscribe, using it as the live playhead: `N = object.group`\r\n4. issues a backfill subscribe upstream: `SUBSCRIBE start=absolute/N-5 end=absolute/N`\r\n5. forwards any objects based on the mapping from relative to absolute.\r\n\r\nIt works for relays, but at the cost of an extra round-trip to origin. However, it won't work for clients that want to start playback N groups back (jitter buffer size), because the player doesn't know when/what to render without first receiving N distinct groups.\r\n\r\nHere's what we would like:\r\n\r\n0. has an empty cache.\r\n1. receives a `SUBSCRIBE start=relative/3` and `SUBSCRIBE start=relative/5`.\r\n2. (re)issues a subscription upstream: `SUBSCRIBE start=relative/5`\r\n3. waits for `SUBSCRIBE_OK latest=N`\r\n4. forwards any objects based on the mapping from relative to absolute.",
+          "createdAt": "2023-11-13T01:35:04Z",
+          "updatedAt": "2023-11-13T02:32:36Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Individual Comment:\r\n\r\nI think SUBSCRIBE_OK needs to resolve all relative Subscribe Hints that were passed in the Subscribe. Otherwise, I'm really not sure how my library will know when an Object arrives if it belongs to a particular subscription or not -- the OBJECTs that arrive have only track name and absolute group/object numbers. I see the use case for some relays wanting to optimistically SUBSCRIBE_OK, but then there would need to be a follow up message that resolves the relative hints when the relay finds out where they map.",
+          "createdAt": "2023-11-14T00:56:05Z",
+          "updatedAt": "2023-11-14T00:56:05Z"
         }
       ]
     }
@@ -35125,7 +35160,7 @@
       "labels": [],
       "body": "Fixes #247, #251\r\n\r\n- Removes \"mandatory parameters\" from the SETUP message and just puts them in the main part of the message (retaining the notion of parameters as an extension point)\r\n\r\n- Unifies the two parameter namespaces into one (previously known as \"Track Request Parameters\")\r\n\r\n- Resolves the inconsistency about receiver reaction to duplicate parameters as a \"SHOULD\" close, not MUST. (Tracking the appearance of unknown parameter types is relatively resource-intensive)\r\n\r\n- Specifies that parameters that arrive in messages where they don't apply are ignored, without error.",
       "createdAt": "2023-09-28T19:51:03Z",
-      "updatedAt": "2023-10-25T17:18:31Z",
+      "updatedAt": "2023-11-13T22:30:45Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "fbde56a237942020d0b05f26cd10d8775edcb72a",
@@ -36122,25 +36157,40 @@
       "id": "PR_kwDOG2Ho4M5b9F-O",
       "title": "Add Subcribe Confirm message",
       "url": "https://github.com/moq-wg/moq-transport/pull/262",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "huitema",
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
       "labels": [],
       "body": "I was tasked with producing a PR that:\r\n\r\n* enables the receiver to chose the Track ID in the Subscribe message\r\n* allows for the publisher to override the receiver's choice if necessary\r\n* solve the race condition that exists if the publisher sets its own Track ID\r\n\r\nThe solution is to add a \"Suggested Track ID\" parameter to the Subscribe message, and rename the Track ID in the Subscribe OK parameter as \"Server Track ID\". The server may set the Server Track ID to the suggested value, in which case there is no race condition, or pick a different value if needed. In that case, the client will send a \"Subscribe Confirm\" message after receiving the \"Subscribe OK\". The server may choose to send Objects before receiving the subscribe confirm, but it should set the Track ID in those objects to the suggested value, so there is no race condition. After receiving the \"Subscribe Confirm\", the server uses the chosen Server Track ID.",
       "createdAt": "2023-10-05T01:34:25Z",
-      "updatedAt": "2023-10-05T13:25:33Z",
+      "updatedAt": "2023-11-14T01:04:50Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "106f827d30f81d300aa5d8604424fe3906ac21d3",
       "headRepository": "huitema/moq-transport",
       "headRefName": "subscribe-race-condition",
       "headRefOid": "543d81eb4aa310d95011d88e2417b164600bb5c8",
-      "closedAt": null,
+      "closedAt": "2023-11-14T01:04:41Z",
       "mergedAt": null,
       "mergedBy": null,
       "mergeCommit": null,
-      "comments": [],
+      "comments": [
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Based on discussions at IETF 118, I think this can be closed?",
+          "createdAt": "2023-11-14T00:43:32Z",
+          "updatedAt": "2023-11-14T00:43:32Z"
+        },
+        {
+          "author": "huitema",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "@afrind yes, it can be closed. This was \"an example of a possible solution\", but the WG has progressed after that.",
+          "createdAt": "2023-11-14T01:04:41Z",
+          "updatedAt": "2023-11-14T01:04:41Z"
+        }
+      ],
       "reviews": [
         {
           "id": "PRR_kwDOG2Ho4M5i3qmz",
@@ -41011,7 +41061,7 @@
       "labels": [],
       "body": "Fixes #35\r\n\r\nAlso fixes #38 because there is existing text about streams:\r\n```\r\n\"A relay that reads from a stream and writes to stream in order will\r\nintroduce head-of-line blocking.  Packet loss will cause stream data to\r\nbe buffered in the library, awaiting in order delivery, which will\r\nincrease latency over additional hops.  To mitigate this, a relay SHOULD\r\nread and write stream data out of order subject to flow control\r\nlimits.  See section 2.2 in {{QUIC}}.\"\r\n```\r\n",
       "createdAt": "2023-10-30T23:23:25Z",
-      "updatedAt": "2023-11-04T16:36:33Z",
+      "updatedAt": "2023-11-14T01:07:46Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "c107110ff473a8e28283b14b16acae45371bdc75",
@@ -41167,6 +41217,19 @@
           "body": "",
           "createdAt": "2023-11-04T16:36:33Z",
           "updatedAt": "2023-11-04T16:36:33Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5nBxt7",
+          "commit": {
+            "abbreviatedOid": "e7d3693"
+          },
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "state": "CHANGES_REQUESTED",
+          "body": "Forgot to leave a -1. I think we need `datagram in == datagram out`.\r\n\r\nThis PR allows arbitrarily converting between streams and datagrams, but they have different reliability characteristics and it's not clear why you would do this. \r\n\r\nThe bigger issue is that an application that sends datagrams to a relay expects to receive datagrams on the other side. This depends on the stream mapping discussion of course, but clearly the current abtraction of \"send objects via any mechanism\" is not a useful one.\r\n\r\nOf course a service is allowed to do whatever it wants inside of their network (including not using QUIC), but we don't need to specify that.",
+          "createdAt": "2023-11-14T01:07:46Z",
+          "updatedAt": "2023-11-14T01:07:46Z",
           "comments": []
         }
       ]
@@ -42050,7 +42113,7 @@
       "labels": [],
       "body": "This PR attempts to support the requirements needed for #318 and #244 ",
       "createdAt": "2023-11-08T15:09:47Z",
-      "updatedAt": "2023-11-08T15:09:47Z",
+      "updatedAt": "2023-11-14T00:58:18Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "de5e92e3668272cb70a27dda5b52c642dae0406d",
@@ -42062,7 +42125,131 @@
       "mergedBy": null,
       "mergeCommit": null,
       "comments": [],
-      "reviews": []
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M5nBrSR",
+          "commit": {
+            "abbreviatedOid": "0a8be02"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "Individual Review:\r\n\r\nIf SUBSCRIBE_FIN works for END(Track), then the main missing use-case is group.  Maybe we can morph this to END_GROUP { Track Alias, Group, Object } for now?",
+          "createdAt": "2023-11-14T00:32:41Z",
+          "updatedAt": "2023-11-14T00:41:28Z",
+          "comments": [
+            {
+              "originalPosition": 24,
+              "body": "I'm somewhat concerned about including END on OBJECT streams.  In the case where the peer sends a STOP_SENDING, the original sender may not know if the receiver has received the END message.  Instead, I'm inclined to say that END must appear on a non-resettable stream.  This could be a track-specific control stream, or the sender can just open a stream, send END and close it.",
+              "createdAt": "2023-11-14T00:32:41Z",
+              "updatedAt": "2023-11-14T00:41:28Z"
+            },
+            {
+              "originalPosition": 41,
+              "body": "How is this different from SUBSCRIBE_FIN?",
+              "createdAt": "2023-11-14T00:33:22Z",
+              "updatedAt": "2023-11-14T00:41:28Z"
+            },
+            {
+              "originalPosition": 49,
+              "body": "I'm unsure when I would send this.  If I'm using OBJECT_WITH_LENGTH, the end is well known - it's over when you receive the terminal byte of payload.  If I'm using OBJECT_WITHOUT_LENGTH, there isn't a place to put END in the same stream, and presumably the end of the stream marks the end.\r\n\r\nDo you have another use-case in mind?",
+              "createdAt": "2023-11-14T00:35:46Z",
+              "updatedAt": "2023-11-14T00:41:28Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5nBuhk",
+          "commit": {
+            "abbreviatedOid": "0a8be02"
+          },
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "state": "CHANGES_REQUESTED",
+          "body": "As the protocol currently stands, we need a way to mark the end of a group, but we also need a way to mark when individual objects have been dropped. Otherwise, a subscriber waiting for an END object as signaled by this message may never unblock. I don't think this end group is useful otherwise, and perhaps misleading.",
+          "createdAt": "2023-11-14T00:50:08Z",
+          "updatedAt": "2023-11-14T00:58:18Z",
+          "comments": [
+            {
+              "originalPosition": 45,
+              "body": "This use-case is useful without stream mapping. I still want a stream per group, where the stream FIN signals the end of a group, instead of this (noisy) message on the control stream.",
+              "createdAt": "2023-11-14T00:50:08Z",
+              "updatedAt": "2023-11-14T00:58:18Z"
+            },
+            {
+              "originalPosition": 49,
+              "body": "+1 There's no use-case here.",
+              "createdAt": "2023-11-14T00:50:59Z",
+              "updatedAt": "2023-11-14T00:58:18Z"
+            },
+            {
+              "originalPosition": 29,
+              "body": "You also need to to include the last group/object like `SUBSCRIBE_RST/FIN`. Sending a boolean `END` message without them is extremely racey.",
+              "createdAt": "2023-11-14T00:52:27Z",
+              "updatedAt": "2023-11-14T00:58:18Z"
+            },
+            {
+              "originalPosition": 54,
+              "body": "We should remove the object mode because like this paragraph outlines, it provides duplicate functionality.\r\n\r\nHowever the `END` message MUST/SHOULD be sent for the end of each track/group, otherwise a receiver can't rely on it.",
+              "createdAt": "2023-11-14T00:54:39Z",
+              "updatedAt": "2023-11-14T00:58:18Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 338,
+      "id": "PR_kwDOG2Ho4M5fWTNt",
+      "title": "Fail session on malformed parameter",
+      "url": "https://github.com/moq-wg/moq-transport/pull/338",
+      "state": "OPEN",
+      "author": "martinduke",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Fixes #314 ",
+      "createdAt": "2023-11-13T22:05:08Z",
+      "updatedAt": "2023-11-14T01:00:10Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "de5e92e3668272cb70a27dda5b52c642dae0406d",
+      "headRepository": "martinduke/moq-transport",
+      "headRefName": "fail-length",
+      "headRefOid": "f600c8a03de44bfe1a1f0722a0bb5b455b5b14ce",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M5nBwU3",
+          "commit": {
+            "abbreviatedOid": "f600c8a"
+          },
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2023-11-14T00:59:55Z",
+          "updatedAt": "2023-11-14T01:00:10Z",
+          "comments": [
+            {
+              "originalPosition": 8,
+              "body": "Can we change this so it's not VarInt specific? If the type doesn't match the length (buffer under-run or over-run), then it's a error.",
+              "createdAt": "2023-11-14T00:59:56Z",
+              "updatedAt": "2023-11-14T01:00:10Z"
+            },
+            {
+              "originalPosition": 9,
+              "body": "With what error code?",
+              "createdAt": "2023-11-14T01:00:03Z",
+              "updatedAt": "2023-11-14T01:00:10Z"
+            }
+          ]
+        }
+      ]
     }
   ]
 }
