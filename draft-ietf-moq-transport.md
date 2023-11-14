@@ -988,33 +988,25 @@ group.
 * Object Send Order: An integer indicating the object send order
 {{send-order}} or priority {{ordering-by-priorities}} value.
 
-* Object Forwarding Preference: An integer indicating how a sender MUST send an
+* Object Forwarding Preference: An enumeration indicating how a sender sends an
 object. The preferences are Track, Group, Object, Priority and Datagram.  An
-Object MUST be sent according to its `Object Forwarding Preference`, each
-section describes how to do so.
-
-** Implementers Note: the Object Forwarding Preference is never sent directly
-on the wire, but can be represented by storing the frame type.  Since there's no
-frame type for datagram, recommend we reserve a frame type for this purpose.
+Object MUST be sent according to its `Object Forwarding Preference`, described
+below.
 
 * Object Payload: An opaque payload intended for the consumer and SHOULD
 NOT be processed by a relay.
 
 ### Object Message Formats
 
-There are five ways to represent an Object on the wire: `OBJECT_STREAM`,
-`OBJECT_DATAGRAM`, `SHORT_OBJECT_TRACK`, `SHORT_OBJECT_GROUP` and
-`SHORT_OBJECT_PRIORITY`.
-
 An `OBJECT_STREAM` message carries a single object on a stream.  There is no
-explicit length of the payload; it is terminated by the end of the stream.  An
+explicit length of the payload; it is determined by the end of the stream.  An
 `OBJECT_STREAM` message MUST be the first message on a unidirectional stream.
 
 An Object received in an `OBJECT_STREAM` message has an `Object Forwarding
 Preference` = `Object`.
 
-To send an Object with `Object Forwarding Preference` = `Object`, open transport
-stream, serialize object fields below, and terminate the stream.
+To send an Object with `Object Forwarding Preference` = `Object`, open a stream,
+serialize object fields below, and terminate the stream.
 
 ~~~
 OBJECT_STREAM Message {
@@ -1027,19 +1019,24 @@ OBJECT_STREAM Message {
 ~~~
 {: #moq-transport-object-stream-format title="MOQT OBJECT_STREAM Message"}
 
-An `OBJECT_DATAGRAM` message carries a single object in a transport
-datagram. There is no serialized message type, all datagrams in MoQT contain
-OBJECT_DATAGRAM messages.  There is no explicit length of the payload; it is
-terminated by the end of the datagram.
+An `OBJECT_DATAGRAM_PREFERRED` message carries a single object in a datagram or
+a stream. There is no explicit length of the payload; it is determined by the
+length of the datagram or stream.  If this message appears on a stream, it MUST
+be the first message on a unidirectional stream.
 
-An Object received in an `OBJECT_DATAGRAM` message has an `Object Forwarding
-Preference` = `Datagram`.
+An Object received in an `OBJECT_DATAGRAM_PREFERRED` message has an `Object
+Forwarding Preference` = `Datagram`.
 
-To send an Object with `Object Forwarding Preference` = `Datagram`, send a
-datagram with the serialized object fields below.
+To send an Object with `Object Forwarding Preference` = `Datagram`, serialize
+the fields and payload, and compare the serialized size with the maximum
+datagram size of the session.  If the object size is less than or equal maximum
+datagram size, send the serialized data as a datagram.  Otherwise, open a
+stream, send the serialized data and terminate the stream.  An implementation
+MUST NOT send an Object with `Object Forwarding Preference` = `Datagram` on a
+stream if it is possible to send it as a datagram.
 
 ~~~
-OBJECT_DATAGRAM {
+OBJECT_DATAGRAM_PREFERRED Message {
   Track Alias (i),
   Group Sequence (i),
   Object Sequence (i),
@@ -1047,15 +1044,14 @@ OBJECT_DATAGRAM {
   Object Payload (...),
 }
 ~~~
-{: #moq-transport-object-datagram-format title="MOQT OBJECT_DATAGRAM"}
+{: #object-datagram-format title="MOQT OBJECT_DATAGRAM_PREFERRED"}
 
 ### Multi-Object Streams
 
 When multiple objects are sent on a stream, the stream begins with a stream
-header message and is followed by the corresponding type of `SHORT_OBJECT_*`
-messages.  The stream header messages are `STREAM_HEADER_TRACK`,
-`STREAM_HEADER_GROUP`, `STREAM_HEADER_PRIORITY`.  Note that `SHORT_OBJECT_*`
-messages have no type encoded on the wire.
+header message and is followed by one or more sets of serialized object fields.
+If a stream ends in the middle of a serialized Object, terminate the session
+with a Protocol Violation.
 
 TODO: figure out how a relay closes these streams
 
@@ -1067,17 +1063,17 @@ STREAM_HEADER_TRACK Message {
   Track Alias (i)
 }
 ~~~
-{: #moq-transport-stream-header-track-format title="MOQT STREAM_HEADER_TRACK Message"}
+{: #stream-header-track-format title="MOQT STREAM_HEADER_TRACK Message"}
 
-An Object received in a `SHORT_OBJECT_TRACK` message has an `Object Forwarding
-Preference` = `Track`.
+All Objects received on a stream opened with STREAM_HEADER_TRACK have an `Object
+Forwarding Preference` = `Track`.
 
 To send an Object with `Object Forwarding Preference` = `Track`, find the open
 stream that is associated with the `Track Alias`, or open a new one and send the
-`STREAM_HEADER_TRACK` if needed, then serialize the `SHORT_OBJECT_TRACK` fields.
+`STREAM_HEADER_TRACK` if needed, then serialize the the following object fields.
 
 ~~~
-SHORT_OBJECT_TRACK {
+{
   Group Sequence (i),
   Object Sequence (i),
   Object Send Order (i),
@@ -1085,7 +1081,7 @@ SHORT_OBJECT_TRACK {
   Object Payload (...),
 }
 ~~~
-{: #moq-transport-short-object-track-format title="MOQT SHORT_OBJECT_TRACK"}
+{: #object-track-format title="MOQT Track Stream Object Fields"}
 
 When a stream begins with `STREAM_HEADER_GROUP`, all objects on the stream
 belong to the track indicated by the `Track Alias` and the group indicated by
@@ -1097,54 +1093,54 @@ STREAM_HEADER_GROUP Message {
   Group Sequence (i)
 }
 ~~~
-{: #moq-transport-stream-header-group-format title="MOQT STREAM_HEADER_GROUP Message"}
+{: #stream-header-group-format title="MOQT STREAM_HEADER_GROUP Message"}
 
-An Object received in a `SHORT_OBJECT_GROUP` message has an `Object Forwarding
-Preference` = `Group`.
+All Objects received on a stream opened with `STREAM_HEADER_GROUP` have an
+`Object Forwarding Preference` = `Group`.
 
 To send an Object with `Object Forwarding Preference` = `Group`, find the open
 stream that is associated with the `Track Alias` and `Group Sequence`, or open a
 new one and send the `STREAM_HEADER_GROUP` if needed, then serialize the
-`SHORT_OBJECT_GROUP` fields.
+following fields.
 
 ~~~
-SHORT_OBJECT_GROUP {
+{
   Object Sequence (i),
   Object Send Order (i),
   Object Payload Length (i),
   Object Payload (...),
 }
 ~~~
-{: #moq-transport-short-object-group-format title="MOQT SHORT_OBJECT_GROUP"}
+{: #object-group-format title="MOQT Group Stream Object Fields"}
 
 When a stream begins with `STREAM_HEADER_PRIORITY`, all objects on the stream
-belong have the same `Object Send Order`.
+belong have the same `Track Alias`, `Group Sequence` and `Object Send Order`.
 
 ~~~
 STREAM_HEADER_PRIORITY Message {
+  Track Alias (i),
+  Group Sequence (i),
   Object Send Order (i)
 }
 ~~~
-{: #moq-transport-stream-header-priority-format title="MOQT STREAM_HEADER_PRIORITY Message"}
+{: #stream-header-priority-format title="MOQT STREAM_HEADER_PRIORITY Message"}
 
-An Object received in a `SHORT_OBJECT_PRIORITY` message has an `Object
-Forwarding Preference` = `Priority`.
+All Objects received on a stream opened with `STREAM_HEADER_PRIORITY` have an
+`Object Forwarding Preference` = `Priority`.
 
 To send an Object with `Object Forwarding Preference` = `Priority`, find the
-open stream that is associated with the `Object Send Order`, or open a
-new one and send the `STREAM_HEADER_PRIORITY` if needed, then serialize the
-`SHORT_OBJECT_PRIORITY` fields.
+open stream that is associated with the `Track Alias`, `Group Sequence` and
+`Object Send Order`, or open a new one and send the `STREAM_HEADER_PRIORITY` if
+needed, then serialize the following fields.
 
 ~~~
-SHORT_OBJECT_PRIORITY {
-  Track Alias (i),
-  Group Sequence (i),
+{
   Object Sequence (i),
   Object Payload Length (i),
   Object Payload (...),
 }
 ~~~
-{: #moq-transport-short-object-priority-format title="MOQT SHORT_OBJECT_PRIORITY"}
+{: #object-priority-format title="MOQT Priority Stream Object Fields"}
 
 ### Examples:
 
@@ -1154,14 +1150,14 @@ Sending a track on one stream:
 STREAM_HEADER_TRACK {
   Track Alias = 1
 }
-SHORT_OBJECT_TRACK {
+{
   Group Sequence = 0
   Object Sequence = 0
   Object Send Order = 0
   Object Payload Length = 4
   Payload = "abcd"
 }
-SHORT_OBJECT_TRACK {
+{
   Group Sequence = 1
   Object Sequence = 0
   Object Send Order = 1
@@ -1180,13 +1176,13 @@ STREAM_HEADER_GROUP {
   Track Alias = 2
   Group Sequence = 0
 }
-SHORT_OBJECT_GROUP {
+{
   Object Sequence = 0
   Object Send Order = 0
   Object Payload Length = 4
   Payload = "abcd"
 }
-SHORT_OBJECT_GROUP {
+{
   Object Sequence = 1
   Object Send Order = 2
   Object Payload Length = 4
