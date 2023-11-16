@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2023-11-14T01:07:56.968932+00:00",
+  "timestamp": "2023-11-16T01:10:36.613323+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -12251,7 +12251,7 @@
       "labels": [],
       "body": "(I thought I have proposed this before, but I can't find the corresponding issue)\r\n\r\nThe proposal is to have the publisher (the original one) generate a random token blob whenever it starts publishing a track. This allows us to deal with situations where the publisher for the track changes.  One such common situation is a publisher restart (related issues: #225, #204, #79): this allows us to tell apart the same binary reconnecting (meaning it's a continuation of the same stream) from the binary crashing and restarting (meaning it's a new stream that's a semantic continuation of the previous stream with the same name).\r\n\r\n(this is in some sense similar to how HTTP uses ETag)",
       "createdAt": "2023-11-09T17:13:44Z",
-      "updatedAt": "2023-11-10T02:24:57Z",
+      "updatedAt": "2023-11-15T20:20:11Z",
       "closedAt": null,
       "comments": [
         {
@@ -12274,6 +12274,13 @@
           "body": "@suhasHere it depends on what you mean by \"a publisher crashes\". Do you mean:\r\n\r\n- MoQ crashed?\r\n- QUIC crashed?\r\n- Encoder crashed?\r\n- Process crashed?\r\n- Host crashed?\r\n\r\nThe difference between them is the amount of state retained. You can resume existing subscriptions ONLY if the full MoQ and encoder state was retained, otherwise you'll wreck downstream subscribers.\r\n\r\n```\r\n# old process\r\nANNOUNCE webex.com/kixelated\r\nOBJECT track=video group=68 payload=h264\r\nOBJECT track=video group=69 payload=h264\r\n\r\n# segfault\r\n\r\n# new process\r\nANNOUNCE webex.com/kixelated\r\nOBJECT track=video group=0 payload=av1\r\nOBJECT track=video group=1 payload=av1\r\n```\r\n\r\nAny existing subscribers for `webex.com/kixelated/video` will either crash or ignore the new data. It is a fatal error if the relay considers both connections as bitwise identical in this instance.\r\n\r\n\r\nWhat Victor is proposing is that by default, ANNOUNCE is mutually exclusive unless you can provide an identical token. Something like:\r\n\r\n```\r\n# old process\r\nANNOUNCE webex.com/kixelated token=abc123\r\nOBJECT track=video group=68 payload=h264\r\nOBJECT track=video group=69 payload=h264\r\n\r\n# segfault\r\n\r\n# new process\r\nANNOUNCE webex.com/kixelated token=abc123\r\nOBJECT track=video group=70 payload=h264\r\nOBJECT track=video group=71 payload=h264\r\n```\r\n\r\nThe resumption token \"proves\" that you're a cooperative entity and not another instance launched by mistake. An application can hard-code the token if it wants to opt into shooting itself in the foot. If you want to do redundant ingest, both instances ANNOUNCE simultaneously with the same token and the relay knows both are potential sources.",
           "createdAt": "2023-11-10T02:22:59Z",
           "updatedAt": "2023-11-10T02:24:57Z"
+        },
+        {
+          "author": "vasilvv",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> What Victor is proposing is that by default, ANNOUNCE is mutually exclusive unless you can provide an identical token. Something like:\r\n\r\nI was actually thinking of new process starting with `group=0` again, since I don't think there is currently any way in the protocol to know that the previous process ended with `group=69`.",
+          "createdAt": "2023-11-15T20:20:11Z",
+          "updatedAt": "2023-11-15T20:20:11Z"
         }
       ]
     },
@@ -12305,7 +12312,7 @@
       "labels": [],
       "body": "Consider an edge relay, receiving and forwarding relative SUBSCRIBE requests for -5, -3, and -1 for the same track. The first object it receives back is group 37. It cannot tell where to place this object in the sequence and must therefore hold it until it knows more information. If the next object is Group 39, it still cannot forward it, because the head sate is undefined.\r\n\r\nWe can solve this problem simply by having the SUBSCRIBE_OK response indicate the latest group and object number:\r\n\r\nSUBSCRIBE_OK\r\n{\r\n  Track Namespace (b),\r\n  Track Name (b),\r\n  Track Alias (i),\r\n  Expires (i),\r\n  LastestGroup(i),\r\n  LastestObject(i)\r\n}\r\n\r\nOne consequence of adding these fields is that an edge, which has no active subscription for the track,  cannot send the SUBSCRIBE_OK response until it itself receives a SUBSCRIBE_OK after forwarding the SUBSCRIBE. This makes subscription an async process in which the acknowledgment of the subscription may take in some cases a RTT back to the origin. I think this is necessary for stable state management. \r\n",
       "createdAt": "2023-11-10T21:52:31Z",
-      "updatedAt": "2023-11-14T00:56:05Z",
+      "updatedAt": "2023-11-15T00:35:19Z",
       "closedAt": null,
       "comments": [
         {
@@ -12349,6 +12356,27 @@
           "body": "Individual Comment:\r\n\r\nI think SUBSCRIBE_OK needs to resolve all relative Subscribe Hints that were passed in the Subscribe. Otherwise, I'm really not sure how my library will know when an Object arrives if it belongs to a particular subscription or not -- the OBJECTs that arrive have only track name and absolute group/object numbers. I see the use case for some relays wanting to optimistically SUBSCRIBE_OK, but then there would need to be a follow up message that resolves the relative hints when the relay finds out where they map.",
           "createdAt": "2023-11-14T00:56:05Z",
           "updatedAt": "2023-11-14T00:56:05Z"
+        },
+        {
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> I think SUBSCRIBE_OK needs to resolve all relative Subscribe Hints that were passed in the Subscribe. Otherwise, I'm really not sure how my library will know when an Object arrives if it belongs to a particular subscription or not -- t\r\n\r\nCouple of observations\r\n  - what use-cases would involve same client sending multiple subscription hints at the same time ?\r\n  - Hints are read access points on the same track and if a client ask for multiple such points, it will get objects on the same track regardless .. how relays puts them together in such a case for a given client cannot be normatively specified \r\n  \r\n  \r\n  @afrind can you give me a concrete use-case example of \"resolve all relative Subscribe Hints that were passed in the Subscribe\" from a single client so that it helps understand the issue better.  I personally don't think the issue being discussed is directly related to this ...\r\n",
+          "createdAt": "2023-11-14T17:41:02Z",
+          "updatedAt": "2023-11-14T17:41:24Z"
+        },
+        {
+          "author": "wilaw",
+          "authorAssociation": "NONE",
+          "body": "> what use-cases would involve same client sending multiple subscription hints at the same time ?\r\n\r\nThe use case of an edge relay forwarding simultaneous requests from multiple connected clients. This is a common use-case for any edge or fan-out relay. \r\n",
+          "createdAt": "2023-11-14T20:19:38Z",
+          "updatedAt": "2023-11-14T20:19:38Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Individual Comment: \r\n\r\n> > what use-cases would involve same client sending multiple subscription hints at the same time ?\r\n> \r\n> The use case of an edge relay forwarding simultaneous requests from multiple connected clients. This is a common use-case for any edge or fan-out relay.\r\n\r\nThis is definitely one use case.  Another is a client making two simultaneous subscriptions: eg live edge and range request starting some time in the past.",
+          "createdAt": "2023-11-15T00:35:19Z",
+          "updatedAt": "2023-11-15T00:35:19Z"
         }
       ]
     }
@@ -41061,7 +41089,7 @@
       "labels": [],
       "body": "Fixes #35\r\n\r\nAlso fixes #38 because there is existing text about streams:\r\n```\r\n\"A relay that reads from a stream and writes to stream in order will\r\nintroduce head-of-line blocking.  Packet loss will cause stream data to\r\nbe buffered in the library, awaiting in order delivery, which will\r\nincrease latency over additional hops.  To mitigate this, a relay SHOULD\r\nread and write stream data out of order subject to flow control\r\nlimits.  See section 2.2 in {{QUIC}}.\"\r\n```\r\n",
       "createdAt": "2023-10-30T23:23:25Z",
-      "updatedAt": "2023-11-14T01:07:46Z",
+      "updatedAt": "2023-11-14T01:15:26Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "c107110ff473a8e28283b14b16acae45371bdc75",
@@ -41100,6 +41128,13 @@
           "body": "this PR is right starting point. We will refine the text once we have more experience with implementation.",
           "createdAt": "2023-11-04T16:36:18Z",
           "updatedAt": "2023-11-04T16:36:18Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Individual Comment:\r\n\r\nFirst, we'll see a proposal on object model at the next call that includes datagram\r\n\r\n> Forgot to leave a -1. I think we need `datagram in == datagram out`.\r\n\r\nThere are cases where this simply may not be possible due to MTU constraints. The ability to convert to a stream over a constrained hop and then back to datagram as allowed seems workable.  I guess the other option is \"drop\"?  Agree that we don't want arbitrary conversions.",
+          "createdAt": "2023-11-14T01:15:25Z",
+          "updatedAt": "2023-11-14T01:15:25Z"
         }
       ],
       "reviews": [
@@ -41227,9 +41262,9 @@
           "author": "kixelated",
           "authorAssociation": "COLLABORATOR",
           "state": "CHANGES_REQUESTED",
-          "body": "Forgot to leave a -1. I think we need `datagram in == datagram out`.\r\n\r\nThis PR allows arbitrarily converting between streams and datagrams, but they have different reliability characteristics and it's not clear why you would do this. \r\n\r\nThe bigger issue is that an application that sends datagrams to a relay expects to receive datagrams on the other side. This depends on the stream mapping discussion of course, but clearly the current abtraction of \"send objects via any mechanism\" is not a useful one.\r\n\r\nOf course a service is allowed to do whatever it wants inside of their network (including not using QUIC), but we don't need to specify that.",
+          "body": "Forgot to leave a -1. I think we need `datagram in == datagram out`.\r\n\r\nThis PR allows arbitrarily converting between streams and datagrams, but they have different reliability characteristics and it's not clear why you would do this. The text \"implementations can provide equivalent levels of reliability\" doesn't hold true because of [#15](https://github.com/quicwg/datagram/issues/15); datagram acknowledgements can't quuiiiite be used to provide reliability.\r\n\r\nThe bigger issue is that an application that sends datagrams to a relay expects to receive datagrams on the other side. This depends on the stream mapping discussion of course, but clearly the current abtraction of \"send objects via any mechanism\" is not a useful one.\r\n\r\nOf course a service is allowed to do whatever it wants inside of their network (including not using QUIC) but we don't need to specify that.",
           "createdAt": "2023-11-14T01:07:46Z",
-          "updatedAt": "2023-11-14T01:07:46Z",
+          "updatedAt": "2023-11-14T01:12:21Z",
           "comments": []
         }
       ]
