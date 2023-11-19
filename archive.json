@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2023-11-16T01:10:36.613323+00:00",
+  "timestamp": "2023-11-19T01:14:45.282582+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -40590,7 +40590,7 @@
       "labels": [],
       "body": "This PR is expected to be base PR to support multi-subscribe like flows that will follow up.\r\n\r\nIt adds support for SubscribeID and also renames the trackId to `Full Track Name Alias` to avoid the confusion and make the scope clear.\r\n\r\n",
       "createdAt": "2023-10-27T17:14:58Z",
-      "updatedAt": "2023-11-07T10:55:05Z",
+      "updatedAt": "2023-11-16T05:20:30Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "f8dd2386d2c2d471d76e4b19aaaa811f2e13ddfe",
@@ -40818,6 +40818,45 @@
           "createdAt": "2023-11-07T10:55:05Z",
           "updatedAt": "2023-11-07T10:55:05Z",
           "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5nU2NN",
+          "commit": {
+            "abbreviatedOid": "22eab24"
+          },
+          "author": "vasilvv",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "Having reviewed some code that does subscription matching with the current draft, I strongly endorse splitting those.",
+          "createdAt": "2023-11-16T05:09:31Z",
+          "updatedAt": "2023-11-16T05:09:31Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5nU4H_",
+          "commit": {
+            "abbreviatedOid": "22eab24"
+          },
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "LGTM but I would like Subscribe ID to be the first field in every `SUBSCRIBE_*` message for consistency.",
+          "createdAt": "2023-11-16T05:19:14Z",
+          "updatedAt": "2023-11-16T05:20:30Z",
+          "comments": [
+            {
+              "originalPosition": 51,
+              "body": "IMO this should be the first field.",
+              "createdAt": "2023-11-16T05:19:14Z",
+              "updatedAt": "2023-11-16T05:20:30Z"
+            },
+            {
+              "originalPosition": 99,
+              "body": "IMO this should be the first field.",
+              "createdAt": "2023-11-16T05:19:25Z",
+              "updatedAt": "2023-11-16T05:20:30Z"
+            }
+          ]
         }
       ]
     },
