@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2023-11-26T01:13:41.431335+00:00",
+  "timestamp": "2023-11-28T01:10:57.848833+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -3751,9 +3751,38 @@
       ],
       "body": "In [Model](https://github.com/kixelated/warp-draft/blame/main/draft-lcurley-warp.md#L186) section it says that each Media object is uniquely identified within broadcast, track, etc. I am wondering how reconnect would work - wouldn't it require publisher to maintain state? What happens if one encoder box fails and broadcast needs to be resumed from another box?",
       "createdAt": "2023-01-31T16:39:49Z",
-      "updatedAt": "2023-01-31T16:47:00Z",
+      "updatedAt": "2023-11-27T20:47:38Z",
       "closedAt": null,
-      "comments": []
+      "comments": [
+        {
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "What happens in a HTTP CDN today if a cache asks for an file from origin, origin says it is cachable for a long time, then the origin servers crashes when it comes up generates a different file, with the same name. What will happen is pretty broken on different clients get different version of the file.\r\n\r\nWe have the same issue here, if two clients publish an object with different data but same full track name, group ID, and object ID, then it is undefined which version will get served to any given subscription. This is going to be the nature of any design that provides both aggregation and caching and has unique names. \r\n",
+          "createdAt": "2023-11-27T19:14:35Z",
+          "updatedAt": "2023-11-27T19:14:35Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Individual Comment: \r\n\r\nHTTP has eTags to help deal with this problem.  This is not an endorsement that we should add eTags to moq.",
+          "createdAt": "2023-11-27T19:25:45Z",
+          "updatedAt": "2023-11-27T19:25:45Z"
+        },
+        {
+          "author": "wilaw",
+          "authorAssociation": "NONE",
+          "body": "The OP raises two questions - how to handle reconnects and how to handle failovers. These are separate behaviors and should be addressed separately. Here's how it might work: \r\n\r\n**Reconnect**\r\nA publishers connects the first time and ANNOUNCES a namespace+name. It receives a subscribe request, starts publishing and then has a loss of connection. Its connection fails midway through publishing a group and object. A minute later, its connection returns. Prior to resuming publishing the track, it can publish a catalog update in which it describes a discontinuity in the track. It can list the the last known good group and number and also the group and number on which it will resume publishing. It then resumes publishing at the new group and number. Since end-clients should always be subscribed to catalog updates, they would be informed of the discontinuity and could purge their buffers and reset their decoders accordingly. This behavior would give publishers the choice or resuming where they left off (and thus falling behind in latency) or resuming at the live point. \r\n\r\n**Failover**\r\nI don't think 3rd party networks should be responsible for seamlessly repairing tracks. This means that the notion of \"primary\" and \"backup\" versions of a track exists only between publishers and end-subscribers. We can use the catalog, published by each redundant publisher, to describe the failover track and whether it is timeline-identical, or not. If an end-subscriber times-out against the primary source (or receives some sort of error message), then it can switch itself to the backup source. These primary and backup sources must have different namespace+name tuples so that the network caches them independently. ",
+          "createdAt": "2023-11-27T19:55:00Z",
+          "updatedAt": "2023-11-27T19:55:00Z"
+        },
+        {
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> I am wondering how reconnect would work - wouldn't it require publisher to maintain state? What happens if one encoder box fails and broadcast needs to be resumed from another box?\r\n\r\nThe publisher MUST retain state for any reconnect to work. Even something as trivial as group sequence numbers needs to be maintained, otherwise you run into split brain and potential cache poisoning. Consider a player that receives group 69 and then suddenly group 0 (because of a stateless reconnect): it will just throw it out. And of course tracks need to be consistent; the new encoder can't just use different encodings or identification on a whim.\r\n\r\nWe should absolutely support publishers that can seamlessly continue a broadcast if they can persist the required state. Like @afrind mentioned, I think this would look more like an ETag. The new ANNOUNCE would specify that it's a continuation of the original ANNOUNCE if they have matching IDs.",
+          "createdAt": "2023-11-27T20:46:26Z",
+          "updatedAt": "2023-11-27T20:47:38Z"
+        }
+      ]
     },
     {
       "number": 80,
@@ -12312,7 +12341,7 @@
       "labels": [],
       "body": "Consider an edge relay, receiving and forwarding relative SUBSCRIBE requests for -5, -3, and -1 for the same track. The first object it receives back is group 37. It cannot tell where to place this object in the sequence and must therefore hold it until it knows more information. If the next object is Group 39, it still cannot forward it, because the head sate is undefined.\r\n\r\nWe can solve this problem simply by having the SUBSCRIBE_OK response indicate the latest group and object number:\r\n\r\nSUBSCRIBE_OK\r\n{\r\n  Track Namespace (b),\r\n  Track Name (b),\r\n  Track Alias (i),\r\n  Expires (i),\r\n  LastestGroup(i),\r\n  LastestObject(i)\r\n}\r\n\r\nOne consequence of adding these fields is that an edge, which has no active subscription for the track,  cannot send the SUBSCRIBE_OK response until it itself receives a SUBSCRIBE_OK after forwarding the SUBSCRIBE. This makes subscription an async process in which the acknowledgment of the subscription may take in some cases a RTT back to the origin. I think this is necessary for stable state management. \r\n",
       "createdAt": "2023-11-10T21:52:31Z",
-      "updatedAt": "2023-11-15T00:35:19Z",
+      "updatedAt": "2023-11-27T21:06:37Z",
       "closedAt": null,
       "comments": [
         {
@@ -12377,6 +12406,27 @@
           "body": "Individual Comment: \r\n\r\n> > what use-cases would involve same client sending multiple subscription hints at the same time ?\r\n> \r\n> The use case of an edge relay forwarding simultaneous requests from multiple connected clients. This is a common use-case for any edge or fan-out relay.\r\n\r\nThis is definitely one use case.  Another is a client making two simultaneous subscriptions: eg live edge and range request starting some time in the past.",
           "createdAt": "2023-11-15T00:35:19Z",
           "updatedAt": "2023-11-15T00:35:19Z"
+        },
+        {
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "One thing that will not scale is every subscription needing to go back to the original publisher. Consider the cases of a million users are joining a session that starts at the top of the hour and that is published  from a mobile device.  I think that in any real system there is also going to be no single idea of the live edge. The live edge is relative to which relay you subscribed to. If the relay you are on is over a geo sync satellite, it is going to be behind ones that are not. \r\n\r\nSo here is what I think we should do. We should not allow relative subscription to things in the past. I think the uses cases I have heard for this can be deal with as subscribe to live edge forward and as once the client find out what object that is, do an absolute subscribe for any data in the past to fill in buffers etc.  So to be clear, no relative group or object sequences that are negative but still allows absolute.  This seems to meet the use cases and remove a ton of edge case design problems. \r\n\r\nTo be clear, I think we should be able to subscribe to the current group, but give me object 0 forward in that group. If it is a group per GOP, this allows one to get everything needed to decode the current frame. ",
+          "createdAt": "2023-11-27T18:57:34Z",
+          "updatedAt": "2023-11-27T18:57:34Z"
+        },
+        {
+          "author": "wilaw",
+          "authorAssociation": "NONE",
+          "body": "> One thing that will not scale is every subscription needing to go back to the original publisher. \r\n\r\nBut not every subscription has to go back to publisher. It only has to go back to a node that is already subscribed and understands the live edge. Furthermore, concurrent requests would be coalesced at each node. Imagine in the worst case that 1 million requests are made within 100ms to a (really powerful)  edge. That edge would only forward _one request_ to the origin. All the rest would be held pending that response. This is exactly what happens when a few million people ask for a live HAS stream. Due to fan out and request coalescing, the CDN only sends a few requests back to the actual origin.",
+          "createdAt": "2023-11-27T19:34:33Z",
+          "updatedAt": "2023-11-27T19:34:33Z"
+        },
+        {
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> > One thing that will not scale is every subscription needing to go back to the original publisher.\r\n> \r\n> But not every subscription has to go back to publisher. It only has to go back to a node that is already subscribed and understands the live edge. Furthermore, concurrent requests would be coalesced at each node. Imagine in the worst case that 1 million requests are made within 100ms to a (really powerful) edge. That edge would only forward _one request_ to the origin. All the rest would be held pending that response. This is exactly what happens when a few million people ask for a live HAS stream. Due to fan out and request coalescing, the CDN only sends a few requests back to the actual origin.\r\n\r\nYeah exactly.\r\n\r\nOnly the first SUBSCRIBE will propagate upstream and the SUBSCRIBE_OK is used to bootstrap the live edge. The relay can infer the live edge while the single upstream subscribe remains active.\r\n\r\n| upstream | direction | downstream |\r\n|-|:-:|-|\r\n| SUBSCRIBE start=relative/3 | <- | SUBSCRIBE start=relative/3 |\r\n|  SUBSCRIBE_OK start=absolute/74 | -> | SUBSCRIBE_OK start=absolute/74 |\r\n| | <- | SUBSCRIBE start=relative/1 |\r\n| | -> | SUBSCRIBE_OK start=absolute/76 |\r\n| OBJECT group=75 | -> | OBJECT group=75 |\r\n\r\nBecause of the SUBSCRIBE_OK, the relay knows that the received OBJECT only gets forwarded to the first downstream subscribe. Otherwise it would have to guess the live edge.\r\n\r\nThe relay keeps track of `max_group` while the upstream subscription remains active. The initial value is set by `SUBSCRIBE_OK` but all future updates are based on received `OBJECT` messages. This way is can map from relative->absolute and reply with `SUBSCRIBE_OK` without issuing a new upstream subscription.\r\n\r\n| upstream | direction | downstream |\r\n|-|:-:|-|\r\n| OBJECT group=78 | -> | OBJECT group=78 |\r\n| OBJECT group=79 | -> | OBJECT group=79 |\r\n| | <- | SUBSCRIBE start=relative/1 |\r\n| | -> | SUBSCRIBE_OK start=absolute/78 |\r\n\r\n",
+          "createdAt": "2023-11-27T21:06:36Z",
+          "updatedAt": "2023-11-27T21:06:36Z"
         }
       ]
     }
