@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2023-11-28T01:10:57.848833+00:00",
+  "timestamp": "2023-11-30T01:10:03.540868+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -3751,7 +3751,7 @@
       ],
       "body": "In [Model](https://github.com/kixelated/warp-draft/blame/main/draft-lcurley-warp.md#L186) section it says that each Media object is uniquely identified within broadcast, track, etc. I am wondering how reconnect would work - wouldn't it require publisher to maintain state? What happens if one encoder box fails and broadcast needs to be resumed from another box?",
       "createdAt": "2023-01-31T16:39:49Z",
-      "updatedAt": "2023-11-27T20:47:38Z",
+      "updatedAt": "2023-11-29T03:48:57Z",
       "closedAt": null,
       "comments": [
         {
@@ -3781,6 +3781,13 @@
           "body": "> I am wondering how reconnect would work - wouldn't it require publisher to maintain state? What happens if one encoder box fails and broadcast needs to be resumed from another box?\r\n\r\nThe publisher MUST retain state for any reconnect to work. Even something as trivial as group sequence numbers needs to be maintained, otherwise you run into split brain and potential cache poisoning. Consider a player that receives group 69 and then suddenly group 0 (because of a stateless reconnect): it will just throw it out. And of course tracks need to be consistent; the new encoder can't just use different encodings or identification on a whim.\r\n\r\nWe should absolutely support publishers that can seamlessly continue a broadcast if they can persist the required state. Like @afrind mentioned, I think this would look more like an ETag. The new ANNOUNCE would specify that it's a continuation of the original ANNOUNCE if they have matching IDs.",
           "createdAt": "2023-11-27T20:46:26Z",
           "updatedAt": "2023-11-27T20:47:38Z"
+        },
+        {
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "body": "IOT media publishers will for sure not maintain any state on restarts.   I think a system where we are using static names and maintain caches based on that and expect it to work over restarts is a brittle system and doesn't scale really well where the system is dynamic and networks/connections come and go.\r\n\r\n",
+          "createdAt": "2023-11-29T03:48:56Z",
+          "updatedAt": "2023-11-29T03:48:56Z"
         }
       ]
     },
@@ -12341,7 +12348,7 @@
       "labels": [],
       "body": "Consider an edge relay, receiving and forwarding relative SUBSCRIBE requests for -5, -3, and -1 for the same track. The first object it receives back is group 37. It cannot tell where to place this object in the sequence and must therefore hold it until it knows more information. If the next object is Group 39, it still cannot forward it, because the head sate is undefined.\r\n\r\nWe can solve this problem simply by having the SUBSCRIBE_OK response indicate the latest group and object number:\r\n\r\nSUBSCRIBE_OK\r\n{\r\n  Track Namespace (b),\r\n  Track Name (b),\r\n  Track Alias (i),\r\n  Expires (i),\r\n  LastestGroup(i),\r\n  LastestObject(i)\r\n}\r\n\r\nOne consequence of adding these fields is that an edge, which has no active subscription for the track,  cannot send the SUBSCRIBE_OK response until it itself receives a SUBSCRIBE_OK after forwarding the SUBSCRIBE. This makes subscription an async process in which the acknowledgment of the subscription may take in some cases a RTT back to the origin. I think this is necessary for stable state management. \r\n",
       "createdAt": "2023-11-10T21:52:31Z",
-      "updatedAt": "2023-11-27T21:06:37Z",
+      "updatedAt": "2023-11-29T16:25:50Z",
       "closedAt": null,
       "comments": [
         {
@@ -12427,6 +12434,48 @@
           "body": "> > One thing that will not scale is every subscription needing to go back to the original publisher.\r\n> \r\n> But not every subscription has to go back to publisher. It only has to go back to a node that is already subscribed and understands the live edge. Furthermore, concurrent requests would be coalesced at each node. Imagine in the worst case that 1 million requests are made within 100ms to a (really powerful) edge. That edge would only forward _one request_ to the origin. All the rest would be held pending that response. This is exactly what happens when a few million people ask for a live HAS stream. Due to fan out and request coalescing, the CDN only sends a few requests back to the actual origin.\r\n\r\nYeah exactly.\r\n\r\nOnly the first SUBSCRIBE will propagate upstream and the SUBSCRIBE_OK is used to bootstrap the live edge. The relay can infer the live edge while the single upstream subscribe remains active.\r\n\r\n| upstream | direction | downstream |\r\n|-|:-:|-|\r\n| SUBSCRIBE start=relative/3 | <- | SUBSCRIBE start=relative/3 |\r\n|  SUBSCRIBE_OK start=absolute/74 | -> | SUBSCRIBE_OK start=absolute/74 |\r\n| | <- | SUBSCRIBE start=relative/1 |\r\n| | -> | SUBSCRIBE_OK start=absolute/76 |\r\n| OBJECT group=75 | -> | OBJECT group=75 |\r\n\r\nBecause of the SUBSCRIBE_OK, the relay knows that the received OBJECT only gets forwarded to the first downstream subscribe. Otherwise it would have to guess the live edge.\r\n\r\nThe relay keeps track of `max_group` while the upstream subscription remains active. The initial value is set by `SUBSCRIBE_OK` but all future updates are based on received `OBJECT` messages. This way is can map from relative->absolute and reply with `SUBSCRIBE_OK` without issuing a new upstream subscription.\r\n\r\n| upstream | direction | downstream |\r\n|-|:-:|-|\r\n| OBJECT group=78 | -> | OBJECT group=78 |\r\n| OBJECT group=79 | -> | OBJECT group=79 |\r\n| | <- | SUBSCRIBE start=relative/1 |\r\n| | -> | SUBSCRIBE_OK start=absolute/78 |\r\n\r\n",
           "createdAt": "2023-11-27T21:06:36Z",
           "updatedAt": "2023-11-27T21:06:36Z"
+        },
+        {
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "body": "For the original use-case reported on this issue, if there are multiple subscribes at a relay with varying relative offsets,  the relay has no choice but to send each combination of subscribe and a given -ve relative offsite upstream since that identifies each unique data point in the track. \r\n\r\nThis has couple of issues\r\n\r\n - it doesn't scale across relays and also when there are very high rate of subscriptions across relays and clients\r\n - it makes the lookup and state management complicated\r\n - latencies across relays and client locations ends up producing varying results for the same query since it depends on when the query was made and how long would it take to \r\n - for conferencing cases when there are multiple publishers who can be active (have live edge), unjoined yet ( so no live edge) , the expectation for subscribes to get a OK back from original publishers will not scale in terms of latency of joins \r\n - \r\n\r\nThe more i think of it, subscribing back into paste using a relative offsets and expecting the answer to be vetted by the original publisher  \"unnecessarily complicates the protocol\".\r\n\r\n",
+          "createdAt": "2023-11-29T03:40:12Z",
+          "updatedAt": "2023-11-29T05:37:37Z"
+        },
+        {
+          "author": "wilaw",
+          "authorAssociation": "NONE",
+          "body": "> if there are multiple subscribes at a relay with varying relative offsets, the relay has no choice but to send each combination of subscribe and a given -ve relative offsite upstream since that identifies each unique data point in the track.\r\n\r\nThe group sequence numbers are consistent between subscriptions . If a relay receives relative subscribes of -5,-3 and -1, all it has to is send a single subscribe upstream of -5. The response would give it the live edge group as well as all the content for the various subscriptions. If the subscriptions were -345, -2, -1, the relay could decide to make two subscriptions upstream - one for -345, the other for -2, because it didn't want to force the smaller relative subscriptions to wait for the larger one. The point is, this is optimization logic for the relay. It does have a choice in what subscriptions it sends upstream based on the timing and diversity of the input subscriptions.\r\n\r\n> the expectation for subscribes to get a OK back from original publishers will not scale in terms of latency of joins\r\n\r\nWhy is the latency of the join affected? Consider a subscriber talking to an edge where the subscriber is 100ms away from the origin. We consider two scenarios: in the first case the subscriber receives a SUBSCRIBE_OK immediately after subscribing but then waits 100ms for the audio and video to arrive from the origin. In the second case the the subscriber waits 100ms to receive SUBSCRIBE_OK but it is immediately followed by the audio and video. So in both cases the subscriber gets its audio and video after 100ms. The media latency is consistent under either scenario. ",
+          "createdAt": "2023-11-29T09:28:05Z",
+          "updatedAt": "2023-11-29T09:28:05Z"
+        },
+        {
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> The group sequence numbers are consistent between subscriptions . If a relay receives relative subscribes of -5,-3 and -1, all it has to is send a single subscribe upstream of -5.\r\n\r\nIf the relay logc is to send only a single subscribe upstream, then you don't need anything to be said in Subscribe OK either. Since when the first object arrives it can compute the live edge by adding 5 to the object being reported and the compute the absolute values for others (in this case for -3 and -1).  That would definitely make things simpler for sure.",
+          "createdAt": "2023-11-29T14:56:31Z",
+          "updatedAt": "2023-11-29T14:58:54Z"
+        },
+        {
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> the relay could decide to make two subscriptions upstream - one for -345, the other for -2\r\n\r\nFor cases where a client wants to go back 345 groups in past, i will be very much inclined to do an absolute request after learning the latest known state of the group as an end application OR something catalog can describe more information to make the right absolute request on the first go",
+          "createdAt": "2023-11-29T15:02:42Z",
+          "updatedAt": "2023-11-29T15:22:26Z"
+        },
+        {
+          "author": "wilaw",
+          "authorAssociation": "NONE",
+          "body": "> Since when the first object arrives it can compute the live edge by adding 5 to the object being reported and the compute the absolute values for others (in this case for -3 and -1).\r\n\r\nIt can't do this because the order of items it receives as Streams is not guaranteed. The origin may send the groups in order -5,-4,-3,-3,-1, but they could be received at the relay (or any hop) as -3, -5,-4,-1,-2. That's why you need an explicit notification from the origin as to where the live edge is. Only that plus the group sequence numbers allow the correct sequencing, not the order of arrival. ",
+          "createdAt": "2023-11-29T16:12:20Z",
+          "updatedAt": "2023-11-29T16:12:20Z"
+        },
+        {
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "body": "In this case there was just a single subscribe request with -5 was sent upstream, based on your explanation above. This avoids all the confusion which would happen when there are multiple inflight -ve offsets.",
+          "createdAt": "2023-11-29T16:25:49Z",
+          "updatedAt": "2023-11-29T16:25:49Z"
         }
       ]
     }
@@ -41951,13 +42000,13 @@
       "labels": [],
       "body": "This PR brings in currently active proposals for supporting explicit indicators of mapping object model to quic transport.\r\n\r\nFixes #244 \r\n\r\n\r\n",
       "createdAt": "2023-11-08T14:34:57Z",
-      "updatedAt": "2023-11-09T10:14:17Z",
+      "updatedAt": "2023-11-29T19:01:41Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "de5e92e3668272cb70a27dda5b52c642dae0406d",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "tx-mode",
-      "headRefOid": "2a534daed5f5c0fd02d94a6d4468d0e9c86609e8",
+      "headRefOid": "e4d84e6edf11158cc09fc33b52eeeb1ce34b6ccc",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
