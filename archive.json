@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2023-11-30T01:10:03.540868+00:00",
+  "timestamp": "2023-12-03T01:13:50.703293+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -42000,7 +42000,7 @@
       "labels": [],
       "body": "This PR brings in currently active proposals for supporting explicit indicators of mapping object model to quic transport.\r\n\r\nFixes #244 \r\n\r\n\r\n",
       "createdAt": "2023-11-08T14:34:57Z",
-      "updatedAt": "2023-11-29T19:01:41Z",
+      "updatedAt": "2023-12-01T15:44:26Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "de5e92e3668272cb70a27dda5b52c642dae0406d",
@@ -42269,6 +42269,72 @@
               "body": "Sorry, is this a stream...\r\n\r\n- per priority per track?\r\n- per priority per namespace?\r\n- per priority (per session)?\r\n\r\nThe last one is my interpretation of the text and it's impossible because some other namespace/track will definitely want to use another mode.",
               "createdAt": "2023-11-08T17:19:03Z",
               "updatedAt": "2023-11-08T17:25:13Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5o1-lg",
+          "commit": {
+            "abbreviatedOid": "e4d84e6"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2023-12-01T04:24:47Z",
+          "updatedAt": "2023-12-01T04:24:48Z",
+          "comments": [
+            {
+              "originalPosition": 131,
+              "body": "s/on a stream/on a QUIC stream",
+              "createdAt": "2023-12-01T04:24:48Z",
+              "updatedAt": "2023-12-01T04:24:48Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5o1-3J",
+          "commit": {
+            "abbreviatedOid": "e4d84e6"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2023-12-01T04:26:44Z",
+          "updatedAt": "2023-12-01T04:26:45Z",
+          "comments": [
+            {
+              "originalPosition": 133,
+              "body": "I think we should also say , there MUST be only occurrence of `OBJECT_STREAM` message else its an protocol error.",
+              "createdAt": "2023-12-01T04:26:45Z",
+              "updatedAt": "2023-12-01T04:26:45Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5o6IBS",
+          "commit": {
+            "abbreviatedOid": "e4d84e6"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2023-12-01T15:43:33Z",
+          "updatedAt": "2023-12-01T15:44:26Z",
+          "comments": [
+            {
+              "originalPosition": 131,
+              "body": "I left out QUIC to account for WebTransport or QUIC.  I think this matches elsewhere now?  In an earlier draft I said \"transport stream\".",
+              "createdAt": "2023-12-01T15:43:33Z",
+              "updatedAt": "2023-12-01T15:44:26Z"
+            },
+            {
+              "originalPosition": 133,
+              "body": "Is that not implied by saying that the payload length is determined by the length of the stream?",
+              "createdAt": "2023-12-01T15:44:10Z",
+              "updatedAt": "2023-12-01T15:44:27Z"
             }
           ]
         }
