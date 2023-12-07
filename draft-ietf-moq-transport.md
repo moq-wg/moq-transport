@@ -206,8 +206,8 @@ when describing the binary encoding.
 This document also defines an additional field type for binary data:
 
 x (b):
-: Indicates that x consists of a variable length integer, followed by
-  that many bytes of binary data.
+: Indicates that x consists of a variable length integer (i), followed by
+  that many bytes of binary data (..).
 
 
 # Object Model {#model}
@@ -294,6 +294,14 @@ Full Track Name = security-camera.example.com/camera1/hd-video
 
 ~~~
 
+In this specification, both the Track Namespace and the Track Name are
+not constrained to a specific encoding. They carry a sequence of
+bytes and comparison between two Track Namespaces or Track Names is
+done by exact comparison of the bytes. Specifications that use MoQ Transport
+may constrain the information in these fields, for example by restricting
+them to UTF-8. Any specification that does needs to specify the
+canonicalization into the bytes in the Track Namespace or Track Name
+such that exact comparison works.
 
 ### Connection URL
 
@@ -313,7 +321,7 @@ over a QUIC connection directly [QUIC], and over WebTransport
 semantics (see {{?I-D.ietf-webtrans-overview, Section 4}}); thus, the
 main difference lies in how the servers are identified and how the
 connection is established.  There is no definition of the protocol
-over other transports, such as TCP, and applicaitons using MoQ might
+over other transports, such as TCP, and applications using MoQ might
 need to fallback to another protocol when QUIC or WebTransport aren't
 available.
 
@@ -352,14 +360,14 @@ is `moq-00`.
 
 ## Version and Extension Negotiation {#version-negotiation}
 
-Endpoints use the exchange of SETUP messages to negotiate the MOQT version and
+Endpoints use the exchange of Setup messages to negotiate the MOQT version and
 any extensions to use.
 
 The client indicates the MOQT versions it supports in the CLIENT_SETUP message
 (see {{message-setup}}). It also includes the union of all Setup Parameters
 {{setup-params}} required for a handshake by any of those versions.
 
-Within any MOQT version, clients request the use of extensions by adding SETUP
+Within any MOQT version, clients request the use of extensions by adding Setup
 parameters corresponding to that extension. No extensions are defined in this
 document.
 
@@ -373,23 +381,23 @@ can be used.
 
 If a given parameter carries the same information in multiple versions,
 but might have different optimal values in those versions, there SHOULD be
-separate SETUP parameters for that information in each version.
+separate Setup parameters for that information in each version.
 
 ## Session initialization {#session-init}
 
-The first stream opened is a client-initiated bidirectional control stream
-where the peers exchange SETUP messages ({{message-setup}}).  All messages
-defined in this draft are sent on the control stream after the SETUP message.
-Control messages MUST NOT be sent on any other stream, and a peer receiving
-a control message on a different stream closes the session as a
-'Protocol Violation'. Objects MUST NOT be sent on the control stream, and a
-peer receiving an Object on the control stream closes the session as a
-'Protocol Violation'.
+The first stream opened is a client-initiated bidirectional control stream where
+the peers exchange Setup messages ({{message-setup}}).  All messages defined in
+this draft except OBJECT and OBJECT_WITH_LENGTH are sent on the control stream
+after the Setup message. Control messages MUST NOT be sent on any other stream,
+and a peer receiving a control message on a different stream closes the session
+as a 'Protocol Violation'. Objects MUST NOT be sent on the control stream, and a
+peer receiving an Object on the control stream closes the session as a 'Protocol
+Violation'.
 
 This draft only specifies a single use of bidirectional streams. Objects are
 sent on unidirectional streams.  Because there are no other uses of
-bidirectional streams, a peer MAY currently close the connection if it
-receives a second bidirectional stream.
+bidirectional streams, a peer MAY currently close the session as a
+'Protocol Violation' if it receives a second bidirectional stream.
 
 The control stream MUST NOT be abruptly closed at the underlying transport
 layer.  Doing so results in the session being closed as a 'Protocol Violation'.
@@ -431,7 +439,7 @@ code, as defined below:
 * Generic Error: An unclassified error occurred.
 
 * Unauthorized: The endpoint breached an agreement, which MAY have been
-pre-negotiated by the application.
+ pre-negotiated by the application.
 
 * Protocol Violation: The remote endpoint performed an action that was
   disallowed by the specification.
@@ -622,24 +630,14 @@ providing the result of announcement. The entity receiving the
 ANNOUNCE MUST send only a single response to a given ANNOUNCE of
 either ANNOUNCE_OK or ANNOUNCE_ERROR.
 
-OBJECT message header carry short hop-by-hop Track ID that maps to the
-Full Track Name (see {{message-subscribe-ok}}). Relays use the Track ID
-of an incoming OBJECT message to identify its track and find the active
-subscribers for that track. Relays MUST NOT depend on OBJECT payload
-content for making forwarding decisions and MUST only depend on the
+OBJECT message headers carry a short hop-by-hop `Track Alias` that maps to
+the Full Track Name (see {{message-subscribe-ok}}). Relays use the
+`Track Alias` of an incoming OBJECT message to identify its track and find
+the active subscribers for that track. Relays MUST NOT depend on OBJECT
+payload content for making forwarding decisions and MUST only depend on the
 fields, such as priority order and other metadata properties in the
 OBJECT message header. Unless determined by congestion response, Relays
 MUST forward the OBJECT message to the matching subscribers.
-
-## Relay Discovery and Failover
-
-TODO: This section shall cover aspects of relay failover and protocol
-interactions.
-
-## Restoring connections through relays
-
-TODO: This section shall cover reconnect considerations for clients when
-moving between the Relays.
 
 ## Congestion Response at Relays
 
@@ -672,7 +670,7 @@ limits.  See section 2.2 in {{QUIC}}.
 Both unidirectional and bidirectional streams contain sequences of
 length-delimited messages.
 
-An endpoint that receives an unknown message type MUST close the connection.
+An endpoint that receives an unknown message type MUST close the session.
 
 ~~~
 MOQT Message {
@@ -722,8 +720,8 @@ Some messages include a Parameters field that encode optional message
 elements. They contain a type, length, and value.
 
 Senders MUST NOT repeat the same parameter type in a message. Receivers
-SHOULD check that there are no duplicate parameters and close the connection
-if found.
+SHOULD check that there are no duplicate parameters and close the session
+as a 'Protocol Violation' if found.
 
 Receivers ignore unrecognized parameters.
 
@@ -739,9 +737,9 @@ Parameter {
 {: #moq-param format title="MOQT Parameter"}
 
 Parameter Type is an integer that indicates the semantic meaning of the
-parameter. SETUP message parameters use a namespace that is constant across all
+parameter. Setup message parameters use a namespace that is constant across all
 MoQ Transport versions. All other messages use a version-specific namespace. For
-example, the integer '1' can refer to different parameters for SETUP messages
+example, the integer '1' can refer to different parameters for Setup messages
 and for all other message types.
 
 SETUP message parameter types are defined in {{setup-params}}. Version-
@@ -759,23 +757,8 @@ parameter using the value in the Parameter Length field.
 
 Each version-specific parameter definition indicates the message types in which
 it can appear. If it appears in some other type of message, it MUST be ignored.
-Note that since SETUP parameters use a separate namespace, it is impossible for
-these parameters to appear in SETUP messages.
-
-#### GROUP SEQUENCE Parameter {#group-sequence}
-
-The GROUP SEQUENCE parameter (key 0x00) identifies the group within the
-track to start delivering objects in a SUBSCRIBE message. The publisher MUST
-start delivering the objects from the most recent group, when this parameter is
-omitted. The value is of type varint.
-
-#### OBJECT SEQUENCE Parameter {#object-sequence}
-
-The OBJECT SEQUENCE parameter (key 0x01) identifies the object with the
-track to start delivering objects in a SUBSCRIBE message. The `GROUP SEQUENCE`
-parameter MUST be set to identify the group under which to start delivery. The
-publisher MUST start delivering from the beginning of the selected group
-when this parameter is omitted. The value is of type varint.
+Note that since Setup parameters use a separate namespace, it is impossible for
+these parameters to appear in Setup messages.
 
 #### AUTHORIZATION INFO Parameter {#authorization-info}
 
@@ -789,30 +772,30 @@ ASCII string.
 The `CLIENT_SETUP` and `SERVER_SETUP` messages are the first messages exchanged
 by the client and the server; they allows the peers to establish the mutually
 supported version and agree on the initial configuration before any objects are
-exchanged. It is a sequence of key-value pairs called SETUP parameters; the
+exchanged. It is a sequence of key-value pairs called Setup parameters; the
 semantics and format of which can vary based on whether the client or server is
 sending.  To ensure future extensibility of MOQT, the peers MUST ignore unknown
 setup parameters. TODO: describe GREASE for those.
 
-The wire format of the SETUP messages is as follows:
+The wire format of the Setup messages are as follows:
 
 ~~~
 CLIENT_SETUP Message Payload {
   Number of Supported Versions (i),
   Supported Version (i) ...,
   Number of Parameters (i) ...,
-  SETUP Parameters (..) ...,
+  Setup Parameters (..) ...,
 }
 
 SERVER_SETUP Message Payload {
   Selected Version (i),
   Number of Parameters (i) ...,
-  SETUP Parameters (..) ...,
+  Setup Parameters (..) ...,
 }
 ~~~
-{: #moq-transport-setup-format title="MOQT SETUP Messages"}
+{: #moq-transport-setup-format title="MOQT Setup Messages"}
 
-The available versions and SETUP parameters are detailed in the next sections.
+The available versions and Setup parameters are detailed in the next sections.
 
 ### Versions {#setup-versions}
 
@@ -825,7 +808,7 @@ The client offers the list of the protocol versions it supports; the
 server MUST reply with one of the versions offered by the client. If the
 server does not support any of the versions offered by the client, or
 the client receives a server version that it did not offer, the
-corresponding peer MUST close the connection.
+corresponding peer MUST close the session.
 
 \[\[RFC editor: please remove the remainder of this section before
 publication.]]
@@ -836,7 +819,7 @@ Version numbers used to identify IETF drafts are created by adding the draft
 number to 0xff000000. For example, draft-ietf-moq-transport-13 would be
 identified as 0xff00000D.
 
-### SETUP Parameters {#setup-params}
+### Setup Parameters {#setup-params}
 
 #### ROLE parameter {#role}
 
@@ -859,7 +842,7 @@ possible values, which are of type varint:
 : Both the client and the server are expected to send objects.
 
 The client MUST send a ROLE parameter with one of the three values
-specified above. The server MUST close the connection if the ROLE
+specified above. The server MUST close the session if the ROLE
 parameter is missing, is not one of the three above-specified values, or
 it is different from what the server expects based on the application.
 
@@ -888,7 +871,7 @@ The format of the OBJECT message is as follows:
 
 ~~~
 OBJECT Message {
-  Track ID (i),
+  Track Alias (i),
   Group Sequence (i),
   Object Sequence (i),
   Object Send Order (i),
@@ -898,8 +881,8 @@ OBJECT Message {
 ~~~
 {: #moq-transport-object-format title="MOQT OBJECT Message"}
 
-* Track ID : The compressed full track name obtained as part of subscription
-and/or publish control message exchanges.
+* Track Alias : The compressed full track name obtained as part of
+subscription and/or publish control message exchanges.
 
 * Group Sequence : The object is a member of the indicated group
 {{model-group}} within the track.
@@ -922,7 +905,7 @@ NOT be processed by a relay.
 
 A receiver issues a SUBSCRIBE to a publisher to request a track.
 
-### Susbscribe Locations {#susbscribe-locations}
+### Subscribe Locations {#subscribe-locations}
 
 The receiver specifies a start and optional end `Location` for the subscription.
 A location value may be an absolute group or object sequence, or it may be a
@@ -967,8 +950,8 @@ The format of SUBSCRIBE is as follows:
 ~~~
 SUBSCRIBE Message {
   Subscribe ID (i),
-  Full Track Name Length (i),
-  Full Track Name (...),
+  Track Namespace (b),
+  Track Name (b),
   StartGroup (Location),
   StartObject (Location),
   EndGroup (Location),
@@ -1080,23 +1063,23 @@ SUBSCRIBE_OK
   Subscribe ID (i),
   Track Namespace (b),
   Track Name (b),
-  Track ID (i),
+  Track Alias (i),
   Expires (i)
 }
 ~~~
 {: #moq-transport-subscribe-ok format title="MOQT SUBSCRIBE_OK Message"}
+
+* Subscribe ID: Subscription Identifer as defined in {{message-subscribe-req}}.
 
 * Track Namespace: Identifies the namespace of the track as defined in
 ({{track-name}}).
 
 * Track Name: Identifies the track name as defined in ({{track-name}}).
 
-* Track ID: Session specific identifier that is used as an alias for the
-Full Track Name in the Track ID field of the OBJECT ({{message-object}})
-message headers of the requested track. Track IDs are shorter than
-Full Track Names and thus reduce the overhead in OBJECT messages
-
-* Subscribe ID: Subscription Identifer as defined in {{message-subscribe-req}}.
+* Track Alias: Session specific identifier that is used as an alias for the
+Full Track Name in the Track Alias field of the OBJECT ({{message-object}})
+message headers of the requested track. Track Aliases are shorter
+than Full Track Names and thus reduce the overhead in OBJECT messages.
 
 * Expires: Time in milliseconds after which the subscription is no
 longer valid. A value of 0 indicates that the subscription stays active
@@ -1113,8 +1096,7 @@ SUBSCRIBE_ERROR
 {
   Subscribe ID (i),
   Error Code (i),
-  Reason Phrase Length (i),
-  Reason Phrase (...),
+  Reason Phrase (b),
 }
 ~~~
 {: #moq-transport-subscribe-error format title="MOQT SUBSCRIBE_ERROR Message"}
@@ -1125,8 +1107,7 @@ SUBSCRIBE_ERROR
 
 * Reason Phrase Length: The length in bytes of the reason phrase.
 
-* Reason Phrase: Provides the reason for subscription error and `Reason
-Phrase Length` field carries its length.
+* Reason Phrase: Provides the reason for subscription error.
 
 
 ## UNSUBSCRIBE {#message-unsubscribe}
@@ -1172,7 +1153,7 @@ message in the `Final Group` for this track.
 ## SUBSCRIBE_RST {#message-subscribe-rst}
 
 A publisher issues a `SUBSCRIBE_RST` message to all subscribers indicating there
-wan an error publishing to the given track and subscription is terminated.
+was an error publishing to the given track and subscription is terminated.
 
 The format of `SUBSCRIBE_RST` is as follows:
 
@@ -1180,8 +1161,7 @@ The format of `SUBSCRIBE_RST` is as follows:
 SUBSCRIBE_RST Message {
   Subscribe ID (i),
   Error Code (i),
-  Reason Phrase Length (i),
-  Reason Phrase (...),
+  Reason Phrase (b),
   Final Group (i),
   Final Object (i),
 }
@@ -1192,10 +1172,7 @@ SUBSCRIBE_RST Message {
 
 * Error Code: Identifies an integer error code for subscription failure.
 
-* Reason Phrase Length: The length in bytes of the reason phrase.
-
-* Reason Phrase: Provides the reason for subscription error and `Reason
-Phrase Length` field carries its length.
+* Reason Phrase: Provides the reason for subscription error.
 
 * Final Group: The largest Group Sequence sent by the publisher in an OBJECT
 message in this track.
@@ -1250,8 +1227,7 @@ ANNOUNCE_ERROR
 {
   Track Namespace(b),
   Error Code (i),
-  Reason Phrase Length (i),
-  Reason Phrase (...),
+  Reason Phrase (b),
 }
 ~~~
 {: #moq-transport-announce-error format title="MOQT ANNOUNCE_ERROR Message"}
@@ -1261,8 +1237,7 @@ message for which this response is provided.
 
 * Error Code: Identifies an integer error code for announcement failure.
 
-* Reason Phrase: Provides the reason for announcement error and `Reason
-Phrase Length` field carries its length.
+* Reason Phrase: Provides the reason for announcement error.
 
 
 ## UNANNOUNCE {#message-unannounce}
@@ -1332,7 +1307,7 @@ reaching a resource limit.
 TODO: fill out currently missing registries:
 
 * MOQT version numbers
-* SETUP parameters
+* Setup parameters
 * Track Request parameters
 * Subscribe Error codes
 * Announce Error codes
