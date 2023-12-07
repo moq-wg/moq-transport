@@ -966,9 +966,9 @@ The format of SUBSCRIBE is as follows:
 
 ~~~
 SUBSCRIBE Message {
+  Subscribe ID (i),
   Full Track Name Length (i),
   Full Track Name (...),
-  Subscribe ID (i),
   StartGroup (Location),
   StartObject (Location),
   EndGroup (Location),
