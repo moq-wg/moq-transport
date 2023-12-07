@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2023-12-05T01:11:13.540531+00:00",
+  "timestamp": "2023-12-07T01:10:44.128987+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -42000,7 +42000,7 @@
       "labels": [],
       "body": "This PR brings in currently active proposals for supporting explicit indicators of mapping object model to quic transport.\r\n\r\nFixes #244 \r\n\r\n\r\n",
       "createdAt": "2023-11-08T14:34:57Z",
-      "updatedAt": "2023-12-01T15:44:26Z",
+      "updatedAt": "2023-12-06T18:01:19Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "de5e92e3668272cb70a27dda5b52c642dae0406d",
@@ -42039,6 +42039,27 @@
           "body": "> The outcome from Monday's meeting was that the chairs were going to designate a small group to put the proposal forward. I'll circle with Ian and Ted.\r\n\r\nOK - will wait for that ",
           "createdAt": "2023-11-09T10:14:17Z",
           "updatedAt": "2023-11-09T10:14:17Z"
+        },
+        {
+          "author": "kixcord",
+          "authorAssociation": "NONE",
+          "body": "This is all just so confused. The number of messages, modes, and permutations are exploding. Some ideas are in the right direction (ex. stream header) but the hodgepodge of modes/messages is not.\r\n\r\nI'd like to explicitly add proposal 4: a relay forwards data streams.\r\n\r\n- when a relay receives an upstream stream, it creates a downstream stream (for each subscriber)\r\n- when a relay reads an OBJECT from an upstream, it writes it to the corresponding downstream if it matches the SUBSCRIBE criteria.\r\n- when the upstream is closed, the corresponding downstreams are closed with the same error code or FIN.\r\n- when a relay receives an upstream DATAGRAM, it sends it downstream if it matches the SUBSCRIBE criteria.\r\n\r\nNo wire changes. I would like a stream header eventually but it's more for compression and to prevent foot guns (ex. prioritization).\r\n\r\nThis unlocks experimentation as the application can perform any stream mapping. The relay doesn't care and remains simple. The important part is the guarantee that the relay (middlebox) won't rearrange or reorder shit if the application decided to use a stream.\r\n\r\nedit: oops was logged into my work account.",
+          "createdAt": "2023-12-06T16:42:49Z",
+          "updatedAt": "2023-12-06T16:47:10Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> I'd like to explicitly add proposal 4: a relay forwards data streams.\r\n> ...\r\n> No wire changes. I would like a stream header eventually but it's more for compression and to prevent foot guns (ex. prioritization).\r\n\r\nThe consensus in Prague was to move forward with a proposal that uses explicit signals for now, get more implementation experience and data, and revisit. Proposal 4 only uses implicit signals from the QUIC layer rather than explicit signals from the MoQ layer.  I think you can achieve similar outcomes with proposal 3 by adding the appropriate STREAM_HEADER at the beginning of each stream?",
+          "createdAt": "2023-12-06T16:59:11Z",
+          "updatedAt": "2023-12-06T16:59:11Z"
+        },
+        {
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "body": "+1 to @afrind's proposal. once we clean it up by removing the other proposals , we should be good for merge review.  also +1 on dropping the priority for now",
+          "createdAt": "2023-12-06T17:26:39Z",
+          "updatedAt": "2023-12-06T18:01:19Z"
         }
       ],
       "reviews": [
