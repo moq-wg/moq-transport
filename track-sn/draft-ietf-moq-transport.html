@@ -1253,16 +1253,10 @@ networks and is designed for high scale and low latency distribution.<a href="#s
                 <p id="section-toc.1-1.5.2.2.1"><a href="#section-5.2" class="auto internal xref">5.2</a>.  <a href="#name-publisher-interactions" class="internal xref">Publisher Interactions</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.3">
-                <p id="section-toc.1-1.5.2.3.1"><a href="#section-5.3" class="auto internal xref">5.3</a>.  <a href="#name-relay-discovery-and-failove" class="internal xref">Relay Discovery and Failover</a></p>
+                <p id="section-toc.1-1.5.2.3.1"><a href="#section-5.3" class="auto internal xref">5.3</a>.  <a href="#name-congestion-response-at-rela" class="internal xref">Congestion Response at Relays</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.4">
-                <p id="section-toc.1-1.5.2.4.1"><a href="#section-5.4" class="auto internal xref">5.4</a>.  <a href="#name-restoring-connections-throu" class="internal xref">Restoring connections through relays</a></p>
-</li>
-              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.5">
-                <p id="section-toc.1-1.5.2.5.1"><a href="#section-5.5" class="auto internal xref">5.5</a>.  <a href="#name-congestion-response-at-rela" class="internal xref">Congestion Response at Relays</a></p>
-</li>
-              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.6">
-                <p id="section-toc.1-1.5.2.6.1"><a href="#section-5.6" class="auto internal xref">5.6</a>.  <a href="#name-relay-object-handling" class="internal xref">Relay Object Handling</a></p>
+                <p id="section-toc.1-1.5.2.4.1"><a href="#section-5.4" class="auto internal xref">5.4</a>.  <a href="#name-relay-object-handling" class="internal xref">Relay Object Handling</a></p>
 </li>
             </ul>
 </li>
@@ -1284,7 +1278,7 @@ networks and is designed for high scale and low latency distribution.<a href="#s
                     <p id="section-toc.1-1.6.2.2.2.1.1"><a href="#section-6.2.1" class="auto internal xref">6.2.1</a>.  <a href="#name-versions" class="internal xref">Versions</a></p>
 </li>
                   <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.2.2.2">
-                    <p id="section-toc.1-1.6.2.2.2.2.1"><a href="#section-6.2.2" class="auto internal xref">6.2.2</a>.  <a href="#name-setup-parameters" class="internal xref">SETUP Parameters</a></p>
+                    <p id="section-toc.1-1.6.2.2.2.2.1"><a href="#section-6.2.2" class="auto internal xref">6.2.2</a>.  <a href="#name-setup-parameters" class="internal xref">Setup Parameters</a></p>
 </li>
                 </ul>
 </li>
@@ -1295,7 +1289,7 @@ networks and is designed for high scale and low latency distribution.<a href="#s
                 <p id="section-toc.1-1.6.2.4.1"><a href="#section-6.4" class="auto internal xref">6.4</a>.  <a href="#name-subscribe" class="internal xref">SUBSCRIBE</a></p>
 <ul class="compact toc ulBare ulEmpty">
 <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.4.2.1">
-                    <p id="section-toc.1-1.6.2.4.2.1.1"><a href="#section-6.4.1" class="auto internal xref">6.4.1</a>.  <a href="#name-susbscribe-locations" class="internal xref">Susbscribe Locations</a></p>
+                    <p id="section-toc.1-1.6.2.4.2.1.1"><a href="#section-6.4.1" class="auto internal xref">6.4.1</a>.  <a href="#name-subscribe-locations" class="internal xref">Subscribe Locations</a></p>
 </li>
                   <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.4.2.2">
                     <p id="section-toc.1-1.6.2.4.2.2.1"><a href="#section-6.4.2" class="auto internal xref">6.4.2</a>.  <a href="#name-subscribe-format" class="internal xref">SUBSCRIBE Format</a></p>
@@ -1564,8 +1558,8 @@ when describing the binary encoding.<a href="#section-1.3-1" class="pilcrow">¶<
 <span class="break"></span><dl class="dlParallel" id="section-1.3-3">
           <dt id="section-1.3-3.1">x (b):</dt>
           <dd style="margin-left: 1.5em" id="section-1.3-3.2">
-            <p id="section-1.3-3.2.1">Indicates that x consists of a variable length integer, followed by
-that many bytes of binary data.<a href="#section-1.3-3.2.1" class="pilcrow">¶</a></p>
+            <p id="section-1.3-3.2.1">Indicates that x consists of a variable length integer (i), followed by
+that many bytes of binary data (..).<a href="#section-1.3-3.2.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
 </dl>
@@ -1670,6 +1664,14 @@ Full Track Name = security-camera.example.com/camera1/hd-video
 
 </pre><a href="#section-2.3.1-6" class="pilcrow">¶</a>
 </div>
+<p id="section-2.3.1-7">In this specification, both the Track Namespace and the Track Name are
+not constrained to a specific encoding. They carry a sequence of
+bytes and comparison between two Track Namespaces or Track Names is
+done by exact comparison of the bytes. Specifications that use MoQ Transport
+may constrain the information in these fields, for example by restricting
+them to UTF-8. Any specification that does needs to specify the
+canonicalization into the bytes in the Track Namespace or Track Name
+such that exact comparison works.<a href="#section-2.3.1-7" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="connection-url">
@@ -1703,7 +1705,7 @@ over a QUIC connection directly <span>[<a href="#QUIC" class="cite xref">QUIC</a
 semantics (see <span>[<a href="#I-D.ietf-webtrans-overview" class="cite xref">I-D.ietf-webtrans-overview</a>], <a href="https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-overview-06#section-4" class="relref">Section 4</a></span>); thus, the
 main difference lies in how the servers are identified and how the
 connection is established.  There is no definition of the protocol
-over other transports, such as TCP, and applicaitons using MoQ might
+over other transports, such as TCP, and applications using MoQ might
 need to fallback to another protocol when QUIC or WebTransport aren't
 available.<a href="#section-3.1-1" class="pilcrow">¶</a></p>
 <div id="webtransport">
@@ -1752,12 +1754,12 @@ is <code>moq-00</code>.<a href="#section-3.1.2-5" class="pilcrow">¶</a></p>
         <h3 id="name-version-and-extension-negot">
 <a href="#section-3.2" class="section-number selfRef">3.2. </a><a href="#name-version-and-extension-negot" class="section-name selfRef">Version and Extension Negotiation</a>
         </h3>
-<p id="section-3.2-1">Endpoints use the exchange of SETUP messages to negotiate the MOQT version and
+<p id="section-3.2-1">Endpoints use the exchange of Setup messages to negotiate the MOQT version and
 any extensions to use.<a href="#section-3.2-1" class="pilcrow">¶</a></p>
 <p id="section-3.2-2">The client indicates the MOQT versions it supports in the CLIENT_SETUP message
 (see <a href="#message-setup" class="auto internal xref">Section 6.2</a>). It also includes the union of all Setup Parameters
 <a href="#setup-params" class="auto internal xref">Section 6.2.2</a> required for a handshake by any of those versions.<a href="#section-3.2-2" class="pilcrow">¶</a></p>
-<p id="section-3.2-3">Within any MOQT version, clients request the use of extensions by adding SETUP
+<p id="section-3.2-3">Within any MOQT version, clients request the use of extensions by adding Setup
 parameters corresponding to that extension. No extensions are defined in this
 document.<a href="#section-3.2-3" class="pilcrow">¶</a></p>
 <p id="section-3.2-4">The server replies with a SERVER_SETUP message that indicates the chosen
@@ -1768,7 +1770,7 @@ that version. New extensions <span class="bcp14">MUST</span> specify the existin
 can be used.<a href="#section-3.2-5" class="pilcrow">¶</a></p>
 <p id="section-3.2-6">If a given parameter carries the same information in multiple versions,
 but might have different optimal values in those versions, there <span class="bcp14">SHOULD</span> be
-separate SETUP parameters for that information in each version.<a href="#section-3.2-6" class="pilcrow">¶</a></p>
+separate Setup parameters for that information in each version.<a href="#section-3.2-6" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="session-init">
@@ -1776,18 +1778,18 @@ separate SETUP parameters for that information in each version.<a href="#section
         <h3 id="name-session-initialization">
 <a href="#section-3.3" class="section-number selfRef">3.3. </a><a href="#name-session-initialization" class="section-name selfRef">Session initialization</a>
         </h3>
-<p id="section-3.3-1">The first stream opened is a client-initiated bidirectional control stream
-where the peers exchange SETUP messages (<a href="#message-setup" class="auto internal xref">Section 6.2</a>).  All messages
-defined in this draft are sent on the control stream after the SETUP message.
-Control messages <span class="bcp14">MUST NOT</span> be sent on any other stream, and a peer receiving
-a control message on a different stream closes the session as a
-'Protocol Violation'. Objects <span class="bcp14">MUST NOT</span> be sent on the control stream, and a
-peer receiving an Object on the control stream closes the session as a
-'Protocol Violation'.<a href="#section-3.3-1" class="pilcrow">¶</a></p>
+<p id="section-3.3-1">The first stream opened is a client-initiated bidirectional control stream where
+the peers exchange Setup messages (<a href="#message-setup" class="auto internal xref">Section 6.2</a>).  All messages defined in
+this draft except OBJECT and OBJECT_WITH_LENGTH are sent on the control stream
+after the Setup message. Control messages <span class="bcp14">MUST NOT</span> be sent on any other stream,
+and a peer receiving a control message on a different stream closes the session
+as a 'Protocol Violation'. Objects <span class="bcp14">MUST NOT</span> be sent on the control stream, and a
+peer receiving an Object on the control stream closes the session as a 'Protocol
+Violation'.<a href="#section-3.3-1" class="pilcrow">¶</a></p>
 <p id="section-3.3-2">This draft only specifies a single use of bidirectional streams. Objects are
 sent on unidirectional streams.  Because there are no other uses of
-bidirectional streams, a peer <span class="bcp14">MAY</span> currently close the connection if it
-receives a second bidirectional stream.<a href="#section-3.3-2" class="pilcrow">¶</a></p>
+bidirectional streams, a peer <span class="bcp14">MAY</span> currently close the session as a
+'Protocol Violation' if it receives a second bidirectional stream.<a href="#section-3.3-2" class="pilcrow">¶</a></p>
 <p id="section-3.3-3">The control stream <span class="bcp14">MUST NOT</span> be abruptly closed at the underlying transport
 layer.  Doing so results in the session being closed as a 'Protocol Violation'.<a href="#section-3.3-3" class="pilcrow">¶</a></p>
 </section>
@@ -1854,7 +1856,7 @@ code, as defined below:<a href="#section-3.5-2" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-3.5-4.3">
             <p id="section-3.5-4.3.1">Unauthorized: The endpoint breached an agreement, which <span class="bcp14">MAY</span> have been
-pre-negotiated by the application.<a href="#section-3.5-4.3.1" class="pilcrow">¶</a></p>
+ pre-negotiated by the application.<a href="#section-3.5-4.3.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-3.5-4.4">
             <p id="section-3.5-4.4.1">Protocol Violation: The remote endpoint performed an action that was
@@ -2095,63 +2097,45 @@ based on prior business agreement).<a href="#section-5.2-3.1.1" class="pilcrow">
 providing the result of announcement. The entity receiving the
 ANNOUNCE <span class="bcp14">MUST</span> send only a single response to a given ANNOUNCE of
 either ANNOUNCE_OK or ANNOUNCE_ERROR.<a href="#section-5.2-4" class="pilcrow">¶</a></p>
-<p id="section-5.2-5">OBJECT message header carry short hop-by-hop Track ID that maps to the
-Full Track Name (see <a href="#message-subscribe-ok" class="auto internal xref">Section 6.5</a>). Relays use the Track ID
-of an incoming OBJECT message to identify its track and find the active
-subscribers for that track. Relays <span class="bcp14">MUST NOT</span> depend on OBJECT payload
-content for making forwarding decisions and <span class="bcp14">MUST</span> only depend on the
+<p id="section-5.2-5">OBJECT message headers carry a short hop-by-hop <code>Track Alias</code> that maps to
+the Full Track Name (see <a href="#message-subscribe-ok" class="auto internal xref">Section 6.5</a>). Relays use the
+<code>Track Alias</code> of an incoming OBJECT message to identify its track and find
+the active subscribers for that track. Relays <span class="bcp14">MUST NOT</span> depend on OBJECT
+payload content for making forwarding decisions and <span class="bcp14">MUST</span> only depend on the
 fields, such as priority order and other metadata properties in the
 OBJECT message header. Unless determined by congestion response, Relays
 <span class="bcp14">MUST</span> forward the OBJECT message to the matching subscribers.<a href="#section-5.2-5" class="pilcrow">¶</a></p>
 </section>
 </div>
-<div id="relay-discovery-and-failover">
-<section id="section-5.3">
-        <h3 id="name-relay-discovery-and-failove">
-<a href="#section-5.3" class="section-number selfRef">5.3. </a><a href="#name-relay-discovery-and-failove" class="section-name selfRef">Relay Discovery and Failover</a>
-        </h3>
-<p id="section-5.3-1">TODO: This section shall cover aspects of relay failover and protocol
-interactions.<a href="#section-5.3-1" class="pilcrow">¶</a></p>
-</section>
-</div>
-<div id="restoring-connections-through-relays">
-<section id="section-5.4">
-        <h3 id="name-restoring-connections-throu">
-<a href="#section-5.4" class="section-number selfRef">5.4. </a><a href="#name-restoring-connections-throu" class="section-name selfRef">Restoring connections through relays</a>
-        </h3>
-<p id="section-5.4-1">TODO: This section shall cover reconnect considerations for clients when
-moving between the Relays.<a href="#section-5.4-1" class="pilcrow">¶</a></p>
-</section>
-</div>
 <div id="congestion-response-at-relays">
-<section id="section-5.5">
+<section id="section-5.3">
         <h3 id="name-congestion-response-at-rela">
-<a href="#section-5.5" class="section-number selfRef">5.5. </a><a href="#name-congestion-response-at-rela" class="section-name selfRef">Congestion Response at Relays</a>
+<a href="#section-5.3" class="section-number selfRef">5.3. </a><a href="#name-congestion-response-at-rela" class="section-name selfRef">Congestion Response at Relays</a>
         </h3>
-<p id="section-5.5-1">TODO: Refer to <a href="#priority-congestion" class="auto internal xref">Section 4</a>. Add details to describe relay
+<p id="section-5.3-1">TODO: Refer to <a href="#priority-congestion" class="auto internal xref">Section 4</a>. Add details to describe relay
 behavior when merging or splitting streams and interactions with
-congestion response.<a href="#section-5.5-1" class="pilcrow">¶</a></p>
+congestion response.<a href="#section-5.3-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="relay-object-handling">
-<section id="section-5.6">
+<section id="section-5.4">
         <h3 id="name-relay-object-handling">
-<a href="#section-5.6" class="section-number selfRef">5.6. </a><a href="#name-relay-object-handling" class="section-name selfRef">Relay Object Handling</a>
+<a href="#section-5.4" class="section-number selfRef">5.4. </a><a href="#name-relay-object-handling" class="section-name selfRef">Relay Object Handling</a>
         </h3>
-<p id="section-5.6-1">MOQT encodes the delivery information for a stream via OBJECT headers
-(<a href="#message-object" class="auto internal xref">Section 6.3</a>).<a href="#section-5.6-1" class="pilcrow">¶</a></p>
-<p id="section-5.6-2">A relay <span class="bcp14">MUST</span> treat the object payload as opaque.  A relay <span class="bcp14">MUST NOT</span>
+<p id="section-5.4-1">MOQT encodes the delivery information for a stream via OBJECT headers
+(<a href="#message-object" class="auto internal xref">Section 6.3</a>).<a href="#section-5.4-1" class="pilcrow">¶</a></p>
+<p id="section-5.4-2">A relay <span class="bcp14">MUST</span> treat the object payload as opaque.  A relay <span class="bcp14">MUST NOT</span>
 combine, split, or otherwise modify object payloads.  A relay <span class="bcp14">SHOULD</span>
 prioritize streams (<a href="#priority-congestion" class="auto internal xref">Section 4</a>) based on the send
-order/priority.<a href="#section-5.6-2" class="pilcrow">¶</a></p>
-<p id="section-5.6-3">A sender <span class="bcp14">SHOULD</span> begin sending incomplete objects when available to
-avoid incurring additional latency.<a href="#section-5.6-3" class="pilcrow">¶</a></p>
-<p id="section-5.6-4">A relay that reads from a stream and writes to stream in order will
+order/priority.<a href="#section-5.4-2" class="pilcrow">¶</a></p>
+<p id="section-5.4-3">A sender <span class="bcp14">SHOULD</span> begin sending incomplete objects when available to
+avoid incurring additional latency.<a href="#section-5.4-3" class="pilcrow">¶</a></p>
+<p id="section-5.4-4">A relay that reads from a stream and writes to stream in order will
 introduce head-of-line blocking.  Packet loss will cause stream data to
 be buffered in the library, awaiting in order delivery, which will
 increase latency over additional hops.  To mitigate this, a relay <span class="bcp14">SHOULD</span>
 read and write stream data out of order subject to flow control
-limits.  See section 2.2 in <span>[<a href="#QUIC" class="cite xref">QUIC</a>]</span>.<a href="#section-5.6-4" class="pilcrow">¶</a></p>
+limits.  See section 2.2 in <span>[<a href="#QUIC" class="cite xref">QUIC</a>]</span>.<a href="#section-5.4-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -2163,7 +2147,7 @@ limits.  See section 2.2 in <span>[<a href="#QUIC" class="cite xref">QUIC</a>]</
       </h2>
 <p id="section-6-1">Both unidirectional and bidirectional streams contain sequences of
 length-delimited messages.<a href="#section-6-1" class="pilcrow">¶</a></p>
-<p id="section-6-2">An endpoint that receives an unknown message type <span class="bcp14">MUST</span> close the connection.<a href="#section-6-2" class="pilcrow">¶</a></p>
+<p id="section-6-2">An endpoint that receives an unknown message type <span class="bcp14">MUST</span> close the session.<a href="#section-6-2" class="pilcrow">¶</a></p>
 <span id="name-moqt-message"></span><div id="moq-transport-message-format">
 <figure id="figure-1">
         <div class="alignLeft art-text artwork" id="section-6-3.1">
@@ -2257,8 +2241,8 @@ MOQT Message {
 <p id="section-6.1-1">Some messages include a Parameters field that encode optional message
 elements. They contain a type, length, and value.<a href="#section-6.1-1" class="pilcrow">¶</a></p>
 <p id="section-6.1-2">Senders <span class="bcp14">MUST NOT</span> repeat the same parameter type in a message. Receivers
-<span class="bcp14">SHOULD</span> check that there are no duplicate parameters and close the connection
-if found.<a href="#section-6.1-2" class="pilcrow">¶</a></p>
+<span class="bcp14">SHOULD</span> check that there are no duplicate parameters and close the session
+as a 'Protocol Violation' if found.<a href="#section-6.1-2" class="pilcrow">¶</a></p>
 <p id="section-6.1-3">Receivers ignore unrecognized parameters.<a href="#section-6.1-3" class="pilcrow">¶</a></p>
 <p id="section-6.1-4">The format of Parameters is as follows:<a href="#section-6.1-4" class="pilcrow">¶</a></p>
 <span id="name-moqt-parameter"></span><div id="moq-param">
@@ -2277,9 +2261,9 @@ Parameter {
           </figcaption></figure>
 </div>
 <p id="section-6.1-6">Parameter Type is an integer that indicates the semantic meaning of the
-parameter. SETUP message parameters use a namespace that is constant across all
+parameter. Setup message parameters use a namespace that is constant across all
 MoQ Transport versions. All other messages use a version-specific namespace. For
-example, the integer '1' can refer to different parameters for SETUP messages
+example, the integer '1' can refer to different parameters for Setup messages
 and for all other message types.<a href="#section-6.1-6" class="pilcrow">¶</a></p>
 <p id="section-6.1-7">SETUP message parameter types are defined in <a href="#setup-params" class="auto internal xref">Section 6.2.2</a>. Version-
 specific parameter types are defined in <a href="#version-specific-params" class="auto internal xref">Section 6.1.1</a>.<a href="#section-6.1-7" class="pilcrow">¶</a></p>
@@ -2296,40 +2280,17 @@ parameter using the value in the Parameter Length field.<a href="#section-6.1-9"
           </h4>
 <p id="section-6.1.1-1">Each version-specific parameter definition indicates the message types in which
 it can appear. If it appears in some other type of message, it <span class="bcp14">MUST</span> be ignored.
-Note that since SETUP parameters use a separate namespace, it is impossible for
-these parameters to appear in SETUP messages.<a href="#section-6.1.1-1" class="pilcrow">¶</a></p>
-<div id="group-sequence">
-<section id="section-6.1.1.1">
-            <h5 id="name-group-sequence-parameter">
-<a href="#section-6.1.1.1" class="section-number selfRef">6.1.1.1. </a><a href="#name-group-sequence-parameter" class="section-name selfRef">GROUP SEQUENCE Parameter</a>
-            </h5>
-<p id="section-6.1.1.1-1">The GROUP SEQUENCE parameter (key 0x00) identifies the group within the
-track to start delivering objects in a SUBSCRIBE message. The publisher <span class="bcp14">MUST</span>
-start delivering the objects from the most recent group, when this parameter is
-omitted. The value is of type varint.<a href="#section-6.1.1.1-1" class="pilcrow">¶</a></p>
-</section>
-</div>
-<div id="object-sequence">
-<section id="section-6.1.1.2">
-            <h5 id="name-object-sequence-parameter">
-<a href="#section-6.1.1.2" class="section-number selfRef">6.1.1.2. </a><a href="#name-object-sequence-parameter" class="section-name selfRef">OBJECT SEQUENCE Parameter</a>
-            </h5>
-<p id="section-6.1.1.2-1">The OBJECT SEQUENCE parameter (key 0x01) identifies the object with the
-track to start delivering objects in a SUBSCRIBE message. The <code>GROUP SEQUENCE</code>
-parameter <span class="bcp14">MUST</span> be set to identify the group under which to start delivery. The
-publisher <span class="bcp14">MUST</span> start delivering from the beginning of the selected group
-when this parameter is omitted. The value is of type varint.<a href="#section-6.1.1.2-1" class="pilcrow">¶</a></p>
-</section>
-</div>
+Note that since Setup parameters use a separate namespace, it is impossible for
+these parameters to appear in Setup messages.<a href="#section-6.1.1-1" class="pilcrow">¶</a></p>
 <div id="authorization-info">
-<section id="section-6.1.1.3">
+<section id="section-6.1.1.1">
             <h5 id="name-authorization-info-paramete">
-<a href="#section-6.1.1.3" class="section-number selfRef">6.1.1.3. </a><a href="#name-authorization-info-paramete" class="section-name selfRef">AUTHORIZATION INFO Parameter</a>
+<a href="#section-6.1.1.1" class="section-number selfRef">6.1.1.1. </a><a href="#name-authorization-info-paramete" class="section-name selfRef">AUTHORIZATION INFO Parameter</a>
             </h5>
-<p id="section-6.1.1.3-1">AUTHORIZATION INFO parameter (key 0x02) identifies a track's authorization
+<p id="section-6.1.1.1-1">AUTHORIZATION INFO parameter (key 0x02) identifies a track's authorization
 information in a SUBSCRIBE or ANNOUNCE message. This parameter is populated for
 cases where the authorization is required at the track level. The value is an
-ASCII string.<a href="#section-6.1.1.3-1" class="pilcrow">¶</a></p>
+ASCII string.<a href="#section-6.1.1.1-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -2344,11 +2305,11 @@ ASCII string.<a href="#section-6.1.1.3-1" class="pilcrow">¶</a></p>
 <p id="section-6.2-1">The <code>CLIENT_SETUP</code> and <code>SERVER_SETUP</code> messages are the first messages exchanged
 by the client and the server; they allows the peers to establish the mutually
 supported version and agree on the initial configuration before any objects are
-exchanged. It is a sequence of key-value pairs called SETUP parameters; the
+exchanged. It is a sequence of key-value pairs called Setup parameters; the
 semantics and format of which can vary based on whether the client or server is
 sending.  To ensure future extensibility of MOQT, the peers <span class="bcp14">MUST</span> ignore unknown
 setup parameters. TODO: describe GREASE for those.<a href="#section-6.2-1" class="pilcrow">¶</a></p>
-<p id="section-6.2-2">The wire format of the SETUP messages is as follows:<a href="#section-6.2-2" class="pilcrow">¶</a></p>
+<p id="section-6.2-2">The wire format of the Setup messages are as follows:<a href="#section-6.2-2" class="pilcrow">¶</a></p>
 <span id="name-moqt-setup-messages"></span><div id="moq-transport-setup-format">
 <figure id="figure-3">
           <div class="alignLeft art-text artwork" id="section-6.2-3.1">
@@ -2357,21 +2318,21 @@ CLIENT_SETUP Message Payload {
   Number of Supported Versions (i),
   Supported Version (i) ...,
   Number of Parameters (i) ...,
-  SETUP Parameters (..) ...,
+  Setup Parameters (..) ...,
 }
 
 SERVER_SETUP Message Payload {
   Selected Version (i),
   Number of Parameters (i) ...,
-  SETUP Parameters (..) ...,
+  Setup Parameters (..) ...,
 }
 </pre>
 </div>
 <figcaption><a href="#figure-3" class="selfRef">Figure 3</a>:
-<a href="#name-moqt-setup-messages" class="selfRef">MOQT SETUP Messages</a>
+<a href="#name-moqt-setup-messages" class="selfRef">MOQT Setup Messages</a>
           </figcaption></figure>
 </div>
-<p id="section-6.2-4">The available versions and SETUP parameters are detailed in the next sections.<a href="#section-6.2-4" class="pilcrow">¶</a></p>
+<p id="section-6.2-4">The available versions and Setup parameters are detailed in the next sections.<a href="#section-6.2-4" class="pilcrow">¶</a></p>
 <div id="setup-versions">
 <section id="section-6.2.1">
           <h4 id="name-versions">
@@ -2385,7 +2346,7 @@ reserved for use in future IETF consensus documents.<a href="#section-6.2.1-1" c
 server <span class="bcp14">MUST</span> reply with one of the versions offered by the client. If the
 server does not support any of the versions offered by the client, or
 the client receives a server version that it did not offer, the
-corresponding peer <span class="bcp14">MUST</span> close the connection.<a href="#section-6.2.1-2" class="pilcrow">¶</a></p>
+corresponding peer <span class="bcp14">MUST</span> close the session.<a href="#section-6.2.1-2" class="pilcrow">¶</a></p>
 <p id="section-6.2.1-3">[[RFC editor: please remove the remainder of this section before
 publication.]]<a href="#section-6.2.1-3" class="pilcrow">¶</a></p>
 <p id="section-6.2.1-4">The version number for the final version of this specification (0x00000001), is
@@ -2398,7 +2359,7 @@ identified as 0xff00000D.<a href="#section-6.2.1-4" class="pilcrow">¶</a></p>
 <div id="setup-params">
 <section id="section-6.2.2">
           <h4 id="name-setup-parameters">
-<a href="#section-6.2.2" class="section-number selfRef">6.2.2. </a><a href="#name-setup-parameters" class="section-name selfRef">SETUP Parameters</a>
+<a href="#section-6.2.2" class="section-number selfRef">6.2.2. </a><a href="#name-setup-parameters" class="section-name selfRef">Setup Parameters</a>
           </h4>
 <div id="role">
 <section id="section-6.2.2.1">
@@ -2428,7 +2389,7 @@ commonly referred to as the delivery case.<a href="#section-6.2.2.1-2.4.1" class
             <dd class="break"></dd>
 </dl>
 <p id="section-6.2.2.1-3">The client <span class="bcp14">MUST</span> send a ROLE parameter with one of the three values
-specified above. The server <span class="bcp14">MUST</span> close the connection if the ROLE
+specified above. The server <span class="bcp14">MUST</span> close the session if the ROLE
 parameter is missing, is not one of the three above-specified values, or
 it is different from what the server expects based on the application.<a href="#section-6.2.2.1-3" class="pilcrow">¶</a></p>
 </section>
@@ -2469,7 +2430,7 @@ present. When the message type is 0x02, the field is not present.<a href="#secti
           <div class="alignLeft art-text artwork" id="section-6.3-3.1">
 <pre>
 OBJECT Message {
-  Track ID (i),
+  Track Alias (i),
   Group Sequence (i),
   Object Sequence (i),
   Object Send Order (i),
@@ -2484,8 +2445,8 @@ OBJECT Message {
 </div>
 <ul class="normal">
 <li class="normal" id="section-6.3-4.1">
-            <p id="section-6.3-4.1.1">Track ID : The compressed full track name obtained as part of subscription
-and/or publish control message exchanges.<a href="#section-6.3-4.1.1" class="pilcrow">¶</a></p>
+            <p id="section-6.3-4.1.1">Track Alias : The compressed full track name obtained as part of
+subscription and/or publish control message exchanges.<a href="#section-6.3-4.1.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-6.3-4.2">
             <p id="section-6.3-4.2.1">Group Sequence : The object is a member of the indicated group
@@ -2516,10 +2477,10 @@ field is absent, the object payload continues to the end of the stream.<a href="
 <a href="#section-6.4" class="section-number selfRef">6.4. </a><a href="#name-subscribe" class="section-name selfRef">SUBSCRIBE</a>
         </h3>
 <p id="section-6.4-1">A receiver issues a SUBSCRIBE to a publisher to request a track.<a href="#section-6.4-1" class="pilcrow">¶</a></p>
-<div id="susbscribe-locations">
+<div id="subscribe-locations">
 <section id="section-6.4.1">
-          <h4 id="name-susbscribe-locations">
-<a href="#section-6.4.1" class="section-number selfRef">6.4.1. </a><a href="#name-susbscribe-locations" class="section-name selfRef">Susbscribe Locations</a>
+          <h4 id="name-subscribe-locations">
+<a href="#section-6.4.1" class="section-number selfRef">6.4.1. </a><a href="#name-subscribe-locations" class="section-name selfRef">Subscribe Locations</a>
           </h4>
 <p id="section-6.4.1-1">The receiver specifies a start and optional end <code>Location</code> for the subscription.
 A location value may be an absolute group or object sequence, or it may be a
@@ -2568,8 +2529,8 @@ RelativeNext Value:                               0    1  ...
 <pre>
 SUBSCRIBE Message {
   Subscribe ID (i),
-  Full Track Name Length (i),
-  Full Track Name (...),
+  Track Namespace (b),
+  Track Name (b),
   StartGroup (Location),
   StartObject (Location),
   EndGroup (Location),
@@ -2704,7 +2665,7 @@ SUBSCRIBE_OK
   Subscribe ID (i),
   Track Namespace (b),
   Track Name (b),
-  Track ID (i),
+  Track Alias (i),
   Expires (i)
 }
 </pre>
@@ -2715,20 +2676,20 @@ SUBSCRIBE_OK
 </div>
 <ul class="normal">
 <li class="normal" id="section-6.5-3.1">
-            <p id="section-6.5-3.1.1">Track Namespace: Identifies the namespace of the track as defined in
-(<a href="#track-name" class="auto internal xref">Section 2.3.1</a>).<a href="#section-6.5-3.1.1" class="pilcrow">¶</a></p>
+            <p id="section-6.5-3.1.1">Subscribe ID: Subscription Identifer as defined in <a href="#message-subscribe-req" class="auto internal xref">Section 6.4</a>.<a href="#section-6.5-3.1.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-6.5-3.2">
-            <p id="section-6.5-3.2.1">Track Name: Identifies the track name as defined in (<a href="#track-name" class="auto internal xref">Section 2.3.1</a>).<a href="#section-6.5-3.2.1" class="pilcrow">¶</a></p>
+            <p id="section-6.5-3.2.1">Track Namespace: Identifies the namespace of the track as defined in
+(<a href="#track-name" class="auto internal xref">Section 2.3.1</a>).<a href="#section-6.5-3.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-6.5-3.3">
-            <p id="section-6.5-3.3.1">Track ID: Session specific identifier that is used as an alias for the
-Full Track Name in the Track ID field of the OBJECT (<a href="#message-object" class="auto internal xref">Section 6.3</a>)
-message headers of the requested track. Track IDs are shorter than
-Full Track Names and thus reduce the overhead in OBJECT messages<a href="#section-6.5-3.3.1" class="pilcrow">¶</a></p>
+            <p id="section-6.5-3.3.1">Track Name: Identifies the track name as defined in (<a href="#track-name" class="auto internal xref">Section 2.3.1</a>).<a href="#section-6.5-3.3.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-6.5-3.4">
-            <p id="section-6.5-3.4.1">Subscribe ID: Subscription Identifer as defined in <a href="#message-subscribe-req" class="auto internal xref">Section 6.4</a>.<a href="#section-6.5-3.4.1" class="pilcrow">¶</a></p>
+            <p id="section-6.5-3.4.1">Track Alias: Session specific identifier that is used as an alias for the
+Full Track Name in the Track Alias field of the OBJECT (<a href="#message-object" class="auto internal xref">Section 6.3</a>)
+message headers of the requested track. Track Aliases are shorter
+than Full Track Names and thus reduce the overhead in OBJECT messages.<a href="#section-6.5-3.4.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-6.5-3.5">
             <p id="section-6.5-3.5.1">Expires: Time in milliseconds after which the subscription is no
@@ -2753,8 +2714,7 @@ SUBSCRIBE_ERROR
 {
   Subscribe ID (i),
   Error Code (i),
-  Reason Phrase Length (i),
-  Reason Phrase (...),
+  Reason Phrase (b),
 }
 </pre>
 </div>
@@ -2773,8 +2733,7 @@ SUBSCRIBE_ERROR
             <p id="section-6.6-3.3.1">Reason Phrase Length: The length in bytes of the reason phrase.<a href="#section-6.6-3.3.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-6.6-3.4">
-            <p id="section-6.6-3.4.1">Reason Phrase: Provides the reason for subscription error and <code>Reason
-Phrase Length</code> field carries its length.<a href="#section-6.6-3.4.1" class="pilcrow">¶</a></p>
+            <p id="section-6.6-3.4.1">Reason Phrase: Provides the reason for subscription error.<a href="#section-6.6-3.4.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
@@ -2851,7 +2810,7 @@ message in the <code>Final Group</code> for this track.<a href="#section-6.8-4.3
 <a href="#section-6.9" class="section-number selfRef">6.9. </a><a href="#name-subscribe_rst" class="section-name selfRef">SUBSCRIBE_RST</a>
         </h3>
 <p id="section-6.9-1">A publisher issues a <code>SUBSCRIBE_RST</code> message to all subscribers indicating there
-wan an error publishing to the given track and subscription is terminated.<a href="#section-6.9-1" class="pilcrow">¶</a></p>
+was an error publishing to the given track and subscription is terminated.<a href="#section-6.9-1" class="pilcrow">¶</a></p>
 <p id="section-6.9-2">The format of <code>SUBSCRIBE_RST</code> is as follows:<a href="#section-6.9-2" class="pilcrow">¶</a></p>
 <span id="name-moqt-subscribe-rst-message"></span><div id="moq-transport-subscribe-rst">
 <figure id="figure-11">
@@ -2860,8 +2819,7 @@ wan an error publishing to the given track and subscription is terminated.<a hre
 SUBSCRIBE_RST Message {
   Subscribe ID (i),
   Error Code (i),
-  Reason Phrase Length (i),
-  Reason Phrase (...),
+  Reason Phrase (b),
   Final Group (i),
   Final Object (i),
 }
@@ -2879,19 +2837,15 @@ SUBSCRIBE_RST Message {
             <p id="section-6.9-4.2.1">Error Code: Identifies an integer error code for subscription failure.<a href="#section-6.9-4.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-6.9-4.3">
-            <p id="section-6.9-4.3.1">Reason Phrase Length: The length in bytes of the reason phrase.<a href="#section-6.9-4.3.1" class="pilcrow">¶</a></p>
+            <p id="section-6.9-4.3.1">Reason Phrase: Provides the reason for subscription error.<a href="#section-6.9-4.3.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-6.9-4.4">
-            <p id="section-6.9-4.4.1">Reason Phrase: Provides the reason for subscription error and <code>Reason
-Phrase Length</code> field carries its length.<a href="#section-6.9-4.4.1" class="pilcrow">¶</a></p>
+            <p id="section-6.9-4.4.1">Final Group: The largest Group Sequence sent by the publisher in an OBJECT
+message in this track.<a href="#section-6.9-4.4.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-6.9-4.5">
-            <p id="section-6.9-4.5.1">Final Group: The largest Group Sequence sent by the publisher in an OBJECT
-message in this track.<a href="#section-6.9-4.5.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="section-6.9-4.6">
-            <p id="section-6.9-4.6.1">Final Object: The largest Object Sequence sent by the publisher in an OBJECT
-message in the <code>Final Group</code> for this track.<a href="#section-6.9-4.6.1" class="pilcrow">¶</a></p>
+            <p id="section-6.9-4.5.1">Final Object: The largest Object Sequence sent by the publisher in an OBJECT
+message in the <code>Final Group</code> for this track.<a href="#section-6.9-4.5.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
@@ -2975,8 +2929,7 @@ ANNOUNCE_ERROR
 {
   Track Namespace(b),
   Error Code (i),
-  Reason Phrase Length (i),
-  Reason Phrase (...),
+  Reason Phrase (b),
 }
 </pre>
 </div>
@@ -2993,8 +2946,7 @@ message for which this response is provided.<a href="#section-6.12-3.1.1" class=
             <p id="section-6.12-3.2.1">Error Code: Identifies an integer error code for announcement failure.<a href="#section-6.12-3.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-6.12-3.3">
-            <p id="section-6.12-3.3.1">Reason Phrase: Provides the reason for announcement error and <code>Reason
-Phrase Length</code> field carries its length.<a href="#section-6.12-3.3.1" class="pilcrow">¶</a></p>
+            <p id="section-6.12-3.3.1">Reason Phrase: Provides the reason for announcement error.<a href="#section-6.12-3.3.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
@@ -3102,7 +3054,7 @@ reaching a resource limit.<a href="#section-7.1-4" class="pilcrow">¶</a></p>
           <p id="section-8-2.1.1">MOQT version numbers<a href="#section-8-2.1.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="section-8-2.2">
-          <p id="section-8-2.2.1">SETUP parameters<a href="#section-8-2.2.1" class="pilcrow">¶</a></p>
+          <p id="section-8-2.2.1">Setup parameters<a href="#section-8-2.2.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="section-8-2.3">
           <p id="section-8-2.3.1">Track Request parameters<a href="#section-8-2.3.1" class="pilcrow">¶</a></p>
