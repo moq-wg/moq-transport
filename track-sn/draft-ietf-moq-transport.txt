@@ -1164,8 +1164,7 @@ Table of Contents
       are shorter than Full Track Names and thus reduce the overhead in
       OBJECT messages
 
-   *  Subscribe ID: Subscription Identifer from the incoming
-      subscription request for which this message is the response.
+   *  Subscribe ID: Subscription Identifer as defined in Section 6.4.
 
    *  Expires: Time in milliseconds after which the subscription is no
       longer valid.  A value of 0 indicates that the subscription stays
