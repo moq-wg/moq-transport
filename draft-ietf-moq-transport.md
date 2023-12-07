@@ -1078,10 +1078,10 @@ A SUBSCRIBE_OK control message is sent for successful subscriptions.
 ~~~
 SUBSCRIBE_OK
 {
+  Subscribe ID (i),
   Track Namespace (b),
   Track Name (b),
   Track ID (i),
-  Subscribe ID (i),
   Expires (i)
 }
 ~~~
