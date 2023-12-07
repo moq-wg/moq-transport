@@ -1096,8 +1096,7 @@ Full Track Name in the Track ID field of the OBJECT ({{message-object}})
 message headers of the requested track. Track IDs are shorter than
 Full Track Names and thus reduce the overhead in OBJECT messages
 
-* Subscribe ID: Subscription Identifer from the incoming subscription request
-for which this message is the response.
+* Subscribe ID: Subscription Identifier specified in the corresponding SUBSCRIBE message.
 
 * Expires: Time in milliseconds after which the subscription is no
 longer valid. A value of 0 indicates that the subscription stays active
