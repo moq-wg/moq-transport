@@ -1094,7 +1094,7 @@ SUBSCRIBE_OK
 
 * Track ID: Session specific identifier that is used as an alias for the
 Full Track Name in the Track ID field of the OBJECT ({{message-object}})
-message headers of the requested track. Track IDs are generally shorter than
+message headers of the requested track. Track IDs are shorter than
 Full Track Names and thus reduce the overhead in OBJECT messages
 
 * Subscribe ID: Subscription Identifer from the incoming subscription request
