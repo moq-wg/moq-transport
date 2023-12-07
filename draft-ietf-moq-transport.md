@@ -1006,7 +1006,6 @@ NOT be None if EndGroup's Mode is not None.
 * Track Request Parameters: The parameters are defined in
 {{version-specific-params}}
 
-
 On successful subscription, the publisher SHOULD start delivering
 objects from the group sequence and object sequence described above.
 
