@@ -987,8 +987,8 @@ SUBSCRIBE Message {
 is monotonically increasing variable length integer and it MUST uniquely
 identify a subscription within a session. `Subscribe ID` is used by
 subscribers and the publishers to identify a given subscription. Subscribers
-generate the `Subscribe ID` and it MUST be copied by the publisher when
-responding to the subscription requests.
+specify the `Subscribe ID` and it is included in the corresponding SUBSCRIBE_OK
+or SUBSCRIBE_ERROR.
 
 * StartGroup: The Location of the requested group.  StartGroup's Mode MUST NOT be
 None.
