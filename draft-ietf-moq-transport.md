@@ -983,12 +983,12 @@ SUBSCRIBE Message {
 
 * Track Name: Identifies the track name as defined in ({{track-name}}).
 
-* Subscribe ID: Session unique identifier for the subscription. `Subscribe ID`
-is monotonically increasing variable length integer and it MUST uniquely
-identify a subscription within a session. `Subscribe ID` is used by
-subscribers and the publishers to identify a given subscription. Subscribers
-specify the `Subscribe ID` and it is included in the corresponding SUBSCRIBE_OK
-or SUBSCRIBE_ERROR.
+* Subscribe ID: The subscription identifier that is unique within the session.
+`Subscribe ID` is a monotonically increasing variable length integer which
+MUST not be reused within a session. `Subscribe ID` is used by subscribers and
+the publishers to identify a given subscription. Subscribers specify the
+`Subscribe ID` and it is included in the corresponding SUBSCRIBE_OK or
+SUBSCRIBE_ERROR messages.
 
 * StartGroup: The Location of the requested group.  StartGroup's Mode MUST NOT be
 None.
