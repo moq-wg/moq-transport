@@ -28,13 +28,13 @@ networks and is designed for high scale and low latency distribution.
     intervaltree 3.1.0
     Jinja2 3.1.2
     lxml 4.9.3
-    platformdirs 3.11.0
+    platformdirs 4.1.0
     pycountry 22.3.5
     PyYAML 6.0
     requests 2.31.0
     setuptools 67.7.2
     six 1.16.0
-    wcwidth 0.2.9
+    wcwidth 0.2.12
 -->
 <link href="draft-ietf-moq-transport.xml" rel="alternate" type="application/rfc+xml">
 <link href="#copyright" rel="license">
@@ -1033,11 +1033,11 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <thead><tr>
 <td class="left">Internet-Draft</td>
 <td class="center">moq-transport</td>
-<td class="right">November 2023</td>
+<td class="right">December 2023</td>
 </tr></thead>
 <tfoot><tr>
 <td class="left">Curley, et al.</td>
-<td class="center">Expires 11 May 2024</td>
+<td class="center">Expires 9 June 2024</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1050,12 +1050,12 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dd class="internet-draft">draft-ietf-moq-transport-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2023-11-08" class="published">8 November 2023</time>
+<time datetime="2023-12-07" class="published">7 December 2023</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2024-05-11">11 May 2024</time></dd>
+<dd class="expires"><time datetime="2024-06-09">9 June 2024</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1117,7 +1117,7 @@ networks and is designed for high scale and low latency distribution.<a href="#s
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 11 May 2024.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 9 June 2024.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1292,7 +1292,7 @@ networks and is designed for high scale and low latency distribution.<a href="#s
                     <p id="section-toc.1-1.6.2.4.2.1.1"><a href="#section-6.4.1" class="auto internal xref">6.4.1</a>.  <a href="#name-subscribe-locations" class="internal xref">Subscribe Locations</a></p>
 </li>
                   <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.4.2.2">
-                    <p id="section-toc.1-1.6.2.4.2.2.1"><a href="#section-6.4.2" class="auto internal xref">6.4.2</a>.  <a href="#name-subscribe-request-format" class="internal xref">SUBSCRIBE REQUEST Format</a></p>
+                    <p id="section-toc.1-1.6.2.4.2.2.1"><a href="#section-6.4.2" class="auto internal xref">6.4.2</a>.  <a href="#name-subscribe-format" class="internal xref">SUBSCRIBE Format</a></p>
 </li>
                   <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.4.2.3">
                     <p id="section-toc.1-1.6.2.4.2.3.1"><a href="#section-6.4.3" class="auto internal xref">6.4.3</a>.  <a href="#name-examples" class="internal xref">Examples</a></p>
@@ -2097,11 +2097,11 @@ based on prior business agreement).<a href="#section-5.2-3.1.1" class="pilcrow">
 providing the result of announcement. The entity receiving the
 ANNOUNCE <span class="bcp14">MUST</span> send only a single response to a given ANNOUNCE of
 either ANNOUNCE_OK or ANNOUNCE_ERROR.<a href="#section-5.2-4" class="pilcrow">¶</a></p>
-<p id="section-5.2-5">OBJECT message header carry short hop-by-hop <code>Track Alias</code> that maps to the
-Full Track Name (see <a href="#message-subscribe-ok" class="auto internal xref">Section 6.5</a>). Relays use the <code>Track Alias</code>
-of an incoming OBJECT message to identify its track and find the active
-subscribers for that track. Relays <span class="bcp14">MUST NOT</span> depend on OBJECT payload
-content for making forwarding decisions and <span class="bcp14">MUST</span> only depend on the
+<p id="section-5.2-5">OBJECT message headers carry a short hop-by-hop <code>Track Alias</code> that maps to
+the Full Track Name (see <a href="#message-subscribe-ok" class="auto internal xref">Section 6.5</a>). Relays use the
+<code>Track Alias</code> of an incoming OBJECT message to identify its track and find
+the active subscribers for that track. Relays <span class="bcp14">MUST NOT</span> depend on OBJECT
+payload content for making forwarding decisions and <span class="bcp14">MUST</span> only depend on the
 fields, such as priority order and other metadata properties in the
 OBJECT message header. Unless determined by congestion response, Relays
 <span class="bcp14">MUST</span> forward the OBJECT message to the matching subscribers.<a href="#section-5.2-5" class="pilcrow">¶</a></p>
@@ -2423,7 +2423,7 @@ the <code>query</code> portion of the URI to the parameter.<a href="#section-6.2
 specified track, as well as associated metadata required to deliver,
 cache, and forward it. There are two subtypes of this message. When the
 message type is 0x00, the optional Object Payload Length field is
-present. When the message type ix 0x02, the field is not present.<a href="#section-6.3-1" class="pilcrow">¶</a></p>
+present. When the message type is 0x02, the field is not present.<a href="#section-6.3-1" class="pilcrow">¶</a></p>
 <p id="section-6.3-2">The format of the OBJECT message is as follows:<a href="#section-6.3-2" class="pilcrow">¶</a></p>
 <span id="name-moqt-object-message"></span><div id="moq-transport-object-format">
 <figure id="figure-4">
@@ -2434,7 +2434,7 @@ OBJECT Message {
   Group Sequence (i),
   Object Sequence (i),
   Object Send Order (i),
-  [Object Payload Length (i),]
+  [Object Payload Length (i)],
   Object Payload (b),
 }
 </pre>
@@ -2445,8 +2445,8 @@ OBJECT Message {
 </div>
 <ul class="normal">
 <li class="normal" id="section-6.3-4.1">
-            <p id="section-6.3-4.1.1">Track Alias: The track alias obtained as part of subscription and/or
-publish control message exchanges.<a href="#section-6.3-4.1.1" class="pilcrow">¶</a></p>
+            <p id="section-6.3-4.1.1">Track Alias : The compressed full track name obtained as part of
+subscription and/or publish control message exchanges.<a href="#section-6.3-4.1.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-6.3-4.2">
             <p id="section-6.3-4.2.1">Group Sequence : The object is a member of the indicated group
@@ -2517,17 +2517,18 @@ RelativeNext Value:                               0    1  ...
             </figcaption></figure>
 </section>
 </div>
-<div id="subscribe-request-format">
+<div id="subscribe-format">
 <section id="section-6.4.2">
-          <h4 id="name-subscribe-request-format">
-<a href="#section-6.4.2" class="section-number selfRef">6.4.2. </a><a href="#name-subscribe-request-format" class="section-name selfRef">SUBSCRIBE REQUEST Format</a>
+          <h4 id="name-subscribe-format">
+<a href="#section-6.4.2" class="section-number selfRef">6.4.2. </a><a href="#name-subscribe-format" class="section-name selfRef">SUBSCRIBE Format</a>
           </h4>
-<p id="section-6.4.2-1">The format of SUBSCRIBE REQUEST is as follows:<a href="#section-6.4.2-1" class="pilcrow">¶</a></p>
+<p id="section-6.4.2-1">The format of SUBSCRIBE is as follows:<a href="#section-6.4.2-1" class="pilcrow">¶</a></p>
 <span id="name-moqt-subscribe-message"></span><div id="moq-transport-subscribe-format">
 <figure id="figure-6">
             <div class="alignLeft art-text artwork" id="section-6.4.2-2.1">
 <pre>
-SUBSCRIBE REQUEST Message {
+SUBSCRIBE Message {
+  Subscribe ID (i),
   Track Namespace (b),
   Track Name (b),
   StartGroup (Location),
@@ -2551,24 +2552,32 @@ SUBSCRIBE REQUEST Message {
               <p id="section-6.4.2-3.2.1">Track Name: Identifies the track name as defined in (<a href="#track-name" class="auto internal xref">Section 2.3.1</a>).<a href="#section-6.4.2-3.2.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-6.4.2-3.3">
-              <p id="section-6.4.2-3.3.1">StartGroup: The Location of the requested group.  StartGroup's Mode <span class="bcp14">MUST NOT</span> be
-None.<a href="#section-6.4.2-3.3.1" class="pilcrow">¶</a></p>
+              <p id="section-6.4.2-3.3.1">Subscribe ID: The subscription identifier that is unique within the session.
+<code>Subscribe ID</code> is a monotonically increasing variable length integer which
+<span class="bcp14">MUST</span> not be reused within a session. <code>Subscribe ID</code> is used by subscribers and
+the publishers to identify a given subscription. Subscribers specify the
+<code>Subscribe ID</code> and it is included in the corresponding SUBSCRIBE_OK or
+SUBSCRIBE_ERROR messages.<a href="#section-6.4.2-3.3.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-6.4.2-3.4">
-              <p id="section-6.4.2-3.4.1">StartObject: The Location of the requested object.  StartObject's Mode <span class="bcp14">MUST NOT</span>
-be None.<a href="#section-6.4.2-3.4.1" class="pilcrow">¶</a></p>
+              <p id="section-6.4.2-3.4.1">StartGroup: The Location of the requested group.  StartGroup's Mode <span class="bcp14">MUST NOT</span> be
+None.<a href="#section-6.4.2-3.4.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-6.4.2-3.5">
-              <p id="section-6.4.2-3.5.1">EndGroup: The last Group requested in the subscription, inclusive.  EndGroup's
-Mode is None for an open-ended subscription.<a href="#section-6.4.2-3.5.1" class="pilcrow">¶</a></p>
+              <p id="section-6.4.2-3.5.1">StartObject: The Location of the requested object.  StartObject's Mode <span class="bcp14">MUST NOT</span>
+be None.<a href="#section-6.4.2-3.5.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-6.4.2-3.6">
-              <p id="section-6.4.2-3.6.1">EndObject: The last Object requested in the subscription, exclusive.
-EndObject's Mode <span class="bcp14">MUST</span> be None if EndGroup's Mode is None.  EndObject's Mode <span class="bcp14">MUST NOT</span> be None if EndGroup's Mode is not None.<a href="#section-6.4.2-3.6.1" class="pilcrow">¶</a></p>
+              <p id="section-6.4.2-3.6.1">EndGroup: The last Group requested in the subscription, inclusive.  EndGroup's
+Mode is None for an open-ended subscription.<a href="#section-6.4.2-3.6.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-6.4.2-3.7">
-              <p id="section-6.4.2-3.7.1">Track Request Parameters: The parameters are defined in
-<a href="#version-specific-params" class="auto internal xref">Section 6.1.1</a><a href="#section-6.4.2-3.7.1" class="pilcrow">¶</a></p>
+              <p id="section-6.4.2-3.7.1">EndObject: The last Object requested in the subscription, exclusive.
+EndObject's Mode <span class="bcp14">MUST</span> be None if EndGroup's Mode is None.  EndObject's Mode <span class="bcp14">MUST NOT</span> be None if EndGroup's Mode is not None.<a href="#section-6.4.2-3.7.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-6.4.2-3.8">
+              <p id="section-6.4.2-3.8.1">Track Request Parameters: The parameters are defined in
+<a href="#version-specific-params" class="auto internal xref">Section 6.1.1</a><a href="#section-6.4.2-3.8.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
 <p id="section-6.4.2-4">On successful subscription, the publisher <span class="bcp14">SHOULD</span> start delivering
@@ -2576,6 +2585,8 @@ objects from the group sequence and object sequence described above.<a href="#se
 <p id="section-6.4.2-5">If a publisher cannot satisfy the requested start or end for the subscription it
 <span class="bcp14">MAY</span> send a SUBSCRIBE_ERROR with code TBD. A publisher <span class="bcp14">MUST NOT</span> send objects
 from outside the requested start and end.<a href="#section-6.4.2-5" class="pilcrow">¶</a></p>
+<p id="section-6.4.2-6">TODO: Define the flow where subscribe request matches an existing subscribe id
+(subscription updates.)<a href="#section-6.4.2-6" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="examples">
@@ -2621,7 +2632,6 @@ Start Group: Mode=RelativeNext, Value=0
 Start Object: Mode=Absolute, Value=0
 End Group: Mode=None
 End Object: Mode=None
-
 StartGroup=Largest Group + 1
 StartObject=0
 
@@ -2652,6 +2662,7 @@ End = Group 3, Object &lt;last&gt;
 <pre>
 SUBSCRIBE_OK
 {
+  Subscribe ID (i),
   Track Namespace (b),
   Track Name (b),
   Track Alias (i),
@@ -2665,22 +2676,25 @@ SUBSCRIBE_OK
 </div>
 <ul class="normal">
 <li class="normal" id="section-6.5-3.1">
-            <p id="section-6.5-3.1.1">Track Namespace: Identifies the namespace of the track as defined in
-(<a href="#track-name" class="auto internal xref">Section 2.3.1</a>).<a href="#section-6.5-3.1.1" class="pilcrow">¶</a></p>
+            <p id="section-6.5-3.1.1">Subscribe ID: Subscription Identifer as defined in <a href="#message-subscribe-req" class="auto internal xref">Section 6.4</a>.<a href="#section-6.5-3.1.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-6.5-3.2">
-            <p id="section-6.5-3.2.1">Track Name: Identifies the track name as defined in (<a href="#track-name" class="auto internal xref">Section 2.3.1</a>).<a href="#section-6.5-3.2.1" class="pilcrow">¶</a></p>
+            <p id="section-6.5-3.2.1">Track Namespace: Identifies the namespace of the track as defined in
+(<a href="#track-name" class="auto internal xref">Section 2.3.1</a>).<a href="#section-6.5-3.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-6.5-3.3">
-            <p id="section-6.5-3.3.1">Track Alias: Session specific identifier that is used as an alias for the
-Full Track Name in the Track Alias field of the OBJECT (<a href="#message-object" class="auto internal xref">Section 6.3</a>)
-message headers of the requested track. Track Aliases are generally shorter
-than Full Track Names and thus reduce the overhead in OBJECT messages.<a href="#section-6.5-3.3.1" class="pilcrow">¶</a></p>
+            <p id="section-6.5-3.3.1">Track Name: Identifies the track name as defined in (<a href="#track-name" class="auto internal xref">Section 2.3.1</a>).<a href="#section-6.5-3.3.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-6.5-3.4">
-            <p id="section-6.5-3.4.1">Expires: Time in milliseconds after which the subscription is no
+            <p id="section-6.5-3.4.1">Track Alias: Session specific identifier that is used as an alias for the
+Full Track Name in the Track Alias field of the OBJECT (<a href="#message-object" class="auto internal xref">Section 6.3</a>)
+message headers of the requested track. Track Aliases are shorter
+than Full Track Names and thus reduce the overhead in OBJECT messages.<a href="#section-6.5-3.4.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-6.5-3.5">
+            <p id="section-6.5-3.5.1">Expires: Time in milliseconds after which the subscription is no
 longer valid. A value of 0 indicates that the subscription stays active
-until it is explicitly unsubscribed.<a href="#section-6.5-3.4.1" class="pilcrow">¶</a></p>
+until it is explicitly unsubscribed.<a href="#section-6.5-3.5.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
@@ -2698,8 +2712,7 @@ failed SUBSCRIBE.<a href="#section-6.6-1" class="pilcrow">¶</a></p>
 <pre>
 SUBSCRIBE_ERROR
 {
-  Track Namespace (b),
-  Track Name (b),
+  Subscribe ID (i),
   Error Code (i),
   Reason Phrase (b),
 }
@@ -2711,20 +2724,16 @@ SUBSCRIBE_ERROR
 </div>
 <ul class="normal">
 <li class="normal" id="section-6.6-3.1">
-            <p id="section-6.6-3.1.1">Track Namespace: Identifies the namespace of the track as defined in
-(<a href="#track-name" class="auto internal xref">Section 2.3.1</a>).<a href="#section-6.6-3.1.1" class="pilcrow">¶</a></p>
+            <p id="section-6.6-3.1.1">Subscribe ID: Subscription Identifer as defined in <a href="#message-subscribe-req" class="auto internal xref">Section 6.4</a>.<a href="#section-6.6-3.1.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-6.6-3.2">
-            <p id="section-6.6-3.2.1">Track Name: Identifies the track name as defined in (<a href="#track-name" class="auto internal xref">Section 2.3.1</a>).<a href="#section-6.6-3.2.1" class="pilcrow">¶</a></p>
+            <p id="section-6.6-3.2.1">Error Code: Identifies an integer error code for subscription failure.<a href="#section-6.6-3.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-6.6-3.3">
-            <p id="section-6.6-3.3.1">Error Code: Identifies an integer error code for subscription failure.<a href="#section-6.6-3.3.1" class="pilcrow">¶</a></p>
+            <p id="section-6.6-3.3.1">Reason Phrase Length: The length in bytes of the reason phrase.<a href="#section-6.6-3.3.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-6.6-3.4">
-            <p id="section-6.6-3.4.1">Reason Phrase Length: The length in bytes of the reason phrase.<a href="#section-6.6-3.4.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="section-6.6-3.5">
-            <p id="section-6.6-3.5.1">Reason Phrase: Provides the reason for subscription error.<a href="#section-6.6-3.5.1" class="pilcrow">¶</a></p>
+            <p id="section-6.6-3.4.1">Reason Phrase: Provides the reason for subscription error.<a href="#section-6.6-3.4.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
@@ -2742,8 +2751,7 @@ longer interested in receiving media for the specified track.<a href="#section-6
           <div class="alignLeft art-text artwork" id="section-6.7-3.1">
 <pre>
 UNSUBSCRIBE Message {
-  Track Namespace (b),
-  Track Name (b),
+  Subscribe ID (i)
 }
 </pre>
 </div>
@@ -2753,11 +2761,7 @@ UNSUBSCRIBE Message {
 </div>
 <ul class="normal">
 <li class="normal" id="section-6.7-4.1">
-            <p id="section-6.7-4.1.1">Track Namespace: Identifies the namespace of the track as defined in
-(<a href="#track-name" class="auto internal xref">Section 2.3.1</a>).<a href="#section-6.7-4.1.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="section-6.7-4.2">
-            <p id="section-6.7-4.2.1">Track Name: Identifies the track name as defined in (<a href="#track-name" class="auto internal xref">Section 2.3.1</a>).<a href="#section-6.7-4.2.1" class="pilcrow">¶</a></p>
+            <p id="section-6.7-4.1.1">Subscribe ID: Subscription Identifer as defined in <a href="#message-subscribe-req" class="auto internal xref">Section 6.4</a>.<a href="#section-6.7-4.1.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
@@ -2775,8 +2779,7 @@ is done publishing objects on the subscribed track.<a href="#section-6.8-1" clas
           <div class="alignLeft art-text artwork" id="section-6.8-3.1">
 <pre>
 SUBSCRIBE_FIN Message {
-  Track Namespace (b),
-  Track Name (b),
+  Subscribe ID (i),
   Final Group (i),
   Final Object (i),
 }
@@ -2788,19 +2791,15 @@ SUBSCRIBE_FIN Message {
 </div>
 <ul class="normal">
 <li class="normal" id="section-6.8-4.1">
-            <p id="section-6.8-4.1.1">Track Namespace: Identifies the namespace of the track as defined in
-(<a href="#track-name" class="auto internal xref">Section 2.3.1</a>).<a href="#section-6.8-4.1.1" class="pilcrow">¶</a></p>
+            <p id="section-6.8-4.1.1">Subscribe ID: Subscription identifier as defined in <a href="#message-subscribe-req" class="auto internal xref">Section 6.4</a>.<a href="#section-6.8-4.1.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-6.8-4.2">
-            <p id="section-6.8-4.2.1">Track Name: Identifies the track name as defined in (<a href="#track-name" class="auto internal xref">Section 2.3.1</a>).<a href="#section-6.8-4.2.1" class="pilcrow">¶</a></p>
+            <p id="section-6.8-4.2.1">Final Group: The largest Group Sequence sent by the publisher in an OBJECT
+message in this track.<a href="#section-6.8-4.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-6.8-4.3">
-            <p id="section-6.8-4.3.1">Final Group: The largest Group Sequence sent by the publisher in an OBJECT
-message in this track.<a href="#section-6.8-4.3.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="section-6.8-4.4">
-            <p id="section-6.8-4.4.1">Final Object: The largest Object Sequence sent by the publisher in an OBJECT
-message in the <code>Final Group</code> for this track.<a href="#section-6.8-4.4.1" class="pilcrow">¶</a></p>
+            <p id="section-6.8-4.3.1">Final Object: The largest Object Sequence sent by the publisher in an OBJECT
+message in the <code>Final Group</code> for this track.<a href="#section-6.8-4.3.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
@@ -2818,8 +2817,7 @@ was an error publishing to the given track and subscription is terminated.<a hre
           <div class="alignLeft art-text artwork" id="section-6.9-3.1">
 <pre>
 SUBSCRIBE_RST Message {
-  Track Namespace (b),
-  Track Name (b),
+  Subscribe ID (i),
   Error Code (i),
   Reason Phrase (b),
   Final Group (i),
@@ -2833,25 +2831,21 @@ SUBSCRIBE_RST Message {
 </div>
 <ul class="normal">
 <li class="normal" id="section-6.9-4.1">
-            <p id="section-6.9-4.1.1">Track Namespace: Identifies the namespace of the track as defined in
-(<a href="#track-name" class="auto internal xref">Section 2.3.1</a>).<a href="#section-6.9-4.1.1" class="pilcrow">¶</a></p>
+            <p id="section-6.9-4.1.1">Subscribe ID: Subscription Identifier as defined in <a href="#message-subscribe-req" class="auto internal xref">Section 6.4</a>.<a href="#section-6.9-4.1.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-6.9-4.2">
-            <p id="section-6.9-4.2.1">Track Name: Identifies the track name as defined in (<a href="#track-name" class="auto internal xref">Section 2.3.1</a>).<a href="#section-6.9-4.2.1" class="pilcrow">¶</a></p>
+            <p id="section-6.9-4.2.1">Error Code: Identifies an integer error code for subscription failure.<a href="#section-6.9-4.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-6.9-4.3">
-            <p id="section-6.9-4.3.1">Error Code: Identifies an integer error code for subscription failure.<a href="#section-6.9-4.3.1" class="pilcrow">¶</a></p>
+            <p id="section-6.9-4.3.1">Reason Phrase: Provides the reason for subscription error.<a href="#section-6.9-4.3.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-6.9-4.4">
-            <p id="section-6.9-4.4.1">Reason Phrase: Provides the reason for subscription error.<a href="#section-6.9-4.4.1" class="pilcrow">¶</a></p>
+            <p id="section-6.9-4.4.1">Final Group: The largest Group Sequence sent by the publisher in an OBJECT
+message in this track.<a href="#section-6.9-4.4.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-6.9-4.5">
-            <p id="section-6.9-4.5.1">Final Group: The largest Group Sequence sent by the publisher in an OBJECT
-message in this track.<a href="#section-6.9-4.5.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="section-6.9-4.6">
-            <p id="section-6.9-4.6.1">Final Object: The largest Object Sequence sent by the publisher in an OBJECT
-message in the <code>Final Group</code> for this track.<a href="#section-6.9-4.6.1" class="pilcrow">¶</a></p>
+            <p id="section-6.9-4.5.1">Final Object: The largest Object Sequence sent by the publisher in an OBJECT
+message in the <code>Final Group</code> for this track.<a href="#section-6.9-4.5.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
