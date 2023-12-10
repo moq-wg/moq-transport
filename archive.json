@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2023-12-07T01:10:44.128987+00:00",
+  "timestamp": "2023-12-10T01:14:59.102106+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -40682,24 +40682,26 @@
       "id": "PR_kwDOG2Ho4M5d_khr",
       "title": "Add Subscribe Id support",
       "url": "https://github.com/moq-wg/moq-transport/pull/305",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "suhasHere",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [],
       "body": "This PR is expected to be base PR to support multi-subscribe like flows that will follow up.\r\n\r\nIt adds support for SubscribeID and also renames the trackId to `Full Track Name Alias` to avoid the confusion and make the scope clear.\r\n\r\n",
       "createdAt": "2023-10-27T17:14:58Z",
-      "updatedAt": "2023-11-16T05:20:30Z",
+      "updatedAt": "2023-12-07T21:14:06Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
-      "baseRefOid": "f8dd2386d2c2d471d76e4b19aaaa811f2e13ddfe",
+      "baseRefOid": "de5e92e3668272cb70a27dda5b52c642dae0406d",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "track-sn",
-      "headRefOid": "22eab2450cc3c83e1e184a581ae788acf2bc70b5",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "headRefOid": "1b6a41b273cfca844ee5fa3f2dfd0a58bca68ede",
+      "closedAt": "2023-12-07T21:14:06Z",
+      "mergedAt": "2023-12-07T21:14:06Z",
+      "mergedBy": "ianswett",
+      "mergeCommit": {
+        "oid": "d5d8cfe9084c2fb2d1ee1e3381341d67e487605a"
+      },
       "comments": [
         {
           "author": "suhasHere",
@@ -40956,6 +40958,119 @@
               "updatedAt": "2023-11-16T05:20:30Z"
             }
           ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5pkQyy",
+          "commit": {
+            "abbreviatedOid": "56bfa7f"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2023-12-07T20:53:56Z",
+          "updatedAt": "2023-12-07T20:53:57Z",
+          "comments": [
+            {
+              "originalPosition": 62,
+              "body": "```suggestion\r\nspecify the `Subscribe ID` and it is included in the corresponding SUBSCRIBE_OK\r\nor SUBSCRIBE_ERROR.\r\n```",
+              "createdAt": "2023-12-07T20:53:56Z",
+              "updatedAt": "2023-12-07T20:53:57Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5pkTqO",
+          "commit": {
+            "abbreviatedOid": "2f28f9e"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2023-12-07T21:02:29Z",
+          "updatedAt": "2023-12-07T21:02:30Z",
+          "comments": [
+            {
+              "originalPosition": 107,
+              "body": "```suggestion\r\nmessage headers of the requested track. Track IDs are shorter than\r\n```",
+              "createdAt": "2023-12-07T21:02:30Z",
+              "updatedAt": "2023-12-07T21:02:30Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5pkUMR",
+          "commit": {
+            "abbreviatedOid": "0b8c25c"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2023-12-07T21:04:10Z",
+          "updatedAt": "2023-12-07T21:04:10Z",
+          "comments": [
+            {
+              "originalPosition": 71,
+              "body": "```suggestion\r\n```",
+              "createdAt": "2023-12-07T21:04:10Z",
+              "updatedAt": "2023-12-07T21:04:10Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5pkUzU",
+          "commit": {
+            "abbreviatedOid": "6c074f5"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2023-12-07T21:06:06Z",
+          "updatedAt": "2023-12-07T21:06:06Z",
+          "comments": [
+            {
+              "originalPosition": 103,
+              "body": "```suggestion\r\n* Subscribe ID: Subscription Identifier specified in the corresponding SUBSCRIBE message.\r\n```",
+              "createdAt": "2023-12-07T21:06:06Z",
+              "updatedAt": "2023-12-07T21:06:06Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5pkVII",
+          "commit": {
+            "abbreviatedOid": "4ca525d"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2023-12-07T21:07:07Z",
+          "updatedAt": "2023-12-07T21:07:07Z",
+          "comments": [
+            {
+              "originalPosition": 102,
+              "body": "```suggestion\r\n* Subscribe ID: Subscription Identifer as defined in {{message-subscribe-req}}.\r\n```",
+              "createdAt": "2023-12-07T21:07:07Z",
+              "updatedAt": "2023-12-07T21:07:07Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5pkVV4",
+          "commit": {
+            "abbreviatedOid": "181627b"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2023-12-07T21:07:49Z",
+          "updatedAt": "2023-12-07T21:07:49Z",
+          "comments": []
         }
       ]
     },
