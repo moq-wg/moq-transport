@@ -261,8 +261,8 @@ on a local network may limit the scope to a single connection; by
 contrast, an application that uses multiple CDNs to serve media may
 require the scope to include all of those CDNs.
 
-The tuple of Track Namespace and Track Name identify the track
-within a given MOQT scope and is used as cache key.
+Because the tuple of Track Namespace and Track Name are unique within an
+MOQT scope, they can be used as a cache key.
 MOQT does not provide any in-band content negotiation methods similar to
 the ones defined by HTTP ({{?RFC9110, Section 10}}); if, at a given
 moment in time, two tracks within the same scope contain different data,
