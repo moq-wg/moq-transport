@@ -1048,7 +1048,7 @@ Table of Contents
       Namespace to reduce overhead.  If the Track Alias is already in
       use, the publisher MUST close the session with a Duplicate Track
       Alias error (Section 3.5).  Unless the publisher responsds with a
-      different Track Alias in SUBSCRIBE_ERROR, the subscriber SHOULD
+      different Track Alias in SUBSCRIBE_ERROR, the subscriber MUST
       specify a Track Alias that is equal to the Subscribe ID.
 
    *  Track Namespace: Identifies the namespace of the track as defined
