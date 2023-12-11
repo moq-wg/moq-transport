@@ -420,21 +420,21 @@ Section 5}}).
 The application MAY use any error message and SHOULD use a relevant
 code, as defined below:
 
-|------|--------------------|
-| Code | Reason             |
-|-----:|:-------------------|
-| 0x0  | No Error           |
-|------|--------------------|
-| 0x1  | Generic Error      |
-|------|--------------------|
-| 0x2  | Unauthorized       |
-|------|--------------------|
-| 0x3  | Protocol Violation |
-|------|--------------------|
-| 0x4  | Duplicate Track ID |
-|------|--------------------|
-| 0x10 | GOAWAY Timeout     |
-|------|--------------------|
+|------|-----------------------|
+| Code | Reason                |
+|-----:|:----------------------|
+| 0x0  | No Error              |
+|------|-----------------------|
+| 0x1  | Generic Error         |
+|------|-----------------------|
+| 0x2  | Unauthorized          |
+|------|-----------------------|
+| 0x3  | Protocol Violation    |
+|------|-----------------------|
+| 0x4  | Duplicate Track Alias |
+|------|-----------------------|
+| 0x10 | GOAWAY Timeout        |
+|------|-----------------------|
 
 * No Error: The session is being terminated without an error.
 
@@ -446,7 +446,8 @@ code, as defined below:
 * Protocol Violation: The remote endpoint performed an action that was
   disallowed by the specification.
 
-* Duplicate Track ID: The endpoint attempted to use a Track ID that was already in use.
+* Duplicate Track Alias: The endpoint attempted to use a Track Alias
+that was already in use.
 
 * GOAWAY Timeout: The session was closed because the client took too long to
   close the session in response to a GOAWAY ({{message-goaway}}) message.
@@ -954,6 +955,7 @@ The format of SUBSCRIBE is as follows:
 ~~~
 SUBSCRIBE Message {
   Subscribe ID (i),
+  Track Alias (i),
   Track Namespace (b),
   Track Name (b),
   StartGroup (Location),
@@ -965,22 +967,25 @@ SUBSCRIBE Message {
 ~~~
 {: #moq-transport-subscribe-format title="MOQT SUBSCRIBE Message"}
 
-* Track ID: A session specific identifier for the track.
-  Messages that reference a track, such as OBJECT ({{message-object}}),
-  reference this Track ID instead of the Full Track Name to reduce overhead.
-  If the Track ID is already in use, the receiver MUST close the session with a Duplicate Track ID error ({{session-termination}}).
-
-* Track Namespace: Identifies the namespace of the track as defined in
-({{track-name}}).
-
-* Track Name: Identifies the track name as defined in ({{track-name}}).
-
 * Subscribe ID: The subscription identifier that is unique within the session.
 `Subscribe ID` is a monotonically increasing variable length integer which
 MUST not be reused within a session. `Subscribe ID` is used by subscribers and
 the publishers to identify a given subscription. Subscribers specify the
 `Subscribe ID` and it is included in the corresponding SUBSCRIBE_OK or
 SUBSCRIBE_ERROR messages.
+
+* Track Alias: A session specific identifier for the track.
+Messages that reference a track, such as OBJECT ({{message-object}}),
+reference this Track Alias instead of the Track Name and Track Namespace to
+reduce overhead. If the Track Alias is already in use, the publisher MUST
+close the session with a Duplicate Track Alias error ({{session-termination}}).
+Unless the publisher responsds with a different Track Alias in SUBSCRIBE_ERROR,
+the subscriber SHOULD specify a Track Alias that is equal to the Subscribe ID.
+
+* Track Namespace: Identifies the namespace of the track as defined in
+({{track-name}}).
+
+* Track Name: Identifies the track name as defined in ({{track-name}}).
 
 * StartGroup: The Location of the requested group.  StartGroup's Mode MUST NOT be
 None.
@@ -1110,8 +1115,8 @@ SUBSCRIBE_ERROR
 * Reason Phrase: Provides the reason for subscription error.
 
 * Track Alias: When not equal to Subscribe ID, the subscriber SHOULD re-issue the
-  SUBSCRIBE with this Track Alias instead. If this Track ID is already in use,
-  the receiver MUST close the connection with a Duplicate Track ID error
+  SUBSCRIBE with this Track Alias instead. If this Track Alias is already in use,
+  the receiver MUST close the connection with a Duplicate Track Alias error
   ({{session-termination}}).
   TODO: Add a registry for subscribe error codes and make this field conditional.
 
