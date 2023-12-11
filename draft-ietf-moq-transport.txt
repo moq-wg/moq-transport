@@ -5,12 +5,12 @@
 MOQ                                                            L. Curley
 Internet-Draft                                                    Twitch
 Intended status: Standards Track                                K. Pugin
-Expires: 9 June 2024                                                Meta
+Expires: 13 June 2024                                               Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                                   Google
-                                                         7 December 2023
+                                                        11 December 2023
 
 
                        Media over QUIC Transport
@@ -52,7 +52,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 9 June 2024.
+   This Internet-Draft will expire on 13 June 2024.
 
 Copyright Notice
 
@@ -308,43 +308,21 @@ Table of Contents
    associated with it.  A track name identifies an individual track
    within the namespace.
 
-   A tuple of a track name and a track namespace together is known as a
-   full track name:
-
-   Full Track Name = Track Namespace Track Name
-
    A MOQT scope is a set of servers (as identified by their connection
-   URIs) for which full track names are guaranteed to be unique.  This
-   implies that within a single MOQT scope, subscribing to the same full
-   track name would result in the subscriber receiving the data for the
-   same track.  It is up to the application using MOQT to define how
-   broad or narrow the scope has to be.  An application that deals with
-   connections between devices on a local network may limit the scope to
-   a single connection; by contrast, an application that uses multiple
-   CDNs to serve media may require the scope to include all of those
-   CDNs.
+   URIs) for which the tuple of Track Name and Track Namespace are
+   guaranteed to be unique and identify a specific track.  It is up to
+   the application using MOQT to define how broad or narrow the scope
+   is.  An application that deals with connections between devices on a
+   local network may limit the scope to a single connection; by
+   contrast, an application that uses multiple CDNs to serve media may
+   require the scope to include all of those CDNs.
 
-   The full track name is the only piece of information that is used to
-   identify the track within a given MOQT scope and is used as cache
-   key.  MOQT does not provide any in-band content negotiation methods
-   similar to the ones defined by HTTP ([RFC9110], Section 10); if, at a
-   given moment in time, two tracks within the same scope contain
-   different data, they have to have different full track names.
-
-   Example: 1
-   Track Namespace = live.example.com/meeting/123/member/alice/
-   Track Name = audio
-   Full Track Name = live.example.com/meeting/123/member/alice/audio
-
-   Example: 2
-   Track Namespace = live.example.com/
-   Track Name = uaCafDkl123/audio
-   Full Track Name = live.example.com/uaCafDkl123/audio
-
-   Example: 3
-   Track Namespace = security-camera.example.com/camera1/
-   Track Name = hd-video
-   Full Track Name = security-camera.example.com/camera1/hd-video
+   Because the tuple of Track Namespace and Track Name are unique within
+   an MOQT scope, they can be used as a cache key.  MOQT does not
+   provide any in-band content negotiation methods similar to the ones
+   defined by HTTP ([RFC9110], Section 10); if, at a given moment in
+   time, two tracks within the same scope contain different data, they
+   have to have different names and/or namespaces.
 
    In this specification, both the Track Namespace and the Track Name
    are not constrained to a specific encoding.  They carry a sequence of
@@ -657,10 +635,10 @@ Table of Contents
    Subscribers interact with the Relays by sending a SUBSCRIBE
    (Section 6.4) control message for the tracks of interest.  Relays
    MUST ensure subscribers are authorized to access the content
-   associated with the Full Track Name.  The authorization information
-   can be part of subscription request itself or part of the
-   encompassing session.  The specifics of how a relay authorizes a user
-   are outside the scope of this specification.
+   associated with the track.  The authorization information can be part
+   of subscription request itself or part of the encompassing session.
+   The specifics of how a relay authorizes a user are outside the scope
+   of this specification.
 
    The subscriber making the subscribe request is notified of the result
    of the subscription, via SUBSCRIBE_OK (Section 6.5) or the
@@ -669,11 +647,12 @@ Table of Contents
    of either SUBSCRIBE_OK or SUBSCRIBE_ERROR.
 
    For successful subscriptions, the publisher maintains a list of
-   subscribers for each full track name.  Each new OBJECT belonging to
-   the track is forwarded to each active subscriber, dependent on the
-   congestion response.  A subscription remains active until it expires,
-   until the publisher of the track terminates the track with a
-   SUBSCRIBE_FIN (see Section 6.8) or a SUBSCRIBE_RST (see Section 6.9).
+   subscribers for each track.  Each new OBJECT belonging to the track
+   within the subscription range is forwarded to each active subscriber,
+   dependent on the congestion response.  A subscription remains active
+   until it expires, until the publisher of the track terminates the
+   track with a SUBSCRIBE_FIN (see Section 6.8) or a SUBSCRIBE_RST (see
+   Section 6.9).
 
    Relays MAY aggregate authorized subscriptions for a given track when
    multiple subscribers request the same track.  Subscription
