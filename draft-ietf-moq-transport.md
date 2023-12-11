@@ -254,9 +254,9 @@ namespace.
 
 A MOQT scope is a set of servers (as identified by their connection
 URIs) for which the tuple of Track Name and Track Namespace are
-guaranteed to be unique. Within a single MOQT scope, subscribing to the
-same Track Name and Track Namespace results in the subscriber receiving
-Objects for the same track.  It is up to the application using MOQT to
+guaranteed to be unique. Within a single MOQT scope, the tuple of
+Track Name and Track Namespace identify a specific track.  It is up
+to the application using MOQT to
 define how broad or narrow the scope has to be.  An application that
 deals with connections between devices on a local network may limit the
 scope to a single connection; by contrast, an application that uses
