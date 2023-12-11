@@ -1037,7 +1037,7 @@ svg :is([fill="white"], [fill^="#fff"]) {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Curley, et al.</td>
-<td class="center">Expires 12 June 2024</td>
+<td class="center">Expires 13 June 2024</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1050,12 +1050,12 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dd class="internet-draft">draft-ietf-moq-transport-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2023-12-10" class="published">10 December 2023</time>
+<time datetime="2023-12-11" class="published">11 December 2023</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2024-06-12">12 June 2024</time></dd>
+<dd class="expires"><time datetime="2024-06-13">13 June 2024</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1117,7 +1117,7 @@ networks and is designed for high scale and low latency distribution.<a href="#s
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 12 June 2024.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 13 June 2024.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1843,7 +1843,7 @@ code, as defined below:<a href="#section-3.5-2" class="pilcrow">¶</a></p>
             </tr>
             <tr>
               <td class="text-right" rowspan="1" colspan="1">0x4</td>
-              <td class="text-left" rowspan="1" colspan="1">Duplicate Track ID</td>
+              <td class="text-left" rowspan="1" colspan="1">Duplicate Track Alias</td>
             </tr>
             <tr>
               <td class="text-right" rowspan="1" colspan="1">0x10</td>
@@ -1867,7 +1867,8 @@ code, as defined below:<a href="#section-3.5-2" class="pilcrow">¶</a></p>
 disallowed by the specification.<a href="#section-3.5-4.4.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-3.5-4.5">
-            <p id="section-3.5-4.5.1">Duplicate Track ID: The endpoint attempted to use a Track ID that was already in use.<a href="#section-3.5-4.5.1" class="pilcrow">¶</a></p>
+            <p id="section-3.5-4.5.1">Duplicate Track Alias: The endpoint attempted to use a Track Alias
+that was already in use.<a href="#section-3.5-4.5.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-3.5-4.6">
             <p id="section-3.5-4.6.1">GOAWAY Timeout: The session was closed because the client took too long to
@@ -2536,6 +2537,7 @@ RelativeNext Value:                               0    1  ...
 <pre>
 SUBSCRIBE Message {
   Subscribe ID (i),
+  Track Alias (i),
   Track Namespace (b),
   Track Name (b),
   StartGroup (Location),
@@ -2552,25 +2554,28 @@ SUBSCRIBE Message {
 </div>
 <ul class="normal">
 <li class="normal" id="section-6.4.2-3.1">
-              <p id="section-6.4.2-3.1.1">Track ID: A session specific identifier for the track.
-Messages that reference a track, such as OBJECT (<a href="#message-object" class="auto internal xref">Section 6.3</a>),
-reference this Track ID instead of the Full Track Name to reduce overhead.
-If the Track ID is already in use, the receiver <span class="bcp14">MUST</span> close the session with a Duplicate Track ID error (<a href="#session-termination" class="auto internal xref">Section 3.5</a>).<a href="#section-6.4.2-3.1.1" class="pilcrow">¶</a></p>
-</li>
-            <li class="normal" id="section-6.4.2-3.2">
-              <p id="section-6.4.2-3.2.1">Track Namespace: Identifies the namespace of the track as defined in
-(<a href="#track-name" class="auto internal xref">Section 2.3.1</a>).<a href="#section-6.4.2-3.2.1" class="pilcrow">¶</a></p>
-</li>
-            <li class="normal" id="section-6.4.2-3.3">
-              <p id="section-6.4.2-3.3.1">Track Name: Identifies the track name as defined in (<a href="#track-name" class="auto internal xref">Section 2.3.1</a>).<a href="#section-6.4.2-3.3.1" class="pilcrow">¶</a></p>
-</li>
-            <li class="normal" id="section-6.4.2-3.4">
-              <p id="section-6.4.2-3.4.1">Subscribe ID: The subscription identifier that is unique within the session.
+              <p id="section-6.4.2-3.1.1">Subscribe ID: The subscription identifier that is unique within the session.
 <code>Subscribe ID</code> is a monotonically increasing variable length integer which
 <span class="bcp14">MUST</span> not be reused within a session. <code>Subscribe ID</code> is used by subscribers and
 the publishers to identify a given subscription. Subscribers specify the
 <code>Subscribe ID</code> and it is included in the corresponding SUBSCRIBE_OK or
-SUBSCRIBE_ERROR messages.<a href="#section-6.4.2-3.4.1" class="pilcrow">¶</a></p>
+SUBSCRIBE_ERROR messages.<a href="#section-6.4.2-3.1.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-6.4.2-3.2">
+              <p id="section-6.4.2-3.2.1">Track Alias: A session specific identifier for the track.
+Messages that reference a track, such as OBJECT (<a href="#message-object" class="auto internal xref">Section 6.3</a>),
+reference this Track Alias instead of the Track Name and Track Namespace to
+reduce overhead. If the Track Alias is already in use, the publisher <span class="bcp14">MUST</span>
+close the session with a Duplicate Track Alias error (<a href="#session-termination" class="auto internal xref">Section 3.5</a>).
+Unless the publisher responsds with a different Track Alias in SUBSCRIBE_ERROR,
+the subscriber <span class="bcp14">SHOULD</span> specify a Track Alias that is equal to the Subscribe ID.<a href="#section-6.4.2-3.2.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-6.4.2-3.3">
+              <p id="section-6.4.2-3.3.1">Track Namespace: Identifies the namespace of the track as defined in
+(<a href="#track-name" class="auto internal xref">Section 2.3.1</a>).<a href="#section-6.4.2-3.3.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-6.4.2-3.4">
+              <p id="section-6.4.2-3.4.1">Track Name: Identifies the track name as defined in (<a href="#track-name" class="auto internal xref">Section 2.3.1</a>).<a href="#section-6.4.2-3.4.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-6.4.2-3.5">
               <p id="section-6.4.2-3.5.1">StartGroup: The Location of the requested group.  StartGroup's Mode <span class="bcp14">MUST NOT</span> be
@@ -2739,8 +2744,8 @@ SUBSCRIBE_ERROR
 </li>
           <li class="normal" id="section-6.6-3.4">
             <p id="section-6.6-3.4.1">Track Alias: When not equal to Subscribe ID, the subscriber <span class="bcp14">SHOULD</span> re-issue the
-SUBSCRIBE with this Track Alias instead. If this Track ID is already in use,
-the receiver <span class="bcp14">MUST</span> close the connection with a Duplicate Track ID error
+SUBSCRIBE with this Track Alias instead. If this Track Alias is already in use,
+the receiver <span class="bcp14">MUST</span> close the connection with a Duplicate Track Alias error
 (<a href="#session-termination" class="auto internal xref">Section 3.5</a>).
 TODO: Add a registry for subscribe error codes and make this field conditional.<a href="#section-6.6-3.4.1" class="pilcrow">¶</a></p>
 </li>
