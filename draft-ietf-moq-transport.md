@@ -254,14 +254,12 @@ namespace.
 
 A MOQT scope is a set of servers (as identified by their connection
 URIs) for which the tuple of Track Name and Track Namespace are
-guaranteed to be unique. Within a single MOQT scope, the tuple of
-Track Name and Track Namespace identify a specific track.  It is up
-to the application using MOQT to
-define how broad or narrow the scope has to be.  An application that
-deals with connections between devices on a local network may limit the
-scope to a single connection; by contrast, an application that uses
-multiple CDNs to serve media may require the scope to include all of
-those CDNs.
+guaranteed to be unique and identify a specific track. It is up to
+the application using MOQT to define how broad or narrow the scope is.
+An application that deals with connections between devices
+on a local network may limit the scope to a single connection; by
+contrast, an application that uses multiple CDNs to serve media may
+require the scope to include all of those CDNs.
 
 The tuple of Track Namespace and Track Name identify the track
 within a given MOQT scope and is used as cache key.
