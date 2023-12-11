@@ -847,8 +847,8 @@ The format of the OBJECT message is as follows:
 ~~~
 OBJECT Message {
   Track Alias (i),
-  Group Sequence (i),
-  Object Sequence (i),
+  Group ID (i),
+  Object ID (i),
   Object Send Order (i),
   [Object Payload Length (i)],
   Object Payload (b),
@@ -859,11 +859,11 @@ OBJECT Message {
 * Track Alias : The compressed full track name obtained as part of
 subscription and/or publish control message exchanges.
 
-* Group Sequence : The object is a member of the indicated group
+* Group ID : The object is a member of the indicated group ID
 {{model-group}} within the track.
 
-* Object Sequence: The order of the object within the group.  The
-sequence starts at 0, increasing sequentially for each object within the
+* Object ID: The order of the object within the group.  The
+IDs starts at 0, increasing sequentially for each object within the
 group.
 
 * Object Send Order: An integer indicating the object send order
@@ -965,7 +965,7 @@ NOT be None if EndGroup's Mode is not None.
 {{version-specific-params}}
 
 On successful subscription, the publisher SHOULD start delivering
-objects from the group sequence and object sequence described above.
+objects from the group ID and object ID described above.
 
 If a publisher cannot satisfy the requested start or end for the subscription it
 MAY send a SUBSCRIBE_ERROR with code TBD. A publisher MUST NOT send objects
@@ -1119,10 +1119,10 @@ SUBSCRIBE_FIN Message {
 
 * Subscribe ID: Subscription identifier as defined in {{message-subscribe-req}}.
 
-* Final Group: The largest Group Sequence sent by the publisher in an OBJECT
+* Final Group: The largest Group ID sent by the publisher in an OBJECT
 message in this track.
 
-* Final Object: The largest Object Sequence sent by the publisher in an OBJECT
+* Final Object: The largest Object ID sent by the publisher in an OBJECT
 message in the `Final Group` for this track.
 
 ## SUBSCRIBE_RST {#message-subscribe-rst}
@@ -1149,10 +1149,10 @@ SUBSCRIBE_RST Message {
 
 * Reason Phrase: Provides the reason for subscription error.
 
-* Final Group: The largest Group Sequence sent by the publisher in an OBJECT
+* Final Group: The largest Group ID sent by the publisher in an OBJECT
 message in this track.
 
-* Final Object: The largest Object Sequence sent by the publisher in an OBJECT
+* Final Object: The largest Object ID sent by the publisher in an OBJECT
 message in the `Final Group` for this track.
 
 ## ANNOUNCE {#message-announce}
