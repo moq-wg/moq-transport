@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2023-12-10T01:14:59.102106+00:00",
+  "timestamp": "2023-12-12T01:11:10.599384+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -12174,7 +12174,7 @@
       "id": "I_kwDOG2Ho4M52FstZ",
       "title": "Space in names are resulting in definitions that make no sense.  ",
       "url": "https://github.com/moq-wg/moq-transport/issues/328",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "fluffy",
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
@@ -12183,8 +12183,8 @@
       ],
       "body": "Take the line from your drafts that says \r\n\r\n```\r\nFull Track Name = Track Namespace Track Name\r\n```\r\n\r\nThere is no valid way to parse the right hand of this. We have things like \"Full Track Name Length\" and \"Full Track Name\". \r\n\r\nI do not think we should have ambiguous syntax for things that require precision.  I think it would also be good to have things that can be directly mapped to common programming languages.  This moves beyound simply editorial, or specification is underspecified and ambiguous until we fix this. ",
       "createdAt": "2023-11-07T12:09:58Z",
-      "updatedAt": "2023-11-10T13:23:47Z",
-      "closedAt": null,
+      "updatedAt": "2023-12-11T00:28:42Z",
+      "closedAt": "2023-12-11T00:28:42Z",
       "comments": [
         {
           "author": "fluffy",
@@ -36002,7 +36002,7 @@
     {
       "number": 258,
       "id": "PR_kwDOG2Ho4M5bgAMo",
-      "title": "Track ID is specified in SUBSCRIBE instead of SUBSCRIBE_OK",
+      "title": "Allow the Track Alias to be selected by the publisher",
       "url": "https://github.com/moq-wg/moq-transport/pull/258",
       "state": "OPEN",
       "author": "kixelated",
@@ -36011,13 +36011,13 @@
       "labels": [],
       "body": "Currently SUBSCRIBE_OK and OBJECT will race. If OBJECT wins (>50% chance for multi-threaded QUIC libraries), then the subscriber will receive an unknown OBJECT that needs to be buffered. Moving Track ID to SUBSCRIBE fixes this race, removes the need to buffer OBJECTs in the MoqT library, and simplifies the flow. See #145",
       "createdAt": "2023-09-29T04:17:03Z",
-      "updatedAt": "2023-11-07T16:18:11Z",
+      "updatedAt": "2023-12-11T18:31:27Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
-      "baseRefOid": "5f8ba291c21839dc5addc8fb6c4cb59410c5fe0b",
+      "baseRefOid": "d5d8cfe9084c2fb2d1ee1e3381341d67e487605a",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "subscribe-id",
-      "headRefOid": "9c5184024127f8d9d2ed85d0b49e6884c162cee9",
+      "headRefOid": "ca8974b6fa64251c1c461f1ca9fe2f07aa8de12f",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -36274,6 +36274,46 @@
               "body": "I'd like to nuance this.  I think a common implementation will be to hash the full track name to get the track id and what we need to say here is that it is only an error if the track-id is reused *and* it does not refer to the same full track name. So if I had two differnt subscribes both to the same track, they could use the same track-id \r\n\r\n",
               "createdAt": "2023-11-07T16:18:11Z",
               "updatedAt": "2023-11-07T16:18:11Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5pvyhm",
+          "commit": {
+            "abbreviatedOid": "79712e7"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2023-12-11T00:15:01Z",
+          "updatedAt": "2023-12-11T00:15:01Z",
+          "comments": [
+            {
+              "originalPosition": 86,
+              "body": "```suggestion\r\nthe subscriber MUST specify a Track Alias that is equal to the Subscribe ID.\r\n```",
+              "createdAt": "2023-12-11T00:15:01Z",
+              "updatedAt": "2023-12-11T00:15:01Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5p2eAe",
+          "commit": {
+            "abbreviatedOid": "ca8974b"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2023-12-11T18:31:27Z",
+          "updatedAt": "2023-12-11T18:31:27Z",
+          "comments": [
+            {
+              "originalPosition": 139,
+              "body": "I think you need to change the condition here.  \r\n\r\nC->S: Subscribe (sub-id 1, track alias 1)\r\nS->C: Subscribe Error (sub-id 1, track alias 19, error code=try new id) \r\nC->S: Subscribe (sub-id 2, track alias 19)\r\nS->C: Subscribe Error (sub-id 2, track alias 19, error code=bad auth)  # sub-id != track alias, but server isn't asking for a resubscribe with new id",
+              "createdAt": "2023-12-11T18:31:27Z",
+              "updatedAt": "2023-12-11T18:31:27Z"
             }
           ]
         }
@@ -42048,24 +42088,26 @@
       "id": "PR_kwDOG2Ho4M5ezvIW",
       "title": "Remove Full Track Name",
       "url": "https://github.com/moq-wg/moq-transport/pull/331",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "ianswett",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [],
       "body": "It's only used a few times and now that Namespace and Name are an opaque sequence of bytes, it's even less compelling.\r\n\r\nFixes #328",
       "createdAt": "2023-11-07T13:40:48Z",
-      "updatedAt": "2023-11-07T16:32:31Z",
+      "updatedAt": "2023-12-11T00:28:41Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
-      "baseRefOid": "257dfba8284103958660832f25b0ca95ceaeeaf1",
+      "baseRefOid": "d5d8cfe9084c2fb2d1ee1e3381341d67e487605a",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "ianswett-no-full-track-name",
-      "headRefOid": "aed96bab105804ad1b2b96516e25321762d5c3c4",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "headRefOid": "8f42fbfcc76a56ecc3e1af3c70b916020e426bdf",
+      "closedAt": "2023-12-11T00:28:41Z",
+      "mergedAt": "2023-12-11T00:28:41Z",
+      "mergedBy": "ianswett",
+      "mergeCommit": {
+        "oid": "1123e1cfc2759d99012b32c0785994b553e5dab6"
+      },
       "comments": [],
       "reviews": [
         {
@@ -42100,6 +42142,66 @@
               "updatedAt": "2023-11-07T16:32:31Z"
             }
           ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5pvzAA",
+          "commit": {
+            "abbreviatedOid": "aed96ba"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2023-12-11T00:20:29Z",
+          "updatedAt": "2023-12-11T00:20:29Z",
+          "comments": [
+            {
+              "originalPosition": 26,
+              "body": "```suggestion\r\nguaranteed to be unique. Within a single MOQT scope, the tuple of\r\nTrack Name and Track Namespace identify a specific track.  It is up\r\nto the application using MOQT to\r\n```",
+              "createdAt": "2023-12-11T00:20:29Z",
+              "updatedAt": "2023-12-11T00:20:30Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5pvzcw",
+          "commit": {
+            "abbreviatedOid": "78f3e15"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2023-12-11T00:25:44Z",
+          "updatedAt": "2023-12-11T00:25:44Z",
+          "comments": [
+            {
+              "originalPosition": 32,
+              "body": "```suggestion\r\nBecause the tuple of Track Namespace and Track Name are unique within an\r\nMOQT scope, they can be used as a cache key.\r\n```",
+              "createdAt": "2023-12-11T00:25:44Z",
+              "updatedAt": "2023-12-11T00:25:44Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5pvzoq",
+          "commit": {
+            "abbreviatedOid": "aed96ba"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2023-12-11T00:28:10Z",
+          "updatedAt": "2023-12-11T00:28:10Z",
+          "comments": [
+            {
+              "originalPosition": 25,
+              "body": "Thanks Suhas, I clarified this and shortened the text.",
+              "createdAt": "2023-12-11T00:28:10Z",
+              "updatedAt": "2023-12-11T00:28:10Z"
+            }
+          ]
         }
       ]
     },
@@ -42115,7 +42217,7 @@
       "labels": [],
       "body": "This PR brings in currently active proposals for supporting explicit indicators of mapping object model to quic transport.\r\n\r\nFixes #244 \r\n\r\n\r\n",
       "createdAt": "2023-11-08T14:34:57Z",
-      "updatedAt": "2023-12-06T18:01:19Z",
+      "updatedAt": "2023-12-11T18:53:24Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "de5e92e3668272cb70a27dda5b52c642dae0406d",
@@ -42175,6 +42277,13 @@
           "body": "+1 to @afrind's proposal. once we clean it up by removing the other proposals , we should be good for merge review.  also +1 on dropping the priority for now",
           "createdAt": "2023-12-06T17:26:39Z",
           "updatedAt": "2023-12-06T18:01:19Z"
+        },
+        {
+          "author": "kixcord",
+          "authorAssociation": "NONE",
+          "body": "Oh and we should be some text:\r\n\r\n> A relay MUST NOT reorder or drop OBJECTs within a stream.\r\n\r\nOtherwise we don't fix the core issue, which is that relays can arbitrarily change how OBJECTs are delivered. Stream mapping is useless if it's not enforced.",
+          "createdAt": "2023-12-11T18:53:04Z",
+          "updatedAt": "2023-12-11T18:53:24Z"
         }
       ],
       "reviews": [
@@ -42473,6 +42582,202 @@
               "updatedAt": "2023-12-01T15:44:27Z"
             }
           ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5pv4mP",
+          "commit": {
+            "abbreviatedOid": "e4d84e6"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2023-12-11T01:17:57Z",
+          "updatedAt": "2023-12-11T01:17:58Z",
+          "comments": [
+            {
+              "originalPosition": 133,
+              "body": "```suggestion\r\n`OBJECT_STREAM` message MUST be the first and only message on a unidirectional stream.\r\n```",
+              "createdAt": "2023-12-11T01:17:58Z",
+              "updatedAt": "2023-12-11T01:17:58Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5pv49r",
+          "commit": {
+            "abbreviatedOid": "e4d84e6"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "3 LGTM overall, but I had some comments on the details.",
+          "createdAt": "2023-12-11T01:21:12Z",
+          "updatedAt": "2023-12-11T01:54:14Z",
+          "comments": [
+            {
+              "originalPosition": 142,
+              "body": "Don't we need a type value so if we receive a stream, we know what type of stream it is?",
+              "createdAt": "2023-12-11T01:21:12Z",
+              "updatedAt": "2023-12-11T01:54:14Z"
+            },
+            {
+              "originalPosition": 161,
+              "body": "```suggestion\r\nTo send an Object with `Object Forwarding Preference` = `Datagram`, determine\r\nthe length of the fields and payload, and compare the length with the maximum\r\n```",
+              "createdAt": "2023-12-11T01:24:28Z",
+              "updatedAt": "2023-12-11T01:54:14Z"
+            },
+            {
+              "originalPosition": 164,
+              "body": "```suggestion\r\ndatagram size of the session.  If the object size is less than or equal maximum\r\ndatagram size, send the serialized data as a datagram.  Otherwise, the object on a\r\nunidirectional stream as you would an OBJECT_STREAM message.  An implementation\r\n```",
+              "createdAt": "2023-12-11T01:33:55Z",
+              "updatedAt": "2023-12-11T01:54:14Z"
+            },
+            {
+              "originalPosition": 183,
+              "body": "What if the stream is reset?",
+              "createdAt": "2023-12-11T01:36:39Z",
+              "updatedAt": "2023-12-11T01:54:14Z"
+            },
+            {
+              "originalPosition": 198,
+              "body": "TRACK_STREAM or just TRACK would be simpler to me.",
+              "createdAt": "2023-12-11T01:38:02Z",
+              "updatedAt": "2023-12-11T01:54:14Z"
+            },
+            {
+              "originalPosition": 216,
+              "body": "How about GROUP?  Also, it'd be more natural to put this above TRACK in terms of ordering.",
+              "createdAt": "2023-12-11T01:40:35Z",
+              "updatedAt": "2023-12-11T01:54:14Z"
+            },
+            {
+              "originalPosition": 203,
+              "body": "How do I know if they're needed?\r\n\r\nDo we have one Object message at the beginning of the stream after the 'type' is serialized and then omit the duplicate fields on subsequent Object messages?\r\n\r\nOr do we have a 'message' that starts the stream that could be only the type, followed by the shared values, and then a sequence of objects?  They're fairly equivalent, but we should pick one.",
+              "createdAt": "2023-12-11T01:45:17Z",
+              "updatedAt": "2023-12-11T01:54:14Z"
+            },
+            {
+              "originalPosition": 250,
+              "body": "I don't think we need this.  I'd rather have every stream have a single priority.  If we want to do that later we can, but we all agree that mixing priorities on a single stream is problematic at best.",
+              "createdAt": "2023-12-11T01:51:42Z",
+              "updatedAt": "2023-12-11T01:54:14Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5p1Df-",
+          "commit": {
+            "abbreviatedOid": "e4d84e6"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2023-12-11T15:56:10Z",
+          "updatedAt": "2023-12-11T17:21:15Z",
+          "comments": [
+            {
+              "originalPosition": 142,
+              "body": "The intent was anything with \"Message\" after it was a type.  I just didn't add them to the type table.",
+              "createdAt": "2023-12-11T15:56:10Z",
+              "updatedAt": "2023-12-11T17:21:15Z"
+            },
+            {
+              "originalPosition": 164,
+              "body": "I think you mean *send* the object",
+              "createdAt": "2023-12-11T15:57:10Z",
+              "updatedAt": "2023-12-11T17:21:15Z"
+            },
+            {
+              "originalPosition": 183,
+              "body": "Resetting a stream mid object isn't a connection level protocol violation, but sending a FIN in the middle of an OBJECT is.",
+              "createdAt": "2023-12-11T16:02:48Z",
+              "updatedAt": "2023-12-11T17:21:15Z"
+            },
+            {
+              "originalPosition": 198,
+              "body": "I'm fine with any naming.",
+              "createdAt": "2023-12-11T16:03:13Z",
+              "updatedAt": "2023-12-11T17:21:15Z"
+            },
+            {
+              "originalPosition": 203,
+              "body": "> How do I know if they're needed?\r\n\r\nIf you have to open a stream for this, then you need to send a header.\r\n\r\n> Or do we have a 'message' that starts the stream that could be only the type, followed by the shared values, and then a sequence of objects?\r\n\r\nThis one.\r\n",
+              "createdAt": "2023-12-11T17:18:31Z",
+              "updatedAt": "2023-12-11T17:21:15Z"
+            },
+            {
+              "originalPosition": 216,
+              "body": "Ok",
+              "createdAt": "2023-12-11T17:19:39Z",
+              "updatedAt": "2023-12-11T17:21:15Z"
+            },
+            {
+              "originalPosition": 250,
+              "body": "> I'd rather have every stream have a single priority. \r\n\r\nIf that's the case, I think you want this message and remove the GROUP one that allows a different send order per object.",
+              "createdAt": "2023-12-11T17:21:03Z",
+              "updatedAt": "2023-12-11T17:21:15Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5p18KS",
+          "commit": {
+            "abbreviatedOid": "e4d84e6"
+          },
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2023-12-11T17:33:14Z",
+          "updatedAt": "2023-12-11T17:33:15Z",
+          "comments": [
+            {
+              "originalPosition": 250,
+              "body": "+1 priority should definitely be hoisted to the stream header, and then this frame type can be deleted.\r\n\r\nThere's an argument that a relay could perform application-level prioritization by reordering objects on a stream, but that suffers from head-of-line blocking and contradicts the ordering/reliability that QUIC streams are supposed to provide. An application needs to make separate streams of they want separate priorities.",
+              "createdAt": "2023-12-11T17:33:14Z",
+              "updatedAt": "2023-12-11T17:35:10Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5p2VeT",
+          "commit": {
+            "abbreviatedOid": "e4d84e6"
+          },
+          "author": "kixcord",
+          "authorAssociation": "NONE",
+          "state": "COMMENTED",
+          "body": "Sorry for the earlier outburst. Alan's proposal is definitely in the right direction and is starting to align with my vision. I think I just need an outlet to write that vision down because I'm getting overwhelmed by leaving piecewise opinions on Github.\r\n\r\nI think we should:\r\n- delete `OBJECT_STREAM`, unless somebody wants it.\r\n- delete `STREAM_HEADER_PRIORITY`, moving priority to the stream header instead.\r\n- add `OBJECT_DATAGRAM`, but we should discuss datagrams more in general.",
+          "createdAt": "2023-12-11T18:13:28Z",
+          "updatedAt": "2023-12-11T18:38:09Z",
+          "comments": [
+            {
+              "originalPosition": 132,
+              "body": "I would actually be in favor of removing this message type.\r\n\r\nI'm using objects with an unbounded length to get around the lack of stream mapping in the current draft. The idea is that an OBJECT_STREAM can't be moved or combined with other streams, so it's a way to actually enforce stream mapping across relays.\r\n\r\nHowever we don't need it any longer if there's explicit stream mapping and ordering/reliability. I would be fine with each OBJECT having a specified length (like HTTP/3 DATA frames) provided the relay can't rearrange them. It does mean that we have to buffer each frame to determine the length but that's often unavoidable.",
+              "createdAt": "2023-12-11T18:13:28Z",
+              "updatedAt": "2023-12-11T18:37:40Z"
+            },
+            {
+              "originalPosition": 164,
+              "body": "We do need to send RESET_STREAM for flow control reasons. What error code do we use? Do we need to indicate why the datagram was dropped (ex. flow control)?\r\n\r\nDoes the receiver also reply with a STOP_SENDING?",
+              "createdAt": "2023-12-11T18:16:55Z",
+              "updatedAt": "2023-12-11T18:37:40Z"
+            },
+            {
+              "originalPosition": 169,
+              "body": "I think this is a footgun. It has the same downsides as IP fragmentation.\r\n\r\nThe application want specific behavior from datagrams, namely that they are independent. If a relay converts a datagram a stream, it will be split across IP packets and may even share packets with other datagram fragments. This makes implementing something like FEC basically impossible.\r\n\r\nIn my opinion, we should require the datagram extension and that all OBJECT_DATAGRAM messages are smaller than 1.2kB.",
+              "createdAt": "2023-12-11T18:26:47Z",
+              "updatedAt": "2023-12-11T18:37:40Z"
+            },
+            {
+              "originalPosition": 169,
+              "body": "Also, is a relay expected to cache datagrams or does it require timely delivery? I feel like the intent of datagrams is for transient data, but currently it only disables retransmissions. That feels like the wrong behavior, especially with datagrams that span multiple MTU because it only serves to amplify loss.",
+              "createdAt": "2023-12-11T18:27:18Z",
+              "updatedAt": "2023-12-11T18:37:40Z"
+            }
+          ]
         }
       ]
     },
@@ -42623,6 +42928,48 @@
               "updatedAt": "2023-11-14T01:00:10Z"
             }
           ]
+        }
+      ]
+    },
+    {
+      "number": 339,
+      "id": "PR_kwDOG2Ho4M5hoGz0",
+      "title": "Change Sequence to ID for Objects and Groups",
+      "url": "https://github.com/moq-wg/moq-transport/pull/339",
+      "state": "OPEN",
+      "author": "ianswett",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [
+        "Editorial"
+      ],
+      "body": "Sequence typically indicates a number of things.",
+      "createdAt": "2023-12-11T01:12:19Z",
+      "updatedAt": "2023-12-11T23:08:04Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "1123e1cfc2759d99012b32c0785994b553e5dab6",
+      "headRepository": "moq-wg/moq-transport",
+      "headRefName": "ianswett-sequence-id",
+      "headRefOid": "cd18f555456bed426a433719e7ae68df68334caf",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M5p4Jq1",
+          "commit": {
+            "abbreviatedOid": "cd18f55"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "This is a good change.",
+          "createdAt": "2023-12-11T23:08:04Z",
+          "updatedAt": "2023-12-11T23:08:04Z",
+          "comments": []
         }
       ]
     }
