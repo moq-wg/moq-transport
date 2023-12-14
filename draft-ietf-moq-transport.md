@@ -421,7 +421,7 @@ code, as defined below:
   disallowed by the specification.
 
 * Duplicate Track Alias: The endpoint attempted to use a Track Alias
-that was already in use.
+  that was already in use.
 
 * GOAWAY Timeout: The session was closed because the client took too long to
   close the session in response to a GOAWAY ({{message-goaway}}) message.
