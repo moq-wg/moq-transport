@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2023-12-12T01:11:10.599384+00:00",
+  "timestamp": "2023-12-14T01:09:41.928747+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -36011,7 +36011,7 @@
       "labels": [],
       "body": "Currently SUBSCRIBE_OK and OBJECT will race. If OBJECT wins (>50% chance for multi-threaded QUIC libraries), then the subscriber will receive an unknown OBJECT that needs to be buffered. Moving Track ID to SUBSCRIBE fixes this race, removes the need to buffer OBJECTs in the MoqT library, and simplifies the flow. See #145",
       "createdAt": "2023-09-29T04:17:03Z",
-      "updatedAt": "2023-12-11T18:31:27Z",
+      "updatedAt": "2023-12-13T19:47:57Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "d5d8cfe9084c2fb2d1ee1e3381341d67e487605a",
@@ -36314,6 +36314,50 @@
               "body": "I think you need to change the condition here.  \r\n\r\nC->S: Subscribe (sub-id 1, track alias 1)\r\nS->C: Subscribe Error (sub-id 1, track alias 19, error code=try new id) \r\nC->S: Subscribe (sub-id 2, track alias 19)\r\nS->C: Subscribe Error (sub-id 2, track alias 19, error code=bad auth)  # sub-id != track alias, but server isn't asking for a resubscribe with new id",
               "createdAt": "2023-12-11T18:31:27Z",
               "updatedAt": "2023-12-11T18:31:27Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5qHidS",
+          "commit": {
+            "abbreviatedOid": "ca8974b"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "CHANGES_REQUESTED",
+          "body": "",
+          "createdAt": "2023-12-13T19:40:38Z",
+          "updatedAt": "2023-12-13T19:47:57Z",
+          "comments": [
+            {
+              "originalPosition": 53,
+              "body": "\"The Track Alias as specified in the SUBSCRIBE message {{message-subscribe-req}}\"",
+              "createdAt": "2023-12-13T19:40:39Z",
+              "updatedAt": "2023-12-13T19:47:57Z"
+            },
+            {
+              "originalPosition": 85,
+              "body": "s/responsds/responds",
+              "createdAt": "2023-12-13T19:44:07Z",
+              "updatedAt": "2023-12-13T19:47:57Z"
+            },
+            {
+              "originalPosition": 87,
+              "body": "I don't see the need for ``` subscriber MUST specify a Track Alias that is equal to the Subscribe ID ```. ",
+              "createdAt": "2023-12-13T19:44:55Z",
+              "updatedAt": "2023-12-13T19:47:57Z"
+            },
+            {
+              "originalPosition": 87,
+              "body": "May be all we need to say is .. \r\n\r\n\"Unless the publisher responds with a different Track Alias in SUBSCRIBE_ERROR for the subscriber to retry the SUBSCRIBE with publisher chosen Track Alias\"",
+              "createdAt": "2023-12-13T19:46:31Z",
+              "updatedAt": "2023-12-13T19:47:57Z"
+            },
+            {
+              "originalPosition": 139,
+              "body": "I am not understanding why a track alias value must match subscribe id. ",
+              "createdAt": "2023-12-13T19:47:46Z",
+              "updatedAt": "2023-12-13T19:47:57Z"
             }
           ]
         }
@@ -42217,7 +42261,7 @@
       "labels": [],
       "body": "This PR brings in currently active proposals for supporting explicit indicators of mapping object model to quic transport.\r\n\r\nFixes #244 \r\n\r\n\r\n",
       "createdAt": "2023-11-08T14:34:57Z",
-      "updatedAt": "2023-12-11T18:53:24Z",
+      "updatedAt": "2023-12-13T21:07:28Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "de5e92e3668272cb70a27dda5b52c642dae0406d",
@@ -42284,6 +42328,48 @@
           "body": "Oh and we should be some text:\r\n\r\n> A relay MUST NOT reorder or drop OBJECTs within a stream.\r\n\r\nOtherwise we don't fix the core issue, which is that relays can arbitrarily change how OBJECTs are delivered. Stream mapping is useless if it's not enforced.",
           "createdAt": "2023-12-11T18:53:04Z",
           "updatedAt": "2023-12-11T18:53:24Z"
+        },
+        {
+          "author": "vasilvv",
+          "authorAssociation": "COLLABORATOR",
+          "body": "3 is a nice refactor of approach in 1. I like it, expect for two things:\r\n- I don't think we need to support track-per-stream, and I don't remember if we ever actually got consensus for supporting it (we might need to discuss this separately).\r\n- Priority/send order should be a stream-global, since that's the level at which those are determined in QUIC.\r\n\r\nThe text is not entirely clear to me: is it still legal to have two open streams for the same group with STREAM_HEADER_GROUP (with understanding that they will get merged at the relay)?\r\n\r\nI think we could make approach 4 that does to 2 the same things that 3 does to 1. Canonical objects would have two fields:\r\n- 'Object Placement Preference' that says that object is either (1) to be placed on a new stream, or (2) to be placed on the same stream as object N.\r\n- 'Object Placement Close Bit' indicates whether there will be objects after this one on the stream or not (i.e. whether there is a FIN or not)\r\n\r\nThere's one OBJECT_STREAM frame with Track Alias, Group Sequence, Priority / Send Order as headers. You can trivially figure out how to backfill those fields (you only need to remember the most recent object for each stream); the placement when retrieving from cache is similarly easy (you do need a map for \"most recent object -> stream\").\r\n\r\nI think this fits in with the \"implicit-explicit\" approach that Luke has mentioned before. It also has a nice property that there are no cases in which what's on the wire can mismatch with what's in the canonical object (unless streams get randomly reset).",
+          "createdAt": "2023-12-13T05:08:08Z",
+          "updatedAt": "2023-12-13T05:08:08Z"
+        },
+        {
+          "author": "wilaw",
+          "authorAssociation": "NONE",
+          "body": "> I don't think we need to support track-per-stream, and I don't remember if we ever actually got consensus for supporting it (we might need to discuss this separately).\r\n\r\nTrack-per-stream would be the preferred delivery mode for VOD files. I'd very much like to ensure that we keep support for that use case open, even if most current implementations are focused on live. ",
+          "createdAt": "2023-12-13T08:15:38Z",
+          "updatedAt": "2023-12-13T08:15:38Z"
+        },
+        {
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "body": " > The text is not entirely clear to me: is it still legal to have two open streams for the same group with STREAM_HEADER_GROUP (with understanding that they will get merged at the relay)?\r\n\r\nI think it should be illegal as it breaks `implicit=explicit`. The broadcaster uses stream mapping A but wants downstream relays to use stream mapping B, assuming there even is a relay involved. I don't think there's a use-case for this special treatment of the first-hop. \r\n\r\nThe only use-case that I've heard is a broadcast client that is smart enough to detect group/object boundaries (ie. frames or key frames) to annotate each OBJECT with the correct stream mapping, but doesn't want to open multiple streams? That's a very poor reason, especially if the first hop may be congested, and the broadcast client should just use the indicated stream mapping.\r\n\r\nIMO a relay should not split or merge streams. It increases complexity and hurts performance. There's no need for your proposal 4 then.",
+          "createdAt": "2023-12-13T16:07:24Z",
+          "updatedAt": "2023-12-13T16:07:24Z"
+        },
+        {
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> > I don't think we need to support track-per-stream, and I don't remember if we ever actually got consensus for supporting it (we might need to discuss this separately).\r\n> \r\n> Track-per-stream would be the preferred delivery mode for VOD files. I'd very much like to ensure that we keep support for that use case open, even if most current implementations are focused on live.\r\n\r\nMaybe.\r\n\r\nThe assumption is a track-per-stream would allow you to write a simple VOD-only client. It wouldn't need to reorder or reassemble objects because they're all delivered in order on a single stream. That's optimistic, as it will still need to support potentially unordered/unreliable objects (like a live client) due to seeking and gaps in the recording.\r\n\r\nBut I think we need to explore VOD and DVR more. I definitely don't want to require the server to modify the stream mapping at rest in order to serve VOD traffic, and it's not clear how that would even work for DVR.\r\n\r\nAt the very least we should first support VOD with the original stream mapping. Much like how HLS can use the same segments for live, DVR, and VOD (segment size == stream mapping). And I think we should focus on DVR first.",
+          "createdAt": "2023-12-13T16:36:33Z",
+          "updatedAt": "2023-12-13T16:42:38Z"
+        },
+        {
+          "author": "wilaw",
+          "authorAssociation": "NONE",
+          "body": "> That's optimistic, as it will still need to support potentially unordered/unreliable objects (like a live client) due to seeking and gaps in the recording.\r\n\r\nThis assumes LIVE-TO-VOD workflow. When I speak of VOD, its for pure VOD, which has no gaps, and was never live. The track-per-stream would would mean the client would never have to deal with out-of-order or lost objects, as the single stream would deliver them reliably and in order. Like you, I really like the appeal of the simple client interface for this. All I need is more space in my cache and I have a new market segment to address.",
+          "createdAt": "2023-12-13T17:01:38Z",
+          "updatedAt": "2023-12-13T17:01:38Z"
+        },
+        {
+          "author": "vasilvv",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> IMO a relay should not split or merge streams. It increases complexity and hurts performance. There's no need for your proposal 4 then.\r\n\r\nI'm confused. Proposal 4 does not allow merging or splitting streams.\r\n\r\n> Track-per-stream would be the preferred delivery mode for VOD files. I'd very much like to ensure that we keep support for that use case open, even if most current implementations are focused on live.\r\n\r\nThat is true, but VOD requires different delivery mechanism from what live does (e.g. live cares about catching up to the live state, but for VOD, you usually just want to show everything in order).",
+          "createdAt": "2023-12-13T17:09:52Z",
+          "updatedAt": "2023-12-13T17:09:52Z"
         }
       ],
       "reviews": [
@@ -42778,6 +42864,56 @@
               "updatedAt": "2023-12-11T18:37:40Z"
             }
           ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5p1jNz",
+          "commit": {
+            "abbreviatedOid": "e4d84e6"
+          },
+          "author": "jordicenzano",
+          "authorAssociation": "NONE",
+          "state": "COMMENTED",
+          "body": "Overall I like the proposal the explicitly map objects to quic streams. I left few comments",
+          "createdAt": "2023-12-11T16:46:35Z",
+          "updatedAt": "2023-12-13T21:07:28Z",
+          "comments": [
+            {
+              "originalPosition": 142,
+              "body": "isn't that type `Message Type` 0x2 (OBJECT without payload length) specified in draft-01",
+              "createdAt": "2023-12-11T16:46:36Z",
+              "updatedAt": "2023-12-13T21:07:28Z"
+            },
+            {
+              "originalPosition": 173,
+              "body": "Is it feasable/correct to implement sendOrder that is honored across Streams and datagrams? (For instance I think Chrome webtransport API for datagrams does NOT expose sendOrder today)\r\nIf not, what are we planning to do with sendOrder here? (just between datagrams? Ignore?)",
+              "createdAt": "2023-12-13T16:17:28Z",
+              "updatedAt": "2023-12-13T21:07:28Z"
+            },
+            {
+              "originalPosition": 183,
+              "body": "When we have ABR perhaps you would want to terminate stream 720p2Mbps because we are already receiving 1080p4Mbps ",
+              "createdAt": "2023-12-13T16:20:07Z",
+              "updatedAt": "2023-12-13T21:07:28Z"
+            },
+            {
+              "originalPosition": 123,
+              "body": "If the \"Object *MUST* be sent according to its `Object Forwarding Preference`\", should we remove the word \"Preference\". It seems contradictory with MUST",
+              "createdAt": "2023-12-13T21:00:14Z",
+              "updatedAt": "2023-12-13T21:07:28Z"
+            },
+            {
+              "originalPosition": 121,
+              "body": "We need a way to tell the publisher how to map QUIC streams and this seems like a good proposal to me. Perhaps we should add something about relay implementation, perhaps: The relay would need remember how those objects were received on the subscriber side and replicate that in the publisher side",
+              "createdAt": "2023-12-13T21:04:33Z",
+              "updatedAt": "2023-12-13T21:07:28Z"
+            },
+            {
+              "originalPosition": 192,
+              "body": "I assume we can send 1 track (ex: video track) in mutiple Streams with STREAM_HEADER_TRACK, can I or that would be a protocol violation?",
+              "createdAt": "2023-12-13T21:05:27Z",
+              "updatedAt": "2023-12-13T21:07:28Z"
+            }
+          ]
         }
       ]
     },
@@ -42890,13 +43026,13 @@
       "labels": [],
       "body": "Fixes #314 ",
       "createdAt": "2023-11-13T22:05:08Z",
-      "updatedAt": "2023-11-14T01:00:10Z",
+      "updatedAt": "2023-12-12T21:58:59Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
-      "baseRefOid": "de5e92e3668272cb70a27dda5b52c642dae0406d",
+      "baseRefOid": "1123e1cfc2759d99012b32c0785994b553e5dab6",
       "headRepository": "martinduke/moq-transport",
       "headRefName": "fail-length",
-      "headRefOid": "f600c8a03de44bfe1a1f0722a0bb5b455b5b14ce",
+      "headRefOid": "f1d50432a541a34ae77dce26d9b402988c67ac42",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -42926,6 +43062,46 @@
               "body": "With what error code?",
               "createdAt": "2023-11-14T01:00:03Z",
               "updatedAt": "2023-11-14T01:00:10Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5qAdk5",
+          "commit": {
+            "abbreviatedOid": "f600c8a"
+          },
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2023-12-12T21:58:37Z",
+          "updatedAt": "2023-12-12T21:58:37Z",
+          "comments": [
+            {
+              "originalPosition": 8,
+              "body": "done",
+              "createdAt": "2023-12-12T21:58:37Z",
+              "updatedAt": "2023-12-12T21:58:37Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5qAdvO",
+          "commit": {
+            "abbreviatedOid": "f600c8a"
+          },
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2023-12-12T21:58:59Z",
+          "updatedAt": "2023-12-12T21:58:59Z",
+          "comments": [
+            {
+              "originalPosition": 9,
+              "body": "I made it error code TBD because there aren't any error codes",
+              "createdAt": "2023-12-12T21:58:59Z",
+              "updatedAt": "2023-12-12T21:58:59Z"
             }
           ]
         }
