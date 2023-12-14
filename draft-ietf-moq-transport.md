@@ -252,47 +252,21 @@ In MOQT, every track has a track name and a track namespace associated
 with it.  A track name identifies an individual track within the
 namespace.
 
-A tuple of a track name and a track namespace together is known as a
-full track name:
-
-~~~~~~~~~~~~~~~
-Full Track Name = Track Namespace Track Name
-~~~~~~~~~~~~~~~
-
 A MOQT scope is a set of servers (as identified by their connection
-URIs) for which full track names are guaranteed to be unique.  This
-implies that within a single MOQT scope, subscribing to the same full
-track name would result in the subscriber receiving the data for the
-same track.  It is up to the application using MOQT to define how broad
-or narrow the scope has to be.  An application that deals with
-connections between devices on a local network may limit the scope to a
-single connection; by contrast, an application that uses multiple CDNs
-to serve media may require the scope to include all of those CDNs.
+URIs) for which the tuple of Track Name and Track Namespace are
+guaranteed to be unique and identify a specific track. It is up to
+the application using MOQT to define how broad or narrow the scope is.
+An application that deals with connections between devices
+on a local network may limit the scope to a single connection; by
+contrast, an application that uses multiple CDNs to serve media may
+require the scope to include all of those CDNs.
 
-The full track name is the only piece of information that is used to
-identify the track within a given MOQT scope and is used as cache key.
+Because the tuple of Track Namespace and Track Name are unique within an
+MOQT scope, they can be used as a cache key.
 MOQT does not provide any in-band content negotiation methods similar to
 the ones defined by HTTP ({{?RFC9110, Section 10}}); if, at a given
 moment in time, two tracks within the same scope contain different data,
-they have to have different full track names.
-
-~~~
-Example: 1
-Track Namespace = live.example.com/meeting/123/member/alice/
-Track Name = audio
-Full Track Name = live.example.com/meeting/123/member/alice/audio
-
-Example: 2
-Track Namespace = live.example.com/
-Track Name = uaCafDkl123/audio
-Full Track Name = live.example.com/uaCafDkl123/audio
-
-Example: 3
-Track Namespace = security-camera.example.com/camera1/
-Track Name = hd-video
-Full Track Name = security-camera.example.com/camera1/hd-video
-
-~~~
+they have to have different names and/or namespaces.
 
 In this specification, both the Track Namespace and the Track Name are
 not constrained to a specific encoding. They carry a sequence of
@@ -590,7 +564,7 @@ validating subscribe and publish requests at the edge of a network.
 Subscribers interact with the Relays by sending a SUBSCRIBE
 ({{message-subscribe-req}}) control message for the tracks of
 interest. Relays MUST ensure subscribers are authorized to access the
-content associated with the Full Track Name. The authorization
+content associated with the track. The authorization
 information can be part of subscription request itself or part of the
 encompassing session. The specifics of how a relay authorizes a user are
 outside the scope of this specification.
@@ -602,10 +576,11 @@ The entity receiving the SUBSCRIBE MUST send only a single response to
 a given SUBSCRIBE of either SUBSCRIBE_OK or SUBSCRIBE_ERROR.
 
 For successful subscriptions, the publisher maintains a list of
-subscribers for each full track name. Each new OBJECT belonging to the
-track is forwarded to each active subscriber, dependent on the
-congestion response. A subscription remains active until it expires,
-until the publisher of the track terminates the track with a SUBSCRIBE_FIN
+subscribers for each track. Each new OBJECT belonging to the
+track within the subscription range is forwarded to each active
+subscriber, dependent on the congestion response. A subscription
+remains active until it expires, until the publisher of the track
+terminates the track with a SUBSCRIBE_FIN
 (see {{message-subscribe-fin}}) or a SUBSCRIBE_RST
 (see {{message-subscribe-rst}}).
 
@@ -877,8 +852,8 @@ The format of the OBJECT message is as follows:
 ~~~
 OBJECT Message {
   Track Alias (i),
-  Group Sequence (i),
-  Object Sequence (i),
+  Group ID (i),
+  Object ID (i),
   Object Send Order (i),
   [Object Payload Length (i)],
   Object Payload (b),
@@ -889,11 +864,11 @@ OBJECT Message {
 * Track Alias :The track identifier as specified in the
   SUBSCRIBE request {{message-subscribe-req}}.
 
-* Group Sequence : The object is a member of the indicated group
+* Group ID : The object is a member of the indicated group ID
 {{model-group}} within the track.
 
-* Object Sequence: The order of the object within the group.  The
-sequence starts at 0, increasing sequentially for each object within the
+* Object ID: The order of the object within the group.  The
+IDs starts at 0, increasing sequentially for each object within the
 group.
 
 * Object Send Order: An integer indicating the object send order
@@ -1004,7 +979,7 @@ NOT be None if EndGroup's Mode is not None.
 {{version-specific-params}}
 
 On successful subscription, the publisher SHOULD start delivering
-objects from the group sequence and object sequence described above.
+objects from the group ID and object ID described above.
 
 If a publisher cannot satisfy the requested start or end for the subscription it
 MAY send a SUBSCRIBE_ERROR with code TBD. A publisher MUST NOT send objects
@@ -1155,10 +1130,10 @@ SUBSCRIBE_FIN Message {
 
 * Subscribe ID: Subscription identifier as defined in {{message-subscribe-req}}.
 
-* Final Group: The largest Group Sequence sent by the publisher in an OBJECT
+* Final Group: The largest Group ID sent by the publisher in an OBJECT
 message in this track.
 
-* Final Object: The largest Object Sequence sent by the publisher in an OBJECT
+* Final Object: The largest Object ID sent by the publisher in an OBJECT
 message in the `Final Group` for this track.
 
 ## SUBSCRIBE_RST {#message-subscribe-rst}
@@ -1185,10 +1160,10 @@ SUBSCRIBE_RST Message {
 
 * Reason Phrase: Provides the reason for subscription error.
 
-* Final Group: The largest Group Sequence sent by the publisher in an OBJECT
+* Final Group: The largest Group ID sent by the publisher in an OBJECT
 message in this track.
 
-* Final Object: The largest Object Sequence sent by the publisher in an OBJECT
+* Final Object: The largest Object ID sent by the publisher in an OBJECT
 message in the `Final Group` for this track.
 
 ## ANNOUNCE {#message-announce}
