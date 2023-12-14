@@ -23,16 +23,16 @@ networks and is designed for high scale and low latency distribution.
 <!-- Generator version information:
   xml2rfc 3.18.2
     Python 3.11.6
-    ConfigArgParse 1.5.3
+    ConfigArgParse 1.7
     google-i18n-address 3.1.0
     intervaltree 3.1.0
     Jinja2 3.1.2
     lxml 4.9.3
     platformdirs 4.1.0
     pycountry 22.3.5
-    PyYAML 6.0
+    PyYAML 6.0.1
     requests 2.31.0
-    setuptools 67.7.2
+    setuptools 68.2.2
     six 1.16.0
     wcwidth 0.2.12
 -->
@@ -1037,7 +1037,7 @@ svg :is([fill="white"], [fill^="#fff"]) {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Curley, et al.</td>
-<td class="center">Expires 13 June 2024</td>
+<td class="center">Expires 16 June 2024</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1050,12 +1050,12 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dd class="internet-draft">draft-ietf-moq-transport-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2023-12-11" class="published">11 December 2023</time>
+<time datetime="2023-12-14" class="published">14 December 2023</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2024-06-13">13 June 2024</time></dd>
+<dd class="expires"><time datetime="2024-06-16">16 June 2024</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1117,7 +1117,7 @@ networks and is designed for high scale and low latency distribution.<a href="#s
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 13 June 2024.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 16 June 2024.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -2405,8 +2405,8 @@ present. When the message type is 0x02, the field is not present.<a href="#secti
 <pre>
 OBJECT Message {
   Track Alias (i),
-  Group Sequence (i),
-  Object Sequence (i),
+  Group ID (i),
+  Object ID (i),
   Object Send Order (i),
   [Object Payload Length (i)],
   Object Payload (b),
@@ -2423,12 +2423,12 @@ OBJECT Message {
 subscription and/or publish control message exchanges.<a href="#section-6.3-4.1.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-6.3-4.2">
-            <p id="section-6.3-4.2.1">Group Sequence : The object is a member of the indicated group
+            <p id="section-6.3-4.2.1">Group ID : The object is a member of the indicated group ID
 <a href="#model-group" class="auto internal xref">Section 2.2</a> within the track.<a href="#section-6.3-4.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-6.3-4.3">
-            <p id="section-6.3-4.3.1">Object Sequence: The order of the object within the group.  The
-sequence starts at 0, increasing sequentially for each object within the
+            <p id="section-6.3-4.3.1">Object ID: The order of the object within the group.  The
+IDs starts at 0, increasing sequentially for each object within the
 group.<a href="#section-6.3-4.3.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-6.3-4.4">
@@ -2555,7 +2555,7 @@ EndObject's Mode <span class="bcp14">MUST</span> be None if EndGroup's Mode is N
 </li>
           </ul>
 <p id="section-6.4.2-4">On successful subscription, the publisher <span class="bcp14">SHOULD</span> start delivering
-objects from the group sequence and object sequence described above.<a href="#section-6.4.2-4" class="pilcrow">¶</a></p>
+objects from the group ID and object ID described above.<a href="#section-6.4.2-4" class="pilcrow">¶</a></p>
 <p id="section-6.4.2-5">If a publisher cannot satisfy the requested start or end for the subscription it
 <span class="bcp14">MAY</span> send a SUBSCRIBE_ERROR with code TBD. A publisher <span class="bcp14">MUST NOT</span> send objects
 from outside the requested start and end.<a href="#section-6.4.2-5" class="pilcrow">¶</a></p>
@@ -2768,11 +2768,11 @@ SUBSCRIBE_FIN Message {
             <p id="section-6.8-4.1.1">Subscribe ID: Subscription identifier as defined in <a href="#message-subscribe-req" class="auto internal xref">Section 6.4</a>.<a href="#section-6.8-4.1.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-6.8-4.2">
-            <p id="section-6.8-4.2.1">Final Group: The largest Group Sequence sent by the publisher in an OBJECT
+            <p id="section-6.8-4.2.1">Final Group: The largest Group ID sent by the publisher in an OBJECT
 message in this track.<a href="#section-6.8-4.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-6.8-4.3">
-            <p id="section-6.8-4.3.1">Final Object: The largest Object Sequence sent by the publisher in an OBJECT
+            <p id="section-6.8-4.3.1">Final Object: The largest Object ID sent by the publisher in an OBJECT
 message in the <code>Final Group</code> for this track.<a href="#section-6.8-4.3.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
@@ -2814,11 +2814,11 @@ SUBSCRIBE_RST Message {
             <p id="section-6.9-4.3.1">Reason Phrase: Provides the reason for subscription error.<a href="#section-6.9-4.3.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-6.9-4.4">
-            <p id="section-6.9-4.4.1">Final Group: The largest Group Sequence sent by the publisher in an OBJECT
+            <p id="section-6.9-4.4.1">Final Group: The largest Group ID sent by the publisher in an OBJECT
 message in this track.<a href="#section-6.9-4.4.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-6.9-4.5">
-            <p id="section-6.9-4.5.1">Final Object: The largest Object Sequence sent by the publisher in an OBJECT
+            <p id="section-6.9-4.5.1">Final Object: The largest Object ID sent by the publisher in an OBJECT
 message in the <code>Final Group</code> for this track.<a href="#section-6.9-4.5.1" class="pilcrow">¶</a></p>
 </li>
         </ul>

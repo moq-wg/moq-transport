@@ -5,12 +5,12 @@
 MOQ                                                            L. Curley
 Internet-Draft                                                    Twitch
 Intended status: Standards Track                                K. Pugin
-Expires: 13 June 2024                                               Meta
+Expires: 16 June 2024                                               Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                                   Google
-                                                        11 December 2023
+                                                        14 December 2023
 
 
                        Media over QUIC Transport
@@ -52,7 +52,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 13 June 2024.
+   This Internet-Draft will expire on 16 June 2024.
 
 Copyright Notice
 
@@ -922,8 +922,8 @@ Table of Contents
 
    OBJECT Message {
      Track Alias (i),
-     Group Sequence (i),
-     Object Sequence (i),
+     Group ID (i),
+     Object ID (i),
      Object Send Order (i),
      [Object Payload Length (i)],
      Object Payload (b),
@@ -934,12 +934,12 @@ Table of Contents
    *  Track Alias : The compressed full track name obtained as part of
       subscription and/or publish control message exchanges.
 
-   *  Group Sequence : The object is a member of the indicated group
+   *  Group ID : The object is a member of the indicated group ID
       Section 2.2 within the track.
 
-   *  Object Sequence: The order of the object within the group.  The
-      sequence starts at 0, increasing sequentially for each object
-      within the group.
+   *  Object ID: The order of the object within the group.  The IDs
+      starts at 0, increasing sequentially for each object within the
+      group.
 
    *  Object Send Order: An integer indicating the object send order
       Section 4.1.1 or priority Section 4.1.2 value.
@@ -1039,7 +1039,7 @@ Table of Contents
       Section 6.1.1
 
    On successful subscription, the publisher SHOULD start delivering
-   objects from the group sequence and object sequence described above.
+   objects from the group ID and object ID described above.
 
    If a publisher cannot satisfy the requested start or end for the
    subscription it MAY send a SUBSCRIBE_ERROR with code TBD.  A
@@ -1189,11 +1189,11 @@ Table of Contents
 
    *  Subscribe ID: Subscription identifier as defined in Section 6.4.
 
-   *  Final Group: The largest Group Sequence sent by the publisher in
-      an OBJECT message in this track.
+   *  Final Group: The largest Group ID sent by the publisher in an
+      OBJECT message in this track.
 
-   *  Final Object: The largest Object Sequence sent by the publisher in
-      an OBJECT message in the Final Group for this track.
+   *  Final Object: The largest Object ID sent by the publisher in an
+      OBJECT message in the Final Group for this track.
 
 6.9.  SUBSCRIBE_RST
 
@@ -1220,11 +1220,11 @@ Table of Contents
 
    *  Reason Phrase: Provides the reason for subscription error.
 
-   *  Final Group: The largest Group Sequence sent by the publisher in
-      an OBJECT message in this track.
+   *  Final Group: The largest Group ID sent by the publisher in an
+      OBJECT message in this track.
 
-   *  Final Object: The largest Object Sequence sent by the publisher in
-      an OBJECT message in the Final Group for this track.
+   *  Final Object: The largest Object ID sent by the publisher in an
+      OBJECT message in the Final Group for this track.
 
 6.10.  ANNOUNCE
 
