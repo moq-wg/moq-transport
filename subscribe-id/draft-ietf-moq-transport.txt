@@ -5,12 +5,12 @@
 MOQ                                                            L. Curley
 Internet-Draft                                                    Twitch
 Intended status: Standards Track                                K. Pugin
-Expires: 16 June 2024                                               Meta
+Expires: 17 June 2024                                               Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                                   Google
-                                                        14 December 2023
+                                                        15 December 2023
 
 
                        Media over QUIC Transport
@@ -52,7 +52,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 16 June 2024.
+   This Internet-Draft will expire on 17 June 2024.
 
 Copyright Notice
 
@@ -1027,7 +1027,7 @@ Table of Contents
       Namespace to reduce overhead.  If the Track Alias is already in
       use, the publisher MUST close the session with a Duplicate Track
       Alias error (Section 3.5).  Unless the publisher responds with a
-      different Track Alias in SUBSCRIBE_ERROR, the subscriber MUST
+      different Track Alias in SUBSCRIBE_ERROR, the subscriber can
       specify a Track Alias that is equal to the Subscribe ID.
 
    *  Track Namespace: Identifies the namespace of the track as defined
