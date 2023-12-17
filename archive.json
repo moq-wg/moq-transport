@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2023-12-14T01:09:41.928747+00:00",
+  "timestamp": "2023-12-17T01:15:00.207752+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -36011,13 +36011,13 @@
       "labels": [],
       "body": "Currently SUBSCRIBE_OK and OBJECT will race. If OBJECT wins (>50% chance for multi-threaded QUIC libraries), then the subscriber will receive an unknown OBJECT that needs to be buffered. Moving Track ID to SUBSCRIBE fixes this race, removes the need to buffer OBJECTs in the MoqT library, and simplifies the flow. See #145",
       "createdAt": "2023-09-29T04:17:03Z",
-      "updatedAt": "2023-12-13T19:47:57Z",
+      "updatedAt": "2023-12-15T02:53:18Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
-      "baseRefOid": "d5d8cfe9084c2fb2d1ee1e3381341d67e487605a",
+      "baseRefOid": "9c6a6a9c74df27e503e982611d9226155a3996a2",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "subscribe-id",
-      "headRefOid": "ca8974b6fa64251c1c461f1ca9fe2f07aa8de12f",
+      "headRefOid": "598dc1e26de55a0ddcd950b8dc34312f4e683b21",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -36358,6 +36358,106 @@
               "body": "I am not understanding why a track alias value must match subscribe id. ",
               "createdAt": "2023-12-13T19:47:46Z",
               "updatedAt": "2023-12-13T19:47:57Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5qQAfW",
+          "commit": {
+            "abbreviatedOid": "b7eef47"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2023-12-14T19:40:15Z",
+          "updatedAt": "2023-12-14T19:40:15Z",
+          "comments": [
+            {
+              "originalPosition": 40,
+              "body": "```suggestion\r\n  that was already in use.\r\n```",
+              "createdAt": "2023-12-14T19:40:15Z",
+              "updatedAt": "2023-12-14T19:40:15Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5qQBDt",
+          "commit": {
+            "abbreviatedOid": "8209047"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2023-12-14T19:41:23Z",
+          "updatedAt": "2023-12-14T19:41:24Z",
+          "comments": [
+            {
+              "originalPosition": 85,
+              "body": "```suggestion\r\nUnless the publisher responds with a different Track Alias in SUBSCRIBE_ERROR,\r\n```",
+              "createdAt": "2023-12-14T19:41:24Z",
+              "updatedAt": "2023-12-14T19:41:24Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5qRyoe",
+          "commit": {
+            "abbreviatedOid": "cb260f6"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2023-12-15T02:50:06Z",
+          "updatedAt": "2023-12-15T02:50:07Z",
+          "comments": [
+            {
+              "originalPosition": 86,
+              "body": "```suggestion\r\nthe subscriber can specify a Track Alias that is equal to the Subscribe ID.\r\n```",
+              "createdAt": "2023-12-15T02:50:06Z",
+              "updatedAt": "2023-12-15T02:50:07Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5qRyxK",
+          "commit": {
+            "abbreviatedOid": "598dc1e"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2023-12-15T02:51:10Z",
+          "updatedAt": "2023-12-15T02:51:10Z",
+          "comments": [
+            {
+              "originalPosition": 87,
+              "body": "I changed it to a 'can' from a MUST",
+              "createdAt": "2023-12-15T02:51:10Z",
+              "updatedAt": "2023-12-15T02:51:10Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5qRzDm",
+          "commit": {
+            "abbreviatedOid": "598dc1e"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2023-12-15T02:53:18Z",
+          "updatedAt": "2023-12-15T02:53:18Z",
+          "comments": [
+            {
+              "originalPosition": 139,
+              "body": "The idea would be to prevent some sort of loop where the server keeps coming back with a new subscribe ID, but the text also assumes the MUST I just removed.",
+              "createdAt": "2023-12-15T02:53:18Z",
+              "updatedAt": "2023-12-15T02:53:18Z"
             }
           ]
         }
@@ -42261,13 +42361,13 @@
       "labels": [],
       "body": "This PR brings in currently active proposals for supporting explicit indicators of mapping object model to quic transport.\r\n\r\nFixes #244 \r\n\r\n\r\n",
       "createdAt": "2023-11-08T14:34:57Z",
-      "updatedAt": "2023-12-13T21:07:28Z",
+      "updatedAt": "2023-12-14T04:53:56Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "de5e92e3668272cb70a27dda5b52c642dae0406d",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "tx-mode",
-      "headRefOid": "e4d84e6edf11158cc09fc33b52eeeb1ce34b6ccc",
+      "headRefOid": "d061fe0e054b1c581b1c7b925e2da2ed73d54f29",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -42914,6 +43014,86 @@
               "updatedAt": "2023-12-13T21:07:28Z"
             }
           ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5p2qPB",
+          "commit": {
+            "abbreviatedOid": "e4d84e6"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "Individual Review",
+          "createdAt": "2023-12-11T18:43:14Z",
+          "updatedAt": "2023-12-14T04:35:23Z",
+          "comments": [
+            {
+              "originalPosition": 132,
+              "body": "This message currently makes the third example possible (line 1173).  Without it, a relay might combine objects from the two different input streams to a single output stream.",
+              "createdAt": "2023-12-11T18:43:15Z",
+              "updatedAt": "2023-12-14T04:35:23Z"
+            },
+            {
+              "originalPosition": 164,
+              "body": "I think we probably need to say more about the consequences of sending a datagram over a stream, because the default behavior means object becomes reliable over that hop (it will be rxmited until fully acked, or peer sends STOP_SENDING, triggering a RST_STREAM).  Other behaviors are possible, for example, RST_STREAM on loss detection, so maybe those need to be included in the preference, or made the explicit default?\r\n\r\nIf the datagram part of this PR seems less fully baked we can remove it for now.",
+              "createdAt": "2023-12-11T18:49:32Z",
+              "updatedAt": "2023-12-14T04:35:23Z"
+            },
+            {
+              "originalPosition": 169,
+              "body": "> In my opinion, we should require the datagram extension and that all OBJECT_DATAGRAM messages are smaller than 1.2kB.\r\n\r\nI think the peer can technically choose any max datagram size, even smaller than 1200 bytes.  I think I'm in favor of a fallback behavior rather than a black hole.",
+              "createdAt": "2023-12-11T18:52:34Z",
+              "updatedAt": "2023-12-14T04:35:23Z"
+            },
+            {
+              "originalPosition": 121,
+              "body": "I tried to capture this in the sections below describing how to determine the preference when receiving an object and how to send an object with a given preference.  I'm also going to add a normative bit to the relay section.",
+              "createdAt": "2023-12-14T04:23:54Z",
+              "updatedAt": "2023-12-14T04:35:23Z"
+            },
+            {
+              "originalPosition": 123,
+              "body": "Do we like \"Object forwarding mode\" better than preference?  I'm neutral.",
+              "createdAt": "2023-12-14T04:24:39Z",
+              "updatedAt": "2023-12-14T04:35:23Z"
+            },
+            {
+              "originalPosition": 142,
+              "body": "Jordi is right -- it's the same.",
+              "createdAt": "2023-12-14T04:27:05Z",
+              "updatedAt": "2023-12-14T04:35:23Z"
+            },
+            {
+              "originalPosition": 161,
+              "body": "I'm going to remove datagram for now.",
+              "createdAt": "2023-12-14T04:27:58Z",
+              "updatedAt": "2023-12-14T04:35:23Z"
+            },
+            {
+              "originalPosition": 164,
+              "body": "same as above.",
+              "createdAt": "2023-12-14T04:28:27Z",
+              "updatedAt": "2023-12-14T04:35:23Z"
+            },
+            {
+              "originalPosition": 173,
+              "body": "This field is to convey the priority signal to the next hop, which might be using an API that allows setting priority on datagrams.",
+              "createdAt": "2023-12-14T04:30:16Z",
+              "updatedAt": "2023-12-14T04:35:23Z"
+            },
+            {
+              "originalPosition": 183,
+              "body": "You can terminate it cleanly on an object boundary, or reset it, but you can't fin in the middle of an object.",
+              "createdAt": "2023-12-14T04:30:54Z",
+              "updatedAt": "2023-12-14T04:35:23Z"
+            },
+            {
+              "originalPosition": 192,
+              "body": "I'm going to add that a sender SHOULD only have one stream open with the exact same STREAM_HEADER.  It's not all that enforceable at the receiver though because of reordering.",
+              "createdAt": "2023-12-14T04:32:34Z",
+              "updatedAt": "2023-12-14T04:35:23Z"
+            }
+          ]
         }
       ]
     },
@@ -43112,7 +43292,7 @@
       "id": "PR_kwDOG2Ho4M5hoGz0",
       "title": "Change Sequence to ID for Objects and Groups",
       "url": "https://github.com/moq-wg/moq-transport/pull/339",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "ianswett",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
@@ -43121,17 +43301,19 @@
       ],
       "body": "Sequence typically indicates a number of things.",
       "createdAt": "2023-12-11T01:12:19Z",
-      "updatedAt": "2023-12-11T23:08:04Z",
+      "updatedAt": "2023-12-14T19:33:42Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "1123e1cfc2759d99012b32c0785994b553e5dab6",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "ianswett-sequence-id",
       "headRefOid": "cd18f555456bed426a433719e7ae68df68334caf",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "closedAt": "2023-12-14T19:33:41Z",
+      "mergedAt": "2023-12-14T19:33:41Z",
+      "mergedBy": "ianswett",
+      "mergeCommit": {
+        "oid": "9c6a6a9c74df27e503e982611d9226155a3996a2"
+      },
       "comments": [],
       "reviews": [
         {
