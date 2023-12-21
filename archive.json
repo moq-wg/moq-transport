@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2023-12-19T01:10:06.808234+00:00",
+  "timestamp": "2023-12-21T01:09:04.529137+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -12332,9 +12332,17 @@
       "labels": [],
       "body": "My understanding is that MoQ is always hop-by-hop encrypted by virtue of working over QUIC or WebTransport, and therefore a \"relay\" as described in the draft can only inspect Track/Group/Object metadata if it terminates QUIC.  The document should clarify the requirements.",
       "createdAt": "2023-11-10T15:58:52Z",
-      "updatedAt": "2023-11-10T15:58:52Z",
+      "updatedAt": "2023-12-20T08:38:45Z",
       "closedAt": null,
-      "comments": []
+      "comments": [
+        {
+          "author": "tmengKOP",
+          "authorAssociation": "NONE",
+          "body": "I agree with Alan. As a QUIC enthusiast, I guess the current draft implicitly suggests hop-by-hop QUIC termination at relay, e.g., which is necessary to enable cache at relay while having MOQT Message Type and OBJECT metadata as QUIC payload. Yet it is definitely more clarified for readers to explicitly see that information in an early section (e.g., sec 1.1.4).",
+          "createdAt": "2023-12-20T08:38:43Z",
+          "updatedAt": "2023-12-20T08:38:43Z"
+        }
+      ]
     },
     {
       "number": 337,
