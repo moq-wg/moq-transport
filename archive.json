@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2024-01-04T01:10:05.301868+00:00",
+  "timestamp": "2024-01-07T01:16:14.144679+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -36019,7 +36019,7 @@
       "labels": [],
       "body": "Currently SUBSCRIBE_OK and OBJECT will race. If OBJECT wins (>50% chance for multi-threaded QUIC libraries), then the subscriber will receive an unknown OBJECT that needs to be buffered. Moving Track ID to SUBSCRIBE fixes this race, removes the need to buffer OBJECTs in the MoqT library, and simplifies the flow. See #145",
       "createdAt": "2023-09-29T04:17:03Z",
-      "updatedAt": "2023-12-15T02:53:18Z",
+      "updatedAt": "2024-01-07T00:06:09Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "9c6a6a9c74df27e503e982611d9226155a3996a2",
@@ -36466,6 +36466,26 @@
               "body": "The idea would be to prevent some sort of loop where the server keeps coming back with a new subscribe ID, but the text also assumes the MUST I just removed.",
               "createdAt": "2023-12-15T02:53:18Z",
               "updatedAt": "2023-12-15T02:53:18Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5rvkuv",
+          "commit": {
+            "abbreviatedOid": "598dc1e"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-01-07T00:06:09Z",
+          "updatedAt": "2024-01-07T00:06:09Z",
+          "comments": [
+            {
+              "originalPosition": 87,
+              "body": "SubscribeId and Track Alias are semantically different concepts. Former is per transaction (subscription) and latter is a short name for Full Track Name. we should remove the last sentence above.",
+              "createdAt": "2024-01-07T00:06:09Z",
+              "updatedAt": "2024-01-07T00:06:09Z"
             }
           ]
         }
