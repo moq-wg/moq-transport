@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2024-01-07T01:16:14.144679+00:00",
+  "timestamp": "2024-01-09T01:11:36.147617+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -36019,7 +36019,7 @@
       "labels": [],
       "body": "Currently SUBSCRIBE_OK and OBJECT will race. If OBJECT wins (>50% chance for multi-threaded QUIC libraries), then the subscriber will receive an unknown OBJECT that needs to be buffered. Moving Track ID to SUBSCRIBE fixes this race, removes the need to buffer OBJECTs in the MoqT library, and simplifies the flow. See #145",
       "createdAt": "2023-09-29T04:17:03Z",
-      "updatedAt": "2024-01-07T00:06:09Z",
+      "updatedAt": "2024-01-07T03:38:56Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "9c6a6a9c74df27e503e982611d9226155a3996a2",
@@ -36486,6 +36486,26 @@
               "body": "SubscribeId and Track Alias are semantically different concepts. Former is per transaction (subscription) and latter is a short name for Full Track Name. we should remove the last sentence above.",
               "createdAt": "2024-01-07T00:06:09Z",
               "updatedAt": "2024-01-07T00:06:09Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5rvsMj",
+          "commit": {
+            "abbreviatedOid": "598dc1e"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-01-07T03:38:56Z",
+          "updatedAt": "2024-01-07T03:38:56Z",
+          "comments": [
+            {
+              "originalPosition": 139,
+              "body": "> S->C: Subscribe Error (sub-id 2, track alias 19, error code=bad auth) # sub-id != track alias, but server isn't asking for a resubscribe with new id\r\n\r\nI don't see why this is an error. \r\n\r\nI expected the flow to be something like:\r\n\r\n```\r\nC->S: Subscribe (sub-id 1, track alias 1)\r\nS->C: Subscribe Error (sub-id 1, track alias 19, error code=try new track alias)\r\nC->S: Subscribe (sub-id 2, track alias 19)\r\nS->C: Sub Ok \r\n```",
+              "createdAt": "2024-01-07T03:38:56Z",
+              "updatedAt": "2024-01-07T03:38:56Z"
             }
           ]
         }
