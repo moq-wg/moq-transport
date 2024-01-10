@@ -1089,7 +1089,7 @@ SUBSCRIBE_ERROR
 
 * Reason Phrase: Provides the reason for subscription error.
 
-* Track Alias: When not equal to Subscribe ID, the subscriber SHOULD re-issue the
+* Track Alias: When Error Code is TBD, the subscriber SHOULD re-issue the
   SUBSCRIBE with this Track Alias instead. If this Track Alias is already in use,
   the receiver MUST close the connection with a Duplicate Track Alias error
   ({{session-termination}}).
