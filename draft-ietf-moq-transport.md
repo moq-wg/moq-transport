@@ -400,21 +400,23 @@ Section 5}}).
 The application MAY use any error message and SHOULD use a relevant
 code, as defined below:
 
-|------|-----------------------|
-| Code | Reason                |
-|-----:|:----------------------|
-| 0x0  | No Error              |
-|------|-----------------------|
-| 0x1  | Generic Error         |
-|------|-----------------------|
-| 0x2  | Unauthorized          |
-|------|-----------------------|
-| 0x3  | Protocol Violation    |
-|------|-----------------------|
-| 0x4  | Duplicate Track Alias |
-|------|-----------------------|
-| 0x10 | GOAWAY Timeout        |
-|------|-----------------------|
+|------|---------------------------|
+| Code | Reason                    |
+|-----:|:--------------------------|
+| 0x0  | No Error                  |
+|------|---------------------------|
+| 0x1  | Generic Error             |
+|------|---------------------------|
+| 0x2  | Unauthorized              |
+|------|---------------------------|
+| 0x3  | Protocol Violation        |
+|------|---------------------------|
+| 0x4  | Duplicate Track Alias     |
+|------|---------------------------|
+| 0x5  | Parameter Length Mismatch |
+|------|---------------------------|
+| 0x10 | GOAWAY Timeout            |
+|------|---------------------------|
 
 * No Error: The session is being terminated without an error.
 
@@ -735,9 +737,9 @@ The Parameter Length field of the String Parameter encodes the length
 of the Parameter Value field in bytes.
 
 Each parameter description will indicate the data type in the Parameter Value
-field. If the parameter value is a varint, but the self-encoded length of that
-varint does not match the Parameter Length field, the receiver MUST ignore the
-parameter using the value in the Parameter Length field.
+field. If a receiver understands a parameter type, and the parameter length
+implied by that type does not match the Parameter Length field, the receiver MUST
+terminate the session with error code 'Parameter Length Mismatch'.
 
 ### Version Specific Parameters {#version-specific-params}
 
