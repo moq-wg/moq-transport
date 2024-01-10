@@ -400,19 +400,21 @@ Section 5}}).
 The application MAY use any error message and SHOULD use a relevant
 code, as defined below:
 
-|------|--------------------|
-| Code | Reason             |
-|-----:|:-------------------|
-| 0x0  | No Error           |
-|------|--------------------|
-| 0x1  | Generic Error      |
-|------|--------------------|
-| 0x2  | Unauthorized       |
-|------|--------------------|
-| 0x3  | Protocol Violation |
-|------|--------------------|
-| 0x10 | GOAWAY Timeout     |
-|------|--------------------|
+|------|-----------------------|
+| Code | Reason                |
+|-----:|:----------------------|
+| 0x0  | No Error              |
+|------|-----------------------|
+| 0x1  | Generic Error         |
+|------|-----------------------|
+| 0x2  | Unauthorized          |
+|------|-----------------------|
+| 0x3  | Protocol Violation    |
+|------|-----------------------|
+| 0x4  | Duplicate Track Alias |
+|------|-----------------------|
+| 0x10 | GOAWAY Timeout        |
+|------|-----------------------|
 
 * No Error: The session is being terminated without an error.
 
@@ -423,6 +425,9 @@ code, as defined below:
 
 * Protocol Violation: The remote endpoint performed an action that was
   disallowed by the specification.
+
+* Duplicate Track Alias: The endpoint attempted to use a Track Alias
+  that was already in use.
 
 * GOAWAY Timeout: The session was closed because the client took too long to
   close the session in response to a GOAWAY ({{message-goaway}}) message.
@@ -862,8 +867,8 @@ OBJECT Message {
 ~~~
 {: #moq-transport-object-format title="MOQT OBJECT Message"}
 
-* Track Alias : The compressed full track name obtained as part of
-subscription and/or publish control message exchanges.
+* Track Alias :The track identifier as specified in the
+  SUBSCRIBE message {{message-subscribe-req}}.
 
 * Group ID : The object is a member of the indicated group ID
 {{model-group}} within the track.
@@ -931,6 +936,7 @@ The format of SUBSCRIBE is as follows:
 ~~~
 SUBSCRIBE Message {
   Subscribe ID (i),
+  Track Alias (i),
   Track Namespace (b),
   Track Name (b),
   StartGroup (Location),
@@ -942,17 +948,23 @@ SUBSCRIBE Message {
 ~~~
 {: #moq-transport-subscribe-format title="MOQT SUBSCRIBE Message"}
 
-* Track Namespace: Identifies the namespace of the track as defined in
-({{track-name}}).
-
-* Track Name: Identifies the track name as defined in ({{track-name}}).
-
 * Subscribe ID: The subscription identifier that is unique within the session.
 `Subscribe ID` is a monotonically increasing variable length integer which
 MUST not be reused within a session. `Subscribe ID` is used by subscribers and
 the publishers to identify a given subscription. Subscribers specify the
 `Subscribe ID` and it is included in the corresponding SUBSCRIBE_OK or
 SUBSCRIBE_ERROR messages.
+
+* Track Alias: A session specific identifier for the track.
+Messages that reference a track, such as OBJECT ({{message-object}}),
+reference this Track Alias instead of the Track Name and Track Namespace to
+reduce overhead. If the Track Alias is already in use, the publisher MUST
+close the session with a Duplicate Track Alias error ({{session-termination}}).
+
+* Track Namespace: Identifies the namespace of the track as defined in
+({{track-name}}).
+
+* Track Name: Identifies the track name as defined in ({{track-name}}).
 
 * StartGroup: The Location of the requested group.  StartGroup's Mode MUST NOT be
 None.
@@ -1042,9 +1054,6 @@ A SUBSCRIBE_OK control message is sent for successful subscriptions.
 SUBSCRIBE_OK
 {
   Subscribe ID (i),
-  Track Namespace (b),
-  Track Name (b),
-  Track Alias (i),
   Expires (i)
 }
 ~~~
@@ -1056,11 +1065,6 @@ SUBSCRIBE_OK
 ({{track-name}}).
 
 * Track Name: Identifies the track name as defined in ({{track-name}}).
-
-* Track Alias: Session specific identifier that is used as an alias for the
-Full Track Name in the Track Alias field of the OBJECT ({{message-object}})
-message headers of the requested track. Track Aliases are shorter
-than Full Track Names and thus reduce the overhead in OBJECT messages.
 
 * Expires: Time in milliseconds after which the subscription is no
 longer valid. A value of 0 indicates that the subscription stays active
@@ -1078,6 +1082,7 @@ SUBSCRIBE_ERROR
   Subscribe ID (i),
   Error Code (i),
   Reason Phrase (b),
+  Track Alias (i),
 }
 ~~~
 {: #moq-transport-subscribe-error format title="MOQT SUBSCRIBE_ERROR Message"}
@@ -1086,9 +1091,13 @@ SUBSCRIBE_ERROR
 
 * Error Code: Identifies an integer error code for subscription failure.
 
-* Reason Phrase Length: The length in bytes of the reason phrase.
-
 * Reason Phrase: Provides the reason for subscription error.
+
+* Track Alias: When Error Code is TBD, the subscriber SHOULD re-issue the
+  SUBSCRIBE with this Track Alias instead. If this Track Alias is already in use,
+  the receiver MUST close the connection with a Duplicate Track Alias error
+  ({{session-termination}}).
+  TODO: Add a registry for subscribe error codes and make this field conditional.
 
 
 ## UNSUBSCRIBE {#message-unsubscribe}
