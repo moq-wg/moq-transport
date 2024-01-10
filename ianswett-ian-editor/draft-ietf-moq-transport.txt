@@ -3,7 +3,7 @@
 
 
 MOQ                                                            L. Curley
-Internet-Draft                                                       N/A
+Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
 Expires: 13 July 2024                                               Meta
                                                            S. Nandakumar
@@ -1452,7 +1452,7 @@ Informative References
 Authors' Addresses
 
    Luke Curley
-   N/A
+   Discord
    Email: kixelated@gmail.com
 
 
