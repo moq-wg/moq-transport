@@ -3,14 +3,15 @@
 
 
 MOQ                                                            L. Curley
-Internet-Draft                                                    Twitch
+Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 16 June 2024                                               Meta
+Expires: 13 July 2024                                               Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
+                                                           I. Swett, Ed.
                                                                   Google
-                                                        14 December 2023
+                                                         10 January 2024
 
 
                        Media over QUIC Transport
@@ -52,11 +53,11 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 16 June 2024.
+   This Internet-Draft will expire on 13 July 2024.
 
 Copyright Notice
 
-   Copyright (c) 2023 IETF Trust and the persons identified as the
+   Copyright (c) 2024 IETF Trust and the persons identified as the
    document authors.  All rights reserved.
 
    This document is subject to BCP 78 and the IETF Trust's Legal
@@ -1451,7 +1452,7 @@ Informative References
 Authors' Addresses
 
    Luke Curley
-   Twitch
+   Discord
    Email: kixelated@gmail.com
 
 
@@ -1468,3 +1469,8 @@ Authors' Addresses
    Victor Vasiliev
    Google
    Email: vasilvv@google.com
+
+
+   Ian Swett (editor)
+   Google
+   Email: ianswett@google.com
