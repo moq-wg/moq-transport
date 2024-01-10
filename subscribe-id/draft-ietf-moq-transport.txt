@@ -5,12 +5,12 @@
 MOQ                                                            L. Curley
 Internet-Draft                                                    Twitch
 Intended status: Standards Track                                K. Pugin
-Expires: 17 June 2024                                               Meta
+Expires: 13 July 2024                                               Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                                   Google
-                                                        15 December 2023
+                                                         10 January 2024
 
 
                        Media over QUIC Transport
@@ -52,11 +52,11 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 17 June 2024.
+   This Internet-Draft will expire on 13 July 2024.
 
 Copyright Notice
 
-   Copyright (c) 2023 IETF Trust and the persons identified as the
+   Copyright (c) 2024 IETF Trust and the persons identified as the
    document authors.  All rights reserved.
 
    This document is subject to BCP 78 and the IETF Trust's Legal
@@ -937,7 +937,7 @@ Table of Contents
                        Figure 4: MOQT OBJECT Message
 
    *  Track Alias :The track identifier as specified in the SUBSCRIBE
-      request Section 6.4.
+      message Section 6.4.
 
    *  Group ID : The object is a member of the indicated group ID
       Section 2.2 within the track.
