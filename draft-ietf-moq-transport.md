@@ -19,7 +19,7 @@ author:
   -
     ins: L. Curley
     name: Luke Curley
-    organization: N/A
+    organization: Discord
     email: kixelated@gmail.com
 
   -
