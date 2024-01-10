@@ -1825,6 +1825,10 @@ code, as defined below:<a href="#section-3.5-2" class="pilcrow">¶</a></p>
               <td class="text-left" rowspan="1" colspan="1">Duplicate Track Alias</td>
             </tr>
             <tr>
+              <td class="text-right" rowspan="1" colspan="1">0x5</td>
+              <td class="text-left" rowspan="1" colspan="1">Parameter Length Mismatch</td>
+            </tr>
+            <tr>
               <td class="text-right" rowspan="1" colspan="1">0x10</td>
               <td class="text-left" rowspan="1" colspan="1">GOAWAY Timeout</td>
             </tr>
@@ -2258,9 +2262,9 @@ specific parameter types are defined in <a href="#version-specific-params" class
 <p id="section-6.1-8">The Parameter Length field of the String Parameter encodes the length
 of the Parameter Value field in bytes.<a href="#section-6.1-8" class="pilcrow">¶</a></p>
 <p id="section-6.1-9">Each parameter description will indicate the data type in the Parameter Value
-field. If the parameter value is a varint, but the self-encoded length of that
-varint does not match the Parameter Length field, the receiver <span class="bcp14">MUST</span> ignore the
-parameter using the value in the Parameter Length field.<a href="#section-6.1-9" class="pilcrow">¶</a></p>
+field. If a receiver understands a parameter type, and the parameter length
+implied by that type does not match the Parameter Length field, the receiver <span class="bcp14">MUST</span>
+terminate the session with error code 'Parameter Length Mismatch'.<a href="#section-6.1-9" class="pilcrow">¶</a></p>
 <div id="version-specific-params">
 <section id="section-6.1.1">
           <h4 id="name-version-specific-parameters">
