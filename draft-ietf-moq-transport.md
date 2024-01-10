@@ -1112,8 +1112,6 @@ SUBSCRIBE_ERROR
   SUBSCRIBE with this Track Alias instead. If this Track Alias is already in use,
   the receiver MUST close the connection with a Duplicate Track Alias error
   ({{session-termination}}).
-  TODO: Add a registry for subscribe error codes and make this field conditional.
-
 
 ## UNSUBSCRIBE {#message-unsubscribe}
 
