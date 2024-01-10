@@ -862,7 +862,7 @@ OBJECT Message {
 {: #moq-transport-object-format title="MOQT OBJECT Message"}
 
 * Track Alias :The track identifier as specified in the
-  SUBSCRIBE request {{message-subscribe-req}}.
+  SUBSCRIBE message {{message-subscribe-req}}.
 
 * Group ID : The object is a member of the indicated group ID
 {{model-group}} within the track.
