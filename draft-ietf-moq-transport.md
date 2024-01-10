@@ -405,6 +405,8 @@ code, as defined below:
 |------|--------------------|
 | 0x3  | Protocol Violation |
 |------|--------------------|
+| 0x4  | Parameter Length Mismatch |
+|------|--------------------|
 | 0x10 | GOAWAY Timeout     |
 |------|--------------------|
 
@@ -726,7 +728,7 @@ of the Parameter Value field in bytes.
 Each parameter description will indicate the data type in the Parameter Value
 field. If a receiver understands a parameter type, and the parameter length
 implied by that type does not match the Parameter Length field, the receiver MUST
-terminate the session with error code TBD.
+terminate the session with error code 'Parameter Length Mismatch'.
 
 ### Version Specific Parameters {#version-specific-params}
 
