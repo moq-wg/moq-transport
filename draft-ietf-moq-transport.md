@@ -19,7 +19,7 @@ author:
   -
     ins: L. Curley
     name: Luke Curley
-    organization: Twitch
+    organization: Discord
     email: kixelated@gmail.com
 
   -
@@ -40,6 +40,12 @@ author:
     organization: Google
     email: vasilvv@google.com
 
+  -
+    ins: I. Swett
+    name: Ian Swett
+    organization: Google
+    email: ianswett@google.com
+    role: editor
 
 normative:
   QUIC: RFC9000
