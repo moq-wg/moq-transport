@@ -954,6 +954,7 @@ Messages that reference a track, such as OBJECT ({{message-object}}),
 reference this Track Alias instead of the Track Name and Track Namespace to
 reduce overhead. If the Track Alias is already in use, the publisher MUST
 close the session with a Duplicate Track Alias error ({{session-termination}}).
+
 * Track Namespace: Identifies the namespace of the track as defined in
 ({{track-name}}).
 
