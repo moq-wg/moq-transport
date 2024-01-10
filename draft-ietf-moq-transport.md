@@ -394,21 +394,21 @@ Section 5}}).
 The application MAY use any error message and SHOULD use a relevant
 code, as defined below:
 
-|------|--------------------|
-| Code | Reason             |
-|-----:|:-------------------|
-| 0x0  | No Error           |
-|------|--------------------|
-| 0x1  | Generic Error      |
-|------|--------------------|
-| 0x2  | Unauthorized       |
-|------|--------------------|
-| 0x3  | Protocol Violation |
-|------|--------------------|
+|------|---------------------------|
+| Code | Reason                    |
+|-----:|:--------------------------|
+| 0x0  | No Error                  |
+|------|---------------------------|
+| 0x1  | Generic Error             |
+|------|---------------------------|
+| 0x2  | Unauthorized              |
+|------|---------------------------|
+| 0x3  | Protocol Violation        |
+|------|---------------------------|
 | 0x4  | Parameter Length Mismatch |
-|------|--------------------|
-| 0x10 | GOAWAY Timeout     |
-|------|--------------------|
+|------|---------------------------|
+| 0x10 | GOAWAY Timeout            |
+|------|---------------------------|
 
 * No Error: The session is being terminated without an error.
 
