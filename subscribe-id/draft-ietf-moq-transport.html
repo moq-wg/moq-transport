@@ -2540,9 +2540,7 @@ SUBSCRIBE_ERROR messages.<a href="#section-6.4.2-3.1.1" class="pilcrow">¶</a></
 Messages that reference a track, such as OBJECT (<a href="#message-object" class="auto internal xref">Section 6.3</a>),
 reference this Track Alias instead of the Track Name and Track Namespace to
 reduce overhead. If the Track Alias is already in use, the publisher <span class="bcp14">MUST</span>
-close the session with a Duplicate Track Alias error (<a href="#session-termination" class="auto internal xref">Section 3.5</a>).
-Unless the publisher responds with a different Track Alias in SUBSCRIBE_ERROR,
-the subscriber can specify a Track Alias that is equal to the Subscribe ID.<a href="#section-6.4.2-3.2.1" class="pilcrow">¶</a></p>
+close the session with a Duplicate Track Alias error (<a href="#session-termination" class="auto internal xref">Section 3.5</a>).<a href="#section-6.4.2-3.2.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-6.4.2-3.3">
               <p id="section-6.4.2-3.3.1">Track Namespace: Identifies the namespace of the track as defined in
