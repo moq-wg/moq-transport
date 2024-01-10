@@ -40,12 +40,12 @@ author:
     organization: Google
     email: vasilvv@google.com
 
-editor:
-   -
+  -
     ins: I. Swett
     name: Ian Swett
     organization: Google
     email: ianswett@google.com
+    role: editor
 
 normative:
   QUIC: RFC9000
