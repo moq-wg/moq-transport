@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2024-01-09T01:11:36.147617+00:00",
+  "timestamp": "2024-01-11T01:11:32.560598+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -11740,7 +11740,7 @@
       "id": "I_kwDOG2Ho4M51RpRP",
       "title": "VarInt parameters length mismatch",
       "url": "https://github.com/moq-wg/moq-transport/issues/314",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "kixelated",
       "authorAssociation": "COLLABORATOR",
       "assignees": [
@@ -11752,8 +11752,8 @@
       ],
       "body": "Currently, VarInts have two lengths:\r\n\r\n1. In the parameter length.\r\n2. In the first two bits of the parameter value.\r\n\r\nThe decision in #294 was that the two MUST match, which is a good solution without a full #256 reform.\r\n\r\nHowever:\r\n\r\n> If the parameter value is a varint, but the self-encoded length of that varint does not match the Parameter Length field, the receiver MUST ignore the parameter using the value in the Parameter Length field.\r\n\r\nIgnoring seems like the wrong play. For example, we know the role parameter (0x0) is a VarInt in the current draft. However this text says I MUST ignore any errors when parsing this varint and pretend like the parameter was never sent, which is both unenforceable and a major foot-gun (silently ignoring parameters).\r\n\r\nI think we close the connection with an error if there's an error parsing a known parameter.",
       "createdAt": "2023-10-30T05:47:46Z",
-      "updatedAt": "2023-11-09T17:29:41Z",
-      "closedAt": null,
+      "updatedAt": "2024-01-10T17:36:41Z",
+      "closedAt": "2024-01-10T17:36:41Z",
       "comments": [
         {
           "author": "martinduke",
@@ -12353,10 +12353,13 @@
       "author": "wilaw",
       "authorAssociation": "NONE",
       "assignees": [],
-      "labels": [],
+      "labels": [
+        "Needs PR",
+        "Subscribe"
+      ],
       "body": "Consider an edge relay, receiving and forwarding relative SUBSCRIBE requests for -5, -3, and -1 for the same track. The first object it receives back is group 37. It cannot tell where to place this object in the sequence and must therefore hold it until it knows more information. If the next object is Group 39, it still cannot forward it, because the head sate is undefined.\r\n\r\nWe can solve this problem simply by having the SUBSCRIBE_OK response indicate the latest group and object number:\r\n\r\nSUBSCRIBE_OK\r\n{\r\n  Track Namespace (b),\r\n  Track Name (b),\r\n  Track Alias (i),\r\n  Expires (i),\r\n  LastestGroup(i),\r\n  LastestObject(i)\r\n}\r\n\r\nOne consequence of adding these fields is that an edge, which has no active subscription for the track,  cannot send the SUBSCRIBE_OK response until it itself receives a SUBSCRIBE_OK after forwarding the SUBSCRIBE. This makes subscription an async process in which the acknowledgment of the subscription may take in some cases a RTT back to the origin. I think this is necessary for stable state management. \r\n",
       "createdAt": "2023-11-10T21:52:31Z",
-      "updatedAt": "2023-11-29T16:25:50Z",
+      "updatedAt": "2024-01-10T17:38:43Z",
       "closedAt": null,
       "comments": [
         {
@@ -36012,24 +36015,26 @@
       "id": "PR_kwDOG2Ho4M5bgAMo",
       "title": "Allow the Track Alias to be selected by the publisher",
       "url": "https://github.com/moq-wg/moq-transport/pull/258",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "kixelated",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [],
       "body": "Currently SUBSCRIBE_OK and OBJECT will race. If OBJECT wins (>50% chance for multi-threaded QUIC libraries), then the subscriber will receive an unknown OBJECT that needs to be buffered. Moving Track ID to SUBSCRIBE fixes this race, removes the need to buffer OBJECTs in the MoqT library, and simplifies the flow. See #145",
       "createdAt": "2023-09-29T04:17:03Z",
-      "updatedAt": "2024-01-07T03:38:56Z",
+      "updatedAt": "2024-01-10T17:24:34Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "9c6a6a9c74df27e503e982611d9226155a3996a2",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "subscribe-id",
-      "headRefOid": "598dc1e26de55a0ddcd950b8dc34312f4e683b21",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "headRefOid": "56e420af5ab79f51cd40e0a56266c723f3083172",
+      "closedAt": "2024-01-10T17:24:33Z",
+      "mergedAt": "2024-01-10T17:24:33Z",
+      "mergedBy": "ianswett",
+      "mergeCommit": {
+        "oid": "4d42a78c12acf6f12389b8faf5edf4b5f9e3f512"
+      },
       "comments": [
         {
           "author": "kixelated",
@@ -36508,6 +36513,72 @@
               "updatedAt": "2024-01-07T03:38:56Z"
             }
           ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5sGhtv",
+          "commit": {
+            "abbreviatedOid": "598dc1e"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-01-10T16:38:05Z",
+          "updatedAt": "2024-01-10T16:38:06Z",
+          "comments": [
+            {
+              "originalPosition": 52,
+              "body": "```suggestion\r\n  SUBSCRIBE message {{message-subscribe-req}}.\r\n```",
+              "createdAt": "2024-01-10T16:38:06Z",
+              "updatedAt": "2024-01-10T16:38:06Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5sGxrL",
+          "commit": {
+            "abbreviatedOid": "b2514be"
+          },
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "LGTM - thanks for getting this so simple ",
+          "createdAt": "2024-01-10T17:11:48Z",
+          "updatedAt": "2024-01-10T17:11:48Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5sGzp3",
+          "commit": {
+            "abbreviatedOid": "b2514be"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-01-10T17:16:30Z",
+          "updatedAt": "2024-01-10T17:16:31Z",
+          "comments": [
+            {
+              "originalPosition": 87,
+              "body": "```suggestion\r\n\r\n```",
+              "createdAt": "2024-01-10T17:16:31Z",
+              "updatedAt": "2024-01-10T17:16:31Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5sG0Et",
+          "commit": {
+            "abbreviatedOid": "7b12291"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2024-01-10T17:17:29Z",
+          "updatedAt": "2024-01-10T17:17:29Z",
+          "comments": []
         }
       ]
     },
@@ -40771,7 +40842,7 @@
       "labels": [],
       "body": "per https://github.com/moq-wg/moq-transport/issues/268 \r\n\r\nTODO: Denote need to register w/ IANA",
       "createdAt": "2023-10-23T22:16:25Z",
-      "updatedAt": "2023-11-04T16:49:53Z",
+      "updatedAt": "2024-01-10T17:17:46Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "759f52940e2370ed61b22ead62f09cbbac0a6960",
@@ -40808,6 +40879,19 @@
           "body": "",
           "createdAt": "2023-11-04T16:49:53Z",
           "updatedAt": "2023-11-04T16:49:53Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5sG0MX",
+          "commit": {
+            "abbreviatedOid": "5bd7fb2"
+          },
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "LGTM",
+          "createdAt": "2024-01-10T17:17:46Z",
+          "updatedAt": "2024-01-10T17:17:46Z",
           "comments": []
         }
       ]
@@ -42409,7 +42493,7 @@
       "labels": [],
       "body": "This PR brings in currently active proposals for supporting explicit indicators of mapping object model to quic transport.\r\n\r\nFixes #244 \r\n\r\n\r\n",
       "createdAt": "2023-11-08T14:34:57Z",
-      "updatedAt": "2023-12-14T04:53:56Z",
+      "updatedAt": "2024-01-10T17:39:27Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "de5e92e3668272cb70a27dda5b52c642dae0406d",
@@ -43142,6 +43226,46 @@
               "updatedAt": "2023-12-14T04:35:23Z"
             }
           ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5sE4Ig",
+          "commit": {
+            "abbreviatedOid": "2a534da"
+          },
+          "author": "wilaw",
+          "authorAssociation": "NONE",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-01-10T13:23:55Z",
+          "updatedAt": "2024-01-10T13:23:55Z",
+          "comments": [
+            {
+              "originalPosition": 68,
+              "body": "Binding the transport mode to the subscription seems like a reasonable constraint. Once a publisher is producing a track, I can't find an obvious use-case as to why they would need to alter the object-to-transport mapping. If there was one in the future, the publisher could work around it by terminating the track and advertising a new one with the new mapping. Binding the mapping to the subscription means, as kixelated points out, that the mapping info can be sent just once in SUSBCRIBE_OK. For compactness, anything that doesn't change over the life of a subscription (such as track alias, subscribe ID and now mapping) should be communicated via SUBSCRIBE_OK. ",
+              "createdAt": "2024-01-10T13:23:55Z",
+              "updatedAt": "2024-01-10T13:23:55Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5sG_Ix",
+          "commit": {
+            "abbreviatedOid": "d061fe0"
+          },
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-01-10T17:39:27Z",
+          "updatedAt": "2024-01-10T17:39:27Z",
+          "comments": [
+            {
+              "originalPosition": 211,
+              "body": "I think this should be track alias not subscribe ID ",
+              "createdAt": "2024-01-10T17:39:27Z",
+              "updatedAt": "2024-01-10T17:39:27Z"
+            }
+          ]
         }
       ]
     },
@@ -43247,24 +43371,26 @@
       "id": "PR_kwDOG2Ho4M5fWTNt",
       "title": "Fail session on malformed parameter",
       "url": "https://github.com/moq-wg/moq-transport/pull/338",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "martinduke",
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
       "labels": [],
       "body": "Fixes #314 ",
       "createdAt": "2023-11-13T22:05:08Z",
-      "updatedAt": "2023-12-12T21:58:59Z",
+      "updatedAt": "2024-01-10T17:36:40Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
-      "baseRefOid": "1123e1cfc2759d99012b32c0785994b553e5dab6",
+      "baseRefOid": "4d42a78c12acf6f12389b8faf5edf4b5f9e3f512",
       "headRepository": "martinduke/moq-transport",
       "headRefName": "fail-length",
-      "headRefOid": "f1d50432a541a34ae77dce26d9b402988c67ac42",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "headRefOid": "4b0a7ab6cdade89594cdbc6f958b19686e717097",
+      "closedAt": "2024-01-10T17:36:40Z",
+      "mergedAt": "2024-01-10T17:36:40Z",
+      "mergedBy": "ianswett",
+      "mergeCommit": {
+        "oid": "e44aa48372942187027b899e5bb90c97ab279e0d"
+      },
       "comments": [],
       "reviews": [
         {
@@ -43332,6 +43458,19 @@
               "updatedAt": "2023-12-12T21:58:59Z"
             }
           ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5sGsIk",
+          "commit": {
+            "abbreviatedOid": "718568c"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "LG, though we can bikeshed about the error code name.",
+          "createdAt": "2024-01-10T17:00:10Z",
+          "updatedAt": "2024-01-10T17:00:10Z",
+          "comments": []
         }
       ]
     },
@@ -43375,6 +43514,121 @@
           "body": "This is a good change.",
           "createdAt": "2023-12-11T23:08:04Z",
           "updatedAt": "2023-12-11T23:08:04Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 340,
+      "id": "PR_kwDOG2Ho4M5jtKAI",
+      "title": "Add Ian Swett as Editor",
+      "url": "https://github.com/moq-wg/moq-transport/pull/340",
+      "state": "MERGED",
+      "author": "ianswett",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "And remove Twitch from Luke Curley's entry.",
+      "createdAt": "2024-01-10T16:41:53Z",
+      "updatedAt": "2024-01-10T17:16:52Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "9c6a6a9c74df27e503e982611d9226155a3996a2",
+      "headRepository": "moq-wg/moq-transport",
+      "headRefName": "ianswett-ian-editor",
+      "headRefOid": "eafd50f817a8cbcd54de32dad1620eb46bcda620",
+      "closedAt": "2024-01-10T17:16:52Z",
+      "mergedAt": "2024-01-10T17:16:52Z",
+      "mergedBy": "ianswett",
+      "mergeCommit": {
+        "oid": "1416ad1af9584e7d425b0d5075bd1aa9cede8449"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M5sGxvI",
+          "commit": {
+            "abbreviatedOid": "fe9f386"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2024-01-10T17:11:56Z",
+          "updatedAt": "2024-01-10T17:11:56Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5sGyFj",
+          "commit": {
+            "abbreviatedOid": "fe9f386"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-01-10T17:12:46Z",
+          "updatedAt": "2024-01-10T17:12:46Z",
+          "comments": [
+            {
+              "originalPosition": 5,
+              "body": "```suggestion\r\n    organization: Discord\r\n```",
+              "createdAt": "2024-01-10T17:12:46Z",
+              "updatedAt": "2024-01-10T17:12:46Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5sGyID",
+          "commit": {
+            "abbreviatedOid": "fe9f386"
+          },
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "LGTM ",
+          "createdAt": "2024-01-10T17:12:52Z",
+          "updatedAt": "2024-01-10T17:12:52Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 341,
+      "id": "PR_kwDOG2Ho4M5jtm9I",
+      "title": "Define SUBSCRIBE_ERROR error codes",
+      "url": "https://github.com/moq-wg/moq-transport/pull/341",
+      "state": "OPEN",
+      "author": "ianswett",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Fixes existing TODOs and TBDs",
+      "createdAt": "2024-01-10T17:58:00Z",
+      "updatedAt": "2024-01-10T18:29:46Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "e44aa48372942187027b899e5bb90c97ab279e0d",
+      "headRepository": "moq-wg/moq-transport",
+      "headRefName": "ianswett-subscribe-error",
+      "headRefOid": "ed1be1e584ba2f469954ae3e5bfbcee0c5a1b60e",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M5sHUhy",
+          "commit": {
+            "abbreviatedOid": "ed1be1e"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2024-01-10T18:29:46Z",
+          "updatedAt": "2024-01-10T18:29:46Z",
           "comments": []
         }
       ]
