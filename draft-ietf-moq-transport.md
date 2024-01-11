@@ -852,127 +852,9 @@ the `query` portion of the URI to the parameter.
 
 ## OBJECT {#message-object}
 
-A OBJECT message contains a range of contiguous bytes from from the
+An OBJECT message contains a range of contiguous bytes from from the
 specified track, as well as associated metadata required to deliver,
-cache, and forward it. There are two subtypes of this message. When the
-message type is 0x00, the optional Object Payload Length field is
-present. When the message type is 0x02, the field is not present.
-
-The format of the OBJECT message is as follows:
-
-~~~
-OBJECT Message {
-  Track Alias (i),
-  Group ID (i),
-  Object ID (i),
-  Object Delivery Preference (i),
-  Object Send Order (i),
-  [Object Payload Length (i)],
-  Object Payload (...),
-}
-~~~
-{: #moq-transport-object-format title="MOQT OBJECT Message"}
-
-* Track Alias :The track identifier as specified in the
-  SUBSCRIBE message {{message-subscribe-req}}.
-
-* Group ID : The object is a member of the indicated group ID
-{{model-group}} within the track.
-
-* Object ID: The order of the object within the group.  The
-IDs starts at 0, increasing sequentially for each object within the
-group.
-
-* Object Delivery Preference: Publisher intended delivery preference,
-See {{delivery-prefs}}.
-
-* Object Send Order: An integer indicating the object send order
-{{send-order}} or priority {{ordering-by-priorities}} value.
-
-* Object Payload Length: The length of the following Object Payload. If this
-field is absent, the object payload continues to the end of the stream.
-
-* Object Payload: An opaque payload intended for the consumer and SHOULD
-NOT be processed by a relay.
-
-
-### Object Delivery Preferences {#delivery-prefs}
-
-The publisher specifies its preference for mapping the elements of the
-object model - Tracks, Groups and Objects, to the underlying transport
-mechanisms such as QUIC Streams and QUIC Datagrams. A publisher chooses it
-preference driven by the application needs.
-
-#### Proposal 1 - Stream Placement Indicator (Victor's Proposal and Text)
-
-`Stream Placement Indicator` specifies as variable length integer informing
-the stream to choose for sending a given object.
-
-Each publisher follows the procedure defined below :
-
-Let `N` be the object sequence of the current object and `D` be the
-stream placement indicator, and `S` be a stack of streams that is initially
-empty.
-
-For each object to be sent:
-
-1. If `D` is zero, open a new stream and push it at the top of the stack.
-Send the object on the stream at the top of the stack.
-
-2. If `D` is non-zero, check if the object sequence of the most recent object
-that was sent on the stream at the top of the stack has a value of  `N - D`.
-
-  -  If it is, continue sending the current object on the stream at the top
-     of the stack.
-
-
-  - If it is not, close the stream at the top of the stack, pop the stream
-     off the stack and repeat from the Step 2. If the stack is empty, close
-     the connection with appropriate error code.
-
-
-#### Proposal 2 - Object Placement Mode
-
-`Object Placement Mode` is a enumeration of possible mappings of the object
-model to the underlying transport mechanisms.
-
-
-##### Mode: StreamPerGroup
-
-The mode `StreamPerGroup` specifies that all the objects for a given group
-are sent over a single QUIC stream. `StreamPerGroup` has a value of 0x0.
-
-##### Mode: StreamPerObject
-
-The mode `StreamPerObject` specifies that each object is sent
-over a single QUIC stream. `StreamPerObject` has a value of 0x1.
-
-##### Mode: StreamPerTrack
-
-The mode `StreamPerTrack` specifies that all the groups and objects for a
-given track are sent over a single QUIC stream. `StreamPerTrack` has a
-value of 0x2.
-
-##### Mode: StreamPerPriority
-
-The mode `StreamPerPriority` specifies that objects marked with a
-given priorirty shared the same underlying QUIC stream. `StreamPerTrack` has a
-value of 0x3.
-
-##### Mode: Datagram
-
-The mode `Datagram` specifies that objects are sent using QUIC datagrams and
-has a value of 0x4.
-
-Note: Certain considerations apply when using Datagram. See the
-section on datagram that follows from discussions in the PR316.s
-under the PR 316
-
-TODO: More details are needed to determine when a stream can be closed.
-      Refer to disucssions on issue 318 on explicit markers for signaling
-      stream completion.
-
-## OBJECT (Proposal 3)
+cache, and forward it.
 
 ### Canonical Object Fields
 
@@ -980,11 +862,11 @@ A canonical MoQ Object has the following information:
 
 * Track Namespace and Track Name: The track this object belongs to.
 
-* Group Sequence: The object is a member of the indicated group
+* Group ID: The object is a member of the indicated group ID
 {{model-group}} within the track.
 
-* Object Sequence: The order of the object within the group.  The
-sequence starts at 0, increasing sequentially for each object within the
+* Object ID: The order of the object within the group.  The
+IDs starts at 0, increasing sequentially for each object within the
 group.
 
 * Object Send Order: An integer indicating the object send order
@@ -1013,13 +895,25 @@ serialize object fields below, and terminate the stream.
 ~~~
 OBJECT_STREAM Message {
   Subscribe ID (i),
-  Group Sequence (i),
-  Object Sequence (i),
+  Track Alias (i),
+  Group ID (i),
+  Object ID (i),
   Object Send Order (i),
   Object Payload (...),
 }
 ~~~
 {: #moq-transport-object-stream-format title="MOQT OBJECT_STREAM Message"}
+
+* Subscribe ID: Subscription Identifer as defined in {{message-subscribe-req}}.
+
+* Track Alias: Identifies the Track Namespace and Track Name as defined in
+{{message-subscribe-req}}.
+
+The Track Namespace and Track Name identified by the Track Alias is different
+from the one identified by Subscribe ID, the receiver MUST close the session
+with a Protocol Violation.
+
+* Other fields: As described in {{canonical-object-fields}}.
 
 ### Multi-Object Streams
 
@@ -1056,8 +950,8 @@ stream that is associated with the subscription, or open a new one and send the
 
 ~~~
 {
-  Group Sequence (i),
-  Object Sequence (i),
+  Group ID (i),
+  Object ID (i),
   Object Payload Length (i),
   Object Payload (...),
 }
@@ -1066,13 +960,13 @@ stream that is associated with the subscription, or open a new one and send the
 
 When a stream begins with `STREAM_HEADER_GROUP`, all objects on the stream
 belong to the track requested in the Subscribe message identified by `Subscribe
-ID` and the group indicated by `Group Sequence`.  All objects on the stream
+ID` and the group indicated by `Group ID`.  All objects on the stream
 have the same `Object Send Order`.
 
 ~~~
 STREAM_HEADER_GROUP Message {
   Subscribe ID (i),
-  Group Sequence (i)
+  Group ID (i)
   Object Send Order (i)
 }
 ~~~
@@ -1082,13 +976,13 @@ All Objects received on a stream opened with `STREAM_HEADER_GROUP` have an
 `Object Forwarding Preference` = `Group`.
 
 To send an Object with `Object Forwarding Preference` = `Group`, find the open
-stream that is associated with the subscription, `Group Sequence` and `Object
+stream that is associated with the subscription, `Group ID` and `Object
 Send Order`, or open a new one and send the `STREAM_HEADER_GROUP` if needed,
 then serialize the following fields.
 
 ~~~
 {
-  Object Sequence (i),
+  Object ID (i),
   Object Payload Length (i),
   Object Payload (...),
 }
@@ -1102,11 +996,12 @@ Sending a track on one stream:
 ~~~
 STREAM_HEADER_TRACK {
   Subscribe ID = 1
+  Track Alias = 1
   Object Send Order = 0
 }
 {
-  Group Sequence = 0
-  Object Sequence = 0
+  Group ID = 0
+  Object ID = 0
   Object Payload Length = 4
   Payload = "abcd"
 }
@@ -1126,6 +1021,7 @@ Stream = 2
 
 STREAM_HEADER_GROUP {
   Subscribe ID = 2
+  Track Alias = 2
   Group Sequence = 0
   Object Send Order = 0
 }
@@ -1144,6 +1040,7 @@ Stream = 6
 
 OBJECT_STREAM {
   Subscribe ID = 2
+  Track Alias = 2
   Group Sequence = 0
   Object Sequence = 1
   Payload = "moqrocks"
