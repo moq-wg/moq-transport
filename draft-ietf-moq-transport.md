@@ -875,13 +875,15 @@ group.
 {{send-order}} or priority {{ordering-by-priorities}} value.
 
 * Object Forwarding Preference: An enumeration indicating how a sender sends an
-object. The preferences are Track, Group, and Object.  An Object MUST be sent
-according to its `Object Forwarding Preference`, described below.
+object. The preferences are Track, Group, Object and Datagram.  An Object MUST
+be sent according to its `Object Forwarding Preference`, described below.
 
 * Object Payload: An opaque payload intended for the consumer and SHOULD
 NOT be processed by a relay.
 
 ### Object Message Formats
+
+**Object Stream Message**
 
 An `OBJECT_STREAM` message carries a single object on a stream.  There is no
 explicit length of the payload; it is determined by the end of the stream.  An
@@ -917,6 +919,36 @@ receiver MUST close the session with a Protocol Violation.
 
 * Other fields: As described in {{canonical-object-fields}}.
 
+**Object Datagram Preferred Message**
+
+An `OBJECT_DATAGRAM_PREFERRED` message carries a single object in a datagram or
+a stream. There is no explicit length of the payload; it is determined by the
+length of the datagram or stream.  If this message appears on a stream, it MUST
+be the first message on a unidirectional stream.
+
+An Object received in an `OBJECT_DATAGRAM_PREFERRED` message has an `Object
+Forwarding Preference` = `Datagram`.
+
+To send an Object with `Object Forwarding Preference` = `Datagram`, determine
+the length of the fields and payload, and compare the length with the maximum
+datagram size of the session.  If the object size is less than or equal maximum
+datagram size, send the serialized data as a datagram.  Otherwise, open a
+stream, send the serialized data and terminate the stream.  An implementation
+MUST NOT send an Object with `Object Forwarding Preference` = `Datagram` on a
+stream if it is possible to send it as a datagram.
+
+~~~
+OBJECT_DATAGRAM_PREFERRED Message {
+  Subscription ID (i),
+  Track Alias (i),
+  Group ID (i),
+  Object ID (i),
+  Object Send Order (i),
+  Object Payload (...),
+}
+~~~
+{: #object-datagram-format title="MOQT OBJECT_DATAGRAM_PREFERRED Message"}
+
 ### Multi-Object Streams
 
 When multiple objects are sent on a stream, the stream begins with a stream
@@ -929,6 +961,8 @@ same stream header message type and fields.
 
 
 TODO: figure out how a relay closes these streams
+
+**Stream Header Track**
 
 When a stream begins with `STREAM_HEADER_TRACK`, all objects on the stream
 belong to the track requested in the Subscribe message identified by `Subscribe
@@ -960,6 +994,8 @@ stream that is associated with the subscription, or open a new one and send the
 }
 ~~~
 {: #object-track-format title="MOQT Track Stream Object Fields"}
+
+**Stream Header Group**
 
 When a stream begins with `STREAM_HEADER_GROUP`, all objects on the stream
 belong to the track requested in the Subscribe message identified by `Subscribe
