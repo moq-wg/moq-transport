@@ -676,6 +676,8 @@ MOQT Message {
 |------:|:---------------------------------------------------|
 | 0x0   | OBJECT_STREAM ({{object-message-formats}})         |
 |-------|----------------------------------------------------|
+| 0x1   | OBJECT_DATAGRAM_PREFERRED ({{object-message-formats}}) |
+|-------|----------------------------------------------------|
 | 0x3   | SUBSCRIBE ({{message-subscribe-req}})              |
 |-------|----------------------------------------------------|
 | 0x4   | SUBSCRIBE_OK ({{message-subscribe-ok}})            |
