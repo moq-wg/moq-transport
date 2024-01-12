@@ -1038,7 +1038,7 @@ svg :is([fill="white"], [fill^="#fff"]) {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Curley, et al.</td>
-<td class="center">Expires 14 July 2024</td>
+<td class="center">Expires 15 July 2024</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1051,12 +1051,12 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dd class="internet-draft">draft-ietf-moq-transport-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2024-01-11" class="published">11 January 2024</time>
+<time datetime="2024-01-12" class="published">12 January 2024</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2024-07-14">14 July 2024</time></dd>
+<dd class="expires"><time datetime="2024-07-15">15 July 2024</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1123,7 +1123,7 @@ networks and is designed for high scale and low latency distribution.<a href="#s
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 14 July 2024.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 15 July 2024.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -2181,11 +2181,11 @@ MOQT Message {
         <tbody>
           <tr>
             <td class="text-right" rowspan="1" colspan="1">0x0</td>
-            <td class="text-left" rowspan="1" colspan="1">OBJECT with payload length (<a href="#message-object" class="auto internal xref">Section 6.3</a>)</td>
+            <td class="text-left" rowspan="1" colspan="1">OBJECT_STREAM (<a href="#object-message-formats" class="auto internal xref">Section 6.3.2</a>)</td>
           </tr>
           <tr>
-            <td class="text-right" rowspan="1" colspan="1">0x2</td>
-            <td class="text-left" rowspan="1" colspan="1">OBJECT without payload length (<a href="#message-object" class="auto internal xref">Section 6.3</a>)</td>
+            <td class="text-right" rowspan="1" colspan="1">0x1</td>
+            <td class="text-left" rowspan="1" colspan="1">OBJECT_DATAGRAM_PREFERRED (<a href="#object-message-formats" class="auto internal xref">Section 6.3.2</a>)</td>
           </tr>
           <tr>
             <td class="text-right" rowspan="1" colspan="1">0x3</td>
@@ -2238,6 +2238,14 @@ MOQT Message {
           <tr>
             <td class="text-right" rowspan="1" colspan="1">0x41</td>
             <td class="text-left" rowspan="1" colspan="1">SERVER_SETUP (<a href="#message-setup" class="auto internal xref">Section 6.2</a>)</td>
+          </tr>
+          <tr>
+            <td class="text-right" rowspan="1" colspan="1">0x50</td>
+            <td class="text-left" rowspan="1" colspan="1">STREAM_HEADER_TRACK (<a href="#multi-object-streams" class="auto internal xref">Section 6.3.3</a>)</td>
+          </tr>
+          <tr>
+            <td class="text-right" rowspan="1" colspan="1">0x51</td>
+            <td class="text-left" rowspan="1" colspan="1">STREAM_HEADER_GROUP (<a href="#multi-object-streams" class="auto internal xref">Section 6.3.3</a>)</td>
           </tr>
         </tbody>
       </table>
@@ -2506,8 +2514,8 @@ OBJECT_STREAM Message {
 </li>
           </ul>
 <p id="section-6.3.2-7">The Track Namespace and Track Name identified by the Track Alias is different
-from the one identified by Subscribe ID, the receiver <span class="bcp14">MUST</span> close the session
-with a Protocol Violation.<a href="#section-6.3.2-7" class="pilcrow">¶</a></p>
+from the one specified in the subscription identified by Subscribe ID, the
+receiver <span class="bcp14">MUST</span> close the session with a Protocol Violation.<a href="#section-6.3.2-7" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-6.3.2-8.1">
               <p id="section-6.3.2-8.1.1">Other fields: As described in <a href="#canonical-object-fields" class="auto internal xref">Section 6.3.1</a>.<a href="#section-6.3.2-8.1.1" class="pilcrow">¶</a></p>
@@ -2569,6 +2577,7 @@ ID</code>.  All objects on the stream have the same <code>Object Send Order</cod
 <pre>
 STREAM_HEADER_TRACK Message {
   Subscribe ID (i)
+  Track Alias (i),
   Object Send Order (i),
 }
 </pre>
@@ -2609,6 +2618,7 @@ have the same <code>Object Send Order</code>.<a href="#section-6.3.3-11" class="
 <pre>
 STREAM_HEADER_GROUP Message {
   Subscribe ID (i),
+  Track Alias (i),
   Group ID (i)
   Object Send Order (i)
 }
@@ -2661,8 +2671,8 @@ STREAM_HEADER_TRACK {
   Payload = "abcd"
 }
 {
-  Group Sequence = 1
-  Object Sequence = 0
+  Group ID = 1
+  Object ID = 0
   Object Payload Length = 4
   Payload = "efgh"
 }
@@ -2677,16 +2687,16 @@ Stream = 2
 STREAM_HEADER_GROUP {
   Subscribe ID = 2
   Track Alias = 2
-  Group Sequence = 0
+  Group ID = 0
   Object Send Order = 0
 }
 {
-  Object Sequence = 0
+  Object ID = 0
   Object Payload Length = 4
   Payload = "abcd"
 }
 {
-  Object Sequence = 1
+  Object ID = 1
   Object Payload Length = 4
   Payload = "efgh"
 }
@@ -2696,8 +2706,8 @@ Stream = 6
 OBJECT_STREAM {
   Subscribe ID = 2
   Track Alias = 2
-  Group Sequence = 0
-  Object Sequence = 1
+  Group ID = 0
+  Object ID = 1
   Payload = "moqrocks"
 }
 </pre><a href="#section-6.3.4-4" class="pilcrow">¶</a>
