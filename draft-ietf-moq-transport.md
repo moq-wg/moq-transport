@@ -674,11 +674,9 @@ MOQT Message {
 |-------|----------------------------------------------------|
 | ID    | Messages                                           |
 |------:|:---------------------------------------------------|
-| 0x0   | OBJECT with payload length ({{message-object}})    |
+| 0x0   | OBJECT_STREAM ({{object-message-formats}})         |
 |-------|----------------------------------------------------|
-| 0x2   | OBJECT without payload length ({{message-object}}) |
-|-------|----------------------------------------------------|
-| 0x3   | SUBSCRIBE ({{message-subscribe-req}})      |
+| 0x3   | SUBSCRIBE ({{message-subscribe-req}})              |
 |-------|----------------------------------------------------|
 | 0x4   | SUBSCRIBE_OK ({{message-subscribe-ok}})            |
 |-------|----------------------------------------------------|
@@ -703,6 +701,10 @@ MOQT Message {
 | 0x40  | CLIENT_SETUP ({{message-setup}})                   |
 |-------|----------------------------------------------------|
 | 0x41  | SERVER_SETUP ({{message-setup}})                   |
+|-------|----------------------------------------------------|
+| 0x50  | STREAM_HEADER_TRACK ({{multi-object-streams}})     |
+|-------|----------------------------------------------------|
+| 0x51  | STREAM_HEADER_GROUP ({{multi-object-streams}})     |
 |-------|----------------------------------------------------|
 
 ## Parameters {#params}
@@ -910,8 +912,8 @@ OBJECT_STREAM Message {
 {{message-subscribe-req}}.
 
 The Track Namespace and Track Name identified by the Track Alias is different
-from the one identified by Subscribe ID, the receiver MUST close the session
-with a Protocol Violation.
+from the one specified in the subscription identified by Subscribe ID, the
+receiver MUST close the session with a Protocol Violation.
 
 * Other fields: As described in {{canonical-object-fields}}.
 
@@ -936,6 +938,7 @@ ID`.  All objects on the stream have the same `Object Send Order`.
 ~~~
 STREAM_HEADER_TRACK Message {
   Subscribe ID (i)
+  Track Alias (i),
   Object Send Order (i),
 }
 ~~~
@@ -966,6 +969,7 @@ have the same `Object Send Order`.
 ~~~
 STREAM_HEADER_GROUP Message {
   Subscribe ID (i),
+  Track Alias (i),
   Group ID (i)
   Object Send Order (i)
 }
@@ -1006,8 +1010,8 @@ STREAM_HEADER_TRACK {
   Payload = "abcd"
 }
 {
-  Group Sequence = 1
-  Object Sequence = 0
+  Group ID = 1
+  Object ID = 0
   Object Payload Length = 4
   Payload = "efgh"
 }
@@ -1022,16 +1026,16 @@ Stream = 2
 STREAM_HEADER_GROUP {
   Subscribe ID = 2
   Track Alias = 2
-  Group Sequence = 0
+  Group ID = 0
   Object Send Order = 0
 }
 {
-  Object Sequence = 0
+  Object ID = 0
   Object Payload Length = 4
   Payload = "abcd"
 }
 {
-  Object Sequence = 1
+  Object ID = 1
   Object Payload Length = 4
   Payload = "efgh"
 }
@@ -1041,8 +1045,8 @@ Stream = 6
 OBJECT_STREAM {
   Subscribe ID = 2
   Track Alias = 2
-  Group Sequence = 0
-  Object Sequence = 1
+  Group ID = 0
+  Object ID = 1
   Payload = "moqrocks"
 }
 ~~~
