@@ -593,7 +593,7 @@ terminates the track with a SUBSCRIBE_FIN
 (see {{message-subscribe-rst}}).
 
 A relay MUST not reorder or drop objects received on a multi-object stream when
-forwarding to subscribers.
+forwarding to subscribers, unless it has application specific information.
 
 Relays MAY aggregate authorized subscriptions for a given track when
 multiple subscribers request the same track. Subscription aggregation
@@ -932,7 +932,8 @@ TODO: figure out how a relay closes these streams
 
 When a stream begins with `STREAM_HEADER_TRACK`, all objects on the stream
 belong to the track requested in the Subscribe message identified by `Subscribe
-ID`.  All objects on the stream have the same `Object Send Order`.
+ID`.  All objects on the stream have the `Object Send Order` specified in the
+stream header.
 
 
 ~~~
@@ -964,7 +965,7 @@ stream that is associated with the subscription, or open a new one and send the
 When a stream begins with `STREAM_HEADER_GROUP`, all objects on the stream
 belong to the track requested in the Subscribe message identified by `Subscribe
 ID` and the group indicated by `Group ID`.  All objects on the stream
-have the same `Object Send Order`.
+have the `Object Send Order` specified in the stream header.
 
 ~~~
 STREAM_HEADER_GROUP Message {
