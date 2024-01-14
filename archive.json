@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2024-01-11T01:11:32.560598+00:00",
+  "timestamp": "2024-01-14T01:16:24.273042+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -42493,13 +42493,13 @@
       "labels": [],
       "body": "This PR brings in currently active proposals for supporting explicit indicators of mapping object model to quic transport.\r\n\r\nFixes #244 \r\n\r\n\r\n",
       "createdAt": "2023-11-08T14:34:57Z",
-      "updatedAt": "2024-01-10T17:39:27Z",
+      "updatedAt": "2024-01-13T01:47:38Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
-      "baseRefOid": "de5e92e3668272cb70a27dda5b52c642dae0406d",
+      "baseRefOid": "e44aa48372942187027b899e5bb90c97ab279e0d",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "tx-mode",
-      "headRefOid": "d061fe0e054b1c581b1c7b925e2da2ed73d54f29",
+      "headRefOid": "8a678a681bd508dd4ec8a0e0a5611ed41421f656",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -43266,6 +43266,138 @@
               "updatedAt": "2024-01-10T17:39:27Z"
             }
           ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5o1_O9",
+          "commit": {
+            "abbreviatedOid": "5764876"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "Thanks @afrind  .. this is coming pretty close. I left few comments.",
+          "createdAt": "2023-12-01T04:29:18Z",
+          "updatedAt": "2024-01-12T04:06:37Z",
+          "comments": [
+            {
+              "originalPosition": 176,
+              "body": "The wire encoding of this and the previous message is exactly same. Are we missing defining the message type ?",
+              "createdAt": "2023-12-01T04:29:18Z",
+              "updatedAt": "2024-01-12T04:06:37Z"
+            },
+            {
+              "originalPosition": 5,
+              "body": "A relay can drop objects. This MUST is hard to enforce. ",
+              "createdAt": "2024-01-11T20:20:28Z",
+              "updatedAt": "2024-01-12T04:06:37Z"
+            },
+            {
+              "originalPosition": 92,
+              "body": "IIUC, this should be, if the current subscription (identified by SusbcribeId) doesn't correspond to the Track matching its Track Alias , the receiver MUST close ..",
+              "createdAt": "2024-01-11T21:37:50Z",
+              "updatedAt": "2024-01-12T04:06:37Z"
+            },
+            {
+              "originalPosition": 116,
+              "body": "Let's add Track Alias here too",
+              "createdAt": "2024-01-12T03:57:15Z",
+              "updatedAt": "2024-01-12T04:06:37Z"
+            },
+            {
+              "originalPosition": 142,
+              "body": "i think the last sentence is not needed. All we need to say is \"all the objects for a given group are sent on the same stream\".",
+              "createdAt": "2024-01-12T03:59:12Z",
+              "updatedAt": "2024-01-12T04:06:37Z"
+            },
+            {
+              "originalPosition": 211,
+              "body": "+1 let's add track alias here as well",
+              "createdAt": "2024-01-12T03:59:30Z",
+              "updatedAt": "2024-01-12T04:06:37Z"
+            },
+            {
+              "originalPosition": 158,
+              "body": "I really don't see a need to have a match on the SendOrder here. StreamPerGroup sends all the objects with the same groupId. if the application wants to send each priority in its own group, then it arranges that way. ",
+              "createdAt": "2024-01-12T04:01:19Z",
+              "updatedAt": "2024-01-12T04:06:37Z"
+            },
+            {
+              "originalPosition": 188,
+              "body": "sequence to Id",
+              "createdAt": "2024-01-12T04:02:22Z",
+              "updatedAt": "2024-01-12T04:06:37Z"
+            },
+            {
+              "originalPosition": 192,
+              "body": "May be we should have this example to extended as \r\n{Stream_Header_Track}{g1, o0}{g1, o1} ... {g2,o0}, {g2,o1}, ....",
+              "createdAt": "2024-01-12T04:04:17Z",
+              "updatedAt": "2024-01-12T04:06:37Z"
+            },
+            {
+              "originalPosition": 203,
+              "body": "sequence to Id",
+              "createdAt": "2024-01-12T04:04:41Z",
+              "updatedAt": "2024-01-12T04:06:37Z"
+            },
+            {
+              "originalPosition": 196,
+              "body": "the unordered object example is confusing here and I prefer not to include and create a new example for OBJECT_STREAM ",
+              "createdAt": "2024-01-12T04:06:10Z",
+              "updatedAt": "2024-01-12T04:06:37Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5sUlWg",
+          "commit": {
+            "abbreviatedOid": "5764876"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "Thanks for the quick review. I have addressed some, left some responses/suggestions for the others.\r\n\r\nFor examples, let's wait til all the feedback is in and we can make another pass.",
+          "createdAt": "2024-01-12T04:16:52Z",
+          "updatedAt": "2024-01-12T04:28:34Z",
+          "comments": [
+            {
+              "originalPosition": 5,
+              "body": "I think we said in a previous author's call that we would relax this when we formally add concepts like TTL or drop preference, which give relay instructions about which objects are droppable.  I can update to \"A relay MUST not reorder or drop objects *without application specific information*\" - or something like that?",
+              "createdAt": "2024-01-12T04:16:52Z",
+              "updatedAt": "2024-01-12T04:28:34Z"
+            },
+            {
+              "originalPosition": 142,
+              "body": "The intent is to tell the receiver how to populate the canonical 'Object Send Order'.  I can say \"have the `Object Send Order` specified in the stream header\" ?",
+              "createdAt": "2024-01-12T04:26:52Z",
+              "updatedAt": "2024-01-12T04:28:34Z"
+            },
+            {
+              "originalPosition": 158,
+              "body": "The intent was to allow more flexibility than strictly stream-per-group.  With this design, the publisher can split a group into multiple streams with different priorities.  The original proposal 3 had both kinds of streams and the feedback was to combine them.",
+              "createdAt": "2024-01-12T04:27:58Z",
+              "updatedAt": "2024-01-12T04:28:34Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5sb_HL",
+          "commit": {
+            "abbreviatedOid": "5764876"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-01-12T23:06:59Z",
+          "updatedAt": "2024-01-12T23:07:00Z",
+          "comments": [
+            {
+              "originalPosition": 5,
+              "body": "works for me. Thanks",
+              "createdAt": "2024-01-12T23:07:00Z",
+              "updatedAt": "2024-01-12T23:07:00Z"
+            }
+          ]
         }
       ]
     },
@@ -43632,6 +43764,40 @@
           "comments": []
         }
       ]
+    },
+    {
+      "number": 342,
+      "id": "PR_kwDOG2Ho4M5j3oTm",
+      "title": "Add Forwarding Preference=Datagram",
+      "url": "https://github.com/moq-wg/moq-transport/pull/342",
+      "state": "OPEN",
+      "author": "afrind",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "This was previously part of #333. It allows an object to be sent in a datagram f it fits, and put on a stream if it doesn't.",
+      "createdAt": "2024-01-11T23:56:21Z",
+      "updatedAt": "2024-01-12T04:38:20Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "tx-mode",
+      "baseRefOid": "8c97531bdb70dc766ac6e44bdb976d3b6366dd78",
+      "headRepository": "moq-wg/moq-transport",
+      "headRefName": "datagram-preferred",
+      "headRefOid": "7b44a95d786308642ad7b7a068afda2e4090d4fd",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Linking some feedback raised in the original PR that has not yet been addressed:\r\n\r\nhttps://github.com/moq-wg/moq-transport/pull/333#discussion_r1422925734\r\n\r\nhttps://github.com/moq-wg/moq-transport/pull/333#discussion_r1422937755",
+          "createdAt": "2024-01-11T23:57:42Z",
+          "updatedAt": "2024-01-11T23:57:42Z"
+        }
+      ],
+      "reviews": []
     }
   ]
 }
