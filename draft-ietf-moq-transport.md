@@ -19,7 +19,7 @@ author:
   -
     ins: L. Curley
     name: Luke Curley
-    organization: Twitch
+    organization: Discord
     email: kixelated@gmail.com
 
   -
@@ -40,6 +40,12 @@ author:
     organization: Google
     email: vasilvv@google.com
 
+  -
+    ins: I. Swett
+    name: Ian Swett
+    organization: Google
+    email: ianswett@google.com
+    role: editor
 
 normative:
   QUIC: RFC9000
@@ -252,48 +258,30 @@ In MOQT, every track has a track name and a track namespace associated
 with it.  A track name identifies an individual track within the
 namespace.
 
-A tuple of a track name and a track namespace together is known as a
-full track name:
-
-~~~~~~~~~~~~~~~
-Full Track Name = Track Namespace Track Name
-~~~~~~~~~~~~~~~
-
 A MOQT scope is a set of servers (as identified by their connection
-URIs) for which full track names are guaranteed to be unique.  This
-implies that within a single MOQT scope, subscribing to the same full
-track name would result in the subscriber receiving the data for the
-same track.  It is up to the application using MOQT to define how broad
-or narrow the scope has to be.  An application that deals with
-connections between devices on a local network may limit the scope to a
-single connection; by contrast, an application that uses multiple CDNs
-to serve media may require the scope to include all of those CDNs.
+URIs) for which the tuple of Track Name and Track Namespace are
+guaranteed to be unique and identify a specific track. It is up to
+the application using MOQT to define how broad or narrow the scope is.
+An application that deals with connections between devices
+on a local network may limit the scope to a single connection; by
+contrast, an application that uses multiple CDNs to serve media may
+require the scope to include all of those CDNs.
 
-The full track name is the only piece of information that is used to
-identify the track within a given MOQT scope and is used as cache key.
+Because the tuple of Track Namespace and Track Name are unique within an
+MOQT scope, they can be used as a cache key.
 MOQT does not provide any in-band content negotiation methods similar to
 the ones defined by HTTP ({{?RFC9110, Section 10}}); if, at a given
 moment in time, two tracks within the same scope contain different data,
-they have to have different full track names.
+they have to have different names and/or namespaces.
 
-~~~
-Example: 1
-Track Namespace = live.example.com/meeting/123/member/alice/
-Track Name = audio
-Full Track Name = live.example.com/meeting/123/member/alice/audio
-
-Example: 2
-Track Namespace = live.example.com/
-Track Name = uaCafDkl123/audio
-Full Track Name = live.example.com/uaCafDkl123/audio
-
-Example: 3
-Track Namespace = security-camera.example.com/camera1/
-Track Name = hd-video
-Full Track Name = security-camera.example.com/camera1/hd-video
-
-~~~
-
+In this specification, both the Track Namespace and the Track Name are
+not constrained to a specific encoding. They carry a sequence of
+bytes and comparison between two Track Namespaces or Track Names is
+done by exact comparison of the bytes. Specifications that use MoQ Transport
+may constrain the information in these fields, for example by restricting
+them to UTF-8. Any specification that does needs to specify the
+canonicalization into the bytes in the Track Namespace or Track Name
+such that exact comparison works.
 
 ### Connection URL
 
@@ -352,14 +340,14 @@ is `moq-00`.
 
 ## Version and Extension Negotiation {#version-negotiation}
 
-Endpoints use the exchange of SETUP messages to negotiate the MOQT version and
+Endpoints use the exchange of Setup messages to negotiate the MOQT version and
 any extensions to use.
 
 The client indicates the MOQT versions it supports in the CLIENT_SETUP message
 (see {{message-setup}}). It also includes the union of all Setup Parameters
 {{setup-params}} required for a handshake by any of those versions.
 
-Within any MOQT version, clients request the use of extensions by adding SETUP
+Within any MOQT version, clients request the use of extensions by adding Setup
 parameters corresponding to that extension. No extensions are defined in this
 document.
 
@@ -373,18 +361,18 @@ can be used.
 
 If a given parameter carries the same information in multiple versions,
 but might have different optimal values in those versions, there SHOULD be
-separate SETUP parameters for that information in each version.
+separate Setup parameters for that information in each version.
 
 ## Session initialization {#session-init}
 
-The first stream opened is a client-initiated bidirectional control stream
-where the peers exchange SETUP messages ({{message-setup}}).  All messages
-defined in this draft are sent on the control stream after the SETUP message.
-Control messages MUST NOT be sent on any other stream, and a peer receiving
-a control message on a different stream closes the session as a
-'Protocol Violation'. Objects MUST NOT be sent on the control stream, and a
-peer receiving an Object on the control stream closes the session as a
-'Protocol Violation'.
+The first stream opened is a client-initiated bidirectional control stream where
+the peers exchange Setup messages ({{message-setup}}).  All messages defined in
+this draft except OBJECT and OBJECT_WITH_LENGTH are sent on the control stream
+after the Setup message. Control messages MUST NOT be sent on any other stream,
+and a peer receiving a control message on a different stream closes the session
+as a 'Protocol Violation'. Objects MUST NOT be sent on the control stream, and a
+peer receiving an Object on the control stream closes the session as a 'Protocol
+Violation'.
 
 This draft only specifies a single use of bidirectional streams. Objects are
 sent on unidirectional streams.  Because there are no other uses of
@@ -412,19 +400,23 @@ Section 5}}).
 The application MAY use any error message and SHOULD use a relevant
 code, as defined below:
 
-|------|--------------------|
-| Code | Reason             |
-|-----:|:-------------------|
-| 0x0  | No Error           |
-|------|--------------------|
-| 0x1  | Generic Error      |
-|------|--------------------|
-| 0x2  | Unauthorized       |
-|------|--------------------|
-| 0x3  | Protocol Violation |
-|------|--------------------|
-| 0x10 | GOAWAY Timeout     |
-|------|--------------------|
+|------|---------------------------|
+| Code | Reason                    |
+|-----:|:--------------------------|
+| 0x0  | No Error                  |
+|------|---------------------------|
+| 0x1  | Generic Error             |
+|------|---------------------------|
+| 0x2  | Unauthorized              |
+|------|---------------------------|
+| 0x3  | Protocol Violation        |
+|------|---------------------------|
+| 0x4  | Duplicate Track Alias     |
+|------|---------------------------|
+| 0x5  | Parameter Length Mismatch |
+|------|---------------------------|
+| 0x10 | GOAWAY Timeout            |
+|------|---------------------------|
 
 * No Error: The session is being terminated without an error.
 
@@ -435,6 +427,9 @@ code, as defined below:
 
 * Protocol Violation: The remote endpoint performed an action that was
   disallowed by the specification.
+
+* Duplicate Track Alias: The endpoint attempted to use a Track Alias
+  that was already in use.
 
 * GOAWAY Timeout: The session was closed because the client took too long to
   close the session in response to a GOAWAY ({{message-goaway}}) message.
@@ -577,7 +572,7 @@ validating subscribe and publish requests at the edge of a network.
 Subscribers interact with the Relays by sending a SUBSCRIBE
 ({{message-subscribe-req}}) control message for the tracks of
 interest. Relays MUST ensure subscribers are authorized to access the
-content associated with the Full Track Name. The authorization
+content associated with the track. The authorization
 information can be part of subscription request itself or part of the
 encompassing session. The specifics of how a relay authorizes a user are
 outside the scope of this specification.
@@ -589,10 +584,11 @@ The entity receiving the SUBSCRIBE MUST send only a single response to
 a given SUBSCRIBE of either SUBSCRIBE_OK or SUBSCRIBE_ERROR.
 
 For successful subscriptions, the publisher maintains a list of
-subscribers for each full track name. Each new OBJECT belonging to the
-track is forwarded to each active subscriber, dependent on the
-congestion response. A subscription remains active until it expires,
-until the publisher of the track terminates the track with a SUBSCRIBE_FIN
+subscribers for each track. Each new OBJECT belonging to the
+track within the subscription range is forwarded to each active
+subscriber, dependent on the congestion response. A subscription
+remains active until it expires, until the publisher of the track
+terminates the track with a SUBSCRIBE_FIN
 (see {{message-subscribe-fin}}) or a SUBSCRIBE_RST
 (see {{message-subscribe-rst}}).
 
@@ -601,6 +597,19 @@ multiple subscribers request the same track. Subscription aggregation
 allows relays to make only a single forward subscription for the
 track. The published content received from the forward subscription
 request is cached and shared among the pending subscribers.
+
+The application SHOULD use a relevant error code in SUBSCRIBE_ERROR,
+as defined below:
+
+|------|---------------------------|
+| Code | Reason                    |
+|-----:|:--------------------------|
+| 0x0  | Generic Error             |
+|------|---------------------------|
+| 0x1  | Invalid Range             |
+|------|---------------------------|
+| 0x2  | Retry Track Alias         |
+|------|---------------------------|
 
 
 ## Publisher Interactions
@@ -622,11 +631,11 @@ providing the result of announcement. The entity receiving the
 ANNOUNCE MUST send only a single response to a given ANNOUNCE of
 either ANNOUNCE_OK or ANNOUNCE_ERROR.
 
-OBJECT message header carry short hop-by-hop `Track Alias` that maps to the
-Full Track Name (see {{message-subscribe-ok}}). Relays use the `Track Alias`
-of an incoming OBJECT message to identify its track and find the active
-subscribers for that track. Relays MUST NOT depend on OBJECT payload
-content for making forwarding decisions and MUST only depend on the
+OBJECT message headers carry a short hop-by-hop `Track Alias` that maps to
+the Full Track Name (see {{message-subscribe-ok}}). Relays use the
+`Track Alias` of an incoming OBJECT message to identify its track and find
+the active subscribers for that track. Relays MUST NOT depend on OBJECT
+payload content for making forwarding decisions and MUST only depend on the
 fields, such as priority order and other metadata properties in the
 OBJECT message header. Unless determined by congestion response, Relays
 MUST forward the OBJECT message to the matching subscribers.
@@ -731,9 +740,9 @@ Parameter {
 {: #moq-param format title="MOQT Parameter"}
 
 Parameter Type is an integer that indicates the semantic meaning of the
-parameter. SETUP message parameters use a namespace that is constant across all
+parameter. Setup message parameters use a namespace that is constant across all
 MoQ Transport versions. All other messages use a version-specific namespace. For
-example, the integer '1' can refer to different parameters for SETUP messages
+example, the integer '1' can refer to different parameters for Setup messages
 and for all other message types.
 
 SETUP message parameter types are defined in {{setup-params}}. Version-
@@ -743,16 +752,16 @@ The Parameter Length field of the String Parameter encodes the length
 of the Parameter Value field in bytes.
 
 Each parameter description will indicate the data type in the Parameter Value
-field. If the parameter value is a varint, but the self-encoded length of that
-varint does not match the Parameter Length field, the receiver MUST ignore the
-parameter using the value in the Parameter Length field.
+field. If a receiver understands a parameter type, and the parameter length
+implied by that type does not match the Parameter Length field, the receiver MUST
+terminate the session with error code 'Parameter Length Mismatch'.
 
 ### Version Specific Parameters {#version-specific-params}
 
 Each version-specific parameter definition indicates the message types in which
 it can appear. If it appears in some other type of message, it MUST be ignored.
-Note that since SETUP parameters use a separate namespace, it is impossible for
-these parameters to appear in SETUP messages.
+Note that since Setup parameters use a separate namespace, it is impossible for
+these parameters to appear in Setup messages.
 
 #### AUTHORIZATION INFO Parameter {#authorization-info}
 
@@ -766,30 +775,30 @@ ASCII string.
 The `CLIENT_SETUP` and `SERVER_SETUP` messages are the first messages exchanged
 by the client and the server; they allows the peers to establish the mutually
 supported version and agree on the initial configuration before any objects are
-exchanged. It is a sequence of key-value pairs called SETUP parameters; the
+exchanged. It is a sequence of key-value pairs called Setup parameters; the
 semantics and format of which can vary based on whether the client or server is
 sending.  To ensure future extensibility of MOQT, the peers MUST ignore unknown
 setup parameters. TODO: describe GREASE for those.
 
-The wire format of the SETUP messages is as follows:
+The wire format of the Setup messages are as follows:
 
 ~~~
 CLIENT_SETUP Message Payload {
   Number of Supported Versions (i),
   Supported Version (i) ...,
   Number of Parameters (i) ...,
-  SETUP Parameters (..) ...,
+  Setup Parameters (..) ...,
 }
 
 SERVER_SETUP Message Payload {
   Selected Version (i),
   Number of Parameters (i) ...,
-  SETUP Parameters (..) ...,
+  Setup Parameters (..) ...,
 }
 ~~~
-{: #moq-transport-setup-format title="MOQT SETUP Messages"}
+{: #moq-transport-setup-format title="MOQT Setup Messages"}
 
-The available versions and SETUP parameters are detailed in the next sections.
+The available versions and Setup parameters are detailed in the next sections.
 
 ### Versions {#setup-versions}
 
@@ -813,7 +822,7 @@ Version numbers used to identify IETF drafts are created by adding the draft
 number to 0xff000000. For example, draft-ietf-moq-transport-13 would be
 identified as 0xff00000D.
 
-### SETUP Parameters {#setup-params}
+### Setup Parameters {#setup-params}
 
 #### ROLE parameter {#role}
 
@@ -859,30 +868,30 @@ A OBJECT message contains a range of contiguous bytes from from the
 specified track, as well as associated metadata required to deliver,
 cache, and forward it. There are two subtypes of this message. When the
 message type is 0x00, the optional Object Payload Length field is
-present. When the message type ix 0x02, the field is not present.
+present. When the message type is 0x02, the field is not present.
 
 The format of the OBJECT message is as follows:
 
 ~~~
 OBJECT Message {
   Track Alias (i),
-  Group Sequence (i),
-  Object Sequence (i),
+  Group ID (i),
+  Object ID (i),
   Object Send Order (i),
-  [Object Payload Length (i),]
+  [Object Payload Length (i)],
   Object Payload (b),
 }
 ~~~
 {: #moq-transport-object-format title="MOQT OBJECT Message"}
 
-* Track Alias: The track alias obtained as part of subscription and/or
-publish control message exchanges.
+* Track Alias :The track identifier as specified in the
+  SUBSCRIBE message {{message-subscribe-req}}.
 
-* Group Sequence : The object is a member of the indicated group
+* Group ID : The object is a member of the indicated group ID
 {{model-group}} within the track.
 
-* Object Sequence: The order of the object within the group.  The
-sequence starts at 0, increasing sequentially for each object within the
+* Object ID: The order of the object within the group.  The
+IDs starts at 0, increasing sequentially for each object within the
 group.
 
 * Object Send Order: An integer indicating the object send order
@@ -937,14 +946,16 @@ RelativeNext Value:                               0    1  ...
 {: title="Relative Indexing"}
 
 
-### SUBSCRIBE REQUEST Format
+### SUBSCRIBE Format
 
-The format of SUBSCRIBE REQUEST is as follows:
+The format of SUBSCRIBE is as follows:
 
 ~~~
-SUBSCRIBE REQUEST Message {
-  Full Track Name Length (i),
-  Full Track Name (...),
+SUBSCRIBE Message {
+  Subscribe ID (i),
+  Track Alias (i),
+  Track Namespace (b),
+  Track Name (b),
   StartGroup (Location),
   StartObject (Location),
   EndGroup (Location),
@@ -953,6 +964,19 @@ SUBSCRIBE REQUEST Message {
 }
 ~~~
 {: #moq-transport-subscribe-format title="MOQT SUBSCRIBE Message"}
+
+* Subscribe ID: The subscription identifier that is unique within the session.
+`Subscribe ID` is a monotonically increasing variable length integer which
+MUST not be reused within a session. `Subscribe ID` is used by subscribers and
+the publishers to identify a given subscription. Subscribers specify the
+`Subscribe ID` and it is included in the corresponding SUBSCRIBE_OK or
+SUBSCRIBE_ERROR messages.
+
+* Track Alias: A session specific identifier for the track.
+Messages that reference a track, such as OBJECT ({{message-object}}),
+reference this Track Alias instead of the Track Name and Track Namespace to
+reduce overhead. If the Track Alias is already in use, the publisher MUST
+close the session with a Duplicate Track Alias error ({{session-termination}}).
 
 * Track Namespace: Identifies the namespace of the track as defined in
 ({{track-name}}).
@@ -976,11 +1000,14 @@ NOT be None if EndGroup's Mode is not None.
 {{version-specific-params}}
 
 On successful subscription, the publisher SHOULD start delivering
-objects from the group sequence and object sequence described above.
+objects from the group ID and object ID described above.
 
 If a publisher cannot satisfy the requested start or end for the subscription it
-MAY send a SUBSCRIBE_ERROR with code TBD. A publisher MUST NOT send objects
-from outside the requested start and end.
+MAY send a SUBSCRIBE_ERROR with code 'Invalid Range'. A publisher MUST NOT send
+objects from outside the requested start and end.
+
+TODO: Define the flow where subscribe request matches an existing subscribe id
+(subscription updates.)
 
 ### Examples
 
@@ -1021,7 +1048,6 @@ Start Group: Mode=RelativeNext, Value=0
 Start Object: Mode=Absolute, Value=0
 End Group: Mode=None
 End Object: Mode=None
-
 StartGroup=Largest Group + 1
 StartObject=0
 
@@ -1044,23 +1070,18 @@ A SUBSCRIBE_OK control message is sent for successful subscriptions.
 ~~~
 SUBSCRIBE_OK
 {
-  Track Namespace (b),
-  Track Name (b),
-  Track Alias (i),
+  Subscribe ID (i),
   Expires (i)
 }
 ~~~
 {: #moq-transport-subscribe-ok format title="MOQT SUBSCRIBE_OK Message"}
 
+* Subscribe ID: Subscription Identifer as defined in {{message-subscribe-req}}.
+
 * Track Namespace: Identifies the namespace of the track as defined in
 ({{track-name}}).
 
 * Track Name: Identifies the track name as defined in ({{track-name}}).
-
-* Track Alias: Session specific identifier that is used as an alias for the
-Full Track Name in the Track Alias field of the OBJECT ({{message-object}})
-message headers of the requested track. Track Aliases are generally shorter
-than Full Track Names and thus reduce the overhead in OBJECT messages.
 
 * Expires: Time in milliseconds after which the subscription is no
 longer valid. A value of 0 indicates that the subscription stays active
@@ -1075,25 +1096,24 @@ failed SUBSCRIBE.
 ~~~
 SUBSCRIBE_ERROR
 {
-  Track Namespace (b),
-  Track Name (b),
+  Subscribe ID (i),
   Error Code (i),
   Reason Phrase (b),
+  Track Alias (i),
 }
 ~~~
 {: #moq-transport-subscribe-error format title="MOQT SUBSCRIBE_ERROR Message"}
 
-* Track Namespace: Identifies the namespace of the track as defined in
-({{track-name}}).
-
-* Track Name: Identifies the track name as defined in ({{track-name}}).
+* Subscribe ID: Subscription Identifer as defined in {{message-subscribe-req}}.
 
 * Error Code: Identifies an integer error code for subscription failure.
 
-* Reason Phrase Length: The length in bytes of the reason phrase.
-
 * Reason Phrase: Provides the reason for subscription error.
 
+* Track Alias: When Error Code is 'Retry Track Alias', the subscriber SHOULD re-issue the
+  SUBSCRIBE with this Track Alias instead. If this Track Alias is already in use,
+  the receiver MUST close the connection with a Duplicate Track Alias error
+  ({{session-termination}}).
 
 ## UNSUBSCRIBE {#message-unsubscribe}
 
@@ -1104,16 +1124,12 @@ The format of `UNSUBSCRIBE` is as follows:
 
 ~~~
 UNSUBSCRIBE Message {
-  Track Namespace (b),
-  Track Name (b),
+  Subscribe ID (i)
 }
 ~~~
 {: #moq-transport-unsubscribe-format title="MOQT UNSUBSCRIBE Message"}
 
-* Track Namespace: Identifies the namespace of the track as defined in
-({{track-name}}).
-
-* Track Name: Identifies the track name as defined in ({{track-name}}).
+* Subscribe ID: Subscription Identifer as defined in {{message-subscribe-req}}.
 
 ## SUBSCRIBE_FIN {#message-subscribe-fin}
 
@@ -1124,36 +1140,31 @@ The format of `SUBSCRIBE_FIN` is as follows:
 
 ~~~
 SUBSCRIBE_FIN Message {
-  Track Namespace (b),
-  Track Name (b),
+  Subscribe ID (i),
   Final Group (i),
   Final Object (i),
 }
 ~~~
 {: #moq-transport-subscribe-fin-format title="MOQT SUBSCRIBE_FIN Message"}
 
-* Track Namespace: Identifies the namespace of the track as defined in
-({{track-name}}).
+* Subscribe ID: Subscription identifier as defined in {{message-subscribe-req}}.
 
-* Track Name: Identifies the track name as defined in ({{track-name}}).
-
-* Final Group: The largest Group Sequence sent by the publisher in an OBJECT
+* Final Group: The largest Group ID sent by the publisher in an OBJECT
 message in this track.
 
-* Final Object: The largest Object Sequence sent by the publisher in an OBJECT
+* Final Object: The largest Object ID sent by the publisher in an OBJECT
 message in the `Final Group` for this track.
 
 ## SUBSCRIBE_RST {#message-subscribe-rst}
 
 A publisher issues a `SUBSCRIBE_RST` message to all subscribers indicating there
-wan an error publishing to the given track and subscription is terminated.
+was an error publishing to the given track and subscription is terminated.
 
 The format of `SUBSCRIBE_RST` is as follows:
 
 ~~~
 SUBSCRIBE_RST Message {
-  Track Namespace (b),
-  Track Name (b),
+  Subscribe ID (i),
   Error Code (i),
   Reason Phrase (b),
   Final Group (i),
@@ -1162,19 +1173,16 @@ SUBSCRIBE_RST Message {
 ~~~
 {: #moq-transport-subscribe-rst format title="MOQT SUBSCRIBE RST Message"}
 
-* Track Namespace: Identifies the namespace of the track as defined in
-({{track-name}}).
-
-* Track Name: Identifies the track name as defined in ({{track-name}}).
+* Subscribe ID: Subscription Identifier as defined in {{message-subscribe-req}}.
 
 * Error Code: Identifies an integer error code for subscription failure.
 
 * Reason Phrase: Provides the reason for subscription error.
 
-* Final Group: The largest Group Sequence sent by the publisher in an OBJECT
+* Final Group: The largest Group ID sent by the publisher in an OBJECT
 message in this track.
 
-* Final Object: The largest Object Sequence sent by the publisher in an OBJECT
+* Final Object: The largest Object ID sent by the publisher in an OBJECT
 message in the `Final Group` for this track.
 
 ## ANNOUNCE {#message-announce}
@@ -1344,7 +1352,7 @@ reaching a resource limit.
 TODO: fill out currently missing registries:
 
 * MOQT version numbers
-* SETUP parameters
+* Setup parameters
 * Track Request parameters
 * Subscribe Error codes
 * Announce Error codes
