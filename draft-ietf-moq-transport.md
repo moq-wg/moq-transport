@@ -710,6 +710,8 @@ MOQT Message {
 |-------|----------------------------------------------------|
 | 0x10  | GOAWAY ({{message-goaway}})                        |
 |-------|----------------------------------------------------|
+| 0x11  | END ({{message-end}})                              |
+|-------|----------------------------------------------------|
 | 0x40  | CLIENT_SETUP ({{message-setup}})                   |
 |-------|----------------------------------------------------|
 | 0x41  | SERVER_SETUP ({{message-setup}})                   |
@@ -1276,11 +1278,51 @@ GOAWAY Message {
 ~~~
 {: #moq-transport-goaway-format title="MOQT GOAWAY Message"}
 
-* New Session URI: The client MUST use this URI for the new session if provded.
+* New Session URI: The client MUST use this URI for the new session if provided.
   If the URI is zero bytes long, the current URI is reused instead. The new
   session URI SHOULD use the same scheme as the current URL to ensure
   compatibility.
 
+
+## END {#message-end}
+
+A publisher can optionally send `END` message to indicate the completion of
+either the track or group or an object. The `END` message MUST NOT be
+sent on the control stream.
+
+The format of `END` message is as shown below
+
+~~~
+END Message {
+  Type (i),
+  Track Alias (i),
+  Group (i),
+  [Object (i)]
+}
+~~~
+
+* Track Alias: Identifies the track corresponding to the `END` message.
+
+There are 3 possible values for the `Type` field as defined below.
+
+* Track (0x0) : The `END` message corresponds to completion of a track. The
+`Group` and `Object` field identify the final group and object sequences
+for the track.
+
+* Group (0x1) : The `END` message corresponds to completion of a group
+identified in the `Group` field. The `Object` field identifies the last
+object of the completed group.
+
+* Object (0x2) : The `END` message corresponds to completion of an object,
+identified in the `Object` field whose group is indicated in the `Group`
+field.
+
+
+Sending `END` message is optional for cases where the completion
+condition can be determined by some other means. For example, when using
+Object messages {{message-object}} that is length aware, the receiver
+can compute the object competion by counting the `Object Payload Length`
+number of bytes received.
 
 # Security Considerations {#security}
 
