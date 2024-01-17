@@ -598,6 +598,19 @@ allows relays to make only a single forward subscription for the
 track. The published content received from the forward subscription
 request is cached and shared among the pending subscribers.
 
+The application SHOULD use a relevant error code in SUBSCRIBE_ERROR,
+as defined below:
+
+|------|---------------------------|
+| Code | Reason                    |
+|-----:|:--------------------------|
+| 0x0  | Generic Error             |
+|------|---------------------------|
+| 0x1  | Invalid Range             |
+|------|---------------------------|
+| 0x2  | Retry Track Alias         |
+|------|---------------------------|
+
 
 ## Publisher Interactions
 
@@ -988,8 +1001,8 @@ On successful subscription, the publisher SHOULD start delivering
 objects from the group ID and object ID described above.
 
 If a publisher cannot satisfy the requested start or end for the subscription it
-MAY send a SUBSCRIBE_ERROR with code TBD. A publisher MUST NOT send objects
-from outside the requested start and end.
+MAY send a SUBSCRIBE_ERROR with code 'Invalid Range'. A publisher MUST NOT send
+objects from outside the requested start and end.
 
 TODO: Define the flow where subscribe request matches an existing subscribe id
 (subscription updates.)
@@ -1095,12 +1108,10 @@ SUBSCRIBE_ERROR
 
 * Reason Phrase: Provides the reason for subscription error.
 
-* Track Alias: When Error Code is TBD, the subscriber SHOULD re-issue the
+* Track Alias: When Error Code is 'Retry Track Alias', the subscriber SHOULD re-issue the
   SUBSCRIBE with this Track Alias instead. If this Track Alias is already in use,
   the receiver MUST close the connection with a Duplicate Track Alias error
   ({{session-termination}}).
-  TODO: Add a registry for subscribe error codes and make this field conditional.
-
 
 ## UNSUBSCRIBE {#message-unsubscribe}
 
