@@ -5,13 +5,13 @@
 MOQ                                                            L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 16 July 2024                                               Meta
+Expires: 20 July 2024                                               Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                         13 January 2024
+                                                         17 January 2024
 
 
                        Media over QUIC Transport
@@ -53,7 +53,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 16 July 2024.
+   This Internet-Draft will expire on 20 July 2024.
 
 Copyright Notice
 
@@ -677,6 +677,21 @@ Table of Contents
    subscription request is cached and shared among the pending
    subscribers.
 
+   The application SHOULD use a relevant error code in SUBSCRIBE_ERROR,
+   as defined below:
+
+                       +======+===================+
+                       | Code | Reason            |
+                       +======+===================+
+                       |  0x0 | Generic Error     |
+                       +------+-------------------+
+                       |  0x1 | Invalid Range     |
+                       +------+-------------------+
+                       |  0x2 | Retry Track Alias |
+                       +------+-------------------+
+
+                                 Table 2
+
 5.2.  Publisher Interactions
 
    Publishing through the relay starts with publisher sending ANNOUNCE
@@ -782,7 +797,7 @@ Table of Contents
               | 0x51 | STREAM_HEADER_GROUP (Section 6.3.3) |
               +------+-------------------------------------+
 
-                                 Table 2
+                                 Table 3
 
 6.1.  Parameters
 
@@ -1221,9 +1236,9 @@ Table of Contents
    objects from the group ID and object ID described above.
 
    If a publisher cannot satisfy the requested start or end for the
-   subscription it MAY send a SUBSCRIBE_ERROR with code TBD.  A
-   publisher MUST NOT send objects from outside the requested start and
-   end.
+   subscription it MAY send a SUBSCRIBE_ERROR with code 'Invalid Range'.
+   A publisher MUST NOT send objects from outside the requested start
+   and end.
 
    TODO: Define the flow where subscribe request matches an existing
    subscribe id (subscription updates.)
@@ -1325,12 +1340,11 @@ Table of Contents
 
    *  Reason Phrase: Provides the reason for subscription error.
 
-   *  Track Alias: When Error Code is TBD, the subscriber SHOULD re-
-      issue the SUBSCRIBE with this Track Alias instead.  If this Track
-      Alias is already in use, the receiver MUST close the connection
-      with a Duplicate Track Alias error (Section 3.5).  TODO: Add a
-      registry for subscribe error codes and make this field
-      conditional.
+   *  Track Alias: When Error Code is 'Retry Track Alias', the
+      subscriber SHOULD re-issue the SUBSCRIBE with this Track Alias
+      instead.  If this Track Alias is already in use, the receiver MUST
+      close the connection with a Duplicate Track Alias error
+      (Section 3.5).
 
 6.7.  UNSUBSCRIBE
 
