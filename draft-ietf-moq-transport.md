@@ -925,7 +925,7 @@ OBJECT_STREAM Message {
 * Track Alias: Identifies the Track Namespace and Track Name as defined in
 {{message-subscribe-req}}.
 
-The Track Namespace and Track Name identified by the Track Alias is different
+If the Track Namespace and Track Name identified by the Track Alias is different
 from the one specified in the subscription identified by Subscribe ID, the
 receiver MUST close the session with a Protocol Violation.
 
