@@ -18,11 +18,11 @@ media to publish data and have it consumed via subscription by a
 multiplicity of endpoints. It supports intermediate content distribution
 networks and is designed for high scale and low latency distribution. 
     " name="description">
-<meta content="xml2rfc 3.19.0" name="generator">
+<meta content="xml2rfc 3.19.1" name="generator">
 <meta content="Internet-Draft" name="keyword">
 <meta content="draft-ietf-moq-transport-latest" name="ietf.draft">
 <!-- Generator version information:
-  xml2rfc 3.19.0
+  xml2rfc 3.19.1
     Python 3.11.6
     ConfigArgParse 1.7
     google-i18n-address 3.1.0
@@ -35,7 +35,7 @@ networks and is designed for high scale and low latency distribution.
     requests 2.31.0
     setuptools 68.2.2
     six 1.16.0
-    wcwidth 0.2.12
+    wcwidth 0.2.13
 -->
 <link href="draft-ietf-moq-transport.xml" rel="alternate" type="application/rfc+xml">
 <link href="#copyright" rel="license">
@@ -2534,7 +2534,7 @@ OBJECT_STREAM Message {
 <a href="#message-subscribe-req" class="auto internal xref">Section 6.4</a>.<a href="#section-6.3.2-5.2.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
-<p id="section-6.3.2-6">The Track Namespace and Track Name identified by the Track Alias is different
+<p id="section-6.3.2-6">If the Track Namespace and Track Name identified by the Track Alias is different
 from the one specified in the subscription identified by Subscribe ID, the
 receiver <span class="bcp14">MUST</span> close the session with a Protocol Violation.<a href="#section-6.3.2-6" class="pilcrow">¶</a></p>
 <ul class="normal">
