@@ -652,7 +652,8 @@ congestion response.
 ## Relay Object Handling
 
 MOQT encodes the delivery information for a stream via OBJECT headers
-({{message-object}}).
+({{message-object}}).  A relay MUST NOT modify Object properties when
+forwarding.
 
 A relay MUST treat the object payload as opaque.  A relay MUST NOT
 combine, split, or otherwise modify object payloads.  A relay SHOULD
@@ -975,6 +976,10 @@ stream that is associated with the subscription, or open a new one and send the
 ~~~
 {: #object-track-format title="MOQT Track Stream Object Fields"}
 
+A sender MUST NOT send an Object on a stream if its Group ID is less than a
+previously sent Group ID on that stream, or if its Object ID is less than or
+equal to a previously sent Object ID within a given group on that stream.
+
 When a stream begins with `STREAM_HEADER_GROUP`, all objects on the stream
 belong to the track requested in the Subscribe message identified by `Subscribe
 ID` and the group indicated by `Group ID`.  All objects on the stream
@@ -1006,6 +1011,9 @@ then serialize the following fields.
 }
 ~~~
 {: #object-group-format title="MOQT Group Stream Object Fields"}
+
+A sender MUST NOT send an Object on a stream if its Object ID is less than a
+previously sent Object ID within a given group in that stream.
 
 ### Examples:
 
