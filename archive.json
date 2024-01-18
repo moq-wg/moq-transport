@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2024-01-16T01:11:16.162990+00:00",
+  "timestamp": "2024-01-18T01:11:10.215479+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -42493,13 +42493,13 @@
       "labels": [],
       "body": "This PR brings in currently active proposals for supporting explicit indicators of mapping object model to quic transport.\r\n\r\nFixes #244 \r\n\r\n\r\n",
       "createdAt": "2023-11-08T14:34:57Z",
-      "updatedAt": "2024-01-13T01:47:38Z",
+      "updatedAt": "2024-01-17T17:59:47Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
-      "baseRefOid": "e44aa48372942187027b899e5bb90c97ab279e0d",
+      "baseRefOid": "00f924c3d59a9ec6d4ae78598e0d397d83cd7ed5",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "tx-mode",
-      "headRefOid": "8a678a681bd508dd4ec8a0e0a5611ed41421f656",
+      "headRefOid": "4b2bd9a3a2ef45e1a3683a0708e8983f18eddbfb",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -43398,6 +43398,218 @@
               "updatedAt": "2024-01-12T23:07:00Z"
             }
           ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5p2B5O",
+          "commit": {
+            "abbreviatedOid": "8a678a6"
+          },
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "state": "CHANGES_REQUESTED",
+          "body": "It's almost there. This is exponentially easier for a relay and receiver than prior proposals.",
+          "createdAt": "2023-12-11T17:39:54Z",
+          "updatedAt": "2024-01-16T22:15:43Z",
+          "comments": [
+            {
+              "originalPosition": 152,
+              "body": "I think we need more guidance on what a relay is supposed to do.\r\n\r\nSome questions:\r\n- Should a sender disable retransmissions? If so what error code should it use to RESET_STREAM?\r\n- Should a receiver immediately send STOP_SENDING to try to prevent retransmissions too?\r\n- What should happen if limited by MAX_STREAMS? Should the sender drop immediately?\r\n- What should happen if limited by MAX_STREAM_DATA? Should the sender drop immediately?\r\n- How long should a receiver wait before considering the object dropped? Is it a timer or does it wait for the RESET_STREAM, which may need to be retransmitted?\r\n- Does a sender need to provide packet mapping? If two datagrams are received on two different packets, do the resulting streams also need to be sent in different packets? How does FEC work otherwise?\r\n\r\nMy recommendation would be to just set a size limit of 1.2kB and always use datagrams. Emulating datagram behavior with streams is kinda gross.",
+              "createdAt": "2023-12-11T17:54:22Z",
+              "updatedAt": "2024-01-16T22:15:43Z"
+            },
+            {
+              "originalPosition": 240,
+              "body": "This is illegal right? Two objects have the same object ID and group ID (0,1).",
+              "createdAt": "2024-01-16T21:52:00Z",
+              "updatedAt": "2024-01-16T22:15:43Z"
+            },
+            {
+              "originalPosition": 132,
+              "body": "A relay could still convert single object streams into multi object streams that by buffering until EOF. The sentence you added is meant to prevent that, although it doesn't quuuiiite do so. Maybe it should be changed to:\r\n\r\n> A relay MUST not reorder or drop objects received on a ~multi-object~ stream when\r\n> forwarding to subscribers, unless it has application specific information.\r\n\r\n",
+              "createdAt": "2024-01-16T21:55:17Z",
+              "updatedAt": "2024-01-16T22:18:37Z"
+            },
+            {
+              "originalPosition": 132,
+              "body": "I don't think a relay can implement the draft until this is specified.\r\n\r\nI would like the incoming stream FIN to signal an outgoing stream FIN. But that takes us back to the \"implicit vs explicit\" discussion. I would like to avoid an \"explicit\" `STREAM_DONE` message followed by a QUIC FIN...",
+              "createdAt": "2024-01-16T21:59:28Z",
+              "updatedAt": "2024-01-16T22:23:37Z"
+            },
+            {
+              "originalPosition": 153,
+              "body": "I'm confused by this sentence. This seems like an implementation detail depending on the API?\r\n\r\nPersonally, I wouldn't lazy initialize the stream because then the MoQ library won't know when to close it. I think you can safely remove this sentence and just say that multiple objects follow.",
+              "createdAt": "2024-01-16T22:08:36Z",
+              "updatedAt": "2024-01-16T22:15:43Z"
+            },
+            {
+              "originalPosition": 159,
+              "body": "Can we add the constraint that both of these must be increasing over the life of the stream? Otherwise dropping and subsequent gap detection becomes very difficult. ",
+              "createdAt": "2024-01-16T22:09:45Z",
+              "updatedAt": "2024-01-16T22:15:43Z"
+            },
+            {
+              "originalPosition": 191,
+              "body": "Same thing, can we make this increasing only?",
+              "createdAt": "2024-01-16T22:10:33Z",
+              "updatedAt": "2024-01-16T22:15:43Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5s1JLK",
+          "commit": {
+            "abbreviatedOid": "8a678a6"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-01-17T00:07:14Z",
+          "updatedAt": "2024-01-17T00:07:14Z",
+          "comments": [
+            {
+              "originalPosition": 153,
+              "body": "i think this needs to caoture the intent as \" all the objects for a given track is sent on the same stream\" . ",
+              "createdAt": "2024-01-17T00:07:14Z",
+              "updatedAt": "2024-01-17T00:07:14Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5s1M6T",
+          "commit": {
+            "abbreviatedOid": "8a678a6"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-01-17T00:10:51Z",
+          "updatedAt": "2024-01-17T00:10:51Z",
+          "comments": [
+            {
+              "originalPosition": 159,
+              "body": "groupId and object Id are monotonically increasing integers.",
+              "createdAt": "2024-01-17T00:10:51Z",
+              "updatedAt": "2024-01-17T00:10:51Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5s1cOR",
+          "commit": {
+            "abbreviatedOid": "8a678a6"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-01-17T00:25:52Z",
+          "updatedAt": "2024-01-17T00:25:52Z",
+          "comments": [
+            {
+              "originalPosition": 132,
+              "body": "agree we need to get to this , but I feel this can be done in a separate PR>",
+              "createdAt": "2024-01-17T00:25:52Z",
+              "updatedAt": "2024-01-17T00:25:52Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5s1_eY",
+          "commit": {
+            "abbreviatedOid": "8a678a6"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "Individual comments",
+          "createdAt": "2024-01-17T01:00:29Z",
+          "updatedAt": "2024-01-17T01:15:04Z",
+          "comments": [
+            {
+              "originalPosition": 132,
+              "body": "> I don't think a relay can implement the draft until this is specified.\r\n\r\nI agree.\r\n\r\n> agree we need to get to this , but I feel this can be done in a separate PR\r\n\r\nI'm inclined to take the consensus we have, merge it and build on it, rather than keeping this PR open.\r\n\r\nI don't think we want to take it from the QUIC layer and we do need an MoQ layer signal.  Is the stream carrying the track data even sufficient or could it be reset?  The stream termination messages may need to go on the control stream?",
+              "createdAt": "2024-01-17T01:00:29Z",
+              "updatedAt": "2024-01-17T01:15:04Z"
+            },
+            {
+              "originalPosition": 153,
+              "body": "The intent was to explain how relays send outgoing objects, but make it generic for publishers too.  Similar language was used for other multi-object stream formats.\r\n\r\nI don't think it conflicts with your plan to not-lazy-initialize, that would fit in \"find the open stream...\", but I'm open to different language too.",
+              "createdAt": "2024-01-17T01:09:03Z",
+              "updatedAt": "2024-01-17T01:15:04Z"
+            },
+            {
+              "originalPosition": 240,
+              "body": "Yes, I think I meant for this to be Object ID=2.",
+              "createdAt": "2024-01-17T01:10:57Z",
+              "updatedAt": "2024-01-17T01:15:04Z"
+            },
+            {
+              "originalPosition": 159,
+              "body": "I'm ok adding an explicit restriction here.  Does anyone object?",
+              "createdAt": "2024-01-17T01:11:37Z",
+              "updatedAt": "2024-01-17T01:15:04Z"
+            },
+            {
+              "originalPosition": 191,
+              "body": "I'm ok adding an explicit restriction here.  Does anyone object?",
+              "createdAt": "2024-01-17T01:11:52Z",
+              "updatedAt": "2024-01-17T01:15:04Z"
+            },
+            {
+              "originalPosition": 132,
+              "body": "> A relay could still convert single object streams into multi object streams that by buffering until EOF.\r\n\r\nI don't think so.  The rules for sending objects say\r\n\r\n```\r\nTo send an Object with `Object Forwarding Preference` = `Object`, open a stream,\r\nserialize object fields below, and terminate the stream.\r\n```",
+              "createdAt": "2024-01-17T01:14:21Z",
+              "updatedAt": "2024-01-17T01:15:04Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5s8cJZ",
+          "commit": {
+            "abbreviatedOid": "4b2bd9a"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2024-01-17T17:08:29Z",
+          "updatedAt": "2024-01-17T17:09:05Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5s8fRI",
+          "commit": {
+            "abbreviatedOid": "4b2bd9a"
+          },
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-01-17T17:15:26Z",
+          "updatedAt": "2024-01-17T17:15:26Z",
+          "comments": [
+            {
+              "originalPosition": 159,
+              "body": "> groupId and object Id are monotonically increasing integers.\r\n\r\nAre they monotonically increasing? I thought the use-case was two streams with objects interlaced, in which case they wouldn't be.",
+              "createdAt": "2024-01-17T17:15:26Z",
+              "updatedAt": "2024-01-17T17:15:26Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5s8y8x",
+          "commit": {
+            "abbreviatedOid": "4b2bd9a"
+          },
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2024-01-17T17:59:47Z",
+          "updatedAt": "2024-01-17T17:59:47Z",
+          "comments": []
         }
       ]
     },
@@ -43413,13 +43625,13 @@
       "labels": [],
       "body": "This PR attempts to support the requirements needed for #318 and #244 ",
       "createdAt": "2023-11-08T15:09:47Z",
-      "updatedAt": "2023-11-14T00:58:18Z",
+      "updatedAt": "2024-01-17T17:18:25Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
-      "baseRefOid": "de5e92e3668272cb70a27dda5b52c642dae0406d",
+      "baseRefOid": "00f924c3d59a9ec6d4ae78598e0d397d83cd7ed5",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "fin",
-      "headRefOid": "0a8be0216f7c007a66a279686633d5d76839631a",
+      "headRefOid": "dbfea7e18d55c3664115bdc0218fb71b60d2f7b1",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -43730,24 +43942,26 @@
       "id": "PR_kwDOG2Ho4M5jtm9I",
       "title": "Define SUBSCRIBE_ERROR error codes",
       "url": "https://github.com/moq-wg/moq-transport/pull/341",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "ianswett",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [],
       "body": "Fixes existing TODOs and TBDs",
       "createdAt": "2024-01-10T17:58:00Z",
-      "updatedAt": "2024-01-10T18:29:46Z",
+      "updatedAt": "2024-01-17T17:04:45Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "e44aa48372942187027b899e5bb90c97ab279e0d",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "ianswett-subscribe-error",
       "headRefOid": "ed1be1e584ba2f469954ae3e5bfbcee0c5a1b60e",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "closedAt": "2024-01-17T17:04:44Z",
+      "mergedAt": "2024-01-17T17:04:44Z",
+      "mergedBy": "ianswett",
+      "mergeCommit": {
+        "oid": "00f924c3d59a9ec6d4ae78598e0d397d83cd7ed5"
+      },
       "comments": [],
       "reviews": [
         {
@@ -43775,9 +43989,9 @@
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [],
-      "body": "This was previously part of #333. It allows an object to be sent in a datagram f it fits, and put on a stream if it doesn't.",
+      "body": "This was previously part of #333. It allows an object to be sent in a datagram f it fits, and put on a stream if it doesn't.\r\n\r\nCloses #316 ",
       "createdAt": "2024-01-11T23:56:21Z",
-      "updatedAt": "2024-01-12T04:38:20Z",
+      "updatedAt": "2024-01-17T19:46:15Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "tx-mode",
       "baseRefOid": "8c97531bdb70dc766ac6e44bdb976d3b6366dd78",
@@ -43797,7 +44011,86 @@
           "updatedAt": "2024-01-11T23:57:42Z"
         }
       ],
-      "reviews": []
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M5s8eCb",
+          "commit": {
+            "abbreviatedOid": "7b44a95"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2024-01-17T17:12:36Z",
+          "updatedAt": "2024-01-17T17:13:07Z",
+          "comments": [
+            {
+              "originalPosition": 37,
+              "body": "may be we can say \"It is the only message sent on a undirectional stream\"",
+              "createdAt": "2024-01-17T17:12:36Z",
+              "updatedAt": "2024-01-17T17:13:07Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5s8hKV",
+          "commit": {
+            "abbreviatedOid": "7b44a95"
+          },
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "Looks like a great starting point to me. ",
+          "createdAt": "2024-01-17T17:19:51Z",
+          "updatedAt": "2024-01-17T17:19:51Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5s9eBM",
+          "commit": {
+            "abbreviatedOid": "7b44a95"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "Some minor comments, but LGTM",
+          "createdAt": "2024-01-17T19:42:13Z",
+          "updatedAt": "2024-01-17T19:45:23Z",
+          "comments": [
+            {
+              "originalPosition": 4,
+              "body": "How about OBJECT_PREFER_DATAGRAM ?",
+              "createdAt": "2024-01-17T19:42:13Z",
+              "updatedAt": "2024-01-17T19:45:23Z"
+            },
+            {
+              "originalPosition": 37,
+              "body": "```suggestion\r\nbe the first and only message on a unidirectional stream.\r\n```",
+              "createdAt": "2024-01-17T19:44:06Z",
+              "updatedAt": "2024-01-17T19:45:23Z"
+            },
+            {
+              "originalPosition": 47,
+              "body": "Are we going to enforce this MUST?  If not, I'd be inclined to say SHOULD NOT",
+              "createdAt": "2024-01-17T19:45:04Z",
+              "updatedAt": "2024-01-17T19:45:23Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5s9flB",
+          "commit": {
+            "abbreviatedOid": "7b44a95"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2024-01-17T19:46:15Z",
+          "updatedAt": "2024-01-17T19:46:15Z",
+          "comments": []
+        }
+      ]
     }
   ]
 }
