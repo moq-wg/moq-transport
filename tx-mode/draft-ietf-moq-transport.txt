@@ -1004,7 +1004,7 @@ Table of Contents
       defined in Section 6.4.
 
    If the Track Namespace and Track Name identified by the Track Alias
-   is different from the one specified in the subscription identified by
+   are different from those specified in the subscription identified by
    Subscribe ID, the receiver MUST close the session with a Protocol
    Violation.
 
