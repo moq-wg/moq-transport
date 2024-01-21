@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2024-01-18T01:11:10.215479+00:00",
+  "timestamp": "2024-01-21T01:16:47.597809+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -42493,13 +42493,13 @@
       "labels": [],
       "body": "This PR brings in currently active proposals for supporting explicit indicators of mapping object model to quic transport.\r\n\r\nFixes #244 \r\n\r\n\r\n",
       "createdAt": "2023-11-08T14:34:57Z",
-      "updatedAt": "2024-01-17T17:59:47Z",
+      "updatedAt": "2024-01-18T16:57:25Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "00f924c3d59a9ec6d4ae78598e0d397d83cd7ed5",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "tx-mode",
-      "headRefOid": "4b2bd9a3a2ef45e1a3683a0708e8983f18eddbfb",
+      "headRefOid": "2c3a441bfaeedc50a0db0e1b951111d1cd0129cf",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -43610,6 +43610,32 @@
           "createdAt": "2024-01-17T17:59:47Z",
           "updatedAt": "2024-01-17T17:59:47Z",
           "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5tE2-u",
+          "commit": {
+            "abbreviatedOid": "bfa15c0"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2024-01-18T15:40:41Z",
+          "updatedAt": "2024-01-18T15:45:16Z",
+          "comments": [
+            {
+              "originalPosition": 125,
+              "body": "```suggestion\r\nIf the Track Namespace and Track Name identified by the Track Alias is different\r\n```",
+              "createdAt": "2024-01-18T15:40:41Z",
+              "updatedAt": "2024-01-18T15:45:16Z"
+            },
+            {
+              "originalPosition": 125,
+              "body": "Also, this applies to all types of mappings, so maybe move it up to the end of the previous section?",
+              "createdAt": "2024-01-18T15:45:11Z",
+              "updatedAt": "2024-01-18T15:45:16Z"
+            }
+          ]
         }
       ]
     },
