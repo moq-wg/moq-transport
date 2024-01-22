@@ -935,7 +935,7 @@ the receiver MUST close the session with a Protocol Violation.
 
 * Other fields: As described in {{canonical-object-fields}}.
 
-**Object Datagram Preferred Message**
+**Object Prefer Datagram Message**
 
 An `OBJECT_PREFER_DATAGRAM` message carries a single object in a datagram or
 a stream. There is no explicit length of the payload; it is determined by the
