@@ -940,7 +940,7 @@ the receiver MUST close the session with a Protocol Violation.
 An `OBJECT_PREFER_DATAGRAM` message carries a single object in a datagram or
 a stream. There is no explicit length of the payload; it is determined by the
 length of the datagram or stream.  If this message appears on a stream, it MUST
-be the first message on a unidirectional stream.
+be the only message on a unidirectional stream.
 
 An Object received in an `OBJECT_PREFER_DATAGRAM` message has an `Object
 Forwarding Preference` = `Datagram`.
