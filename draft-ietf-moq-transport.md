@@ -950,7 +950,7 @@ the length of the fields and payload, and compare the length with the maximum
 datagram size of the session.  If the object size is less than or equal maximum
 datagram size, send the serialized data as a datagram.  Otherwise, open a
 stream, send the serialized data and terminate the stream.  An implementation
-MUST NOT send an Object with `Object Forwarding Preference` = `Datagram` on a
+SHOULD NOT send an Object with `Object Forwarding Preference` = `Datagram` on a
 stream if it is possible to send it as a datagram.
 
 ~~~
