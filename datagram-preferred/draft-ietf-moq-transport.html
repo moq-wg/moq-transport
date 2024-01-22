@@ -2559,7 +2559,7 @@ the length of the fields and payload, and compare the length with the maximum
 datagram size of the session.  If the object size is less than or equal maximum
 datagram size, send the serialized data as a datagram.  Otherwise, open a
 stream, send the serialized data and terminate the stream.  An implementation
-<span class="bcp14">MUST NOT</span> send an Object with <code>Object Forwarding Preference</code> = <code>Datagram</code> on a
+<span class="bcp14">SHOULD NOT</span> send an Object with <code>Object Forwarding Preference</code> = <code>Datagram</code> on a
 stream if it is possible to send it as a datagram.<a href="#section-6.3.2-12" class="pilcrow">¶</a></p>
 <span id="name-moqt-object_prefer_datagram"></span><div id="object-datagram-format">
 <figure id="figure-5">
