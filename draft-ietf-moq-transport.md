@@ -593,13 +593,26 @@ terminates the track with a SUBSCRIBE_FIN
 (see {{message-subscribe-rst}}).
 
 A relay MUST not reorder or drop objects received on a multi-object stream when
-forwarding to subscribers.
+forwarding to subscribers, unless it has application specific information.
 
 Relays MAY aggregate authorized subscriptions for a given track when
 multiple subscribers request the same track. Subscription aggregation
 allows relays to make only a single forward subscription for the
 track. The published content received from the forward subscription
 request is cached and shared among the pending subscribers.
+
+The application SHOULD use a relevant error code in SUBSCRIBE_ERROR,
+as defined below:
+
+|------|---------------------------|
+| Code | Reason                    |
+|-----:|:--------------------------|
+| 0x0  | Generic Error             |
+|------|---------------------------|
+| 0x1  | Invalid Range             |
+|------|---------------------------|
+| 0x2  | Retry Track Alias         |
+|------|---------------------------|
 
 
 ## Publisher Interactions
@@ -639,7 +652,8 @@ congestion response.
 ## Relay Object Handling
 
 MOQT encodes the delivery information for a stream via OBJECT headers
-({{message-object}}).
+({{message-object}}).  A relay MUST NOT modify Object properties when
+forwarding.
 
 A relay MUST treat the object payload as opaque.  A relay MUST NOT
 combine, split, or otherwise modify object payloads.  A relay SHOULD
@@ -915,9 +929,9 @@ OBJECT_STREAM Message {
 * Track Alias: Identifies the Track Namespace and Track Name as defined in
 {{message-subscribe-req}}.
 
-The Track Namespace and Track Name identified by the Track Alias is different
-from the one specified in the subscription identified by Subscribe ID, the
-receiver MUST close the session with a Protocol Violation.
+If the Track Namespace and Track Name identified by the Track Alias are
+different from those specified in the subscription identified by Subscribe ID,
+the receiver MUST close the session with a Protocol Violation.
 
 * Other fields: As described in {{canonical-object-fields}}.
 
@@ -968,7 +982,8 @@ TODO: figure out how a relay closes these streams
 
 When a stream begins with `STREAM_HEADER_TRACK`, all objects on the stream
 belong to the track requested in the Subscribe message identified by `Subscribe
-ID`.  All objects on the stream have the same `Object Send Order`.
+ID`.  All objects on the stream have the `Object Send Order` specified in the
+stream header.
 
 
 ~~~
@@ -999,10 +1014,14 @@ stream that is associated with the subscription, or open a new one and send the
 
 **Stream Header Group**
 
+A sender MUST NOT send an Object on a stream if its Group ID is less than a
+previously sent Group ID on that stream, or if its Object ID is less than or
+equal to a previously sent Object ID within a given group on that stream.
+
 When a stream begins with `STREAM_HEADER_GROUP`, all objects on the stream
 belong to the track requested in the Subscribe message identified by `Subscribe
 ID` and the group indicated by `Group ID`.  All objects on the stream
-have the same `Object Send Order`.
+have the `Object Send Order` specified in the stream header.
 
 ~~~
 STREAM_HEADER_GROUP Message {
@@ -1030,6 +1049,9 @@ then serialize the following fields.
 }
 ~~~
 {: #object-group-format title="MOQT Group Stream Object Fields"}
+
+A sender MUST NOT send an Object on a stream if its Object ID is less than a
+previously sent Object ID within a given group in that stream.
 
 ### Examples:
 
@@ -1188,8 +1210,8 @@ On successful subscription, the publisher SHOULD start delivering
 objects from the group ID and object ID described above.
 
 If a publisher cannot satisfy the requested start or end for the subscription it
-MAY send a SUBSCRIBE_ERROR with code TBD. A publisher MUST NOT send objects
-from outside the requested start and end.
+MAY send a SUBSCRIBE_ERROR with code 'Invalid Range'. A publisher MUST NOT send
+objects from outside the requested start and end.
 
 TODO: Define the flow where subscribe request matches an existing subscribe id
 (subscription updates.)
@@ -1295,12 +1317,10 @@ SUBSCRIBE_ERROR
 
 * Reason Phrase: Provides the reason for subscription error.
 
-* Track Alias: When Error Code is TBD, the subscriber SHOULD re-issue the
+* Track Alias: When Error Code is 'Retry Track Alias', the subscriber SHOULD re-issue the
   SUBSCRIBE with this Track Alias instead. If this Track Alias is already in use,
   the receiver MUST close the connection with a Duplicate Track Alias error
   ({{session-termination}}).
-  TODO: Add a registry for subscribe error codes and make this field conditional.
-
 
 ## UNSUBSCRIBE {#message-unsubscribe}
 
