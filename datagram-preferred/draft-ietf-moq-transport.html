@@ -2211,7 +2211,7 @@ MOQT Message {
           </tr>
           <tr>
             <td class="text-right" rowspan="1" colspan="1">0x1</td>
-            <td class="text-left" rowspan="1" colspan="1">OBJECT_DATAGRAM_PREFERRED (<a href="#object-message-formats" class="auto internal xref">Section 6.3.2</a>)</td>
+            <td class="text-left" rowspan="1" colspan="1">OBJECT_PREFER_DATAGRAM (<a href="#object-message-formats" class="auto internal xref">Section 6.3.2</a>)</td>
           </tr>
           <tr>
             <td class="text-right" rowspan="1" colspan="1">0x3</td>
@@ -2548,11 +2548,11 @@ the receiver <span class="bcp14">MUST</span> close the session with a Protocol V
 </li>
           </ul>
 <p id="section-6.3.2-9"><strong>Object Datagram Preferred Message</strong><a href="#section-6.3.2-9" class="pilcrow">¶</a></p>
-<p id="section-6.3.2-10">An <code>OBJECT_DATAGRAM_PREFERRED</code> message carries a single object in a datagram or
+<p id="section-6.3.2-10">An <code>OBJECT_PREFER_DATAGRAM</code> message carries a single object in a datagram or
 a stream. There is no explicit length of the payload; it is determined by the
 length of the datagram or stream.  If this message appears on a stream, it <span class="bcp14">MUST</span>
 be the first message on a unidirectional stream.<a href="#section-6.3.2-10" class="pilcrow">¶</a></p>
-<p id="section-6.3.2-11">An Object received in an <code>OBJECT_DATAGRAM_PREFERRED</code> message has an <code>Object
+<p id="section-6.3.2-11">An Object received in an <code>OBJECT_PREFER_DATAGRAM</code> message has an <code>Object
 Forwarding Preference</code> = <code>Datagram</code>.<a href="#section-6.3.2-11" class="pilcrow">¶</a></p>
 <p id="section-6.3.2-12">To send an Object with <code>Object Forwarding Preference</code> = <code>Datagram</code>, determine
 the length of the fields and payload, and compare the length with the maximum
@@ -2561,11 +2561,11 @@ datagram size, send the serialized data as a datagram.  Otherwise, open a
 stream, send the serialized data and terminate the stream.  An implementation
 <span class="bcp14">MUST NOT</span> send an Object with <code>Object Forwarding Preference</code> = <code>Datagram</code> on a
 stream if it is possible to send it as a datagram.<a href="#section-6.3.2-12" class="pilcrow">¶</a></p>
-<span id="name-moqt-object_datagram_prefer"></span><div id="object-datagram-format">
+<span id="name-moqt-object_prefer_datagram"></span><div id="object-datagram-format">
 <figure id="figure-5">
             <div class="alignLeft art-text artwork" id="section-6.3.2-13.1">
 <pre>
-OBJECT_DATAGRAM_PREFERRED Message {
+OBJECT_PREFER_DATAGRAM Message {
   Subscription ID (i),
   Track Alias (i),
   Group ID (i),
@@ -2576,7 +2576,7 @@ OBJECT_DATAGRAM_PREFERRED Message {
 </pre>
 </div>
 <figcaption><a href="#figure-5" class="selfRef">Figure 5</a>:
-<a href="#name-moqt-object_datagram_prefer" class="selfRef">MOQT OBJECT_DATAGRAM_PREFERRED Message</a>
+<a href="#name-moqt-object_prefer_datagram" class="selfRef">MOQT OBJECT_PREFER_DATAGRAM Message</a>
             </figcaption></figure>
 </div>
 </section>

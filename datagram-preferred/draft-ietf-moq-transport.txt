@@ -762,45 +762,45 @@ Table of Contents
 
                            Figure 1: MOQT Message
 
-           +======+===========================================+
-           |   ID | Messages                                  |
-           +======+===========================================+
-           |  0x0 | OBJECT_STREAM (Section 6.3.2)             |
-           +------+-------------------------------------------+
-           |  0x1 | OBJECT_DATAGRAM_PREFERRED (Section 6.3.2) |
-           +------+-------------------------------------------+
-           |  0x3 | SUBSCRIBE (Section 6.4)                   |
-           +------+-------------------------------------------+
-           |  0x4 | SUBSCRIBE_OK (Section 6.5)                |
-           +------+-------------------------------------------+
-           |  0x5 | SUBSCRIBE_ERROR (Section 6.6)             |
-           +------+-------------------------------------------+
-           |  0x6 | ANNOUNCE (Section 6.10)                   |
-           +------+-------------------------------------------+
-           |  0x7 | ANNOUNCE_OK (Section 6.11)                |
-           +------+-------------------------------------------+
-           |  0x8 | ANNOUNCE_ERROR (Section 6.12)             |
-           +------+-------------------------------------------+
-           |  0x9 | UNANNOUNCE (Section 6.13)                 |
-           +------+-------------------------------------------+
-           |  0xA | UNSUBSCRIBE (Section 6.7)                 |
-           +------+-------------------------------------------+
-           |  0xB | SUBSCRIBE_FIN (Section 6.8)               |
-           +------+-------------------------------------------+
-           |  0xC | SUBSCRIBE_RST (Section 6.9)               |
-           +------+-------------------------------------------+
-           | 0x10 | GOAWAY (Section 6.14)                     |
-           +------+-------------------------------------------+
-           | 0x40 | CLIENT_SETUP (Section 6.2)                |
-           +------+-------------------------------------------+
-           | 0x41 | SERVER_SETUP (Section 6.2)                |
-           +------+-------------------------------------------+
-           | 0x50 | STREAM_HEADER_TRACK (Section 6.3.3)       |
-           +------+-------------------------------------------+
-           | 0x51 | STREAM_HEADER_GROUP (Section 6.3.3)       |
-           +------+-------------------------------------------+
+             +======+========================================+
+             |   ID | Messages                               |
+             +======+========================================+
+             |  0x0 | OBJECT_STREAM (Section 6.3.2)          |
+             +------+----------------------------------------+
+             |  0x1 | OBJECT_PREFER_DATAGRAM (Section 6.3.2) |
+             +------+----------------------------------------+
+             |  0x3 | SUBSCRIBE (Section 6.4)                |
+             +------+----------------------------------------+
+             |  0x4 | SUBSCRIBE_OK (Section 6.5)             |
+             +------+----------------------------------------+
+             |  0x5 | SUBSCRIBE_ERROR (Section 6.6)          |
+             +------+----------------------------------------+
+             |  0x6 | ANNOUNCE (Section 6.10)                |
+             +------+----------------------------------------+
+             |  0x7 | ANNOUNCE_OK (Section 6.11)             |
+             +------+----------------------------------------+
+             |  0x8 | ANNOUNCE_ERROR (Section 6.12)          |
+             +------+----------------------------------------+
+             |  0x9 | UNANNOUNCE (Section 6.13)              |
+             +------+----------------------------------------+
+             |  0xA | UNSUBSCRIBE (Section 6.7)              |
+             +------+----------------------------------------+
+             |  0xB | SUBSCRIBE_FIN (Section 6.8)            |
+             +------+----------------------------------------+
+             |  0xC | SUBSCRIBE_RST (Section 6.9)            |
+             +------+----------------------------------------+
+             | 0x10 | GOAWAY (Section 6.14)                  |
+             +------+----------------------------------------+
+             | 0x40 | CLIENT_SETUP (Section 6.2)             |
+             +------+----------------------------------------+
+             | 0x41 | SERVER_SETUP (Section 6.2)             |
+             +------+----------------------------------------+
+             | 0x50 | STREAM_HEADER_TRACK (Section 6.3.3)    |
+             +------+----------------------------------------+
+             | 0x51 | STREAM_HEADER_GROUP (Section 6.3.3)    |
+             +------+----------------------------------------+
 
-                                 Table 3
+                                  Table 3
 
 6.1.  Parameters
 
@@ -1016,14 +1016,14 @@ Table of Contents
 
    *Object Datagram Preferred Message*
 
-   An OBJECT_DATAGRAM_PREFERRED message carries a single object in a
+   An OBJECT_PREFER_DATAGRAM message carries a single object in a
    datagram or a stream.  There is no explicit length of the payload; it
    is determined by the length of the datagram or stream.  If this
    message appears on a stream, it MUST be the first message on a
    unidirectional stream.
 
-   An Object received in an OBJECT_DATAGRAM_PREFERRED message has an
-   Object Forwarding Preference = Datagram.
+   An Object received in an OBJECT_PREFER_DATAGRAM message has an Object
+   Forwarding Preference = Datagram.
 
    To send an Object with Object Forwarding Preference = Datagram,
    determine the length of the fields and payload, and compare the
@@ -1034,7 +1034,7 @@ Table of Contents
    Object with Object Forwarding Preference = Datagram on a stream if it
    is possible to send it as a datagram.
 
-   OBJECT_DATAGRAM_PREFERRED Message {
+   OBJECT_PREFER_DATAGRAM Message {
      Subscription ID (i),
      Track Alias (i),
      Group ID (i),
@@ -1043,7 +1043,7 @@ Table of Contents
      Object Payload (...),
    }
 
-              Figure 5: MOQT OBJECT_DATAGRAM_PREFERRED Message
+               Figure 5: MOQT OBJECT_PREFER_DATAGRAM Message
 
 6.3.3.  Multi-Object Streams
 
