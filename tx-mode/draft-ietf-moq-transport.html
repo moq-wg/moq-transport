@@ -2551,7 +2551,7 @@ the receiver <span class="bcp14">MUST</span> close the session with a Protocol V
 <p id="section-6.3.2-10">An <code>OBJECT_PREFER_DATAGRAM</code> message carries a single object in a datagram or
 a stream. There is no explicit length of the payload; it is determined by the
 length of the datagram or stream.  If this message appears on a stream, it <span class="bcp14">MUST</span>
-be the first message on a unidirectional stream.<a href="#section-6.3.2-10" class="pilcrow">¶</a></p>
+be the only message on a unidirectional stream.<a href="#section-6.3.2-10" class="pilcrow">¶</a></p>
 <p id="section-6.3.2-11">An Object received in an <code>OBJECT_PREFER_DATAGRAM</code> message has an <code>Object
 Forwarding Preference</code> = <code>Datagram</code>.<a href="#section-6.3.2-11" class="pilcrow">¶</a></p>
 <p id="section-6.3.2-12">To send an Object with <code>Object Forwarding Preference</code> = <code>Datagram</code>, determine
