@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2024-01-21T01:16:47.597809+00:00",
+  "timestamp": "2024-01-23T01:12:55.110329+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -9427,7 +9427,7 @@
       "id": "I_kwDOG2Ho4M5wo-aa",
       "title": "Object Model mapping to QUIC ",
       "url": "https://github.com/moq-wg/moq-transport/issues/244",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "suhasHere",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
@@ -9436,8 +9436,8 @@
       ],
       "body": "Recent discussions around the points highlighted in https://datatracker.ietf.org/doc/html/draft-jennings-moq-usages-00 has made it clear that the core transport protocol needs to provide advices on how to moqt object model maps to the QUIC.\r\n\r\nGiven that different use-cases have slightly varying requirements, there is also need for applications to specify their preference on how to use QUIC streams to transport objects and groups within a track from the publisher to the subscriber. \r\n\r\n\r\nHere is the  proposal for  `Transport Delivery Mode` enumeration as part of `SUBSCRIBE OK` message as an **experimental** addition to the protocol for publishers to express their interest .\r\n\r\nFollowing delivery modes are proposed\r\n\r\n* StreamPerObject(0): \r\nIn this mode, the publisher intends to use one QUIC Stream per MOQT Object.\r\n\r\n* Stream Per Group(1):\r\nIn this mode, the publisher intends to use one QUIC Stream per MOQT Group. All the objects from a given Group share the same QUIC stream.\r\n\r\n* Stream Per Priority(2):\r\nIn this mode, the publisher intends to use one QUIC Stream per priority \r\nas determined by the MOQT object priority value. \r\n\r\n* Stream Per Track(3):\r\nIn this mode, the publisher intends to use one QUIC Stream for a given track.\r\n\r\n\r\n\r\nThe core idea behind such experimental extension is to help under the application, deployment and interoperability requirements before the final path is chosen for the core transport",
       "createdAt": "2023-09-11T06:48:00Z",
-      "updatedAt": "2023-11-10T12:38:11Z",
-      "closedAt": null,
+      "updatedAt": "2024-01-22T03:03:26Z",
+      "closedAt": "2024-01-22T03:03:26Z",
       "comments": [
         {
           "author": "wilaw",
@@ -12349,7 +12349,7 @@
       "id": "I_kwDOG2Ho4M52hXc1",
       "title": "Extend SUBSCRIBE_OK message to include information about the live edge of the track",
       "url": "https://github.com/moq-wg/moq-transport/issues/337",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "wilaw",
       "authorAssociation": "NONE",
       "assignees": [],
@@ -12359,8 +12359,8 @@
       ],
       "body": "Consider an edge relay, receiving and forwarding relative SUBSCRIBE requests for -5, -3, and -1 for the same track. The first object it receives back is group 37. It cannot tell where to place this object in the sequence and must therefore hold it until it knows more information. If the next object is Group 39, it still cannot forward it, because the head sate is undefined.\r\n\r\nWe can solve this problem simply by having the SUBSCRIBE_OK response indicate the latest group and object number:\r\n\r\nSUBSCRIBE_OK\r\n{\r\n  Track Namespace (b),\r\n  Track Name (b),\r\n  Track Alias (i),\r\n  Expires (i),\r\n  LastestGroup(i),\r\n  LastestObject(i)\r\n}\r\n\r\nOne consequence of adding these fields is that an edge, which has no active subscription for the track,  cannot send the SUBSCRIBE_OK response until it itself receives a SUBSCRIBE_OK after forwarding the SUBSCRIBE. This makes subscription an async process in which the acknowledgment of the subscription may take in some cases a RTT back to the origin. I think this is necessary for stable state management. \r\n",
       "createdAt": "2023-11-10T21:52:31Z",
-      "updatedAt": "2024-01-10T17:38:43Z",
-      "closedAt": null,
+      "updatedAt": "2024-01-22T14:18:10Z",
+      "closedAt": "2024-01-22T14:18:10Z",
       "comments": [
         {
           "author": "kixelated",
@@ -17276,7 +17276,7 @@
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "data-model",
       "baseRefOid": "3dd5d28e8adb84a28b653dbb41fc3d08da8e3bf0",
-      "headRepository": "wilaw/warp-draft",
+      "headRepository": null,
       "headRefName": "data-model",
       "headRefOid": "de61fcef2200847501312bedd5a355b5d65479ad",
       "closedAt": "2023-01-30T06:19:57Z",
@@ -29849,7 +29849,7 @@
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "8285147cf345eaa2cb1211a66a63c2dde6c11e6b",
-      "headRepository": "wilaw/warp-draft",
+      "headRepository": null,
       "headRefName": "patch-1",
       "headRefOid": "2fc770d3a80fc6f01c808d6dd6afe5f136807da5",
       "closedAt": "2023-05-26T18:20:51Z",
@@ -41651,21 +41651,21 @@
       "id": "PR_kwDOG2Ho4M5eLL_P",
       "title": "Describe how to use datagrams",
       "url": "https://github.com/moq-wg/moq-transport/pull/316",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "ianswett",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [],
       "body": "Fixes #35\r\n\r\nAlso fixes #38 because there is existing text about streams:\r\n```\r\n\"A relay that reads from a stream and writes to stream in order will\r\nintroduce head-of-line blocking.  Packet loss will cause stream data to\r\nbe buffered in the library, awaiting in order delivery, which will\r\nincrease latency over additional hops.  To mitigate this, a relay SHOULD\r\nread and write stream data out of order subject to flow control\r\nlimits.  See section 2.2 in {{QUIC}}.\"\r\n```\r\n",
       "createdAt": "2023-10-30T23:23:25Z",
-      "updatedAt": "2023-11-14T01:15:26Z",
+      "updatedAt": "2024-01-22T03:18:49Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "c107110ff473a8e28283b14b16acae45371bdc75",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "ianswett-use-datagrams",
       "headRefOid": "e7d3693711c13d74dfecf8eeb4ef0ad995bb8b95",
-      "closedAt": null,
+      "closedAt": "2024-01-22T03:18:48Z",
       "mergedAt": null,
       "mergedBy": null,
       "mergeCommit": null,
@@ -42486,24 +42486,26 @@
       "id": "PR_kwDOG2Ho4M5e73Xg",
       "title": "Object Model to Transport Mapping",
       "url": "https://github.com/moq-wg/moq-transport/pull/333",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "suhasHere",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [],
       "body": "This PR brings in currently active proposals for supporting explicit indicators of mapping object model to quic transport.\r\n\r\nFixes #244 \r\n\r\n\r\n",
       "createdAt": "2023-11-08T14:34:57Z",
-      "updatedAt": "2024-01-18T16:57:25Z",
+      "updatedAt": "2024-01-22T03:03:25Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "00f924c3d59a9ec6d4ae78598e0d397d83cd7ed5",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "tx-mode",
       "headRefOid": "2c3a441bfaeedc50a0db0e1b951111d1cd0129cf",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "closedAt": "2024-01-22T03:03:25Z",
+      "mergedAt": "2024-01-22T03:03:25Z",
+      "mergedBy": "ianswett",
+      "mergeCommit": {
+        "oid": "124aec92093f824eecd196a79d6fee69ec6d9abe"
+      },
       "comments": [
         {
           "author": "afrind",
@@ -44010,24 +44012,26 @@
       "id": "PR_kwDOG2Ho4M5j3oTm",
       "title": "Add Forwarding Preference=Datagram",
       "url": "https://github.com/moq-wg/moq-transport/pull/342",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "afrind",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [],
       "body": "This was previously part of #333. It allows an object to be sent in a datagram f it fits, and put on a stream if it doesn't.\r\n\r\nCloses #316 ",
       "createdAt": "2024-01-11T23:56:21Z",
-      "updatedAt": "2024-01-17T19:46:15Z",
+      "updatedAt": "2024-01-22T03:17:57Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "tx-mode",
-      "baseRefOid": "8c97531bdb70dc766ac6e44bdb976d3b6366dd78",
+      "baseRefOid": "2c3a441bfaeedc50a0db0e1b951111d1cd0129cf",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "datagram-preferred",
-      "headRefOid": "7b44a95d786308642ad7b7a068afda2e4090d4fd",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "headRefOid": "6df1a5e3955639800e040a81b5b358db4a1b0372",
+      "closedAt": "2024-01-22T03:17:57Z",
+      "mergedAt": "2024-01-22T03:17:57Z",
+      "mergedBy": "ianswett",
+      "mergeCommit": {
+        "oid": "229a1f75eb25e17d0df5c66ca25c9533fcdbe10b"
+      },
       "comments": [
         {
           "author": "afrind",
@@ -44114,6 +44118,275 @@
           "body": "",
           "createdAt": "2024-01-17T19:46:15Z",
           "updatedAt": "2024-01-17T19:46:15Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5taMMZ",
+          "commit": {
+            "abbreviatedOid": "d9fdcaf"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-01-22T03:16:31Z",
+          "updatedAt": "2024-01-22T03:16:31Z",
+          "comments": [
+            {
+              "originalPosition": 102,
+              "body": "```suggestion\r\n**Object Prefer Datagram Message**\r\n```",
+              "createdAt": "2024-01-22T03:16:31Z",
+              "updatedAt": "2024-01-22T03:16:31Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5taMR4",
+          "commit": {
+            "abbreviatedOid": "a5361ca"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-01-22T03:17:09Z",
+          "updatedAt": "2024-01-22T03:17:09Z",
+          "comments": [
+            {
+              "originalPosition": 117,
+              "body": "```suggestion\r\nSHOULD NOT send an Object with `Object Forwarding Preference` = `Datagram` on a\r\n```",
+              "createdAt": "2024-01-22T03:17:09Z",
+              "updatedAt": "2024-01-22T03:17:09Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 343,
+      "id": "PR_kwDOG2Ho4M5kuj9y",
+      "title": "Add largest Group ID and Object ID to SUBSCRIBE_OK",
+      "url": "https://github.com/moq-wg/moq-transport/pull/343",
+      "state": "OPEN",
+      "author": "wilaw",
+      "authorAssociation": "NONE",
+      "assignees": [],
+      "labels": [],
+      "body": "Fixes https://github.com/moq-wg/moq-transport/issues/337",
+      "createdAt": "2024-01-22T14:19:42Z",
+      "updatedAt": "2024-01-22T16:41:58Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "124aec92093f824eecd196a79d6fee69ec6d9abe",
+      "headRepository": "wilaw/moq-transport",
+      "headRefName": "main",
+      "headRefOid": "8961455e9e4bee063624bded68ccaec846debc25",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M5teVQF",
+          "commit": {
+            "abbreviatedOid": "8961455"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "CHANGES_REQUESTED",
+          "body": "",
+          "createdAt": "2024-01-22T14:56:27Z",
+          "updatedAt": "2024-01-22T15:09:32Z",
+          "comments": [
+            {
+              "originalPosition": 16,
+              "body": "What value should a relay return if the track is not yet active but subscription is authenticated ? I think this should be optional.\r\n\r\nAlso i feel a note is needed saying \" such value is relative to the relay responding with Subscribe_OK and may / may not reflect the latest group at the original producer \"\r\n\r\n",
+              "createdAt": "2024-01-22T14:56:28Z",
+              "updatedAt": "2024-01-22T15:27:17Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5tekks",
+          "commit": {
+            "abbreviatedOid": "8961455"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-01-22T15:22:29Z",
+          "updatedAt": "2024-01-22T15:22:29Z",
+          "comments": [
+            {
+              "originalPosition": 18,
+              "body": "same comments as above applies here i think",
+              "createdAt": "2024-01-22T15:22:29Z",
+              "updatedAt": "2024-01-22T15:22:29Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5tfOmJ",
+          "commit": {
+            "abbreviatedOid": "8961455"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "I was thinking we would add the start group and Object ID for the requested subscription.  Even for an absolute subscription, I can imagine cases the requested start values can't be served, so newer ones have to be served instead?\r\n\r\nIt'd also be nice to make these optional, but I think that's a detail that depends upon what fields we end up wanting here.",
+          "createdAt": "2024-01-22T16:41:58Z",
+          "updatedAt": "2024-01-22T16:41:58Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 344,
+      "id": "PR_kwDOG2Ho4M5kvfjs",
+      "title": "Land Datagram Preferred (PR #342)",
+      "url": "https://github.com/moq-wg/moq-transport/pull/344",
+      "state": "MERGED",
+      "author": "ianswett",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Update main to reflect the tx-mode branch after #342 was merged.",
+      "createdAt": "2024-01-22T16:34:44Z",
+      "updatedAt": "2024-01-22T20:17:57Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "124aec92093f824eecd196a79d6fee69ec6d9abe",
+      "headRepository": "moq-wg/moq-transport",
+      "headRefName": "tx-mode",
+      "headRefOid": "be469ed63c9c012a19e86dcde10a3e0ea7826696",
+      "closedAt": "2024-01-22T20:17:57Z",
+      "mergedAt": "2024-01-22T20:17:57Z",
+      "mergedBy": "ianswett",
+      "mergeCommit": {
+        "oid": "d97485d4fb39d1f1fc0e88b7291dd14c36ebe836"
+      },
+      "comments": [
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> Individual Review:\r\n> \r\n> There was some feedback on previous iterations about this PR lacking guidance when encountering flow control limits (eg: send as datagram, relay converts to stream, but is out of streams or flow control)\r\n\r\nAgreed, but I'm not sure there's any normative language there.  Is this a case of writing a paragraph cautioning that such limits could cause issues?",
+          "createdAt": "2024-01-22T20:17:39Z",
+          "updatedAt": "2024-01-22T20:17:39Z"
+        }
+      ],
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M5tf2d5",
+          "commit": {
+            "abbreviatedOid": "7029bc9"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "Looks fine . Have one comment though",
+          "createdAt": "2024-01-22T18:09:12Z",
+          "updatedAt": "2024-01-22T18:14:21Z",
+          "comments": [
+            {
+              "originalPosition": 116,
+              "body": "i think we need to preserve the fact that this is preferred as datagram when we put it in a stream . Wonder where should that go ? \r\n\r\nShould we extend OBJECT_STREAM message with a bool saying \"preferred_datagram\". This is needed for receviers handling and forwarding ",
+              "createdAt": "2024-01-22T18:09:12Z",
+              "updatedAt": "2024-01-22T18:14:21Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5tf5_2",
+          "commit": {
+            "abbreviatedOid": "7029bc9"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-01-22T18:18:20Z",
+          "updatedAt": "2024-01-22T18:18:20Z",
+          "comments": [
+            {
+              "originalPosition": 116,
+              "body": "this can be added in a separate PR too",
+              "createdAt": "2024-01-22T18:18:20Z",
+              "updatedAt": "2024-01-22T18:18:20Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5tf7Nb",
+          "commit": {
+            "abbreviatedOid": "7029bc9"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2024-01-22T18:21:35Z",
+          "updatedAt": "2024-01-22T18:21:35Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5tf8Pe",
+          "commit": {
+            "abbreviatedOid": "7029bc9"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "Individual Review: \r\n\r\nThere was some feedback on previous iterations about this PR lacking guidance when encountering flow control limits (eg: send as datagram, relay converts to stream, but is out of streams or flow control)",
+          "createdAt": "2024-01-22T18:24:16Z",
+          "updatedAt": "2024-01-22T18:26:19Z",
+          "comments": [
+            {
+              "originalPosition": 116,
+              "body": "Preserving the preference was the intent.  When datagram is sent on a stream, it starts with OBJECT_PREFER_DATAGRAM (0x1) to communicate this.",
+              "createdAt": "2024-01-22T18:24:16Z",
+              "updatedAt": "2024-01-22T18:26:19Z"
+            },
+            {
+              "originalPosition": 107,
+              "body": "s/first/only/  based on a comment in 342.",
+              "createdAt": "2024-01-22T18:24:56Z",
+              "updatedAt": "2024-01-22T18:26:19Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5tgr6r",
+          "commit": {
+            "abbreviatedOid": "7029bc9"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-01-22T20:16:22Z",
+          "updatedAt": "2024-01-22T20:16:22Z",
+          "comments": [
+            {
+              "originalPosition": 107,
+              "body": "```suggestion\r\nbe the only message on a unidirectional stream.\r\n```",
+              "createdAt": "2024-01-22T20:16:22Z",
+              "updatedAt": "2024-01-22T20:16:22Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5tgsCN",
+          "commit": {
+            "abbreviatedOid": "7029bc9"
+          },
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "Whoa, I've missed some PRs, but LGTM",
+          "createdAt": "2024-01-22T20:16:39Z",
+          "updatedAt": "2024-01-22T20:16:39Z",
           "comments": []
         }
       ]
