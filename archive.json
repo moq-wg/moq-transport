@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2024-01-23T01:12:55.110329+00:00",
+  "timestamp": "2024-01-25T01:12:57.912172+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -12487,6 +12487,39 @@
           "body": "In this case there was just a single subscribe request with -5 was sent upstream, based on your explanation above. This avoids all the confusion which would happen when there are multiple inflight -ve offsets.",
           "createdAt": "2023-11-29T16:25:49Z",
           "updatedAt": "2023-11-29T16:25:49Z"
+        }
+      ]
+    },
+    {
+      "number": 345,
+      "id": "I_kwDOG2Ho4M59GT7A",
+      "title": "What if the relay will never deliver an Object/Track",
+      "url": "https://github.com/moq-wg/moq-transport/issues/345",
+      "state": "OPEN",
+      "author": "ianswett",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [
+        "Subscribe"
+      ],
+      "body": "If the relay/origin will never be able to fulfill an entire requested SUBSCRIBE, how can it indicate that?  For example, a sequence of relays and the origin may only keep video within 30 seconds of head and discard older content.\r\n\r\nAs a related question, does the relay need to indicate that there will be gaps in Object or Group IDs so the player doesn't wait for them?",
+      "createdAt": "2024-01-24T17:59:34Z",
+      "updatedAt": "2024-01-24T18:09:25Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "kixcord",
+          "authorAssociation": "NONE",
+          "body": "Yeah so for the real-time use-case, we don't really need a signal because the viewer will skip over any gaps larger than X ms.\r\n\r\nBut in the low-latency use-case, where we want to buffer content rather than skip, then we do need an explicit signal. Otherwise the viewer will be stuck buffering indefinitely, blocked on a group that will never arrive. The same is true for the start of a subscribe; if I request starting back -5 groups, then the player will buffer until -5 is delivered unless I get an explicit signal otherwise.\r\n\r\nThe same is also true in the VOD use-case. If there's a gap in the VOD, possibly due to congestion during the live broadcast or just storage corruption, the player needs some way to know to skip over it.",
+          "createdAt": "2024-01-24T18:02:24Z",
+          "updatedAt": "2024-01-24T18:03:38Z"
+        },
+        {
+          "author": "kixcord",
+          "authorAssociation": "NONE",
+          "body": "> The same is true for the start of a subscribe; if I request starting back -5 groups, then the player will buffer until -5 is delivered unless I get an explicit signal otherwise.\r\n\r\n@suhasHere this is also why we need something like #343. The player subscribes starting at -5 and will start playback there (for 10s target latency), buffering until then. However it doesn't know which group is -5, since it receives objects with absolute group IDs instead. If the player starts playback at the wrong group, then it will have the wrong latency.",
+          "createdAt": "2024-01-24T18:08:32Z",
+          "updatedAt": "2024-01-24T18:09:25Z"
         }
       ]
     }
