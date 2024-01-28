@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2024-01-25T01:12:57.912172+00:00",
+  "timestamp": "2024-01-28T01:10:51.844271+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -12504,7 +12504,7 @@
       ],
       "body": "If the relay/origin will never be able to fulfill an entire requested SUBSCRIBE, how can it indicate that?  For example, a sequence of relays and the origin may only keep video within 30 seconds of head and discard older content.\r\n\r\nAs a related question, does the relay need to indicate that there will be gaps in Object or Group IDs so the player doesn't wait for them?",
       "createdAt": "2024-01-24T17:59:34Z",
-      "updatedAt": "2024-01-24T18:09:25Z",
+      "updatedAt": "2024-01-26T09:52:03Z",
       "closedAt": null,
       "comments": [
         {
@@ -12520,6 +12520,145 @@
           "body": "> The same is true for the start of a subscribe; if I request starting back -5 groups, then the player will buffer until -5 is delivered unless I get an explicit signal otherwise.\r\n\r\n@suhasHere this is also why we need something like #343. The player subscribes starting at -5 and will start playback there (for 10s target latency), buffering until then. However it doesn't know which group is -5, since it receives objects with absolute group IDs instead. If the player starts playback at the wrong group, then it will have the wrong latency.",
           "createdAt": "2024-01-24T18:08:32Z",
           "updatedAt": "2024-01-24T18:09:25Z"
+        },
+        {
+          "author": "wilaw",
+          "authorAssociation": "NONE",
+          "body": "> If the relay/origin will never be able to fulfill an entire requested SUBSCRIBE, how can it indicate that? \r\n\r\nBy echoing back the range it can fulfill in SUBSCRIBE_OK response. Let's say the SUBSCRIBE is for groups 10-20, but the origin knows that the DVR window now ends at 15 and it can only return 15-20. For example .\r\n\r\n```\r\nSUBSCRIBE\r\n{\r\n StartGroup 10,\r\n EndGroup 20\r\n..\r\n}\r\n```\r\n\r\ncould return \r\n\r\n```\r\nSUBSCRIBE_OK\r\n{\r\n StartGroup 15,\r\n EndGroup 20\r\n..\r\n}\r\n```\r\n\r\n\r\nSome consequences of this\r\n1. A relay can't cache the responses to SUBSCRIBE requests, as they will differ with the time that the request comes in.\r\n2. Relay's need to honor TTL's rigorously. Lets imagine the live stream delivers segments 0-30 and the edge relay caches all of them. A client comes later and asks for 10-20, at the time that the tail of the DVR window is at 15. If the origin is not careful to set the TTL of 0-15 such that they expire from cache , then the edge relay would just server 10-20 from cache which would invalidate the DVR window. Since relays don't read catalogs, the only way to enforce a DVR window for live streams is through TTLs\r\n3. What about gaps in the range? If the origin can return 10-20 but missing 13 and 17, how could it communicate that? One way might be to repeat the tuples of Start and End Group to describe what is available:\r\n\r\n```\r\nSUBSCRIBE_OK\r\n{\r\n StartGroup 10,\r\n EndGroup 12,\r\n StartGroup 14,\r\n EndGroup 16,\r\n StartGroup 18,\r\n EndGroup 20,\r\n}\r\n```\r\n\r\nor a cleaner syntax like\r\n\r\n```\r\nSUBSCRIBE_OK\r\n{\r\nResponseGroups  [{10,12},{14,16}, {18,20}]\r\n}\r\n```\r\n\r\n\r\n",
+          "createdAt": "2024-01-25T18:24:54Z",
+          "updatedAt": "2024-01-25T18:24:54Z"
+        },
+        {
+          "author": "gwendalsimon",
+          "authorAssociation": "NONE",
+          "body": "> > If the relay/origin will never be able to fulfill an entire requested SUBSCRIBE, how can it indicate that?\r\n\r\nIn Today's world, when the origin has a storage corruption, the \"relay\" (aka CDN server) does not gracefully notify the client in advance. It replies by a error and the client has to deal with it. \r\nNot that MoQ should not offer a better process, but just to say that clients are also part of the game. If there is a gap in the flow, then the client can apply the right timers to not get stuck forever.\r\n\r\n> 2. Relay's need to honor TTL's rigorously. Lets imagine the live stream delivers segments 0-30 and the edge relay caches all of them. A client comes later and asks for 10-20, at the time that the tail of the DVR window is at 15. If the origin is not careful to set the TTL of 0-15 such that they expire from cache , then the edge relay would just server 10-20 from cache which would invalidate the DVR window. Since relays don't read catalogs, the only way to enforce a DVR window for live streams is through TTLs\r\n\r\nWow, this process seems extremely heavy to me.\r\nFirst, it would mean that, for every request in the past (positive StartGroup RelativePosition), the relay must check the TTL of all cached segments between StartGroup and largest group ID to check whether all segments will not be expired at the time of their respective playout. It is a lot of processing,\r\nSecond, what can the relay do if the segments are not cached (or if some segments are not cached)? Not TTL nor expiration awareness.\r\n\r\nWould it be possible to add a metadata in the ANNOUNCEMENT to indicate expiration, and possibly gaps?",
+          "createdAt": "2024-01-26T09:14:24Z",
+          "updatedAt": "2024-01-26T09:14:24Z"
+        },
+        {
+          "author": "wilaw",
+          "authorAssociation": "NONE",
+          "body": "> the relay must check the TTL of all cached segments between StartGroup and largest group ID to check whether all segments will not be expired at the time of their respective playout. It is a lot of processing,\r\n\r\nAgree. It would be expensive to scan the cache looking for expired objects in the range  _before_ giving the SUBSCRIBE_OK response. The more efficient time to check for expiration is when the server is reading each object in the cache, which it has to do when it serves them out. Perhaps we can send a control message - GROUP #N unavailable - and then skip over the expired objects? We could just skip over them without notifying the client, but then the client would sit there buffering and waiting for the objects it has requested. This means we should invent a means of notifying the client about unavailable groups (due to expiration, object not found etc). \r\n\r\n> what can the relay do if the segments are not cached (or if some segments are not cached)? \r\n\r\nIt must do what it always does when it doesn't have something, which is make a request upstream, towards the origin. \r\n",
+          "createdAt": "2024-01-26T09:52:02Z",
+          "updatedAt": "2024-01-26T09:52:02Z"
+        }
+      ]
+    },
+    {
+      "number": 346,
+      "id": "I_kwDOG2Ho4M59Ihp8",
+      "title": "Error code for version mismatch?",
+      "url": "https://github.com/moq-wg/moq-transport/issues/346",
+      "state": "OPEN",
+      "author": "martinduke",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Should there be an error code for when the server terminates the session, because the client doesn't offer a version it understands?",
+      "createdAt": "2024-01-25T01:13:19Z",
+      "updatedAt": "2024-01-25T01:13:19Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 347,
+      "id": "I_kwDOG2Ho4M59POYB",
+      "title": "Additional Subscribe Errors",
+      "url": "https://github.com/moq-wg/moq-transport/issues/347",
+      "state": "OPEN",
+      "author": "martinduke",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "I woudld think that \"track doesn't exist\" and \"unauthorized\" would be useful error codes, but they don't seem to fit in 'Invalid Range' or 'Retry Track Alias'.",
+      "createdAt": "2024-01-25T20:47:18Z",
+      "updatedAt": "2024-01-25T20:47:18Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 348,
+      "id": "I_kwDOG2Ho4M59PPRP",
+      "title": "Namespace Collision with \"Generic Error\"",
+      "url": "https://github.com/moq-wg/moq-transport/issues/348",
+      "state": "CLOSED",
+      "author": "martinduke",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "it is a bit annoying for both application errors and subscribe errors to have something called \"Generic Error\", which have different numbers.\r\n\r\n This can obviously be solved in code, but means I'll have to use words not in the spec.",
+      "createdAt": "2024-01-25T20:50:02Z",
+      "updatedAt": "2024-01-25T21:28:25Z",
+      "closedAt": "2024-01-25T21:28:25Z",
+      "comments": [
+        {
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "Never mind, it's not that big of a deal.",
+          "createdAt": "2024-01-25T21:28:25Z",
+          "updatedAt": "2024-01-25T21:28:25Z"
+        }
+      ]
+    },
+    {
+      "number": 349,
+      "id": "I_kwDOG2Ho4M59WYbv",
+      "title": "SUBSCRIBE needs Num Parameters field",
+      "url": "https://github.com/moq-wg/moq-transport/issues/349",
+      "state": "OPEN",
+      "author": "martinduke",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "if there are going to be \"track request parameters\" in subscribe, we need a way of indicating that it is present. Presumably via a NumParameters field.",
+      "createdAt": "2024-01-26T22:48:15Z",
+      "updatedAt": "2024-01-27T02:43:43Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Individual Comment: \r\n\r\nCan you use the message length?  eg: if there are any bytes remaining after parsing required fields, parse another param?",
+          "createdAt": "2024-01-27T00:20:52Z",
+          "updatedAt": "2024-01-27T00:20:52Z"
+        },
+        {
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "There is no message length, right? Or did that come back?",
+          "createdAt": "2024-01-27T02:43:42Z",
+          "updatedAt": "2024-01-27T02:43:42Z"
+        }
+      ]
+    },
+    {
+      "number": 350,
+      "id": "I_kwDOG2Ho4M59WZYB",
+      "title": "Track Alias",
+      "url": "https://github.com/moq-wg/moq-transport/issues/350",
+      "state": "OPEN",
+      "author": "martinduke",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Sec 6.4.2: \"If the Track Alias is already in\t\r\n \t      use, the publisher MUST close the session with a Duplicate Track\t\r\n \t      Alias error (Section 3.5).\"\r\n\r\nThis makes sense if it's a different track name. But if it's the same track for two subscriptions, they should have the same track_alias, right? What's the purpose of track alias and subscribe ID always going together in objects, anyway?\r\n \t\r\n\r\n",
+      "createdAt": "2024-01-26T22:52:27Z",
+      "updatedAt": "2024-01-27T00:18:57Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "Having read through this now, I think we should just eliminate Subscribe_id from the Object message types.\r\n\r\nIf there are overlapping subscriptions, senders should only send it once, and it's ambiguous what subscribe ID to use.",
+          "createdAt": "2024-01-26T23:01:41Z",
+          "updatedAt": "2024-01-26T23:01:41Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Individual Comment: \r\n\r\n> If there are overlapping subscriptions, senders should only send it once, and it's ambiguous what subscribe ID to use.\r\n\r\nI think the idea is that you have to send the object multiple times if it matches more than one subscription.  Without subscription ID, there's no way for a receiver to know if a received object matches the relative subscribe locations it sent.  That said, we could come up with a format that allows for more than one subscription ID, which is almost certainly more compact. \r\n\r\nThere was also concern about mixing objects from different subscriptions in the same multi-object stream.",
+          "createdAt": "2024-01-27T00:18:56Z",
+          "updatedAt": "2024-01-27T00:18:56Z"
         }
       ]
     }
