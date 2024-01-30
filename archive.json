@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2024-01-28T01:10:51.844271+00:00",
+  "timestamp": "2024-01-30T01:06:00.750249+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -12504,7 +12504,7 @@
       ],
       "body": "If the relay/origin will never be able to fulfill an entire requested SUBSCRIBE, how can it indicate that?  For example, a sequence of relays and the origin may only keep video within 30 seconds of head and discard older content.\r\n\r\nAs a related question, does the relay need to indicate that there will be gaps in Object or Group IDs so the player doesn't wait for them?",
       "createdAt": "2024-01-24T17:59:34Z",
-      "updatedAt": "2024-01-26T09:52:03Z",
+      "updatedAt": "2024-01-29T23:08:27Z",
       "closedAt": null,
       "comments": [
         {
@@ -12541,6 +12541,27 @@
           "body": "> the relay must check the TTL of all cached segments between StartGroup and largest group ID to check whether all segments will not be expired at the time of their respective playout. It is a lot of processing,\r\n\r\nAgree. It would be expensive to scan the cache looking for expired objects in the range  _before_ giving the SUBSCRIBE_OK response. The more efficient time to check for expiration is when the server is reading each object in the cache, which it has to do when it serves them out. Perhaps we can send a control message - GROUP #N unavailable - and then skip over the expired objects? We could just skip over them without notifying the client, but then the client would sit there buffering and waiting for the objects it has requested. This means we should invent a means of notifying the client about unavailable groups (due to expiration, object not found etc). \r\n\r\n> what can the relay do if the segments are not cached (or if some segments are not cached)? \r\n\r\nIt must do what it always does when it doesn't have something, which is make a request upstream, towards the origin. \r\n",
           "createdAt": "2024-01-26T09:52:02Z",
           "updatedAt": "2024-01-26T09:52:02Z"
+        },
+        {
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "Just getting back up to speed on this so I could be missing the key part of this ... I agree we need a way to solve Lukes issue of knowing how -5 corresponds to the live edge but the the rest of this seems unnecessary.  If a client asks for something that is has expired, it just does not get it. I don't think the relay needs to tell clients about gaps, the client can figure that out, and I am sure that I don't want the relay changing what the client asked for. ",
+          "createdAt": "2024-01-29T19:22:00Z",
+          "updatedAt": "2024-01-29T19:22:00Z"
+        },
+        {
+          "author": "wilaw",
+          "authorAssociation": "NONE",
+          "body": "> If a client asks for something that is has expired, it just does not get it.\r\n\r\nFine, but then the problem becomes the client still thinks it will get it and so it times-out and rebuffers waiting for it instead of taking some other corrective action. How can the client tell the difference between groups that are delayed, versus groups that will never come? ",
+          "createdAt": "2024-01-29T20:58:33Z",
+          "updatedAt": "2024-01-29T20:58:33Z"
+        },
+        {
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> How can the client tell the difference between groups that are delayed, versus groups that will never come?\r\n\r\nI wonder what parts of this needs to be solved at MOQT layer vs streaming format layer. This seems a requirement specific to certain class of applications.",
+          "createdAt": "2024-01-29T23:08:26Z",
+          "updatedAt": "2024-01-29T23:08:26Z"
         }
       ]
     },
@@ -12643,7 +12664,7 @@
       "labels": [],
       "body": "Sec 6.4.2: \"If the Track Alias is already in\t\r\n \t      use, the publisher MUST close the session with a Duplicate Track\t\r\n \t      Alias error (Section 3.5).\"\r\n\r\nThis makes sense if it's a different track name. But if it's the same track for two subscriptions, they should have the same track_alias, right? What's the purpose of track alias and subscribe ID always going together in objects, anyway?\r\n \t\r\n\r\n",
       "createdAt": "2024-01-26T22:52:27Z",
-      "updatedAt": "2024-01-27T00:18:57Z",
+      "updatedAt": "2024-01-29T18:43:24Z",
       "closedAt": null,
       "comments": [
         {
@@ -12659,6 +12680,65 @@
           "body": "Individual Comment: \r\n\r\n> If there are overlapping subscriptions, senders should only send it once, and it's ambiguous what subscribe ID to use.\r\n\r\nI think the idea is that you have to send the object multiple times if it matches more than one subscription.  Without subscription ID, there's no way for a receiver to know if a received object matches the relative subscribe locations it sent.  That said, we could come up with a format that allows for more than one subscription ID, which is almost certainly more compact. \r\n\r\nThere was also concern about mixing objects from different subscriptions in the same multi-object stream.",
           "createdAt": "2024-01-27T00:18:56Z",
           "updatedAt": "2024-01-27T00:18:56Z"
+        },
+        {
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "I confess to not having thought about relays as much as most, but I'm not sure how this model works for relays.\r\n\r\n1) Clearly, the relay cannot just forward each subscription, as that totally negate the scalability benefit.\r\n\r\n2) If the relay is aggrating subscriptions which come in over time, that is going to result in duplicate objects en masse? Or are we planning to have relays routinely SUBSCRIBE_FIN when a new subscription comes in, so it can send a new consolidated SUBSCRIBE?\r\n\r\n3) Or are we counting on the vast majority of client subscriptions being \"give me the next one\", so as not to require a new relay subscription to produce?",
+          "createdAt": "2024-01-29T15:15:38Z",
+          "updatedAt": "2024-01-29T15:15:38Z"
+        },
+        {
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "This is entangled with a bunch of other issues, but I don't see the point of specifying a track ID at all -- the subscriber proposes one, the publisher can refuse it, but this number is never used again except as a (redundant) identifier in the OBJECT message.\r\n\r\nSo what's the purpose of this message?",
+          "createdAt": "2024-01-29T17:00:08Z",
+          "updatedAt": "2024-01-29T17:00:08Z"
+        },
+        {
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "also: how does sending multiple copies relate to forwarding preference? i.e. if I send the same object twice, is it on the same stream or on different streams?",
+          "createdAt": "2024-01-29T17:47:44Z",
+          "updatedAt": "2024-01-29T17:47:44Z"
+        },
+        {
+          "author": "hardie",
+          "authorAssociation": "COLLABORATOR",
+          "body": "On Mon, Jan 29, 2024 at 5:47\u202fPM Martin Duke ***@***.***>\r\nwrote:\r\n\r\n> also: how does sending multiple copies relate to forwarding preference?\r\n> i.e. if I send the same object twice, is it on the same stream or on\r\n> different streams?\r\n>\r\nThe current theory, at least as I understand it, is that it depends on how\r\nmany subscriptions there are.  If the two objects are being sent because\r\nthere are two active subscriptions, they would be on different streams even\r\nin the one-stream-per-track theory.  The larger context for this is that we\r\nexpect the client to be the one to manage the use cases where it both wants\r\na subscription from the live edge and to gather data from before the live\r\nedge for playback.  It sends two distinct subscriptions,one per desired\r\nresult, and when it starts seeing duplicate objects it can then unsubscribe\r\nfrom one of the two (it may not, if they are going to different devices, so\r\nthis is not required, but up to the UE).\r\n\r\n\u2014\r\n> Reply to this email directly, view it on GitHub\r\n> <https://github.com/moq-wg/moq-transport/issues/350#issuecomment-1915257107>,\r\n> or unsubscribe\r\n> <https://github.com/notifications/unsubscribe-auth/AAKVXZE32NKA3UDNBVYB3SLYQ7OE3AVCNFSM6AAAAABCM2QLDKVHI2DSMVQWIX3LMV43OSLTON2WKQ3PNVWWK3TUHMYTSMJVGI2TOMJQG4>\r\n> .\r\n> You are receiving this because you are subscribed to this thread.Message\r\n> ID: ***@***.***>\r\n>\r\n",
+          "createdAt": "2024-01-29T18:15:02Z",
+          "updatedAt": "2024-01-29T18:15:02Z"
+        },
+        {
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "OK, after some clarification on the list, I think this is the state:\r\n- the draft currently requires sending one copy per subscribe, though this is by no means settled. (See #269)\r\n- if we end up sticking with that, then track_alias is entirely pointless and should be removed\r\n- if we go to one-time transmission, then subscribe_id should be removed from Object messages.",
+          "createdAt": "2024-01-29T18:43:23Z",
+          "updatedAt": "2024-01-29T18:43:23Z"
+        }
+      ]
+    },
+    {
+      "number": 351,
+      "id": "I_kwDOG2Ho4M59iogt",
+      "title": "Is the scope of Forwarding Preference really Objects?",
+      "url": "https://github.com/moq-wg/moq-transport/issues/351",
+      "state": "OPEN",
+      "author": "martinduke",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Draft-02 strongly implies the forwarding preference is a per-object decision. thus the following sequences would be legal:\r\n[sequences are written as (group, object)]\r\n\r\nStream 2: (0, 1), (0, 2) (0, 3) (0, 5) -- type is StreamHeaderGroup\r\nStream 6: (0, 4) -- type is ObjectStream\r\n\r\nor\r\n\r\nStream 2: (0, 0), (1, 0), (2, 0), (3, 0) -- type is StreamHeaderTrack\r\nStream 6: (1,1) -- type is Object Stream\r\n\r\netc.\r\n\r\nIf someone can imagine a use case for this, that's great. If not, it would be easier to implement with different assumptions, e.g.\r\n\r\n(1) Forwarding preference is a track-level property. Thus the preference could be provided in the SUBSCRIBE_OK and we wouldn't evens strictly need four different object codepoints (though you would want the distinct formats, and might want to retain the codepoints for that reason)\r\n\r\n(2) Forwarding preference is group-level -- some groups could be aggregated under StreamHeaderTrack, but others could be under StreamHeaderGroup. If there is a StreamHeaderGroup for a group, there MUST NOT be object-level streams for that group.\r\n\r\nAgain, I have little sense of the use cases out there, but I think we should explicitly decide what we are doing and make it clear in  the doc.\r\n",
+      "createdAt": "2024-01-29T19:09:34Z",
+      "updatedAt": "2024-01-29T20:04:38Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "A related question is whether forwarding preference applies across subscribes. That is, for per-group streams,\r\n\r\na current subscriber gets all of group 12 and then the stream closes.\r\n\r\na later subscribe in the same session asks for group 12. Obviously, this will need a new stream.\r\n\r\nSo maybe the answer is no, it does not apply across subscribes",
+          "createdAt": "2024-01-29T20:04:11Z",
+          "updatedAt": "2024-01-29T20:04:38Z"
         }
       ]
     }
