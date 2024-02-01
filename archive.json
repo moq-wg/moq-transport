@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2024-01-30T01:06:00.750249+00:00",
+  "timestamp": "2024-02-01T01:09:49.997935+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -1708,7 +1708,7 @@
       "id": "I_kwDOG2Ho4M5WC_zy",
       "title": "QUIC Streams and Datagrams support",
       "url": "https://github.com/moq-wg/moq-transport/issues/35",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "suhasHere",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
@@ -1718,8 +1718,8 @@
       ],
       "body": "Creating this issue to reflect WG discussions. Not sure what's the right next steps, but would be good as a placeholder to further discussions",
       "createdAt": "2022-11-10T10:19:27Z",
-      "updatedAt": "2023-10-24T00:54:03Z",
-      "closedAt": null,
+      "updatedAt": "2024-01-31T00:30:39Z",
+      "closedAt": "2024-01-31T00:30:39Z",
       "comments": [
         {
           "author": "kixelated",
@@ -1776,6 +1776,13 @@
           "body": "I'd like to separate the decision of how to bundle things from whether data is sent over streams or datagrams.  They can be made to have identical properties in terms of reliability, it's just a matter of implementation.\r\n\r\nIs there a reason to believe transforming from one to the other causes undue cost?  And if it does, could we just say not to negotiate datagram support if you don't want to do the transformation?  This would allow us to experiment and see when they work well without requiring anyone to support them.",
           "createdAt": "2023-10-24T00:54:03Z",
           "updatedAt": "2023-10-24T00:54:03Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "draft-02 has a mechanism for datagram support. ",
+          "createdAt": "2024-01-31T00:30:39Z",
+          "updatedAt": "2024-01-31T00:30:39Z"
         }
       ]
     },
@@ -4643,7 +4650,7 @@
       "id": "I_kwDOG2Ho4M5haueV",
       "title": "Multiple OBJECTs per stream with different priorities",
       "url": "https://github.com/moq-wg/moq-transport/issues/105",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "kixelated",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
@@ -4652,8 +4659,8 @@
       ],
       "body": "In the current draft, there's no concept of stream mapping. There's also no limit to the number of messages on a stream, so a sender could send multiple OBJECT messages on the same stream. Each OBJECT message contains a sendOrder indicating the priority.\r\n\r\nThe problem is that prioritization occurs at the stream level in QUIC. It gets really weird when you share a stream with any OBJECT message.\r\n\r\nHere's some examples. The sendOrder of each object is in parentheses. \r\n\r\n- OBJECT (1) + OBJECT (1): This works fine\r\n- OBJECT (1) + OBJECT (2): This requires a QUIC library that can prioritize at stream offsets.\r\n- OBJECT (2) + OBJECT (1): This is impossible.\r\n\r\nI think the outcome is pretty clear; messages must only be sent on streams if they share the same sendOrder. We miiiiight be able to support descending priorities but it's difficult in most implementations.",
       "createdAt": "2023-03-21T17:23:04Z",
-      "updatedAt": "2023-11-03T22:47:44Z",
-      "closedAt": null,
+      "updatedAt": "2024-01-31T00:31:32Z",
+      "closedAt": "2024-01-31T00:31:31Z",
       "comments": [
         {
           "author": "kixelated",
@@ -4675,6 +4682,13 @@
           "body": "> We've clarified that control messages and objects don't mix. Do you want to keep this issue open to track the issue with sending multiple OBJECTs on the same stream with different sendOrder? If so can you retitle and clarify the ask?\r\n\r\nYeah will do.",
           "createdAt": "2023-11-03T22:39:47Z",
           "updatedAt": "2023-11-03T22:39:57Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "In draft-02, you cannot specify multiple objects on the same stream with different priorities.",
+          "createdAt": "2024-01-31T00:31:31Z",
+          "updatedAt": "2024-01-31T00:31:31Z"
         }
       ]
     },
@@ -6583,7 +6597,7 @@
       "id": "I_kwDOG2Ho4M5kQoWT",
       "title": "Receiving unknown OBJECT messages (who creates the track-id)",
       "url": "https://github.com/moq-wg/moq-transport/issues/145",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "kixelated",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
@@ -6593,8 +6607,8 @@
       ],
       "body": "#141 adds a `Track ID` field. This is used to compress a long string (in SUBSCRIBE) into a short varint (in OBJECT).\r\n\r\nThe problem is that the mapping from string to varint is indicated in the SUBSCRIBE_OK message, which is sent in parallel with OBJECT messages. This introduces a race condition, where packet loss will cause SUBSCRIBE_OK to arrive late. The receiver will be unable to associate OBJECT messages with tracks until the arrival of the SUBSCRIBE_OK.\r\n\r\nA correct implementation must buffer any OBJECT messages with unknown track IDs for an indefinite amount of time. Any other implementation will error or skip media due to decode errors. This also introduce a risk of resource exhaustion, for example if the stream containing SUBSCRIBE_OK is reset.",
       "createdAt": "2023-04-24T21:37:07Z",
-      "updatedAt": "2023-11-09T17:00:59Z",
-      "closedAt": null,
+      "updatedAt": "2024-01-31T00:46:55Z",
+      "closedAt": "2024-01-31T00:46:54Z",
       "comments": [
         {
           "author": "kixelated",
@@ -6763,6 +6777,13 @@
           "body": "Conclusion of the session was to add a way to reject a SUBSCRIBE and provide a different track ID, and have a separate Track ID from Subscribe ID.",
           "createdAt": "2023-11-09T17:00:50Z",
           "updatedAt": "2023-11-09T17:00:50Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Draft-02 allows the publisher to request a different track alias.",
+          "createdAt": "2024-01-31T00:46:54Z",
+          "updatedAt": "2024-01-31T00:46:54Z"
         }
       ]
     },
@@ -7949,7 +7970,7 @@
       "id": "I_kwDOG2Ho4M5oQHB6",
       "title": "Track Request Parameters",
       "url": "https://github.com/moq-wg/moq-transport/issues/210",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "kixelated",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
@@ -7961,8 +7982,8 @@
       ],
       "body": "https://moq-wg.github.io/moq-transport/draft-lcurley-moq-transport.html#name-track-request-parameters\r\n\r\nFirst issue, it's in a weird section. The parameters mostly apply to 6.3 (all but one) but the section is in 6.6.1. \r\n\r\n<img width=\"298\" alt=\"Screenshot 2023-06-08 at 8 26 37 PM\" src=\"https://github.com/moq-wg/moq-transport/assets/432854/cc8de360-8a0a-4617-b6e4-629dd403f323\">\r\n\r\n\r\nSecond issue, the types are not defined. GROUP SEQUENCE and OBJECT SEQUENCE are presumably varints, while AUTHORIZATION information is presumably a varint size followed by bytes? The encoding needs to be specified otherwise it's impossible to implement.\r\n\r\nThird issue, and I hinted at it already, is that the parameters only apply to some messages and it's only mentioned at the very end. `This parameter is applicable in SUBSCRIBE REQUEST message`. The language is loose, and I'm not sure what I should do if I receive this parameter in an ANNOUNCE message.",
       "createdAt": "2023-06-09T03:36:05Z",
-      "updatedAt": "2023-10-25T17:01:01Z",
-      "closedAt": null,
+      "updatedAt": "2024-01-31T00:43:25Z",
+      "closedAt": "2024-01-31T00:43:25Z",
       "comments": [
         {
           "author": "suhasHere",
@@ -9109,7 +9130,7 @@
       "id": "I_kwDOG2Ho4M5uR49M",
       "title": "Decide how to achieve ALPN-style functionality in WebTransport",
       "url": "https://github.com/moq-wg/moq-transport/issues/233",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "ianswett",
       "authorAssociation": "COLLABORATOR",
       "assignees": [
@@ -9120,8 +9141,8 @@
       ],
       "body": "QUIC uses TLS that provides ALPN.  WebTransport does not currently have identical functionality.\r\n\r\n@vasilvv to bring this up with the W3C as to what the right way forward is.",
       "createdAt": "2023-08-14T17:01:53Z",
-      "updatedAt": "2023-10-18T02:55:11Z",
-      "closedAt": null,
+      "updatedAt": "2024-01-31T17:24:38Z",
+      "closedAt": "2024-01-31T17:24:38Z",
       "comments": [
         {
           "author": "vasilvv",
@@ -9129,6 +9150,20 @@
           "body": "Filed w3c/webtransport#536",
           "createdAt": "2023-08-15T22:51:00Z",
           "updatedAt": "2023-08-15T22:51:08Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "@vasilvv : can this be closed now?",
+          "createdAt": "2024-01-31T00:52:52Z",
+          "updatedAt": "2024-01-31T00:52:52Z"
+        },
+        {
+          "author": "vasilvv",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Yes, this got solved in WebTransport.",
+          "createdAt": "2024-01-31T17:24:38Z",
+          "updatedAt": "2024-01-31T17:24:38Z"
         }
       ]
     },
@@ -10939,7 +10974,7 @@
       "id": "I_kwDOG2Ho4M5zQRoZ",
       "title": "Rethinking the track-id issue",
       "url": "https://github.com/moq-wg/moq-transport/issues/270",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "huitema",
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
@@ -10948,8 +10983,8 @@
       ],
       "body": "TL-DR: if we move the Track-ID out of the object field and into a stream or datagram header, we can copy object messages directly to the stream without having to reformat them.\r\n\r\nWe have been debating solutions to the track-ID problem, with two opposite goals:\r\n\r\n- have the server choose the track-id, so the \"object\" values can be copied as is to the output streams\r\n- have the client choose the track-id, and avoid the race condition between subscribe OK and first object messages.\r\n\r\nSee Issue #145, PR #258 and #262, and minutes from the October 2023 interim.\r\n\r\nThe debate is leading to a muddled compromise, in which a default behavior is \"client chooses\" with some TBD escape condition if the publisher really wants to choose -- which would have to be something better than an error return on every subscribe. I wonder if there is a simple solution.\r\n\r\nBig relays with large fan-out do not like having to reformat messages \"on the fly\". They would prefer being able to simply copy messages from their cache. This is difficult because of the current definition of the OBJECT message:\r\n~~~\r\nOBJECT Message {\r\n  Track ID (i),\r\n  Group Sequence (i),\r\n  Object Sequence (i),\r\n  Object Send Order (i),\r\n  Object Payload Length (i),\r\n  Object Payload (b),\r\n}\r\n~~~\r\nThe bits on the wire look like:\r\n\r\n| fields | Object Message ID | Track ID | Group, sequence, send order, payload length, object payload |\r\n|------|-----|-----|-----------------|\r\n| On receive | constant | variable length integer | value specific to the object |\r\n| On send | constant | different variable length integer | value specific to the object |\r\n\r\nIf the track-id is not the same for all receivers, the relays will need for every object to:\r\n\r\n- Find out what Track ID to use on the publishing connection, which requires decompressing the Track ID into a Full Track Name on receive, then mapping that Full Track Name to the receiver selected Track ID when publishing,\r\n- Reformat the Object message to incorporate the receiver chosen track ID.\r\n- Send the modified copy to the receiver\r\n\r\nYes, it is possible to use a scatter gather copy, so as to write three segments in place: the constant value message type, the track-id selected by the receiver, and the object specific part of the object message. Implementation would be reasonably simple if the cached value of the track ID was fixed length, e.g. an internal 64 bit identifier of the track. But this scatter-gather would have to be done for each object and each receiver, which is going to cost several instructions per message.\r\n\r\nWe can observe that in several of the proposed transport encoding, several messages will be sent on the single QUIC stream, and also that a single QUIC stream will typically carry only messages from a single track. Suppose that the stream data start with a \"Track-ID\" message:\r\n~~~\r\nTRACK-ID Message {\r\n  Track ID (i)\r\n}\r\n~~~\r\nFollowed by set of object messages:\r\n~~~\r\nOBJECT Message {\r\n  Group Sequence (i),\r\n  Object Sequence (i),\r\n  Object Send Order (i),\r\n  Object Payload Length (i),\r\n  Object Payload (b),\r\n}\r\n~~~\r\nIf the stream only includes objects of the same track, the Track-ID needs to be sent just once. The OBJECT Message would have no variable part, which is useful for caching. The cache itself will have to maintain a relation between cached objects and corresponding track, but it already does, so not a big change. We will save some byte per object message (the track-id varint), at the cost of the TRACK-ID message (one byte message ID plus track-id varint), which means one extra byte if a stream has just one Object, several fewer bytes if the stream has multiple objects. We will also save a couple instructions when pushing messages to streams.\r\n\r\nComments? Was this just the bad-idea fairy putting words in my mouth?",
       "createdAt": "2023-10-09T19:12:23Z",
-      "updatedAt": "2023-11-07T11:56:49Z",
-      "closedAt": null,
+      "updatedAt": "2024-01-31T00:49:14Z",
+      "closedAt": "2024-01-31T00:49:14Z",
       "comments": [
         {
           "author": "afrind",
@@ -11027,6 +11062,13 @@
           "body": "> > the track ID within a broadcast should just be an integer referenced in the catalog.\r\n> \r\n> But since relays can't read catalogs, we still need a object naming scheme that disambiguates concurrent broadcasts, hence the concept of namespace|name tuple.\r\n \r\nA session ID at the start of each stream identifies the track namespace. Maybe a full writeup would help:\r\n\r\nWe still have our `ANNOUNCE` message but it contains a `Announce ID: VarInt` and a `Track Namespace: String`. We still have our `ANNOUNCE_OK` or `ANNOUNCE_ERROR` message to accept or reject an announce for the given namespace, and our `UNANNOUNCE` and `ANNOUNCE_RESET` message that immediately closes the announce and any associated subscriptions.\r\n\r\nEach QUIC stream would be prefixed with the `Announce ID`, which would be used with a lookup table to get the `Track Namespace` for all messages (control and data) on that stream. The `Track Name` is small since it only needs to be unique per namespace, perhaps even just a VarInt (0=video, 1=audio). You wouldn't need the `Track ID` lookup table any more and you would never rewrite OBJECTs per session as a result (no need for publisher chooses).\r\n\r\nThere would be one control stream per track namespace. It's kind of annoying to have the server `ANNOUNCE` for distribution, so instead we could have the client create the control channel and send `NAMESPACE role=publisher|subscriber` or something.\r\n\r\nI think this is a better design that what we currently have. And it's literally how WebTransport works and what it provides:\r\n\r\n- `ANNOUNCE` == `CONNECT` request. \r\n- `ANNOUNCE_OK` == `CONNECT` response status=200\r\n- `ANNOUNCE_ERROR` == `CONNECT` response status=[345]\\d\\d\r\n- `UNANNOUNCE` == `RESET_STREAM` on the CONNECT request.\r\n- `ANNOUNCE_RESET` == `STOP_SENDING` on the CONNECT request\r\n- `Announce ID` ==  `Session ID`\r\n- `Track Namespace` == `CONNECT` request path.\r\n\r\n> > There's limitations to this approach, namely that it requires WebTransport pooling for efficiency,\r\n> \r\n> Consider the case of an edge relay which must forward thousands of parallel broadcasts to a parent. Requiring each broadcast to be in a unique WebTransport session is more constraining than allowing the relay to shard those broadcasts across streams over as many WebTransport sessions as it needs to optimize performance.\r\n\r\nWithout pooling, yeah a QUIC connection per session is expensive to establish. But with pooling, a WebTransport \"session\" is a VarInt in front of each QUIC stream. There is an additional QUIC stream per session but it's mostly just there to close the session.\r\n\r\nWhy would WebTransport session's layer be any slower than the custom session layer with ANNOUNCE I outlined above?",
           "createdAt": "2023-11-07T11:54:41Z",
           "updatedAt": "2023-11-07T11:56:49Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Draft-02 has a mechanism for the publisher to request a different track id, and a object-model mapping to QUIC that borrows ideas from this issue.",
+          "createdAt": "2024-01-31T00:49:14Z",
+          "updatedAt": "2024-01-31T00:49:14Z"
         }
       ]
     },
@@ -11265,7 +11307,7 @@
       "id": "I_kwDOG2Ho4M5z-u_A",
       "title": "Disambiguating control messages for the same track",
       "url": "https://github.com/moq-wg/moq-transport/issues/282",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "afrind",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
@@ -11275,8 +11317,8 @@
       ],
       "body": "If we allow more than one SUBSCRIBE for the same Full Track Name, then SUBSCRIBE_OK/SUBSCRIBE_ERROR become ambiguous.  \r\n\r\neg:\r\n\r\nC->S: SUBSCRIBE /foo, group sequence=1\r\nC->S: SUBSCRIBE /foo, group sequence=100\r\nS->C: SUBSCRIBE_OK /foo\r\nS->C: SUBSCRIBE_ERROR /foo",
       "createdAt": "2023-10-16T18:16:40Z",
-      "updatedAt": "2023-11-06T14:26:50Z",
-      "closedAt": null,
+      "updatedAt": "2024-01-31T00:49:55Z",
+      "closedAt": "2024-01-31T00:49:54Z",
       "comments": [
         {
           "author": "ianswett",
@@ -11298,6 +11340,13 @@
           "body": "Conclusions from IETF118 : \r\n- Subscribe ID is used to differentiate different subscriptions within and across tracks\r\n",
           "createdAt": "2023-11-06T14:26:50Z",
           "updatedAt": "2023-11-06T14:26:50Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Fixed by adding subscribe ID to control messages.",
+          "createdAt": "2024-01-31T00:49:54Z",
+          "updatedAt": "2024-01-31T00:49:54Z"
         }
       ]
     },
@@ -11999,7 +12048,7 @@
       "labels": [],
       "body": "To get the lowest possible latency (and avoid retransmission), we may want to add FEC (like [RaptorQ](https://www.rfc-editor.org/rfc/rfc6330.html)) to send redundant packets, so that even if some packets are lost (but enough are received), we can still reconstruct the source data, without retransmission.\r\n\r\nThis is mentioned in the draft [Use Cases and Requirements for Media Transport Protocol Design](https://datatracker.ietf.org/doc/html/draft-ietf-moq-requirements-02#name-interactive-media):\r\n\r\n> It may make sense to use FEC [RFC6363] and codec-level packet loss concealment [RFC6716], rather than selectively retransmitting only lost packets. These mechanisms use more bytes, but do not require multiple round trips in order to recover from packet loss.\r\n\r\nIt makes sense to never retransmit such FEC packets if they are lost (that's the purpose), so we would like to send them in datagrams (over [QUIC](https://datatracker.ietf.org/doc/html/rfc9221) or [WebTransport](https://developer.mozilla.org/en-US/docs/Web/API/WebTransport/datagrams)).\r\n\r\nBut in [MOQT](https://datatracker.ietf.org/doc/html/draft-ietf-moq-transport-01#name-session-initialization), it seems that objects must always be sent over QUIC/WebTransport streams:\r\n\r\n> Objects are sent on unidirectional streams.\r\n\r\nTherefore, some Objects containing FEC payloads might be retransmitted by the transport layer (QUIC/WebTransport), which is undesirable.\r\n\r\nAre they any plan to support this FEC use case over datagrams?",
       "createdAt": "2023-11-02T17:04:44Z",
-      "updatedAt": "2023-11-04T21:15:46Z",
+      "updatedAt": "2024-01-31T00:26:26Z",
       "closedAt": null,
       "comments": [
         {
@@ -12057,6 +12106,13 @@
           "body": "Hey, I am the author of  https://datatracker.ietf.org/doc/draft-michel-quic-fec/ .\r\nI am jumping in to let you know that I am in Prague this week, including at the Hackathon if you want to discuss. \r\n\r\nI have performed a few FEC experiments with different applications, including low latency video streaming ones such as GStreamer/FFMpeg, obtaining good results. Everything is in my thesis and in our coming papers.",
           "createdAt": "2023-11-04T20:31:37Z",
           "updatedAt": "2023-11-04T21:15:46Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "draft-02 added some mechanisms for datagrams. Is that sufficient to close this issue for now and, as fluffy suggested, experiment with FEC at the application layer?",
+          "createdAt": "2024-01-31T00:26:25Z",
+          "updatedAt": "2024-01-31T00:26:25Z"
         }
       ]
     },
@@ -12133,10 +12189,12 @@
       "author": "jordicenzano",
       "authorAssociation": "NONE",
       "assignees": [],
-      "labels": [],
+      "labels": [
+        "Needs Discussion"
+      ],
       "body": "If we use hints on SUBSCRIBE (StartGroup, StartObject) I assume is to request objects from the past. Thinking about the live rewind or VOD (archived after live):\r\n- The objects have a sendOrder burnt-in, and since those were part of a live stream that sendOrder is probably increasing (meaning more recent, higher priority)\r\n- If player requests objects from 1h in the past, and relay respects the sendOrder the player will start receiving objects from the end of the live stream to the start. Also those will be sent at wire speed\r\n\r\nIt seems for VOD-like use cases we need a different type of delivery than live edge. Perhaps we should do sliding window and/or sendOrder updates?\r\n\r\nFinals questions:\r\n- Can we use current current hints to deliver VOD?\r\n- Do we need to add signals?",
       "createdAt": "2023-11-06T12:40:25Z",
-      "updatedAt": "2023-11-08T08:45:11Z",
+      "updatedAt": "2024-01-31T00:23:45Z",
       "closedAt": null,
       "comments": [
         {
@@ -12329,10 +12387,12 @@
       "author": "afrind",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
-      "labels": [],
+      "labels": [
+        "Editorial"
+      ],
       "body": "My understanding is that MoQ is always hop-by-hop encrypted by virtue of working over QUIC or WebTransport, and therefore a \"relay\" as described in the draft can only inspect Track/Group/Object metadata if it terminates QUIC.  The document should clarify the requirements.",
       "createdAt": "2023-11-10T15:58:52Z",
-      "updatedAt": "2023-12-20T08:38:45Z",
+      "updatedAt": "2024-01-31T00:21:11Z",
       "closedAt": null,
       "comments": [
         {
@@ -12349,7 +12409,7 @@
       "id": "I_kwDOG2Ho4M52hXc1",
       "title": "Extend SUBSCRIBE_OK message to include information about the live edge of the track",
       "url": "https://github.com/moq-wg/moq-transport/issues/337",
-      "state": "CLOSED",
+      "state": "OPEN",
       "author": "wilaw",
       "authorAssociation": "NONE",
       "assignees": [],
@@ -12359,8 +12419,8 @@
       ],
       "body": "Consider an edge relay, receiving and forwarding relative SUBSCRIBE requests for -5, -3, and -1 for the same track. The first object it receives back is group 37. It cannot tell where to place this object in the sequence and must therefore hold it until it knows more information. If the next object is Group 39, it still cannot forward it, because the head sate is undefined.\r\n\r\nWe can solve this problem simply by having the SUBSCRIBE_OK response indicate the latest group and object number:\r\n\r\nSUBSCRIBE_OK\r\n{\r\n  Track Namespace (b),\r\n  Track Name (b),\r\n  Track Alias (i),\r\n  Expires (i),\r\n  LastestGroup(i),\r\n  LastestObject(i)\r\n}\r\n\r\nOne consequence of adding these fields is that an edge, which has no active subscription for the track,  cannot send the SUBSCRIBE_OK response until it itself receives a SUBSCRIBE_OK after forwarding the SUBSCRIBE. This makes subscription an async process in which the acknowledgment of the subscription may take in some cases a RTT back to the origin. I think this is necessary for stable state management. \r\n",
       "createdAt": "2023-11-10T21:52:31Z",
-      "updatedAt": "2024-01-22T14:18:10Z",
-      "closedAt": "2024-01-22T14:18:10Z",
+      "updatedAt": "2024-01-31T01:14:34Z",
+      "closedAt": null,
       "comments": [
         {
           "author": "kixelated",
@@ -12574,10 +12634,12 @@
       "author": "martinduke",
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
-      "labels": [],
+      "labels": [
+        "Wire Format"
+      ],
       "body": "Should there be an error code for when the server terminates the session, because the client doesn't offer a version it understands?",
       "createdAt": "2024-01-25T01:13:19Z",
-      "updatedAt": "2024-01-25T01:13:19Z",
+      "updatedAt": "2024-01-31T00:18:13Z",
       "closedAt": null,
       "comments": []
     },
@@ -12590,10 +12652,12 @@
       "author": "martinduke",
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
-      "labels": [],
+      "labels": [
+        "Wire Format"
+      ],
       "body": "I woudld think that \"track doesn't exist\" and \"unauthorized\" would be useful error codes, but they don't seem to fit in 'Invalid Range' or 'Retry Track Alias'.",
       "createdAt": "2024-01-25T20:47:18Z",
-      "updatedAt": "2024-01-25T20:47:18Z",
+      "updatedAt": "2024-01-31T00:18:00Z",
       "closedAt": null,
       "comments": []
     },
@@ -12630,10 +12694,13 @@
       "author": "martinduke",
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
-      "labels": [],
+      "labels": [
+        "Needs PR",
+        "Wire Format"
+      ],
       "body": "if there are going to be \"track request parameters\" in subscribe, we need a way of indicating that it is present. Presumably via a NumParameters field.",
       "createdAt": "2024-01-26T22:48:15Z",
-      "updatedAt": "2024-01-27T02:43:43Z",
+      "updatedAt": "2024-01-31T00:17:38Z",
       "closedAt": null,
       "comments": [
         {
@@ -12649,6 +12716,13 @@
           "body": "There is no message length, right? Or did that come back?",
           "createdAt": "2024-01-27T02:43:42Z",
           "updatedAt": "2024-01-27T02:43:42Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "You are right, there's no message length, and this looks like an oversight or mis-merge?  Can you make a PR to add Num Parameters, and perhaps the group will agree to set the interop target to draft-02 + that PR?",
+          "createdAt": "2024-01-31T00:17:37Z",
+          "updatedAt": "2024-01-31T00:17:37Z"
         }
       ]
     },
@@ -12661,10 +12735,12 @@
       "author": "martinduke",
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
-      "labels": [],
+      "labels": [
+        "Needs Discussion"
+      ],
       "body": "Sec 6.4.2: \"If the Track Alias is already in\t\r\n \t      use, the publisher MUST close the session with a Duplicate Track\t\r\n \t      Alias error (Section 3.5).\"\r\n\r\nThis makes sense if it's a different track name. But if it's the same track for two subscriptions, they should have the same track_alias, right? What's the purpose of track alias and subscribe ID always going together in objects, anyway?\r\n \t\r\n\r\n",
       "createdAt": "2024-01-26T22:52:27Z",
-      "updatedAt": "2024-01-29T18:43:24Z",
+      "updatedAt": "2024-01-31T00:22:36Z",
       "closedAt": null,
       "comments": [
         {
@@ -12727,10 +12803,12 @@
       "author": "martinduke",
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
-      "labels": [],
+      "labels": [
+        "Object Model"
+      ],
       "body": "Draft-02 strongly implies the forwarding preference is a per-object decision. thus the following sequences would be legal:\r\n[sequences are written as (group, object)]\r\n\r\nStream 2: (0, 1), (0, 2) (0, 3) (0, 5) -- type is StreamHeaderGroup\r\nStream 6: (0, 4) -- type is ObjectStream\r\n\r\nor\r\n\r\nStream 2: (0, 0), (1, 0), (2, 0), (3, 0) -- type is StreamHeaderTrack\r\nStream 6: (1,1) -- type is Object Stream\r\n\r\netc.\r\n\r\nIf someone can imagine a use case for this, that's great. If not, it would be easier to implement with different assumptions, e.g.\r\n\r\n(1) Forwarding preference is a track-level property. Thus the preference could be provided in the SUBSCRIBE_OK and we wouldn't evens strictly need four different object codepoints (though you would want the distinct formats, and might want to retain the codepoints for that reason)\r\n\r\n(2) Forwarding preference is group-level -- some groups could be aggregated under StreamHeaderTrack, but others could be under StreamHeaderGroup. If there is a StreamHeaderGroup for a group, there MUST NOT be object-level streams for that group.\r\n\r\nAgain, I have little sense of the use cases out there, but I think we should explicitly decide what we are doing and make it clear in  the doc.\r\n",
       "createdAt": "2024-01-29T19:09:34Z",
-      "updatedAt": "2024-01-29T20:04:38Z",
+      "updatedAt": "2024-01-31T16:32:41Z",
       "closedAt": null,
       "comments": [
         {
@@ -12739,6 +12817,13 @@
           "body": "A related question is whether forwarding preference applies across subscribes. That is, for per-group streams,\r\n\r\na current subscriber gets all of group 12 and then the stream closes.\r\n\r\na later subscribe in the same session asks for group 12. Obviously, this will need a new stream.\r\n\r\nSo maybe the answer is no, it does not apply across subscribes",
           "createdAt": "2024-01-29T20:04:11Z",
           "updatedAt": "2024-01-29T20:04:38Z"
+        },
+        {
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I agree, this is very difficult for a decoder to support.\r\n\r\nThe target use-case is non-reference frames. In your first example, object 4 is optional so it gets its own stream. However the receiver doesn't know that, instead it just sees a gap between 3 and 5.\r\n\r\nDoes the receiver try to decode and catch any errors? How long does it wait before trying? If I want minimal latency, do I have to partially decode (on a per codec basis) to get the frame dependency graph?\r\n\r\nI really don't like this option. I instead want an explicit way to know that this object is a non-reference frame. \r\n\r\nIdeas:\r\n- Make a separate track for non-reference frames and SVC layers.\r\n- Receive a formula that every 3x+1 object is optional?\r\n- Receive a live object catalog containing metadata about each object.\r\n\r\nMy vote is a separate track and each track has a uniform forwarding preference. ",
+          "createdAt": "2024-01-31T16:32:39Z",
+          "updatedAt": "2024-01-31T16:32:39Z"
         }
       ]
     }
@@ -44639,6 +44724,59 @@
           "body": "Whoa, I've missed some PRs, but LGTM",
           "createdAt": "2024-01-22T20:16:39Z",
           "updatedAt": "2024-01-22T20:16:39Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 352,
+      "id": "PR_kwDOG2Ho4M5lmZxN",
+      "title": "Restore number of parameters in SUBSCRIBE",
+      "url": "https://github.com/moq-wg/moq-transport/pull/352",
+      "state": "OPEN",
+      "author": "martinduke",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Fixes #349 ",
+      "createdAt": "2024-01-31T17:43:06Z",
+      "updatedAt": "2024-01-31T20:03:48Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "d97485d4fb39d1f1fc0e88b7291dd14c36ebe836",
+      "headRepository": "martinduke/moq-transport",
+      "headRefName": "num-params",
+      "headRefOid": "343eb727f5533e3085dad12de56e7148491c3fdf",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M5ujGB3",
+          "commit": {
+            "abbreviatedOid": "343eb72"
+          },
+          "author": "vasilvv",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2024-01-31T19:45:41Z",
+          "updatedAt": "2024-01-31T19:45:41Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5ujOHs",
+          "commit": {
+            "abbreviatedOid": "343eb72"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2024-01-31T20:03:48Z",
+          "updatedAt": "2024-01-31T20:03:48Z",
           "comments": []
         }
       ]
