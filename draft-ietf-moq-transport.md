@@ -685,41 +685,43 @@ MOQT Message {
 ~~~
 {: #moq-transport-message-format title="MOQT Message"}
 
-|-------|----------------------------------------------------|
-| ID    | Messages                                           |
-|------:|:---------------------------------------------------|
-| 0x0   | OBJECT_STREAM ({{object-message-formats}})         |
-|-------|----------------------------------------------------|
-| 0x3   | SUBSCRIBE ({{message-subscribe-req}})              |
-|-------|----------------------------------------------------|
-| 0x4   | SUBSCRIBE_OK ({{message-subscribe-ok}})            |
-|-------|----------------------------------------------------|
-| 0x5   | SUBSCRIBE_ERROR ({{message-subscribe-error}})      |
-|-------|----------------------------------------------------|
-| 0x6   | ANNOUNCE  ({{message-announce}})                   |
-|-------|----------------------------------------------------|
-| 0x7   | ANNOUNCE_OK ({{message-announce-ok}})              |
-|-------|----------------------------------------------------|
-| 0x8   | ANNOUNCE_ERROR ({{message-announce-error}})        |
-|-------|----------------------------------------------------|
-| 0x9   | UNANNOUNCE  ({{message-unannounce}})               |
-|-------|----------------------------------------------------|
-| 0xA   | UNSUBSCRIBE ({{message-unsubscribe}})              |
-|-------|----------------------------------------------------|
-| 0xB   | SUBSCRIBE_FIN ({{message-subscribe-fin}})          |
-|-------|----------------------------------------------------|
-| 0xC   | SUBSCRIBE_RST ({{message-subscribe-rst}})          |
-|-------|----------------------------------------------------|
-| 0x10  | GOAWAY ({{message-goaway}})                        |
-|-------|----------------------------------------------------|
-| 0x40  | CLIENT_SETUP ({{message-setup}})                   |
-|-------|----------------------------------------------------|
-| 0x41  | SERVER_SETUP ({{message-setup}})                   |
-|-------|----------------------------------------------------|
-| 0x50  | STREAM_HEADER_TRACK ({{multi-object-streams}})     |
-|-------|----------------------------------------------------|
-| 0x51  | STREAM_HEADER_GROUP ({{multi-object-streams}})     |
-|-------|----------------------------------------------------|
+|-------|-----------------------------------------------------|
+| ID    | Messages                                            |
+|------:|:----------------------------------------------------|
+| 0x0   | OBJECT_STREAM ({{object-message-formats}})          |
+|-------|-----------------------------------------------------|
+| 0x1   | OBJECT_PREFER_DATAGRAM ({{object-message-formats}}) |
+|-------|-----------------------------------------------------|
+| 0x3   | SUBSCRIBE ({{message-subscribe-req}})               |
+|-------|-----------------------------------------------------|
+| 0x4   | SUBSCRIBE_OK ({{message-subscribe-ok}})             |
+|-------|-----------------------------------------------------|
+| 0x5   | SUBSCRIBE_ERROR ({{message-subscribe-error}})       |
+|-------|-----------------------------------------------------|
+| 0x6   | ANNOUNCE  ({{message-announce}})                    |
+|-------|-----------------------------------------------------|
+| 0x7   | ANNOUNCE_OK ({{message-announce-ok}})               |
+|-------|-----------------------------------------------------|
+| 0x8   | ANNOUNCE_ERROR ({{message-announce-error}})         |
+|-------|-----------------------------------------------------|
+| 0x9   | UNANNOUNCE  ({{message-unannounce}})                |
+|-------|-----------------------------------------------------|
+| 0xA   | UNSUBSCRIBE ({{message-unsubscribe}})               |
+|-------|-----------------------------------------------------|
+| 0xB   | SUBSCRIBE_FIN ({{message-subscribe-fin}})           |
+|-------|-----------------------------------------------------|
+| 0xC   | SUBSCRIBE_RST ({{message-subscribe-rst}})           |
+|-------|-----------------------------------------------------|
+| 0x10  | GOAWAY ({{message-goaway}})                         |
+|-------|-----------------------------------------------------|
+| 0x40  | CLIENT_SETUP ({{message-setup}})                    |
+|-------|-----------------------------------------------------|
+| 0x41  | SERVER_SETUP ({{message-setup}})                    |
+|-------|-----------------------------------------------------|
+| 0x50  | STREAM_HEADER_TRACK ({{multi-object-streams}})      |
+|-------|-----------------------------------------------------|
+| 0x51  | STREAM_HEADER_GROUP ({{multi-object-streams}})      |
+|-------|-----------------------------------------------------|
 
 ## Parameters {#params}
 
@@ -889,13 +891,15 @@ group.
 {{send-order}} or priority {{ordering-by-priorities}} value.
 
 * Object Forwarding Preference: An enumeration indicating how a sender sends an
-object. The preferences are Track, Group, and Object.  An Object MUST be sent
-according to its `Object Forwarding Preference`, described below.
+object. The preferences are Track, Group, Object and Datagram.  An Object MUST
+be sent according to its `Object Forwarding Preference`, described below.
 
 * Object Payload: An opaque payload intended for the consumer and SHOULD
 NOT be processed by a relay.
 
 ### Object Message Formats
+
+**Object Stream Message**
 
 An `OBJECT_STREAM` message carries a single object on a stream.  There is no
 explicit length of the payload; it is determined by the end of the stream.  An
@@ -931,6 +935,36 @@ the receiver MUST close the session with a Protocol Violation.
 
 * Other fields: As described in {{canonical-object-fields}}.
 
+**Object Prefer Datagram Message**
+
+An `OBJECT_PREFER_DATAGRAM` message carries a single object in a datagram or
+a stream. There is no explicit length of the payload; it is determined by the
+length of the datagram or stream.  If this message appears on a stream, it MUST
+be the only message on a unidirectional stream.
+
+An Object received in an `OBJECT_PREFER_DATAGRAM` message has an `Object
+Forwarding Preference` = `Datagram`.
+
+To send an Object with `Object Forwarding Preference` = `Datagram`, determine
+the length of the fields and payload, and compare the length with the maximum
+datagram size of the session.  If the object size is less than or equal maximum
+datagram size, send the serialized data as a datagram.  Otherwise, open a
+stream, send the serialized data and terminate the stream.  An implementation
+SHOULD NOT send an Object with `Object Forwarding Preference` = `Datagram` on a
+stream if it is possible to send it as a datagram.
+
+~~~
+OBJECT_PREFER_DATAGRAM Message {
+  Subscription ID (i),
+  Track Alias (i),
+  Group ID (i),
+  Object ID (i),
+  Object Send Order (i),
+  Object Payload (...),
+}
+~~~
+{: #object-datagram-format title="MOQT OBJECT_PREFER_DATAGRAM Message"}
+
 ### Multi-Object Streams
 
 When multiple objects are sent on a stream, the stream begins with a stream
@@ -943,6 +977,8 @@ same stream header message type and fields.
 
 
 TODO: figure out how a relay closes these streams
+
+**Stream Header Track**
 
 When a stream begins with `STREAM_HEADER_TRACK`, all objects on the stream
 belong to the track requested in the Subscribe message identified by `Subscribe
@@ -975,6 +1011,8 @@ stream that is associated with the subscription, or open a new one and send the
 }
 ~~~
 {: #object-track-format title="MOQT Track Stream Object Fields"}
+
+**Stream Header Group**
 
 A sender MUST NOT send an Object on a stream if its Group ID is less than a
 previously sent Group ID on that stream, or if its Object ID is less than or
