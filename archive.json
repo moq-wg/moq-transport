@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2024-02-01T01:09:49.997935+00:00",
+  "timestamp": "2024-02-04T01:10:48.298762+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -12700,7 +12700,7 @@
       ],
       "body": "if there are going to be \"track request parameters\" in subscribe, we need a way of indicating that it is present. Presumably via a NumParameters field.",
       "createdAt": "2024-01-26T22:48:15Z",
-      "updatedAt": "2024-01-31T00:17:38Z",
+      "updatedAt": "2024-02-01T15:43:06Z",
       "closedAt": null,
       "comments": [
         {
@@ -12723,6 +12723,20 @@
           "body": "You are right, there's no message length, and this looks like an oversight or mis-merge?  Can you make a PR to add Num Parameters, and perhaps the group will agree to set the interop target to draft-02 + that PR?",
           "createdAt": "2024-01-31T00:17:37Z",
           "updatedAt": "2024-01-31T00:17:37Z"
+        },
+        {
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "Reading RFC 9000 section 1.3, I thought the syuntax \"x (L) ...\" meant we would have zero or more and it included the counter of how many in the encoding. I could be missing the boat here but not seeing why we have the number twice on the wire. I am always confused about the syntax used in RFC 9000 so I probably confused here but someone walk me through it. ",
+          "createdAt": "2024-02-01T13:59:52Z",
+          "updatedAt": "2024-02-01T13:59:52Z"
+        },
+        {
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "Yes, some of these 9000 formats are very confusing, and I had to look again.\r\n\r\nThe format in the MOQT draft is 'Parameters (..) ...'. I can't really parse the definitions in 1.3, but this notation occurs in two places in 9000. One is ACK ranges, and ACKs have an explicit ack_range_count field. \r\n\r\nIn any case, there are several other places (SETUP, ANNOUNCE) where we have the field listed there. So:\r\n1) I think the notation is wrong\r\n2) Even if it isn't we should be consistent\r\n3) Even if it isn't, it impedes understanding and an explicit listing would be better.",
+          "createdAt": "2024-02-01T15:43:04Z",
+          "updatedAt": "2024-02-01T15:43:04Z"
         }
       ]
     },
@@ -12826,6 +12840,22 @@
           "updatedAt": "2024-01-31T16:32:39Z"
         }
       ]
+    },
+    {
+      "number": 353,
+      "id": "I_kwDOG2Ho4M59-MX2",
+      "title": "Problems with RelativeNext subscriptions",
+      "url": "https://github.com/moq-wg/moq-transport/issues/353",
+      "state": "OPEN",
+      "author": "wilaw",
+      "authorAssociation": "NONE",
+      "assignees": [],
+      "labels": [],
+      "body": "1. Consider the following sequence of groups and objects, some already produced , some that will be produced in the future. The largest group ID is currently 23 and the largest object ID is 3 (it also happens to be the last object in the group). \r\n\r\n![Screenshot 2024-02-01 at 9 15 24 PM](https://github.com/moq-wg/moq-transport/assets/2762250/421edef1-3110-4a05-8544-1e4ec2662423)\r\n\r\n\r\nOur definitions for RelativePrevious and RelativeNext are shown here. \r\n\r\n> RelativePrevious (0x2): Value is a delta from the largest sequence. 0 is the largest sequence, 1 is the largest sequence - 1, and so on.\r\n> RelativeNext (0x3): Value is a delta from the largest sequence. 0 is the largest sequence + 1, 1 is the largest sequence + 2, and so on.\r\n\r\nExample 6.4.3.1 for 'now' shows\r\n\r\n```\r\nStart Group: Mode=RelativePrevious, Value=0\r\nStart Object: Mode=RelateiveNext, Value=0\r\nEnd Group: Mode=None\r\nEnd Object: Mode=None\r\n\r\nStartGroup=Largest Group\r\nStartObject=Largest Object + 1\r\n```\r\n\r\nIn our example, largest group is 23, however Largest Object + 1 is 4, which does not exist. We need to adjust the definition of RelativeNext to allow for the fact that the next object may be in a different group.\r\n\r\n2. There may be some players who simply want the relay to send the next available Object, in this example Object 0 of group 24. \r\n\r\nThere is no current way to reliably ask for this, because StartGroup mode cannot be 'none', and we don't know which group that object will belong to. It may be in the currently largest group, or it may be in the next group. \r\n\r\nA solution here would be to relax the constraint that StartGroup mode cannot be 'none'. If we then request\r\n\r\n```\r\nStart Group: Mode=None\r\nStart Object: Mode=RelativeNext, Value=0\r\n```\r\n\r\nit would instruct the relay \"Send me your next object, no matter which group it belongs to\".\r\n\r\n5. In 6.4.3 we have examples titled 'Now',  'Current', \"previous\" and 'Next\".  \r\n\r\n'Now',  'Current'  are synonymous to most readers. We need to better titles to illustrate what is actually being requested here. Additionally, \r\n\"Previous' doesn't indicate whether we want the previous group, or previous object. Similarly for next.\r\n\r\n\r\n\r\n\r\n\r\n\r\n",
+      "createdAt": "2024-02-01T20:50:29Z",
+      "updatedAt": "2024-02-01T20:50:29Z",
+      "closedAt": null,
+      "comments": []
     }
   ],
   "pulls": [
@@ -44511,13 +44541,13 @@
       "labels": [],
       "body": "Fixes https://github.com/moq-wg/moq-transport/issues/337",
       "createdAt": "2024-01-22T14:19:42Z",
-      "updatedAt": "2024-01-22T16:41:58Z",
+      "updatedAt": "2024-02-01T19:55:25Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
-      "baseRefOid": "124aec92093f824eecd196a79d6fee69ec6d9abe",
+      "baseRefOid": "d97485d4fb39d1f1fc0e88b7291dd14c36ebe836",
       "headRepository": "wilaw/moq-transport",
       "headRefName": "main",
-      "headRefOid": "8961455e9e4bee063624bded68ccaec846debc25",
+      "headRefOid": "95b5b331081fa6ff136c599cb8343d235215aa64",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -44740,7 +44770,7 @@
       "labels": [],
       "body": "Fixes #349 ",
       "createdAt": "2024-01-31T17:43:06Z",
-      "updatedAt": "2024-01-31T20:03:48Z",
+      "updatedAt": "2024-02-01T19:15:49Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "d97485d4fb39d1f1fc0e88b7291dd14c36ebe836",
@@ -44751,7 +44781,29 @@
       "mergedAt": null,
       "mergedBy": null,
       "mergeCommit": null,
-      "comments": [],
+      "comments": [
+        {
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "I don't think that's right. I can argue by example: the format (..) ... does not have \"number of things\" prepended without explicity stating so in the spec.\r\n\r\nx (L) ...:\r\nIndicates that x is repeated zero or more times and that each instance has a length of L\r\n\r\nGiven that definition, I read x (..) ... as it is repeated zero or more time, and the length of each is variable. It says nothing about the explicitly writing the number of actions.",
+          "createdAt": "2024-02-01T15:49:51Z",
+          "updatedAt": "2024-02-01T15:49:51Z"
+        },
+        {
+          "author": "mengelbart",
+          "authorAssociation": "NONE",
+          "body": "I think Martin is correct, but I also find it a little confusing because section 1.3 of MOQT adds the notation x (b) for binary data, which really includes a length field followed by that many bytes. But that is currently only defined for binary data. This also recently changed for the new OBJECT messages. They used to have Object Payload (b) but now they are defined as Object Payload (...) with the length explicitly defined as Object Payload Length (i). Tracknames etc. still use the x(b) notation.\r\n\r\nMaybe it would be good to be consistent on all of these. We could remove x(b) or use something similar for binary fields and parameters.",
+          "createdAt": "2024-02-01T16:19:46Z",
+          "updatedAt": "2024-02-01T16:20:39Z"
+        },
+        {
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "OK ... look at the high level, we all agree we need the count on the wire, we are only poking at the arcane syntax to represent that and it is clearly not clear. So lets go with this PR as is but would people be OK if moved all the syntax to ABNF. I think that would be far more clear, is widely used in ietf docs, and I think would work out much better for implementers. I'm happy to use any other well defined things instead but I'm not keep on using something where none of us are sure and I know developers are confuse. ",
+          "createdAt": "2024-02-01T19:15:19Z",
+          "updatedAt": "2024-02-01T19:15:19Z"
+        }
+      ],
       "reviews": [
         {
           "id": "PRR_kwDOG2Ho4M5ujGB3",
@@ -44777,6 +44829,32 @@
           "body": "",
           "createdAt": "2024-01-31T20:03:48Z",
           "updatedAt": "2024-01-31T20:03:48Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5uqNxu",
+          "commit": {
+            "abbreviatedOid": "343eb72"
+          },
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "CHANGES_REQUESTED",
+          "body": "I don't think this is right but I could be wrong. I never fully understand the syntax from RFC 9000 because it is very confusing and I don't think we should use it because of that but .... \r\n\r\nMy understanding of the syntax of  \r\n```\r\nx (L) ... \r\n```\r\nis that will encode on the wire the number of things of size L in x.  See section 1.3 of RFC 9000. \r\n\r\nClearly we need the number of things in this but we don't need it twice.  Am I missing the boat on this ? I'm sure Martin knows this stuff better than me.\r\n",
+          "createdAt": "2024-02-01T13:56:12Z",
+          "updatedAt": "2024-02-01T13:56:12Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5utVvF",
+          "commit": {
+            "abbreviatedOid": "343eb72"
+          },
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2024-02-01T19:15:49Z",
+          "updatedAt": "2024-02-01T19:15:49Z",
           "comments": []
         }
       ]
