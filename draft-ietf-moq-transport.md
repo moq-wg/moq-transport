@@ -206,14 +206,51 @@ Track:
 
 ## Notational Conventions
 
-This document uses the conventions detailed in ({{?RFC9000, Section 1.3}})
-when describing the binary encoding.
+This document uses the conventions detailed in ({{?RFC9000, Section
+1.3}}) when describing the binary encoding.
 
-This document also defines an additional field type for binary data:
+As a quick reference, the following list provides a non normative
+summary of the parts of RFC9000 syntax that are used in this
+specification.
+
+x (L):
+
+: Indicates that x is L bits long
+
+x (i):
+
+: Indicates that x holds an integer value using the variable-length
+  encoding as described in ({{?RFC9000, Section 16}})
+
+x (..):
+
+: Indicates that x can be any length including zero bits long.  Values
+ in this format always end on a byte boundary.
+
+[x (L)]:
+
+: Indicates that x is optional and has a length of L
+
+x (L) ...:
+
+: Indicates that x is repeated zero or more times and that each instance
+  has a length of L
+
+This document extends the RFC9000 syntax and with the additional field types:
 
 x (b):
-: Indicates that x consists of a variable length integer (i), followed by
-  that many bytes of binary data (..).
+
+: Indicates that x consists of a variable length integer encoding as
+  described in ({{?RFC9000, Section 16}}), followed by that many bytes
+  of binary data
+
+x (Location):
+
+: Indicates x is a Location structure defined in {{subscribe-locations}}.
+
+To reduce unnecessary use of bandwidth, variable length integers SHOULD
+be encoded using the least number of bytes possible to represent the
+required value.
 
 
 # Object Model {#model}
@@ -919,7 +956,7 @@ OBJECT_STREAM Message {
   Group ID (i),
   Object ID (i),
   Object Send Order (i),
-  Object Payload (...),
+  Object Payload (..),
 }
 ~~~
 {: #moq-transport-object-stream-format title="MOQT OBJECT_STREAM Message"}
@@ -960,7 +997,7 @@ OBJECT_PREFER_DATAGRAM Message {
   Group ID (i),
   Object ID (i),
   Object Send Order (i),
-  Object Payload (...),
+  Object Payload (..),
 }
 ~~~
 {: #object-datagram-format title="MOQT OBJECT_PREFER_DATAGRAM Message"}
@@ -1007,7 +1044,7 @@ stream that is associated with the subscription, or open a new one and send the
   Group ID (i),
   Object ID (i),
   Object Payload Length (i),
-  Object Payload (...),
+  Object Payload (..),
 }
 ~~~
 {: #object-track-format title="MOQT Track Stream Object Fields"}
@@ -1045,7 +1082,7 @@ then serialize the following fields.
 {
   Object ID (i),
   Object Payload Length (i),
-  Object Payload (...),
+  Object Payload (..),
 }
 ~~~
 {: #object-group-format title="MOQT Group Stream Object Fields"}
@@ -1124,7 +1161,7 @@ delta relative to the largest group or the largest object in a group.
 ~~~
 Location {
   Mode (i),
-  [Value (i)]
+  [Value (i)],
 }
 ~~~
 
@@ -1437,7 +1474,7 @@ failed authorization.
 ~~~
 ANNOUNCE_ERROR
 {
-  Track Namespace(b),
+  Track Namespace (b),
   Error Code (i),
   Reason Phrase (b),
 }
@@ -1460,7 +1497,7 @@ within the provided Track Namespace.
 
 ~~~
 UNANNOUNCE Message {
-  Track Namespace(b),
+  Track Namespace (b),
 }
 ~~~
 {: #moq-transport-unannounce-format title="MOQT UNANNOUNCE Message"}
