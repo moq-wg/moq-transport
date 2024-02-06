@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2024-02-04T01:10:48.298762+00:00",
+  "timestamp": "2024-02-06T01:05:55.187578+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -9419,7 +9419,7 @@
       ],
       "body": "Splitting discussion in #212 into a separate issue.\r\n\r\nThe current draft states that the client initiates the session via a CLIENT_SETUP message and then server replies with a SERVER_SETUP. The client sends a list of supported versions and its role, while the server chooses a version and reaffirms the role. This is done via a bidirectional stream opened by the client.\r\n\r\nHowever, depending on the underlying transport, the client won't always be the first endpoint allowed to send a flight, so this incurs a half-RTT of latency:\r\n\r\n* WebTransport: Client is allowed to send first (before CONNECT response), but most implementations will let the server send first (after 2xx CONNECT response)\r\n* QUIC: Client sends first with 0-RTT, while the server sends first with 1-RTT (most common).",
       "createdAt": "2023-09-10T16:38:18Z",
-      "updatedAt": "2023-10-18T00:49:59Z",
+      "updatedAt": "2024-02-05T00:03:59Z",
       "closedAt": null,
       "comments": [
         {
@@ -9428,6 +9428,13 @@
           "body": "I think we should emulate HTTP/3 SETTINGS. That means endpoints can send the SETUP in parallel.\r\n\r\n```\r\nSETUP\r\nsupported_versions: [ 1, 3, 4, ... ]\r\nsupported_roles: \"publisher\" | \"subscriber\" | \"both\" \r\n```\r\n\r\nAs far as I understand, this doesn't support from version negotiation attacks, since it's over an established QUIC connection.\r\n\r\nAlternatively, QUIC could use the ALPN to transmit this SETUP information. Unfortunately no such mechanism exists for WebTransport (yet).",
           "createdAt": "2023-09-10T16:46:18Z",
           "updatedAt": "2023-09-11T00:01:24Z"
+        },
+        {
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "so I am working on the assumption the vast majority of connections, measured by numbers of connection, will be 0-RTT, not 1. I was assuming this because what the MoQ client sends in that would be \"SAFE\" in the HTTP replay sen. I realize other on this thread  have thought about this lots. Any particular reason 0-RTT would not be common in MoQ ?",
+          "createdAt": "2024-02-05T00:03:58Z",
+          "updatedAt": "2024-02-05T00:03:58Z"
         }
       ]
     },
@@ -11283,7 +11290,7 @@
       ],
       "body": "PR #264 has GOAWAY as only sent from server to client, but there may be use cases for the reverse as pointed out by @afrind ",
       "createdAt": "2023-10-16T15:11:46Z",
-      "updatedAt": "2023-10-24T00:56:37Z",
+      "updatedAt": "2024-02-05T00:08:36Z",
       "closedAt": null,
       "comments": [
         {
@@ -11299,6 +11306,27 @@
           "body": "What if the client is not the original source, but rather a relay.  In that case, the relay may need to restart/etc.  One option is the relay sends a GOAWAY and the client starts publishing to a new relay.  But does it need to do something about it's upstream subscriptions?",
           "createdAt": "2023-10-20T18:37:50Z",
           "updatedAt": "2023-10-20T18:37:50Z"
+        },
+        {
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "FWIW ... relay to relay is out of scope - we are only doing client to relay - we would need a lot more to have a full relay to relay protocol ",
+          "createdAt": "2024-02-04T23:45:33Z",
+          "updatedAt": "2024-02-04T23:45:33Z"
+        },
+        {
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "body": "A client-initiated GOAWAY is weird but kind of makes sense.\r\n\r\nI'm thinking of the dual ingest case when there are two connections from broadcaster to relay(s). If the client sends a GOAWAY message, it's an explicit signal to the relay that it needs to UNSUBSCRIBE to everything and find another route to the content. The party isn't over, you just can't stay here.\r\n\r\nBut there's some overlap with UNANNOUNCE. I'm not sure if we actually need it.",
+          "createdAt": "2024-02-04T23:57:24Z",
+          "updatedAt": "2024-02-04T23:58:04Z"
+        },
+        {
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "That use case makes sense.   \"The party isn't over, you just can't stay here.\"  is awesome tag line for use case. \r\n\r\nFor a graceful shutdown of a publisher,  I think the way to do that would be the client publishing sends un-annouce and the relay then ends all the subscriptions, once all the subscriptions are gone, the client closes the connection. \r\n",
+          "createdAt": "2024-02-05T00:08:35Z",
+          "updatedAt": "2024-02-05T00:08:35Z"
         }
       ]
     },
@@ -11751,7 +11779,7 @@
       ],
       "body": "`SUBSCRIBE_RST` and `SUBSCRIBE_FIN` define:\r\n\r\n> Final Group: The largest Group Sequence sent by the publisher in an OBJECT message in this track.\r\n> Final Object: The largest Object Sequence sent by the publisher in an OBJECT message in the Final Group for this track.\r\n\r\nHowever, what happens if no objects were ever produced/sent?",
       "createdAt": "2023-10-30T05:20:32Z",
-      "updatedAt": "2023-11-06T15:04:49Z",
+      "updatedAt": "2024-02-04T22:08:28Z",
       "closedAt": null,
       "comments": [
         {
@@ -11781,6 +11809,13 @@
           "body": "Individual Comment:\r\n\r\nIf we use exclusive encoding then I'd say that the receiver shouldn't infer the existence of non-existence of the named object, and either 5/30 or 6/0 works, but 5/30 is preferable?",
           "createdAt": "2023-11-06T15:04:49Z",
           "updatedAt": "2023-11-06T15:04:49Z"
+        },
+        {
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "\r\nIf you define there will be no objects greater than or equal to these, then 0/0 makes total sense.  So 0/0 for null case and say the last group ID of the last object publish was 10 then the value in SUB_FIN would be 11. ",
+          "createdAt": "2024-02-04T22:08:27Z",
+          "updatedAt": "2024-02-04T22:08:27Z"
         }
       ]
     },
@@ -12194,7 +12229,7 @@
       ],
       "body": "If we use hints on SUBSCRIBE (StartGroup, StartObject) I assume is to request objects from the past. Thinking about the live rewind or VOD (archived after live):\r\n- The objects have a sendOrder burnt-in, and since those were part of a live stream that sendOrder is probably increasing (meaning more recent, higher priority)\r\n- If player requests objects from 1h in the past, and relay respects the sendOrder the player will start receiving objects from the end of the live stream to the start. Also those will be sent at wire speed\r\n\r\nIt seems for VOD-like use cases we need a different type of delivery than live edge. Perhaps we should do sliding window and/or sendOrder updates?\r\n\r\nFinals questions:\r\n- Can we use current current hints to deliver VOD?\r\n- Do we need to add signals?",
       "createdAt": "2023-11-06T12:40:25Z",
-      "updatedAt": "2024-01-31T00:23:45Z",
+      "updatedAt": "2024-02-04T23:51:57Z",
       "closedAt": null,
       "comments": [
         {
@@ -12224,6 +12259,13 @@
           "body": "Individual Comment:\r\n\r\n> SUBSCRIBE start=0:0 end:32:10 reliable=true\r\n\r\nI think something like a subscribe hint regarding delay vs. drop is useful.\r\n\r\n> the player making a series of bounded requests\r\n\r\nIt makes me cringe slightly that we built this beautiful pub/sub and we would not take full advantage of it.  \r\n\r\n> there's no back-pressure\r\n\r\nI wonder if another way to spell this is with object flow control (expressed in bytes, object count or both).  You could then issue one subscribe for everything you want and then strategically grant more flow control credits to control the receive rate.    Maybe there's a way to cleverly use QUIC's flow control instead of a moq one, but we'd need to think through that carefully.",
           "createdAt": "2023-11-07T22:02:26Z",
           "updatedAt": "2023-11-07T22:02:26Z"
+        },
+        {
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "This is starting to sound very complicated for relays . What is it that the relay does differently for  reliable=true vs false?\r\n",
+          "createdAt": "2024-02-04T23:51:56Z",
+          "updatedAt": "2024-02-04T23:51:56Z"
         }
       ]
     },
@@ -12754,7 +12796,7 @@
       ],
       "body": "Sec 6.4.2: \"If the Track Alias is already in\t\r\n \t      use, the publisher MUST close the session with a Duplicate Track\t\r\n \t      Alias error (Section 3.5).\"\r\n\r\nThis makes sense if it's a different track name. But if it's the same track for two subscriptions, they should have the same track_alias, right? What's the purpose of track alias and subscribe ID always going together in objects, anyway?\r\n \t\r\n\r\n",
       "createdAt": "2024-01-26T22:52:27Z",
-      "updatedAt": "2024-01-31T00:22:36Z",
+      "updatedAt": "2024-02-04T23:38:16Z",
       "closedAt": null,
       "comments": [
         {
@@ -12805,6 +12847,13 @@
           "body": "OK, after some clarification on the list, I think this is the state:\r\n- the draft currently requires sending one copy per subscribe, though this is by no means settled. (See #269)\r\n- if we end up sticking with that, then track_alias is entirely pointless and should be removed\r\n- if we go to one-time transmission, then subscribe_id should be removed from Object messages.",
           "createdAt": "2024-01-29T18:43:23Z",
           "updatedAt": "2024-01-29T18:43:23Z"
+        },
+        {
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "Definitely need some discussion time on this.  \r\n\r\nThe subscribes should be used to for the client to say what it wants but because the data is not delivered in order with the control steam, there are all kinds of race conditions particularly with clients reconnecting, multiple layers of relays, things failing and HA, etc. That makes me think the data plane / objects should not have the subscription ID.  ",
+          "createdAt": "2024-02-04T23:38:15Z",
+          "updatedAt": "2024-02-04T23:38:15Z"
         }
       ]
     },
@@ -12856,6 +12905,30 @@
       "updatedAt": "2024-02-01T20:50:29Z",
       "closedAt": null,
       "comments": []
+    },
+    {
+      "number": 355,
+      "id": "I_kwDOG2Ho4M5-SHsb",
+      "title": "Objects with unknown length and forwarding preferences",
+      "url": "https://github.com/moq-wg/moq-transport/issues/355",
+      "state": "OPEN",
+      "author": "vasilvv",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "In our current encoding, you can stream objects without knowing their length in advance if your forwarding preference is Object or Datagram, but not if it's Track or Stream (since those require explicit lengths in the front).  I feel like those two aspects should not be tied: we should either support or not support streaming for all preferences.",
+      "createdAt": "2024-02-05T14:19:55Z",
+      "updatedAt": "2024-02-05T19:22:16Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Individual Comment:\r\n\r\nIn order to stream multiple objects with unknown lengths in a multi-object stream, you'd need additional framing.    \r\n\r\nAlternately, we could create single-object variants of the TRACK and GROUP stream header.",
+          "createdAt": "2024-02-05T19:22:15Z",
+          "updatedAt": "2024-02-05T19:22:15Z"
+        }
+      ]
     }
   ],
   "pulls": [
@@ -44541,7 +44614,7 @@
       "labels": [],
       "body": "Fixes https://github.com/moq-wg/moq-transport/issues/337",
       "createdAt": "2024-01-22T14:19:42Z",
-      "updatedAt": "2024-02-01T19:55:25Z",
+      "updatedAt": "2024-02-04T22:01:01Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "d97485d4fb39d1f1fc0e88b7291dd14c36ebe836",
@@ -44605,6 +44678,19 @@
           "body": "I was thinking we would add the start group and Object ID for the requested subscription.  Even for an absolute subscription, I can imagine cases the requested start values can't be served, so newer ones have to be served instead?\r\n\r\nIt'd also be nice to make these optional, but I think that's a detail that depends upon what fields we end up wanting here.",
           "createdAt": "2024-01-22T16:41:58Z",
           "updatedAt": "2024-01-22T16:41:58Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5u9YvI",
+          "commit": {
+            "abbreviatedOid": "95b5b33"
+          },
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "CHANGES_REQUESTED",
+          "body": "This seems like it will have many race conditions. It seems like it would be better to transfer this in the STREAM_HEADER_TRACK and equivalent.  Thoughts on that ?\r\n\r\nI also worry about how long a subscribe would wait to find out this information - that seems like it could be problematic for the client knowing when to give up on a subscribe. \r\n\r\nHopefully we can discuss in Denver ",
+          "createdAt": "2024-02-04T22:01:01Z",
+          "updatedAt": "2024-02-04T22:01:01Z",
           "comments": []
         }
       ]
@@ -44770,7 +44856,7 @@
       "labels": [],
       "body": "Fixes #349 ",
       "createdAt": "2024-01-31T17:43:06Z",
-      "updatedAt": "2024-02-01T19:15:49Z",
+      "updatedAt": "2024-02-04T21:49:38Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "d97485d4fb39d1f1fc0e88b7291dd14c36ebe836",
@@ -44802,6 +44888,13 @@
           "body": "OK ... look at the high level, we all agree we need the count on the wire, we are only poking at the arcane syntax to represent that and it is clearly not clear. So lets go with this PR as is but would people be OK if moved all the syntax to ABNF. I think that would be far more clear, is widely used in ietf docs, and I think would work out much better for implementers. I'm happy to use any other well defined things instead but I'm not keep on using something where none of us are sure and I know developers are confuse. ",
           "createdAt": "2024-02-01T19:15:19Z",
           "updatedAt": "2024-02-01T19:15:19Z"
+        },
+        {
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "Dug into it and 100% agree with this PR. Sorry it took a bit to get there. Deleting other comments so as not to cause confusion later. ",
+          "createdAt": "2024-02-04T21:49:37Z",
+          "updatedAt": "2024-02-04T21:49:37Z"
         }
       ],
       "reviews": [
@@ -44855,6 +44948,92 @@
           "body": "",
           "createdAt": "2024-02-01T19:15:49Z",
           "updatedAt": "2024-02-01T19:15:49Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 354,
+      "id": "PR_kwDOG2Ho4M5l9UDe",
+      "title": "clean up details on binary encoding syntax",
+      "url": "https://github.com/moq-wg/moq-transport/pull/354",
+      "state": "OPEN",
+      "author": "fluffy",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "This PR cleans up some nits to make all the places we use the RFC9000 encoding syntax valid, updates our extensions to it, and add a non normative summary of parts of the syntax we use. \r\n\r\nI don't think this is making any changes to anything on the wire or normative changes to spec other than the statement SHOULD use smallest number of bytes for variable length integers which RFC9000 only requires for some fields. \r\n\r\n",
+      "createdAt": "2024-02-04T21:42:04Z",
+      "updatedAt": "2024-02-05T06:50:16Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "d97485d4fb39d1f1fc0e88b7291dd14c36ebe836",
+      "headRepository": "moq-wg/moq-transport",
+      "headRefName": "encoding1",
+      "headRefOid": "fbe690f8920b1c436fc8f271414ab4c46cd1332b",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M5u9Wp5",
+          "commit": {
+            "abbreviatedOid": "fbe690f"
+          },
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-02-04T21:46:54Z",
+          "updatedAt": "2024-02-04T21:46:54Z",
+          "comments": [
+            {
+              "originalPosition": 53,
+              "body": "The above sentence is the only part of this PR that seems non editorial to me. If I should put it in a separate PR, glad to do that ... ",
+              "createdAt": "2024-02-04T21:46:54Z",
+              "updatedAt": "2024-02-04T21:46:54Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5u9ZkU",
+          "commit": {
+            "abbreviatedOid": "fbe690f"
+          },
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "I am not in love with the ABNF idea, but this is non-controversial.",
+          "createdAt": "2024-02-04T22:20:53Z",
+          "updatedAt": "2024-02-04T22:20:53Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5u-vKn",
+          "commit": {
+            "abbreviatedOid": "fbe690f"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2024-02-05T05:58:54Z",
+          "updatedAt": "2024-02-05T05:58:54Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5u-7lf",
+          "commit": {
+            "abbreviatedOid": "fbe690f"
+          },
+          "author": "vasilvv",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2024-02-05T06:50:16Z",
+          "updatedAt": "2024-02-05T06:50:16Z",
           "comments": []
         }
       ]
