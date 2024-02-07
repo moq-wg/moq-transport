@@ -937,7 +937,7 @@ the receiver MUST close the session with a Protocol Violation.
 
 **Object Datagram Message**
 
-An `OBJECT_DATAGRAM` message carries a single object in a datagram. 
+An `OBJECT_DATAGRAM` message carries a single object in a datagram.
 There is no explicit length of the payload; it is determined by the
 length of the datagram.
 
