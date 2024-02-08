@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2024-02-06T01:05:55.187578+00:00",
+  "timestamp": "2024-02-08T01:04:59.607014+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -77,6 +77,11 @@
       "name": "Parameters",
       "description": "Parameter formatting, etc",
       "color": "d93f0b"
+    },
+    {
+      "name": "Parked",
+      "description": "Issue we may discuss later or close as OBE",
+      "color": "d4c5f9"
     }
   ],
   "issues": [
@@ -3754,11 +3759,12 @@
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [
-        "Requirement"
+        "Requirement",
+        "Subscribe"
       ],
       "body": "In [Model](https://github.com/kixelated/warp-draft/blame/main/draft-lcurley-warp.md#L186) section it says that each Media object is uniquely identified within broadcast, track, etc. I am wondering how reconnect would work - wouldn't it require publisher to maintain state? What happens if one encoder box fails and broadcast needs to be resumed from another box?",
       "createdAt": "2023-01-31T16:39:49Z",
-      "updatedAt": "2023-11-29T03:48:57Z",
+      "updatedAt": "2024-02-07T22:17:20Z",
       "closedAt": null,
       "comments": [
         {
@@ -3795,6 +3801,13 @@
           "body": "IOT media publishers will for sure not maintain any state on restarts.   I think a system where we are using static names and maintain caches based on that and expect it to work over restarts is a brittle system and doesn't scale really well where the system is dynamic and networks/connections come and go.\r\n\r\n",
           "createdAt": "2023-11-29T03:48:56Z",
           "updatedAt": "2023-11-29T03:48:56Z"
+        },
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Possibly this can be fixed as part of @fluffy PRs for make before break?",
+          "createdAt": "2024-02-07T22:17:19Z",
+          "updatedAt": "2024-02-07T22:17:19Z"
         }
       ]
     },
@@ -7866,7 +7879,7 @@
       "id": "I_kwDOG2Ho4M5oPWU4",
       "title": "Naming: Track ID or Subscription ID or ?",
       "url": "https://github.com/moq-wg/moq-transport/issues/209",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "kixelated",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
@@ -7876,8 +7889,8 @@
       ],
       "body": "I'm implementing moq-transport-00 now and ran into this. I thought we decided on a course of action but we must have gotten distracted with the actual important changes.\r\n\r\n### Problem\r\nThe `track ID` contained in the SUBSCRIBE OK message is used to map the full track name into an varint. However, as explained in #145, there's a race condition when the SUBSCRIBE OK message is delayed. OBJECTs will arrive and the receiver will have no idea what track they're for and will have to buffer them.\r\n\r\n### Proposal\r\nMove the `Track ID` from the `SUBSCRIBE OK` message to the `SUBSCRIBE` message. This moves the responsibility for choosing an ID from the sender to the receiver. The benefit is that a receiver never has to buffer OBJECTs waiting for a SUBSCRIBE OK, and can instead abort/discard unknown OBJECTs. The downside is that the sender has to use a different `Track ID` for each connection.\r\n\r\n`Full Track Name` would be removed from `SUBSCRIBE OK` and `SUBSCRIBE ERROR` since it would be redundant.",
       "createdAt": "2023-06-09T00:32:41Z",
-      "updatedAt": "2023-11-05T19:04:14Z",
-      "closedAt": null,
+      "updatedAt": "2024-02-07T03:07:17Z",
+      "closedAt": "2024-02-07T03:07:17Z",
       "comments": [
         {
           "author": "suhasHere",
@@ -7962,6 +7975,13 @@
           "body": "As for naming, Track Name Alias was the most recent suggestion to replace Track ID.",
           "createdAt": "2023-11-05T19:04:14Z",
           "updatedAt": "2023-11-05T19:04:14Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I think the group has settled on Subscription ID (identifies a subscription) and Track Alias (identifies just a full track name) for now.",
+          "createdAt": "2024-02-07T03:07:17Z",
+          "updatedAt": "2024-02-07T03:07:17Z"
         }
       ]
     },
@@ -8682,7 +8702,7 @@
       ],
       "body": "While implementing MOQT relay,  I stumbled upon #204. Thinking through authorization implementation a bit more , I think the current spec needs to clarify this behavior.\r\n\r\nProposal is to say, when a conflicting announce happens,  the Relay MUST reject with an appropriate error type in the ANNOUNCE_ERROR message when the authorization disallows\r\n\r\n```\r\nERROR_CONFLICT_TRACK\r\n```\r\n\r\nHowever, if the authorization policy allows such an allocation of namespaces, then clarify Relay interaction to indicate the most recent ANNOUNCE wins. \r\n",
       "createdAt": "2023-07-24T17:42:27Z",
-      "updatedAt": "2023-11-09T16:53:33Z",
+      "updatedAt": "2024-02-07T22:55:36Z",
       "closedAt": null,
       "comments": [
         {
@@ -9419,7 +9439,7 @@
       ],
       "body": "Splitting discussion in #212 into a separate issue.\r\n\r\nThe current draft states that the client initiates the session via a CLIENT_SETUP message and then server replies with a SERVER_SETUP. The client sends a list of supported versions and its role, while the server chooses a version and reaffirms the role. This is done via a bidirectional stream opened by the client.\r\n\r\nHowever, depending on the underlying transport, the client won't always be the first endpoint allowed to send a flight, so this incurs a half-RTT of latency:\r\n\r\n* WebTransport: Client is allowed to send first (before CONNECT response), but most implementations will let the server send first (after 2xx CONNECT response)\r\n* QUIC: Client sends first with 0-RTT, while the server sends first with 1-RTT (most common).",
       "createdAt": "2023-09-10T16:38:18Z",
-      "updatedAt": "2024-02-05T00:03:59Z",
+      "updatedAt": "2024-02-07T16:52:45Z",
       "closedAt": null,
       "comments": [
         {
@@ -9435,6 +9455,20 @@
           "body": "so I am working on the assumption the vast majority of connections, measured by numbers of connection, will be 0-RTT, not 1. I was assuming this because what the MoQ client sends in that would be \"SAFE\" in the HTTP replay sen. I realize other on this thread  have thought about this lots. Any particular reason 0-RTT would not be common in MoQ ?",
           "createdAt": "2024-02-05T00:03:58Z",
           "updatedAt": "2024-02-05T00:03:58Z"
+        },
+        {
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> so I am working on the assumption the vast majority of connections, measured by numbers of connection, will be 0-RTT, not 1. I was assuming this because what the MoQ client sends in that would be \"SAFE\" in the HTTP replay sen. I realize other on this thread have thought about this lots. Any particular reason 0-RTT would not be common in MoQ ?\r\n\r\nWell, WebTransport does not support 0-RTT. Even if it did, MoQ would be subject to a replay attacks depending on how authentication is performed.",
+          "createdAt": "2024-02-07T02:19:41Z",
+          "updatedAt": "2024-02-07T02:19:41Z"
+        },
+        {
+          "author": "vasilvv",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Note that in case of WebTransport, the question of 0-RTT is orthogonal to the question of which side speaks first (it just lets you skip a round trip that occurs before the WebTransport session is established).",
+          "createdAt": "2024-02-07T16:52:44Z",
+          "updatedAt": "2024-02-07T16:52:44Z"
         }
       ]
     },
@@ -10414,7 +10448,7 @@
       ],
       "body": "SUBSCRIBE today requires a full track name, and specifies exactly one track.  Do we need a subscription mechanism that matches more than one track, including tracks that may not exist currently, but may come into existence in the future?",
       "createdAt": "2023-09-27T18:03:48Z",
-      "updatedAt": "2023-10-04T11:57:25Z",
+      "updatedAt": "2024-02-07T16:37:55Z",
       "closedAt": null,
       "comments": [
         {
@@ -10465,6 +10499,20 @@
           "body": "Wildcard subscribe doesn't imply catalog-less :-) . \r\n\r\nuse-cases that needs supporting group semanitcs (not the moqt group, but group of users in a chat room, group of members for whom there will be policy (security) updates  published frequently and so on)  will be benefited with something like wildcard. All these cases require  the subscriber to not know  full track names before hand or will end up being too noisy with several catalog updates or can incur latencies. ",
           "createdAt": "2023-10-04T11:54:49Z",
           "updatedAt": "2023-10-04T11:57:25Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Individual Comment: \r\n\r\nIt seems to me that this is an optimization to save some RTTs, but that is meaningful and worth investigating.\r\n\r\nDoes anyone have a sketch of how this might work with the constructs we have in the current draft?\r\n\r\nI keep running back into the Track Alias problem, which is that objects can suddenly arrive at a receiver who does not have any reference of what they are if the OBJECT races the OK.  Maybe something like this:\r\n\r\n```\r\nWILDCARD_SUBSCRIBE {\r\n  # matching criteria, TBD\r\n  Num Reserved Subscription IDs (i)\r\n  [Reserved Subscription ID (i)] +\r\n}\r\n```\r\n\r\nWhen a track is available the matches the criteria, all objects get a preface with the track name / subscription ID mapping\r\n\r\n```\r\nWILDCARD_SUBSCRIBE_OK {\r\n  Full Track Name\r\n  Subscription ID (i)\r\n  # other useful info\r\n}\r\nOBJECT_STREAM | STREAM_HEADER_TRACK | STREAM_HEADER_GROUP\r\n```\r\n\r\nMaybe the subscriber could issue a regular subscribe after seeing the mapping header or a catalog update and that would get rid of the extra overhead within a few RTTs.  Another option is send the WILDCARD_SUBSCRIBE_OK on the control stream, and the receiver may have to buffer unknown objects, but only if it's using wildcards.\r\n\r\nThe publisher/relay can also send messages to indicate it needs more subscribe IDs.",
+          "createdAt": "2024-02-07T04:04:15Z",
+          "updatedAt": "2024-02-07T04:04:15Z"
+        },
+        {
+          "author": "vasilvv",
+          "authorAssociation": "COLLABORATOR",
+          "body": "One option is as follows: if you subscribe to `foo/*` in SUBSCRIBE identified by number 123, and you receive an object for `foo/bar`, you can abbreviate it as `(123, bar)`.",
+          "createdAt": "2024-02-07T16:37:54Z",
+          "updatedAt": "2024-02-07T16:37:54Z"
         }
       ]
     },
@@ -10495,10 +10543,12 @@
       "author": "vasilvv",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
-      "labels": [],
+      "labels": [
+        "Parked"
+      ],
       "body": "The basic problem is: the publisher provides two versions of the same track, let's say, `video/360p` and `video/720p`; the subscriber wants to receive only one of those, and it best quality it can receive in a timely manner.  It makes more sense to make this switch at the sender, since the sender's congestion controller ultimately decides how much data the sender is going to send short-term.\r\n\r\n@kixelated proposed before to allow the sender to subscribe to a list of tracks in order of preference, so something like `SUBSCRIBE_REQUEST video/720p video/360p` would result in 720p video being sent preferentially when available.  I like this approach, though we do need to specify more details first.  For instance, what are the conditions under which the sender is allowed to switch?  I think those should be group boundaries (and we should also require alignment between tracks if you want to subscribe to those as an alternative).",
       "createdAt": "2023-09-29T14:32:31Z",
-      "updatedAt": "2023-10-02T02:48:17Z",
+      "updatedAt": "2024-02-07T16:45:03Z",
       "closedAt": null,
       "comments": [
         {
@@ -11165,11 +11215,12 @@
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
       "labels": [
-        "Wire Format"
+        "Wire Format",
+        "Parked"
       ],
       "body": "Reasons phrases either have useful information in them, in which case it should not be in a reason phrase, it should be in a well defined field in the protocol. Or they do not have useful information in which case they should not be there. \r\n\r\nI think we should get rid of reason phrases - if we need to describe more information about why an error happened, we should put that data in well defined fields. ",
       "createdAt": "2023-10-16T11:04:11Z",
-      "updatedAt": "2023-11-03T20:19:03Z",
+      "updatedAt": "2024-02-07T17:21:44Z",
       "closedAt": null,
       "comments": [
         {
@@ -11643,10 +11694,12 @@
       "author": "ianswett",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
-      "labels": [],
+      "labels": [
+        "Parked"
+      ],
       "body": "As it stands today, QUIC does not have a 'session' layer allowing multiple instances of the same application or different applications to share a single connection.\r\n\r\nAt the last interim, I believe a few people thought that both the WebTransport and raw QUIC deployments of MoQ should support multiple sessions over a single connection.\r\n\r\nThere are proposals to add a session layer, but they're early on.  I feel like this isn't a blocker, and more of a nice to have, and MoQ can use whatever is available when it's done, but wanted the WGs opinion.",
       "createdAt": "2023-10-27T16:42:13Z",
-      "updatedAt": "2023-10-30T15:40:48Z",
+      "updatedAt": "2024-02-07T16:44:31Z",
       "closedAt": null,
       "comments": [
         {
@@ -12384,10 +12437,12 @@
       "author": "vasilvv",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
-      "labels": [],
+      "labels": [
+        "Object Model"
+      ],
       "body": "(I thought I have proposed this before, but I can't find the corresponding issue)\r\n\r\nThe proposal is to have the publisher (the original one) generate a random token blob whenever it starts publishing a track. This allows us to deal with situations where the publisher for the track changes.  One such common situation is a publisher restart (related issues: #225, #204, #79): this allows us to tell apart the same binary reconnecting (meaning it's a continuation of the same stream) from the binary crashing and restarting (meaning it's a new stream that's a semantic continuation of the previous stream with the same name).\r\n\r\n(this is in some sense similar to how HTTP uses ETag)",
       "createdAt": "2023-11-09T17:13:44Z",
-      "updatedAt": "2023-11-15T20:20:11Z",
+      "updatedAt": "2024-02-07T22:55:29Z",
       "closedAt": null,
       "comments": [
         {
@@ -12417,6 +12472,20 @@
           "body": "> What Victor is proposing is that by default, ANNOUNCE is mutually exclusive unless you can provide an identical token. Something like:\r\n\r\nI was actually thinking of new process starting with `group=0` again, since I don't think there is currently any way in the protocol to know that the previous process ended with `group=69`.",
           "createdAt": "2023-11-15T20:20:11Z",
           "updatedAt": "2023-11-15T20:20:11Z"
+        },
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "A related question is how long is the name/namespace combo unique.",
+          "createdAt": "2024-02-07T22:28:58Z",
+          "updatedAt": "2024-02-07T22:28:58Z"
+        },
+        {
+          "author": "englishm",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "+1 to some kind of unique token here. Unsure about the details.",
+          "createdAt": "2024-02-07T22:55:28Z",
+          "updatedAt": "2024-02-07T22:55:28Z"
         }
       ]
     },
@@ -12792,11 +12861,13 @@
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
       "labels": [
-        "Needs Discussion"
+        "Needs Discussion",
+        "Object Model",
+        "Subscribe"
       ],
       "body": "Sec 6.4.2: \"If the Track Alias is already in\t\r\n \t      use, the publisher MUST close the session with a Duplicate Track\t\r\n \t      Alias error (Section 3.5).\"\r\n\r\nThis makes sense if it's a different track name. But if it's the same track for two subscriptions, they should have the same track_alias, right? What's the purpose of track alias and subscribe ID always going together in objects, anyway?\r\n \t\r\n\r\n",
       "createdAt": "2024-01-26T22:52:27Z",
-      "updatedAt": "2024-02-04T23:38:16Z",
+      "updatedAt": "2024-02-07T17:13:56Z",
       "closedAt": null,
       "comments": [
         {
@@ -12899,12 +12970,22 @@
       "author": "wilaw",
       "authorAssociation": "NONE",
       "assignees": [],
-      "labels": [],
+      "labels": [
+        "Subscribe"
+      ],
       "body": "1. Consider the following sequence of groups and objects, some already produced , some that will be produced in the future. The largest group ID is currently 23 and the largest object ID is 3 (it also happens to be the last object in the group). \r\n\r\n![Screenshot 2024-02-01 at 9 15 24 PM](https://github.com/moq-wg/moq-transport/assets/2762250/421edef1-3110-4a05-8544-1e4ec2662423)\r\n\r\n\r\nOur definitions for RelativePrevious and RelativeNext are shown here. \r\n\r\n> RelativePrevious (0x2): Value is a delta from the largest sequence. 0 is the largest sequence, 1 is the largest sequence - 1, and so on.\r\n> RelativeNext (0x3): Value is a delta from the largest sequence. 0 is the largest sequence + 1, 1 is the largest sequence + 2, and so on.\r\n\r\nExample 6.4.3.1 for 'now' shows\r\n\r\n```\r\nStart Group: Mode=RelativePrevious, Value=0\r\nStart Object: Mode=RelateiveNext, Value=0\r\nEnd Group: Mode=None\r\nEnd Object: Mode=None\r\n\r\nStartGroup=Largest Group\r\nStartObject=Largest Object + 1\r\n```\r\n\r\nIn our example, largest group is 23, however Largest Object + 1 is 4, which does not exist. We need to adjust the definition of RelativeNext to allow for the fact that the next object may be in a different group.\r\n\r\n2. There may be some players who simply want the relay to send the next available Object, in this example Object 0 of group 24. \r\n\r\nThere is no current way to reliably ask for this, because StartGroup mode cannot be 'none', and we don't know which group that object will belong to. It may be in the currently largest group, or it may be in the next group. \r\n\r\nA solution here would be to relax the constraint that StartGroup mode cannot be 'none'. If we then request\r\n\r\n```\r\nStart Group: Mode=None\r\nStart Object: Mode=RelativeNext, Value=0\r\n```\r\n\r\nit would instruct the relay \"Send me your next object, no matter which group it belongs to\".\r\n\r\n5. In 6.4.3 we have examples titled 'Now',  'Current', \"previous\" and 'Next\".  \r\n\r\n'Now',  'Current'  are synonymous to most readers. We need to better titles to illustrate what is actually being requested here. Additionally, \r\n\"Previous' doesn't indicate whether we want the previous group, or previous object. Similarly for next.\r\n\r\n\r\n\r\n\r\n\r\n\r\n",
       "createdAt": "2024-02-01T20:50:29Z",
-      "updatedAt": "2024-02-01T20:50:29Z",
+      "updatedAt": "2024-02-07T00:39:50Z",
       "closedAt": null,
-      "comments": []
+      "comments": [
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Individual Comment: \r\n\r\nYou are right that the example (and the text likely) don't show the full range of possibilities for what the next object will be.  The intent was that Start = Prev/0, Next/0 will get you the next object, which could be any object in the current group greater than largest, or the first object in the next group.  This is how my implementation handles it.  \r\n\r\nI don't see a way to get *only* the next object in the current draft, however, because of the ambiguity you describe. \r\n\r\n",
+          "createdAt": "2024-02-07T00:39:39Z",
+          "updatedAt": "2024-02-07T00:39:39Z"
+        }
+      ]
     },
     {
       "number": 355,
@@ -12915,10 +12996,12 @@
       "author": "vasilvv",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
-      "labels": [],
+      "labels": [
+        "Wire Format"
+      ],
       "body": "In our current encoding, you can stream objects without knowing their length in advance if your forwarding preference is Object or Datagram, but not if it's Track or Stream (since those require explicit lengths in the front).  I feel like those two aspects should not be tied: we should either support or not support streaming for all preferences.",
       "createdAt": "2024-02-05T14:19:55Z",
-      "updatedAt": "2024-02-05T19:22:16Z",
+      "updatedAt": "2024-02-07T01:59:10Z",
       "closedAt": null,
       "comments": [
         {
@@ -12927,8 +13010,169 @@
           "body": "Individual Comment:\r\n\r\nIn order to stream multiple objects with unknown lengths in a multi-object stream, you'd need additional framing.    \r\n\r\nAlternately, we could create single-object variants of the TRACK and GROUP stream header.",
           "createdAt": "2024-02-05T19:22:15Z",
           "updatedAt": "2024-02-05T19:22:15Z"
+        },
+        {
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I agree it's weird to have a mix of unframed and framed messages.\r\n\r\nWhile I prefer unframed streams... I think we should state that MoQ objects are always framed, represent a single point in time, and have a known length. It's an optimization to withhold the length in the datagram and dedicated stream case but maybe we should include it.",
+          "createdAt": "2024-02-07T01:59:09Z",
+          "updatedAt": "2024-02-07T01:59:09Z"
         }
       ]
+    },
+    {
+      "number": 356,
+      "id": "I_kwDOG2Ho4M5-dqe7",
+      "title": "SUBSCRIBE_FIN/RST for old subscriptions",
+      "url": "https://github.com/moq-wg/moq-transport/issues/356",
+      "state": "OPEN",
+      "author": "martinduke",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [
+        "Subscribe"
+      ],
+      "body": "Sections 6.8 and 6.9 strongly imply that SUBSCRIBE_FIN/RST are sent at the true end of the track. So are they not sent at the conclusion of a SUBSCRIBE that does not cover the end of the track?\r\n\r\nFor example, if the last object of a track is (10, 12), and there's one subscribe for (4,0) to (5, 100)\r\n\r\nIs there a SUBSCRIBE_FIN?\r\n\r\nIf not, how does the subscriber know that in fact (5, 60) is the last object in that subscription?\r\n\r\nIf so, does Final Group and Final Object refer to the last object in the subscription?",
+      "createdAt": "2024-02-06T21:36:07Z",
+      "updatedAt": "2024-02-07T02:33:50Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Individual Comment: \r\n\r\nPutting my HTTP hat on for a second, when you ask for something with unknown length, you infer from a graceful termination that the last thing you got was the true end of that resource.  If you send a range request, the graceful termination at the end does not convey that the last thing was the true end.  Once the object expires, you can issue another request to the same name and potentially get a totally different thing.\r\n\r\nDoes this model work for moq, or do we need something different?\r\n\r\n",
+          "createdAt": "2024-02-07T02:33:39Z",
+          "updatedAt": "2024-02-07T02:33:39Z"
+        }
+      ]
+    },
+    {
+      "number": 357,
+      "id": "I_kwDOG2Ho4M5-joqx",
+      "title": "Objects before SUBSCRIBE_OK",
+      "url": "https://github.com/moq-wg/moq-transport/issues/357",
+      "state": "OPEN",
+      "author": "martinduke",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [
+        "Needs PR",
+        "Subscribe"
+      ],
+      "body": "Since they're on different streams, an object can arrive before its SUBSCRIBE_OK. This is easy to process because the Subscribe ID and Track Alias must have been the ones that the subscriber chose.\r\n\r\nWhat if the publisher then sends a SUBSCRIBE_ERROR? Is this valid behavior or an error?\r\n\r\n(If it weren't for the Expires field, SUBSCRIBE_OK would be entirely redundant and we could get rid of it.)",
+      "createdAt": "2024-02-07T15:18:37Z",
+      "updatedAt": "2024-02-07T16:39:22Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Individual Comment:\r\n\r\nThis is covered a bit in #310 and Luke expressed a desire to document the full state machine in #237.  My read is that you can't send objects before SUBSCRIBE OK (but they can arrive out of order).  I don't think you can send SUBSCRIBE_ERROR after SUBSCRIBE_OK (objects or no objects), instead, use SUBSCRIBE_RST?",
+          "createdAt": "2024-02-07T15:29:44Z",
+          "updatedAt": "2024-02-07T15:29:44Z"
+        },
+        {
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "I agree that SUBSCRIBE_ERROR cannot follow SUBSCRIBE_OK.\r\n\r\nI think you're saying that if Objects are in flight, then SUBSCRIBE_OK must be as well, so a SUBSCRIBE_ERROR would in itself be an error. That sounds reasonable to me.",
+          "createdAt": "2024-02-07T15:50:24Z",
+          "updatedAt": "2024-02-07T15:50:24Z"
+        }
+      ]
+    },
+    {
+      "number": 358,
+      "id": "I_kwDOG2Ho4M5-kncp",
+      "title": "Tighten definition of ObjectID and GroupID ",
+      "url": "https://github.com/moq-wg/moq-transport/issues/358",
+      "state": "OPEN",
+      "author": "wilaw",
+      "authorAssociation": "NONE",
+      "assignees": [],
+      "labels": [],
+      "body": "Current prose should be updated to indicate that \r\n1. ObjectID and GroupID are integers. The Object header implicitly defines this, but it should be stated explicitly.\r\n2. ObjectID MUST only increment by 1\r\n3. The GroupID MUST always increase. \r\n4. The GroupID may start at any value >= 0\r\n5. The GroupID can increase by any value >= 1. ",
+      "createdAt": "2024-02-07T17:28:23Z",
+      "updatedAt": "2024-02-07T23:53:15Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "So I think this needs to be clear that this is for object inside a given quic stream and does not apply cross stream. \r\n\r\nI would say on point 1, they are var len unsigned integers. \r\n\r\nOn #2, do we have a reason that we don't allow object to increase my more than one. \r\n\r\n\r\n",
+          "createdAt": "2024-02-07T23:53:15Z",
+          "updatedAt": "2024-02-07T23:53:15Z"
+        }
+      ]
+    },
+    {
+      "number": 359,
+      "id": "I_kwDOG2Ho4M5-k17M",
+      "title": "Update PREFER_DATAGRAM to require DATAGRAM only delivery",
+      "url": "https://github.com/moq-wg/moq-transport/issues/359",
+      "state": "OPEN",
+      "author": "suhasHere",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "This came out of interim that falling back to stream for Datagram delivery is not an great idea \r\n",
+      "createdAt": "2024-02-07T18:01:32Z",
+      "updatedAt": "2024-02-07T18:02:56Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 361,
+      "id": "I_kwDOG2Ho4M5-mWru",
+      "title": "Objects with identical names should be bit identical",
+      "url": "https://github.com/moq-wg/moq-transport/issues/361",
+      "state": "OPEN",
+      "author": "suhasHere",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [
+        "fluffy"
+      ],
+      "labels": [],
+      "body": "This came as part of interim at Denver when discussing multiple announce for same track.\r\nThere needs to text that mandates, if 2 objects comes with same name, they need to be bit identical.\r\n\r\nAlso needs to clarify on how long the name needs to be unique",
+      "createdAt": "2024-02-07T22:09:36Z",
+      "updatedAt": "2024-02-07T22:28:17Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 362,
+      "id": "I_kwDOG2Ho4M5-mXyI",
+      "title": "Add text to clarify relay behavior when there are multiple announces",
+      "url": "https://github.com/moq-wg/moq-transport/issues/362",
+      "state": "OPEN",
+      "author": "suhasHere",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [
+        "fluffy"
+      ],
+      "labels": [],
+      "body": "At interim, to support make before break use-cases, we need to clarify relay behavior when a new announce arrives for existing published. \r\n",
+      "createdAt": "2024-02-07T22:13:29Z",
+      "updatedAt": "2024-02-07T22:27:42Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 363,
+      "id": "I_kwDOG2Ho4M5-mtXs",
+      "title": "UNSUBSCRIBE is underspecified",
+      "url": "https://github.com/moq-wg/moq-transport/issues/363",
+      "state": "OPEN",
+      "author": "ianswett",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [
+        "Subscribe"
+      ],
+      "body": "UNSUBSCRIBE has some items I'd like clarified.\r\n\r\nHow do you know the last Group and Object that will be delivered?  Do you get a SUBSCRIBE_RST or SUBSCRIBE_FIN?  Or maybe we want to allow the UNSUBSCRIBE to specify that last Object it wants delivered, somewhat similar to a GOAWAY.  We could also allow the subscriber to RST the SUBSCRIBE?\r\n\r\nOr maybe we don't care about knowing the final Object?",
+      "createdAt": "2024-02-07T23:23:04Z",
+      "updatedAt": "2024-02-07T23:23:23Z",
+      "closedAt": null,
+      "comments": []
     }
   ],
   "pulls": [
@@ -44964,7 +45208,7 @@
       "labels": [],
       "body": "This PR cleans up some nits to make all the places we use the RFC9000 encoding syntax valid, updates our extensions to it, and add a non normative summary of parts of the syntax we use. \r\n\r\nI don't think this is making any changes to anything on the wire or normative changes to spec other than the statement SHOULD use smallest number of bytes for variable length integers which RFC9000 only requires for some fields. \r\n\r\n",
       "createdAt": "2024-02-04T21:42:04Z",
-      "updatedAt": "2024-02-05T06:50:16Z",
+      "updatedAt": "2024-02-07T02:48:06Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "d97485d4fb39d1f1fc0e88b7291dd14c36ebe836",
@@ -45035,8 +45279,74 @@
           "createdAt": "2024-02-05T06:50:16Z",
           "updatedAt": "2024-02-05T06:50:16Z",
           "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5vRGLh",
+          "commit": {
+            "abbreviatedOid": "fbe690f"
+          },
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-02-07T02:11:06Z",
+          "updatedAt": "2024-02-07T02:12:41Z",
+          "comments": [
+            {
+              "originalPosition": 53,
+              "body": "`RECOMMENDED` maybe, but I would just remove this sentence IMO.\r\n\r\nI actually used a 2-byte varint for packet sizes in QUIC so I could avoid a copy once the final size is known. I imagine you could do something similar in MoQ, or use larger varints to make rewriting OBJECT headers easier.\r\n\r\nEither way we can't say MUST and I'm not sure what we gain with a SHOULD. A decoder has to be prepared for anything.",
+              "createdAt": "2024-02-07T02:11:06Z",
+              "updatedAt": "2024-02-07T02:12:41Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5vRRkt",
+          "commit": {
+            "abbreviatedOid": "fbe690f"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-02-07T02:48:06Z",
+          "updatedAt": "2024-02-07T02:48:06Z",
+          "comments": [
+            {
+              "originalPosition": 53,
+              "body": "Consider an RFC 6919 \"OUGHT TO\" https://datatracker.ietf.org/doc/html/rfc6919#section-4",
+              "createdAt": "2024-02-07T02:48:06Z",
+              "updatedAt": "2024-02-07T02:48:06Z"
+            }
+          ]
         }
       ]
+    },
+    {
+      "number": 360,
+      "id": "PR_kwDOG2Ho4M5mTyKY",
+      "title": "Make Datagram mode as REQUIRED",
+      "url": "https://github.com/moq-wg/moq-transport/pull/360",
+      "state": "OPEN",
+      "author": "suhasHere",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Addresses #359 ",
+      "createdAt": "2024-02-07T21:17:55Z",
+      "updatedAt": "2024-02-07T22:29:48Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "d97485d4fb39d1f1fc0e88b7291dd14c36ebe836",
+      "headRepository": "moq-wg/moq-transport",
+      "headRefName": "datagram",
+      "headRefOid": "028791d85fed139e605aa3c6f559779f70d60d06",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": []
     }
   ]
 }
