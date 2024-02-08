@@ -955,7 +955,7 @@ stream if it is possible to send it as a datagram.
 
 ~~~
 OBJECT_PREFER_DATAGRAM Message {
-  Subscription ID (i),
+  Subscribe ID (i),
   Track Alias (i),
   Group ID (i),
   Object ID (i),
