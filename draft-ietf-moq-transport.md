@@ -1285,11 +1285,6 @@ SUBSCRIBE_OK
 
 * Subscribe ID: Subscription Identifer as defined in {{message-subscribe-req}}.
 
-* Track Namespace: Identifies the namespace of the track as defined in
-({{track-name}}).
-
-* Track Name: Identifies the track name as defined in ({{track-name}}).
-
 * Expires: Time in milliseconds after which the subscription is no
 longer valid. A value of 0 indicates that the subscription stays active
 until it is explicitly unsubscribed.
