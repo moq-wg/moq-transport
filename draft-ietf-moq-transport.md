@@ -672,8 +672,9 @@ limits.  See section 2.2 in {{QUIC}}.
 
 # Messages {#message}
 
-Both unidirectional and bidirectional streams contain sequences of
-length-delimited messages.
+Bidirectional streams contain sequences of length-delimited messages.
+Unidirectional streams contain sequences of one or more objects that do not
+have a message type.
 
 An endpoint that receives an unknown message type MUST close the session.
 
@@ -688,10 +689,6 @@ MOQT Message {
 |-------|-----------------------------------------------------|
 | ID    | Messages                                            |
 |------:|:----------------------------------------------------|
-| 0x0   | OBJECT_STREAM ({{object-message-formats}})          |
-|-------|-----------------------------------------------------|
-| 0x1   | OBJECT_PREFER_DATAGRAM ({{object-message-formats}}) |
-|-------|-----------------------------------------------------|
 | 0x3   | SUBSCRIBE ({{message-subscribe-req}})               |
 |-------|-----------------------------------------------------|
 | 0x4   | SUBSCRIBE_OK ({{message-subscribe-ok}})             |
@@ -717,10 +714,6 @@ MOQT Message {
 | 0x40  | CLIENT_SETUP ({{message-setup}})                    |
 |-------|-----------------------------------------------------|
 | 0x41  | SERVER_SETUP ({{message-setup}})                    |
-|-------|-----------------------------------------------------|
-| 0x50  | STREAM_HEADER_TRACK ({{multi-object-streams}})      |
-|-------|-----------------------------------------------------|
-| 0x51  | STREAM_HEADER_GROUP ({{multi-object-streams}})      |
 |-------|-----------------------------------------------------|
 
 ## Parameters {#params}
@@ -890,30 +883,38 @@ group.
 * Object Send Order: An integer indicating the object send order
 {{send-order}} or priority {{ordering-by-priorities}} value.
 
-* Object Forwarding Preference: An enumeration indicating how a sender sends an
-object. The preferences are Track, Group, Object and Datagram.  An Object MUST
-be sent according to its `Object Forwarding Preference`, described below.
-
 * Object Payload: An opaque payload intended for the consumer and SHOULD
 NOT be processed by a relay.
 
 ### Object Message Formats
 
-**Object Stream Message**
+Objects are delivered in unidirectional streams. Each object is preceded by a
+header that contains metadata about the object. The format of this header
+depednds on the forwarding preference for the track, as communicated by the
+SUBSCRIBE_OK message {{message-subscribe-ok}}.
 
-An `OBJECT_STREAM` message carries a single object on a stream.  There is no
-explicit length of the payload; it is determined by the end of the stream.  An
-`OBJECT_STREAM` message MUST be the first and only message on a unidirectional
-stream.
+The first bytes of every unidirectional stream encode the subscribe ID, which
+refers to a SUBSCRIBE_OK that contains parsing instructions. Note that if
+a streams arrives for a subscribe_id for which a SUBSCRIBE_OK has not arrived,
+the receiver ought to buffer objects for that stream until it receives the
+SUBSCRIBE_OK. Due to resource constraints, the receiver could opt to send
+STOP_SENDING for the stream instead.
 
-An Object received in an `OBJECT_STREAM` message has an `Object Forwarding
-Preference` = `Object`.
+**Object or Prefer Datagram Forwarding Preference**
+
+The format of an Object header delivered for the Object or Datagram forwarding
+preference is identical, although the latter is usually delivered via a QUIC or
+Webtransport Datagram.
+
+A single object is on each stream or in each datagram. There is no explicit
+length of the payload; it is determined by the end of the stream or datagram.
+The object MUST be the only data on a datagram or unidirectional stream.
 
 To send an Object with `Object Forwarding Preference` = `Object`, open a stream,
 serialize object fields below, and terminate the stream.
 
 ~~~
-OBJECT_STREAM Message {
+Object Stream Header {
   Subscribe ID (i),
   Track Alias (i),
   Group ID (i),
@@ -922,7 +923,7 @@ OBJECT_STREAM Message {
   Object Payload (...),
 }
 ~~~
-{: #moq-transport-object-stream-format title="MOQT OBJECT_STREAM Message"}
+{: #object-object-format title="MOQT Stream header for Object or Datagram Forwarding Preference"}
 
 * Subscribe ID: Subscription Identifer as defined in {{message-subscribe-req}}.
 
@@ -935,111 +936,23 @@ the receiver MUST close the session with a Protocol Violation.
 
 * Other fields: As described in {{canonical-object-fields}}.
 
-**Object Prefer Datagram Message**
+**Group Forwarding Preference**
 
-An `OBJECT_PREFER_DATAGRAM` message carries a single object in a datagram or
-a stream. There is no explicit length of the payload; it is determined by the
-length of the datagram or stream.  If this message appears on a stream, it MUST
-be the only message on a unidirectional stream.
-
-An Object received in an `OBJECT_PREFER_DATAGRAM` message has an `Object
-Forwarding Preference` = `Datagram`.
-
-To send an Object with `Object Forwarding Preference` = `Datagram`, determine
-the length of the fields and payload, and compare the length with the maximum
-datagram size of the session.  If the object size is less than or equal maximum
-datagram size, send the serialized data as a datagram.  Otherwise, open a
-stream, send the serialized data and terminate the stream.  An implementation
-SHOULD NOT send an Object with `Object Forwarding Preference` = `Datagram` on a
-stream if it is possible to send it as a datagram.
+When the forwarding preference for a subscription is "Group" the stream begins
+with a Group Stream Header.
 
 ~~~
-OBJECT_PREFER_DATAGRAM Message {
-  Subscribe ID (i),
-  Track Alias (i),
-  Group ID (i),
-  Object ID (i),
-  Object Send Order (i),
-  Object Payload (...),
-}
-~~~
-{: #object-datagram-format title="MOQT OBJECT_PREFER_DATAGRAM Message"}
-
-### Multi-Object Streams
-
-When multiple objects are sent on a stream, the stream begins with a stream
-header message and is followed by one or more sets of serialized object fields.
-If a stream ends gracefully in the middle of a serialized Object, terminate the
-session with a Protocol Violation.
-
-A sender SHOULD NOT open more than one multi-object stream at a time with the
-same stream header message type and fields.
-
-
-TODO: figure out how a relay closes these streams
-
-**Stream Header Track**
-
-When a stream begins with `STREAM_HEADER_TRACK`, all objects on the stream
-belong to the track requested in the Subscribe message identified by `Subscribe
-ID`.  All objects on the stream have the `Object Send Order` specified in the
-stream header.
-
-
-~~~
-STREAM_HEADER_TRACK Message {
-  Subscribe ID (i)
-  Track Alias (i),
-  Object Send Order (i),
-}
-~~~
-{: #stream-header-track-format title="MOQT STREAM_HEADER_TRACK Message"}
-
-All Objects received on a stream opened with STREAM_HEADER_TRACK have an `Object
-Forwarding Preference` = `Track`.
-
-To send an Object with `Object Forwarding Preference` = `Track`, find the open
-stream that is associated with the subscription, or open a new one and send the
-`STREAM_HEADER_TRACK` if needed, then serialize the the following object fields.
-
-~~~
-{
-  Group ID (i),
-  Object ID (i),
-  Object Payload Length (i),
-  Object Payload (...),
-}
-~~~
-{: #object-track-format title="MOQT Track Stream Object Fields"}
-
-**Stream Header Group**
-
-A sender MUST NOT send an Object on a stream if its Group ID is less than a
-previously sent Group ID on that stream, or if its Object ID is less than or
-equal to a previously sent Object ID within a given group on that stream.
-
-When a stream begins with `STREAM_HEADER_GROUP`, all objects on the stream
-belong to the track requested in the Subscribe message identified by `Subscribe
-ID` and the group indicated by `Group ID`.  All objects on the stream
-have the `Object Send Order` specified in the stream header.
-
-~~~
-STREAM_HEADER_GROUP Message {
+Group Stream Header {
   Subscribe ID (i),
   Track Alias (i),
   Group ID (i)
   Object Send Order (i)
 }
 ~~~
-{: #stream-header-group-format title="MOQT STREAM_HEADER_GROUP Message"}
+{: #group-stream-format title="MOQT stream header for Group forwarding preference)"}
 
-All Objects received on a stream opened with `STREAM_HEADER_GROUP` have an
-`Object Forwarding Preference` = `Group`.
-
-To send an Object with `Object Forwarding Preference` = `Group`, find the open
-stream that is associated with the subscription, `Group ID` and `Object
-Send Order`, or open a new one and send the `STREAM_HEADER_GROUP` if needed,
-then serialize the following fields.
+This is followed one or more object headers and
+their corresponding object payloads.
 
 ~~~
 {
@@ -1048,17 +961,54 @@ then serialize the following fields.
   Object Payload (...),
 }
 ~~~
-{: #object-group-format title="MOQT Group Stream Object Fields"}
+{: #group-object-format title="MOQT object header for Group forwarding preference"}
 
-A sender MUST NOT send an Object on a stream if its Object ID is less than a
-previously sent Object ID within a given group in that stream.
+If a stream ends gracefully in the middle of a serialized Object, terminate the
+session with a Protocol Violation.
+
+A sender MUST NOT open more than stream for a given group and the same
+subscription.
+
+TODO: figure out how a relay closes these streams
+
+**Track Forwarding Preference**
+
+When the forwarding preference for a subscription is "Track" the stream begins
+with a Track Stream Header.
+
+~~~
+Track Stream Header {
+  Subscribe ID (i),
+  Track Alias (i),
+  Object Send Order (i)
+}
+~~~
+{: #track-stream-format title="MOQT stream header for Track forwarding preference)"}
+
+This is followed one or more object headers and their corresponding object payloads.
+
+~~~
+{
+  Group ID (i),
+  Object ID (i),
+  Object Payload Length (i),
+  Object Payload (...),
+}
+~~~
+{: #track-object-format title="MOQT object header for Track forwarding preference"}
+
+If a stream ends gracefully in the middle of a serialized Object, terminate the
+session with a Protocol Violation.
+
+A sender MUST NOT open more than stream for a given track and the same
+subscription.
 
 ### Examples:
 
 Sending a track on one stream:
 
 ~~~
-STREAM_HEADER_TRACK {
+Track Stream Header {
   Subscribe ID = 1
   Track Alias = 1
   Object Send Order = 0
@@ -1077,13 +1027,12 @@ STREAM_HEADER_TRACK {
 }
 ~~~
 
-Sending a group on one stream, with a unordered object in the group appearing
-on its own stream.
+Sending a group on one stream.
 
 ~~~
 Stream = 2
 
-STREAM_HEADER_GROUP {
+Group Stream Header {
   Subscribe ID = 2
   Track Alias = 2
   Group ID = 0
@@ -1099,11 +1048,15 @@ STREAM_HEADER_GROUP {
   Object Payload Length = 4
   Payload = "efgh"
 }
+~~~
 
+Sending an object on its own stream.
+
+~~~
 Stream = 6
 
 OBJECT_STREAM {
-  Subscribe ID = 2
+  Subscribe ID = 3
   Track Alias = 2
   Group ID = 0
   Object ID = 1
@@ -1279,12 +1232,30 @@ A SUBSCRIBE_OK control message is sent for successful subscriptions.
 SUBSCRIBE_OK
 {
   Subscribe ID (i),
+  Forwarding Preference (8),
   Expires (i)
 }
 ~~~
 {: #moq-transport-subscribe-ok format title="MOQT SUBSCRIBE_OK Message"}
 
 * Subscribe ID: Subscription Identifer as defined in {{message-subscribe-req}}.
+
+* Forwarding Preference: indicates how objects are matched to streams, and
+therefore how objects headers are formatted in unidirectional streams. There are
+four possible values:
+
+0x00: Track. All objects in this subscription are delivered on exactly one stream.
+
+0x01: Group. All objects in each group in the subscription are delivered on
+exactly one stream.
+
+0x02: Object. Each object in the subscription is delivered on exactly one stream.
+
+0x03: Datagram. Each object in the subscription is delivered on a QUIC or
+WebTransport datagram, if possible. If not possible, it is delivered on exactly
+one stream.
+
+Any other value terminates the session with error PROTOCOL_VIOLATION.
 
 * Expires: Time in milliseconds after which the subscription is no
 longer valid. A value of 0 indicates that the subscription stays active
