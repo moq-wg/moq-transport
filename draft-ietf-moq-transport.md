@@ -886,19 +886,19 @@ group.
 * Object Payload: An opaque payload intended for the consumer and SHOULD
 NOT be processed by a relay.
 
-### Object Message Formats
+### Object Header Formats
 
 Objects are delivered in unidirectional streams. Each object is preceded by a
 header that contains metadata about the object. The format of this header
-depednds on the forwarding preference for the track, as communicated by the
-SUBSCRIBE_OK message {{message-subscribe-ok}}.
+depends on the forwarding preference for the track, as communicated by the
+SUBSCRIBE_OK message ({{message-subscribe-ok}}).
 
 The first bytes of every unidirectional stream encode the subscribe ID, which
-refers to a SUBSCRIBE_OK that contains parsing instructions. Note that if
-a streams arrives for a subscribe_id for which a SUBSCRIBE_OK has not arrived,
-the receiver ought to buffer objects for that stream until it receives the
-SUBSCRIBE_OK. Due to resource constraints, the receiver could opt to send
-STOP_SENDING for the stream instead.
+refers to a SUBSCRIBE_OK that contains parsing instructions. If a stream arrives
+for a subscribe_id for which a SUBSCRIBE_OK has not arrived, the receiver SHOULD
+buffer objects for that stream until it receives the SUBSCRIBE_OK. Due to
+resource constraints, the receiver could opt to send STOP_SENDING for the stream
+instead.
 
 **Object or Prefer Datagram Forwarding Preference**
 
@@ -966,8 +966,8 @@ their corresponding object payloads.
 If a stream ends gracefully in the middle of a serialized Object, terminate the
 session with a Protocol Violation.
 
-A sender MUST NOT open more than stream for a given group and the same
-subscription.
+A sender MUST NOT open more than one stream for a given tuple of subscribe_id,
+track_alias, and group_id.
 
 TODO: figure out how a relay closes these streams
 
@@ -1000,8 +1000,8 @@ This is followed one or more object headers and their corresponding object paylo
 If a stream ends gracefully in the middle of a serialized Object, terminate the
 session with a Protocol Violation.
 
-A sender MUST NOT open more than stream for a given track and the same
-subscription.
+A sender MUST NOT open more than one stream for a given tuple of subscribe_id
+and track_alias.
 
 ### Examples:
 
