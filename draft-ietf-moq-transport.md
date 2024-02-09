@@ -900,7 +900,7 @@ buffer objects for that stream until it receives the SUBSCRIBE_OK. Due to
 resource constraints, the receiver could opt to send STOP_SENDING for the stream
 instead.
 
-**Object or Prefer Datagram Forwarding Preference**
+**Object or Datagram Forwarding Preference**
 
 The format of an Object header delivered for the Object or Datagram forwarding
 preference is identical, although the latter is usually delivered via a QUIC or
