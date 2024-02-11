@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2024-02-08T01:04:59.607014+00:00",
+  "timestamp": "2024-02-11T01:10:39.808639+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -12015,7 +12015,7 @@
       ],
       "body": "The current approach of allowing any OBJECTs to arrive on any stream makes it impossible for the receiver to know when a group ends.\r\n\r\nThere's a few conditions when you need to know the end of a group:\r\n\r\n1. A relay being told to terminate the subscription after group N (subscription hints).\r\n2. A relay knowing when to close a QUIC stream (if it writes a group per stream).\r\n3. A decoder deciding when to start decoding/rendering the next group (ex. GoP).\r\n\r\nLikewise there's a similar problem of knowing when there's an gap within a group. There's no way to signal that OBJECT X will never arrive, so the receiver should not wait for it.",
       "createdAt": "2023-11-01T03:30:02Z",
-      "updatedAt": "2023-11-06T09:42:21Z",
+      "updatedAt": "2024-02-08T23:32:06Z",
       "closedAt": null,
       "comments": [
         {
@@ -12073,6 +12073,13 @@
           "body": "you guys have convinced me \r\n",
           "createdAt": "2023-11-06T09:42:21Z",
           "updatedAt": "2023-11-06T09:42:21Z"
+        },
+        {
+          "author": "huitema",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "As I mentioned during the interim meeting, it makes sense to put that information in the header of the next group. Something like:\r\n~~~\r\nSTREAM_HEADER_GROUP Message {\r\n  Subscribe ID (i),\r\n  Track Alias (i),\r\n  Group ID (i),\r\n  Previous Group ID(i),\r\n  Last Object ID of Previous Group(i),\r\n  Object Send Order (i)\r\n}\r\n~~~\r\nThat information can be used by the receiver to decide when to start playing the new group, and when to wait for more information instead. It is useful:\r\n\r\n* when using \"stream per object\", to understand how many individual objects are expected for the previous group,\r\n* when using \"stream per group\", if group numbers are skipped.\r\n\r\nThe downside is that the relay needs to know the value of previous group and last object before sending the first object of the next group. This may or may not be a problem in practice -- relays may be receiving the information from the origin. If the relay sets an overoptimistic value of previous object, it will have to send some kind of replacement for the skipped objects, such as\r\n~~~\r\nSTREAM_HEADER_RESET_GROUP\r\n{\r\n  Group ID (i),\r\n  Reset At Object ID (i)\r\n}\r\n~~~\r\nWhich will inform the receiver that the specified object ID and the following ones will not be sent for this group.\r\n",
+          "createdAt": "2024-02-08T23:32:05Z",
+          "updatedAt": "2024-02-08T23:32:05Z"
         }
       ]
     },
@@ -12801,7 +12808,7 @@
       "id": "I_kwDOG2Ho4M59WYbv",
       "title": "SUBSCRIBE needs Num Parameters field",
       "url": "https://github.com/moq-wg/moq-transport/issues/349",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "martinduke",
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
@@ -12811,8 +12818,8 @@
       ],
       "body": "if there are going to be \"track request parameters\" in subscribe, we need a way of indicating that it is present. Presumably via a NumParameters field.",
       "createdAt": "2024-01-26T22:48:15Z",
-      "updatedAt": "2024-02-01T15:43:06Z",
-      "closedAt": null,
+      "updatedAt": "2024-02-08T19:02:46Z",
+      "closedAt": "2024-02-08T19:02:46Z",
       "comments": [
         {
           "author": "afrind",
@@ -12942,7 +12949,7 @@
       ],
       "body": "Draft-02 strongly implies the forwarding preference is a per-object decision. thus the following sequences would be legal:\r\n[sequences are written as (group, object)]\r\n\r\nStream 2: (0, 1), (0, 2) (0, 3) (0, 5) -- type is StreamHeaderGroup\r\nStream 6: (0, 4) -- type is ObjectStream\r\n\r\nor\r\n\r\nStream 2: (0, 0), (1, 0), (2, 0), (3, 0) -- type is StreamHeaderTrack\r\nStream 6: (1,1) -- type is Object Stream\r\n\r\netc.\r\n\r\nIf someone can imagine a use case for this, that's great. If not, it would be easier to implement with different assumptions, e.g.\r\n\r\n(1) Forwarding preference is a track-level property. Thus the preference could be provided in the SUBSCRIBE_OK and we wouldn't evens strictly need four different object codepoints (though you would want the distinct formats, and might want to retain the codepoints for that reason)\r\n\r\n(2) Forwarding preference is group-level -- some groups could be aggregated under StreamHeaderTrack, but others could be under StreamHeaderGroup. If there is a StreamHeaderGroup for a group, there MUST NOT be object-level streams for that group.\r\n\r\nAgain, I have little sense of the use cases out there, but I think we should explicitly decide what we are doing and make it clear in  the doc.\r\n",
       "createdAt": "2024-01-29T19:09:34Z",
-      "updatedAt": "2024-01-31T16:32:41Z",
+      "updatedAt": "2024-02-09T18:36:42Z",
       "closedAt": null,
       "comments": [
         {
@@ -12958,6 +12965,34 @@
           "body": "I agree, this is very difficult for a decoder to support.\r\n\r\nThe target use-case is non-reference frames. In your first example, object 4 is optional so it gets its own stream. However the receiver doesn't know that, instead it just sees a gap between 3 and 5.\r\n\r\nDoes the receiver try to decode and catch any errors? How long does it wait before trying? If I want minimal latency, do I have to partially decode (on a per codec basis) to get the frame dependency graph?\r\n\r\nI really don't like this option. I instead want an explicit way to know that this object is a non-reference frame. \r\n\r\nIdeas:\r\n- Make a separate track for non-reference frames and SVC layers.\r\n- Receive a formula that every 3x+1 object is optional?\r\n- Receive a live object catalog containing metadata about each object.\r\n\r\nMy vote is a separate track and each track has a uniform forwarding preference. ",
           "createdAt": "2024-01-31T16:32:39Z",
           "updatedAt": "2024-01-31T16:32:39Z"
+        },
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I like the idea of uniform forwrarding preference for a track.  That's what I had in mind when we landed that PR.\r\n\r\nI can't think of any use cases this restriction prevents.",
+          "createdAt": "2024-02-08T17:37:27Z",
+          "updatedAt": "2024-02-08T17:37:27Z"
+        },
+        {
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "I think the consensus in Denver was to have one preference per track",
+          "createdAt": "2024-02-09T17:15:09Z",
+          "updatedAt": "2024-02-09T17:15:09Z"
+        },
+        {
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "body": "just to be clear , the preference is set as track level property and can have 4 values - track, object, group and datagram.",
+          "createdAt": "2024-02-09T18:02:33Z",
+          "updatedAt": "2024-02-09T18:02:33Z"
+        },
+        {
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "Yes, although for various reasons the PR I'm doing is going to make it subscription-level property. I think is hard to write it otherwise, and I can just about see a use case  for it.",
+          "createdAt": "2024-02-09T18:36:42Z",
+          "updatedAt": "2024-02-09T18:36:42Z"
         }
       ]
     },
@@ -13001,7 +13036,7 @@
       ],
       "body": "In our current encoding, you can stream objects without knowing their length in advance if your forwarding preference is Object or Datagram, but not if it's Track or Stream (since those require explicit lengths in the front).  I feel like those two aspects should not be tied: we should either support or not support streaming for all preferences.",
       "createdAt": "2024-02-05T14:19:55Z",
-      "updatedAt": "2024-02-07T01:59:10Z",
+      "updatedAt": "2024-02-08T22:08:36Z",
       "closedAt": null,
       "comments": [
         {
@@ -13017,6 +13052,13 @@
           "body": "I agree it's weird to have a mix of unframed and framed messages.\r\n\r\nWhile I prefer unframed streams... I think we should state that MoQ objects are always framed, represent a single point in time, and have a known length. It's an optimization to withhold the length in the datagram and dedicated stream case but maybe we should include it.",
           "createdAt": "2024-02-07T01:59:09Z",
           "updatedAt": "2024-02-07T01:59:09Z"
+        },
+        {
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "In meeting we decided add a length to everything. We can add extension later to have no length if we need ( Thanks to Mike E for suggestion ) ",
+          "createdAt": "2024-02-08T22:08:35Z",
+          "updatedAt": "2024-02-08T22:08:35Z"
         }
       ]
     },
@@ -13034,7 +13076,7 @@
       ],
       "body": "Sections 6.8 and 6.9 strongly imply that SUBSCRIBE_FIN/RST are sent at the true end of the track. So are they not sent at the conclusion of a SUBSCRIBE that does not cover the end of the track?\r\n\r\nFor example, if the last object of a track is (10, 12), and there's one subscribe for (4,0) to (5, 100)\r\n\r\nIs there a SUBSCRIBE_FIN?\r\n\r\nIf not, how does the subscriber know that in fact (5, 60) is the last object in that subscription?\r\n\r\nIf so, does Final Group and Final Object refer to the last object in the subscription?",
       "createdAt": "2024-02-06T21:36:07Z",
-      "updatedAt": "2024-02-07T02:33:50Z",
+      "updatedAt": "2024-02-09T17:14:40Z",
       "closedAt": null,
       "comments": [
         {
@@ -13043,6 +13085,13 @@
           "body": "Individual Comment: \r\n\r\nPutting my HTTP hat on for a second, when you ask for something with unknown length, you infer from a graceful termination that the last thing you got was the true end of that resource.  If you send a range request, the graceful termination at the end does not convey that the last thing was the true end.  Once the object expires, you can issue another request to the same name and potentially get a totally different thing.\r\n\r\nDoes this model work for moq, or do we need something different?\r\n\r\n",
           "createdAt": "2024-02-07T02:33:39Z",
           "updatedAt": "2024-02-07T02:33:39Z"
+        },
+        {
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "There are three different things you might want to communicate to a receiver at the end of the subscribe:\r\n\r\n1) You got all of the objects in the range;\r\n2) You got almost all of the objects, but some were dropped for latency/bandwidth reasons\r\n3) The track was truncated for some reason\r\n\r\nand possibly, 4?\r\n4) You got everything I have but i'm not sure if that's everything",
+          "createdAt": "2024-02-09T17:14:39Z",
+          "updatedAt": "2024-02-09T17:14:39Z"
         }
       ]
     },
@@ -13092,7 +13141,7 @@
       "labels": [],
       "body": "Current prose should be updated to indicate that \r\n1. ObjectID and GroupID are integers. The Object header implicitly defines this, but it should be stated explicitly.\r\n2. ObjectID MUST only increment by 1\r\n3. The GroupID MUST always increase. \r\n4. The GroupID may start at any value >= 0\r\n5. The GroupID can increase by any value >= 1. ",
       "createdAt": "2024-02-07T17:28:23Z",
-      "updatedAt": "2024-02-07T23:53:15Z",
+      "updatedAt": "2024-02-08T16:51:42Z",
       "closedAt": null,
       "comments": [
         {
@@ -13101,6 +13150,13 @@
           "body": "So I think this needs to be clear that this is for object inside a given quic stream and does not apply cross stream. \r\n\r\nI would say on point 1, they are var len unsigned integers. \r\n\r\nOn #2, do we have a reason that we don't allow object to increase my more than one. \r\n\r\n\r\n",
           "createdAt": "2024-02-07T23:53:15Z",
           "updatedAt": "2024-02-07T23:53:15Z"
+        },
+        {
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "body": "on 2 , i don't see a need for us to enforce monotonic unitary sequence for objectIds either. If the application needs it for certain purposes, it will generate the objectIds to match that pattern.\r\n\r\nI would just say GroupId and ObjectId needs to be increasing and SHOULD NOT be duplicated. (fine to not even have the latter part)",
+          "createdAt": "2024-02-08T16:51:41Z",
+          "updatedAt": "2024-02-08T16:51:41Z"
         }
       ]
     },
@@ -13113,10 +13169,12 @@
       "author": "suhasHere",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
-      "labels": [],
+      "labels": [
+        "Object Model"
+      ],
       "body": "This came out of interim that falling back to stream for Datagram delivery is not an great idea \r\n",
       "createdAt": "2024-02-07T18:01:32Z",
-      "updatedAt": "2024-02-07T18:02:56Z",
+      "updatedAt": "2024-02-08T19:00:54Z",
       "closedAt": null,
       "comments": []
     },
@@ -13166,11 +13224,250 @@
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [
+        "Needs PR",
         "Subscribe"
       ],
       "body": "UNSUBSCRIBE has some items I'd like clarified.\r\n\r\nHow do you know the last Group and Object that will be delivered?  Do you get a SUBSCRIBE_RST or SUBSCRIBE_FIN?  Or maybe we want to allow the UNSUBSCRIBE to specify that last Object it wants delivered, somewhat similar to a GOAWAY.  We could also allow the subscriber to RST the SUBSCRIBE?\r\n\r\nOr maybe we don't care about knowing the final Object?",
       "createdAt": "2024-02-07T23:23:04Z",
-      "updatedAt": "2024-02-07T23:23:23Z",
+      "updatedAt": "2024-02-08T17:32:45Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "#269 concluded we want SUBSCRIBE_UPDATE, which is probably a better featureset than the current UNSUBSCRIBE anyway.",
+          "createdAt": "2024-02-08T17:32:37Z",
+          "updatedAt": "2024-02-08T17:32:37Z"
+        }
+      ]
+    },
+    {
+      "number": 364,
+      "id": "I_kwDOG2Ho4M5-oWHO",
+      "title": "Remove track namespace and track name from SUBSCRIBE_OK text",
+      "url": "https://github.com/moq-wg/moq-transport/issues/364",
+      "state": "CLOSED",
+      "author": "zafergurel",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [
+        "Editorial"
+      ],
+      "body": "Track namespace and track name properties were removed from SUBSCRIBE_OK message in draft 02. But they are still part of the text under \"6.5.  SUBSCRIBE_OK\" which is confusing.",
+      "createdAt": "2024-02-08T07:18:17Z",
+      "updatedAt": "2024-02-08T19:00:20Z",
+      "closedAt": "2024-02-08T19:00:20Z",
+      "comments": []
+    },
+    {
+      "number": 365,
+      "id": "I_kwDOG2Ho4M5-oXej",
+      "title": "Change \"Subscription ID\" to \"Subscribe ID\" in OBJECT_PREFER_DATAGRAM",
+      "url": "https://github.com/moq-wg/moq-transport/issues/365",
+      "state": "CLOSED",
+      "author": "zafergurel",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [
+        "Editorial"
+      ],
+      "body": "Subscription is identified by \"Subscribe ID\" in other messages except OBJECT_PREFER_DATAGRAM.\r\n\r\n```\r\nOBJECT_PREFER_DATAGRAM Message {\r\n    Subscription ID (i), | \u00a0\r\n    Track Alias (i), | \u00a0\r\n    Group ID (i), | \u00a0\r\n    Object ID (i), | \u00a0\r\n    Object Send Order (i), | \u00a0\r\n    Object Payload (...), | \u00a0\r\n}\r\n```\r\n\r\n",
+      "createdAt": "2024-02-08T07:22:58Z",
+      "updatedAt": "2024-02-08T18:54:12Z",
+      "closedAt": "2024-02-08T18:54:12Z",
+      "comments": []
+    },
+    {
+      "number": 368,
+      "id": "I_kwDOG2Ho4M5-sBuM",
+      "title": "Subscribe vs Fetch and Object states",
+      "url": "https://github.com/moq-wg/moq-transport/issues/368",
+      "state": "OPEN",
+      "author": "vasilvv",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Posting this here, since I can't think of a better place, and we might want to make sure we have actual issues to track some of those.\r\n\r\n_Note: this issue tries to focus on what is being requested, without focusing on how those objects should be delivered (in terms of reliability, etc)._\r\n\r\nThe proposal is to introduce two logical operations in the protocol:\r\n- Subscribe.\r\n  - Subscribe indicates that all of the future objects for the specified track should be forwarded to the subscriber.\r\n  - The only argument is the starting point (do not forward objects that are before the specified point).\r\n  - There may only be one subscribe per connection.\r\n- Fetch.\r\n  - Fetch indicates that the requester desires to receive all objects within some well-defined range.\r\n  - The arguments are a starting point and an ending point.\r\n  - Fetch is supposed to be \u201cin the past\u201d, but some objects that are technically in the past might arrive later due to reordering, so it\u2019s unclear how useful declaring Fetch to be \u201cin the past\u201d actually is.\r\n\r\nThe main reason Fetch can have improved semantics over Subscribe is that it has a definite range of objects, and as a consequence:\r\n\r\n- The relay can enumerate all of the objects in the range to determine whether they are in cache or not.  Because of that, we can place an expectation that the relay will request objects from the upstream if they are missing from the cache when performing Fetch.\r\n- If the requested range is in the past, all objects can be resolved \u201csynchronously\u201d (i.e. there wouldn\u2019t be objects that are \u201cin the future\u201d, so all objects are either available or permanently gone).\r\n- While Subscribe is expected to just deliver objects as they arrive, Fetch allows for a possibility of objects being transmitted in various ways that would fit different use cases.\r\n\r\nLet\u2019s talk more about \u201cresolving\u201d objects.  A Fetch is supposed to resolve all objects in a range.  Potentially, every object can be in one of the following states:\r\n\r\n1. Object is available from relay\u2019s/publisher\u2019s memory.\r\n1. Object is partially available and is in the middle of being received.\r\n1. Object is in the future and has not been seen yet.\r\n1. Object is in the past, but the relay has not seen it yet (reordering).\r\n1. Object has been previously received and cached, but then evicted from the cache.\r\n1. Object has been explicitly described as permanently unavailable.\r\n1. Object was supposed to be received, but was temporarily dropped due to network conditions.\r\n1. (this list is meant to be exhaustive, but I am probably forgetting something)\r\n\r\nWe need to figure out how Fetch reacts to all of those.  We should also figure out how Subscribe deals with permanent and temporary drops, and whether it indicates those (or not).\r\n\r\nMy proposal was to add two messages that perform those operations:\r\n\r\n- ATOMIC_SUBSCRIBE_AND_FETCH requires the recipient to determine the \u201chead\u201d, which is the largest group/object ID received.  A Fetch is started for the range before the head, and Subscribe is started for all of the objects after.\r\n- FETCH is just a straightforward Fetch operation.\r\n\r\nWe need to analyze those with respect to various use cases, including:\r\n\r\n- Subscribing to the live head with some immediately preceding objects (\u201ccatch-up objects\u201d).  This is the most important use case, inasmuch as I believe other use cases listed below can be actually satisfied without MoQ.  Note that depending on the size of \u201ccatch-up objects\u201d, the desired transmission behavior might be different (if the range is small, those should probably be sent \u201cnewest first\u201d; if it\u2019s large, it has to be \u201coldest first\u201d, or the user would buffer).\r\n- DVR.\r\n- Clipping a fragment from the recent past as a stream highlight.\r\n- (I believe some other use cases were mentioned before, but I probably forgot)\r\n",
+      "createdAt": "2024-02-08T15:34:41Z",
+      "updatedAt": "2024-02-08T15:43:34Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 369,
+      "id": "I_kwDOG2Ho4M5-tYIY",
+      "title": "Are groups synchronized across a track namespace?",
+      "url": "https://github.com/moq-wg/moq-transport/issues/369",
+      "state": "CLOSED",
+      "author": "martinduke",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Presentations at the Denver interim seem to imply that group 8 represents the same point in time across all tracks in a bundle. This would certainly make a lot of things, like ABR, easier to handle.\r\n\r\nThe alternative would seem to be Catalog descriptions that indicate the relationship of time to group ID.",
+      "createdAt": "2024-02-08T18:30:07Z",
+      "updatedAt": "2024-02-08T19:09:04Z",
+      "closedAt": "2024-02-08T19:09:04Z",
+      "comments": [
+        {
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "Ah, I see Will's timeline proposal is another way to do this.",
+          "createdAt": "2024-02-08T18:53:36Z",
+          "updatedAt": "2024-02-08T18:53:36Z"
+        },
+        {
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "How one might design this:\r\nThe Catalog tells you how many groups per second there are for a broadcast. This is determined by whatever track has the most groups per secondl\r\n\r\nIf a track needs fewer groups per second, it skips group IDs accordingly.",
+          "createdAt": "2024-02-08T18:57:13Z",
+          "updatedAt": "2024-02-08T18:57:13Z"
+        },
+        {
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "Will's solution is more general, and the room seems to be in favor. Closing.",
+          "createdAt": "2024-02-08T19:09:04Z",
+          "updatedAt": "2024-02-08T19:09:04Z"
+        }
+      ]
+    },
+    {
+      "number": 370,
+      "id": "I_kwDOG2Ho4M5-tbAT",
+      "title": "Is there a way for client to ask relay to probe for bandwidth ",
+      "url": "https://github.com/moq-wg/moq-transport/issues/370",
+      "state": "OPEN",
+      "author": "fluffy",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "This keeps coming up so wanted to keep a place holder here. ",
+      "createdAt": "2024-02-08T18:38:21Z",
+      "updatedAt": "2024-02-08T18:38:21Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 371,
+      "id": "I_kwDOG2Ho4M5-tgKt",
+      "title": "Client side bandwidth estimation is difficult with app-limited traffic",
+      "url": "https://github.com/moq-wg/moq-transport/issues/371",
+      "state": "OPEN",
+      "author": "ianswett",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Client side bandwidth estimation is a challenge when the client doesn't know when the sender was app-limited and when it was congestion control limited.\r\n\r\nOne solution is to add a TIMESTAMP frame that has a relative timestamp of when the packet was serialized/sent.  It could also be useful to have a bool to indicate whether the sender was app-limited prior to the packet being sent.\r\n\r\nChristian has a draft (https://www.ietf.org/archive/id/draft-huitema-quic-ts-08.html) that could be used for this purpose.  The draft was written with the idea that it would be bundled with an ACK to allow removal of latency variability on the reverse path, but it seems like it could be bundled with some or all MOQ packets to improve client bandwidth estimation.",
+      "createdAt": "2024-02-08T18:50:36Z",
+      "updatedAt": "2024-02-08T18:50:36Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 372,
+      "id": "I_kwDOG2Ho4M5-tzPj",
+      "title": "Create an ability to pre-warm a track",
+      "url": "https://github.com/moq-wg/moq-transport/issues/372",
+      "state": "OPEN",
+      "author": "wilaw",
+      "authorAssociation": "NONE",
+      "assignees": [],
+      "labels": [],
+      "body": "At the interim there was interest in creating the ability for a receiver to ask a sender to subscribe to a track but not to forward it. The purpose of this is to minimize the delay when the receiver SUBSCRIBES to the track in the future. \r\n\r\nDesign considerations\r\n1. This would need to be converted to a regular SUBSCRIBE for forward requests. So any relay receiving a PREWARM request MUST never forward it.\r\n2. Is there a matching UNPREWARM, or would a regular UNSUBSCRIBE suffice?\r\n3. Do we need a new method PREWARM or can it be a flag on the existing SUBSCRIBE?\r\n4. This is a powerful DDOS attack vector. How do we mitigate that threat in the design? ",
+      "createdAt": "2024-02-08T19:36:06Z",
+      "updatedAt": "2024-02-10T22:07:30Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I find this concerning from a DDoS/memory exhaustion perspective.\r\n\r\nIs the motivation for this to minimize the latency of switching resolutions for video playback?  If so, couldn't you just issue a SUBSCRIBE at a lower priority and if it starts coming quickly, then start switching relatively soon, and if it takes a while, wait to switch.  Or is there a different usecase?",
+          "createdAt": "2024-02-08T20:21:55Z",
+          "updatedAt": "2024-02-08T20:21:55Z"
+        },
+        {
+          "author": "wilaw",
+          "authorAssociation": "NONE",
+          "body": "> Is the motivation for this to minimize the latency of switching resolutions for video playback? \r\n\r\nYes. \r\n\r\n> If so, couldn't you just issue a SUBSCRIBE at a lower priority and if it starts coming quickly, then start switching relatively soon, and if it takes a while, wait to switch\r\n\r\nThat would work for switching up, where you have the luxury of time (your switch can always occur later).  However the primary use case is in switching down, where you don't want to incur in the extra delay in the relay having to go back to origin to retrieve the new track. It also is an optimization when you have only 1 or a few clients subscribed to that relay for that presentation. Given a sufficiently large cohort of clients, the relay would be naturally warmed. \r\n\r\n> I find this concerning from a DDoS/memory exhaustion perspective.\r\n\r\nI agree on the DDOS concern, as the OP states. However, from a memory exhaustion, this is really no different from having  a multiplicity of clients each pulling a different track from the relay. 1 client pulling 3 tracks is the same relay memory requirement as 100 clients asking for those same 3 tracks. ",
+          "createdAt": "2024-02-08T20:37:21Z",
+          "updatedAt": "2024-02-08T20:37:21Z"
+        },
+        {
+          "author": "gwendalsimon",
+          "authorAssociation": "NONE",
+          "body": "> I find this concerning from a DDoS/memory exhaustion perspective.\r\n\r\n+1 on the concern. The risk of overloading the CDN backbone unnecessarily is significant. Furthermore, any just-in-time processing (transcoding and packaging) would be useless although these are not only money but also energy reduction",
+          "createdAt": "2024-02-08T20:38:06Z",
+          "updatedAt": "2024-02-08T20:38:06Z"
+        },
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Based on discussion, it seems the hope is to prewarm a resolution lower than the current one, so if a player needed to switch to a lower quality, it would succeed quickly.  One question is whether this needs to live in MOQT.\r\n\r\nI can imagine a CDN doing the work to parse catalogs (or use ML, etc) and understand what the next lowest resolution track is, and then decide whether to proactively SUBSCRIBE to it.\r\n\r\nIn my mind, MOQT is about the intent of the subscriber, and indicating \"I might want this track, but not now\" is a fairly weak signal.  Admittedly, if we had a more complex subscribe that included multiple qualities, then the full intent would be indicated.\r\n\r\nI would like to park this until we have a better handle on SUBSCRIBE, unless there's a need to resolve it earlier.",
+          "createdAt": "2024-02-09T07:05:02Z",
+          "updatedAt": "2024-02-09T07:05:02Z"
+        },
+        {
+          "author": "hardie",
+          "authorAssociation": "COLLABORATOR",
+          "body": "On Fri, Feb 9, 2024 at 7:05\u202fAM ianswett ***@***.***> wrote:\r\n\r\n> Based on discussion, it seems the hope is to prewarm a resolution lower\r\n> than the current one, so if a player needed to switch to a lower quality,\r\n> it would succeed quickly. One question is whether this needs to live in\r\n> MOQT.\r\n>\r\n> I can imagine a CDN doing the work to parse catalogs (or use ML, etc) and\r\n> understand what the next lowest resolution track is, and then decide\r\n> whether to proactively SUBSCRIBE to it.\r\n>\r\nWe've assumed so far that the relays don't have access to the catalog (for\r\nprivacy reasons as well as practical reasons).   Revisiting that decision\r\nfor this would seem like a big step backwards.\r\n\r\nI think one of the issues here is that there are a flock of cases where\r\nthere is no pre-warming needed, because the media will be popular enough\r\nthat a relay will have multiple alternates on hand for all but a few of the\r\nearliest subscribers.  There are also cases where the publisher is CPU or\r\nbandwidth limited (like a cell phone in an RTC videoconference) where it is\r\nimpractical to expect that they are producing a lot of different\r\nresolutions.  Those two being very common cases makes it difficult to see\r\nthe utility here.\r\n\r\nThe question is whether there is a substantial body of cases where the\r\npublisher is producing multiple streams but the number of consumers is low\r\nenough that a relay won't have most of them on hand.  Luke's experience at\r\nTwitch suggests that this does happen, and it happens fairly often.  For\r\nthat case, I think we could either presume that the client subscribes to\r\nmultiple resolutions and unsubscribes to higher resolutions as bandwidth or\r\nother bounds interfere or we could introduce something like a SUBSCRIBE\r\nwith a flag that indicates that no objects are wanted at this time.  That\r\nmight be as simple as the same beginning and end object being named.\r\nWhatever the syntax, that could be taken by a relay to mean that\r\npre-warming the empty subscribed tracks would be useful, since they may be\r\nwanted later.  The decision about whether to issue the upstream subscribe\r\nwould be a combination of business logic and local capacity, so the\r\nreceiver will always have to deal with a potential delay if it changes the\r\ntrack to which it is subscribed.\r\n\r\n> In my mind, MOQT is about the intent of the subscriber, and indicating \"I\r\n> might want this track, but not now\" is a fairly weak signal. Admittedly, if\r\n> we had a more complex subscribe that included multiple qualities, then the\r\n> full intent would be indicated.\r\n>\r\n> I would like to park this until we have a better handle on SUBSCRIBE,\r\n> unless there's a need to resolve it earlier.\r\n>\r\nI'm okay parking it as long as we indicate in the draft that SUBSCRIBE's\r\nsyntax is still under development and that new signals may be added.\r\n\r\n\r\n\r\n> \u2014\r\n> Reply to this email directly, view it on GitHub\r\n> <https://github.com/moq-wg/moq-transport/issues/372#issuecomment-1935429421>,\r\n> or unsubscribe\r\n> <https://github.com/notifications/unsubscribe-auth/AAKVXZBQXWBMOZROO26646DYSXDC3AVCNFSM6AAAAABDAKA6RSVHI2DSMVQWIX3LMV43OSLTON2WKQ3PNVWWK3TUHMYTSMZVGQZDSNBSGE>\r\n> .\r\n> You are receiving this because you are subscribed to this thread.Message\r\n> ID: ***@***.***>\r\n>\r\n",
+          "createdAt": "2024-02-09T09:40:02Z",
+          "updatedAt": "2024-02-09T09:40:02Z"
+        },
+        {
+          "author": "wilaw",
+          "authorAssociation": "NONE",
+          "body": "One of the largest problems in media delivery today is sparse clients consuming uncached edge content.  This problem is exacerbated at lower latencies, especially where target latency is a few multiples of RTT-to-origin. This is exactly the playground MoQ want to play in. I believe it will be very difficult to  build working ABR solutions at sub 350ms latency if a switch will entail a 100ms round trip to origin. \r\n\r\n> In my mind, MOQT is about the intent of the subscriber, and indicating \"I might want this track, but not now\" is a fairly weak signal.\r\n\r\nI would argue that \"I will desperately need this track in a hurry if I run in to delivery problems and I really, really need you to keep it warm at the edge\" is a pretty strong signal. \r\n\r\n> I can imagine a CDN doing the work to parse catalogs (or use ML, etc) and understand what the next lowest resolution track is, and then decide whether to proactively SUBSCRIBE to it.\r\n\r\nThe relays cannot read the catalogs, so this is not an option. The intelligence about track offerings resides in the client. \r\n\r\n> The risk of overloading the CDN backbone unnecessarily is significant. \r\n\r\nI don't think it is significant. If 5 clients arrive and happen to subscribe to 5 different tracks in a given presentation, we would call that normal playback and would expect the backbone to easily handle it. \r\n\r\n> The question is whether there is a substantial body of cases where the\r\n> publisher is producing multiple streams but the number of consumers is low\r\n> enough that a relay won't have most of them on hand.  Luke's experience at\r\n> Twitch suggests that this does happen, and it happens fairly often.\r\n\r\nAnd my experience at Akamai says exactly the same thing. It happens with live sports all the time. With highly distributed edges, the problem isn't that there aren't a lot of aggregate viewers, but that there a sparse viewers on certain edges (such as ones inside smaller ISPs, or rural areas). \r\n\r\nI think parking at this point is unnecessarily conservative. I don't see a future where every track of every Moq presentation is prewarmed. Instead I see cases where\r\n1. You only prewarm the lower bitrates of any given stack, or even just the lowest. \r\n2. You only do it for clients where the ratio of player buffer/RTT-to-origin is small. The player knows its buffer and the server could reports the distance to origin in the SUBSCRIBE_OK response, so the client could intelligently decide if prewarming would be useful. \r\n3. The delivery network will charge more for the increase in midgress traffic. Economics tend to tamper abuse. If you are delivering the Superbowl (Go SF) you will happily pay for the better QoE. \r\n4.  The delivery network can always choose not to honor prewarming and we can design a response to the client indicating  this. \r\n\r\nI would suggest we build a simple version of it into the protocol and then build POCs where we test and measure the real-world utility and cost. ",
+          "createdAt": "2024-02-09T18:07:21Z",
+          "updatedAt": "2024-02-09T18:07:21Z"
+        },
+        {
+          "author": "gwendalsimon",
+          "authorAssociation": "NONE",
+          "body": " > > The risk of overloading the CDN backbone unnecessarily is significant.\r\n> \r\n> I don't think it is significant. If 5 clients arrive and happen to subscribe to 5 different tracks in a given presentation, we would call that normal playback and would expect the backbone to easily handle it.\r\n\r\nOne use case does not make large probabilistic numbers; of course we will handle these five clients, but this case has low probability... Network infrastructures are not dimensioned to meet the worst possible case of traffic matrix but rather some probabilistic maximum traffic. \r\n\r\nAs discussed during the interim, dimensioning a backbone (which often includes peering link and IXP) that can handle actual traffic + pre-warmed traffic is just a business question. But I can also argue that, if pre-warmed tracks are not consumed, it is a net waste of network resources, which also translates into a waste of energy. Designing a protocol that deliberately wastes resources to address a few 250ms freezes (from too aggressive video players) is questionable in 2024.\r\n\r\n> > The question is whether there is a substantial body of cases where the\r\n> > publisher is producing multiple streams but the number of consumers is low\r\n> > enough that a relay won't have most of them on hand.  Luke's experience at\r\n> > Twitch suggests that this does happen, and it happens fairly often.\r\n> \r\n> And my experience at Akamai says exactly the same thing. It happens with live sports all the time. With highly distributed edges, the problem isn't that there aren't a lot of aggregate viewers, but that there a sparse viewers on certain edges (such as ones inside smaller ISPs, or rural areas).\r\n\r\nMy experience at Synamedia (where we run multiple Edge-CDN (a.k.a multi-Tbps Telco-CDN) for broadcasters and Pay-TV services) says exactly the same. I would add two cases: 1/ Long-tail unpopular TV channels have usually the same bitrate ladder as any other TV channel (e.g. 8 video profiles), although barely nobody watch them. In our measures, we can have more than half of segments that are not consumed at all over a week. Of course even more at the edges. 2/ In countries with very good network connections, some edges serve a population having a bandwidth five to ten times bigger than the highest video profile bit-rate. In that case, all requests get to the highest track, regardless of the number of consumers. \r\n\r\n> I think parking at this point is unnecessarily conservative. I don't see a future where every track of every Moq presentation is prewarmed. Instead I see cases where\r\n> \r\n> 1. You only prewarm the lower bitrates of any given stack, or even just the lowest.\r\n\r\n+1 \r\nIt would be a \"backup survival track\", which serves only to implement a smooth switch down (to preserve the connection of the consumer in trouble) and give time to the relay for fetching the actual track requested by the consumer from the Origin. The lowest track has a marginal bit-rate, so the waste is minimized.\r\n\r\nHowever, the relay does not know which track is the survival track in the catalog since it cannot read the catalog. We may add a \"survival flag\" in the track saying \"_I'm the lowest one, please feel free to pre-warmly subscribe to me_\".\r\n\r\n> 2. You only do it for clients where the ratio of player buffer/RTT-to-origin is small. The player knows its buffer and the server could reports the distance to origin in the SUBSCRIBE_OK response, so the client could intelligently decide if prewarming would be useful.\r\n\r\nIt seems a bit over-engineered to me. The distance to Origin can vary, especially if Origin is mobile.\r\n\r\n> 4. The delivery network can always choose not to honor prewarming and we can design a response to the client indicating  this.\r\n\r\n+1\r\n \r\n> I would suggest we build a simple version of it into the protocol and then build POCs where we test and measure the real-world utility and cost.\r\n\r\nI'd love to help. Measuring real-world utility and cost will probably be challenging, since it requires building real-world use-cases. For example, it depends on the considered ABR logic at the client side. I still doubt that a player can be so wrong in his estimation that he cannot survive 500ms more with his previous track before switching down. But it is an exciting study to do.",
+          "createdAt": "2024-02-10T22:07:29Z",
+          "updatedAt": "2024-02-10T22:07:29Z"
+        }
+      ]
+    },
+    {
+      "number": 373,
+      "id": "I_kwDOG2Ho4M5-ufi1",
+      "title": "Add a group fin for object stream mappings.",
+      "url": "https://github.com/moq-wg/moq-transport/issues/373",
+      "state": "CLOSED",
+      "author": "martinduke",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "For track and group stream mappings, it is very easy for a relay to see if there are any missing objects: it knows the highest object_id and it is obvious if there are any gaps.\r\n\r\nWhen there is one object per stream, there should be some way for the publisher to announce what the highest object_id is fora  group.\r\n\r\nThe most straightforward thing to do is probably send a group fin somehow that communicates the highest object ID, but it is tricky to define how this would be reliably sent.",
+      "createdAt": "2024-02-08T21:41:41Z",
+      "updatedAt": "2024-02-08T22:24:53Z",
+      "closedAt": "2024-02-08T22:24:53Z",
+      "comments": [
+        {
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "Oops, a copy of #318 ",
+          "createdAt": "2024-02-08T22:24:53Z",
+          "updatedAt": "2024-02-08T22:24:53Z"
+        }
+      ]
+    },
+    {
+      "number": 374,
+      "id": "I_kwDOG2Ho4M5-urpV",
+      "title": "DDoS protection in security section",
+      "url": "https://github.com/moq-wg/moq-transport/issues/374",
+      "state": "OPEN",
+      "author": "fluffy",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [
+        "Parked"
+      ],
+      "body": "\r\nIn the security section, we should think about the type of DDOS attacks that can be made against the relays, and then check we have the right things in place for the relays to mitigate them. ",
+      "createdAt": "2024-02-08T22:23:02Z",
+      "updatedAt": "2024-02-08T22:24:43Z",
       "closedAt": null,
       "comments": []
     }
@@ -45093,24 +45390,26 @@
       "id": "PR_kwDOG2Ho4M5lmZxN",
       "title": "Restore number of parameters in SUBSCRIBE",
       "url": "https://github.com/moq-wg/moq-transport/pull/352",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "martinduke",
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
       "labels": [],
       "body": "Fixes #349 ",
       "createdAt": "2024-01-31T17:43:06Z",
-      "updatedAt": "2024-02-04T21:49:38Z",
+      "updatedAt": "2024-02-08T19:02:45Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "d97485d4fb39d1f1fc0e88b7291dd14c36ebe836",
       "headRepository": "martinduke/moq-transport",
       "headRefName": "num-params",
       "headRefOid": "343eb727f5533e3085dad12de56e7148491c3fdf",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "closedAt": "2024-02-08T19:02:45Z",
+      "mergedAt": "2024-02-08T19:02:45Z",
+      "mergedBy": "ianswett",
+      "mergeCommit": {
+        "oid": "527831ac01b5a8ab47b9a58e76659ae50547abf5"
+      },
       "comments": [
         {
           "author": "martinduke",
@@ -45192,6 +45491,19 @@
           "body": "",
           "createdAt": "2024-02-01T19:15:49Z",
           "updatedAt": "2024-02-01T19:15:49Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5vhbtt",
+          "commit": {
+            "abbreviatedOid": "343eb72"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2024-02-08T19:02:39Z",
+          "updatedAt": "2024-02-08T19:02:39Z",
           "comments": []
         }
       ]
@@ -45347,6 +45659,179 @@
       "mergeCommit": null,
       "comments": [],
       "reviews": []
+    },
+    {
+      "number": 366,
+      "id": "PR_kwDOG2Ho4M5mV2Y9",
+      "title": "Changes Subscription ID to Subscribe ID",
+      "url": "https://github.com/moq-wg/moq-transport/pull/366",
+      "state": "MERGED",
+      "author": "zafergurel",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "This PR fixes #365.",
+      "createdAt": "2024-02-08T07:31:01Z",
+      "updatedAt": "2024-02-08T18:54:11Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "d97485d4fb39d1f1fc0e88b7291dd14c36ebe836",
+      "headRepository": "zafergurel/moq-transport",
+      "headRefName": "main",
+      "headRefOid": "64ec57ee1419b7b082e681d00d12ac7d1bee4133",
+      "closedAt": "2024-02-08T18:54:11Z",
+      "mergedAt": "2024-02-08T18:54:11Z",
+      "mergedBy": "ianswett",
+      "mergeCommit": {
+        "oid": "91502859ed5aab9a0eb57b24ef7016f4f5ed4a0d"
+      },
+      "comments": [
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Thanks for the fix!",
+          "createdAt": "2024-02-08T18:52:44Z",
+          "updatedAt": "2024-02-08T18:52:44Z"
+        }
+      ],
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M5vhVGS",
+          "commit": {
+            "abbreviatedOid": "64ec57e"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2024-02-08T18:52:24Z",
+          "updatedAt": "2024-02-08T18:52:24Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 367,
+      "id": "PR_kwDOG2Ho4M5mV36a",
+      "title": "Cleans up SUBSCRIBE_OK text",
+      "url": "https://github.com/moq-wg/moq-transport/pull/367",
+      "state": "MERGED",
+      "author": "zafergurel",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "This PR fixes #364.",
+      "createdAt": "2024-02-08T07:36:55Z",
+      "updatedAt": "2024-02-08T19:00:19Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "91502859ed5aab9a0eb57b24ef7016f4f5ed4a0d",
+      "headRepository": "zafergurel/moq-transport",
+      "headRefName": "fix-subscribe-ok-text",
+      "headRefOid": "a089a7245914f6eb80fcc9755fe26ab40eaaa094",
+      "closedAt": "2024-02-08T19:00:19Z",
+      "mergedAt": "2024-02-08T19:00:19Z",
+      "mergedBy": "ianswett",
+      "mergeCommit": {
+        "oid": "e6df31467094692dcf5268d1f016cae84c90c01b"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M5vhYAL",
+          "commit": {
+            "abbreviatedOid": "f769af7"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "Thanks for the cleanup!",
+          "createdAt": "2024-02-08T18:55:17Z",
+          "updatedAt": "2024-02-08T18:55:17Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5vhaxE",
+          "commit": {
+            "abbreviatedOid": "a089a72"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2024-02-08T19:00:13Z",
+          "updatedAt": "2024-02-08T19:00:13Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 375,
+      "id": "PR_kwDOG2Ho4M5mgpdA",
+      "title": "One forwarding preference per subscription",
+      "url": "https://github.com/moq-wg/moq-transport/pull/375",
+      "state": "OPEN",
+      "author": "martinduke",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Fixes #351.\r\n\r\nThere could stand to be (1) a section on a subscriptions, and (2) rearranging the sections here to pull objects out of the message section. But I think it would be easier to review if cut-and-paste happens in a separate PR.\r\n\r\nThere are other issues (e.g. explicit payload length all the time) that are not addressed in this PR.",
+      "createdAt": "2024-02-09T18:43:16Z",
+      "updatedAt": "2024-02-10T22:23:13Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "527831ac01b5a8ab47b9a58e76659ae50547abf5",
+      "headRepository": "martinduke/moq-transport",
+      "headRefName": "fwd-pref",
+      "headRefOid": "199c116274b8ccdbefd796af21d393b9e12cdad5",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [
+        {
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "It's subscription-level rather than track-level because\r\n\r\n(1) the only convenient place to communicate forwarding preference is SUBSCRIBE_OK\r\n(2) as it currently stands, objects are sent once per subscription\r\n(3) I am not a Use Case Haver, but I can see that an archival subscribe might want a single track stream while the live edge probably would not, even for the same track.",
+          "createdAt": "2024-02-09T18:51:02Z",
+          "updatedAt": "2024-02-09T18:51:02Z"
+        },
+        {
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "@suhasHere yes, see the comment immediately before your question. If this is really objectionable, we can change it, but it would require an error condition check if two SUBSCRIBE_OKs had different preferences for the same track_alias.\r\n\r\nI have no strong opinion on this, but this is way easier. When I write a server, it will probably always use one preference for a track.\r\n\r\nIf we change objects to be sent once per track, instead of once per subscription, this would have to change.",
+          "createdAt": "2024-02-10T01:26:36Z",
+          "updatedAt": "2024-02-10T01:26:36Z"
+        }
+      ],
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M5vqNDS",
+          "commit": {
+            "abbreviatedOid": "199c116"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "CHANGES_REQUESTED",
+          "body": "This changes the direction of the original intent with the forwarding preference. Originally it was one preferred producer's intent that applies uniformly to all the subscribers. With the current proposal, it seems like it can vary across subscribers IIUC.\r\n\r\nAm i understanding the proposal properly ? ",
+          "createdAt": "2024-02-09T23:41:25Z",
+          "updatedAt": "2024-02-09T23:41:25Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5vtxrM",
+          "commit": {
+            "abbreviatedOid": "199c116"
+          },
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "CHANGES_REQUESTED",
+          "body": "Lets talk about this but I don't think this reflect what was said in the meeting and I don't think it will work. We said we could move to one forwarding preference per track, not per subscription. \r\n\r\nAs this is not, I a very much against merging it. ",
+          "createdAt": "2024-02-10T22:23:13Z",
+          "updatedAt": "2024-02-10T22:23:13Z",
+          "comments": []
+        }
+      ]
     }
   ]
 }
