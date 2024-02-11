@@ -226,8 +226,12 @@ groups and tracks.
 The basic data element of MOQT is an object.  An object is an
 addressable unit whose payload is a sequence of bytes.  All objects
 belong to a group, indicating ordering and potential
-dependencies. {{model-group}} Objects are comprised of two parts:
-metadata and a payload.  The metadata is never encrypted and is always
+dependencies. {{model-group}}  An object is uniquely identified by
+its namespace, name, group ID and object ID, and must be an identical
+sequence of bytes regardless of how or where it is retrieved.
+
+Objects are comprised of two parts: metadata and a payload.
+The metadata is never encrypted and is always
 visible to relays. The payload portion may be encrypted, in which case
 it is only visible to the producer and consumer. The application is
 solely responsible for the content of the object payload. This includes
