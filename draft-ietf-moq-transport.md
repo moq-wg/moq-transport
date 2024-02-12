@@ -1255,7 +1255,10 @@ exactly one stream.
 WebTransport datagram, if possible. If not possible, it is delivered on exactly
 one stream.
 
-Any other value terminates the session with error PROTOCOL_VIOLATION.
+Any other value terminates the session with error PROTOCOL_VIOLATION. Senders
+MUST NOT send SUBSCRIBE_OKs with different forwarding preferences for the same
+track. Receivers SHOULD terminate the session with error PROTOCOL_VIOLATION if
+they can detect this condition.
 
 * Expires: Time in milliseconds after which the subscription is no
 longer valid. A value of 0 indicates that the subscription stays active
