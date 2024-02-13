@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2024-02-11T01:10:39.808639+00:00",
+  "timestamp": "2024-02-13T01:06:26.688077+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -12868,13 +12868,12 @@
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
       "labels": [
-        "Needs Discussion",
         "Object Model",
         "Subscribe"
       ],
       "body": "Sec 6.4.2: \"If the Track Alias is already in\t\r\n \t      use, the publisher MUST close the session with a Duplicate Track\t\r\n \t      Alias error (Section 3.5).\"\r\n\r\nThis makes sense if it's a different track name. But if it's the same track for two subscriptions, they should have the same track_alias, right? What's the purpose of track alias and subscribe ID always going together in objects, anyway?\r\n \t\r\n\r\n",
       "createdAt": "2024-01-26T22:52:27Z",
-      "updatedAt": "2024-02-07T17:13:56Z",
+      "updatedAt": "2024-02-11T02:49:37Z",
       "closedAt": null,
       "comments": [
         {
@@ -13141,7 +13140,7 @@
       "labels": [],
       "body": "Current prose should be updated to indicate that \r\n1. ObjectID and GroupID are integers. The Object header implicitly defines this, but it should be stated explicitly.\r\n2. ObjectID MUST only increment by 1\r\n3. The GroupID MUST always increase. \r\n4. The GroupID may start at any value >= 0\r\n5. The GroupID can increase by any value >= 1. ",
       "createdAt": "2024-02-07T17:28:23Z",
-      "updatedAt": "2024-02-08T16:51:42Z",
+      "updatedAt": "2024-02-12T03:33:01Z",
       "closedAt": null,
       "comments": [
         {
@@ -13157,6 +13156,20 @@
           "body": "on 2 , i don't see a need for us to enforce monotonic unitary sequence for objectIds either. If the application needs it for certain purposes, it will generate the objectIds to match that pattern.\r\n\r\nI would just say GroupId and ObjectId needs to be increasing and SHOULD NOT be duplicated. (fine to not even have the latter part)",
           "createdAt": "2024-02-08T16:51:41Z",
           "updatedAt": "2024-02-08T16:51:41Z"
+        },
+        {
+          "author": "vitaly-castLabs",
+          "authorAssociation": "NONE",
+          "body": "Wouldn't it be beneficial to have ObjectIDs incrementing strictly by 1 in order to detect dropped objects? It's an extremely common scenario in video decoding: run into a gap in media and stop decoding until a new key frame arrives.\r\nAre there any real-life scenarios when arbitrary increments might be necessary?",
+          "createdAt": "2024-02-12T03:16:59Z",
+          "updatedAt": "2024-02-12T03:16:59Z"
+        },
+        {
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Its application defined.  Even with today's video applications, one can have b-frames sent over different track/different stream encoding and thus causing gaps within a group. Only application is aware of that end to end and MoQT shouldn't enforce application rules.",
+          "createdAt": "2024-02-12T03:33:01Z",
+          "updatedAt": "2024-02-12T03:33:01Z"
         }
       ]
     },
@@ -13340,12 +13353,22 @@
       "author": "fluffy",
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
-      "labels": [],
+      "labels": [
+        "Parked"
+      ],
       "body": "This keeps coming up so wanted to keep a place holder here. ",
       "createdAt": "2024-02-08T18:38:21Z",
-      "updatedAt": "2024-02-08T18:38:21Z",
+      "updatedAt": "2024-02-11T02:51:11Z",
       "closedAt": null,
-      "comments": []
+      "comments": [
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "No, but I'd like to resolve a number of other issues first, such how ABR is going to work.  My past experience is that this is extremely difficult to get right, so doing so for a general purpose application is extraordinarily difficult.",
+          "createdAt": "2024-02-11T02:51:06Z",
+          "updatedAt": "2024-02-11T02:51:06Z"
+        }
+      ]
     },
     {
       "number": 371,
@@ -13356,12 +13379,22 @@
       "author": "ianswett",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
-      "labels": [],
+      "labels": [
+        "NotTransport"
+      ],
       "body": "Client side bandwidth estimation is a challenge when the client doesn't know when the sender was app-limited and when it was congestion control limited.\r\n\r\nOne solution is to add a TIMESTAMP frame that has a relative timestamp of when the packet was serialized/sent.  It could also be useful to have a bool to indicate whether the sender was app-limited prior to the packet being sent.\r\n\r\nChristian has a draft (https://www.ietf.org/archive/id/draft-huitema-quic-ts-08.html) that could be used for this purpose.  The draft was written with the idea that it would be bundled with an ACK to allow removal of latency variability on the reverse path, but it seems like it could be bundled with some or all MOQ packets to improve client bandwidth estimation.",
       "createdAt": "2024-02-08T18:50:36Z",
-      "updatedAt": "2024-02-08T18:50:36Z",
+      "updatedAt": "2024-02-11T02:43:16Z",
       "closedAt": null,
-      "comments": []
+      "comments": [
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "After more consideration, I tend to think this is not an moqt issue, but it is one worth addressing in WARP.  I'm happy to help with text if that's useful.\r\n\r\nKeeping it open because I think it could end up being critical to client side ABR.",
+          "createdAt": "2024-02-11T02:43:15Z",
+          "updatedAt": "2024-02-11T02:43:15Z"
+        }
+      ]
     },
     {
       "number": 372,
@@ -45768,7 +45801,7 @@
     {
       "number": 375,
       "id": "PR_kwDOG2Ho4M5mgpdA",
-      "title": "One forwarding preference per subscription",
+      "title": "One forwarding preference per track",
       "url": "https://github.com/moq-wg/moq-transport/pull/375",
       "state": "OPEN",
       "author": "martinduke",
@@ -45777,13 +45810,13 @@
       "labels": [],
       "body": "Fixes #351.\r\n\r\nThere could stand to be (1) a section on a subscriptions, and (2) rearranging the sections here to pull objects out of the message section. But I think it would be easier to review if cut-and-paste happens in a separate PR.\r\n\r\nThere are other issues (e.g. explicit payload length all the time) that are not addressed in this PR.",
       "createdAt": "2024-02-09T18:43:16Z",
-      "updatedAt": "2024-02-10T22:23:13Z",
+      "updatedAt": "2024-02-12T22:00:43Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "527831ac01b5a8ab47b9a58e76659ae50547abf5",
       "headRepository": "martinduke/moq-transport",
       "headRefName": "fwd-pref",
-      "headRefOid": "199c116274b8ccdbefd796af21d393b9e12cdad5",
+      "headRefOid": "06866fa7365d7816576a51f4009fb7275e6570dc",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -45802,6 +45835,27 @@
           "body": "@suhasHere yes, see the comment immediately before your question. If this is really objectionable, we can change it, but it would require an error condition check if two SUBSCRIBE_OKs had different preferences for the same track_alias.\r\n\r\nI have no strong opinion on this, but this is way easier. When I write a server, it will probably always use one preference for a track.\r\n\r\nIf we change objects to be sent once per track, instead of once per subscription, this would have to change.",
           "createdAt": "2024-02-10T01:26:36Z",
           "updatedAt": "2024-02-10T01:26:36Z"
+        },
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I expect this will be a straightforward PR once we figure out the FETCH/SUBSCRIBE work, but in the meantime it's caught up in #350",
+          "createdAt": "2024-02-11T02:49:00Z",
+          "updatedAt": "2024-02-11T02:49:00Z"
+        },
+        {
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "No one seemed to like subscription scope, so I changed it.\r\n\r\nI think we can merge this before the FETCH/SUBSCRIBE stuff. The bulk of the changes are in the Object message.",
+          "createdAt": "2024-02-12T16:50:31Z",
+          "updatedAt": "2024-02-12T16:50:31Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> Frankly, I don't even want the relay to know about forwarding preference. It should just receive a stream, apply the subscription as a filter, send the stream. The stream headers are only meant to remove redundant encoding.\r\n\r\nChair Comment:\r\n\r\nThe WG agreed to have an explicit encoding of the forwarding preference for now and revisit that based on experimental data at a later date.  The current signal serves dual purpose with object property compression.\r\n\r\nIndividual Comment:\r\n\r\nThe publisher should be able to communicate immutable Track properties in Subscribe OK without those being properties of the Subscribe.  Using HTTP as an example, response headers contain immutable properties of the requested resource (Content-Length) and variable properties (Date, Server).",
+          "createdAt": "2024-02-12T22:00:41Z",
+          "updatedAt": "2024-02-12T22:00:41Z"
         }
       ],
       "reviews": [
@@ -45830,6 +45884,173 @@
           "createdAt": "2024-02-10T22:23:13Z",
           "updatedAt": "2024-02-10T22:23:13Z",
           "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5vzgop",
+          "commit": {
+            "abbreviatedOid": "06866fa"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-02-12T17:15:01Z",
+          "updatedAt": "2024-02-12T17:15:01Z",
+          "comments": [
+            {
+              "originalPosition": 294,
+              "body": "i personally feel that all the track level information can be learnt from catalog.  I wonder if we should have anything in Subscribe OK ?",
+              "createdAt": "2024-02-12T17:15:01Z",
+              "updatedAt": "2024-02-12T17:15:01Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5vzlyx",
+          "commit": {
+            "abbreviatedOid": "06866fa"
+          },
+          "author": "wilaw",
+          "authorAssociation": "NONE",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-02-12T17:25:48Z",
+          "updatedAt": "2024-02-12T17:25:48Z",
+          "comments": [
+            {
+              "originalPosition": 294,
+              "body": "But relays need to know the forwarding preference and they can't read the catalog, so SUBSCRIBE_OK is a good location to carry subscription-scoped metadata. ",
+              "createdAt": "2024-02-12T17:25:48Z",
+              "updatedAt": "2024-02-12T17:25:48Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5vzpDR",
+          "commit": {
+            "abbreviatedOid": "06866fa"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-02-12T17:33:05Z",
+          "updatedAt": "2024-02-12T17:33:05Z",
+          "comments": [
+            {
+              "originalPosition": 294,
+              "body": "Our encoding (object_stream, datagram, stream_header_group, stream_header_track)  has all the necessary information to know the object forwarding preference. The data plane/fast path has the needed information for relays to make necessary mapping. I am not sure if we need to replicate the same info in the control path.\r\n\r\nmy implementation, for example, uses that info and sets up the needed forwarding preference today and it does at the data plane.",
+              "createdAt": "2024-02-12T17:33:05Z",
+              "updatedAt": "2024-02-12T17:35:04Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5vzu0R",
+          "commit": {
+            "abbreviatedOid": "06866fa"
+          },
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-02-12T17:46:48Z",
+          "updatedAt": "2024-02-12T17:46:48Z",
+          "comments": [
+            {
+              "originalPosition": 294,
+              "body": "The PR eliminates that encoding to save a byte on objects, since it's extraneous.",
+              "createdAt": "2024-02-12T17:46:48Z",
+              "updatedAt": "2024-02-12T17:46:48Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5vzu16",
+          "commit": {
+            "abbreviatedOid": "06866fa"
+          },
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "state": "CHANGES_REQUESTED",
+          "body": "I think we just need some text to say it's a protocol violation (connection closed) if you do dumb like have two streams cover the same object/group/track twice. This PR prevents some instances of that, but at the cost of making decoding more annoying.\r\n\r\nFrankly, I don't even want the relay to know about forwarding preference. It should just receive a stream, apply the subscription as a filter, send the stream. The stream headers are only meant to remove redundant encoding. ",
+          "createdAt": "2024-02-12T17:46:49Z",
+          "updatedAt": "2024-02-12T17:47:30Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 376,
+      "id": "PR_kwDOG2Ho4M5mkY3w",
+      "title": "Objects are identical",
+      "url": "https://github.com/moq-wg/moq-transport/pull/376",
+      "state": "OPEN",
+      "author": "ianswett",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Regardless of where they're retrieved from.\r\n\r\nFixes #361",
+      "createdAt": "2024-02-11T03:09:32Z",
+      "updatedAt": "2024-02-11T15:34:50Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "527831ac01b5a8ab47b9a58e76659ae50547abf5",
+      "headRepository": "moq-wg/moq-transport",
+      "headRefName": "ianswett-identical-objects",
+      "headRefOid": "11741ac3bd4de19fd5b6d53d8b41285d9a052097",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [
+        {
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "I put a two very small nit comments but don't care either way. They do not change the substance of the PR and +1 on the overall thing this is saying. \r\n",
+          "createdAt": "2024-02-11T15:34:49Z",
+          "updatedAt": "2024-02-11T15:34:49Z"
+        }
+      ],
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M5vuOOQ",
+          "commit": {
+            "abbreviatedOid": "11741ac"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2024-02-11T15:21:25Z",
+          "updatedAt": "2024-02-11T15:21:25Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5vuOlV",
+          "commit": {
+            "abbreviatedOid": "11741ac"
+          },
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "CHANGES_REQUESTED",
+          "body": "",
+          "createdAt": "2024-02-11T15:30:49Z",
+          "updatedAt": "2024-02-11T15:32:43Z",
+          "comments": [
+            {
+              "originalPosition": 7,
+              "body": "perhaps \"track namespace\" and \"track name\". \r\n\r\n",
+              "createdAt": "2024-02-11T15:30:49Z",
+              "updatedAt": "2024-02-11T15:32:43Z"
+            },
+            {
+              "originalPosition": 8,
+              "body": "So if it has expired, or gets an error, you don't get the bytes. I wonder if it is better to say something more like they contents of an object can never be changed and if it is retried, will always have the same bit wise exact data in it. ",
+              "createdAt": "2024-02-11T15:32:39Z",
+              "updatedAt": "2024-02-11T15:32:43Z"
+            }
+          ]
         }
       ]
     }
