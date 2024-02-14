@@ -1293,11 +1293,23 @@ SUBSCRIBE_OK
 longer valid. A value of 0 indicates that the subscription stays active
 until it is explicitly unsubscribed.
 
-* ContentExists: 1 if an object has been published on this track, 0 if not. If 0, then the Largest Group ID and Largest Object ID fields will not be present. 
+* ContentExists: 1 if an object has been published on this track, 0 if not.
+* If 0, then the Largest Group ID and Largest Object ID fields will not be
+* present. 
 
-* Largest Group ID: the largest Group ID available for this track. This Group ID corresponds to the Group that would be returned with a {{subscribe-locations}} RelativePrevious value of 0. It represents the latest Group boundary available for this track. Note that the Group may not be complete when this value is returned. This field is only present if ContentExists has a value of 1.
+* Largest Group ID: the largest Group ID available for this track. This
+* Group ID corresponds to the Group that would be returned with a
+* {{subscribe-locations}} RelativePrevious value of 0. It represents the latest
+* Group boundary available for this track. Note that the Group may not be
+* complete when this value is returned. This field is only present if
+* ContentExists has a value of 1.
 
-* Largest Object ID: the largest Object ID available within the largest Group ID for this track. This Object ID corresponds to the Object that would be returned with a {{subscribe-locations}} RelativePrevious value of 0. It represents the latest Object boundary available for this track. Note that the Object may not be complete when this value is returned. This field is only present if ContentExists has a value of 1.
+* Largest Object ID: the largest Object ID available within the largest Group ID
+* for this track. This Object ID corresponds to the Object that would be
+* returned with a {{subscribe-locations}} RelativePrevious value of 0. It
+* represents the latest Object boundary available for this track. Note that the
+* Object may not be complete when this value is returned. This field is only
+* present if ContentExists has a value of 1.
 
 
 ## SUBSCRIBE_ERROR {#message-subscribe-error}
