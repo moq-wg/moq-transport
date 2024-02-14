@@ -248,7 +248,7 @@ x (Location):
 
 : Indicates x is a Location structure defined in {{subscribe-locations}}.
 
-To reduce unnecessary use of bandwidth, variable length integers SHOULD
+To reduce unnecessary use of bandwidth, variable length integers MAY/SHOULD/MUST ( TODO: WG to get choose which of theses )
 be encoded using the least number of bytes possible to represent the
 required value.
 
