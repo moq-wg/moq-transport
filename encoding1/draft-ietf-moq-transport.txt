@@ -294,9 +294,8 @@ Table of Contents
       Section 6.4.1.
 
    To reduce unnecessary use of bandwidth, variable length integers
-   MAY/SHOULD/MUST ( TODO: WG to get choose which of theses ) be encoded
-   using the least number of bytes possible to represent the required
-   value.
+   MAY/SHOULD/MUST ( TODO: WG to choose one of theses ) be encoded using
+   the least number of bytes possible to represent the required value.
 
 2.  Object Model
 
