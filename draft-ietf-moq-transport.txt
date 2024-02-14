@@ -5,13 +5,13 @@
 MOQ                                                            L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 11 August 2024                                             Meta
+Expires: 17 August 2024                                             Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                         8 February 2024
+                                                        14 February 2024
 
 
                        Media over QUIC Transport
@@ -53,7 +53,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 11 August 2024.
+   This Internet-Draft will expire on 17 August 2024.
 
 Copyright Notice
 
@@ -373,7 +373,7 @@ Table of Contents
    a URI with a "moq" scheme.  The "moq" URI scheme is defined as
    follows, using definitions from [RFC3986]:
 
-   moq-URI = "moq" "://" authority path-abempty [ "?" query ]
+   moq-URI = "moqt" "://" authority path-abempty [ "?" query ]
 
    The authority portion MUST NOT contain a non-empty host portion.  The
    moq URI scheme supports the /.well-known/ path prefix defined in
