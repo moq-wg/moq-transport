@@ -319,7 +319,7 @@ URI with a "moq" scheme.  The "moq" URI scheme is defined as follows,
 using definitions from {{!RFC3986}}:
 
 ~~~~~~~~~~~~~~~
-moq-URI = "moq" "://" authority path-abempty [ "?" query ]
+moq-URI = "moqt" "://" authority path-abempty [ "?" query ]
 ~~~~~~~~~~~~~~~
 
 The `authority` portion MUST NOT contain a non-empty `host` portion.
@@ -955,7 +955,7 @@ stream if it is possible to send it as a datagram.
 
 ~~~
 OBJECT_PREFER_DATAGRAM Message {
-  Subscription ID (i),
+  Subscribe ID (i),
   Track Alias (i),
   Group ID (i),
   Object ID (i),
@@ -1167,6 +1167,7 @@ SUBSCRIBE Message {
   StartObject (Location),
   EndGroup (Location),
   EndObject (Location),
+  Number of Parameters (i),
   Track Request Parameters (..) ...
 }
 ~~~
@@ -1286,11 +1287,6 @@ SUBSCRIBE_OK
 {: #moq-transport-subscribe-ok format title="MOQT SUBSCRIBE_OK Message"}
 
 * Subscribe ID: Subscription Identifer as defined in {{message-subscribe-req}}.
-
-* Track Namespace: Identifies the namespace of the track as defined in
-({{track-name}}).
-
-* Track Name: Identifies the track name as defined in ({{track-name}}).
 
 * Expires: Time in milliseconds after which the subscription is no
 longer valid. A value of 0 indicates that the subscription stays active
