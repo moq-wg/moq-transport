@@ -942,7 +942,7 @@ There is no explicit length of the payload; it is determined by the
 length of the datagram.
 
 An Object received in an `OBJECT_DATAGRAM` message has an `Object
-Forwarding Preference` = `Datagram`. To send an Object with `Object Forwarding Preference` = `Datagram`, determine the length of the fields and payload and send the Object as datagram. In certain scenarios where the object size can be larger than maximum datagram size for the session, the Object will be dropped. 
+Forwarding Preference` = `Datagram`. To send an Object with `Object Forwarding Preference` = `Datagram`, determine the length of the fields and payload and send the Object as datagram. In certain scenarios where the object size can be larger than maximum datagram size for the session, the Object will be dropped.
 
 ~~~
 OBJECT_DATAGRAM Message {
