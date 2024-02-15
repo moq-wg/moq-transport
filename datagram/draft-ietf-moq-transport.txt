@@ -5,13 +5,13 @@
 MOQ                                                            L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 10 August 2024                                             Meta
+Expires: 18 August 2024                                             Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                         7 February 2024
+                                                        15 February 2024
 
 
                        Media over QUIC Transport
@@ -53,7 +53,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 10 August 2024.
+   This Internet-Draft will expire on 18 August 2024.
 
 Copyright Notice
 
@@ -1024,10 +1024,8 @@ Table of Contents
    Forwarding Preference = Datagram.  To send an Object with Object
    Forwarding Preference = Datagram, determine the length of the fields
    and payload and send the Object as datagram.  In certain scenarios
-   where the object size can be larger than maximum datagram size of the
-   session, it is upto the implementation to either drop the object or
-   apply any applicable transport level fragmentation, necessary for
-   forwarding.
+   where the object size can be larger than maximum datagram size for
+   the session, the Object will be dropped.
 
    OBJECT_DATAGRAM Message {
      Subscription ID (i),
