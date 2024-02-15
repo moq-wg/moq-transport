@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2024-02-13T01:06:26.688077+00:00",
+  "timestamp": "2024-02-15T01:06:08.995621+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -12775,9 +12775,17 @@
       ],
       "body": "I woudld think that \"track doesn't exist\" and \"unauthorized\" would be useful error codes, but they don't seem to fit in 'Invalid Range' or 'Retry Track Alias'.",
       "createdAt": "2024-01-25T20:47:18Z",
-      "updatedAt": "2024-01-31T00:18:00Z",
+      "updatedAt": "2024-02-14T18:02:00Z",
       "closedAt": null,
-      "comments": []
+      "comments": [
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "As discussed today, it'd be nice to have one indicating \"Timeout\".",
+          "createdAt": "2024-02-14T18:01:59Z",
+          "updatedAt": "2024-02-14T18:01:59Z"
+        }
+      ]
     },
     {
       "number": 348,
@@ -13202,10 +13210,12 @@
       "assignees": [
         "fluffy"
       ],
-      "labels": [],
+      "labels": [
+        "Object Model"
+      ],
       "body": "This came as part of interim at Denver when discussing multiple announce for same track.\r\nThere needs to text that mandates, if 2 objects comes with same name, they need to be bit identical.\r\n\r\nAlso needs to clarify on how long the name needs to be unique",
       "createdAt": "2024-02-07T22:09:36Z",
-      "updatedAt": "2024-02-07T22:28:17Z",
+      "updatedAt": "2024-02-14T16:20:50Z",
       "closedAt": null,
       "comments": []
     },
@@ -13501,6 +13511,95 @@
       "body": "\r\nIn the security section, we should think about the type of DDOS attacks that can be made against the relays, and then check we have the right things in place for the relays to mitigate them. ",
       "createdAt": "2024-02-08T22:23:02Z",
       "updatedAt": "2024-02-08T22:24:43Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 377,
+      "id": "I_kwDOG2Ho4M5_CWBc",
+      "title": "What is the largest group/largest object if a relay has not received any objects?",
+      "url": "https://github.com/moq-wg/moq-transport/issues/377",
+      "state": "OPEN",
+      "author": "afrind",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [
+        "Subscribe"
+      ],
+      "body": "This came up during interop - \r\n\r\nA relay received a subscribe with start={g=RelativeNext/0 o=Absolute/0}.  Since the relay had not received any objects, it defaulted largest to 0 and interpreted the subscribe as starting at {g=1, o=0}. When {g=0,o=0} arrived, it was not forwarded.  But there's a reasonable interpretation that it should have forwarded treated this as the beginning of the next subscription.\r\n\r\nThis is partially related to #337 and maybe #353",
+      "createdAt": "2024-02-13T01:45:40Z",
+      "updatedAt": "2024-02-14T16:57:26Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "body": "If the subscriber wanted to get the largest group, it would have made request start = {g=RelativePrevious/0, o=None} .. This would have the interpretation that subscribe starts at {g=0, o=0} when {g=0, o=0} arrives. This would also work when {g=0, o=22} arrives. \r\n\r\nIf my understanding of locations is correct, then the original request of  {g=RelativeNext/0 o=Absolute/0} is incorrect for the answer being expected .. ",
+          "createdAt": "2024-02-14T07:30:21Z",
+          "updatedAt": "2024-02-14T07:30:21Z"
+        },
+        {
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I think it's reasonable to return 0,0\r\n\r\nThe subscriber uses RelativeNext if it doesn't want old data. If no data has been generated, then that requirement is still met.",
+          "createdAt": "2024-02-14T16:06:25Z",
+          "updatedAt": "2024-02-14T16:06:25Z"
+        },
+        {
+          "author": "wilaw",
+          "authorAssociation": "NONE",
+          "body": "> I think it's reasonable to return 0,0\r\n\r\nBut that's ambiguous. Since Group and Object IDs are zero-based, that response also describes the situation in which the relay has received the first object from the first group, which is clearly a different state. \r\n\r\nCan we solve this problem by specifying that both GroupID and Object ID are >= 1 of they exist, and 0 if they do not? This can be used to describe the situation in which the subscription is active but the publisher has not yet produced any objects.",
+          "createdAt": "2024-02-14T16:19:11Z",
+          "updatedAt": "2024-02-14T16:19:11Z"
+        },
+        {
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> > I think it's reasonable to return 0,0\r\n> \r\n> But that's ambiguous. Since Group and Object IDs are zero-based, that response also describes the situation in which the relay has received the first object from the first group, which is clearly a different state.\r\n> \r\n> Can we solve this problem by specifying that both GroupID and Object ID are >= 1 of they exist, and 0 if they do not? This can be used to describe the situation in which the subscription is active but the publisher has not yet produced any objects.\r\n\r\nOh to clarify, the SUBSCRIBE_OK should return None/None as the latest group/object. The first OBJECT delivered would be 0/0.\r\n\r\nAnd yeah we could switch object/group to be 1-indexed instead of 0-indexed. None=0",
+          "createdAt": "2024-02-14T16:31:26Z",
+          "updatedAt": "2024-02-14T16:31:26Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Individual Comment:\r\n\r\n> If the subscriber wanted to get the largest group, it would have made request start = {g=RelativePrevious/0, o=None}\r\n\r\n> If my understanding of locations is correct, then the original request of {g=RelativeNext/0 o=Absolute/0} is incorrect for the answer being expected \r\n\r\nAgreed that in this particular case, the client was not really asking for what they wanted.  The \"Largest group/object\" language comes from the draft, though, and I think it's ambiguous what it means to a relay that hasn't seen any objects.\r\n\r\nMy interpretation of the spirit of the draft is that 0/0 would be forwarded in this case if the client asked to start Next/0 (eg: there's a bug in my relay), but if so, we should make it clear in the draft how it's supposed to work.  \r\n\r\n",
+          "createdAt": "2024-02-14T16:57:25Z",
+          "updatedAt": "2024-02-14T16:57:25Z"
+        }
+      ]
+    },
+    {
+      "number": 378,
+      "id": "I_kwDOG2Ho4M5_Ptfo",
+      "title": "Register moqt with IANA",
+      "url": "https://github.com/moq-wg/moq-transport/issues/378",
+      "state": "OPEN",
+      "author": "ianswett",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "#299 changes the scheme to moqt.  We should register this with IANA.",
+      "createdAt": "2024-02-14T17:23:29Z",
+      "updatedAt": "2024-02-14T17:23:30Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 379,
+      "id": "I_kwDOG2Ho4M5_P4Q7",
+      "title": "Split message IDs based on context",
+      "url": "https://github.com/moq-wg/moq-transport/issues/379",
+      "state": "OPEN",
+      "author": "kixelated",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [
+        "Editorial",
+        "Control Streams"
+      ],
+      "body": "Currently, there's one message section and number space. It's confusing to read and it's not clear what messages can be encoded on a control stream, data stream, or datagram.\r\n\r\nMy vote is proposal 2 and it's what HTTP/3 does.\r\n\r\n### Proposal 1: Annotate Table\r\n| id | name | context |\r\n|-|-|-|\r\n| 0x0 | OBJECT_STREAM | data |\r\n| 0x1 | OBJECT_DATAGRAM | datagram |\r\n| 0x3 | SUBSCRIBE | control |\r\n| 0x4 | SUBSCRIBE_OK | control |\r\n| 0x5 | SUBSCRIBE_ERROR | control |\r\n| 0x6 | ANNOUNCE | control |\r\n| 0x7 | ANNOUNCE_OK | control |\r\n| 0x8 | ANNOUNCE_ERROR | control |\r\n| 0x9 | UNANNOUNCE | control |\r\n| 0xa | UNSUBSCRIBE | control |\r\n| 0xb | SUBSCRIBE_FIN | control |\r\n| 0xc| SUBSCRIBE_RST | control |\r\n| 0x10 | GOAWAY | control |\r\n| 0x40 | CLIENT_SETUP | control |\r\n| 0x41 | SERVER_SETUP | control |\r\n| 0x50 | STREAM_HEADER_TRACK | data |\r\n| 0x51 | STREAM_HEADER_GROUP | data |\r\n\r\n\r\n### Proposal 2: Split Numberspace\r\n**control messages (bidirectional streams)**\r\n| id | name |\r\n|-|-|\r\n| 0x0 | CLIENT_SETUP |\r\n| 0x1 | SERVER_SETUP |\r\n| 0x3 | SUBSCRIBE |\r\n| 0x4 | SUBSCRIBE_OK |\r\n| 0x5 | SUBSCRIBE_ERROR |\r\n| 0x6 | ANNOUNCE |\r\n| 0x7 | ANNOUNCE_OK |\r\n| 0x8 | ANNOUNCE_ERROR |\r\n| 0x9 | UNANNOUNCE |\r\n| 0xa | UNSUBSCRIBE |\r\n| 0xb | SUBSCRIBE_FIN |\r\n| 0xc| SUBSCRIBE_RST |\r\n| 0x10 | GOAWAY |\r\n\r\n**data messages (unidirectional streams)**\r\n| id | name |\r\n|-|-|\r\n| 0x0 | OBJECT_STREAM |\r\n| 0x1 | OBJECT_TRACK |\r\n| 0x2 | OBJECT_GROUP |\r\n\r\n**datagram messages:**\r\n| id | name |\r\n|-|-|\r\n| 0x0 | OBJECT_DATAGRAM |\r\n",
+      "createdAt": "2024-02-14T17:52:42Z",
+      "updatedAt": "2024-02-14T17:53:12Z",
       "closedAt": null,
       "comments": []
     }
@@ -41849,24 +41948,26 @@
       "id": "PR_kwDOG2Ho4M5dlKN0",
       "title": "s/moq/moqt/ in described URI scheme",
       "url": "https://github.com/moq-wg/moq-transport/pull/299",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "englishm",
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
       "labels": [],
       "body": "per https://github.com/moq-wg/moq-transport/issues/268 \r\n\r\nTODO: Denote need to register w/ IANA",
       "createdAt": "2023-10-23T22:16:25Z",
-      "updatedAt": "2024-01-10T17:17:46Z",
+      "updatedAt": "2024-02-14T17:22:31Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "759f52940e2370ed61b22ead62f09cbbac0a6960",
       "headRepository": "englishm/moq-transport",
       "headRefName": "patch-1",
       "headRefOid": "5bd7fb25b5d7307ad65c7973c094b158aeed641a",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "closedAt": "2024-02-14T17:22:31Z",
+      "mergedAt": "2024-02-14T17:22:31Z",
+      "mergedBy": "ianswett",
+      "mergeCommit": {
+        "oid": "59a2a3a9a060bf1a78e191ee9b266211654eeb3f"
+      },
       "comments": [],
       "reviews": [
         {
@@ -45188,18 +45289,26 @@
       "labels": [],
       "body": "Fixes https://github.com/moq-wg/moq-transport/issues/337",
       "createdAt": "2024-01-22T14:19:42Z",
-      "updatedAt": "2024-02-04T22:01:01Z",
+      "updatedAt": "2024-02-15T00:34:02Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
-      "baseRefOid": "d97485d4fb39d1f1fc0e88b7291dd14c36ebe836",
+      "baseRefOid": "59a2a3a9a060bf1a78e191ee9b266211654eeb3f",
       "headRepository": "wilaw/moq-transport",
       "headRefName": "main",
-      "headRefOid": "95b5b331081fa6ff136c599cb8343d235215aa64",
+      "headRefOid": "bd5b25256b253a68c2f0daa22ac772e91d176a1e",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
       "mergeCommit": null,
-      "comments": [],
+      "comments": [
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "nit: can you wrap the lines at 80 chars?",
+          "createdAt": "2024-02-14T19:02:21Z",
+          "updatedAt": "2024-02-14T19:02:21Z"
+        }
+      ],
       "reviews": [
         {
           "id": "PRR_kwDOG2Ho4M5teVQF",
@@ -45266,6 +45375,138 @@
           "createdAt": "2024-02-04T22:01:01Z",
           "updatedAt": "2024-02-04T22:01:01Z",
           "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5wHjKj",
+          "commit": {
+            "abbreviatedOid": "69c530c"
+          },
+          "author": "wilaw",
+          "authorAssociation": "NONE",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-02-14T18:52:59Z",
+          "updatedAt": "2024-02-14T18:52:59Z",
+          "comments": [
+            {
+              "originalPosition": 16,
+              "body": "This has now been resolved with the addition of the ContentExists flag. ",
+              "createdAt": "2024-02-14T18:52:59Z",
+              "updatedAt": "2024-02-14T18:52:59Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5wHjRL",
+          "commit": {
+            "abbreviatedOid": "69c530c"
+          },
+          "author": "wilaw",
+          "authorAssociation": "NONE",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-02-14T18:53:17Z",
+          "updatedAt": "2024-02-14T18:53:17Z",
+          "comments": [
+            {
+              "originalPosition": 18,
+              "body": "Same resolution. ",
+              "createdAt": "2024-02-14T18:53:17Z",
+              "updatedAt": "2024-02-14T18:53:17Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5wH-PO",
+          "commit": {
+            "abbreviatedOid": "69c530c"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "CHANGES_REQUESTED",
+          "body": "Small nits. Thanks for the change.s",
+          "createdAt": "2024-02-14T19:50:19Z",
+          "updatedAt": "2024-02-14T19:51:49Z",
+          "comments": [
+            {
+              "originalPosition": 18,
+              "body": "I don't see a need to include text on locations here.",
+              "createdAt": "2024-02-14T19:50:19Z",
+              "updatedAt": "2024-02-14T19:51:49Z"
+            },
+            {
+              "originalPosition": 18,
+              "body": "Also , this seems uneccesary \"Note that the Group may not be complete when this value is returned.\".",
+              "createdAt": "2024-02-14T19:50:50Z",
+              "updatedAt": "2024-02-14T19:51:49Z"
+            },
+            {
+              "originalPosition": 18,
+              "body": "same comments as above, Let's just indicate largest object Id os the largest known object under the group indicated by \"LargestGroupId\".",
+              "createdAt": "2024-02-14T19:51:39Z",
+              "updatedAt": "2024-02-14T19:51:49Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5wIiIH",
+          "commit": {
+            "abbreviatedOid": "69c530c"
+          },
+          "author": "wilaw",
+          "authorAssociation": "NONE",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-02-14T20:48:51Z",
+          "updatedAt": "2024-02-14T20:48:52Z",
+          "comments": [
+            {
+              "originalPosition": 18,
+              "body": "> I don't see a need to include text on locations here.\r\n\r\nI think we need to cleanly define what \"largest\" means in the context of groups and how this maps precisely to the Location description. Simply saying its the \"largest group\" doesn't tie in to how an subscriber would actually request that object. \r\n\r\n> Also , this seems unnecessary \"Note that the Group may not be complete when this value is returned.\".\r\n\r\nThis was added because there was some ambiguity as to whether this was the largest fully complete group available for the track, or just the largest group for which at least one object has started publishing. It's the latter, but thats not obvious if the language above is omitted. ",
+              "createdAt": "2024-02-14T20:48:51Z",
+              "updatedAt": "2024-02-14T20:48:52Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5wI_GR",
+          "commit": {
+            "abbreviatedOid": "69c530c"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-02-14T22:12:44Z",
+          "updatedAt": "2024-02-14T22:12:44Z",
+          "comments": [
+            {
+              "originalPosition": 18,
+              "body": "Largest is the largest know groupId and objectId for a given track seen so far or available. I think we are making it less clear by adding location information. Locations are filters and the answer one gets doesn't have to match it since the state of publisher may have very well moved out. \r\n\r\nI sitll feel if the group being full or not doesn't need to be specified here.",
+              "createdAt": "2024-02-14T22:12:44Z",
+              "updatedAt": "2024-02-14T22:12:44Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5wJi3X",
+          "commit": {
+            "abbreviatedOid": "bd5b252"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-02-15T00:34:02Z",
+          "updatedAt": "2024-02-15T00:34:02Z",
+          "comments": [
+            {
+              "originalPosition": 18,
+              "body": "Individual Comment: \r\n\r\nI recommend we keep the text here very simple, and reference the Locations section for a definition of what Largest Group and Largest Object mean, since they are used throughout that section.  Right now, isn't a good definition of Largest Group and Largest Object there, but we can add that in a follow-up PR?",
+              "createdAt": "2024-02-15T00:34:02Z",
+              "updatedAt": "2024-02-15T00:34:02Z"
+            }
+          ]
         }
       ]
     },
@@ -45553,13 +45794,13 @@
       "labels": [],
       "body": "This PR cleans up some nits to make all the places we use the RFC9000 encoding syntax valid, updates our extensions to it, and add a non normative summary of parts of the syntax we use. \r\n\r\nI don't think this is making any changes to anything on the wire or normative changes to spec other than the statement SHOULD use smallest number of bytes for variable length integers which RFC9000 only requires for some fields. \r\n\r\n",
       "createdAt": "2024-02-04T21:42:04Z",
-      "updatedAt": "2024-02-07T02:48:06Z",
+      "updatedAt": "2024-02-14T17:55:01Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "d97485d4fb39d1f1fc0e88b7291dd14c36ebe836",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "encoding1",
-      "headRefOid": "fbe690f8920b1c436fc8f271414ab4c46cd1332b",
+      "headRefOid": "744b58d18206cf918aba109d516638170332ab16",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -45664,6 +45905,79 @@
               "updatedAt": "2024-02-07T02:48:06Z"
             }
           ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5wGi8o",
+          "commit": {
+            "abbreviatedOid": "fbe690f"
+          },
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-02-14T16:36:26Z",
+          "updatedAt": "2024-02-14T16:36:26Z",
+          "comments": [
+            {
+              "originalPosition": 53,
+              "body": "Agree that is a real change and happy to refactor it into a separate PR. ",
+              "createdAt": "2024-02-14T16:36:26Z",
+              "updatedAt": "2024-02-14T16:36:26Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5wGvCJ",
+          "commit": {
+            "abbreviatedOid": "90012aa"
+          },
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-02-14T16:59:45Z",
+          "updatedAt": "2024-02-14T16:59:45Z",
+          "comments": [
+            {
+              "originalPosition": 53,
+              "body": "OK - updated this. I will note that from https://datatracker.ietf.org/doc/html/rfc2119#section-3 SHOULD just means \"RECOMMENDED\" not \"REQUIRED\"",
+              "createdAt": "2024-02-14T16:59:45Z",
+              "updatedAt": "2024-02-14T16:59:45Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5wGyJD",
+          "commit": {
+            "abbreviatedOid": "fbe690f"
+          },
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-02-14T17:05:12Z",
+          "updatedAt": "2024-02-14T17:05:12Z",
+          "comments": [
+            {
+              "originalPosition": 53,
+              "body": "> OK - updated this. I will note that from https://datatracker.ietf.org/doc/html/rfc2119#section-3 SHOULD just means \"RECOMMENDED\" not \"REQUIRED\"\r\n\r\nAh okay I missed that memo. ",
+              "createdAt": "2024-02-14T17:05:12Z",
+              "updatedAt": "2024-02-14T17:05:12Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5wHJCR",
+          "commit": {
+            "abbreviatedOid": "744b58d"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2024-02-14T17:55:01Z",
+          "updatedAt": "2024-02-14T17:55:01Z",
+          "comments": []
         }
       ]
     },
@@ -45679,19 +45993,48 @@
       "labels": [],
       "body": "Addresses #359 ",
       "createdAt": "2024-02-07T21:17:55Z",
-      "updatedAt": "2024-02-07T22:29:48Z",
+      "updatedAt": "2024-02-14T19:00:53Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "d97485d4fb39d1f1fc0e88b7291dd14c36ebe836",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "datagram",
-      "headRefOid": "028791d85fed139e605aa3c6f559779f70d60d06",
+      "headRefOid": "ec7537f771507a12fc93c0f8e0998ff94326b84a",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
       "mergeCommit": null,
-      "comments": [],
-      "reviews": []
+      "comments": [
+        {
+          "author": "kixcord",
+          "authorAssociation": "NONE",
+          "body": "We should have some text on what to do if the datagram extension is not negotiated.",
+          "createdAt": "2024-02-14T18:05:41Z",
+          "updatedAt": "2024-02-14T18:05:41Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> We should have some text on what to do if the datagram extension is not negotiated.\r\n\r\nDo you want a behavior other than \"all datagrams will be dropped\"?  We could have the publisher reply with SUBSCRIBE ERROR.\r\n",
+          "createdAt": "2024-02-14T19:00:52Z",
+          "updatedAt": "2024-02-14T19:00:52Z"
+        }
+      ],
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M5wHHIc",
+          "commit": {
+            "abbreviatedOid": "ec7537f"
+          },
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "LGTM",
+          "createdAt": "2024-02-14T17:50:59Z",
+          "updatedAt": "2024-02-14T17:50:59Z",
+          "comments": []
+        }
+      ]
     },
     {
       "number": 366,
@@ -45810,13 +46153,13 @@
       "labels": [],
       "body": "Fixes #351.\r\n\r\nThere could stand to be (1) a section on a subscriptions, and (2) rearranging the sections here to pull objects out of the message section. But I think it would be easier to review if cut-and-paste happens in a separate PR.\r\n\r\nThere are other issues (e.g. explicit payload length all the time) that are not addressed in this PR.",
       "createdAt": "2024-02-09T18:43:16Z",
-      "updatedAt": "2024-02-12T22:00:43Z",
+      "updatedAt": "2024-02-14T17:30:45Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
-      "baseRefOid": "527831ac01b5a8ab47b9a58e76659ae50547abf5",
+      "baseRefOid": "59a2a3a9a060bf1a78e191ee9b266211654eeb3f",
       "headRepository": "martinduke/moq-transport",
       "headRefName": "fwd-pref",
-      "headRefOid": "06866fa7365d7816576a51f4009fb7275e6570dc",
+      "headRefOid": "59bd823511c640a5cc25870f8944a390dbd43317",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -45856,6 +46199,20 @@
           "body": "> Frankly, I don't even want the relay to know about forwarding preference. It should just receive a stream, apply the subscription as a filter, send the stream. The stream headers are only meant to remove redundant encoding.\r\n\r\nChair Comment:\r\n\r\nThe WG agreed to have an explicit encoding of the forwarding preference for now and revisit that based on experimental data at a later date.  The current signal serves dual purpose with object property compression.\r\n\r\nIndividual Comment:\r\n\r\nThe publisher should be able to communicate immutable Track properties in Subscribe OK without those being properties of the Subscribe.  Using HTTP as an example, response headers contain immutable properties of the requested resource (Content-Length) and variable properties (Date, Server).",
           "createdAt": "2024-02-12T22:00:41Z",
           "updatedAt": "2024-02-12T22:00:41Z"
+        },
+        {
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> The publisher should be able to communicate immutable Track properties in Subscribe OK without those being properties of the Subscribe. Using HTTP as an example, response headers contain immutable properties of the requested resource (Content-Length) and variable properties (Date, Server).\r\n\r\n\r\nThere are 3  kinds of information that would be good to learn and we need to separate architectural constraints for the same\r\n\r\n\r\n- Static track level properties like track info, preferences that the end-point subscriber needs to know about -> this can go in catalog and hence served over control plane/slow path.\r\n\r\n- Dynamic properties reflecting the current state of objects like live/expiry edge, last object/group info --> this would be best served on data plane/fast path along with data. \r\n\r\n- Data that relay doesn't usually have access to but it needs to make decision on per object basis. this includes  object properties like priority, its preferences, alias (some of which can be inherited from track level settings and set by the original producer endpoint when publishing) --> this would be best served on the fast path as well.\r\n",
+          "createdAt": "2024-02-13T03:28:21Z",
+          "updatedAt": "2024-02-13T04:44:45Z"
+        },
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "After discussion at today's meeting, the conclusion was that we'd like to do the minimal change of saying you can't have different forwarding preferences for a given track and if a subscriber receives different ones, close the session with an error.",
+          "createdAt": "2024-02-14T17:30:44Z",
+          "updatedAt": "2024-02-14T17:30:44Z"
         }
       ],
       "reviews": [
