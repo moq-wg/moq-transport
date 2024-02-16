@@ -319,7 +319,7 @@ URI with a "moq" scheme.  The "moq" URI scheme is defined as follows,
 using definitions from {{!RFC3986}}:
 
 ~~~~~~~~~~~~~~~
-moq-URI = "moqt" "://" authority path-abempty [ "?" query ]
+moq-URI = "moq" "://" authority path-abempty [ "?" query ]
 ~~~~~~~~~~~~~~~
 
 The `authority` portion MUST NOT contain a non-empty `host` portion.
@@ -584,9 +584,13 @@ The entity receiving the SUBSCRIBE MUST send only a single response to
 a given SUBSCRIBE of either SUBSCRIBE_OK or SUBSCRIBE_ERROR.
 
 For successful subscriptions, the publisher maintains a list of
-subscribers for each track. Each new OBJECT belonging to the
-track within the subscription range is forwarded to each active
-subscriber, dependent on the congestion response. A subscription
+subscribers for each track. For subscriptions with `DeliveryPreference`
+of `0x1 Ready` , each new OBJECT belonging to the
+track within the subscription range is forwarded to all the matching
+subscribers, dependent on the congestion response. For subscriptions with
+`DeliveryPreference` value of `0x0 Park`, a relay implementation
+may choose to subscribe upstream to receive objects in anticipation of
+having media readily available. A subscription
 remains active until it expires, until the publisher of the track
 terminates the track with a SUBSCRIBE_FIN
 (see {{message-subscribe-fin}}) or a SUBSCRIBE_RST
@@ -775,6 +779,7 @@ AUTHORIZATION INFO parameter (key 0x02) identifies a track's authorization
 information in a SUBSCRIBE or ANNOUNCE message. This parameter is populated for
 cases where the authorization is required at the track level. The value is an
 ASCII string.
+
 
 ## CLIENT_SETUP and SERVER_SETUP {#message-setup}
 
@@ -1163,6 +1168,7 @@ SUBSCRIBE Message {
   Track Alias (i),
   Track Namespace (b),
   Track Name (b),
+  DeliveryPreference (i)
   StartGroup (Location),
   StartObject (Location),
   EndGroup (Location),
@@ -1191,6 +1197,11 @@ close the session with a Duplicate Track Alias error ({{session-termination}}).
 
 * Track Name: Identifies the track name as defined in ({{track-name}}).
 
+* DeliveryPreference: The subscriber's preference to indicate its readiness to accept the published media. A DeliverPreference value of `Park (0x0)`  specifies
+media delivery MUST be paused by the publisher. A DeliverPreference value of `Ready (0x1)` specifies that the publisher MUST start delivering the objects for the track indicated by the `SUBSCRIBE` as and when they are
+available. A Subscriber can update the DeliveryPreference for a track at
+any point by issuing a new `SUBSCRIBE` message with `Subscribe ID` matching the original `SUBSCRIBE` message.
+
 * StartGroup: The Location of the requested group.  StartGroup's Mode MUST NOT be
 None.
 
@@ -1214,8 +1225,6 @@ If a publisher cannot satisfy the requested start or end for the subscription it
 MAY send a SUBSCRIBE_ERROR with code 'Invalid Range'. A publisher MUST NOT send
 objects from outside the requested start and end.
 
-TODO: Define the flow where subscribe request matches an existing subscribe id
-(subscription updates.)
 
 ### Examples
 
