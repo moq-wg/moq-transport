@@ -1199,7 +1199,7 @@ close the session with a Duplicate Track Alias error ({{session-termination}}).
 
 * DeliveryPreference: The subscriber's preference to indicate its readiness to accept the published media. A DeliverPreference value of `Park (0x0)`  specifies
 media delivery MUST be paused by the publisher. A DeliverPreference value of `Ready (0x1)` specifies that the publisher MUST start delivering the objects for the track indicated by the `SUBSCRIBE` as and when they are
-available. A Subscriber can update the DeliveryPreference for a track at
+available. A subscriber can update the DeliveryPreference for a track at
 any point by issuing a new `SUBSCRIBE` message with `Subscribe ID` matching the original `SUBSCRIBE` message.
 
 * StartGroup: The Location of the requested group.  StartGroup's Mode MUST NOT be
