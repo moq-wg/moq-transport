@@ -1275,7 +1275,7 @@ Table of Contents
       publisher.  A DeliverPreference value of Ready (0x1) specifies
       that the publisher MUST start delivering the objects for the track
       indicated by the SUBSCRIBE as and when they are available.  A
-      Subscriber can update the DeliveryPreference for a track at any
+      subscriber can update the DeliveryPreference for a track at any
       point by issuing a new SUBSCRIBE message with Subscribe ID
       matching the original SUBSCRIBE message.
 
