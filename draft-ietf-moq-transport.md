@@ -1168,7 +1168,7 @@ SUBSCRIBE Message {
   Track Alias (i),
   Track Namespace (b),
   Track Name (b),
-  DeliveryPreference (i)
+  DeliveryPreference (i),
   StartGroup (Location),
   StartObject (Location),
   EndGroup (Location),
