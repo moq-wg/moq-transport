@@ -18,11 +18,11 @@ media to publish data and have it consumed via subscription by a
 multiplicity of endpoints. It supports intermediate content distribution
 networks and is designed for high scale and low latency distribution. 
     " name="description">
-<meta content="xml2rfc 3.19.2" name="generator">
+<meta content="xml2rfc 3.19.4" name="generator">
 <meta content="Internet-Draft" name="keyword">
 <meta content="draft-ietf-moq-transport-latest" name="ietf.draft">
 <!-- Generator version information:
-  xml2rfc 3.19.2
+  xml2rfc 3.19.4
     Python 3.11.6
     ConfigArgParse 1.7
     google-i18n-address 3.1.0
@@ -2505,7 +2505,7 @@ be sent according to its <code>Object Forwarding Preference</code>, described be
           </h4>
 <p id="section-6.3.2-1">Every Track has a single 'Object Forwarding Preference' and publishers
 <span class="bcp14">MUST NOT</span> mix different forwarding preferences within a single track.
-If a subscriber receives different forward prefernces for a track, it
+If a subscriber receives different forwarding preferences for a track, it
 <span class="bcp14">SHOULD</span> close the session with an error of 'Protocol Violation'.<a href="#section-6.3.2-1" class="pilcrow">¶</a></p>
 <p id="section-6.3.2-2"><strong>Object Stream Message</strong><a href="#section-6.3.2-2" class="pilcrow">¶</a></p>
 <p id="section-6.3.2-3">An <code>OBJECT_STREAM</code> message carries a single object on a stream.  There is no
