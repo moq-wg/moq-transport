@@ -263,8 +263,14 @@ groups and tracks.
 The basic data element of MOQT is an object.  An object is an
 addressable unit whose payload is a sequence of bytes.  All objects
 belong to a group, indicating ordering and potential
-dependencies. {{model-group}} Objects are comprised of two parts:
-metadata and a payload.  The metadata is never encrypted and is always
+dependencies. {{model-group}}  An object is uniquely identified by
+its track namespace, track name, group ID, and object ID, and must be an
+identical sequence of bytes regardless of how or where it is retrieved.
+An Object can become unavailable, but it's contents MUST NOT change over
+time.
+
+Objects are comprised of two parts: metadata and a payload.
+The metadata is never encrypted and is always
 visible to relays. The payload portion may be encrypted, in which case
 it is only visible to the producer and consumer. The application is
 solely responsible for the content of the object payload. This includes
@@ -356,7 +362,7 @@ URI with a "moq" scheme.  The "moq" URI scheme is defined as follows,
 using definitions from {{!RFC3986}}:
 
 ~~~~~~~~~~~~~~~
-moq-URI = "moq" "://" authority path-abempty [ "?" query ]
+moq-URI = "moqt" "://" authority path-abempty [ "?" query ]
 ~~~~~~~~~~~~~~~
 
 The `authority` portion MUST NOT contain a non-empty `host` portion.
@@ -936,6 +942,11 @@ NOT be processed by a relay.
 
 ### Object Message Formats
 
+Every Track has a single 'Object Forwarding Preference' and publishers
+MUST NOT mix different forwarding preferences within a single track.
+If a subscriber receives different forwarding preferences for a track, it
+SHOULD close the session with an error of 'Protocol Violation'.
+
 **Object Stream Message**
 
 An `OBJECT_STREAM` message carries a single object on a stream.  There is no
@@ -992,7 +1003,7 @@ stream if it is possible to send it as a datagram.
 
 ~~~
 OBJECT_PREFER_DATAGRAM Message {
-  Subscription ID (i),
+  Subscribe ID (i),
   Track Alias (i),
   Group ID (i),
   Object ID (i),
@@ -1204,6 +1215,7 @@ SUBSCRIBE Message {
   StartObject (Location),
   EndGroup (Location),
   EndObject (Location),
+  Number of Parameters (i),
   Track Request Parameters (..) ...
 }
 ~~~
@@ -1315,21 +1327,33 @@ A SUBSCRIBE_OK control message is sent for successful subscriptions.
 SUBSCRIBE_OK
 {
   Subscribe ID (i),
-  Expires (i)
+  Expires (i),
+  ContentExists (1),
+  [Largest Group ID (i)],
+  [Largest Object ID (i)]
 }
 ~~~
 {: #moq-transport-subscribe-ok format title="MOQT SUBSCRIBE_OK Message"}
 
 * Subscribe ID: Subscription Identifer as defined in {{message-subscribe-req}}.
 
-* Track Namespace: Identifies the namespace of the track as defined in
-({{track-name}}).
-
-* Track Name: Identifies the track name as defined in ({{track-name}}).
-
 * Expires: Time in milliseconds after which the subscription is no
 longer valid. A value of 0 indicates that the subscription stays active
 until it is explicitly unsubscribed.
+
+* ContentExists: 1 if an object has been published on this track, 0 if not.
+* If 0, then the Largest Group ID and Largest Object ID fields will not be
+* present. 
+
+* Largest Group ID: the largest Group ID available for this track. This
+* Group ID corresponds to the Group that would be returned with a
+* {{subscribe-locations}} RelativePrevious value of 0. This field is only
+* present if ContentExists has a value of 1.
+
+* Largest Object ID: the largest Object ID available within the largest Group ID
+* for this track. This Object ID corresponds to the Object that would be
+* returned with a {{subscribe-locations}} RelativePrevious value of 0. This
+* field is only present if ContentExists has a value of 1.
 
 
 ## SUBSCRIBE_ERROR {#message-subscribe-error}
