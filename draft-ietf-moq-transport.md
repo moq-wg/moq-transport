@@ -243,10 +243,6 @@ x (b):
   described in ({{?RFC9000, Section 16}}), followed by that many bytes
   of binary data
 
-x (Location):
-
-: Indicates x is a Location structure defined in {{subscribe-locations}}.
-
 To reduce unnecessary use of bandwidth, variable length integers SHOULD
 be encoded using the least number of bytes possible to represent the
 required value.
