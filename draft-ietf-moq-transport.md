@@ -899,6 +899,11 @@ NOT be processed by a relay.
 
 ### Object Message Formats
 
+Every Track has a single 'Object Forwarding Preference' and publishers
+MUST NOT mix different forwarding preferences within a single track.
+If a subscriber receives different forward prefernces for a track, it
+SHOULD close the session with an error of 'Protocol Violation'.
+
 **Object Stream Message**
 
 An `OBJECT_STREAM` message carries a single object on a stream.  There is no
