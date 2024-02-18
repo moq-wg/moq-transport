@@ -209,9 +209,8 @@ Track:
 This document uses the conventions detailed in ({{?RFC9000, Section 1.3}})
 when describing the binary encoding.
 
-As a quick reference, the following list provides a non normative
-summary of the parts of RFC9000 syntax that are used in this
-specification.
+As a quick reference, the following list provides a non normative summary
+of the parts of RFC9000 field syntax that are used in this specification.
 
 x (L):
 
