@@ -325,7 +325,7 @@ URI with a "moq" scheme.  The "moq" URI scheme is defined as follows,
 using definitions from {{!RFC3986}}:
 
 ~~~~~~~~~~~~~~~
-moq-URI = "moq" "://" authority path-abempty [ "?" query ]
+moq-URI = "moqt" "://" authority path-abempty [ "?" query ]
 ~~~~~~~~~~~~~~~
 
 The `authority` portion MUST NOT contain a non-empty `host` portion.
@@ -904,6 +904,11 @@ be sent according to its `Object Forwarding Preference`, described below.
 NOT be processed by a relay.
 
 ### Object Message Formats
+
+Every Track has a single 'Object Forwarding Preference' and publishers
+MUST NOT mix different forwarding preferences within a single track.
+If a subscriber receives different forwarding preferences for a track, it
+SHOULD close the session with an error of 'Protocol Violation'.
 
 **Object Stream Message**
 
