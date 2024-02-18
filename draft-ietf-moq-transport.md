@@ -226,8 +226,14 @@ groups and tracks.
 The basic data element of MOQT is an object.  An object is an
 addressable unit whose payload is a sequence of bytes.  All objects
 belong to a group, indicating ordering and potential
-dependencies. {{model-group}} Objects are comprised of two parts:
-metadata and a payload.  The metadata is never encrypted and is always
+dependencies. {{model-group}}  An object is uniquely identified by
+its track namespace, track name, group ID, and object ID, and must be an
+identical sequence of bytes regardless of how or where it is retrieved.
+An Object can become unavailable, but it's contents MUST NOT change over
+time.
+
+Objects are comprised of two parts: metadata and a payload.
+The metadata is never encrypted and is always
 visible to relays. The payload portion may be encrypted, in which case
 it is only visible to the producer and consumer. The application is
 solely responsible for the content of the object payload. This includes
@@ -898,6 +904,11 @@ be sent according to its `Object Forwarding Preference`, described below.
 NOT be processed by a relay.
 
 ### Object Message Formats
+
+Every Track has a single 'Object Forwarding Preference' and publishers
+MUST NOT mix different forwarding preferences within a single track.
+If a subscriber receives different forwarding preferences for a track, it
+SHOULD close the session with an error of 'Protocol Violation'.
 
 **Object Stream Message**
 
