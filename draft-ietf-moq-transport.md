@@ -1338,7 +1338,7 @@ until it is explicitly unsubscribed.
 
 * ContentExists: 1 if an object has been published on this track, 0 if not.
 * If 0, then the Largest Group ID and Largest Object ID fields will not be
-* present. 
+* present.
 
 * Largest Group ID: the largest Group ID available for this track. This
 * Group ID corresponds to the Group that would be returned with a
