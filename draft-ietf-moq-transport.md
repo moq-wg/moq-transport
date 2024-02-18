@@ -1290,7 +1290,10 @@ A SUBSCRIBE_OK control message is sent for successful subscriptions.
 SUBSCRIBE_OK
 {
   Subscribe ID (i),
-  Expires (i)
+  Expires (i),
+  ContentExists (1),
+  [Largest Group ID (i)],
+  [Largest Object ID (i)]
 }
 ~~~
 {: #moq-transport-subscribe-ok format title="MOQT SUBSCRIBE_OK Message"}
@@ -1300,6 +1303,20 @@ SUBSCRIBE_OK
 * Expires: Time in milliseconds after which the subscription is no
 longer valid. A value of 0 indicates that the subscription stays active
 until it is explicitly unsubscribed.
+
+* ContentExists: 1 if an object has been published on this track, 0 if not.
+* If 0, then the Largest Group ID and Largest Object ID fields will not be
+* present. 
+
+* Largest Group ID: the largest Group ID available for this track. This
+* Group ID corresponds to the Group that would be returned with a
+* {{subscribe-locations}} RelativePrevious value of 0. This field is only
+* present if ContentExists has a value of 1.
+
+* Largest Object ID: the largest Object ID available within the largest Group ID
+* for this track. This Object ID corresponds to the Object that would be
+* returned with a {{subscribe-locations}} RelativePrevious value of 0. This
+* field is only present if ContentExists has a value of 1.
 
 
 ## SUBSCRIBE_ERROR {#message-subscribe-error}
