@@ -901,7 +901,7 @@ NOT be processed by a relay.
 
 Every Track has a single 'Object Forwarding Preference' and publishers
 MUST NOT mix different forwarding preferences within a single track.
-If a subscriber receives different forward prefernces for a track, it
+If a subscriber receives different forwarding preferences for a track, it
 SHOULD close the session with an error of 'Protocol Violation'.
 
 **Object Stream Message**
