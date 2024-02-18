@@ -1602,14 +1602,19 @@ groups and tracks.<a href="#section-2-1" class="pilcrow">¶</a></p>
 <p id="section-2.1-1">The basic data element of MOQT is an object.  An object is an
 addressable unit whose payload is a sequence of bytes.  All objects
 belong to a group, indicating ordering and potential
-dependencies. <a href="#model-group" class="auto internal xref">Section 2.2</a> Objects are comprised of two parts:
-metadata and a payload.  The metadata is never encrypted and is always
+dependencies. <a href="#model-group" class="auto internal xref">Section 2.2</a>  An object is uniquely identified by
+its track namespace, track name, group ID, and object ID, and must be an
+identical sequence of bytes regardless of how or where it is retrieved.
+An Object can become unavailable, but it's contents <span class="bcp14">MUST NOT</span> change over
+time.<a href="#section-2.1-1" class="pilcrow">¶</a></p>
+<p id="section-2.1-2">Objects are comprised of two parts: metadata and a payload.
+The metadata is never encrypted and is always
 visible to relays. The payload portion may be encrypted, in which case
 it is only visible to the producer and consumer. The application is
 solely responsible for the content of the object payload. This includes
 the underlying encoding, compression, any end-to-end encryption, or
 authentication. A relay <span class="bcp14">MUST NOT</span> combine, split, or otherwise modify
-object payloads.<a href="#section-2.1-1" class="pilcrow">¶</a></p>
+object payloads.<a href="#section-2.1-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="model-group">
