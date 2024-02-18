@@ -1299,17 +1299,13 @@ until it is explicitly unsubscribed.
 
 * Largest Group ID: the largest Group ID available for this track. This
 * Group ID corresponds to the Group that would be returned with a
-* {{subscribe-locations}} RelativePrevious value of 0. It represents the latest
-* Group boundary available for this track. Note that the Group may not be
-* complete when this value is returned. This field is only present if
-* ContentExists has a value of 1.
+* {{subscribe-locations}} RelativePrevious value of 0. This field is only
+* present if ContentExists has a value of 1.
 
 * Largest Object ID: the largest Object ID available within the largest Group ID
 * for this track. This Object ID corresponds to the Object that would be
-* returned with a {{subscribe-locations}} RelativePrevious value of 0. It
-* represents the latest Object boundary available for this track. Note that the
-* Object may not be complete when this value is returned. This field is only
-* present if ContentExists has a value of 1.
+* returned with a {{subscribe-locations}} RelativePrevious value of 0. This
+* field is only present if ContentExists has a value of 1.
 
 
 ## SUBSCRIBE_ERROR {#message-subscribe-error}
