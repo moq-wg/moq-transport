@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2024-02-15T01:06:08.995621+00:00",
+  "timestamp": "2024-02-18T01:09:48.464118+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -13418,7 +13418,7 @@
       "labels": [],
       "body": "At the interim there was interest in creating the ability for a receiver to ask a sender to subscribe to a track but not to forward it. The purpose of this is to minimize the delay when the receiver SUBSCRIBES to the track in the future. \r\n\r\nDesign considerations\r\n1. This would need to be converted to a regular SUBSCRIBE for forward requests. So any relay receiving a PREWARM request MUST never forward it.\r\n2. Is there a matching UNPREWARM, or would a regular UNSUBSCRIBE suffice?\r\n3. Do we need a new method PREWARM or can it be a flag on the existing SUBSCRIBE?\r\n4. This is a powerful DDOS attack vector. How do we mitigate that threat in the design? ",
       "createdAt": "2024-02-08T19:36:06Z",
-      "updatedAt": "2024-02-10T22:07:30Z",
+      "updatedAt": "2024-02-17T04:04:21Z",
       "closedAt": null,
       "comments": [
         {
@@ -13469,6 +13469,20 @@
           "body": " > > The risk of overloading the CDN backbone unnecessarily is significant.\r\n> \r\n> I don't think it is significant. If 5 clients arrive and happen to subscribe to 5 different tracks in a given presentation, we would call that normal playback and would expect the backbone to easily handle it.\r\n\r\nOne use case does not make large probabilistic numbers; of course we will handle these five clients, but this case has low probability... Network infrastructures are not dimensioned to meet the worst possible case of traffic matrix but rather some probabilistic maximum traffic. \r\n\r\nAs discussed during the interim, dimensioning a backbone (which often includes peering link and IXP) that can handle actual traffic + pre-warmed traffic is just a business question. But I can also argue that, if pre-warmed tracks are not consumed, it is a net waste of network resources, which also translates into a waste of energy. Designing a protocol that deliberately wastes resources to address a few 250ms freezes (from too aggressive video players) is questionable in 2024.\r\n\r\n> > The question is whether there is a substantial body of cases where the\r\n> > publisher is producing multiple streams but the number of consumers is low\r\n> > enough that a relay won't have most of them on hand.  Luke's experience at\r\n> > Twitch suggests that this does happen, and it happens fairly often.\r\n> \r\n> And my experience at Akamai says exactly the same thing. It happens with live sports all the time. With highly distributed edges, the problem isn't that there aren't a lot of aggregate viewers, but that there a sparse viewers on certain edges (such as ones inside smaller ISPs, or rural areas).\r\n\r\nMy experience at Synamedia (where we run multiple Edge-CDN (a.k.a multi-Tbps Telco-CDN) for broadcasters and Pay-TV services) says exactly the same. I would add two cases: 1/ Long-tail unpopular TV channels have usually the same bitrate ladder as any other TV channel (e.g. 8 video profiles), although barely nobody watch them. In our measures, we can have more than half of segments that are not consumed at all over a week. Of course even more at the edges. 2/ In countries with very good network connections, some edges serve a population having a bandwidth five to ten times bigger than the highest video profile bit-rate. In that case, all requests get to the highest track, regardless of the number of consumers. \r\n\r\n> I think parking at this point is unnecessarily conservative. I don't see a future where every track of every Moq presentation is prewarmed. Instead I see cases where\r\n> \r\n> 1. You only prewarm the lower bitrates of any given stack, or even just the lowest.\r\n\r\n+1 \r\nIt would be a \"backup survival track\", which serves only to implement a smooth switch down (to preserve the connection of the consumer in trouble) and give time to the relay for fetching the actual track requested by the consumer from the Origin. The lowest track has a marginal bit-rate, so the waste is minimized.\r\n\r\nHowever, the relay does not know which track is the survival track in the catalog since it cannot read the catalog. We may add a \"survival flag\" in the track saying \"_I'm the lowest one, please feel free to pre-warmly subscribe to me_\".\r\n\r\n> 2. You only do it for clients where the ratio of player buffer/RTT-to-origin is small. The player knows its buffer and the server could reports the distance to origin in the SUBSCRIBE_OK response, so the client could intelligently decide if prewarming would be useful.\r\n\r\nIt seems a bit over-engineered to me. The distance to Origin can vary, especially if Origin is mobile.\r\n\r\n> 4. The delivery network can always choose not to honor prewarming and we can design a response to the client indicating  this.\r\n\r\n+1\r\n \r\n> I would suggest we build a simple version of it into the protocol and then build POCs where we test and measure the real-world utility and cost.\r\n\r\nI'd love to help. Measuring real-world utility and cost will probably be challenging, since it requires building real-world use-cases. For example, it depends on the considered ABR logic at the client side. I still doubt that a player can be so wrong in his estimation that he cannot survive 500ms more with his previous track before switching down. But it is an exciting study to do.",
           "createdAt": "2024-02-10T22:07:29Z",
           "updatedAt": "2024-02-10T22:07:29Z"
+        },
+        {
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I think this a good idea, and yet also a premature optimization.\r\n\r\nHere's my current thoughts on how the receiver should perform ABR. These examples use inclusive ranges and the track priority is annotated when it matters.\r\n\r\n### Switching Up\r\nI want the ability the preflight the switch while in the middle of group 5 @ 480p. \r\n```\r\nSUBSCRIBE 1080p start=6\r\nUNSUBSCRIBE 480p end=5\r\n```\r\n\r\nOr I want the ability to probe for the higher bitrate, temporarily subscribing to both to test the network speed. I'll unsubscribe to one of them depending on the arrival speed.\r\n\r\n```\r\nSUBSCRIBE 480p start=0 priority=high\r\nSUBSCRIBE 1080p start=6 priority=low\r\n```\r\n\r\nIn both cases the receiver doesn't need to pre-warm unless they switch ~100ms from the end of a group, in which case they should wait.\r\n\r\n### Switching Down\r\nI want to immediately switch down while halfway through group 5 @ 1080p:\r\n\r\n```\r\nUNSUBSCRIBE 1080p end=5 priority=low\r\nSUBSCRIBE 480p start=5 priority=high\r\n```\r\n\r\nIn this example, I'll keep receiving 1080p while the request to 480p goes to origin.\r\n\r\nPre-warming could reduce the time this takes by 100ms at most, assuming it's an unpopular broadcast. I can still download some 1080p with my limited bandwidth, so let's say we drop like 50ms of video by not pre-warming.\r\n\r\nBut does that really matter? Is it worth the additional cost? Maybe for switching down but definitely not for switching up.",
+          "createdAt": "2024-02-17T03:53:58Z",
+          "updatedAt": "2024-02-17T03:58:30Z"
+        },
+        {
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "body": "My take is that pre-warming should be part of sender-side ABR. If it's critical to avoid the RTT to origin, then it's also critical to avoid the RTT incurred by putting the receiver in charge.\r\n\r\nIt also just makes for a better API, as the server can decide if it wants to transparently pre-warm instead of relying on a benevolent client:\r\n```\r\nSUBSCRIBE 1080p or 480p or 240p\r\n```",
+          "createdAt": "2024-02-17T04:01:40Z",
+          "updatedAt": "2024-02-17T04:04:21Z"
         }
       ]
     },
@@ -13587,21 +13601,60 @@
     {
       "number": 379,
       "id": "I_kwDOG2Ho4M5_P4Q7",
-      "title": "Split message IDs based on context",
+      "title": "Single Message ID space is unnecessary given messages have context",
       "url": "https://github.com/moq-wg/moq-transport/issues/379",
       "state": "OPEN",
       "author": "kixelated",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [
-        "Editorial",
+        "Needs PR",
         "Control Streams"
       ],
       "body": "Currently, there's one message section and number space. It's confusing to read and it's not clear what messages can be encoded on a control stream, data stream, or datagram.\r\n\r\nMy vote is proposal 2 and it's what HTTP/3 does.\r\n\r\n### Proposal 1: Annotate Table\r\n| id | name | context |\r\n|-|-|-|\r\n| 0x0 | OBJECT_STREAM | data |\r\n| 0x1 | OBJECT_DATAGRAM | datagram |\r\n| 0x3 | SUBSCRIBE | control |\r\n| 0x4 | SUBSCRIBE_OK | control |\r\n| 0x5 | SUBSCRIBE_ERROR | control |\r\n| 0x6 | ANNOUNCE | control |\r\n| 0x7 | ANNOUNCE_OK | control |\r\n| 0x8 | ANNOUNCE_ERROR | control |\r\n| 0x9 | UNANNOUNCE | control |\r\n| 0xa | UNSUBSCRIBE | control |\r\n| 0xb | SUBSCRIBE_FIN | control |\r\n| 0xc| SUBSCRIBE_RST | control |\r\n| 0x10 | GOAWAY | control |\r\n| 0x40 | CLIENT_SETUP | control |\r\n| 0x41 | SERVER_SETUP | control |\r\n| 0x50 | STREAM_HEADER_TRACK | data |\r\n| 0x51 | STREAM_HEADER_GROUP | data |\r\n\r\n\r\n### Proposal 2: Split Numberspace\r\n**control messages (bidirectional streams)**\r\n| id | name |\r\n|-|-|\r\n| 0x0 | CLIENT_SETUP |\r\n| 0x1 | SERVER_SETUP |\r\n| 0x3 | SUBSCRIBE |\r\n| 0x4 | SUBSCRIBE_OK |\r\n| 0x5 | SUBSCRIBE_ERROR |\r\n| 0x6 | ANNOUNCE |\r\n| 0x7 | ANNOUNCE_OK |\r\n| 0x8 | ANNOUNCE_ERROR |\r\n| 0x9 | UNANNOUNCE |\r\n| 0xa | UNSUBSCRIBE |\r\n| 0xb | SUBSCRIBE_FIN |\r\n| 0xc| SUBSCRIBE_RST |\r\n| 0x10 | GOAWAY |\r\n\r\n**data messages (unidirectional streams)**\r\n| id | name |\r\n|-|-|\r\n| 0x0 | OBJECT_STREAM |\r\n| 0x1 | OBJECT_TRACK |\r\n| 0x2 | OBJECT_GROUP |\r\n\r\n**datagram messages:**\r\n| id | name |\r\n|-|-|\r\n| 0x0 | OBJECT_DATAGRAM |\r\n",
       "createdAt": "2024-02-14T17:52:42Z",
-      "updatedAt": "2024-02-14T17:53:12Z",
+      "updatedAt": "2024-02-18T01:07:25Z",
       "closedAt": null,
-      "comments": []
+      "comments": [
+        {
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I like the second proposal better. It is also the way our implementation works where control messages are sent over bidirectional streams and data messages on unidirectional streams. Also its easy to report an error if message are sent on the wrong streams.\r\n\r\n",
+          "createdAt": "2024-02-16T04:48:12Z",
+          "updatedAt": "2024-02-16T04:48:12Z"
+        },
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I like your proposal, but I don't think this is editorial, since the first and second options wouldn't interop.",
+          "createdAt": "2024-02-18T01:06:39Z",
+          "updatedAt": "2024-02-18T01:06:39Z"
+        }
+      ]
+    },
+    {
+      "number": 380,
+      "id": "I_kwDOG2Ho4M5_cY-R",
+      "title": "MoQ and power consumption",
+      "url": "https://github.com/moq-wg/moq-transport/issues/380",
+      "state": "OPEN",
+      "author": "vasilvv",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "(prompted by w3c/media-source#320 and w3c/webtransport#522)\r\n\r\nIn traditional HLS/DASH-style live streaming, if the buffer is sufficiently big, the video player can do networking in bursts, rather than receive media continuously; in some circumstances (see the discussion linked above) this can lead to improved battery life.  MoQT is focused on getting media sent as soon as possible, meaning that we can't do anything of this nature even for cases where the buffer is big.  We should think about whether we want to do anyhting about this.",
+      "createdAt": "2024-02-16T08:54:11Z",
+      "updatedAt": "2024-02-16T11:26:44Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "wilaw",
+          "authorAssociation": "NONE",
+          "body": "I think we already have the semantics in SUBSCRIBE to allow burst networking under a large forward buffer. Assuming your player is willing to tolerate a large buffer (say 20s), you could issue absolute SUBSCRIBES for 20s blocks of groups every 20s. You could choose how close to the live edge you wanted to retrieve the content. Since the data was produced in the past, it would be delivered at line speed, not encode speed, further reducing radio time. \r\n\r\n",
+          "createdAt": "2024-02-16T11:26:43Z",
+          "updatedAt": "2024-02-16T11:26:43Z"
+        }
+      ]
     }
   ],
   "pulls": [
@@ -45993,13 +46046,13 @@
       "labels": [],
       "body": "Addresses #359 ",
       "createdAt": "2024-02-07T21:17:55Z",
-      "updatedAt": "2024-02-14T19:00:53Z",
+      "updatedAt": "2024-02-15T18:24:14Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "d97485d4fb39d1f1fc0e88b7291dd14c36ebe836",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "datagram",
-      "headRefOid": "ec7537f771507a12fc93c0f8e0998ff94326b84a",
+      "headRefOid": "45681288283db9ed392f96411e2edeb7e164905d",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -46018,6 +46071,41 @@
           "body": "> We should have some text on what to do if the datagram extension is not negotiated.\r\n\r\nDo you want a behavior other than \"all datagrams will be dropped\"?  We could have the publisher reply with SUBSCRIBE ERROR.\r\n",
           "createdAt": "2024-02-14T19:00:52Z",
           "updatedAt": "2024-02-14T19:00:52Z"
+        },
+        {
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Datagram is object preference like the other one. I don't understand the meaning of not being negotiated. The same rule applies to all the object preferences and if we want to say something then it might be more beneficial to indicate that in a general section for object preferences. ",
+          "createdAt": "2024-02-15T04:21:37Z",
+          "updatedAt": "2024-02-15T04:22:37Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> I don't understand the meaning of not being negotiated.\r\n\r\nI think Luke meant if the QUIC Datagram extension is not negotiated.  I believe it's required for WebTransport, but for raw QUIC the peer may not advertise support.  We could also require it for MoQ also just simply fail the entire MoQ connection without datagrams.",
+          "createdAt": "2024-02-15T16:12:54Z",
+          "updatedAt": "2024-02-15T16:12:54Z"
+        },
+        {
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> > I don't understand the meaning of not being negotiated.\r\n> \r\n> I think Luke meant if the QUIC Datagram extension is not negotiated. I believe it's required for WebTransport, but for raw QUIC the peer may not advertise support. We could also require it for MoQ also just simply fail the entire MoQ connection without datagrams.\r\n\r\nAh thanks for the clarification.  Makes sense , but I also wonder if that would be in its own PR as it is not specific to object preference. Thoughts ?",
+          "createdAt": "2024-02-15T17:41:55Z",
+          "updatedAt": "2024-02-15T17:41:55Z"
+        },
+        {
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> > > I don't understand the meaning of not being negotiated.\r\n> > \r\n> > \r\n> > I think Luke meant if the QUIC Datagram extension is not negotiated. I believe it's required for WebTransport, but for raw QUIC the peer may not advertise support. We could also require it for MoQ also just simply fail the entire MoQ connection without datagrams.\r\n> \r\n> Ah thanks for the clarification. Makes sense , but I also wonder if that would be in its own PR as it is not specific to object preference. Thoughts ?\r\n\r\nI think we should make the datagram extension required as part of this PR.\r\n\r\nThe PREFER_DATAGRAM message over streams was a fallback when datagrams are not supported. By removing that fallback, we're in a state where servers and clients might silently drop all datagrams which is no bueno.\r\n\r\n@ianswett we should have a section in connection establishment section that requires datagram support.",
+          "createdAt": "2024-02-15T17:49:48Z",
+          "updatedAt": "2024-02-15T17:49:48Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Here's the text from WebTransport if we want to copy it:\r\n\r\n```\r\nWebTransport over HTTP/3 also requires support for QUIC datagrams. To indicate support, both the client and the server MUST send a max_datagram_frame_size transport parameter with a value greater than 0 (see Section 3 of [QUIC-DATAGRAM]).\r\n```",
+          "createdAt": "2024-02-15T18:24:13Z",
+          "updatedAt": "2024-02-15T18:24:13Z"
         }
       ],
       "reviews": [
@@ -46410,6 +46498,125 @@
           ]
         }
       ]
+    },
+    {
+      "number": 381,
+      "id": "PR_kwDOG2Ho4M5nIUMO",
+      "title": "Subscirber indicator on track readiness",
+      "url": "https://github.com/moq-wg/moq-transport/pull/381",
+      "state": "OPEN",
+      "author": "suhasHere",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Attempts to address some of the usecases discussed in #372 \r\n\r\nLove to hear feedback",
+      "createdAt": "2024-02-16T20:20:32Z",
+      "updatedAt": "2024-02-17T03:17:53Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "59a2a3a9a060bf1a78e191ee9b266211654eeb3f",
+      "headRepository": "moq-wg/moq-transport",
+      "headRefName": "warmup",
+      "headRefOid": "6bb3be2466acb389a254e12eb3bb738f39b858a0",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M5wawe_",
+          "commit": {
+            "abbreviatedOid": "6bb3be2"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-02-16T21:30:42Z",
+          "updatedAt": "2024-02-16T21:30:42Z",
+          "comments": [
+            {
+              "originalPosition": 11,
+              "body": "Individual Comment:\r\n\r\nHow do you unpark?  Do you send another subscribe with `Ready`, or maybe you were thinking subscribe update would allow you to do that?  Can a subscriber go from Ready back to Parked?",
+              "createdAt": "2024-02-16T21:30:42Z",
+              "updatedAt": "2024-02-16T21:30:42Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5wb2gl",
+          "commit": {
+            "abbreviatedOid": "6bb3be2"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-02-17T03:17:53Z",
+          "updatedAt": "2024-02-17T03:17:53Z",
+          "comments": [
+            {
+              "originalPosition": 11,
+              "body": "Sending subscribe with same subscribe_id is used to update an existing subscription. Yes it is possible to move between park and ready states multiple times. There is some text on this in the DeliveryPreference explanation under Subscribe message in this PR which I think should address the above questions IIRC.",
+              "createdAt": "2024-02-17T03:17:53Z",
+              "updatedAt": "2024-02-17T03:19:11Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 382,
+      "id": "PR_kwDOG2Ho4M5nMymi",
+      "title": "Forwarding preference can't change for a track",
+      "url": "https://github.com/moq-wg/moq-transport/pull/382",
+      "state": "OPEN",
+      "author": "ianswett",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Fixes #351 \r\n\r\nCloses #375",
+      "createdAt": "2024-02-18T00:53:19Z",
+      "updatedAt": "2024-02-18T00:53:19Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "59a2a3a9a060bf1a78e191ee9b266211654eeb3f",
+      "headRepository": "moq-wg/moq-transport",
+      "headRefName": "ianswett-single-forwarding-preference",
+      "headRefOid": "9101d31b40c747ba9c65fd6efe59b3b5d43c38df",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": []
+    },
+    {
+      "number": 383,
+      "id": "PR_kwDOG2Ho4M5nMyz4",
+      "title": "Remove 'Generic Error'",
+      "url": "https://github.com/moq-wg/moq-transport/pull/383",
+      "state": "OPEN",
+      "author": "ianswett",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "'Generic Error' is never used in the draft and given \"Protocol Violation\" is also available, I don't think it's useful.\r\n\r\nI didn't renumber the error codes, but I could.",
+      "createdAt": "2024-02-18T00:58:06Z",
+      "updatedAt": "2024-02-18T00:58:06Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "59a2a3a9a060bf1a78e191ee9b266211654eeb3f",
+      "headRepository": "moq-wg/moq-transport",
+      "headRefName": "ianswett-generic-error",
+      "headRefOid": "47da7a904cf1c676708bf4e680190b8aaa7cef7f",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": []
     }
   ]
 }
