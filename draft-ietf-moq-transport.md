@@ -338,10 +338,15 @@ over a QUIC connection directly [QUIC], and over WebTransport
 [WebTransport].  Both provide streams and datagrams with similar
 semantics (see {{?I-D.ietf-webtrans-overview, Section 4}}); thus, the
 main difference lies in how the servers are identified and how the
-connection is established.  There is no definition of the protocol
-over other transports, such as TCP, and applications using MoQ might
-need to fallback to another protocol when QUIC or WebTransport aren't
-available.
+connection is established.  To ensure consistent semantics, use of
+QUIC also requires support for QUIC datagrams. To indicate support,
+both the client and the server MUST send a max_datagram_frame_size
+transport parameter with a value greater than 0
+(see Section 3 of [QUIC-DATAGRAM]).
+
+There is no definition of the protocol over other transports,
+such as TCP, and applications using MoQ might need to fallback to
+another protocol when QUIC or WebTransport aren't available.
 
 ### WebTransport
 
