@@ -5,13 +5,13 @@
 MOQ                                                            L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 17 August 2024                                             Meta
+Expires: 21 August 2024                                             Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                        14 February 2024
+                                                        18 February 2024
 
 
                        Media over QUIC Transport
@@ -53,7 +53,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 17 August 2024.
+   This Internet-Draft will expire on 21 August 2024.
 
 Copyright Notice
 
@@ -267,7 +267,7 @@ Table of Contents
    Section 1.3) when describing the binary encoding.
 
    As a quick reference, the following list provides a non normative
-   summary of the parts of RFC9000 syntax that are used in this
+   summary of the parts of RFC9000 field syntax that are used in this
    specification.
 
    x (L):  Indicates that x is L bits long
@@ -290,9 +290,6 @@ Table of Contents
       encoding as described in ([RFC9000], Section 16), followed by that
       many bytes of binary data
 
-   x (Location):  Indicates x is a Location structure defined in
-      Section 6.4.1.
-
    To reduce unnecessary use of bandwidth, variable length integers
    SHOULD be encoded using the least number of bytes possible to
    represent the required value.
@@ -307,14 +304,19 @@ Table of Contents
    The basic data element of MOQT is an object.  An object is an
    addressable unit whose payload is a sequence of bytes.  All objects
    belong to a group, indicating ordering and potential dependencies.
-   Section 2.2 Objects are comprised of two parts: metadata and a
-   payload.  The metadata is never encrypted and is always visible to
-   relays.  The payload portion may be encrypted, in which case it is
-   only visible to the producer and consumer.  The application is solely
-   responsible for the content of the object payload.  This includes the
-   underlying encoding, compression, any end-to-end encryption, or
-   authentication.  A relay MUST NOT combine, split, or otherwise modify
-   object payloads.
+   Section 2.2 An object is uniquely identified by its track namespace,
+   track name, group ID, and object ID, and must be an identical
+   sequence of bytes regardless of how or where it is retrieved.  An
+   Object can become unavailable, but it's contents MUST NOT change over
+   time.
+
+   Objects are comprised of two parts: metadata and a payload.  The
+   metadata is never encrypted and is always visible to relays.  The
+   payload portion may be encrypted, in which case it is only visible to
+   the producer and consumer.  The application is solely responsible for
+   the content of the object payload.  This includes the underlying
+   encoding, compression, any end-to-end encryption, or authentication.
+   A relay MUST NOT combine, split, or otherwise modify object payloads.
 
 2.2.  Groups
 
@@ -399,7 +401,7 @@ Table of Contents
    a URI with a "moq" scheme.  The "moq" URI scheme is defined as
    follows, using definitions from [RFC3986]:
 
-   moq-URI = "moq" "://" authority path-abempty [ "?" query ]
+   moq-URI = "moqt" "://" authority path-abempty [ "?" query ]
 
    The authority portion MUST NOT contain a non-empty host portion.  The
    moq URI scheme supports the /.well-known/ path prefix defined in
@@ -1004,6 +1006,12 @@ Table of Contents
 
 6.3.2.  Object Message Formats
 
+   Every Track has a single 'Object Forwarding Preference' and
+   publishers MUST NOT mix different forwarding preferences within a
+   single track.  If a subscriber receives different forwarding
+   preferences for a track, it SHOULD close the session with an error of
+   'Protocol Violation'.
+
    *Object Stream Message*
 
    An OBJECT_STREAM message carries a single object on a stream.  There
@@ -1061,7 +1069,7 @@ Table of Contents
    is possible to send it as a datagram.
 
    OBJECT_PREFER_DATAGRAM Message {
-     Subscription ID (i),
+     Subscribe ID (i),
      Track Alias (i),
      Group ID (i),
      Object ID (i),
@@ -1263,6 +1271,7 @@ Table of Contents
      StartObject (Location),
      EndGroup (Location),
      EndObject (Location),
+     Number of Parameters (i),
      Track Request Parameters (..) ...
    }
 
@@ -1375,22 +1384,46 @@ Table of Contents
    SUBSCRIBE_OK
    {
      Subscribe ID (i),
-     Expires (i)
+     Expires (i),
+     ContentExists (1),
+     [Largest Group ID (i)],
+     [Largest Object ID (i)]
    }
 
                     Figure 12: MOQT SUBSCRIBE_OK Message
 
    *  Subscribe ID: Subscription Identifer as defined in Section 6.4.
 
-   *  Track Namespace: Identifies the namespace of the track as defined
-      in (Section 2.3.1).
-
-   *  Track Name: Identifies the track name as defined in
-      (Section 2.3.1).
-
    *  Expires: Time in milliseconds after which the subscription is no
       longer valid.  A value of 0 indicates that the subscription stays
       active until it is explicitly unsubscribed.
+
+   *  ContentExists: 1 if an object has been published on this track, 0
+      if not.
+
+   *  If 0, then the Largest Group ID and Largest Object ID fields will
+      not be
+
+   *  present.
+
+   *  Largest Group ID: the largest Group ID available for this track.
+      This
+
+   *  Group ID corresponds to the Group that would be returned with a
+
+   *  Section 6.4.1 RelativePrevious value of 0.  This field is only
+
+   *  present if ContentExists has a value of 1.
+
+   *  Largest Object ID: the largest Object ID available within the
+      largest Group ID
+
+   *  for this track.  This Object ID corresponds to the Object that
+      would be
+
+   *  returned with a Section 6.4.1 RelativePrevious value of 0.  This
+
+   *  field is only present if ContentExists has a value of 1.
 
 6.6.  SUBSCRIBE_ERROR
 
