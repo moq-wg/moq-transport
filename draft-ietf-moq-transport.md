@@ -879,7 +879,7 @@ which are of type varint:
 
 0x01:
 
-: The endpoint process subscriptions and can send objects, but not subscribe.
+: The endpoint can process subscriptions and send objects, but not subscribe.
   The endpoint MUST NOT send a SUBSCRIBE message and an ANNOUNCE MUST NOT be
   sent to it.
 
