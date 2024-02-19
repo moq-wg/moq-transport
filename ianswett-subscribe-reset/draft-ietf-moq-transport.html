@@ -3015,37 +3015,16 @@ longer valid. A value of 0 indicates that the subscription stays active
 until it is explicitly unsubscribed.<a href="#section-6.5-3.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-6.5-3.3">
-            <p id="section-6.5-3.3.1">ContentExists: 1 if an object has been published on this track, 0 if not.<a href="#section-6.5-3.3.1" class="pilcrow">¶</a></p>
+            <p id="section-6.5-3.3.1">ContentExists: 1 if an object has been published on this track, 0 if not.
+If 0, then the Largest Group ID and Largest Object ID fields will not be
+present.<a href="#section-6.5-3.3.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-6.5-3.4">
-            <p id="section-6.5-3.4.1">If 0, then the Largest Group ID and Largest Object ID fields will not be<a href="#section-6.5-3.4.1" class="pilcrow">¶</a></p>
+            <p id="section-6.5-3.4.1">Largest Group ID: the largest Group ID available for this track. This field is only present if ContentExists has a value of 1.<a href="#section-6.5-3.4.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-6.5-3.5">
-            <p id="section-6.5-3.5.1">present.<a href="#section-6.5-3.5.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="section-6.5-3.6">
-            <p id="section-6.5-3.6.1">Largest Group ID: the largest Group ID available for this track. This<a href="#section-6.5-3.6.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="section-6.5-3.7">
-            <p id="section-6.5-3.7.1">Group ID corresponds to the Group that would be returned with a<a href="#section-6.5-3.7.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="section-6.5-3.8">
-            <p id="section-6.5-3.8.1"><a href="#subscribe-locations" class="auto internal xref">Section 6.4.1</a> RelativePrevious value of 0. This field is only<a href="#section-6.5-3.8.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="section-6.5-3.9">
-            <p id="section-6.5-3.9.1">present if ContentExists has a value of 1.<a href="#section-6.5-3.9.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="section-6.5-3.10">
-            <p id="section-6.5-3.10.1">Largest Object ID: the largest Object ID available within the largest Group ID<a href="#section-6.5-3.10.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="section-6.5-3.11">
-            <p id="section-6.5-3.11.1">for this track. This Object ID corresponds to the Object that would be<a href="#section-6.5-3.11.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="section-6.5-3.12">
-            <p id="section-6.5-3.12.1">returned with a <a href="#subscribe-locations" class="auto internal xref">Section 6.4.1</a> RelativePrevious value of 0. This<a href="#section-6.5-3.12.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="section-6.5-3.13">
-            <p id="section-6.5-3.13.1">field is only present if ContentExists has a value of 1.<a href="#section-6.5-3.13.1" class="pilcrow">¶</a></p>
+            <p id="section-6.5-3.5.1">Largest Object ID: the largest Object ID available within the largest Group ID
+for this track. This field is only present if ContentExists has a value of 1.<a href="#section-6.5-3.5.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
