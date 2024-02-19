@@ -338,7 +338,7 @@ over a QUIC connection directly [QUIC], and over WebTransport
 [WebTransport].  Both provide streams and datagrams with similar
 semantics (see {{?I-D.ietf-webtrans-overview, Section 4}}); thus, the
 main difference lies in how the servers are identified and how the
-connection is established.  When using QUIC, QUIC datagrams MUST be
+connection is established.  When using QUIC, datagrams MUST be
 supported via the [QUIC-DATAGRAM] extension, which is already a
 requirement for WebTransport over HTTP/3.
 
