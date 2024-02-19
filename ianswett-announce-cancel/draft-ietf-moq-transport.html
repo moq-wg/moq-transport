@@ -3329,9 +3329,12 @@ UNANNOUNCE Message {
 <p id="section-6.14-1">The subscriber sends an <code>ANNOUNCE_CANCEL</code> control message to
 indicate it will stop sending new subscriptions for tracks
 within the provided Track Namespace.<a href="#section-6.14-1" class="pilcrow">¶</a></p>
+<p id="section-6.14-2">If a publisher recieves new subscriptions for that namespace after
+receiving an ANNOUNCE_CANCEL, it <span class="bcp14">SHOULD</span> close the session as a
+'Protocol Violation'.<a href="#section-6.14-2" class="pilcrow">¶</a></p>
 <span id="name-moqt-announce_cancel-messag"></span><div id="moq-transport-announce-cancel-format">
 <figure id="figure-21">
-          <div class="alignLeft art-text artwork" id="section-6.14-2.1">
+          <div class="alignLeft art-text artwork" id="section-6.14-3.1">
 <pre>
 ANNOUNCE_CANCEL Message {
   Track Namespace (b),
@@ -3343,9 +3346,9 @@ ANNOUNCE_CANCEL Message {
           </figcaption></figure>
 </div>
 <ul class="normal">
-<li class="normal" id="section-6.14-3.1">
-            <p id="section-6.14-3.1.1">Track Namespace: Identifies a track's namespace as defined in
-(<a href="#track-name" class="auto internal xref">Section 2.3.1</a>).<a href="#section-6.14-3.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-6.14-4.1">
+            <p id="section-6.14-4.1.1">Track Namespace: Identifies a track's namespace as defined in
+(<a href="#track-name" class="auto internal xref">Section 2.3.1</a>).<a href="#section-6.14-4.1.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
