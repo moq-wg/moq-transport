@@ -885,7 +885,7 @@ which are of type varint:
 
 0x02:
 
-: The endpoing can send subscriptions and receive objects, but not publish.
+: The endpoint can send subscriptions and receive objects, but not publish.
   The endpoint MUST NOT send an ANNOUNCE message and a SUBSCRIBE MUST NOT be
   sent to it.
 
