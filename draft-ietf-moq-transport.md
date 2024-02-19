@@ -670,10 +670,10 @@ Relays MUST ensure that publishers are authorized by:
 Relays respond with an ANNOUNCE_OK or ANNOUNCE_ERROR control message
 providing the result of announcement. The entity receiving the
 ANNOUNCE MUST send only a single response to a given ANNOUNCE of
-either ANNOUNCE_OK or ANNOUNCE_ERROR.  When a publisher wants to stop new
-subscriptions for an announced namespace it uses UNANNOUNCE. When a
-subscriber wants to indicate it will no longer route subscriptions for a
-namespace it previously responded ANNOUNCE_OK to, it sends an
+either ANNOUNCE_OK or ANNOUNCE_ERROR.  When a publisher wants to stop
+new subscriptions for an announced namespace it sends an UNANNOUNCE.
+A subscriber indicates it will no longer route subscriptions for a
+namespace it previously responded ANNOUNCE_OK to by sending an
 ANNOUNCE_CANCEL.
 
 OBJECT message headers carry a short hop-by-hop `Track Alias` that maps to
