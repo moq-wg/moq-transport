@@ -1404,6 +1404,7 @@ The format of `SUBSCRIBE_FIN` is as follows:
 ~~~
 SUBSCRIBE_FIN Message {
   Subscribe ID (i),
+  ContentExists (1),
   Final Group (i),
   Final Object (i),
 }
@@ -1412,6 +1413,9 @@ SUBSCRIBE_FIN Message {
 
 * Subscribe ID: Subscription identifier as defined in {{message-subscribe-req}}.
 
+* ContentExists: 1 if an object has been published on this track, 0 if not.
+If 0, then the Final Group and Final Object fields will not be present.
+ 
 * Final Group: The largest Group ID sent by the publisher in an OBJECT
 message in this track.
 
@@ -1430,6 +1434,7 @@ SUBSCRIBE_RST Message {
   Subscribe ID (i),
   Error Code (i),
   Reason Phrase (b),
+  ContentExists (1),
   Final Group (i),
   Final Object (i),
 }
@@ -1441,6 +1446,9 @@ SUBSCRIBE_RST Message {
 * Error Code: Identifies an integer error code for subscription failure.
 
 * Reason Phrase: Provides the reason for subscription error.
+
+* ContentExists: 1 if an object has been published on this track, 0 if not.
+If 0, then the Final Group and Final Object fields will not be present.
 
 * Final Group: The largest Group ID sent by the publisher in an OBJECT
 message in this track.
