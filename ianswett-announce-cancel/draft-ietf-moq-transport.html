@@ -2173,7 +2173,11 @@ based on prior business agreement).<a href="#section-5.2-3.1.1" class="pilcrow">
 <p id="section-5.2-4">Relays respond with an ANNOUNCE_OK or ANNOUNCE_ERROR control message
 providing the result of announcement. The entity receiving the
 ANNOUNCE <span class="bcp14">MUST</span> send only a single response to a given ANNOUNCE of
-either ANNOUNCE_OK or ANNOUNCE_ERROR.<a href="#section-5.2-4" class="pilcrow">¶</a></p>
+either ANNOUNCE_OK or ANNOUNCE_ERROR.  When a publisher wants to stop new
+subscriptions for an announced namespace it uses UNANNOUNCE. When a
+subscriber wants to indicate it will no longer route subscriptions for a
+namespace it previously responded ANNOUNCE_OK to, it send an
+ANNOUNCE_CANCEL.<a href="#section-5.2-4" class="pilcrow">¶</a></p>
 <p id="section-5.2-5">OBJECT message headers carry a short hop-by-hop <code>Track Alias</code> that maps to
 the Full Track Name (see <a href="#message-subscribe-ok" class="auto internal xref">Section 6.5</a>). Relays use the
 <code>Track Alias</code> of an incoming OBJECT message to identify its track and find
