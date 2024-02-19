@@ -1413,8 +1413,8 @@ SUBSCRIBE_FIN Message {
 
 * Subscribe ID: Subscription identifier as defined in {{message-subscribe-req}}.
 
-* ContentExists: 1 if an object has been published on this track, 0 if not.
-If 0, then the Final Group and Final Object fields will not be present.
+* ContentExists: 1 if an object has been published for this subscription, 0 if
+not. If 0, then the Final Group and Final Object fields will not be present.
  
 * Final Group: The largest Group ID sent by the publisher in an OBJECT
 message in this track.
@@ -1447,8 +1447,8 @@ SUBSCRIBE_RST Message {
 
 * Reason Phrase: Provides the reason for subscription error.
 
-* ContentExists: 1 if an object has been published on this track, 0 if not.
-If 0, then the Final Group and Final Object fields will not be present.
+* ContentExists: 1 if an object has been published for this subscription, 0 if
+not. If 0, then the Final Group and Final Object fields will not be present.
 
 * Final Group: The largest Group ID sent by the publisher in an OBJECT
 message in this track.
