@@ -1462,9 +1462,9 @@ Table of Contents
    common type of modification is unsubscription.
 
    If an update cannot be completed by the relay, it replies with a
-   'SUBSCRIBE_ERROR' with error code 'Update Failed'.  A
-   SUBSCRIBE_UPDATE MUST NOT fail if the specified EndGroup and
-   EndObject have already been received.
+   SUBSCRIBE_ERROR with error code 'Update Failed'.  A SUBSCRIBE_UPDATE
+   MUST NOT fail if the specified EndGroup and EndObject have already
+   been received.
 
    The format of SUBSCRIBE_UPDATE is as follows:
 
