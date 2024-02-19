@@ -3106,8 +3106,8 @@ modification to the end of an existing subscription.  One common type of
 modification is unsubscription.<a href="#section-6.7-1" class="pilcrow">¶</a></p>
 <p id="section-6.7-2">If an update cannot be completed by the relay, it replies with a SUBSCRIBE_ERROR
 with error code 'Update Failed' and the subscription is unchanged.
-A SUBSCRIBE_UPDATE <span class="bcp14">MUST NOT</span> fail if the specified EndGroup and EndObject have
-already been received.<a href="#section-6.7-2" class="pilcrow">¶</a></p>
+A SUBSCRIBE_UPDATE <span class="bcp14">MUST NOT</span> fail if the specified EndGroup and EndObject are
+earlier than the current values.<a href="#section-6.7-2" class="pilcrow">¶</a></p>
 <p id="section-6.7-3">The subscription is not fully terminated until a SUBSCRIBE_RST or SUBSCRIBE_FIN
 are received.<a href="#section-6.7-3" class="pilcrow">¶</a></p>
 <p id="section-6.7-4">The format of <code>SUBSCRIBE_UPDATE</code> is as follows:<a href="#section-6.7-4" class="pilcrow">¶</a></p>
