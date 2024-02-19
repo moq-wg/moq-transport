@@ -5,13 +5,13 @@
 MOQ                                                            L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 21 August 2024                                             Meta
+Expires: 22 August 2024                                             Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                        18 February 2024
+                                                        19 February 2024
 
 
                        Media over QUIC Transport
@@ -53,7 +53,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 21 August 2024.
+   This Internet-Draft will expire on 22 August 2024.
 
 Copyright Notice
 
@@ -382,11 +382,9 @@ Table of Contents
    [WebTransport].  Both provide streams and datagrams with similar
    semantics (see [I-D.ietf-webtrans-overview], Section 4); thus, the
    main difference lies in how the servers are identified and how the
-   connection is established.  To ensure consistent semantics, use of
-   QUIC also requires support for QUIC datagrams.  To indicate support,
-   both the client and the server MUST send a max_datagram_frame_size
-   transport parameter with a value greater than 0 (see Section 3 of
-   [QUIC-DATAGRAM]).
+   connection is established.  QUIC datagrams MUST be supported via the
+   [QUIC-DATAGRAM] extension, which is already a requirement for
+   WebTransport over HTTP/3.
 
    There is no definition of the protocol over other transports, such as
    TCP, and applications using MoQ might need to fallback to another
