@@ -954,7 +954,7 @@ Table of Contents
       not subscribe.  The endpoint MUST NOT send a SUBSCRIBE message and
       an ANNOUNCE MUST NOT be sent to it.
 
-   0x02:  The endpoing can send subscriptions and receive objects, but
+   0x02:  The endpoint can send subscriptions and receive objects, but
       not publish.  The endpoint MUST NOT send an ANNOUNCE message and a
       SUBSCRIBE MUST NOT be sent to it.
 
