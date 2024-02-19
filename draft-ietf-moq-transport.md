@@ -673,7 +673,7 @@ ANNOUNCE MUST send only a single response to a given ANNOUNCE of
 either ANNOUNCE_OK or ANNOUNCE_ERROR.  When a publisher wants to stop new
 subscriptions for an announced namespace it uses UNANNOUNCE. When a
 subscriber wants to indicate it will no longer route subscriptions for a
-namespace it previously responded ANNOUNCE_OK to, it send an
+namespace it previously responded ANNOUNCE_OK to, it sends an
 ANNOUNCE_CANCEL.
 
 OBJECT message headers carry a short hop-by-hop `Track Alias` that maps to
