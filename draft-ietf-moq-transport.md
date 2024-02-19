@@ -1405,8 +1405,8 @@ The format of `SUBSCRIBE_FIN` is as follows:
 SUBSCRIBE_FIN Message {
   Subscribe ID (i),
   ContentExists (1),
-  Final Group (i),
-  Final Object (i),
+  [Final Group (i)],
+  [Final Object (i)],
 }
 ~~~
 {: #moq-transport-subscribe-fin-format title="MOQT SUBSCRIBE_FIN Message"}
@@ -1435,8 +1435,8 @@ SUBSCRIBE_RST Message {
   Error Code (i),
   Reason Phrase (b),
   ContentExists (1),
-  Final Group (i),
-  Final Object (i),
+  [Final Group (i)],
+  [Final Object (i)],
 }
 ~~~
 {: #moq-transport-subscribe-rst format title="MOQT SUBSCRIBE RST Message"}
