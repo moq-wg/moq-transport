@@ -1529,6 +1529,10 @@ The subscriber sends an `ANNOUNCE_CANCEL` control message to
 indicate it will stop sending new subscriptions for tracks
 within the provided Track Namespace.
 
+If a publisher recieves new subscriptions for that namespace after
+receiving an ANNOUNCE_CANCEL, it SHOULD close the session as a
+'Protocol Violation'.
+
 ~~~
 ANNOUNCE_CANCEL Message {
   Track Namespace (b),
