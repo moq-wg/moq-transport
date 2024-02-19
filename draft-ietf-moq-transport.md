@@ -625,9 +625,8 @@ For successful subscriptions, the publisher maintains a list of
 subscribers for each track. Each new OBJECT belonging to the
 track within the subscription range is forwarded to each active
 subscriber, dependent on the congestion response. A subscription
-remains active until it expires, until the publisher of the track
-terminates the track with a SUBSCRIBE_FIN
-(see {{message-subscribe-fin}}) or a SUBSCRIBE_RST
+remains active until the publisher terminates the subscription
+with a SUBSCRIBE_FIN (see {{message-subscribe-fin}}) or a SUBSCRIBE_RST
 (see {{message-subscribe-rst}}).
 
 A relay MUST not reorder or drop objects received on a multi-object stream when
@@ -1322,7 +1321,6 @@ A SUBSCRIBE_OK control message is sent for successful subscriptions.
 SUBSCRIBE_OK
 {
   Subscribe ID (i),
-  Expires (i),
   ContentExists (1),
   [Largest Group ID (i)],
   [Largest Object ID (i)]
@@ -1331,10 +1329,6 @@ SUBSCRIBE_OK
 {: #moq-transport-subscribe-ok format title="MOQT SUBSCRIBE_OK Message"}
 
 * Subscribe ID: Subscription Identifer as defined in {{message-subscribe-req}}.
-
-* Expires: Time in milliseconds after which the subscription is no
-longer valid. A value of 0 indicates that the subscription stays active
-until it is explicitly unsubscribed.
 
 * ContentExists: 1 if an object has been published on this track, 0 if not.
 * If 0, then the Largest Group ID and Largest Object ID fields will not be
