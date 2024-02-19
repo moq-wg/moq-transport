@@ -650,7 +650,8 @@ as defined below:
 |------|---------------------------|
 | 0x2  | Retry Track Alias         |
 |------|---------------------------|
-
+| 0x3  | Update Failed             |
+|------|---------------------------|
 
 ## Publisher Interactions
 
@@ -1382,6 +1383,10 @@ SUBSCRIBE_ERROR
 A subscriber issues a `SUBSCRIBE_UPDATE` message to a publisher indicating it wants to
 modify the end of an existing subscription.  One common type of modification is
 unsubscription.
+
+If an update cannot be completed by the relay, it replies with a 'SUBSCRIBE_ERROR'
+with error code 'Update Failed'.  A SUBSCRIBE_UPDATE MUST NOT fail if the specified
+EndGroup and EndObject have already been received.
 
 The format of `SUBSCRIBE_UPDATE` is as follows:
 
