@@ -1380,7 +1380,7 @@ SUBSCRIBE_ERROR
 
 ## SUBSCRIBE_UPDATE {#message-subscribe-update}
 
-A subscriber issues a `SUBSCRIBE_UPDATE` message to a publisher requesting a
+A subscriber issues a `SUBSCRIBE_UPDATE` message to a publisher to request a
 modification to the end of an existing subscription.  One common type of
 modification is unsubscription.
 
