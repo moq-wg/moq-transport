@@ -1386,8 +1386,8 @@ modification is unsubscription.
 
 If an update cannot be completed by the relay, it replies with a SUBSCRIBE_ERROR
 with error code 'Update Failed' and the subscription is unchanged.
-A SUBSCRIBE_UPDATE MUST NOT fail if the specified EndGroup and EndObject have
-already been received.
+A SUBSCRIBE_UPDATE MUST NOT fail if the specified EndGroup and EndObject are
+earlier than the current values.
 
 The subscription is not fully terminated until a SUBSCRIBE_RST or SUBSCRIBE_FIN
 are received.
