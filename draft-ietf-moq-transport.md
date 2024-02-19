@@ -1519,6 +1519,21 @@ UNANNOUNCE Message {
 * Track Namespace: Identifies a track's namespace as defined in
 ({{track-name}}).
 
+## ANNOUNCE_CANCEL {#message-announce-cancel}
+
+The subscriber sends an `ANNOUNCE_CANCEL` control message to
+indicate it will stop sending new subscriptions for tracks
+within the provided Track Namespace.
+
+~~~
+ANNOUNCE_CANCEL Message {
+  Track Namespace (b),
+}
+~~~
+{: #moq-transport-announce-cancel-format title="MOQT ANNOUNCE_CANCEL Message"}
+
+* Track Namespace: Identifies a track's namespace as defined in
+({{track-name}}).
 
 ## GOAWAY {#message-goaway}
 The server sends a `GOAWAY` message to initiate session migration
