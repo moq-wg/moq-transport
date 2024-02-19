@@ -2144,6 +2144,10 @@ as defined below:<a href="#section-5.1-6" class="pilcrow">¶</a></p>
               <td class="text-right" rowspan="1" colspan="1">0x2</td>
               <td class="text-left" rowspan="1" colspan="1">Retry Track Alias</td>
             </tr>
+            <tr>
+              <td class="text-right" rowspan="1" colspan="1">0x3</td>
+              <td class="text-left" rowspan="1" colspan="1">Update Failed</td>
+            </tr>
           </tbody>
         </table>
 </section>
@@ -3100,10 +3104,13 @@ the receiver <span class="bcp14">MUST</span> close the connection with a Duplica
 <p id="section-6.7-1">A subscriber issues a <code>SUBSCRIBE_UPDATE</code> message to a publisher indicating it wants to
 modify the end of an existing subscription.  One common type of modification is
 unsubscription.<a href="#section-6.7-1" class="pilcrow">¶</a></p>
-<p id="section-6.7-2">The format of <code>SUBSCRIBE_UPDATE</code> is as follows:<a href="#section-6.7-2" class="pilcrow">¶</a></p>
+<p id="section-6.7-2">If an update cannot be completed by the relay, it replies with a 'SUBSCRIBE_ERROR'
+with error code 'Update Failed'.  A SUBSCRIBE_UPDATE <span class="bcp14">MUST NOT</span> fail if the specified
+EndGroup and EndObject have already been received.<a href="#section-6.7-2" class="pilcrow">¶</a></p>
+<p id="section-6.7-3">The format of <code>SUBSCRIBE_UPDATE</code> is as follows:<a href="#section-6.7-3" class="pilcrow">¶</a></p>
 <span id="name-moqt-subscribe_update-messa"></span><div id="moq-transport-subscribe-update-format">
 <figure id="figure-14">
-          <div class="alignLeft art-text artwork" id="section-6.7-3.1">
+          <div class="alignLeft art-text artwork" id="section-6.7-4.1">
 <pre>
 SUBSCRIBE_UPDATE Message {
   Subscribe ID (i),
@@ -3117,16 +3124,16 @@ SUBSCRIBE_UPDATE Message {
           </figcaption></figure>
 </div>
 <ul class="normal">
-<li class="normal" id="section-6.7-4.1">
-            <p id="section-6.7-4.1.1">Subscribe ID: Subscription Identifer as defined in <a href="#message-subscribe-req" class="auto internal xref">Section 6.4</a>.<a href="#section-6.7-4.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-6.7-5.1">
+            <p id="section-6.7-5.1.1">Subscribe ID: Subscription Identifer as defined in <a href="#message-subscribe-req" class="auto internal xref">Section 6.4</a>.<a href="#section-6.7-5.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-6.7-4.2">
-            <p id="section-6.7-4.2.1">EndGroup: The last Group requested in the subscription, inclusive.  EndGroup's
-Mode is None for an open-ended subscription.<a href="#section-6.7-4.2.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-6.7-5.2">
+            <p id="section-6.7-5.2.1">EndGroup: The last Group requested in the subscription, inclusive.  EndGroup's
+Mode is None for an open-ended subscription.<a href="#section-6.7-5.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-6.7-4.3">
-            <p id="section-6.7-4.3.1">EndObject: The last Object requested in the subscription, exclusive.
-EndObject's Mode <span class="bcp14">MUST</span> be None if EndGroup's Mode is None.  EndObject's Mode <span class="bcp14">MUST NOT</span> be None if EndGroup's Mode is not None.<a href="#section-6.7-4.3.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-6.7-5.3">
+            <p id="section-6.7-5.3.1">EndObject: The last Object requested in the subscription, exclusive.
+EndObject's Mode <span class="bcp14">MUST</span> be None if EndGroup's Mode is None.  EndObject's Mode <span class="bcp14">MUST NOT</span> be None if EndGroup's Mode is not None.<a href="#section-6.7-5.3.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
