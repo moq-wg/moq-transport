@@ -1457,9 +1457,9 @@ Table of Contents
 
 6.7.  SUBSCRIBE_UPDATE
 
-   A subscriber issues a SUBSCRIBE_UPDATE message to a publisher
-   requesting a modification to the end of an existing subscription.
-   One common type of modification is unsubscription.
+   A subscriber issues a SUBSCRIBE_UPDATE message to a publisher to
+   request a modification to the end of an existing subscription.  One
+   common type of modification is unsubscription.
 
    If an update cannot be completed by the relay, it replies with a
    'SUBSCRIBE_ERROR' with error code 'Update Failed'.  A
