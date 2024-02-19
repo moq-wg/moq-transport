@@ -742,7 +742,7 @@ Table of Contents
    new subscriptions for an announced namespace it uses UNANNOUNCE.
    When a subscriber wants to indicate it will no longer route
    subscriptions for a namespace it previously responded ANNOUNCE_OK to,
-   it send an ANNOUNCE_CANCEL.
+   it sends an ANNOUNCE_CANCEL.
 
    OBJECT message headers carry a short hop-by-hop Track Alias that maps
    to the Full Track Name (see Section 6.5).  Relays use the Track Alias
