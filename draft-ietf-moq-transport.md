@@ -675,6 +675,10 @@ providing the result of announcement. The entity receiving the
 ANNOUNCE MUST send only a single response to a given ANNOUNCE of
 either ANNOUNCE_OK or ANNOUNCE_ERROR.
 
+Relays that respond with an ANNOUNCE_OK for a 'Track Namespace'
+send subscriptions with a 'Track Namespace' that exactly match to
+that publisher.
+
 OBJECT message headers carry a short hop-by-hop `Track Alias` that maps to
 the Full Track Name (see {{message-subscribe-ok}}). Relays use the
 `Track Alias` of an incoming OBJECT message to identify its track and find
