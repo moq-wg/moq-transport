@@ -1380,9 +1380,9 @@ SUBSCRIBE_ERROR
 
 ## SUBSCRIBE_UPDATE {#message-subscribe-update}
 
-A subscriber issues a `SUBSCRIBE_UPDATE` message to a publisher indicating it wants to
-modify the end of an existing subscription.  One common type of modification is
-unsubscription.
+A subscriber issues a `SUBSCRIBE_UPDATE` message to a publisher requesting a
+modification to the end of an existing subscription.  One common type of
+modification is unsubscription.
 
 If an update cannot be completed by the relay, it replies with a 'SUBSCRIBE_ERROR'
 with error code 'Update Failed'.  A SUBSCRIBE_UPDATE MUST NOT fail if the specified
