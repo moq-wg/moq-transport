@@ -338,10 +338,13 @@ over a QUIC connection directly [QUIC], and over WebTransport
 [WebTransport].  Both provide streams and datagrams with similar
 semantics (see {{?I-D.ietf-webtrans-overview, Section 4}}); thus, the
 main difference lies in how the servers are identified and how the
-connection is established.  There is no definition of the protocol
-over other transports, such as TCP, and applications using MoQ might
-need to fallback to another protocol when QUIC or WebTransport aren't
-available.
+connection is established.  When using QUIC, datagrams MUST be
+supported via the [QUIC-DATAGRAM] extension, which is already a
+requirement for WebTransport over HTTP/3.
+
+There is no definition of the protocol over other transports,
+such as TCP, and applications using MoQ might need to fallback to
+another protocol when QUIC or WebTransport aren't available.
 
 ### WebTransport
 
@@ -627,8 +630,8 @@ track within the subscription range is forwarded to each active
 subscriber, dependent on the congestion response. A subscription
 remains active until it expires, until the publisher of the track
 terminates the track with a SUBSCRIBE_FIN
-(see {{message-subscribe-fin}}) or a SUBSCRIBE_RST
-(see {{message-subscribe-rst}}).
+(see {{message-subscribe-fin}}) or a SUBSCRIBE_RESET
+(see {{message-subscribe-reset}}).
 
 A relay MUST not reorder or drop objects received on a multi-object stream when
 forwarding to subscribers, unless it has application specific information.
@@ -748,7 +751,7 @@ MOQT Message {
 |-------|-----------------------------------------------------|
 | 0xB   | SUBSCRIBE_FIN ({{message-subscribe-fin}})           |
 |-------|-----------------------------------------------------|
-| 0xC   | SUBSCRIBE_RST ({{message-subscribe-rst}})           |
+| 0xC   | SUBSCRIBE_RESET ({{message-subscribe-reset}})       |
 |-------|-----------------------------------------------------|
 | 0x10  | GOAWAY ({{message-goaway}})                         |
 |-------|-----------------------------------------------------|
@@ -1337,18 +1340,13 @@ longer valid. A value of 0 indicates that the subscription stays active
 until it is explicitly unsubscribed.
 
 * ContentExists: 1 if an object has been published on this track, 0 if not.
-* If 0, then the Largest Group ID and Largest Object ID fields will not be
-* present.
+If 0, then the Largest Group ID and Largest Object ID fields will not be
+present.
 
-* Largest Group ID: the largest Group ID available for this track. This
-* Group ID corresponds to the Group that would be returned with a
-* {{subscribe-locations}} RelativePrevious value of 0. This field is only
-* present if ContentExists has a value of 1.
+* Largest Group ID: the largest Group ID available for this track. This field is only present if ContentExists has a value of 1.
 
 * Largest Object ID: the largest Object ID available within the largest Group ID
-* for this track. This Object ID corresponds to the Object that would be
-* returned with a {{subscribe-locations}} RelativePrevious value of 0. This
-* field is only present if ContentExists has a value of 1.
+for this track. This field is only present if ContentExists has a value of 1.
 
 
 ## SUBSCRIBE_ERROR {#message-subscribe-error}
@@ -1422,15 +1420,15 @@ message in this track.
 * Final Object: The largest Object ID sent by the publisher in an OBJECT
 message in the `Final Group` for this track.
 
-## SUBSCRIBE_RST {#message-subscribe-rst}
+## SUBSCRIBE_RESET {#message-subscribe-reset}
 
-A publisher issues a `SUBSCRIBE_RST` message to all subscribers indicating there
+A publisher issues a `SUBSCRIBE_RESET` message to all subscribers indicating there
 was an error publishing to the given track and subscription is terminated.
 
-The format of `SUBSCRIBE_RST` is as follows:
+The format of `SUBSCRIBE_RESET` is as follows:
 
 ~~~
-SUBSCRIBE_RST Message {
+SUBSCRIBE_RESET Message {
   Subscribe ID (i),
   Error Code (i),
   Reason Phrase (b),
@@ -1439,7 +1437,7 @@ SUBSCRIBE_RST Message {
   [Final Object (i)],
 }
 ~~~
-{: #moq-transport-subscribe-rst format title="MOQT SUBSCRIBE RST Message"}
+{: #moq-transport-subscribe-reset format title="MOQT SUBSCRIBE RESET Message"}
 
 * Subscribe ID: Subscription Identifier as defined in {{message-subscribe-req}}.
 
