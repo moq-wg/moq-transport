@@ -634,7 +634,7 @@ terminates the track with a SUBSCRIBE_FIN
 (see {{message-subscribe-rst}}).
 
 Objects MUST NOT be sent for unsuccessful subscriptions, and if a subscriber
-receives a SUBSCRIBE_ERROR after receiveing objects, it MUST close the session
+receives a SUBSCRIBE_ERROR after receiving objects, it MUST close the session
 with a 'Protocol Violation'.
 
 A relay MUST not reorder or drop objects received on a multi-object stream when
