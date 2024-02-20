@@ -2117,15 +2117,18 @@ remains active until it expires, until the publisher of the track
 terminates the track with a SUBSCRIBE_FIN
 (see <a href="#message-subscribe-fin" class="auto internal xref">Section 6.8</a>) or a SUBSCRIBE_RESET
 (see <a href="#message-subscribe-reset" class="auto internal xref">Section 6.9</a>).<a href="#section-5.1-3" class="pilcrow">¶</a></p>
-<p id="section-5.1-4">A relay <span class="bcp14">MUST</span> not reorder or drop objects received on a multi-object stream when
-forwarding to subscribers, unless it has application specific information.<a href="#section-5.1-4" class="pilcrow">¶</a></p>
-<p id="section-5.1-5">Relays <span class="bcp14">MAY</span> aggregate authorized subscriptions for a given track when
+<p id="section-5.1-4">Objects <span class="bcp14">MUST NOT</span> be sent for unsuccessful subscriptions, and if a subscriber
+receives a SUBSCRIBE_ERROR after receiving objects, it <span class="bcp14">MUST</span> close the session
+with a 'Protocol Violation'.<a href="#section-5.1-4" class="pilcrow">¶</a></p>
+<p id="section-5.1-5">A relay <span class="bcp14">MUST</span> not reorder or drop objects received on a multi-object stream when
+forwarding to subscribers, unless it has application specific information.<a href="#section-5.1-5" class="pilcrow">¶</a></p>
+<p id="section-5.1-6">Relays <span class="bcp14">MAY</span> aggregate authorized subscriptions for a given track when
 multiple subscribers request the same track. Subscription aggregation
 allows relays to make only a single forward subscription for the
 track. The published content received from the forward subscription
-request is cached and shared among the pending subscribers.<a href="#section-5.1-5" class="pilcrow">¶</a></p>
-<p id="section-5.1-6">The application <span class="bcp14">SHOULD</span> use a relevant error code in SUBSCRIBE_ERROR,
-as defined below:<a href="#section-5.1-6" class="pilcrow">¶</a></p>
+request is cached and shared among the pending subscribers.<a href="#section-5.1-6" class="pilcrow">¶</a></p>
+<p id="section-5.1-7">The application <span class="bcp14">SHOULD</span> use a relevant error code in SUBSCRIBE_ERROR,
+as defined below:<a href="#section-5.1-7" class="pilcrow">¶</a></p>
 <table class="center" id="table-2">
           <caption><a href="#table-2" class="selfRef">Table 2</a></caption>
 <thead>
