@@ -5,13 +5,13 @@
 MOQ                                                            L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 22 August 2024                                             Meta
+Expires: 23 August 2024                                             Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                        19 February 2024
+                                                        20 February 2024
 
 
                        Media over QUIC Transport
@@ -53,7 +53,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 22 August 2024.
+   This Internet-Draft will expire on 23 August 2024.
 
 Copyright Notice
 
@@ -963,7 +963,7 @@ Table of Contents
 
    Both endpoints MUST send a ROLE parameter with one of the three
    values specified above.  Both endpoints MUST close the session if the
-   ROLE parameter is missing, is not one of the three above-specified
+   ROLE parameter is missing or is not one of the three above-specified
    values.
 
 6.2.2.2.  PATH parameter
