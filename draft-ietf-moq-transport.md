@@ -896,7 +896,7 @@ which are of type varint:
 
 Both endpoints MUST send a ROLE parameter with one of the three values
 specified above. Both endpoints MUST close the session if the ROLE
-parameter is missing, is not one of the three above-specified values.
+parameter is missing or is not one of the three above-specified values.
 
 #### PATH parameter {#path}
 
