@@ -5,13 +5,13 @@
 MOQ                                                            L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 22 August 2024                                             Meta
+Expires: 23 August 2024                                             Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                        19 February 2024
+                                                        20 February 2024
 
 
                        Media over QUIC Transport
@@ -53,7 +53,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 22 August 2024.
+   This Internet-Draft will expire on 23 August 2024.
 
 Copyright Notice
 
@@ -698,7 +698,7 @@ Table of Contents
    Section 6.9).
 
    Objects MUST NOT be sent for unsuccessful subscriptions, and if a
-   subscriber receives a SUBSCRIBE_ERROR after receiveing objects, it
+   subscriber receives a SUBSCRIBE_ERROR after receiving objects, it
    MUST close the session with a 'Protocol Violation'.
 
    A relay MUST not reorder or drop objects received on a multi-object
