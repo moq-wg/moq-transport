@@ -122,7 +122,7 @@ Table of Contents
      6.6.  SUBSCRIBE_ERROR
      6.7.  UNSUBSCRIBE
      6.8.  SUBSCRIBE_FIN
-     6.9.  SUBSCRIBE_RST
+     6.9.  SUBSCRIBE_RESET
      6.10. ANNOUNCE
      6.11. ANNOUNCE_OK
      6.12. ANNOUNCE_ERROR
@@ -495,7 +495,7 @@ Table of Contents
                    +======+===========================+
                    |  0x0 | No Error                  |
                    +------+---------------------------+
-                   |  0x1 | Generic Error             |
+                   |  0x1 | Internal Error            |
                    +------+---------------------------+
                    |  0x2 | Unauthorized              |
                    +------+---------------------------+
@@ -512,7 +512,7 @@ Table of Contents
 
    *  No Error: The session is being terminated without an error.
 
-   *  Generic Error: An unclassified error occurred.
+   *  Internal Error: An implementation specific error occurred.
 
    *  Unauthorized: The endpoint breached an agreement, which MAY have
       been pre-negotiated by the application.
@@ -694,8 +694,12 @@ Table of Contents
    within the subscription range is forwarded to each active subscriber,
    dependent on the congestion response.  A subscription remains active
    until it expires, until the publisher of the track terminates the
-   track with a SUBSCRIBE_FIN (see Section 6.8) or a SUBSCRIBE_RST (see
-   Section 6.9).
+   track with a SUBSCRIBE_FIN (see Section 6.8) or a SUBSCRIBE_RESET
+   (see Section 6.9).
+
+   Objects MUST NOT be sent for unsuccessful subscriptions, and if a
+   subscriber receives a SUBSCRIBE_ERROR after receiving objects, it
+   MUST close the session with a 'Protocol Violation'.
 
    A relay MUST not reorder or drop objects received on a multi-object
    stream when forwarding to subscribers, unless it has application
@@ -714,7 +718,7 @@ Table of Contents
                        +======+===================+
                        | Code | Reason            |
                        +======+===================+
-                       |  0x0 | Generic Error     |
+                       |  0x0 | Internal Error    |
                        +------+-------------------+
                        |  0x1 | Invalid Range     |
                        +------+-------------------+
@@ -799,45 +803,45 @@ Table of Contents
 
                            Figure 1: MOQT Message
 
-             +======+========================================+
-             |   ID | Messages                               |
-             +======+========================================+
-             |  0x0 | OBJECT_STREAM (Section 6.3.2)          |
-             +------+----------------------------------------+
-             |  0x1 | OBJECT_PREFER_DATAGRAM (Section 6.3.2) |
-             +------+----------------------------------------+
-             |  0x3 | SUBSCRIBE (Section 6.4)                |
-             +------+----------------------------------------+
-             |  0x4 | SUBSCRIBE_OK (Section 6.5)             |
-             +------+----------------------------------------+
-             |  0x5 | SUBSCRIBE_ERROR (Section 6.6)          |
-             +------+----------------------------------------+
-             |  0x6 | ANNOUNCE (Section 6.10)                |
-             +------+----------------------------------------+
-             |  0x7 | ANNOUNCE_OK (Section 6.11)             |
-             +------+----------------------------------------+
-             |  0x8 | ANNOUNCE_ERROR (Section 6.12)          |
-             +------+----------------------------------------+
-             |  0x9 | UNANNOUNCE (Section 6.13)              |
-             +------+----------------------------------------+
-             |  0xA | UNSUBSCRIBE (Section 6.7)              |
-             +------+----------------------------------------+
-             |  0xB | SUBSCRIBE_FIN (Section 6.8)            |
-             +------+----------------------------------------+
-             |  0xC | SUBSCRIBE_RST (Section 6.9)            |
-             +------+----------------------------------------+
-             | 0x10 | GOAWAY (Section 6.14)                  |
-             +------+----------------------------------------+
-             | 0x40 | CLIENT_SETUP (Section 6.2)             |
-             +------+----------------------------------------+
-             | 0x41 | SERVER_SETUP (Section 6.2)             |
-             +------+----------------------------------------+
-             | 0x50 | STREAM_HEADER_TRACK (Section 6.3.3)    |
-             +------+----------------------------------------+
-             | 0x51 | STREAM_HEADER_GROUP (Section 6.3.3)    |
-             +------+----------------------------------------+
+              +======+=====================================+
+              |   ID | Messages                            |
+              +======+=====================================+
+              |  0x0 | OBJECT_STREAM (Section 6.3.2)       |
+              +------+-------------------------------------+
+              |  0x1 | OBJECT_DATAGRAM (Section 6.3.2)     |
+              +------+-------------------------------------+
+              |  0x3 | SUBSCRIBE (Section 6.4)             |
+              +------+-------------------------------------+
+              |  0x4 | SUBSCRIBE_OK (Section 6.5)          |
+              +------+-------------------------------------+
+              |  0x5 | SUBSCRIBE_ERROR (Section 6.6)       |
+              +------+-------------------------------------+
+              |  0x6 | ANNOUNCE (Section 6.10)             |
+              +------+-------------------------------------+
+              |  0x7 | ANNOUNCE_OK (Section 6.11)          |
+              +------+-------------------------------------+
+              |  0x8 | ANNOUNCE_ERROR (Section 6.12)       |
+              +------+-------------------------------------+
+              |  0x9 | UNANNOUNCE (Section 6.13)           |
+              +------+-------------------------------------+
+              |  0xA | UNSUBSCRIBE (Section 6.7)           |
+              +------+-------------------------------------+
+              |  0xB | SUBSCRIBE_FIN (Section 6.8)         |
+              +------+-------------------------------------+
+              |  0xC | SUBSCRIBE_RESET (Section 6.9)       |
+              +------+-------------------------------------+
+              | 0x10 | GOAWAY (Section 6.14)               |
+              +------+-------------------------------------+
+              | 0x40 | CLIENT_SETUP (Section 6.2)          |
+              +------+-------------------------------------+
+              | 0x41 | SERVER_SETUP (Section 6.2)          |
+              +------+-------------------------------------+
+              | 0x50 | STREAM_HEADER_TRACK (Section 6.3.3) |
+              +------+-------------------------------------+
+              | 0x51 | STREAM_HEADER_GROUP (Section 6.3.3) |
+              +------+-------------------------------------+
 
-                                  Table 3
+                                 Table 3
 
 6.1.  Parameters
 
@@ -1057,27 +1061,20 @@ Table of Contents
 
    *  Other fields: As described in Section 6.3.1.
 
-   *Object Prefer Datagram Message*
+   *Object Datagram Message*
 
-   An OBJECT_PREFER_DATAGRAM message carries a single object in a
-   datagram or a stream.  There is no explicit length of the payload; it
-   is determined by the length of the datagram or stream.  If this
-   message appears on a stream, it MUST be the only message on a
-   unidirectional stream.
+   An OBJECT_DATAGRAM message carries a single object in a datagram.
+   There is no explicit length of the payload; it is determined by the
+   length of the datagram.
 
-   An Object received in an OBJECT_PREFER_DATAGRAM message has an Object
-   Forwarding Preference = Datagram.
+   An Object received in an OBJECT_DATAGRAM message has an Object
+   Forwarding Preference = Datagram.  To send an Object with Object
+   Forwarding Preference = Datagram, determine the length of the fields
+   and payload and send the Object as datagram.  In certain scenarios
+   where the object size can be larger than maximum datagram size for
+   the session, the Object will be dropped.
 
-   To send an Object with Object Forwarding Preference = Datagram,
-   determine the length of the fields and payload, and compare the
-   length with the maximum datagram size of the session.  If the object
-   size is less than or equal maximum datagram size, send the serialized
-   data as a datagram.  Otherwise, open a stream, send the serialized
-   data and terminate the stream.  An implementation SHOULD NOT send an
-   Object with Object Forwarding Preference = Datagram on a stream if it
-   is possible to send it as a datagram.
-
-   OBJECT_PREFER_DATAGRAM Message {
+   OBJECT_DATAGRAM Message {
      Subscribe ID (i),
      Track Alias (i),
      Group ID (i),
@@ -1086,7 +1083,7 @@ Table of Contents
      Object Payload (..),
    }
 
-               Figure 5: MOQT OBJECT_PREFER_DATAGRAM Message
+                   Figure 5: MOQT OBJECT_DATAGRAM Message
 
 6.3.3.  Multi-Object Streams
 
@@ -1471,13 +1468,18 @@ Table of Contents
 
    SUBSCRIBE_FIN Message {
      Subscribe ID (i),
-     Final Group (i),
-     Final Object (i),
+     ContentExists (1),
+     [Final Group (i)],
+     [Final Object (i)],
    }
 
                    Figure 15: MOQT SUBSCRIBE_FIN Message
 
    *  Subscribe ID: Subscription identifier as defined in Section 6.4.
+
+   *  ContentExists: 1 if an object has been published for this
+      subscription, 0 if not.  If 0, then the Final Group and Final
+      Object fields will not be present.
 
    *  Final Group: The largest Group ID sent by the publisher in an
       OBJECT message in this track.
@@ -1485,23 +1487,24 @@ Table of Contents
    *  Final Object: The largest Object ID sent by the publisher in an
       OBJECT message in the Final Group for this track.
 
-6.9.  SUBSCRIBE_RST
+6.9.  SUBSCRIBE_RESET
 
-   A publisher issues a SUBSCRIBE_RST message to all subscribers
+   A publisher issues a SUBSCRIBE_RESET message to all subscribers
    indicating there was an error publishing to the given track and
    subscription is terminated.
 
-   The format of SUBSCRIBE_RST is as follows:
+   The format of SUBSCRIBE_RESET is as follows:
 
-   SUBSCRIBE_RST Message {
+   SUBSCRIBE_RESET Message {
      Subscribe ID (i),
      Error Code (i),
      Reason Phrase (b),
-     Final Group (i),
-     Final Object (i),
+     ContentExists (1),
+     [Final Group (i)],
+     [Final Object (i)],
    }
 
-                   Figure 16: MOQT SUBSCRIBE RST Message
+                  Figure 16: MOQT SUBSCRIBE RESET Message
 
    *  Subscribe ID: Subscription Identifier as defined in Section 6.4.
 
@@ -1509,6 +1512,10 @@ Table of Contents
       failure.
 
    *  Reason Phrase: Provides the reason for subscription error.
+
+   *  ContentExists: 1 if an object has been published for this
+      subscription, 0 if not.  If 0, then the Final Group and Final
+      Object fields will not be present.
 
    *  Final Group: The largest Group ID sent by the publisher in an
       OBJECT message in this track.
