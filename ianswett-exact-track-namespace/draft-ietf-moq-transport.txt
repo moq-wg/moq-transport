@@ -5,13 +5,13 @@
 MOQ                                                            L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 22 August 2024                                             Meta
+Expires: 24 August 2024                                             Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                        19 February 2024
+                                                        21 February 2024
 
 
                        Media over QUIC Transport
@@ -53,7 +53,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 22 August 2024.
+   This Internet-Draft will expire on 24 August 2024.
 
 Copyright Notice
 
@@ -741,6 +741,12 @@ Table of Contents
    providing the result of announcement.  The entity receiving the
    ANNOUNCE MUST send only a single response to a given ANNOUNCE of
    either ANNOUNCE_OK or ANNOUNCE_ERROR.
+
+   A relay manages sessions from multiple publishers and subscribers,
+   connecting them based on the track namespace.  This MUST use an exact
+   match on track namespace unless otherwise negotiated by the
+   application.  For example, a SUBSCRIBE namespace=foobar message will
+   be forwarded to the session that sent ANNOUNCE namespace=foobar.
 
    Relays that respond with an ANNOUNCE_OK for a 'Track Namespace' send
    subscriptions with a 'Track Namespace' that exactly match to that
