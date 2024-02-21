@@ -681,10 +681,6 @@ match on track namespace unless otherwise negotiated by the application.
 For example, a SUBSCRIBE namespace=foobar message will be forwarded to
 the session that sent ANNOUNCE namespace=foobar.
 
-Relays that respond with an ANNOUNCE_OK for a 'Track Namespace'
-send subscriptions with a 'Track Namespace' that exactly match to
-that publisher.
-
 OBJECT message headers carry a short hop-by-hop `Track Alias` that maps to
 the Full Track Name (see {{message-subscribe-ok}}). Relays use the
 `Track Alias` of an incoming OBJECT message to identify its track and find
