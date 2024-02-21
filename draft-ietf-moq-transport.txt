@@ -127,7 +127,8 @@ Table of Contents
      6.11. ANNOUNCE_OK
      6.12. ANNOUNCE_ERROR
      6.13. UNANNOUNCE
-     6.14. GOAWAY
+     6.14. ANNOUNCE_CANCEL
+     6.15. GOAWAY
    7.  Security Considerations
      7.1.  Resource Exhaustion
    8.  IANA Considerations
@@ -524,7 +525,7 @@ Table of Contents
       that was already in use.
 
    *  GOAWAY Timeout: The session was closed because the client took too
-      long to close the session in response to a GOAWAY (Section 6.14)
+      long to close the session in response to a GOAWAY (Section 6.15)
       message.  See session migration (Section 3.6).
 
 3.6.  Migration
@@ -533,7 +534,7 @@ Table of Contents
    service provider needs the ability to shutdown/restart a server
    without waiting for all sessions to drain naturally, as that can take
    days for long-form media.  MoqTransport avoids this via the GOAWAY
-   message (Section 6.14).
+   message (Section 6.15).
 
    The server sends a GOAWAY message, signaling that the client should
    establish a new session and migrate any active subscriptions.  The
@@ -744,7 +745,11 @@ Table of Contents
    Relays respond with an ANNOUNCE_OK or ANNOUNCE_ERROR control message
    providing the result of announcement.  The entity receiving the
    ANNOUNCE MUST send only a single response to a given ANNOUNCE of
-   either ANNOUNCE_OK or ANNOUNCE_ERROR.
+   either ANNOUNCE_OK or ANNOUNCE_ERROR.  When a publisher wants to stop
+   new subscriptions for an announced namespace it sends an UNANNOUNCE.
+   A subscriber indicates it will no longer route subscriptions for a
+   namespace it previously responded ANNOUNCE_OK to by sending an
+   ANNOUNCE_CANCEL.
 
    OBJECT message headers carry a short hop-by-hop Track Alias that maps
    to the Full Track Name (see Section 6.5).  Relays use the Track Alias
@@ -824,7 +829,7 @@ Table of Contents
               +------+-------------------------------------+
               |  0xC | SUBSCRIBE_RESET (Section 6.9)       |
               +------+-------------------------------------+
-              | 0x10 | GOAWAY (Section 6.14)               |
+              | 0x10 | GOAWAY (Section 6.15)               |
               +------+-------------------------------------+
               | 0x40 | CLIENT_SETUP (Section 6.2)          |
               +------+-------------------------------------+
@@ -1589,7 +1594,26 @@ Table of Contents
    *  Track Namespace: Identifies a track's namespace as defined in
       (Section 2.3.1).
 
-6.14.  GOAWAY
+6.14.  ANNOUNCE_CANCEL
+
+   The subscriber sends an ANNOUNCE_CANCEL control message to indicate
+   it will stop sending new subscriptions for tracks within the provided
+   Track Namespace.
+
+   If a publisher recieves new subscriptions for that namespace after
+   receiving an ANNOUNCE_CANCEL, it SHOULD close the session as a
+   'Protocol Violation'.
+
+   ANNOUNCE_CANCEL Message {
+     Track Namespace (b),
+   }
+
+                  Figure 21: MOQT ANNOUNCE_CANCEL Message
+
+   *  Track Namespace: Identifies a track's namespace as defined in
+      (Section 2.3.1).
+
+6.15.  GOAWAY
 
    The server sends a GOAWAY message to initiate session migration
    (Section 3.6) with an optional URI.
@@ -1603,7 +1627,7 @@ Table of Contents
      New Session URI (b)
    }
 
-                       Figure 21: MOQT GOAWAY Message
+                       Figure 22: MOQT GOAWAY Message
 
    *  New Session URI: The client MUST use this URI for the new session
       if provded.  If the URI is zero bytes long, the current URI is
