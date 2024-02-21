@@ -630,8 +630,12 @@ track within the subscription range is forwarded to each active
 subscriber, dependent on the congestion response. A subscription
 remains active until it expires, until the publisher of the track
 terminates the track with a SUBSCRIBE_FIN
-(see {{message-subscribe-fin}}) or a SUBSCRIBE_RST
-(see {{message-subscribe-rst}}).
+(see {{message-subscribe-fin}}) or a SUBSCRIBE_RESET
+(see {{message-subscribe-reset}}).
+
+Objects MUST NOT be sent for unsuccessful subscriptions, and if a subscriber
+receives a SUBSCRIBE_ERROR after receiving objects, it MUST close the session
+with a 'Protocol Violation'.
 
 A relay MUST not reorder or drop objects received on a multi-object stream when
 forwarding to subscribers, unless it has application specific information.
@@ -751,7 +755,7 @@ MOQT Message {
 |-------|-----------------------------------------------------|
 | 0xB   | SUBSCRIBE_FIN ({{message-subscribe-fin}})           |
 |-------|-----------------------------------------------------|
-| 0xC   | SUBSCRIBE_RST ({{message-subscribe-rst}})           |
+| 0xC   | SUBSCRIBE_RESET ({{message-subscribe-reset}})       |
 |-------|-----------------------------------------------------|
 | 0x10  | GOAWAY ({{message-goaway}})                         |
 |-------|-----------------------------------------------------|
@@ -1418,15 +1422,15 @@ message in this track.
 * Final Object: The largest Object ID sent by the publisher in an OBJECT
 message in the `Final Group` for this track.
 
-## SUBSCRIBE_RST {#message-subscribe-rst}
+## SUBSCRIBE_RESET {#message-subscribe-reset}
 
-A publisher issues a `SUBSCRIBE_RST` message to all subscribers indicating there
+A publisher issues a `SUBSCRIBE_RESET` message to all subscribers indicating there
 was an error publishing to the given track and subscription is terminated.
 
-The format of `SUBSCRIBE_RST` is as follows:
+The format of `SUBSCRIBE_RESET` is as follows:
 
 ~~~
-SUBSCRIBE_RST Message {
+SUBSCRIBE_RESET Message {
   Subscribe ID (i),
   Error Code (i),
   Reason Phrase (b),
@@ -1434,7 +1438,7 @@ SUBSCRIBE_RST Message {
   Final Object (i),
 }
 ~~~
-{: #moq-transport-subscribe-rst format title="MOQT SUBSCRIBE RST Message"}
+{: #moq-transport-subscribe-reset format title="MOQT SUBSCRIBE RESET Message"}
 
 * Subscribe ID: Subscription Identifier as defined in {{message-subscribe-req}}.
 
