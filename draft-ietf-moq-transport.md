@@ -446,7 +446,7 @@ code, as defined below:
 |-----:|:--------------------------|
 | 0x0  | No Error                  |
 |------|---------------------------|
-| 0x1  | Generic Error             |
+| 0x1  | Internal Error            |
 |------|---------------------------|
 | 0x2  | Unauthorized              |
 |------|---------------------------|
@@ -461,7 +461,7 @@ code, as defined below:
 
 * No Error: The session is being terminated without an error.
 
-* Generic Error: An unclassified error occurred.
+* Internal Error: An implementation specific error occurred.
 
 * Unauthorized: The endpoint breached an agreement, which MAY have been
  pre-negotiated by the application.
@@ -633,6 +633,10 @@ terminates the track with a SUBSCRIBE_FIN
 (see {{message-subscribe-fin}}) or a SUBSCRIBE_RESET
 (see {{message-subscribe-reset}}).
 
+Objects MUST NOT be sent for unsuccessful subscriptions, and if a subscriber
+receives a SUBSCRIBE_ERROR after receiving objects, it MUST close the session
+with a 'Protocol Violation'.
+
 A relay MUST not reorder or drop objects received on a multi-object stream when
 forwarding to subscribers, unless it has application specific information.
 
@@ -648,7 +652,7 @@ as defined below:
 |------|---------------------------|
 | Code | Reason                    |
 |-----:|:--------------------------|
-| 0x0  | Generic Error             |
+| 0x0  | Internal Error            |
 |------|---------------------------|
 | 0x1  | Invalid Range             |
 |------|---------------------------|
