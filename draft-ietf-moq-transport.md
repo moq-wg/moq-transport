@@ -677,7 +677,11 @@ Relays MUST ensure that publishers are authorized by:
 Relays respond with an ANNOUNCE_OK or ANNOUNCE_ERROR control message
 providing the result of announcement. The entity receiving the
 ANNOUNCE MUST send only a single response to a given ANNOUNCE of
-either ANNOUNCE_OK or ANNOUNCE_ERROR.
+either ANNOUNCE_OK or ANNOUNCE_ERROR.  When a publisher wants to stop
+new subscriptions for an announced namespace it sends an UNANNOUNCE.
+A subscriber indicates it will no longer route subscriptions for a
+namespace it previously responded ANNOUNCE_OK to by sending an
+ANNOUNCE_CANCEL.
 
 OBJECT message headers carry a short hop-by-hop `Track Alias` that maps to
 the Full Track Name (see {{message-subscribe-ok}}). Relays use the
@@ -1529,6 +1533,25 @@ UNANNOUNCE Message {
 * Track Namespace: Identifies a track's namespace as defined in
 ({{track-name}}).
 
+## ANNOUNCE_CANCEL {#message-announce-cancel}
+
+The subscriber sends an `ANNOUNCE_CANCEL` control message to
+indicate it will stop sending new subscriptions for tracks
+within the provided Track Namespace.
+
+If a publisher recieves new subscriptions for that namespace after
+receiving an ANNOUNCE_CANCEL, it SHOULD close the session as a
+'Protocol Violation'.
+
+~~~
+ANNOUNCE_CANCEL Message {
+  Track Namespace (b),
+}
+~~~
+{: #moq-transport-announce-cancel-format title="MOQT ANNOUNCE_CANCEL Message"}
+
+* Track Namespace: Identifies a track's namespace as defined in
+({{track-name}}).
 
 ## GOAWAY {#message-goaway}
 The server sends a `GOAWAY` message to initiate session migration
