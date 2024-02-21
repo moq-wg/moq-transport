@@ -675,6 +675,12 @@ providing the result of announcement. The entity receiving the
 ANNOUNCE MUST send only a single response to a given ANNOUNCE of
 either ANNOUNCE_OK or ANNOUNCE_ERROR.
 
+A relay manages sessions from multiple publishers and subscribers,
+connecting them based on the track namespace. This MUST use an exact
+match on track namespace unless otherwise negotiated by the application.
+For example, a SUBSCRIBE namespace=foobar message will be forwarded to
+the session that sent ANNOUNCE namespace=foobar.
+
 Relays that respond with an ANNOUNCE_OK for a 'Track Namespace'
 send subscriptions with a 'Track Namespace' that exactly match to
 that publisher.
