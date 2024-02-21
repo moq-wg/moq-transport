@@ -735,7 +735,7 @@ MOQT Message {
 |------:|:----------------------------------------------------|
 | 0x0   | OBJECT_STREAM ({{object-message-formats}})          |
 |-------|-----------------------------------------------------|
-| 0x1   | OBJECT_PREFER_DATAGRAM ({{object-message-formats}}) |
+| 0x1   | OBJECT_DATAGRAM ({{object-message-formats}}) |
 |-------|-----------------------------------------------------|
 | 0x3   | SUBSCRIBE ({{message-subscribe-req}})               |
 |-------|-----------------------------------------------------|
@@ -985,26 +985,21 @@ the receiver MUST close the session with a Protocol Violation.
 
 * Other fields: As described in {{canonical-object-fields}}.
 
-**Object Prefer Datagram Message**
+**Object Datagram Message**
 
-An `OBJECT_PREFER_DATAGRAM` message carries a single object in a datagram or
-a stream. There is no explicit length of the payload; it is determined by the
-length of the datagram or stream.  If this message appears on a stream, it MUST
-be the only message on a unidirectional stream.
+An `OBJECT_DATAGRAM` message carries a single object in a datagram.
+There is no explicit length of the payload; it is determined by the
+length of the datagram.
 
-An Object received in an `OBJECT_PREFER_DATAGRAM` message has an `Object
-Forwarding Preference` = `Datagram`.
-
-To send an Object with `Object Forwarding Preference` = `Datagram`, determine
-the length of the fields and payload, and compare the length with the maximum
-datagram size of the session.  If the object size is less than or equal maximum
-datagram size, send the serialized data as a datagram.  Otherwise, open a
-stream, send the serialized data and terminate the stream.  An implementation
-SHOULD NOT send an Object with `Object Forwarding Preference` = `Datagram` on a
-stream if it is possible to send it as a datagram.
+An Object received in an `OBJECT_DATAGRAM` message has an `Object
+Forwarding Preference` = `Datagram`. To send an Object with `Object
+Forwarding Preference` = `Datagram`, determine the length of the fields and
+payload and send the Object as datagram. In certain scenarios where the object
+size can be larger than maximum datagram size for the session, the Object
+will be dropped.
 
 ~~~
-OBJECT_PREFER_DATAGRAM Message {
+OBJECT_DATAGRAM Message {
   Subscribe ID (i),
   Track Alias (i),
   Group ID (i),
@@ -1013,7 +1008,7 @@ OBJECT_PREFER_DATAGRAM Message {
   Object Payload (..),
 }
 ~~~
-{: #object-datagram-format title="MOQT OBJECT_PREFER_DATAGRAM Message"}
+{: #object-datagram-format title="MOQT OBJECT_DATAGRAM Message"}
 
 ### Multi-Object Streams
 
