@@ -5,13 +5,13 @@
 MOQ                                                            L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 23 August 2024                                             Meta
+Expires: 24 August 2024                                             Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                        20 February 2024
+                                                        21 February 2024
 
 
                        Media over QUIC Transport
@@ -53,7 +53,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 23 August 2024.
+   This Internet-Draft will expire on 24 August 2024.
 
 Copyright Notice
 
@@ -122,7 +122,7 @@ Table of Contents
      6.6.  SUBSCRIBE_ERROR
      6.7.  UNSUBSCRIBE
      6.8.  SUBSCRIBE_FIN
-     6.9.  SUBSCRIBE_RST
+     6.9.  SUBSCRIBE_RESET
      6.10. ANNOUNCE
      6.11. ANNOUNCE_OK
      6.12. ANNOUNCE_ERROR
@@ -694,8 +694,12 @@ Table of Contents
    within the subscription range is forwarded to each active subscriber,
    dependent on the congestion response.  A subscription remains active
    until it expires, until the publisher of the track terminates the
-   track with a SUBSCRIBE_FIN (see Section 6.8) or a SUBSCRIBE_RST (see
-   Section 6.9).
+   track with a SUBSCRIBE_FIN (see Section 6.8) or a SUBSCRIBE_RESET
+   (see Section 6.9).
+
+   Objects MUST NOT be sent for unsuccessful subscriptions, and if a
+   subscriber receives a SUBSCRIBE_ERROR after receiving objects, it
+   MUST close the session with a 'Protocol Violation'.
 
    A relay MUST not reorder or drop objects received on a multi-object
    stream when forwarding to subscribers, unless it has application
@@ -818,7 +822,7 @@ Table of Contents
              +------+----------------------------------------+
              |  0xB | SUBSCRIBE_FIN (Section 6.8)            |
              +------+----------------------------------------+
-             |  0xC | SUBSCRIBE_RST (Section 6.9)            |
+             |  0xC | SUBSCRIBE_RESET (Section 6.9)          |
              +------+----------------------------------------+
              | 0x10 | GOAWAY (Section 6.14)                  |
              +------+----------------------------------------+
@@ -1481,15 +1485,15 @@ Table of Contents
    *  Final Object: The largest Object ID sent by the publisher in an
       OBJECT message in the Final Group for this track.
 
-6.9.  SUBSCRIBE_RST
+6.9.  SUBSCRIBE_RESET
 
-   A publisher issues a SUBSCRIBE_RST message to all subscribers
+   A publisher issues a SUBSCRIBE_RESET message to all subscribers
    indicating there was an error publishing to the given track and
    subscription is terminated.
 
-   The format of SUBSCRIBE_RST is as follows:
+   The format of SUBSCRIBE_RESET is as follows:
 
-   SUBSCRIBE_RST Message {
+   SUBSCRIBE_RESET Message {
      Subscribe ID (i),
      Error Code (i),
      Reason Phrase (b),
@@ -1497,7 +1501,7 @@ Table of Contents
      Final Object (i),
    }
 
-                   Figure 16: MOQT SUBSCRIBE RST Message
+                  Figure 16: MOQT SUBSCRIBE RESET Message
 
    *  Subscribe ID: Subscription Identifier as defined in Section 6.4.
 
