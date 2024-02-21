@@ -446,7 +446,7 @@ code, as defined below:
 |-----:|:--------------------------|
 | 0x0  | No Error                  |
 |------|---------------------------|
-| 0x1  | Generic Error             |
+| 0x1  | Internal Error            |
 |------|---------------------------|
 | 0x2  | Unauthorized              |
 |------|---------------------------|
@@ -461,7 +461,7 @@ code, as defined below:
 
 * No Error: The session is being terminated without an error.
 
-* Generic Error: An unclassified error occurred.
+* Internal Error: An implementation specific error occurred.
 
 * Unauthorized: The endpoint breached an agreement, which MAY have been
  pre-negotiated by the application.
@@ -652,7 +652,7 @@ as defined below:
 |------|---------------------------|
 | Code | Reason                    |
 |-----:|:--------------------------|
-| 0x0  | Generic Error             |
+| 0x0  | Internal Error            |
 |------|---------------------------|
 | 0x1  | Invalid Range             |
 |------|---------------------------|
