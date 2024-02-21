@@ -446,7 +446,7 @@ code, as defined below:
 |-----:|:--------------------------|
 | 0x0  | No Error                  |
 |------|---------------------------|
-| 0x1  | Generic Error             |
+| 0x1  | Internal Error            |
 |------|---------------------------|
 | 0x2  | Unauthorized              |
 |------|---------------------------|
@@ -461,7 +461,7 @@ code, as defined below:
 
 * No Error: The session is being terminated without an error.
 
-* Generic Error: An unclassified error occurred.
+* Internal Error: An implementation specific error occurred.
 
 * Unauthorized: The endpoint breached an agreement, which MAY have been
  pre-negotiated by the application.
@@ -630,8 +630,12 @@ track within the subscription range is forwarded to each active
 subscriber, dependent on the congestion response. A subscription
 remains active until it expires, until the publisher of the track
 terminates the track with a SUBSCRIBE_FIN
-(see {{message-subscribe-fin}}) or a SUBSCRIBE_RST
-(see {{message-subscribe-rst}}).
+(see {{message-subscribe-fin}}) or a SUBSCRIBE_RESET
+(see {{message-subscribe-reset}}).
+
+Objects MUST NOT be sent for unsuccessful subscriptions, and if a subscriber
+receives a SUBSCRIBE_ERROR after receiving objects, it MUST close the session
+with a 'Protocol Violation'.
 
 A relay MUST not reorder or drop objects received on a multi-object stream when
 forwarding to subscribers, unless it has application specific information.
@@ -648,7 +652,7 @@ as defined below:
 |------|---------------------------|
 | Code | Reason                    |
 |-----:|:--------------------------|
-| 0x0  | Generic Error             |
+| 0x0  | Internal Error            |
 |------|---------------------------|
 | 0x1  | Invalid Range             |
 |------|---------------------------|
@@ -735,7 +739,7 @@ MOQT Message {
 |------:|:----------------------------------------------------|
 | 0x0   | OBJECT_STREAM ({{object-message-formats}})          |
 |-------|-----------------------------------------------------|
-| 0x1   | OBJECT_PREFER_DATAGRAM ({{object-message-formats}}) |
+| 0x1   | OBJECT_DATAGRAM ({{object-message-formats}}) |
 |-------|-----------------------------------------------------|
 | 0x3   | SUBSCRIBE ({{message-subscribe-req}})               |
 |-------|-----------------------------------------------------|
@@ -755,7 +759,7 @@ MOQT Message {
 |-------|-----------------------------------------------------|
 | 0xB   | SUBSCRIBE_FIN ({{message-subscribe-fin}})           |
 |-------|-----------------------------------------------------|
-| 0xC   | SUBSCRIBE_RST ({{message-subscribe-rst}})           |
+| 0xC   | SUBSCRIBE_RESET ({{message-subscribe-reset}})       |
 |-------|-----------------------------------------------------|
 | 0x10  | GOAWAY ({{message-goaway}})                         |
 |-------|-----------------------------------------------------|
@@ -985,26 +989,21 @@ the receiver MUST close the session with a Protocol Violation.
 
 * Other fields: As described in {{canonical-object-fields}}.
 
-**Object Prefer Datagram Message**
+**Object Datagram Message**
 
-An `OBJECT_PREFER_DATAGRAM` message carries a single object in a datagram or
-a stream. There is no explicit length of the payload; it is determined by the
-length of the datagram or stream.  If this message appears on a stream, it MUST
-be the only message on a unidirectional stream.
+An `OBJECT_DATAGRAM` message carries a single object in a datagram.
+There is no explicit length of the payload; it is determined by the
+length of the datagram.
 
-An Object received in an `OBJECT_PREFER_DATAGRAM` message has an `Object
-Forwarding Preference` = `Datagram`.
-
-To send an Object with `Object Forwarding Preference` = `Datagram`, determine
-the length of the fields and payload, and compare the length with the maximum
-datagram size of the session.  If the object size is less than or equal maximum
-datagram size, send the serialized data as a datagram.  Otherwise, open a
-stream, send the serialized data and terminate the stream.  An implementation
-SHOULD NOT send an Object with `Object Forwarding Preference` = `Datagram` on a
-stream if it is possible to send it as a datagram.
+An Object received in an `OBJECT_DATAGRAM` message has an `Object
+Forwarding Preference` = `Datagram`. To send an Object with `Object
+Forwarding Preference` = `Datagram`, determine the length of the fields and
+payload and send the Object as datagram. In certain scenarios where the object
+size can be larger than maximum datagram size for the session, the Object
+will be dropped.
 
 ~~~
-OBJECT_PREFER_DATAGRAM Message {
+OBJECT_DATAGRAM Message {
   Subscribe ID (i),
   Track Alias (i),
   Group ID (i),
@@ -1013,7 +1012,7 @@ OBJECT_PREFER_DATAGRAM Message {
   Object Payload (..),
 }
 ~~~
-{: #object-datagram-format title="MOQT OBJECT_PREFER_DATAGRAM Message"}
+{: #object-datagram-format title="MOQT OBJECT_DATAGRAM Message"}
 
 ### Multi-Object Streams
 
@@ -1406,13 +1405,17 @@ The format of `SUBSCRIBE_FIN` is as follows:
 ~~~
 SUBSCRIBE_FIN Message {
   Subscribe ID (i),
-  Final Group (i),
-  Final Object (i),
+  ContentExists (1),
+  [Final Group (i)],
+  [Final Object (i)],
 }
 ~~~
 {: #moq-transport-subscribe-fin-format title="MOQT SUBSCRIBE_FIN Message"}
 
 * Subscribe ID: Subscription identifier as defined in {{message-subscribe-req}}.
+
+* ContentExists: 1 if an object has been published for this subscription, 0 if
+not. If 0, then the Final Group and Final Object fields will not be present.
 
 * Final Group: The largest Group ID sent by the publisher in an OBJECT
 message in this track.
@@ -1420,29 +1423,33 @@ message in this track.
 * Final Object: The largest Object ID sent by the publisher in an OBJECT
 message in the `Final Group` for this track.
 
-## SUBSCRIBE_RST {#message-subscribe-rst}
+## SUBSCRIBE_RESET {#message-subscribe-reset}
 
-A publisher issues a `SUBSCRIBE_RST` message to all subscribers indicating there
+A publisher issues a `SUBSCRIBE_RESET` message to all subscribers indicating there
 was an error publishing to the given track and subscription is terminated.
 
-The format of `SUBSCRIBE_RST` is as follows:
+The format of `SUBSCRIBE_RESET` is as follows:
 
 ~~~
-SUBSCRIBE_RST Message {
+SUBSCRIBE_RESET Message {
   Subscribe ID (i),
   Error Code (i),
   Reason Phrase (b),
-  Final Group (i),
-  Final Object (i),
+  ContentExists (1),
+  [Final Group (i)],
+  [Final Object (i)],
 }
 ~~~
-{: #moq-transport-subscribe-rst format title="MOQT SUBSCRIBE RST Message"}
+{: #moq-transport-subscribe-reset format title="MOQT SUBSCRIBE RESET Message"}
 
 * Subscribe ID: Subscription Identifier as defined in {{message-subscribe-req}}.
 
 * Error Code: Identifies an integer error code for subscription failure.
 
 * Reason Phrase: Provides the reason for subscription error.
+
+* ContentExists: 1 if an object has been published for this subscription, 0 if
+not. If 0, then the Final Group and Final Object fields will not be present.
 
 * Final Group: The largest Group ID sent by the publisher in an OBJECT
 message in this track.
