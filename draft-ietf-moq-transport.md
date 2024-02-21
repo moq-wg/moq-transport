@@ -1406,13 +1406,17 @@ The format of `SUBSCRIBE_FIN` is as follows:
 ~~~
 SUBSCRIBE_FIN Message {
   Subscribe ID (i),
-  Final Group (i),
-  Final Object (i),
+  ContentExists (1),
+  [Final Group (i)],
+  [Final Object (i)],
 }
 ~~~
 {: #moq-transport-subscribe-fin-format title="MOQT SUBSCRIBE_FIN Message"}
 
 * Subscribe ID: Subscription identifier as defined in {{message-subscribe-req}}.
+
+* ContentExists: 1 if an object has been published for this subscription, 0 if
+not. If 0, then the Final Group and Final Object fields will not be present.
 
 * Final Group: The largest Group ID sent by the publisher in an OBJECT
 message in this track.
@@ -1432,8 +1436,9 @@ SUBSCRIBE_RESET Message {
   Subscribe ID (i),
   Error Code (i),
   Reason Phrase (b),
-  Final Group (i),
-  Final Object (i),
+  ContentExists (1),
+  [Final Group (i)],
+  [Final Object (i)],
 }
 ~~~
 {: #moq-transport-subscribe-reset format title="MOQT SUBSCRIBE RESET Message"}
@@ -1443,6 +1448,9 @@ SUBSCRIBE_RESET Message {
 * Error Code: Identifies an integer error code for subscription failure.
 
 * Reason Phrase: Provides the reason for subscription error.
+
+* ContentExists: 1 if an object has been published for this subscription, 0 if
+not. If 0, then the Final Group and Final Object fields will not be present.
 
 * Final Group: The largest Group ID sent by the publisher in an OBJECT
 message in this track.
