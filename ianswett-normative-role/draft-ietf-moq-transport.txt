@@ -5,13 +5,13 @@
 MOQ                                                            L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 24 August 2024                                             Meta
+Expires: 25 August 2024                                             Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                        21 February 2024
+                                                        22 February 2024
 
 
                        Media over QUIC Transport
@@ -53,7 +53,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 24 August 2024.
+   This Internet-Draft will expire on 25 August 2024.
 
 Copyright Notice
 
@@ -954,16 +954,16 @@ Table of Contents
    specify what funnctionality they support for the session.  It has
    three possible values, which are of type varint:
 
-   0x01:  The endpoint can process subscriptions and send objects, but
-      not subscribe.  The endpoint MUST NOT send a SUBSCRIBE message and
-      an ANNOUNCE MUST NOT be sent to it.
+   0x01: Publisher  The endpoint can process subscriptions and send
+      objects, but not subscribe.  The endpoint MUST NOT send a
+      SUBSCRIBE message and an ANNOUNCE MUST NOT be sent to it.
 
-   0x02:  The endpoint can send subscriptions and receive objects, but
-      not publish.  The endpoint MUST NOT send an ANNOUNCE message and a
-      SUBSCRIBE MUST NOT be sent to it.
+   0x02: Subscriber  The endpoint can send subscriptions and receive
+      objects, but not publish.  The endpoint MUST NOT send an ANNOUNCE
+      message and a SUBSCRIBE MUST NOT be sent to it.
 
-   0x03:  The endpoint can act as a publisher or subscriber, and can
-      send or process any message type.
+   0x03: PubSub  The endpoint can act as a publisher or subscriber, and
+      can send or process any message type.
 
    Both endpoints MUST send a ROLE parameter with one of the three
    values specified above.  Both endpoints MUST close the session if the
