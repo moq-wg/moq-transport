@@ -881,19 +881,19 @@ The ROLE parameter (key 0x00) allows each endpoint to independently specify what
 funnctionality they support for the session. It has three possible values,
 which are of type varint:
 
-0x01:
+0x01: Publisher
 
 : The endpoint can process subscriptions and send objects, but not subscribe.
   The endpoint MUST NOT send a SUBSCRIBE message and an ANNOUNCE MUST NOT be
   sent to it.
 
-0x02:
+0x02: Subscriber
 
 : The endpoint can send subscriptions and receive objects, but not publish.
   The endpoint MUST NOT send an ANNOUNCE message and a SUBSCRIBE MUST NOT be
   sent to it.
 
-0x03:
+0x03: PubSub
 
 : The endpoint can act as a publisher or subscriber, and can send or process
   any message type.
