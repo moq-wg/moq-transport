@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2024-02-20T01:04:53.098284+00:00",
+  "timestamp": "2024-02-22T01:05:13.961262+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -892,10 +892,12 @@
       "author": "xdfy",
       "authorAssociation": "NONE",
       "assignees": [],
-      "labels": [],
+      "labels": [
+        "Handshake"
+      ],
       "body": "It could help to add some text on relays support and extension. I'll try to provide some input there, from draft-defoy-moq-relay-network-handling. You may want to look at this draft for more context (this draft considers both stream-based and datagram-based MOQ, but it becomes simpler here because we are only using streams).\r\n\r\n- To support future relays, which may rely on metadata not present in the base protocol, an extension mechanism seems necessary. \r\n  - Negotiation within WebTransport-based protocol: negotiation of an extension could use HTTP headers when setting up the WebTransport session with connect (this is similar to how ECN support is negotiated in MASQUE in draft-schinazi-masque-connect-udp-ecn). This makes it possible for a relay to reject a connection establishment, if the extension it needs is missing.\r\n  - Negotiation within raw QUIC-based protocol could use QUIC transport parameters.\r\n  - The interest in using HTTP headers (or QUIC transport parameters) is that the session will only be opened if all extensions are accepted. Other methods can be used (e.g., using a message at the very beginning of the QUIC session), but in this case the session will be created and closed immediately if the negotiation fails.\r\n  - One open question is whether a MOQ relay could/should participate actively to the negotiation, beyond rejecting a request it does not like. For example, it could add a header in the CONNECT request forwarded to the server, to add an extension it needs.\r\n- Even with relays that can work with metadata currently defined in the base protocol, I wonder how it would work with optional metadata. Some relays may accept optional metadata (i.e., provide a certain level of service when a metadata field is present, and provide another level of service when it is not present). But what if a relay needs a timestamp to properly provide its service? One possibility is to define and use an extension, which specifies that certain optional metadata fields are mandatory when this extension is used.\r\n- What an extension can do could include:\r\n  - Defining new frames, defining where these new frames can be used (e.g., in independent streams or within existing streams, such as \"before media data frames\").\r\n  - Mandating the use of optional fields or frames\r\n  - Specifying whether new frames are encrypted end-to-end or only authenticated.\r\n- Also should we specify somewhere that unknown frames should be ignored?",
       "createdAt": "2022-10-23T21:52:03Z",
-      "updatedAt": "2022-10-26T14:22:05Z",
+      "updatedAt": "2024-02-20T02:20:10Z",
       "closedAt": null,
       "comments": [
         {
@@ -1112,15 +1114,15 @@
       "id": "I_kwDOG2Ho4M5UtlNv",
       "title": "Termination",
       "url": "https://github.com/moq-wg/moq-transport/issues/24",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "kpugin",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [],
       "body": "> The QUIC connection can be terminated at any point with an error code.\r\n\r\nHm... this will prevent multiplexing, which I think would be pretty important on delivery side",
       "createdAt": "2022-10-24T18:21:20Z",
-      "updatedAt": "2022-11-09T18:27:31Z",
-      "closedAt": null,
+      "updatedAt": "2024-02-20T02:21:18Z",
+      "closedAt": "2024-02-20T02:21:17Z",
       "comments": [
         {
           "author": "afrind",
@@ -1149,6 +1151,13 @@
           "body": "+1 to having multiplexing. We can have per stream way to finish or terminate and need a way to identify that as part of MoQ WebTransport Session",
           "createdAt": "2022-11-09T18:27:31Z",
           "updatedAt": "2022-11-09T18:27:31Z"
+        },
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I believe this is OBE.",
+          "createdAt": "2024-02-20T02:21:17Z",
+          "updatedAt": "2024-02-20T02:21:17Z"
         }
       ]
     },
@@ -1878,10 +1887,12 @@
       "author": "suhasHere",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
-      "labels": [],
+      "labels": [
+        "ABR"
+      ],
       "body": "There were few discussions that discussed on dealing with congestion and needing more thinking around decisions around how and when to drop things. ",
       "createdAt": "2022-11-10T23:52:32Z",
-      "updatedAt": "2023-10-28T23:31:46Z",
+      "updatedAt": "2024-02-20T02:26:34Z",
       "closedAt": null,
       "comments": [
         {
@@ -1937,10 +1948,12 @@
       "author": "kixelated",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
-      "labels": [],
+      "labels": [
+        "Parked"
+      ],
       "body": "This was brought up by @suhasHere, and also at IETF 115 by @huitema.\r\n\r\nLet's assume a sender wants to transmit a stream with 3k bytes passed through a relay. The relay will read from the source stream and write any data to the destination stream. The sender fragments the stream into 3 packets of 1k bytes each.\r\n\r\n1. The 1st packet arrives. The QUIC library will flush the contents to the application, which then writes to the destination stream.\r\n2. The 2nd packet is dropped. If will be retransmitted later when a gap is detected.\r\n3. The 3rd packet arrives. The QUIC library will NOT flush the contents to the application due to the gap.\r\n4. The 2nd packet is retransmitted and arrives. The QUIC library will flush the stream contents of the 2nd and 3rd packet to the application, which then writes to the destination stream.\r\n\r\nThis relay setup means we do not immediately transmit stream contents as they arrive. Each additional relay exacerbates the issue.\r\n\r\nI will note that is not an issue specific to MoQ or even QUIC, as TCP relays suffer the same problem. However it's a larger issue for live media as latency is critical.",
       "createdAt": "2022-11-11T10:36:50Z",
-      "updatedAt": "2023-10-17T04:23:19Z",
+      "updatedAt": "2024-02-20T02:27:33Z",
       "closedAt": null,
       "comments": [
         {
@@ -2153,10 +2166,12 @@
       "author": "vasilvv",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
-      "labels": [],
+      "labels": [
+        "NotTransport"
+      ],
       "body": "Currently, all of the parameters like expiration time for layers are always configured by the sender.  This makes sense in most cases (when doing delivery to the CDN or to an end user), however, in case of ingestion, the receiver might have a better understanding of, say, when the layers should expire.  We should provide a way for the receiver to give hints to the encoder.",
       "createdAt": "2022-11-15T18:52:46Z",
-      "updatedAt": "2023-01-28T06:40:54Z",
+      "updatedAt": "2024-02-20T02:28:07Z",
       "closedAt": null,
       "comments": [
         {
@@ -3735,7 +3750,7 @@
       "id": "I_kwDOG2Ho4M5dL6BC",
       "title": "Definition of Messages in Section  makes too many assumptions",
       "url": "https://github.com/moq-wg/moq-transport/issues/78",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "huitema",
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [
@@ -3745,8 +3760,8 @@
       "labels": [],
       "body": "I am concern that the definition of messages in section 6 relies too much on a specific way to organize the application, i.e., the \"catalog\". My experience building the QUICR prototype tells me that a much simpler design is possible:\r\n\r\n1) Applications are designed to handle a number of media streams, organizing these media streams as a set of media streams possibly coming from multiple sources, e.g., multiple participants in a video conference. But then, some applications will have different designs, e.g., just one single broadcast source. The \"catalog\" is an attempt to advertise and organize these multiple streams, but it is pretty hard to do that in a fully generic way. It might be much simpler to punt, and decide that QUICR will only specify the transport of exactly one media stream, identified by a unique URI. That means, removing the \"catalog\".\r\n\r\n2) The current protocol (WARP) specifies organizing the media stream as a set of \"group of objects\". This should be reflected in the protocol messages.\r\n\r\n3) Implementations would be simpler if the transport definitions were split for each media stream between a \"bidirectional QUIC control stream\" carrying setup messages and a set of \"unidirectional QUIC data streams\" (or possibly, datagrams). This can negotiate a media ID (e.g., the stream ID of the control stream), making the object headers significantly shorter.\r\n\r\n4) WARP stream would be better defined as composed of a WARP header (media ID, group ID, some group parameters) followed by series of object in the group -- no need then to repeat media ID and group ID for each object.\r\n\r\n5) We should pay more attention to termination conditions, e.g. specify how many objects were expected in a given block, or what is the last object of a media stream. This is useful to detect error conditions, monitor losses, etc. Also, allows termination of streams \"as soon as everything is received\", instead of waiting for time outs.\r\n\r\n",
       "createdAt": "2023-01-31T00:08:29Z",
-      "updatedAt": "2023-10-18T02:55:18Z",
-      "closedAt": null,
+      "updatedAt": "2024-02-20T02:30:46Z",
+      "closedAt": "2024-02-20T02:30:46Z",
       "comments": [
         {
           "author": "suhasHere",
@@ -3754,6 +3769,13 @@
           "body": "I think this issue is still valid and address with some of the recent alignments and changes that went in or proposed\n",
           "createdAt": "2023-05-21T19:42:34Z",
           "updatedAt": "2023-05-21T19:42:34Z"
+        },
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I believe this is OBE, but reopen or open new more focused issues if I'm wrong.",
+          "createdAt": "2024-02-20T02:30:46Z",
+          "updatedAt": "2024-02-20T02:30:46Z"
         }
       ]
     },
@@ -3823,17 +3845,18 @@
       "id": "I_kwDOG2Ho4M5dRElX",
       "title": "Relay failover support for subscribers and publishers",
       "url": "https://github.com/moq-wg/moq-transport/issues/80",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "suhasHere",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [
+        "duplicate",
         "Requirement"
       ],
       "body": "There is a need for subscribers and publishers to reconnect across relays with minimal state loss.",
       "createdAt": "2023-01-31T17:47:51Z",
-      "updatedAt": "2023-08-08T05:36:50Z",
-      "closedAt": null,
+      "updatedAt": "2024-02-20T02:33:44Z",
+      "closedAt": "2024-02-20T02:33:44Z",
       "comments": [
         {
           "author": "kixelated",
@@ -3862,6 +3885,13 @@
           "body": "yes, this needs some handling in the transport",
           "createdAt": "2023-08-08T05:36:50Z",
           "updatedAt": "2023-08-08T05:36:50Z"
+        },
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "There are newer issues that discuss this in more detail, so closing this as a duplicate.",
+          "createdAt": "2024-02-20T02:33:44Z",
+          "updatedAt": "2024-02-20T02:33:44Z"
         }
       ]
     },
@@ -7107,10 +7137,12 @@
       "author": "suhasHere",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
-      "labels": [],
+      "labels": [
+        "Parked"
+      ],
       "body": "PR #156  is updating the transport draft with few terminology , which is fine. However it would be nice to consider the roles/entities terminology defined in https://datatracker.ietf.org/doc/html/draft-nandakumar-moq-arch-00 \r\n\r\nIt would be good to drive these from security perspective and thus defining roles.\r\n\r\nProposal is to review the terminology in arch-00 spec and either bring in them once we are happy or refer to the arch spec as informative reference in the current spec.\r\n",
       "createdAt": "2023-05-18T17:21:46Z",
-      "updatedAt": "2023-10-18T02:48:55Z",
+      "updatedAt": "2024-02-20T02:34:09Z",
       "closedAt": null,
       "comments": [
         {
@@ -7183,10 +7215,12 @@
       "author": "kixelated",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
-      "labels": [],
+      "labels": [
+        "NotTransport"
+      ],
       "body": "Here's what I think the full flow looks like. It hasn't been explicitly stated, and maybe that's the source of some disagreements.\r\n\r\n### Step 1 - Producer configuration\r\nA producer (ex. OBS) is given a few pieces of information:\r\n- `connect_url`: Used to establish the WebTransport/QUIC connection.\r\n- `track_namespace`: Used to identify the broadcast.\r\n- `auth`: Any authentication details that need to be provided.\r\n\r\n### Step 2 - Producer catalog\r\nThe producer creates a catalog that contains any number of tracks. Each track has:\r\n- `track_namespace`: (optional) if not provided, the track inherits the catalog namespace.\r\n- `track_name`: This is specific to the application (ex. \"audio\", \"video_480p\", etc).\r\n- `media_properties`: Indicates how media is encoded, and how tracks are related to each other.\r\n\r\n### Step 3 - Producer connect\r\nThe producer establishes the QUIC connection to the provided `connect_url`.\r\n\r\n### Step 4 - Producer announce\r\nWhen it is ready, the producer sends an ANNOUNCE containing: \r\n- `track_namespace`\r\n- `auth`\r\n\r\nThe server replies with ANNOUNCE OK. The broadcast is now ready for consumption.\r\n\r\n### Step 5 - Consumer configuration\r\nA consumer (ex. VLC) is given a few pieces of information:\r\n- `connect_url`\r\n- `track_namespace`\r\n- `auth`\r\n\r\n### Step 6 - Consumer connect\r\nThe consumer establishes the QUIC connection to the provided `connect_url`.\r\n\r\n### Step 7 - Consumer catalog\r\nThe consumer issues a SUBSCRIBE for the catalog:\r\n- `track_namespace`\r\n- `track_name`: `catalog` or `/` (TODO)\r\n- `auth`\r\n\r\n### Step 8 - Relay routing\r\nAny intermediate relay (optional with peer-to-peer) will route the SUBSCRIBE to the publisher. SUBSCRIPTIONS may be deduplicated and cached if the relay is able to perform authentication.\r\n\r\nThe producer replies with a SUBSCRIBE OK and transmits OBJECTs for the requested track. The OBJECTs flow back over the same connection as the SUBSCRIBE until they reach the consumer(s).\r\n\r\n### Step 9 - Consumer parses catalog\r\nThe consumer receives the catalog and parses it. For each track, it learns:\r\n- `track_namespace`\r\n- `track_name`\r\n- `media_properties`\r\n\r\n### Step 10 - Consumer subscribe\r\nThe consumer issues a SUBSCRIBE for each track it would like. These flow to the publisher and back as described in step 8.",
       "createdAt": "2023-05-19T20:24:17Z",
-      "updatedAt": "2023-10-03T23:47:12Z",
+      "updatedAt": "2024-02-20T02:32:29Z",
       "closedAt": null,
       "comments": [
         {
@@ -10111,7 +10145,7 @@
       ],
       "body": "I'm (properly) implementing caching in my relay and need to know how long to cache an object.\r\n\r\nFor example, a catalog object should be cached until the session terminates. Meanwhile a media segment should only be cached for X seconds. The relay could evict the cache earlier than that, and possibly refetch the object if it's still within the advertised expires window.\r\n\r\nIt doesn't seem valid to have objects with different cache expirations in a group. For example, there's never a reason why you would expire the I-frame, but not the P-frames that depend on it. Expiration should ideally be a group property but there's no message to express that currently.",
       "createdAt": "2023-09-12T16:19:24Z",
-      "updatedAt": "2023-10-03T23:38:34Z",
+      "updatedAt": "2024-02-20T17:49:26Z",
       "closedAt": null,
       "comments": [
         {
@@ -10211,6 +10245,27 @@
           "body": "The long answer bleeds into QUIC stream mapping.\r\n\r\nThe key property is independence. You want media to be split into chunks which can then be cached/served independently. \r\n\r\nMy claim is that you want network dependency == cache dependency == application dependency. You want to each group to be it's own independent pipeline: encode -> transmit -> cache -> receive -> decode. That way when there's congestion or queuing, you can cancel or deprioritize less important groups without impacting more important groups.\r\n\r\nNow, let's suppose you send two OBJECTs with two different groups over the same QUIC stream. You could cache these independently however the premise is flawed. The intent is to cache them independently so you can deliver them independently downstream, however they were delivered **_dependently_** from the upstream. Any congestion from upstream propagates downstream; you can't put the genie back in the bottle.\r\n\r\nSo that's not to say that caching objects independently is inherently wrong. The core issue is delivering independent objects on the same QUIC stream, which introduces dependencies, and then expecting to cache them independently.\r\n\r\nAlso just to clarify, a CDN does not need to use QUIC streams internally. It only matters when there's congestion, much like a CDN would use HTTP/3 externally but HTTP/1/2 internally. The streams/groups would still be logically separate, much like HTTP/2 requests are logically separate and are cached separately, even when are serialized over a single TCP stream.",
           "createdAt": "2023-09-19T21:00:38Z",
           "updatedAt": "2023-09-19T21:09:20Z"
+        },
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I can imagine three possible uses of a TTL:\r\n\r\n1. How long can one cache this before revalidating the content - MoQT objects are immutable, so this is not an issue.\r\n2. How long can one cache this before it should be purged from the cache for policy reasons.\r\n3. How long would we expect the content to be cached in order to satisfy the typical user/usecase.\r\n\r\nIt seems like this issue is mostly focused on the 3rd concept, which is essentially a performance optimization/hint?",
+          "createdAt": "2024-02-20T02:55:13Z",
+          "updatedAt": "2024-02-20T02:55:13Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Individual Comment:\r\n\r\nTTLs are relative to something, for example Cache-Control: max-age is relative to the Date header in an HTTP response.  There are no absolute dates in moqt right now, so are we talking about TTLs relative to when an entity receives an object?  Or are we actually talking about an absolute 'expiration' field.\r\n\r\nI agree with Ian that revalidation is not a use case.  \r\n\r\nI had thought that part of the use case for TTL was something mentioned in #396 -  a point at which Objects should no longer be transmitted.  Hinting to the cache when things can be purged may be orthogonal to that, so maybe moq requires  multiple properties conveying different types of object lifetime information?",
+          "createdAt": "2024-02-20T17:17:08Z",
+          "updatedAt": "2024-02-20T17:17:08Z"
+        },
+        {
+          "author": "wilaw",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "I think there are two different object time properties we need to consider - content expiration and cache expiration. The two are not the same. here is how I see them defined:\r\n\r\n**Expiration** - an absolute timestamp after which the content is invalid. It MUST NOT be delivered after this time and may be purged from cache or dropped if it is in a send queue. \r\n**Cache TTL** - a relative time that the content should be cached after receipt at any relay. This is a hint to the relays as to the period of time that storing this object would be useful. \r\n\r\nExamples (as set by publisher) \r\n\r\n- Real-time video conference stream: Expiration: now + 2000ms, Cache TTL 2000ms\r\n- Sports broadcast with 1hr DVR window; Expiration: now  + 3600000, cache TTL 3600000\r\n- VOD movie valid all year but cached for 30min: Expiration: now + 1314000000, cache TTL:1800000\r\n\r\nIf cacheTTL is not set, then relay MAY cache until expiration date.\r\nIf cacheTTL is set without any expiration date, and the cacheTTL has been exceeded, relay should renew the subscription before serving the content downstream. \r\n\r\nCaching at all times is a scaling and efficiency mechanism for avoiding trips upstream. It is decoupled from the core pub/sub behavior of moqt. Therefore any cacheTTL properties are suggestions to the relays and should not be relied upon. \r\n",
+          "createdAt": "2024-02-20T17:49:25Z",
+          "updatedAt": "2024-02-20T17:49:25Z"
         }
       ]
     },
@@ -11848,7 +11903,7 @@
       "id": "I_kwDOG2Ho4M51Ri1H",
       "title": "SUBSCRIBE_RST/FIN with null final Group/Object",
       "url": "https://github.com/moq-wg/moq-transport/issues/313",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "kixelated",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
@@ -11858,8 +11913,8 @@
       ],
       "body": "`SUBSCRIBE_RST` and `SUBSCRIBE_FIN` define:\r\n\r\n> Final Group: The largest Group Sequence sent by the publisher in an OBJECT message in this track.\r\n> Final Object: The largest Object Sequence sent by the publisher in an OBJECT message in the Final Group for this track.\r\n\r\nHowever, what happens if no objects were ever produced/sent?",
       "createdAt": "2023-10-30T05:20:32Z",
-      "updatedAt": "2024-02-19T20:17:23Z",
-      "closedAt": null,
+      "updatedAt": "2024-02-21T17:15:32Z",
+      "closedAt": "2024-02-21T17:15:32Z",
       "comments": [
         {
           "author": "afrind",
@@ -12121,7 +12176,7 @@
       "id": "I_kwDOG2Ho4M51oMPk",
       "title": "Subscriber rejecting ANNOUNCE",
       "url": "https://github.com/moq-wg/moq-transport/issues/319",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "kixelated",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
@@ -12130,8 +12185,8 @@
       ],
       "body": "> Relays respond with an ANNOUNCE_OK or ANNOUNCE_ERROR control message providing the result of announcement. The entity receiving the ANNOUNCE MUST send only a single response to a given ANNOUNCE of either ANNOUNCE_OK or ANNOUNCE_ERROR.\r\n\r\nThe problem is not possible for the subscriber to reject an ANNOUNCE afterwards. This would be very useful, for example to inform a publisher that no more subscriptions will be routed to them for whatever reason. Examples:\r\n\r\n1. The auth parameter in ANNOUNCE has expired.\r\n2. Another publisher has sent an overriding ANNOUNCE (reconnect?)\r\n3. The broadcast has been closed remotely, ex. some moderation tool.\r\n\r\nWithout this message, the only recourse for the subscriber is to close the connection. This won't work if multiple ANNOUNCE messages are pooled over the same connection, nor is it clean.",
       "createdAt": "2023-11-02T04:12:19Z",
-      "updatedAt": "2024-02-19T21:09:29Z",
-      "closedAt": null,
+      "updatedAt": "2024-02-21T22:39:42Z",
+      "closedAt": "2024-02-21T22:39:42Z",
       "comments": [
         {
           "author": "kixelated",
@@ -12160,6 +12215,20 @@
           "body": "Conclusion is that we do need to add a new frame to end an ANNOUNCE.\r\n\r\nAdditionally, there was a principle stated that we should not rely on closing the session as the typical or optimal way to close state and close either an ANNOUNCE or SUBSCRIBE.",
           "createdAt": "2023-11-09T16:45:38Z",
           "updatedAt": "2023-11-09T16:45:38Z"
+        },
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "On the call today, people tend to prefer ANNOUNCE_CLOSE over ANNOUNCE_CANCEL as a name.  They also prefer merging SUBSCRIBE_RESET and SUBSCRIBE_FIN into a single message, possibly SUBSCRIBE_CLOSE.",
+          "createdAt": "2024-02-21T17:36:46Z",
+          "updatedAt": "2024-02-21T17:36:46Z"
+        },
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "On an editorial note, it'd be nice to have subsections for publisher/subscriber to make it clearer to the reader.",
+          "createdAt": "2024-02-21T17:41:04Z",
+          "updatedAt": "2024-02-21T17:41:04Z"
         }
       ]
     },
@@ -12551,7 +12620,7 @@
       ],
       "body": "My understanding is that MoQ is always hop-by-hop encrypted by virtue of working over QUIC or WebTransport, and therefore a \"relay\" as described in the draft can only inspect Track/Group/Object metadata if it terminates QUIC.  The document should clarify the requirements.",
       "createdAt": "2023-11-10T15:58:52Z",
-      "updatedAt": "2024-01-31T00:21:11Z",
+      "updatedAt": "2024-02-20T17:21:17Z",
       "closedAt": null,
       "comments": [
         {
@@ -12560,6 +12629,20 @@
           "body": "I agree with Alan. As a QUIC enthusiast, I guess the current draft implicitly suggests hop-by-hop QUIC termination at relay, e.g., which is necessary to enable cache at relay while having MOQT Message Type and OBJECT metadata as QUIC payload. Yet it is definitely more clarified for readers to explicitly see that information in an early section (e.g., sec 1.1.4).",
           "createdAt": "2023-12-20T08:38:43Z",
           "updatedAt": "2023-12-20T08:38:43Z"
+        },
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Given MoQ is over either QUIC or WebTransport, I believe it's impractical to restrict it to only QUIC based transports.",
+          "createdAt": "2024-02-20T02:39:50Z",
+          "updatedAt": "2024-02-20T02:39:50Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> Given MoQ is over either QUIC or WebTransport, I believe it's impractical to restrict it to only QUIC based transports.\r\n\r\nThe context of the question is whether one can build an MoQ relay that can view object properties without terminating the TLS session underpinning MoQ or WebTransport (eg an untrusted middlebox).",
+          "createdAt": "2024-02-20T17:21:16Z",
+          "updatedAt": "2024-02-20T17:21:16Z"
         }
       ]
     },
@@ -12998,7 +13081,7 @@
       ],
       "body": "Draft-02 strongly implies the forwarding preference is a per-object decision. thus the following sequences would be legal:\r\n[sequences are written as (group, object)]\r\n\r\nStream 2: (0, 1), (0, 2) (0, 3) (0, 5) -- type is StreamHeaderGroup\r\nStream 6: (0, 4) -- type is ObjectStream\r\n\r\nor\r\n\r\nStream 2: (0, 0), (1, 0), (2, 0), (3, 0) -- type is StreamHeaderTrack\r\nStream 6: (1,1) -- type is Object Stream\r\n\r\netc.\r\n\r\nIf someone can imagine a use case for this, that's great. If not, it would be easier to implement with different assumptions, e.g.\r\n\r\n(1) Forwarding preference is a track-level property. Thus the preference could be provided in the SUBSCRIBE_OK and we wouldn't evens strictly need four different object codepoints (though you would want the distinct formats, and might want to retain the codepoints for that reason)\r\n\r\n(2) Forwarding preference is group-level -- some groups could be aggregated under StreamHeaderTrack, but others could be under StreamHeaderGroup. If there is a StreamHeaderGroup for a group, there MUST NOT be object-level streams for that group.\r\n\r\nAgain, I have little sense of the use cases out there, but I think we should explicitly decide what we are doing and make it clear in  the doc.\r\n",
       "createdAt": "2024-01-29T19:09:34Z",
-      "updatedAt": "2024-02-18T20:28:54Z",
+      "updatedAt": "2024-02-20T17:41:00Z",
       "closedAt": "2024-02-18T20:28:54Z",
       "comments": [
         {
@@ -13049,6 +13132,13 @@
           "body": "When a few of us discussed it last week, the feeling was that if it came back in the SUBSCRIBE_OK, and Objects started arriving before the SUBSCRIBE_OK, the receiver wouldn't know how to process the incoming Objects.\r\n\r\nIn the past, we've decided we don't like that, so the feeling was to land a PR to add the restriction now, and then we can talk more about wire format changes.\r\n\r\n@martinduke Is Object decoding not an issue for some reason I'm forgetting?  Or were you thinking that buffering Objects was fine?",
           "createdAt": "2024-02-18T20:28:16Z",
           "updatedAt": "2024-02-18T20:28:16Z"
+        },
+        {
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "I am arguing that buffering objects is fine. The usual case, I think, is that SUBSCRIBE_OK arrives first.\r\n\r\nIt's irritating we're using a byte in the object encoding (and creating new error conditions to check for) just to avoid buffering. But I can live with keeping it for now.",
+          "createdAt": "2024-02-20T17:39:41Z",
+          "updatedAt": "2024-02-20T17:41:00Z"
         }
       ]
     },
@@ -13133,7 +13223,7 @@
       ],
       "body": "Sections 6.8 and 6.9 strongly imply that SUBSCRIBE_FIN/RST are sent at the true end of the track. So are they not sent at the conclusion of a SUBSCRIBE that does not cover the end of the track?\r\n\r\nFor example, if the last object of a track is (10, 12), and there's one subscribe for (4,0) to (5, 100)\r\n\r\nIs there a SUBSCRIBE_FIN?\r\n\r\nIf not, how does the subscriber know that in fact (5, 60) is the last object in that subscription?\r\n\r\nIf so, does Final Group and Final Object refer to the last object in the subscription?",
       "createdAt": "2024-02-06T21:36:07Z",
-      "updatedAt": "2024-02-09T17:14:40Z",
+      "updatedAt": "2024-02-20T02:35:46Z",
       "closedAt": null,
       "comments": [
         {
@@ -13149,6 +13239,13 @@
           "body": "There are three different things you might want to communicate to a receiver at the end of the subscribe:\r\n\r\n1) You got all of the objects in the range;\r\n2) You got almost all of the objects, but some were dropped for latency/bandwidth reasons\r\n3) The track was truncated for some reason\r\n\r\nand possibly, 4?\r\n4) You got everything I have but i'm not sure if that's everything",
           "createdAt": "2024-02-09T17:14:39Z",
           "updatedAt": "2024-02-09T17:14:39Z"
+        },
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "#345 is somewhat relevant to this issue.",
+          "createdAt": "2024-02-20T02:35:45Z",
+          "updatedAt": "2024-02-20T02:35:45Z"
         }
       ]
     },
@@ -13157,7 +13254,7 @@
       "id": "I_kwDOG2Ho4M5-joqx",
       "title": "Objects before SUBSCRIBE_OK",
       "url": "https://github.com/moq-wg/moq-transport/issues/357",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "martinduke",
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
@@ -13166,8 +13263,8 @@
       ],
       "body": "Since they're on different streams, an object can arrive before its SUBSCRIBE_OK. This is easy to process because the Subscribe ID and Track Alias must have been the ones that the subscriber chose.\r\n\r\nWhat if the publisher then sends a SUBSCRIBE_ERROR? Is this valid behavior or an error?\r\n\r\n(If it weren't for the Expires field, SUBSCRIBE_OK would be entirely redundant and we could get rid of it.)",
       "createdAt": "2024-02-07T15:18:37Z",
-      "updatedAt": "2024-02-19T19:52:03Z",
-      "closedAt": null,
+      "updatedAt": "2024-02-20T23:40:38Z",
+      "closedAt": "2024-02-20T23:40:38Z",
       "comments": [
         {
           "author": "afrind",
@@ -13480,7 +13577,7 @@
       "labels": [],
       "body": "At the interim there was interest in creating the ability for a receiver to ask a sender to subscribe to a track but not to forward it. The purpose of this is to minimize the delay when the receiver SUBSCRIBES to the track in the future. \r\n\r\nDesign considerations\r\n1. This would need to be converted to a regular SUBSCRIBE for forward requests. So any relay receiving a PREWARM request MUST never forward it.\r\n2. Is there a matching UNPREWARM, or would a regular UNSUBSCRIBE suffice?\r\n3. Do we need a new method PREWARM or can it be a flag on the existing SUBSCRIBE?\r\n4. This is a powerful DDOS attack vector. How do we mitigate that threat in the design? ",
       "createdAt": "2024-02-08T19:36:06Z",
-      "updatedAt": "2024-02-18T21:19:03Z",
+      "updatedAt": "2024-02-20T10:34:09Z",
       "closedAt": null,
       "comments": [
         {
@@ -13559,6 +13656,13 @@
           "body": "> On Server Side ABR, I'm realizing that it might look very different for live and VoD. A moqt relay won't know if the client is receiving bytes fast enough to avoid buffer underruns for a VoD playback. For live at head, it knows approximately how far the delivered content is behind head. That might also argue for an explicit communication of what the client's time sensitivity is. A server needs to be much faster to downswitch at a 300ms jitter buffer vs 5 seconds.\r\n\r\nYeah, that's what I thought too. I implemented an ABR algorithm that took into account the buffer size... but it didn't end up helping. I'm not saying it's not a good signal, just that I tried it and switched to something else.\r\n\r\nMy final logic was much simpler: round down the estimated bitrate to the nearest rendition at each group boundary. And it makes sense in hind-sight: the jitter buffer size is the receiver's tolerance for over-estimations, not something that should be intentionally drained.",
           "createdAt": "2024-02-18T21:18:06Z",
           "updatedAt": "2024-02-18T21:19:03Z"
+        },
+        {
+          "author": "zafergurel",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "What about for a video conferencing application where the latency requirement  is below 150ms. For example, there may be two different layouts: speaker and presentation. In the speaker layout, a high resolution track is subscribed. When the layout is changed to the presentation, the client switches to the low resolution track. There is no ABR here, client decides which track to subscribe depending on an application-specific use case. So, for such a case, I would want to pre-warm the lowest resolution track.",
+          "createdAt": "2024-02-20T10:34:08Z",
+          "updatedAt": "2024-02-20T10:34:08Z"
         }
       ]
     },
@@ -13618,7 +13722,7 @@
       ],
       "body": "This came up during interop - \r\n\r\nA relay received a subscribe with start={g=RelativeNext/0 o=Absolute/0}.  Since the relay had not received any objects, it defaulted largest to 0 and interpreted the subscribe as starting at {g=1, o=0}. When {g=0,o=0} arrived, it was not forwarded.  But there's a reasonable interpretation that it should have forwarded treated this as the beginning of the next subscription.\r\n\r\nThis is partially related to #337 and maybe #353",
       "createdAt": "2024-02-13T01:45:40Z",
-      "updatedAt": "2024-02-19T21:26:48Z",
+      "updatedAt": "2024-02-20T17:04:37Z",
       "closedAt": null,
       "comments": [
         {
@@ -13662,6 +13766,13 @@
           "body": "Is this closed by #343?",
           "createdAt": "2024-02-19T21:26:47Z",
           "updatedAt": "2024-02-19T21:26:47Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I think I can see the intent with what's there, but the draft could use some editorial text clarifying what \"next/0\" means when subscribe OK was \"no content available\".",
+          "createdAt": "2024-02-20T17:04:36Z",
+          "updatedAt": "2024-02-20T17:04:36Z"
         }
       ]
     },
@@ -13670,16 +13781,26 @@
       "id": "I_kwDOG2Ho4M5_Ptfo",
       "title": "Register moqt with IANA",
       "url": "https://github.com/moq-wg/moq-transport/issues/378",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "ianswett",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
-      "labels": [],
+      "labels": [
+        "duplicate"
+      ],
       "body": "#299 changes the scheme to moqt.  We should register this with IANA.",
       "createdAt": "2024-02-14T17:23:29Z",
-      "updatedAt": "2024-02-14T17:23:30Z",
-      "closedAt": null,
-      "comments": []
+      "updatedAt": "2024-02-20T02:41:14Z",
+      "closedAt": "2024-02-20T02:41:14Z",
+      "comments": [
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "This is a dupe of #268 ",
+          "createdAt": "2024-02-20T02:41:14Z",
+          "updatedAt": "2024-02-20T02:41:14Z"
+        }
+      ]
     },
     {
       "number": 379,
@@ -13809,9 +13930,93 @@
       ],
       "body": "We currently don't have any specific error codes specified for announce.  We should either define some, or merge the space with subscribe errors.\r\n\r\nThe ones I have in mind are \"Internal error\", \"Announce not supported\" (aka this is a delivery-only endpoint), \"Permission denied\".",
       "createdAt": "2024-02-19T21:35:09Z",
-      "updatedAt": "2024-02-19T23:40:45Z",
+      "updatedAt": "2024-02-21T19:56:12Z",
       "closedAt": null,
-      "comments": []
+      "comments": [
+        {
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "+1 \r\n\r\nWhat does the sender do with an \"internal Error\" ?\r\n\r\n",
+          "createdAt": "2024-02-21T18:19:19Z",
+          "updatedAt": "2024-02-21T18:19:19Z"
+        },
+        {
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "body": "+1 \r\n\r\nMost of these errors are solely informative since we don't have a REASON string. At a minimum we need \"unauthorized\" which _could_ be automatically handled by the publisher, but more often will just be presented to the user.",
+          "createdAt": "2024-02-21T18:45:46Z",
+          "updatedAt": "2024-02-21T18:45:46Z"
+        },
+        {
+          "author": "vasilvv",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> What does the sender do with an \"internal Error\" ?\r\n\r\nProbably the same thing one would do in HTTP when you receive a 500 error (which is typically tell the user their operation cannot be finished because the server is broken).",
+          "createdAt": "2024-02-21T19:56:11Z",
+          "updatedAt": "2024-02-21T19:56:11Z"
+        }
+      ]
+    },
+    {
+      "number": 396,
+      "id": "I_kwDOG2Ho4M5_wmMi",
+      "title": "How does a relay/publisher know what to prioritize or drop?",
+      "url": "https://github.com/moq-wg/moq-transport/issues/396",
+      "state": "OPEN",
+      "author": "ianswett",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "It's unclear to me what objects a relay should prioritize or drop when congestion limited.  This is discussed in a few places, but I want to only focus on the question of what to send first and when to give up on sending an Object entirely.\r\n\r\nSpecific examples:\r\n\r\n1. Is there a point at which Objects from a subscription should no longer be transmitted?  If so, what determines that time?\r\n2. How does a relay decide whether to send the newest object or oldest?  Does it depend upon group boundaries?\r\n3. Can a relay infer that some Objects are droppable if they have lower priority than other Objects in the same group?\r\n\r\nMy strawman proposal is that subscriptions should have numerical priorities, so a relay knows whether it should send Objects from one subscription or another given limited bandwidth.  Additionally, subscriptions should have a TTL so relays know at what point they should stop retransmitting Objects.\r\n\r\n",
+      "createdAt": "2024-02-20T03:08:57Z",
+      "updatedAt": "2024-02-21T19:29:37Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "body": "It depends on why we're dropping an OBJECT.\r\n\r\n- Viewer has skipped past OR\r\n- Relay is out storage.\r\n\r\nIn the first scenario, the receiver should be in charge since it's knows the jitter buffer size and whether it wants to block. Prioritization gets us most of the way here but maybe we add an explicit \"I don't want GROUP X\" message to save bandwidth.\r\n\r\nIn the second scenario, the sender must be in charge since. I would drop based on TTL with an explicit \"I won't send GROUP X\" message. In theory you could drop based on send order, but it's not time bounded so you end up catching way too much.\r\n\r\nIt does feel weird that they are two different units. Maybe the receiver could signal its TTL as well, but that feels wrong without advanced knowledge of the inbound content.",
+          "createdAt": "2024-02-21T19:29:36Z",
+          "updatedAt": "2024-02-21T19:29:36Z"
+        }
+      ]
+    },
+    {
+      "number": 398,
+      "id": "I_kwDOG2Ho4M5__mjP",
+      "title": "Current naming is hard to keep track of <BIKESHED> ",
+      "url": "https://github.com/moq-wg/moq-transport/issues/398",
+      "state": "OPEN",
+      "author": "fluffy",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Propose names from my understanding of discussion call \r\n\r\nAnnounce (send by publisher)  , Annouce_OK, Annouce_Error\r\nUnAnnounce (send by publisher)  UnAnnounce_OK, UnAnnounce_Error \r\nAnnouce_End ( sent by thing that received Annouce) , AnnouceEnd_OK, AnnouceEnd_OK\r\n\r\nSubscribe (send by subscriber)  , Subscribe_OK,  Subscribe_Error\r\nUnSubscribe (send by subscriber)  , Subscribe_OK,  Subscribe_Error\r\nSubscribe_End (send by thing that received subscriber), Subscribe_OK,  Subscribe_Error\r\n\r\nMostly trying to get rid of FIN / RST and have different names for the messages that flow in opposite directions. ",
+      "createdAt": "2024-02-21T18:00:40Z",
+      "updatedAt": "2024-02-21T22:54:43Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I don't like the name of the _ERROR messages and I'd rather have one message that transitions to the terminal state, with an optional error code and final group/object.\r\n\r\nIMO the subscription flow:\r\n```\r\n  -> SUBSCRIBE\r\n[ <- SUBSCRIBE_OK    ]\r\n[ -> SUBSCRIBE_STOP  ]\r\n  <- SUBSCRIBE_CLOSE\r\n```\r\n\r\nAnd the ANNOUNCE flow mirrors:\r\n```\r\n  -> ANNOUNCE\r\n[ <- ANNOUNCE_OK    ]\r\n[ -> ANNOUNCE_STOP  ]\r\n  <- ANNOUNCE_CLOSE\r\n```\r\n\r\nThe brackets mean a message is optional. The sender is responsible for creating and the receiver is responsible for closing, possibly at the bequest of the \r\nsender (like QUIC's STOP_SENDING).",
+          "createdAt": "2024-02-21T19:05:30Z",
+          "updatedAt": "2024-02-21T19:07:06Z"
+        },
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "#392 has been merged, adding yet another term (CANCEL), but I figured we'd clean that up with this issue.",
+          "createdAt": "2024-02-21T22:40:51Z",
+          "updatedAt": "2024-02-21T22:40:51Z"
+        },
+        {
+          "author": "vasilvv",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Since we are bikeshedding, I prefer ANNOUNCE_RESCIND instead of CANCEL, since an announce is more of a declarative statement than an active request from the sender.",
+          "createdAt": "2024-02-21T22:54:43Z",
+          "updatedAt": "2024-02-21T22:54:43Z"
+        }
+      ]
     }
   ],
   "pulls": [
@@ -46273,24 +46478,26 @@
       "id": "PR_kwDOG2Ho4M5mTyKY",
       "title": "Make Datagram mode as REQUIRED",
       "url": "https://github.com/moq-wg/moq-transport/pull/360",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "suhasHere",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [],
       "body": "Addresses #359 ",
       "createdAt": "2024-02-07T21:17:55Z",
-      "updatedAt": "2024-02-18T21:51:38Z",
+      "updatedAt": "2024-02-21T17:19:15Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
-      "baseRefOid": "d97485d4fb39d1f1fc0e88b7291dd14c36ebe836",
+      "baseRefOid": "0edb987f6bddf4b7f0d62a626d174a23bb229458",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "datagram",
-      "headRefOid": "45681288283db9ed392f96411e2edeb7e164905d",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "headRefOid": "222dac9cdf834bff185c4094269ba8f86c00ee1f",
+      "closedAt": "2024-02-21T17:19:15Z",
+      "mergedAt": "2024-02-21T17:19:14Z",
+      "mergedBy": "ianswett",
+      "mergeCommit": {
+        "oid": "2941044ffc2d58998c9abff9fc28c2ccbd57473d"
+      },
       "comments": [
         {
           "author": "kixcord",
@@ -46361,6 +46568,19 @@
           "body": "LGTM",
           "createdAt": "2024-02-14T17:50:59Z",
           "updatedAt": "2024-02-14T17:50:59Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5w4roh",
+          "commit": {
+            "abbreviatedOid": "4568128"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2024-02-21T17:17:05Z",
+          "updatedAt": "2024-02-21T17:17:05Z",
           "comments": []
         }
       ]
@@ -46774,7 +46994,7 @@
       "labels": [],
       "body": "Attempts to address some of the usecases discussed in #372 \r\n\r\nLove to hear feedback",
       "createdAt": "2024-02-16T20:20:32Z",
-      "updatedAt": "2024-02-17T03:17:53Z",
+      "updatedAt": "2024-02-21T17:19:12Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "59a2a3a9a060bf1a78e191ee9b266211654eeb3f",
@@ -46824,6 +47044,26 @@
               "body": "Sending subscribe with same subscribe_id is used to update an existing subscription. Yes it is possible to move between park and ready states multiple times. There is some text on this in the DeliveryPreference explanation under Subscribe message in this PR which I think should address the above questions IIRC.",
               "createdAt": "2024-02-17T03:17:53Z",
               "updatedAt": "2024-02-17T03:19:11Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5w4tcZ",
+          "commit": {
+            "abbreviatedOid": "6bb3be2"
+          },
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-02-21T17:19:12Z",
+          "updatedAt": "2024-02-21T17:19:12Z",
+          "comments": [
+            {
+              "originalPosition": 11,
+              "body": "For what it is worth, I prefer calling these frozen instead of parked but I don't care much ",
+              "createdAt": "2024-02-21T17:19:12Z",
+              "updatedAt": "2024-02-21T17:19:12Z"
             }
           ]
         }
@@ -46950,21 +47190,21 @@
       "id": "PR_kwDOG2Ho4M5nMyz4",
       "title": "Remove 'Generic Error'",
       "url": "https://github.com/moq-wg/moq-transport/pull/383",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "ianswett",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [],
       "body": "'Generic Error' is never used in the draft and given \"Protocol Violation\" is also available, I don't think it's useful.\r\n\r\nI didn't renumber the error codes, but I could.",
       "createdAt": "2024-02-18T00:58:06Z",
-      "updatedAt": "2024-02-18T20:22:01Z",
+      "updatedAt": "2024-02-21T04:16:31Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "59a2a3a9a060bf1a78e191ee9b266211654eeb3f",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "ianswett-generic-error",
       "headRefOid": "47da7a904cf1c676708bf4e680190b8aaa7cef7f",
-      "closedAt": null,
+      "closedAt": "2024-02-21T04:16:31Z",
       "mergedAt": null,
       "mergedBy": null,
       "mergeCommit": null,
@@ -47175,7 +47415,7 @@
       ],
       "body": "Fixes #363, Fixes #269\r\n\r\nThis attempts to provide the minimum functionality I expect we'll need, regardless of how SUBSCRIBE is changed in the near future.",
       "createdAt": "2024-02-19T19:05:04Z",
-      "updatedAt": "2024-02-19T21:33:47Z",
+      "updatedAt": "2024-02-20T08:22:29Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "53746179d687d2b1903268d77cee8bcf445101b4",
@@ -47267,6 +47507,84 @@
               "updatedAt": "2024-02-19T19:38:24Z"
             }
           ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5wnx_x",
+          "commit": {
+            "abbreviatedOid": "6bb489e"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-02-20T04:26:36Z",
+          "updatedAt": "2024-02-20T04:26:37Z",
+          "comments": [
+            {
+              "originalPosition": 62,
+              "body": "This needs to be optional and only set if the subscription needs to be ended.",
+              "createdAt": "2024-02-20T04:26:37Z",
+              "updatedAt": "2024-02-20T04:26:37Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5wnyST",
+          "commit": {
+            "abbreviatedOid": "6bb489e"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "CHANGES_REQUESTED",
+          "body": "",
+          "createdAt": "2024-02-20T04:28:23Z",
+          "updatedAt": "2024-02-20T04:28:30Z",
+          "comments": [
+            {
+              "originalPosition": 29,
+              "body": "I feel Unsubscribe makes more sense if one wants to end the subscription.\r\nWe don;t need a new message to update an existing subscription. A subscriber can update an existing subscription by sending `SUBSCRIBE` message with SubscribeId that matches an existing subscription ( as described in https://github.com/moq-wg/moq-transport/pull/381)",
+              "createdAt": "2024-02-20T04:28:23Z",
+              "updatedAt": "2024-02-20T04:29:02Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5wouNT",
+          "commit": {
+            "abbreviatedOid": "6bb489e"
+          },
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "state": "CHANGES_REQUESTED",
+          "body": "",
+          "createdAt": "2024-02-20T08:08:01Z",
+          "updatedAt": "2024-02-20T08:22:29Z",
+          "comments": [
+            {
+              "originalPosition": 43,
+              "body": "But what about SUBSCRIBE_OK? We should send it too, especially if the end groups use relative offsets.",
+              "createdAt": "2024-02-20T08:08:02Z",
+              "updatedAt": "2024-02-20T08:22:29Z"
+            },
+            {
+              "originalPosition": 44,
+              "body": "I don't like the subscription being unchanged. It causes a partial failure which is just really difficult to support. ",
+              "createdAt": "2024-02-20T08:12:37Z",
+              "updatedAt": "2024-02-20T08:22:29Z"
+            },
+            {
+              "originalPosition": 43,
+              "body": "Also what if there are multiple SUBSCRIBE_UPDATES? Do the SUBSCRIBE_ERRORs have to be returned in order? With no OK, it's impossible to differentiate if the 1st or 2nd UPDATE failed.",
+              "createdAt": "2024-02-20T08:14:08Z",
+              "updatedAt": "2024-02-20T08:22:29Z"
+            },
+            {
+              "originalPosition": 59,
+              "body": "Can we also update the start group/object? It would be super useful for relays to deal with:\r\n\r\nviewer1: SUBSCRIBE start=-2\r\n(pause)\r\nviewer2: SUBSCRIBE start=-3\r\n\r\nCurrently, the relay would issue to origin:\r\nSUBSCRIBE start=-2\r\n(wait for SUBSCRIBE_OK -2=65)\r\nSUBSCRIBE start=64 end=65\r\n\r\nWhich is complicated and incurs delay. But if we allow updating start ranges:\r\nSUBSCRIBE start=-2\r\nSUBSCRIBE_UPDATE start=-3",
+              "createdAt": "2024-02-20T08:21:31Z",
+              "updatedAt": "2024-02-20T08:22:29Z"
+            }
+          ]
         }
       ]
     },
@@ -47275,7 +47593,7 @@
       "id": "PR_kwDOG2Ho4M5nUtiv",
       "title": "Rename SUBSCRIBE_RST to SUBSCRIBE_RESET",
       "url": "https://github.com/moq-wg/moq-transport/pull/386",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "ianswett",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
@@ -47284,45 +47602,150 @@
       ],
       "body": "QUIC uses RESET, we should too.",
       "createdAt": "2024-02-19T19:35:24Z",
-      "updatedAt": "2024-02-19T21:22:07Z",
+      "updatedAt": "2024-02-20T15:20:33Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "d05521bc7428754389a20f17f43a79be1bd1ddd7",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "ianswett-subscribe-reset",
       "headRefOid": "c611c75c47adde07af17abcaebf6e3b89a1f2030",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "closedAt": "2024-02-20T15:20:32Z",
+      "mergedAt": "2024-02-20T15:20:32Z",
+      "mergedBy": "ianswett",
+      "mergeCommit": {
+        "oid": "1169f20fd065f90452754057a653cb870309e24d"
+      },
       "comments": [],
-      "reviews": []
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M5wny7Q",
+          "commit": {
+            "abbreviatedOid": "c611c75"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-02-20T04:32:20Z",
+          "updatedAt": "2024-02-20T04:32:21Z",
+          "comments": [
+            {
+              "originalPosition": 16,
+              "body": "I prefer `SUBSCRIBE_CANCEL` to indicate an existing subscription is canceled now. I do understand RESET goes with QUIC naming, but Cancel seems more nature given the nomenclature of subscription vs that of a transport stream construct.",
+              "createdAt": "2024-02-20T04:32:21Z",
+              "updatedAt": "2024-02-20T04:32:21Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5woskZ",
+          "commit": {
+            "abbreviatedOid": "c611c75"
+          },
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "Teeechnically, QUIC uses STOP for receiver-initiated closes. But RESET is better than RST.",
+          "createdAt": "2024-02-20T08:04:11Z",
+          "updatedAt": "2024-02-20T08:04:11Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5wsitB",
+          "commit": {
+            "abbreviatedOid": "c611c75"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-02-20T15:20:14Z",
+          "updatedAt": "2024-02-20T15:20:14Z",
+          "comments": [
+            {
+              "originalPosition": 16,
+              "body": "I used CANCEL in the ANNOUNCE PR, and happy to consider different names, and we should make an effort to be somewhat consistent between SUBSCRIBE and ANNOUNCE to avoid confusion.",
+              "createdAt": "2024-02-20T15:20:14Z",
+              "updatedAt": "2024-02-20T15:20:14Z"
+            }
+          ]
+        }
+      ]
     },
     {
       "number": 387,
       "id": "PR_kwDOG2Ho4M5nUycy",
       "title": "Don't send Objects for failed subscriptions",
       "url": "https://github.com/moq-wg/moq-transport/pull/387",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "ianswett",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [],
       "body": "Fixes #357",
       "createdAt": "2024-02-19T19:50:24Z",
-      "updatedAt": "2024-02-19T23:48:49Z",
+      "updatedAt": "2024-02-20T23:40:38Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "d05521bc7428754389a20f17f43a79be1bd1ddd7",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "ianswett-failed-subs",
-      "headRefOid": "c5f3147149c3a051a7e3e34d33793b6232e63878",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "headRefOid": "b340c51ca29fcd101616849e8e6507c8cf60997f",
+      "closedAt": "2024-02-20T23:40:37Z",
+      "mergedAt": "2024-02-20T23:40:37Z",
+      "mergedBy": "ianswett",
+      "mergeCommit": {
+        "oid": "fd9574281c4dc0fdeb977b4ed49715577c2d7f0b"
+      },
       "comments": [],
-      "reviews": []
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M5wnzDj",
+          "commit": {
+            "abbreviatedOid": "c5f3147"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2024-02-20T04:33:10Z",
+          "updatedAt": "2024-02-20T04:33:10Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5wtVMS",
+          "commit": {
+            "abbreviatedOid": "c5f3147"
+          },
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-02-20T16:37:25Z",
+          "updatedAt": "2024-02-20T16:37:25Z",
+          "comments": [
+            {
+              "originalPosition": 5,
+              "body": "```suggestion\r\nreceives a SUBSCRIBE_ERROR after receiving objects, it MUST close the session\r\n```",
+              "createdAt": "2024-02-20T16:37:25Z",
+              "updatedAt": "2024-02-20T16:37:25Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5wtVUY",
+          "commit": {
+            "abbreviatedOid": "c5f3147"
+          },
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2024-02-20T16:37:39Z",
+          "updatedAt": "2024-02-20T16:37:39Z",
+          "comments": []
+        }
+      ]
     },
     {
       "number": 388,
@@ -47373,24 +47796,26 @@
       "id": "PR_kwDOG2Ho4M5nU7AE",
       "title": "Specify if Objects were published in SUBSCRIBE_FIN and SUBSCRIBE_RST",
       "url": "https://github.com/moq-wg/moq-transport/pull/389",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "ianswett",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [],
-      "body": "Fixes #313",
+      "body": "Fixes #313 by adding an explicit bool indicating whether any Objects were published for a subscription, similar to the explicit bool added to SUBSCRIBE_OK in #343.",
       "createdAt": "2024-02-19T20:21:38Z",
-      "updatedAt": "2024-02-19T20:28:25Z",
+      "updatedAt": "2024-02-21T17:15:31Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
-      "baseRefOid": "e0a52442219909393933a9c4f4518c697034ac8c",
+      "baseRefOid": "f845852fd96120627dd89a3f08c7df4af8b9bb76",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "ianswett-no-objects-fin",
-      "headRefOid": "c83b8d324a51116b0d8bca1bff87334bcfa55244",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "headRefOid": "67985751c08292f7a2bb7d5e354c9621c4e2d43e",
+      "closedAt": "2024-02-21T17:15:31Z",
+      "mergedAt": "2024-02-21T17:15:31Z",
+      "mergedBy": "ianswett",
+      "mergeCommit": {
+        "oid": "0edb987f6bddf4b7f0d62a626d174a23bb229458"
+      },
       "comments": [],
       "reviews": []
     },
@@ -47406,43 +47831,173 @@
       "labels": [],
       "body": "Fixes #390",
       "createdAt": "2024-02-19T20:37:42Z",
-      "updatedAt": "2024-02-19T20:37:42Z",
+      "updatedAt": "2024-02-21T17:07:03Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
-      "baseRefOid": "e0a52442219909393933a9c4f4518c697034ac8c",
+      "baseRefOid": "1169f20fd065f90452754057a653cb870309e24d",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "ianswett-no-expires",
-      "headRefOid": "f72662d020d8d2bd921fb5ff3407bae83430bfb7",
+      "headRefOid": "71d3207c20448694e90fb00efadccefcb22a4770",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
       "mergeCommit": null,
-      "comments": [],
-      "reviews": []
+      "comments": [
+        {
+          "author": "vasilvv",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I believe this PR is a step in the right direction, since the current subscription expiry mechanism feels underspecified; I can think of some cases in which that would be useful, but I'd rather have a `SUBSCRIBE_GOAWAY` message that tells the peer they should resubscribe rather than a timer.",
+          "createdAt": "2024-02-20T18:17:56Z",
+          "updatedAt": "2024-02-20T18:17:56Z"
+        }
+      ],
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M5wncxL",
+          "commit": {
+            "abbreviatedOid": "f72662d"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "CHANGES_REQUESTED",
+          "body": "",
+          "createdAt": "2024-02-20T02:22:56Z",
+          "updatedAt": "2024-02-20T02:23:00Z",
+          "comments": [
+            {
+              "originalPosition": 17,
+              "body": "I do feel expires is needed. This is a way for CDN/relay provider to indicate the subscriber to renew their interest in subscription.  I would think Hops within a CDN network might configure a different (larger) value for this compared to end point client subscribing to edge relay.\r\n\r\nI might be convinced otherwise, but love to discuss this a bit.",
+              "createdAt": "2024-02-20T02:22:56Z",
+              "updatedAt": "2024-02-20T02:23:00Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5woQ7v",
+          "commit": {
+            "abbreviatedOid": "f72662d"
+          },
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "This change might be controversial but I'm all for it.",
+          "createdAt": "2024-02-20T06:44:37Z",
+          "updatedAt": "2024-02-20T06:58:46Z",
+          "comments": [
+            {
+              "originalPosition": 17,
+              "body": "I know we've talked at length about this, but can you give some example use-cases?\r\n\r\nIf the intent is an idle timeout, then QUIC already provides most of that. The connection will be closed and any subscriptions cancelled after a period of inactivity. There's also a congestion window that will prevent sending bytes well before that timeout is hit. Performing the idle timeout at the MoQ level will catch some more scenarios, like a bug in the MoQ library that prevents unsubscribes, but eh it's fringe.\r\n\r\nIf the intent is to force reauthorization, well that needs to be thought out a bit more. What behavior should the subscriber perform on expiration? Does it need to refresh it's authorization token every time, or only every x minutes? Heh I already know the answer is going to be \"it depends on the application\". And I agree!\r\n\r\nThe expiration should be part of the authorization scheme itself and signaled independently. For example, you can put the expiration in the token itself. A client already needs to understand the authorization scheme in order to refresh tokens, so it can totally parse the expiration out of the token too.",
+              "createdAt": "2024-02-20T06:44:37Z",
+              "updatedAt": "2024-02-20T06:58:46Z"
+            },
+            {
+              "originalPosition": 25,
+              "body": "Yeah, I agree that the transition from a valid to invalid subscription at an arbitrary point in time is problematic\r\n\r\nIf we end up keeping `expires`, then an explicit `SUBSCRIBE_RESET` message (with an error code) should actually be required to terminate the subscription.",
+              "createdAt": "2024-02-20T06:56:13Z",
+              "updatedAt": "2024-02-20T06:58:46Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5wtdPm",
+          "commit": {
+            "abbreviatedOid": "f72662d"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-02-20T16:51:21Z",
+          "updatedAt": "2024-02-20T16:51:21Z",
+          "comments": [
+            {
+              "originalPosition": 25,
+              "body": "Individual Comment:\r\n\r\nThat might be a nice middle ground -- `expires` is advisory to the client that it's going to get a SUBSCRIBE_RESET at that time.  It can avoid that (make before break) by resubscribing before that point.",
+              "createdAt": "2024-02-20T16:51:21Z",
+              "updatedAt": "2024-02-20T16:51:21Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5wt_ng",
+          "commit": {
+            "abbreviatedOid": "f72662d"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-02-20T17:53:35Z",
+          "updatedAt": "2024-02-20T17:53:35Z",
+          "comments": [
+            {
+              "originalPosition": 25,
+              "body": "@afrind That's not just the middle ground. but  expected behavior for relay provider not to waste its resources if the susbcriber doesn't renew its interest in a given track.  Also good point on make before break scenario.",
+              "createdAt": "2024-02-20T17:53:35Z",
+              "updatedAt": "2024-02-20T17:53:35Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5wwYA3",
+          "commit": {
+            "abbreviatedOid": "f72662d"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-02-20T22:47:35Z",
+          "updatedAt": "2024-02-20T22:47:35Z",
+          "comments": [
+            {
+              "originalPosition": 25,
+              "body": "What does renewing its interest mean?  It continues to ACK packets and supply flow control for streams to allow the data for the subscription to be delivered, so it's not completely passive.\r\n\r\nI don't know what action to take based on this field a subscriber.  There's no guarantee the subscription will last as long as the expires indicates.  There's also no guarantee it won't last much longer, especially if we still require a SUBSCRIBE_RESET or FIN, which I think we should to ensure the state machine is simpler.",
+              "createdAt": "2024-02-20T22:47:35Z",
+              "updatedAt": "2024-02-20T22:47:35Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5w4iy1",
+          "commit": {
+            "abbreviatedOid": "71d3207"
+          },
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "Lets talk about this but I think we need very long lasting session ( imagine weeks or years that are common with security cameras )  to periodically be reauthenticated and I had imagined this was the place to do it. ",
+          "createdAt": "2024-02-21T17:07:03Z",
+          "updatedAt": "2024-02-21T17:07:03Z",
+          "comments": []
+        }
+      ]
     },
     {
       "number": 392,
       "id": "PR_kwDOG2Ho4M5nVF1J",
       "title": "Add ANNOUNCE_CANCEL",
       "url": "https://github.com/moq-wg/moq-transport/pull/392",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "ianswett",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [],
       "body": "To allow subscribers to indicate that no new subscriptions will be routed to the publisher for a given namespace.\r\n\r\nHappy to bikeshed on the name and whether we really need another frame for this.\r\n\r\nFixes #319",
       "createdAt": "2024-02-19T21:05:42Z",
-      "updatedAt": "2024-02-19T21:22:25Z",
+      "updatedAt": "2024-02-21T22:39:41Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
-      "baseRefOid": "d05521bc7428754389a20f17f43a79be1bd1ddd7",
+      "baseRefOid": "2941044ffc2d58998c9abff9fc28c2ccbd57473d",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "ianswett-announce-cancel",
-      "headRefOid": "20ff796fe48bb9617073559834dd15dff84f31ad",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "headRefOid": "3a8d48afc147b3517bb0c7d9e0b5cc246a38a4b9",
+      "closedAt": "2024-02-21T22:39:41Z",
+      "mergedAt": "2024-02-21T22:39:41Z",
+      "mergedBy": "ianswett",
+      "mergeCommit": {
+        "oid": "a02b1a57b50cfa6ee56e110f27495619bfc249c4"
+      },
       "comments": [],
       "reviews": [
         {
@@ -47464,6 +48019,39 @@
               "updatedAt": "2024-02-19T21:09:04Z"
             }
           ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5woKTD",
+          "commit": {
+            "abbreviatedOid": "20ff796"
+          },
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "If we're going to combine `SUBSCRIBE_ERROR` and `SUBSCRIBE_RESET`, then we should just combine `ANNOUNCE_ERROR` and `ANNOUNCE_CANCEL` now.\r\n\r\nMy desire is to have four messages:\r\npublisher create: ANNOUNCE\r\npublisher close: UNANNOUNCE\r\nsubscriber accept: ANNOUNCE_OK\r\nsubscriber close: ANNOUNCE_STOP\r\n\r\nThe same goes for subscriptions:\r\nsubscriber create: SUBSCRIBE\r\nsubscriber close: UNSUBSCRIBE\r\npublisher accept: SUBSCRIBE_OK\r\npublisher close: SUBSCRIBE_STOP",
+          "createdAt": "2024-02-20T06:20:41Z",
+          "updatedAt": "2024-02-20T06:30:54Z",
+          "comments": [
+            {
+              "originalPosition": 17,
+              "body": "Bikeshed: `ANNOUNCE_RESET` so it matches `SUBSCRIBE_RESET`.",
+              "createdAt": "2024-02-20T06:20:41Z",
+              "updatedAt": "2024-02-20T06:30:54Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5w4xmJ",
+          "commit": {
+            "abbreviatedOid": "3a8d48a"
+          },
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2024-02-21T17:23:20Z",
+          "updatedAt": "2024-02-21T22:38:58Z",
+          "comments": []
         }
       ]
     },
@@ -47479,18 +48067,26 @@
       "labels": [],
       "body": "Fixes #252",
       "createdAt": "2024-02-19T21:45:13Z",
-      "updatedAt": "2024-02-19T21:48:27Z",
+      "updatedAt": "2024-02-21T22:37:40Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
-      "baseRefOid": "d05521bc7428754389a20f17f43a79be1bd1ddd7",
+      "baseRefOid": "2941044ffc2d58998c9abff9fc28c2ccbd57473d",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "ianswett-exact-track-namespace",
-      "headRefOid": "cfa1d31fc0def826a7cf504c4df020c32b883627",
+      "headRefOid": "4bf4c72fab1439abc1973f96605a527b8cf34363",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
       "mergeCommit": null,
-      "comments": [],
+      "comments": [
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "PR updated, PTAL",
+          "createdAt": "2024-02-21T22:37:39Z",
+          "updatedAt": "2024-02-21T22:37:39Z"
+        }
+      ],
       "reviews": [
         {
           "id": "PRR_kwDOG2Ho4M5wmwZS",
@@ -47511,6 +48107,119 @@
               "updatedAt": "2024-02-19T21:48:27Z"
             }
           ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5woJ2n",
+          "commit": {
+            "abbreviatedOid": "cfa1d31"
+          },
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "state": "CHANGES_REQUESTED",
+          "body": "",
+          "createdAt": "2024-02-20T06:18:53Z",
+          "updatedAt": "2024-02-20T06:19:04Z",
+          "comments": [
+            {
+              "originalPosition": 5,
+              "body": "Same, I don't understand this.",
+              "createdAt": "2024-02-20T06:18:53Z",
+              "updatedAt": "2024-02-20T06:19:04Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5wwY9H",
+          "commit": {
+            "abbreviatedOid": "cfa1d31"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-02-20T22:51:15Z",
+          "updatedAt": "2024-02-20T22:51:16Z",
+          "comments": [
+            {
+              "originalPosition": 5,
+              "body": "Agreed, I was having a difficult time determining what text to add and where.  Suggestions or alternate PRs are welcome.",
+              "createdAt": "2024-02-20T22:51:15Z",
+              "updatedAt": "2024-02-20T22:51:16Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5wxyBR",
+          "commit": {
+            "abbreviatedOid": "cfa1d31"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-02-21T04:45:24Z",
+          "updatedAt": "2024-02-21T04:45:25Z",
+          "comments": [
+            {
+              "originalPosition": 5,
+              "body": "May be this is what we can say \r\n\r\n\" For publishers with successful announces, a Relay issues subscriptions to such publishers only when the `Track Namespace`  in the subscription has exact bitwise match with the announced `Track Namespace` \".\r\n",
+              "createdAt": "2024-02-21T04:45:24Z",
+              "updatedAt": "2024-02-21T04:45:25Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5w4gxh",
+          "commit": {
+            "abbreviatedOid": "cfa1d31"
+          },
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "I'm not sure how to wordsmith this but +1 to what it is saying. ",
+          "createdAt": "2024-02-21T17:04:37Z",
+          "updatedAt": "2024-02-21T17:04:37Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5w5gnB",
+          "commit": {
+            "abbreviatedOid": "cfa1d31"
+          },
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-02-21T18:21:49Z",
+          "updatedAt": "2024-02-21T18:21:50Z",
+          "comments": [
+            {
+              "originalPosition": 5,
+              "body": "I think the text is trying to be too technical. Here's my suggestion:\r\n\r\nA relay manages sessions from multiple publishers and subscribers, connecting them based on the track namespace. This SHOULD use a full string match unless otherwise negotiated by the application. For example, a `SUBSCRIBE namespace=foobar` message will be forwarded to the session that sent `ANNOUNCE namespace=foobar`.\r\n\r\nI put a SHOULD instead of a MUST so we leave door open. Relays are going to rewriting the namespace, or using a portion of it based on the application, and it would be impossible to enforce anyway. ",
+              "createdAt": "2024-02-21T18:21:50Z",
+              "updatedAt": "2024-02-21T18:21:50Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5w7Gm7",
+          "commit": {
+            "abbreviatedOid": "cfa1d31"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-02-21T22:33:26Z",
+          "updatedAt": "2024-02-21T22:33:26Z",
+          "comments": [
+            {
+              "originalPosition": 5,
+              "body": "Given you specify the unless, I'd prefer MUST unless, but otherwise LG.",
+              "createdAt": "2024-02-21T22:33:26Z",
+              "updatedAt": "2024-02-21T22:33:27Z"
+            }
+          ]
         }
       ]
     },
@@ -47523,22 +48232,224 @@
       "author": "ianswett",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
-      "labels": [],
+      "labels": [
+        "Needs Discussion"
+      ],
       "body": "Add some normative text and requires both client and server to send their role.\r\n\r\nI can also see the argument for removing this entirely, but it's in the current draft, so if we're going to keep it, I'd like to define it better.\r\n\r\nFixes #151, Fixes #250",
       "createdAt": "2024-02-19T22:02:17Z",
-      "updatedAt": "2024-02-20T00:07:37Z",
+      "updatedAt": "2024-02-21T17:29:09Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
-      "baseRefOid": "d05521bc7428754389a20f17f43a79be1bd1ddd7",
+      "baseRefOid": "fd9574281c4dc0fdeb977b4ed49715577c2d7f0b",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "ianswett-normative-role",
-      "headRefOid": "e2151b738e9f40d0941ee933a04a829d595da12a",
+      "headRefOid": "d956129dcccdeb88ccd304c6c14b5fbdc6b5576f",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
       "mergeCommit": null,
+      "comments": [
+        {
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> This explicit flag in SETUP is a lot better than crashing if an unsupported message is sent by the peer.\r\n\r\nHaving a flag in SETUP doesn't stop from someone sending unsupported messages. A faulty implementation or intentionally malicious endpoint can send unsupported messages. A receiver should be prepared to handle unsupported messages regardless.",
+          "createdAt": "2024-02-20T06:22:28Z",
+          "updatedAt": "2024-02-20T06:22:28Z"
+        },
+        {
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> > This explicit flag in SETUP is a lot better than crashing if an unsupported message is sent by the peer.\r\n> \r\n> Having a flag in SETUP doesn't stop from someone sending unsupported messages. A faulty implementation or intentionally malicious endpoint can send unsupported messages. A receiver should be prepared to handle unsupported messages regardless.\r\n\r\nRight, an implementation is still going to crash if it receives an unsupported message, but there's a difference between signaling that upfront and yolo.\r\n\r\nA one-sided implementation will look something like this:\r\n```\r\nreceive(message) {\r\n  switch (message.type) {\r\n  case SUBSCRIBE:\r\n    // ...\r\n  case UNSUBSCRIBE:\r\n    // ..\r\n  default:\r\n    throw PROTOCOL_ERROR\r\n  }\r\n}\r\n```\r\n\r\nThe purpose of the ROLE parameter is to avoid accidentally triggering that default, as it will close the connection.\r\n\r\nFor example, I absolutely want to have a way to get per-viewer feedback: a `feedback` track produced by each viewer. Without this ROLE field, a viewer might cause a crash if it sends an `ANNOUNCE feedback` to the server, or the server might cause a crash if it sends a `SUBSCRIBE feedback` to the viewer. It will only work if both endpoints explicitly flag `ROLE=both`. \r\n\r\nThe only alternative to the ROLE field is to implement the entire protocol, but that's unnecessarily restrictive. Take HTTP for example, it's almost taken for granted that an implementation is for a client or a server, but rarely both. I imagine that will also be the case with MoQ with the sole exception of relays. OBS is not going to implement subscribing, and VLC is not going to implement publishing.\r\n\r\nEven in my MoQ.js library that does support both modes, I ran into a deadlock because of ROLE=both. My publisher was not consuming ANNOUNCE messages because it was not expecting them. Explicitly signaling ROLE=publisher would have prevented this, making it a protocol violation to send half of the messages in the draft.",
+          "createdAt": "2024-02-20T07:14:46Z",
+          "updatedAt": "2024-02-20T07:17:12Z"
+        },
+        {
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "body": "A resilient implementation state machine will be something like\r\n\r\n```\r\neceive(message) {\r\n  switch (message.type) {\r\n  case SUBSCRIBE:\r\n    // ...\r\n  case UNSUBSCRIBE:\r\n    // ..\r\n  default:\r\n    // drop the message\r\n  }\r\n}\r\n```\r\n\r\nSince for unsupported messages, you don't want a protocol action as it will be DOS surface, for example.\r\n\r\nAlso, Many of the conferencing examples will mostly always be send and receive by default. Our client for example does pub and subscribe always.\r\n\r\nI personally feel the implementation constraints are resolvable and I feel still unconvinced for a ROLE parameter.",
+          "createdAt": "2024-02-20T07:23:24Z",
+          "updatedAt": "2024-02-20T07:24:23Z"
+        },
+        {
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> A resilient implementation state machine will be something like\r\n> \r\n> ```\r\n> eceive(message) {\r\n>   switch (message.type) {\r\n>   case SUBSCRIBE:\r\n>     // ...\r\n>   case UNSUBSCRIBE:\r\n>     // ..\r\n>   default:\r\n>     // drop the message\r\n>   }\r\n> }\r\n> ```\r\n\r\nHeh, please don't do that. This is exactly why we have version/extension negotiation; not supporting a message after negotiating it is a protocol violation.\r\n\r\nOtherwise, my endpoint has to assume that your endpoint could ignore messages, and the MoQ draft in general, on a whim. Just tell me that you don't support ANNOUNCE via ROLE. Otherwise I would have to send an ANNOUNCE, start a timer, and guess that no OK/ERROR means no support? Probing for support is miserable.\r\n\r\n> Since for unsupported messages, you don't want a protocol action as it will be DOS surface, for example.\r\n\r\nYou close the connection on an unsupported message.\r\n\r\n> Also, Many of the conferencing examples will mostly always be send and receive by default. Our client for example does pub and subscribe always.\r\n> \r\n> I personally feel the implementation constraints are resolvable and I feel still unconvinced for a ROLE parameter.\r\n\r\nJust send ROLE=both then. Not every conferencing is bidirectional though, for example clubhouse-style. At Discord we also have a dedicated connection for screen sharing (don't ask) and a very explicit role=publisher vs role=subscriber flag.",
+          "createdAt": "2024-02-20T08:00:11Z",
+          "updatedAt": "2024-02-20T08:00:11Z"
+        },
+        {
+          "author": "wilaw",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "> The only alternative to the ROLE field is to implement the entire protocol, but that's unnecessarily restrictive. \r\n\r\nI don't think this is necessarily true. Without ROLE, you can still choose to only implement half the protocol and reject the messages you don't support. **Every client has to be built to be resilient to arbitrary incoming messages**. It can't break because the other side said their role was subscriber but then they send you an ANNOUCE. Therefore sending an upfront role seems like a promise to behave in a certain way. A system that relies on promises to not break will be brittle. I agree that ROLE seems superfluous.\r\n\r\n\r\n",
+          "createdAt": "2024-02-20T08:04:40Z",
+          "updatedAt": "2024-02-20T08:04:40Z"
+        },
+        {
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> **Every client has to be built to be resilient to arbitrary incoming messages**. It can't break because the other side said their role was subscriber but then they send you an ANNOUCE. \r\n\r\nI want publisher and subscriber support to be optional. That way it's only necessary to implement half of the draft on many cases. A CDN distribution edge would be one such situation. In fact, it's a hardening measure to ensure the edge cannot receive a ANNOUNCE which might otherwise cause a vulnerability.\r\n\r\nAnd generally speaking, if something is optional, then it should be negotiated. Otherwise you end up with Schroeder's extension. Silently ignoring unknown/unsupported messages is just terrible protocol design and it's s far better to close the connection with a protocol violation instead.\r\n\r\nThat's the point of the ROLE parameter. But yeah let's chat about it on Wed.",
+          "createdAt": "2024-02-20T08:43:08Z",
+          "updatedAt": "2024-02-20T08:43:08Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Individual Comment:\r\n\r\nEvery implementation has to have that switch statement and some not-crash action when it receives a message it doesn't support.  Some logical options are:\r\n\r\n1. Ignore the message\r\n2. Send the corresponding error message (eg SUBSCRIBE_ERROR, ANNOUNCE_ERROR) with an error code like \"not-implemented\"\r\n3. Close the entire connection\r\n\r\nI think the value of ROLE is that it gives a consistent behavior early in the life of the session.  If I want to send subscribes and the peer says they are subscriber only, I close the connection.  But I still have to have the switch statement because of broken or malicious peers.  The MUST in this PR can be improved by explaining what happens when you don't like the value you see, or the peer sends messages inconsistent with its advertised role.",
+          "createdAt": "2024-02-20T16:42:28Z",
+          "updatedAt": "2024-02-20T16:45:13Z"
+        },
+        {
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> If I want to send subscribes and the peer says they are subscriber only, I close the connectio\r\n\r\nIn that case the peer will close the connection since it knows that it is subscribe only implementation and the role in the setup is supreflous",
+          "createdAt": "2024-02-21T01:52:45Z",
+          "updatedAt": "2024-02-21T03:34:51Z"
+        },
+        {
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "This is the type of things where I don't think we need it but it does not break anything, is not a big deal to implement, and does not hit performance. Given other people feel strongly this is needed, I can easily live with this. If this helps us get to consensus, I'm fine with adding it. I think the rewrite makes things clearer than they were before. ",
+          "createdAt": "2024-02-21T16:55:08Z",
+          "updatedAt": "2024-02-21T16:55:08Z"
+        },
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Discussion concluded that supporting this was not that difficult and it's a clear signal of what's supported, to so AI is to fix up the PR to clarify behavior.",
+          "createdAt": "2024-02-21T17:29:09Z",
+          "updatedAt": "2024-02-21T17:29:09Z"
+        }
+      ],
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M5wndPo",
+          "commit": {
+            "abbreviatedOid": "e2151b7"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-02-20T02:25:52Z",
+          "updatedAt": "2024-02-20T02:25:55Z",
+          "comments": [
+            {
+              "originalPosition": 10,
+              "body": "I still don't see a need for the ROLE parameter. I wonder what's the value add here and be fine if we don't need it.\r\n\r\nThe implementation can decipher the role based on arrival of subscribe/publish/both messages.\r\n\r\nHowever, happy to hear what problem are we addressing to solve with the Role.",
+              "createdAt": "2024-02-20T02:25:52Z",
+              "updatedAt": "2024-02-20T02:25:55Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5woJVt",
+          "commit": {
+            "abbreviatedOid": "e2151b7"
+          },
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "Love it.\r\n\r\n@suhasHere I definitely want ROLE in the protocol because there will be many one-sided implementations. A broadcaster like OBS won't support ROLE=subscriber, likewise a viewer like VLC won't support ROLE=publisher. This explicit flag in SETUP is a lot better than crashing if an unsupported message is sent by the peer.",
+          "createdAt": "2024-02-20T06:16:50Z",
+          "updatedAt": "2024-02-20T06:17:18Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5woJpj",
+          "commit": {
+            "abbreviatedOid": "e2151b7"
+          },
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-02-20T06:18:06Z",
+          "updatedAt": "2024-02-20T06:18:06Z",
+          "comments": [
+            {
+              "originalPosition": 39,
+              "body": "`is missing or is not`",
+              "createdAt": "2024-02-20T06:18:06Z",
+              "updatedAt": "2024-02-20T06:18:06Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5wod00",
+          "commit": {
+            "abbreviatedOid": "e2151b7"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "DISMISSED",
+          "body": "I wonder if it helps to discuss the role of role parameter during authors call for a short bit @ianswett ",
+          "createdAt": "2024-02-20T07:26:32Z",
+          "updatedAt": "2024-02-20T07:29:27Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5w4YmC",
+          "commit": {
+            "abbreviatedOid": "d956129"
+          },
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-02-21T16:56:24Z",
+          "updatedAt": "2024-02-21T16:56:24Z",
+          "comments": [
+            {
+              "originalPosition": 11,
+              "body": "Small nit. I think these three different values should each have a name because it will make them easier to talk about. ",
+              "createdAt": "2024-02-21T16:56:24Z",
+              "updatedAt": "2024-02-21T16:56:24Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 397,
+      "id": "PR_kwDOG2Ho4M5nc7CS",
+      "title": "Rename 'Generic Error' to 'Internal Error'",
+      "url": "https://github.com/moq-wg/moq-transport/pull/397",
+      "state": "MERGED",
+      "author": "ianswett",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Internal server error has been useful in HTTP, so it makes sense to include something similar for MoQ.\r\n\r\nCloses #383 ",
+      "createdAt": "2024-02-20T22:57:29Z",
+      "updatedAt": "2024-02-21T04:16:30Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "fd9574281c4dc0fdeb977b4ed49715577c2d7f0b",
+      "headRepository": "moq-wg/moq-transport",
+      "headRefName": "ianswett-internal-error",
+      "headRefOid": "111e57578c44b6a600f6bd98f77d5867ad7b103b",
+      "closedAt": "2024-02-21T04:16:30Z",
+      "mergedAt": "2024-02-21T04:16:30Z",
+      "mergedBy": "ianswett",
+      "mergeCommit": {
+        "oid": "f845852fd96120627dd89a3f08c7df4af8b9bb76"
+      },
       "comments": [],
-      "reviews": []
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M5wxkdy",
+          "commit": {
+            "abbreviatedOid": "111e575"
+          },
+          "author": "vasilvv",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2024-02-21T04:02:48Z",
+          "updatedAt": "2024-02-21T04:02:48Z",
+          "comments": []
+        }
+      ]
     }
   ]
 }
