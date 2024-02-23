@@ -683,6 +683,12 @@ A subscriber indicates it will no longer route subscriptions for a
 namespace it previously responded ANNOUNCE_OK to by sending an
 ANNOUNCE_CANCEL.
 
+A relay manages sessions from multiple publishers and subscribers,
+connecting them based on the track namespace. This MUST use an exact
+match on track namespace unless otherwise negotiated by the application.
+For example, a SUBSCRIBE namespace=foobar message will be forwarded to
+the session that sent ANNOUNCE namespace=foobar.
+
 OBJECT message headers carry a short hop-by-hop `Track Alias` that maps to
 the Full Track Name (see {{message-subscribe-ok}}). Relays use the
 `Track Alias` of an incoming OBJECT message to identify its track and find
