@@ -2183,14 +2183,19 @@ new subscriptions for an announced namespace it sends an UNANNOUNCE.
 A subscriber indicates it will no longer route subscriptions for a
 namespace it previously responded ANNOUNCE_OK to by sending an
 ANNOUNCE_CANCEL.<a href="#section-5.2-4" class="pilcrow">¶</a></p>
-<p id="section-5.2-5">OBJECT message headers carry a short hop-by-hop <code>Track Alias</code> that maps to
+<p id="section-5.2-5">A relay manages sessions from multiple publishers and subscribers,
+connecting them based on the track namespace. This <span class="bcp14">MUST</span> use an exact
+match on track namespace unless otherwise negotiated by the application.
+For example, a SUBSCRIBE namespace=foobar message will be forwarded to
+the session that sent ANNOUNCE namespace=foobar.<a href="#section-5.2-5" class="pilcrow">¶</a></p>
+<p id="section-5.2-6">OBJECT message headers carry a short hop-by-hop <code>Track Alias</code> that maps to
 the Full Track Name (see <a href="#message-subscribe-ok" class="auto internal xref">Section 6.5</a>). Relays use the
 <code>Track Alias</code> of an incoming OBJECT message to identify its track and find
 the active subscribers for that track. Relays <span class="bcp14">MUST NOT</span> depend on OBJECT
 payload content for making forwarding decisions and <span class="bcp14">MUST</span> only depend on the
 fields, such as priority order and other metadata properties in the
 OBJECT message header. Unless determined by congestion response, Relays
-<span class="bcp14">MUST</span> forward the OBJECT message to the matching subscribers.<a href="#section-5.2-5" class="pilcrow">¶</a></p>
+<span class="bcp14">MUST</span> forward the OBJECT message to the matching subscribers.<a href="#section-5.2-6" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="congestion-response-at-relays">
