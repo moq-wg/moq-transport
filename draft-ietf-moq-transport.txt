@@ -5,13 +5,13 @@
 MOQ                                                            L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 24 August 2024                                             Meta
+Expires: 26 August 2024                                             Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                        21 February 2024
+                                                        23 February 2024
 
 
                        Media over QUIC Transport
@@ -53,7 +53,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 24 August 2024.
+   This Internet-Draft will expire on 26 August 2024.
 
 Copyright Notice
 
@@ -955,23 +955,25 @@ Table of Contents
 
 6.2.2.1.  ROLE parameter
 
-   The ROLE parameter (key 0x00) allows the client to specify what roles
-   it expects the parties to have in the MOQT connection.  It has three
-   possible values, which are of type varint:
+   The ROLE parameter (key 0x00) allows each endpoint to independently
+   specify what funnctionality they support for the session.  It has
+   three possible values, which are of type varint:
 
-   0x01:  Only the client is expected to send objects on the connection.
-      This is commonly referred to as the ingestion case.
+   0x01: Publisher  The endpoint can process subscriptions and send
+      objects, but not subscribe.  The endpoint MUST NOT send a
+      SUBSCRIBE message and an ANNOUNCE MUST NOT be sent to it.
 
-   0x02:  Only the server is expected to send objects on the connection.
-      This is commonly referred to as the delivery case.
+   0x02: Subscriber  The endpoint can send subscriptions and receive
+      objects, but not publish.  The endpoint MUST NOT send an ANNOUNCE
+      message and a SUBSCRIBE MUST NOT be sent to it.
 
-   0x03:  Both the client and the server are expected to send objects.
+   0x03: PubSub  The endpoint can act as a publisher or subscriber, and
+      can send or process any message type.
 
-   The client MUST send a ROLE parameter with one of the three values
-   specified above.  The server MUST close the session if the ROLE
-   parameter is missing, is not one of the three above-specified values,
-   or it is different from what the server expects based on the
-   application.
+   Both endpoints MUST send a ROLE parameter with one of the three
+   values specified above.  Both endpoints MUST close the session if the
+   ROLE parameter is missing or is not one of the three above-specified
+   values.
 
 6.2.2.2.  PATH parameter
 
