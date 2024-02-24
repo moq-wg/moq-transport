@@ -5,13 +5,13 @@
 MOQ                                                            L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 19 August 2024                                             Meta
+Expires: 27 August 2024                                             Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                        16 February 2024
+                                                        24 February 2024
 
 
                        Media over QUIC Transport
@@ -53,7 +53,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 19 August 2024.
+   This Internet-Draft will expire on 27 August 2024.
 
 Copyright Notice
 
@@ -122,12 +122,13 @@ Table of Contents
      6.6.  SUBSCRIBE_ERROR
      6.7.  UNSUBSCRIBE
      6.8.  SUBSCRIBE_FIN
-     6.9.  SUBSCRIBE_RST
+     6.9.  SUBSCRIBE_RESET
      6.10. ANNOUNCE
      6.11. ANNOUNCE_OK
      6.12. ANNOUNCE_ERROR
      6.13. UNANNOUNCE
-     6.14. GOAWAY
+     6.14. ANNOUNCE_CANCEL
+     6.15. GOAWAY
    7.  Security Considerations
      7.1.  Resource Exhaustion
    8.  IANA Considerations
@@ -266,10 +267,33 @@ Table of Contents
    This document uses the conventions detailed in ([RFC9000],
    Section 1.3) when describing the binary encoding.
 
-   This document also defines an additional field type for binary data:
+   As a quick reference, the following list provides a non normative
+   summary of the parts of RFC9000 field syntax that are used in this
+   specification.
 
-   x (b):  Indicates that x consists of a variable length integer (i),
-      followed by that many bytes of binary data (..).
+   x (L):  Indicates that x is L bits long
+
+   x (i):  Indicates that x holds an integer value using the variable-
+      length encoding as described in ([RFC9000], Section 16)
+
+   x (..):  Indicates that x can be any length including zero bits long.
+      Values in this format always end on a byte boundary.
+
+   [x (L)]:  Indicates that x is optional and has a length of L
+
+   x (L) ...:  Indicates that x is repeated zero or more times and that
+      each instance has a length of L
+
+   This document extends the RFC9000 syntax and with the additional
+   field types:
+
+   x (b):  Indicates that x consists of a variable length integer
+      encoding as described in ([RFC9000], Section 16), followed by that
+      many bytes of binary data
+
+   To reduce unnecessary use of bandwidth, variable length integers
+   SHOULD be encoded using the least number of bytes possible to
+   represent the required value.
 
 2.  Object Model
 
@@ -281,14 +305,19 @@ Table of Contents
    The basic data element of MOQT is an object.  An object is an
    addressable unit whose payload is a sequence of bytes.  All objects
    belong to a group, indicating ordering and potential dependencies.
-   Section 2.2 Objects are comprised of two parts: metadata and a
-   payload.  The metadata is never encrypted and is always visible to
-   relays.  The payload portion may be encrypted, in which case it is
-   only visible to the producer and consumer.  The application is solely
-   responsible for the content of the object payload.  This includes the
-   underlying encoding, compression, any end-to-end encryption, or
-   authentication.  A relay MUST NOT combine, split, or otherwise modify
-   object payloads.
+   Section 2.2 An object is uniquely identified by its track namespace,
+   track name, group ID, and object ID, and must be an identical
+   sequence of bytes regardless of how or where it is retrieved.  An
+   Object can become unavailable, but it's contents MUST NOT change over
+   time.
+
+   Objects are comprised of two parts: metadata and a payload.  The
+   metadata is never encrypted and is always visible to relays.  The
+   payload portion may be encrypted, in which case it is only visible to
+   the producer and consumer.  The application is solely responsible for
+   the content of the object payload.  This includes the underlying
+   encoding, compression, any end-to-end encryption, or authentication.
+   A relay MUST NOT combine, split, or otherwise modify object payloads.
 
 2.2.  Groups
 
@@ -354,10 +383,13 @@ Table of Contents
    [WebTransport].  Both provide streams and datagrams with similar
    semantics (see [I-D.ietf-webtrans-overview], Section 4); thus, the
    main difference lies in how the servers are identified and how the
-   connection is established.  There is no definition of the protocol
-   over other transports, such as TCP, and applications using MoQ might
-   need to fallback to another protocol when QUIC or WebTransport aren't
-   available.
+   connection is established.  When using QUIC, datagrams MUST be
+   supported via the [QUIC-DATAGRAM] extension, which is already a
+   requirement for WebTransport over HTTP/3.
+
+   There is no definition of the protocol over other transports, such as
+   TCP, and applications using MoQ might need to fallback to another
+   protocol when QUIC or WebTransport aren't available.
 
 3.1.1.  WebTransport
 
@@ -464,7 +496,7 @@ Table of Contents
                    +======+===========================+
                    |  0x0 | No Error                  |
                    +------+---------------------------+
-                   |  0x1 | Generic Error             |
+                   |  0x1 | Internal Error            |
                    +------+---------------------------+
                    |  0x2 | Unauthorized              |
                    +------+---------------------------+
@@ -481,7 +513,7 @@ Table of Contents
 
    *  No Error: The session is being terminated without an error.
 
-   *  Generic Error: An unclassified error occurred.
+   *  Internal Error: An implementation specific error occurred.
 
    *  Unauthorized: The endpoint breached an agreement, which MAY have
       been pre-negotiated by the application.
@@ -493,7 +525,7 @@ Table of Contents
       that was already in use.
 
    *  GOAWAY Timeout: The session was closed because the client took too
-      long to close the session in response to a GOAWAY (Section 6.14)
+      long to close the session in response to a GOAWAY (Section 6.15)
       message.  See session migration (Section 3.6).
 
 3.6.  Migration
@@ -502,7 +534,7 @@ Table of Contents
    service provider needs the ability to shutdown/restart a server
    without waiting for all sessions to drain naturally, as that can take
    days for long-form media.  MoqTransport avoids this via the GOAWAY
-   message (Section 6.14).
+   message (Section 6.15).
 
    The server sends a GOAWAY message, signaling that the client should
    establish a new session and migrate any active subscriptions.  The
@@ -663,12 +695,16 @@ Table of Contents
    DeliveryPreference of 0x1 Ready , each new OBJECT belonging to the
    track within the subscription range is forwarded to all the matching
    subscribers, dependent on the congestion response.  For subscriptions
-   with DeliveryPreference value of 0x0 Park, a relay implementation may
-   choose to subscribe upstream to receive objects in anticipation of
-   having media readily available.  A subscription remains active until
-   it expires, until the publisher of the track terminates the track
-   with a SUBSCRIBE_FIN (see Section 6.8) or a SUBSCRIBE_RST (see
-   Section 6.9).
+   with DeliveryPreference value of 0x0 Freeze, a relay implementation
+   may choose to subscribe upstream to receive objects in anticipation
+   of having media readily available.  A subscription remains active
+   until it expires, until the publisher of the track terminates the
+   track with a SUBSCRIBE_FIN (see Section 6.8) or a SUBSCRIBE_RESET
+   (see Section 6.9).
+
+   Objects MUST NOT be sent for unsuccessful subscriptions, and if a
+   subscriber receives a SUBSCRIBE_ERROR after receiving objects, it
+   MUST close the session with a 'Protocol Violation'.
 
    A relay MUST not reorder or drop objects received on a multi-object
    stream when forwarding to subscribers, unless it has application
@@ -687,7 +723,7 @@ Table of Contents
                        +======+===================+
                        | Code | Reason            |
                        +======+===================+
-                       |  0x0 | Generic Error     |
+                       |  0x0 | Internal Error    |
                        +------+-------------------+
                        |  0x1 | Invalid Range     |
                        +------+-------------------+
@@ -713,7 +749,17 @@ Table of Contents
    Relays respond with an ANNOUNCE_OK or ANNOUNCE_ERROR control message
    providing the result of announcement.  The entity receiving the
    ANNOUNCE MUST send only a single response to a given ANNOUNCE of
-   either ANNOUNCE_OK or ANNOUNCE_ERROR.
+   either ANNOUNCE_OK or ANNOUNCE_ERROR.  When a publisher wants to stop
+   new subscriptions for an announced namespace it sends an UNANNOUNCE.
+   A subscriber indicates it will no longer route subscriptions for a
+   namespace it previously responded ANNOUNCE_OK to by sending an
+   ANNOUNCE_CANCEL.
+
+   A relay manages sessions from multiple publishers and subscribers,
+   connecting them based on the track namespace.  This MUST use an exact
+   match on track namespace unless otherwise negotiated by the
+   application.  For example, a SUBSCRIBE namespace=foobar message will
+   be forwarded to the session that sent ANNOUNCE namespace=foobar.
 
    OBJECT message headers carry a short hop-by-hop Track Alias that maps
    to the Full Track Name (see Section 6.5).  Relays use the Track Alias
@@ -766,45 +812,45 @@ Table of Contents
 
                            Figure 1: MOQT Message
 
-             +======+========================================+
-             |   ID | Messages                               |
-             +======+========================================+
-             |  0x0 | OBJECT_STREAM (Section 6.3.2)          |
-             +------+----------------------------------------+
-             |  0x1 | OBJECT_PREFER_DATAGRAM (Section 6.3.2) |
-             +------+----------------------------------------+
-             |  0x3 | SUBSCRIBE (Section 6.4)                |
-             +------+----------------------------------------+
-             |  0x4 | SUBSCRIBE_OK (Section 6.5)             |
-             +------+----------------------------------------+
-             |  0x5 | SUBSCRIBE_ERROR (Section 6.6)          |
-             +------+----------------------------------------+
-             |  0x6 | ANNOUNCE (Section 6.10)                |
-             +------+----------------------------------------+
-             |  0x7 | ANNOUNCE_OK (Section 6.11)             |
-             +------+----------------------------------------+
-             |  0x8 | ANNOUNCE_ERROR (Section 6.12)          |
-             +------+----------------------------------------+
-             |  0x9 | UNANNOUNCE (Section 6.13)              |
-             +------+----------------------------------------+
-             |  0xA | UNSUBSCRIBE (Section 6.7)              |
-             +------+----------------------------------------+
-             |  0xB | SUBSCRIBE_FIN (Section 6.8)            |
-             +------+----------------------------------------+
-             |  0xC | SUBSCRIBE_RST (Section 6.9)            |
-             +------+----------------------------------------+
-             | 0x10 | GOAWAY (Section 6.14)                  |
-             +------+----------------------------------------+
-             | 0x40 | CLIENT_SETUP (Section 6.2)             |
-             +------+----------------------------------------+
-             | 0x41 | SERVER_SETUP (Section 6.2)             |
-             +------+----------------------------------------+
-             | 0x50 | STREAM_HEADER_TRACK (Section 6.3.3)    |
-             +------+----------------------------------------+
-             | 0x51 | STREAM_HEADER_GROUP (Section 6.3.3)    |
-             +------+----------------------------------------+
+              +======+=====================================+
+              |   ID | Messages                            |
+              +======+=====================================+
+              |  0x0 | OBJECT_STREAM (Section 6.3.2)       |
+              +------+-------------------------------------+
+              |  0x1 | OBJECT_DATAGRAM (Section 6.3.2)     |
+              +------+-------------------------------------+
+              |  0x3 | SUBSCRIBE (Section 6.4)             |
+              +------+-------------------------------------+
+              |  0x4 | SUBSCRIBE_OK (Section 6.5)          |
+              +------+-------------------------------------+
+              |  0x5 | SUBSCRIBE_ERROR (Section 6.6)       |
+              +------+-------------------------------------+
+              |  0x6 | ANNOUNCE (Section 6.10)             |
+              +------+-------------------------------------+
+              |  0x7 | ANNOUNCE_OK (Section 6.11)          |
+              +------+-------------------------------------+
+              |  0x8 | ANNOUNCE_ERROR (Section 6.12)       |
+              +------+-------------------------------------+
+              |  0x9 | UNANNOUNCE (Section 6.13)           |
+              +------+-------------------------------------+
+              |  0xA | UNSUBSCRIBE (Section 6.7)           |
+              +------+-------------------------------------+
+              |  0xB | SUBSCRIBE_FIN (Section 6.8)         |
+              +------+-------------------------------------+
+              |  0xC | SUBSCRIBE_RESET (Section 6.9)       |
+              +------+-------------------------------------+
+              | 0x10 | GOAWAY (Section 6.15)               |
+              +------+-------------------------------------+
+              | 0x40 | CLIENT_SETUP (Section 6.2)          |
+              +------+-------------------------------------+
+              | 0x41 | SERVER_SETUP (Section 6.2)          |
+              +------+-------------------------------------+
+              | 0x50 | STREAM_HEADER_TRACK (Section 6.3.3) |
+              +------+-------------------------------------+
+              | 0x51 | STREAM_HEADER_GROUP (Section 6.3.3) |
+              +------+-------------------------------------+
 
-                                  Table 3
+                                 Table 3
 
 6.1.  Parameters
 
@@ -919,23 +965,25 @@ Table of Contents
 
 6.2.2.1.  ROLE parameter
 
-   The ROLE parameter (key 0x00) allows the client to specify what roles
-   it expects the parties to have in the MOQT connection.  It has three
-   possible values, which are of type varint:
+   The ROLE parameter (key 0x00) allows each endpoint to independently
+   specify what funnctionality they support for the session.  It has
+   three possible values, which are of type varint:
 
-   0x01:  Only the client is expected to send objects on the connection.
-      This is commonly referred to as the ingestion case.
+   0x01: Publisher  The endpoint can process subscriptions and send
+      objects, but not subscribe.  The endpoint MUST NOT send a
+      SUBSCRIBE message and an ANNOUNCE MUST NOT be sent to it.
 
-   0x02:  Only the server is expected to send objects on the connection.
-      This is commonly referred to as the delivery case.
+   0x02: Subscriber  The endpoint can send subscriptions and receive
+      objects, but not publish.  The endpoint MUST NOT send an ANNOUNCE
+      message and a SUBSCRIBE MUST NOT be sent to it.
 
-   0x03:  Both the client and the server are expected to send objects.
+   0x03: PubSub  The endpoint can act as a publisher or subscriber, and
+      can send or process any message type.
 
-   The client MUST send a ROLE parameter with one of the three values
-   specified above.  The server MUST close the session if the ROLE
-   parameter is missing, is not one of the three above-specified values,
-   or it is different from what the server expects based on the
-   application.
+   Both endpoints MUST send a ROLE parameter with one of the three
+   values specified above.  Both endpoints MUST close the session if the
+   ROLE parameter is missing or is not one of the three above-specified
+   values.
 
 6.2.2.2.  PATH parameter
 
@@ -982,6 +1030,12 @@ Table of Contents
 
 6.3.2.  Object Message Formats
 
+   Every Track has a single 'Object Forwarding Preference' and
+   publishers MUST NOT mix different forwarding preferences within a
+   single track.  If a subscriber receives different forwarding
+   preferences for a track, it SHOULD close the session with an error of
+   'Protocol Violation'.
+
    *Object Stream Message*
 
    An OBJECT_STREAM message carries a single object on a stream.  There
@@ -1001,7 +1055,7 @@ Table of Contents
      Group ID (i),
      Object ID (i),
      Object Send Order (i),
-     Object Payload (...),
+     Object Payload (..),
    }
 
                     Figure 4: MOQT OBJECT_STREAM Message
@@ -1018,36 +1072,29 @@ Table of Contents
 
    *  Other fields: As described in Section 6.3.1.
 
-   *Object Prefer Datagram Message*
+   *Object Datagram Message*
 
-   An OBJECT_PREFER_DATAGRAM message carries a single object in a
-   datagram or a stream.  There is no explicit length of the payload; it
-   is determined by the length of the datagram or stream.  If this
-   message appears on a stream, it MUST be the only message on a
-   unidirectional stream.
+   An OBJECT_DATAGRAM message carries a single object in a datagram.
+   There is no explicit length of the payload; it is determined by the
+   length of the datagram.
 
-   An Object received in an OBJECT_PREFER_DATAGRAM message has an Object
-   Forwarding Preference = Datagram.
+   An Object received in an OBJECT_DATAGRAM message has an Object
+   Forwarding Preference = Datagram.  To send an Object with Object
+   Forwarding Preference = Datagram, determine the length of the fields
+   and payload and send the Object as datagram.  In certain scenarios
+   where the object size can be larger than maximum datagram size for
+   the session, the Object will be dropped.
 
-   To send an Object with Object Forwarding Preference = Datagram,
-   determine the length of the fields and payload, and compare the
-   length with the maximum datagram size of the session.  If the object
-   size is less than or equal maximum datagram size, send the serialized
-   data as a datagram.  Otherwise, open a stream, send the serialized
-   data and terminate the stream.  An implementation SHOULD NOT send an
-   Object with Object Forwarding Preference = Datagram on a stream if it
-   is possible to send it as a datagram.
-
-   OBJECT_PREFER_DATAGRAM Message {
+   OBJECT_DATAGRAM Message {
      Subscribe ID (i),
      Track Alias (i),
      Group ID (i),
      Object ID (i),
      Object Send Order (i),
-     Object Payload (...),
+     Object Payload (..),
    }
 
-               Figure 5: MOQT OBJECT_PREFER_DATAGRAM Message
+                   Figure 5: MOQT OBJECT_DATAGRAM Message
 
 6.3.3.  Multi-Object Streams
 
@@ -1089,7 +1136,7 @@ Table of Contents
      Group ID (i),
      Object ID (i),
      Object Payload Length (i),
-     Object Payload (...),
+     Object Payload (..),
    }
 
                  Figure 7: MOQT Track Stream Object Fields
@@ -1127,7 +1174,7 @@ Table of Contents
    {
      Object ID (i),
      Object Payload Length (i),
-     Object Payload (...),
+     Object Payload (..),
    }
 
                  Figure 9: MOQT Group Stream Object Fields
@@ -1202,7 +1249,7 @@ Table of Contents
 
    Location {
      Mode (i),
-     [Value (i)]
+     [Value (i)],
    }
 
    There are 4 modes:
@@ -1271,8 +1318,8 @@ Table of Contents
 
    *  DeliveryPreference: The subscriber's preference to indicate its
       readiness to accept the published media.  A DeliverPreference
-      value of Park (0x0) specifies media delivery MUST be paused by the
-      publisher.  A DeliverPreference value of Ready (0x1) specifies
+      value of Freeze (0x0) specifies media delivery MUST be paused by
+      the publisher.  A DeliverPreference value of Ready (0x1) specifies
       that the publisher MUST start delivering the objects for the track
       indicated by the SUBSCRIBE as and when they are available.  A
       subscriber can update the DeliveryPreference for a track at any
@@ -1362,7 +1409,10 @@ Table of Contents
    SUBSCRIBE_OK
    {
      Subscribe ID (i),
-     Expires (i)
+     Expires (i),
+     ContentExists (1),
+     [Largest Group ID (i)],
+     [Largest Object ID (i)]
    }
 
                     Figure 12: MOQT SUBSCRIBE_OK Message
@@ -1372,6 +1422,17 @@ Table of Contents
    *  Expires: Time in milliseconds after which the subscription is no
       longer valid.  A value of 0 indicates that the subscription stays
       active until it is explicitly unsubscribed.
+
+   *  ContentExists: 1 if an object has been published on this track, 0
+      if not.  If 0, then the Largest Group ID and Largest Object ID
+      fields will not be present.
+
+   *  Largest Group ID: the largest Group ID available for this track.
+      This field is only present if ContentExists has a value of 1.
+
+   *  Largest Object ID: the largest Object ID available within the
+      largest Group ID for this track.  This field is only present if
+      ContentExists has a value of 1.
 
 6.6.  SUBSCRIBE_ERROR
 
@@ -1426,13 +1487,18 @@ Table of Contents
 
    SUBSCRIBE_FIN Message {
      Subscribe ID (i),
-     Final Group (i),
-     Final Object (i),
+     ContentExists (1),
+     [Final Group (i)],
+     [Final Object (i)],
    }
 
                    Figure 15: MOQT SUBSCRIBE_FIN Message
 
    *  Subscribe ID: Subscription identifier as defined in Section 6.4.
+
+   *  ContentExists: 1 if an object has been published for this
+      subscription, 0 if not.  If 0, then the Final Group and Final
+      Object fields will not be present.
 
    *  Final Group: The largest Group ID sent by the publisher in an
       OBJECT message in this track.
@@ -1440,23 +1506,24 @@ Table of Contents
    *  Final Object: The largest Object ID sent by the publisher in an
       OBJECT message in the Final Group for this track.
 
-6.9.  SUBSCRIBE_RST
+6.9.  SUBSCRIBE_RESET
 
-   A publisher issues a SUBSCRIBE_RST message to all subscribers
+   A publisher issues a SUBSCRIBE_RESET message to all subscribers
    indicating there was an error publishing to the given track and
    subscription is terminated.
 
-   The format of SUBSCRIBE_RST is as follows:
+   The format of SUBSCRIBE_RESET is as follows:
 
-   SUBSCRIBE_RST Message {
+   SUBSCRIBE_RESET Message {
      Subscribe ID (i),
      Error Code (i),
      Reason Phrase (b),
-     Final Group (i),
-     Final Object (i),
+     ContentExists (1),
+     [Final Group (i)],
+     [Final Object (i)],
    }
 
-                   Figure 16: MOQT SUBSCRIBE RST Message
+                  Figure 16: MOQT SUBSCRIBE RESET Message
 
    *  Subscribe ID: Subscription Identifier as defined in Section 6.4.
 
@@ -1464,6 +1531,10 @@ Table of Contents
       failure.
 
    *  Reason Phrase: Provides the reason for subscription error.
+
+   *  ContentExists: 1 if an object has been published for this
+      subscription, 0 if not.  If 0, then the Final Group and Final
+      Object fields will not be present.
 
    *  Final Group: The largest Group ID sent by the publisher in an
       OBJECT message in this track.
@@ -1513,7 +1584,7 @@ Table of Contents
 
    ANNOUNCE_ERROR
    {
-     Track Namespace(b),
+     Track Namespace (b),
      Error Code (i),
      Reason Phrase (b),
    }
@@ -1535,7 +1606,7 @@ Table of Contents
    provided Track Namespace.
 
    UNANNOUNCE Message {
-     Track Namespace(b),
+     Track Namespace (b),
    }
 
                      Figure 20: MOQT UNANNOUNCE Message
@@ -1543,7 +1614,26 @@ Table of Contents
    *  Track Namespace: Identifies a track's namespace as defined in
       (Section 2.3.1).
 
-6.14.  GOAWAY
+6.14.  ANNOUNCE_CANCEL
+
+   The subscriber sends an ANNOUNCE_CANCEL control message to indicate
+   it will stop sending new subscriptions for tracks within the provided
+   Track Namespace.
+
+   If a publisher recieves new subscriptions for that namespace after
+   receiving an ANNOUNCE_CANCEL, it SHOULD close the session as a
+   'Protocol Violation'.
+
+   ANNOUNCE_CANCEL Message {
+     Track Namespace (b),
+   }
+
+                  Figure 21: MOQT ANNOUNCE_CANCEL Message
+
+   *  Track Namespace: Identifies a track's namespace as defined in
+      (Section 2.3.1).
+
+6.15.  GOAWAY
 
    The server sends a GOAWAY message to initiate session migration
    (Section 3.6) with an optional URI.
@@ -1557,7 +1647,7 @@ Table of Contents
      New Session URI (b)
    }
 
-                       Figure 21: MOQT GOAWAY Message
+                       Figure 22: MOQT GOAWAY Message
 
    *  New Session URI: The client MUST use this URI for the new session
       if provded.  If the URI is zero bytes long, the current URI is
