@@ -209,11 +209,43 @@ Track:
 This document uses the conventions detailed in ({{?RFC9000, Section 1.3}})
 when describing the binary encoding.
 
-This document also defines an additional field type for binary data:
+As a quick reference, the following list provides a non normative summary
+of the parts of RFC9000 field syntax that are used in this specification.
+
+x (L):
+
+: Indicates that x is L bits long
+
+x (i):
+
+: Indicates that x holds an integer value using the variable-length
+  encoding as described in ({{?RFC9000, Section 16}})
+
+x (..):
+
+: Indicates that x can be any length including zero bits long.  Values
+ in this format always end on a byte boundary.
+
+[x (L)]:
+
+: Indicates that x is optional and has a length of L
+
+x (L) ...:
+
+: Indicates that x is repeated zero or more times and that each instance
+  has a length of L
+
+This document extends the RFC9000 syntax and with the additional field types:
 
 x (b):
-: Indicates that x consists of a variable length integer (i), followed by
-  that many bytes of binary data (..).
+
+: Indicates that x consists of a variable length integer encoding as
+  described in ({{?RFC9000, Section 16}}), followed by that many bytes
+  of binary data
+
+To reduce unnecessary use of bandwidth, variable length integers SHOULD
+be encoded using the least number of bytes possible to represent the
+required value.
 
 
 # Object Model {#model}
@@ -226,8 +258,14 @@ groups and tracks.
 The basic data element of MOQT is an object.  An object is an
 addressable unit whose payload is a sequence of bytes.  All objects
 belong to a group, indicating ordering and potential
-dependencies. {{model-group}} Objects are comprised of two parts:
-metadata and a payload.  The metadata is never encrypted and is always
+dependencies. {{model-group}}  An object is uniquely identified by
+its track namespace, track name, group ID, and object ID, and must be an
+identical sequence of bytes regardless of how or where it is retrieved.
+An Object can become unavailable, but it's contents MUST NOT change over
+time.
+
+Objects are comprised of two parts: metadata and a payload.
+The metadata is never encrypted and is always
 visible to relays. The payload portion may be encrypted, in which case
 it is only visible to the producer and consumer. The application is
 solely responsible for the content of the object payload. This includes
@@ -300,10 +338,13 @@ over a QUIC connection directly [QUIC], and over WebTransport
 [WebTransport].  Both provide streams and datagrams with similar
 semantics (see {{?I-D.ietf-webtrans-overview, Section 4}}); thus, the
 main difference lies in how the servers are identified and how the
-connection is established.  There is no definition of the protocol
-over other transports, such as TCP, and applications using MoQ might
-need to fallback to another protocol when QUIC or WebTransport aren't
-available.
+connection is established.  When using QUIC, datagrams MUST be
+supported via the [QUIC-DATAGRAM] extension, which is already a
+requirement for WebTransport over HTTP/3.
+
+There is no definition of the protocol over other transports,
+such as TCP, and applications using MoQ might need to fallback to
+another protocol when QUIC or WebTransport aren't available.
 
 ### WebTransport
 
@@ -405,7 +446,7 @@ code, as defined below:
 |-----:|:--------------------------|
 | 0x0  | No Error                  |
 |------|---------------------------|
-| 0x1  | Generic Error             |
+| 0x1  | Internal Error            |
 |------|---------------------------|
 | 0x2  | Unauthorized              |
 |------|---------------------------|
@@ -420,7 +461,7 @@ code, as defined below:
 
 * No Error: The session is being terminated without an error.
 
-* Generic Error: An unclassified error occurred.
+* Internal Error: An implementation specific error occurred.
 
 * Unauthorized: The endpoint breached an agreement, which MAY have been
  pre-negotiated by the application.
@@ -593,8 +634,12 @@ may choose to subscribe upstream to receive objects in anticipation of
 having media readily available. A subscription
 remains active until it expires, until the publisher of the track
 terminates the track with a SUBSCRIBE_FIN
-(see {{message-subscribe-fin}}) or a SUBSCRIBE_RST
-(see {{message-subscribe-rst}}).
+(see {{message-subscribe-fin}}) or a SUBSCRIBE_RESET
+(see {{message-subscribe-reset}}).
+
+Objects MUST NOT be sent for unsuccessful subscriptions, and if a subscriber
+receives a SUBSCRIBE_ERROR after receiving objects, it MUST close the session
+with a 'Protocol Violation'.
 
 A relay MUST not reorder or drop objects received on a multi-object stream when
 forwarding to subscribers, unless it has application specific information.
@@ -611,7 +656,7 @@ as defined below:
 |------|---------------------------|
 | Code | Reason                    |
 |-----:|:--------------------------|
-| 0x0  | Generic Error             |
+| 0x0  | Internal Error            |
 |------|---------------------------|
 | 0x1  | Invalid Range             |
 |------|---------------------------|
@@ -636,7 +681,17 @@ Relays MUST ensure that publishers are authorized by:
 Relays respond with an ANNOUNCE_OK or ANNOUNCE_ERROR control message
 providing the result of announcement. The entity receiving the
 ANNOUNCE MUST send only a single response to a given ANNOUNCE of
-either ANNOUNCE_OK or ANNOUNCE_ERROR.
+either ANNOUNCE_OK or ANNOUNCE_ERROR.  When a publisher wants to stop
+new subscriptions for an announced namespace it sends an UNANNOUNCE.
+A subscriber indicates it will no longer route subscriptions for a
+namespace it previously responded ANNOUNCE_OK to by sending an
+ANNOUNCE_CANCEL.
+
+A relay manages sessions from multiple publishers and subscribers,
+connecting them based on the track namespace. This MUST use an exact
+match on track namespace unless otherwise negotiated by the application.
+For example, a SUBSCRIBE namespace=foobar message will be forwarded to
+the session that sent ANNOUNCE namespace=foobar.
 
 OBJECT message headers carry a short hop-by-hop `Track Alias` that maps to
 the Full Track Name (see {{message-subscribe-ok}}). Relays use the
@@ -694,7 +749,7 @@ MOQT Message {
 |------:|:----------------------------------------------------|
 | 0x0   | OBJECT_STREAM ({{object-message-formats}})          |
 |-------|-----------------------------------------------------|
-| 0x1   | OBJECT_PREFER_DATAGRAM ({{object-message-formats}}) |
+| 0x1   | OBJECT_DATAGRAM ({{object-message-formats}}) |
 |-------|-----------------------------------------------------|
 | 0x3   | SUBSCRIBE ({{message-subscribe-req}})               |
 |-------|-----------------------------------------------------|
@@ -714,7 +769,7 @@ MOQT Message {
 |-------|-----------------------------------------------------|
 | 0xB   | SUBSCRIBE_FIN ({{message-subscribe-fin}})           |
 |-------|-----------------------------------------------------|
-| 0xC   | SUBSCRIBE_RST ({{message-subscribe-rst}})           |
+| 0xC   | SUBSCRIBE_RESET ({{message-subscribe-reset}})       |
 |-------|-----------------------------------------------------|
 | 0x10  | GOAWAY ({{message-goaway}})                         |
 |-------|-----------------------------------------------------|
@@ -837,28 +892,30 @@ identified as 0xff00000D.
 
 #### ROLE parameter {#role}
 
-The ROLE parameter (key 0x00) allows the client to specify what roles it
-expects the parties to have in the MOQT connection. It has three
-possible values, which are of type varint:
+The ROLE parameter (key 0x00) allows each endpoint to independently specify what
+funnctionality they support for the session. It has three possible values,
+which are of type varint:
 
-0x01:
+0x01: Publisher
 
-: Only the client is expected to send objects on the connection. This is
-  commonly referred to as the ingestion case.
+: The endpoint can process subscriptions and send objects, but not subscribe.
+  The endpoint MUST NOT send a SUBSCRIBE message and an ANNOUNCE MUST NOT be
+  sent to it.
 
-0x02:
+0x02: Subscriber
 
-: Only the server is expected to send objects on the connection. This is
-  commonly referred to as the delivery case.
+: The endpoint can send subscriptions and receive objects, but not publish.
+  The endpoint MUST NOT send an ANNOUNCE message and a SUBSCRIBE MUST NOT be
+  sent to it.
 
-0x03:
+0x03: PubSub
 
-: Both the client and the server are expected to send objects.
+: The endpoint can act as a publisher or subscriber, and can send or process
+  any message type.
 
-The client MUST send a ROLE parameter with one of the three values
-specified above. The server MUST close the session if the ROLE
-parameter is missing, is not one of the three above-specified values, or
-it is different from what the server expects based on the application.
+Both endpoints MUST send a ROLE parameter with one of the three values
+specified above. Both endpoints MUST close the session if the ROLE
+parameter is missing or is not one of the three above-specified values.
 
 #### PATH parameter {#path}
 
@@ -904,6 +961,11 @@ NOT be processed by a relay.
 
 ### Object Message Formats
 
+Every Track has a single 'Object Forwarding Preference' and publishers
+MUST NOT mix different forwarding preferences within a single track.
+If a subscriber receives different forwarding preferences for a track, it
+SHOULD close the session with an error of 'Protocol Violation'.
+
 **Object Stream Message**
 
 An `OBJECT_STREAM` message carries a single object on a stream.  There is no
@@ -924,7 +986,7 @@ OBJECT_STREAM Message {
   Group ID (i),
   Object ID (i),
   Object Send Order (i),
-  Object Payload (...),
+  Object Payload (..),
 }
 ~~~
 {: #moq-transport-object-stream-format title="MOQT OBJECT_STREAM Message"}
@@ -940,35 +1002,30 @@ the receiver MUST close the session with a Protocol Violation.
 
 * Other fields: As described in {{canonical-object-fields}}.
 
-**Object Prefer Datagram Message**
+**Object Datagram Message**
 
-An `OBJECT_PREFER_DATAGRAM` message carries a single object in a datagram or
-a stream. There is no explicit length of the payload; it is determined by the
-length of the datagram or stream.  If this message appears on a stream, it MUST
-be the only message on a unidirectional stream.
+An `OBJECT_DATAGRAM` message carries a single object in a datagram.
+There is no explicit length of the payload; it is determined by the
+length of the datagram.
 
-An Object received in an `OBJECT_PREFER_DATAGRAM` message has an `Object
-Forwarding Preference` = `Datagram`.
-
-To send an Object with `Object Forwarding Preference` = `Datagram`, determine
-the length of the fields and payload, and compare the length with the maximum
-datagram size of the session.  If the object size is less than or equal maximum
-datagram size, send the serialized data as a datagram.  Otherwise, open a
-stream, send the serialized data and terminate the stream.  An implementation
-SHOULD NOT send an Object with `Object Forwarding Preference` = `Datagram` on a
-stream if it is possible to send it as a datagram.
+An Object received in an `OBJECT_DATAGRAM` message has an `Object
+Forwarding Preference` = `Datagram`. To send an Object with `Object
+Forwarding Preference` = `Datagram`, determine the length of the fields and
+payload and send the Object as datagram. In certain scenarios where the object
+size can be larger than maximum datagram size for the session, the Object
+will be dropped.
 
 ~~~
-OBJECT_PREFER_DATAGRAM Message {
+OBJECT_DATAGRAM Message {
   Subscribe ID (i),
   Track Alias (i),
   Group ID (i),
   Object ID (i),
   Object Send Order (i),
-  Object Payload (...),
+  Object Payload (..),
 }
 ~~~
-{: #object-datagram-format title="MOQT OBJECT_PREFER_DATAGRAM Message"}
+{: #object-datagram-format title="MOQT OBJECT_DATAGRAM Message"}
 
 ### Multi-Object Streams
 
@@ -1012,7 +1069,7 @@ stream that is associated with the subscription, or open a new one and send the
   Group ID (i),
   Object ID (i),
   Object Payload Length (i),
-  Object Payload (...),
+  Object Payload (..),
 }
 ~~~
 {: #object-track-format title="MOQT Track Stream Object Fields"}
@@ -1050,7 +1107,7 @@ then serialize the following fields.
 {
   Object ID (i),
   Object Payload Length (i),
-  Object Payload (...),
+  Object Payload (..),
 }
 ~~~
 {: #object-group-format title="MOQT Group Stream Object Fields"}
@@ -1129,7 +1186,7 @@ delta relative to the largest group or the largest object in a group.
 ~~~
 Location {
   Mode (i),
-  [Value (i)]
+  [Value (i)],
 }
 ~~~
 
@@ -1288,7 +1345,10 @@ A SUBSCRIBE_OK control message is sent for successful subscriptions.
 SUBSCRIBE_OK
 {
   Subscribe ID (i),
-  Expires (i)
+  Expires (i),
+  ContentExists (1),
+  [Largest Group ID (i)],
+  [Largest Object ID (i)]
 }
 ~~~
 {: #moq-transport-subscribe-ok format title="MOQT SUBSCRIBE_OK Message"}
@@ -1298,6 +1358,15 @@ SUBSCRIBE_OK
 * Expires: Time in milliseconds after which the subscription is no
 longer valid. A value of 0 indicates that the subscription stays active
 until it is explicitly unsubscribed.
+
+* ContentExists: 1 if an object has been published on this track, 0 if not.
+If 0, then the Largest Group ID and Largest Object ID fields will not be
+present.
+
+* Largest Group ID: the largest Group ID available for this track. This field is only present if ContentExists has a value of 1.
+
+* Largest Object ID: the largest Object ID available within the largest Group ID
+for this track. This field is only present if ContentExists has a value of 1.
 
 
 ## SUBSCRIBE_ERROR {#message-subscribe-error}
@@ -1353,13 +1422,17 @@ The format of `SUBSCRIBE_FIN` is as follows:
 ~~~
 SUBSCRIBE_FIN Message {
   Subscribe ID (i),
-  Final Group (i),
-  Final Object (i),
+  ContentExists (1),
+  [Final Group (i)],
+  [Final Object (i)],
 }
 ~~~
 {: #moq-transport-subscribe-fin-format title="MOQT SUBSCRIBE_FIN Message"}
 
 * Subscribe ID: Subscription identifier as defined in {{message-subscribe-req}}.
+
+* ContentExists: 1 if an object has been published for this subscription, 0 if
+not. If 0, then the Final Group and Final Object fields will not be present.
 
 * Final Group: The largest Group ID sent by the publisher in an OBJECT
 message in this track.
@@ -1367,29 +1440,33 @@ message in this track.
 * Final Object: The largest Object ID sent by the publisher in an OBJECT
 message in the `Final Group` for this track.
 
-## SUBSCRIBE_RST {#message-subscribe-rst}
+## SUBSCRIBE_RESET {#message-subscribe-reset}
 
-A publisher issues a `SUBSCRIBE_RST` message to all subscribers indicating there
+A publisher issues a `SUBSCRIBE_RESET` message to all subscribers indicating there
 was an error publishing to the given track and subscription is terminated.
 
-The format of `SUBSCRIBE_RST` is as follows:
+The format of `SUBSCRIBE_RESET` is as follows:
 
 ~~~
-SUBSCRIBE_RST Message {
+SUBSCRIBE_RESET Message {
   Subscribe ID (i),
   Error Code (i),
   Reason Phrase (b),
-  Final Group (i),
-  Final Object (i),
+  ContentExists (1),
+  [Final Group (i)],
+  [Final Object (i)],
 }
 ~~~
-{: #moq-transport-subscribe-rst format title="MOQT SUBSCRIBE RST Message"}
+{: #moq-transport-subscribe-reset format title="MOQT SUBSCRIBE RESET Message"}
 
 * Subscribe ID: Subscription Identifier as defined in {{message-subscribe-req}}.
 
 * Error Code: Identifies an integer error code for subscription failure.
 
 * Reason Phrase: Provides the reason for subscription error.
+
+* ContentExists: 1 if an object has been published for this subscription, 0 if
+not. If 0, then the Final Group and Final Object fields will not be present.
 
 * Final Group: The largest Group ID sent by the publisher in an OBJECT
 message in this track.
@@ -1442,7 +1519,7 @@ failed authorization.
 ~~~
 ANNOUNCE_ERROR
 {
-  Track Namespace(b),
+  Track Namespace (b),
   Error Code (i),
   Reason Phrase (b),
 }
@@ -1465,7 +1542,7 @@ within the provided Track Namespace.
 
 ~~~
 UNANNOUNCE Message {
-  Track Namespace(b),
+  Track Namespace (b),
 }
 ~~~
 {: #moq-transport-unannounce-format title="MOQT UNANNOUNCE Message"}
@@ -1473,6 +1550,25 @@ UNANNOUNCE Message {
 * Track Namespace: Identifies a track's namespace as defined in
 ({{track-name}}).
 
+## ANNOUNCE_CANCEL {#message-announce-cancel}
+
+The subscriber sends an `ANNOUNCE_CANCEL` control message to
+indicate it will stop sending new subscriptions for tracks
+within the provided Track Namespace.
+
+If a publisher recieves new subscriptions for that namespace after
+receiving an ANNOUNCE_CANCEL, it SHOULD close the session as a
+'Protocol Violation'.
+
+~~~
+ANNOUNCE_CANCEL Message {
+  Track Namespace (b),
+}
+~~~
+{: #moq-transport-announce-cancel-format title="MOQT ANNOUNCE_CANCEL Message"}
+
+* Track Namespace: Identifies a track's namespace as defined in
+({{track-name}}).
 
 ## GOAWAY {#message-goaway}
 The server sends a `GOAWAY` message to initiate session migration
