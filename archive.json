@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2024-02-22T01:05:13.961262+00:00",
+  "timestamp": "2024-02-25T01:09:58.612260+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -6963,7 +6963,7 @@
       "id": "I_kwDOG2Ho4M5lC7Gh",
       "title": "ROLE doesn't support negotiation",
       "url": "https://github.com/moq-wg/moq-transport/issues/151",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "kixelated",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
@@ -6972,8 +6972,8 @@
       ],
       "body": "The SETUP message contains a ROLE parameter. In the current draft, the client specifies the value, indicating if the client will send data (0x1), if the server will send data (0x2), or if both endpoints will send data (0x3).\r\n\r\nA conferencing client supports the ability to send and receive media, and would always send role=0x3 because it supports both functionalities. However, it's unaware of the server functionality, and the server has no way of informing the client if it intends to send media. This matters because a generic client needs to know if it shows a black screen and/or should send a SUBSCRIBE message (ex. for /catalog).\r\n\r\nI propose that both endpoints send the ROLE parameter: 0x1 = publisher, 0x2 = consumer, 0x3 = both. This gives the server the ability to specify its own functionality.",
       "createdAt": "2023-05-04T05:04:48Z",
-      "updatedAt": "2024-02-19T23:28:41Z",
-      "closedAt": null,
+      "updatedAt": "2024-02-23T18:00:55Z",
+      "closedAt": "2024-02-23T18:00:55Z",
       "comments": [
         {
           "author": "suhasHere",
@@ -10274,7 +10274,7 @@
       "id": "I_kwDOG2Ho4M5w1MnX",
       "title": "server-sent ROLE parameters",
       "url": "https://github.com/moq-wg/moq-transport/issues/250",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "martinduke",
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
@@ -10283,8 +10283,8 @@
       ],
       "body": "Sec 6.1.1.1 specifies client sending or ROLE, and says nothing of server-sent.\r\n\r\nI guess server-sent ROLE is not needed, but maybe we should fail if it is sent?",
       "createdAt": "2023-09-12T17:47:11Z",
-      "updatedAt": "2023-10-03T23:52:09Z",
-      "closedAt": null,
+      "updatedAt": "2024-02-23T18:00:55Z",
+      "closedAt": "2024-02-23T18:00:55Z",
       "comments": [
         {
           "author": "kixelated",
@@ -10370,7 +10370,7 @@
       "id": "I_kwDOG2Ho4M5yNOsN",
       "title": "Does relay matching behavior need to be negotiated in-band?",
       "url": "https://github.com/moq-wg/moq-transport/issues/252",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "afrind",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
@@ -10379,8 +10379,8 @@
       ],
       "body": "This came out of discussion on #204\r\n\r\nWhen a relay receives an SUBSCRIBE it may need to issue its own SUBSCRIBE to a publisher that has previously ANNOUNCE'd a namespace matching that track.  The current draft doesn't specify how this match is done.  A relay could implement an exact match on Track Namespace (requires a tweak to SUBSCRIBE), or could do a longest prefix match on track name vs all ANNOUNCE'd namespaces, or possibly something else.  Is it ok to leave this up to implementations or should the draft specify this behavior more exactly?  If more than one matching type is allowed, does it need to be negotiated, and by whom (publisher, subscriber, or both)? ",
       "createdAt": "2023-09-27T18:02:09Z",
-      "updatedAt": "2024-02-19T21:43:32Z",
-      "closedAt": null,
+      "updatedAt": "2024-02-23T18:01:26Z",
+      "closedAt": "2024-02-23T18:01:26Z",
       "comments": [
         {
           "author": "afrind",
@@ -13341,7 +13341,7 @@
       "id": "I_kwDOG2Ho4M5-k17M",
       "title": "Update PREFER_DATAGRAM to require DATAGRAM only delivery",
       "url": "https://github.com/moq-wg/moq-transport/issues/359",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "suhasHere",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
@@ -13350,9 +13350,17 @@
       ],
       "body": "This came out of interim that falling back to stream for Datagram delivery is not an great idea \r\n",
       "createdAt": "2024-02-07T18:01:32Z",
-      "updatedAt": "2024-02-08T19:00:54Z",
-      "closedAt": null,
-      "comments": []
+      "updatedAt": "2024-02-24T02:23:06Z",
+      "closedAt": "2024-02-24T02:23:06Z",
+      "comments": [
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "This was fixed by #360 ",
+          "createdAt": "2024-02-24T02:23:06Z",
+          "updatedAt": "2024-02-24T02:23:06Z"
+        }
+      ]
     },
     {
       "number": 361,
@@ -13577,7 +13585,7 @@
       "labels": [],
       "body": "At the interim there was interest in creating the ability for a receiver to ask a sender to subscribe to a track but not to forward it. The purpose of this is to minimize the delay when the receiver SUBSCRIBES to the track in the future. \r\n\r\nDesign considerations\r\n1. This would need to be converted to a regular SUBSCRIBE for forward requests. So any relay receiving a PREWARM request MUST never forward it.\r\n2. Is there a matching UNPREWARM, or would a regular UNSUBSCRIBE suffice?\r\n3. Do we need a new method PREWARM or can it be a flag on the existing SUBSCRIBE?\r\n4. This is a powerful DDOS attack vector. How do we mitigate that threat in the design? ",
       "createdAt": "2024-02-08T19:36:06Z",
-      "updatedAt": "2024-02-20T10:34:09Z",
+      "updatedAt": "2024-02-22T03:45:11Z",
       "closedAt": null,
       "comments": [
         {
@@ -13663,6 +13671,13 @@
           "body": "What about for a video conferencing application where the latency requirement  is below 150ms. For example, there may be two different layouts: speaker and presentation. In the speaker layout, a high resolution track is subscribed. When the layout is changed to the presentation, the client switches to the low resolution track. There is no ABR here, client decides which track to subscribe depending on an application-specific use case. So, for such a case, I would want to pre-warm the lowest resolution track.",
           "createdAt": "2024-02-20T10:34:08Z",
           "updatedAt": "2024-02-20T10:34:08Z"
+        },
+        {
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "body": "One complication is that the player SHOULD NOT assume a track has been pre-warmed, since the CDN can ignore the request. The player still has to perform the same seamless switching down/up logic, but it might be slightly faster if the pre-warm went through.",
+          "createdAt": "2024-02-22T03:45:10Z",
+          "updatedAt": "2024-02-22T03:45:10Z"
         }
       ]
     },
@@ -13968,7 +13983,7 @@
       "labels": [],
       "body": "It's unclear to me what objects a relay should prioritize or drop when congestion limited.  This is discussed in a few places, but I want to only focus on the question of what to send first and when to give up on sending an Object entirely.\r\n\r\nSpecific examples:\r\n\r\n1. Is there a point at which Objects from a subscription should no longer be transmitted?  If so, what determines that time?\r\n2. How does a relay decide whether to send the newest object or oldest?  Does it depend upon group boundaries?\r\n3. Can a relay infer that some Objects are droppable if they have lower priority than other Objects in the same group?\r\n\r\nMy strawman proposal is that subscriptions should have numerical priorities, so a relay knows whether it should send Objects from one subscription or another given limited bandwidth.  Additionally, subscriptions should have a TTL so relays know at what point they should stop retransmitting Objects.\r\n\r\n",
       "createdAt": "2024-02-20T03:08:57Z",
-      "updatedAt": "2024-02-21T19:29:37Z",
+      "updatedAt": "2024-02-24T14:34:52Z",
       "closedAt": null,
       "comments": [
         {
@@ -13977,6 +13992,27 @@
           "body": "It depends on why we're dropping an OBJECT.\r\n\r\n- Viewer has skipped past OR\r\n- Relay is out storage.\r\n\r\nIn the first scenario, the receiver should be in charge since it's knows the jitter buffer size and whether it wants to block. Prioritization gets us most of the way here but maybe we add an explicit \"I don't want GROUP X\" message to save bandwidth.\r\n\r\nIn the second scenario, the sender must be in charge since. I would drop based on TTL with an explicit \"I won't send GROUP X\" message. In theory you could drop based on send order, but it's not time bounded so you end up catching way too much.\r\n\r\nIt does feel weird that they are two different units. Maybe the receiver could signal its TTL as well, but that feels wrong without advanced knowledge of the inbound content.",
           "createdAt": "2024-02-21T19:29:36Z",
           "updatedAt": "2024-02-21T19:29:36Z"
+        },
+        {
+          "author": "wilaw",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "> Is there a point at which Objects from a subscription should no longer be transmitted? If so, what determines that time?\r\n\r\nThe publisher may add an explicit \"expiration\" absolute timestamp T to Objects. Any relay forwarding an object for which now() > T may drop that object or remove it from a pending send queue if there is congestion. \r\n\r\n> How does a relay decide whether to send the newest object or oldest? Does it depend upon group boundaries?\r\n\r\nObjects can carry relative priorities, set by the publisher. These may correspond to newest or oldest, or they may not. The relay always sends highest priority items first when under congestion.\r\n\r\n> Can a relay infer that some Objects are droppable if they have lower priority than other Objects in the same group?\r\n\r\nNo, a relay should NEVER arbitrarily drop objects, it should just delay their sending, until either they expire or the relay runs out of queue memory. In both these latter cases, to should report this condition to the subscriber.\r\n",
+          "createdAt": "2024-02-22T13:39:26Z",
+          "updatedAt": "2024-02-22T13:39:26Z"
+        },
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "@kixelated I do think the subscriber needs a way to indicate what objects/groups they no longer need.  The idea of a 'Stop Sending' message to indicate Objects before some point are useless is one possible mechanism.  Maybe there could be a corresponding 'Subscription truncated' message from the server to indicate all Objects before some point will no longer be sent?  This could be due to memory pressure or something else (ie: Will's timestamp).\r\n\r\n\r\nThanks @wilaw for the explanation.\r\n\r\nI'm not a big fan of absolute expiry times, because of clock skew issues, though maybe part of being a relay is having a fairly well synchronized system clock?  It's certainly not something I'd want to rely on for a client, but servers tend to be a lot better.  Also, I'm not sure you'd want the same timestamp value for a subscriber near the original publication vs around the world?\r\n\r\nAre you thinking the expiration timestamp T only applies to the live edge?  For VoD, presumably this time would be ignored, since otherwise features like rewinding 15 minutes wouldn't work.\r\n\r\nFor delivery order, I think you're saying:\r\n - Deliver highest priority first\r\n - Within a priority, deliver oldest non-expired first.",
+          "createdAt": "2024-02-23T20:21:53Z",
+          "updatedAt": "2024-02-23T20:21:53Z"
+        },
+        {
+          "author": "wilaw",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": ">  though maybe part of being a relay is having a fairly well synchronized system clock\r\n\r\nGiven the ubiquity of NTP solutions, this is a reasonable requirement for a relay provider. \r\n\r\n> I'm not sure you'd want the same timestamp value for a subscriber near the original publication vs around the world?\r\n\r\nPropagation time around the world is in the order of 100s of milliseconds. I'd just put a conservative expiration timestamp for all users, versus the complexity of trying to adjust for distance-from-origin. It would mean that close relays would expire content 100s of milliseconds after they could have, but that's not a problem. I expect relays to purge caches in the order of seconds (at fastest) anyhow. \r\n\r\n\r\n> Are you thinking the expiration timestamp T only applies to the live edge? For VoD, presumably this time would be ignored, since otherwise features like rewinding 15 minutes wouldn't work.\r\n\r\nNo, expiration notification must take DVR (rewinding) in to account. See my comment and examples [here](https://github.com/moq-wg/moq-transport/issues/249#issuecomment-1954743370). \r\n\r\n\r\n> For delivery order, I think you're saying:\r\n> \r\n> - Deliver highest priority first\r\n> - Within a priority, deliver oldest non-expired first.\r\n\r\nYes, although our nomenclature does not address \"oldest\" or \"newest\" so it might beter be expressed in terms of \"within a priority, deliver smallest non-expired group numbers first\"\r\n",
+          "createdAt": "2024-02-24T14:34:51Z",
+          "updatedAt": "2024-02-24T14:34:51Z"
         }
       ]
     },
@@ -13992,15 +14028,15 @@
       "labels": [],
       "body": "Propose names from my understanding of discussion call \r\n\r\nAnnounce (send by publisher)  , Annouce_OK, Annouce_Error\r\nUnAnnounce (send by publisher)  UnAnnounce_OK, UnAnnounce_Error \r\nAnnouce_End ( sent by thing that received Annouce) , AnnouceEnd_OK, AnnouceEnd_OK\r\n\r\nSubscribe (send by subscriber)  , Subscribe_OK,  Subscribe_Error\r\nUnSubscribe (send by subscriber)  , Subscribe_OK,  Subscribe_Error\r\nSubscribe_End (send by thing that received subscriber), Subscribe_OK,  Subscribe_Error\r\n\r\nMostly trying to get rid of FIN / RST and have different names for the messages that flow in opposite directions. ",
       "createdAt": "2024-02-21T18:00:40Z",
-      "updatedAt": "2024-02-21T22:54:43Z",
+      "updatedAt": "2024-02-22T03:28:47Z",
       "closedAt": null,
       "comments": [
         {
           "author": "kixelated",
           "authorAssociation": "COLLABORATOR",
-          "body": "I don't like the name of the _ERROR messages and I'd rather have one message that transitions to the terminal state, with an optional error code and final group/object.\r\n\r\nIMO the subscription flow:\r\n```\r\n  -> SUBSCRIBE\r\n[ <- SUBSCRIBE_OK    ]\r\n[ -> SUBSCRIBE_STOP  ]\r\n  <- SUBSCRIBE_CLOSE\r\n```\r\n\r\nAnd the ANNOUNCE flow mirrors:\r\n```\r\n  -> ANNOUNCE\r\n[ <- ANNOUNCE_OK    ]\r\n[ -> ANNOUNCE_STOP  ]\r\n  <- ANNOUNCE_CLOSE\r\n```\r\n\r\nThe brackets mean a message is optional. The sender is responsible for creating and the receiver is responsible for closing, possibly at the bequest of the \r\nsender (like QUIC's STOP_SENDING).",
+          "body": "I don't like the name of the different messages used to terminate. I'd rather have one message that transitions to the terminal state, with an optional error code and final group/object.\r\n\r\nIMO the subscription flow:\r\n```\r\n  -> SUBSCRIBE\r\n[ <- SUBSCRIBE_OK    ]\r\n[ -> SUBSCRIBE_STOP  ]\r\n  <- SUBSCRIBE_CLOSE\r\n```\r\n\r\nAnd the ANNOUNCE flow mirrors:\r\n```\r\n  -> ANNOUNCE\r\n[ <- ANNOUNCE_OK    ]\r\n[ -> ANNOUNCE_STOP  ]\r\n  <- ANNOUNCE_CLOSE\r\n```\r\n\r\nThe brackets mean a message is optional. The sender is responsible for creating and the receiver is responsible for closing, possibly at the bequest of the \r\nsender (like QUIC's STOP_SENDING).",
           "createdAt": "2024-02-21T19:05:30Z",
-          "updatedAt": "2024-02-21T19:07:06Z"
+          "updatedAt": "2024-02-22T03:28:00Z"
         },
         {
           "author": "ianswett",
@@ -14015,8 +14051,33 @@
           "body": "Since we are bikeshedding, I prefer ANNOUNCE_RESCIND instead of CANCEL, since an announce is more of a declarative statement than an active request from the sender.",
           "createdAt": "2024-02-21T22:54:43Z",
           "updatedAt": "2024-02-21T22:54:43Z"
+        },
+        {
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Heh and UNANNOUNCE and UNSUBSCRIBE stick out because they don't share the same prefix.",
+          "createdAt": "2024-02-22T03:28:46Z",
+          "updatedAt": "2024-02-22T03:28:46Z"
         }
       ]
+    },
+    {
+      "number": 399,
+      "id": "I_kwDOG2Ho4M6APh0h",
+      "title": "Organize messages by role",
+      "url": "https://github.com/moq-wg/moq-transport/issues/399",
+      "state": "OPEN",
+      "author": "ianswett",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [
+        "Editorial"
+      ],
+      "body": "The discussion on PR #395 suggested a reorg of messages and how to discuss them in the Role section.\r\n\r\n> _afrind_ \r\n> If we reorganized the document into \"publisher messages\" and \"subscriber messages\", then the text here (and below) could be improved. We could say:\r\n> \r\n> The endpoint MUST NOT send any subscriber messages. If the endpoint receives any publisher messages, it MUST close the connection with \"error code TBD\".\r\n> \r\n>  _kixelated_ \r\n> +1 I would love to see this.\r\n> \r\n>  _kixelated_ \r\n> A simple way of doing it would be to add a \"sent by (role)\" column to the table of messages and IDs.\r\n\r\n",
+      "createdAt": "2024-02-23T18:00:13Z",
+      "updatedAt": "2024-02-23T18:04:09Z",
+      "closedAt": null,
+      "comments": []
     }
   ],
   "pulls": [
@@ -46994,18 +47055,26 @@
       "labels": [],
       "body": "Attempts to address some of the usecases discussed in #372 \r\n\r\nLove to hear feedback",
       "createdAt": "2024-02-16T20:20:32Z",
-      "updatedAt": "2024-02-21T17:19:12Z",
+      "updatedAt": "2024-02-24T06:39:39Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
-      "baseRefOid": "59a2a3a9a060bf1a78e191ee9b266211654eeb3f",
+      "baseRefOid": "d8e0951dbe8d1f8d0186e59c0afd5e26cc858925",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "warmup",
-      "headRefOid": "6bb3be2466acb389a254e12eb3bb738f39b858a0",
+      "headRefOid": "d2bd96883d20f559cd0df7acd376d87e94cd60bf",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
       "mergeCommit": null,
-      "comments": [],
+      "comments": [
+        {
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> A small nit, in calling , park and pickup are commonly used to mean something different than this that has to do with moving media from one device to another so I would prefer a name other than park. That said, I can live with park and I think we should merge this.\r\n\r\nUpdated to rename park to freeze.",
+          "createdAt": "2024-02-24T06:39:38Z",
+          "updatedAt": "2024-02-24T06:39:38Z"
+        }
+      ],
       "reviews": [
         {
           "id": "PRR_kwDOG2Ho4M5wawe_",
@@ -47066,6 +47135,92 @@
               "updatedAt": "2024-02-21T17:19:12Z"
             }
           ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5w8FNF",
+          "commit": {
+            "abbreviatedOid": "6bb3be2"
+          },
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "This approach is reasonable, but I dunno I'd rather punt pre-warming. It's an optional, pre-mature optimization that I don't imagine anyone will implement (on either side).",
+          "createdAt": "2024-02-22T03:39:47Z",
+          "updatedAt": "2024-02-22T03:39:47Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5w_AK0",
+          "commit": {
+            "abbreviatedOid": "6bb3be2"
+          },
+          "author": "zafergurel",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-02-22T11:04:49Z",
+          "updatedAt": "2024-02-22T11:04:50Z",
+          "comments": [
+            {
+              "originalPosition": 11,
+              "body": "What would be the response of the relay if DeliveryPreference is `Park` in the Subscribe message and relay does not support/prefer parking?",
+              "createdAt": "2024-02-22T11:04:50Z",
+              "updatedAt": "2024-02-22T11:04:50Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5xLGwB",
+          "commit": {
+            "abbreviatedOid": "6bb3be2"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-02-23T18:50:07Z",
+          "updatedAt": "2024-02-23T18:50:07Z",
+          "comments": [
+            {
+              "originalPosition": 11,
+              "body": "The relay returns Subscribe Error in that case",
+              "createdAt": "2024-02-23T18:50:07Z",
+              "updatedAt": "2024-02-23T18:50:07Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5xMcZa",
+          "commit": {
+            "abbreviatedOid": "6bb3be2"
+          },
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-02-23T23:25:33Z",
+          "updatedAt": "2024-02-23T23:25:34Z",
+          "comments": [
+            {
+              "originalPosition": 11,
+              "body": "I don't think this should be something that is optional for Relays. ",
+              "createdAt": "2024-02-23T23:25:33Z",
+              "updatedAt": "2024-02-23T23:25:34Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5xMcrB",
+          "commit": {
+            "abbreviatedOid": "6bb3be2"
+          },
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "A small nit, in calling , park and pickup are commonly used to mean something different than this that has to do with moving media from one device to another so I would prefer a name other than park. That said, I can live with park and I think we should merge this. ",
+          "createdAt": "2024-02-23T23:27:33Z",
+          "updatedAt": "2024-02-23T23:27:33Z",
+          "comments": []
         }
       ]
     },
@@ -48060,24 +48215,26 @@
       "id": "PR_kwDOG2Ho4M5nVQss",
       "title": "Track Namespace is an exact match",
       "url": "https://github.com/moq-wg/moq-transport/pull/394",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "ianswett",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [],
       "body": "Fixes #252",
       "createdAt": "2024-02-19T21:45:13Z",
-      "updatedAt": "2024-02-21T22:37:40Z",
+      "updatedAt": "2024-02-23T18:01:25Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "2941044ffc2d58998c9abff9fc28c2ccbd57473d",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "ianswett-exact-track-namespace",
       "headRefOid": "4bf4c72fab1439abc1973f96605a527b8cf34363",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "closedAt": "2024-02-23T18:01:25Z",
+      "mergedAt": "2024-02-23T18:01:25Z",
+      "mergedBy": "ianswett",
+      "mergeCommit": {
+        "oid": "d8e0951dbe8d1f8d0186e59c0afd5e26cc858925"
+      },
       "comments": [
         {
           "author": "ianswett",
@@ -48220,6 +48377,32 @@
               "updatedAt": "2024-02-21T22:33:27Z"
             }
           ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5w8D2c",
+          "commit": {
+            "abbreviatedOid": "4bf4c72"
+          },
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2024-02-22T03:31:03Z",
+          "updatedAt": "2024-02-22T03:31:03Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5xBRF6",
+          "commit": {
+            "abbreviatedOid": "4bf4c72"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "Thanks for the update ",
+          "createdAt": "2024-02-22T15:29:24Z",
+          "updatedAt": "2024-02-22T15:29:24Z",
+          "comments": []
         }
       ]
     },
@@ -48228,7 +48411,7 @@
       "id": "PR_kwDOG2Ho4M5nVUsD",
       "title": "Clarify what ROLE means",
       "url": "https://github.com/moq-wg/moq-transport/pull/395",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "ianswett",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
@@ -48237,17 +48420,19 @@
       ],
       "body": "Add some normative text and requires both client and server to send their role.\r\n\r\nI can also see the argument for removing this entirely, but it's in the current draft, so if we're going to keep it, I'd like to define it better.\r\n\r\nFixes #151, Fixes #250",
       "createdAt": "2024-02-19T22:02:17Z",
-      "updatedAt": "2024-02-21T17:29:09Z",
+      "updatedAt": "2024-02-23T18:00:54Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "fd9574281c4dc0fdeb977b4ed49715577c2d7f0b",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "ianswett-normative-role",
-      "headRefOid": "d956129dcccdeb88ccd304c6c14b5fbdc6b5576f",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "headRefOid": "4ebb90649060f172e5c56c8d36718b5fd161452a",
+      "closedAt": "2024-02-23T18:00:54Z",
+      "mergedAt": "2024-02-23T18:00:54Z",
+      "mergedBy": "ianswett",
+      "mergeCommit": {
+        "oid": "3b9cd050aa5d8305560ca3bb674c60a61825fad0"
+      },
       "comments": [
         {
           "author": "suhasHere",
@@ -48404,6 +48589,119 @@
               "body": "Small nit. I think these three different values should each have a name because it will make them easier to talk about. ",
               "createdAt": "2024-02-21T16:56:24Z",
               "updatedAt": "2024-02-21T16:56:24Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5xDm9G",
+          "commit": {
+            "abbreviatedOid": "d956129"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-02-22T19:24:14Z",
+          "updatedAt": "2024-02-22T19:24:14Z",
+          "comments": [
+            {
+              "originalPosition": 11,
+              "body": "Agreed, I named the third type 'PubSub', but I'm open to a better name.",
+              "createdAt": "2024-02-22T19:24:14Z",
+              "updatedAt": "2024-02-22T19:24:14Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5xFJLN",
+          "commit": {
+            "abbreviatedOid": "4ebb906"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-02-22T23:42:59Z",
+          "updatedAt": "2024-02-22T23:43:59Z",
+          "comments": [
+            {
+              "originalPosition": 18,
+              "body": "If we reorganized the document into \"publisher messages\" and \"subscriber messages\", then the text here (and below) could be improved.  We could say:\r\n\r\nThe endpoint MUST NOT send any subscriber messages.  If the endpoint receives any publisher messages, it MUST close the connection with \"error code TBD\".",
+              "createdAt": "2024-02-22T23:43:00Z",
+              "updatedAt": "2024-02-22T23:43:59Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5xFb0l",
+          "commit": {
+            "abbreviatedOid": "4ebb906"
+          },
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-02-23T01:10:02Z",
+          "updatedAt": "2024-02-23T01:10:03Z",
+          "comments": [
+            {
+              "originalPosition": 18,
+              "body": "+1 I would love to see this.",
+              "createdAt": "2024-02-23T01:10:03Z",
+              "updatedAt": "2024-02-23T01:10:03Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5xFcFe",
+          "commit": {
+            "abbreviatedOid": "4ebb906"
+          },
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-02-23T01:11:56Z",
+          "updatedAt": "2024-02-23T01:11:56Z",
+          "comments": [
+            {
+              "originalPosition": 18,
+              "body": "A simple way of doing it would be to add a \"sent by (role)\" column to the table of messages and IDs.",
+              "createdAt": "2024-02-23T01:11:56Z",
+              "updatedAt": "2024-02-23T01:14:00Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5xJo-U",
+          "commit": {
+            "abbreviatedOid": "4ebb906"
+          },
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "LGTM me. Ship it!",
+          "createdAt": "2024-02-23T15:15:17Z",
+          "updatedAt": "2024-02-23T15:15:17Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5xKzhK",
+          "commit": {
+            "abbreviatedOid": "4ebb906"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-02-23T17:57:24Z",
+          "updatedAt": "2024-02-23T17:57:25Z",
+          "comments": [
+            {
+              "originalPosition": 18,
+              "body": "This SGTM, but seems like it could be a reasonably large change to the doc organization, so I'd prefer to do it in a separate PR.",
+              "createdAt": "2024-02-23T17:57:24Z",
+              "updatedAt": "2024-02-23T17:57:25Z"
             }
           ]
         }
