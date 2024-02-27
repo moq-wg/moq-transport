@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2024-02-25T01:09:58.612260+00:00",
+  "timestamp": "2024-02-27T01:05:05.860192+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -47055,7 +47055,7 @@
       "labels": [],
       "body": "Attempts to address some of the usecases discussed in #372 \r\n\r\nLove to hear feedback",
       "createdAt": "2024-02-16T20:20:32Z",
-      "updatedAt": "2024-02-24T06:39:39Z",
+      "updatedAt": "2024-02-26T04:38:57Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "d8e0951dbe8d1f8d0186e59c0afd5e26cc858925",
@@ -47221,6 +47221,84 @@
           "createdAt": "2024-02-23T23:27:33Z",
           "updatedAt": "2024-02-23T23:27:33Z",
           "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5xMxvF",
+          "commit": {
+            "abbreviatedOid": "d2bd968"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "Individual Review",
+          "createdAt": "2024-02-24T02:20:36Z",
+          "updatedAt": "2024-02-25T16:08:59Z",
+          "comments": [
+            {
+              "originalPosition": 8,
+              "body": "nit: extra whitespace",
+              "createdAt": "2024-02-25T16:00:33Z",
+              "updatedAt": "2024-02-25T16:08:59Z"
+            },
+            {
+              "originalPosition": 12,
+              "body": "lowercase `may` - did you want MAY or something else?\r\n\r\nMy read of this text is that it's ok for a relay to send a subscribe OK and not issue an upstream subscription, or issue an upstream subscription with pref=Freeze.  Is that your intent?",
+              "createdAt": "2024-02-25T16:00:53Z",
+              "updatedAt": "2024-02-25T16:08:59Z"
+            },
+            {
+              "originalPosition": 21,
+              "body": "nit: extra newline?",
+              "createdAt": "2024-02-25T16:01:38Z",
+              "updatedAt": "2024-02-25T16:08:59Z"
+            },
+            {
+              "originalPosition": 40,
+              "body": "I'm a little uneasy about defining the semantics of subscribe update in this PR, which has a quite different thesis, and also without explaining the implications of changing location preferences.  If others are ok to do that in a follow up I can be convinced.",
+              "createdAt": "2024-02-25T16:03:03Z",
+              "updatedAt": "2024-02-25T16:08:59Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5xPtB1",
+          "commit": {
+            "abbreviatedOid": "d2bd968"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-02-26T04:37:36Z",
+          "updatedAt": "2024-02-26T04:37:37Z",
+          "comments": [
+            {
+              "originalPosition": 40,
+              "body": "This part is defining subscirbe update in the context of DeliveryPreference. I think we should add text to define the same in terms of location too. I do see these coming in 2 different PRs thouhg.",
+              "createdAt": "2024-02-26T04:37:36Z",
+              "updatedAt": "2024-02-26T04:37:37Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5xPtO7",
+          "commit": {
+            "abbreviatedOid": "d2bd968"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-02-26T04:38:57Z",
+          "updatedAt": "2024-02-26T04:38:57Z",
+          "comments": [
+            {
+              "originalPosition": 12,
+              "body": "Since every hop is a new subscription, Relays can make either of the choices.  In that context, your interpretation is correct.",
+              "createdAt": "2024-02-26T04:38:57Z",
+              "updatedAt": "2024-02-26T04:38:57Z"
+            }
+          ]
         }
       ]
     },
@@ -47570,7 +47648,7 @@
       ],
       "body": "Fixes #363, Fixes #269\r\n\r\nThis attempts to provide the minimum functionality I expect we'll need, regardless of how SUBSCRIBE is changed in the near future.",
       "createdAt": "2024-02-19T19:05:04Z",
-      "updatedAt": "2024-02-20T08:22:29Z",
+      "updatedAt": "2024-02-26T18:13:00Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "53746179d687d2b1903268d77cee8bcf445101b4",
@@ -47738,6 +47816,32 @@
               "body": "Can we also update the start group/object? It would be super useful for relays to deal with:\r\n\r\nviewer1: SUBSCRIBE start=-2\r\n(pause)\r\nviewer2: SUBSCRIBE start=-3\r\n\r\nCurrently, the relay would issue to origin:\r\nSUBSCRIBE start=-2\r\n(wait for SUBSCRIBE_OK -2=65)\r\nSUBSCRIBE start=64 end=65\r\n\r\nWhich is complicated and incurs delay. But if we allow updating start ranges:\r\nSUBSCRIBE start=-2\r\nSUBSCRIBE_UPDATE start=-3",
               "createdAt": "2024-02-20T08:21:31Z",
               "updatedAt": "2024-02-20T08:22:29Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5xWQWi",
+          "commit": {
+            "abbreviatedOid": "6bb489e"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "Individual Review:\r\n\r\nWe should have a way to update the endpoint of a subscription (like subscribe update), and also a way to unsubscribe immediately when you don't know or care about the end.  I suppose we can do that by setting the new end-point to absolute 0/0.",
+          "createdAt": "2024-02-26T18:09:54Z",
+          "updatedAt": "2024-02-26T18:13:00Z",
+          "comments": [
+            {
+              "originalPosition": 59,
+              "body": "Updating the start point can mess with object mapping to streams, especially moving backwards.  In your example, if the track is stream-per-track, the publisher may open a stream and being publishing group=65.  In the current design, where subscription ID appears in objects, the second subscribe for group=64 will come on its own new stream.  If we allow updating the subscription start point backwards to 64, what should the publisher do? Should it close the open stream and open a new one, beginning at group=64, and resend objects from group=65?",
+              "createdAt": "2024-02-26T18:09:54Z",
+              "updatedAt": "2024-02-26T18:13:00Z"
+            },
+            {
+              "originalPosition": 62,
+              "body": "In the context of this PR and the current draft, where the only thing you can change is the end, this message is OK.  However, if we add more parameters to subscribe (eg #381), then we need a way to update some of the parameters and not others.\r\n\r\nWe should also clarify what happens if you issue the SUBSCRIBE twice for the same ID - I expect in this PR as is, we would make that an error?",
+              "createdAt": "2024-02-26T18:12:39Z",
+              "updatedAt": "2024-02-26T18:13:00Z"
             }
           ]
         }
