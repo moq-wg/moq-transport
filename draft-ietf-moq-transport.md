@@ -1388,7 +1388,9 @@ SUBSCRIBE_ERROR
 
 A subscriber issues a `UNSUBSCRIBE` message to a publisher indicating it is no
 longer interested in receiving media for the specified track and Objects
-should stop being sent as soon as possible.
+should stop being sent as soon as possible.  The publisher sends a
+SUBSCRIBE_CLOSED to acknowledge the unsubscribe was successful and indicate
+the final Object.
 
 The format of `UNSUBSCRIBE` is as follows:
 
