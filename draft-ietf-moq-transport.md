@@ -677,7 +677,7 @@ Relays respond with an ANNOUNCE_OK or ANNOUNCE_ERROR control message
 providing the result of announcement. The entity receiving the
 ANNOUNCE MUST send only a single response to a given ANNOUNCE of
 either ANNOUNCE_OK or ANNOUNCE_ERROR.  When a publisher wants to stop
-new subscriptions for an announced namespace it sends an ANNOUNCE_CLOSED.
+new subscriptions for an announced namespace it sends an UNANNOUNCE.
 A subscriber indicates it will no longer route subscriptions for a
 namespace it previously responded ANNOUNCE_OK to by sending an
 ANNOUNCE_CANCEL.
@@ -1393,7 +1393,7 @@ should stop being sent as soon as possible.
 The format of `UNSUBSCRIBE` is as follows:
 
 ~~~
-SUBSCRIBE_CANCEL Message {
+UNSUBSCRIBE Message {
   Subscribe ID (i)
 }
 ~~~
