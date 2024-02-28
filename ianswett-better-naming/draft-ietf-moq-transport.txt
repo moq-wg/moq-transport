@@ -120,12 +120,12 @@ Table of Contents
        6.4.3.  Examples
      6.5.  SUBSCRIBE_OK
      6.6.  SUBSCRIBE_ERROR
-     6.7.  SUBSCRIBE_CANCEL
+     6.7.  UNSUBSCRIBE
      6.8.  SUBSCRIBE_CLOSED
      6.9.  ANNOUNCE
      6.10. ANNOUNCE_OK
      6.11. ANNOUNCE_ERROR
-     6.12. ANNOUNCE_CLOSED
+     6.12. UNANNOUNCE
      6.13. ANNOUNCE_CANCEL
      6.14. GOAWAY
    7.  Security Considerations
@@ -543,11 +543,10 @@ Table of Contents
    open subscriptions on a connection.
 
    The GOAWAY message does not immediately impact subscription state.  A
-   subscriber SHOULD individually unsubscribe for each existing
-   subscription using SUBSCRIBE_CANCEL.  A publisher MAY reject new
-   SUBSCRIBEs while in the draining state.  When the server is a
-   subscriber, it SHOULD send a GOAWAY message prior to any
-   SUBSCRIBE_CANCEL messages.
+   subscriber SHOULD individually UNSUBSCRIBE for each existing
+   subscription, while a publisher MAY reject new SUBSCRIBEs while in
+   the draining state.  When the server is a subscriber, it SHOULD send
+   a GOAWAY message prior to any UNSUBSCRIBE messages.
 
    After the client receives a GOAWAY, it's RECOMMENDED that the client
    waits until there are no more active subscriptions before closing the
@@ -745,10 +744,10 @@ Table of Contents
    providing the result of announcement.  The entity receiving the
    ANNOUNCE MUST send only a single response to a given ANNOUNCE of
    either ANNOUNCE_OK or ANNOUNCE_ERROR.  When a publisher wants to stop
-   new subscriptions for an announced namespace it sends an
-   ANNOUNCE_CLOSED.  A subscriber indicates it will no longer route
-   subscriptions for a namespace it previously responded ANNOUNCE_OK to
-   by sending an ANNOUNCE_CANCEL.
+   new subscriptions for an announced namespace it sends an UNANNOUNCE.
+   A subscriber indicates it will no longer route subscriptions for a
+   namespace it previously responded ANNOUNCE_OK to by sending an
+   ANNOUNCE_CANCEL.
 
    A relay manages sessions from multiple publishers and subscribers,
    connecting them based on the track namespace.  This MUST use an exact
@@ -826,9 +825,9 @@ Table of Contents
               +------+-------------------------------------+
               |  0x8 | ANNOUNCE_ERROR (Section 6.11)       |
               +------+-------------------------------------+
-              |  0x9 | ANNOUNCE_CLOSED (Section 6.12)      |
+              |  0x9 | UNANNOUNCE (Section 6.12)           |
               +------+-------------------------------------+
-              |  0xA | SUBSCRIBE_CANCEL (Section 6.7)      |
+              |  0xA | UNSUBSCRIBE (Section 6.7)           |
               +------+-------------------------------------+
               |  0xB | SUBSCRIBE_CLOSED (Section 6.8)      |
               +------+-------------------------------------+
@@ -1447,34 +1446,33 @@ Table of Contents
       close the connection with a Duplicate Track Alias error
       (Section 3.5).
 
-6.7.  SUBSCRIBE_CANCEL
+6.7.  UNSUBSCRIBE
 
-   A subscriber issues a SUBSCRIBE_CANCEL message to a publisher
-   indicating it is no longer interested in receiving media for the
-   specified track.
+   A subscriber issues a UNSUBSCRIBE message to a publisher indicating
+   it is no longer interested in receiving media for the specified track
+   and Objects should stop being sent as soon as possible.
 
-   The format of SUBSCRIBE_CANCEL is as follows:
+   The format of UNSUBSCRIBE is as follows:
 
-   SUBSCRIBE_CANCEL Message {
+   UNSUBSCRIBE Message {
      Subscribe ID (i)
    }
 
-                  Figure 14: MOQT SUBSCRIBE_CANCEL Message
+                    Figure 14: MOQT UNSUBSCRIBE Message
 
    *  Subscribe ID: Subscription Identifer as defined in Section 6.4.
 
 6.8.  SUBSCRIBE_CLOSED
 
-   A publisher issues a SUBSCRIBE_CLOSED message to all subscribers
-   indicating it is done publishing objects for that subscription.  The
-   Error Code indicates why the subscription ended, and whether it was
-   an error.
+   A publisher issues a SUBSCRIBE_CLOSED message to indicate it is done
+   publishing Objects for that subscription.  The Status Code indicates
+   why the subscription ended, and whether it was an error.
 
    The format of SUBSCRIBE_CLOSED is as follows:
 
    SUBSCRIBE_CLOSED Message {
      Subscribe ID (i),
-     Error Code (i),
+     Status Code (i),
      Reason Phrase (b),
      ContentExists (1),
      [Final Group (i)],
@@ -1485,7 +1483,8 @@ Table of Contents
 
    *  Subscribe ID: Subscription identifier as defined in Section 6.4.
 
-   *  Error Code: Identifies an integer error code for subscription end.
+   *  Status Code: An integer status code indicating why the
+      subscription ended.
 
    *  Reason Phrase: Provides the reason for subscription error.
 
@@ -1556,17 +1555,17 @@ Table of Contents
 
    *  Reason Phrase: Provides the reason for announcement error.
 
-6.12.  ANNOUNCE_CLOSED
+6.12.  UNANNOUNCE
 
-   The publisher sends the ANNOUNCE_CLOSED control message to indicate
-   its intent to stop serving new subscriptions for tracks within the
+   The publisher sends the UNANNOUNCE control message to indicate its
+   intent to stop serving new subscriptions for tracks within the
    provided Track Namespace.
 
-   ANNOUNCE_CLOSED Message {
+   UNANNOUNCE Message {
      Track Namespace (b),
    }
 
-                  Figure 19: MOQT ANNOUNCE_CLOSED Message
+                     Figure 19: MOQT UNANNOUNCE Message
 
    *  Track Namespace: Identifies a track's namespace as defined in
       (Section 2.3.1).

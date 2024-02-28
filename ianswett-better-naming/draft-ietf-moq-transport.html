@@ -1326,7 +1326,7 @@ networks and is designed for high scale and low latency distribution.<a href="#s
                 <p id="section-toc.1-1.6.2.6.1"><a href="#section-6.6" class="auto internal xref">6.6</a>.  <a href="#name-subscribe_error" class="internal xref">SUBSCRIBE_ERROR</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.7">
-                <p id="section-toc.1-1.6.2.7.1"><a href="#section-6.7" class="auto internal xref">6.7</a>.  <a href="#name-subscribe_cancel" class="internal xref">SUBSCRIBE_CANCEL</a></p>
+                <p id="section-toc.1-1.6.2.7.1"><a href="#section-6.7" class="auto internal xref">6.7</a>.  <a href="#name-unsubscribe" class="internal xref">UNSUBSCRIBE</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.8">
                 <p id="section-toc.1-1.6.2.8.1"><a href="#section-6.8" class="auto internal xref">6.8</a>.  <a href="#name-subscribe_closed" class="internal xref">SUBSCRIBE_CLOSED</a></p>
@@ -1341,7 +1341,7 @@ networks and is designed for high scale and low latency distribution.<a href="#s
                 <p id="section-toc.1-1.6.2.11.1"><a href="#section-6.11" class="auto internal xref">6.11</a>. <a href="#name-announce_error" class="internal xref">ANNOUNCE_ERROR</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.12">
-                <p id="section-toc.1-1.6.2.12.1"><a href="#section-6.12" class="auto internal xref">6.12</a>. <a href="#name-announce_closed" class="internal xref">ANNOUNCE_CLOSED</a></p>
+                <p id="section-toc.1-1.6.2.12.1"><a href="#section-6.12" class="auto internal xref">6.12</a>. <a href="#name-unannounce" class="internal xref">UNANNOUNCE</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.13">
                 <p id="section-toc.1-1.6.2.13.1"><a href="#section-6.13" class="auto internal xref">6.13</a>. <a href="#name-announce_cancel" class="internal xref">ANNOUNCE_CANCEL</a></p>
@@ -1933,10 +1933,10 @@ a new URI for the new session, otherwise the current URI is reused. The server
 <span class="bcp14">SHOULD</span> terminate the session with 'GOAWAY Timeout' after a sufficient timeout if
 there are still open subscriptions on a connection.<a href="#section-3.6-2" class="pilcrow">¶</a></p>
 <p id="section-3.6-3">The GOAWAY message does not immediately impact subscription state. A subscriber
-<span class="bcp14">SHOULD</span> individually unsubscribe for each existing subscription using
-SUBSCRIBE_CANCEL.  A publisher <span class="bcp14">MAY</span> reject new SUBSCRIBEs while in the draining
-state. When the server is a subscriber, it <span class="bcp14">SHOULD</span> send a GOAWAY message prior to
-any SUBSCRIBE_CANCEL messages.<a href="#section-3.6-3" class="pilcrow">¶</a></p>
+<span class="bcp14">SHOULD</span> individually UNSUBSCRIBE for each existing subscription, while a
+publisher <span class="bcp14">MAY</span> reject new SUBSCRIBEs while in the draining state. When the server
+is a subscriber, it <span class="bcp14">SHOULD</span> send a GOAWAY message prior to any UNSUBSCRIBE
+messages.<a href="#section-3.6-3" class="pilcrow">¶</a></p>
 <p id="section-3.6-4">After the client receives a GOAWAY, it's <span class="bcp14">RECOMMENDED</span> that the client waits until
 there are no more active subscriptions before closing the session with NO_ERROR.
 Ideally this is transparent to the application using MOQT, which involves
@@ -2175,7 +2175,7 @@ based on prior business agreement).<a href="#section-5.2-3.1.1" class="pilcrow">
 providing the result of announcement. The entity receiving the
 ANNOUNCE <span class="bcp14">MUST</span> send only a single response to a given ANNOUNCE of
 either ANNOUNCE_OK or ANNOUNCE_ERROR.  When a publisher wants to stop
-new subscriptions for an announced namespace it sends an ANNOUNCE_CLOSED.
+new subscriptions for an announced namespace it sends an UNANNOUNCE.
 A subscriber indicates it will no longer route subscriptions for a
 namespace it previously responded ANNOUNCE_OK to by sending an
 ANNOUNCE_CANCEL.<a href="#section-5.2-4" class="pilcrow">¶</a></p>
@@ -2293,11 +2293,11 @@ MOQT Message {
           </tr>
           <tr>
             <td class="text-right" rowspan="1" colspan="1">0x9</td>
-            <td class="text-left" rowspan="1" colspan="1">ANNOUNCE_CLOSED  (<a href="#message-announce-closed" class="auto internal xref">Section 6.12</a>)</td>
+            <td class="text-left" rowspan="1" colspan="1">UNANNOUNCE  (<a href="#message-unannounce" class="auto internal xref">Section 6.12</a>)</td>
           </tr>
           <tr>
             <td class="text-right" rowspan="1" colspan="1">0xA</td>
-            <td class="text-left" rowspan="1" colspan="1">SUBSCRIBE_CANCEL (<a href="#message-subscribe-cancel" class="auto internal xref">Section 6.7</a>)</td>
+            <td class="text-left" rowspan="1" colspan="1">UNSUBSCRIBE (<a href="#message-unsubscribe" class="auto internal xref">Section 6.7</a>)</td>
           </tr>
           <tr>
             <td class="text-right" rowspan="1" colspan="1">0xB</td>
@@ -3079,25 +3079,26 @@ the receiver <span class="bcp14">MUST</span> close the connection with a Duplica
         </ul>
 </section>
 </div>
-<div id="message-subscribe-cancel">
+<div id="message-unsubscribe">
 <section id="section-6.7">
-        <h3 id="name-subscribe_cancel">
-<a href="#section-6.7" class="section-number selfRef">6.7. </a><a href="#name-subscribe_cancel" class="section-name selfRef">SUBSCRIBE_CANCEL</a>
+        <h3 id="name-unsubscribe">
+<a href="#section-6.7" class="section-number selfRef">6.7. </a><a href="#name-unsubscribe" class="section-name selfRef">UNSUBSCRIBE</a>
         </h3>
-<p id="section-6.7-1">A subscriber issues a <code>SUBSCRIBE_CANCEL</code> message to a publisher indicating it is no
-longer interested in receiving media for the specified track.<a href="#section-6.7-1" class="pilcrow">¶</a></p>
-<p id="section-6.7-2">The format of <code>SUBSCRIBE_CANCEL</code> is as follows:<a href="#section-6.7-2" class="pilcrow">¶</a></p>
-<span id="name-moqt-subscribe_cancel-messa"></span><div id="moq-transport-subscribe-cancel-format">
+<p id="section-6.7-1">A subscriber issues a <code>UNSUBSCRIBE</code> message to a publisher indicating it is no
+longer interested in receiving media for the specified track and Objects
+should stop being sent as soon as possible.<a href="#section-6.7-1" class="pilcrow">¶</a></p>
+<p id="section-6.7-2">The format of <code>UNSUBSCRIBE</code> is as follows:<a href="#section-6.7-2" class="pilcrow">¶</a></p>
+<span id="name-moqt-unsubscribe-message"></span><div id="moq-transport-subscribe-cancel-format">
 <figure id="figure-14">
           <div class="alignLeft art-text artwork" id="section-6.7-3.1">
 <pre>
-SUBSCRIBE_CANCEL Message {
+UNSUBSCRIBE Message {
   Subscribe ID (i)
 }
 </pre>
 </div>
 <figcaption><a href="#figure-14" class="selfRef">Figure 14</a>:
-<a href="#name-moqt-subscribe_cancel-messa" class="selfRef">MOQT SUBSCRIBE_CANCEL Message</a>
+<a href="#name-moqt-unsubscribe-message" class="selfRef">MOQT UNSUBSCRIBE Message</a>
           </figcaption></figure>
 </div>
 <ul class="normal">
@@ -3112,8 +3113,8 @@ SUBSCRIBE_CANCEL Message {
         <h3 id="name-subscribe_closed">
 <a href="#section-6.8" class="section-number selfRef">6.8. </a><a href="#name-subscribe_closed" class="section-name selfRef">SUBSCRIBE_CLOSED</a>
         </h3>
-<p id="section-6.8-1">A publisher issues a <code>SUBSCRIBE_CLOSED</code> message to all subscribers indicating it
-is done publishing objects for that subscription.  The Error Code indicates why
+<p id="section-6.8-1">A publisher issues a <code>SUBSCRIBE_CLOSED</code> message to indicate it
+is done publishing Objects for that subscription.  The Status Code indicates why
 the subscription ended, and whether it was an error.<a href="#section-6.8-1" class="pilcrow">¶</a></p>
 <p id="section-6.8-2">The format of <code>SUBSCRIBE_CLOSED</code> is as follows:<a href="#section-6.8-2" class="pilcrow">¶</a></p>
 <span id="name-moqt-subscribe_closed-messa"></span><div id="moq-transport-subscribe-fin-format">
@@ -3122,7 +3123,7 @@ the subscription ended, and whether it was an error.<a href="#section-6.8-1" cla
 <pre>
 SUBSCRIBE_CLOSED Message {
   Subscribe ID (i),
-  Error Code (i),
+  Status Code (i),
   Reason Phrase (b),
   ContentExists (1),
   [Final Group (i)],
@@ -3139,7 +3140,7 @@ SUBSCRIBE_CLOSED Message {
             <p id="section-6.8-4.1.1">Subscribe ID: Subscription identifier as defined in <a href="#message-subscribe-req" class="auto internal xref">Section 6.4</a>.<a href="#section-6.8-4.1.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-6.8-4.2">
-            <p id="section-6.8-4.2.1">Error Code: Identifies an integer error code for subscription end.<a href="#section-6.8-4.2.1" class="pilcrow">¶</a></p>
+            <p id="section-6.8-4.2.1">Status Code: An integer status code indicating why the subscription ended.<a href="#section-6.8-4.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-6.8-4.3">
             <p id="section-6.8-4.3.1">Reason Phrase: Provides the reason for subscription error.<a href="#section-6.8-4.3.1" class="pilcrow">¶</a></p>
@@ -3260,25 +3261,25 @@ message for which this response is provided.<a href="#section-6.11-3.1.1" class=
         </ul>
 </section>
 </div>
-<div id="message-announce-closed">
+<div id="message-unannounce">
 <section id="section-6.12">
-        <h3 id="name-announce_closed">
-<a href="#section-6.12" class="section-number selfRef">6.12. </a><a href="#name-announce_closed" class="section-name selfRef">ANNOUNCE_CLOSED</a>
+        <h3 id="name-unannounce">
+<a href="#section-6.12" class="section-number selfRef">6.12. </a><a href="#name-unannounce" class="section-name selfRef">UNANNOUNCE</a>
         </h3>
-<p id="section-6.12-1">The publisher sends the <code>ANNOUNCE_CLOSED</code> control message to indicate
+<p id="section-6.12-1">The publisher sends the <code>UNANNOUNCE</code> control message to indicate
 its intent to stop serving new subscriptions for tracks
 within the provided Track Namespace.<a href="#section-6.12-1" class="pilcrow">¶</a></p>
-<span id="name-moqt-announce_closed-messag"></span><div id="moq-transport-announce-closed-format">
+<span id="name-moqt-unannounce-message"></span><div id="moq-transport-unannounce-format">
 <figure id="figure-19">
           <div class="alignLeft art-text artwork" id="section-6.12-2.1">
 <pre>
-ANNOUNCE_CLOSED Message {
+UNANNOUNCE Message {
   Track Namespace (b),
 }
 </pre>
 </div>
 <figcaption><a href="#figure-19" class="selfRef">Figure 19</a>:
-<a href="#name-moqt-announce_closed-messag" class="selfRef">MOQT ANNOUNCE_CLOSED Message</a>
+<a href="#name-moqt-unannounce-message" class="selfRef">MOQT UNANNOUNCE Message</a>
           </figcaption></figure>
 </div>
 <ul class="normal">
