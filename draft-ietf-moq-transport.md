@@ -1384,19 +1384,19 @@ SUBSCRIBE_ERROR
   the receiver MUST close the connection with a Duplicate Track Alias error
   ({{session-termination}}).
 
-## UNSUBSCRIBE {#message-unsubscribe}
+## SUBSCRIBE_CANCEL {#message-subscribe-cancel}
 
-A subscriber issues a `UNSUBSCRIBE` message to a publisher indicating it is no
+A subscriber issues a `SUBSCRIBE_CANCEL` message to a publisher indicating it is no
 longer interested in receiving media for the specified track.
 
-The format of `UNSUBSCRIBE` is as follows:
+The format of `SUBSCRIBE_CANCEL` is as follows:
 
 ~~~
-UNSUBSCRIBE Message {
+SUBSCRIBE_CANCEL Message {
   Subscribe ID (i)
 }
 ~~~
-{: #moq-transport-unsubscribe-format title="MOQT UNSUBSCRIBE Message"}
+{: #moq-transport-subscribe-cancel-format title="MOQT SUBSCRIBE_CANCEL Message"}
 
 * Subscribe ID: Subscription Identifer as defined in {{message-subscribe-req}}.
 
