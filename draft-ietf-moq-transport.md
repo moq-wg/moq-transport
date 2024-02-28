@@ -658,6 +658,25 @@ as defined below:
 | 0x2  | Retry Track Alias         |
 |------|---------------------------|
 
+The applicaiton SHOULD use a relevant status code in
+SUBSCRIBE_CLOSE, as defined below:
+
+|------|---------------------------|
+| Code | Reason                    |
+|-----:|:--------------------------|
+| 0x0  | Unsubscribed              |
+|------|---------------------------|
+| 0x1  | Internal Error            |
+|------|---------------------------|
+| 0x2  | Unauthorized              |
+|------|---------------------------|
+| 0x3  | Track Ended               |
+|------|---------------------------|
+| 0x4  | Subscription Ended        |
+|------|---------------------------|
+| 0x5  | Going Away                |
+|------|---------------------------|
+
 
 ## Publisher Interactions
 
