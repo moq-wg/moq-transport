@@ -2151,6 +2151,43 @@ as defined below:<a href="#section-5.1-7" class="pilcrow">¶</a></p>
             </tr>
           </tbody>
         </table>
+<p id="section-5.1-9">The applicaiton <span class="bcp14">SHOULD</span> use a relevant status code in
+SUBSCRIBE_CLOSE, as defined below:<a href="#section-5.1-9" class="pilcrow">¶</a></p>
+<table class="center" id="table-3">
+          <caption><a href="#table-3" class="selfRef">Table 3</a></caption>
+<thead>
+            <tr>
+              <th class="text-right" rowspan="1" colspan="1">Code</th>
+              <th class="text-left" rowspan="1" colspan="1">Reason</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="text-right" rowspan="1" colspan="1">0x0</td>
+              <td class="text-left" rowspan="1" colspan="1">Unsubscribed</td>
+            </tr>
+            <tr>
+              <td class="text-right" rowspan="1" colspan="1">0x1</td>
+              <td class="text-left" rowspan="1" colspan="1">Internal Error</td>
+            </tr>
+            <tr>
+              <td class="text-right" rowspan="1" colspan="1">0x2</td>
+              <td class="text-left" rowspan="1" colspan="1">Unauthorized</td>
+            </tr>
+            <tr>
+              <td class="text-right" rowspan="1" colspan="1">0x3</td>
+              <td class="text-left" rowspan="1" colspan="1">Track Ended</td>
+            </tr>
+            <tr>
+              <td class="text-right" rowspan="1" colspan="1">0x4</td>
+              <td class="text-left" rowspan="1" colspan="1">Subscription Ended</td>
+            </tr>
+            <tr>
+              <td class="text-right" rowspan="1" colspan="1">0x5</td>
+              <td class="text-left" rowspan="1" colspan="1">Going Away</td>
+            </tr>
+          </tbody>
+        </table>
 </section>
 </div>
 <div id="publisher-interactions">
@@ -2250,8 +2287,8 @@ MOQT Message {
 <a href="#name-moqt-message" class="selfRef">MOQT Message</a>
         </figcaption></figure>
 </div>
-<table class="center" id="table-3">
-        <caption><a href="#table-3" class="selfRef">Table 3</a></caption>
+<table class="center" id="table-4">
+        <caption><a href="#table-4" class="selfRef">Table 4</a></caption>
 <thead>
           <tr>
             <th class="text-right" rowspan="1" colspan="1">ID</th>

@@ -726,6 +726,27 @@ Table of Contents
 
                                  Table 2
 
+   The applicaiton SHOULD use a relevant status code in SUBSCRIBE_CLOSE,
+   as defined below:
+
+                       +======+====================+
+                       | Code | Reason             |
+                       +======+====================+
+                       |  0x0 | Unsubscribed       |
+                       +------+--------------------+
+                       |  0x1 | Internal Error     |
+                       +------+--------------------+
+                       |  0x2 | Unauthorized       |
+                       +------+--------------------+
+                       |  0x3 | Track Ended        |
+                       +------+--------------------+
+                       |  0x4 | Subscription Ended |
+                       +------+--------------------+
+                       |  0x5 | Going Away         |
+                       +------+--------------------+
+
+                                  Table 3
+
 5.2.  Publisher Interactions
 
    Publishing through the relay starts with publisher sending ANNOUNCE
@@ -842,7 +863,7 @@ Table of Contents
               | 0x51 | STREAM_HEADER_GROUP (Section 6.3.3) |
               +------+-------------------------------------+
 
-                                 Table 3
+                                 Table 4
 
 6.1.  Parameters
 
