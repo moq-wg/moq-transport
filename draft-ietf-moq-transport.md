@@ -490,10 +490,10 @@ SHOULD terminate the session with 'GOAWAY Timeout' after a sufficient timeout if
 there are still open subscriptions on a connection.
 
 The GOAWAY message does not immediately impact subscription state. A subscriber
-SHOULD individually unsubscribe for each existing subscription using
-SUBSCRIBE_CANCEL.  A publisher MAY reject new SUBSCRIBEs while in the draining
-state. When the server is a subscriber, it SHOULD send a GOAWAY message prior to
-any SUBSCRIBE_CANCEL messages.
+SHOULD individually UNSUBSCRIBE for each existing subscription, while a
+publisher MAY reject new SUBSCRIBEs while in the draining state. When the server
+is a subscriber, it SHOULD send a GOAWAY message prior to any UNSUBSCRIBE
+messages.
 
 After the client receives a GOAWAY, it's RECOMMENDED that the client waits until
 there are no more active subscriptions before closing the session with NO_ERROR.
@@ -758,9 +758,9 @@ MOQT Message {
 |-------|-----------------------------------------------------|
 | 0x8   | ANNOUNCE_ERROR ({{message-announce-error}})         |
 |-------|-----------------------------------------------------|
-| 0x9   | ANNOUNCE_CLOSED  ({{message-announce-closed}})      |
+| 0x9   | UNANNOUNCE  ({{message-unannounce}})                |
 |-------|-----------------------------------------------------|
-| 0xA   | SUBSCRIBE_CANCEL ({{message-subscribe-cancel}})     |
+| 0xA   | UNSUBSCRIBE ({{message-unsubscribe}})               |
 |-------|-----------------------------------------------------|
 | 0xB   | SUBSCRIBE_CLOSED ({{message-subscribe-closed}})     |
 |-------|-----------------------------------------------------|
@@ -1384,26 +1384,27 @@ SUBSCRIBE_ERROR
   the receiver MUST close the connection with a Duplicate Track Alias error
   ({{session-termination}}).
 
-## SUBSCRIBE_CANCEL {#message-subscribe-cancel}
+## UNSUBSCRIBE {#message-unsubscribe}
 
-A subscriber issues a `SUBSCRIBE_CANCEL` message to a publisher indicating it is no
-longer interested in receiving media for the specified track.
+A subscriber issues a `UNSUBSCRIBE` message to a publisher indicating it is no
+longer interested in receiving media for the specified track and Objects
+should stop being sent as soon as possible.
 
-The format of `SUBSCRIBE_CANCEL` is as follows:
+The format of `UNSUBSCRIBE` is as follows:
 
 ~~~
 SUBSCRIBE_CANCEL Message {
   Subscribe ID (i)
 }
 ~~~
-{: #moq-transport-subscribe-cancel-format title="MOQT SUBSCRIBE_CANCEL Message"}
+{: #moq-transport-subscribe-cancel-format title="MOQT UNSUBSCRIBE Message"}
 
 * Subscribe ID: Subscription Identifer as defined in {{message-subscribe-req}}.
 
 ## SUBSCRIBE_CLOSED {#message-subscribe-closed}
 
-A publisher issues a `SUBSCRIBE_CLOSED` message to all subscribers indicating it
-is done publishing objects for that subscription.  The Error Code indicates why
+A publisher issues a `SUBSCRIBE_CLOSED` message to indicate it
+is done publishing Objects for that subscription.  The Status Code indicates why
 the subscription ended, and whether it was an error.
 
 The format of `SUBSCRIBE_CLOSED` is as follows:
@@ -1411,7 +1412,7 @@ The format of `SUBSCRIBE_CLOSED` is as follows:
 ~~~
 SUBSCRIBE_CLOSED Message {
   Subscribe ID (i),
-  Error Code (i),
+  Status Code (i),
   Reason Phrase (b),
   ContentExists (1),
   [Final Group (i)],
@@ -1422,7 +1423,7 @@ SUBSCRIBE_CLOSED Message {
 
 * Subscribe ID: Subscription identifier as defined in {{message-subscribe-req}}.
 
-* Error Code: Identifies an integer error code for subscription end.
+* Status Code: An integer status code indicating why the subscription ended.
 
 * Reason Phrase: Provides the reason for subscription error.
 
@@ -1496,18 +1497,18 @@ message for which this response is provided.
 * Reason Phrase: Provides the reason for announcement error.
 
 
-## ANNOUNCE_CLOSED {#message-announce-closed}
+## UNANNOUNCE {#message-unannounce}
 
-The publisher sends the `ANNOUNCE_CLOSED` control message to indicate
+The publisher sends the `UNANNOUNCE` control message to indicate
 its intent to stop serving new subscriptions for tracks
 within the provided Track Namespace.
 
 ~~~
-ANNOUNCE_CLOSED Message {
+UNANNOUNCE Message {
   Track Namespace (b),
 }
 ~~~
-{: #moq-transport-announce-closed-format title="MOQT ANNOUNCE_CLOSED Message"}
+{: #moq-transport-unannounce-format title="MOQT UNANNOUNCE Message"}
 
 * Track Namespace: Identifies a track's namespace as defined in
 ({{track-name}}).
