@@ -3086,7 +3086,9 @@ the receiver <span class="bcp14">MUST</span> close the connection with a Duplica
         </h3>
 <p id="section-6.7-1">A subscriber issues a <code>UNSUBSCRIBE</code> message to a publisher indicating it is no
 longer interested in receiving media for the specified track and Objects
-should stop being sent as soon as possible.<a href="#section-6.7-1" class="pilcrow">¶</a></p>
+should stop being sent as soon as possible.  The publisher sends a
+SUBSCRIBE_CLOSED to acknowledge the unsubscribe was successful and indicate
+the final Object.<a href="#section-6.7-1" class="pilcrow">¶</a></p>
 <p id="section-6.7-2">The format of <code>UNSUBSCRIBE</code> is as follows:<a href="#section-6.7-2" class="pilcrow">¶</a></p>
 <span id="name-moqt-unsubscribe-message"></span><div id="moq-transport-subscribe-cancel-format">
 <figure id="figure-14">
