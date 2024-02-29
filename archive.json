@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2024-02-27T01:05:05.860192+00:00",
+  "timestamp": "2024-02-29T01:04:49.591830+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -9246,12 +9246,11 @@
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [
-        "Editorial",
         "Subscribe"
       ],
       "body": "We should have a section that documents the subscription state machine, like QUIC does with stream states: https://www.rfc-editor.org/rfc/rfc9000.html#section-3\r\n\r\nIt makes it significantly easier to discuss about which messages are necessary and reason about what is available at each state. Implementations are certainly allowed to work outside of this framework, but personally it was a super valuable reference when I was implementing QUIC streams.\r\n\r\nThere's not much point documenting the current subscription states because they dead-end quickly. Here's my proposal that supports publisher and subscriber resets, via RESET and STOP respectively:\r\n\r\n### Publisher\r\n![publisher](https://github.com/moq-wg/moq-transport/assets/432854/9d0e8fbd-8434-4d4e-a56c-dd973945a473)\r\n\r\n### Subscriber\r\n![subscriber](https://github.com/moq-wg/moq-transport/assets/432854/cdd1c981-9887-45e1-90e3-a2c260651201)\r\n",
       "createdAt": "2023-08-18T18:06:49Z",
-      "updatedAt": "2023-10-04T20:43:26Z",
+      "updatedAt": "2024-02-28T17:35:55Z",
       "closedAt": null,
       "comments": [
         {
@@ -13585,7 +13584,7 @@
       "labels": [],
       "body": "At the interim there was interest in creating the ability for a receiver to ask a sender to subscribe to a track but not to forward it. The purpose of this is to minimize the delay when the receiver SUBSCRIBES to the track in the future. \r\n\r\nDesign considerations\r\n1. This would need to be converted to a regular SUBSCRIBE for forward requests. So any relay receiving a PREWARM request MUST never forward it.\r\n2. Is there a matching UNPREWARM, or would a regular UNSUBSCRIBE suffice?\r\n3. Do we need a new method PREWARM or can it be a flag on the existing SUBSCRIBE?\r\n4. This is a powerful DDOS attack vector. How do we mitigate that threat in the design? ",
       "createdAt": "2024-02-08T19:36:06Z",
-      "updatedAt": "2024-02-22T03:45:11Z",
+      "updatedAt": "2024-02-27T14:47:18Z",
       "closedAt": null,
       "comments": [
         {
@@ -13678,6 +13677,13 @@
           "body": "One complication is that the player SHOULD NOT assume a track has been pre-warmed, since the CDN can ignore the request. The player still has to perform the same seamless switching down/up logic, but it might be slightly faster if the pre-warm went through.",
           "createdAt": "2024-02-22T03:45:10Z",
           "updatedAt": "2024-02-22T03:45:10Z"
+        },
+        {
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "Just want to note that for things like webex I would 1) expect to pay the CDN based on how much data is cached and how long it is stored as well as ingress and egress bandwidth 2)  all of this will be authenticated so the CDN knows who to bill. ",
+          "createdAt": "2024-02-27T14:47:16Z",
+          "updatedAt": "2024-02-27T14:47:16Z"
         }
       ]
     },
@@ -13737,7 +13743,7 @@
       ],
       "body": "This came up during interop - \r\n\r\nA relay received a subscribe with start={g=RelativeNext/0 o=Absolute/0}.  Since the relay had not received any objects, it defaulted largest to 0 and interpreted the subscribe as starting at {g=1, o=0}. When {g=0,o=0} arrived, it was not forwarded.  But there's a reasonable interpretation that it should have forwarded treated this as the beginning of the next subscription.\r\n\r\nThis is partially related to #337 and maybe #353",
       "createdAt": "2024-02-13T01:45:40Z",
-      "updatedAt": "2024-02-20T17:04:37Z",
+      "updatedAt": "2024-02-27T18:06:14Z",
       "closedAt": null,
       "comments": [
         {
@@ -13788,6 +13794,27 @@
           "body": "I think I can see the intent with what's there, but the draft could use some editorial text clarifying what \"next/0\" means when subscribe OK was \"no content available\".",
           "createdAt": "2024-02-20T17:04:36Z",
           "updatedAt": "2024-02-20T17:04:36Z"
+        },
+        {
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "I thought we decided on call that we were not going to steal bits from the  group id / object id to indicate meta data what is going on.  After that call I was expecting to see some explicit flag for \"no content available\" if that is what needed to be sent. ",
+          "createdAt": "2024-02-27T14:34:34Z",
+          "updatedAt": "2024-02-27T14:34:34Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> I thought we decided on call that we were not going to steal bits from the group id / object id to indicate meta data what is going on. After that call I was expecting to see some explicit flag for \"no content available\" if that is what needed to be sent.\r\n\r\nAfter merging #343, Subscribe OK has the flag you are referring to: \r\n\r\nhttps://moq-wg.github.io/moq-transport/draft-ietf-moq-transport.html#section-6.5\r\n\r\nI left this issue open because I think there's still some ambiguity that can be resolved with editorial text.",
+          "createdAt": "2024-02-27T17:05:24Z",
+          "updatedAt": "2024-02-27T17:05:24Z"
+        },
+        {
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "makes sense - thanks ",
+          "createdAt": "2024-02-27T18:06:13Z",
+          "updatedAt": "2024-02-27T18:06:13Z"
         }
       ]
     },
@@ -13980,10 +14007,12 @@
       "author": "ianswett",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
-      "labels": [],
+      "labels": [
+        "Needs Discussion"
+      ],
       "body": "It's unclear to me what objects a relay should prioritize or drop when congestion limited.  This is discussed in a few places, but I want to only focus on the question of what to send first and when to give up on sending an Object entirely.\r\n\r\nSpecific examples:\r\n\r\n1. Is there a point at which Objects from a subscription should no longer be transmitted?  If so, what determines that time?\r\n2. How does a relay decide whether to send the newest object or oldest?  Does it depend upon group boundaries?\r\n3. Can a relay infer that some Objects are droppable if they have lower priority than other Objects in the same group?\r\n\r\nMy strawman proposal is that subscriptions should have numerical priorities, so a relay knows whether it should send Objects from one subscription or another given limited bandwidth.  Additionally, subscriptions should have a TTL so relays know at what point they should stop retransmitting Objects.\r\n\r\n",
       "createdAt": "2024-02-20T03:08:57Z",
-      "updatedAt": "2024-02-24T14:34:52Z",
+      "updatedAt": "2024-02-28T07:59:19Z",
       "closedAt": null,
       "comments": [
         {
@@ -14013,6 +14042,34 @@
           "body": ">  though maybe part of being a relay is having a fairly well synchronized system clock\r\n\r\nGiven the ubiquity of NTP solutions, this is a reasonable requirement for a relay provider. \r\n\r\n> I'm not sure you'd want the same timestamp value for a subscriber near the original publication vs around the world?\r\n\r\nPropagation time around the world is in the order of 100s of milliseconds. I'd just put a conservative expiration timestamp for all users, versus the complexity of trying to adjust for distance-from-origin. It would mean that close relays would expire content 100s of milliseconds after they could have, but that's not a problem. I expect relays to purge caches in the order of seconds (at fastest) anyhow. \r\n\r\n\r\n> Are you thinking the expiration timestamp T only applies to the live edge? For VoD, presumably this time would be ignored, since otherwise features like rewinding 15 minutes wouldn't work.\r\n\r\nNo, expiration notification must take DVR (rewinding) in to account. See my comment and examples [here](https://github.com/moq-wg/moq-transport/issues/249#issuecomment-1954743370). \r\n\r\n\r\n> For delivery order, I think you're saying:\r\n> \r\n> - Deliver highest priority first\r\n> - Within a priority, deliver oldest non-expired first.\r\n\r\nYes, although our nomenclature does not address \"oldest\" or \"newest\" so it might beter be expressed in terms of \"within a priority, deliver smallest non-expired group numbers first\"\r\n",
           "createdAt": "2024-02-24T14:34:51Z",
           "updatedAt": "2024-02-24T14:34:51Z"
+        },
+        {
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "I'd rather talk about this on a call when we can. ",
+          "createdAt": "2024-02-27T14:28:28Z",
+          "updatedAt": "2024-02-27T14:28:28Z"
+        },
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I'd like to discuss this on the call tomorrow if we have time, but one simple idea came up today which was that SUBSCRIBE_UPDATE could include the ability to update the 'start' of the subscription to a group which is after the start of the subscription.\r\n\r\nThis would be a simple way to say \"I've started playing group X, so I don't need any groups <X\"",
+          "createdAt": "2024-02-28T00:17:30Z",
+          "updatedAt": "2024-02-28T00:17:30Z"
+        },
+        {
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> I'd like to discuss this on the call tomorrow if we have time, but one simple idea came up today which was that SUBSCRIBE_UPDATE could include the ability to update the 'start' of the subscription to a group which is after the start of the subscription.\r\n> \r\n> This would be a simple way to say \"I've started playing group X, so I don't need any groups <X\"\r\n\r\nDope idea.",
+          "createdAt": "2024-02-28T01:04:14Z",
+          "updatedAt": "2024-02-28T01:04:14Z"
+        },
+        {
+          "author": "wilaw",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "Why are the semantics of SUBSCRIBE_UPDATE necessary? For the use case cited above, if you don't need groups <X, then UNSUBSCRIBE and SUBSCRIBE with STARTGROUP=X. Keeping subscriptions clean (single entry point, single exit, immutable after establishment) leads to more stable systems at scale. ",
+          "createdAt": "2024-02-28T07:59:19Z",
+          "updatedAt": "2024-02-28T07:59:19Z"
         }
       ]
     },
@@ -14028,7 +14085,7 @@
       "labels": [],
       "body": "Propose names from my understanding of discussion call \r\n\r\nAnnounce (send by publisher)  , Annouce_OK, Annouce_Error\r\nUnAnnounce (send by publisher)  UnAnnounce_OK, UnAnnounce_Error \r\nAnnouce_End ( sent by thing that received Annouce) , AnnouceEnd_OK, AnnouceEnd_OK\r\n\r\nSubscribe (send by subscriber)  , Subscribe_OK,  Subscribe_Error\r\nUnSubscribe (send by subscriber)  , Subscribe_OK,  Subscribe_Error\r\nSubscribe_End (send by thing that received subscriber), Subscribe_OK,  Subscribe_Error\r\n\r\nMostly trying to get rid of FIN / RST and have different names for the messages that flow in opposite directions. ",
       "createdAt": "2024-02-21T18:00:40Z",
-      "updatedAt": "2024-02-22T03:28:47Z",
+      "updatedAt": "2024-02-28T16:19:42Z",
       "closedAt": null,
       "comments": [
         {
@@ -14058,6 +14115,27 @@
           "body": "Heh and UNANNOUNCE and UNSUBSCRIBE stick out because they don't share the same prefix.",
           "createdAt": "2024-02-22T03:28:46Z",
           "updatedAt": "2024-02-22T03:28:46Z"
+        },
+        {
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "I like the names being proposed as they help make make is easier to understand. \r\n\r\nI do want to separate out one issue. The STOP / CLOSE type thing happens way after the initial SUBSCRIBE thus it can end up in a situation where auth has expired or something else has gone wrong this I like the current design that allows an OK or ERROR to be returned for those. I think it is also key for sender of the things stoping the subscribe to know that the other side has acted on that so we need the OK. ",
+          "createdAt": "2024-02-27T14:25:47Z",
+          "updatedAt": "2024-02-27T14:25:47Z"
+        },
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I'm leaning towards CLOSED instead of CLOSE because CLOSE implies its a requested action, so to me SUBSCRIBE_CLOSE sounds like something the subscriber would send, not the publisher.\r\n\r\nFor a similar reason, I like CANCEL slightly better than STOP, but both work.\r\n\r\nUNANNOUNCE and UNSUBSCRIBE are good words, but I think it's better to follow a pattern in this case and I like @kixelated sequence of messages.",
+          "createdAt": "2024-02-28T15:47:43Z",
+          "updatedAt": "2024-02-28T15:47:43Z"
+        },
+        {
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "body": "@ianswett CANCEL and CLOSED are slightly better, sure.\r\n\r\n@fluffy there MUST still be an OK before objects can be sent. That way the receiver can tell upon receipt of the CLOSED if the subscription was ever active.",
+          "createdAt": "2024-02-28T16:19:40Z",
+          "updatedAt": "2024-02-28T16:19:40Z"
         }
       ]
     },
@@ -14078,6 +14156,89 @@
       "updatedAt": "2024-02-23T18:04:09Z",
       "closedAt": null,
       "comments": []
+    },
+    {
+      "number": 400,
+      "id": "I_kwDOG2Ho4M6AjVhV",
+      "title": "Hard to understand the big picture of how this works",
+      "url": "https://github.com/moq-wg/moq-transport/issues/400",
+      "state": "OPEN",
+      "author": "fluffy",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "I was reading the draft from the point of view of a new person that wanted to try and understand it and implement it. It's hard to get the big picture of what is happening as well as the corner cases. \r\n\r\nI think some call flow diagrams would really help people easily get what is going on. ",
+      "createdAt": "2024-02-27T14:30:38Z",
+      "updatedAt": "2024-02-28T16:28:08Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I have some call flows I have been using internally and happy to write up a PR on this .. I feel it will be super helpful ",
+          "createdAt": "2024-02-28T16:28:06Z",
+          "updatedAt": "2024-02-28T16:28:06Z"
+        }
+      ]
+    },
+    {
+      "number": 402,
+      "id": "I_kwDOG2Ho4M6Atzez",
+      "title": "State machine is not clear and is making draft harder to understand ",
+      "url": "https://github.com/moq-wg/moq-transport/issues/402",
+      "state": "OPEN",
+      "author": "fluffy",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Would be nice to add a publisher and subscriber and state machine in the draft.",
+      "createdAt": "2024-02-28T17:42:01Z",
+      "updatedAt": "2024-02-28T21:32:50Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "@fluffy to try and produce a straw man of what we have. ",
+          "createdAt": "2024-02-28T17:42:40Z",
+          "updatedAt": "2024-02-28T17:42:40Z"
+        },
+        {
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "# Subscriber State Machine\r\n\r\n```mermaid\r\nstateDiagram\r\n    Init --> Pending: Send Subscribe\r\n    Pending --> Done : Recv SubscribeError\r\n    Pending --> Active: Recv SubscribeOk\r\n    Active --> Active : Send SubscribeUpdate\\n Recv SubscribeUpdate Error/Ok\r\n    Active --> Done : Send Usubscribe    \r\n```    ",
+          "createdAt": "2024-02-28T21:31:28Z",
+          "updatedAt": "2024-02-28T21:31:28Z"
+        },
+        {
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "# Publisher State Machine\r\n\r\n```mermaid\r\nstateDiagram\r\n    Init --> Active: Recv Subscribe, Send SubscribeOk\r\n    Active --> Active: Recv SubscribeUpdate\\n  Send SubscribeUpdate Error/Ok\r\n    Active --> Done: Recv Unsubscribe\r\n    Active --> Done: Send SubscribeCancel\r\n```    ",
+          "createdAt": "2024-02-28T21:31:39Z",
+          "updatedAt": "2024-02-28T21:31:39Z"
+        },
+        {
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "# Announce Sender State\r\n\r\n```mermaid\r\nstateDiagram\r\n    Init --> Pending: Send Announce\r\n    Pending --> Active: Recv AnnounceOk\r\n    Pending --> Done: Recv AnnounceError\r\n    Active --> Done: Send Unannounce\r\n    Active --> Done: Recv AnnounceCancel\r\n    \r\n```    ",
+          "createdAt": "2024-02-28T21:31:52Z",
+          "updatedAt": "2024-02-28T21:31:52Z"
+        },
+        {
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "# Announce Receiver State\r\n\r\n```mermaid\r\nstateDiagram\r\n    Init --> Active: Recv Announce, \\nSend AnnounceOk\r\n    Active --> Done: Recv Unannounce\r\n    Active --> Done: Send AnnounceCancel \r\n    Init --> Done: Recv Announce, \\nSend AnnounceError\r\n    \r\n```  ",
+          "createdAt": "2024-02-28T21:32:06Z",
+          "updatedAt": "2024-02-28T21:32:06Z"
+        },
+        {
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "Once we get some consensu on these, I am happy to make a PR that puts them in the draft. ",
+          "createdAt": "2024-02-28T21:32:49Z",
+          "updatedAt": "2024-02-28T21:32:49Z"
+        }
+      ]
     }
   ],
   "pulls": [
@@ -47046,7 +47207,7 @@
     {
       "number": 381,
       "id": "PR_kwDOG2Ho4M5nIUMO",
-      "title": "Subscirber indicator on track readiness",
+      "title": "Subscriber indicator on track readiness",
       "url": "https://github.com/moq-wg/moq-transport/pull/381",
       "state": "OPEN",
       "author": "suhasHere",
@@ -47055,7 +47216,7 @@
       "labels": [],
       "body": "Attempts to address some of the usecases discussed in #372 \r\n\r\nLove to hear feedback",
       "createdAt": "2024-02-16T20:20:32Z",
-      "updatedAt": "2024-02-26T04:38:57Z",
+      "updatedAt": "2024-02-28T00:02:39Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "d8e0951dbe8d1f8d0186e59c0afd5e26cc858925",
@@ -47073,6 +47234,13 @@
           "body": "> A small nit, in calling , park and pickup are commonly used to mean something different than this that has to do with moving media from one device to another so I would prefer a name other than park. That said, I can live with park and I think we should merge this.\r\n\r\nUpdated to rename park to freeze.",
           "createdAt": "2024-02-24T06:39:38Z",
           "updatedAt": "2024-02-24T06:39:38Z"
+        },
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "TBH, I'm still not convinced we need this.  I feel like it's a fix for a problem we may have in the future, but we're unsure, because we haven't resolved a number of other details about how priorities, unreliability, etc work.",
+          "createdAt": "2024-02-28T00:02:37Z",
+          "updatedAt": "2024-02-28T00:02:37Z"
         }
       ],
       "reviews": [
@@ -47637,7 +47805,7 @@
     {
       "number": 385,
       "id": "PR_kwDOG2Ho4M5nUkw7",
-      "title": "Replace UNSUBSCRIBE with SUBSCRIBE_UPDATE",
+      "title": "Add SUBSCRIBE_UPDATE",
       "url": "https://github.com/moq-wg/moq-transport/pull/385",
       "state": "OPEN",
       "author": "ianswett",
@@ -47648,13 +47816,13 @@
       ],
       "body": "Fixes #363, Fixes #269\r\n\r\nThis attempts to provide the minimum functionality I expect we'll need, regardless of how SUBSCRIBE is changed in the near future.",
       "createdAt": "2024-02-19T19:05:04Z",
-      "updatedAt": "2024-02-26T18:13:00Z",
+      "updatedAt": "2024-02-28T17:03:46Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
-      "baseRefOid": "53746179d687d2b1903268d77cee8bcf445101b4",
+      "baseRefOid": "d8e0951dbe8d1f8d0186e59c0afd5e26cc858925",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "ianswett-subscribe-update",
-      "headRefOid": "6bb489e5d34c5bde144f56072500a5af068f837d",
+      "headRefOid": "938bc4c36c04c4a00849094381de9de0031b2ffa",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -47842,6 +48010,26 @@
               "body": "In the context of this PR and the current draft, where the only thing you can change is the end, this message is OK.  However, if we add more parameters to subscribe (eg #381), then we need a way to update some of the parameters and not others.\r\n\r\nWe should also clarify what happens if you issue the SUBSCRIBE twice for the same ID - I expect in this PR as is, we would make that an error?",
               "createdAt": "2024-02-26T18:12:39Z",
               "updatedAt": "2024-02-26T18:13:00Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5xp4ar",
+          "commit": {
+            "abbreviatedOid": "938bc4c"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-02-28T17:03:46Z",
+          "updatedAt": "2024-02-28T17:03:46Z",
+          "comments": [
+            {
+              "originalPosition": 59,
+              "body": "I do think updating the start is potentially interesting and useful.\r\n\r\nUpdates of the start should not be able to move the start point of the subscription earlier.  As you said, it's just too complex.  For similar reasons, I think updating the end to be farther in the future is error prone as well, though there may be use cases for that.",
+              "createdAt": "2024-02-28T17:03:46Z",
+              "updatedAt": "2024-02-28T17:03:46Z"
             }
           ]
         }
@@ -48850,6 +49038,187 @@
           "createdAt": "2024-02-21T04:02:48Z",
           "updatedAt": "2024-02-21T04:02:48Z",
           "comments": []
+        }
+      ]
+    },
+    {
+      "number": 401,
+      "id": "PR_kwDOG2Ho4M5oMQ4m",
+      "title": "Merge SUBSCRIBE_RESET and SUBSCRIBE_FIN ",
+      "url": "https://github.com/moq-wg/moq-transport/pull/401",
+      "state": "OPEN",
+      "author": "ianswett",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "This unifies on _CANCEL and _CLOSED.\r\n\r\nI didn't remove the _ERROR messages in favor of _CLOSED as @kixelated suggested, but I can.\r\n\r\nFixes #398 \r\nFixes #356\r\nFixes #310",
+      "createdAt": "2024-02-28T16:15:42Z",
+      "updatedAt": "2024-02-28T19:03:43Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "d8e0951dbe8d1f8d0186e59c0afd5e26cc858925",
+      "headRepository": "moq-wg/moq-transport",
+      "headRefName": "ianswett-better-naming",
+      "headRefOid": "928bc1bc81c2d5479d30a1324df72e85ab726268",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [
+        {
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "So my notes from this discussion. CLOSE is confusing with QUIC layer.  People seemed to prefer UNSUBSCRIBE over SUBSCRIBE_CLOSE. I love the move aware from RST and FIN as naming. \r\n\r\n",
+          "createdAt": "2024-02-28T17:31:57Z",
+          "updatedAt": "2024-02-28T17:31:57Z"
+        }
+      ],
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M5xpiXq",
+          "commit": {
+            "abbreviatedOid": "e97a5c7"
+          },
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "I like it.\r\n\r\nI would also like to merge ERROR with CLOSED, but we'll chat about that.",
+          "createdAt": "2024-02-28T16:23:57Z",
+          "updatedAt": "2024-02-28T16:23:57Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5xp0Za",
+          "commit": {
+            "abbreviatedOid": "87c2488"
+          },
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-02-28T16:57:21Z",
+          "updatedAt": "2024-02-28T16:57:22Z",
+          "comments": [
+            {
+              "originalPosition": 135,
+              "body": "So what are these error codes? It's important to identify what they are, and I don't think they're like the other error codes (because some of them are not really \"errors\" in the classic sense.\r\n\r\nIn fact, I'd prefer if we called them a \"status code\". As I commented in #356, I think there are numerous states the sender might wish to communicate:\r\n1) You got all of the objects in the range;\r\n2) You got almost all of the objects, but some were dropped for latency/bandwidth reasons\r\n3) The track was truncated for some reason\r\nand possibly, a relay might say:\r\n4) You got everything I have but i'm not sure if that's everything",
+              "createdAt": "2024-02-28T16:57:22Z",
+              "updatedAt": "2024-02-28T16:57:22Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5xp1Z6",
+          "commit": {
+            "abbreviatedOid": "87c2488"
+          },
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-02-28T16:58:47Z",
+          "updatedAt": "2024-02-28T16:58:48Z",
+          "comments": [
+            {
+              "originalPosition": 58,
+              "body": "I am not going to lie down in the road over this bikeshed, but I think Unsubscribe is a better word. It commonly understood as a subscriber-initiated verb, while SUBSCRIBE_CANCEL is a bit more ambiguous as to who initiates it, without reading the spec.",
+              "createdAt": "2024-02-28T16:58:47Z",
+              "updatedAt": "2024-02-28T16:58:48Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5xp1cV",
+          "commit": {
+            "abbreviatedOid": "87c2488"
+          },
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2024-02-28T16:58:52Z",
+          "updatedAt": "2024-02-28T16:58:52Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5xp4Yr",
+          "commit": {
+            "abbreviatedOid": "87c2488"
+          },
+          "author": "wilaw",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-02-28T17:03:42Z",
+          "updatedAt": "2024-02-28T17:03:43Z",
+          "comments": [
+            {
+              "originalPosition": 58,
+              "body": "I agree with Martin on this. UNSUBSCRIBE is clearly the semantic negation of SUBSCRIBE, while SUBSCRIBE_CANCEL leaves me with no intuitive understanding as to what is happening. ",
+              "createdAt": "2024-02-28T17:03:42Z",
+              "updatedAt": "2024-02-28T17:03:43Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5xp68L",
+          "commit": {
+            "abbreviatedOid": "87c2488"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-02-28T17:08:43Z",
+          "updatedAt": "2024-02-28T17:08:43Z",
+          "comments": [
+            {
+              "originalPosition": 58,
+              "body": "I am not pushing against the PR ,but slight preference on the names. But I can live with it \r\n\r\nMy preference would be\r\n\r\nSubscribe --> Unsubscribe (both sent by the subscriber)\r\nSubscribeCancel -> Sent by the publisher after sending an OK to subscribe\r\n",
+              "createdAt": "2024-02-28T17:08:43Z",
+              "updatedAt": "2024-02-28T17:08:43Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5xqqGB",
+          "commit": {
+            "abbreviatedOid": "87c2488"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-02-28T18:42:45Z",
+          "updatedAt": "2024-02-28T18:42:45Z",
+          "comments": [
+            {
+              "originalPosition": 58,
+              "body": "I renamed these back to UNSUBSCRIBE and UNANNOUNCE.",
+              "createdAt": "2024-02-28T18:42:45Z",
+              "updatedAt": "2024-02-28T18:42:45Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5xq3l5",
+          "commit": {
+            "abbreviatedOid": "87c2488"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-02-28T19:03:43Z",
+          "updatedAt": "2024-02-28T19:03:43Z",
+          "comments": [
+            {
+              "originalPosition": 135,
+              "body": "I renamed to \"status code\" and added some that seemed straightforward.  I'm not sure if 2, 3 and 4 should be status codes or something else.  Suggestions welcome.",
+              "createdAt": "2024-02-28T19:03:43Z",
+              "updatedAt": "2024-02-28T19:03:43Z"
+            }
+          ]
         }
       ]
     }
