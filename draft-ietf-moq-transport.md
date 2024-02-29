@@ -1418,7 +1418,7 @@ UNSUBSCRIBE Message {
   Subscribe ID (i)
 }
 ~~~
-{: #moq-transport-subscribe-cancel-format title="MOQT UNSUBSCRIBE Message"}
+{: #moq-transport-unsubscribe-format title="MOQT UNSUBSCRIBE Message"}
 
 * Subscribe ID: Subscription Identifer as defined in {{message-subscribe-req}}.
 
