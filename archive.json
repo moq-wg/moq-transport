@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2024-02-29T01:04:49.591830+00:00",
+  "timestamp": "2024-03-03T01:08:56.564969+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -10144,7 +10144,7 @@
       ],
       "body": "I'm (properly) implementing caching in my relay and need to know how long to cache an object.\r\n\r\nFor example, a catalog object should be cached until the session terminates. Meanwhile a media segment should only be cached for X seconds. The relay could evict the cache earlier than that, and possibly refetch the object if it's still within the advertised expires window.\r\n\r\nIt doesn't seem valid to have objects with different cache expirations in a group. For example, there's never a reason why you would expire the I-frame, but not the P-frames that depend on it. Expiration should ideally be a group property but there's no message to express that currently.",
       "createdAt": "2023-09-12T16:19:24Z",
-      "updatedAt": "2024-02-20T17:49:26Z",
+      "updatedAt": "2024-03-01T15:30:26Z",
       "closedAt": null,
       "comments": [
         {
@@ -10265,6 +10265,13 @@
           "body": "I think there are two different object time properties we need to consider - content expiration and cache expiration. The two are not the same. here is how I see them defined:\r\n\r\n**Expiration** - an absolute timestamp after which the content is invalid. It MUST NOT be delivered after this time and may be purged from cache or dropped if it is in a send queue. \r\n**Cache TTL** - a relative time that the content should be cached after receipt at any relay. This is a hint to the relays as to the period of time that storing this object would be useful. \r\n\r\nExamples (as set by publisher) \r\n\r\n- Real-time video conference stream: Expiration: now + 2000ms, Cache TTL 2000ms\r\n- Sports broadcast with 1hr DVR window; Expiration: now  + 3600000, cache TTL 3600000\r\n- VOD movie valid all year but cached for 30min: Expiration: now + 1314000000, cache TTL:1800000\r\n\r\nIf cacheTTL is not set, then relay MAY cache until expiration date.\r\nIf cacheTTL is set without any expiration date, and the cacheTTL has been exceeded, relay should renew the subscription before serving the content downstream. \r\n\r\nCaching at all times is a scaling and efficiency mechanism for avoiding trips upstream. It is decoupled from the core pub/sub behavior of moqt. Therefore any cacheTTL properties are suggestions to the relays and should not be relied upon. \r\n",
           "createdAt": "2024-02-20T17:49:25Z",
           "updatedAt": "2024-02-20T17:49:25Z"
+        },
+        {
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "Just want to flag that I think a bunch of this is really going the wrong direction but I don't want to discuss in an issue. I think we need a better way to make progress on this. ",
+          "createdAt": "2024-03-01T15:30:25Z",
+          "updatedAt": "2024-03-01T15:30:25Z"
         }
       ]
     },
@@ -13737,13 +13744,16 @@
       "state": "OPEN",
       "author": "afrind",
       "authorAssociation": "COLLABORATOR",
-      "assignees": [],
+      "assignees": [
+        "afrind"
+      ],
       "labels": [
+        "Needs PR",
         "Subscribe"
       ],
       "body": "This came up during interop - \r\n\r\nA relay received a subscribe with start={g=RelativeNext/0 o=Absolute/0}.  Since the relay had not received any objects, it defaulted largest to 0 and interpreted the subscribe as starting at {g=1, o=0}. When {g=0,o=0} arrived, it was not forwarded.  But there's a reasonable interpretation that it should have forwarded treated this as the beginning of the next subscription.\r\n\r\nThis is partially related to #337 and maybe #353",
       "createdAt": "2024-02-13T01:45:40Z",
-      "updatedAt": "2024-02-27T18:06:14Z",
+      "updatedAt": "2024-02-29T23:38:53Z",
       "closedAt": null,
       "comments": [
         {
@@ -13815,6 +13825,20 @@
           "body": "makes sense - thanks ",
           "createdAt": "2024-02-27T18:06:13Z",
           "updatedAt": "2024-02-27T18:06:13Z"
+        },
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "@afrind can you write some editorial text to clarify this if you have something in mind?",
+          "createdAt": "2024-02-29T15:36:08Z",
+          "updatedAt": "2024-02-29T15:36:08Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I tried to write some text, but I got confused.  Ignoring object locations for a second and just focusing on groups, I think this is what we want, but I'm unsure how to define \"current\" when there are no objects:\r\n\r\n| Requested Start Group | Requested End Group | Semantic | Does next seen object match subscription |\r\n| --- | --- | --- | --- |\r\n| RelativePrev/1 | RelativePrev/0 | All of the previous group | No |\r\n| RelativePrev/0 | RelativeNext/0 | All of the current group | ? |\r\n| RelativeNext/0 | RelativeNext/1 | All of the next group | ? |\r\n| RelativeNext/1 | RelativeNext/2 | All of the next+1 group | No |\r\n\r\nI think the simplest way to resolve this is to treat the next seen group ID as the \"next\" one and anything attempting to match only \"current\" matches either a) nothing or b) `max(0, next seen group ID - 1)`.  I recognize that b) may be controversial in that we don't require unitary increase in group IDs.  Practically I think subscribers should usually ask for [RelativePrev/0, None] (give me the current group if you know it or the next seen group if you don't).  \r\n\r\nIf we assume that the publisher only says \"ContentExists: false\" when it hasn't published anything, and relays only repeat this when they get it from publishers, then it's somewhat easier to assume that anything before \"next\" simply doesn't exist.  I'm unsure if this covers publisher restart cases well enough though.\r\n\r\nThere's also an asymmetry in this case in that there's no message to communicate how the relative requests were interpreted, as SUBSCRIBE_OK now does when the largest object is known.\r\n\r\nFurther, the algorithm for how to interpret relative object locations in groups with an unknown \"largest object\" may be even murkier, but let's agree what the groups mean and then move on to objects.",
+          "createdAt": "2024-02-29T23:38:52Z",
+          "updatedAt": "2024-02-29T23:38:52Z"
         }
       ]
     },
@@ -13939,7 +13963,7 @@
       ],
       "body": "Subscriptions always end with either SUBSCRIBE_FIN or SUBSCRIBE_RESET, except when they Expire and then no control message is sent.  This complicates the state machine and adds another case to handle.\r\n\r\nThe subscriber needs to start a timer or something similar to know when the subscription will end, and it doesn't get to know the final group or object ID.",
       "createdAt": "2024-02-19T20:36:31Z",
-      "updatedAt": "2024-02-19T23:46:40Z",
+      "updatedAt": "2024-02-29T15:34:06Z",
       "closedAt": null,
       "comments": [
         {
@@ -13955,6 +13979,13 @@
           "body": "I agree that a subscriber can deal with this field, but I don't know what purpose it serves for the publisher/relay?  It's different from an idle connection timeout, because assuming there is data flowing for the subscription, it would never go idle.\r\n\r\nUnlike QUIC, I don't see value in having a 'silent close' for subscriptions, because typically we expect subscriptions to have data flowing at a somewhat regular interval.\r\n\r\nAlso, there's no guarantee that the subscription will last until the expiry time, it can always end early with SUBSCRIBE_FIN or SUBSCRIBE_RESET.",
           "createdAt": "2024-02-19T23:46:39Z",
           "updatedAt": "2024-02-19T23:46:39Z"
+        },
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Based on last week's conversation, the Expires field doesn't change the state of the subscription by itself, a publisher would still have to send a FIN or RESET to close it.\r\n\r\nIt's still unclear as to what a subscriber should do with it.  There was a fair amount of discussion around refreshing one's authorization.  It's unclear if that would be done with a SUBSCRIBE_UPDATE or something similar or via UNSUBSCRIBE/SUBSCRIBE?",
+          "createdAt": "2024-02-29T15:34:05Z",
+          "updatedAt": "2024-02-29T15:34:05Z"
         }
       ]
     },
@@ -14012,7 +14043,7 @@
       ],
       "body": "It's unclear to me what objects a relay should prioritize or drop when congestion limited.  This is discussed in a few places, but I want to only focus on the question of what to send first and when to give up on sending an Object entirely.\r\n\r\nSpecific examples:\r\n\r\n1. Is there a point at which Objects from a subscription should no longer be transmitted?  If so, what determines that time?\r\n2. How does a relay decide whether to send the newest object or oldest?  Does it depend upon group boundaries?\r\n3. Can a relay infer that some Objects are droppable if they have lower priority than other Objects in the same group?\r\n\r\nMy strawman proposal is that subscriptions should have numerical priorities, so a relay knows whether it should send Objects from one subscription or another given limited bandwidth.  Additionally, subscriptions should have a TTL so relays know at what point they should stop retransmitting Objects.\r\n\r\n",
       "createdAt": "2024-02-20T03:08:57Z",
-      "updatedAt": "2024-02-28T07:59:19Z",
+      "updatedAt": "2024-02-29T17:27:10Z",
       "closedAt": null,
       "comments": [
         {
@@ -14070,6 +14101,13 @@
           "body": "Why are the semantics of SUBSCRIBE_UPDATE necessary? For the use case cited above, if you don't need groups <X, then UNSUBSCRIBE and SUBSCRIBE with STARTGROUP=X. Keeping subscriptions clean (single entry point, single exit, immutable after establishment) leads to more stable systems at scale. ",
           "createdAt": "2024-02-28T07:59:19Z",
           "updatedAt": "2024-02-28T07:59:19Z"
+        },
+        {
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "We discussed this for many months. I would rather get a bit of the other stuff nailed down before we open up all the prioritization stuff. ",
+          "createdAt": "2024-02-29T17:27:09Z",
+          "updatedAt": "2024-02-29T17:27:09Z"
         }
       ]
     },
@@ -14085,7 +14123,7 @@
       "labels": [],
       "body": "Propose names from my understanding of discussion call \r\n\r\nAnnounce (send by publisher)  , Annouce_OK, Annouce_Error\r\nUnAnnounce (send by publisher)  UnAnnounce_OK, UnAnnounce_Error \r\nAnnouce_End ( sent by thing that received Annouce) , AnnouceEnd_OK, AnnouceEnd_OK\r\n\r\nSubscribe (send by subscriber)  , Subscribe_OK,  Subscribe_Error\r\nUnSubscribe (send by subscriber)  , Subscribe_OK,  Subscribe_Error\r\nSubscribe_End (send by thing that received subscriber), Subscribe_OK,  Subscribe_Error\r\n\r\nMostly trying to get rid of FIN / RST and have different names for the messages that flow in opposite directions. ",
       "createdAt": "2024-02-21T18:00:40Z",
-      "updatedAt": "2024-02-28T16:19:42Z",
+      "updatedAt": "2024-02-29T17:30:19Z",
       "closedAt": null,
       "comments": [
         {
@@ -14136,6 +14174,20 @@
           "body": "@ianswett CANCEL and CLOSED are slightly better, sure.\r\n\r\n@fluffy there MUST still be an OK before objects can be sent. That way the receiver can tell upon receipt of the CLOSED if the subscription was ever active.",
           "createdAt": "2024-02-28T16:19:40Z",
           "updatedAt": "2024-02-28T16:19:40Z"
+        },
+        {
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "So to add an OK, we need to add another state. The question for me is what is the use case where we need to deliver that information in the end of the subscribe. ",
+          "createdAt": "2024-02-29T17:29:18Z",
+          "updatedAt": "2024-02-29T17:29:18Z"
+        },
+        {
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "This discusion is probably easier looking at #402 state machine diagrams ",
+          "createdAt": "2024-02-29T17:30:18Z",
+          "updatedAt": "2024-02-29T17:30:18Z"
         }
       ]
     },
@@ -14193,7 +14245,7 @@
       "labels": [],
       "body": "Would be nice to add a publisher and subscriber and state machine in the draft.",
       "createdAt": "2024-02-28T17:42:01Z",
-      "updatedAt": "2024-02-28T21:32:50Z",
+      "updatedAt": "2024-02-29T22:39:51Z",
       "closedAt": null,
       "comments": [
         {
@@ -14237,6 +14289,112 @@
           "body": "Once we get some consensu on these, I am happy to make a PR that puts them in the draft. ",
           "createdAt": "2024-02-28T21:32:49Z",
           "updatedAt": "2024-02-28T21:32:49Z"
+        },
+        {
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "I used Cancel in these, but later PR use Close for that message. I'd be happy with Cancel, Close, End, or something else. Just want to be clear that this was the same thing. ",
+          "createdAt": "2024-02-29T17:25:02Z",
+          "updatedAt": "2024-02-29T17:25:02Z"
+        },
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Receiving SubscribeCancel should transition the subscriber state machine to Done I believe, just like receiving Unannounce does.",
+          "createdAt": "2024-02-29T17:31:22Z",
+          "updatedAt": "2024-02-29T17:31:22Z"
+        },
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Personally, I'd rather have a single way to transition from Active to Done.\r\n\r\nFor example, In the subscribe case, I think sending unsubscribe shouldn't transition the subscription to Done.  Partially because I like to have all the data in the Closed message for monitoring/etc.\r\n\r\nI 'think' it could work either way and an implementation could chose to honor only one of the transitions instead of both if it wanted, but maybe there are potential issues I'm not considering.",
+          "createdAt": "2024-02-29T17:41:19Z",
+          "updatedAt": "2024-02-29T17:41:19Z"
+        },
+        {
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Bikeshedding: You have SubscribeCancel but I'm going to call it SubscribeClosed to be consistent with @ianswett's naming. His Cancel is actually Unsubscribe so it's extra confusing.\r\n\r\n> # Subscriber State Machine\r\n> ```mermaid\r\n> stateDiagram\r\n>     Init --> Pending: Send Subscribe\r\n>     Pending --> Done : Recv SubscribeError\r\n>     Pending --> Active: Recv SubscribeOk\r\n>     Active --> Active : Send SubscribeUpdate\\n Recv SubscribeUpdate Error/Ok\r\n>     Active --> Done : Send Usubscribe    \r\n> ```\r\n\r\nYou're missing the ability for the publisher to close after sending an OK. There needs to be a line from Active to Done after receiving a SubscribeClosed.\r\n\r\nAlso there's an state missing here where you sent an Unsubscribe but don't know the final group/object yet. It's optional, but I imagine it could be useful to wait for all the information (ex. for resumption). I'd like to require the publisher send SubscribeClosed after Unsubscribe to both acknowledge and provide the final group/object.\r\n\r\nNote that if we add end group/object to Unsubscribe, then there's yet another state missing. Unsubscribe with an end group would go into a \"closing\" state, where the subscription is still active, distinct from an unsubscribe with no end group. The subscriber would need a way to transition out of this state too (sending another unsubscribe?) which is why I slightly prefer SubscribeUpdate @wilaw.\r\n\r\nAlso this is a separate issue, but what happens after SubscribeUpdate error? I think it will get hairy if the subscribe stays open using the previous state; I'd rather close it.\r\n\r\n> # Publisher State Machine\r\n> ```mermaid\r\n> stateDiagram\r\n>     Init --> Active: Recv Subscribe, Send SubscribeOk\r\n>     Active --> Active: Recv SubscribeUpdate\\n  Send SubscribeUpdate Error/Ok\r\n>     Active --> Done: Recv Unsubscribe\r\n>     Active --> Done: Send SubscribeCancel\r\n> ```\r\n\r\nMissing the ability to send SubscribeError.\r\n\r\nAs mentioned above I would like to send SubscribeClosed after receiving Unsubscribe.\r\n\r\nThese are nearly the same as my proposal but I'd like to combine SubscribeError with SubscribeClosed.",
+          "createdAt": "2024-02-29T18:39:46Z",
+          "updatedAt": "2024-02-29T22:39:51Z"
+        }
+      ]
+    },
+    {
+      "number": 403,
+      "id": "I_kwDOG2Ho4M6A2NM7",
+      "title": "No way to prioritize one track above another",
+      "url": "https://github.com/moq-wg/moq-transport/issues/403",
+      "state": "OPEN",
+      "author": "ianswett",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [
+        "Subscribe"
+      ],
+      "body": "For low latency audio and video, it's helpful to be able to prioritize one track over another, whether it's audio vs video or one quality of video vs another quality of video.\r\n\r\nThis prioritization can be very helpful for ABR as well.  One might want to request the next quality up in hopes of upswitching, but continue playing the current quality until it's clear the next quality can be delivered, so the higher quality should be lower priority.\r\n\r\nThis is somewhat related to #396",
+      "createdAt": "2024-02-29T16:50:47Z",
+      "updatedAt": "2024-03-01T15:24:01Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "100% agree we need to be able to do this. ",
+          "createdAt": "2024-02-29T17:22:39Z",
+          "updatedAt": "2024-02-29T17:22:39Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Individual Comment: \r\n\r\nOne design consideration here is who can influence the prioritization.  In HTTP both the client and the origin server can send a signal, but the server (or terminating proxy) gets the final say.  \r\n\r\nWe have sendOrder/priority field which today is 100% publisher controlled.  How would a track level priority construct interact with this?",
+          "createdAt": "2024-02-29T23:54:36Z",
+          "updatedAt": "2024-02-29T23:54:36Z"
+        },
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> Individual Comment:\r\n> \r\n> One design consideration here is who can influence the prioritization. In HTTP both the client and the origin server can send a signal, but the server (or terminating proxy) gets the final say.\r\n> \r\n> We have sendOrder/priority field which today is 100% publisher controlled. How would a track level priority construct interact with this?\r\n\r\nBased on the use cases I can think of, I was thinking the subscriber requested priority is considered first, and then the publisher controlled priority is considered.\r\n",
+          "createdAt": "2024-03-01T15:23:12Z",
+          "updatedAt": "2024-03-01T15:24:01Z"
+        }
+      ]
+    },
+    {
+      "number": 404,
+      "id": "I_kwDOG2Ho4M6A-GZw",
+      "title": "ContentExists makes messages hard to parse",
+      "url": "https://github.com/moq-wg/moq-transport/issues/404",
+      "state": "OPEN",
+      "author": "mengelbart",
+      "authorAssociation": "NONE",
+      "assignees": [],
+      "labels": [],
+      "body": "#343 and #389 introduced a `ContentExists` field to SUBSCRIBE_OK, SUBSCRIBE_FIN, and SUBSCRIBE_RESET. If I read the notation correctly, it has a size of 1 bit, which makes it hard to parse the rest of the message. Could we encode that information in the message type by using two types per message instead of a 1-bit field?",
+      "createdAt": "2024-03-01T16:37:00Z",
+      "updatedAt": "2024-03-02T06:09:46Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I think the intent is that it is one *byte* not one bit.",
+          "createdAt": "2024-03-01T17:40:06Z",
+          "updatedAt": "2024-03-01T17:40:06Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Maybe it should have been:\r\n\r\n```\r\n...\r\nContentExists (1),\r\nUnused (7),\r\n...\r\n```",
+          "createdAt": "2024-03-01T17:41:20Z",
+          "updatedAt": "2024-03-01T17:41:20Z"
+        },
+        {
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "body": "or just a byte field with only 2 possible values allowed (1) and (0) .. ",
+          "createdAt": "2024-03-02T06:09:45Z",
+          "updatedAt": "2024-03-02T06:09:45Z"
         }
       ]
     }
@@ -45405,7 +45563,7 @@
       "labels": [],
       "body": "This PR attempts to support the requirements needed for #318 and #244 ",
       "createdAt": "2023-11-08T15:09:47Z",
-      "updatedAt": "2024-01-17T17:18:25Z",
+      "updatedAt": "2024-02-29T17:24:03Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "00f924c3d59a9ec6d4ae78598e0d397d83cd7ed5",
@@ -45485,6 +45643,58 @@
               "body": "We should remove the object mode because like this paragraph outlines, it provides duplicate functionality.\r\n\r\nHowever the `END` message MUST/SHOULD be sent for the end of each track/group, otherwise a receiver can't rely on it.",
               "createdAt": "2023-11-14T00:54:39Z",
               "updatedAt": "2023-11-14T00:58:18Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5xz6oj",
+          "commit": {
+            "abbreviatedOid": "dbfea7e"
+          },
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "CHANGES_REQUESTED",
+          "body": "",
+          "createdAt": "2024-02-29T17:08:20Z",
+          "updatedAt": "2024-02-29T17:10:38Z",
+          "comments": [
+            {
+              "originalPosition": 41,
+              "body": "This is in the data plane and does not change the subscription. That allows it to indicate the end of each group as well as the end of track. But even when using it for end of track, imagine a care where things are out of order. Lets say group 100 is the last one, group 99 may still arriver after the END object. The END object just tells you what the publisher is saying is the last object in the group or track. We could do this with flags in the object but that has other problems. ",
+              "createdAt": "2024-02-29T17:08:20Z",
+              "updatedAt": "2024-02-29T17:10:38Z"
+            },
+            {
+              "originalPosition": 22,
+              "body": "This needs more information to explain how this is differnt than what is happening with SUBSCRIBES and that relays need to cache this information and deliver it. I feel like it might be better done as as a special type of object. ",
+              "createdAt": "2024-02-29T17:09:26Z",
+              "updatedAt": "2024-02-29T17:10:38Z"
+            },
+            {
+              "originalPosition": 54,
+              "body": "I agree with Luke on this should not be optional",
+              "createdAt": "2024-02-29T17:10:18Z",
+              "updatedAt": "2024-02-29T17:10:38Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5x0CU3",
+          "commit": {
+            "abbreviatedOid": "dbfea7e"
+          },
+          "author": "wilaw",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-02-29T17:24:02Z",
+          "updatedAt": "2024-02-29T17:24:03Z",
+          "comments": [
+            {
+              "originalPosition": 54,
+              "body": "I think we should signal the end of publication of a track, but it should not apply at the GROUP level otherwise we have a very chatty protocol. \r\n\r\nFurthermore, END can be scoped at multiple different layers. It think this should apply specifically to tracks and that it should look like this:\r\n\r\nTRACK_END\r\n{\r\n   Track Namespace (b),\r\n   Track Name (b),\r\n   LastGroup (Location),\r\n   LastObject (Location),\r\n}",
+              "createdAt": "2024-02-29T17:24:02Z",
+              "updatedAt": "2024-02-29T17:24:16Z"
             }
           ]
         }
@@ -47816,7 +48026,7 @@
       ],
       "body": "Fixes #363, Fixes #269\r\n\r\nThis attempts to provide the minimum functionality I expect we'll need, regardless of how SUBSCRIBE is changed in the near future.",
       "createdAt": "2024-02-19T19:05:04Z",
-      "updatedAt": "2024-02-28T17:03:46Z",
+      "updatedAt": "2024-02-29T16:55:47Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "d8e0951dbe8d1f8d0186e59c0afd5e26cc858925",
@@ -48030,6 +48240,80 @@
               "body": "I do think updating the start is potentially interesting and useful.\r\n\r\nUpdates of the start should not be able to move the start point of the subscription earlier.  As you said, it's just too complex.  For similar reasons, I think updating the end to be farther in the future is error prone as well, though there may be use cases for that.",
               "createdAt": "2024-02-28T17:03:46Z",
               "updatedAt": "2024-02-28T17:03:46Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5xzmMF",
+          "commit": {
+            "abbreviatedOid": "938bc4c"
+          },
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "CHANGES_REQUESTED",
+          "body": "My main comment is I don't think we shoudl try and use UPDATE as the way we do UNSUSCRIBE ",
+          "createdAt": "2024-02-29T16:32:55Z",
+          "updatedAt": "2024-02-29T16:55:47Z",
+          "comments": [
+            {
+              "originalPosition": 40,
+              "body": "I think the \"end of existing\" should say the \"end of the subscription range\". ",
+              "createdAt": "2024-02-29T16:32:55Z",
+              "updatedAt": "2024-02-29T16:55:47Z"
+            },
+            {
+              "originalPosition": 41,
+              "body": "I don't think this is right. The update should just be to change the metadata about the subscribe, not change the state of the subscribe. We should use some other message to cause the SUSBCRIBE to end and remove all the state about the SUBSCRIBE. ",
+              "createdAt": "2024-02-29T16:36:22Z",
+              "updatedAt": "2024-02-29T16:55:47Z"
+            },
+            {
+              "originalPosition": 29,
+              "body": "I think we need both the UNSUBSCRIBE and UPDATE ( or whatever names we decide to call them ). ",
+              "createdAt": "2024-02-29T16:37:52Z",
+              "updatedAt": "2024-02-29T16:55:47Z"
+            },
+            {
+              "originalPosition": 43,
+              "body": "I think this should be an UPDATE_OK/ERROR. Don't care if it is two message or not. But should be clear that if some part of the UPDATE can not be applied, then no part of the update is applied, subscribe stays with same meta data as before, and error returned. So an update is all or nothing. ",
+              "createdAt": "2024-02-29T16:40:17Z",
+              "updatedAt": "2024-02-29T16:55:47Z"
+            },
+            {
+              "originalPosition": 51,
+              "body": "Uh, I think this needs to be UNSUBSCRIBE or whatever the  SUBSCRIBE CLOSE/STOP/FIN/RST/END is called ",
+              "createdAt": "2024-02-29T16:41:44Z",
+              "updatedAt": "2024-02-29T16:55:47Z"
+            },
+            {
+              "originalPosition": 59,
+              "body": "+1 on start can only be moved forward, end can only be moved backwards",
+              "createdAt": "2024-02-29T16:43:35Z",
+              "updatedAt": "2024-02-29T16:55:47Z"
+            },
+            {
+              "originalPosition": 59,
+              "body": "As a side note where I don't really care ... I'm not sure the use case to move the start forward",
+              "createdAt": "2024-02-29T16:44:29Z",
+              "updatedAt": "2024-02-29T16:55:47Z"
+            },
+            {
+              "originalPosition": 61,
+              "body": "This is not a location this shoudl be an optional var int",
+              "createdAt": "2024-02-29T16:45:56Z",
+              "updatedAt": "2024-02-29T16:55:47Z"
+            },
+            {
+              "originalPosition": 62,
+              "body": "This should be var int not Location ",
+              "createdAt": "2024-02-29T16:46:08Z",
+              "updatedAt": "2024-02-29T16:55:47Z"
+            },
+            {
+              "originalPosition": 71,
+              "body": "I would prefer to make the end group / object optional in the update instead of having a None value. I think it makes a better patter for how to add future things to the update. ",
+              "createdAt": "2024-02-29T16:54:58Z",
+              "updatedAt": "2024-02-29T16:55:47Z"
             }
           ]
         }
@@ -49051,15 +49335,15 @@
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [],
-      "body": "This unifies on _CANCEL and _CLOSED.\r\n\r\nI didn't remove the _ERROR messages in favor of _CLOSED as @kixelated suggested, but I can.\r\n\r\nFixes #398 \r\nFixes #356\r\nFixes #310",
+      "body": "Into SUBSCRIBE_CLOSED.\r\n\r\nI didn't remove the SUBSCRIBE_ERROR message in favor of SUBSCRIBE_CLOSED as @kixelated suggested in this PR.\r\n\r\nFixes #398 \r\nFixes #356\r\nFixes #310",
       "createdAt": "2024-02-28T16:15:42Z",
-      "updatedAt": "2024-02-28T19:03:43Z",
+      "updatedAt": "2024-03-01T00:15:16Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "d8e0951dbe8d1f8d0186e59c0afd5e26cc858925",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "ianswett-better-naming",
-      "headRefOid": "928bc1bc81c2d5479d30a1324df72e85ab726268",
+      "headRefOid": "04fcf9d162885c50416f78b6b7d2c6363947dae1",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -49217,6 +49501,198 @@
               "body": "I renamed to \"status code\" and added some that seemed straightforward.  I'm not sure if 2, 3 and 4 should be status codes or something else.  Suggestions welcome.",
               "createdAt": "2024-02-28T19:03:43Z",
               "updatedAt": "2024-02-28T19:03:43Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5xumTH",
+          "commit": {
+            "abbreviatedOid": "928bc1b"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "CHANGES_REQUESTED",
+          "body": "Thanks Ian .. Overall it looks fine except for using SubscribeClosed as a response for Unsubsubscrib.\r\n \r\nAlso another nit, I preferred SubscribeEnded better than closed since it seems more easy to think when you read the name",
+          "createdAt": "2024-02-29T06:11:12Z",
+          "updatedAt": "2024-02-29T06:13:55Z",
+          "comments": [
+            {
+              "originalPosition": 57,
+              "body": "I don't think we need a response for Unsubscribe . The data path should carry the information on the final group/object. ",
+              "createdAt": "2024-02-29T06:11:12Z",
+              "updatedAt": "2024-02-29T06:13:55Z"
+            },
+            {
+              "originalPosition": 66,
+              "body": "I think this should be renamed to unsubscribe.",
+              "createdAt": "2024-02-29T06:11:37Z",
+              "updatedAt": "2024-02-29T06:13:55Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5xy0fX",
+          "commit": {
+            "abbreviatedOid": "928bc1b"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-02-29T15:12:56Z",
+          "updatedAt": "2024-02-29T15:12:57Z",
+          "comments": [
+            {
+              "originalPosition": 85,
+              "body": "s/SUBSCRIBE_CLOSED/SUBSCRIBE_ENDED to have naming not to conflate with underlying transport usages",
+              "createdAt": "2024-02-29T15:12:56Z",
+              "updatedAt": "2024-02-29T15:13:27Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5xzR-R",
+          "commit": {
+            "abbreviatedOid": "928bc1b"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-02-29T15:58:06Z",
+          "updatedAt": "2024-02-29T15:58:06Z",
+          "comments": [
+            {
+              "originalPosition": 57,
+              "body": "Putting it in the data path makes sense if it's going to be cached and it's \"Part of the track\", but for state that's specific to a subscription, like the last Object sent, I think its makes more sense for it to be in subscription specific messages.",
+              "createdAt": "2024-02-29T15:58:06Z",
+              "updatedAt": "2024-02-29T15:58:06Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5xzSW4",
+          "commit": {
+            "abbreviatedOid": "928bc1b"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-02-29T15:58:43Z",
+          "updatedAt": "2024-02-29T15:58:43Z",
+          "comments": [
+            {
+              "originalPosition": 66,
+              "body": "```suggestion\r\n{: #moq-transport-unsubscribe-format title=\"MOQT UNSUBSCRIBE Message\"}\r\n```",
+              "createdAt": "2024-02-29T15:58:43Z",
+              "updatedAt": "2024-02-29T15:58:43Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5xzTJY",
+          "commit": {
+            "abbreviatedOid": "928bc1b"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-02-29T16:00:03Z",
+          "updatedAt": "2024-02-29T16:00:04Z",
+          "comments": [
+            {
+              "originalPosition": 66,
+              "body": "Good catch, fixed.",
+              "createdAt": "2024-02-29T16:00:03Z",
+              "updatedAt": "2024-02-29T16:00:04Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5xz9_a",
+          "commit": {
+            "abbreviatedOid": "04fcf9d"
+          },
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "CHANGES_REQUESTED",
+          "body": "",
+          "createdAt": "2024-02-29T17:14:54Z",
+          "updatedAt": "2024-02-29T17:16:26Z",
+          "comments": [
+            {
+              "originalPosition": 30,
+              "body": "I don't know what causes this one on a relay. ",
+              "createdAt": "2024-02-29T17:14:54Z",
+              "updatedAt": "2024-02-29T17:16:26Z"
+            },
+            {
+              "originalPosition": 28,
+              "body": "Just becasue a track has ended does not mean all the data has been delivered. I don't know how a relay would know when it could send this. I think it is better for the subscriber to just unsubscribe once it has the data. To put this more specifically, I don't know how a relay would be able to know when to send this. ",
+              "createdAt": "2024-02-29T17:16:18Z",
+              "updatedAt": "2024-02-29T17:16:26Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5x2XVV",
+          "commit": {
+            "abbreviatedOid": "04fcf9d"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-03-01T00:03:03Z",
+          "updatedAt": "2024-03-01T00:03:04Z",
+          "comments": [
+            {
+              "originalPosition": 28,
+              "body": "> I don't know how a relay would be able to know when to send this.\r\n\r\nA relay could send it when it receives a SUBSCRIBE_CLOSE from the publisher with code=Track Ended?",
+              "createdAt": "2024-03-01T00:03:04Z",
+              "updatedAt": "2024-03-01T00:03:04Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5x2ZS-",
+          "commit": {
+            "abbreviatedOid": "04fcf9d"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-03-01T00:13:28Z",
+          "updatedAt": "2024-03-01T00:13:28Z",
+          "comments": [
+            {
+              "originalPosition": 30,
+              "body": "You delivered all the requested data up to the end Object and Group.",
+              "createdAt": "2024-03-01T00:13:28Z",
+              "updatedAt": "2024-03-01T00:13:28Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5x2ZoB",
+          "commit": {
+            "abbreviatedOid": "04fcf9d"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-03-01T00:15:16Z",
+          "updatedAt": "2024-03-01T00:15:16Z",
+          "comments": [
+            {
+              "originalPosition": 28,
+              "body": "I have mixed feelings about this one, so I'd be happy to remove it if we think the track end should be explicit in the Object model.  If so, we could just use Subscription Ended when the track ends.",
+              "createdAt": "2024-03-01T00:15:16Z",
+              "updatedAt": "2024-03-01T00:15:16Z"
             }
           ]
         }
