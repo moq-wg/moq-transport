@@ -1354,6 +1354,7 @@ SUBSCRIBE_OK
   Subscribe ID (i),
   Expires (i),
   ContentExists (1),
+  Unused (7),
   [Largest Group ID (i)],
   [Largest Object ID (i)]
 }
@@ -1369,6 +1370,8 @@ until it is explicitly unsubscribed.
 * ContentExists: 1 if an object has been published on this track, 0 if not.
 If 0, then the Largest Group ID and Largest Object ID fields will not be
 present.
+
+* Unused: Set to zero on sending, ignored on receiving.
 
 * Largest Group ID: the largest Group ID available for this track. This field is only present if ContentExists has a value of 1.
 
