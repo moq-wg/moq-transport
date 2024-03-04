@@ -5,13 +5,13 @@
 MOQ                                                            L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 1 September 2024                                           Meta
+Expires: 5 September 2024                                           Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                        29 February 2024
+                                                            4 March 2024
 
 
                        Media over QUIC Transport
@@ -53,7 +53,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 1 September 2024.
+   This Internet-Draft will expire on 5 September 2024.
 
 Copyright Notice
 
@@ -121,7 +121,7 @@ Table of Contents
      6.5.  SUBSCRIBE_OK
      6.6.  SUBSCRIBE_ERROR
      6.7.  UNSUBSCRIBE
-     6.8.  SUBSCRIBE_CLOSED
+     6.8.  SUBSCRIBE_DONE
      6.9.  ANNOUNCE
      6.10. ANNOUNCE_OK
      6.11. ANNOUNCE_ERROR
@@ -694,7 +694,7 @@ Table of Contents
    within the subscription range is forwarded to each active subscriber,
    dependent on the congestion response.  A subscription remains active
    until it expires, until the publisher of the track terminates the
-   track with a SUBSCRIBE_CLOSED (see Section 6.8).
+   track with a SUBSCRIBE_DONE (see Section 6.8).
 
    Objects MUST NOT be sent for unsuccessful subscriptions, and if a
    subscriber receives a SUBSCRIBE_ERROR after receiving objects, it
@@ -726,7 +726,7 @@ Table of Contents
 
                                  Table 2
 
-   The applicaiton SHOULD use a relevant status code in SUBSCRIBE_CLOSE,
+   The applicaiton SHOULD use a relevant status code in SUBSCRIBE_DONE,
    as defined below:
 
                        +======+====================+
@@ -850,7 +850,7 @@ Table of Contents
               +------+-------------------------------------+
               |  0xA | UNSUBSCRIBE (Section 6.7)           |
               +------+-------------------------------------+
-              |  0xB | SUBSCRIBE_CLOSED (Section 6.8)      |
+              |  0xB | SUBSCRIBE_DONE (Section 6.8)        |
               +------+-------------------------------------+
               | 0x10 | GOAWAY (Section 6.14)               |
               +------+-------------------------------------+
@@ -1472,7 +1472,7 @@ Table of Contents
    A subscriber issues a UNSUBSCRIBE message to a publisher indicating
    it is no longer interested in receiving media for the specified track
    and Objects should stop being sent as soon as possible.  The
-   publisher sends a SUBSCRIBE_CLOSED to acknowledge the unsubscribe was
+   publisher sends a SUBSCRIBE_DONE to acknowledge the unsubscribe was
    successful and indicate the final Object.
 
    The format of UNSUBSCRIBE is as follows:
@@ -1485,15 +1485,15 @@ Table of Contents
 
    *  Subscribe ID: Subscription Identifer as defined in Section 6.4.
 
-6.8.  SUBSCRIBE_CLOSED
+6.8.  SUBSCRIBE_DONE
 
-   A publisher issues a SUBSCRIBE_CLOSED message to indicate it is done
+   A publisher issues a SUBSCRIBE_DONE message to indicate it is done
    publishing Objects for that subscription.  The Status Code indicates
    why the subscription ended, and whether it was an error.
 
-   The format of SUBSCRIBE_CLOSED is as follows:
+   The format of SUBSCRIBE_DONE is as follows:
 
-   SUBSCRIBE_CLOSED Message {
+   SUBSCRIBE_DONE Message {
      Subscribe ID (i),
      Status Code (i),
      Reason Phrase (b),
@@ -1502,7 +1502,7 @@ Table of Contents
      [Final Object (i)],
    }
 
-                  Figure 15: MOQT SUBSCRIBE_CLOSED Message
+                   Figure 15: MOQT SUBSCRIBE_DONE Message
 
    *  Subscribe ID: Subscription identifier as defined in Section 6.4.
 

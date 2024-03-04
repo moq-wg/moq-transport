@@ -18,12 +18,12 @@ media to publish data and have it consumed via subscription by a
 multiplicity of endpoints. It supports intermediate content distribution
 networks and is designed for high scale and low latency distribution. 
     " name="description">
-<meta content="xml2rfc 3.19.4" name="generator">
+<meta content="xml2rfc 3.20.0" name="generator">
 <meta content="Internet-Draft" name="keyword">
 <meta content="draft-ietf-moq-transport-latest" name="ietf.draft">
 <!-- Generator version information:
-  xml2rfc 3.19.4
-    Python 3.11.6
+  xml2rfc 3.20.0
+    Python 3.11.8
     ConfigArgParse 1.7
     google-i18n-address 3.1.0
     intervaltree 3.1.0
@@ -1034,11 +1034,11 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <thead><tr>
 <td class="left">Internet-Draft</td>
 <td class="center">moq-transport</td>
-<td class="right">February 2024</td>
+<td class="right">March 2024</td>
 </tr></thead>
 <tfoot><tr>
 <td class="left">Curley, et al.</td>
-<td class="center">Expires 1 September 2024</td>
+<td class="center">Expires 5 September 2024</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1051,12 +1051,12 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dd class="internet-draft">draft-ietf-moq-transport-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2024-02-29" class="published">29 February 2024</time>
+<time datetime="2024-03-04" class="published">4 March 2024</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2024-09-01">1 September 2024</time></dd>
+<dd class="expires"><time datetime="2024-09-05">5 September 2024</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1123,7 +1123,7 @@ networks and is designed for high scale and low latency distribution.<a href="#s
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 1 September 2024.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 5 September 2024.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1329,7 +1329,7 @@ networks and is designed for high scale and low latency distribution.<a href="#s
                 <p id="section-toc.1-1.6.2.7.1"><a href="#section-6.7" class="auto internal xref">6.7</a>.  <a href="#name-unsubscribe" class="internal xref">UNSUBSCRIBE</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.8">
-                <p id="section-toc.1-1.6.2.8.1"><a href="#section-6.8" class="auto internal xref">6.8</a>.  <a href="#name-subscribe_closed" class="internal xref">SUBSCRIBE_CLOSED</a></p>
+                <p id="section-toc.1-1.6.2.8.1"><a href="#section-6.8" class="auto internal xref">6.8</a>.  <a href="#name-subscribe_done" class="internal xref">SUBSCRIBE_DONE</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.9">
                 <p id="section-toc.1-1.6.2.9.1"><a href="#section-6.9" class="auto internal xref">6.9</a>.  <a href="#name-announce" class="internal xref">ANNOUNCE</a></p>
@@ -2114,8 +2114,8 @@ subscribers for each track. Each new OBJECT belonging to the
 track within the subscription range is forwarded to each active
 subscriber, dependent on the congestion response. A subscription
 remains active until it expires, until the publisher of the track
-terminates the track with a SUBSCRIBE_CLOSED
-(see <a href="#message-subscribe-closed" class="auto internal xref">Section 6.8</a>).<a href="#section-5.1-3" class="pilcrow">¶</a></p>
+terminates the track with a SUBSCRIBE_DONE
+(see <a href="#message-subscribe-done" class="auto internal xref">Section 6.8</a>).<a href="#section-5.1-3" class="pilcrow">¶</a></p>
 <p id="section-5.1-4">Objects <span class="bcp14">MUST NOT</span> be sent for unsuccessful subscriptions, and if a subscriber
 receives a SUBSCRIBE_ERROR after receiving objects, it <span class="bcp14">MUST</span> close the session
 with a 'Protocol Violation'.<a href="#section-5.1-4" class="pilcrow">¶</a></p>
@@ -2152,7 +2152,7 @@ as defined below:<a href="#section-5.1-7" class="pilcrow">¶</a></p>
           </tbody>
         </table>
 <p id="section-5.1-9">The applicaiton <span class="bcp14">SHOULD</span> use a relevant status code in
-SUBSCRIBE_CLOSE, as defined below:<a href="#section-5.1-9" class="pilcrow">¶</a></p>
+SUBSCRIBE_DONE, as defined below:<a href="#section-5.1-9" class="pilcrow">¶</a></p>
 <table class="center" id="table-3">
           <caption><a href="#table-3" class="selfRef">Table 3</a></caption>
 <thead>
@@ -2338,7 +2338,7 @@ MOQT Message {
           </tr>
           <tr>
             <td class="text-right" rowspan="1" colspan="1">0xB</td>
-            <td class="text-left" rowspan="1" colspan="1">SUBSCRIBE_CLOSED (<a href="#message-subscribe-closed" class="auto internal xref">Section 6.8</a>)</td>
+            <td class="text-left" rowspan="1" colspan="1">SUBSCRIBE_DONE (<a href="#message-subscribe-done" class="auto internal xref">Section 6.8</a>)</td>
           </tr>
           <tr>
             <td class="text-right" rowspan="1" colspan="1">0x10</td>
@@ -3124,7 +3124,7 @@ the receiver <span class="bcp14">MUST</span> close the connection with a Duplica
 <p id="section-6.7-1">A subscriber issues a <code>UNSUBSCRIBE</code> message to a publisher indicating it is no
 longer interested in receiving media for the specified track and Objects
 should stop being sent as soon as possible.  The publisher sends a
-SUBSCRIBE_CLOSED to acknowledge the unsubscribe was successful and indicate
+SUBSCRIBE_DONE to acknowledge the unsubscribe was successful and indicate
 the final Object.<a href="#section-6.7-1" class="pilcrow">¶</a></p>
 <p id="section-6.7-2">The format of <code>UNSUBSCRIBE</code> is as follows:<a href="#section-6.7-2" class="pilcrow">¶</a></p>
 <span id="name-moqt-unsubscribe-message"></span><div id="moq-transport-unsubscribe-format">
@@ -3147,20 +3147,20 @@ UNSUBSCRIBE Message {
         </ul>
 </section>
 </div>
-<div id="message-subscribe-closed">
+<div id="message-subscribe-done">
 <section id="section-6.8">
-        <h3 id="name-subscribe_closed">
-<a href="#section-6.8" class="section-number selfRef">6.8. </a><a href="#name-subscribe_closed" class="section-name selfRef">SUBSCRIBE_CLOSED</a>
+        <h3 id="name-subscribe_done">
+<a href="#section-6.8" class="section-number selfRef">6.8. </a><a href="#name-subscribe_done" class="section-name selfRef">SUBSCRIBE_DONE</a>
         </h3>
-<p id="section-6.8-1">A publisher issues a <code>SUBSCRIBE_CLOSED</code> message to indicate it
+<p id="section-6.8-1">A publisher issues a <code>SUBSCRIBE_DONE</code> message to indicate it
 is done publishing Objects for that subscription.  The Status Code indicates why
 the subscription ended, and whether it was an error.<a href="#section-6.8-1" class="pilcrow">¶</a></p>
-<p id="section-6.8-2">The format of <code>SUBSCRIBE_CLOSED</code> is as follows:<a href="#section-6.8-2" class="pilcrow">¶</a></p>
-<span id="name-moqt-subscribe_closed-messa"></span><div id="moq-transport-subscribe-fin-format">
+<p id="section-6.8-2">The format of <code>SUBSCRIBE_DONE</code> is as follows:<a href="#section-6.8-2" class="pilcrow">¶</a></p>
+<span id="name-moqt-subscribe_done-message"></span><div id="moq-transport-subscribe-fin-format">
 <figure id="figure-15">
           <div class="alignLeft art-text artwork" id="section-6.8-3.1">
 <pre>
-SUBSCRIBE_CLOSED Message {
+SUBSCRIBE_DONE Message {
   Subscribe ID (i),
   Status Code (i),
   Reason Phrase (b),
@@ -3171,7 +3171,7 @@ SUBSCRIBE_CLOSED Message {
 </pre>
 </div>
 <figcaption><a href="#figure-15" class="selfRef">Figure 15</a>:
-<a href="#name-moqt-subscribe_closed-messa" class="selfRef">MOQT SUBSCRIBE_CLOSED Message</a>
+<a href="#name-moqt-subscribe_done-message" class="selfRef">MOQT SUBSCRIBE_DONE Message</a>
           </figcaption></figure>
 </div>
 <ul class="normal">
