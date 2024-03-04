@@ -1614,6 +1614,15 @@ has a length of L<a href="#section-1.3-3.10.1" class="pilcrow">¶</a></p>
 described in (<span>[<a href="#RFC9000" class="cite xref">RFC9000</a>], <a href="https://rfc-editor.org/rfc/rfc9000#section-16" class="relref">Section 16</a></span>), followed by that many bytes
 of binary data<a href="#section-1.3-5.2.1" class="pilcrow">¶</a></p>
 </dd>
+          <dd class="break"></dd>
+<dt id="section-1.3-5.3">x (f):</dt>
+          <dd style="margin-left: 1.5em" id="section-1.3-5.4">
+            <p id="section-1.3-5.4.1">Indicates that x is a flag and is encoded as a single byte with the
+value 0 or 1. A value of 0 indicates the flag is false or off, while a
+value of 1 indicates the flag is true or on. Any other value is a
+protocol error and <span class="bcp14">SHOULD</span> terminate the session with a Protocol
+Violation (<a href="#session-termination" class="auto internal xref">Section 3.5</a>).<a href="#section-1.3-5.4.1" class="pilcrow">¶</a></p>
+</dd>
         <dd class="break"></dd>
 </dl>
 <p id="section-1.3-6">To reduce unnecessary use of bandwidth, variable length integers <span class="bcp14">SHOULD</span>
@@ -1736,7 +1745,7 @@ specific to the underlying transport protocol usage <a href="#session" class="au
 <p id="section-3.1-1">This document defines a protocol that can be used interchangeably both
 over a QUIC connection directly <span>[<a href="#QUIC" class="cite xref">QUIC</a>]</span>, and over WebTransport
 <span>[<a href="#WebTransport" class="cite xref">WebTransport</a>]</span>.  Both provide streams and datagrams with similar
-semantics (see <span>[<a href="#I-D.ietf-webtrans-overview" class="cite xref">I-D.ietf-webtrans-overview</a>], <a href="https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-overview-06#section-4" class="relref">Section 4</a></span>); thus, the
+semantics (see <span>[<a href="#I-D.ietf-webtrans-overview" class="cite xref">I-D.ietf-webtrans-overview</a>], <a href="https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-overview-07#section-4" class="relref">Section 4</a></span>); thus, the
 main difference lies in how the servers are identified and how the
 connection is established.  When using QUIC, datagrams <span class="bcp14">MUST</span> be
 supported via the [QUIC-DATAGRAM] extension, which is already a
@@ -3039,8 +3048,7 @@ SUBSCRIBE_OK
 {
   Subscribe ID (i),
   Expires (i),
-  ContentExists (1),
-  Unused (7),
+  ContentExists (f),
   [Largest Group ID (i)],
   [Largest Object ID (i)]
 }
@@ -3168,7 +3176,7 @@ SUBSCRIBE_DONE Message {
   Subscribe ID (i),
   Status Code (i),
   Reason Phrase (b),
-  ContentExists (1),
+  ContentExists (f),
   [Final Group (i)],
   [Final Object (i)],
 }
@@ -3559,7 +3567,7 @@ leading varint in catalog track objects.<a href="#section-8-4" class="pilcrow">�
 <dl class="references">
 <dt id="I-D.ietf-webtrans-overview">[I-D.ietf-webtrans-overview]</dt>
         <dd>
-<span class="refAuthor">Vasiliev, V.</span>, <span class="refTitle">"The WebTransport Protocol Framework"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-webtrans-overview-06</span>, <time datetime="2023-09-06" class="refDate">6 September 2023</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-overview-06">https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-overview-06</a>&gt;</span>. </dd>
+<span class="refAuthor">Vasiliev, V.</span>, <span class="refTitle">"The WebTransport Protocol Framework"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-webtrans-overview-07</span>, <time datetime="2024-03-04" class="refDate">4 March 2024</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-overview-07">https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-overview-07</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="RFC9000">[RFC9000]</dt>
       <dd>

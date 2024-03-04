@@ -290,6 +290,12 @@ Table of Contents
       encoding as described in ([RFC9000], Section 16), followed by that
       many bytes of binary data
 
+   x (f):  Indicates that x is a flag and is encoded as a single byte
+      with the value 0 or 1.  A value of 0 indicates the flag is false
+      or off, while a value of 1 indicates the flag is true or on.  Any
+      other value is a protocol error and SHOULD terminate the session
+      with a Protocol Violation (Section 3.5).
+
    To reduce unnecessary use of bandwidth, variable length integers
    SHOULD be encoded using the least number of bytes possible to
    represent the required value.
@@ -1415,8 +1421,7 @@ Table of Contents
    {
      Subscribe ID (i),
      Expires (i),
-     ContentExists (1),
-     Unused (7),
+     ContentExists (f),
      [Largest Group ID (i)],
      [Largest Object ID (i)]
    }
@@ -1500,7 +1505,7 @@ Table of Contents
      Subscribe ID (i),
      Status Code (i),
      Reason Phrase (b),
-     ContentExists (1),
+     ContentExists (f),
      [Final Group (i)],
      [Final Object (i)],
    }
@@ -1756,9 +1761,8 @@ Informative References
    [I-D.ietf-webtrans-overview]
               Vasiliev, V., "The WebTransport Protocol Framework", Work
               in Progress, Internet-Draft, draft-ietf-webtrans-overview-
-              06, 6 September 2023,
-              <https://datatracker.ietf.org/doc/html/draft-ietf-
-              webtrans-overview-06>.
+              07, 4 March 2024, <https://datatracker.ietf.org/doc/html/
+              draft-ietf-webtrans-overview-07>.
 
    [RFC9000]  Iyengar, J., Ed. and M. Thomson, Ed., "QUIC: A UDP-Based
               Multiplexed and Secure Transport", RFC 9000,
