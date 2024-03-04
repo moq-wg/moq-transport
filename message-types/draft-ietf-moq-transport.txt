@@ -455,9 +455,10 @@ Table of Contents
    where the peers exchange Setup Messages (Section 6.1.2).  All control
    messages (Section 6.1) are sent over this control stream.
 
-   This draft only specifies a single use of bidirectional streams.  A
-   peer MAY currently close the session as a 'Protocol Violation' if it
-   receives a second bidirectional stream.
+   This draft only specifies a single use of bidirectional streams.
+   Because there are no other uses of bidirectional streams, a peer MAY
+   currently close the session as a 'Protocol Violation' if it receives
+   a second bidirectional stream.
 
    The control stream MUST NOT be abruptly closed at the underlying
    transport layer.  Doing so results in the session being closed as a

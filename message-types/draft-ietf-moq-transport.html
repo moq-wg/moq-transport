@@ -1813,7 +1813,7 @@ separate Setup parameters for that information in each version.<a href="#section
 the peers exchange Setup Messages (<a href="#message-setup" class="auto internal xref">Section 6.1.2</a>).
 All control messages (<a href="#message-control" class="auto internal xref">Section 6.1</a>) are sent over this control stream.<a href="#section-3.3-1" class="pilcrow">¶</a></p>
 <p id="section-3.3-2">This draft only specifies a single use of bidirectional streams.
-A peer <span class="bcp14">MAY</span> currently close the session as a 'Protocol Violation' if it receives a second bidirectional stream.<a href="#section-3.3-2" class="pilcrow">¶</a></p>
+Because there are no other uses of bidirectional streams, a peer <span class="bcp14">MAY</span> currently close the session as a 'Protocol Violation' if it receives a second bidirectional stream.<a href="#section-3.3-2" class="pilcrow">¶</a></p>
 <p id="section-3.3-3">The control stream <span class="bcp14">MUST NOT</span> be abruptly closed at the underlying transport
 layer. Doing so results in the session being closed as a 'Protocol Violation'.<a href="#section-3.3-3" class="pilcrow">¶</a></p>
 </section>
