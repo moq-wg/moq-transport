@@ -5,13 +5,13 @@
 MOQ                                                            L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 26 August 2024                                             Meta
+Expires: 5 September 2024                                           Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                        23 February 2024
+                                                            4 March 2024
 
 
                        Media over QUIC Transport
@@ -53,7 +53,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 26 August 2024.
+   This Internet-Draft will expire on 5 September 2024.
 
 Copyright Notice
 
@@ -121,14 +121,13 @@ Table of Contents
      6.5.  SUBSCRIBE_OK
      6.6.  SUBSCRIBE_ERROR
      6.7.  UNSUBSCRIBE
-     6.8.  SUBSCRIBE_FIN
-     6.9.  SUBSCRIBE_RESET
-     6.10. ANNOUNCE
-     6.11. ANNOUNCE_OK
-     6.12. ANNOUNCE_ERROR
-     6.13. UNANNOUNCE
-     6.14. ANNOUNCE_CANCEL
-     6.15. GOAWAY
+     6.8.  SUBSCRIBE_DONE
+     6.9.  ANNOUNCE
+     6.10. ANNOUNCE_OK
+     6.11. ANNOUNCE_ERROR
+     6.12. UNANNOUNCE
+     6.13. ANNOUNCE_CANCEL
+     6.14. GOAWAY
    7.  Security Considerations
      7.1.  Resource Exhaustion
    8.  IANA Considerations
@@ -525,7 +524,7 @@ Table of Contents
       that was already in use.
 
    *  GOAWAY Timeout: The session was closed because the client took too
-      long to close the session in response to a GOAWAY (Section 6.15)
+      long to close the session in response to a GOAWAY (Section 6.14)
       message.  See session migration (Section 3.6).
 
 3.6.  Migration
@@ -534,7 +533,7 @@ Table of Contents
    service provider needs the ability to shutdown/restart a server
    without waiting for all sessions to drain naturally, as that can take
    days for long-form media.  MoqTransport avoids this via the GOAWAY
-   message (Section 6.15).
+   message (Section 6.14).
 
    The server sends a GOAWAY message, signaling that the client should
    establish a new session and migrate any active subscriptions.  The
@@ -695,8 +694,7 @@ Table of Contents
    within the subscription range is forwarded to each active subscriber,
    dependent on the congestion response.  A subscription remains active
    until it expires, until the publisher of the track terminates the
-   track with a SUBSCRIBE_FIN (see Section 6.8) or a SUBSCRIBE_RESET
-   (see Section 6.9).
+   track with a SUBSCRIBE_DONE (see Section 6.8).
 
    Objects MUST NOT be sent for unsuccessful subscriptions, and if a
    subscriber receives a SUBSCRIBE_ERROR after receiving objects, it
@@ -727,6 +725,27 @@ Table of Contents
                        +------+-------------------+
 
                                  Table 2
+
+   The applicaiton SHOULD use a relevant status code in SUBSCRIBE_DONE,
+   as defined below:
+
+                       +======+====================+
+                       | Code | Reason             |
+                       +======+====================+
+                       |  0x0 | Unsubscribed       |
+                       +------+--------------------+
+                       |  0x1 | Internal Error     |
+                       +------+--------------------+
+                       |  0x2 | Unauthorized       |
+                       +------+--------------------+
+                       |  0x3 | Track Ended        |
+                       +------+--------------------+
+                       |  0x4 | Subscription Ended |
+                       +------+--------------------+
+                       |  0x5 | Going Away         |
+                       +------+--------------------+
+
+                                  Table 3
 
 5.2.  Publisher Interactions
 
@@ -821,21 +840,19 @@ Table of Contents
               +------+-------------------------------------+
               |  0x5 | SUBSCRIBE_ERROR (Section 6.6)       |
               +------+-------------------------------------+
-              |  0x6 | ANNOUNCE (Section 6.10)             |
+              |  0x6 | ANNOUNCE (Section 6.9)              |
               +------+-------------------------------------+
-              |  0x7 | ANNOUNCE_OK (Section 6.11)          |
+              |  0x7 | ANNOUNCE_OK (Section 6.10)          |
               +------+-------------------------------------+
-              |  0x8 | ANNOUNCE_ERROR (Section 6.12)       |
+              |  0x8 | ANNOUNCE_ERROR (Section 6.11)       |
               +------+-------------------------------------+
-              |  0x9 | UNANNOUNCE (Section 6.13)           |
+              |  0x9 | UNANNOUNCE (Section 6.12)           |
               +------+-------------------------------------+
               |  0xA | UNSUBSCRIBE (Section 6.7)           |
               +------+-------------------------------------+
-              |  0xB | SUBSCRIBE_FIN (Section 6.8)         |
+              |  0xB | SUBSCRIBE_DONE (Section 6.8)        |
               +------+-------------------------------------+
-              |  0xC | SUBSCRIBE_RESET (Section 6.9)       |
-              +------+-------------------------------------+
-              | 0x10 | GOAWAY (Section 6.15)               |
+              | 0x10 | GOAWAY (Section 6.14)               |
               +------+-------------------------------------+
               | 0x40 | CLIENT_SETUP (Section 6.2)          |
               +------+-------------------------------------+
@@ -846,7 +863,7 @@ Table of Contents
               | 0x51 | STREAM_HEADER_GROUP (Section 6.3.3) |
               +------+-------------------------------------+
 
-                                 Table 3
+                                 Table 4
 
 6.1.  Parameters
 
@@ -1453,8 +1470,10 @@ Table of Contents
 6.7.  UNSUBSCRIBE
 
    A subscriber issues a UNSUBSCRIBE message to a publisher indicating
-   it is no longer interested in receiving media for the specified
-   track.
+   it is no longer interested in receiving media for the specified track
+   and Objects should stop being sent as soon as possible.  The
+   publisher sends a SUBSCRIBE_DONE to acknowledge the unsubscribe was
+   successful and indicate the final Object.
 
    The format of UNSUBSCRIBE is as follows:
 
@@ -1466,57 +1485,29 @@ Table of Contents
 
    *  Subscribe ID: Subscription Identifer as defined in Section 6.4.
 
-6.8.  SUBSCRIBE_FIN
+6.8.  SUBSCRIBE_DONE
 
-   A publisher issues a SUBSCRIBE_FIN message to all subscribers
-   indicating it is done publishing objects on the subscribed track.
+   A publisher issues a SUBSCRIBE_DONE message to indicate it is done
+   publishing Objects for that subscription.  The Status Code indicates
+   why the subscription ended, and whether it was an error.
 
-   The format of SUBSCRIBE_FIN is as follows:
+   The format of SUBSCRIBE_DONE is as follows:
 
-   SUBSCRIBE_FIN Message {
+   SUBSCRIBE_DONE Message {
      Subscribe ID (i),
-     ContentExists (1),
-     [Final Group (i)],
-     [Final Object (i)],
-   }
-
-                   Figure 15: MOQT SUBSCRIBE_FIN Message
-
-   *  Subscribe ID: Subscription identifier as defined in Section 6.4.
-
-   *  ContentExists: 1 if an object has been published for this
-      subscription, 0 if not.  If 0, then the Final Group and Final
-      Object fields will not be present.
-
-   *  Final Group: The largest Group ID sent by the publisher in an
-      OBJECT message in this track.
-
-   *  Final Object: The largest Object ID sent by the publisher in an
-      OBJECT message in the Final Group for this track.
-
-6.9.  SUBSCRIBE_RESET
-
-   A publisher issues a SUBSCRIBE_RESET message to all subscribers
-   indicating there was an error publishing to the given track and
-   subscription is terminated.
-
-   The format of SUBSCRIBE_RESET is as follows:
-
-   SUBSCRIBE_RESET Message {
-     Subscribe ID (i),
-     Error Code (i),
+     Status Code (i),
      Reason Phrase (b),
      ContentExists (1),
      [Final Group (i)],
      [Final Object (i)],
    }
 
-                  Figure 16: MOQT SUBSCRIBE RESET Message
+                   Figure 15: MOQT SUBSCRIBE_DONE Message
 
-   *  Subscribe ID: Subscription Identifier as defined in Section 6.4.
+   *  Subscribe ID: Subscription identifier as defined in Section 6.4.
 
-   *  Error Code: Identifies an integer error code for subscription
-      failure.
+   *  Status Code: An integer status code indicating why the
+      subscription ended.
 
    *  Reason Phrase: Provides the reason for subscription error.
 
@@ -1530,7 +1521,7 @@ Table of Contents
    *  Final Object: The largest Object ID sent by the publisher in an
       OBJECT message in the Final Group for this track.
 
-6.10.  ANNOUNCE
+6.9.  ANNOUNCE
 
    The publisher sends the ANNOUNCE control message to advertise where
    the receiver can route SUBSCRIBEs for tracks within the announced
@@ -1543,14 +1534,14 @@ Table of Contents
      Parameters (..) ...,
    }
 
-                      Figure 17: MOQT ANNOUNCE Message
+                      Figure 16: MOQT ANNOUNCE Message
 
    *  Track Namespace: Identifies a track's namespace as defined in
       (Section 2.3.1)
 
    *  Parameters: The parameters are defined in Section 6.1.1.
 
-6.11.  ANNOUNCE_OK
+6.10.  ANNOUNCE_OK
 
    The receiver sends an ANNOUNCE_OK control message to acknowledge the
    successful authorization and acceptance of an ANNOUNCE message.
@@ -1560,12 +1551,12 @@ Table of Contents
      Track Namespace (b),
    }
 
-                    Figure 18: MOQT ANNOUNCE_OK Message
+                    Figure 17: MOQT ANNOUNCE_OK Message
 
    *  Track Namespace: Identifies the track namespace in the ANNOUNCE
       message for which this response is provided.
 
-6.12.  ANNOUNCE_ERROR
+6.11.  ANNOUNCE_ERROR
 
    The receiver sends an ANNOUNCE_ERROR control message for tracks that
    failed authorization.
@@ -1577,7 +1568,7 @@ Table of Contents
      Reason Phrase (b),
    }
 
-                   Figure 19: MOQT ANNOUNCE_ERROR Message
+                   Figure 18: MOQT ANNOUNCE_ERROR Message
 
    *  Track Namespace: Identifies the track namespace in the ANNOUNCE
       message for which this response is provided.
@@ -1587,7 +1578,7 @@ Table of Contents
 
    *  Reason Phrase: Provides the reason for announcement error.
 
-6.13.  UNANNOUNCE
+6.12.  UNANNOUNCE
 
    The publisher sends the UNANNOUNCE control message to indicate its
    intent to stop serving new subscriptions for tracks within the
@@ -1597,12 +1588,12 @@ Table of Contents
      Track Namespace (b),
    }
 
-                     Figure 20: MOQT UNANNOUNCE Message
+                     Figure 19: MOQT UNANNOUNCE Message
 
    *  Track Namespace: Identifies a track's namespace as defined in
       (Section 2.3.1).
 
-6.14.  ANNOUNCE_CANCEL
+6.13.  ANNOUNCE_CANCEL
 
    The subscriber sends an ANNOUNCE_CANCEL control message to indicate
    it will stop sending new subscriptions for tracks within the provided
@@ -1616,12 +1607,12 @@ Table of Contents
      Track Namespace (b),
    }
 
-                  Figure 21: MOQT ANNOUNCE_CANCEL Message
+                  Figure 20: MOQT ANNOUNCE_CANCEL Message
 
    *  Track Namespace: Identifies a track's namespace as defined in
       (Section 2.3.1).
 
-6.15.  GOAWAY
+6.14.  GOAWAY
 
    The server sends a GOAWAY message to initiate session migration
    (Section 3.6) with an optional URI.
@@ -1635,7 +1626,7 @@ Table of Contents
      New Session URI (b)
    }
 
-                       Figure 22: MOQT GOAWAY Message
+                       Figure 21: MOQT GOAWAY Message
 
    *  New Session URI: The client MUST use this URI for the new session
       if provded.  If the URI is zero bytes long, the current URI is
