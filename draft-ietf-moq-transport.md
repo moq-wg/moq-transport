@@ -629,8 +629,8 @@ subscribers for each track. Each new OBJECT belonging to the
 track within the subscription range is forwarded to each active
 subscriber, dependent on the congestion response. A subscription
 remains active until it expires, until the publisher of the track
-terminates the track with a SUBSCRIBE_CLOSED
-(see {{message-subscribe-closed}}).
+terminates the track with a SUBSCRIBE_DONE
+(see {{message-subscribe-done}}).
 
 Objects MUST NOT be sent for unsuccessful subscriptions, and if a subscriber
 receives a SUBSCRIBE_ERROR after receiving objects, it MUST close the session
@@ -659,7 +659,7 @@ as defined below:
 |------|---------------------------|
 
 The applicaiton SHOULD use a relevant status code in
-SUBSCRIBE_CLOSE, as defined below:
+SUBSCRIBE_DONE, as defined below:
 
 |------|---------------------------|
 | Code | Reason                    |
@@ -781,7 +781,7 @@ MOQT Message {
 |-------|-----------------------------------------------------|
 | 0xA   | UNSUBSCRIBE ({{message-unsubscribe}})               |
 |-------|-----------------------------------------------------|
-| 0xB   | SUBSCRIBE_CLOSED ({{message-subscribe-closed}})     |
+| 0xB   | SUBSCRIBE_DONE ({{message-subscribe-done}})         |
 |-------|-----------------------------------------------------|
 | 0x10  | GOAWAY ({{message-goaway}})                         |
 |-------|-----------------------------------------------------|
@@ -1408,7 +1408,7 @@ SUBSCRIBE_ERROR
 A subscriber issues a `UNSUBSCRIBE` message to a publisher indicating it is no
 longer interested in receiving media for the specified track and Objects
 should stop being sent as soon as possible.  The publisher sends a
-SUBSCRIBE_CLOSED to acknowledge the unsubscribe was successful and indicate
+SUBSCRIBE_DONE to acknowledge the unsubscribe was successful and indicate
 the final Object.
 
 The format of `UNSUBSCRIBE` is as follows:
@@ -1422,16 +1422,16 @@ UNSUBSCRIBE Message {
 
 * Subscribe ID: Subscription Identifer as defined in {{message-subscribe-req}}.
 
-## SUBSCRIBE_CLOSED {#message-subscribe-closed}
+## SUBSCRIBE_DONE {#message-subscribe-done}
 
-A publisher issues a `SUBSCRIBE_CLOSED` message to indicate it
+A publisher issues a `SUBSCRIBE_DONE` message to indicate it
 is done publishing Objects for that subscription.  The Status Code indicates why
 the subscription ended, and whether it was an error.
 
-The format of `SUBSCRIBE_CLOSED` is as follows:
+The format of `SUBSCRIBE_DONE` is as follows:
 
 ~~~
-SUBSCRIBE_CLOSED Message {
+SUBSCRIBE_DONE Message {
   Subscribe ID (i),
   Status Code (i),
   Reason Phrase (b),
@@ -1440,7 +1440,7 @@ SUBSCRIBE_CLOSED Message {
   [Final Object (i)],
 }
 ~~~
-{: #moq-transport-subscribe-fin-format title="MOQT SUBSCRIBE_CLOSED Message"}
+{: #moq-transport-subscribe-fin-format title="MOQT SUBSCRIBE_DONE Message"}
 
 * Subscribe ID: Subscription identifier as defined in {{message-subscribe-req}}.
 
