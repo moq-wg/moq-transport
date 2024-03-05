@@ -624,9 +624,8 @@ For successful subscriptions, the publisher maintains a list of
 subscribers for each track. Each new object belonging to the
 track within the subscription range is forwarded to each active
 subscriber, dependent on the congestion response. A subscription
-remains active until it expires, until the publisher of the track
-terminates the track with a SUBSCRIBE_DONE
-(see {{message-subscribe-done}}).
+remains active until the publisher of the track terminates the
+track with a SUBSCRIBE_DONE (see {{message-subscribe-done}}).
 
 Objects MUST NOT be sent for unsuccessful subscriptions, and if a subscriber
 receives a SUBSCRIBE_ERROR after receiving objects, it MUST close the session
@@ -672,7 +671,8 @@ SUBSCRIBE_DONE, as defined below:
 |------|---------------------------|
 | 0x5  | Going Away                |
 |------|---------------------------|
-
+| 0x6  | Expired                   |
+|------|---------------------------|
 
 ## Publisher Interactions
 
@@ -1010,7 +1010,7 @@ the publishers to identify a given subscription. Subscribers specify the
 SUBSCRIBE_ERROR messages.
 
 * Track Alias: A session specific identifier for the track.
-Messages that reference a track, such as OBJECT_STREAM ({{message-object-stream}}),
+Messages that reference a track, such as OBJECT ({{message-object}}),
 reference this Track Alias instead of the Track Name and Track Namespace to
 reduce overhead. If the Track Alias is already in use, the publisher MUST
 close the session with a Duplicate Track Alias error ({{session-termination}}).
@@ -1046,7 +1046,7 @@ objects from outside the requested start and end.
 TODO: Define the flow where subscribe request matches an existing subscribe id
 (subscription updates.)
 
-#### Examples
+### Examples
 
 ~~~
 1. Now
@@ -1100,7 +1100,7 @@ End = Group 3, Object <last>
 ~~~
 
 
-### SUBSCRIBE_OK {#message-subscribe-ok}
+## SUBSCRIBE_OK {#message-subscribe-ok}
 
 A SUBSCRIBE_OK control message is sent for successful subscriptions.
 
@@ -1119,8 +1119,9 @@ SUBSCRIBE_OK
 * Subscribe ID: Subscription Identifer as defined in {{message-subscribe-req}}.
 
 * Expires: Time in milliseconds after which the subscription is no
-longer valid. A value of 0 indicates that the subscription stays active
-until it is explicitly unsubscribed.
+longer valid. A value of 0 indicates that the subscription does not expire
+or expires at an unknown time.  Expires is advisory and a subscription can
+end prior to the expiry time or last longer.
 
 * ContentExists: 1 if an object has been published on this track, 0 if not.
 If 0, then the Largest Group ID and Largest Object ID fields will not be
@@ -1132,7 +1133,7 @@ present.
 for this track. This field is only present if ContentExists has a value of 1.
 
 
-### SUBSCRIBE_ERROR {#message-subscribe-error}
+## SUBSCRIBE_ERROR {#message-subscribe-error}
 
 A publisher sends a SUBSCRIBE_ERROR control message in response to a
 failed SUBSCRIBE.
@@ -1159,7 +1160,7 @@ SUBSCRIBE_ERROR
   the receiver MUST close the connection with a Duplicate Track Alias error
   ({{session-termination}}).
 
-### UNSUBSCRIBE {#message-unsubscribe}
+## UNSUBSCRIBE {#message-unsubscribe}
 
 A subscriber issues a `UNSUBSCRIBE` message to a publisher indicating it is no
 longer interested in receiving media for the specified track and Objects
@@ -1178,7 +1179,7 @@ UNSUBSCRIBE Message {
 
 * Subscribe ID: Subscription Identifer as defined in {{message-subscribe-req}}.
 
-### SUBSCRIBE_DONE {#message-subscribe-done}
+## SUBSCRIBE_DONE {#message-subscribe-done}
 
 A publisher issues a `SUBSCRIBE_DONE` message to indicate it
 is done publishing Objects for that subscription.  The Status Code indicates why
@@ -1207,12 +1208,13 @@ SUBSCRIBE_DONE Message {
 * ContentExists: 1 if an object has been published for this subscription, 0 if
 not. If 0, then the Final Group and Final Object fields will not be present.
 
-* Final Group: The largest Group ID sent by the publisher for an object in this track.
+* Final Group: The largest Group ID sent by the publisher in an OBJECT
+message in this track.
 
-* Final Object: The largest Object ID sent by the publisher for an object
-in the `Final Group` for this track.
+* Final Object: The largest Object ID sent by the publisher in an OBJECT
+message in the `Final Group` for this track.
 
-### ANNOUNCE {#message-announce}
+## ANNOUNCE {#message-announce}
 
 The publisher sends the ANNOUNCE control message to advertise where the
 receiver can route SUBSCRIBEs for tracks within the announced
@@ -1233,7 +1235,7 @@ ANNOUNCE Message {
 
 * Parameters: The parameters are defined in {{version-specific-params}}.
 
-### ANNOUNCE_OK {#message-announce-ok}
+## ANNOUNCE_OK {#message-announce-ok}
 
 The receiver sends an ANNOUNCE_OK control message to acknowledge the
 successful authorization and acceptance of an ANNOUNCE message.
@@ -1249,7 +1251,7 @@ ANNOUNCE_OK
 * Track Namespace: Identifies the track namespace in the ANNOUNCE
 message for which this response is provided.
 
-### ANNOUNCE_ERROR {#message-announce-error}
+## ANNOUNCE_ERROR {#message-announce-error}
 
 The receiver sends an ANNOUNCE_ERROR control message for tracks that
 failed authorization.
@@ -1272,7 +1274,7 @@ message for which this response is provided.
 * Reason Phrase: Provides the reason for announcement error.
 
 
-### UNANNOUNCE {#message-unannounce}
+## UNANNOUNCE {#message-unannounce}
 
 The publisher sends the `UNANNOUNCE` control message to indicate
 its intent to stop serving new subscriptions for tracks
@@ -1288,7 +1290,7 @@ UNANNOUNCE Message {
 * Track Namespace: Identifies a track's namespace as defined in
 ({{track-name}}).
 
-### ANNOUNCE_CANCEL {#message-announce-cancel}
+## ANNOUNCE_CANCEL {#message-announce-cancel}
 
 The subscriber sends an `ANNOUNCE_CANCEL` control message to
 indicate it will stop sending new subscriptions for tracks
@@ -1308,7 +1310,7 @@ ANNOUNCE_CANCEL Message {
 * Track Namespace: Identifies a track's namespace as defined in
 ({{track-name}}).
 
-### GOAWAY {#message-goaway}
+## GOAWAY {#message-goaway}
 The server sends a `GOAWAY` message to initiate session migration
 ({{session-migration}}) with an optional URI.
 
@@ -1589,7 +1591,11 @@ OBJECT_DATAGRAM Message {
   Object Payload (..),
 }
 ~~~
+<<<<<<< HEAD
 {: #object-datagram-format title="MOQT OBJECT_DATAGRAM Message"}
+=======
+
+>>>>>>> origin/main
 
 # Security Considerations {#security}
 
