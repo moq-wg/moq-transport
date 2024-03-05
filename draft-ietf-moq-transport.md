@@ -1379,8 +1379,6 @@ until it is explicitly unsubscribed.
 If 0, then the Largest Group ID and Largest Object ID fields will not be
 present.
 
-* Unused: Set to zero on sending, ignored on receiving.
-
 * Largest Group ID: the largest Group ID available for this track. This field is only present if ContentExists has a value of 1.
 
 * Largest Object ID: the largest Object ID available within the largest Group ID
