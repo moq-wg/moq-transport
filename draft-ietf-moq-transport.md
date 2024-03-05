@@ -637,9 +637,8 @@ For successful subscriptions, the publisher maintains a list of
 subscribers for each track. Each new OBJECT belonging to the
 track within the subscription range is forwarded to each active
 subscriber, dependent on the congestion response. A subscription
-remains active until it expires, until the publisher of the track
-terminates the track with a SUBSCRIBE_DONE
-(see {{message-subscribe-done}}).
+remains active until the publisher of the track terminates the
+track with a SUBSCRIBE_DONE (see {{message-subscribe-done}}).
 
 Objects MUST NOT be sent for unsuccessful subscriptions, and if a subscriber
 receives a SUBSCRIBE_ERROR after receiving objects, it MUST close the session
@@ -685,7 +684,8 @@ SUBSCRIBE_DONE, as defined below:
 |------|---------------------------|
 | 0x5  | Going Away                |
 |------|---------------------------|
-
+| 0x6  | Expired                   |
+|------|---------------------------|
 
 ## Publisher Interactions
 
@@ -1372,8 +1372,9 @@ SUBSCRIBE_OK
 * Subscribe ID: Subscription Identifer as defined in {{message-subscribe-req}}.
 
 * Expires: Time in milliseconds after which the subscription is no
-longer valid. A value of 0 indicates that the subscription stays active
-until it is explicitly unsubscribed.
+longer valid. A value of 0 indicates that the subscription does not expire
+or expires at an unknown time.  Expires is advisory and a subscription can
+end prior to the expiry time or last longer.
 
 * ContentExists: 1 if an object has been published on this track, 0 if not.
 If 0, then the Largest Group ID and Largest Object ID fields will not be
