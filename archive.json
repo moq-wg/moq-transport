@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2024-03-03T01:08:56.564969+00:00",
+  "timestamp": "2024-03-05T01:05:14.239150+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -11028,11 +11028,12 @@
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [
+        "Needs Discussion",
         "Subscribe"
       ],
       "body": "It would be useful to clarify whether multiple subscriptions are valid, and whether there are any constraints on them (ie: non-overlapping).\r\n\r\n@kixelated brought up the fact that a relay may have to issue overlapping subscribes because it doesn't know whether a relative or absolute subscription is earlier.\r\n\r\nA related question is how one updates a subscription, for example if you wanted to seek closer to realtime, and whether that is just UNSUBSCRIBE/SUBSCRIBE or a new SUBSCRIBE_UPDATE message.  There may be cases where SUBSCRIBE_UPDATE is more efficient and better at avoiding sending duplicate objects.",
       "createdAt": "2023-10-09T17:44:45Z",
-      "updatedAt": "2024-02-19T19:43:07Z",
+      "updatedAt": "2024-03-04T03:10:59Z",
       "closedAt": null,
       "comments": [
         {
@@ -11850,7 +11851,7 @@
       "id": "I_kwDOG2Ho4M51RQVy",
       "title": "Consolidating SUBSCRIBE errors",
       "url": "https://github.com/moq-wg/moq-transport/issues/310",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "kixelated",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
@@ -11859,8 +11860,8 @@
       ],
       "body": "As mentioned in #309, there are 3 different ways for a publisher to close a subscriber, each with minor differences.\r\n\r\n- `SUBSCRIBE_ERROR`: I never sent you an object.\r\n- `SUBSCRIBE_FIN`: There are no more objects to send after group/object X/Y.\r\n- `SUBSCRIBE_RESET`: There are more objects after group/object X/Y... but I won't send them.\r\n\r\nA few things:\r\n\r\n### 1. `SUBSCRIBE_ERROR` naming\r\nI think it should be renamed since it's not the only ERROR message. Maybe `SUBSCRIBE_REJECT`?\r\n\r\n### 2. `SUBSCRIBE_FIN` and `SUBSCRIBE_RESET` are virtually identical\r\nThe only difference is that one has an error code. Otherwise they both include a final group/object and it's up to the application/library to decide if they wait for the final object(s). I'd like to only implement this once but right now I have to copy/paste any code to handle these almost identical messages.\r\n\r\nWhat if we merged them and use error code 0 to signal a FIN. The reason phrase should be removed as part of #273.\r\n\r\n### 3. It's difficult to determine which messages are protocol violations\r\n\r\nThere really needs to be a state machine like #237 with this many ways to terminate a subscription.\r\n\r\nI think these are all protocol violations:\r\n- `SUBSCRIBE_OK` then `SUBSCRIBE_ERROR`\r\n- `SUBSCRIBE_ERROR` then `SUBSCRIBE_*` \r\n- `SUBSCRIBE_RESET/FIN` then `SUBSCRIBE_*`\r\n\r\nMy interpretation of the draft is that a `SUBSCRIBE_FIN` followed by a `SUBSCRIBE_RESET` is invalid, which is not obvious and unlike QUIC.\r\n> A subscription remains active until it expires, until the publisher of the track terminates the track with a SUBSCRIBE_FIN (see [Section 6.8](https://moq-wg.github.io/moq-transport/draft-ietf-moq-transport.html#message-subscribe-fin)) or a SUBSCRIBE_RST (see [Section 6.9](https://moq-wg.github.io/moq-transport/draft-ietf-moq-transport.html#message-subscribe-rst)).\r\n\r\n### 4. Do these error distinctions actually matter to the transport?\r\n\r\nI don't think so. The library/relay behavior doesn't change based on `SUBSCRIBE_RESET/FIN`. The only thing that miiiight differentiate between the two is the application, which can use errors codes for this purpose. At the very least I would merge these two messages.\r\n\r\nBut I would also like to explore a single way for the publisher to close a subscription. The application can signal the nuanced differences between errors (ex. error code 404 vs 410). The library/relay doesn't care, it just forwards the error code.",
       "createdAt": "2023-10-30T04:11:24Z",
-      "updatedAt": "2023-11-03T21:55:35Z",
-      "closedAt": null,
+      "updatedAt": "2024-03-04T02:51:03Z",
+      "closedAt": "2024-03-04T02:51:02Z",
       "comments": [
         {
           "author": "afrind",
@@ -13220,7 +13221,7 @@
       "id": "I_kwDOG2Ho4M5-dqe7",
       "title": "SUBSCRIBE_FIN/RST for old subscriptions",
       "url": "https://github.com/moq-wg/moq-transport/issues/356",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "martinduke",
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
@@ -13229,8 +13230,8 @@
       ],
       "body": "Sections 6.8 and 6.9 strongly imply that SUBSCRIBE_FIN/RST are sent at the true end of the track. So are they not sent at the conclusion of a SUBSCRIBE that does not cover the end of the track?\r\n\r\nFor example, if the last object of a track is (10, 12), and there's one subscribe for (4,0) to (5, 100)\r\n\r\nIs there a SUBSCRIBE_FIN?\r\n\r\nIf not, how does the subscriber know that in fact (5, 60) is the last object in that subscription?\r\n\r\nIf so, does Final Group and Final Object refer to the last object in the subscription?",
       "createdAt": "2024-02-06T21:36:07Z",
-      "updatedAt": "2024-02-20T02:35:46Z",
-      "closedAt": null,
+      "updatedAt": "2024-03-04T02:51:02Z",
+      "closedAt": "2024-03-04T02:51:02Z",
       "comments": [
         {
           "author": "afrind",
@@ -13419,11 +13420,12 @@
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [
+        "Needs Discussion",
         "Subscribe"
       ],
       "body": "UNSUBSCRIBE has some items I'd like clarified.\r\n\r\nHow do you know the last Group and Object that will be delivered?  Do you get a SUBSCRIBE_RST or SUBSCRIBE_FIN?  Or maybe we want to allow the UNSUBSCRIBE to specify that last Object it wants delivered, somewhat similar to a GOAWAY.  We could also allow the subscriber to RST the SUBSCRIBE?\r\n\r\nOr maybe we don't care about knowing the final Object?",
       "createdAt": "2024-02-07T23:23:04Z",
-      "updatedAt": "2024-02-19T19:42:57Z",
+      "updatedAt": "2024-03-04T03:10:49Z",
       "closedAt": null,
       "comments": [
         {
@@ -13748,12 +13750,11 @@
         "afrind"
       ],
       "labels": [
-        "Needs PR",
         "Subscribe"
       ],
       "body": "This came up during interop - \r\n\r\nA relay received a subscribe with start={g=RelativeNext/0 o=Absolute/0}.  Since the relay had not received any objects, it defaulted largest to 0 and interpreted the subscribe as starting at {g=1, o=0}. When {g=0,o=0} arrived, it was not forwarded.  But there's a reasonable interpretation that it should have forwarded treated this as the beginning of the next subscription.\r\n\r\nThis is partially related to #337 and maybe #353",
       "createdAt": "2024-02-13T01:45:40Z",
-      "updatedAt": "2024-02-29T23:38:53Z",
+      "updatedAt": "2024-03-04T17:56:20Z",
       "closedAt": null,
       "comments": [
         {
@@ -13963,7 +13964,7 @@
       ],
       "body": "Subscriptions always end with either SUBSCRIBE_FIN or SUBSCRIBE_RESET, except when they Expire and then no control message is sent.  This complicates the state machine and adds another case to handle.\r\n\r\nThe subscriber needs to start a timer or something similar to know when the subscription will end, and it doesn't get to know the final group or object ID.",
       "createdAt": "2024-02-19T20:36:31Z",
-      "updatedAt": "2024-02-29T15:34:06Z",
+      "updatedAt": "2024-03-04T22:40:55Z",
       "closedAt": null,
       "comments": [
         {
@@ -14116,15 +14117,15 @@
       "id": "I_kwDOG2Ho4M5__mjP",
       "title": "Current naming is hard to keep track of <BIKESHED> ",
       "url": "https://github.com/moq-wg/moq-transport/issues/398",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "fluffy",
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
       "labels": [],
       "body": "Propose names from my understanding of discussion call \r\n\r\nAnnounce (send by publisher)  , Annouce_OK, Annouce_Error\r\nUnAnnounce (send by publisher)  UnAnnounce_OK, UnAnnounce_Error \r\nAnnouce_End ( sent by thing that received Annouce) , AnnouceEnd_OK, AnnouceEnd_OK\r\n\r\nSubscribe (send by subscriber)  , Subscribe_OK,  Subscribe_Error\r\nUnSubscribe (send by subscriber)  , Subscribe_OK,  Subscribe_Error\r\nSubscribe_End (send by thing that received subscriber), Subscribe_OK,  Subscribe_Error\r\n\r\nMostly trying to get rid of FIN / RST and have different names for the messages that flow in opposite directions. ",
       "createdAt": "2024-02-21T18:00:40Z",
-      "updatedAt": "2024-02-29T17:30:19Z",
-      "closedAt": null,
+      "updatedAt": "2024-03-04T02:51:02Z",
+      "closedAt": "2024-03-04T02:51:02Z",
       "comments": [
         {
           "author": "kixelated",
@@ -14245,7 +14246,7 @@
       "labels": [],
       "body": "Would be nice to add a publisher and subscriber and state machine in the draft.",
       "createdAt": "2024-02-28T17:42:01Z",
-      "updatedAt": "2024-02-29T22:39:51Z",
+      "updatedAt": "2024-03-04T17:42:53Z",
       "closedAt": null,
       "comments": [
         {
@@ -14317,6 +14318,20 @@
           "body": "Bikeshedding: You have SubscribeCancel but I'm going to call it SubscribeClosed to be consistent with @ianswett's naming. His Cancel is actually Unsubscribe so it's extra confusing.\r\n\r\n> # Subscriber State Machine\r\n> ```mermaid\r\n> stateDiagram\r\n>     Init --> Pending: Send Subscribe\r\n>     Pending --> Done : Recv SubscribeError\r\n>     Pending --> Active: Recv SubscribeOk\r\n>     Active --> Active : Send SubscribeUpdate\\n Recv SubscribeUpdate Error/Ok\r\n>     Active --> Done : Send Usubscribe    \r\n> ```\r\n\r\nYou're missing the ability for the publisher to close after sending an OK. There needs to be a line from Active to Done after receiving a SubscribeClosed.\r\n\r\nAlso there's an state missing here where you sent an Unsubscribe but don't know the final group/object yet. It's optional, but I imagine it could be useful to wait for all the information (ex. for resumption). I'd like to require the publisher send SubscribeClosed after Unsubscribe to both acknowledge and provide the final group/object.\r\n\r\nNote that if we add end group/object to Unsubscribe, then there's yet another state missing. Unsubscribe with an end group would go into a \"closing\" state, where the subscription is still active, distinct from an unsubscribe with no end group. The subscriber would need a way to transition out of this state too (sending another unsubscribe?) which is why I slightly prefer SubscribeUpdate @wilaw.\r\n\r\nAlso this is a separate issue, but what happens after SubscribeUpdate error? I think it will get hairy if the subscribe stays open using the previous state; I'd rather close it.\r\n\r\n> # Publisher State Machine\r\n> ```mermaid\r\n> stateDiagram\r\n>     Init --> Active: Recv Subscribe, Send SubscribeOk\r\n>     Active --> Active: Recv SubscribeUpdate\\n  Send SubscribeUpdate Error/Ok\r\n>     Active --> Done: Recv Unsubscribe\r\n>     Active --> Done: Send SubscribeCancel\r\n> ```\r\n\r\nMissing the ability to send SubscribeError.\r\n\r\nAs mentioned above I would like to send SubscribeClosed after receiving Unsubscribe.\r\n\r\nThese are nearly the same as my proposal but I'd like to combine SubscribeError with SubscribeClosed.",
           "createdAt": "2024-02-29T18:39:46Z",
           "updatedAt": "2024-02-29T22:39:51Z"
+        },
+        {
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "One thing I am not clear on what everything thinks ... we seem to agree that pub can send sub a message to end the subscribing. Let me call that message A, and also sub can send pub a message to end the subscrition, Let me call that B. \r\n\r\nFirst do we agree that A and B should be have messages  names ?  Second, I've lost track of current best proposal for the name(s)?  Let me know and I will update state machines above. ",
+          "createdAt": "2024-03-04T17:21:27Z",
+          "updatedAt": "2024-03-04T17:21:27Z"
+        },
+        {
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> One thing I am not clear on what everything thinks ... we seem to agree that pub can send sub a message to end the subscribing. Let me call that message A, and also sub can send pub a message to end the subscrition, Let me call that B.\r\n> \r\n> First do we agree that A and B should be have messages names ? Second, I've lost track of current best proposal for the name(s)? Let me know and I will update state machines above.\r\n\r\nYeah, with A containing the final group/object sent.\r\n\r\nA = SUBSCRIBE_END\r\nB = UNSUBSCRIBE\r\n\r\nMy updated proposal is:\r\n\r\n```\r\n  -> SUBSCRIBE\r\n[ <- SUBSCRIBE_OK  ]\r\n[ -> UNSUBSCRIBE   ]\r\n  <- SUBSCRIBE_END\r\n```\r\n\r\nThe OK and UNSUBSCRIBE messages are optional because the publisher could close the subscription first. I'd like there to always be a SUBSCRIBE_END message containing the final group/object, even when the subscriber sends UNSUBSCRIBE.\r\n\r\nThis is with merging SUBSCRIBE_ERROR and SUBSCRIBE_END. The current draft does not do this, so the state machine is a tiny bit more complicated.",
+          "createdAt": "2024-03-04T17:42:51Z",
+          "updatedAt": "2024-03-04T17:42:51Z"
         }
       ]
     },
@@ -14369,10 +14384,12 @@
       "author": "mengelbart",
       "authorAssociation": "NONE",
       "assignees": [],
-      "labels": [],
+      "labels": [
+        "Wire Format"
+      ],
       "body": "#343 and #389 introduced a `ContentExists` field to SUBSCRIBE_OK, SUBSCRIBE_FIN, and SUBSCRIBE_RESET. If I read the notation correctly, it has a size of 1 bit, which makes it hard to parse the rest of the message. Could we encode that information in the message type by using two types per message instead of a 1-bit field?",
       "createdAt": "2024-03-01T16:37:00Z",
-      "updatedAt": "2024-03-02T06:09:46Z",
+      "updatedAt": "2024-03-04T22:40:29Z",
       "closedAt": null,
       "comments": [
         {
@@ -14395,6 +14412,34 @@
           "body": "or just a byte field with only 2 possible values allowed (1) and (0) .. ",
           "createdAt": "2024-03-02T06:09:45Z",
           "updatedAt": "2024-03-02T06:09:45Z"
+        },
+        {
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "I agree we need to keep this byte aligned however we do it. ",
+          "createdAt": "2024-03-04T17:08:56Z",
+          "updatedAt": "2024-03-04T17:08:56Z"
+        },
+        {
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "body": "IMO just make it a VarInt (or byte), with only values of 0 and 1 currently valid. This encoding is temporary until we nail down all of the fields/flags so we shouldn't be making life difficult or efficient.",
+          "createdAt": "2024-03-04T17:15:20Z",
+          "updatedAt": "2024-03-04T17:17:00Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Individual Comment: \r\n\r\nEven if it's temporary, my preference is for a one-bit field and unused/reserved bits to align, because there are no error conditions.",
+          "createdAt": "2024-03-04T17:19:46Z",
+          "updatedAt": "2024-03-04T17:19:46Z"
+        },
+        {
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "Have a look at PR #405 ",
+          "createdAt": "2024-03-04T17:27:23Z",
+          "updatedAt": "2024-03-04T17:27:23Z"
         }
       ]
     }
@@ -45563,7 +45608,7 @@
       "labels": [],
       "body": "This PR attempts to support the requirements needed for #318 and #244 ",
       "createdAt": "2023-11-08T15:09:47Z",
-      "updatedAt": "2024-02-29T17:24:03Z",
+      "updatedAt": "2024-03-04T17:04:30Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "00f924c3d59a9ec6d4ae78598e0d397d83cd7ed5",
@@ -45574,7 +45619,15 @@
       "mergedAt": null,
       "mergedBy": null,
       "mergeCommit": null,
-      "comments": [],
+      "comments": [
+        {
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "As a wY of making progress on this, lets first focus on how we know about the end of group, then jump into the end of track. ",
+          "createdAt": "2024-03-04T17:04:29Z",
+          "updatedAt": "2024-03-04T17:04:29Z"
+        }
+      ],
       "reviews": [
         {
           "id": "PRR_kwDOG2Ho4M5nBrSR",
@@ -48026,13 +48079,13 @@
       ],
       "body": "Fixes #363, Fixes #269\r\n\r\nThis attempts to provide the minimum functionality I expect we'll need, regardless of how SUBSCRIBE is changed in the near future.",
       "createdAt": "2024-02-19T19:05:04Z",
-      "updatedAt": "2024-02-29T16:55:47Z",
+      "updatedAt": "2024-03-04T02:57:49Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
-      "baseRefOid": "d8e0951dbe8d1f8d0186e59c0afd5e26cc858925",
+      "baseRefOid": "06d9acf2564ca79fc3dcb78303f93047691c4b07",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "ianswett-subscribe-update",
-      "headRefOid": "938bc4c36c04c4a00849094381de9de0031b2ffa",
+      "headRefOid": "7cefe686c995176d8278ec4f41c3fab3dae65a6c",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -48562,13 +48615,13 @@
       "labels": [],
       "body": "Fixes #390",
       "createdAt": "2024-02-19T20:37:42Z",
-      "updatedAt": "2024-02-21T17:07:03Z",
+      "updatedAt": "2024-03-04T17:01:15Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
-      "baseRefOid": "1169f20fd065f90452754057a653cb870309e24d",
+      "baseRefOid": "06d9acf2564ca79fc3dcb78303f93047691c4b07",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "ianswett-no-expires",
-      "headRefOid": "71d3207c20448694e90fb00efadccefcb22a4770",
+      "headRefOid": "f1963f5a1cc48098f792fa2510df911e55d92c0f",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -48580,6 +48633,13 @@
           "body": "I believe this PR is a step in the right direction, since the current subscription expiry mechanism feels underspecified; I can think of some cases in which that would be useful, but I'd rather have a `SUBSCRIBE_GOAWAY` message that tells the peer they should resubscribe rather than a timer.",
           "createdAt": "2024-02-20T18:17:56Z",
           "updatedAt": "2024-02-20T18:17:56Z"
+        },
+        {
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "I'm concerned about state that *never* goes away if some downstream connection had a slight bug or timing hickup.  ",
+          "createdAt": "2024-03-04T17:01:13Z",
+          "updatedAt": "2024-03-04T17:01:13Z"
         }
       ],
       "reviews": [
@@ -49330,24 +49390,26 @@
       "id": "PR_kwDOG2Ho4M5oMQ4m",
       "title": "Merge SUBSCRIBE_RESET and SUBSCRIBE_FIN ",
       "url": "https://github.com/moq-wg/moq-transport/pull/401",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "ianswett",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [],
-      "body": "Into SUBSCRIBE_CLOSED.\r\n\r\nI didn't remove the SUBSCRIBE_ERROR message in favor of SUBSCRIBE_CLOSED as @kixelated suggested in this PR.\r\n\r\nFixes #398 \r\nFixes #356\r\nFixes #310",
+      "body": "Into SUBSCRIBE_DONE.\r\n\r\nI didn't remove the SUBSCRIBE_ERROR message in favor of SUBSCRIBE_CLOSED as @kixelated suggested in this PR.\r\n\r\nFixes #398 \r\nFixes #356\r\nAddresses some comments in #310, but possibly not all",
       "createdAt": "2024-02-28T16:15:42Z",
-      "updatedAt": "2024-03-01T00:15:16Z",
+      "updatedAt": "2024-03-04T02:51:01Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "d8e0951dbe8d1f8d0186e59c0afd5e26cc858925",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "ianswett-better-naming",
-      "headRefOid": "04fcf9d162885c50416f78b6b7d2c6363947dae1",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "headRefOid": "0c53359a477479c9043e09609ded8d08662b13b7",
+      "closedAt": "2024-03-04T02:51:01Z",
+      "mergedAt": "2024-03-04T02:51:01Z",
+      "mergedBy": "ianswett",
+      "mergeCommit": {
+        "oid": "06d9acf2564ca79fc3dcb78303f93047691c4b07"
+      },
       "comments": [
         {
           "author": "fluffy",
@@ -49697,6 +49759,151 @@
           ]
         }
       ]
+    },
+    {
+      "number": 405,
+      "id": "PR_kwDOG2Ho4M5onjRh",
+      "title": "bit align ContentExists. Fixes #404",
+      "url": "https://github.com/moq-wg/moq-transport/pull/405",
+      "state": "OPEN",
+      "author": "fluffy",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "",
+      "createdAt": "2024-03-04T17:26:26Z",
+      "updatedAt": "2024-03-04T22:56:47Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "06d9acf2564ca79fc3dcb78303f93047691c4b07",
+      "headRepository": "moq-wg/moq-transport",
+      "headRefName": "ce-bits",
+      "headRefOid": "42579a084d4c4b6094e3bc963d095efc59f3d581",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [
+        {
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "Note from call. \r\n\r\nFixe subscribeDone at same time.  \r\n\r\nDefine a new bool type. \r\n\r\np[ick new leatter other than b \r\n\r\n",
+          "createdAt": "2024-03-04T18:03:30Z",
+          "updatedAt": "2024-03-04T18:03:30Z"
+        },
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Also make sure to fix SUBSCRIBE_DONE at the same time.",
+          "createdAt": "2024-03-04T22:12:17Z",
+          "updatedAt": "2024-03-04T22:12:17Z"
+        },
+        {
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "@ianswett - I updated, have another read and see if it looks OK. Thanks \r\n",
+          "createdAt": "2024-03-04T22:46:06Z",
+          "updatedAt": "2024-03-04T22:46:06Z"
+        }
+      ],
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M5yLG6Z",
+          "commit": {
+            "abbreviatedOid": "42579a0"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2024-03-04T22:56:47Z",
+          "updatedAt": "2024-03-04T22:56:47Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 406,
+      "id": "PR_kwDOG2Ho4M5opXSS",
+      "title": "Clarify the use of Expires in SUBSCRIBE",
+      "url": "https://github.com/moq-wg/moq-transport/pull/406",
+      "state": "MERGED",
+      "author": "ianswett",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "And add a new SUBSCRIBE_DONE status code.\r\n\r\nFixes part of #390, but it's still unclear how one might refresh a subscription without interruption.",
+      "createdAt": "2024-03-04T22:18:49Z",
+      "updatedAt": "2024-03-04T22:46:31Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "06d9acf2564ca79fc3dcb78303f93047691c4b07",
+      "headRepository": "moq-wg/moq-transport",
+      "headRefName": "ianswett-clarify-expires",
+      "headRefOid": "53d764fe9c93cb63f7b51f805c97489f9358d465",
+      "closedAt": "2024-03-04T22:46:31Z",
+      "mergedAt": "2024-03-04T22:46:31Z",
+      "mergedBy": "ianswett",
+      "mergeCommit": {
+        "oid": "80a1fc4eec92a05439e473edb60dcea399b3ca62"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M5yK8Uh",
+          "commit": {
+            "abbreviatedOid": "53d764f"
+          },
+          "author": "vasilvv",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2024-03-04T22:22:14Z",
+          "updatedAt": "2024-03-04T22:22:14Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5yLCM9",
+          "commit": {
+            "abbreviatedOid": "53d764f"
+          },
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "LGTM",
+          "createdAt": "2024-03-04T22:41:15Z",
+          "updatedAt": "2024-03-04T22:41:15Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 407,
+      "id": "PR_kwDOG2Ho4M5opsGx",
+      "title": "Split messages by stream type.",
+      "url": "https://github.com/moq-wg/moq-transport/pull/407",
+      "state": "OPEN",
+      "author": "kixelated",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [
+        "Editorial"
+      ],
+      "body": "- Control messages\r\n- Data messages\r\n- Datagram messages\r\n\r\nTried to keep things completely editorial. I would like to do more cleanup but I would absolutely get carried away.",
+      "createdAt": "2024-03-04T23:29:01Z",
+      "updatedAt": "2024-03-04T23:29:01Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "80a1fc4eec92a05439e473edb60dcea399b3ca62",
+      "headRepository": "moq-wg/moq-transport",
+      "headRefName": "message-types",
+      "headRefOid": "e6c1e4b0574bba2ae06d37557f4c58967787c19a",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": []
     }
   ]
 }
