@@ -404,7 +404,7 @@ If a given parameter carries the same information in multiple versions,
 but might have different optimal values in those versions, there SHOULD be
 separate Setup parameters for that information in each version.
 
-## Control Stream
+## Control Stream {#control-stream}
 The first stream opened is a client-initiated bidirectional stream where
 the peers exchange Setup Messages ({{message-setup}}).
 All control messages ({{message-control}}) are sent over this control stream.
@@ -415,14 +415,16 @@ Because there are no other uses of bidirectional streams, a peer MAY currently c
 The control stream MUST NOT be abruptly closed at the underlying transport
 layer. Doing so results in the session being closed as a 'Protocol Violation'.
 
-## Data Streams
-A publisher will create unidirectional streams containing one or more data messages ({{message-data}}).
+## Object Transmission
+A publisher uses unidirectional streams (data stream) or datagrams to transmit objects.
+Each object contains a range of contiguous bytes of the specified track, as well as associated metadata required to deliver, cache, and forward it.
 
-Data streams MAY be canceled due to congestion or other reasons by either the sender or receiver. Early termination of a stream does not affect the MoQ application state, and therefore has no effect on outstanding subscriptions.
+Each data stream contains one or more data messages ({{message-data}}).
+Each stream MAY be canceled due to congestion or other reasons by either the sender or receiver. Early termination of a stream does not affect the MoQ application state, and therefore has no effect on outstanding subscriptions.
 
-## Datagrams
-A publisher may transmit datagrams containing a datagram messages ({{message-datagram}}).
-This is done to avoid retransmissions and is useful for transient objects.
+Each datagram contains a single datagram message ({{message-datagram}}).
+Datagrams are transient, intended for objects with a tight deadline that do not need retransmissions or flow control.
+A datagram MAY be dropped for any reason, such as congestion, and SHOULD NOT be queued or cached.
 
 ## Termination  {#session-termination}
 
@@ -742,7 +744,7 @@ MoQT endpoints exchange sequentially encoded messages over QUIC streams and data
 
 ~~~
 MOQT Message {
-  Message ID (i),
+  Message Type (i),
   Message Payload (..),
 }
 ~~~
@@ -754,16 +756,15 @@ There are three categories of messages, identified by the underlying transport t
 - Data Messages ({{message-data}}): unidirectional streams
 - Datagram Messages ({{message-datagram}}): datagrams
 
-Each category has its own registry of Message ID which may overlap.
-For example, the meaning of Message ID = 3 changes depend on the stream type.
-
-An endpoint that receives an unknown message type MUST close the session with a 'Protocol Violation'.
+Each category has its own registry of Message Types.
+A message received on a unidirectional stream might not be valid on a bidirectional stream, and vice versa.
+An endpoint that receives an unknown or invalid message type MUST close the session with a 'Protocol Violation'.
 
 ## Control Messages {#message-control}
-Control messages are transmitted over bidirectional streams.
+Control messages are transmitted the bidirectional control stream ({{control-stream}}).
 
 |-------|-----------------------------------------------------|
-| ID    | Messages                                            |
+| Type  | Messages                                            |
 |------:|:----------------------------------------------------|
 | 0x3   | SUBSCRIBE ({{message-subscribe-req}})               |
 |-------|-----------------------------------------------------|
@@ -1333,7 +1334,7 @@ GOAWAY Message {
 Data messages are transmitted over unidirectional streams.
 
 |-------|-----------------------------------------------------|
-| ID    | Messages                                            |
+| Type  | Messages                                            |
 |------:|:----------------------------------------------------|
 | 0x0   | OBJECT_STREAM ({{message-object-stream}})           |
 |-------|-----------------------------------------------------|
@@ -1559,7 +1560,7 @@ OBJECT_STREAM {
 Datagram messages are transmitted over QUIC datagrams.
 
 |-------|-----------------------------------------------------|
-| ID    | Messages                                            |
+| Type  | Messages                                            |
 |------:|:----------------------------------------------------|
 | 0x0   | OBJECT_DATAGRAM ({{object-datagram}})               |
 |-------|-----------------------------------------------------|
