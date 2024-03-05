@@ -2122,9 +2122,8 @@ a given SUBSCRIBE of either SUBSCRIBE_OK or SUBSCRIBE_ERROR.<a href="#section-5.
 subscribers for each track. Each new OBJECT belonging to the
 track within the subscription range is forwarded to each active
 subscriber, dependent on the congestion response. A subscription
-remains active until it expires, until the publisher of the track
-terminates the track with a SUBSCRIBE_DONE
-(see <a href="#message-subscribe-done" class="auto internal xref">Section 6.8</a>).<a href="#section-5.1-3" class="pilcrow">¶</a></p>
+remains active until the publisher of the track terminates the
+track with a SUBSCRIBE_DONE (see <a href="#message-subscribe-done" class="auto internal xref">Section 6.8</a>).<a href="#section-5.1-3" class="pilcrow">¶</a></p>
 <p id="section-5.1-4">Objects <span class="bcp14">MUST NOT</span> be sent for unsuccessful subscriptions, and if a subscriber
 receives a SUBSCRIBE_ERROR after receiving objects, it <span class="bcp14">MUST</span> close the session
 with a 'Protocol Violation'.<a href="#section-5.1-4" class="pilcrow">¶</a></p>
@@ -2194,6 +2193,10 @@ SUBSCRIBE_DONE, as defined below:<a href="#section-5.1-9" class="pilcrow">¶</a>
             <tr>
               <td class="text-right" rowspan="1" colspan="1">0x5</td>
               <td class="text-left" rowspan="1" colspan="1">Going Away</td>
+            </tr>
+            <tr>
+              <td class="text-right" rowspan="1" colspan="1">0x6</td>
+              <td class="text-left" rowspan="1" colspan="1">Expired</td>
             </tr>
           </tbody>
         </table>
@@ -3064,8 +3067,9 @@ SUBSCRIBE_OK
 </li>
           <li class="normal" id="section-6.5-3.2">
             <p id="section-6.5-3.2.1">Expires: Time in milliseconds after which the subscription is no
-longer valid. A value of 0 indicates that the subscription stays active
-until it is explicitly unsubscribed.<a href="#section-6.5-3.2.1" class="pilcrow">¶</a></p>
+longer valid. A value of 0 indicates that the subscription does not expire
+or expires at an unknown time.  Expires is advisory and a subscription can
+end prior to the expiry time or last longer.<a href="#section-6.5-3.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-6.5-3.3">
             <p id="section-6.5-3.3.1">ContentExists: 1 if an object has been published on this track, 0 if not.
