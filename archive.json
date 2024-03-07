@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2024-03-05T01:05:14.239150+00:00",
+  "timestamp": "2024-03-07T00:54:41.625059+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -14440,6 +14440,164 @@
           "body": "Have a look at PR #405 ",
           "createdAt": "2024-03-04T17:27:23Z",
           "updatedAt": "2024-03-04T17:27:23Z"
+        }
+      ]
+    },
+    {
+      "number": 408,
+      "id": "I_kwDOG2Ho4M6BXP4Y",
+      "title": "How should a relay queue datagrams?",
+      "url": "https://github.com/moq-wg/moq-transport/issues/408",
+      "state": "OPEN",
+      "author": "kixelated",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": " Does it ever make sense to queue a datagram before transmission, and if so for how long? How does this tie into object TTLs?",
+      "createdAt": "2024-03-05T23:45:49Z",
+      "updatedAt": "2024-03-06T18:16:23Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Individual Comment:\r\n\r\nI'm inclined to decouple the mechanism by which an object arrived and how long it can be cached.  Whatever we decide for TTL / expiry would also apply to datagrams, possibly with some wire format magic to reduce overhead.",
+          "createdAt": "2024-03-05T23:50:06Z",
+          "updatedAt": "2024-03-05T23:50:06Z"
+        },
+        {
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "body": "In my opinion, a relay SHOULD NOT cache or queue datagrams. Of course there can be some send buffer, but we're talking milliseconds.\r\n\r\nThe application wants to use datagrams because any form of transmission latency, for example retransmissions, is unacceptable. Timeliness is the property we want, not unreliability. A relay breaks that if it queues datagrams, creating an issue not dissimilar from bufferbloat.\r\n\r\nWhat are example use cases of a datagram with a TTL greater than an RTT? If a datagram is allowed to be late, why not use a stream?",
+          "createdAt": "2024-03-05T23:54:13Z",
+          "updatedAt": "2024-03-05T23:54:13Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Individual Comment:\r\n\r\nI don't have a particular use case in mind.  Maybe the publisher chose datagrams because it didn't want to mess with retransmission, but I would still like the objects that do arrive at the relay be available to a subsequent subscribe?  Generally I don't see a reason to normatively prohibit caching an object because it arrived on a stream vs a datagram.  I'd rather the application have clear mechanisms to indicate how long something can be cached.\r\n\r\nWe haven't yet explained the normative rules for how relays make drop decisions.  Since datagrams are inherently unreliable it might be tempting to say they are always dropped first, but again, I think I'd rather use send order/priority and expiry to drive that process primarily.",
+          "createdAt": "2024-03-06T00:07:44Z",
+          "updatedAt": "2024-03-06T00:07:44Z"
+        },
+        {
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "body": "+1 on @afrind suggestions. Objects are cacheable entities in MOQ, not the transport mechanism",
+          "createdAt": "2024-03-06T00:22:48Z",
+          "updatedAt": "2024-03-06T00:31:38Z"
+        },
+        {
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "body": "The problem with caching/queuing datagrams is that there's an inherent mismatch between the IP/QUIC layer (TTL=0) and the MoQ layer (TTL=N). Trying to ask for a higher TTL than datagrams can inherently provide is going to result in strange behavior depending on the network/relay configuration.\r\n\r\nIt also doesn't make sense to have TTL>RTT, since retransmissions via streams are strictly better than using datagrams. I don't understand why you would ever want something transient at the network layer but persistent at the relay layer.\r\n\r\nI'm fine with adding a TTL to datagrams but it needs to be measured in tens of milliseconds. Anything higher causes bufferbloat (relaybloat?) or should be handled with streams instead. But I would rather remove TTL from the datagram header and assume TTL=0, reducing the overhead in the process.",
+          "createdAt": "2024-03-06T00:42:21Z",
+          "updatedAt": "2024-03-06T00:45:48Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Individual Comment: \r\n\r\nI think we should apply our energy figuring out what TTL/expiry means in general in moq first, then figure out how that might apply to datagrams.\r\n\r\n> The problem with caching/queuing datagrams is that there's an inherent mismatch between the IP/QUIC layer (TTL=0) and the MoQ layer (TTL=N)\r\n\r\nI don't view this problem in the same way.  The transport reliability (is it retransmitted?) and the durability of an object (how long is it valid) seem relatively orthogonal to me.\r\n\r\n> I'm fine with adding a TTL to datagrams but it needs to be measured in tens of milliseconds.\r\n\r\nIf TTL/expiry ends up being an object property, I wouldn't see any reason to normatively limit an application's ability to set the value to whatever they want.  We can have a best-practices section that explains how to get good performance from an moq application.\r\n",
+          "createdAt": "2024-03-06T01:06:17Z",
+          "updatedAt": "2024-03-06T01:06:17Z"
+        },
+        {
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> The problem with caching/queuing datagrams is that there's an inherent mismatch between the IP/QUIC layer (TTL=0) and the MoQ layer (TTL=N). Trying to ask for a higher TTL than datagrams can inherently provide is going to result in strange behavior depending on the network/relay configuration.\r\n\r\nI think this is wrong way to think about it .. TTL on moq applies to objects .. Objects arrive over datagram or over stream .. MOQ TTL has same meaniig for an MOQ object regardless of how it is delivered.",
+          "createdAt": "2024-03-06T03:25:42Z",
+          "updatedAt": "2024-03-06T03:25:42Z"
+        },
+        {
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> I think we should apply our energy figuring out what TTL/expiry means in general in moq first, then figure out how that might apply to datagrams.\r\n\r\nI'm having trouble adding datagram support and it seems even worse with TTL in the mix. The problem is that the relay has a single opportunity to send each datagram. How aggressive should it be?\r\n\r\nFor example, if a relay receive a datagram with no TTL. For all active subscribers, does it:\r\n\r\n1. Try to send it immediately, dropping it if the congestion window is full.\r\n2. Put the datagram in a priority queue, popping in send order until the congestion window is full.\r\n\r\nThe second approach means I drop fewer datagrams (especially for bursts), but it requires the QUIC library to have a callback-based API. But more importantly, it means that the relay will queue datagrams for an unbounded amount of time, aka bufferbloat. The entire point of using datagrams instead of streams is for timely delivery (below RTT) so I strongly disagree with this approach.\r\n\r\nNow what if I receive a datagram with a TTL of 100ms? I'm basically required to implement the second approach, with the TTL being the maximum allowed amount of bufferbloat. I'm allowed to ignore the TTL and transmit/drop immediately, but then the field is useless and I'm ignoring application intent. And what is the application intent anyway? Why let the relay queue for up to 100ms but disallow retransmissions?\r\n\r\nI just can't envision a use-case where datagram TTL would be useful and it's not trivial to implement either.\r\n\r\n> I think this is wrong way to think about it .. TTL on moq applies to objects .. Objects arrive over datagram or over stream .. MOQ TTL has same meaniig for an MOQ object regardless of how it is delivered.\r\n\r\nI understand the desire to label everything as an \"object\", but the reality is that streams and datagrams have different properties. A TTL for a stream is completely different than a \"TTL\" for a datagram...",
+          "createdAt": "2024-03-06T07:03:33Z",
+          "updatedAt": "2024-03-06T07:05:22Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Commenting as an implementer:\r\n\r\n> Put the datagram in a priority queue, popping in send order until the congestion window is full.\r\n\r\n> ...requires the QUIC library to have a callback-based API\r\n\r\nThe mvfst QUIC library maintains this priority queue without the need for callbacks.  The application writes data into the transport library (on streams or datagrams) and the transport drains those queues in priority order as CWND is available.\r\n\r\nA little bit of priority queuing is good for you -- eg: if you receive a burst of datagrams but the later received ones have higher priority.  You don't want to fill up our CWND with low pri ones.\r\n\r\nI also expect moq will give us reason to extend the capabilities of mvfst.",
+          "createdAt": "2024-03-06T17:17:20Z",
+          "updatedAt": "2024-03-06T17:17:20Z"
+        },
+        {
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> Commenting as an implementer:\r\n> \r\n> > Put the datagram in a priority queue, popping in send order until the congestion window is full.\r\n> \r\n> > ...requires the QUIC library to have a callback-based API\r\n> \r\n> The mvfst QUIC library maintains this priority queue without the need for callbacks. The application writes data into the transport library (on streams or datagrams) and the transport drains those queues in priority order as CWND is available.\r\n> \r\n> A little bit of priority queuing is good for you -- eg: if you receive a burst of datagrams but the later received ones have higher priority. You don't want to fill up our CWND with low pri ones.\r\n> \r\n> I also expect moq will give us reason to extend the capabilities of mvfst.\r\n\r\nAbsolutely, you should have a small send buffer for datagrams especially for pacing.\r\n\r\nThe problem is that the size of the send buffer needs to be on a per-datagram basis to implement datagram TTLs. For example, there are two objects, one with TTL 10ms and the other with TTL 90ms. They both go into the same priority queue, but the library needs an API and mechanism to expire datagrams at different times. Most send buffers don't work that way.\r\n\r\nAdditionally, the QUIC libraries I've used don't have a way to prioritize individual datagrams. There's generally one queue with a small buffer because datagrams are intended to be sent immediately or dropped. A QUIC library needs to support both datagram prioritization and expiration for datagram TTLs to work; most libraries I've seen have neither.\r\n\r\nMoQ could pave the way for new QUIC APIs but that's optimistic. In reality, I imagine most implementations will ignore the datagram TTL and it should be an extension at best.",
+          "createdAt": "2024-03-06T18:01:43Z",
+          "updatedAt": "2024-03-06T18:01:43Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Individual Comment:\r\n\r\nI strongly believe we shouldn't constrain MoQ based on circa 2023 library APIs and designs.  They are in user space and most are open source and have active developers.  WebTransport isn't even constrained to RFC 9000 - it's going to depend on a QUIC *extension* which hasn't even been completed yet.  ",
+          "createdAt": "2024-03-06T18:14:28Z",
+          "updatedAt": "2024-03-06T18:16:23Z"
+        }
+      ]
+    },
+    {
+      "number": 409,
+      "id": "I_kwDOG2Ho4M6BZ7V6",
+      "title": "ANNOUNCE_CANCEL does not have a message type",
+      "url": "https://github.com/moq-wg/moq-transport/issues/409",
+      "state": "OPEN",
+      "author": "mengelbart",
+      "authorAssociation": "NONE",
+      "assignees": [],
+      "labels": [],
+      "body": "ANNOUNCE_CANCEL is missing in [Table 4](https://datatracker.ietf.org/doc/html/draft-ietf-moq-transport-03#table-4). ",
+      "createdAt": "2024-03-06T09:38:15Z",
+      "updatedAt": "2024-03-06T09:38:15Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 410,
+      "id": "I_kwDOG2Ho4M6Bd2Qm",
+      "title": "What happens if we get OBJECT_DATAGRAM on a Stream?",
+      "url": "https://github.com/moq-wg/moq-transport/issues/410",
+      "state": "OPEN",
+      "author": "martinduke",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Now that Datagram is no longer just a suggestion, should there be some sort of error if we get OBJECT_DATAGRAM on a Stream?",
+      "createdAt": "2024-03-06T17:41:58Z",
+      "updatedAt": "2024-03-06T17:46:10Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Absolutely, and it's something I'd like to address in #407",
+          "createdAt": "2024-03-06T17:46:10Z",
+          "updatedAt": "2024-03-06T17:46:10Z"
+        }
+      ]
+    },
+    {
+      "number": 411,
+      "id": "I_kwDOG2Ho4M6BebM-",
+      "title": "Proposal: Subscriber Prioritization",
+      "url": "https://github.com/moq-wg/moq-transport/issues/411",
+      "state": "OPEN",
+      "author": "kixelated",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "I know we're not allowed to talk about priorities any longer but I wanted to float another option. \r\n\r\nThe subscriber is in charge of prioritization:\r\n- Add `order` to SUBSCRIBE: `ASC` or `DESC`\r\n- Add `priority` to SUBSCRIBE: `VarInt`?\r\n- Remove `send_order` from OBJECT.\r\n\r\nThe publisher prioritizes streams based on:\r\n```rust\r\nlet order = subscribe.order == DESC ? 1 : -1;\r\nsubscribe.priority > object.group * order > -object.id\r\n```\r\n\r\nDepending on the QUIC API, publisher still needs to compute a send order for each stream. It can do this by inserting each stream into a priority queue based on the above comparison, using the resulting position in the queue as the send order. This was already a requirement for QUIC APIs that did not support a u64 send order.\r\n\r\nAlternatively, a QUIC API could implement nested priority groups, perhaps something like [sendGroup](https://www.w3.org/TR/webtransport/#dom-webtransport-createsendgroup).\r\n\r\n# Pros: Order\r\nThe benefits of `order=ASC` are similar to the proposed `FETCH` API in #368.\r\n\r\n- Supports HLS/DASH-like experiences, where playback buffers instead of skips.\r\n- Supports VOD playback.\r\n- Supports advertisement playback.\r\n\r\nNote that you could perform head-of-line blocking today* by issuing a SUBSCRIBE per group. However this is quite verbose, and it creates an RTT at the end of each group where the network is not being utilized.\r\n\r\n# Pros: Priority\r\n- Supports prioritizing unrelated tracks (from different encoders).\r\n- Supports prioritizing based on focus state (sideline cam > main cam)\r\n- Supports prioritizing high bitrate (main cam > sideline cam)\r\n- The encoder is dumb, unaware of network priorities.\r\n\r\nThese could only be performed today by rewriting send order at a relay, which is impossible without catalog access.\r\n\r\n# Cons\r\n- SUBSCRIBE is even more complicated.\r\n- No interleaved prioritizes between tracks/groups. (who cares?)\r\n- Publisher has to compute/update send order on each stream/datagram created.\r\n- Relay has to deduplicate conflicting SUBSCRIBEs\r\n \r\nThe main challenge is the last one. For example, two viewers could issue:\r\n```\r\nSUBSCRIBE track=720p order=ASC priority=3\r\nSUBSCRIBE track=720p order=DESC priority=9\r\n```\r\n\r\nWhat does the relay send upstream? The idea behind publisher prioritization was to avoid this dilemma, but maybe there's another way we can solve it.",
+      "createdAt": "2024-03-06T19:15:58Z",
+      "updatedAt": "2024-03-06T19:31:14Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "body": "One dumb idea for the publisher prioritization dilemma is to put the \"preferred\" priority and order for each track in ANNOUNCE. A relay could choose to use this information when fetching upstream, instead of relying on the values provided by N subscribers.\r\n\r\nHowever this would require switching ANNOUNCE to be per-track instead of per-namespace as it is currently.",
+          "createdAt": "2024-03-06T19:30:04Z",
+          "updatedAt": "2024-03-06T19:31:14Z"
         }
       ]
     }
@@ -48608,21 +48766,21 @@
       "id": "PR_kwDOG2Ho4M5nU-93",
       "title": "Remove 'Expires' from SUBSCRIBE_OK",
       "url": "https://github.com/moq-wg/moq-transport/pull/391",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "ianswett",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [],
       "body": "Fixes #390",
       "createdAt": "2024-02-19T20:37:42Z",
-      "updatedAt": "2024-03-04T17:01:15Z",
+      "updatedAt": "2024-03-05T19:41:11Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "06d9acf2564ca79fc3dcb78303f93047691c4b07",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "ianswett-no-expires",
       "headRefOid": "f1963f5a1cc48098f792fa2510df911e55d92c0f",
-      "closedAt": null,
+      "closedAt": "2024-03-05T19:41:11Z",
       "mergedAt": null,
       "mergedBy": null,
       "mergeCommit": null,
@@ -48640,6 +48798,13 @@
           "body": "I'm concerned about state that *never* goes away if some downstream connection had a slight bug or timing hickup.  ",
           "createdAt": "2024-03-04T17:01:13Z",
           "updatedAt": "2024-03-04T17:01:13Z"
+        },
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Closing this for now, we can always remove 'Expires' easily later on.",
+          "createdAt": "2024-03-05T19:41:11Z",
+          "updatedAt": "2024-03-05T19:41:11Z"
         }
       ],
       "reviews": [
@@ -49772,13 +49937,13 @@
       "labels": [],
       "body": "",
       "createdAt": "2024-03-04T17:26:26Z",
-      "updatedAt": "2024-03-04T22:56:47Z",
+      "updatedAt": "2024-03-05T19:37:58Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
-      "baseRefOid": "06d9acf2564ca79fc3dcb78303f93047691c4b07",
+      "baseRefOid": "80a1fc4eec92a05439e473edb60dcea399b3ca62",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "ce-bits",
-      "headRefOid": "42579a084d4c4b6094e3bc963d095efc59f3d581",
+      "headRefOid": "98adbc27f6b6ab9b29808bc255a02b487370a655",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -49819,6 +49984,66 @@
           "createdAt": "2024-03-04T22:56:47Z",
           "updatedAt": "2024-03-04T22:56:47Z",
           "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5yL385",
+          "commit": {
+            "abbreviatedOid": "98adbc2"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2024-03-05T02:12:45Z",
+          "updatedAt": "2024-03-05T02:14:06Z",
+          "comments": [
+            {
+              "originalPosition": 4,
+              "body": "f makes me think float.  Admittedly, we don't use floats, so maybe this is fine.",
+              "createdAt": "2024-03-05T02:12:45Z",
+              "updatedAt": "2024-03-05T02:13:58Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5yMaaD",
+          "commit": {
+            "abbreviatedOid": "42579a0"
+          },
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-03-05T04:38:37Z",
+          "updatedAt": "2024-03-05T04:38:38Z",
+          "comments": [
+            {
+              "originalPosition": 4,
+              "body": "As I wrote this, I had the same concern, and failed to come up with better idea but, uh, yah, not thrilled about the conflict with float. ",
+              "createdAt": "2024-03-05T04:38:37Z",
+              "updatedAt": "2024-03-05T04:38:38Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5yUa-k",
+          "commit": {
+            "abbreviatedOid": "42579a0"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-03-05T19:37:58Z",
+          "updatedAt": "2024-03-05T19:37:58Z",
+          "comments": [
+            {
+              "originalPosition": 4,
+              "body": "I thought about this for a while and couldn't come up with anything better, so I'm fine with f for flag.",
+              "createdAt": "2024-03-05T19:37:58Z",
+              "updatedAt": "2024-03-05T19:37:58Z"
+            }
+          ]
         }
       ]
     },
@@ -49891,19 +50116,417 @@
       ],
       "body": "- Control messages\r\n- Data messages\r\n- Datagram messages\r\n\r\nTried to keep things completely editorial. I would like to do more cleanup but I would absolutely get carried away.",
       "createdAt": "2024-03-04T23:29:01Z",
-      "updatedAt": "2024-03-04T23:29:01Z",
+      "updatedAt": "2024-03-06T06:07:39Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "80a1fc4eec92a05439e473edb60dcea399b3ca62",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "message-types",
-      "headRefOid": "e6c1e4b0574bba2ae06d37557f4c58967787c19a",
+      "headRefOid": "1fd9aad046ca5f225461a87be71f368600953076",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
       "mergeCommit": null,
       "comments": [],
-      "reviews": []
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M5yL0w2",
+          "commit": {
+            "abbreviatedOid": "e6c1e4b"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-03-05T02:00:05Z",
+          "updatedAt": "2024-03-05T02:00:05Z",
+          "comments": [
+            {
+              "originalPosition": 32,
+              "body": "```suggestion\r\nA publisher uses unidirectional streams or datagrams to carry message data ({{message-data}}).\r\n```",
+              "createdAt": "2024-03-05T02:00:05Z",
+              "updatedAt": "2024-03-05T02:01:10Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5yL1ht",
+          "commit": {
+            "abbreviatedOid": "e6c1e4b"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-03-05T02:02:59Z",
+          "updatedAt": "2024-03-05T02:02:59Z",
+          "comments": [
+            {
+              "originalPosition": 43,
+              "body": "```suggestion\r\nThis avoids retransmissions, minimizes framing and flow control overhead, and is useful for transient objects.\r\n```",
+              "createdAt": "2024-03-05T02:02:59Z",
+              "updatedAt": "2024-03-05T02:02:59Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5yL11g",
+          "commit": {
+            "abbreviatedOid": "e6c1e4b"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-03-05T02:04:37Z",
+          "updatedAt": "2024-03-05T02:04:38Z",
+          "comments": [
+            {
+              "originalPosition": 129,
+              "body": "```suggestion\r\nControl messages are transmitted over the bidirectional stream used to establish the session.\r\n```",
+              "createdAt": "2024-03-05T02:04:37Z",
+              "updatedAt": "2024-03-05T02:04:38Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5yL2Vd",
+          "commit": {
+            "abbreviatedOid": "e6c1e4b"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-03-05T02:07:08Z",
+          "updatedAt": "2024-03-05T02:07:08Z",
+          "comments": [
+            {
+              "originalPosition": 598,
+              "body": "The distinction between data messages and those sent over datagrams is a bit odd to me, since it's the same type of data.",
+              "createdAt": "2024-03-05T02:07:08Z",
+              "updatedAt": "2024-03-05T02:07:09Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5yL2gf",
+          "commit": {
+            "abbreviatedOid": "e6c1e4b"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "This is going in the right direction, but it creates a large diff, so it would be useful to have more reviewers.",
+          "createdAt": "2024-03-05T02:08:05Z",
+          "updatedAt": "2024-03-05T02:08:05Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5yL_ta",
+          "commit": {
+            "abbreviatedOid": "e6c1e4b"
+          },
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "CHANGES_REQUESTED",
+          "body": "My major question is does this change make the data objects larger on the wire ? If so, I think we should figure out how to get them as small as we can. ",
+          "createdAt": "2024-03-05T02:48:57Z",
+          "updatedAt": "2024-03-05T04:37:27Z",
+          "comments": [
+            {
+              "originalPosition": 35,
+              "body": "Uh, I'm not sure this is going to work very well. If A has congestion and cancels a stream from B, and then B just instantly opens a new stream, that is not going to help. ",
+              "createdAt": "2024-03-05T02:48:57Z",
+              "updatedAt": "2024-03-05T04:37:27Z"
+            },
+            {
+              "originalPosition": 25,
+              "body": "I would like to have one place in the spec where we explain how a Protocol Violation is handled and then just reference that in every place there is a Protocol Violation. Right now we sort of explain it half way in each place.  ( could be a different PR but I am thinking about it reading this ) ",
+              "createdAt": "2024-03-05T02:50:41Z",
+              "updatedAt": "2024-03-05T04:37:27Z"
+            },
+            {
+              "originalPosition": 111,
+              "body": "I can see the reason to move away from Type to something else but  have slight preference for something other than ID. When I see ID I expect to see some sort of counter that changes for each message. ",
+              "createdAt": "2024-03-05T02:52:43Z",
+              "updatedAt": "2024-03-05T04:37:27Z"
+            },
+            {
+              "originalPosition": 123,
+              "body": "This is probably a comment where I am just confused on what is being proposed but ... Uh, do these overlapping mean we add an extra byte to the Data messages ? I would really rather not do that. The industry right now is dropping literal millions of dollars into reducing the audio codecs from say 6 kbps to 2 kbs so adding a byte to 20 ms audio packets is big deal.   I still think we can easily do this just by making sure the numeric values are unique across all three tables and still have three tables but just want to make sure we are not making the data packets larger.",
+              "createdAt": "2024-03-05T04:30:56Z",
+              "updatedAt": "2024-03-05T04:37:27Z"
+            },
+            {
+              "originalPosition": 858,
+              "body": "It's hard to figure out what changed in this diff where things are moved. Not sure this is worth it but would easier with a two PR one that just had moves of text and one with diffs.  Did anything other than heading change or get deleted ? I could not see anything but was not sure ",
+              "createdAt": "2024-03-05T04:36:27Z",
+              "updatedAt": "2024-03-05T04:37:27Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5yUZjq",
+          "commit": {
+            "abbreviatedOid": "e6c1e4b"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-03-05T19:34:26Z",
+          "updatedAt": "2024-03-05T19:34:26Z",
+          "comments": [
+            {
+              "originalPosition": 35,
+              "body": "I think this text is largely existing.",
+              "createdAt": "2024-03-05T19:34:26Z",
+              "updatedAt": "2024-03-05T19:34:26Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5yUZ7x",
+          "commit": {
+            "abbreviatedOid": "e6c1e4b"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-03-05T19:35:22Z",
+          "updatedAt": "2024-03-05T19:35:23Z",
+          "comments": [
+            {
+              "originalPosition": 111,
+              "body": "Good point, I'd prefer to stick with Type.  ID does imply something that increments, like a Subscribe ID or Stream ID to me.",
+              "createdAt": "2024-03-05T19:35:22Z",
+              "updatedAt": "2024-03-05T19:35:23Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5yUqFf",
+          "commit": {
+            "abbreviatedOid": "e6c1e4b"
+          },
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-03-05T20:12:59Z",
+          "updatedAt": "2024-03-05T20:12:59Z",
+          "comments": [
+            {
+              "originalPosition": 35,
+              "body": "Yeah this is copy-paste.",
+              "createdAt": "2024-03-05T20:12:59Z",
+              "updatedAt": "2024-03-05T20:12:59Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5yUzO4",
+          "commit": {
+            "abbreviatedOid": "e6c1e4b"
+          },
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-03-05T20:19:48Z",
+          "updatedAt": "2024-03-05T20:19:48Z",
+          "comments": [
+            {
+              "originalPosition": 25,
+              "body": "We should definitely do a pass and create more specific error codes. \"Protocol Violation\" is really a \"TODO\".\r\n\r\nIn this instance, I think we'll remove this error case eventually. I'd like to support multiple control streams, ideally one per session/broadcast, to avoid head-of-line blocking between unrelated tracks.",
+              "createdAt": "2024-03-05T20:19:48Z",
+              "updatedAt": "2024-03-05T20:19:49Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5yU0Su",
+          "commit": {
+            "abbreviatedOid": "e6c1e4b"
+          },
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-03-05T20:20:36Z",
+          "updatedAt": "2024-03-05T20:20:37Z",
+          "comments": [
+            {
+              "originalPosition": 111,
+              "body": "Agreed, the table below used `ID` so I wanted to be consistent. I can change the table instead.",
+              "createdAt": "2024-03-05T20:20:36Z",
+              "updatedAt": "2024-03-05T20:20:37Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5yU4y5",
+          "commit": {
+            "abbreviatedOid": "e6c1e4b"
+          },
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-03-05T20:30:35Z",
+          "updatedAt": "2024-03-05T20:30:35Z",
+          "comments": [
+            {
+              "originalPosition": 123,
+              "body": "No, everything is wire identical to today and we're not using extra bytes.\r\n\r\nI'm trying to specify proposal 2 in #379 but without reflowing the types yet so this PR is editorial only. For example, the meaning of message type = 3 depends on if the message was received over a bidirectional or unidirectional stream (or datagram).\r\n\r\nThe benefit is that we can reuse IDs (saving bits) and avoid constantly checking the context of a message. It's no longer possible to receive a SUBSCRIBE message over a data stream (unidirectional) or datagram because that type is only registered for control streams (bidirectional).",
+              "createdAt": "2024-03-05T20:30:35Z",
+              "updatedAt": "2024-03-05T20:31:00Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5yU5u0",
+          "commit": {
+            "abbreviatedOid": "e6c1e4b"
+          },
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-03-05T20:33:02Z",
+          "updatedAt": "2024-03-05T20:33:02Z",
+          "comments": [
+            {
+              "originalPosition": 858,
+              "body": "I can make it easier to review by splitting it into two commits. The first one changes the order of messages while the second one reflows some text, specifically about data messages.",
+              "createdAt": "2024-03-05T20:33:02Z",
+              "updatedAt": "2024-03-05T20:33:02Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5yU7ai",
+          "commit": {
+            "abbreviatedOid": "e6c1e4b"
+          },
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-03-05T20:37:35Z",
+          "updatedAt": "2024-03-05T20:37:36Z",
+          "comments": [
+            {
+              "originalPosition": 598,
+              "body": "It's just to specify that only a subset of messages are allowed in datagram contexts. There might be a better way of doing that though.\r\n\r\nAlso I thought the plan is to add a length to OBJECT_STREAM, but we definitely shouldn't do that for OBJECT_DATAGRAM. Maybe we also add datagram-only messages in the future and it's just more future-compatible to have a separate object type registry for datagrams.",
+              "createdAt": "2024-03-05T20:37:36Z",
+              "updatedAt": "2024-03-05T20:37:36Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5yVDKz",
+          "commit": {
+            "abbreviatedOid": "e6c1e4b"
+          },
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-03-05T20:57:07Z",
+          "updatedAt": "2024-03-05T20:57:07Z",
+          "comments": [
+            {
+              "originalPosition": 43,
+              "body": "I don't want to upsell datagrams. They save 2-4 bytes (just the stream ID) but that's not the reason why you should use them.\r\n\r\nI'll write another blurb that focuses on the timeliness angle.",
+              "createdAt": "2024-03-05T20:57:07Z",
+              "updatedAt": "2024-03-05T20:57:07Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5yVMB7",
+          "commit": {
+            "abbreviatedOid": "e6c1e4b"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-03-05T21:21:23Z",
+          "updatedAt": "2024-03-05T21:21:23Z",
+          "comments": [
+            {
+              "originalPosition": 43,
+              "body": "+1 on Ian's suggestions. ",
+              "createdAt": "2024-03-05T21:21:23Z",
+              "updatedAt": "2024-03-05T21:21:23Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5yVXCa",
+          "commit": {
+            "abbreviatedOid": "1fd9aad"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-03-05T21:51:34Z",
+          "updatedAt": "2024-03-05T21:51:35Z",
+          "comments": [
+            {
+              "originalPosition": 45,
+              "body": "I don't think queuing or caching statement is appropriate here. Its relay implementation detail and they are free to cache objects or not reagrdless of where they come from (stream/datagram)",
+              "createdAt": "2024-03-05T21:51:35Z",
+              "updatedAt": "2024-03-05T21:51:35Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5yWQpP",
+          "commit": {
+            "abbreviatedOid": "1fd9aad"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "CHANGES_REQUESTED",
+          "body": "",
+          "createdAt": "2024-03-06T00:38:37Z",
+          "updatedAt": "2024-03-06T00:38:44Z",
+          "comments": [
+            {
+              "originalPosition": 45,
+              "body": "how do we define transient in the context of MoQ ? ",
+              "createdAt": "2024-03-06T00:38:37Z",
+              "updatedAt": "2024-03-06T00:38:44Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5yXtzA",
+          "commit": {
+            "abbreviatedOid": "1fd9aad"
+          },
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-03-06T06:07:39Z",
+          "updatedAt": "2024-03-06T06:07:39Z",
+          "comments": [
+            {
+              "originalPosition": 45,
+              "body": "> I don't think queuing or caching statement is appropriate here. Its relay implementation detail and they are free to cache objects or not reagrdless of where they come from (stream/datagram)\r\n\r\nSure, I didn't realize this statement would be controversial and we can discuss in #408 instead.",
+              "createdAt": "2024-03-06T06:07:39Z",
+              "updatedAt": "2024-03-06T06:07:39Z"
+            }
+          ]
+        }
+      ]
     }
   ]
 }
