@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2024-03-07T00:54:41.625059+00:00",
+  "timestamp": "2024-03-10T01:09:58.637422+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -14600,6 +14600,22 @@
           "updatedAt": "2024-03-06T19:31:14Z"
         }
       ]
+    },
+    {
+      "number": 412,
+      "id": "I_kwDOG2Ho4M6BwFFH",
+      "title": "ANNOUNCE_CANCEL is missing a code/reason",
+      "url": "https://github.com/moq-wg/moq-transport/issues/412",
+      "state": "OPEN",
+      "author": "kixelated",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "It's meant to be sent by the subscriber, indicating that the announce is no longer accepted. The fields should mirror ANNOUNCE_ERROR so the subscriber can indicate stuff like authentication expired, another announce was received, etc.",
+      "createdAt": "2024-03-08T22:22:11Z",
+      "updatedAt": "2024-03-08T22:22:11Z",
+      "closedAt": null,
+      "comments": []
     }
   ],
   "pulls": [
