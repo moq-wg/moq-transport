@@ -1436,7 +1436,7 @@ SUBSCRIBE_DONE Message {
   Subscribe ID (i),
   Status Code (i),
   Reason Phrase (b),
-  ContentExists (1),
+  ContentExists (8),
   [Final Group (i)],
   [Final Object (i)],
 }
