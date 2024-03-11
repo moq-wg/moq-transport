@@ -1353,7 +1353,7 @@ SUBSCRIBE_OK
 {
   Subscribe ID (i),
   Expires (i),
-  ContentExists (1),
+  ContentExists (8),
   [Largest Group ID (i)],
   [Largest Object ID (i)]
 }
@@ -1367,9 +1367,9 @@ longer valid. A value of 0 indicates that the subscription does not expire
 or expires at an unknown time.  Expires is advisory and a subscription can
 end prior to the expiry time or last longer.
 
-* ContentExists: 1 if an object has been published on this track, 0 if not.
-If 0, then the Largest Group ID and Largest Object ID fields will not be
-present.
+* ContentExists: This one byte field is 1 if an object has been published on
+this track, 0 if not. If 0, then the Largest Group ID and Largest Object ID
+fields will not be present.
 
 * Largest Group ID: the largest Group ID available for this track. This field is only present if ContentExists has a value of 1.
 
