@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2024-03-10T01:09:58.637422+00:00",
+  "timestamp": "2024-03-12T01:05:15.934896+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -50543,6 +50543,40 @@
           ]
         }
       ]
+    },
+    {
+      "number": 413,
+      "id": "PR_kwDOG2Ho4M5pQ3BU",
+      "title": "Fix the bit encoding of ContentExists",
+      "url": "https://github.com/moq-wg/moq-transport/pull/413",
+      "state": "OPEN",
+      "author": "martinduke",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "This is a one-byte field, not a one-bit field",
+      "createdAt": "2024-03-11T16:00:10Z",
+      "updatedAt": "2024-03-11T16:42:06Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "80a1fc4eec92a05439e473edb60dcea399b3ca62",
+      "headRepository": "martinduke/moq-transport",
+      "headRefName": "patch-1",
+      "headRefOid": "7472397fd1d579f761c00a6124f6a1f37840bce7",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [
+        {
+          "author": "vasilvv",
+          "authorAssociation": "COLLABORATOR",
+          "body": "This is already being fixed in #405",
+          "createdAt": "2024-03-11T16:42:04Z",
+          "updatedAt": "2024-03-11T16:42:04Z"
+        }
+      ],
+      "reviews": []
     }
   ]
 }
