@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2024-03-12T01:05:15.934896+00:00",
+  "timestamp": "2024-03-14T01:05:39.357912+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -50576,6 +50576,32 @@
           "updatedAt": "2024-03-11T16:42:04Z"
         }
       ],
+      "reviews": []
+    },
+    {
+      "number": 414,
+      "id": "PR_kwDOG2Ho4M5piWe8",
+      "title": "Add a message type for ANNOUNCE_CANCEL",
+      "url": "https://github.com/moq-wg/moq-transport/pull/414",
+      "state": "OPEN",
+      "author": "kixelated",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Fixes #409",
+      "createdAt": "2024-03-13T17:49:27Z",
+      "updatedAt": "2024-03-13T17:49:27Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "80a1fc4eec92a05439e473edb60dcea399b3ca62",
+      "headRepository": "moq-wg/moq-transport",
+      "headRefName": "announce_cancel",
+      "headRefOid": "ee777f3e1c6cb631f1a3369859e89f35046f9269",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
       "reviews": []
     }
   ]
