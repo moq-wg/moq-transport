@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2024-03-14T01:05:39.357912+00:00",
+  "timestamp": "2024-03-17T01:10:05.395134+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -14614,6 +14614,22 @@
       "body": "It's meant to be sent by the subscriber, indicating that the announce is no longer accepted. The fields should mirror ANNOUNCE_ERROR so the subscriber can indicate stuff like authentication expired, another announce was received, etc.",
       "createdAt": "2024-03-08T22:22:11Z",
       "updatedAt": "2024-03-08T22:22:11Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 415,
+      "id": "I_kwDOG2Ho4M6CXVKX",
+      "title": "Errors in second example in section 6.3.4 of draft-03",
+      "url": "https://github.com/moq-wg/moq-transport/issues/415",
+      "state": "OPEN",
+      "author": "englishm",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "There are two issues with this example:\r\n\r\nhttps://github.com/moq-wg/moq-transport/blob/80a1fc4eec92a05439e473edb60dcea399b3ca62/draft-ietf-moq-transport.md?plain=1#L1153-L1185\r\n\r\n1. The Object id should be unique, not duplicated.\r\n2. We shouldn't be mixing different forwarding preferences within the same track, per earlier text in this same version of the draft:\r\n\r\nhttps://github.com/moq-wg/moq-transport/blob/80a1fc4eec92a05439e473edb60dcea399b3ca62/draft-ietf-moq-transport.md?plain=1#L975-L978",
+      "createdAt": "2024-03-14T19:50:54Z",
+      "updatedAt": "2024-03-14T19:50:54Z",
       "closedAt": null,
       "comments": []
     }
