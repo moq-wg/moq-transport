@@ -243,6 +243,15 @@ x (b):
   described in ({{?RFC9000, Section 16}}), followed by that many bytes
   of binary data
 
+x (f):
+
+: Indicates that x is a flag and is encoded as a single byte with the
+  value 0 or 1. A value of 0 indicates the flag is false or off, while a
+  value of 1 indicates the flag is true or on. Any other value is a
+  protocol error and SHOULD terminate the session with a Protocol
+  Violation ({{session-termination}}).
+
+
 To reduce unnecessary use of bandwidth, variable length integers SHOULD
 be encoded using the least number of bytes possible to represent the
 required value.
@@ -1355,7 +1364,7 @@ SUBSCRIBE_OK
 {
   Subscribe ID (i),
   Expires (i),
-  ContentExists (1),
+  ContentExists (f),
   [Largest Group ID (i)],
   [Largest Object ID (i)]
 }
@@ -1438,7 +1447,7 @@ SUBSCRIBE_DONE Message {
   Subscribe ID (i),
   Status Code (i),
   Reason Phrase (b),
-  ContentExists (1),
+  ContentExists (f),
   [Final Group (i)],
   [Final Object (i)],
 }
