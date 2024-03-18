@@ -525,7 +525,7 @@ This section is expected to cover details on:
 - Considerations for merging multiple streams across domains onto single
   connection and interactions with specific prioritization schemes.
 
-## Object Send Order
+## Object Send Order {#send-order}
 
 Goals of Send Order include:
 * Enable objects to be delivered in the order intended by the publisher
@@ -923,7 +923,7 @@ IDs starts at 0, increasing sequentially for each object within the
 group.
 
 * Object Send Order: An integer indicating the object send order
-{{send-order}} or priority {{ordering-by-priorities}} value.
+{{send-order}}.
 
 * Object Forwarding Preference: An enumeration indicating how a sender sends an
 object. The preferences are Track, Group, Object and Datagram.  An Object MUST
