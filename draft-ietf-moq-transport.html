@@ -1614,6 +1614,15 @@ has a length of L<a href="#section-1.3-3.10.1" class="pilcrow">¶</a></p>
 described in (<span>[<a href="#RFC9000" class="cite xref">RFC9000</a>], <a href="https://rfc-editor.org/rfc/rfc9000#section-16" class="relref">Section 16</a></span>), followed by that many bytes
 of binary data<a href="#section-1.3-5.2.1" class="pilcrow">¶</a></p>
 </dd>
+          <dd class="break"></dd>
+<dt id="section-1.3-5.3">x (f):</dt>
+          <dd style="margin-left: 1.5em" id="section-1.3-5.4">
+            <p id="section-1.3-5.4.1">Indicates that x is a flag and is encoded as a single byte with the
+value 0 or 1. A value of 0 indicates the flag is false or off, while a
+value of 1 indicates the flag is true or on. Any other value is a
+protocol error and <span class="bcp14">SHOULD</span> terminate the session with a Protocol
+Violation (<a href="#session-termination" class="auto internal xref">Section 3.5</a>).<a href="#section-1.3-5.4.1" class="pilcrow">¶</a></p>
+</dd>
         <dd class="break"></dd>
 </dl>
 <p id="section-1.3-6">To reduce unnecessary use of bandwidth, variable length integers <span class="bcp14">SHOULD</span>
@@ -3046,7 +3055,7 @@ SUBSCRIBE_OK
 {
   Subscribe ID (i),
   Expires (i),
-  ContentExists (1),
+  ContentExists (f),
   [Largest Group ID (i)],
   [Largest Object ID (i)]
 }
@@ -3172,7 +3181,7 @@ SUBSCRIBE_DONE Message {
   Subscribe ID (i),
   Status Code (i),
   Reason Phrase (b),
-  ContentExists (1),
+  ContentExists (f),
   [Final Group (i)],
   [Final Object (i)],
 }
