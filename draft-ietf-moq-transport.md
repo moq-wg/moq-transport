@@ -915,7 +915,7 @@ identified as 0xff00000D.
 #### ROLE parameter {#role}
 
 The ROLE parameter (key 0x00) allows each endpoint to independently specify what
-funnctionality they support for the session. It has three possible values,
+functionality they support for the session. It has three possible values,
 which are of type varint:
 
 0x01: Publisher
