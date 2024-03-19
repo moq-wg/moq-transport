@@ -1007,7 +1007,7 @@ serialize object fields below, and terminate the stream.
 
 ~~~
 OBJECT_STREAM Message {
-  Track Alias (i),
+  ID (i),
   Group ID (i),
   Object ID (i),
   Object Send Order (i),
@@ -1016,10 +1016,7 @@ OBJECT_STREAM Message {
 ~~~
 {: #moq-transport-object-stream-format title="MOQT OBJECT_STREAM Message"}
 
-* Subscribe ID: Subscription Identifer as defined in {{message-subscribe-req}}.
-
-* Track Alias: Identifies the Track Namespace and Track Name as defined in
-{{message-subscribe-req}}.
+* ID: The Track Alias for subscriptions or the Fetch ID for Fetches.
 
 If the Track Namespace and Track Name identified by the Track Alias are
 different from those specified in the subscription identified by Subscribe ID,
@@ -1042,7 +1039,7 @@ will be dropped.
 
 ~~~
 OBJECT_DATAGRAM Message {
-  Track Alias (i),
+  ID (i),
   Group ID (i),
   Object ID (i),
   Object Send Order (i),
@@ -1074,7 +1071,7 @@ stream header.
 
 ~~~
 STREAM_HEADER_TRACK Message {
-  Track Alias (i),
+  ID (i),
   Object Send Order (i),
 }
 ~~~
@@ -1110,7 +1107,7 @@ have the `Object Send Order` specified in the stream header.
 
 ~~~
 STREAM_HEADER_GROUP Message {
-  Track Alias (i),
+  ID (i),
   Group ID (i)
   Object Send Order (i)
 }
@@ -1440,6 +1437,23 @@ EndObject's Mode MUST be None if EndGroup's Mode is None.
 
 * Track Request Parameters: The parameters are defined in
 {{version-specific-params}}
+
+## FETCH_CANCEL {#message-fetch-cancel}
+
+A subscriber issues a `FETCH_CANCEL` message to a publisher indicating it
+is no longer interested in receiving Objects for the specified track and
+Objects should stop being sent as soon as possible.
+
+The format of `FETCH_CANCEL` is as follows:
+
+~~~
+FETCH_CANCEL Message {
+  Fetch ID (i)
+}
+~~~
+{: #moq-transport-unsubscribe-format title="MOQT UNSUBSCRIBE Message"}
+
+* Fetch ID: Fetch Identifer as defined in {{message-fetch-req}}.
 
 
 ## ANNOUNCE {#message-announce}
