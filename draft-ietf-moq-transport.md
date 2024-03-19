@@ -935,8 +935,6 @@ An OBJECT message contains a range of contiguous bytes from from the
 specified track, as well as associated metadata required to deliver,
 cache, and forward it.
 
-TODO: Determine whether FETCH can be delivered in all Object formats.
-
 ### Canonical Object Fields
 
 A canonical MoQ Object has the following information:
@@ -1178,17 +1176,16 @@ the most recently published Objects.
 
 A subscriber MUST NOT subscribe to the same track twice within a session.
 
-TODO: Decide if SUBSCRIBE should have an end.
-TODO: Decide if we want a new message for FETCH, or is it just a mode?
+There are 3 modes to indicate where to start the subscription:
 
-There are 3 modes:
+Last Group (0x0): Start from the the largest group for which the relay
+has received the last object.  If no complete group has been published,
+begin at the first group.
 
-Previous Group (0x0): Start the subscription from the Group prior to the most
-recent group, if any.
+Current Group (0x1): Start at the first Object from the largest received
+group.
 
-Current Group (0x1): Start the subscription from the currently open group.
-
-Next Group (0x2): Start the subscription from the next group.
+Next Group (0x2): Start at the first Object from from the next group.
 
 
 The format of SUBSCRIBE is as follows:
@@ -1200,6 +1197,7 @@ SUBSCRIBE Message {
   Track Namespace (b),
   Track Name (b),
   Mode (i),
+  Number of Groups (i),
   Number of Parameters (i),
   Track Request Parameters (..) ...
 }
@@ -1225,6 +1223,12 @@ close the session with a Duplicate Track Alias error ({{session-termination}}).
 * Track Name: Identifies the track name as defined in ({{track-name}}).
 
 * Mode: The subscription mode, as described above.
+
+* Number of Groups: The number of Groups a subscriber would like to receive.
+0 indicates there is no limit.
+TODO: Should 0 indicate the subscriber only wants to know what the most
+recent Group and Object are and doesn't want to to receive any data similar
+to a HTTP HEAD request?
 
 * Track Request Parameters: The parameters are defined in
 {{version-specific-params}}
@@ -1385,10 +1389,14 @@ message in the `Final Group` for this track.
 
 ## FETCH {#message-fetch}
 
-A receiver issues a FETCH to a publisher to request a range
-of Objects within a Track.
+A receiver issues a FETCH to a publisher to request a range of Objects
+within a Track.
 
-All avaialble Objects will be delivered in order.
+All available Objects will be delivered with the same delivery preference
+as Objects would be delivered with SUBSCRIBE.  When possible, earlier
+Objects SHOULD be delivered before later Objects, but it is possible to receive
+Objects out of order due to reordering, what is available in the cache, or
+other reasons.
 
 The format of FETCH is as follows:
 
@@ -1428,10 +1436,6 @@ EndObject's Mode MUST be None if EndGroup's Mode is None.
 
 * Track Request Parameters: The parameters are defined in
 {{version-specific-params}}
-
-On successful fetch, the publisher SHOULD start delivering
-objects from the StartGroup and StartObject.
-
 
 
 ## ANNOUNCE {#message-announce}
