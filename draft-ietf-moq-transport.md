@@ -1071,26 +1071,26 @@ TODO: figure out how a relay closes these streams
 
 **Stream Header Track**
 
-When a stream begins with `STREAM_HEADER_TRACK`, all objects on the stream
-belong to the track requested in the Subscribe message identified by `Subscribe
-ID`.  All objects on the stream have the `Object Send Order` specified in the
-stream header.
+When a stream begins with `STREAM_SUBSCRIBE_TRACK` or 'STREAM_FETCH_TRACK', all
+objects on the stream belong to the track requested in the corresponding
+subscription or fetch as identified by the `Track Alias' or 'Fetch ID'.  All
+objects on the stream have the `Object Send Order` specified in the stream header.
 
 
 ~~~
-STREAM_HEADER_TRACK Message {
+STREAM_SUBSCRIBE_TRACK/STREAM_FETCH_TRACK Message {
   ID (i),
   Object Send Order (i),
 }
 ~~~
-{: #stream-header-track-format title="MOQT STREAM_HEADER_TRACK Message"}
+{: #stream-header-track-format title="MOQT STREAM_TRACK Message"}
 
-All Objects received on a stream opened with STREAM_HEADER_TRACK have an `Object
-Forwarding Preference` = `Track`.
+All Objects received on a stream opened with STREAM_SUBSCRIBE_TRACK or
+STREAM_FETCH_TRACK have an `Object Forwarding Preference` = `Track`.
 
 To send an Object with `Object Forwarding Preference` = `Track`, find the open
 stream that is associated with the subscription, or open a new one and send the
-`STREAM_HEADER_TRACK` if needed, then serialize the the following object fields.
+header, then serialize the the following object fields.
 
 ~~~
 {
