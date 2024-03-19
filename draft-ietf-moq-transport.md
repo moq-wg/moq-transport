@@ -1295,7 +1295,7 @@ end prior to the expiry time or last longer.
 If 0, then the Largest Group ID and Largest Object ID fields will not be
 present.
 
-TODO: Should these be the first Group being delivered?  If the previous group
+TODO: Should these be the first Group being delivered?  If the last group
 isn't cached, but was requested, should that be indicated?
 ie: by making ContentExists an enum?
 
