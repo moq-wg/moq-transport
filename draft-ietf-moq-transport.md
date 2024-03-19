@@ -1114,7 +1114,7 @@ ID` and the group indicated by `Group ID`.  All objects on the stream
 have the `Object Send Order` specified in the stream header.
 
 ~~~
-STREAM_HEADER_GROUP Message {
+STREAM_SUBSCRIBE_GROUP/STREAM_FETCH_GROUP Message {
   ID (i),
   Group ID (i)
   Object Send Order (i)
