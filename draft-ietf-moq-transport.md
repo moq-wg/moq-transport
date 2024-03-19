@@ -1217,7 +1217,7 @@ begin at the first group.
 Current Group (0x1): Start at the first Object from the largest received
 group.
 
-Next Group (0x2): Start at the first Object from from the next group.
+Next Group (0x2): Start at the first Object from the next group.
 
 
 The format of SUBSCRIBE is as follows:
