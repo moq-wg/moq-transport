@@ -804,9 +804,17 @@ MOQT Message {
 |-------|-----------------------------------------------------|
 | 0x41  | SERVER_SETUP ({{message-setup}})                    |
 |-------|-----------------------------------------------------|
-| 0x50  | STREAM_HEADER_TRACK ({{multi-object-streams}})      |
+| 0x48  | OBJECT_FETCH_STREAM ({{object-message-formats}})    |
 |-------|-----------------------------------------------------|
-| 0x51  | STREAM_HEADER_GROUP ({{multi-object-streams}})      |
+| 0x49  | OBJECT_FETCH_DATAGRAM ({{object-message-formats}})  |
+|-------|-----------------------------------------------------|
+| 0x50  | STREAM_SUBSCRIBE_TRACK ({{multi-object-streams}})   |
+|-------|-----------------------------------------------------|
+| 0x51  | STREAM_SUBSCRIBE_GROUP ({{multi-object-streams}})   |
+|-------|-----------------------------------------------------|
+| 0x52  | STREAM_FETCH_TRACK ({{multi-object-streams}})       |
+|-------|-----------------------------------------------------|
+| 0x53  | STREAM_FETCH_GROUP ({{multi-object-streams}})       |
 |-------|-----------------------------------------------------|
 
 ## Parameters {#params}
