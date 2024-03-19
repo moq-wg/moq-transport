@@ -243,6 +243,15 @@ x (b):
   described in ({{?RFC9000, Section 16}}), followed by that many bytes
   of binary data
 
+x (f):
+
+: Indicates that x is a flag and is encoded as a single byte with the
+  value 0 or 1. A value of 0 indicates the flag is false or off, while a
+  value of 1 indicates the flag is true or on. Any other value is a
+  protocol error and SHOULD terminate the session with a Protocol
+  Violation ({{session-termination}}).
+
+
 To reduce unnecessary use of bandwidth, variable length integers SHOULD
 be encoded using the least number of bytes possible to represent the
 required value.
@@ -628,10 +637,8 @@ For successful subscriptions, the publisher maintains a list of
 subscribers for each track. Each new OBJECT belonging to the
 track within the subscription range is forwarded to each active
 subscriber, dependent on the congestion response. A subscription
-remains active until it expires, until the publisher of the track
-terminates the track with a SUBSCRIBE_FIN
-(see {{message-subscribe-fin}}) or a SUBSCRIBE_RESET
-(see {{message-subscribe-reset}}).
+remains active until the publisher of the track terminates the
+track with a SUBSCRIBE_DONE (see {{message-subscribe-done}}).
 
 Objects MUST NOT be sent for unsuccessful subscriptions, and if a subscriber
 receives a SUBSCRIBE_ERROR after receiving objects, it MUST close the session
@@ -659,6 +666,26 @@ as defined below:
 | 0x2  | Retry Track Alias         |
 |------|---------------------------|
 
+The applicaiton SHOULD use a relevant status code in
+SUBSCRIBE_DONE, as defined below:
+
+|------|---------------------------|
+| Code | Reason                    |
+|-----:|:--------------------------|
+| 0x0  | Unsubscribed              |
+|------|---------------------------|
+| 0x1  | Internal Error            |
+|------|---------------------------|
+| 0x2  | Unauthorized              |
+|------|---------------------------|
+| 0x3  | Track Ended               |
+|------|---------------------------|
+| 0x4  | Subscription Ended        |
+|------|---------------------------|
+| 0x5  | Going Away                |
+|------|---------------------------|
+| 0x6  | Expired                   |
+|------|---------------------------|
 
 ## Publisher Interactions
 
@@ -763,9 +790,9 @@ MOQT Message {
 |-------|-----------------------------------------------------|
 | 0xA   | UNSUBSCRIBE ({{message-unsubscribe}})               |
 |-------|-----------------------------------------------------|
-| 0xB   | SUBSCRIBE_FIN ({{message-subscribe-fin}})           |
+| 0xB   | SUBSCRIBE_DONE ({{message-subscribe-done}})         |
 |-------|-----------------------------------------------------|
-| 0xC   | SUBSCRIBE_RESET ({{message-subscribe-reset}})       |
+| 0xC   | ANNOUNCE_CANCEL ({{message-announce-cancel}})       |
 |-------|-----------------------------------------------------|
 | 0x10  | GOAWAY ({{message-goaway}})                         |
 |-------|-----------------------------------------------------|
@@ -1253,7 +1280,7 @@ SUBSCRIBE_OK
 {
   Subscribe ID (i),
   Expires (i),
-  ContentExists (1),
+  ContentExists (f),
   [Largest Group ID (i)],
   [Largest Object ID (i)]
 }
@@ -1263,8 +1290,9 @@ SUBSCRIBE_OK
 * Subscribe ID: Subscription Identifer as defined in {{message-subscribe-req}}.
 
 * Expires: Time in milliseconds after which the subscription is no
-longer valid. A value of 0 indicates that the subscription stays active
-until it is explicitly unsubscribed.
+longer valid. A value of 0 indicates that the subscription does not expire
+or expires at an unknown time.  Expires is advisory and a subscription can
+end prior to the expiry time or last longer.
 
 * ContentExists: 1 if an object has been published on this track, 0 if not.
 If 0, then the Largest Group ID and Largest Object ID fields will not be
@@ -1311,7 +1339,10 @@ SUBSCRIBE_ERROR
 ## UNSUBSCRIBE {#message-unsubscribe}
 
 A subscriber issues a `UNSUBSCRIBE` message to a publisher indicating it is no
-longer interested in receiving media for the specified track.
+longer interested in receiving media for the specified track and Objects
+should stop being sent as soon as possible.  The publisher sends a
+SUBSCRIBE_DONE to acknowledge the unsubscribe was successful and indicate
+the final Object.
 
 The format of `UNSUBSCRIBE` is as follows:
 
@@ -1324,56 +1355,29 @@ UNSUBSCRIBE Message {
 
 * Subscribe ID: Subscription Identifer as defined in {{message-subscribe-req}}.
 
-## SUBSCRIBE_FIN {#message-subscribe-fin}
+## SUBSCRIBE_DONE {#message-subscribe-done}
 
-A publisher issues a `SUBSCRIBE_FIN` message to all subscribers indicating it
-is done publishing objects on the subscribed track.
+A publisher issues a `SUBSCRIBE_DONE` message to indicate it
+is done publishing Objects for that subscription.  The Status Code indicates why
+the subscription ended, and whether it was an error.
 
-The format of `SUBSCRIBE_FIN` is as follows:
+The format of `SUBSCRIBE_DONE` is as follows:
 
 ~~~
-SUBSCRIBE_FIN Message {
+SUBSCRIBE_DONE Message {
   Subscribe ID (i),
-  ContentExists (1),
+  Status Code (i),
+  Reason Phrase (b),
+  ContentExists (f),
   [Final Group (i)],
   [Final Object (i)],
 }
 ~~~
-{: #moq-transport-subscribe-fin-format title="MOQT SUBSCRIBE_FIN Message"}
+{: #moq-transport-subscribe-fin-format title="MOQT SUBSCRIBE_DONE Message"}
 
 * Subscribe ID: Subscription identifier as defined in {{message-subscribe-req}}.
 
-* ContentExists: 1 if an object has been published for this subscription, 0 if
-not. If 0, then the Final Group and Final Object fields will not be present.
-
-* Final Group: The largest Group ID sent by the publisher in an OBJECT
-message in this track.
-
-* Final Object: The largest Object ID sent by the publisher in an OBJECT
-message in the `Final Group` for this track.
-
-## SUBSCRIBE_RESET {#message-subscribe-reset}
-
-A publisher issues a `SUBSCRIBE_RESET` message to all subscribers indicating there
-was an error publishing to the given track and subscription is terminated.
-
-The format of `SUBSCRIBE_RESET` is as follows:
-
-~~~
-SUBSCRIBE_RESET Message {
-  Subscribe ID (i),
-  Error Code (i),
-  Reason Phrase (b),
-  ContentExists (1),
-  [Final Group (i)],
-  [Final Object (i)],
-}
-~~~
-{: #moq-transport-subscribe-reset format title="MOQT SUBSCRIBE RESET Message"}
-
-* Subscribe ID: Subscription Identifier as defined in {{message-subscribe-req}}.
-
-* Error Code: Identifies an integer error code for subscription failure.
+* Status Code: An integer status code indicating why the subscription ended.
 
 * Reason Phrase: Provides the reason for subscription error.
 
