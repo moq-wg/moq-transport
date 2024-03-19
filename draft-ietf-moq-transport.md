@@ -1414,7 +1414,7 @@ FETCH Message {
   Track Request Parameters (..) ...
 }
 ~~~
-{: #moq-transport-subscribe-format title="MOQT FETCH Message"}
+{: #moq-transport-fetch-format title="MOQT FETCH Message"}
 
 * Fetch ID: Identifier of the Fetch that is unique within the session.
 `Fetch ID` is a monotonically increasing variable length integer which
