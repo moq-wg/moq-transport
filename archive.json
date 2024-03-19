@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2024-03-17T01:10:05.395134+00:00",
+  "timestamp": "2024-03-19T01:06:22.133703+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -87,6 +87,11 @@
       "name": "ABR",
       "description": "Issues about adaptive bitrate and may require moqt changes",
       "color": "c2e0c6"
+    },
+    {
+      "name": "Transmission",
+      "description": "Issues involving what to transmit when, what to drop, priorities, etc",
+      "color": "0052cc"
     }
   ],
   "issues": [
@@ -9489,12 +9494,11 @@
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [
-        "Needs Discussion",
         "Handshake"
       ],
       "body": "Splitting discussion in #212 into a separate issue.\r\n\r\nThe current draft states that the client initiates the session via a CLIENT_SETUP message and then server replies with a SERVER_SETUP. The client sends a list of supported versions and its role, while the server chooses a version and reaffirms the role. This is done via a bidirectional stream opened by the client.\r\n\r\nHowever, depending on the underlying transport, the client won't always be the first endpoint allowed to send a flight, so this incurs a half-RTT of latency:\r\n\r\n* WebTransport: Client is allowed to send first (before CONNECT response), but most implementations will let the server send first (after 2xx CONNECT response)\r\n* QUIC: Client sends first with 0-RTT, while the server sends first with 1-RTT (most common).",
       "createdAt": "2023-09-10T16:38:18Z",
-      "updatedAt": "2024-02-07T16:52:45Z",
+      "updatedAt": "2024-03-18T20:44:05Z",
       "closedAt": null,
       "comments": [
         {
@@ -9524,6 +9528,20 @@
           "body": "Note that in case of WebTransport, the question of 0-RTT is orthogonal to the question of which side speaks first (it just lets you skip a round trip that occurs before the WebTransport session is established).",
           "createdAt": "2024-02-07T16:52:44Z",
           "updatedAt": "2024-02-07T16:52:44Z"
+        },
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "We now have a clearer definition of Role, so the 'server' from the perspective of a QUIC connection could initiate a MoQ session with a CLIENT_SETUP message I believe?\r\n\r\nI'm going to park this for now unless this is currently causing problems.  Currently the control stream is bidi and unidirectional streams are for Objects, so this would be a non-trivial change.",
+          "createdAt": "2024-03-18T01:05:12Z",
+          "updatedAt": "2024-03-18T01:05:12Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> the 'server' from the perspective of a QUIC connection could initiate a MoQ session with a CLIENT_SETUP message\r\n\r\nDid we intend to allow this?",
+          "createdAt": "2024-03-18T20:44:04Z",
+          "updatedAt": "2024-03-18T20:44:04Z"
         }
       ]
     },
@@ -12402,11 +12420,12 @@
       "authorAssociation": "NONE",
       "assignees": [],
       "labels": [
-        "Needs Discussion"
+        "Needs Discussion",
+        "Transmission"
       ],
       "body": "If we use hints on SUBSCRIBE (StartGroup, StartObject) I assume is to request objects from the past. Thinking about the live rewind or VOD (archived after live):\r\n- The objects have a sendOrder burnt-in, and since those were part of a live stream that sendOrder is probably increasing (meaning more recent, higher priority)\r\n- If player requests objects from 1h in the past, and relay respects the sendOrder the player will start receiving objects from the end of the live stream to the start. Also those will be sent at wire speed\r\n\r\nIt seems for VOD-like use cases we need a different type of delivery than live edge. Perhaps we should do sliding window and/or sendOrder updates?\r\n\r\nFinals questions:\r\n- Can we use current current hints to deliver VOD?\r\n- Do we need to add signals?",
       "createdAt": "2023-11-06T12:40:25Z",
-      "updatedAt": "2024-02-04T23:51:57Z",
+      "updatedAt": "2024-03-18T03:30:47Z",
       "closedAt": null,
       "comments": [
         {
@@ -12810,11 +12829,13 @@
       "assignees": [],
       "labels": [
         "Needs Discussion",
-        "Subscribe"
+        "Object Model",
+        "Subscribe",
+        "Transmission"
       ],
       "body": "If the relay/origin will never be able to fulfill an entire requested SUBSCRIBE, how can it indicate that?  For example, a sequence of relays and the origin may only keep video within 30 seconds of head and discard older content.\r\n\r\nAs a related question, does the relay need to indicate that there will be gaps in Object or Group IDs so the player doesn't wait for them?\r\n\r\nHigh-Level Q: An object has not been delivered, why?\r\n\r\n1. It doesn't exist anymore.\r\n2. It never existed.\r\n3. There wasn't enough bandwidth to send it based on... (ie: priority, the subscriber's latency requirements, etc)\r\n4. It was sent in a stream/datagram by itself and reordered (I think we have this covered?)",
       "createdAt": "2024-01-24T17:59:34Z",
-      "updatedAt": "2024-02-20T00:18:04Z",
+      "updatedAt": "2024-03-18T03:31:34Z",
       "closedAt": null,
       "comments": [
         {
@@ -13877,14 +13898,15 @@
       "state": "OPEN",
       "author": "kixelated",
       "authorAssociation": "COLLABORATOR",
-      "assignees": [],
+      "assignees": [
+        "kixelated"
+      ],
       "labels": [
-        "Needs PR",
         "Control Streams"
       ],
       "body": "Currently, there's one message section and number space. It's confusing to read and it's not clear what messages can be encoded on a control stream, data stream, or datagram.\r\n\r\n### Proposal 1: Annotate Table\r\n| id | name | context |\r\n|-|-|-|\r\n| 0x0 | OBJECT_STREAM | data |\r\n| 0x1 | OBJECT_DATAGRAM | datagram |\r\n| 0x3 | SUBSCRIBE | control |\r\n| 0x4 | SUBSCRIBE_OK | control |\r\n| 0x5 | SUBSCRIBE_ERROR | control |\r\n| 0x6 | ANNOUNCE | control |\r\n| 0x7 | ANNOUNCE_OK | control |\r\n| 0x8 | ANNOUNCE_ERROR | control |\r\n| 0x9 | UNANNOUNCE | control |\r\n| 0xa | UNSUBSCRIBE | control |\r\n| 0xb | SUBSCRIBE_FIN | control |\r\n| 0xc| SUBSCRIBE_RST | control |\r\n| 0x10 | GOAWAY | control |\r\n| 0x40 | CLIENT_SETUP | control |\r\n| 0x41 | SERVER_SETUP | control |\r\n| 0x50 | STREAM_HEADER_TRACK | data |\r\n| 0x51 | STREAM_HEADER_GROUP | data |\r\n\r\n\r\n### Proposal 2: Split Numberspace\r\n**control messages (bidirectional streams)**\r\n| id | name |\r\n|-|-|\r\n| 0x0 | CLIENT_SETUP |\r\n| 0x1 | SERVER_SETUP |\r\n| 0x3 | SUBSCRIBE |\r\n| 0x4 | SUBSCRIBE_OK |\r\n| 0x5 | SUBSCRIBE_ERROR |\r\n| 0x6 | ANNOUNCE |\r\n| 0x7 | ANNOUNCE_OK |\r\n| 0x8 | ANNOUNCE_ERROR |\r\n| 0x9 | UNANNOUNCE |\r\n| 0xa | UNSUBSCRIBE |\r\n| 0xb | SUBSCRIBE_FIN |\r\n| 0xc| SUBSCRIBE_RST |\r\n| 0x10 | GOAWAY |\r\n\r\n**data messages (unidirectional streams)**\r\n| id | name |\r\n|-|-|\r\n| 0x0 | OBJECT_STREAM |\r\n| 0x1 | OBJECT_TRACK |\r\n| 0x2 | OBJECT_GROUP |\r\n\r\n**datagram messages:**\r\n| id | name |\r\n|-|-|\r\n| 0x0 | OBJECT_DATAGRAM |\r\n",
       "createdAt": "2024-02-14T17:52:42Z",
-      "updatedAt": "2024-02-18T20:18:57Z",
+      "updatedAt": "2024-03-18T01:25:30Z",
       "closedAt": null,
       "comments": [
         {
@@ -14040,11 +14062,12 @@
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [
-        "Needs Discussion"
+        "Needs Discussion",
+        "Transmission"
       ],
       "body": "It's unclear to me what objects a relay should prioritize or drop when congestion limited.  This is discussed in a few places, but I want to only focus on the question of what to send first and when to give up on sending an Object entirely.\r\n\r\nSpecific examples:\r\n\r\n1. Is there a point at which Objects from a subscription should no longer be transmitted?  If so, what determines that time?\r\n2. How does a relay decide whether to send the newest object or oldest?  Does it depend upon group boundaries?\r\n3. Can a relay infer that some Objects are droppable if they have lower priority than other Objects in the same group?\r\n\r\nMy strawman proposal is that subscriptions should have numerical priorities, so a relay knows whether it should send Objects from one subscription or another given limited bandwidth.  Additionally, subscriptions should have a TTL so relays know at what point they should stop retransmitting Objects.\r\n\r\n",
       "createdAt": "2024-02-20T03:08:57Z",
-      "updatedAt": "2024-02-29T17:27:10Z",
+      "updatedAt": "2024-03-18T01:10:58Z",
       "closedAt": null,
       "comments": [
         {
@@ -14345,11 +14368,12 @@
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [
-        "Subscribe"
+        "Subscribe",
+        "Transmission"
       ],
       "body": "For low latency audio and video, it's helpful to be able to prioritize one track over another, whether it's audio vs video or one quality of video vs another quality of video.\r\n\r\nThis prioritization can be very helpful for ABR as well.  One might want to request the next quality up in hopes of upswitching, but continue playing the current quality until it's clear the next quality can be delivered, so the higher quality should be lower priority.\r\n\r\nThis is somewhat related to #396",
       "createdAt": "2024-02-29T16:50:47Z",
-      "updatedAt": "2024-03-01T15:24:01Z",
+      "updatedAt": "2024-03-18T01:10:39Z",
       "closedAt": null,
       "comments": [
         {
@@ -14380,7 +14404,7 @@
       "id": "I_kwDOG2Ho4M6A-GZw",
       "title": "ContentExists makes messages hard to parse",
       "url": "https://github.com/moq-wg/moq-transport/issues/404",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "mengelbart",
       "authorAssociation": "NONE",
       "assignees": [],
@@ -14389,8 +14413,8 @@
       ],
       "body": "#343 and #389 introduced a `ContentExists` field to SUBSCRIBE_OK, SUBSCRIBE_FIN, and SUBSCRIBE_RESET. If I read the notation correctly, it has a size of 1 bit, which makes it hard to parse the rest of the message. Could we encode that information in the message type by using two types per message instead of a 1-bit field?",
       "createdAt": "2024-03-01T16:37:00Z",
-      "updatedAt": "2024-03-04T22:40:29Z",
-      "closedAt": null,
+      "updatedAt": "2024-03-18T00:39:29Z",
+      "closedAt": "2024-03-18T00:39:29Z",
       "comments": [
         {
           "author": "afrind",
@@ -14452,10 +14476,12 @@
       "author": "kixelated",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
-      "labels": [],
+      "labels": [
+        "Transmission"
+      ],
       "body": " Does it ever make sense to queue a datagram before transmission, and if so for how long? How does this tie into object TTLs?",
       "createdAt": "2024-03-05T23:45:49Z",
-      "updatedAt": "2024-03-06T18:16:23Z",
+      "updatedAt": "2024-03-18T05:36:01Z",
       "closedAt": null,
       "comments": [
         {
@@ -14534,6 +14560,41 @@
           "body": "Individual Comment:\r\n\r\nI strongly believe we shouldn't constrain MoQ based on circa 2023 library APIs and designs.  They are in user space and most are open source and have active developers.  WebTransport isn't even constrained to RFC 9000 - it's going to depend on a QUIC *extension* which hasn't even been completed yet.  ",
           "createdAt": "2024-03-06T18:14:28Z",
           "updatedAt": "2024-03-06T18:16:23Z"
+        },
+        {
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "Let me ask a question that is *not* about datagram. Say a relay receives an object from a stream on quic connection A and need to send it on a stream on quic connection B and also on a stream in a different connection C. It sends it on B, but on C the QUIC congestion controller does not allow it to be sent. At this point, it needs to buffer it until it can be sent. This buffering might happen in the QUIC stack or via back pressure of the quic stack telling the app to buffer it. But how does this work for objects sent over streams?\r\n",
+          "createdAt": "2024-03-18T00:31:49Z",
+          "updatedAt": "2024-03-18T00:31:49Z"
+        },
+        {
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> Let me ask a question that is _not_ about datagram. Say a relay receives an object from a stream on quic connection A and need to send it on a stream on quic connection B and also on a stream in a different connection C. It sends it on B, but on C the QUIC congestion controller does not allow it to be sent. At this point, it needs to buffer it until it can be sent. This buffering might happen in the QUIC stack or via back pressure of the quic stack telling the app to buffer it. But how does this work for objects sent over streams?\r\n\r\nYeah, the QUIC stack could queue some stream data (ex. TCP send buffer) until it eventually it hits a limit (ex. TCP write can return EAGAIN).\r\n\r\nThe important part is how the QUIC stack drains the queue or otherwise unblocks streams. That's the entire purpose of prioritization, with `send_order` being the signal to the QUIC stack on which streams to unblock first (in strict order).\r\n\r\nSo if you write two objects via streams, A and B, they might get queued during congestion. If B has a higher priority (lower `send_order`) then it will get sent first after recovery, even if A was written first. And if newly created C enters the picture with a higher priority, then it will pre-empt both A and B.\r\n\r\nAll of the objects/streams stay queued in the application/QUIC stack awaiting their turn via `send_order`. The draft currently doesn't specify how streams/groups/objects are dropped, causing wasted bandwidth. I've got a few ideas, including using SUBSCRIBE_UPDATE with a new start group/object to signal that an old group is no longer desired.",
+          "createdAt": "2024-03-18T00:55:01Z",
+          "updatedAt": "2024-03-18T00:55:29Z"
+        },
+        {
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "body": "A practical example:\r\n\r\nEach audio frame is sent via a separate stream with descending `send_order`. That means new audio frames are transmitted first, (re)transmitting old audio as the congestion window allows. If an audio frame is not received in time for the jitter buffer, it is not rendered.\r\n\r\nNote that the sender does NOT know the size of the jitter buffer. Using datagrams assumes the jitter buffer is too small for retransmissions (<1.5x RTT), but that's often not true especially as relays are introduced. \r\n\r\nThe old audio frames are still queued for transmission, although they are lower priority than newly encoded frames and will not compete for bandwidth. The subscriber is somehow responsible for somehow signaling that they no longer want this data based on their (current) jitter buffer. Higher latency playback will allow seconds, while lower latency playback will allow milliseconds.",
+          "createdAt": "2024-03-18T01:04:29Z",
+          "updatedAt": "2024-03-18T01:04:49Z"
+        },
+        {
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "body": "One final addition to the wall of text:\r\n\r\nWe need to add some sort of TTL too, which is the maximum amount of time the publisher should have a stream cached/queued. The subscriber should have a way to lower that based on their jitter buffer size.",
+          "createdAt": "2024-03-18T01:09:24Z",
+          "updatedAt": "2024-03-18T01:09:24Z"
+        },
+        {
+          "author": "vasilvv",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Note that we've tried no-queueing for datagrams before, and it doesn't really work due to pacing.  WebTransport supports [time limit](https://w3c.github.io/webtransport/#dom-webtransportdatagramduplexstream-outgoingmaxage) on how long a datagram can be in the queue, and I believe W3C WG is open to alternative suggestions (with the constraint that we can't do callbacks due to IPC nature of the sandbox).",
+          "createdAt": "2024-03-18T05:36:00Z",
+          "updatedAt": "2024-03-18T05:36:00Z"
         }
       ]
     },
@@ -14542,15 +14603,15 @@
       "id": "I_kwDOG2Ho4M6BZ7V6",
       "title": "ANNOUNCE_CANCEL does not have a message type",
       "url": "https://github.com/moq-wg/moq-transport/issues/409",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "mengelbart",
       "authorAssociation": "NONE",
       "assignees": [],
       "labels": [],
       "body": "ANNOUNCE_CANCEL is missing in [Table 4](https://datatracker.ietf.org/doc/html/draft-ietf-moq-transport-03#table-4). ",
       "createdAt": "2024-03-06T09:38:15Z",
-      "updatedAt": "2024-03-06T09:38:15Z",
-      "closedAt": null,
+      "updatedAt": "2024-03-18T00:38:12Z",
+      "closedAt": "2024-03-18T00:38:12Z",
       "comments": []
     },
     {
@@ -14562,10 +14623,12 @@
       "author": "martinduke",
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
-      "labels": [],
+      "labels": [
+        "Object Model"
+      ],
       "body": "Now that Datagram is no longer just a suggestion, should there be some sort of error if we get OBJECT_DATAGRAM on a Stream?",
       "createdAt": "2024-03-06T17:41:58Z",
-      "updatedAt": "2024-03-06T17:46:10Z",
+      "updatedAt": "2024-03-18T01:08:10Z",
       "closedAt": null,
       "comments": [
         {
@@ -14586,10 +14649,12 @@
       "author": "kixelated",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
-      "labels": [],
+      "labels": [
+        "Transmission"
+      ],
       "body": "I know we're not allowed to talk about priorities any longer but I wanted to float another option. \r\n\r\nThe subscriber is in charge of prioritization:\r\n- Add `order` to SUBSCRIBE: `ASC` or `DESC`\r\n- Add `priority` to SUBSCRIBE: `VarInt`?\r\n- Remove `send_order` from OBJECT.\r\n\r\nThe publisher prioritizes streams based on:\r\n```rust\r\nlet order = subscribe.order == DESC ? 1 : -1;\r\nsubscribe.priority > object.group * order > -object.id\r\n```\r\n\r\nDepending on the QUIC API, publisher still needs to compute a send order for each stream. It can do this by inserting each stream into a priority queue based on the above comparison, using the resulting position in the queue as the send order. This was already a requirement for QUIC APIs that did not support a u64 send order.\r\n\r\nAlternatively, a QUIC API could implement nested priority groups, perhaps something like [sendGroup](https://www.w3.org/TR/webtransport/#dom-webtransport-createsendgroup).\r\n\r\n# Pros: Order\r\nThe benefits of `order=ASC` are similar to the proposed `FETCH` API in #368.\r\n\r\n- Supports HLS/DASH-like experiences, where playback buffers instead of skips.\r\n- Supports VOD playback.\r\n- Supports advertisement playback.\r\n\r\nNote that you could perform head-of-line blocking today* by issuing a SUBSCRIBE per group. However this is quite verbose, and it creates an RTT at the end of each group where the network is not being utilized.\r\n\r\n# Pros: Priority\r\n- Supports prioritizing unrelated tracks (from different encoders).\r\n- Supports prioritizing based on focus state (sideline cam > main cam)\r\n- Supports prioritizing high bitrate (main cam > sideline cam)\r\n- The encoder is dumb, unaware of network priorities.\r\n\r\nThese could only be performed today by rewriting send order at a relay, which is impossible without catalog access.\r\n\r\n# Cons\r\n- SUBSCRIBE is even more complicated.\r\n- No interleaved prioritizes between tracks/groups. (who cares?)\r\n- Publisher has to compute/update send order on each stream/datagram created.\r\n- Relay has to deduplicate conflicting SUBSCRIBEs\r\n \r\nThe main challenge is the last one. For example, two viewers could issue:\r\n```\r\nSUBSCRIBE track=720p order=ASC priority=3\r\nSUBSCRIBE track=720p order=DESC priority=9\r\n```\r\n\r\nWhat does the relay send upstream? The idea behind publisher prioritization was to avoid this dilemma, but maybe there's another way we can solve it.",
       "createdAt": "2024-03-06T19:15:58Z",
-      "updatedAt": "2024-03-06T19:31:14Z",
+      "updatedAt": "2024-03-18T04:17:15Z",
       "closedAt": null,
       "comments": [
         {
@@ -14598,6 +14663,13 @@
           "body": "One dumb idea for the publisher prioritization dilemma is to put the \"preferred\" priority and order for each track in ANNOUNCE. A relay could choose to use this information when fetching upstream, instead of relying on the values provided by N subscribers.\r\n\r\nHowever this would require switching ANNOUNCE to be per-track instead of per-namespace as it is currently.",
           "createdAt": "2024-03-06T19:30:04Z",
           "updatedAt": "2024-03-06T19:31:14Z"
+        },
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "The FETCH/SUBSCRIBE split solves your largest CON above, because there can only be one active SUBSCRIBE for a track at once.\r\n\r\nOtherwise this SGTM.",
+          "createdAt": "2024-03-18T04:17:14Z",
+          "updatedAt": "2024-03-18T04:17:14Z"
         }
       ]
     },
@@ -14610,10 +14682,12 @@
       "author": "kixelated",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
-      "labels": [],
+      "labels": [
+        "Announce"
+      ],
       "body": "It's meant to be sent by the subscriber, indicating that the announce is no longer accepted. The fields should mirror ANNOUNCE_ERROR so the subscriber can indicate stuff like authentication expired, another announce was received, etc.",
       "createdAt": "2024-03-08T22:22:11Z",
-      "updatedAt": "2024-03-08T22:22:11Z",
+      "updatedAt": "2024-03-18T00:27:56Z",
       "closedAt": null,
       "comments": []
     },
@@ -14626,12 +14700,86 @@
       "author": "englishm",
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
-      "labels": [],
+      "labels": [
+        "Editorial",
+        "Needs PR"
+      ],
       "body": "There are two issues with this example:\r\n\r\nhttps://github.com/moq-wg/moq-transport/blob/80a1fc4eec92a05439e473edb60dcea399b3ca62/draft-ietf-moq-transport.md?plain=1#L1153-L1185\r\n\r\n1. The Object id should be unique, not duplicated.\r\n2. We shouldn't be mixing different forwarding preferences within the same track, per earlier text in this same version of the draft:\r\n\r\nhttps://github.com/moq-wg/moq-transport/blob/80a1fc4eec92a05439e473edb60dcea399b3ca62/draft-ietf-moq-transport.md?plain=1#L975-L978",
       "createdAt": "2024-03-14T19:50:54Z",
-      "updatedAt": "2024-03-14T19:50:54Z",
+      "updatedAt": "2024-03-18T00:53:04Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "Good catch. ",
+          "createdAt": "2024-03-18T00:53:03Z",
+          "updatedAt": "2024-03-18T00:53:03Z"
+        }
+      ]
+    },
+    {
+      "number": 416,
+      "id": "I_kwDOG2Ho4M6CmtWh",
+      "title": "Extensibility and greasing",
+      "url": "https://github.com/moq-wg/moq-transport/issues/416",
+      "state": "OPEN",
+      "author": "LPardue",
+      "authorAssociation": "NONE",
+      "assignees": [],
+      "labels": [],
+      "body": "At IETF 119 we discussed very briefly extensibility of the protocol. It was suggested by Ian that having _some_ extension to test the extension mechanisms/points would be useful before publication of the draft. Greasing (whether as part of MoQT or a separate extension) might be a sufficient to exercise things.",
+      "createdAt": "2024-03-18T04:08:36Z",
+      "updatedAt": "2024-03-18T04:08:36Z",
       "closedAt": null,
       "comments": []
+    },
+    {
+      "number": 419,
+      "id": "I_kwDOG2Ho4M6CvEvr",
+      "title": "Reliable Live use-case",
+      "url": "https://github.com/moq-wg/moq-transport/issues/419",
+      "state": "OPEN",
+      "author": "kixelated",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "I'm just going to coin a new term: **reliable live**\r\n\r\nIt's the use-case when a viewer wants to receive live content but doesn't want to skip anything, as quality is more important than latency. This is an extremely common scenario currently served by HLS/DASH and needs to be supported by MoQ too.\r\n\r\nThe player implements this by pausing playback (buffering) when the buffer is depleted until it reaches a minimum size. There's also a target latency, which is effectively the buffer size at steady state. The player will not skip over content unless there is an explicit gap. Let's assume fixed group sizes for simplicity. All of the below examples use:\r\n```\r\ngroup_size=2s\r\ntarget_buffer=5s\r\nmin_buffer=1s\r\n```\r\n\r\n## Current Draft\r\nIn the current draft, a player start playback by issuing:\r\n\r\n```\r\n-> SUBSCRIBE 480p start=-2\r\n<- SUBSCRIBE_OK 480p latest=6835\r\n```\r\n\r\nWe added #343 so the player would know to start playback at group 6833, buffering any future groups. Unfortunately the player currently doesn't know about gaps, so it could block indefinitely waiting for 6834 (or any group). We need some sort of GROUP_DROPPED message to signal that the player should skip over, much like a DISCONTINUITY in HLS. This has been touted as a feature of FETCH, but it's something we also need for SUBSCRIBE.\r\n\r\nThe bigger issue is prioritization. If the send_order is decreasing, which is required to allow players to skip over old content, then the buffer will fill _backwards_.\r\n\r\n```\r\n-> SUBSCRIBE 480p start=-2\r\n<- SUBSCRIBE_OK 480p latest=6835\r\n<- OBJECT group=6835 send_order=0\r\n<- OBJECT group=6834 send_order=1\r\n<- OBJECT group=6833 send_order=2\r\n```\r\n\r\nPlayback is blocked waiting for the first 1s of group 6833 but we receive newer groups first in their entirety, including possibly some of 6836 as it starts being generated. We will eventually be able to play this data, but this will dramatically increase startup and buffering time. This is also a problem for DVR, as the prioritization required for live does not make sense for VOD.\r\n\r\nThe broadcaster could remedy this by baking in head-of-line blocking into send_order but I don't want to do that. A participant on a conference stage may want interactive latency, while a viewer may want high quality (HoLB) instead. A viewer on a TV will want high quality, while a viewer using an interactive application will want low latency. It's not the end of the world but it's a missed opportunity.\r\n\r\nThe other option is to fetch each group one at a time like HLS/DASH:\r\n```\r\n-> SUBSCRIBE 480p start=-2 end=-1\r\n<- SUBSCRIBE_OK 480p latest=6835\r\n<- OBJECT group=6833\r\n<- SUBSCRIBE_DONE 480p\r\n-> SUBSCRIBE 480p start=6834 end=6835\r\n<- SUBSCRIBE_OK 480p latest=6835\r\n<- OBJECT group=6834\r\n<- SUBSCRIBE_DONE 480p\r\n-> SUBSCRIBE 480p start=6835 end=6836\r\n<- SUBSCRIBE_OK 480p latest=6836\r\n<- OBJECT group=6835\r\n<- SUBSCRIBE_DONE 480p\r\n```\r\n\r\nYikes, not only is this annoying and inefficient, but it increases latency. That's because the next SUBSCRIBE can only be issued only once the final object in the group has been received, causing an RTT of no network connectivity which of course corresponds with a massive I-frame that needs to be delivered. We can do better.\r\n\r\n## Fetch #368 \r\nThere are multiple fetch APIs floating around, but the gist is that FETCH returns old content while SUBSCRIBE returns new content. Here's how the player would playback from my understanding:\r\n\r\n```\r\n-> SUBSCRIBE timeline\r\n<- SUBSCRIBE_OK timeline\r\n<- OBJECT timeline\r\n-> FETCH 480p start=6833 end=6834\r\n<- FETCH_OK\r\n-> SUBSCRIBE 480p start=6835\r\n<- SUBSCRIBE_OK\r\n```\r\n\r\nThis is complicated, as it depends on an outside track to determine which group roughly corresponds to ~5s target latency for the initial FETCH. But it's actually wrong.\r\n\r\nThere's the assumption that SUBSCRIBE can be used once we're caught up to live but that's not true because of the aforementioned prioritization issue; the buffer will be filled backwards during congestion. This won't happen on startup due to FETCH but will still happen in the middle\r\n\r\nJust like in the current draft, you either have to bake head-of-line blocking into send_order, or you need to FETCH one group at a time:\r\n\r\n```\r\n-> SUBSCRIBE timeline\r\n<- SUBSCRIBE_OK timeline\r\n<- OBJECT timeline\r\n-> FETCH 480p start=6833 end=6834\r\n<- FETCH_OK 480p latest=6835\r\n<- OBJECT group=6833\r\n-> FETCH 480p start=6834 end=6835\r\n<- FETCH_OK 480p latest=6835\r\n<- OBJECT group=6834\r\n-> FETCH 480p start=6835 end=6836\r\n<- FETCH_OK 480p latest=6836\r\n<- GROUP 6835\r\n```\r\n\r\nOr there's a world where you could switch a SUBSCRIBE to FETCH once you learn it's no longer the newest group. This is extra extra gross though.\r\n\r\n## SUBSCRIBE ORDER #411 \r\nI recently put forth another proposal to deal with this use-case:\r\n\r\n```\r\n-> SUBSCRIBE start=-2 order=ASC\r\n<- SUBSCRIBE_OK latest=6835\r\n<- OBJECT group=6833\r\n<- OBJECT group=6834\r\n<- OBJECT group=6835\r\n```\r\n\r\nNote that this is best-effort ordering: the groups are still sent on separate streams. The benefit of this approach is that another viewer could achieve lower latency by using the reverse order. This will let the player drop when the buffer is depleted, rather than buffer:\r\n\r\n```\r\n-> SUBSCRIBE start=-2 order=DESC\r\n<- SUBSCRIBE_OK latest=6835\r\n<- OBJECT group=6835\r\n<- OBJECT group=6834\r\n<- OBJECT group=6833\r\n```\r\n\r\nThe downside of this approach is that a relay has trouble knowing which variant of SUBSCRIBE to send upstream. I would advocate for always sending `order=DESC` if there's competing requests, as that's the more latency sensitive mode, but it's ultimately business logic.\r\n\r\nThe ability to deliver groups in order is one of the proposed features of FETCH, but I think we make it a flag on SUBSCRIBE instead. So is the ability to detect when a group is dropped, but that too is required for SUBSCRIBE.",
+      "createdAt": "2024-03-18T21:33:58Z",
+      "updatedAt": "2024-03-18T21:33:58Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 420,
+      "id": "I_kwDOG2Ho4M6CvOje",
+      "title": "Explain security of 0-rtt setup ",
+      "url": "https://github.com/moq-wg/moq-transport/issues/420",
+      "state": "OPEN",
+      "author": "fluffy",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Note in the draft that raq QUIC can to 0-RTT moq setup but webtransport does not suppoir this. Add text to security section of why this is safe. ",
+      "createdAt": "2024-03-18T21:49:13Z",
+      "updatedAt": "2024-03-18T23:37:47Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Is it safe? I think replaying an ANNOUNCE message would be disruptive, taking down the existing broadcast.",
+          "createdAt": "2024-03-18T22:57:43Z",
+          "updatedAt": "2024-03-18T22:57:43Z"
+        },
+        {
+          "author": "LPardue",
+          "authorAssociation": "NONE",
+          "body": "Agree with Luke. If you want a different application layer to use TLS 0-RTT then I'd expect an analysis along the lines of https://www.rfc-editor.org/rfc/rfc8470.html",
+          "createdAt": "2024-03-18T23:37:45Z",
+          "updatedAt": "2024-03-18T23:37:45Z"
+        }
+      ]
     }
   ],
   "pulls": [
@@ -49962,24 +50110,26 @@
       "id": "PR_kwDOG2Ho4M5onjRh",
       "title": "bit align ContentExists. Fixes #404",
       "url": "https://github.com/moq-wg/moq-transport/pull/405",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "fluffy",
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
       "labels": [],
       "body": "",
       "createdAt": "2024-03-04T17:26:26Z",
-      "updatedAt": "2024-03-05T19:37:58Z",
+      "updatedAt": "2024-03-18T00:39:28Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "80a1fc4eec92a05439e473edb60dcea399b3ca62",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "ce-bits",
       "headRefOid": "98adbc27f6b6ab9b29808bc255a02b487370a655",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "closedAt": "2024-03-18T00:39:28Z",
+      "mergedAt": "2024-03-18T00:39:28Z",
+      "mergedBy": "ianswett",
+      "mergeCommit": {
+        "oid": "ad67a19f1e6abbe4331b73ad49360726783a2bb8"
+      },
       "comments": [
         {
           "author": "fluffy",
@@ -50076,6 +50226,19 @@
               "updatedAt": "2024-03-05T19:37:58Z"
             }
           ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5zuy04",
+          "commit": {
+            "abbreviatedOid": "98adbc2"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2024-03-18T00:39:17Z",
+          "updatedAt": "2024-03-18T00:39:17Z",
+          "comments": []
         }
       ]
     },
@@ -50148,7 +50311,7 @@
       ],
       "body": "- Control messages\r\n- Data messages\r\n- Datagram messages\r\n\r\nTried to keep things completely editorial. I would like to do more cleanup but I would absolutely get carried away.",
       "createdAt": "2024-03-04T23:29:01Z",
-      "updatedAt": "2024-03-06T06:07:39Z",
+      "updatedAt": "2024-03-18T00:37:43Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "80a1fc4eec92a05439e473edb60dcea399b3ca62",
@@ -50159,7 +50322,15 @@
       "mergedAt": null,
       "mergedBy": null,
       "mergeCommit": null,
-      "comments": [],
+      "comments": [
+        {
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Yeah I'll split it into two PRs. First PR just moves the data sections unchanged.",
+          "createdAt": "2024-03-18T00:37:15Z",
+          "updatedAt": "2024-03-18T00:37:43Z"
+        }
+      ],
       "reviews": [
         {
           "id": "PRR_kwDOG2Ho4M5yL0w2",
@@ -50557,6 +50728,46 @@
               "updatedAt": "2024-03-06T06:07:39Z"
             }
           ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5zuv8q",
+          "commit": {
+            "abbreviatedOid": "e6c1e4b"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-03-18T00:32:14Z",
+          "updatedAt": "2024-03-18T00:32:14Z",
+          "comments": [
+            {
+              "originalPosition": 43,
+              "body": "I agree the byte savings is small, but it's also easy to understand.  I think flow control is the most compelling reason to use datagrams instead of object per stream.  If a connection only allows 100 streams at once, it's extremely easy for stream limits to be a constraint.\r\n\r\nOne doesn't have to retransmit stream data, but I agree that is the assumed default behavior.",
+              "createdAt": "2024-03-18T00:32:14Z",
+              "updatedAt": "2024-03-18T00:32:14Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5zuw5N",
+          "commit": {
+            "abbreviatedOid": "1fd9aad"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "I think this is good, but splitting it into two PRs to make it easier to see the changes would be very helpful.",
+          "createdAt": "2024-03-18T00:35:40Z",
+          "updatedAt": "2024-03-18T00:36:19Z",
+          "comments": [
+            {
+              "originalPosition": 858,
+              "body": "That would be very helpful.  I think this is a good change, but I'm hesitant to merge such a large single change because it is difficult to know exactly what changed.",
+              "createdAt": "2024-03-18T00:35:40Z",
+              "updatedAt": "2024-03-18T00:36:19Z"
+            }
+          ]
         }
       ]
     },
@@ -50565,21 +50776,21 @@
       "id": "PR_kwDOG2Ho4M5pQ3BU",
       "title": "Fix the bit encoding of ContentExists",
       "url": "https://github.com/moq-wg/moq-transport/pull/413",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "martinduke",
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
       "labels": [],
       "body": "This is a one-byte field, not a one-bit field",
       "createdAt": "2024-03-11T16:00:10Z",
-      "updatedAt": "2024-03-11T16:42:06Z",
+      "updatedAt": "2024-03-18T00:40:13Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "80a1fc4eec92a05439e473edb60dcea399b3ca62",
       "headRepository": "martinduke/moq-transport",
       "headRefName": "patch-1",
       "headRefOid": "7472397fd1d579f761c00a6124f6a1f37840bce7",
-      "closedAt": null,
+      "closedAt": "2024-03-18T00:40:12Z",
       "mergedAt": null,
       "mergedBy": null,
       "mergeCommit": null,
@@ -50590,6 +50801,13 @@
           "body": "This is already being fixed in #405",
           "createdAt": "2024-03-11T16:42:04Z",
           "updatedAt": "2024-03-11T16:42:04Z"
+        },
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "This issue was fixed by #405 ",
+          "createdAt": "2024-03-18T00:40:12Z",
+          "updatedAt": "2024-03-18T00:40:12Z"
         }
       ],
       "reviews": []
@@ -50599,26 +50817,129 @@
       "id": "PR_kwDOG2Ho4M5piWe8",
       "title": "Add a message type for ANNOUNCE_CANCEL",
       "url": "https://github.com/moq-wg/moq-transport/pull/414",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "kixelated",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [],
       "body": "Fixes #409",
       "createdAt": "2024-03-13T17:49:27Z",
-      "updatedAt": "2024-03-13T17:49:27Z",
+      "updatedAt": "2024-03-18T00:38:11Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "80a1fc4eec92a05439e473edb60dcea399b3ca62",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "announce_cancel",
       "headRefOid": "ee777f3e1c6cb631f1a3369859e89f35046f9269",
+      "closedAt": "2024-03-18T00:38:11Z",
+      "mergedAt": "2024-03-18T00:38:11Z",
+      "mergedBy": "ianswett",
+      "mergeCommit": {
+        "oid": "8ef98bdbe4ac29aa0405c441814b308c5cc48e2b"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M5zuyLn",
+          "commit": {
+            "abbreviatedOid": "ee777f3"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "Good catch, thanks for fixing this.",
+          "createdAt": "2024-03-18T00:38:06Z",
+          "updatedAt": "2024-03-18T00:38:06Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 417,
+      "id": "PR_kwDOG2Ho4M5p7yW_",
+      "title": "Clarify Send Order",
+      "url": "https://github.com/moq-wg/moq-transport/pull/417",
+      "state": "OPEN",
+      "author": "ianswett",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Merges the two send order approaches because it appears they're very similar from the perspective of MoQ transport and removes text that is not relevant to MoQ Transport.",
+      "createdAt": "2024-03-18T12:28:48Z",
+      "updatedAt": "2024-03-18T21:53:36Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "ad67a19f1e6abbe4331b73ad49360726783a2bb8",
+      "headRepository": "moq-wg/moq-transport",
+      "headRefName": "ianswett-clarify-send-order",
+      "headRefOid": "fcecc7170ac0e9d6909c5e293c65b8c1171dcfc3",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [
+        {
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "On my todo list to review but need to think about carefully on this one. ",
+          "createdAt": "2024-03-18T21:53:35Z",
+          "updatedAt": "2024-03-18T21:53:35Z"
+        }
+      ],
+      "reviews": []
+    },
+    {
+      "number": 418,
+      "id": "PR_kwDOG2Ho4M5p_T54",
+      "title": "Fix a typo in 6.2.2.1. ROLE parameter",
+      "url": "https://github.com/moq-wg/moq-transport/pull/418",
+      "state": "OPEN",
+      "author": "levaitamas",
+      "authorAssociation": "NONE",
+      "assignees": [],
+      "labels": [],
+      "body": "",
+      "createdAt": "2024-03-18T19:36:24Z",
+      "updatedAt": "2024-03-19T00:52:50Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "ad67a19f1e6abbe4331b73ad49360726783a2bb8",
+      "headRepository": "levaitamas/moq-transport",
+      "headRefName": "fix-typo",
+      "headRefOid": "d20f5aa24ae27a51726b9dd93d9954ef2376b264",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
       "mergeCommit": null,
       "comments": [],
-      "reviews": []
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M5z4WSs",
+          "commit": {
+            "abbreviatedOid": "d20f5aa"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2024-03-18T20:41:07Z",
+          "updatedAt": "2024-03-18T20:41:07Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5z6ilx",
+          "commit": {
+            "abbreviatedOid": "d20f5aa"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2024-03-19T00:52:50Z",
+          "updatedAt": "2024-03-19T00:52:50Z",
+          "comments": []
+        }
+      ]
     }
   ]
 }
