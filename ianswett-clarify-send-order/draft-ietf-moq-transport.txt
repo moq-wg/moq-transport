@@ -5,13 +5,13 @@
 MOQ                                                            L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 19 September 2024                                          Meta
+Expires: 21 September 2024                                          Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                           18 March 2024
+                                                           20 March 2024
 
 
                        Media over QUIC Transport
@@ -53,7 +53,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 19 September 2024.
+   This Internet-Draft will expire on 21 September 2024.
 
 Copyright Notice
 
@@ -593,8 +593,8 @@ Table of Contents
    control can delay sending individual streams. * The sender might not
    support stream prioritization.
 
-   When nodes or relays have to choose which object to send next, they
-   apply the following rules:
+   When the publisher chooses which object to send next via send_order,
+   they apply the following rules:
 
    *  Within the same group, objects with a lower priority number (e.g.
       1) are always sent before objects with a numerically greater
