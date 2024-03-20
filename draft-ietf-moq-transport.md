@@ -525,25 +525,18 @@ This section is expected to cover details on:
 - Considerations for merging multiple streams across domains onto single
   connection and interactions with specific prioritization schemes.
 
-## Object Send Order {#send-order}
+## Object Priority {#object-priority}
 
-Goals of Send Order include:
+Goals of Object Priority include:
 * Enable objects to be delivered in the order intended by the publisher
 * Allow nodes and relays to delay or skip some objects under congestion
 * Create more reliable behavior of relays
 
-The publisher's send order SHOULD be followed when possible. The contents
-of each object are still delivered in order.
+The publisher's Object Priority SHOULD be followed when possible. The
+contents of each object are still delivered in order.
 
-A receiver MUST NOT assume that objects will be received in send order,
-for reasons including:
-* Newly encoded objects can have a smaller send order than outstanding
-  objects.
-* Packet loss or flow control can delay sending individual streams.
-* The sender might not support stream prioritization.
-
-When the publisher chooses which object to send next via `send_order`, they
-apply the following rules:
+When the publisher chooses which object to send next, they apply the
+following rules:
 
 * Within the same group, objects with a lower priority number (e.g. 1)
   are always sent before objects with a numerically greater priority
@@ -922,8 +915,8 @@ A canonical MoQ Object has the following information:
 IDs starts at 0, increasing sequentially for each object within the
 group.
 
-* Object Send Order: An integer indicating the object send order
-{{send-order}}.
+* Object Priority: An integer indicating the publisher's preferred
+transmission order {{object-priority}}.
 
 * Object Forwarding Preference: An enumeration indicating how a sender sends an
 object. The preferences are Track, Group, Object and Datagram.  An Object MUST
@@ -958,7 +951,7 @@ OBJECT_STREAM Message {
   Track Alias (i),
   Group ID (i),
   Object ID (i),
-  Object Send Order (i),
+  Object Priority (i),
   Object Payload (..),
 }
 ~~~
@@ -994,7 +987,7 @@ OBJECT_DATAGRAM Message {
   Track Alias (i),
   Group ID (i),
   Object ID (i),
-  Object Send Order (i),
+  Object Priority (i),
   Object Payload (..),
 }
 ~~~
@@ -1017,7 +1010,7 @@ TODO: figure out how a relay closes these streams
 
 When a stream begins with `STREAM_HEADER_TRACK`, all objects on the stream
 belong to the track requested in the Subscribe message identified by `Subscribe
-ID`.  All objects on the stream have the `Object Send Order` specified in the
+ID`.  All objects on the stream have the `Object Priority` specified in the
 stream header.
 
 
@@ -1025,7 +1018,7 @@ stream header.
 STREAM_HEADER_TRACK Message {
   Subscribe ID (i)
   Track Alias (i),
-  Object Send Order (i),
+  Object Priority (i),
 }
 ~~~
 {: #stream-header-track-format title="MOQT STREAM_HEADER_TRACK Message"}
@@ -1056,14 +1049,14 @@ equal to a previously sent Object ID within a given group on that stream.
 When a stream begins with `STREAM_HEADER_GROUP`, all objects on the stream
 belong to the track requested in the Subscribe message identified by `Subscribe
 ID` and the group indicated by `Group ID`.  All objects on the stream
-have the `Object Send Order` specified in the stream header.
+have the `Object Priority` specified in the stream header.
 
 ~~~
 STREAM_HEADER_GROUP Message {
   Subscribe ID (i),
   Track Alias (i),
   Group ID (i)
-  Object Send Order (i)
+  Object Priority (i)
 }
 ~~~
 {: #stream-header-group-format title="MOQT STREAM_HEADER_GROUP Message"}
@@ -1073,7 +1066,7 @@ All Objects received on a stream opened with `STREAM_HEADER_GROUP` have an
 
 To send an Object with `Object Forwarding Preference` = `Group`, find the open
 stream that is associated with the subscription, `Group ID` and `Object
-Send Order`, or open a new one and send the `STREAM_HEADER_GROUP` if needed,
+Priority`, or open a new one and send the `STREAM_HEADER_GROUP` if needed,
 then serialize the following fields.
 
 ~~~
@@ -1096,7 +1089,7 @@ Sending a track on one stream:
 STREAM_HEADER_TRACK {
   Subscribe ID = 1
   Track Alias = 1
-  Object Send Order = 0
+  Object Priority = 0
 }
 {
   Group ID = 0
@@ -1122,7 +1115,7 @@ STREAM_HEADER_GROUP {
   Subscribe ID = 2
   Track Alias = 2
   Group ID = 0
-  Object Send Order = 0
+  Object Priority = 0
 }
 {
   Object ID = 0
