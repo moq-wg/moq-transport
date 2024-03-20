@@ -542,7 +542,7 @@ for reasons including:
 * Packet loss or flow control can delay sending individual streams.
 * The sender might not support stream prioritization.
 
-When nodes or relays have to choose which object to send next, they
+When the publisher chooses which object to send next via `send_order`, they
 apply the following rules:
 
 * Within the same group, objects with a lower priority number (e.g. 1)
