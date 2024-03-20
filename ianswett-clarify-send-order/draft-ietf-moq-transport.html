@@ -1237,7 +1237,7 @@ networks and is designed for high scale and low latency distribution.<a href="#s
             <p id="section-toc.1-1.4.1"><a href="#section-4" class="auto internal xref">4</a>.  <a href="#name-prioritization-and-congesti" class="internal xref">Prioritization and Congestion Response</a></p>
 <ul class="compact toc ulBare ulEmpty">
 <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.1">
-                <p id="section-toc.1-1.4.2.1.1"><a href="#section-4.1" class="auto internal xref">4.1</a>.  <a href="#name-object-send-order" class="internal xref">Object Send Order</a></p>
+                <p id="section-toc.1-1.4.2.1.1"><a href="#section-4.1" class="auto internal xref">4.1</a>.  <a href="#name-object-priority" class="internal xref">Object Priority</a></p>
 </li>
             </ul>
 </li>
@@ -1969,45 +1969,39 @@ protocol deals with prioritization and congestion overall.<a href="#section-4-1"
 connection and interactions with specific prioritization schemes.<a href="#section-4-3.3.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
-<div id="send-order">
+<div id="object-priority">
 <section id="section-4.1">
-        <h3 id="name-object-send-order">
-<a href="#section-4.1" class="section-number selfRef">4.1. </a><a href="#name-object-send-order" class="section-name selfRef">Object Send Order</a>
+        <h3 id="name-object-priority">
+<a href="#section-4.1" class="section-number selfRef">4.1. </a><a href="#name-object-priority" class="section-name selfRef">Object Priority</a>
         </h3>
-<p id="section-4.1-1">Goals of Send Order include:
+<p id="section-4.1-1">Goals of Object Priority include:
 * Enable objects to be delivered in the order intended by the publisher
 * Allow nodes and relays to delay or skip some objects under congestion
 * Create more reliable behavior of relays<a href="#section-4.1-1" class="pilcrow">¶</a></p>
-<p id="section-4.1-2">The publisher's send order <span class="bcp14">SHOULD</span> be followed when possible. The contents
-of each object are still delivered in order.<a href="#section-4.1-2" class="pilcrow">¶</a></p>
-<p id="section-4.1-3">A receiver <span class="bcp14">MUST NOT</span> assume that objects will be received in send order,
-for reasons including:
-* Newly encoded objects can have a smaller send order than outstanding
-  objects.
-* Packet loss or flow control can delay sending individual streams.
-* The sender might not support stream prioritization.<a href="#section-4.1-3" class="pilcrow">¶</a></p>
-<p id="section-4.1-4">When the publisher chooses which object to send next via <code>send_order</code>, they
-apply the following rules:<a href="#section-4.1-4" class="pilcrow">¶</a></p>
+<p id="section-4.1-2">The publisher's Object Priority <span class="bcp14">SHOULD</span> be followed when possible. The
+contents of each object are still delivered in order.<a href="#section-4.1-2" class="pilcrow">¶</a></p>
+<p id="section-4.1-3">When the publisher chooses which object to send next, they apply the
+following rules:<a href="#section-4.1-3" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-4.1-5.1">
-            <p id="section-4.1-5.1.1">Within the same group, objects with a lower priority number (e.g. 1)
+<li class="normal" id="section-4.1-4.1">
+            <p id="section-4.1-4.1.1">Within the same group, objects with a lower priority number (e.g. 1)
 are always sent before objects with a numerically greater priority
-number (e.g., 2)<a href="#section-4.1-5.1.1" class="pilcrow">¶</a></p>
+number (e.g., 2)<a href="#section-4.1-4.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-4.1-5.2">
-            <p id="section-4.1-5.2.1">Within the same group and priority, objects with a lower object-id
-are always sent before objects with a higher object-id.<a href="#section-4.1-5.2.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-4.1-4.2">
+            <p id="section-4.1-4.2.1">Within the same group and priority, objects with a lower object-id
+are always sent before objects with a higher object-id.<a href="#section-4.1-4.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-4.1-5.3">
-            <p id="section-4.1-5.3.1">Objects from later groups are sent before objects of previous groups.<a href="#section-4.1-5.3.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-4.1-4.3">
+            <p id="section-4.1-4.3.1">Objects from later groups are sent before objects of previous groups.<a href="#section-4.1-4.3.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
-<p id="section-4.1-6">The last rule ensures a subscription stays close to the most recently
+<p id="section-4.1-5">The last rule ensures a subscription stays close to the most recently
 published Objects, and recovers quickly if there is congestion.
 There can be cases when finishing the transmission of an
 ongoing group results in better user experience, so implementations can
 finish transmitting Objects within a group before starting to send a
-later group.<a href="#section-4.1-6" class="pilcrow">¶</a></p>
+later group.<a href="#section-4.1-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -2510,8 +2504,8 @@ IDs starts at 0, increasing sequentially for each object within the
 group.<a href="#section-6.3.1-2.3.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-6.3.1-2.4">
-              <p id="section-6.3.1-2.4.1">Object Send Order: An integer indicating the object send order
-<a href="#send-order" class="auto internal xref">Section 4.1</a>.<a href="#section-6.3.1-2.4.1" class="pilcrow">¶</a></p>
+              <p id="section-6.3.1-2.4.1">Object Priority: An integer indicating the publisher's preferred
+transmission order <a href="#object-priority" class="auto internal xref">Section 4.1</a>.<a href="#section-6.3.1-2.4.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-6.3.1-2.5">
               <p id="section-6.3.1-2.5.1">Object Forwarding Preference: An enumeration indicating how a sender sends an
@@ -2551,7 +2545,7 @@ OBJECT_STREAM Message {
   Track Alias (i),
   Group ID (i),
   Object ID (i),
-  Object Send Order (i),
+  Object Priority (i),
   Object Payload (..),
 }
 </pre>
@@ -2596,7 +2590,7 @@ OBJECT_DATAGRAM Message {
   Track Alias (i),
   Group ID (i),
   Object ID (i),
-  Object Send Order (i),
+  Object Priority (i),
   Object Payload (..),
 }
 </pre>
@@ -2622,7 +2616,7 @@ same stream header message type and fields.<a href="#section-6.3.3-2" class="pil
 <p id="section-6.3.3-4"><strong>Stream Header Track</strong><a href="#section-6.3.3-4" class="pilcrow">¶</a></p>
 <p id="section-6.3.3-5">When a stream begins with <code>STREAM_HEADER_TRACK</code>, all objects on the stream
 belong to the track requested in the Subscribe message identified by <code>Subscribe
-ID</code>.  All objects on the stream have the <code>Object Send Order</code> specified in the
+ID</code>.  All objects on the stream have the <code>Object Priority</code> specified in the
 stream header.<a href="#section-6.3.3-5" class="pilcrow">¶</a></p>
 <span id="name-moqt-stream_header_track-me"></span><div id="stream-header-track-format">
 <figure id="figure-6">
@@ -2631,7 +2625,7 @@ stream header.<a href="#section-6.3.3-5" class="pilcrow">¶</a></p>
 STREAM_HEADER_TRACK Message {
   Subscribe ID (i)
   Track Alias (i),
-  Object Send Order (i),
+  Object Priority (i),
 }
 </pre>
 </div>
@@ -2667,7 +2661,7 @@ equal to a previously sent Object ID within a given group on that stream.<a href
 <p id="section-6.3.3-12">When a stream begins with <code>STREAM_HEADER_GROUP</code>, all objects on the stream
 belong to the track requested in the Subscribe message identified by <code>Subscribe
 ID</code> and the group indicated by <code>Group ID</code>.  All objects on the stream
-have the <code>Object Send Order</code> specified in the stream header.<a href="#section-6.3.3-12" class="pilcrow">¶</a></p>
+have the <code>Object Priority</code> specified in the stream header.<a href="#section-6.3.3-12" class="pilcrow">¶</a></p>
 <span id="name-moqt-stream_header_group-me"></span><div id="stream-header-group-format">
 <figure id="figure-8">
             <div class="alignLeft art-text artwork" id="section-6.3.3-13.1">
@@ -2676,7 +2670,7 @@ STREAM_HEADER_GROUP Message {
   Subscribe ID (i),
   Track Alias (i),
   Group ID (i)
-  Object Send Order (i)
+  Object Priority (i)
 }
 </pre>
 </div>
@@ -2688,7 +2682,7 @@ STREAM_HEADER_GROUP Message {
 <code>Object Forwarding Preference</code> = <code>Group</code>.<a href="#section-6.3.3-14" class="pilcrow">¶</a></p>
 <p id="section-6.3.3-15">To send an Object with <code>Object Forwarding Preference</code> = <code>Group</code>, find the open
 stream that is associated with the subscription, <code>Group ID</code> and <code>Object
-Send Order</code>, or open a new one and send the <code>STREAM_HEADER_GROUP</code> if needed,
+Priority</code>, or open a new one and send the <code>STREAM_HEADER_GROUP</code> if needed,
 then serialize the following fields.<a href="#section-6.3.3-15" class="pilcrow">¶</a></p>
 <span id="name-moqt-group-stream-object-fi"></span><div id="object-group-format">
 <figure id="figure-9">
@@ -2720,7 +2714,7 @@ previously sent Object ID within a given group in that stream.<a href="#section-
 STREAM_HEADER_TRACK {
   Subscribe ID = 1
   Track Alias = 1
-  Object Send Order = 0
+  Object Priority = 0
 }
 {
   Group ID = 0
@@ -2746,7 +2740,7 @@ STREAM_HEADER_GROUP {
   Subscribe ID = 2
   Track Alias = 2
   Group ID = 0
-  Object Send Order = 0
+  Object Priority = 0
 }
 {
   Object ID = 0
