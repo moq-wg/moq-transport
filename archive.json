@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2024-03-19T01:06:22.133703+00:00",
+  "timestamp": "2024-03-21T01:07:22.053977+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -13022,7 +13022,7 @@
     {
       "number": 350,
       "id": "I_kwDOG2Ho4M59WZYB",
-      "title": "Track Alias",
+      "title": "When to use Track Alias or Subscribe ID?",
       "url": "https://github.com/moq-wg/moq-transport/issues/350",
       "state": "OPEN",
       "author": "martinduke",
@@ -13034,7 +13034,7 @@
       ],
       "body": "Sec 6.4.2: \"If the Track Alias is already in\t\r\n \t      use, the publisher MUST close the session with a Duplicate Track\t\r\n \t      Alias error (Section 3.5).\"\r\n\r\nThis makes sense if it's a different track name. But if it's the same track for two subscriptions, they should have the same track_alias, right? What's the purpose of track alias and subscribe ID always going together in objects, anyway?\r\n \t\r\n\r\n",
       "createdAt": "2024-01-26T22:52:27Z",
-      "updatedAt": "2024-02-11T02:49:37Z",
+      "updatedAt": "2024-03-19T06:08:24Z",
       "closedAt": null,
       "comments": [
         {
@@ -14628,7 +14628,7 @@
       ],
       "body": "Now that Datagram is no longer just a suggestion, should there be some sort of error if we get OBJECT_DATAGRAM on a Stream?",
       "createdAt": "2024-03-06T17:41:58Z",
-      "updatedAt": "2024-03-18T01:08:10Z",
+      "updatedAt": "2024-03-19T07:55:36Z",
       "closedAt": null,
       "comments": [
         {
@@ -14637,6 +14637,13 @@
           "body": "Absolutely, and it's something I'd like to address in #407",
           "createdAt": "2024-03-06T17:46:10Z",
           "updatedAt": "2024-03-06T17:46:10Z"
+        },
+        {
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "I view this as \"protocol error\" and any time we get that we should tear down the QUIC connection with appropriate error. ",
+          "createdAt": "2024-03-19T07:55:34Z",
+          "updatedAt": "2024-03-19T07:55:34Z"
         }
       ]
     },
@@ -14744,11 +14751,166 @@
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [],
-      "body": "I'm just going to coin a new term: **reliable live**\r\n\r\nIt's the use-case when a viewer wants to receive live content but doesn't want to skip anything, as quality is more important than latency. This is an extremely common scenario currently served by HLS/DASH and needs to be supported by MoQ too.\r\n\r\nThe player implements this by pausing playback (buffering) when the buffer is depleted until it reaches a minimum size. There's also a target latency, which is effectively the buffer size at steady state. The player will not skip over content unless there is an explicit gap. Let's assume fixed group sizes for simplicity. All of the below examples use:\r\n```\r\ngroup_size=2s\r\ntarget_buffer=5s\r\nmin_buffer=1s\r\n```\r\n\r\n## Current Draft\r\nIn the current draft, a player start playback by issuing:\r\n\r\n```\r\n-> SUBSCRIBE 480p start=-2\r\n<- SUBSCRIBE_OK 480p latest=6835\r\n```\r\n\r\nWe added #343 so the player would know to start playback at group 6833, buffering any future groups. Unfortunately the player currently doesn't know about gaps, so it could block indefinitely waiting for 6834 (or any group). We need some sort of GROUP_DROPPED message to signal that the player should skip over, much like a DISCONTINUITY in HLS. This has been touted as a feature of FETCH, but it's something we also need for SUBSCRIBE.\r\n\r\nThe bigger issue is prioritization. If the send_order is decreasing, which is required to allow players to skip over old content, then the buffer will fill _backwards_.\r\n\r\n```\r\n-> SUBSCRIBE 480p start=-2\r\n<- SUBSCRIBE_OK 480p latest=6835\r\n<- OBJECT group=6835 send_order=0\r\n<- OBJECT group=6834 send_order=1\r\n<- OBJECT group=6833 send_order=2\r\n```\r\n\r\nPlayback is blocked waiting for the first 1s of group 6833 but we receive newer groups first in their entirety, including possibly some of 6836 as it starts being generated. We will eventually be able to play this data, but this will dramatically increase startup and buffering time. This is also a problem for DVR, as the prioritization required for live does not make sense for VOD.\r\n\r\nThe broadcaster could remedy this by baking in head-of-line blocking into send_order but I don't want to do that. A participant on a conference stage may want interactive latency, while a viewer may want high quality (HoLB) instead. A viewer on a TV will want high quality, while a viewer using an interactive application will want low latency. It's not the end of the world but it's a missed opportunity.\r\n\r\nThe other option is to fetch each group one at a time like HLS/DASH:\r\n```\r\n-> SUBSCRIBE 480p start=-2 end=-1\r\n<- SUBSCRIBE_OK 480p latest=6835\r\n<- OBJECT group=6833\r\n<- SUBSCRIBE_DONE 480p\r\n-> SUBSCRIBE 480p start=6834 end=6835\r\n<- SUBSCRIBE_OK 480p latest=6835\r\n<- OBJECT group=6834\r\n<- SUBSCRIBE_DONE 480p\r\n-> SUBSCRIBE 480p start=6835 end=6836\r\n<- SUBSCRIBE_OK 480p latest=6836\r\n<- OBJECT group=6835\r\n<- SUBSCRIBE_DONE 480p\r\n```\r\n\r\nYikes, not only is this annoying and inefficient, but it increases latency. That's because the next SUBSCRIBE can only be issued only once the final object in the group has been received, causing an RTT of no network connectivity which of course corresponds with a massive I-frame that needs to be delivered. We can do better.\r\n\r\n## Fetch #368 \r\nThere are multiple fetch APIs floating around, but the gist is that FETCH returns old content while SUBSCRIBE returns new content. Here's how the player would playback from my understanding:\r\n\r\n```\r\n-> SUBSCRIBE timeline\r\n<- SUBSCRIBE_OK timeline\r\n<- OBJECT timeline\r\n-> FETCH 480p start=6833 end=6834\r\n<- FETCH_OK\r\n-> SUBSCRIBE 480p start=6835\r\n<- SUBSCRIBE_OK\r\n```\r\n\r\nThis is complicated, as it depends on an outside track to determine which group roughly corresponds to ~5s target latency for the initial FETCH. But it's actually wrong.\r\n\r\nThere's the assumption that SUBSCRIBE can be used once we're caught up to live but that's not true because of the aforementioned prioritization issue; the buffer will be filled backwards during congestion. This won't happen on startup due to FETCH but will still happen in the middle\r\n\r\nJust like in the current draft, you either have to bake head-of-line blocking into send_order, or you need to FETCH one group at a time:\r\n\r\n```\r\n-> SUBSCRIBE timeline\r\n<- SUBSCRIBE_OK timeline\r\n<- OBJECT timeline\r\n-> FETCH 480p start=6833 end=6834\r\n<- FETCH_OK 480p latest=6835\r\n<- OBJECT group=6833\r\n-> FETCH 480p start=6834 end=6835\r\n<- FETCH_OK 480p latest=6835\r\n<- OBJECT group=6834\r\n-> FETCH 480p start=6835 end=6836\r\n<- FETCH_OK 480p latest=6836\r\n<- GROUP 6835\r\n```\r\n\r\nOr there's a world where you could switch a SUBSCRIBE to FETCH once you learn it's no longer the newest group. This is extra extra gross though.\r\n\r\n## SUBSCRIBE ORDER #411 \r\nI recently put forth another proposal to deal with this use-case:\r\n\r\n```\r\n-> SUBSCRIBE start=-2 order=ASC\r\n<- SUBSCRIBE_OK latest=6835\r\n<- OBJECT group=6833\r\n<- OBJECT group=6834\r\n<- OBJECT group=6835\r\n```\r\n\r\nNote that this is best-effort ordering: the groups are still sent on separate streams. The benefit of this approach is that another viewer could achieve lower latency by using the reverse order. This will let the player drop when the buffer is depleted, rather than buffer:\r\n\r\n```\r\n-> SUBSCRIBE start=-2 order=DESC\r\n<- SUBSCRIBE_OK latest=6835\r\n<- OBJECT group=6835\r\n<- OBJECT group=6834\r\n<- OBJECT group=6833\r\n```\r\n\r\nThe downside of this approach is that a relay has trouble knowing which variant of SUBSCRIBE to send upstream. I would advocate for always sending `order=DESC` if there's competing requests, as that's the more latency sensitive mode, but it's ultimately business logic.\r\n\r\nThe ability to deliver groups in order is one of the proposed features of FETCH, but I think we make it a flag on SUBSCRIBE instead. So is the ability to detect when a group is dropped, but that too is required for SUBSCRIBE.",
+      "body": "I'm just going to coin a new term: **reliable live**\r\n\r\nIt's the use-case when a viewer wants to receive live content but doesn't want to skip anything, as quality is more important than latency. This is an extremely common scenario currently served by HLS/DASH and needs to be supported by MoQ too.\r\n\r\nThe player implements this by pausing playback (buffering) when the buffer is depleted until it reaches a minimum size. There's also a target latency, which is effectively the buffer size at steady state. The player will not skip over content unless there is an explicit gap. Let's assume fixed group sizes for simplicity. All of the below examples use:\r\n```\r\ngroup_size=2s\r\ntarget_buffer=5s\r\nmin_buffer=1s\r\n```\r\n\r\n## Current Draft\r\nIn the current draft, a player start playback by issuing:\r\n\r\n```\r\n-> SUBSCRIBE 480p start=-2\r\n<- SUBSCRIBE_OK 480p latest=6835\r\n```\r\n\r\nWe added #343 so the player would know to start playback at group 6833, buffering any future groups. Unfortunately the player currently doesn't know about gaps, so it could block indefinitely waiting for 6834 (or any group). We need some sort of GROUP_DROPPED message to signal that the player should skip over, much like a DISCONTINUITY in HLS. This has been touted as a feature of FETCH, but it's something we also need for SUBSCRIBE.\r\n\r\nThe bigger issue is prioritization. If the send_order is decreasing, which is required to allow players to skip over old content, then the buffer will fill _backwards_.\r\n\r\n```\r\n-> SUBSCRIBE 480p start=-2\r\n<- SUBSCRIBE_OK 480p latest=6835\r\n<- OBJECT group=6835 send_order=0\r\n<- OBJECT group=6834 send_order=1\r\n<- OBJECT group=6833 send_order=2\r\n```\r\n\r\nPlayback is blocked waiting for the first 1s of group 6833 but we receive newer groups first in their entirety, including possibly some of 6836 as it starts being generated. We will eventually be able to play this data, but this will dramatically increase startup and buffering time. This is also a problem for DVR, as the prioritization required for live does not make sense for VOD.\r\n\r\nThe broadcaster could remedy this by baking in head-of-line blocking into send_order but I don't want to do that. A participant on a conference stage may want interactive latency, while a viewer may want high quality (HoLB) instead. A viewer on a TV will want high quality, while a viewer using an interactive application will want low latency. It's not the end of the world but it's a missed opportunity.\r\n\r\nThe other option is to fetch each group one at a time like HLS/DASH:\r\n```\r\n-> SUBSCRIBE 480p start=-2 end=-1\r\n<- SUBSCRIBE_OK 480p latest=6835\r\n<- OBJECT group=6833\r\n<- SUBSCRIBE_DONE 480p\r\n-> SUBSCRIBE 480p start=6834 end=6835\r\n<- SUBSCRIBE_OK 480p latest=6835\r\n<- OBJECT group=6834\r\n<- SUBSCRIBE_DONE 480p\r\n-> SUBSCRIBE 480p start=6835 end=6836\r\n<- SUBSCRIBE_OK 480p latest=6836\r\n<- OBJECT group=6835\r\n<- SUBSCRIBE_DONE 480p\r\n```\r\n\r\nYikes, not only is this annoying and inefficient, but it increases latency. That's because the next SUBSCRIBE can only be issued only once the final object in the group has been received, causing an RTT of no network connectivity which of course corresponds with a massive I-frame that needs to be delivered. We can do better.\r\n\r\n## Fetch #368 \r\nThere are multiple fetch APIs floating around, but the gist is that FETCH returns old content while SUBSCRIBE returns new content. Here's how the player would playback from my understanding:\r\n\r\n```\r\n-> SUBSCRIBE timeline\r\n<- SUBSCRIBE_OK timeline\r\n<- OBJECT timeline\r\n-> FETCH 480p start=6833 end=6834\r\n<- FETCH_OK\r\n-> SUBSCRIBE 480p start=6835\r\n<- SUBSCRIBE_OK\r\n```\r\n\r\nThis is complicated, as it depends on an outside track to determine which group roughly corresponds to ~5s target latency for the initial FETCH. But it's actually wrong.\r\n\r\nThere's the assumption that SUBSCRIBE can be used once we're caught up to live but that's not true because of the aforementioned prioritization issue; the buffer will be filled backwards during congestion. This won't happen on startup due to FETCH but will still occur afterwards.\r\n\r\nJust like in the current draft, you either have to bake head-of-line blocking into send_order, or you need to FETCH one group at a time:\r\n\r\n```\r\n-> SUBSCRIBE timeline\r\n<- SUBSCRIBE_OK timeline\r\n<- OBJECT timeline\r\n-> FETCH 480p start=6833 end=6834\r\n<- FETCH_OK 480p latest=6835\r\n<- OBJECT group=6833\r\n-> FETCH 480p start=6834 end=6835\r\n<- FETCH_OK 480p latest=6835\r\n<- OBJECT group=6834\r\n-> FETCH 480p start=6835 end=6836\r\n<- FETCH_OK 480p latest=6836\r\n<- GROUP 6835\r\n```\r\n\r\nOr there's a world where you could switch a SUBSCRIBE to FETCH once you learn it's no longer the newest group. This is extra extra gross though.\r\n\r\n## SUBSCRIBE ORDER #411 \r\nI recently put forth another proposal to deal with this use-case:\r\n\r\n```\r\n-> SUBSCRIBE start=-2 order=ASC\r\n<- SUBSCRIBE_OK latest=6835\r\n<- OBJECT group=6833\r\n<- OBJECT group=6834\r\n<- OBJECT group=6835\r\n```\r\n\r\nNote that this is best-effort ordering: the groups are still sent on separate streams. The benefit of this approach is that another viewer could achieve lower latency by using the reverse order. This will let the player drop when the buffer is depleted, rather than buffer:\r\n\r\n```\r\n-> SUBSCRIBE start=-2 order=DESC\r\n<- SUBSCRIBE_OK latest=6835\r\n<- OBJECT group=6835\r\n<- OBJECT group=6834\r\n<- OBJECT group=6833\r\n```\r\n\r\nThe downside of this approach is that a relay has trouble knowing which variant of SUBSCRIBE to send upstream. I would advocate for always sending `order=DESC` if there's competing requests, as that's the more latency sensitive mode, but it's ultimately business logic.\r\n\r\nThe ability to deliver groups in order is one of the proposed features of FETCH, but I think we make it a flag on SUBSCRIBE instead. So is the ability to detect when a group is dropped, but that too is required for SUBSCRIBE.",
       "createdAt": "2024-03-18T21:33:58Z",
-      "updatedAt": "2024-03-18T21:33:58Z",
+      "updatedAt": "2024-03-20T00:54:21Z",
       "closedAt": null,
-      "comments": []
+      "comments": [
+        {
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> We added #343 so the player would know to start playback at group 6833,\r\n\r\nThis isn't true always. #343 says the latest group the cache has seen. It may be 6833/ Again your example assumes the group numbers have certain property , which is fine and works for the case being made. But its an assumption though.",
+          "createdAt": "2024-03-19T04:16:33Z",
+          "updatedAt": "2024-03-19T04:16:33Z"
+        },
+        {
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> We need some sort of GROUP_DROPPED message to signal that the player should skip over, much like a DISCONTINUITY in HLS. This has been touted as a feature of FETCH, but it's something we also need for SUBSCRIBE.\r\n \r\nFrom what i understand on Subscribe, Fetch proposal . The fetch proposal has a requirement to go find out gap info for the range requested.   Subscribe has no requirement to go find such information up the origin trees especially where there is an active subscription. \r\n\r\nAs i mentioned, the data plane needs to carry the information that is useful . I and few others have proposed having a explicit message or a tombstone group marks a gap might be useful regardless fetch/subscribe discussions as one is dealing with control plane and another is data plane. We need to spend sometime on what info we need in dataplane to identify the things that matter and also not overwhelm the system .\r\n",
+          "createdAt": "2024-03-19T04:20:40Z",
+          "updatedAt": "2024-03-19T04:21:56Z"
+        },
+        {
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> So is the ability to detect when a group is dropped, but that too is required for SUBSCRIBE.\r\n\r\nAs mentioned above, this is not a subscribe vs fetch discussion, but rather identify what is needed in the data plane to identify any such information and how to do it.",
+          "createdAt": "2024-03-19T04:25:33Z",
+          "updatedAt": "2024-03-19T04:25:33Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Individual Comment: \r\n\r\n> This isn't true always. #343 says the latest group the cache has seen. It may be 6833/ Again your example assumes the group numbers have certain property , which is fine and works for the case being made. But its an assumption though.\r\n\r\nFor the current draft, I assumed that if I ask for StartGroup=RelativePrev/2 and SubscribeOK says current group is 10 then I will receive groups starting from 8.  It's fine if the publisher wants to skip groups IDs, but the relay can't know that, so the only predictable relay behavior is to do simple math on group IDs, right?",
+          "createdAt": "2024-03-19T04:29:16Z",
+          "updatedAt": "2024-03-19T04:29:16Z"
+        },
+        {
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> he bigger issue is prioritization. If the send_order is decreasing, which is required to allow players to skip over old content, then the buffer will fill _backwards_.\r\n\r\nI will try to stay at high level on the discussion point rather than trying to solve a certain way with a certain API.  These are the points of concern from what I understand \r\n\r\n- Subscribe with N different ways to ask for thigs\r\n\r\n\r\n\r\n> For the current draft, I assumed that if I ask for StartGroup=RelativePrev/2 and SubscribeOK says current group is 10 then I will receive groups starting from 8. It's fine if the publisher wants to skip groups IDs, but the relay can't know that, so the only predictable relay behavior is to do simple math on group IDs, right?\r\n\r\nRelays serves what it has. Relay can't make decision on application design , that's brittle. Catalog has more information on the applocation behavior and end points should use that to make a proper decision and not burden the relays. That along with dataplane markers will help identify dropped or missing things on the transmit path.",
+          "createdAt": "2024-03-19T04:30:47Z",
+          "updatedAt": "2024-03-19T04:32:41Z"
+        },
+        {
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> The downside of this approach is that a relay has trouble knowing which variant of SUBSCRIBE to send upstream. I would advocate for always sending `order=DESC` if there's competing requests, as that's the more latency sensitive mode, but it's ultimately business logic.\r\n\r\nThis is pretty handwavy and might work for some applications and break for some other.  I gets murky pretty soon.  depending on what an upstream node does, it might end up creating HOL for everyone or live edge for everyone .",
+          "createdAt": "2024-03-19T04:36:56Z",
+          "updatedAt": "2024-03-19T06:48:15Z"
+        },
+        {
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "body": "To summarize , i will stay at high level of requirements and not use APIs as examples\r\n- Subscribe with relative offsets and  N ways to request things has many edges cases and issues as was presented by Ian . This makes it hard to reason especially when there are multiple hops and relays distributed across different latency paths.\r\n-  New subscribe has  clear scope and easy to reason about at any point in the system.\r\n- Fetch has a very clear scope with only absolute ranges and very easy to reason about. It has also very clear set of use-cases that is untangled from live media as presented at the Denver Interim\r\n\r\nWhat's is being asked ?\r\n- Identify gaps due to node dropping an entire group. Maybe good to have it in data plane and not tangled with subscribe vs fetch.\r\n- Influence delivery order between the groups( please not i am not using the word priority for a reason). By delivery order i mean oldest group first or newest first group.  I can see why this fits naturally with Fetch as each fetch is an independent request (end to end). For subscribe with dedup , this gets hairy pretty soon.\r\n\r\nOnce we agree on what's being asked, we can discuss ways to achieve the same.",
+          "createdAt": "2024-03-19T04:46:25Z",
+          "updatedAt": "2024-03-19T04:51:59Z"
+        },
+        {
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> here's the assumption that SUBSCRIBE can be used once we're caught up to live but that's not true because of the aforementioned prioritization issue; the buffer will be filled backwards during congestion.\r\n\r\nthis isn't true. With nothing said, the objects are sent with new group first. So the receiver will get to live head first ,not the other way around.",
+          "createdAt": "2024-03-19T04:54:34Z",
+          "updatedAt": "2024-03-19T04:54:34Z"
+        },
+        {
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> This is complicated, as it depends on an outside track to determine which group roughly corresponds to ~5s target latency for the initial FETCH. But it's actually wrong.\r\n\r\nI am not seeing a reason to use timeline track to achieve the functionality. One can subscribe \"last\" and get the group and do a fetch to older data based on that + catalog information, if needed. Not saying timeline track is good/bad idea, but the example is misleading IIUC.",
+          "createdAt": "2024-03-19T04:57:20Z",
+          "updatedAt": "2024-03-19T04:57:20Z"
+        },
+        {
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> Unfortunately the player currently doesn't know about gaps, so it could block indefinitely waiting for 6834 (or any group)\r\n\r\nI am bit surprised to learn that players wont time out after certain wait time and mark things as missing. ",
+          "createdAt": "2024-03-19T05:49:45Z",
+          "updatedAt": "2024-03-19T05:49:45Z"
+        },
+        {
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "You lost me at the player does not know about gaps. It seems it is playing the data. ",
+          "createdAt": "2024-03-19T06:41:19Z",
+          "updatedAt": "2024-03-19T06:41:19Z"
+        },
+        {
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> You lost me at the player does not know about gaps. It seems it is playing the data.\r\n\r\nWith group/object/datagram modes, media will arrive out of order. The goal of the reliable live player is to block awaiting every object to arrive to avoid skipping content. However, it's currently perfectly legal for the upstream to silently drop objects for any reason (ex. congestion). This will cause the reliable live player to deadlock; there's a gap in the media timestamps and it doesn't know that it will never be filled.\r\n\r\nOne solution is to use a stream per track to implicitly signal drops, assuming group/object IDs must be ascending within a stream. But this just doubles down on head-of-line blocking for everybody. The \"better\" solution is to tombstone, explicitly conveying the final group size.",
+          "createdAt": "2024-03-19T06:58:38Z",
+          "updatedAt": "2024-03-19T07:30:09Z"
+        },
+        {
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> > We added #343 so the player would know to start playback at group 6833,\r\n> \r\n> This isn't true always. #343 says the latest group the cache has seen. It may be 6833/ Again your example assumes the group numbers have certain property , which is fine and works for the case being made. But its an assumption though.\r\n\r\nThe SUBSCRIBE_OK contains the largest value from cache _or_ the upstream SUBSCRIBE_OK. It was added for this explicit purpose.\r\n\r\nI don't understand what you mean about group numbers having a certain property: do you mean that they're sequential? The player needs to know definitively that groups exist since it blocks playback until each one is fully received. I don't see how else this is possible except for a separate timeline track?",
+          "createdAt": "2024-03-19T07:04:37Z",
+          "updatedAt": "2024-03-19T07:05:05Z"
+        },
+        {
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> > This is complicated, as it depends on an outside track to determine which group roughly corresponds to ~5s target latency for the initial FETCH. But it's actually wrong.\r\n> \r\n> I am not seeing a reason to use timeline track to achieve the functionality. One can subscribe \"last\" and get the group and do a fetch to older data based on that + catalog information, if needed. Not saying timeline track is good/bad idea, but the example is misleading IIUC.\r\n\r\nThat's not good enough for higher target latencies. The \"last\" group will be from 0-2s ago in this example, but we want to start at least 5s back.",
+          "createdAt": "2024-03-19T08:30:35Z",
+          "updatedAt": "2024-03-19T08:30:49Z"
+        },
+        {
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "body": "@ianswett or @fluffy  can you give an example of how a reliable live player is supposed to use #421? Did I capture the message flow control and logic correctly?",
+          "createdAt": "2024-03-19T08:33:30Z",
+          "updatedAt": "2024-03-19T08:33:30Z"
+        },
+        {
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> That's not good enough for higher target latencies. The \"last\" group will be from 0-2s ago in this example, but we want to start at least 5s back.\r\n\r\nCan you explain why that doesn't work ?",
+          "createdAt": "2024-03-19T09:16:17Z",
+          "updatedAt": "2024-03-19T09:16:17Z"
+        },
+        {
+          "author": "wilaw",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "I have been thinking about use case of reliable live and the (common) requirement to start multiple groups back from the live head in a live stream. The current #421 proposal for SUBSCRIBE and FETCH does not allow this to happen. The reason is that the SUBSCRIBE will return the latest group and future groups and the SUBSCRIBE_OK will inform the client as to the latest group number. However, since group numbers are not predictable, even with that information the player cannot issue a FETCH for the preceding two groups. I can imagine three solutions to this problem:\r\n\r\n1. The player has to subscribe to a timeline track before it starts. This gives it information on the history of groups and then it can issue a FETCH and a SUBSCRIBE appropriately.The downsides of this approach are the extra RTT to start and the requirement for an application-level construct (the catalog) to join a transport-level track. At the moqt layer, we should have means to subscribe to a track that is independent of application features. \r\n2. We constrain GROUP numbers to increment by 1. This allows prior (and future) sequences to be predictable, by both clients and relays . It also implicitly conveys information about missing groups. Downside is we lose the flexibility in group numbering schemes. However, given the predictability that we gain, this may be a desirable trade-off. What is the primary use case for non-unitary increase and can that use-case be satisfied via some other mechanism?\r\n3. We make timelines a native part of moqt. For any track, any subscriber (end-clients and relays) can issue a control message asking for the timeline (i.e sequence of group numbers) of a track along with an optional parameter to limit the length of the response. For example TIMELINE (example.com/1234/bob/video , 5) would return the last 5 groups along with a timestamp to indicate when that snapshot was taken. A relay that had seen the last 5 groups due to an active subscription could give an immediate response. One that hadn't would have to make the same request upstream. A relay receiving multiple requests for 5,3,2 etc _could_ disambiguate them and could coalesce them in to a single TIMELINE request upstream. Real-time clients would never ask for a TIMELINE, because the SUBSCRIBE gives them what they need to start, but \"reliable live\" players would take advantage of it. \r\n",
+          "createdAt": "2024-03-19T11:29:08Z",
+          "updatedAt": "2024-03-19T11:29:08Z"
+        },
+        {
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "body": "You know, somehow it never occurred to me that group IDs were ordered but not sequential. It's a bit of a strange property and should be explicitly called out in the draft because object IDs are sequential.\r\n\r\nIs the idea to use DTS as the group ID? I imagine PTS doesn't work because B-frames.\r\n\r\nEither way, like Will said, I don't see how the reliable live case would work without sequences, or a timeline. The player needs some way to perform gap detection to know when to block awaiting network traffic. Timestamps aren't good enough because of encoder stalls; you can't assume a constant frame rate.\r\n\r\nThe application is allowed to use group sequences if it wants gap detection, like in this reliable live example. The relay doesn't have to do anything special.",
+          "createdAt": "2024-03-19T15:48:53Z",
+          "updatedAt": "2024-03-19T15:48:53Z"
+        },
+        {
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> > That's not good enough for higher target latencies. The \"last\" group will be from 0-2s ago in this example, but we want to start at least 5s back.\r\n> \r\n> Can you explain why that doesn't work ?\r\n\r\nI think we're going in circles, because I'm trying. Can you prescribe how a reliable live application should work based on my examples? A diagram of the message flow would be super helpful.",
+          "createdAt": "2024-03-19T15:59:36Z",
+          "updatedAt": "2024-03-19T15:59:36Z"
+        },
+        {
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "body": "@ianswett brought up another approach to avoid a timeline. The player could SUBSCRIBE first and use the SUBSCRIBE_OK to FETCH backwards. This adds a round trip, much like the timeline, but it's definitely more generic and pretty neat. \r\n\r\n```\r\n-> SUBSCRIBE 480p\r\n<- SUBSCRIBE_OK start=6835\r\n-> FETCH 480p start=6833 end=6835\r\n<- FETCH_OK\r\n```\r\n\r\nHowever, it's not clear how to prioritize a concurrent FETCH and SUBSCRIBE; in this example we want the FETCH to be higher priority but I can envision use-cases where the opposite is true (ex. cache filling). I'm going to link #411 once again, I think we need a way to specify the priority in the SUBSCRIBE/FETCH message.\r\n\r\n```\r\n-> SUBSCRIBE 480p priority=4\r\n<- SUBSCRIBE_OK start=6835\r\n<- OBJECT group_id=6835 <part 1>\r\n-> FETCH 480p start=6833 end=6835 priority=3\r\n<- FETCH_OK\r\n<- OBJECT group_id=6833\r\n<- OBJECT group_id=6834\r\n<- OBJECT group_id=6835 <part 2>\r\n```\r\n\r\nBut this still falters after the initial FETCH, like the examples above. \r\n\r\n```\r\n-> SUBSCRIBE 480p\r\n-> FETCH start=6833 end=6835\r\n...\r\n<- OBJECT group_id=7012\r\n<- OBJECT group_id=7013\r\n...\r\n(congestion/dead zone)\r\n(player buffers, blocking on 7014)\r\n...\r\n<- OBJECT group_id=7016\r\n<- OBJECT group_id=7015\r\n<- OBJECT group_id=7014\r\n(player unbuffers)\r\n```\r\n\r\nThe send order causes the buffer to fill backwards, so we're stuck buffering for a longer time. We want the SUBSCRIBE to be in ascending order too, not just the FETCH.",
+          "createdAt": "2024-03-19T16:05:58Z",
+          "updatedAt": "2024-03-19T16:07:07Z"
+        },
+        {
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> -> SUBSCRIBE 480p\r\n> <- SUBSCRIBE_OK start=6835\r\n> -> FETCH 480p start=6833 end=6835\r\n> <- FETCH_OK\r\n\r\nThis is the approach I was referring to in https://github.com/moq-wg/moq-transport/issues/419#issuecomment-2005762867",
+          "createdAt": "2024-03-20T00:48:44Z",
+          "updatedAt": "2024-03-20T00:48:44Z"
+        },
+        {
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I think we are conflating multiple issues and trying to solve at the wrong layer, perhaps.  I do think this can be solved at the application layer and reflected in the way sender sets the priorities. ",
+          "createdAt": "2024-03-20T00:54:20Z",
+          "updatedAt": "2024-03-20T00:54:20Z"
+        }
+      ]
     },
     {
       "number": 420,
@@ -50866,27 +51028,198 @@
       "labels": [],
       "body": "Merges the two send order approaches because it appears they're very similar from the perspective of MoQ transport and removes text that is not relevant to MoQ Transport.",
       "createdAt": "2024-03-18T12:28:48Z",
-      "updatedAt": "2024-03-18T21:53:36Z",
+      "updatedAt": "2024-03-20T18:28:41Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "ad67a19f1e6abbe4331b73ad49360726783a2bb8",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "ianswett-clarify-send-order",
-      "headRefOid": "fcecc7170ac0e9d6909c5e293c65b8c1171dcfc3",
+      "headRefOid": "921363e93501e29720da445de5e15238f2697d79",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
       "mergeCommit": null,
       "comments": [
         {
-          "author": "fluffy",
-          "authorAssociation": "CONTRIBUTOR",
-          "body": "On my todo list to review but need to think about carefully on this one. ",
-          "createdAt": "2024-03-18T21:53:35Z",
-          "updatedAt": "2024-03-18T21:53:35Z"
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "body": "+1 on the simplification and keep it focussed.",
+          "createdAt": "2024-03-19T08:19:10Z",
+          "updatedAt": "2024-03-19T08:19:10Z"
         }
       ],
-      "reviews": []
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M5z89K0",
+          "commit": {
+            "abbreviatedOid": "fcecc71"
+          },
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-03-19T07:10:10Z",
+          "updatedAt": "2024-03-19T07:10:10Z",
+          "comments": [
+            {
+              "originalPosition": 120,
+              "body": "So the algorithm above refers to \"priority\". I agree we only need one integer but need to align names. ",
+              "createdAt": "2024-03-19T07:10:10Z",
+              "updatedAt": "2024-03-19T07:10:10Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5z9AbM",
+          "commit": {
+            "abbreviatedOid": "fcecc71"
+          },
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-03-19T07:17:02Z",
+          "updatedAt": "2024-03-19T07:17:02Z",
+          "comments": [
+            {
+              "originalPosition": 52,
+              "body": "This sounds right for subscribe, I think it would be reasonable for Fetch to add an preference to deliver in order, or in reverse order. ",
+              "createdAt": "2024-03-19T07:17:02Z",
+              "updatedAt": "2024-03-19T07:17:02Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5z9Djc",
+          "commit": {
+            "abbreviatedOid": "fcecc71"
+          },
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "Few small comments on the text.  \r\n\r\nAt some level, I don't think this is enough. It does not deal with deciding what track to send next when there are objects from multiple tracks waiting to be sent to the same client.  But that said, I think we should merge this, start using it, then fix it and extend it as we learn more. ",
+          "createdAt": "2024-03-19T07:25:20Z",
+          "updatedAt": "2024-03-19T07:25:20Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5z9aqM",
+          "commit": {
+            "abbreviatedOid": "fcecc71"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "This PR is needed and is focussed.",
+          "createdAt": "2024-03-19T08:20:13Z",
+          "updatedAt": "2024-03-19T08:20:13Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5z91fq",
+          "commit": {
+            "abbreviatedOid": "fcecc71"
+          },
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "state": "CHANGES_REQUESTED",
+          "body": "I very much like the cleanup but there's some conflicts, hence being two separate sections in the first place.",
+          "createdAt": "2024-03-19T09:09:47Z",
+          "updatedAt": "2024-03-19T09:22:16Z",
+          "comments": [
+            {
+              "originalPosition": 81,
+              "body": "Priorities are applied to streams so this gets super confusing based on the stream mode. The object_id is not always known after the stream header (track/group mode).",
+              "createdAt": "2024-03-19T09:09:47Z",
+              "updatedAt": "2024-03-19T09:22:34Z"
+            },
+            {
+              "originalPosition": 104,
+              "body": "What happens when a newer group has a higher send order?\r\n\r\nI think it's a great recommendation to send newer groups first... unless you want head-of-line blocking for reliable live or VOD. This text makes it seem illegal?",
+              "createdAt": "2024-03-19T09:10:05Z",
+              "updatedAt": "2024-03-19T09:22:16Z"
+            },
+            {
+              "originalPosition": 77,
+              "body": "I think this text could be salvaged by recommending how `send_order` is computed. Otherwise it conflicts with the above paragraphs that just tell you to use send order.\r\n\r\n```suggestion\r\nWhen the publisher chooses which object to send next via `send_order`, they\r\n```",
+              "createdAt": "2024-03-19T09:14:05Z",
+              "updatedAt": "2024-03-19T09:23:00Z"
+            },
+            {
+              "originalPosition": 70,
+              "body": "I feel like this proposal has been deprecated since implementing stream mapping, since the priority is in the stream header now. Relays are expected to respect it and forward streams as they were received.",
+              "createdAt": "2024-03-19T09:14:23Z",
+              "updatedAt": "2024-03-19T09:22:16Z"
+            },
+            {
+              "originalPosition": 102,
+              "body": "Regardless of send order?",
+              "createdAt": "2024-03-19T09:21:03Z",
+              "updatedAt": "2024-03-19T09:22:16Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M50Ceif",
+          "commit": {
+            "abbreviatedOid": "fcecc71"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-03-19T16:39:47Z",
+          "updatedAt": "2024-03-19T16:39:48Z",
+          "comments": [
+            {
+              "originalPosition": 81,
+              "body": "@kixelated can you please elaborate on what needs clarification here ?   Streaming modes naturally fit with priorities and we have implemented the same.\r\n\r\nIf stream per group is selected , all the objects with in a group have same priority.  So objects are delivered in the receive order at a relay within a stream.\r\nif stream per object is selected and if the application marks all the objects with same priority within a group, then objects end up on the same priority queue level and are sent in the receive order.  If application marks each object with a different priorities, they end up on different levels in the queue and are sent according to the priority order.\r\n\r\nThe above text seems to cover all the cases if am reading it right.",
+              "createdAt": "2024-03-19T16:39:47Z",
+              "updatedAt": "2024-03-19T16:39:48Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M50GAc6",
+          "commit": {
+            "abbreviatedOid": "6ce66e9"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-03-20T00:43:02Z",
+          "updatedAt": "2024-03-20T00:43:02Z",
+          "comments": [
+            {
+              "originalPosition": 120,
+              "body": "Good point, personally I think I like \"Object Priority\" based on how it's discussed and used.  But suggestions are welcome.",
+              "createdAt": "2024-03-20T00:43:02Z",
+              "updatedAt": "2024-03-20T00:43:02Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M50Nh9F",
+          "commit": {
+            "abbreviatedOid": "921363e"
+          },
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-03-20T18:15:00Z",
+          "updatedAt": "2024-03-20T18:28:41Z",
+          "comments": [
+            {
+              "originalPosition": 81,
+              "body": "So in general this text needs some clarification on if it's normative or non-normative. I interpret it as normative, outlining the algorithm that each publisher uses to compute `send_order`. It's a good algorithm for low-latency, but I'd like a to throw in a SHOULD.\r\n\r\nIf this MUST be the algorithm used to determine send order, then it breaks some use-cases, like using send order for head-of-line blocking. It also just makes the `send_order` redundant, as a publisher could compute the send order using `group_id`, `object_id` and these rules. \r\n\r\nAnd what happens when there's a mismatch? Is a relay supposed to error if `send_order` does not follow these rules?\r\n\r\nI mean this was the crux of the debate way back then and why there are two sections. I thought the publisher should bake the rules into the send_order, while Christian thought we should have explicit rules. This PR is effectively doing both by merging the sections together; allowing publishers to choose the send order per stream but dictating the rules?",
+              "createdAt": "2024-03-20T18:24:36Z",
+              "updatedAt": "2024-03-20T18:30:15Z"
+            }
+          ]
+        }
+      ]
     },
     {
       "number": 418,
@@ -50900,7 +51233,7 @@
       "labels": [],
       "body": "",
       "createdAt": "2024-03-18T19:36:24Z",
-      "updatedAt": "2024-03-19T00:52:50Z",
+      "updatedAt": "2024-03-19T07:28:07Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "ad67a19f1e6abbe4331b73ad49360726783a2bb8",
@@ -50938,6 +51271,620 @@
           "createdAt": "2024-03-19T00:52:50Z",
           "updatedAt": "2024-03-19T00:52:50Z",
           "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5z9Eme",
+          "commit": {
+            "abbreviatedOid": "d20f5aa"
+          },
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2024-03-19T07:28:07Z",
+          "updatedAt": "2024-03-19T07:28:07Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 421,
+      "id": "PR_kwDOG2Ho4M5qC1Xh",
+      "title": "Split SUBSCRIBE into SUBSCRIBE and FETCH",
+      "url": "https://github.com/moq-wg/moq-transport/pull/421",
+      "state": "OPEN",
+      "author": "ianswett",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [
+        "Subscribe"
+      ],
+      "body": "A PR corresponding to: https://datatracker.ietf.org/meeting/119/materials/slides-119-moq-subscribe-and-fetch\r\n\r\nFixes #269 \r\nFixes #296\r\nFixes #350 \r\nFixes #326\r\nFixes #377\r\nFixes #312 \r\nFixes #353\r\n\r\nAlso relevant to #396, #326\r\n\r\nSome open questions:\r\n - Do we want OBJECT_FETCH_DATAGRAM to be transmitted over datagrams only?",
+      "createdAt": "2024-03-19T06:11:41Z",
+      "updatedAt": "2024-03-20T18:07:39Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "ad67a19f1e6abbe4331b73ad49360726783a2bb8",
+      "headRepository": "moq-wg/moq-transport",
+      "headRefName": "ianswett-subscribe-v2",
+      "headRefOid": "6e19b12483d3ac0856a6738d470c9ffe7a1036ce",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [
+        {
+          "author": "wilaw",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "How would a live player that wants to start 3 groups back from the live head use this combination of SUBSCRIBE and FETCH? It could issue the SUBSCRIBE, which would deliver the latest group and all future groups as well as information about the latest (largest) group number. However, since group numbers increase monotonically by a variable increment, the player cannot use this information to construct the appropriate FETCH, because it cannot predict the two prior group numbers. ",
+          "createdAt": "2024-03-19T11:40:52Z",
+          "updatedAt": "2024-03-19T11:40:52Z"
+        },
+        {
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> However, since group numbers increase monotonically by a variable increment, the player cannot use this information to construct the appropriate FETCH, because it cannot predict the two prior group numbers.\r\n\r\nPlayer needs to know how the group numbers increment.  Its the application and if it has no clue , then something is already wrong.",
+          "createdAt": "2024-03-19T13:37:54Z",
+          "updatedAt": "2024-03-19T13:37:54Z"
+        },
+        {
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> If that's a sticking point for folks, then I much rather add that restriction to the current SUBSCRIBE message along with `order=ASC|DESC` as proposed in #411.\r\n\r\nCan you please answer my question on the open issue on how can relay make such decision upstream when there are conflicting subscriptions with respect to the order.  May be last mile subscribe has a utility, but I am not sure how to solve the open issue on this.",
+          "createdAt": "2024-03-19T16:43:39Z",
+          "updatedAt": "2024-03-19T16:43:39Z"
+        },
+        {
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> > If that's a sticking point for folks, then I much rather add that restriction to the current SUBSCRIBE message along with `order=ASC|DESC` as proposed in #411.\r\n> \r\n> Can you please answer my question on the open issue on how can relay make such decision upstream when there are conflicting subscriptions with respect to the order. May be last mile subscribe has a utility, but I am not sure how to solve the open issue on this.\r\n\r\nWhat about `order=ASC | DESC | DEFAULT`? The relay could let the publisher/upstream choose like it does today.\r\n\r\nNote that FETCH is not immune to this. There could be a continuous SUBSCRIBE from broadcaster -> origin (ascending) and a FETCH from origin -> relay (descending). Or a viewer could SUBSCRIBE and later another viewer could FETCH, leveraging some of the existing subscription.\r\n\r\nviewer1:\r\n```\r\n-> SUBSCRIBE \r\n<- SUBSCRIBE_OK start=420\r\n<- OBJECT 420\r\n(upstream congestion)\r\n<- OBJECT 422\r\n<- OBJECT 423\r\n<- OBJECT 421\r\n```\r\n\r\nviewer2:\r\n```\r\n-> FETCH start=419 end=421\r\n<- OBJECT 420 (cached)\r\n<- OBJECT 422\r\n(blocked on 423)\r\n<- OBJECT 421\r\n```\r\n\r\nBut I dunno, I kind of feel like this is a non-issue. Viewers will either request the same order, or upstream congestion is rare, or defaulting to ORDER=desc is required for live and good enough for VOD and reliable live. We're talking about edge cases of a prioritization scheme, which historically don't have much impact.",
+          "createdAt": "2024-03-20T18:06:41Z",
+          "updatedAt": "2024-03-20T18:07:39Z"
+        }
+      ],
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M5z8twQ",
+          "commit": {
+            "abbreviatedOid": "d849664"
+          },
+          "author": "hardie",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-03-19T06:22:46Z",
+          "updatedAt": "2024-03-19T06:22:46Z",
+          "comments": [
+            {
+              "originalPosition": 82,
+              "body": "I thought we had agreed that a client could want multiple copies for different uses (e.g. storage vs. render).  If it did that, using two different start locations, why would that be forbidden in a single session?",
+              "createdAt": "2024-03-19T06:22:46Z",
+              "updatedAt": "2024-03-19T06:22:46Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5z8u5A",
+          "commit": {
+            "abbreviatedOid": "506eb32"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-03-19T06:26:42Z",
+          "updatedAt": "2024-03-19T06:26:42Z",
+          "comments": [
+            {
+              "originalPosition": 82,
+              "body": "The cases one would want multiple copies are covered by FETCH.  Having multiple subscribes can add complexity in some cases and I'm not aware of a clear usecase.",
+              "createdAt": "2024-03-19T06:26:42Z",
+              "updatedAt": "2024-03-19T06:26:42Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5z8vmW",
+          "commit": {
+            "abbreviatedOid": "506eb32"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-03-19T06:29:01Z",
+          "updatedAt": "2024-03-19T06:29:01Z",
+          "comments": [
+            {
+              "originalPosition": 82,
+              "body": "For use-case where i want to catch up last 5 mins, while i join the call live. I can see it implemented with subscribe , fetch combination ..",
+              "createdAt": "2024-03-19T06:29:01Z",
+              "updatedAt": "2024-03-19T06:29:01Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5z8v6M",
+          "commit": {
+            "abbreviatedOid": "506eb32"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-03-19T06:29:56Z",
+          "updatedAt": "2024-03-19T06:29:56Z",
+          "comments": [
+            {
+              "originalPosition": 239,
+              "body": "```suggestion\r\nTODO: Should these be the first Group being delivered?  If the last group\r\n```",
+              "createdAt": "2024-03-19T06:29:56Z",
+              "updatedAt": "2024-03-19T06:29:56Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5z8wGY",
+          "commit": {
+            "abbreviatedOid": "506eb32"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-03-19T06:30:34Z",
+          "updatedAt": "2024-03-19T06:30:34Z",
+          "comments": [
+            {
+              "originalPosition": 163,
+              "body": "wonder if we should make it invalid to set its value as 0 to avoid ambiguities or make it optional field and if it is omitted it means as long as track is alive?",
+              "createdAt": "2024-03-19T06:30:34Z",
+              "updatedAt": "2024-03-19T06:30:34Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5z8wP-",
+          "commit": {
+            "abbreviatedOid": "32ad770"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-03-19T06:31:03Z",
+          "updatedAt": "2024-03-19T06:31:03Z",
+          "comments": [
+            {
+              "originalPosition": 279,
+              "body": "```suggestion\r\n{: #moq-transport-fetch-format title=\"MOQT FETCH Message\"}\r\n```",
+              "createdAt": "2024-03-19T06:31:03Z",
+              "updatedAt": "2024-03-19T06:31:03Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5z8wyg",
+          "commit": {
+            "abbreviatedOid": "4ae0963"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-03-19T06:32:44Z",
+          "updatedAt": "2024-03-19T06:32:44Z",
+          "comments": [
+            {
+              "originalPosition": 123,
+              "body": "s/from from/from ",
+              "createdAt": "2024-03-19T06:32:44Z",
+              "updatedAt": "2024-03-19T06:32:45Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5z8yVx",
+          "commit": {
+            "abbreviatedOid": "4ae0963"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-03-19T06:36:56Z",
+          "updatedAt": "2024-03-19T06:36:56Z",
+          "comments": [
+            {
+              "originalPosition": 163,
+              "body": "I think we need a way to say that there is no limit on the number of groups.  We can encode that in a number of ways, ie: 6 modes instead of 3, etc.",
+              "createdAt": "2024-03-19T06:36:56Z",
+              "updatedAt": "2024-03-19T06:36:56Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5z8yhg",
+          "commit": {
+            "abbreviatedOid": "4ae0963"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "Thanks @ianswett  This seems to be heading in the right direction. I do have few nits and clarification questions (posted)",
+          "createdAt": "2024-03-19T06:37:19Z",
+          "updatedAt": "2024-03-19T06:37:19Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5z83RG",
+          "commit": {
+            "abbreviatedOid": "0905273"
+          },
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-03-19T06:52:39Z",
+          "updatedAt": "2024-03-19T06:52:39Z",
+          "comments": [
+            {
+              "originalPosition": 304,
+              "body": "slight tweak, instead of  earlier, I think it would be better to use lower object id because order of things were delivered in time could be different than that",
+              "createdAt": "2024-03-19T06:52:39Z",
+              "updatedAt": "2024-03-19T06:52:39Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5z83pm",
+          "commit": {
+            "abbreviatedOid": "0905273"
+          },
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-03-19T06:53:52Z",
+          "updatedAt": "2024-03-19T06:53:52Z",
+          "comments": [
+            {
+              "originalPosition": 329,
+              "body": "perhaps change \"subscription\" to \"fetch\"",
+              "createdAt": "2024-03-19T06:53:52Z",
+              "updatedAt": "2024-03-19T06:53:52Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5z85Qs",
+          "commit": {
+            "abbreviatedOid": "0905273"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-03-19T06:58:54Z",
+          "updatedAt": "2024-03-19T06:58:54Z",
+          "comments": [
+            {
+              "originalPosition": 110,
+              "body": "STREAM_SUBSCRIBE_GROUP/STREAM_FETCH_GROUP",
+              "createdAt": "2024-03-19T06:58:54Z",
+              "updatedAt": "2024-03-19T06:58:54Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5z86YC",
+          "commit": {
+            "abbreviatedOid": "0905273"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-03-19T07:02:25Z",
+          "updatedAt": "2024-03-19T07:02:25Z",
+          "comments": [
+            {
+              "originalPosition": 286,
+              "body": "If the last group was cached , but TTL expired on it and got removed. Subscribe should start from the data it has.. ",
+              "createdAt": "2024-03-19T07:02:25Z",
+              "updatedAt": "2024-03-19T07:02:25Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5z9EWF",
+          "commit": {
+            "abbreviatedOid": "0905273"
+          },
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2024-03-19T07:27:24Z",
+          "updatedAt": "2024-03-19T07:27:35Z",
+          "comments": [
+            {
+              "originalPosition": 322,
+              "body": "This comment could be in a different PR, but I think it might be good to add an flag to the fetch that indicated the results should be delivered in reverse order. ",
+              "createdAt": "2024-03-19T07:27:24Z",
+              "updatedAt": "2024-03-19T07:27:35Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5z9IFq",
+          "commit": {
+            "abbreviatedOid": "0905273"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-03-19T07:36:48Z",
+          "updatedAt": "2024-03-19T07:36:48Z",
+          "comments": [
+            {
+              "originalPosition": 110,
+              "body": "```suggestion\r\nSTREAM_SUBSCRIBE_GROUP/STREAM_FETCH_GROUP Message {\r\n```",
+              "createdAt": "2024-03-19T07:36:48Z",
+              "updatedAt": "2024-03-19T07:36:48Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5z9IT6",
+          "commit": {
+            "abbreviatedOid": "22d1966"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-03-19T07:37:18Z",
+          "updatedAt": "2024-03-19T07:37:18Z",
+          "comments": [
+            {
+              "originalPosition": 170,
+              "body": "```suggestion\r\nNext Group (0x2): Start at the first Object from the next group.\r\n```",
+              "createdAt": "2024-03-19T07:37:18Z",
+              "updatedAt": "2024-03-19T07:37:18Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5z9T1d",
+          "commit": {
+            "abbreviatedOid": "0905273"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-03-19T08:04:55Z",
+          "updatedAt": "2024-03-19T08:04:56Z",
+          "comments": [
+            {
+              "originalPosition": 322,
+              "body": "Thanks, I would like to have that conversation along with the larger priorities conversation if possible, but it's a completely reasonable idea.",
+              "createdAt": "2024-03-19T08:04:55Z",
+              "updatedAt": "2024-03-19T08:04:56Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5z9UrX",
+          "commit": {
+            "abbreviatedOid": "0905273"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-03-19T08:06:55Z",
+          "updatedAt": "2024-03-19T08:06:55Z",
+          "comments": [
+            {
+              "originalPosition": 286,
+              "body": "Agreed, my concern is that if last isn't available, how is that indicated?  If one finds out the largest group ID is 3, and it asked for last, it would expect to receive group 2, but if it's not available, it wouldn't.",
+              "createdAt": "2024-03-19T08:06:55Z",
+              "updatedAt": "2024-03-19T08:06:55Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5z9at2",
+          "commit": {
+            "abbreviatedOid": "6e19b12"
+          },
+          "author": "janaiyengar",
+          "authorAssociation": "NONE",
+          "state": "COMMENTED",
+          "body": "Broadly looks good, follows the arc of what we discussed. ",
+          "createdAt": "2024-03-19T08:20:18Z",
+          "updatedAt": "2024-03-19T08:31:07Z",
+          "comments": [
+            {
+              "originalPosition": 82,
+              "body": "@Ted: We had agreed on allowing this for FETCH, and explicitly disallowing dups for SUBSCRIBE, since FETCH is more like an HTTP GET.",
+              "createdAt": "2024-03-19T08:20:18Z",
+              "updatedAt": "2024-03-19T08:31:07Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5z9j6q",
+          "commit": {
+            "abbreviatedOid": "6e19b12"
+          },
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "state": "CHANGES_REQUESTED",
+          "body": "I understand the desire to split the world into VOD and REALTIME via FETCH and SUBSCRIBE, but I think this proposal misses the nuances of live streams that startle between both worlds. I'd like some clarification in #419 as to how a player is supposed to use this API because it seems poor.\r\n\r\nAnd I think the duplication between SUBSCRIBE/FETCH is just super messy. The justification is that now a relay doesn't need to implement relative ranges beyond +- 1 group. If that's a sticking point for folks, then I much rather add that restriction to the current SUBSCRIBE message along with `order=ASC|DESC` as proposed in #411.",
+          "createdAt": "2024-03-19T08:37:11Z",
+          "updatedAt": "2024-03-19T08:55:16Z",
+          "comments": [
+            {
+              "originalPosition": 82,
+              "body": "What's the benefit to adding this restriction, effectively mandating deduplication? I don't see what's the harm in allowing dumb proxies that don't deduplicate subscriptions.",
+              "createdAt": "2024-03-19T08:37:11Z",
+              "updatedAt": "2024-03-19T08:54:18Z"
+            },
+            {
+              "originalPosition": 322,
+              "body": "I'd like a flag too, see #411. We need it for SUBSCRIBE in the reliable live use-case.",
+              "createdAt": "2024-03-19T08:38:46Z",
+              "updatedAt": "2024-03-19T08:54:18Z"
+            },
+            {
+              "originalPosition": 15,
+              "body": "There needs to be a `FETCH_OK`/`FETCH_ERROR` message too. I don't see how you can signal stuff like 404 or unauthorized otherwise.",
+              "createdAt": "2024-03-19T08:42:30Z",
+              "updatedAt": "2024-03-19T08:54:18Z"
+            },
+            {
+              "originalPosition": 26,
+              "body": "Can we shard the `id` (even/odd) based on if it's a FETCH/SUBSCRIBE?\r\n\r\nScratch that, why does it even matter? Why not have SUBSCRIBE and FETCH share the same ID space?",
+              "createdAt": "2024-03-19T08:44:19Z",
+              "updatedAt": "2024-03-19T08:54:18Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5z9vJx",
+          "commit": {
+            "abbreviatedOid": "6e19b12"
+          },
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "state": "CHANGES_REQUESTED",
+          "body": "And I think this breaks ABR if I understand correctly?",
+          "createdAt": "2024-03-19T08:58:21Z",
+          "updatedAt": "2024-03-19T09:00:34Z",
+          "comments": [
+            {
+              "originalPosition": 144,
+              "body": "I think `Last` is super confusing, because this is actually the N-1 group. I would call this `Prev`.\r\n\r\nI also think we just remove this. It's not sufficient for higher latency playback and it's super strange to keep a cache of the last two groups in cache.",
+              "createdAt": "2024-03-19T08:58:21Z",
+              "updatedAt": "2024-03-19T09:00:34Z"
+            },
+            {
+              "originalPosition": 141,
+              "body": "Doesn't this break seamless ABR, since you can no longer subscribe using an absolute group in the future? The best you can do is subscribe to next group and pray for no race conditions.",
+              "createdAt": "2024-03-19T09:00:03Z",
+              "updatedAt": "2024-03-19T09:01:00Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M50Dh6b",
+          "commit": {
+            "abbreviatedOid": "d849664"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-03-19T18:38:36Z",
+          "updatedAt": "2024-03-19T18:38:37Z",
+          "comments": [
+            {
+              "originalPosition": 82,
+              "body": "Deduping multiple conflicting subscriptions is not straighforward, also it leads to weird edge cases when there is partial data . I think these were reflected during Denver interim discussions at some point.",
+              "createdAt": "2024-03-19T18:38:37Z",
+              "updatedAt": "2024-03-19T18:38:37Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M50GMy7",
+          "commit": {
+            "abbreviatedOid": "d849664"
+          },
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-03-20T00:52:36Z",
+          "updatedAt": "2024-03-20T00:52:36Z",
+          "comments": [
+            {
+              "originalPosition": 82,
+              "body": "Is there an use that drives need for duplicate subscriptions ",
+              "createdAt": "2024-03-20T00:52:36Z",
+              "updatedAt": "2024-03-20T00:52:36Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M50M_1v",
+          "commit": {
+            "abbreviatedOid": "6e19b12"
+          },
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-03-20T17:15:12Z",
+          "updatedAt": "2024-03-20T17:15:12Z",
+          "comments": [
+            {
+              "originalPosition": 82,
+              "body": "> Is there an use that drives need for duplicate subscriptions\r\n\r\nAs of the current draft, AUTH is in the SUBSCRIBE message. A relay that doesn't know the auth scheme would have to forward each SUBSCRIBE upstream, but that's prevented by this text.\r\n\r\nI strongly think we should decouple auth anyway. I'd like to see an AUTH_NAMESPACE message that could be used for subsequent ANNOUNCE and SUBSCRIBE messages on the control stream.\r\n\r\n> Deduping multiple conflicting subscriptions is not straighforward, also it leads to weird edge cases when there is partial data . I think these were reflected during Denver interim discussions at some point.\r\n\r\nYeah that's my point. This restriction forces a relay to deduplicate, for example if two viewers issue:\r\n\r\n```\r\nviewer1 -> SUBSCRIBE start=next\r\n...\r\nviewer2 -> SUBSCRIBE start=prev\r\n```\r\n\r\nA relay SHOULD deduplicate these for the upstream subscribe, but this text makes it a MUST. Doing this is tricky much like the existing SUBSCRIBE message.",
+              "createdAt": "2024-03-20T17:15:12Z",
+              "updatedAt": "2024-03-20T17:15:52Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M50NDZC",
+          "commit": {
+            "abbreviatedOid": "6e19b12"
+          },
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-03-20T17:21:12Z",
+          "updatedAt": "2024-03-20T17:21:12Z",
+          "comments": [
+            {
+              "originalPosition": 82,
+              "body": "As a side note.\r\n\r\n> A subscriber MUST NOT subscribe to the same track twice within a session.\r\n\r\nI think the intent is to prevent duplicate concurrent subscriptions. However, a literal interpretation is that you're never allowed to subscribe again even after an unsubscribe, which of course breaks many things.",
+              "createdAt": "2024-03-20T17:21:12Z",
+              "updatedAt": "2024-03-20T17:21:12Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M50NFYR",
+          "commit": {
+            "abbreviatedOid": "6e19b12"
+          },
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-03-20T17:24:33Z",
+          "updatedAt": "2024-03-20T17:27:44Z",
+          "comments": [
+            {
+              "originalPosition": 318,
+              "body": "What happens if the start group/object is in the future?",
+              "createdAt": "2024-03-20T17:24:33Z",
+              "updatedAt": "2024-03-20T17:27:44Z"
+            },
+            {
+              "originalPosition": 15,
+              "body": "Speaking of 404, what happens if some of the groups/objects in the range requested don't exist or have expired? Without a way of signaling that, the subscriber could wait indefinitely for the FETCH to complete.\r\n\r\nex. a DVR client that issues a FETCH for 60s ago to replay a highlight. However the start of the highlight may have been evicted from the LRU by then, and is no longer available on origin either. Some of the highlight may arrive alluding to success, but the player will get stuck buffering for the first group.",
+              "createdAt": "2024-03-20T17:27:40Z",
+              "updatedAt": "2024-03-20T17:29:03Z"
+            }
+          ]
         }
       ]
     }
