@@ -1581,7 +1581,7 @@ GOAWAY Message {
 ~~~
 {: #moq-transport-goaway-format title="MOQT GOAWAY Message"}
 
-* New Session URI: The client MUST use this URI for the new session if provded.
+* New Session URI: The client MUST use this URI for the new session if provided.
   If the URI is zero bytes long, the current URI is reused instead. The new
   session URI SHOULD use the same scheme as the current URL to ensure
   compatibility.
