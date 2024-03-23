@@ -772,7 +772,7 @@ MOQT Message {
 |------:|:----------------------------------------------------|
 | 0x0   | OBJECT_STREAM ({{object-message-formats}})          |
 |-------|-----------------------------------------------------|
-| 0x1   | OBJECT_DATAGRAM ({{object-message-formats}}) |
+| 0x1   | OBJECT_DATAGRAM ({{object-message-formats}})        |
 |-------|-----------------------------------------------------|
 | 0x3   | SUBSCRIBE ({{message-subscribe-req}})               |
 |-------|-----------------------------------------------------|
@@ -796,13 +796,25 @@ MOQT Message {
 |-------|-----------------------------------------------------|
 | 0x10  | GOAWAY ({{message-goaway}})                         |
 |-------|-----------------------------------------------------|
+| 0x20  | FETCH ({{message-fetch}})                           |
+|-------|-----------------------------------------------------|
+| 0x21  | FETCH_CANCEL ({{message-fetch-cancel}})             |
+|-------|-----------------------------------------------------|
 | 0x40  | CLIENT_SETUP ({{message-setup}})                    |
 |-------|-----------------------------------------------------|
 | 0x41  | SERVER_SETUP ({{message-setup}})                    |
 |-------|-----------------------------------------------------|
-| 0x50  | STREAM_HEADER_TRACK ({{multi-object-streams}})      |
+| 0x48  | OBJECT_FETCH_STREAM ({{object-message-formats}})    |
 |-------|-----------------------------------------------------|
-| 0x51  | STREAM_HEADER_GROUP ({{multi-object-streams}})      |
+| 0x49  | OBJECT_FETCH_DATAGRAM ({{object-message-formats}})  |
+|-------|-----------------------------------------------------|
+| 0x50  | STREAM_SUBSCRIBE_TRACK ({{multi-object-streams}})   |
+|-------|-----------------------------------------------------|
+| 0x51  | STREAM_SUBSCRIBE_GROUP ({{multi-object-streams}})   |
+|-------|-----------------------------------------------------|
+| 0x52  | STREAM_FETCH_TRACK ({{multi-object-streams}})       |
+|-------|-----------------------------------------------------|
+| 0x53  | STREAM_FETCH_GROUP ({{multi-object-streams}})       |
 |-------|-----------------------------------------------------|
 
 ## Parameters {#params}
@@ -1003,8 +1015,7 @@ serialize object fields below, and terminate the stream.
 
 ~~~
 OBJECT_STREAM Message {
-  Subscribe ID (i),
-  Track Alias (i),
+  ID (i),
   Group ID (i),
   Object ID (i),
   Object Send Order (i),
@@ -1013,10 +1024,7 @@ OBJECT_STREAM Message {
 ~~~
 {: #moq-transport-object-stream-format title="MOQT OBJECT_STREAM Message"}
 
-* Subscribe ID: Subscription Identifer as defined in {{message-subscribe-req}}.
-
-* Track Alias: Identifies the Track Namespace and Track Name as defined in
-{{message-subscribe-req}}.
+* ID: The Track Alias for subscriptions or the Fetch ID for Fetches.
 
 If the Track Namespace and Track Name identified by the Track Alias are
 different from those specified in the subscription identified by Subscribe ID,
@@ -1039,8 +1047,7 @@ will be dropped.
 
 ~~~
 OBJECT_DATAGRAM Message {
-  Subscribe ID (i),
-  Track Alias (i),
+  ID (i),
   Group ID (i),
   Object ID (i),
   Object Send Order (i),
@@ -1064,27 +1071,26 @@ TODO: figure out how a relay closes these streams
 
 **Stream Header Track**
 
-When a stream begins with `STREAM_HEADER_TRACK`, all objects on the stream
-belong to the track requested in the Subscribe message identified by `Subscribe
-ID`.  All objects on the stream have the `Object Send Order` specified in the
-stream header.
+When a stream begins with `STREAM_SUBSCRIBE_TRACK` or 'STREAM_FETCH_TRACK', all
+objects on the stream belong to the track requested in the corresponding
+subscription or fetch as identified by the `Track Alias' or 'Fetch ID'.  All
+objects on the stream have the `Object Send Order` specified in the stream header.
 
 
 ~~~
-STREAM_HEADER_TRACK Message {
-  Subscribe ID (i)
-  Track Alias (i),
+STREAM_SUBSCRIBE_TRACK/STREAM_FETCH_TRACK Message {
+  ID (i),
   Object Send Order (i),
 }
 ~~~
-{: #stream-header-track-format title="MOQT STREAM_HEADER_TRACK Message"}
+{: #stream-header-track-format title="MOQT STREAM_TRACK Message"}
 
-All Objects received on a stream opened with STREAM_HEADER_TRACK have an `Object
-Forwarding Preference` = `Track`.
+All Objects received on a stream opened with STREAM_SUBSCRIBE_TRACK or
+STREAM_FETCH_TRACK have an `Object Forwarding Preference` = `Track`.
 
 To send an Object with `Object Forwarding Preference` = `Track`, find the open
 stream that is associated with the subscription, or open a new one and send the
-`STREAM_HEADER_TRACK` if needed, then serialize the the following object fields.
+header, then serialize the the following object fields.
 
 ~~~
 {
@@ -1108,9 +1114,8 @@ ID` and the group indicated by `Group ID`.  All objects on the stream
 have the `Object Send Order` specified in the stream header.
 
 ~~~
-STREAM_HEADER_GROUP Message {
-  Subscribe ID (i),
-  Track Alias (i),
+STREAM_SUBSCRIBE_GROUP/STREAM_FETCH_GROUP Message {
+  ID (i),
   Group ID (i)
   Object Send Order (i)
 }
@@ -1198,46 +1203,22 @@ OBJECT_STREAM {
 ## SUBSCRIBE {#message-subscribe-req}
 
 A receiver issues a SUBSCRIBE to a publisher to request a track.
+The receiver specifies a start location for the subscription relative to
+the most recently published Objects.
 
-### Subscribe Locations {#subscribe-locations}
+A subscriber MUST NOT subscribe to the same track twice within a session.
 
-The receiver specifies a start and optional end `Location` for the subscription.
-A location value may be an absolute group or object sequence, or it may be a
-delta relative to the largest group or the largest object in a group.
+There are 3 modes to indicate where to start the subscription:
 
-~~~
-Location {
-  Mode (i),
-  [Value (i)],
-}
-~~~
+Last Group (0x0): Start from the the largest group for which the relay
+has received the last object.  If no complete group has been published,
+begin at the first group.
 
-There are 4 modes:
+Current Group (0x1): Start at the first Object from the largest received
+group.
 
-None (0x0): The Location is unspecified, Value is not present
+Next Group (0x2): Start at the first Object from the next group.
 
-Absolute (0x1): Value is an absolute sequence
-
-RelativePrevious (0x2): Value is a delta from the largest sequence.  0 is the
-largest sequence, 1 is the largest sequence - 1, and so on.
-
-RelativeNext (0x3): Value is a delta from the largest sequence.  0 is the largest
-sequence + 1, 1 is the largest sequence + 2, and so on.
-
-The following table shows an example of how the RelativePrevious and RelativeNext
-values are used to determine the absolute sequence.
-
-~~~
-Sequence:                0    1    2    3    4   [5]  [6] ...
-                                             ^
-                                      Largest Sequence
-RelativePrevious Value:  4    3    2    1    0
-RelativeNext Value:                               0    1  ...
-~~~
-{: title="Relative Indexing"}
-
-
-### SUBSCRIBE Format
 
 The format of SUBSCRIBE is as follows:
 
@@ -1247,10 +1228,8 @@ SUBSCRIBE Message {
   Track Alias (i),
   Track Namespace (b),
   Track Name (b),
-  StartGroup (Location),
-  StartObject (Location),
-  EndGroup (Location),
-  EndObject (Location),
+  Mode (i),
+  Number of Groups (i),
   Number of Parameters (i),
   Track Request Parameters (..) ...
 }
@@ -1275,24 +1254,19 @@ close the session with a Duplicate Track Alias error ({{session-termination}}).
 
 * Track Name: Identifies the track name as defined in ({{track-name}}).
 
-* StartGroup: The Location of the requested group.  StartGroup's Mode MUST NOT be
-None.
+* Mode: The subscription mode, as described above.
 
-* StartObject: The Location of the requested object.  StartObject's Mode MUST NOT
-be None.
-
-* EndGroup: The last Group requested in the subscription, inclusive.  EndGroup's
-Mode is None for an open-ended subscription.
-
-* EndObject: The last Object requested in the subscription, exclusive.
-EndObject's Mode MUST be None if EndGroup's Mode is None.  EndObject's Mode MUST
-NOT be None if EndGroup's Mode is not None.
+* Number of Groups: The number of Groups a subscriber would like to receive.
+0 indicates there is no limit.
+TODO: Should 0 indicate the subscriber only wants to know what the most
+recent Group and Object are and doesn't want to to receive any data similar
+to a HTTP HEAD request?
 
 * Track Request Parameters: The parameters are defined in
 {{version-specific-params}}
 
 On successful subscription, the publisher SHOULD start delivering
-objects from the group ID and object ID described above.
+objects from the specified start group.
 
 If a publisher cannot satisfy the requested start or end for the subscription it
 MAY send a SUBSCRIBE_ERROR with code 'Invalid Range'. A publisher MUST NOT send
@@ -1300,59 +1274,6 @@ objects from outside the requested start and end.
 
 TODO: Define the flow where subscribe request matches an existing subscribe id
 (subscription updates.)
-
-### Examples
-
-~~~
-1. Now
-
-Start Group: Mode=RelativePrevious, Value=0
-Start Object: Mode=RelateiveNext, Value=0
-End Group: Mode=None
-End Object: Mode=None
-
-StartGroup=Largest Group
-StartObject=Largest Object + 1
-
-2. Current
-
-Start Group: Mode=RelativePrevious, Value=0
-Start Object: Mode=Absolute, Value=0
-End Group: Mode=None
-End Object: Mode=None
-
-StartGroup=Largest Group
-StartObject=0
-
-3. Previous
-
-Start Group: Mode=RelativePrevious, Value=1
-Start Object: Mode=Absolute, Value=0
-End Group: Mode=None
-End Object: Mode=None
-
-StartGroup=Largest Group - 1
-StartObject=0
-
-4. Next
-
-Start Group: Mode=RelativeNext, Value=0
-Start Object: Mode=Absolute, Value=0
-End Group: Mode=None
-End Object: Mode=None
-StartGroup=Largest Group + 1
-StartObject=0
-
-5. Range, All of group 3
-
-Start Group: Mode=Absolute, Value=3
-Start Object: Mode=Absolute, Value=0
-End Group: Mode=Absolute, Value=4
-End Object: Mode=Absolute, Value=0
-
-Start = Group 3, Object 0
-End = Group 3, Object <last>
-~~~
 
 
 ## SUBSCRIBE_OK {#message-subscribe-ok}
@@ -1382,7 +1303,12 @@ end prior to the expiry time or last longer.
 If 0, then the Largest Group ID and Largest Object ID fields will not be
 present.
 
-* Largest Group ID: the largest Group ID available for this track. This field is only present if ContentExists has a value of 1.
+TODO: Should these be the first Group being delivered?  If the last group
+isn't cached, but was requested, should that be indicated?
+ie: by making ContentExists an enum?
+
+* Largest Group ID: the largest Group ID available for this track.
+This field is only present if ContentExists has a value of 1.
 
 * Largest Object ID: the largest Object ID available within the largest Group ID
 for this track. This field is only present if ContentExists has a value of 1.
@@ -1468,6 +1394,75 @@ message in this track.
 
 * Final Object: The largest Object ID sent by the publisher in an OBJECT
 message in the `Final Group` for this track.
+
+
+## FETCH {#message-fetch}
+
+A receiver issues a FETCH to a publisher to request a range of Objects
+within a Track.
+
+All available Objects will be delivered with the same delivery preference
+as Objects would be delivered with SUBSCRIBE.  When possible, earlier
+Objects SHOULD be delivered before later Objects, but it is possible to receive
+Objects out of order due to reordering, what is available in the cache, or
+other reasons.
+
+The format of FETCH is as follows:
+
+~~~
+FETCH Message {
+  Fetch ID (i),
+  Track Namespace (b),
+  Track Name (b),
+  StartGroup (i),
+  StartObject (i),
+  EndGroup (i),
+  EndObject (i),
+  Number of Parameters (i),
+  Track Request Parameters (..) ...
+}
+~~~
+{: #moq-transport-fetch-format title="MOQT FETCH Message"}
+
+* Fetch ID: Identifier of the Fetch that is unique within the session.
+`Fetch ID` is a monotonically increasing variable length integer which
+MUST not be reused within a session. `Fetch ID` is used by subscribers and
+the publishers to identify a given subscription.
+
+* Track Namespace: Identifies the namespace of the track as defined in
+({{track-name}}).
+
+* Track Name: Identifies the track name as defined in ({{track-name}}).
+
+* StartGroup: The Location of the requested group.
+
+* StartObject: The Location of the requested object.
+
+* EndGroup: The last Group requested in the subscription, inclusive.
+
+* EndObject: The last Object requested in the subscription, exclusive.
+EndObject's Mode MUST be None if EndGroup's Mode is None.
+
+* Track Request Parameters: The parameters are defined in
+{{version-specific-params}}
+
+## FETCH_CANCEL {#message-fetch-cancel}
+
+A subscriber issues a `FETCH_CANCEL` message to a publisher indicating it
+is no longer interested in receiving Objects for the specified track and
+Objects should stop being sent as soon as possible.
+
+The format of `FETCH_CANCEL` is as follows:
+
+~~~
+FETCH_CANCEL Message {
+  Fetch ID (i)
+}
+~~~
+{: #moq-transport-unsubscribe-format title="MOQT UNSUBSCRIBE Message"}
+
+* Fetch ID: Fetch Identifer as defined in {{message-fetch-req}}.
+
 
 ## ANNOUNCE {#message-announce}
 
