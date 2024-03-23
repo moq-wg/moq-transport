@@ -499,10 +499,9 @@ SHOULD terminate the session with 'GOAWAY Timeout' after a sufficient timeout if
 there are still open subscriptions on a connection.
 
 The GOAWAY message does not immediately impact subscription state. A subscriber
-SHOULD individually UNSUBSCRIBE for each existing subscription, while a
+SHOULD individually unsubscribe for each existing subscription, while a
 publisher MAY reject new SUBSCRIBEs while in the draining state. When the server
-is a subscriber, it SHOULD send a GOAWAY message prior to any UNSUBSCRIBE
-messages.
+is a subscriber, it SHOULD send a GOAWAY message prior to unsubscribing.
 
 After the client receives a GOAWAY, it's RECOMMENDED that the client waits until
 there are no more active subscriptions before closing the session with NO_ERROR.
@@ -665,6 +664,8 @@ as defined below:
 |------|---------------------------|
 | 0x2  | Retry Track Alias         |
 |------|---------------------------|
+| 0x3  | Update Failed             |
+|------|---------------------------|
 
 The applicaiton SHOULD use a relevant status code in
 SUBSCRIBE_DONE, as defined below:
@@ -788,7 +789,7 @@ MOQT Message {
 |-------|-----------------------------------------------------|
 | 0x9   | UNANNOUNCE  ({{message-unannounce}})                |
 |-------|-----------------------------------------------------|
-| 0xA   | UNSUBSCRIBE ({{message-unsubscribe}})               |
+| 0xA   | SUBSCRIBE_UPDATE ({{message-subscribe-update}})     |
 |-------|-----------------------------------------------------|
 | 0xB   | SUBSCRIBE_DONE ({{message-subscribe-done}})         |
 |-------|-----------------------------------------------------|
@@ -1415,22 +1416,34 @@ SUBSCRIBE_ERROR
   the receiver MUST close the connection with a Duplicate Track Alias error
   ({{session-termination}}).
 
-## UNSUBSCRIBE {#message-unsubscribe}
+## SUBSCRIBE_UPDATE {#message-subscribe-update}
 
+A subscriber issues a `SUBSCRIBE_UPDATE` message to a publisher to request a
+modification to the end of an existing subscription.  One common type of
+modification is unsubscription.
+
+If an update cannot be completed by the relay, it replies with a SUBSCRIBE_ERROR
+with error code 'Update Failed' and the subscription is unchanged.
+A SUBSCRIBE_UPDATE MUST NOT fail if the specified EndGroup and EndObject are
+earlier than the current values for the subscription.
+
+The subscription is not fully terminated until a SUBSCRIBE_DONE is received.
 A subscriber issues a `UNSUBSCRIBE` message to a publisher indicating it is no
 longer interested in receiving media for the specified track and Objects
 should stop being sent as soon as possible.  The publisher sends a
 SUBSCRIBE_DONE to acknowledge the unsubscribe was successful and indicate
 the final Object.
 
-The format of `UNSUBSCRIBE` is as follows:
+The format of `SUBSCRIBE_UPDATE` is as follows:
 
 ~~~
-UNSUBSCRIBE Message {
-  Subscribe ID (i)
+SUBSCRIBE_UPDATE Message {
+  Subscribe ID (i),
+  EndGroup (Location),
+  EndObject (Location),
 }
 ~~~
-{: #moq-transport-unsubscribe-format title="MOQT UNSUBSCRIBE Message"}
+{: #moq-transport-subscribe-update-format title="MOQT SUBSCRIBE_UPDATE Message"}
 
 * Subscribe ID: Subscription Identifer as defined in {{message-subscribe-req}}.
 
