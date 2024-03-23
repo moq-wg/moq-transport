@@ -5,13 +5,13 @@
 MOQ                                                            L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 19 September 2024                                          Meta
+Expires: 24 September 2024                                          Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                           18 March 2024
+                                                           23 March 2024
 
 
                        Media over QUIC Transport
@@ -53,7 +53,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 19 September 2024.
+   This Internet-Draft will expire on 24 September 2024.
 
 Copyright Notice
 
@@ -989,7 +989,7 @@ Table of Contents
 6.2.2.1.  ROLE parameter
 
    The ROLE parameter (key 0x00) allows each endpoint to independently
-   specify what funnctionality they support for the session.  It has
+   specify what functionality they support for the session.  It has
    three possible values, which are of type varint:
 
    0x01: Publisher  The endpoint can process subscriptions and send
@@ -1640,7 +1640,7 @@ Table of Contents
                        Figure 21: MOQT GOAWAY Message
 
    *  New Session URI: The client MUST use this URI for the new session
-      if provded.  If the URI is zero bytes long, the current URI is
+      if provided.  If the URI is zero bytes long, the current URI is
       reused instead.  The new session URI SHOULD use the same scheme as
       the current URL to ensure compatibility.
 
