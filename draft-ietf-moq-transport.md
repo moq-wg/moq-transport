@@ -915,7 +915,7 @@ identified as 0xff00000D.
 #### ROLE parameter {#role}
 
 The ROLE parameter (key 0x00) allows each endpoint to independently specify what
-funnctionality they support for the session. It has three possible values,
+functionality they support for the session. It has three possible values,
 which are of type varint:
 
 0x01: Publisher
@@ -1581,7 +1581,7 @@ GOAWAY Message {
 ~~~
 {: #moq-transport-goaway-format title="MOQT GOAWAY Message"}
 
-* New Session URI: The client MUST use this URI for the new session if provded.
+* New Session URI: The client MUST use this URI for the new session if provided.
   If the URI is zero bytes long, the current URI is reused instead. The new
   session URI SHOULD use the same scheme as the current URL to ensure
   compatibility.
