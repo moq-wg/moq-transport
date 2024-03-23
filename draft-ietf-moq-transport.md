@@ -522,91 +522,35 @@ This section is expected to cover details on:
 
 - Prioritization Schemes.
 - Congestion Algorithms and impacts.
-- Mapping considerations for one object per stream vs multiple objects
-  per stream.
 - Considerations for merging multiple streams across domains onto single
   connection and interactions with specific prioritization schemes.
 
-## Order Priorities and Options
+## Object Priority {#object-priority}
 
-At the point of this writing, the working group has not reached
-consensus on several important goals, such as:
+Goals of Object Priority include:
+* Enable objects to be delivered in the order intended by the publisher
+* Allow nodes and relays to delay or skip some objects under congestion
+* Create more reliable behavior of relays
 
-* Ensuring that objects are delivered in the order intended by the
-  emitter
-* Allowing nodes and relays to skip or delay some objects to deal with
-  congestion
-* Ensuring that emitters can accurately predict the behavior of relays
-* Ensuring that when relays have to skip and delay objects belonging to
-  different tracks that they do it in a predictable way if tracks are
-  explicitly coordinated and in a fair way if they are not.
+The publisher's Object Priority SHOULD be followed when possible. The
+contents of each object are still delivered in order.
 
-The working group has been considering two alternatives: marking objects
-belonging to a track with an explicit "send order"; and, defining
-algorithms combining tracks, priorities and object order within a
-group. The two proposals are listed in {{send-order}} and
-{{ordering-by-priorities}}.  We expect further work before a consensus
-is reached.
+When the publisher chooses which object to send next, they apply the
+following rules:
 
-### Proposal - Send Order {#send-order}
-
-Media is produced with an intended order, both in terms of when media
-should be presented (PTS) and when media should be decoded (DTS).  As
-stated in the introduction, the network is unable to maintain this
-ordering during congestion without increasing latency.
-
-The encoder determines how to behave during congestion by assigning each
-object a numeric send order.  The send order SHOULD be followed when
-possible, to ensure that the most important media is delivered when
-throughput is limited.  Note that the contents within each object are
-still delivered in order; this send order only applies to the ordering
-between objects.
-
-A sender MUST send each object over a dedicated stream.  The library
-should support prioritization ({{priority-congestion}}) such that
-streams are transmitted in send order.
-
-A receiver MUST NOT assume that objects will be received in send order,
-for the following reasons:
-
-* Newly encoded objects can have a smaller send order than outstanding
-  objects.
-* Packet loss or flow control can delay the send of individual streams.
-* The sender might not support stream prioritization.
-
-TODO: Refer to Congestion Response and Prioritization Section for
-further details on various proposals.
-
-### Proposal - Ordering by Priorities {#ordering-by-priorities}
-
-Media is produced as a set of layers, such as for example low definition
-and high definition, or low frame rate and high frame rate. Each object
-belonging to a track and a group has two attributes: the object-id, and
-the priority (or layer).
-
-When nodes or relays have to choose which object to send next, they
-apply the following rules:
-
-* within the same group, objects with a lower priority number (e.g. P1)
+* Within the same group, objects with a lower priority number (e.g. 1)
   are always sent before objects with a numerically greater priority
-  number (e.g., P2)
-* within the same group, and the same priority level, objects with a
-  lower object-id are always sent before objects with a higher
-  object-id.
-* objects from later groups are normally always sent before objects of
-  previous groups.
+  number (e.g., 2)
+* Within the same group and priority, objects with a lower object-id
+  are always sent before objects with a higher object-id.
+* Objects from later groups are sent before objects of previous groups.
 
-The latter rule is generally agreed as a way to ensure freshness, and to
-recover quickly if queues and delays accumulate during a congestion
-period. However, there may be cases when finishing the transmission of
-an ongoing group results in better user experience than strict adherence
-to the freshness rule. We expect that that the working group will
-eventually reach consensus and define meta data that controls this
-behavior.
-
-There have been proposals to allow emitters to coordinate the allocation
-of layer priorities across multiple coordinated tracks. At this point,
-these proposals have not reached consensus.
+The last rule ensures a subscription stays close to the most recently
+published Objects, and recovers quickly if there is congestion.
+There can be cases when finishing the transmission of an
+ongoing group results in better user experience, so implementations can
+finish transmitting Objects within a group before starting to send a
+later group.
 
 
 # Relays {#relays-moq}
@@ -971,8 +915,8 @@ A canonical MoQ Object has the following information:
 IDs starts at 0, increasing sequentially for each object within the
 group.
 
-* Object Send Order: An integer indicating the object send order
-{{send-order}} or priority {{ordering-by-priorities}} value.
+* Object Priority: An integer indicating the publisher's preferred
+transmission order {{object-priority}}.
 
 * Object Forwarding Preference: An enumeration indicating how a sender sends an
 object. The preferences are Track, Group, Object and Datagram.  An Object MUST
@@ -1007,7 +951,7 @@ OBJECT_STREAM Message {
   Track Alias (i),
   Group ID (i),
   Object ID (i),
-  Object Send Order (i),
+  Object Priority (i),
   Object Payload (..),
 }
 ~~~
@@ -1043,7 +987,7 @@ OBJECT_DATAGRAM Message {
   Track Alias (i),
   Group ID (i),
   Object ID (i),
-  Object Send Order (i),
+  Object Priority (i),
   Object Payload (..),
 }
 ~~~
@@ -1066,7 +1010,7 @@ TODO: figure out how a relay closes these streams
 
 When a stream begins with `STREAM_HEADER_TRACK`, all objects on the stream
 belong to the track requested in the Subscribe message identified by `Subscribe
-ID`.  All objects on the stream have the `Object Send Order` specified in the
+ID`.  All objects on the stream have the `Object Priority` specified in the
 stream header.
 
 
@@ -1074,7 +1018,7 @@ stream header.
 STREAM_HEADER_TRACK Message {
   Subscribe ID (i)
   Track Alias (i),
-  Object Send Order (i),
+  Object Priority (i),
 }
 ~~~
 {: #stream-header-track-format title="MOQT STREAM_HEADER_TRACK Message"}
@@ -1105,14 +1049,14 @@ equal to a previously sent Object ID within a given group on that stream.
 When a stream begins with `STREAM_HEADER_GROUP`, all objects on the stream
 belong to the track requested in the Subscribe message identified by `Subscribe
 ID` and the group indicated by `Group ID`.  All objects on the stream
-have the `Object Send Order` specified in the stream header.
+have the `Object Priority` specified in the stream header.
 
 ~~~
 STREAM_HEADER_GROUP Message {
   Subscribe ID (i),
   Track Alias (i),
   Group ID (i)
-  Object Send Order (i)
+  Object Priority (i)
 }
 ~~~
 {: #stream-header-group-format title="MOQT STREAM_HEADER_GROUP Message"}
@@ -1122,7 +1066,7 @@ All Objects received on a stream opened with `STREAM_HEADER_GROUP` have an
 
 To send an Object with `Object Forwarding Preference` = `Group`, find the open
 stream that is associated with the subscription, `Group ID` and `Object
-Send Order`, or open a new one and send the `STREAM_HEADER_GROUP` if needed,
+Priority`, or open a new one and send the `STREAM_HEADER_GROUP` if needed,
 then serialize the following fields.
 
 ~~~
@@ -1145,7 +1089,7 @@ Sending a track on one stream:
 STREAM_HEADER_TRACK {
   Subscribe ID = 1
   Track Alias = 1
-  Object Send Order = 0
+  Object Priority = 0
 }
 {
   Group ID = 0
@@ -1171,7 +1115,7 @@ STREAM_HEADER_GROUP {
   Subscribe ID = 2
   Track Alias = 2
   Group ID = 0
-  Object Send Order = 0
+  Object Priority = 0
 }
 {
   Object ID = 0
