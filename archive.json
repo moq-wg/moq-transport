@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2024-03-21T01:07:22.053977+00:00",
+  "timestamp": "2024-03-24T01:12:15.945255+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -14942,6 +14942,24 @@
           "updatedAt": "2024-03-18T23:37:45Z"
         }
       ]
+    },
+    {
+      "number": 422,
+      "id": "I_kwDOG2Ho4M6DXDeQ",
+      "title": "Redundant object_id with stream per group",
+      "url": "https://github.com/moq-wg/moq-transport/issues/422",
+      "state": "OPEN",
+      "author": "kixelated",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [
+        "Wire Format"
+      ],
+      "body": "When sending a stream per group, the object_id MUST increment by 1 based on my interpretation of the draft:\r\n\r\n> Object ID: The order of the object within the group. The IDs starts at 0, increasing sequentially for each object within the group.\r\n\r\nand\r\n\r\n> A relay MUST not reorder or drop objects received on a multi-object stream when forwarding to subscribers, unless it has application specific information.\r\n\r\nTechnically, the broadcaster could produce a stream that doesn't increment by one, but that doesn't make any sense and feels like a loophole to close. I much prefer things to be sequential and I don't want the application stuffing context into these relay-specific headers anyway.\r\n\r\nIf this makes sense, then we can optimize the wire encoding. **Proposed**:\r\n```\r\nSTREAM_HEADER_GROUP Message {\r\n  Subscribe ID (i),\r\n  Track Alias (i),\r\n  Group ID (i)\r\n  + First Object ID (i)\r\n  Object Send Order (i)\r\n}\r\n\r\n{\r\n  - Object ID (i),\r\n  Object Payload Length (i),\r\n  Object Payload (..),\r\n}\r\n```\r\n\r\nWe need to know the ID of the first object to handle subscriptions that start at a non-zero object. Otherwise, the receiver does +1 to compute the next object's ID. We'll save some bytes for larger groups but IMO more importantly, rule out some illegal encodings.",
+      "createdAt": "2024-03-23T12:29:51Z",
+      "updatedAt": "2024-03-23T12:30:31Z",
+      "closedAt": null,
+      "comments": []
     }
   ],
   "pulls": [
@@ -50464,7 +50482,7 @@
       "id": "PR_kwDOG2Ho4M5opsGx",
       "title": "Split messages by stream type.",
       "url": "https://github.com/moq-wg/moq-transport/pull/407",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "kixelated",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
@@ -50473,14 +50491,14 @@
       ],
       "body": "- Control messages\r\n- Data messages\r\n- Datagram messages\r\n\r\nTried to keep things completely editorial. I would like to do more cleanup but I would absolutely get carried away.",
       "createdAt": "2024-03-04T23:29:01Z",
-      "updatedAt": "2024-03-18T00:37:43Z",
+      "updatedAt": "2024-03-23T12:31:03Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "80a1fc4eec92a05439e473edb60dcea399b3ca62",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "message-types",
       "headRefOid": "1fd9aad046ca5f225461a87be71f368600953076",
-      "closedAt": null,
+      "closedAt": "2024-03-23T12:31:03Z",
       "mergedAt": null,
       "mergedBy": null,
       "mergeCommit": null,
@@ -50491,6 +50509,13 @@
           "body": "Yeah I'll split it into two PRs. First PR just moves the data sections unchanged.",
           "createdAt": "2024-03-18T00:37:15Z",
           "updatedAt": "2024-03-18T00:37:43Z"
+        },
+        {
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I'll make another pass after splitting this PR into two.",
+          "createdAt": "2024-03-23T12:31:03Z",
+          "updatedAt": "2024-03-23T12:31:03Z"
         }
       ],
       "reviews": [
@@ -51028,7 +51053,7 @@
       "labels": [],
       "body": "Merges the two send order approaches because it appears they're very similar from the perspective of MoQ transport and removes text that is not relevant to MoQ Transport.",
       "createdAt": "2024-03-18T12:28:48Z",
-      "updatedAt": "2024-03-20T18:28:41Z",
+      "updatedAt": "2024-03-23T18:14:08Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "ad67a19f1e6abbe4331b73ad49360726783a2bb8",
@@ -51046,6 +51071,20 @@
           "body": "+1 on the simplification and keep it focussed.",
           "createdAt": "2024-03-19T08:19:10Z",
           "updatedAt": "2024-03-19T08:19:10Z"
+        },
+        {
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Also +1 to renaming `send order` to `priority`.",
+          "createdAt": "2024-03-23T12:31:57Z",
+          "updatedAt": "2024-03-23T12:31:57Z"
+        },
+        {
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> Also +1 to renaming `send order` to `priority`.\n\n+1 ",
+          "createdAt": "2024-03-23T18:14:07Z",
+          "updatedAt": "2024-03-23T18:14:07Z"
         }
       ],
       "reviews": [
@@ -51224,26 +51263,28 @@
     {
       "number": 418,
       "id": "PR_kwDOG2Ho4M5p_T54",
-      "title": "Fix a typo in 6.2.2.1. ROLE parameter",
+      "title": "Fix some typos",
       "url": "https://github.com/moq-wg/moq-transport/pull/418",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "levaitamas",
-      "authorAssociation": "NONE",
+      "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
       "labels": [],
       "body": "",
       "createdAt": "2024-03-18T19:36:24Z",
-      "updatedAt": "2024-03-19T07:28:07Z",
+      "updatedAt": "2024-03-23T12:32:41Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "ad67a19f1e6abbe4331b73ad49360726783a2bb8",
       "headRepository": "levaitamas/moq-transport",
       "headRefName": "fix-typo",
-      "headRefOid": "d20f5aa24ae27a51726b9dd93d9954ef2376b264",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "headRefOid": "fdf125139760c68ae975987bc5a24a8676c40c22",
+      "closedAt": "2024-03-23T12:32:41Z",
+      "mergedAt": "2024-03-23T12:32:41Z",
+      "mergedBy": "kixelated",
+      "mergeCommit": {
+        "oid": "8f4d441c5f799e80bb2f8291f82a3d936e7e7799"
+      },
       "comments": [],
       "reviews": [
         {
@@ -51301,7 +51342,7 @@
       ],
       "body": "A PR corresponding to: https://datatracker.ietf.org/meeting/119/materials/slides-119-moq-subscribe-and-fetch\r\n\r\nFixes #269 \r\nFixes #296\r\nFixes #350 \r\nFixes #326\r\nFixes #377\r\nFixes #312 \r\nFixes #353\r\n\r\nAlso relevant to #396, #326\r\n\r\nSome open questions:\r\n - Do we want OBJECT_FETCH_DATAGRAM to be transmitted over datagrams only?",
       "createdAt": "2024-03-19T06:11:41Z",
-      "updatedAt": "2024-03-20T18:07:39Z",
+      "updatedAt": "2024-03-23T20:50:32Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "ad67a19f1e6abbe4331b73ad49360726783a2bb8",
@@ -51340,6 +51381,13 @@
           "body": "> > If that's a sticking point for folks, then I much rather add that restriction to the current SUBSCRIBE message along with `order=ASC|DESC` as proposed in #411.\r\n> \r\n> Can you please answer my question on the open issue on how can relay make such decision upstream when there are conflicting subscriptions with respect to the order. May be last mile subscribe has a utility, but I am not sure how to solve the open issue on this.\r\n\r\nWhat about `order=ASC | DESC | DEFAULT`? The relay could let the publisher/upstream choose like it does today.\r\n\r\nNote that FETCH is not immune to this. There could be a continuous SUBSCRIBE from broadcaster -> origin (ascending) and a FETCH from origin -> relay (descending). Or a viewer could SUBSCRIBE and later another viewer could FETCH, leveraging some of the existing subscription.\r\n\r\nviewer1:\r\n```\r\n-> SUBSCRIBE \r\n<- SUBSCRIBE_OK start=420\r\n<- OBJECT 420\r\n(upstream congestion)\r\n<- OBJECT 422\r\n<- OBJECT 423\r\n<- OBJECT 421\r\n```\r\n\r\nviewer2:\r\n```\r\n-> FETCH start=419 end=421\r\n<- OBJECT 420 (cached)\r\n<- OBJECT 422\r\n(blocked on 423)\r\n<- OBJECT 421\r\n```\r\n\r\nBut I dunno, I kind of feel like this is a non-issue. Viewers will either request the same order, or upstream congestion is rare, or defaulting to ORDER=desc is required for live and good enough for VOD and reliable live. We're talking about edge cases of a prioritization scheme, which historically don't have much impact.",
           "createdAt": "2024-03-20T18:06:41Z",
           "updatedAt": "2024-03-20T18:07:39Z"
+        },
+        {
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> What about `order=ASC | DESC | DEFAULT`? The relay could let the publisher/upstream choose like it does today.\r\n\r\nThe challenge here is any recommendation we give here will not be appropriate for Relays. I have not seen a case where given an application, say that publishes oldest to newest, have some percentage of subscribers wanting oldest to newest and rest asking newest to oldest. Subscribers (endpoints) knows what application they are participating it and they know the right expectation. \r\n\r\nOTOH I can see  where having some form of control in the receive order might be needed, given each fetch is a independent request. Also I again wonder will there be a case where few endpoints fetch in one order vs few in a different order within a given application. \r\n\r\nMy main concern is we are pushing recommendations/suggestions on relays for applications and Relays can't make a informed decision under ambiguities. \r\n\r\n",
+          "createdAt": "2024-03-23T15:33:20Z",
+          "updatedAt": "2024-03-23T20:50:32Z"
         }
       ],
       "reviews": [
@@ -51883,6 +51931,26 @@
               "body": "Speaking of 404, what happens if some of the groups/objects in the range requested don't exist or have expired? Without a way of signaling that, the subscriber could wait indefinitely for the FETCH to complete.\r\n\r\nex. a DVR client that issues a FETCH for 60s ago to replay a highlight. However the start of the highlight may have been evicted from the LRU by then, and is no longer available on origin either. Some of the highlight may arrive alluding to success, but the player will get stuck buffering for the first group.",
               "createdAt": "2024-03-20T17:27:40Z",
               "updatedAt": "2024-03-20T17:29:03Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M50dPJX",
+          "commit": {
+            "abbreviatedOid": "6e19b12"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-03-22T02:30:38Z",
+          "updatedAt": "2024-03-22T02:30:38Z",
+          "comments": [
+            {
+              "originalPosition": 15,
+              "body": "+1 on needing a way for the fetch response to identify gaps.  We need to add FETCH_OK to include something on the lines of\r\n\r\nSay if FETCH request was for the range 100-200 and and let's say for whatever reasons 110-120, 190-200 are missing, the response should have\r\n\r\n```\r\n{\r\n    Gaps {\r\n    type-group \r\n    [110-120,  190-200]\r\n  }\r\n}\r\n```\r\n\r\nNice thing about fetch is it is able to find answers ",
+              "createdAt": "2024-03-22T02:30:38Z",
+              "updatedAt": "2024-03-22T02:30:38Z"
             }
           ]
         }
