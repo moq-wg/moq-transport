@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2024-03-26T01:06:04.725157+00:00",
+  "timestamp": "2024-03-28T01:06:32.326599+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -14986,7 +14986,7 @@
       ],
       "body": "When sending a stream per group, the object_id MUST increment by 1 based on my interpretation of the draft:\r\n\r\n> Object ID: The order of the object within the group. The IDs starts at 0, increasing sequentially for each object within the group.\r\n\r\nand\r\n\r\n> A relay MUST not reorder or drop objects received on a multi-object stream when forwarding to subscribers, unless it has application specific information.\r\n\r\nTechnically, the broadcaster could produce a stream that doesn't increment by one, but that doesn't make any sense and feels like a loophole to close. I much prefer things to be sequential and I don't want the application stuffing context into these relay-specific headers anyway.\r\n\r\nIf this makes sense, then we can optimize the wire encoding. **Proposed**:\r\n```\r\nSTREAM_HEADER_GROUP Message {\r\n  Subscribe ID (i),\r\n  Track Alias (i),\r\n  Group ID (i)\r\n  + First Object ID (i)\r\n  Object Send Order (i)\r\n}\r\n\r\n{\r\n  - Object ID (i),\r\n  Object Payload Length (i),\r\n  Object Payload (..),\r\n}\r\n```\r\n\r\nWe need to know the ID of the first object to handle subscriptions that start at a non-zero object. Otherwise, the receiver does +1 to compute the next object's ID. We'll save some bytes for larger groups but IMO more importantly, rule out some illegal encodings.",
       "createdAt": "2024-03-23T12:29:51Z",
-      "updatedAt": "2024-03-25T19:54:31Z",
+      "updatedAt": "2024-03-27T01:50:30Z",
       "closedAt": null,
       "comments": [
         {
@@ -15016,6 +15016,20 @@
           "body": "> Individual Comment:\r\n> \r\n> Is there a problem with this optimization if the publisher makes an object but doesn't send it for some reason? I think I recall Jordi's implementation does that.\r\n\r\nI think it comes down to the layering of  `object_id` and the intended usage.\r\n\r\nIn my opinion, `object_id` is for reassembly and gap detection when there's an object per stream/datagram. It's much like QUIC's `STREAM offset` in that regard, auto incrementing as each object is sent/received. It's also why my original warp draft didn't have a concept of object ID; everything was based on stream offsets.\r\n\r\nWith a sequential `object_id`, the MoQ transport library could feasibly implement a `next()` function to return objects in the original order. A relay could also use this to detect holes in the cache, for example issuing a FETCH based on a gap in `object_ids`. Both of these are automatic when using a group per stream so it's not necessary to encode `object_id`.\r\n\r\nThose are not possible if the application is allowed to choose `object_id` arbitrarily. I understand the desire to encode stuff like timestamps in group/object IDs, skipping them if the encoder falls behind, but I'm worried that we're mixing layers here.",
           "createdAt": "2024-03-25T19:54:18Z",
           "updatedAt": "2024-03-25T19:54:31Z"
+        },
+        {
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "I'm not a fan of multiple strea per group but even with one stream,  if a relay had two objects, I would expect it to send the most important one first even if that was reversed the object id order. Of course that is wrapped up in object priority discussion about what object does the relay send next. ",
+          "createdAt": "2024-03-26T22:08:24Z",
+          "updatedAt": "2024-03-26T22:08:24Z"
+        },
+        {
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> I'm not a fan of multiple strea per group but even with one stream, if a relay had two objects, I would expect it to send the most important one first even if that was reversed the object id order. Of course that is wrapped up in object priority discussion about what object does the relay send next.\r\n\r\nQUIC priorities work at the stream level so you can't really specify different priorities for objects within a stream. Technically you can, but the impact will be limited thanks to head-of-line blocking (akin to TCP prioritization). The current draft puts the priority in the stream header for this reason.\r\n\r\nWith a stream per group, all of the objects share the same priority and are delivered in order. The application explicitly uses this mode because it removes the need for a reassembly buffer within a group. You would use a stream/datagram per object if you want to deliver objects out of order and are willing to deal with the increased unreliability.\r\n\r\nChristian and I have talked about a possible 5th mode: a stream per group+layer for SVC. However, I think a track per layer is just a better abstraction. The catalog would contain the SVC layer details.",
+          "createdAt": "2024-03-27T01:48:31Z",
+          "updatedAt": "2024-03-27T01:50:30Z"
         }
       ]
     }
@@ -51458,7 +51472,7 @@
       ],
       "body": "A PR corresponding to: https://datatracker.ietf.org/meeting/119/materials/slides-119-moq-subscribe-and-fetch\r\n\r\nFixes #269 \r\nFixes #296\r\nFixes #350 \r\nFixes #326\r\nFixes #377\r\nFixes #312 \r\nFixes #353\r\n\r\nAlso relevant to #396, #326\r\n\r\nSome open questions:\r\n - Do we want OBJECT_FETCH_DATAGRAM to be transmitted over datagrams only?",
       "createdAt": "2024-03-19T06:11:41Z",
-      "updatedAt": "2024-03-25T21:05:24Z",
+      "updatedAt": "2024-03-28T00:42:48Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "ad67a19f1e6abbe4331b73ad49360726783a2bb8",
@@ -52128,6 +52142,66 @@
               "body": "Oh yeah I didn't even read the full text. Any subscribe decision based on a relay's current cache is going to be problematic. \r\n\r\n`current-1` makes more sense. The wrinkle is that `group_ids` are apparently not sequential , so `current-1` might not exist.\r\n\r\nBut I would remove this mode altogether. `current-1` is not sufficient in most scenarios.",
               "createdAt": "2024-03-25T21:05:24Z",
               "updatedAt": "2024-03-25T21:07:36Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M51Dd-y",
+          "commit": {
+            "abbreviatedOid": "6e19b12"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-03-27T16:19:58Z",
+          "updatedAt": "2024-03-27T16:19:59Z",
+          "comments": [
+            {
+              "originalPosition": 26,
+              "body": "SUBSCRIBE uses track alias to deliver Objects, and Fetch uses the monotonically increasing IDs.",
+              "createdAt": "2024-03-27T16:19:59Z",
+              "updatedAt": "2024-03-27T16:19:59Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M51HNgs",
+          "commit": {
+            "abbreviatedOid": "6e19b12"
+          },
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-03-27T21:42:28Z",
+          "updatedAt": "2024-03-27T21:42:28Z",
+          "comments": [
+            {
+              "originalPosition": 321,
+              "body": "Is there some way to express \"give me all the objects in the group\" if we don't know the max object ID?",
+              "createdAt": "2024-03-27T21:42:28Z",
+              "updatedAt": "2024-03-27T21:42:28Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M51Hz40",
+          "commit": {
+            "abbreviatedOid": "6e19b12"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-03-28T00:42:48Z",
+          "updatedAt": "2024-03-28T00:42:48Z",
+          "comments": [
+            {
+              "originalPosition": 321,
+              "body": "With SUBSCRIBE, the requested range was [Start, End), so you can request Start=X/0, End=X+1/0 to get all the objects in group X.",
+              "createdAt": "2024-03-28T00:42:48Z",
+              "updatedAt": "2024-03-28T00:42:48Z"
             }
           ]
         }
