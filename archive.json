@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2024-03-28T01:06:32.326599+00:00",
+  "timestamp": "2024-03-31T01:12:38.652207+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -14986,7 +14986,7 @@
       ],
       "body": "When sending a stream per group, the object_id MUST increment by 1 based on my interpretation of the draft:\r\n\r\n> Object ID: The order of the object within the group. The IDs starts at 0, increasing sequentially for each object within the group.\r\n\r\nand\r\n\r\n> A relay MUST not reorder or drop objects received on a multi-object stream when forwarding to subscribers, unless it has application specific information.\r\n\r\nTechnically, the broadcaster could produce a stream that doesn't increment by one, but that doesn't make any sense and feels like a loophole to close. I much prefer things to be sequential and I don't want the application stuffing context into these relay-specific headers anyway.\r\n\r\nIf this makes sense, then we can optimize the wire encoding. **Proposed**:\r\n```\r\nSTREAM_HEADER_GROUP Message {\r\n  Subscribe ID (i),\r\n  Track Alias (i),\r\n  Group ID (i)\r\n  + First Object ID (i)\r\n  Object Send Order (i)\r\n}\r\n\r\n{\r\n  - Object ID (i),\r\n  Object Payload Length (i),\r\n  Object Payload (..),\r\n}\r\n```\r\n\r\nWe need to know the ID of the first object to handle subscriptions that start at a non-zero object. Otherwise, the receiver does +1 to compute the next object's ID. We'll save some bytes for larger groups but IMO more importantly, rule out some illegal encodings.",
       "createdAt": "2024-03-23T12:29:51Z",
-      "updatedAt": "2024-03-27T01:50:30Z",
+      "updatedAt": "2024-03-30T15:16:18Z",
       "closedAt": null,
       "comments": [
         {
@@ -15030,8 +15030,83 @@
           "body": "> I'm not a fan of multiple strea per group but even with one stream, if a relay had two objects, I would expect it to send the most important one first even if that was reversed the object id order. Of course that is wrapped up in object priority discussion about what object does the relay send next.\r\n\r\nQUIC priorities work at the stream level so you can't really specify different priorities for objects within a stream. Technically you can, but the impact will be limited thanks to head-of-line blocking (akin to TCP prioritization). The current draft puts the priority in the stream header for this reason.\r\n\r\nWith a stream per group, all of the objects share the same priority and are delivered in order. The application explicitly uses this mode because it removes the need for a reassembly buffer within a group. You would use a stream/datagram per object if you want to deliver objects out of order and are willing to deal with the increased unreliability.\r\n\r\nChristian and I have talked about a possible 5th mode: a stream per group+layer for SVC. However, I think a track per layer is just a better abstraction. The catalog would contain the SVC layer details.",
           "createdAt": "2024-03-27T01:48:31Z",
           "updatedAt": "2024-03-27T01:50:30Z"
+        },
+        {
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "Every conversation seems to come back to priorities with deep confusions about how they work.  Yes quick priorities are per stream, however moq priorities are about a relay must decide what object to forward next when the congestion window opens. I don't think this has much to do with priorities, it is simply about if a producer has to send all the objects in order and I think there are lots of cases where we do not want to mandate that at the transport level, sure for lots of types of video it will me mandated at the application layer. ",
+          "createdAt": "2024-03-30T15:16:17Z",
+          "updatedAt": "2024-03-30T15:16:17Z"
         }
       ]
+    },
+    {
+      "number": 423,
+      "id": "I_kwDOG2Ho4M6D9GXA",
+      "title": "Proposal: Gap Notifications",
+      "url": "https://github.com/moq-wg/moq-transport/issues/423",
+      "state": "OPEN",
+      "author": "kixelated",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Feel free to `s/SUBSCRIBE/FETCH/g` in your head.\r\n\r\n## Problem\r\nThe current draft is intentionally vague, but it allows objects to dropped in response to congestion. However, this ambiguity will cause issues for a few use-cases. \r\n\r\nConsider a subscriber that requests a range: \r\n\r\n```\r\n-> SUBSCRIBE start=4 end=7\r\n<- SUBSCRIBE_OK\r\n<- OBJECT group=7\r\n<- OBJECT group=6\r\n<- OBJECT group=4\r\n<- SUBSCRIBE_DONE\r\n```\r\n\r\nAt this moment, group=5 has been promised as part of the SUBSCRIBE but has not arrived yet. This is perfectly normal as objects may be sent over multiple streams which arrive out of order. A reliable live (#419) and VOD player will block playback as they anticipate group=5 to arrive any moment now and they do not want to skip content.\r\n\r\nHowever, if group=5 was dropped for any reason, potentially upstream, then playback will be stalled indefinitely. The only recourse is to set an arbitrary timeout and eventually assume loss, but this will cause additional buffering especially for reliable live.\r\n\r\nFurthermore, a relay that issues this request upstream will mark group=5 in its cache as pending. If a FETCH comes in for start=2 end=5, then the relay could FETCH start=2 end=3 upstream, as it can serve group=4 immediately and group=5 once it arrives at any moment.\r\n\r\nHowever, if group=5 was dropped due to a transient problem (ex. congestion), then the relay would be unaware that it could refetch group=5. Indicating that a dropped object can be retried would be very useful for patching up VODs, as the relay could refill these known holes after network recovery.\r\n\r\n\r\n## Proposal\r\n### 1. `SUBSCRIBE_OK` may contain a subset of the range requested in `SUBSCRIBE`.\r\nThe publisher commits to sending either an object or a drop notification within the specified range.\r\n\r\n```\r\nSUBSCRIBE_OK {\r\n    Subscribe ID (i),\r\n    Start Group (i)\r\n    Start Object (i)\r\n    End Group (i)\r\n    End Object (i)\r\n}\r\n```\r\n(some encoding finagling required)\r\n\r\nOtherwise, a relay that receives a `SUBSCRIBE start=0 end=10000` would be expected to send an object or dropped message for every value within the requested range, even if they left cache long ago.  For example, a DVR player requesting content from 45s ago, but everything older than 30s was already dropped from the cache.\r\n\r\nThis modified `SUBSCRIBE_OK` message tightens the bounds to prevent this.\r\n\r\n### 2. Add a `STREAM_DROPPED` that indicates drops within the `SUBSCRIBE_OK` range.\r\nThe publisher indicates that it cannot deliver the entire range as originally indicated, and one or more objects were dropped.\r\n\r\n```\r\nSTREAM_DROPPED Message {\r\n  Header (STREAM_HEADER_TRACK | STREAM_HEADER_GROUP | STREAM_HEADER_OBJECT),\r\n  Error Code (i)\r\n  Retryable (t)\r\n}\r\n```\r\n\r\nThe publisher sends this message when:\r\n* It drops objects by resetting the tail of a stream.\r\n* It drops objects by not creating a stream.\r\n* It receives a STREAM_DROPPED from upstream (relay only).\r\n\r\nThis will be a relatively rare message except during congestion, with the frequency depending on the stream mode. The entire header is sent for simplicity although some fields may be useless (ex. priority).\r\n\r\nThis message would be sent on a data stream (unidirectional) to avoid unnecessary head-of-line blocking on the control stream (bidirectional). This message is reliable, so it should not be sent on the same stream with potentially unreliable OBJECT messages.\r\n\r\nThere is no drop notification for datagrams, as the publisher does not know if they were dropped.",
+      "createdAt": "2024-03-28T18:06:35Z",
+      "updatedAt": "2024-03-29T14:32:01Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I don't think this requires sequential `group_ids`, although it would be really nice. That way the MoqTransport library could then expose a reliable read function since it knows about the existence of every group/object at the MoqTransport layer. \r\n\r\nOtherwise the MoqTransport library has to expose these dropped notifications and let the application determine the existence of each group based on some pre-negotiated scheme (ew). For example, if the group_id is used to encode the PTS, then any reliable live or VOD would require a fixed group duration or some otherwise of signaling group existence (ex. timeline).",
+          "createdAt": "2024-03-28T19:15:15Z",
+          "updatedAt": "2024-03-28T19:18:49Z"
+        },
+        {
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "body": "+1 on being on the data path. My thinking around this is to use a tomb stone object or group message. This will keep my relay and cache code agnostic to a dropped group or object. Since gap info is only needed for players to either to wait or not wait. \r\n\r\nSo my preference to be to keep on data plane and not use a new message type, but use the existing object definitoin or header definition to mark as something missing. \r\n\r\ni can propose something if it helps",
+          "createdAt": "2024-03-28T23:34:36Z",
+          "updatedAt": "2024-03-28T23:34:36Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> i can propose something if it helps\r\n\r\nI'm curious to see what you have in mind and how it is different from this proposal.",
+          "createdAt": "2024-03-28T23:49:00Z",
+          "updatedAt": "2024-03-28T23:49:00Z"
+        },
+        {
+          "author": "wilaw",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "> -> SUBSCRIBE start=4 end=7\r\n> <- SUBSCRIBE_OK\r\n> <- OBJECT group=7\r\n> <- OBJECT group=6\r\n> <- OBJECT group=4\r\n> <- SUBSCRIBE_DONE\r\n> \r\n> At this moment, group=5 has been promised as part of the SUBSCRIBE but has not arrived yet. \r\n\r\nBut here'n lies the problem. Since group numbers are non-sequential, as far as the relay is concerned there is **_no promise of group 5, as it may never have existed in the first place_**. 4,6,7 is a perfectly acceptable sequence of groups. **The only entities that know that 5 should exist are the original publisher and the final subscriber reading the catalog.** \r\n\r\nGaps can exist for two reasons: the original publisher did not create the object for some reason, or a relay had the object but then dropped it when forwarding under congestion:\r\n - If the publisher does not create the object, it can signal this by via either a control message (as proposed in this thread) or by creating a \"placeholder object\". This is an object which contains no playload, and in its header contains information about the error code and whether the object is retryable or not. The advantage of using the data plane to transmit this information is that this placeholder object (and the information about the drop) can be cached by every relay, whereas control messages are not cached and are not persistent. \r\n - If a relay drops an object due to congestion response, it should explicitly signal this via a control message. This allows the  receiver to not stall out waiting for the object and based on its application knowledge, it may re-request the object, or else move on. ",
+          "createdAt": "2024-03-29T07:57:05Z",
+          "updatedAt": "2024-03-29T07:57:05Z"
+        },
+        {
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> But here'n lies the problem. Since group numbers are non-sequential, as far as the relay is concerned there is **_no promise of group 5, as it may never have existed in the first place_**. 4,6,7 is a perfectly acceptable sequence of groups. **The only entities that know that 5 should exist are the original publisher and the final subscriber reading the catalog.**\r\n\r\nI originally had a third proposal: \"sequential group_ids\". It would make the protocol significantly better but I don't think it's strictly required.\r\n\r\nThe application definitely needs to know if each group exists. It could do this via sequential groups or some other mechanism like a timeline. For example, suppose a simple scheme where there is a group every 2000 units for whatever reason. The player would wait an object or dropped notification for 0, 2000, 4000, 6000, etc.\r\n\r\nSuppose the relay gets a SUBSCRIBE for start=456 end=7000 or something dumb. It would send that upstream and forward any received objects or dropped messages. If it receives group 4000 but decides to drop it, then it would add its own dropped message. When it receives a SUBSCRIBE_DONE end=7000, then it forwards that too.\r\n\r\nThe relay doesn't actually care if group 1234 ever arrives; only the application knows or cares. But there's an argument for sequential groups so the relay can deterministically clean up any subscription state without waiting for an unsubscribe, because it doesn't know if there's still more data pending.",
+          "createdAt": "2024-03-29T14:31:59Z",
+          "updatedAt": "2024-03-29T14:31:59Z"
+        }
+      ]
+    },
+    {
+      "number": 424,
+      "id": "I_kwDOG2Ho4M6EFbJv",
+      "title": "SUBSCRIBE_DONE and terminal state",
+      "url": "https://github.com/moq-wg/moq-transport/issues/424",
+      "state": "OPEN",
+      "author": "kixelated",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "**tl;dr** when does a MoqTransport subscriber signal SUBSCRIBE_DONE to the application or clean up subscription state?\r\n\r\nI ran into a bug when refactoring my relay to better support error conditions.\r\n\r\nFor subscriptions to the catalog or init track, my publisher would send a single OBJECT followed by an immediate SUBSCRIBE_DONE, since updates are (currently) not supported. It then removes the ID from the lookup table since this state is terminal.\r\n\r\nUpon receiving the SUBSCRIBE_DONE, my subscriber also removes the ID from the lookup table and returns the error to the application. However, this causes a race, as the OBJECTs in flight (on another stream) will be dropped since they reference a newly non-existent subscription. This occurs the vast majority of the time especially because the control stream is higher priority.\r\n\r\nSince SUBSCRIBE_DONE contains a final group/object, the intended behavior seems to be for the subscriber to delay until the final object is received.\r\n\r\nBut what if that object is dropped? What about the rest of the group? What happens to any other objects that might be queued (lower priority) or awaiting a retransmission?\r\n\r\nCould the subscriber wait until all objects within subscribe range are received instead? This seems useful especially for something like FETCH, however it's currently impossible for a few reasons:\r\n\r\n - group_ids are not sequential and there can be intentional gaps\r\n - objects can be dropped, causing gaps with a group \r\n - the latest object ID per group is unknown when using a stream per group.\r\n\r\nReliable live actually has the same exact issues. To generalize, its currently not possible to wait for all objects to arrive over the network.",
+      "createdAt": "2024-03-29T21:27:51Z",
+      "updatedAt": "2024-03-29T21:36:47Z",
+      "closedAt": null,
+      "comments": []
     }
   ],
   "pulls": [
@@ -51472,7 +51547,7 @@
       ],
       "body": "A PR corresponding to: https://datatracker.ietf.org/meeting/119/materials/slides-119-moq-subscribe-and-fetch\r\n\r\nFixes #269 \r\nFixes #296\r\nFixes #350 \r\nFixes #326\r\nFixes #377\r\nFixes #312 \r\nFixes #353\r\n\r\nAlso relevant to #396, #326\r\n\r\nSome open questions:\r\n - Do we want OBJECT_FETCH_DATAGRAM to be transmitted over datagrams only?",
       "createdAt": "2024-03-19T06:11:41Z",
-      "updatedAt": "2024-03-28T00:42:48Z",
+      "updatedAt": "2024-03-28T20:39:52Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "ad67a19f1e6abbe4331b73ad49360726783a2bb8",
@@ -52202,6 +52277,46 @@
               "body": "With SUBSCRIBE, the requested range was [Start, End), so you can request Start=X/0, End=X+1/0 to get all the objects in group X.",
               "createdAt": "2024-03-28T00:42:48Z",
               "updatedAt": "2024-03-28T00:42:48Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M51QKt_",
+          "commit": {
+            "abbreviatedOid": "6e19b12"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-03-28T20:08:14Z",
+          "updatedAt": "2024-03-28T20:08:15Z",
+          "comments": [
+            {
+              "originalPosition": 321,
+              "body": "Individual Comment:\r\n\r\nWhat is the normative behavior if `end` is larger than `largest` for a live track?\r\n\r\nHere are some possibilities:\r\n\r\n1) Fail the request\r\n2) return everything up to min(end, live) at the time of the request, indicate end in a fetch OK\r\n3) return everything up to min(end, live) at the time of the response, indicate end in a fetch trailer\r\n4) When the fetch catches up to live, continue offering FETCH semantics for new objects (all objects delivered or gap notification), until end is reached\r\n\r\n1 and 2 are fairly easy to implement.  3 is a little trickier but accounts for live head moving in the time it takes to serve the beginning of the request.  4 feels the hardest, but maybe handles the \"reliable live\" use case the best?\r\n\r\nAre the other options?",
+              "createdAt": "2024-03-28T20:08:14Z",
+              "updatedAt": "2024-03-28T20:08:15Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M51QcEU",
+          "commit": {
+            "abbreviatedOid": "6e19b12"
+          },
+          "author": "wilaw",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-03-28T20:39:52Z",
+          "updatedAt": "2024-03-28T20:39:52Z",
+          "comments": [
+            {
+              "originalPosition": 321,
+              "body": "I'd vote for 4 - `When the fetch catches up to live, continue offering FETCH semantics for new objects (all objects delivered or gap notification), until end is reached .`. As you state, this satisfies a \"reliable live\" use case with a start behind the live head. \r\n\r\nI'd also suggest that EndGroup and EndObject can be omitted, in which it defaults to the behavior [4]. This prevents the ugliness of people asking for group 99999999999999 when all they really want is delivery until end-of -track. ",
+              "createdAt": "2024-03-28T20:39:52Z",
+              "updatedAt": "2024-03-28T20:39:52Z"
             }
           ]
         }
