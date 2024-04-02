@@ -794,6 +794,10 @@ MOQT Message {
 |-------|-----------------------------------------------------|
 | 0xC   | ANNOUNCE_CANCEL ({{message-announce-cancel}})       |
 |-------|-----------------------------------------------------|
+| 0xD   | GET_CURRENT_GROUP ({{message-get-current-group}})   |
+|-------|-----------------------------------------------------|
+| 0xE   | CURRENT_GROUP ({{message-current-group}})           |
+|-------|-----------------------------------------------------|
 | 0x10  | GOAWAY ({{message-goaway}})                         |
 |-------|-----------------------------------------------------|
 | 0x40  | CLIENT_SETUP ({{message-setup}})                    |
@@ -1564,6 +1568,38 @@ ANNOUNCE_CANCEL Message {
 
 * Track Namespace: Identifies a track's namespace as defined in
 ({{track-name}}).
+
+## GET_CURRENT_GROUP (#message-get-current-group}
+
+A potential subscriber sends a 'GET_CURRENT_GROUP' message on the control
+ stream to obtain the current group ID for a given track.
+
+~~~
+GET_CURRENT_GROUP Message {
+  Track Namespace (b),
+  Track Name (b),
+}
+~~~
+{: #moq-get-current-group-format title="MOQT GET_CURRENT_GROUP Message"}
+
+## CURRENT_GROUP (#message-current-group}
+
+An endpoint sends a 'CURRENT_GROUP' message on the control stream in response
+to a GET_CURRENT_GROUP message.
+
+~~~
+CURRENT_GROUP Message {
+  Track Namespace (b),
+  Track Name (b),
+  Current Group ID (i),
+}
+~~~
+{: #moq-current-group-format title="MOQT CURRENT_GROUP Message"}
+
+The 'Current Group ID field' contains the highest group ID the sender has
+observed. If the sender is a relay that does not have an active subscription to
+the track, it SHOULD send a GET_CURRENT_GROUP message upstream to obtain up-to-
+date information before sending a CURRENT_GROUP.
 
 ## GOAWAY {#message-goaway}
 The server sends a `GOAWAY` message to initiate session migration
