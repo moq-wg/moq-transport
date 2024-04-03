@@ -1571,8 +1571,8 @@ ANNOUNCE_CANCEL Message {
 
 ## TRACK_STATUS_REQUEST {#message-track-status-req}
 
-A potential subscriber sends a 'TRACK_INFO_REQUEST' message on the control
- stream to obtain the current group ID for a given track.
+A potential subscriber sends a 'TRACK_STATUS_REQUEST' message on the control
+ stream to obtain information about the current status of a given track.
 
 ~~~
 TRACK_STATUS_REQUEST Message {
