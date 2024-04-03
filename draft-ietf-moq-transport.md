@@ -794,9 +794,9 @@ MOQT Message {
 |-------|-----------------------------------------------------|
 | 0xC   | ANNOUNCE_CANCEL ({{message-announce-cancel}})       |
 |-------|-----------------------------------------------------|
-| 0xD   | GET_CURRENT_GROUP ({{message-get-current-group}})   |
+| 0xD   | TRACK_STATUS_REQUEST ({{message-track-status-req}}) |
 |-------|-----------------------------------------------------|
-| 0xE   | CURRENT_GROUP ({{message-current-group}})           |
+| 0xE   | TRACK_STATUS ({{message-track-status}})             |
 |-------|-----------------------------------------------------|
 | 0x10  | GOAWAY ({{message-goaway}})                         |
 |-------|-----------------------------------------------------|
@@ -1569,63 +1569,71 @@ ANNOUNCE_CANCEL Message {
 * Track Namespace: Identifies a track's namespace as defined in
 ({{track-name}}).
 
-## GET_CURRENT_GROUP {#message-get-current-group}
+## TRACK_STATUS_REQUEST {#message-track-status-req}
 
-A potential subscriber sends a 'GET_CURRENT_GROUP' message on the control
+A potential subscriber sends a 'TRACK_INFO_REQUEST' message on the control
  stream to obtain the current group ID for a given track.
 
 ~~~
-GET_CURRENT_GROUP Message {
+TRACK_STATUS_REQUEST Message {
   Track Namespace (b),
   Track Name (b),
 }
 ~~~
-{: #moq-get-current-group-format title="MOQT GET_CURRENT_GROUP Message"}
+{: #moq-track-status-request-format title="MOQT TRACK_STATUS_REQUEST Message"}
 
-## CURRENT_GROUP {#message-current-group}
+## TRACK_STATUS {#message-track-status}
 
-An endpoint sends a 'CURRENT_GROUP' message on the control stream in response
-to a GET_CURRENT_GROUP message.
+An endpoint sends a 'TRACK_STATUS' message on the control stream in response
+to a TRACK_STATUS_REQUEST message.
 
 ~~~
-CURRENT_GROUP Message {
+TRACK_STATUS Message {
   Track Namespace (b),
   Track Name (b),
   Status Code (i),
-  Current Group ID (i),
+  Last Group ID (i),
+  Last Object ID (i),
 }
 ~~~
-{: #moq-current-group-format title="MOQT CURRENT_GROUP Message"}
+{: #moq-track-status-format title="MOQT TRACK_STATUS Message"}
 
 The 'Status Code' field provides additional information about the status of the
 track. It MUST hold one of the following values. Any other value is a malformed
 message.
 
-0x00: The track is in progress, and the 'Current Group ID' field contains the
-highest group ID known to the sender for that track.
+0x00: The track is in progress, and subsequent fields contain the highest group
+and object ID known to the sender for that track.
 
-0x01: The track does not exist. The 'Current Group ID' field MUST be zero, and
-any other value is a malformed message.
+0x01: The track does not exist. Subsequent fields MUST be zero, and any other
+value is a malformed message.
 
-0x02: The track has not yet begun. The 'Current Group ID' field MUST be zero in
-this case. Any other value is a malformed message.
+0x02: The track has not yet begun. Subsequent fields MUST be zero. Any other
+value is a malformed message.
 
-0x03: The track has finished, so there is no "live edge." The 'Current Group ID'
-field represents the highest Group ID known to the sender.
+0x03: The track has finished, so there is no "live edge." Subsequent fields
+contain the highest Group and object ID known to the sender.
 
-0x04: The sender is a relay that cannot obtain the current group ID from the
-publisher. The 'Current Group ID' field contains the largest group ID known to
+0x04: The sender is a relay that cannot obtain the current track status from
+upstream. Subsequent fields contain the largest group and object ID known to
 the sender.
 
 Any other value in the Status Code field is a malformed message.
 
-The 'Current Group ID field' usually contains the highest group ID the sender has
-observed. If the sender is a relay that does not have an active subscription to
-the track, it SHOULD send a GET_CURRENT_GROUP message upstream to obtain up-to-
-date information before sending a CURRENT_GROUP.
+When a relay is subscribed to a track, it can simply return the highest group
+and object ID it has observed, whether or not that object was cached. If not
+subscribed, a relay SHOULD send a TRACK_STATUS_REQUEST upstream to obtain
+updated information.
 
-The receiver of multiple CURRENT_GROUP messages for the same track should use
-the highest Current Group ID that it observes.
+Alternatively, the relay MAY subscribe to the track to obtain the same
+information.
+
+If a relay cannot or will not do either, it should return its best available
+information with status code 0x04.
+
+The receiver of multiple TRACK_STATUS messages for a track uses the information
+from the latest arriving message, as they are delivered in order on a single
+stream.
 
 ## GOAWAY {#message-goaway}
 The server sends a `GOAWAY` message to initiate session migration
