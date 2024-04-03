@@ -273,6 +273,11 @@ identical sequence of bytes regardless of how or where it is retrieved.
 An Object can become unavailable, but it's contents MUST NOT change over
 time.
 
+A publisher MAY skip Group IDs in a track. A publisher MUST NOT skip object IDs
+within a group and every group MUST start at Object ID zero. Therefore, any gap
+in object ID indicates that an object exists, or at one time existed, at the
+publisher.
+
 Objects are comprised of two parts: metadata and a payload.
 The metadata is never encrypted and is always
 visible to relays. The payload portion may be encrypted, in which case
@@ -803,6 +808,8 @@ MOQT Message {
 | 0x50  | STREAM_HEADER_TRACK ({{multi-object-streams}})      |
 |-------|-----------------------------------------------------|
 | 0x51  | STREAM_HEADER_GROUP ({{multi-object-streams}})      |
+|-------|-----------------------------------------------------|
+| 0x52  | END_OF_GROUP ({{message-end-of-group}})             |
 |-------|-----------------------------------------------------|
 
 ## Parameters {#params}
@@ -1565,7 +1572,50 @@ ANNOUNCE_CANCEL Message {
 * Track Namespace: Identifies a track's namespace as defined in
 ({{track-name}}).
 
+## END_OF_GROUP {#message-end-of-group}
+
+~~~
+END_OF_GROUP Message {
+  Subscribe ID (i),
+  Track Alias (i),
+  Group ID (i),
+  Next Object ID (i),
+}
+~~~
+{: #moq-transport-end-of-group-format title="MOQT END_OF_GROUP Message"}
+
+Senders use END_OF_GROUP messages to communicate the maximum Object ID in a
+group, allowing receivers to easily determine if they are missing any objects
+from a group. END_OF_GROUP messages are not sent for groups whose subscription
+range does not include the last object of a group.
+
+The 'Next Object ID' field is one greater than the highest Object ID in the
+group. A publisher SHOULD send an END_OF_GROUP message with a Next Object ID of
+zero when it skips a Group ID.
+
+When a track's forwading preference is 'Track', the sender interleaves
+END_OF_GROUP messages with OBJECT messages in the Track Stream. These SHOULD
+appear immediately after the last object from a group in the stream. In some use
+cases, they may not arrive in time to be relayed in that order.
+
+When a track's forwarding preference is 'Group', the END_OF_GROUP message MUST
+be the last message on the stream. If the publisher has skipped a group ID, or
+the sender is skipping delivery of a group for prioritization reasons, this
+involves opening a unidirectional stream solely to send the END_OF_GROUP
+message.
+
+When a track's forwarding preference is 'Object,' the sender MUST open a
+separate unidirectional stream per group to deliver the END_OF_GROUP message.
+
+When a track's forwarding preference is 'Datagram', END_OF_GROUP messages MUST
+NOT be sent.
+
+A sender MUST NOT send FIN on a unidirectional stream unless it has sent all
+END_OF_GROUP messages required for that stream as described above. Due to stream
+resets, a receiver may not observe an END_OF_GROUP message for all groups.
+
 ## GOAWAY {#message-goaway}
+
 The server sends a `GOAWAY` message to initiate session migration
 ({{session-migration}}) with an optional URI.
 
