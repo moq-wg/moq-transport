@@ -1569,7 +1569,7 @@ ANNOUNCE_CANCEL Message {
 * Track Namespace: Identifies a track's namespace as defined in
 ({{track-name}}).
 
-## GET_CURRENT_GROUP (#message-get-current-group}
+## GET_CURRENT_GROUP {#message-get-current-group}
 
 A potential subscriber sends a 'GET_CURRENT_GROUP' message on the control
  stream to obtain the current group ID for a given track.
@@ -1582,7 +1582,7 @@ GET_CURRENT_GROUP Message {
 ~~~
 {: #moq-get-current-group-format title="MOQT GET_CURRENT_GROUP Message"}
 
-## CURRENT_GROUP (#message-current-group}
+## CURRENT_GROUP {#message-current-group}
 
 An endpoint sends a 'CURRENT_GROUP' message on the control stream in response
 to a GET_CURRENT_GROUP message.
@@ -1591,15 +1591,41 @@ to a GET_CURRENT_GROUP message.
 CURRENT_GROUP Message {
   Track Namespace (b),
   Track Name (b),
+  Status Code (i),
   Current Group ID (i),
 }
 ~~~
 {: #moq-current-group-format title="MOQT CURRENT_GROUP Message"}
 
-The 'Current Group ID field' contains the highest group ID the sender has
+The 'Status Code' field provides additional information about the status of the
+track. It MUST hold one of the following values. Any other value is a malformed
+message.
+
+0x00: The track is in progress, and the 'Current Group ID' field contains the
+highest group ID known to the sender for that track.
+
+0x01: The track does not exist. The 'Current Group ID' field MUST be zero, and
+any other value is a malformed message.
+
+0x02: The track has not yet begun. The 'Current Group ID' field MUST be zero in
+this case. Any other value is a malformed message.
+
+0x03: The track has finished, so there is no "live edge." The 'Current Group ID'
+field represents the highest Group ID known to the sender.
+
+0x04: The sender is a relay that cannot obtain the current group ID from the
+publisher. The 'Current Group ID' field contains the largest group ID known to
+the sender.
+
+Any other value in the Status Code field is a malformed message.
+
+The 'Current Group ID field' usually contains the highest group ID the sender has
 observed. If the sender is a relay that does not have an active subscription to
 the track, it SHOULD send a GET_CURRENT_GROUP message upstream to obtain up-to-
 date information before sending a CURRENT_GROUP.
+
+The receiver of multiple CURRENT_GROUP messages for the same track should use
+the highest Current Group ID that it observes.
 
 ## GOAWAY {#message-goaway}
 The server sends a `GOAWAY` message to initiate session migration
