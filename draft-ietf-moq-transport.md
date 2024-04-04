@@ -1238,13 +1238,13 @@ close the session with a Duplicate Track Alias error ({{session-termination}}).
 
 * Track Name: Identifies the track name as defined in ({{track-name}}).
 
-* Start Group: The start Group ID, plus 1. A value of 0 indicates no start group and the latest group is used instead.
+* Start Group: The start Group ID, plus 1. A value of 0 means the latest group is used instead.
 
-* Start Object: The start Object ID, plus 1. A value of 0 indicates no start object and the latest object is used instead. This field is not present when Start Group is 0.
+* Start Object: The start Object ID, plus 1. A value of 0 means the latest object is used instead. This field is not present when Start Group is 0.
 
-* End Group: The end Group ID, plus 1. A value of 0 indicates no end group and the subscription is open-ended.
+* End Group: The end Group ID, plus 1. A value of 0 means the subscription is open-ended.
 
-* End Object: The end Object ID, plus 1. A value of 0 indicates no end object and the entire group is requested. This field is not present when End Group is 0.
+* End Object: The end Object ID, plus 1. A value of 0 means the entire group is requested. This field is not present when End Group is 0.
 
 * Delivery Preference: Indicates how objects should be transmitted and dropped.
 The following seciton ({{delivery-preference}}) enumerates the possible values.
