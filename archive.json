@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2024-04-02T01:10:19.720330+00:00",
+  "timestamp": "2024-04-04T01:08:01.029191+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -15052,7 +15052,7 @@
       "labels": [],
       "body": "Feel free to `s/SUBSCRIBE/FETCH/g` in your head.\r\n\r\n## Problem\r\nThe current draft is intentionally vague, but it allows objects to dropped in response to congestion. However, this ambiguity will cause issues for a few use-cases. \r\n\r\nConsider a subscriber that requests a range: \r\n\r\n```\r\n-> SUBSCRIBE start=4 end=7\r\n<- SUBSCRIBE_OK\r\n<- OBJECT group=7\r\n<- OBJECT group=6\r\n<- OBJECT group=4\r\n<- SUBSCRIBE_DONE\r\n```\r\n\r\nAt this moment, group=5 has been promised as part of the SUBSCRIBE but has not arrived yet. This is perfectly normal as objects may be sent over multiple streams which arrive out of order. A reliable live (#419) and VOD player will block playback as they anticipate group=5 to arrive any moment now and they do not want to skip content.\r\n\r\nHowever, if group=5 was dropped for any reason, potentially upstream, then playback will be stalled indefinitely. The only recourse is to set an arbitrary timeout and eventually assume loss, but this will cause additional buffering especially for reliable live.\r\n\r\nFurthermore, a relay that issues this request upstream will mark group=5 in its cache as pending. If a FETCH comes in for start=2 end=5, then the relay could FETCH start=2 end=3 upstream, as it can serve group=4 immediately and group=5 once it arrives at any moment.\r\n\r\nHowever, if group=5 was dropped due to a transient problem (ex. congestion), then the relay would be unaware that it could refetch group=5. Indicating that a dropped object can be retried would be very useful for patching up VODs, as the relay could refill these known holes after network recovery.\r\n\r\n\r\n## Proposal\r\n### 1. `SUBSCRIBE_OK` may contain a subset of the range requested in `SUBSCRIBE`.\r\nThe publisher commits to sending either an object or a drop notification within the specified range.\r\n\r\n```\r\nSUBSCRIBE_OK {\r\n    Subscribe ID (i),\r\n    Start Group (i)\r\n    Start Object (i)\r\n    End Group (i)\r\n    End Object (i)\r\n}\r\n```\r\n(some encoding finagling required)\r\n\r\nOtherwise, a relay that receives a `SUBSCRIBE start=0 end=10000` would be expected to send an object or dropped message for every value within the requested range, even if they left cache long ago.  For example, a DVR player requesting content from 45s ago, but everything older than 30s was already dropped from the cache.\r\n\r\nThis modified `SUBSCRIBE_OK` message tightens the bounds to prevent this.\r\n\r\n### 2. Add a `STREAM_DROPPED` that indicates drops within the `SUBSCRIBE_OK` range.\r\nThe publisher indicates that it cannot deliver the entire range as originally indicated, and one or more objects were dropped.\r\n\r\n```\r\nSTREAM_DROPPED Message {\r\n  Header (STREAM_HEADER_TRACK | STREAM_HEADER_GROUP | STREAM_HEADER_OBJECT),\r\n  Error Code (i)\r\n  Retryable (t)\r\n}\r\n```\r\n\r\nThe publisher sends this message when:\r\n* It drops objects by resetting the tail of a stream.\r\n* It drops objects by not creating a stream.\r\n* It receives a STREAM_DROPPED from upstream (relay only).\r\n\r\nThis will be a relatively rare message except during congestion, with the frequency depending on the stream mode. The entire header is sent for simplicity although some fields may be useless (ex. priority).\r\n\r\nThis message would be sent on a data stream (unidirectional) to avoid unnecessary head-of-line blocking on the control stream (bidirectional). This message is reliable, so it should not be sent on the same stream with potentially unreliable OBJECT messages.\r\n\r\nThere is no drop notification for datagrams, as the publisher does not know if they were dropped.",
       "createdAt": "2024-03-28T18:06:35Z",
-      "updatedAt": "2024-03-29T14:32:01Z",
+      "updatedAt": "2024-04-03T14:39:22Z",
       "closedAt": null,
       "comments": [
         {
@@ -15089,6 +15089,20 @@
           "body": "> But here'n lies the problem. Since group numbers are non-sequential, as far as the relay is concerned there is **_no promise of group 5, as it may never have existed in the first place_**. 4,6,7 is a perfectly acceptable sequence of groups. **The only entities that know that 5 should exist are the original publisher and the final subscriber reading the catalog.**\r\n\r\nI originally had a third proposal: \"sequential group_ids\". It would make the protocol significantly better but I don't think it's strictly required.\r\n\r\nThe application definitely needs to know if each group exists. It could do this via sequential groups or some other mechanism like a timeline. For example, suppose a simple scheme where there is a group every 2000 units for whatever reason. The player would wait an object or dropped notification for 0, 2000, 4000, 6000, etc.\r\n\r\nSuppose the relay gets a SUBSCRIBE for start=456 end=7000 or something dumb. It would send that upstream and forward any received objects or dropped messages. If it receives group 4000 but decides to drop it, then it would add its own dropped message. When it receives a SUBSCRIBE_DONE end=7000, then it forwards that too.\r\n\r\nThe relay doesn't actually care if group 1234 ever arrives; only the application knows or cares. But there's an argument for sequential groups so the relay can deterministically clean up any subscription state without waiting for an unsubscribe, because it doesn't know if there's still more data pending.",
           "createdAt": "2024-03-29T14:31:59Z",
           "updatedAt": "2024-03-29T14:31:59Z"
+        },
+        {
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "I'm really confused on the \"dropped due to congestion\" part of this. How does that happen to a reliable stream. It seems like what we have in the spec for those cases is close the subscription.  I do understand dropped due to the TTL was exceeded but assuming that is not the case we are worried about for a VOD.  It would think that for  applications that need to wait for all the object, the publisher will be designed not to have gaps in the sequence. I can seen reasons to have some way of representing tombstones for objects in the datastream but for the case here, have the producer send things sequentially. If the relay network does not deliver the data to the client, it seems the client is in a better position to detect that then anything else. ",
+          "createdAt": "2024-04-03T13:45:06Z",
+          "updatedAt": "2024-04-03T13:45:06Z"
+        },
+        {
+          "author": "wilaw",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "> I'm really confused on the \"dropped due to congestion\" part of this. How does that happen to a reliable stream. It seems like what we have in the spec for those cases is close the subscription. I do understand dropped due to the TTL was exceeded but assuming that is not the case we are worried about for a VOD.\r\n\r\nI don't think dropping should ever happen for VOD. In my understanding, any talk of dropping should only occur for real-time clients which cannot afford to wait for old content and would prefer to get new content if it is available. For dropping to occur, 3 conditions must be met:\r\n1. The original publisher must embed TTL and/or priority information in the objects, to enable stateless relays to take a drop action without having to understand the content\r\n2. The client must signal in its SUBSCRIBE (or FETCH) that it wants the dropping behavior (only the client knows if it is playing the content at the real-time edge or further behind)\r\n3. There must be congestion in the link between client and relay, such that a queue of outbound objects has built up. ",
+          "createdAt": "2024-04-03T14:39:21Z",
+          "updatedAt": "2024-04-03T14:39:21Z"
         }
       ]
     },
@@ -15104,9 +15118,17 @@
       "labels": [],
       "body": "**tl;dr** when does a MoqTransport subscriber signal SUBSCRIBE_DONE to the application or clean up subscription state?\r\n\r\nI ran into a bug when refactoring my relay to better support error conditions.\r\n\r\nFor subscriptions to the catalog or init track, my publisher would send a single OBJECT followed by an immediate SUBSCRIBE_DONE, since updates are (currently) not supported. It then removes the ID from the lookup table since this state is terminal.\r\n\r\nUpon receiving the SUBSCRIBE_DONE, my subscriber also removes the ID from the lookup table and returns the error to the application. However, this causes a race, as the OBJECTs in flight (on another stream) will be dropped since they reference a newly non-existent subscription. This occurs the vast majority of the time especially because the control stream is higher priority.\r\n\r\nSince SUBSCRIBE_DONE contains a final group/object, the intended behavior seems to be for the subscriber to delay until the final object is received.\r\n\r\nBut what if that object is dropped? What about the rest of the group? What happens to any other objects that might be queued (lower priority) or awaiting a retransmission?\r\n\r\nCould the subscriber wait until all objects within subscribe range are received instead? This seems useful especially for something like FETCH, however it's currently impossible for a few reasons:\r\n\r\n - group_ids are not sequential and there can be intentional gaps\r\n - objects can be dropped, causing gaps with a group \r\n - the latest object ID per group is unknown when using a stream per group.\r\n\r\nReliable live actually has the same exact issues. To generalize, its currently not possible to wait for all objects to arrive over the network.",
       "createdAt": "2024-03-29T21:27:51Z",
-      "updatedAt": "2024-03-29T21:36:47Z",
+      "updatedAt": "2024-04-03T13:31:06Z",
       "closedAt": null,
-      "comments": []
+      "comments": [
+        {
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "Imagine you had a relay with a million clients downstream that sequentially connected one at a time.  It seems like having the publisher immediately send the subcribe_done is would cause it to get a million subscribes when and send the catalog a million times, if it delayed sending the subscribe_doe that, it could get 1 from the relay and the relay could take care of the fan out. ",
+          "createdAt": "2024-04-03T13:31:04Z",
+          "updatedAt": "2024-04-03T13:31:04Z"
+        }
+      ]
     }
   ],
   "pulls": [
@@ -47278,7 +47300,7 @@
       "labels": [],
       "body": "Fixes #349 ",
       "createdAt": "2024-01-31T17:43:06Z",
-      "updatedAt": "2024-02-08T19:02:45Z",
+      "updatedAt": "2024-04-03T14:18:29Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "d97485d4fb39d1f1fc0e88b7291dd14c36ebe836",
@@ -51117,7 +51139,7 @@
       "labels": [],
       "body": "This is a one-byte field, not a one-bit field",
       "createdAt": "2024-03-11T16:00:10Z",
-      "updatedAt": "2024-03-18T00:40:13Z",
+      "updatedAt": "2024-04-03T14:18:28Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "80a1fc4eec92a05439e473edb60dcea399b3ca62",
@@ -52317,6 +52339,258 @@
               "body": "I'd vote for 4 - `When the fetch catches up to live, continue offering FETCH semantics for new objects (all objects delivered or gap notification), until end is reached .`. As you state, this satisfies a \"reliable live\" use case with a start behind the live head. \r\n\r\nI'd also suggest that EndGroup and EndObject can be omitted, in which it defaults to the behavior [4]. This prevents the ugliness of people asking for group 99999999999999 when all they really want is delivery until end-of -track. ",
               "createdAt": "2024-03-28T20:39:52Z",
               "updatedAt": "2024-03-28T20:39:52Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 425,
+      "id": "PR_kwDOG2Ho4M5rlwJ7",
+      "title": "Add a way to get the current group ID",
+      "url": "https://github.com/moq-wg/moq-transport/pull/425",
+      "state": "OPEN",
+      "author": "martinduke",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "There is a bit of angst about using SUBSCRIBE to obtain the current Group ID. This PR is a straw man to provide an explicit means of obtaining the group ID.\r\n\r\nI would be surprised if this ended up in the final RFC, but it might be useful to keep in the draft as a primitive while the other SUBSCRIBE/FETCH stuff moves around.",
+      "createdAt": "2024-04-03T16:07:32Z",
+      "updatedAt": "2024-04-03T19:21:53Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "8f4d441c5f799e80bb2f8291f82a3d936e7e7799",
+      "headRepository": "martinduke/moq-transport",
+      "headRefName": "current-group",
+      "headRefOid": "9949a86c5a67e1ec8b313c2c8463349b6b206565",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [
+        {
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "Summary from meeting. We want to make it more extensible for other things. Scope to things the relay knows, not a substitute for Catalog. Rename to make it more generic. ",
+          "createdAt": "2024-04-03T16:26:33Z",
+          "updatedAt": "2024-04-03T16:26:33Z"
+        },
+        {
+          "author": "wilaw",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "What about returning latest object in addition to latest group?",
+          "createdAt": "2024-04-03T16:27:07Z",
+          "updatedAt": "2024-04-03T16:27:07Z"
+        },
+        {
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "OK, changes:\r\n- I painted my bikeshed TRACK_STATUS, on the grounds that TRACK_INFO sounds like more permanent data that maybe out to be in the Catalog.\r\n- I added last Object ID because Will asked for it and it seemed easy enough.\r\n- I did not fill Suhas's suggestion to make it optional because the parameterized idea got a lot of pushback in the call, and this seemed adjacent.\r\n\r\nPlease have a look, and if Ian's happy with it he can merge.",
+          "createdAt": "2024-04-03T17:36:18Z",
+          "updatedAt": "2024-04-03T17:36:18Z"
+        },
+        {
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "I'll also note that we could put a track alias hint in here, but I didn't care enough to add it without more positive feedback.",
+          "createdAt": "2024-04-03T17:42:04Z",
+          "updatedAt": "2024-04-03T17:42:04Z"
+        }
+      ],
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M5129hw",
+          "commit": {
+            "abbreviatedOid": "821410c"
+          },
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-04-03T16:18:46Z",
+          "updatedAt": "2024-04-03T16:18:46Z",
+          "comments": [
+            {
+              "originalPosition": 4,
+              "body": "bikeshed: TRACK_INFO so it can contain more than the current group",
+              "createdAt": "2024-04-03T16:18:46Z",
+              "updatedAt": "2024-04-03T16:18:46Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M512-Gz",
+          "commit": {
+            "abbreviatedOid": "821410c"
+          },
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "Looks like good start. ",
+          "createdAt": "2024-04-03T16:19:33Z",
+          "updatedAt": "2024-04-03T16:19:33Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M513F26",
+          "commit": {
+            "abbreviatedOid": "821410c"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-04-03T16:28:53Z",
+          "updatedAt": "2024-04-03T16:28:54Z",
+          "comments": [
+            {
+              "originalPosition": 38,
+              "body": "can we make it optional",
+              "createdAt": "2024-04-03T16:28:53Z",
+              "updatedAt": "2024-04-03T16:28:54Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M513vX4",
+          "commit": {
+            "abbreviatedOid": "821410c"
+          },
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-04-03T17:41:30Z",
+          "updatedAt": "2024-04-03T17:41:30Z",
+          "comments": [
+            {
+              "originalPosition": 38,
+              "body": "As noted below, people didn't seem to like parameters, which is the most straightforward way to do this.",
+              "createdAt": "2024-04-03T17:41:30Z",
+              "updatedAt": "2024-04-03T17:41:30Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5132wD",
+          "commit": {
+            "abbreviatedOid": "9949a86"
+          },
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "I'm sure we will have future changes to this, but I think we should merge it. ",
+          "createdAt": "2024-04-03T17:54:44Z",
+          "updatedAt": "2024-04-03T17:54:44Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M514kca",
+          "commit": {
+            "abbreviatedOid": "9949a86"
+          },
+          "author": "wilaw",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "This is a good start. We can massage the status codes later. They should correspond to some sort of state machine that we define for moqt in general. ",
+          "createdAt": "2024-04-03T19:21:53Z",
+          "updatedAt": "2024-04-03T19:21:53Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 426,
+      "id": "PR_kwDOG2Ho4M5rn89R",
+      "title": "END_OF_GROUP message",
+      "url": "https://github.com/moq-wg/moq-transport/pull/426",
+      "state": "OPEN",
+      "author": "martinduke",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Here's a explicit signal for missing objects.",
+      "createdAt": "2024-04-03T21:34:08Z",
+      "updatedAt": "2024-04-03T22:38:40Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "8f4d441c5f799e80bb2f8291f82a3d936e7e7799",
+      "headRepository": "martinduke/moq-transport",
+      "headRefName": "final-object",
+      "headRefOid": "9ceba2d4f5e3ebbdd7c2a63b00e02fc94d7faf79",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [
+        {
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Oh, and I'd like to only use this message when using a stream per object. It's not relevant for the other modes.\r\n\r\nAlternatively, we could just make this a property of the mode itself. You don't know the final group size when using a stream per object, and it's probably just fine for the intended use-cases?",
+          "createdAt": "2024-04-03T22:38:39Z",
+          "updatedAt": "2024-04-03T22:38:39Z"
+        }
+      ],
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M515-uw",
+          "commit": {
+            "abbreviatedOid": "9ceba2d"
+          },
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "What's the use-case behind this message?\r\n\r\nI think it's meant to support reliable live when using a stream per object. The player will block until it receives the entire group, but it can't do that if it doesn't know the full size of the group.\r\n\r\nHowever, I don't think this message accomplishes that by itself since there can be gaps within the group. The player might know the intended size of the group, but any RESET_STREAM will cause it to block awaiting the full group to arrive.\r\n\r\nI think we need the group size in conjunction with #423. Both messages are so similar that maybe there could be some overlap; I'm not sure.",
+          "createdAt": "2024-04-03T21:53:28Z",
+          "updatedAt": "2024-04-03T22:23:57Z",
+          "comments": [
+            {
+              "originalPosition": 49,
+              "body": "Is a stream per track allowed to transmit objects out of order? That seems really strange and defeats the purpose of the mode.",
+              "createdAt": "2024-04-03T21:53:28Z",
+              "updatedAt": "2024-04-03T22:23:36Z"
+            },
+            {
+              "originalPosition": 42,
+              "body": "`Next` is confusing, but I understand the +1 makes the name weird. Maybe `Object Count (i)` instead since we use sequential IDs.",
+              "createdAt": "2024-04-03T21:55:46Z",
+              "updatedAt": "2024-04-03T22:23:36Z"
+            },
+            {
+              "originalPosition": 51,
+              "body": "Putting `END_OF_GROUP` on the same stream prevents you from being able to reset it. IMO use a different stream just like a stream per object.",
+              "createdAt": "2024-04-03T21:57:38Z",
+              "updatedAt": "2024-04-03T22:23:36Z"
+            },
+            {
+              "originalPosition": 54,
+              "body": "Clarification: is this the original size of the group, or the size of the group as the relay has decided to deliver?",
+              "createdAt": "2024-04-03T21:59:39Z",
+              "updatedAt": "2024-04-03T22:23:36Z"
+            },
+            {
+              "originalPosition": 60,
+              "body": "Why not?",
+              "createdAt": "2024-04-03T22:01:49Z",
+              "updatedAt": "2024-04-03T22:23:36Z"
+            },
+            {
+              "originalPosition": 65,
+              "body": "Can we eliminate this line and make this a reliable message? The point of this message is to remove the end group ambiguity due to unreliability, and we can't do that if this message itself is unreliable.",
+              "createdAt": "2024-04-03T22:04:06Z",
+              "updatedAt": "2024-04-03T22:23:36Z"
+            },
+            {
+              "originalPosition": 51,
+              "body": "But I also like the existing behavior of using stream FIN to signal the end of a group. This END_OF_GROUP message feels like compliance, trying to address an issue that only impacts one delivery mode.",
+              "createdAt": "2024-04-03T22:06:38Z",
+              "updatedAt": "2024-04-03T22:23:36Z"
+            },
+            {
+              "originalPosition": 43,
+              "body": "This `SHOULD` is a `MUST` imo, otherwise you'll break clients that actually use this message (ex. reliable live).\r\n\r\nAlso, this breaks being able to use the presentation timestamp as the group ID, as you would have to send a boatload of END_OF_GROUP messages. I'm all for that but I want to make sure we've discussed it.",
+              "createdAt": "2024-04-03T22:15:55Z",
+              "updatedAt": "2024-04-03T22:23:36Z"
             }
           ]
         }
