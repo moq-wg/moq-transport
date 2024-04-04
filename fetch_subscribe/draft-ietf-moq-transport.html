@@ -18,11 +18,11 @@ media to publish data and have it consumed via subscription by a
 multiplicity of endpoints. It supports intermediate content distribution
 networks and is designed for high scale and low latency distribution. 
     " name="description">
-<meta content="xml2rfc 3.20.0" name="generator">
+<meta content="xml2rfc 3.20.1" name="generator">
 <meta content="Internet-Draft" name="keyword">
 <meta content="draft-ietf-moq-transport-latest" name="ietf.draft">
 <!-- Generator version information:
-  xml2rfc 3.20.0
+  xml2rfc 3.20.1
     Python 3.11.8
     ConfigArgParse 1.7
     google-i18n-address 3.1.0
@@ -1034,11 +1034,11 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <thead><tr>
 <td class="left">Internet-Draft</td>
 <td class="center">moq-transport</td>
-<td class="right">March 2024</td>
+<td class="right">April 2024</td>
 </tr></thead>
 <tfoot><tr>
 <td class="left">Curley, et al.</td>
-<td class="center">Expires 5 September 2024</td>
+<td class="center">Expires 6 October 2024</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1051,12 +1051,12 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dd class="internet-draft">draft-ietf-moq-transport-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2024-03-04" class="published">4 March 2024</time>
+<time datetime="2024-04-04" class="published">4 April 2024</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2024-09-05">5 September 2024</time></dd>
+<dd class="expires"><time datetime="2024-10-06">6 October 2024</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1123,7 +1123,7 @@ networks and is designed for high scale and low latency distribution.<a href="#s
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 5 September 2024.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 6 October 2024.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1309,13 +1309,10 @@ networks and is designed for high scale and low latency distribution.<a href="#s
                 <p id="section-toc.1-1.6.2.4.1"><a href="#section-6.4" class="auto internal xref">6.4</a>.  <a href="#name-subscribe" class="internal xref">SUBSCRIBE</a></p>
 <ul class="compact toc ulBare ulEmpty">
 <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.4.2.1">
-                    <p id="section-toc.1-1.6.2.4.2.1.1"><a href="#section-6.4.1" class="auto internal xref">6.4.1</a>.  <a href="#name-subscribe-locations" class="internal xref">Subscribe Locations</a></p>
+                    <p id="section-toc.1-1.6.2.4.2.1.1"><a href="#section-6.4.1" class="auto internal xref">6.4.1</a>.  <a href="#name-subscribe-format" class="internal xref">SUBSCRIBE Format</a></p>
 </li>
                   <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.4.2.2">
-                    <p id="section-toc.1-1.6.2.4.2.2.1"><a href="#section-6.4.2" class="auto internal xref">6.4.2</a>.  <a href="#name-subscribe-format" class="internal xref">SUBSCRIBE Format</a></p>
-</li>
-                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.4.2.3">
-                    <p id="section-toc.1-1.6.2.4.2.3.1"><a href="#section-6.4.3" class="auto internal xref">6.4.3</a>.  <a href="#name-examples-2" class="internal xref">Examples</a></p>
+                    <p id="section-toc.1-1.6.2.4.2.2.1"><a href="#section-6.4.2" class="auto internal xref">6.4.2</a>.  <a href="#name-delivery-preference" class="internal xref">Delivery Preference</a></p>
 </li>
                 </ul>
 </li>
@@ -1614,6 +1611,15 @@ has a length of L<a href="#section-1.3-3.10.1" class="pilcrow">¶</a></p>
 described in (<span>[<a href="#RFC9000" class="cite xref">RFC9000</a>], <a href="https://rfc-editor.org/rfc/rfc9000#section-16" class="relref">Section 16</a></span>), followed by that many bytes
 of binary data<a href="#section-1.3-5.2.1" class="pilcrow">¶</a></p>
 </dd>
+          <dd class="break"></dd>
+<dt id="section-1.3-5.3">x (f):</dt>
+          <dd style="margin-left: 1.5em" id="section-1.3-5.4">
+            <p id="section-1.3-5.4.1">Indicates that x is a flag and is encoded as a single byte with the
+value 0 or 1. A value of 0 indicates the flag is false or off, while a
+value of 1 indicates the flag is true or on. Any other value is a
+protocol error and <span class="bcp14">SHOULD</span> terminate the session with a Protocol
+Violation (<a href="#session-termination" class="auto internal xref">Section 3.5</a>).<a href="#section-1.3-5.4.1" class="pilcrow">¶</a></p>
+</dd>
         <dd class="break"></dd>
 </dl>
 <p id="section-1.3-6">To reduce unnecessary use of bandwidth, variable length integers <span class="bcp14">SHOULD</span>
@@ -1736,7 +1742,7 @@ specific to the underlying transport protocol usage <a href="#session" class="au
 <p id="section-3.1-1">This document defines a protocol that can be used interchangeably both
 over a QUIC connection directly <span>[<a href="#QUIC" class="cite xref">QUIC</a>]</span>, and over WebTransport
 <span>[<a href="#WebTransport" class="cite xref">WebTransport</a>]</span>.  Both provide streams and datagrams with similar
-semantics (see <span>[<a href="#I-D.ietf-webtrans-overview" class="cite xref">I-D.ietf-webtrans-overview</a>], <a href="https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-overview-06#section-4" class="relref">Section 4</a></span>); thus, the
+semantics (see <span>[<a href="#I-D.ietf-webtrans-overview" class="cite xref">I-D.ietf-webtrans-overview</a>], <a href="https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-overview-07#section-4" class="relref">Section 4</a></span>); thus, the
 main difference lies in how the servers are identified and how the
 connection is established.  When using QUIC, datagrams <span class="bcp14">MUST</span> be
 supported via the [QUIC-DATAGRAM] extension, which is already a
@@ -1752,7 +1758,7 @@ another protocol when QUIC or WebTransport aren't available.<a href="#section-3.
 <p id="section-3.1.1-1">A MOQT server that is accessible via WebTransport can be identified
 using an HTTPS URI (<span>[<a href="#RFC9110" class="cite xref">RFC9110</a>], <a href="https://rfc-editor.org/rfc/rfc9110#section-4.2.2" class="relref">Section 4.2.2</a></span>).  A MOQT session can be
 established by sending an extended CONNECT request to the host and the
-path indicated by the URI, as described in <span>[<a href="#WebTransport" class="cite xref">WebTransport</a>], <a href="https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-http3-08#section-3" class="relref">Section 3</a></span>.<a href="#section-3.1.1-1" class="pilcrow">¶</a></p>
+path indicated by the URI, as described in <span>[<a href="#WebTransport" class="cite xref">WebTransport</a>], <a href="https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-http3-09#section-3" class="relref">Section 3</a></span>.<a href="#section-3.1.1-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="quic">
@@ -1849,7 +1855,7 @@ effect on outstanding subscriptions.<a href="#section-3.4-1" class="pilcrow">¶<
 <p id="section-3.5-1">The transport session can be terminated at any point.  When native QUIC
 is used, the session is closed using the CONNECTION_CLOSE frame
 (<span>[<a href="#QUIC" class="cite xref">QUIC</a>], <a href="https://rfc-editor.org/rfc/rfc9000#section-19.19" class="relref">Section 19.19</a></span>).  When WebTransport is used, the session is
-closed using the CLOSE_WEBTRANSPORT_SESSION capsule (<span>[<a href="#WebTransport" class="cite xref">WebTransport</a>], <a href="https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-http3-08#section-5" class="relref">Section 5</a></span>).<a href="#section-3.5-1" class="pilcrow">¶</a></p>
+closed using the CLOSE_WEBTRANSPORT_SESSION capsule (<span>[<a href="#WebTransport" class="cite xref">WebTransport</a>], <a href="https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-http3-09#section-5" class="relref">Section 5</a></span>).<a href="#section-3.5-1" class="pilcrow">¶</a></p>
 <p id="section-3.5-2">The application <span class="bcp14">MAY</span> use any error message and <span class="bcp14">SHOULD</span> use a relevant
 code, as defined below:<a href="#section-3.5-2" class="pilcrow">¶</a></p>
 <table class="center" id="table-1">
@@ -2114,7 +2120,7 @@ subscribers for each track. Each new OBJECT belonging to the
 track within the subscription range is forwarded to each active
 subscriber, dependent on the congestion response. A subscription
 remains active until the publisher of the track terminates the
-subscription with a SUBSCRIBE_DONE (see <a href="#message-subscribe-done" class="auto internal xref">Section 6.8</a>).<a href="#section-5.1-3" class="pilcrow">¶</a></p>
+track with a SUBSCRIBE_DONE (see <a href="#message-subscribe-done" class="auto internal xref">Section 6.8</a>).<a href="#section-5.1-3" class="pilcrow">¶</a></p>
 <p id="section-5.1-4">Objects <span class="bcp14">MUST NOT</span> be sent for unsuccessful subscriptions, and if a subscriber
 receives a SUBSCRIBE_ERROR after receiving objects, it <span class="bcp14">MUST</span> close the session
 with a 'Protocol Violation'.<a href="#section-5.1-4" class="pilcrow">¶</a></p>
@@ -2184,6 +2190,10 @@ SUBSCRIBE_DONE, as defined below:<a href="#section-5.1-9" class="pilcrow">¶</a>
             <tr>
               <td class="text-right" rowspan="1" colspan="1">0x5</td>
               <td class="text-left" rowspan="1" colspan="1">Going Away</td>
+            </tr>
+            <tr>
+              <td class="text-right" rowspan="1" colspan="1">0x6</td>
+              <td class="text-left" rowspan="1" colspan="1">Expired</td>
             </tr>
           </tbody>
         </table>
@@ -2338,6 +2348,10 @@ MOQT Message {
           <tr>
             <td class="text-right" rowspan="1" colspan="1">0xB</td>
             <td class="text-left" rowspan="1" colspan="1">SUBSCRIBE_DONE (<a href="#message-subscribe-done" class="auto internal xref">Section 6.8</a>)</td>
+          </tr>
+          <tr>
+            <td class="text-right" rowspan="1" colspan="1">0xC</td>
+            <td class="text-left" rowspan="1" colspan="1">ANNOUNCE_CANCEL (<a href="#message-announce-cancel" class="auto internal xref">Section 6.13</a>)</td>
           </tr>
           <tr>
             <td class="text-right" rowspan="1" colspan="1">0x10</td>
@@ -2495,7 +2509,7 @@ identified as 0xff00000D.<a href="#section-6.2.1-4" class="pilcrow">¶</a></p>
 <a href="#section-6.2.2.1" class="section-number selfRef">6.2.2.1. </a><a href="#name-role-parameter" class="section-name selfRef">ROLE parameter</a>
             </h5>
 <p id="section-6.2.2.1-1">The ROLE parameter (key 0x00) allows each endpoint to independently specify what
-funnctionality they support for the session. It has three possible values,
+functionality they support for the session. It has three possible values,
 which are of type varint:<a href="#section-6.2.2.1-1" class="pilcrow">¶</a></p>
 <span class="break"></span><dl class="dlParallel" id="section-6.2.2.1-2">
               <dt id="section-6.2.2.1-2.1">0x01: Publisher</dt>
@@ -2842,184 +2856,137 @@ OBJECT_STREAM {
 <a href="#section-6.4" class="section-number selfRef">6.4. </a><a href="#name-subscribe" class="section-name selfRef">SUBSCRIBE</a>
         </h3>
 <p id="section-6.4-1">A receiver issues a SUBSCRIBE to a publisher to request a track.<a href="#section-6.4-1" class="pilcrow">¶</a></p>
-<div id="subscribe-locations">
-<section id="section-6.4.1">
-          <h4 id="name-subscribe-locations">
-<a href="#section-6.4.1" class="section-number selfRef">6.4.1. </a><a href="#name-subscribe-locations" class="section-name selfRef">Subscribe Locations</a>
-          </h4>
-<p id="section-6.4.1-1">The receiver specifies a start and optional end <code>Location</code> for the subscription.
-A location value may be an absolute group or object sequence, or it may be a
-delta relative to the largest group or the largest object in a group.<a href="#section-6.4.1-1" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="section-6.4.1-2">
-<pre>
-Location {
-  Mode (i),
-  [Value (i)],
-}
-</pre><a href="#section-6.4.1-2" class="pilcrow">¶</a>
-</div>
-<p id="section-6.4.1-3">There are 4 modes:<a href="#section-6.4.1-3" class="pilcrow">¶</a></p>
-<p id="section-6.4.1-4">None (0x0): The Location is unspecified, Value is not present<a href="#section-6.4.1-4" class="pilcrow">¶</a></p>
-<p id="section-6.4.1-5">Absolute (0x1): Value is an absolute sequence<a href="#section-6.4.1-5" class="pilcrow">¶</a></p>
-<p id="section-6.4.1-6">RelativePrevious (0x2): Value is a delta from the largest sequence.  0 is the
-largest sequence, 1 is the largest sequence - 1, and so on.<a href="#section-6.4.1-6" class="pilcrow">¶</a></p>
-<p id="section-6.4.1-7">RelativeNext (0x3): Value is a delta from the largest sequence.  0 is the largest
-sequence + 1, 1 is the largest sequence + 2, and so on.<a href="#section-6.4.1-7" class="pilcrow">¶</a></p>
-<p id="section-6.4.1-8">The following table shows an example of how the RelativePrevious and RelativeNext
-values are used to determine the absolute sequence.<a href="#section-6.4.1-8" class="pilcrow">¶</a></p>
-<span id="name-relative-indexing"></span><figure id="figure-10">
-            <div class="alignLeft art-text artwork" id="section-6.4.1-9.1">
-<pre>
-Sequence:                0    1    2    3    4   [5]  [6] ...
-                                             ^
-                                      Largest Sequence
-RelativePrevious Value:  4    3    2    1    0
-RelativeNext Value:                               0    1  ...
-</pre>
-</div>
-<figcaption><a href="#figure-10" class="selfRef">Figure 10</a>:
-<a href="#name-relative-indexing" class="selfRef">Relative Indexing</a>
-            </figcaption></figure>
-</section>
-</div>
 <div id="subscribe-format">
-<section id="section-6.4.2">
+<section id="section-6.4.1">
           <h4 id="name-subscribe-format">
-<a href="#section-6.4.2" class="section-number selfRef">6.4.2. </a><a href="#name-subscribe-format" class="section-name selfRef">SUBSCRIBE Format</a>
+<a href="#section-6.4.1" class="section-number selfRef">6.4.1. </a><a href="#name-subscribe-format" class="section-name selfRef">SUBSCRIBE Format</a>
           </h4>
-<p id="section-6.4.2-1">The format of SUBSCRIBE is as follows:<a href="#section-6.4.2-1" class="pilcrow">¶</a></p>
+<p id="section-6.4.1-1">The format of SUBSCRIBE is as follows:<a href="#section-6.4.1-1" class="pilcrow">¶</a></p>
 <span id="name-moqt-subscribe-message"></span><div id="moq-transport-subscribe-format">
-<figure id="figure-11">
-            <div class="alignLeft art-text artwork" id="section-6.4.2-2.1">
+<figure id="figure-10">
+            <div class="alignLeft art-text artwork" id="section-6.4.1-2.1">
 <pre>
 SUBSCRIBE Message {
   Subscribe ID (i),
   Track Alias (i),
   Track Namespace (b),
   Track Name (b),
-  StartGroup (Location),
-  StartObject (Location),
-  EndGroup (Location),
-  EndObject (Location),
+  Start Group (i),
+  [ Start Object (i), ]
+  End Group (i),
+  [ End Object (i), ]
+  Delivery Preference (i),
   Number of Parameters (i),
   Track Request Parameters (..) ...
 }
 </pre>
 </div>
-<figcaption><a href="#figure-11" class="selfRef">Figure 11</a>:
+<figcaption><a href="#figure-10" class="selfRef">Figure 10</a>:
 <a href="#name-moqt-subscribe-message" class="selfRef">MOQT SUBSCRIBE Message</a>
             </figcaption></figure>
 </div>
 <ul class="normal">
-<li class="normal" id="section-6.4.2-3.1">
-              <p id="section-6.4.2-3.1.1">Subscribe ID: The subscription identifier that is unique within the session.
+<li class="normal" id="section-6.4.1-3.1">
+              <p id="section-6.4.1-3.1.1">Subscribe ID: The subscription identifier that is unique within the session.
 <code>Subscribe ID</code> is a monotonically increasing variable length integer which
 <span class="bcp14">MUST</span> not be reused within a session. <code>Subscribe ID</code> is used by subscribers and
 the publishers to identify a given subscription. Subscribers specify the
 <code>Subscribe ID</code> and it is included in the corresponding SUBSCRIBE_OK or
-SUBSCRIBE_ERROR messages.<a href="#section-6.4.2-3.1.1" class="pilcrow">¶</a></p>
+SUBSCRIBE_ERROR messages.<a href="#section-6.4.1-3.1.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-6.4.2-3.2">
-              <p id="section-6.4.2-3.2.1">Track Alias: A session specific identifier for the track.
+            <li class="normal" id="section-6.4.1-3.2">
+              <p id="section-6.4.1-3.2.1">Track Alias: A session specific identifier for the track.
 Messages that reference a track, such as OBJECT (<a href="#message-object" class="auto internal xref">Section 6.3</a>),
 reference this Track Alias instead of the Track Name and Track Namespace to
 reduce overhead. If the Track Alias is already in use, the publisher <span class="bcp14">MUST</span>
-close the session with a Duplicate Track Alias error (<a href="#session-termination" class="auto internal xref">Section 3.5</a>).<a href="#section-6.4.2-3.2.1" class="pilcrow">¶</a></p>
+close the session with a Duplicate Track Alias error (<a href="#session-termination" class="auto internal xref">Section 3.5</a>).<a href="#section-6.4.1-3.2.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-6.4.2-3.3">
-              <p id="section-6.4.2-3.3.1">Track Namespace: Identifies the namespace of the track as defined in
-(<a href="#track-name" class="auto internal xref">Section 2.3.1</a>).<a href="#section-6.4.2-3.3.1" class="pilcrow">¶</a></p>
+            <li class="normal" id="section-6.4.1-3.3">
+              <p id="section-6.4.1-3.3.1">Track Namespace: Identifies the namespace of the track as defined in
+(<a href="#track-name" class="auto internal xref">Section 2.3.1</a>).<a href="#section-6.4.1-3.3.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-6.4.2-3.4">
-              <p id="section-6.4.2-3.4.1">Track Name: Identifies the track name as defined in (<a href="#track-name" class="auto internal xref">Section 2.3.1</a>).<a href="#section-6.4.2-3.4.1" class="pilcrow">¶</a></p>
+            <li class="normal" id="section-6.4.1-3.4">
+              <p id="section-6.4.1-3.4.1">Track Name: Identifies the track name as defined in (<a href="#track-name" class="auto internal xref">Section 2.3.1</a>).<a href="#section-6.4.1-3.4.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-6.4.2-3.5">
-              <p id="section-6.4.2-3.5.1">StartGroup: The Location of the requested group.  StartGroup's Mode <span class="bcp14">MUST NOT</span> be
-None.<a href="#section-6.4.2-3.5.1" class="pilcrow">¶</a></p>
+            <li class="normal" id="section-6.4.1-3.5">
+              <p id="section-6.4.1-3.5.1">Start Group: The start Group ID, plus 1. A value of 0 indicates no start group and the latest group is used instead.<a href="#section-6.4.1-3.5.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-6.4.2-3.6">
-              <p id="section-6.4.2-3.6.1">StartObject: The Location of the requested object.  StartObject's Mode <span class="bcp14">MUST NOT</span>
-be None.<a href="#section-6.4.2-3.6.1" class="pilcrow">¶</a></p>
+            <li class="normal" id="section-6.4.1-3.6">
+              <p id="section-6.4.1-3.6.1">Start Object: The start Object ID, plus 1. A value of 0 indicates no start object and the latest object is used instead. This field is not present when Start Group is 0.<a href="#section-6.4.1-3.6.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-6.4.2-3.7">
-              <p id="section-6.4.2-3.7.1">EndGroup: The last Group requested in the subscription, inclusive.  EndGroup's
-Mode is None for an open-ended subscription.<a href="#section-6.4.2-3.7.1" class="pilcrow">¶</a></p>
+            <li class="normal" id="section-6.4.1-3.7">
+              <p id="section-6.4.1-3.7.1">End Group: The end Group ID, plus 1. A value of 0 indicates no end group and the subscription is open-ended.<a href="#section-6.4.1-3.7.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-6.4.2-3.8">
-              <p id="section-6.4.2-3.8.1">EndObject: The last Object requested in the subscription, exclusive.
-EndObject's Mode <span class="bcp14">MUST</span> be None if EndGroup's Mode is None.  EndObject's Mode <span class="bcp14">MUST NOT</span> be None if EndGroup's Mode is not None.<a href="#section-6.4.2-3.8.1" class="pilcrow">¶</a></p>
+            <li class="normal" id="section-6.4.1-3.8">
+              <p id="section-6.4.1-3.8.1">End Object: The end Object ID, plus 1. A value of 0 indicates no end object and the entire group is requested. This field is not present when End Group is 0.<a href="#section-6.4.1-3.8.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-6.4.2-3.9">
-              <p id="section-6.4.2-3.9.1">Track Request Parameters: The parameters are defined in
-<a href="#version-specific-params" class="auto internal xref">Section 6.1.1</a><a href="#section-6.4.2-3.9.1" class="pilcrow">¶</a></p>
+            <li class="normal" id="section-6.4.1-3.9">
+              <p id="section-6.4.1-3.9.1">Delivery Preference: Indicates how objects should be transmitted and dropped.
+The following seciton (<a href="#delivery-preference" class="auto internal xref">Section 6.4.2</a>) enumerates the possible values.<a href="#section-6.4.1-3.9.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-6.4.1-3.10">
+              <p id="section-6.4.1-3.10.1">Track Request Parameters: The parameters are defined in
+<a href="#version-specific-params" class="auto internal xref">Section 6.1.1</a><a href="#section-6.4.1-3.10.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
-<p id="section-6.4.2-4">On successful subscription, the publisher <span class="bcp14">SHOULD</span> start delivering
-objects from the group ID and object ID described above.<a href="#section-6.4.2-4" class="pilcrow">¶</a></p>
-<p id="section-6.4.2-5">If a publisher cannot satisfy the requested start or end for the subscription it
+<p id="section-6.4.1-4">On successful subscription, the publisher <span class="bcp14">SHOULD</span> start delivering
+objects within the range described above.
+The publisher <span class="bcp14">MUST</span> reply with a SUBSCRIBE_OK to indicate the latest group/object,
+allowing the subscriber to determine the start group/object when not specified.<a href="#section-6.4.1-4" class="pilcrow">¶</a></p>
+<p id="section-6.4.1-5">If a publisher cannot satisfy the requested start or end for the subscription it
 <span class="bcp14">MAY</span> send a SUBSCRIBE_ERROR with code 'Invalid Range'. A publisher <span class="bcp14">MUST NOT</span> send
-objects from outside the requested start and end.<a href="#section-6.4.2-5" class="pilcrow">¶</a></p>
-<p id="section-6.4.2-6">TODO: Define the flow where subscribe request matches an existing subscribe id
-(subscription updates.)<a href="#section-6.4.2-6" class="pilcrow">¶</a></p>
+objects from outside the requested start and end.<a href="#section-6.4.1-5" class="pilcrow">¶</a></p>
+<p id="section-6.4.1-6">TODO: Define the flow where subscribe request matches an existing subscribe id
+(subscription updates.)<a href="#section-6.4.1-6" class="pilcrow">¶</a></p>
 </section>
 </div>
-<div id="examples-1">
-<section id="section-6.4.3">
-          <h4 id="name-examples-2">
-<a href="#section-6.4.3" class="section-number selfRef">6.4.3. </a><a href="#name-examples-2" class="section-name selfRef">Examples</a>
+<div id="delivery-preference">
+<section id="section-6.4.2">
+          <h4 id="name-delivery-preference">
+<a href="#section-6.4.2" class="section-number selfRef">6.4.2. </a><a href="#name-delivery-preference" class="section-name selfRef">Delivery Preference</a>
           </h4>
-<div class="alignLeft art-text artwork" id="section-6.4.3-1">
-<pre>
-1. Now
-
-Start Group: Mode=RelativePrevious, Value=0
-Start Object: Mode=RelateiveNext, Value=0
-End Group: Mode=None
-End Object: Mode=None
-
-StartGroup=Largest Group
-StartObject=Largest Object + 1
-
-2. Current
-
-Start Group: Mode=RelativePrevious, Value=0
-Start Object: Mode=Absolute, Value=0
-End Group: Mode=None
-End Object: Mode=None
-
-StartGroup=Largest Group
-StartObject=0
-
-3. Previous
-
-Start Group: Mode=RelativePrevious, Value=1
-Start Object: Mode=Absolute, Value=0
-End Group: Mode=None
-End Object: Mode=None
-
-StartGroup=Largest Group - 1
-StartObject=0
-
-4. Next
-
-Start Group: Mode=RelativeNext, Value=0
-Start Object: Mode=Absolute, Value=0
-End Group: Mode=None
-End Object: Mode=None
-StartGroup=Largest Group + 1
-StartObject=0
-
-5. Range, All of group 3
-
-Start Group: Mode=Absolute, Value=3
-Start Object: Mode=Absolute, Value=0
-End Group: Mode=Absolute, Value=4
-End Object: Mode=Absolute, Value=0
-
-Start = Group 3, Object 0
-End = Group 3, Object &lt;last&gt;
-</pre><a href="#section-6.4.3-1" class="pilcrow">¶</a>
-</div>
+<p id="section-6.4.2-1">The publisher will attempt to deliver every object within the requested range.
+However, in many situations this will be impossible.
+Congestion may cause the subscriber to fall behind until eventually the publisher hits resource limits and drops objects.<a href="#section-6.4.2-1" class="pilcrow">¶</a></p>
+<p id="section-6.4.2-2">The <code>Delivery Preference</code> is a hint from the subscriber indiciating which streams/datagrams should be transmitted first during congestion, and coorespondingly which streams/datagrams should be starved or dropped.
+A publisher OUGHT to respect the delivery prefernce however, especially when multiple subscribers share a cache, this may be on a best effort basis.
+A subscriber <span class="bcp14">MUST NOT</span> expect objects to arrive in the indicated order.<a href="#section-6.4.2-2" class="pilcrow">¶</a></p>
+<p id="section-6.4.2-3">Note that objects are placed on QUIC streams according to the Object Forwarding Preference (<a href="#object-message-formats" class="auto internal xref">Section 6.3.2</a>)).
+The Delivery Preference does not change the ordering/reliability that QUIC streams impose.<a href="#section-6.4.2-3" class="pilcrow">¶</a></p>
+<table class="center" id="table-5">
+            <caption><a href="#table-5" class="selfRef">Table 5</a></caption>
+<thead>
+              <tr>
+                <th class="text-right" rowspan="1" colspan="1">ID</th>
+                <th class="text-left" rowspan="1" colspan="1">Name</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="text-right" rowspan="1" colspan="1">0</td>
+                <td class="text-left" rowspan="1" colspan="1">default</td>
+              </tr>
+              <tr>
+                <td class="text-right" rowspan="1" colspan="1">1</td>
+                <td class="text-left" rowspan="1" colspan="1">prefer-stalls</td>
+              </tr>
+              <tr>
+                <td class="text-right" rowspan="1" colspan="1">2</td>
+                <td class="text-left" rowspan="1" colspan="1">prefer-skips</td>
+              </tr>
+            </tbody>
+          </table>
+<ul class="normal">
+<li class="normal" id="section-6.4.2-5.1">
+              <p id="section-6.4.2-5.1.1"><code>default</code>: The publisher transmits according to the <code>priority</code> field for each stream, as chosen by the broadcaster.<a href="#section-6.4.2-5.1.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-6.4.2-5.2">
+              <p id="section-6.4.2-5.2.1"><code>prefer-stalls</code>: The publisher ignores the <code>priority</code> field, transmitting streams in ascending <code>group_id</code>, and then ascending <code>object_id</code> order.<a href="#section-6.4.2-5.2.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-6.4.2-5.3">
+              <p id="section-6.4.2-5.3.1"><code>prefer-skips</code>: The publisher ignores the <code>priority</code> field, transmiting streams in descending <code>group_id</code>, and then ascending <code>object_id</code> order.<a href="#section-6.4.2-5.3.1" class="pilcrow">¶</a></p>
+</li>
+          </ul>
 </section>
 </div>
 </section>
@@ -3031,19 +2998,20 @@ End = Group 3, Object &lt;last&gt;
         </h3>
 <p id="section-6.5-1">A SUBSCRIBE_OK control message is sent for successful subscriptions.<a href="#section-6.5-1" class="pilcrow">¶</a></p>
 <span id="name-moqt-subscribe_ok-message"></span><div id="moq-transport-subscribe-ok">
-<figure id="figure-12">
+<figure id="figure-11">
           <div class="alignLeft art-text artwork" id="section-6.5-2.1">
 <pre>
 SUBSCRIBE_OK
 {
   Subscribe ID (i),
-  ContentExists (1),
+  Expires (i),
+  ContentExists (f),
   [Largest Group ID (i)],
   [Largest Object ID (i)]
 }
 </pre>
 </div>
-<figcaption><a href="#figure-12" class="selfRef">Figure 12</a>:
+<figcaption><a href="#figure-11" class="selfRef">Figure 11</a>:
 <a href="#name-moqt-subscribe_ok-message" class="selfRef">MOQT SUBSCRIBE_OK Message</a>
           </figcaption></figure>
 </div>
@@ -3052,16 +3020,22 @@ SUBSCRIBE_OK
             <p id="section-6.5-3.1.1">Subscribe ID: Subscription Identifer as defined in <a href="#message-subscribe-req" class="auto internal xref">Section 6.4</a>.<a href="#section-6.5-3.1.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-6.5-3.2">
-            <p id="section-6.5-3.2.1">ContentExists: 1 if an object has been published on this track, 0 if not.
-If 0, then the Largest Group ID and Largest Object ID fields will not be
-present.<a href="#section-6.5-3.2.1" class="pilcrow">¶</a></p>
+            <p id="section-6.5-3.2.1">Expires: Time in milliseconds after which the subscription is no
+longer valid. A value of 0 indicates that the subscription does not expire
+or expires at an unknown time.  Expires is advisory and a subscription can
+end prior to the expiry time or last longer.<a href="#section-6.5-3.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-6.5-3.3">
-            <p id="section-6.5-3.3.1">Largest Group ID: the largest Group ID available for this track. This field is only present if ContentExists has a value of 1.<a href="#section-6.5-3.3.1" class="pilcrow">¶</a></p>
+            <p id="section-6.5-3.3.1">ContentExists: 1 if an object has been published on this track, 0 if not.
+If 0, then the Largest Group ID and Largest Object ID fields will not be
+present.<a href="#section-6.5-3.3.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-6.5-3.4">
-            <p id="section-6.5-3.4.1">Largest Object ID: the largest Object ID available within the largest Group ID
-for this track. This field is only present if ContentExists has a value of 1.<a href="#section-6.5-3.4.1" class="pilcrow">¶</a></p>
+            <p id="section-6.5-3.4.1">Largest Group ID: the largest Group ID available for this track. This field is only present if ContentExists has a value of 1.<a href="#section-6.5-3.4.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-6.5-3.5">
+            <p id="section-6.5-3.5.1">Largest Object ID: the largest Object ID available within the largest Group ID
+for this track. This field is only present if ContentExists has a value of 1.<a href="#section-6.5-3.5.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
@@ -3074,7 +3048,7 @@ for this track. This field is only present if ContentExists has a value of 1.<a 
 <p id="section-6.6-1">A publisher sends a SUBSCRIBE_ERROR control message in response to a
 failed SUBSCRIBE.<a href="#section-6.6-1" class="pilcrow">¶</a></p>
 <span id="name-moqt-subscribe_error-messag"></span><div id="moq-transport-subscribe-error">
-<figure id="figure-13">
+<figure id="figure-12">
           <div class="alignLeft art-text artwork" id="section-6.6-2.1">
 <pre>
 SUBSCRIBE_ERROR
@@ -3086,7 +3060,7 @@ SUBSCRIBE_ERROR
 }
 </pre>
 </div>
-<figcaption><a href="#figure-13" class="selfRef">Figure 13</a>:
+<figcaption><a href="#figure-12" class="selfRef">Figure 12</a>:
 <a href="#name-moqt-subscribe_error-messag" class="selfRef">MOQT SUBSCRIBE_ERROR Message</a>
           </figcaption></figure>
 </div>
@@ -3121,7 +3095,7 @@ SUBSCRIBE_DONE to acknowledge the unsubscribe was successful and indicate
 the final Object.<a href="#section-6.7-1" class="pilcrow">¶</a></p>
 <p id="section-6.7-2">The format of <code>UNSUBSCRIBE</code> is as follows:<a href="#section-6.7-2" class="pilcrow">¶</a></p>
 <span id="name-moqt-unsubscribe-message"></span><div id="moq-transport-unsubscribe-format">
-<figure id="figure-14">
+<figure id="figure-13">
           <div class="alignLeft art-text artwork" id="section-6.7-3.1">
 <pre>
 UNSUBSCRIBE Message {
@@ -3129,7 +3103,7 @@ UNSUBSCRIBE Message {
 }
 </pre>
 </div>
-<figcaption><a href="#figure-14" class="selfRef">Figure 14</a>:
+<figcaption><a href="#figure-13" class="selfRef">Figure 13</a>:
 <a href="#name-moqt-unsubscribe-message" class="selfRef">MOQT UNSUBSCRIBE Message</a>
           </figcaption></figure>
 </div>
@@ -3150,20 +3124,20 @@ is done publishing Objects for that subscription.  The Status Code indicates why
 the subscription ended, and whether it was an error.<a href="#section-6.8-1" class="pilcrow">¶</a></p>
 <p id="section-6.8-2">The format of <code>SUBSCRIBE_DONE</code> is as follows:<a href="#section-6.8-2" class="pilcrow">¶</a></p>
 <span id="name-moqt-subscribe_done-message"></span><div id="moq-transport-subscribe-fin-format">
-<figure id="figure-15">
+<figure id="figure-14">
           <div class="alignLeft art-text artwork" id="section-6.8-3.1">
 <pre>
 SUBSCRIBE_DONE Message {
   Subscribe ID (i),
   Status Code (i),
   Reason Phrase (b),
-  ContentExists (1),
+  ContentExists (f),
   [Final Group (i)],
   [Final Object (i)],
 }
 </pre>
 </div>
-<figcaption><a href="#figure-15" class="selfRef">Figure 15</a>:
+<figcaption><a href="#figure-14" class="selfRef">Figure 14</a>:
 <a href="#name-moqt-subscribe_done-message" class="selfRef">MOQT SUBSCRIBE_DONE Message</a>
           </figcaption></figure>
 </div>
@@ -3202,7 +3176,7 @@ receiver can route SUBSCRIBEs for tracks within the announced
 Track Namespace. The receiver verifies the publisher is authorized to
 publish tracks under this namespace.<a href="#section-6.9-1" class="pilcrow">¶</a></p>
 <span id="name-moqt-announce-message"></span><div id="moq-transport-announce-format">
-<figure id="figure-16">
+<figure id="figure-15">
           <div class="alignLeft art-text artwork" id="section-6.9-2.1">
 <pre>
 ANNOUNCE Message {
@@ -3212,7 +3186,7 @@ ANNOUNCE Message {
 }
 </pre>
 </div>
-<figcaption><a href="#figure-16" class="selfRef">Figure 16</a>:
+<figcaption><a href="#figure-15" class="selfRef">Figure 15</a>:
 <a href="#name-moqt-announce-message" class="selfRef">MOQT ANNOUNCE Message</a>
           </figcaption></figure>
 </div>
@@ -3235,7 +3209,7 @@ ANNOUNCE Message {
 <p id="section-6.10-1">The receiver sends an ANNOUNCE_OK control message to acknowledge the
 successful authorization and acceptance of an ANNOUNCE message.<a href="#section-6.10-1" class="pilcrow">¶</a></p>
 <span id="name-moqt-announce_ok-message"></span><div id="moq-transport-announce-ok">
-<figure id="figure-17">
+<figure id="figure-16">
           <div class="alignLeft art-text artwork" id="section-6.10-2.1">
 <pre>
 ANNOUNCE_OK
@@ -3244,7 +3218,7 @@ ANNOUNCE_OK
 }
 </pre>
 </div>
-<figcaption><a href="#figure-17" class="selfRef">Figure 17</a>:
+<figcaption><a href="#figure-16" class="selfRef">Figure 16</a>:
 <a href="#name-moqt-announce_ok-message" class="selfRef">MOQT ANNOUNCE_OK Message</a>
           </figcaption></figure>
 </div>
@@ -3264,7 +3238,7 @@ message for which this response is provided.<a href="#section-6.10-3.1.1" class=
 <p id="section-6.11-1">The receiver sends an ANNOUNCE_ERROR control message for tracks that
 failed authorization.<a href="#section-6.11-1" class="pilcrow">¶</a></p>
 <span id="name-moqt-announce_error-message"></span><div id="moq-transport-announce-error">
-<figure id="figure-18">
+<figure id="figure-17">
           <div class="alignLeft art-text artwork" id="section-6.11-2.1">
 <pre>
 ANNOUNCE_ERROR
@@ -3275,7 +3249,7 @@ ANNOUNCE_ERROR
 }
 </pre>
 </div>
-<figcaption><a href="#figure-18" class="selfRef">Figure 18</a>:
+<figcaption><a href="#figure-17" class="selfRef">Figure 17</a>:
 <a href="#name-moqt-announce_error-message" class="selfRef">MOQT ANNOUNCE_ERROR Message</a>
           </figcaption></figure>
 </div>
@@ -3302,7 +3276,7 @@ message for which this response is provided.<a href="#section-6.11-3.1.1" class=
 its intent to stop serving new subscriptions for tracks
 within the provided Track Namespace.<a href="#section-6.12-1" class="pilcrow">¶</a></p>
 <span id="name-moqt-unannounce-message"></span><div id="moq-transport-unannounce-format">
-<figure id="figure-19">
+<figure id="figure-18">
           <div class="alignLeft art-text artwork" id="section-6.12-2.1">
 <pre>
 UNANNOUNCE Message {
@@ -3310,7 +3284,7 @@ UNANNOUNCE Message {
 }
 </pre>
 </div>
-<figcaption><a href="#figure-19" class="selfRef">Figure 19</a>:
+<figcaption><a href="#figure-18" class="selfRef">Figure 18</a>:
 <a href="#name-moqt-unannounce-message" class="selfRef">MOQT UNANNOUNCE Message</a>
           </figcaption></figure>
 </div>
@@ -3334,7 +3308,7 @@ within the provided Track Namespace.<a href="#section-6.13-1" class="pilcrow">¶
 receiving an ANNOUNCE_CANCEL, it <span class="bcp14">SHOULD</span> close the session as a
 'Protocol Violation'.<a href="#section-6.13-2" class="pilcrow">¶</a></p>
 <span id="name-moqt-announce_cancel-messag"></span><div id="moq-transport-announce-cancel-format">
-<figure id="figure-20">
+<figure id="figure-19">
           <div class="alignLeft art-text artwork" id="section-6.13-3.1">
 <pre>
 ANNOUNCE_CANCEL Message {
@@ -3342,7 +3316,7 @@ ANNOUNCE_CANCEL Message {
 }
 </pre>
 </div>
-<figcaption><a href="#figure-20" class="selfRef">Figure 20</a>:
+<figcaption><a href="#figure-19" class="selfRef">Figure 19</a>:
 <a href="#name-moqt-announce_cancel-messag" class="selfRef">MOQT ANNOUNCE_CANCEL Message</a>
           </figcaption></figure>
 </div>
@@ -3366,7 +3340,7 @@ ANNOUNCE_CANCEL Message {
 terminate the session with a Protocol Violation (<a href="#session-termination" class="auto internal xref">Section 3.5</a>) if it
 receives multiple GOAWAY messages.<a href="#section-6.14-2" class="pilcrow">¶</a></p>
 <span id="name-moqt-goaway-message"></span><div id="moq-transport-goaway-format">
-<figure id="figure-21">
+<figure id="figure-20">
           <div class="alignLeft art-text artwork" id="section-6.14-3.1">
 <pre>
 GOAWAY Message {
@@ -3374,13 +3348,13 @@ GOAWAY Message {
 }
 </pre>
 </div>
-<figcaption><a href="#figure-21" class="selfRef">Figure 21</a>:
+<figcaption><a href="#figure-20" class="selfRef">Figure 20</a>:
 <a href="#name-moqt-goaway-message" class="selfRef">MOQT GOAWAY Message</a>
           </figcaption></figure>
 </div>
 <ul class="normal">
 <li class="normal" id="section-6.14-4.1">
-            <p id="section-6.14-4.1.1">New Session URI: The client <span class="bcp14">MUST</span> use this URI for the new session if provded.
+            <p id="section-6.14-4.1.1">New Session URI: The client <span class="bcp14">MUST</span> use this URI for the new session if provided.
 If the URI is zero bytes long, the current URI is reused instead. The new
 session URI <span class="bcp14">SHOULD</span> use the same scheme as the current URL to ensure
 compatibility.<a href="#section-6.14-4.1.1" class="pilcrow">¶</a></p>
@@ -3535,7 +3509,7 @@ leading varint in catalog track objects.<a href="#section-8-4" class="pilcrow">�
 <dd class="break"></dd>
 <dt id="WebTransport">[WebTransport]</dt>
       <dd>
-<span class="refAuthor">Frindell, A.</span>, <span class="refAuthor">Kinnear, E.</span>, and <span class="refAuthor">V. Vasiliev</span>, <span class="refTitle">"WebTransport over HTTP/3"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-webtrans-http3-08</span>, <time datetime="2023-10-23" class="refDate">23 October 2023</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-http3-08">https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-http3-08</a>&gt;</span>. </dd>
+<span class="refAuthor">Frindell, A.</span>, <span class="refAuthor">Kinnear, E.</span>, and <span class="refAuthor">V. Vasiliev</span>, <span class="refTitle">"WebTransport over HTTP/3"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-webtrans-http3-09</span>, <time datetime="2024-03-04" class="refDate">4 March 2024</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-http3-09">https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-http3-09</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 </dl>
 </section>
@@ -3548,7 +3522,7 @@ leading varint in catalog track objects.<a href="#section-8-4" class="pilcrow">�
 <dl class="references">
 <dt id="I-D.ietf-webtrans-overview">[I-D.ietf-webtrans-overview]</dt>
         <dd>
-<span class="refAuthor">Vasiliev, V.</span>, <span class="refTitle">"The WebTransport Protocol Framework"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-webtrans-overview-06</span>, <time datetime="2023-09-06" class="refDate">6 September 2023</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-overview-06">https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-overview-06</a>&gt;</span>. </dd>
+<span class="refAuthor">Vasiliev, V.</span>, <span class="refTitle">"The WebTransport Protocol Framework"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-webtrans-overview-07</span>, <time datetime="2024-03-04" class="refDate">4 March 2024</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-overview-07">https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-overview-07</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="RFC9000">[RFC9000]</dt>
       <dd>
