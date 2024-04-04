@@ -1579,7 +1579,7 @@ END_OF_GROUP Message {
   Subscribe ID (i),
   Track Alias (i),
   Group ID (i),
-  Next Object ID (i),
+  Object Count (i),
 }
 ~~~
 {: #moq-transport-end-of-group-format title="MOQT END_OF_GROUP Message"}
@@ -1589,8 +1589,8 @@ group, allowing receivers to easily determine if they are missing any objects
 from a group. END_OF_GROUP messages are not sent for groups whose subscription
 range does not include the last object of a group.
 
-The 'Next Object ID' field is one greater than the highest Object ID in the
-group. A publisher SHOULD send an END_OF_GROUP message with a Next Object ID of
+The 'Object Count' field is one greater than the highest Object ID in the
+group. A publisher MUST send an END_OF_GROUP message with a Next Object ID of
 zero when it skips a Group ID.
 
 When a track's forwading preference is 'Track', the sender interleaves
