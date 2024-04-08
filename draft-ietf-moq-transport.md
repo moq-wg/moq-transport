@@ -1574,6 +1574,8 @@ ANNOUNCE_CANCEL Message {
 A potential subscriber sends a 'TRACK_STATUS_REQUEST' message on the control
  stream to obtain information about the current status of a given track.
 
+A TRACK_STATUS message MUST be sent in response to each TRACK_STATUS_REQUEST.
+
 ~~~
 TRACK_STATUS_REQUEST Message {
   Track Namespace (b),
