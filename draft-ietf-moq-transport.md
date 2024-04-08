@@ -1603,7 +1603,7 @@ track. It MUST hold one of the following values. Any other value is a malformed
 message.
 
 0x00: The track is in progress, and subsequent fields contain the highest group
-and object ID known to the sender for that track.
+and object ID for that track.
 
 0x01: The track does not exist. Subsequent fields MUST be zero, and any other
 value is a malformed message.
