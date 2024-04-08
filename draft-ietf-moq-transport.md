@@ -794,6 +794,10 @@ MOQT Message {
 |-------|-----------------------------------------------------|
 | 0xC   | ANNOUNCE_CANCEL ({{message-announce-cancel}})       |
 |-------|-----------------------------------------------------|
+| 0xD   | TRACK_STATUS_REQUEST ({{message-track-status-req}}) |
+|-------|-----------------------------------------------------|
+| 0xE   | TRACK_STATUS ({{message-track-status}})             |
+|-------|-----------------------------------------------------|
 | 0x10  | GOAWAY ({{message-goaway}})                         |
 |-------|-----------------------------------------------------|
 | 0x40  | CLIENT_SETUP ({{message-setup}})                    |
@@ -1564,6 +1568,73 @@ ANNOUNCE_CANCEL Message {
 
 * Track Namespace: Identifies a track's namespace as defined in
 ({{track-name}}).
+
+## TRACK_STATUS_REQUEST {#message-track-status-req}
+
+A potential subscriber sends a 'TRACK_STATUS_REQUEST' message on the control
+ stream to obtain information about the current status of a given track.
+
+A TRACK_STATUS message MUST be sent in response to each TRACK_STATUS_REQUEST.
+
+~~~
+TRACK_STATUS_REQUEST Message {
+  Track Namespace (b),
+  Track Name (b),
+}
+~~~
+{: #moq-track-status-request-format title="MOQT TRACK_STATUS_REQUEST Message"}
+
+## TRACK_STATUS {#message-track-status}
+
+An endpoint sends a 'TRACK_STATUS' message on the control stream in response
+to a TRACK_STATUS_REQUEST message.
+
+~~~
+TRACK_STATUS Message {
+  Track Namespace (b),
+  Track Name (b),
+  Status Code (i),
+  Last Group ID (i),
+  Last Object ID (i),
+}
+~~~
+{: #moq-track-status-format title="MOQT TRACK_STATUS Message"}
+
+The 'Status Code' field provides additional information about the status of the
+track. It MUST hold one of the following values. Any other value is a malformed
+message.
+
+0x00: The track is in progress, and subsequent fields contain the highest group
+and object ID for that track.
+
+0x01: The track does not exist. Subsequent fields MUST be zero, and any other
+value is a malformed message.
+
+0x02: The track has not yet begun. Subsequent fields MUST be zero. Any other
+value is a malformed message.
+
+0x03: The track has finished, so there is no "live edge." Subsequent fields
+contain the highest Group and object ID known.
+
+0x04: The sender is a relay that cannot obtain the current track status from
+upstream. Subsequent fields contain the largest group and object ID known.
+
+Any other value in the Status Code field is a malformed message.
+
+When a relay is subscribed to a track, it can simply return the highest group
+and object ID it has observed, whether or not that object was cached or
+completely delivered. If not subscribed, a relay SHOULD send a
+TRACK_STATUS_REQUEST upstream to obtain updated information.
+
+Alternatively, the relay MAY subscribe to the track to obtain the same
+information.
+
+If a relay cannot or will not do either, it should return its best available
+information with status code 0x04.
+
+The receiver of multiple TRACK_STATUS messages for a track uses the information
+from the latest arriving message, as they are delivered in order on a single
+stream.
 
 ## GOAWAY {#message-goaway}
 The server sends a `GOAWAY` message to initiate session migration
