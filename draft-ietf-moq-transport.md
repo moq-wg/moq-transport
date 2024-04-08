@@ -1622,9 +1622,9 @@ upstream. Subsequent fields contain the largest group and object ID known.
 Any other value in the Status Code field is a malformed message.
 
 When a relay is subscribed to a track, it can simply return the highest group
-and object ID it has observed, whether or not that object was cached. If not
-subscribed, a relay SHOULD send a TRACK_STATUS_REQUEST upstream to obtain
-updated information.
+and object ID it has observed, whether or not that object was cached or
+completely delivered. If not subscribed, a relay SHOULD send a
+TRACK_STATUS_REQUEST upstream to obtain updated information.
 
 Alternatively, the relay MAY subscribe to the track to obtain the same
 information.
