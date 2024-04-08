@@ -1612,7 +1612,7 @@ value is a malformed message.
 value is a malformed message.
 
 0x03: The track has finished, so there is no "live edge." Subsequent fields
-contain the highest Group and object ID known to the sender.
+contain the highest Group and object ID known.
 
 0x04: The sender is a relay that cannot obtain the current track status from
 upstream. Subsequent fields contain the largest group and object ID known to
