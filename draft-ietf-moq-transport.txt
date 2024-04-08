@@ -5,13 +5,13 @@
 MOQ                                                            L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 24 September 2024                                          Meta
+Expires: 10 October 2024                                            Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                           23 March 2024
+                                                            8 April 2024
 
 
                        Media over QUIC Transport
@@ -53,7 +53,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 24 September 2024.
+   This Internet-Draft will expire on 10 October 2024.
 
 Copyright Notice
 
@@ -127,7 +127,9 @@ Table of Contents
      6.11. ANNOUNCE_ERROR
      6.12. UNANNOUNCE
      6.13. ANNOUNCE_CANCEL
-     6.14. GOAWAY
+     6.14. TRACK_STATUS_REQUEST
+     6.15. TRACK_STATUS
+     6.16. GOAWAY
    7.  Security Considerations
      7.1.  Resource Exhaustion
    8.  IANA Considerations
@@ -530,7 +532,7 @@ Table of Contents
       that was already in use.
 
    *  GOAWAY Timeout: The session was closed because the client took too
-      long to close the session in response to a GOAWAY (Section 6.14)
+      long to close the session in response to a GOAWAY (Section 6.16)
       message.  See session migration (Section 3.6).
 
 3.6.  Migration
@@ -539,7 +541,7 @@ Table of Contents
    service provider needs the ability to shutdown/restart a server
    without waiting for all sessions to drain naturally, as that can take
    days for long-form media.  MoqTransport avoids this via the GOAWAY
-   message (Section 6.14).
+   message (Section 6.16).
 
    The server sends a GOAWAY message, signaling that the client should
    establish a new session and migrate any active subscriptions.  The
@@ -862,7 +864,11 @@ Table of Contents
               +------+-------------------------------------+
               |  0xC | ANNOUNCE_CANCEL (Section 6.13)      |
               +------+-------------------------------------+
-              | 0x10 | GOAWAY (Section 6.14)               |
+              |  0xD | TRACK_STATUS_REQUEST (Section 6.14) |
+              +------+-------------------------------------+
+              |  0xE | TRACK_STATUS (Section 6.15)         |
+              +------+-------------------------------------+
+              | 0x10 | GOAWAY (Section 6.16)               |
               +------+-------------------------------------+
               | 0x40 | CLIENT_SETUP (Section 6.2)          |
               +------+-------------------------------------+
@@ -1623,7 +1629,76 @@ Table of Contents
    *  Track Namespace: Identifies a track's namespace as defined in
       (Section 2.3.1).
 
-6.14.  GOAWAY
+6.14.  TRACK_STATUS_REQUEST
+
+   A potential subscriber sends a 'TRACK_STATUS_REQUEST' message on the
+   control stream to obtain information about the current status of a
+   given track.
+
+   A TRACK_STATUS message MUST be sent in response to each
+   TRACK_STATUS_REQUEST.
+
+   TRACK_STATUS_REQUEST Message {
+     Track Namespace (b),
+     Track Name (b),
+   }
+
+                Figure 21: MOQT TRACK_STATUS_REQUEST Message
+
+6.15.  TRACK_STATUS
+
+   An endpoint sends a 'TRACK_STATUS' message on the control stream in
+   response to a TRACK_STATUS_REQUEST message.
+
+   TRACK_STATUS Message {
+     Track Namespace (b),
+     Track Name (b),
+     Status Code (i),
+     Last Group ID (i),
+     Last Object ID (i),
+   }
+
+                    Figure 22: MOQT TRACK_STATUS Message
+
+   The 'Status Code' field provides additional information about the
+   status of the track.  It MUST hold one of the following values.  Any
+   other value is a malformed message.
+
+   0x00: The track is in progress, and subsequent fields contain the
+   highest group and object ID for that track.
+
+   0x01: The track does not exist.  Subsequent fields MUST be zero, and
+   any other value is a malformed message.
+
+   0x02: The track has not yet begun.  Subsequent fields MUST be zero.
+   Any other value is a malformed message.
+
+   0x03: The track has finished, so there is no "live edge."  Subsequent
+   fields contain the highest Group and object ID known.
+
+   0x04: The sender is a relay that cannot obtain the current track
+   status from upstream.  Subsequent fields contain the largest group
+   and object ID known.
+
+   Any other value in the Status Code field is a malformed message.
+
+   When a relay is subscribed to a track, it can simply return the
+   highest group and object ID it has observed, whether or not that
+   object was cached or completely delivered.  If not subscribed, a
+   relay SHOULD send a TRACK_STATUS_REQUEST upstream to obtain updated
+   information.
+
+   Alternatively, the relay MAY subscribe to the track to obtain the
+   same information.
+
+   If a relay cannot or will not do either, it should return its best
+   available information with status code 0x04.
+
+   The receiver of multiple TRACK_STATUS messages for a track uses the
+   information from the latest arriving message, as they are delivered
+   in order on a single stream.
+
+6.16.  GOAWAY
 
    The server sends a GOAWAY message to initiate session migration
    (Section 3.6) with an optional URI.
@@ -1637,7 +1712,7 @@ Table of Contents
      New Session URI (b)
    }
 
-                       Figure 21: MOQT GOAWAY Message
+                       Figure 23: MOQT GOAWAY Message
 
    *  New Session URI: The client MUST use this URI for the new session
       if provided.  If the URI is zero bytes long, the current URI is
