@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2024-04-07T01:12:38.311157+00:00",
+  "timestamp": "2024-04-09T01:07:39.185409+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -15212,15 +15212,15 @@
       "labels": [],
       "body": "As far as I understand, we currently allow group IDs to have gaps in them, with only requirement for them is that they are monotonically increasing.  This presents a problem with caching.  Assume I am a relay, and I receive a range request for `[10, 20)`; if the origin has never produced group 15, then even if I have the entirety of that range in cache, I would not know that, since 15 would be just missing, and the only thing I can do with that is to request 15 from the origin every time.\r\n\r\nPossible solutions to this problem:\r\n1. Add some mechanism to indicate that 15 is not there (e.g. by putting the number of previous group in the beginning of every group).\r\n2. Require group numbers to be incrementing by one.\r\n\r\nI am fan of approach number 2 since it's conceptually simpler, but I think we can make some version of 1 work.",
       "createdAt": "2024-04-04T16:37:48Z",
-      "updatedAt": "2024-04-06T22:55:36Z",
+      "updatedAt": "2024-04-09T00:53:46Z",
       "closedAt": null,
       "comments": [
         {
           "author": "suhasHere",
           "authorAssociation": "COLLABORATOR",
-          "body": "I am not fan of approach 2 since it is limiting and applies to typical media applications only.\r\n\r\nI think we need to understand that, the application knows how the groupId increment. Catalog should provide that information for the players.\r\n\r\nRegarding if there is a gap due to object being dropped, that information is identified within the object itself.\r\n\r\nLet's take an application example where the group numbers increment by 2. So the groups would be 10,12,14,16,18,20 in the above example.\r\nNow consider that group 12 was  not sent by the publisher , then the relay's cache will be in this form\r\n[10, 12 (not sent by the publisher), 14,16,18, 20]\r\n\r\nKeeping relay unaware of application semantics is something we should allow. Regardless, the end applications know exactly how the groups behave and if there are geps (either due to broadcaster not producing or dropped for other reasons), things will be identified as such",
+          "body": "I am not fan of approach 2 since it is limiting and applies to typical media applications only.\r\n\r\nI think we need to understand that, the application controls the groupIds and they are independent sync points.\nCatalog should provide that information for the players.\r\n\r\nRegarding if there is a gap due to object being dropped, that information is identified within the object itself.\r\n\r\nLet's take an application example where the group numbers increment by 2. So the groups would be 10,12,14,16,18,20 in the above example.\r\nNow consider that group 12 was  dropped by the publisher , then the relay's cache will be in this form\r\n[10, 12 (not sent by the publisher), 14,16,18, 20]\r\n\r\nKeeping relay unaware of application semantics is something we should allow. Regardless, the end applications know exactly how the groups behave and if there are geps (either due to broadcaster not producing or dropped for other reasons), things will be identified over dataplane as such",
           "createdAt": "2024-04-04T21:43:26Z",
-          "updatedAt": "2024-04-04T21:43:26Z"
+          "updatedAt": "2024-04-09T00:53:46Z"
         },
         {
           "author": "afrind",
@@ -15407,16 +15407,16 @@
         {
           "author": "suhasHere",
           "authorAssociation": "COLLABORATOR",
-          "body": "> > In the case where 15 was never produced for whatever reason, the publisher will need to mark it as such in the response regardless (like 15(not produced), 16, 17), as this will aid subsequent requests to not repeat the same request.\r\n> \r\n> Are you saying that the publisher is allowed to skip group IDs, but it has to explicitly mark groups in the middle as missing? This de-facto makes them sequential.\r\n\r\nThis is the gap use-case that had a requirement  for players who want to know if a given group that is expected  is marked explicitly when source drops, thus allowing player to not wait forever. \r\n\r\nThere are couple of things we are talking here IIUC.\r\n\r\n1. Publisher explicitly marking things when it decides it will drop.\r\n2. Publisher responding to the request for a non existent group. (never produced, permanently gone or dropped)\r\n3. Players knowing not to expect certain groupIds since they know from catalog that the group distribution will not generate such a groupId\r\n4. Players knowing not to wait for missing groups \r\n5. Cachefill from either subscribe and/or publish.\r\n\r\nAll these can be done regardless of how group numbers are distributed. No",
+          "body": "> > In the case where 15 was never produced for whatever reason, the publisher will need to mark it as such in the response regardless (like 15(not produced), 16, 17), as this will aid subsequent requests to not repeat the same request.\r\n> \r\n> Are you saying that the publisher is allowed to skip group IDs, but it has to explicitly mark groups in the middle as missing? This de-facto makes them sequential.\r\n\r\n\r\nNot exactly that. This is the gap use-case that had a requirement  for players who want to know if a given group that is expected  is marked explicitly when source drops, thus allowing player to not wait forever. \r\n\r\nThere are couple of things we are talking here IIUC.\r\n\r\n1. Publisher explicitly marking things when it decides  to drop.\r\n2. Publisher responding to the request for a non existent things (never produced, permanently gone or dropped)\r\n3. Players knowing not to expect certain groupIds since they know from catalog that the group distribution will not generate such groupIds.\r\n4. Players knowing not to wait for missing things.\r\n5. Cache-fill from either subscribe and/or publish.\r\n6. Relay asking upstream for things that is not its cache\r\n7. Clients and Relays need to be able to process groups out of order.\r\n\r\nAll these can be done or needed regardless of how group numbers are distributed.",
           "createdAt": "2024-04-06T04:53:40Z",
-          "updatedAt": "2024-04-06T22:55:36Z"
+          "updatedAt": "2024-04-08T20:13:08Z"
         },
         {
           "author": "suhasHere",
           "authorAssociation": "COLLABORATOR",
-          "body": "> the only thing I can do with that is to request 15 from the origin every time.\r\n\r\nWant to clarify that,  one needs to request for 15 only one time, if the fetch request asks for it. Asking origin for an object that evaluates to a non existent object ( never produced, not produced since origin decided to drop it or permanently gone from the origin) needs to be updated in the cache. Since a fetch can happen for object that fall in to any of these cases and a relay that doesn't have that object in the cache will need to go back and find out the answer and it needs to do only once.",
+          "body": "> the only thing I can do with that is to request 15 from the origin every time.\r\n\r\nWant to clarify that,  one needs to request for 15 only one time, **if and only if** the fetch request asks for it. Also a client who is aware that group 15 will not be generated, per catalog, will not ask for it either. Regardless of the group distribution, relays can be asked for things that it not in its cache. \r\n\r\nAsking origin for that evaluates to a non existent things ( never produced, not produced since origin decided to drop it or permanently gone from the origin) needs to be updated in the cache. Since a fetch can happen for things that fall in to any of these cases and a relay that doesn't have that information in the cache will need to go back and find out the answer and it needs to do only once.",
           "createdAt": "2024-04-06T14:15:33Z",
-          "updatedAt": "2024-04-06T14:28:31Z"
+          "updatedAt": "2024-04-08T14:13:35Z"
         },
         {
           "author": "kixelated",
@@ -15428,9 +15428,9 @@
         {
           "author": "suhasHere",
           "authorAssociation": "COLLABORATOR",
-          "body": "> I want to second this. @suhasHere would allowing groups of size 0 work for you?\r\n\r\nyes it is totally possible and should be allowed and explicitly signaled.\r\n\r\n\r\n_\"The problem today is the ambiguity. A subscriber doesn't know if 15 is in flight or will never arrive. If the publisher explicitly tells the subscriber that 15 is empty (or dropped) then that solves _things.\"__\r\n\r\nagree completely. We need things to be marked to indicate things when dropped at the publisher. This is needed for reasons pointed out in https://github.com/moq-wg/moq-transport/issues/427#issuecomment-2041101690 and https://github.com/moq-wg/moq-transport/issues/427#issuecomment-2040965981",
+          "body": "> I want to second this. @suhasHere would allowing groups of size 0 work for you?\r\n\r\nyes if there is a reason for a producer to drop entire groups and should be explicitly signaled.\r\n\r\n\r\n_\"The problem today is the ambiguity. A subscriber doesn't know if 15 is in flight or will never arrive. If the publisher explicitly tells the subscriber that 15 is empty (or dropped) then that solves _things.\"__\r\n\r\nWe need things to be marked to indicate things when dropped at the publisher. This is needed for reasons pointed out in https://github.com/moq-wg/moq-transport/issues/427#issuecomment-2041101690 and https://github.com/moq-wg/moq-transport/issues/427#issuecomment-2040965981",
           "createdAt": "2024-04-06T16:07:40Z",
-          "updatedAt": "2024-04-06T16:51:04Z"
+          "updatedAt": "2024-04-07T13:52:48Z"
         }
       ]
     }
@@ -52653,24 +52653,26 @@
       "id": "PR_kwDOG2Ho4M5rlwJ7",
       "title": "Add a way to get the current group ID",
       "url": "https://github.com/moq-wg/moq-transport/pull/425",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "martinduke",
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
       "labels": [],
       "body": "There is a bit of angst about using SUBSCRIBE to obtain the current Group ID. This PR is a straw man to provide an explicit means of obtaining the group ID.\r\n\r\nI would be surprised if this ended up in the final RFC, but it might be useful to keep in the draft as a primitive while the other SUBSCRIBE/FETCH stuff moves around.",
       "createdAt": "2024-04-03T16:07:32Z",
-      "updatedAt": "2024-04-04T21:56:24Z",
+      "updatedAt": "2024-04-08T20:58:48Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "8f4d441c5f799e80bb2f8291f82a3d936e7e7799",
       "headRepository": "martinduke/moq-transport",
       "headRefName": "current-group",
-      "headRefOid": "9949a86c5a67e1ec8b313c2c8463349b6b206565",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "headRefOid": "10a7d768b325765f8b7588e23b1788ffb99b1c55",
+      "closedAt": "2024-04-08T20:58:48Z",
+      "mergedAt": "2024-04-08T20:58:48Z",
+      "mergedBy": "ianswett",
+      "mergeCommit": {
+        "oid": "866710a79cbc6e5bedc1c9afde8cd218d750869a"
+      },
       "comments": [
         {
           "author": "fluffy",
@@ -52812,6 +52814,132 @@
           "body": "",
           "createdAt": "2024-04-04T21:56:24Z",
           "updatedAt": "2024-04-04T21:56:24Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M52a7O_",
+          "commit": {
+            "abbreviatedOid": "821410c"
+          },
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-04-08T15:22:37Z",
+          "updatedAt": "2024-04-08T15:22:37Z",
+          "comments": [
+            {
+              "originalPosition": 38,
+              "body": "Suhas approved, resolving issue",
+              "createdAt": "2024-04-08T15:22:37Z",
+              "updatedAt": "2024-04-08T15:22:37Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M52dLEd",
+          "commit": {
+            "abbreviatedOid": "9949a86"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-04-08T20:34:20Z",
+          "updatedAt": "2024-04-08T20:34:21Z",
+          "comments": [
+            {
+              "originalPosition": 49,
+              "body": "```suggestion\r\nand object ID for that track.\r\n```",
+              "createdAt": "2024-04-08T20:34:21Z",
+              "updatedAt": "2024-04-08T20:34:21Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M52dLN7",
+          "commit": {
+            "abbreviatedOid": "5fc25db"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-04-08T20:34:46Z",
+          "updatedAt": "2024-04-08T20:34:46Z",
+          "comments": [
+            {
+              "originalPosition": 58,
+              "body": "```suggestion\r\ncontain the highest Group and object ID known.\r\n```",
+              "createdAt": "2024-04-08T20:34:46Z",
+              "updatedAt": "2024-04-08T20:34:47Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M52dLVR",
+          "commit": {
+            "abbreviatedOid": "fed34a6"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-04-08T20:35:08Z",
+          "updatedAt": "2024-04-08T20:35:08Z",
+          "comments": [
+            {
+              "originalPosition": 62,
+              "body": "```suggestion\r\nupstream. Subsequent fields contain the largest group and object ID known.\r\n```",
+              "createdAt": "2024-04-08T20:35:08Z",
+              "updatedAt": "2024-04-08T20:35:09Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M52dNxm",
+          "commit": {
+            "abbreviatedOid": "e56fa9f"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2024-04-08T20:40:06Z",
+          "updatedAt": "2024-04-08T20:40:06Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M52dTc3",
+          "commit": {
+            "abbreviatedOid": "e56fa9f"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-04-08T20:58:13Z",
+          "updatedAt": "2024-04-08T20:58:14Z",
+          "comments": [
+            {
+              "originalPosition": 70,
+              "body": "```suggestion\r\nWhen a relay is subscribed to a track, it can simply return the highest group\r\nand object ID it has observed, whether or not that object was cached or\r\ncompletely delivered. If not subscribed, a relay SHOULD send a\r\nTRACK_STATUS_REQUEST upstream to obtain updated information.\r\n```",
+              "createdAt": "2024-04-08T20:58:14Z",
+              "updatedAt": "2024-04-08T20:58:14Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M52dTmv",
+          "commit": {
+            "abbreviatedOid": "10a7d76"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2024-04-08T20:58:43Z",
+          "updatedAt": "2024-04-08T20:58:43Z",
           "comments": []
         }
       ]
@@ -53196,7 +53324,7 @@
       "labels": [],
       "body": "The default behavior for live streams will be `prefer-skip` as encoded in the priority field. This doesn't work for VOD and reliable live, as they want to receive objects in creation order instead.\r\n\r\nThis is a counter-proposal to the FETCH keyword which attempts to accomplish something similar, but in a way that won't work for reliable live.\r\n\r\nThis PR also removes relative start/end offsets because SUBSCRIBE was getting too complex. An application that wants to start N groups back needs to use use #425 or a timeline to learn about the absolute group/object IDs.",
       "createdAt": "2024-04-04T22:30:43Z",
-      "updatedAt": "2024-04-06T15:51:24Z",
+      "updatedAt": "2024-04-07T03:18:56Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "8f4d441c5f799e80bb2f8291f82a3d936e7e7799",
@@ -53366,6 +53494,26 @@
               "body": "> \"mandate relays\" is not in the scope of moqt. Also if we mandated something like that, subscriber that is asking opposite behavior will experience the negative effects of such a choice.\r\n\r\nThis is a relay-specifc problem. Specifically, when one upstream subscribe is deduplicated into multiple downstream subscriptions with different preferences. \r\n\r\nI like the relay always asking for `default` as it punts the responsibility to the broadcaster/application. It's much like send order today: a broadcaster could push groups in descending order (via SUBSCRIBE) while a viewer pulls in ascending order (via FETCH). \r\n\r\nThere's no getting around the fact that only one copy of the media will arrive and the first-mile order won't be ideal for every viewer. This proposal makes sure the last-mile order is ideal.",
               "createdAt": "2024-04-06T15:51:24Z",
               "updatedAt": "2024-04-06T15:59:04Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M52TilS",
+          "commit": {
+            "abbreviatedOid": "7c6dd59"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-04-07T03:18:56Z",
+          "updatedAt": "2024-04-07T03:18:56Z",
+          "comments": [
+            {
+              "originalPosition": 158,
+              "body": "I feel  we are trying to mix 2 different things here\r\n - Priority interaction\r\n - Client preference to wait or to continue without waiting\r\n \r\nGroups in ascending vs descending order seems to be more of priority relayed.  Client preference can be dealt separately than the order discussion IIUC.\r\n\r\nAlso something like client preference if enabled has to be explicitly specified as last-mile only with an exception saying the client might not get what it is asking for probably ?\r\n\r\n\r\n\r\n\r\n",
+              "createdAt": "2024-04-07T03:18:56Z",
+              "updatedAt": "2024-04-07T03:18:56Z"
             }
           ]
         }
