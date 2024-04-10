@@ -975,15 +975,57 @@ A canonical MoQ Object has the following information:
 IDs starts at 0, increasing sequentially for each object within the
 group.
 
-* Object Send Order: An integer indicating the object send order
-{{send-order}} or priority {{ordering-by-priorities}} value.
 
 * Object Forwarding Preference: An enumeration indicating how a sender sends an
 object. The preferences are Track, Group, Object and Datagram.  An Object MUST
 be sent according to its `Object Forwarding Preference`, described below.
 
+* Object Status: As enumeration used for missing or dropped ojects that
+  indicates why data is missing.
+
 * Object Payload: An opaque payload intended for the consumer and SHOULD
 NOT be processed by a relay.
+
+There is also a status field which help subscribers understand what
+objects it will not receive due to then being dropped, lost, or never be
+produced including the case where they will not be produced because they
+are beyond the end of a group or track. Every object has an associated
+`Status` that can have following values:
+
+* 0x0 := Object exists at the publisher and payload is non-null array of
+         bytes.
+
+* 0x1 := Object non existent at the publisher and has zero sized
+         payload. Sent by the media producer and sent to indicate that
+         the given object identified by the Object Id doesn't exist for
+         the reasons specific to the producer.
+
+* 0x2 := Group non existent. Sent by a publisher and indicates the group
+         identified by the groupId doesn't exist at the producer. This
+         is the only message sent on the unidirectional stream when
+         using Stream per group and Stream per object forwarding
+         preference.
+
+* 0x3 := Object dropped at the relay. Sent by a relay indicating the
+         object identified by the ObjectId was dropped. The payload will
+         be empty in this case.
+
+* 0x4 := Group dropped at the relay. Sent by a relay indicating the
+         group identified by the GroupId was dropped. The payload will
+         be empty in this case.
+
+* 0x5 := Indicates end of group. ObjectId identifies the largest object
+         produced in the group identified by the GroupID. This is sent
+         right after the last object in the group and on the same
+         stream. If the group is dropped there will only one message
+         with this status for the group.
+
+* 0x6 := Indicates end of track. GroupID and ObjectId identifies the
+         largest group and object produced in this track. This is sent
+         right after the last object in the track and on the same
+         stream. If the group is dropped there will only one message
+         with this status for the group.
+
 
 ### Object Message Formats
 
@@ -1012,6 +1054,7 @@ OBJECT_STREAM Message {
   Group ID (i),
   Object ID (i),
   Object Send Order (i),
+  Object Status (i),
   Object Payload (..),
 }
 ~~~
@@ -1048,6 +1091,7 @@ OBJECT_DATAGRAM Message {
   Group ID (i),
   Object ID (i),
   Object Send Order (i),
+  Object Status (i),
   Object Payload (..),
 }
 ~~~
@@ -1094,6 +1138,7 @@ stream that is associated with the subscription, or open a new one and send the
 {
   Group ID (i),
   Object ID (i),
+  Object Status (i),
   Object Payload Length (i),
   Object Payload (..),
 }
@@ -1132,6 +1177,7 @@ then serialize the following fields.
 ~~~
 {
   Object ID (i),
+  Object Status (i),
   Object Payload Length (i),
   Object Payload (..),
 }
