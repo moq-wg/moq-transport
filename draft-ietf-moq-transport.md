@@ -666,7 +666,7 @@ as defined below:
 | 0x2  | Retry Track Alias         |
 |------|---------------------------|
 
-The applicaiton SHOULD use a relevant status code in
+The application SHOULD use a relevant status code in
 SUBSCRIBE_DONE, as defined below:
 
 |------|---------------------------|
@@ -1017,7 +1017,7 @@ OBJECT_STREAM Message {
 ~~~
 {: #moq-transport-object-stream-format title="MOQT OBJECT_STREAM Message"}
 
-* Subscribe ID: Subscription Identifer as defined in {{message-subscribe-req}}.
+* Subscribe ID: Subscription Identifier as defined in {{message-subscribe-req}}.
 
 * Track Alias: Identifies the Track Namespace and Track Name as defined in
 {{message-subscribe-req}}.
@@ -1088,7 +1088,7 @@ Forwarding Preference` = `Track`.
 
 To send an Object with `Object Forwarding Preference` = `Track`, find the open
 stream that is associated with the subscription, or open a new one and send the
-`STREAM_HEADER_TRACK` if needed, then serialize the the following object fields.
+`STREAM_HEADER_TRACK` if needed, then serialize the following object fields.
 
 ~~~
 {
@@ -1375,7 +1375,7 @@ SUBSCRIBE_OK
 ~~~
 {: #moq-transport-subscribe-ok format title="MOQT SUBSCRIBE_OK Message"}
 
-* Subscribe ID: Subscription Identifer as defined in {{message-subscribe-req}}.
+* Subscribe ID: Subscription Identifier as defined in {{message-subscribe-req}}.
 
 * Expires: Time in milliseconds after which the subscription is no
 longer valid. A value of 0 indicates that the subscription does not expire
@@ -1408,7 +1408,7 @@ SUBSCRIBE_ERROR
 ~~~
 {: #moq-transport-subscribe-error format title="MOQT SUBSCRIBE_ERROR Message"}
 
-* Subscribe ID: Subscription Identifer as defined in {{message-subscribe-req}}.
+* Subscribe ID: Subscription Identifier as defined in {{message-subscribe-req}}.
 
 * Error Code: Identifies an integer error code for subscription failure.
 
@@ -1436,7 +1436,7 @@ UNSUBSCRIBE Message {
 ~~~
 {: #moq-transport-unsubscribe-format title="MOQT UNSUBSCRIBE Message"}
 
-* Subscribe ID: Subscription Identifer as defined in {{message-subscribe-req}}.
+* Subscribe ID: Subscription Identifier as defined in {{message-subscribe-req}}.
 
 ## SUBSCRIBE_DONE {#message-subscribe-done}
 
@@ -1555,7 +1555,7 @@ The subscriber sends an `ANNOUNCE_CANCEL` control message to
 indicate it will stop sending new subscriptions for tracks
 within the provided Track Namespace.
 
-If a publisher recieves new subscriptions for that namespace after
+If a publisher receives new subscriptions for that namespace after
 receiving an ANNOUNCE_CANCEL, it SHOULD close the session as a
 'Protocol Violation'.
 
