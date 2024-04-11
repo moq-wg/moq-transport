@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2024-04-09T01:07:39.185409+00:00",
+  "timestamp": "2024-04-11T01:08:16.454560+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -13986,7 +13986,7 @@
       ],
       "body": "Subscriptions always end with either SUBSCRIBE_FIN or SUBSCRIBE_RESET, except when they Expire and then no control message is sent.  This complicates the state machine and adds another case to handle.\r\n\r\nThe subscriber needs to start a timer or something similar to know when the subscription will end, and it doesn't get to know the final group or object ID.",
       "createdAt": "2024-02-19T20:36:31Z",
-      "updatedAt": "2024-03-04T22:40:55Z",
+      "updatedAt": "2024-04-10T15:57:26Z",
       "closedAt": null,
       "comments": [
         {
@@ -14009,6 +14009,13 @@
           "body": "Based on last week's conversation, the Expires field doesn't change the state of the subscription by itself, a publisher would still have to send a FIN or RESET to close it.\r\n\r\nIt's still unclear as to what a subscriber should do with it.  There was a fair amount of discussion around refreshing one's authorization.  It's unclear if that would be done with a SUBSCRIBE_UPDATE or something similar or via UNSUBSCRIBE/SUBSCRIBE?",
           "createdAt": "2024-02-29T15:34:05Z",
           "updatedAt": "2024-02-29T15:34:05Z"
+        },
+        {
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "Would the solution to this be when the relay expires a subscription, it sends a control message ?  This might all become clearer once we figure out re authentication but at a high level, I want some way that the relays can clean up state on a time line that is under relay control particularly when poorly implemented clients make subscriptions. \r\n\r\n",
+          "createdAt": "2024-04-10T15:57:25Z",
+          "updatedAt": "2024-04-10T15:57:25Z"
         }
       ]
     },
@@ -15212,7 +15219,7 @@
       "labels": [],
       "body": "As far as I understand, we currently allow group IDs to have gaps in them, with only requirement for them is that they are monotonically increasing.  This presents a problem with caching.  Assume I am a relay, and I receive a range request for `[10, 20)`; if the origin has never produced group 15, then even if I have the entirety of that range in cache, I would not know that, since 15 would be just missing, and the only thing I can do with that is to request 15 from the origin every time.\r\n\r\nPossible solutions to this problem:\r\n1. Add some mechanism to indicate that 15 is not there (e.g. by putting the number of previous group in the beginning of every group).\r\n2. Require group numbers to be incrementing by one.\r\n\r\nI am fan of approach number 2 since it's conceptually simpler, but I think we can make some version of 1 work.",
       "createdAt": "2024-04-04T16:37:48Z",
-      "updatedAt": "2024-04-09T00:53:46Z",
+      "updatedAt": "2024-04-10T23:13:29Z",
       "closedAt": null,
       "comments": [
         {
@@ -15337,9 +15344,9 @@
         {
           "author": "suhasHere",
           "authorAssociation": "COLLABORATOR",
-          "body": "> This diagram shows three tracks. The first two tracks are valid, one with temporally contiguous and the other with temporally non-contiguous groups. The third track is not valid, as we don't allow a publisher to produce objects at the same time in the same track which belong to different groups.\r\n\r\nthis looks like an example constructed incorrectly. None of my points above said overlapping groups Ids. All I am saying is group Ids increase monotically and need not necessary increase in the units of 1.\r\n\r\nAs you pointed out, both track 1 and track 2 are valid, which i 100% agree. I am proposing we shouldn't force an application to follow what looks like just the  track 1 model, since track 2 is also a valid group distribution. MoQT should have necessary things to allow track 1 and track 2, if not, let's define it.",
+          "body": "> This diagram shows three tracks. The first two tracks are valid, one with temporally contiguous and the other with temporally non-contiguous groups. The third track is not valid, as we don't allow a publisher to produce objects at the same time in the same track which belong to different groups.\r\n\r\nthis looks like an example constructed incorrectly. None of my points above said overlapping groups Ids. All I am saying is group Ids are independent and don't have to increase in sequence.\r\n\r\nAs you pointed out, both track 1 and track 2 are valid, which i 100% agree. I am proposing we shouldn't force an application to follow what looks like just the  track 1 model, since track 2 is also a valid group distribution. MoQT should have necessary things to allow track 1 and track 2, if not, let's define it.",
           "createdAt": "2024-04-05T16:13:23Z",
-          "updatedAt": "2024-04-05T16:19:40Z"
+          "updatedAt": "2024-04-09T02:21:15Z"
         },
         {
           "author": "suhasHere",
@@ -15431,6 +15438,65 @@
           "body": "> I want to second this. @suhasHere would allowing groups of size 0 work for you?\r\n\r\nyes if there is a reason for a producer to drop entire groups and should be explicitly signaled.\r\n\r\n\r\n_\"The problem today is the ambiguity. A subscriber doesn't know if 15 is in flight or will never arrive. If the publisher explicitly tells the subscriber that 15 is empty (or dropped) then that solves _things.\"__\r\n\r\nWe need things to be marked to indicate things when dropped at the publisher. This is needed for reasons pointed out in https://github.com/moq-wg/moq-transport/issues/427#issuecomment-2041101690 and https://github.com/moq-wg/moq-transport/issues/427#issuecomment-2040965981",
           "createdAt": "2024-04-06T16:07:40Z",
           "updatedAt": "2024-04-07T13:52:48Z"
+        },
+        {
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "I don't get what the problem is here. The things the relays cache is the object. \r\n\r\nI am very concerned that any assumption on groups being sequential are being produced in order are not going to work with the way people want to use complex reference frames and layer in modern codecs like AV1.  Of course an given application like youtube might specify for it's usage of moq, everything was sequential. But the moq relays don't need to know this or assume this and keeping them flexible allows for all kinds of interesting media uses cases for media beyond video. \r\n\r\nI have helped write a relay, and I don't see what problem this is causing for relays. ",
+          "createdAt": "2024-04-10T14:41:49Z",
+          "updatedAt": "2024-04-10T14:41:49Z"
+        },
+        {
+          "author": "vasilvv",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> yes if there is a reason for a producer to drop entire groups and should be explicitly signaled.\r\n\r\nAh, my concern was that someone would try to have groups numbered 0, 1000, 2000, or use group ID as a timestamp, in which case you'd have to send hundreds of gap indicators.  If that is out of scope, simple \"a group is missing\" would work.",
+          "createdAt": "2024-04-10T20:52:39Z",
+          "updatedAt": "2024-04-10T20:52:39Z"
+        },
+        {
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> > yes if there is a reason for a producer to drop entire groups and should be explicitly signaled.\r\n> \r\n> Ah, my concern was that someone would try to have groups numbered 0, 1000, 2000, or use group ID as a timestamp, in which case you'd have to send hundreds of gap indicators. If that is out of scope, simple \"a group is missing\" would work.\r\n\r\n+1.  PR #429  provides aspects of that for the cases when the publisher explicitly drops a group IIRC. ",
+          "createdAt": "2024-04-10T22:53:58Z",
+          "updatedAt": "2024-04-10T23:13:29Z"
+        }
+      ]
+    },
+    {
+      "number": 431,
+      "id": "I_kwDOG2Ho4M6FSf1h",
+      "title": "Is Forwarding Preference Independent of Use Case?",
+      "url": "https://github.com/moq-wg/moq-transport/issues/431",
+      "state": "OPEN",
+      "author": "martinduke",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "In his review of #426, @kixelated  indicated that some of the forwarding preferences seemed illogical for some use case. Indeed, the PR makes no judgments about what forwarding preferences make sense with different drop policies; it seeks a way to express missing objects and groups in any forwarding pref.\r\n\r\nMy reading of the current draft is that forwarding preference is an immutable track property. If you want to distribute a track for a use case that requires a different forwarding pref, you need a duplicate track. Maybe that's not explicit or what was intended; it could, in principle, be a per-subscription property based on the sender's understanding of the use case embodied by that subscription (or fetch, if we have those).\r\n\r\nOr maybe we want to say that certain forwarding preferences imply certain behaviors. Maybe a track stream simply does not allow omitting objects, so no missing object marker is necessary for that format.\r\n\r\nI don't have any preferred approach here, but we should agree about what is implied by a forwarding preference.",
+      "createdAt": "2024-04-10T18:53:16Z",
+      "updatedAt": "2024-04-10T20:23:52Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "body": "@martinduke I did skim through #426  but I seem to be missing the above implication in the reviews.\r\n\r\nAlso on the forwarding preference , we had extensive discussion on this topic and the group agreed to what is reflected in the draft. I am missing to understand what use-cases are we referring to here ?",
+          "createdAt": "2024-04-10T20:00:07Z",
+          "updatedAt": "2024-04-10T20:00:07Z"
+        },
+        {
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "An example question: Can a track stream omit objects?",
+          "createdAt": "2024-04-10T20:05:08Z",
+          "updatedAt": "2024-04-10T20:05:08Z"
+        },
+        {
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "body": " > My reading of the current draft is that forwarding preference is an immutable track property. If you want to distribute a track for a use case that requires a different forwarding pref, you need a duplicate track.\r\n\r\nWhile nobody is advocating for a separate track, that's a pretty good interpretation yeah. The stream mapping and priority is baked into the objects themselves. \r\n\r\nBut a VOD should be able to use the same objects as the original live stream. This is especially true for blurred \"live\" use-cases like DVR, instant relay, and of course reliable live.\r\n\r\nThat brings us to my PR and Ian's FETCH: a mechanism to ignore the priority of the original object and deliver in creation order instead. I think it makes perfect sense to decouple the delivery order of first mile from last mile depending on the desired user experience. I want to go a step further and remove `priority` from objects altogether provided there's a default that relays can use.\r\n\r\nBut this is very different from forwarding preference, which in the draft really should call \"stream mapping\". I definitely don't want that to be a subscriber preference because then a relay will have to combine streams. There's a number of things wrong with that (ex. converting from stream per object to stream per track) which is why we ruled it out.\r\n\r\nSo yeah, the stream mapping is an immutable property of the track. A decoder can depend on objects being delivered according to the stream mapping avoiding the need for a fully reassembly buffer with potential gaps. This wasn't the case in previous drafts and was a massive pain.",
+          "createdAt": "2024-04-10T20:23:51Z",
+          "updatedAt": "2024-04-10T20:23:51Z"
         }
       ]
     }
@@ -51873,7 +51939,7 @@
       ],
       "body": "A PR corresponding to: https://datatracker.ietf.org/meeting/119/materials/slides-119-moq-subscribe-and-fetch\r\n\r\nFixes #269 \r\nFixes #296\r\nFixes #350 \r\nFixes #326\r\nFixes #377\r\nFixes #312 \r\nFixes #353\r\n\r\nAlso relevant to #396, #326\r\n\r\nSome open questions:\r\n - Do we want OBJECT_FETCH_DATAGRAM to be transmitted over datagrams only?",
       "createdAt": "2024-03-19T06:11:41Z",
-      "updatedAt": "2024-03-28T20:39:52Z",
+      "updatedAt": "2024-04-10T15:37:16Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "ad67a19f1e6abbe4331b73ad49360726783a2bb8",
@@ -52645,6 +52711,26 @@
               "updatedAt": "2024-03-28T20:39:52Z"
             }
           ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M52vH8t",
+          "commit": {
+            "abbreviatedOid": "6e19b12"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-04-10T15:37:16Z",
+          "updatedAt": "2024-04-10T15:37:16Z",
+          "comments": [
+            {
+              "originalPosition": 141,
+              "body": "It certainly makes it more awkward.  I think the best you could do is subscribe to the latest and then end the existing subscription once you know when you can transition.",
+              "createdAt": "2024-04-10T15:37:16Z",
+              "updatedAt": "2024-04-10T15:37:16Z"
+            }
+          ]
         }
       ]
     },
@@ -52956,7 +53042,7 @@
       "labels": [],
       "body": "Here's a explicit signal for missing objects.",
       "createdAt": "2024-04-03T21:34:08Z",
-      "updatedAt": "2024-04-05T03:56:12Z",
+      "updatedAt": "2024-04-10T18:55:09Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "8f4d441c5f799e80bb2f8291f82a3d936e7e7799",
@@ -52995,6 +53081,13 @@
           "body": "> Oh, and I'd like to only use this message when using a stream per object. It's not relevant for the other modes.\r\n> \r\n> Alternatively, we could just make this a property of the mode itself. You don't know the final group size when using a stream per object, and it's probably just fine for the intended use-cases?\r\n\r\nBut what if a track can be used in several use cases? It's stuck with one forwarding preference!\r\n",
           "createdAt": "2024-04-04T16:28:22Z",
           "updatedAt": "2024-04-04T16:28:22Z"
+        },
+        {
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "> I like the idea of a publisher being able to publish an object that indicates there will be no hither object in the group. Or not higher groups in the track. I think this should be allowed and explicit and on what I think of as the dataplane. I put in a similar proposal in #429. I like all these parts of this proposal.\r\n> \r\n> I do not like the relays needing to require that objects inside the group need to be produced in order or increment by one. I don't see that as needed for any of this to work int he relays work. Similarly I see no requirements for for oder that groups are produced or gaps between them. I can see how the catalog might indicate for a given track that the groups or object were sequential but does not seem to be a thing the relays should have to deal with. The reason I am concerned with this is moderne video codecs.\r\n\r\nThe requirement for the publisher to not skip Object ID just makes the encoding more efficient. If you tell me there's a  use case for nonexistent object IDs, that's good enough for me, and we should probably do something closer to your PR.",
+          "createdAt": "2024-04-10T18:55:08Z",
+          "updatedAt": "2024-04-10T18:55:08Z"
         }
       ],
       "reviews": [
@@ -53309,6 +53402,19 @@
               "updatedAt": "2024-04-05T03:56:01Z"
             }
           ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M52vQar",
+          "commit": {
+            "abbreviatedOid": "d69743d"
+          },
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "CHANGES_REQUESTED",
+          "body": "I like the idea of a publisher being able to publish an object that indicates there will be no hither object in the group. Or not higher groups in the track. I think this should be allowed and explicit and on what I think of as the dataplane. I put in a similar proposal in #429. I like all these parts of this proposal. \r\n\r\nI do not like the relays needing to require that objects inside the group need to be produced in order or increment by one. I don't see that as needed for any of this to work int he relays work. Similarly I see no requirements for for oder that groups are produced or gaps between them. I can see how the catalog might indicate for a given track that the groups or object were sequential but does not seem to be a thing the relays should have to deal with. The reason I am concerned with this is moderne video codecs. ",
+          "createdAt": "2024-04-10T15:49:49Z",
+          "updatedAt": "2024-04-10T15:49:49Z",
+          "comments": []
         }
       ]
     },
@@ -53324,7 +53430,7 @@
       "labels": [],
       "body": "The default behavior for live streams will be `prefer-skip` as encoded in the priority field. This doesn't work for VOD and reliable live, as they want to receive objects in creation order instead.\r\n\r\nThis is a counter-proposal to the FETCH keyword which attempts to accomplish something similar, but in a way that won't work for reliable live.\r\n\r\nThis PR also removes relative start/end offsets because SUBSCRIBE was getting too complex. An application that wants to start N groups back needs to use use #425 or a timeline to learn about the absolute group/object IDs.",
       "createdAt": "2024-04-04T22:30:43Z",
-      "updatedAt": "2024-04-07T03:18:56Z",
+      "updatedAt": "2024-04-10T16:00:46Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "8f4d441c5f799e80bb2f8291f82a3d936e7e7799",
@@ -53516,6 +53622,479 @@
               "updatedAt": "2024-04-07T03:18:56Z"
             }
           ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M52soO3",
+          "commit": {
+            "abbreviatedOid": "7c6dd59"
+          },
+          "author": "wilaw",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-04-10T11:11:17Z",
+          "updatedAt": "2024-04-10T11:11:17Z",
+          "comments": [
+            {
+              "originalPosition": 67,
+              "body": "Should clarify that its the latest group in an active subscription, and not the latest group that the relay happens to have in cache (which may be from 5 min ago).\r\n",
+              "createdAt": "2024-04-10T11:11:17Z",
+              "updatedAt": "2024-04-10T11:11:17Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M52styG",
+          "commit": {
+            "abbreviatedOid": "7c6dd59"
+          },
+          "author": "wilaw",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-04-10T11:24:20Z",
+          "updatedAt": "2024-04-10T11:24:21Z",
+          "comments": [
+            {
+              "originalPosition": 69,
+              "body": "The concern with coding start and end group/object using +1 is you refer to a non-existent entity. For example, if my content has groups 5, 10, 15, 20 and I want all of it, I need to subscribe to 6-21 to get all of it. Neither of those groups actually exist and semantically this feels wrong. What they really represent are non-inclusive threshold value, so that they relay can apply the test:\r\n\r\n`forward if lower-threshold < groupID < upper-threshold. `\r\n\r\n**Alternatively, can we shift to an inclusive scheme, where we actually specify the real group and object IDs that we want to begin and end with?** I that case, I would subscribe to 15 - 20. That is much cleaner. The challenge is in how do specify give me 'the latest group' and also an unspecified end group and/or end object? **A solution there is require Group and Object numbers to be > 0**. That frees up 0 to convey the following special cases:\r\n```\r\nStartGroup  = 0 give me the latest group\r\nStartObject = 0, give me the latest object\r\nEndGroup = 0, open-ended subscription, give me all future groups until EOT is signalled. \r\nEndObject = 0, open-ended subscription, give me all future objects in the EndGroup. \r\n```",
+              "createdAt": "2024-04-10T11:24:21Z",
+              "updatedAt": "2024-04-10T11:24:21Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M52tbwD",
+          "commit": {
+            "abbreviatedOid": "7c6dd59"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-04-10T13:00:00Z",
+          "updatedAt": "2024-04-10T13:00:01Z",
+          "comments": [
+            {
+              "originalPosition": 158,
+              "body": "_. A publisher OUGHT to respect the delivery prefernce however, especially when multiple subscribers share a cache, this may be on a best effort basis. A subscriber MUST NOT expect objects to arrive in the indicated order._\r\n\r\nso just to be clear, A publisher implementation can always decide not to respect the hint, if needed ??\r\nI wonder in that case, a  player expecting \"prefer-stall\" may need to resolve to timeouts as the only option to figure out if something may not be arriving or a player expecting to \"prefer-skip\" may end up waiting behind HOL rather than skipping and moving forward.\r\n",
+              "createdAt": "2024-04-10T13:00:01Z",
+              "updatedAt": "2024-04-10T13:04:06Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M52tgv_",
+          "commit": {
+            "abbreviatedOid": "7c6dd59"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-04-10T13:07:09Z",
+          "updatedAt": "2024-04-10T13:07:27Z",
+          "comments": [
+            {
+              "originalPosition": 158,
+              "body": "> This is a relay-specifc problem. Specifically, when one upstream subscribe is deduplicated into multiple downstream subscriptions with different preferences.\r\n\r\nMay be we need to specify that to some extent in the relay section too, probably saying a given relay implementation may decide not to aggregate subscriptions  altogether when there are conflicting delivery preferences OR relay may choose to pick the delivery preference implicitly whatever  it may choose when it prefers scalability OR relay may return error under conflicting subscriptions OR something else.\r\n ",
+              "createdAt": "2024-04-10T13:07:09Z",
+              "updatedAt": "2024-04-10T13:07:27Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M52tmXU",
+          "commit": {
+            "abbreviatedOid": "7c6dd59"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-04-10T13:16:02Z",
+          "updatedAt": "2024-04-10T13:16:03Z",
+          "comments": [
+            {
+              "originalPosition": 52,
+              "body": "+1 on removing the offsets . This makes reasoning very easy .",
+              "createdAt": "2024-04-10T13:16:02Z",
+              "updatedAt": "2024-04-10T13:16:03Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M52uxOk",
+          "commit": {
+            "abbreviatedOid": "7c6dd59"
+          },
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "CHANGES_REQUESTED",
+          "body": "I think this PR combines 3 differnt things that should all be seperated to their own PR. \r\n\r\n1) A way to specify the start and end of a subscribe that uses absolute group/object numbers or start are current group  /  open ended.   This seems like a reasonable proposal to me and I would support that.  It does seem like a way to request the next group is useful because the current group will not be decodable when a clients joins part way through the group. \r\n\r\n2) Stuff about what object a relay forwards next. This is the priority discussion. I feel very strongly this should wait till the interim meeting and have a bunch of discussion. It could easily be removed from the PR. I am strongly against merging this PR with this stuff in it - i'm not arguing against whatever is being proposed, just this is the wrong time to solve it. We need to get the other stuff done first. \r\n\r\n3) Blurs fetch and subscribe. I think we need the separate semantics of this based because what we expect the relay to do is different in the cases and we need some way of the relays knowing that. I don't care if that is a flag in the subscribe or two different messages or whatever but the relay needs to know which behavior. ",
+          "createdAt": "2024-04-10T15:02:40Z",
+          "updatedAt": "2024-04-10T15:02:40Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M52vKCf",
+          "commit": {
+            "abbreviatedOid": "7c6dd59"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-04-10T15:39:40Z",
+          "updatedAt": "2024-04-10T15:39:40Z",
+          "comments": [
+            {
+              "originalPosition": 67,
+              "body": "It would be nice if 0 isn't special, but this works.",
+              "createdAt": "2024-04-10T15:39:40Z",
+              "updatedAt": "2024-04-10T15:39:40Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M52vQCT",
+          "commit": {
+            "abbreviatedOid": "7c6dd59"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "This looks workable, though some clarifications:\r\n 1) Subscriptions can overlap, and we'll just deliver the same data twice, correct?\r\n 2) If 1, I think we need to remove track alias.\r\n\r\nThe 2nd and 3rd modes are fairly clear, but I don't know what default does in a number of cases.",
+          "createdAt": "2024-04-10T15:49:05Z",
+          "updatedAt": "2024-04-10T16:00:46Z",
+          "comments": [
+            {
+              "originalPosition": 174,
+              "body": "If I have a subscription that spans the live edge, what does this do?\r\n\r\nie: 5 groups have been published, I subscribe from the beginning, what is sent first assuming everything is in the cache?  Is anything dropped?",
+              "createdAt": "2024-04-10T15:49:05Z",
+              "updatedAt": "2024-04-10T16:00:46Z"
+            },
+            {
+              "originalPosition": 175,
+              "body": "I'd like to think of prefer-stalls as \"inorder\", in which case I think priority is preserved, but not used.  I can't see a problem with having priority trump object_id, but given you'll receive the lower priority objects soon after the high priority ones, I'm not sure it'll typically matter?  Unless there's a way to say \"don't send the low priority ones.\"",
+              "createdAt": "2024-04-10T15:54:55Z",
+              "updatedAt": "2024-04-10T16:00:46Z"
+            },
+            {
+              "originalPosition": 176,
+              "body": "With this, I don't think we need the special cases of 0 for StartGroup and StartObject, do we?\r\n\r\nI'd need a way to increase the StartGroup and StartObject of an existing subscription, but I think we need that anyway, just like we want a way to update the EndGroup and EndObject.",
+              "createdAt": "2024-04-10T15:58:54Z",
+              "updatedAt": "2024-04-10T16:00:46Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 429,
+      "id": "PR_kwDOG2Ho4M5sQ0H1",
+      "title": "Add object status used to indicate lost or nonexistent objects",
+      "url": "https://github.com/moq-wg/moq-transport/pull/429",
+      "state": "OPEN",
+      "author": "fluffy",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": " This PR adds a status field to the object that allows an relay to indicate an object or group was lost or dropped. \r\n \r\n It also allows a producer to indicate a object or group will not be produced including the cases for end of group and end of track. \r\n \r\n The PR probably needs a bit more text on what what producers and relays do but I think this is close enough to get some initial discussion on this solution. \r\n\r\nFixes #427 #423 ",
+      "createdAt": "2024-04-10T15:38:48Z",
+      "updatedAt": "2024-04-10T23:45:25Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "866710a79cbc6e5bedc1c9afde8cd218d750869a",
+      "headRepository": "moq-wg/moq-transport",
+      "headRefName": "missing",
+      "headRefOid": "ac6b05e8c62c27f9374aa935f3e4779de5e0e65c",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> I think this fine. Like you, at this point I don't really care much how we spell it.\r\n> \r\n> Compared with my proposal in #426, this is conceptually way simpler (no special rules for each forwarding preference) but is less byte-efficient. I'm happy to go with whatever the group decides.\r\n\r\nI think I'm happy to use a byte for this.  We can always optimize it later in a number of ways if we want.",
+          "createdAt": "2024-04-10T19:00:14Z",
+          "updatedAt": "2024-04-10T19:00:14Z"
+        },
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> > I think this fine. Like you, at this point I don't really care much how we spell it.\r\n> > Compared with my proposal in #426, this is conceptually way simpler (no special rules for each forwarding preference) but is less byte-efficient. I'm happy to go with whatever the group decides.\r\n> \r\n> I think I'm happy to use a byte for this. We can always optimize it later in a number of ways if we want.\r\n\r\nWe can actually save a byte by omitting Object ID except for the first Object in the stream, because this allows the Objects to be sequential.  Similarly, we can omit GroupID if the delivery preference is track per stream.",
+          "createdAt": "2024-04-10T20:49:08Z",
+          "updatedAt": "2024-04-10T20:49:08Z"
+        }
+      ],
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M52wcYN",
+          "commit": {
+            "abbreviatedOid": "ac6b05e"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "This feels like it solves a number of problems in a good way.\r\n\r\nOne quirk is that the Object status can change, but I believe the other object properties, like forwarding preference, do not change.  I don't have a problem with that, but it might be worth calling out?",
+          "createdAt": "2024-04-10T18:28:23Z",
+          "updatedAt": "2024-04-10T18:30:38Z",
+          "comments": [
+            {
+              "originalPosition": 26,
+              "body": "Should we reference caching here?  It seems like both 1 and 2 are cacheable, because they won't change, but 3 and 4 are not?",
+              "createdAt": "2024-04-10T18:28:23Z",
+              "updatedAt": "2024-04-10T18:30:38Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M52wihE",
+          "commit": {
+            "abbreviatedOid": "ac6b05e"
+          },
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "I think this fine. Like you, at this point I don't really care much how we spell it.\r\n\r\nCompared with my proposal in #426, this is conceptually way simpler (no special rules for each forwarding preference) but is less byte-efficient. I'm happy to go with whatever the group decides.",
+          "createdAt": "2024-04-10T18:45:03Z",
+          "updatedAt": "2024-04-10T18:46:58Z",
+          "comments": [
+            {
+              "originalPosition": 57,
+              "body": "\"Any other value for status is a malformed message\"",
+              "createdAt": "2024-04-10T18:45:03Z",
+              "updatedAt": "2024-04-10T18:46:58Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M52w3RC",
+          "commit": {
+            "abbreviatedOid": "ac6b05e"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "This looks fine to me. Like the simplicity of the proposal\r\n   - Data plane handles objects as usual regardless of their status when caching\r\n   - Fetch like api, can react to status of the object/group to decide if they need to go upstream \r\n   \r\n   This will enable some of the requirements of reliable live use-cases where the player needs to know if the producer dropped a given group/object.\r\n",
+          "createdAt": "2024-04-10T19:30:14Z",
+          "updatedAt": "2024-04-10T23:45:25Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M52w3jK",
+          "commit": {
+            "abbreviatedOid": "ac6b05e"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-04-10T19:31:04Z",
+          "updatedAt": "2024-04-10T19:31:13Z",
+          "comments": [
+            {
+              "originalPosition": 13,
+              "body": "I think this needs to added in the canonical object definition as well. As this will be along with the object in the cache.",
+              "createdAt": "2024-04-10T19:31:05Z",
+              "updatedAt": "2024-04-10T19:31:13Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M52w4Ig",
+          "commit": {
+            "abbreviatedOid": "ac6b05e"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-04-10T19:32:40Z",
+          "updatedAt": "2024-04-10T19:32:40Z",
+          "comments": [
+            {
+              "originalPosition": 12,
+              "body": "s/ojects/objects. \r\n\r\n",
+              "createdAt": "2024-04-10T19:32:40Z",
+              "updatedAt": "2024-04-10T19:32:40Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M52w56V",
+          "commit": {
+            "abbreviatedOid": "ac6b05e"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-04-10T19:37:46Z",
+          "updatedAt": "2024-04-10T19:37:46Z",
+          "comments": [
+            {
+              "originalPosition": 26,
+              "body": "I think 3/4 are also cacheable esp when serving chain of relays. A downstream relay, if it has a knowledge of object status (as expired), can satisfy fetch request by requesting upstream.",
+              "createdAt": "2024-04-10T19:37:46Z",
+              "updatedAt": "2024-04-10T19:37:46Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M52xImD",
+          "commit": {
+            "abbreviatedOid": "ac6b05e"
+          },
+          "author": "wilaw",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-04-10T20:11:01Z",
+          "updatedAt": "2024-04-10T20:11:02Z",
+          "comments": [
+            {
+              "originalPosition": 39,
+              "body": "We're signaling that we dropped an object by creating another object and sending that in its place. Is the belief that the removal of the payload will always ensure that this \"message object\" gets through, or need we deal with a condition in which this message object is delayed to the point that it is dropped too? At that point, do we send a placeholder object for the placeholder object for the real object? ",
+              "createdAt": "2024-04-10T20:11:02Z",
+              "updatedAt": "2024-04-10T20:11:02Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M52xJ3Z",
+          "commit": {
+            "abbreviatedOid": "ac6b05e"
+          },
+          "author": "wilaw",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-04-10T20:14:40Z",
+          "updatedAt": "2024-04-10T20:14:41Z",
+          "comments": [
+            {
+              "originalPosition": 14,
+              "body": "Since most objects are not dropped or missing, the vast majority of the time we will be embedding a 0x0 byte for no reason. Since in all identified dropped or issuing situations the payload is 0, can we structure the header such that if a payload length of 0 is declared, then the next field carries the Object Status instead of the payload? ",
+              "createdAt": "2024-04-10T20:14:40Z",
+              "updatedAt": "2024-04-10T20:14:41Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M52xWtu",
+          "commit": {
+            "abbreviatedOid": "ac6b05e"
+          },
+          "author": "vasilvv",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-04-10T20:49:05Z",
+          "updatedAt": "2024-04-10T20:49:05Z",
+          "comments": [
+            {
+              "originalPosition": 26,
+              "body": "I think we should either declare those non-cacheable, or have a flag in FETCH that says \"refetch everything dropped at a relay\", otherwise DVR/clipping use cases might not work.",
+              "createdAt": "2024-04-10T20:49:05Z",
+              "updatedAt": "2024-04-10T20:49:05Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M52xbmF",
+          "commit": {
+            "abbreviatedOid": "ac6b05e"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-04-10T21:02:46Z",
+          "updatedAt": "2024-04-10T21:02:46Z",
+          "comments": [
+            {
+              "originalPosition": 26,
+              "body": "if this goes along with cached object and fetch happens for a object that has status other than 0x0, relay can issue fetch upstream.  Having it stored along with object be useful, isn't it ?",
+              "createdAt": "2024-04-10T21:02:46Z",
+              "updatedAt": "2024-04-10T21:02:46Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M52xepo",
+          "commit": {
+            "abbreviatedOid": "ac6b05e"
+          },
+          "author": "vasilvv",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "This is a dramatic improvement over the status quo, I think we should merge this without bikeshedding too much about the encoding for now.",
+          "createdAt": "2024-04-10T21:10:43Z",
+          "updatedAt": "2024-04-10T21:10:43Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M52yAbH",
+          "commit": {
+            "abbreviatedOid": "ac6b05e"
+          },
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-04-10T23:10:15Z",
+          "updatedAt": "2024-04-10T23:10:16Z",
+          "comments": [
+            {
+              "originalPosition": 14,
+              "body": "I like that idea. For the control messages, I don't care about saving a byte but for the audio data, it makes a big difference. \r\n",
+              "createdAt": "2024-04-10T23:10:16Z",
+              "updatedAt": "2024-04-10T23:10:16Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 430,
+      "id": "PR_kwDOG2Ho4M5sRjHx",
+      "title": "fix a few typos",
+      "url": "https://github.com/moq-wg/moq-transport/pull/430",
+      "state": "OPEN",
+      "author": "fluffy",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "",
+      "createdAt": "2024-04-10T17:40:32Z",
+      "updatedAt": "2024-04-10T19:20:01Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "866710a79cbc6e5bedc1c9afde8cd218d750869a",
+      "headRepository": "moq-wg/moq-transport",
+      "headRefName": "typo2",
+      "headRefOid": "d6a112a98ddb75f24124f810f447318eededd362",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M52wyy2",
+          "commit": {
+            "abbreviatedOid": "d6a112a"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2024-04-10T19:20:01Z",
+          "updatedAt": "2024-04-10T19:20:01Z",
+          "comments": []
         }
       ]
     }
