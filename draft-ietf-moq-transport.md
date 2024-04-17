@@ -1551,9 +1551,9 @@ one or more Objects will not be delivered for this subscription due to
 congestion or other constraints.  This does not indicate the dropped
 Objects are permanantly unavailable.
 
-If Objects within the range have already been received or are subsequently
-received, they MAY be processed as normal, but there is no expectation
-they will be delivered.
+If Objects within the range have already been or are subsequently received,
+they MAY be processed as normal, but there is no expectation they will be
+delivered.
 
 ~~~
 OBJECTS_DROPPED Message {
