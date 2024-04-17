@@ -980,7 +980,7 @@ group.
 object. The preferences are Track, Group, Object and Datagram.  An Object MUST
 be sent according to its `Object Forwarding Preference`, described below.
 
-* Object Status: As enumeration used for missing or dropped ojects that
+* Object Status: As enumeration used for missing or dropped objects that
   indicates why data is missing.
 
 * Object Payload: An opaque payload intended for the consumer and SHOULD
