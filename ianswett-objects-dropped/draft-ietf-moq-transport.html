@@ -3366,9 +3366,12 @@ stream.<a href="#section-6.15-13" class="pilcrow">¶</a></p>
 one or more Objects will not be delivered for this subscription due to
 congestion or other constraints.  This does not indicate the dropped
 Objects are permanantly unavailable.<a href="#section-6.16-1" class="pilcrow">¶</a></p>
+<p id="section-6.16-2">If Objects within the range have already been received or are subsequently
+received, they <span class="bcp14">MAY</span> be processed as normal, but there is no expectation
+they will be delivered.<a href="#section-6.16-2" class="pilcrow">¶</a></p>
 <span id="name-moqt-objects_dropped-messag"></span><div id="moq-track-objects-dropped">
 <figure id="figure-22">
-          <div class="alignLeft art-text artwork" id="section-6.16-2.1">
+          <div class="alignLeft art-text artwork" id="section-6.16-3.1">
 <pre>
 OBJECTS_DROPPED Message {
   Subscribe ID (i),
@@ -3385,29 +3388,29 @@ OBJECTS_DROPPED Message {
           </figcaption></figure>
 </div>
 <ul class="normal">
-<li class="normal" id="section-6.16-3.1">
-            <p id="section-6.16-3.1.1">Subscribe ID: Subscription Identifier as defined in <a href="#message-subscribe-req" class="auto internal xref">Section 6.4</a>.<a href="#section-6.16-3.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-6.16-4.1">
+            <p id="section-6.16-4.1.1">Subscribe ID: Subscription Identifier as defined in <a href="#message-subscribe-req" class="auto internal xref">Section 6.4</a>.<a href="#section-6.16-4.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-6.16-3.2">
-            <p id="section-6.16-3.2.1">First Group: The ID of the first group that contains an Object which won't be
-delivered.<a href="#section-6.16-3.2.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-6.16-4.2">
+            <p id="section-6.16-4.2.1">First Group: The ID of the first group that contains an Object which won't be
+delivered.<a href="#section-6.16-4.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-6.16-3.3">
-            <p id="section-6.16-3.3.1">First Object: The ID of the first Object within the group which won't be
-delivered.<a href="#section-6.16-3.3.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-6.16-4.3">
+            <p id="section-6.16-4.3.1">First Object: The ID of the first Object within the group which won't be
+delivered.<a href="#section-6.16-4.3.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-6.16-3.4">
-            <p id="section-6.16-3.4.1">Last Group: The ID of the last group that contains an Object which won't be
-delivered.<a href="#section-6.16-3.4.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-6.16-4.4">
+            <p id="section-6.16-4.4.1">Last Group: The ID of the last group that contains an Object which won't be
+delivered.<a href="#section-6.16-4.4.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-6.16-3.5">
-            <p id="section-6.16-3.5.1">Last Object: The ID of the last Object within the group which won't be
-delivered.<a href="#section-6.16-3.5.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-6.16-4.5">
+            <p id="section-6.16-4.5.1">Last Object: The ID of the last Object within the group which won't be
+delivered.<a href="#section-6.16-4.5.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-6.16-3.6">
-            <p id="section-6.16-3.6.1">Fin: When 1, the last Object is the final Object in the group, and when 2,
+          <li class="normal" id="section-6.16-4.6">
+            <p id="section-6.16-4.6.1">Fin: When 1, the last Object is the final Object in the group, and when 2,
 the last Object is the final Object in the Track as well as the group.
-0 otherwise, and values greater than 2 are illegal.<a href="#section-6.16-3.6.1" class="pilcrow">¶</a></p>
+0 otherwise, and values greater than 2 are illegal.<a href="#section-6.16-4.6.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
