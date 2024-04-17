@@ -1203,46 +1203,6 @@ OBJECT_STREAM {
 
 A receiver issues a SUBSCRIBE to a publisher to request a track.
 
-### Subscribe Locations {#subscribe-locations}
-
-The receiver specifies a start and optional end `Location` for the subscription.
-A location value may be an absolute group or object sequence, or it may be a
-delta relative to the largest group or the largest object in a group.
-
-~~~
-Location {
-  Mode (i),
-  [Value (i)],
-}
-~~~
-
-There are 4 modes:
-
-None (0x0): The Location is unspecified, Value is not present
-
-Absolute (0x1): Value is an absolute sequence
-
-RelativePrevious (0x2): Value is a delta from the largest sequence.  0 is the
-largest sequence, 1 is the largest sequence - 1, and so on.
-
-RelativeNext (0x3): Value is a delta from the largest sequence.  0 is the largest
-sequence + 1, 1 is the largest sequence + 2, and so on.
-
-The following table shows an example of how the RelativePrevious and RelativeNext
-values are used to determine the absolute sequence.
-
-~~~
-Sequence:                0    1    2    3    4   [5]  [6] ...
-                                             ^
-                                      Largest Sequence
-RelativePrevious Value:  4    3    2    1    0
-RelativeNext Value:                               0    1  ...
-~~~
-{: title="Relative Indexing"}
-
-
-### SUBSCRIBE Format
-
 The format of SUBSCRIBE is as follows:
 
 ~~~
@@ -1251,10 +1211,10 @@ SUBSCRIBE Message {
   Track Alias (i),
   Track Namespace (b),
   Track Name (b),
-  StartGroup (Location),
-  StartObject (Location),
-  EndGroup (Location),
-  EndObject (Location),
+  StartGroup (i),
+  [ StartObject (i), ]
+  EndGroup (i),
+  [ EndObject (i), ]
   Number of Parameters (i),
   Track Request Parameters (..) ...
 }
@@ -1279,24 +1239,23 @@ close the session with a Duplicate Track Alias error ({{session-termination}}).
 
 * Track Name: Identifies the track name as defined in ({{track-name}}).
 
-* StartGroup: The Location of the requested group.  StartGroup's Mode MUST NOT be
-None.
+* StartGroup: The start Group ID, plus 1. A value of 0 means the latest group.
 
-* StartObject: The Location of the requested object.  StartObject's Mode MUST NOT
-be None.
+* StartObject: The start Object ID, plus 1. A value of 0 means the latest object.
+This field is not present when Start Group is 0.
 
-* EndGroup: The last Group requested in the subscription, inclusive.  EndGroup's
-Mode is None for an open-ended subscription.
+* EndGroup: The end Group ID, plus 1. A value of 0 means the subscription is
+open-ended and continues to the end of the track.
 
-* EndObject: The last Object requested in the subscription, exclusive.
-EndObject's Mode MUST be None if EndGroup's Mode is None.  EndObject's Mode MUST
-NOT be None if EndGroup's Mode is not None.
+* EndObject: The end Object ID, plus 1. A value of 0 means the entire group is
+requested. This field is not present when End Group is 0.
 
 * Track Request Parameters: The parameters are defined in
 {{version-specific-params}}
 
-On successful subscription, the publisher SHOULD start delivering
-objects from the group ID and object ID described above.
+On successful subscription, the publisher MUST reply with a SUBSCRIBE_OK,
+allowing the subscriber to determine the start group/object when not explicitly
+specified and the publisher SHOULD start delivering objects. 
 
 If a publisher cannot satisfy the requested start or end for the subscription it
 MAY send a SUBSCRIBE_ERROR with code 'Invalid Range'. A publisher MUST NOT send
@@ -1304,59 +1263,6 @@ objects from outside the requested start and end.
 
 TODO: Define the flow where subscribe request matches an existing subscribe id
 (subscription updates.)
-
-### Examples
-
-~~~
-1. Now
-
-Start Group: Mode=RelativePrevious, Value=0
-Start Object: Mode=RelateiveNext, Value=0
-End Group: Mode=None
-End Object: Mode=None
-
-StartGroup=Largest Group
-StartObject=Largest Object + 1
-
-2. Current
-
-Start Group: Mode=RelativePrevious, Value=0
-Start Object: Mode=Absolute, Value=0
-End Group: Mode=None
-End Object: Mode=None
-
-StartGroup=Largest Group
-StartObject=0
-
-3. Previous
-
-Start Group: Mode=RelativePrevious, Value=1
-Start Object: Mode=Absolute, Value=0
-End Group: Mode=None
-End Object: Mode=None
-
-StartGroup=Largest Group - 1
-StartObject=0
-
-4. Next
-
-Start Group: Mode=RelativeNext, Value=0
-Start Object: Mode=Absolute, Value=0
-End Group: Mode=None
-End Object: Mode=None
-StartGroup=Largest Group + 1
-StartObject=0
-
-5. Range, All of group 3
-
-Start Group: Mode=Absolute, Value=3
-Start Object: Mode=Absolute, Value=0
-End Group: Mode=Absolute, Value=4
-End Object: Mode=Absolute, Value=0
-
-Start = Group 3, Object 0
-End = Group 3, Object <last>
-~~~
 
 
 ## SUBSCRIBE_OK {#message-subscribe-ok}
