@@ -798,6 +798,8 @@ MOQT Message {
 |-------|-----------------------------------------------------|
 | 0xE   | TRACK_STATUS ({{message-track-status}})             |
 |-------|-----------------------------------------------------|
+| 0xF   | OBJECTS_DROPPED ({{message-objects-dropped}})       |
+|-------|-----------------------------------------------------|
 | 0x10  | GOAWAY ({{message-goaway}})                         |
 |-------|-----------------------------------------------------|
 | 0x40  | CLIENT_SETUP ({{message-setup}})                    |
@@ -1541,6 +1543,44 @@ information with status code 0x04.
 The receiver of multiple TRACK_STATUS messages for a track uses the information
 from the latest arriving message, as they are delivered in order on a single
 stream.
+
+## OBJECTS_DROPPED {#message-objects-dropped}
+
+An endpoint sends a 'OBJECTS_DROPPED' message on the control stream when
+one or more Objects will not be delivered for this subscription due to
+congestion or other constraints.  This does not indicate the dropped
+Objects are permanantly unavailable.
+
+~~~
+OBJECTS_DROPPED Message {
+  Subscribe ID (i),
+  First Group (i),
+  First Object (i),
+  Last Group (i),
+  Last Object (i),
+  Fin (i),
+}
+~~~
+{: #moq-track-objects-dropped title="MOQT OBJECTS_DROPPED Message"}
+
+* Subscribe ID: Subscription Identifier as defined in {{message-subscribe-req}}.
+
+* First Group: The ID of the first group that contains an Object which won't be
+delivered.
+
+* First Object: The ID of the first Object within the group which won't be
+delivered.
+
+* Last Group: The ID of the last group that contains an Object which won't be
+delivered.
+
+* Last Object: The ID of the last Object within the group which won't be
+delivered.
+
+* Fin: When 1, the last Object is the final Object in the group, and when 2,
+the last Object is the final Object in the Track as well as the group.
+0 otherwise, and values greater than 2 are illegal.
+
 
 ## GOAWAY {#message-goaway}
 The server sends a `GOAWAY` message to initiate session migration
