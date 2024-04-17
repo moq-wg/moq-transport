@@ -115,9 +115,6 @@ Table of Contents
        6.3.3.  Multi-Object Streams
        6.3.4.  Examples:
      6.4.  SUBSCRIBE
-       6.4.1.  Subscribe Locations
-       6.4.2.  SUBSCRIBE Format
-       6.4.3.  Examples
      6.5.  SUBSCRIBE_OK
      6.6.  SUBSCRIBE_ERROR
      6.7.  UNSUBSCRIBE
@@ -1269,43 +1266,6 @@ Table of Contents
 
    A receiver issues a SUBSCRIBE to a publisher to request a track.
 
-6.4.1.  Subscribe Locations
-
-   The receiver specifies a start and optional end Location for the
-   subscription.  A location value may be an absolute group or object
-   sequence, or it may be a delta relative to the largest group or the
-   largest object in a group.
-
-   Location {
-     Mode (i),
-     [Value (i)],
-   }
-
-   There are 4 modes:
-
-   None (0x0): The Location is unspecified, Value is not present
-
-   Absolute (0x1): Value is an absolute sequence
-
-   RelativePrevious (0x2): Value is a delta from the largest sequence.
-   0 is the largest sequence, 1 is the largest sequence - 1, and so on.
-
-   RelativeNext (0x3): Value is a delta from the largest sequence.  0 is
-   the largest sequence + 1, 1 is the largest sequence + 2, and so on.
-
-   The following table shows an example of how the RelativePrevious and
-   RelativeNext values are used to determine the absolute sequence.
-
-   Sequence:                0    1    2    3    4   [5]  [6] ...
-                                                ^
-                                         Largest Sequence
-   RelativePrevious Value:  4    3    2    1    0
-   RelativeNext Value:                               0    1  ...
-
-                        Figure 10: Relative Indexing
-
-6.4.2.  SUBSCRIBE Format
-
    The format of SUBSCRIBE is as follows:
 
    SUBSCRIBE Message {
@@ -1313,15 +1273,15 @@ Table of Contents
      Track Alias (i),
      Track Namespace (b),
      Track Name (b),
-     StartGroup (Location),
-     StartObject (Location),
-     EndGroup (Location),
-     EndObject (Location),
+     StartGroup (i),
+     [ StartObject (i), ]
+     EndGroup (i),
+     [ EndObject (i), ]
      Number of Parameters (i),
      Track Request Parameters (..) ...
    }
 
-                     Figure 11: MOQT SUBSCRIBE Message
+                     Figure 10: MOQT SUBSCRIBE Message
 
    *  Subscribe ID: The subscription identifier that is unique within
       the session.  Subscribe ID is a monotonically increasing variable
@@ -1344,25 +1304,26 @@ Table of Contents
    *  Track Name: Identifies the track name as defined in
       (Section 2.3.1).
 
-   *  StartGroup: The Location of the requested group.  StartGroup's
-      Mode MUST NOT be None.
+   *  StartGroup: The start Group ID, plus 1.  A value of 0 means the
+      latest group.
 
-   *  StartObject: The Location of the requested object.  StartObject's
-      Mode MUST NOT be None.
+   *  StartObject: The start Object ID, plus 1.  A value of 0 means the
+      latest object.  This field is not present when Start Group is 0.
 
-   *  EndGroup: The last Group requested in the subscription, inclusive.
-      EndGroup's Mode is None for an open-ended subscription.
+   *  EndGroup: The end Group ID, plus 1.  A value of 0 means the
+      subscription is open-ended and continues to the end of the track.
 
-   *  EndObject: The last Object requested in the subscription,
-      exclusive.  EndObject's Mode MUST be None if EndGroup's Mode is
-      None.  EndObject's Mode MUST NOT be None if EndGroup's Mode is not
-      None.
+   *  EndObject: The end Object ID, plus 1.  A value of 0 means the
+      entire group is requested.  This field is not present when End
+      Group is 0.
 
    *  Track Request Parameters: The parameters are defined in
       Section 6.1.1
 
-   On successful subscription, the publisher SHOULD start delivering
-   objects from the group ID and object ID described above.
+   On successful subscription, the publisher MUST reply with a
+   SUBSCRIBE_OK, allowing the subscriber to determine the start group/
+   object when not explicitly specified and the publisher SHOULD start
+   delivering objects.
 
    If a publisher cannot satisfy the requested start or end for the
    subscription it MAY send a SUBSCRIBE_ERROR with code 'Invalid Range'.
@@ -1371,57 +1332,6 @@ Table of Contents
 
    TODO: Define the flow where subscribe request matches an existing
    subscribe id (subscription updates.)
-
-6.4.3.  Examples
-
-   1. Now
-
-   Start Group: Mode=RelativePrevious, Value=0
-   Start Object: Mode=RelateiveNext, Value=0
-   End Group: Mode=None
-   End Object: Mode=None
-
-   StartGroup=Largest Group
-   StartObject=Largest Object + 1
-
-   2. Current
-
-   Start Group: Mode=RelativePrevious, Value=0
-   Start Object: Mode=Absolute, Value=0
-   End Group: Mode=None
-   End Object: Mode=None
-
-   StartGroup=Largest Group
-   StartObject=0
-
-   3. Previous
-
-   Start Group: Mode=RelativePrevious, Value=1
-   Start Object: Mode=Absolute, Value=0
-   End Group: Mode=None
-   End Object: Mode=None
-
-   StartGroup=Largest Group - 1
-   StartObject=0
-
-   4. Next
-
-   Start Group: Mode=RelativeNext, Value=0
-   Start Object: Mode=Absolute, Value=0
-   End Group: Mode=None
-   End Object: Mode=None
-   StartGroup=Largest Group + 1
-   StartObject=0
-
-   5. Range, All of group 3
-
-   Start Group: Mode=Absolute, Value=3
-   Start Object: Mode=Absolute, Value=0
-   End Group: Mode=Absolute, Value=4
-   End Object: Mode=Absolute, Value=0
-
-   Start = Group 3, Object 0
-   End = Group 3, Object <last>
 
 6.5.  SUBSCRIBE_OK
 
@@ -1436,7 +1346,7 @@ Table of Contents
      [Largest Object ID (i)]
    }
 
-                    Figure 12: MOQT SUBSCRIBE_OK Message
+                    Figure 11: MOQT SUBSCRIBE_OK Message
 
    *  Subscribe ID: Subscription Identifier as defined in Section 6.4.
 
@@ -1469,7 +1379,7 @@ Table of Contents
      Track Alias (i),
    }
 
-                  Figure 13: MOQT SUBSCRIBE_ERROR Message
+                  Figure 12: MOQT SUBSCRIBE_ERROR Message
 
    *  Subscribe ID: Subscription Identifier as defined in Section 6.4.
 
@@ -1498,7 +1408,7 @@ Table of Contents
      Subscribe ID (i)
    }
 
-                    Figure 14: MOQT UNSUBSCRIBE Message
+                    Figure 13: MOQT UNSUBSCRIBE Message
 
    *  Subscribe ID: Subscription Identifier as defined in Section 6.4.
 
@@ -1519,7 +1429,7 @@ Table of Contents
      [Final Object (i)],
    }
 
-                   Figure 15: MOQT SUBSCRIBE_DONE Message
+                   Figure 14: MOQT SUBSCRIBE_DONE Message
 
    *  Subscribe ID: Subscription identifier as defined in Section 6.4.
 
@@ -1551,7 +1461,7 @@ Table of Contents
      Parameters (..) ...,
    }
 
-                      Figure 16: MOQT ANNOUNCE Message
+                      Figure 15: MOQT ANNOUNCE Message
 
    *  Track Namespace: Identifies a track's namespace as defined in
       (Section 2.3.1)
@@ -1568,7 +1478,7 @@ Table of Contents
      Track Namespace (b),
    }
 
-                    Figure 17: MOQT ANNOUNCE_OK Message
+                    Figure 16: MOQT ANNOUNCE_OK Message
 
    *  Track Namespace: Identifies the track namespace in the ANNOUNCE
       message for which this response is provided.
@@ -1585,7 +1495,7 @@ Table of Contents
      Reason Phrase (b),
    }
 
-                   Figure 18: MOQT ANNOUNCE_ERROR Message
+                   Figure 17: MOQT ANNOUNCE_ERROR Message
 
    *  Track Namespace: Identifies the track namespace in the ANNOUNCE
       message for which this response is provided.
@@ -1605,7 +1515,7 @@ Table of Contents
      Track Namespace (b),
    }
 
-                     Figure 19: MOQT UNANNOUNCE Message
+                     Figure 18: MOQT UNANNOUNCE Message
 
    *  Track Namespace: Identifies a track's namespace as defined in
       (Section 2.3.1).
@@ -1624,7 +1534,7 @@ Table of Contents
      Track Namespace (b),
    }
 
-                  Figure 20: MOQT ANNOUNCE_CANCEL Message
+                  Figure 19: MOQT ANNOUNCE_CANCEL Message
 
    *  Track Namespace: Identifies a track's namespace as defined in
       (Section 2.3.1).
@@ -1643,7 +1553,7 @@ Table of Contents
      Track Name (b),
    }
 
-                Figure 21: MOQT TRACK_STATUS_REQUEST Message
+                Figure 20: MOQT TRACK_STATUS_REQUEST Message
 
 6.15.  TRACK_STATUS
 
@@ -1658,7 +1568,7 @@ Table of Contents
      Last Object ID (i),
    }
 
-                    Figure 22: MOQT TRACK_STATUS Message
+                    Figure 21: MOQT TRACK_STATUS Message
 
    The 'Status Code' field provides additional information about the
    status of the track.  It MUST hold one of the following values.  Any
@@ -1712,7 +1622,7 @@ Table of Contents
      New Session URI (b)
    }
 
-                       Figure 23: MOQT GOAWAY Message
+                       Figure 22: MOQT GOAWAY Message
 
    *  New Session URI: The client MUST use this URI for the new session
       if provided.  If the URI is zero bytes long, the current URI is
