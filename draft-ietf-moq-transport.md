@@ -1255,7 +1255,7 @@ requested. This field is not present when End Group is 0.
 
 On successful subscription, the publisher MUST reply with a SUBSCRIBE_OK,
 allowing the subscriber to determine the start group/object when not explicitly
-specified and the publisher SHOULD start delivering objects. 
+specified and the publisher SHOULD start delivering objects.
 
 If a publisher cannot satisfy the requested start or end for the subscription it
 MAY send a SUBSCRIBE_ERROR with code 'Invalid Range'. A publisher MUST NOT send
