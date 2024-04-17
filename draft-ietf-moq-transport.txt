@@ -5,13 +5,13 @@
 MOQ                                                            L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 10 October 2024                                            Meta
+Expires: 19 October 2024                                            Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                            8 April 2024
+                                                           17 April 2024
 
 
                        Media over QUIC Transport
@@ -53,7 +53,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 10 October 2024.
+   This Internet-Draft will expire on 19 October 2024.
 
 Copyright Notice
 
@@ -734,7 +734,7 @@ Table of Contents
 
                                  Table 2
 
-   The applicaiton SHOULD use a relevant status code in SUBSCRIBE_DONE,
+   The application SHOULD use a relevant status code in SUBSCRIBE_DONE,
    as defined below:
 
                        +======+====================+
@@ -1089,7 +1089,7 @@ Table of Contents
 
                     Figure 4: MOQT OBJECT_STREAM Message
 
-   *  Subscribe ID: Subscription Identifer as defined in Section 6.4.
+   *  Subscribe ID: Subscription Identifier as defined in Section 6.4.
 
    *  Track Alias: Identifies the Track Namespace and Track Name as
       defined in Section 6.4.
@@ -1159,7 +1159,7 @@ Table of Contents
    To send an Object with Object Forwarding Preference = Track, find the
    open stream that is associated with the subscription, or open a new
    one and send the STREAM_HEADER_TRACK if needed, then serialize the
-   the following object fields.
+   following object fields.
 
    {
      Group ID (i),
@@ -1438,7 +1438,7 @@ Table of Contents
 
                     Figure 12: MOQT SUBSCRIBE_OK Message
 
-   *  Subscribe ID: Subscription Identifer as defined in Section 6.4.
+   *  Subscribe ID: Subscription Identifier as defined in Section 6.4.
 
    *  Expires: Time in milliseconds after which the subscription is no
       longer valid.  A value of 0 indicates that the subscription does
@@ -1471,7 +1471,7 @@ Table of Contents
 
                   Figure 13: MOQT SUBSCRIBE_ERROR Message
 
-   *  Subscribe ID: Subscription Identifer as defined in Section 6.4.
+   *  Subscribe ID: Subscription Identifier as defined in Section 6.4.
 
    *  Error Code: Identifies an integer error code for subscription
       failure.
@@ -1500,7 +1500,7 @@ Table of Contents
 
                     Figure 14: MOQT UNSUBSCRIBE Message
 
-   *  Subscribe ID: Subscription Identifer as defined in Section 6.4.
+   *  Subscribe ID: Subscription Identifier as defined in Section 6.4.
 
 6.8.  SUBSCRIBE_DONE
 
@@ -1616,7 +1616,7 @@ Table of Contents
    it will stop sending new subscriptions for tracks within the provided
    Track Namespace.
 
-   If a publisher recieves new subscriptions for that namespace after
+   If a publisher receives new subscriptions for that namespace after
    receiving an ANNOUNCE_CANCEL, it SHOULD close the session as a
    'Protocol Violation'.
 
