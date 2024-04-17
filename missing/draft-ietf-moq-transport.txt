@@ -5,13 +5,13 @@
 MOQ                                                            L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 12 October 2024                                            Meta
+Expires: 19 October 2024                                            Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                           10 April 2024
+                                                           17 April 2024
 
 
                        Media over QUIC Transport
@@ -53,7 +53,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 12 October 2024.
+   This Internet-Draft will expire on 19 October 2024.
 
 Copyright Notice
 
@@ -1051,7 +1051,7 @@ Table of Contents
       and Datagram.  An Object MUST be sent according to its Object
       Forwarding Preference, described below.
 
-   *  Object Status: As enumeration used for missing or dropped ojects
+   *  Object Status: As enumeration used for missing or dropped objects
       that indicates why data is missing.
 
    *  Object Payload: An opaque payload intended for the consumer and
