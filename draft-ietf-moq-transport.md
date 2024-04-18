@@ -243,6 +243,15 @@ x (b):
   described in ({{?RFC9000, Section 16}}), followed by that many bytes
   of binary data
 
+x (f):
+
+: Indicates that x is a flag and is encoded as a single byte with the
+  value 0 or 1. A value of 0 indicates the flag is false or off, while a
+  value of 1 indicates the flag is true or on. Any other value is a
+  protocol error and SHOULD terminate the session with a Protocol
+  Violation ({{session-termination}}).
+
+
 To reduce unnecessary use of bandwidth, variable length integers SHOULD
 be encoded using the least number of bytes possible to represent the
 required value.
@@ -627,9 +636,8 @@ For successful subscriptions, the publisher maintains a list of
 subscribers for each track. Each new OBJECT belonging to the
 track within the subscription range is forwarded to each active
 subscriber, dependent on the congestion response. A subscription
-remains active until it expires, until the publisher of the track
-terminates the track with a SUBSCRIBE_DONE
-(see {{message-subscribe-done}}).
+remains active until the publisher of the track terminates the
+track with a SUBSCRIBE_DONE (see {{message-subscribe-done}}).
 
 Objects MUST NOT be sent for unsuccessful subscriptions, and if a subscriber
 receives a SUBSCRIBE_ERROR after receiving objects, it MUST close the session
@@ -659,7 +667,7 @@ as defined below:
 | 0x3  | Update Failed             |
 |------|---------------------------|
 
-The applicaiton SHOULD use a relevant status code in
+The application SHOULD use a relevant status code in
 SUBSCRIBE_DONE, as defined below:
 
 |------|---------------------------|
@@ -677,7 +685,8 @@ SUBSCRIBE_DONE, as defined below:
 |------|---------------------------|
 | 0x5  | Going Away                |
 |------|---------------------------|
-
+| 0x6  | Expired                   |
+|------|---------------------------|
 
 ## Publisher Interactions
 
@@ -783,6 +792,12 @@ MOQT Message {
 | 0xA   | SUBSCRIBE_UPDATE ({{message-subscribe-update}})     |
 |-------|-----------------------------------------------------|
 | 0xB   | SUBSCRIBE_DONE ({{message-subscribe-done}})         |
+|-------|-----------------------------------------------------|
+| 0xC   | ANNOUNCE_CANCEL ({{message-announce-cancel}})       |
+|-------|-----------------------------------------------------|
+| 0xD   | TRACK_STATUS_REQUEST ({{message-track-status-req}}) |
+|-------|-----------------------------------------------------|
+| 0xE   | TRACK_STATUS ({{message-track-status}})             |
 |-------|-----------------------------------------------------|
 | 0x10  | GOAWAY ({{message-goaway}})                         |
 |-------|-----------------------------------------------------|
@@ -905,7 +920,7 @@ identified as 0xff00000D.
 #### ROLE parameter {#role}
 
 The ROLE parameter (key 0x00) allows each endpoint to independently specify what
-funnctionality they support for the session. It has three possible values,
+functionality they support for the session. It has three possible values,
 which are of type varint:
 
 0x01: Publisher
@@ -1003,7 +1018,7 @@ OBJECT_STREAM Message {
 ~~~
 {: #moq-transport-object-stream-format title="MOQT OBJECT_STREAM Message"}
 
-* Subscribe ID: Subscription Identifer as defined in {{message-subscribe-req}}.
+* Subscribe ID: Subscription Identifier as defined in {{message-subscribe-req}}.
 
 * Track Alias: Identifies the Track Namespace and Track Name as defined in
 {{message-subscribe-req}}.
@@ -1074,7 +1089,7 @@ Forwarding Preference` = `Track`.
 
 To send an Object with `Object Forwarding Preference` = `Track`, find the open
 stream that is associated with the subscription, or open a new one and send the
-`STREAM_HEADER_TRACK` if needed, then serialize the the following object fields.
+`STREAM_HEADER_TRACK` if needed, then serialize the following object fields.
 
 ~~~
 {
@@ -1189,46 +1204,6 @@ OBJECT_STREAM {
 
 A receiver issues a SUBSCRIBE to a publisher to request a track.
 
-### Subscribe Locations {#subscribe-locations}
-
-The receiver specifies a start and optional end `Location` for the subscription.
-A location value may be an absolute group or object sequence, or it may be a
-delta relative to the largest group or the largest object in a group.
-
-~~~
-Location {
-  Mode (i),
-  [Value (i)],
-}
-~~~
-
-There are 4 modes:
-
-None (0x0): The Location is unspecified, Value is not present
-
-Absolute (0x1): Value is an absolute sequence
-
-RelativePrevious (0x2): Value is a delta from the largest sequence.  0 is the
-largest sequence, 1 is the largest sequence - 1, and so on.
-
-RelativeNext (0x3): Value is a delta from the largest sequence.  0 is the largest
-sequence + 1, 1 is the largest sequence + 2, and so on.
-
-The following table shows an example of how the RelativePrevious and RelativeNext
-values are used to determine the absolute sequence.
-
-~~~
-Sequence:                0    1    2    3    4   [5]  [6] ...
-                                             ^
-                                      Largest Sequence
-RelativePrevious Value:  4    3    2    1    0
-RelativeNext Value:                               0    1  ...
-~~~
-{: title="Relative Indexing"}
-
-
-### SUBSCRIBE Format
-
 The format of SUBSCRIBE is as follows:
 
 ~~~
@@ -1237,10 +1212,10 @@ SUBSCRIBE Message {
   Track Alias (i),
   Track Namespace (b),
   Track Name (b),
-  StartGroup (Location),
-  StartObject (Location),
-  EndGroup (Location),
-  EndObject (Location),
+  StartGroup (i),
+  [ StartObject (i), ]
+  EndGroup (i),
+  [ EndObject (i), ]
   Number of Parameters (i),
   Track Request Parameters (..) ...
 }
@@ -1265,24 +1240,23 @@ close the session with a Duplicate Track Alias error ({{session-termination}}).
 
 * Track Name: Identifies the track name as defined in ({{track-name}}).
 
-* StartGroup: The Location of the requested group.  StartGroup's Mode MUST NOT be
-None.
+* StartGroup: The start Group ID, plus 1. A value of 0 means the latest group.
 
-* StartObject: The Location of the requested object.  StartObject's Mode MUST NOT
-be None.
+* StartObject: The start Object ID, plus 1. A value of 0 means the latest object.
+This field is not present when Start Group is 0.
 
-* EndGroup: The last Group requested in the subscription, inclusive.  EndGroup's
-Mode is None for an open-ended subscription.
+* EndGroup: The end Group ID, plus 1. A value of 0 means the subscription is
+open-ended and continues to the end of the track.
 
-* EndObject: The last Object requested in the subscription, exclusive.
-EndObject's Mode MUST be None if EndGroup's Mode is None.  EndObject's Mode MUST
-NOT be None if EndGroup's Mode is not None.
+* EndObject: The end Object ID, plus 1. A value of 0 means the entire group is
+requested. This field is not present when End Group is 0.
 
 * Track Request Parameters: The parameters are defined in
 {{version-specific-params}}
 
-On successful subscription, the publisher SHOULD start delivering
-objects from the group ID and object ID described above.
+On successful subscription, the publisher MUST reply with a SUBSCRIBE_OK,
+allowing the subscriber to determine the start group/object when not explicitly
+specified and the publisher SHOULD start delivering objects.
 
 If a publisher cannot satisfy the requested start or end for the subscription it
 MAY send a SUBSCRIBE_ERROR with code 'Invalid Range'. A publisher MUST NOT send
@@ -1290,59 +1264,6 @@ objects from outside the requested start and end.
 
 TODO: Define the flow where subscribe request matches an existing subscribe id
 (subscription updates.)
-
-### Examples
-
-~~~
-1. Now
-
-Start Group: Mode=RelativePrevious, Value=0
-Start Object: Mode=RelateiveNext, Value=0
-End Group: Mode=None
-End Object: Mode=None
-
-StartGroup=Largest Group
-StartObject=Largest Object + 1
-
-2. Current
-
-Start Group: Mode=RelativePrevious, Value=0
-Start Object: Mode=Absolute, Value=0
-End Group: Mode=None
-End Object: Mode=None
-
-StartGroup=Largest Group
-StartObject=0
-
-3. Previous
-
-Start Group: Mode=RelativePrevious, Value=1
-Start Object: Mode=Absolute, Value=0
-End Group: Mode=None
-End Object: Mode=None
-
-StartGroup=Largest Group - 1
-StartObject=0
-
-4. Next
-
-Start Group: Mode=RelativeNext, Value=0
-Start Object: Mode=Absolute, Value=0
-End Group: Mode=None
-End Object: Mode=None
-StartGroup=Largest Group + 1
-StartObject=0
-
-5. Range, All of group 3
-
-Start Group: Mode=Absolute, Value=3
-Start Object: Mode=Absolute, Value=0
-End Group: Mode=Absolute, Value=4
-End Object: Mode=Absolute, Value=0
-
-Start = Group 3, Object 0
-End = Group 3, Object <last>
-~~~
 
 
 ## SUBSCRIBE_OK {#message-subscribe-ok}
@@ -1354,18 +1275,19 @@ SUBSCRIBE_OK
 {
   Subscribe ID (i),
   Expires (i),
-  ContentExists (1),
+  ContentExists (f),
   [Largest Group ID (i)],
   [Largest Object ID (i)]
 }
 ~~~
 {: #moq-transport-subscribe-ok format title="MOQT SUBSCRIBE_OK Message"}
 
-* Subscribe ID: Subscription Identifer as defined in {{message-subscribe-req}}.
+* Subscribe ID: Subscription Identifier as defined in {{message-subscribe-req}}.
 
 * Expires: Time in milliseconds after which the subscription is no
-longer valid. A value of 0 indicates that the subscription stays active
-until it is explicitly unsubscribed.
+longer valid. A value of 0 indicates that the subscription does not expire
+or expires at an unknown time.  Expires is advisory and a subscription can
+end prior to the expiry time or last longer.
 
 * ContentExists: 1 if an object has been published on this track, 0 if not.
 If 0, then the Largest Group ID and Largest Object ID fields will not be
@@ -1393,7 +1315,7 @@ SUBSCRIBE_ERROR
 ~~~
 {: #moq-transport-subscribe-error format title="MOQT SUBSCRIBE_ERROR Message"}
 
-* Subscribe ID: Subscription Identifer as defined in {{message-subscribe-req}}.
+* Subscribe ID: Subscription Identifier as defined in {{message-subscribe-req}}.
 
 * Error Code: Identifies an integer error code for subscription failure.
 
@@ -1433,7 +1355,7 @@ SUBSCRIBE_UPDATE Message {
 ~~~
 {: #moq-transport-subscribe-update-format title="MOQT SUBSCRIBE_UPDATE Message"}
 
-* Subscribe ID: Subscription Identifer as defined in {{message-subscribe-req}}.
+* Subscribe ID: Subscription Identifier as defined in {{message-subscribe-req}}.
 
 ## SUBSCRIBE_DONE {#message-subscribe-done}
 
@@ -1448,7 +1370,7 @@ SUBSCRIBE_DONE Message {
   Subscribe ID (i),
   Status Code (i),
   Reason Phrase (b),
-  ContentExists (1),
+  ContentExists (f),
   [Final Group (i)],
   [Final Object (i)],
 }
@@ -1552,7 +1474,7 @@ The subscriber sends an `ANNOUNCE_CANCEL` control message to
 indicate it will stop sending new subscriptions for tracks
 within the provided Track Namespace.
 
-If a publisher recieves new subscriptions for that namespace after
+If a publisher receives new subscriptions for that namespace after
 receiving an ANNOUNCE_CANCEL, it SHOULD close the session as a
 'Protocol Violation'.
 
@@ -1565,6 +1487,73 @@ ANNOUNCE_CANCEL Message {
 
 * Track Namespace: Identifies a track's namespace as defined in
 ({{track-name}}).
+
+## TRACK_STATUS_REQUEST {#message-track-status-req}
+
+A potential subscriber sends a 'TRACK_STATUS_REQUEST' message on the control
+ stream to obtain information about the current status of a given track.
+
+A TRACK_STATUS message MUST be sent in response to each TRACK_STATUS_REQUEST.
+
+~~~
+TRACK_STATUS_REQUEST Message {
+  Track Namespace (b),
+  Track Name (b),
+}
+~~~
+{: #moq-track-status-request-format title="MOQT TRACK_STATUS_REQUEST Message"}
+
+## TRACK_STATUS {#message-track-status}
+
+An endpoint sends a 'TRACK_STATUS' message on the control stream in response
+to a TRACK_STATUS_REQUEST message.
+
+~~~
+TRACK_STATUS Message {
+  Track Namespace (b),
+  Track Name (b),
+  Status Code (i),
+  Last Group ID (i),
+  Last Object ID (i),
+}
+~~~
+{: #moq-track-status-format title="MOQT TRACK_STATUS Message"}
+
+The 'Status Code' field provides additional information about the status of the
+track. It MUST hold one of the following values. Any other value is a malformed
+message.
+
+0x00: The track is in progress, and subsequent fields contain the highest group
+and object ID for that track.
+
+0x01: The track does not exist. Subsequent fields MUST be zero, and any other
+value is a malformed message.
+
+0x02: The track has not yet begun. Subsequent fields MUST be zero. Any other
+value is a malformed message.
+
+0x03: The track has finished, so there is no "live edge." Subsequent fields
+contain the highest Group and object ID known.
+
+0x04: The sender is a relay that cannot obtain the current track status from
+upstream. Subsequent fields contain the largest group and object ID known.
+
+Any other value in the Status Code field is a malformed message.
+
+When a relay is subscribed to a track, it can simply return the highest group
+and object ID it has observed, whether or not that object was cached or
+completely delivered. If not subscribed, a relay SHOULD send a
+TRACK_STATUS_REQUEST upstream to obtain updated information.
+
+Alternatively, the relay MAY subscribe to the track to obtain the same
+information.
+
+If a relay cannot or will not do either, it should return its best available
+information with status code 0x04.
+
+The receiver of multiple TRACK_STATUS messages for a track uses the information
+from the latest arriving message, as they are delivered in order on a single
+stream.
 
 ## GOAWAY {#message-goaway}
 The server sends a `GOAWAY` message to initiate session migration
@@ -1582,7 +1571,7 @@ GOAWAY Message {
 ~~~
 {: #moq-transport-goaway-format title="MOQT GOAWAY Message"}
 
-* New Session URI: The client MUST use this URI for the new session if provded.
+* New Session URI: The client MUST use this URI for the new session if provided.
   If the URI is zero bytes long, the current URI is reused instead. The new
   session URI SHOULD use the same scheme as the current URL to ensure
   compatibility.
