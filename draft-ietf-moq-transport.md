@@ -1261,9 +1261,43 @@ If a publisher cannot satisfy the requested start or end for the subscription it
 MAY send a SUBSCRIBE_ERROR with code 'Invalid Range'. A publisher MUST NOT send
 objects from outside the requested start and end.
 
-TODO: Define the flow where subscribe request matches an existing subscribe id
-(subscription updates.)
+## SUBSCRIBE_UPDATE {#message-subscribe-update-req}
 
+A receiver issues a SUBSCRIBE_UPDATE to a publisher to request a change to
+a prior subscription.  The start Object MUST NOT decrease and when it increases,
+there is no guarantee that a publisher will not send Objects after the new
+start Object.  The end Object MUST NOT increase and when it decreases,
+there is no guarantee that a publisher will not send Objects after the new
+end Object.
+
+The format of SUBSCRIBE_UPDATE is as follows:
+
+~~~
+SUBSCRIBE_UPDATE Message {
+  Subscribe ID (i),
+  StartGroup (i),
+  StartObject (i),
+  EndGroup (i),
+  EndObject (i),
+  Number of Parameters (i),
+  Track Request Parameters (..) ...
+}
+~~~
+{: #moq-transport-subscribe-update-format title="MOQT SUBSCRIBE_UPDATE Message"}
+
+* Subscribe ID: The subscription identifier that is unique within the session.
+
+* StartGroup: The start Group ID.
+
+* StartObject: The start Object ID.
+
+* EndGroup: The end Group ID.
+
+* EndObject: The end Object ID, plus 1. A value of 0 means the entire group is
+requested.
+
+* Track Request Parameters: The parameters are defined in
+{{version-specific-params}}
 
 ## SUBSCRIBE_OK {#message-subscribe-ok}
 
