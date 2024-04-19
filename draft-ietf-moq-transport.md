@@ -1211,10 +1211,10 @@ SUBSCRIBE Message {
   Track Alias (i),
   Track Namespace (b),
   Track Name (b),
-  StartGroup (i),
-  [ StartObject (i), ]
-  EndGroup (i),
-  [ EndObject (i), ]
+  Start Group (i),
+  [ Start Object (i), ]
+  End Group (i),
+  [ End Object (i), ]
   Number of Parameters (i),
   Track Request Parameters (..) ...
 }
@@ -1239,16 +1239,14 @@ close the session with a Duplicate Track Alias error ({{session-termination}}).
 
 * Track Name: Identifies the track name as defined in ({{track-name}}).
 
-* StartGroup: The start Group ID, plus 1. A value of 0 means the latest group.
+* Start Group: The inclusive start Group ID, plus 1. A value of 0 means the latest Group ID.
 
-* StartObject: The start Object ID, plus 1. A value of 0 means the latest object.
-This field is not present when Start Group is 0.
+* Start Object: The inclusive start Object ID. When Start Group is 0, this field is not present and defaults to 0.
 
-* EndGroup: The end Group ID, plus 1. A value of 0 means the subscription is
-open-ended and continues to the end of the track.
+* End Group: The exclusive end Group ID, plus 1. A value of 0 means the subscription
+continues to the end of the track.
 
-* EndObject: The end Object ID, plus 1. A value of 0 means the entire group is
-requested. This field is not present when End Group is 0.
+* End Object: The exclusive end Object ID. When End Group is 0, this field is not present and the subscription continues to the end of the group.
 
 * Track Request Parameters: The parameters are defined in
 {{version-specific-params}}
