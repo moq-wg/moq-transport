@@ -1136,13 +1136,14 @@ Forwarding Preference` = `Track`.
 To send an Object with `Object Forwarding Preference` = `Track`, find the open
 stream that is associated with the subscription, or open a new one and send the
 `STREAM_HEADER_TRACK` if needed, then serialize the following object fields.
+The Object Status field is only sent if the Object Payload Length is zero.
 
 ~~~
 {
   Group ID (i),
   Object ID (i),
-  Object Status (i),
   Object Payload Length (i),
+  [Object Status (i)],
   Object Payload (..),
 }
 ~~~
@@ -1176,12 +1177,13 @@ To send an Object with `Object Forwarding Preference` = `Group`, find the open
 stream that is associated with the subscription, `Group ID` and `Object
 Send Order`, or open a new one and send the `STREAM_HEADER_GROUP` if needed,
 then serialize the following fields.
+The Object Status field is only sent if the Object Payload Length is zero.
 
 ~~~
 {
   Object ID (i),
-  Object Status (i),
   Object Payload Length (i),
+  [Object Status (i)],
   Object Payload (..),
 }
 ~~~
