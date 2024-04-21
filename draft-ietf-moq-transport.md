@@ -1038,6 +1038,10 @@ last object in the group.
 Any other value SHOULD be treated as a protocol error and terminate the
 session with a Protocol Violation ({{session-termination}}).
 
+There are times where some of the status information is redundant with
+information learned at the lower layer. For example, when using stream
+per object, the end of Group is redundant.
+
 ### Object Message Formats
 
 Every Track has a single 'Object Forwarding Preference' and publishers
