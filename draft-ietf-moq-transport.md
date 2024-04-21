@@ -1042,6 +1042,13 @@ There are times where some of the status information is redundant with
 information learned at the lower layer. For example, when using stream
 per object, the end of Group is redundant.
 
+In most cases messages with a non zero status code are sent on the same
+stream that an object with that GroupID would have been sent on. The
+exception to this is when that stream has been reset; in that case they
+are sent on a new stream. This is to avoid the status message being lost
+in cases such as a relay dropping a group and reseting the stream the
+group is being sent on.
+
 ### Object Message Formats
 
 Every Track has a single 'Object Forwarding Preference' and publishers
