@@ -1028,7 +1028,9 @@ are beyond the end of a group or track. Every object has an associated
          stream. If the group is dropped there will only one message
          with this status for the group.
 
-Any other value SHOULD be treated as a protcol error.
+Any other value SHOULD be treated as a protcol error and terminate the
+session with a Protocol Violation ({{session-termination}}).
+
 
 ### Object Message Formats
 
