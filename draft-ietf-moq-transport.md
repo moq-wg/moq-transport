@@ -975,6 +975,8 @@ A canonical MoQ Object has the following information:
 IDs starts at 0, increasing sequentially for each object within the
 group.
 
+* Object Send Order: An integer indicating the object send order
+{{send-order}} or priority {{ordering-by-priorities}} value.
 
 * Object Forwarding Preference: An enumeration indicating how a sender sends an
 object. The preferences are Track, Group, Object and Datagram.  An Object MUST
