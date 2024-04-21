@@ -1028,6 +1028,7 @@ are beyond the end of a group or track. Every object has an associated
          stream. If the group is dropped there will only one message
          with this status for the group.
 
+Any other value SHOULD be treated as a protcol error.
 
 ### Object Message Formats
 
