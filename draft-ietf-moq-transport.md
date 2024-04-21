@@ -994,41 +994,49 @@ produced including the case where they will not be produced because they
 are beyond the end of a group or track. Every object has an associated
 `Status` that can have following values:
 
-* 0x0 := Object exists at the publisher and payload is non-null array of
-         bytes.
+* 0x0 := Normal object. The payload is array of bytes and can by empty.
 
-* 0x1 := Object non existent at the publisher and has zero sized
-         payload. Sent by the media producer and sent to indicate that
-         the given object identified by the Object Id doesn't exist for
-         the reasons specific to the producer.
+* 0x1 := Indicates Object does not exist. Indicates that this object
+         does not exist at any publisher and it will not be published in
+         the future. This SHOULD be cached.
 
-* 0x2 := Group non existent. Sent by a publisher and indicates the group
-         identified by the groupId doesn't exist at the producer. This
-         is the only message sent on the unidirectional stream when
-         using Stream per group and Stream per object forwarding
-         preference.
+* 0x2 := Indicates Group does not exist. Indicates that objects with
+         this GroupID do not exist at any publisher and they will not be
+         published in the future. This SHOULD be cached.
 
-* 0x3 := Object dropped at the relay. Sent by a relay indicating the
-         object identified by the ObjectId was dropped. The payload will
-         be empty in this case.
+* 0x3 := Indicates end of Group. ObjectId is one greater that the
+         largest object produced in the group identified by the
+         GroupID. This is sent right after the last object in the
+         group. This SHOULD be cached.
 
-* 0x4 := Group dropped at the relay. Sent by a relay indicating the
-         group identified by the GroupId was dropped. The payload will
-         be empty in this case.
+* 0x4 := Indicates end of Track and Group. GroupID is one greater than
+         the largest group produced in this track and the ObjectId is
+         one greater than the largest object produced in that
+         group. This is sent right after the last object in the
+         track. This SHOULD be cached.
 
-* 0x5 := Indicates end of group. ObjectId identifies the largest object
-         produced in the group identified by the GroupID. This is sent
-         right after the last object in the group and on the same
-         stream. If the group is dropped there will only one message
-         with this status for the group.
+* 0x5 := Indicates Object was dropped at a relay. Sent by a relay
+         indicating the object identified by the ObjectId was
+         dropped. This SHOULD NOT be cached.
 
-* 0x6 := Indicates end of track. GroupID and ObjectId identifies the
-         largest group and object produced in this track. This is sent
-         right after the last object in the track and on the same
-         stream. If the group is dropped there will only one message
-         with this status for the group.
+* 0x6 := Indicates Group was dropped at a relay. Sent by a relay
+         indicating some of the objects in the group identified by the
+         GroupId were dropped. The Object ID is one greater than last
+         object sent and MAY be zero. This SHOULD NOT be cached.
 
-Any other value SHOULD be treated as a protcol error and terminate the
+Open Issue: We could make end of track and end of group just be a status
+set on the last object sent on the group or track. This would mean the
+status could no longer optional and only occur when the payload length
+was zero as it would be needed in non zero length packets. It would also
+have the issue that when a P frame is produced, the software getting
+data from the decoder often does not know if it is the last P frame
+until the next frame is encoded and the sotware gets an I frame. We do
+not want a situttion where we add a whole frame of latency on the
+encoder waiting for next frame so it can set the end of group field on
+the last last object in the group.
+
+
+Any other value SHOULD be treated as a protocol error and terminate the
 session with a Protocol Violation ({{session-termination}}).
 
 
