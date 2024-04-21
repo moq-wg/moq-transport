@@ -1030,15 +1030,13 @@ status could no longer optional and only occur when the payload length
 was zero as it would be needed in non zero length packets. It would also
 have the issue that when a P frame is produced, the software getting
 data from the decoder often does not know if it is the last P frame
-until the next frame is encoded and the sotware gets an I frame. We do
-not want a situttion where we add a whole frame of latency on the
-encoder waiting for next frame so it can set the end of group field on
-the last last object in the group.
-
+until the next frame is encoded and the software gets an I frame. We do
+not want a solution where we add a whole frame of latency on the encoder
+waiting for next frame so it can set the end of group field on the last
+last object in the group.
 
 Any other value SHOULD be treated as a protocol error and terminate the
 session with a Protocol Violation ({{session-termination}}).
-
 
 ### Object Message Formats
 
