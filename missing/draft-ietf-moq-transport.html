@@ -2592,16 +2592,20 @@ IDs starts at 0, increasing sequentially for each object within the
 group.<a href="#section-6.3.1-2.3.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-6.3.1-2.4">
-              <p id="section-6.3.1-2.4.1">Object Forwarding Preference: An enumeration indicating how a sender sends an
-object. The preferences are Track, Group, Object and Datagram.  An Object <span class="bcp14">MUST</span>
-be sent according to its <code>Object Forwarding Preference</code>, described below.<a href="#section-6.3.1-2.4.1" class="pilcrow">¶</a></p>
+              <p id="section-6.3.1-2.4.1">Object Send Order: An integer indicating the object send order
+<a href="#send-order" class="auto internal xref">Section 4.1.1</a> or priority <a href="#ordering-by-priorities" class="auto internal xref">Section 4.1.2</a> value.<a href="#section-6.3.1-2.4.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-6.3.1-2.5">
-              <p id="section-6.3.1-2.5.1">Object Status: As enumeration used for missing or dropped objects that
-indicates why data is missing.<a href="#section-6.3.1-2.5.1" class="pilcrow">¶</a></p>
+              <p id="section-6.3.1-2.5.1">Object Forwarding Preference: An enumeration indicating how a sender sends an
+object. The preferences are Track, Group, Object and Datagram.  An Object <span class="bcp14">MUST</span>
+be sent according to its <code>Object Forwarding Preference</code>, described below.<a href="#section-6.3.1-2.5.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-6.3.1-2.6">
-              <p id="section-6.3.1-2.6.1">Object Payload: An opaque payload intended for the consumer and <span class="bcp14">SHOULD NOT</span> be processed by a relay.<a href="#section-6.3.1-2.6.1" class="pilcrow">¶</a></p>
+              <p id="section-6.3.1-2.6.1">Object Status: As enumeration used for missing or dropped objects that
+indicates why data is missing.<a href="#section-6.3.1-2.6.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-6.3.1-2.7">
+              <p id="section-6.3.1-2.7.1">Object Payload: An opaque payload intended for the consumer and <span class="bcp14">SHOULD NOT</span> be processed by a relay.<a href="#section-6.3.1-2.7.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
 <p id="section-6.3.1-3">There is also a status field which help subscribers understand what

@@ -1043,6 +1043,9 @@ Table of Contents
       starts at 0, increasing sequentially for each object within the
       group.
 
+   *  Object Send Order: An integer indicating the object send order
+      Section 4.1.1 or priority Section 4.1.2 value.
+
    *  Object Forwarding Preference: An enumeration indicating how a
       sender sends an object.  The preferences are Track, Group, Object
       and Datagram.  An Object MUST be sent according to its Object
