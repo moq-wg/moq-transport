@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2024-04-18T01:07:22.585158+00:00",
+  "timestamp": "2024-04-21T01:12:58.762913+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -15529,6 +15529,44 @@
           "body": "IMO we should negotiate extensions in the SETUP message. I'm a little worried about adding arbitrary blobs to messages that _might_ change the relay's behavior, although I understand that's how HTTP works today.",
           "createdAt": "2024-04-17T18:09:45Z",
           "updatedAt": "2024-04-17T18:10:08Z"
+        }
+      ]
+    },
+    {
+      "number": 436,
+      "id": "I_kwDOG2Ho4M6GUZOc",
+      "title": "New SUBSCRIBE limitations",
+      "url": "https://github.com/moq-wg/moq-transport/issues/436",
+      "state": "OPEN",
+      "author": "afrind",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "As currently defined, you can SUBSCRIBE starting from the following points:\r\n\r\n1. The latest group and latest object\r\n2. An absolute group and latest object\r\n3. An absolute group and absolute object\r\n\r\nYou cannot SUBSCRIBE to \r\n\r\na. The latest group with an absolute object\r\nb. The latest group from the beginning\r\nc. The next group after latest, from the beginning\r\n\r\nI'd like to remove 2) (absolute group, latest object).  If this group is in the past, then likely the group is complete and no new objects will come in that group, so it's equivalent to (absolute group + 1, object 0).  If this group is in the future, then it's equivalent to (absolute group, object 0).  If the group is current, it's equivalent to latest/latest.  Does anyone have a use case that requires this mode?\r\n\r\nI'd also like to add b) (latest group, first object) and c) (next group, object 0).  This can be done now with an extra round trip via TRACK_STATUS_REQUEST, so perhaps this is an optimization we can tackle later.",
+      "createdAt": "2024-04-19T17:14:33Z",
+      "updatedAt": "2024-04-19T17:54:04Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> As currently defined, you can SUBSCRIBE starting from the following points:\r\n> \r\n> 1. The latest group and latest object\r\n> 2. An absolute group and latest object\r\n> 3. An absolute group and absolute object\r\n> \r\n> You cannot SUBSCRIBE to\r\n> \r\n> a. The latest group with an absolute object\r\n> b. The latest group from the beginning\r\n> c. The next group after latest, from the beginning\r\n\r\nIt's currently ambiguous if `case 1` or `case b` happens. When `start_group=0`, then `start_object` is not present but doesn't have a specified default. If `default=0` then `case 1` occurs, and if `default=1` then `case b` occurs. The correct behavior is `case b` IMO since groups are intended to be sync points. \r\n\r\n+1 to removing `case 2`.",
+          "createdAt": "2024-04-19T17:38:36Z",
+          "updatedAt": "2024-04-19T17:54:04Z"
+        },
+        {
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "body": "And I don't think we should support `case c` without a good use-case. It's too racey for ABR and too delayed for initial playback. \r\n\r\nIt's also barely an optimization since the alternative is making the TRACK_STATUS_REQUEST, which primarily eats into time that would have been spent waiting for the next group to start anyway.",
+          "createdAt": "2024-04-19T17:48:54Z",
+          "updatedAt": "2024-04-19T17:53:42Z"
+        },
+        {
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "body": "#437 means you can only start at:\r\n\r\nb. The latest group from the beginning\r\n3. An absolute group and absolute object\r\n\r\nEverything else is accomplished with `TRACK_STATUS_REQUEST`, forcing the subscriber to converts relative values to absolute. I think we should eventually bring back Locations so the publisher can do this conversion too without an additional RTT, but the desire was to simplify start/end ranges.",
+          "createdAt": "2024-04-19T17:52:36Z",
+          "updatedAt": "2024-04-19T17:52:58Z"
         }
       ]
     }
@@ -49168,13 +49206,13 @@
       ],
       "body": "Fixes #363, Fixes #269\r\n\r\nThis attempts to provide the minimum functionality I expect we'll need, regardless of how SUBSCRIBE is changed in the near future.",
       "createdAt": "2024-02-19T19:05:04Z",
-      "updatedAt": "2024-03-04T02:57:49Z",
+      "updatedAt": "2024-04-18T01:10:37Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
-      "baseRefOid": "06d9acf2564ca79fc3dcb78303f93047691c4b07",
+      "baseRefOid": "9d80b4ecfe2763b6598e28064aacb35962e8aeae",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "ianswett-subscribe-update",
-      "headRefOid": "7cefe686c995176d8278ec4f41c3fab3dae65a6c",
+      "headRefOid": "6d13f6fd407963da2708e7e776c34b3454b6e205",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -51901,7 +51939,7 @@
       "labels": [],
       "body": "",
       "createdAt": "2024-03-18T19:36:24Z",
-      "updatedAt": "2024-03-23T12:32:41Z",
+      "updatedAt": "2024-04-19T13:30:24Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "ad67a19f1e6abbe4331b73ad49360726783a2bb8",
@@ -54626,7 +54664,7 @@
       ],
       "body": "This is intended to be complementary to #429 by adding a SUBSCRIBE specific mechanism to indicate hop-by-hop Objects that will not be delivered.  Because this is specific to a SUBSCRIBE, it's not intended to be cacheable.\r\n\r\nBuilds on ideas in #423 \r\n\r\nEach SUBSCRIBE could be moved to their own bidi stream and this could be sent there, but that change can be made separately.",
       "createdAt": "2024-04-17T19:54:44Z",
-      "updatedAt": "2024-04-18T01:07:13Z",
+      "updatedAt": "2024-04-20T19:44:01Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "9d80b4ecfe2763b6598e28064aacb35962e8aeae",
@@ -54760,6 +54798,209 @@
               "body": "No, the intent is only to replace the case when it's not deliverable due to congestion/etc, which I believe we cannot/should not cache.  If the Objects are immutable/cacheable, then they'd be delivered on unidirectional streams, even if they're missing/length 0.",
               "createdAt": "2024-04-18T01:02:46Z",
               "updatedAt": "2024-04-18T01:02:47Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M53yLty",
+          "commit": {
+            "abbreviatedOid": "8fb30e1"
+          },
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-04-18T18:52:24Z",
+          "updatedAt": "2024-04-18T18:52:24Z",
+          "comments": [
+            {
+              "originalPosition": 18,
+              "body": "I think that's almost the case, but not quite.\r\n\r\nA broadcaster will produce an OBJECT size=1234 and keep it in an internal cache for 5s. A subscriber might need it immediately so we sent it. But if a fetch comes in later, after the 5s expiration, then it sounds like you want the broadcaster to send OBJECT size=0 instead (or with an equivalent status code)? Otherwise there's no way of indicating that an object is permanently gone.\r\n\r\nThat kind of breaks the immutable property, and it gives a mixed signal because the object used to exist but no longer. IMO the broadcaster should send OBJECTS_DROPPED instead, just with a flag saying please don't try again; trust me.",
+              "createdAt": "2024-04-18T18:52:24Z",
+              "updatedAt": "2024-04-18T18:52:24Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M53_hG9",
+          "commit": {
+            "abbreviatedOid": "8fb30e1"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-04-20T19:44:01Z",
+          "updatedAt": "2024-04-20T19:44:01Z",
+          "comments": [
+            {
+              "originalPosition": 18,
+              "body": "If an object goes from available to permanently gone, then that new status is cacheable.  The object didn't change, it's availability did.\r\n\r\nFrom a functional perspective, we could definitely add a flag indicating the Objects were permanently dropped, but I think that mixes up the Track specific information with the Subscription specific information.\r\n\r\nOBJECTS_DROPPED is intended to be specific to a subscription, and Objects sent on unidirectional streams are part of the track.",
+              "createdAt": "2024-04-20T19:44:01Z",
+              "updatedAt": "2024-04-20T19:44:02Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 435,
+      "id": "PR_kwDOG2Ho4M5s_ZD7",
+      "title": "SUBSCRIBE_UPDATE",
+      "url": "https://github.com/moq-wg/moq-transport/pull/435",
+      "state": "OPEN",
+      "author": "ianswett",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [
+        "Subscribe"
+      ],
+      "body": "Replace #385 based on the simplified SUBSCRIBE.\r\n\r\nFixes #269\r\nCloses #385",
+      "createdAt": "2024-04-18T01:38:35Z",
+      "updatedAt": "2024-04-18T01:38:35Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "9d80b4ecfe2763b6598e28064aacb35962e8aeae",
+      "headRepository": "moq-wg/moq-transport",
+      "headRefName": "ianswett-subscribe-update2",
+      "headRefOid": "6b7cdb9a3a5482913a3a2d7938ad0152b0422ee3",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": []
+    },
+    {
+      "number": 437,
+      "id": "PR_kwDOG2Ho4M5tM1BL",
+      "title": "Exclusive SUBSCRIBE end range",
+      "url": "https://github.com/moq-wg/moq-transport/pull/437",
+      "state": "OPEN",
+      "author": "kixelated",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "This removes the `N/latest` functionality which is super confusing. It's also just cleaner to use exclusive end ranges instead of the previously implied inclusive ranges.\r\n\r\nNote that to receive a single group, you need to use:\r\n```\r\n    start_group=N  start_object=0\r\n    end_group=N+1  end_object=0\r\n```\r\n\r\nPreviously that was accomplished with:\r\n```\r\n    start_group=N  start_object=1\r\n    end_group=N    end_object=0\r\n```",
+      "createdAt": "2024-04-19T17:30:54Z",
+      "updatedAt": "2024-04-20T04:05:45Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "9d80b4ecfe2763b6598e28064aacb35962e8aeae",
+      "headRepository": "moq-wg/moq-transport",
+      "headRefName": "kixel-exclusive-end",
+      "headRefOid": "70e3129eb45fb52460539d3d7325e697e0687b56",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "See related issue #436 ",
+          "createdAt": "2024-04-19T17:38:26Z",
+          "updatedAt": "2024-04-19T17:38:26Z"
+        }
+      ],
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M537OrR",
+          "commit": {
+            "abbreviatedOid": "70e3129"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-04-19T17:40:20Z",
+          "updatedAt": "2024-04-19T17:40:20Z",
+          "comments": [
+            {
+              "originalPosition": 24,
+              "body": "Note: this changes the start group=0 from meaning latest/latest to meaning latest/0 and there is no way to express latest/latest after this change.",
+              "createdAt": "2024-04-19T17:40:20Z",
+              "updatedAt": "2024-04-19T17:40:20Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M537erh",
+          "commit": {
+            "abbreviatedOid": "70e3129"
+          },
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-04-19T18:18:53Z",
+          "updatedAt": "2024-04-19T18:18:53Z",
+          "comments": [
+            {
+              "originalPosition": 24,
+              "body": "Well the meaning was `latest/undefined`. My intent was `latest/0` but I can see how it could be interpreted as `latest/latest`.",
+              "createdAt": "2024-04-19T18:18:53Z",
+              "updatedAt": "2024-04-19T18:18:53Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M53-bxN",
+          "commit": {
+            "abbreviatedOid": "70e3129"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-04-20T00:33:31Z",
+          "updatedAt": "2024-04-20T00:33:31Z",
+          "comments": [
+            {
+              "originalPosition": 28,
+              "body": "The group is only exclusive when end object is 0.  I understand what you mean, but we should clarify the text. \r\n\r\nIf I want to get up through g=7, o=5, I send end: g=7 (encoded 8) o=6.  If I want all of group 6 but none of group 7, I send start: g=6 (encoded 7), o=0, end: g=7 (encoded 8), o=0.",
+              "createdAt": "2024-04-20T00:33:31Z",
+              "updatedAt": "2024-04-20T00:33:31Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M53-gHk",
+          "commit": {
+            "abbreviatedOid": "70e3129"
+          },
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-04-20T00:40:10Z",
+          "updatedAt": "2024-04-20T00:40:10Z",
+          "comments": [
+            {
+              "originalPosition": 28,
+              "body": "Ah yeah, the tuple is exclusive.",
+              "createdAt": "2024-04-20T00:40:10Z",
+              "updatedAt": "2024-04-20T00:40:10Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M53_DAy",
+          "commit": {
+            "abbreviatedOid": "70e3129"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-04-20T04:05:45Z",
+          "updatedAt": "2024-04-20T04:05:45Z",
+          "comments": [
+            {
+              "originalPosition": 9,
+              "body": "Suggestion to support both \"latest/0\" and \"latest/latest\": Start Object is always present, but when Start Group is 0, 0 means object 0, 1 means latest object and values >= 2 are illegal.",
+              "createdAt": "2024-04-20T04:05:45Z",
+              "updatedAt": "2024-04-20T04:05:46Z"
             }
           ]
         }
