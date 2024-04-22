@@ -1211,10 +1211,11 @@ SUBSCRIBE Message {
   Track Alias (i),
   Track Namespace (b),
   Track Name (b),
+  Location Filter (i),
   StartGroup (i),
-  [ StartObject (i), ]
-  EndGroup (i),
-  [ EndObject (i), ]
+  StartObject (i),
+  [EndGroup (i)],
+  [ EndObject (i)],
   Number of Parameters (i),
   Track Request Parameters (..) ...
 }
@@ -1239,19 +1240,19 @@ close the session with a Duplicate Track Alias error ({{session-termination}}).
 
 * Track Name: Identifies the track name as defined in ({{track-name}}).
 
-* StartGroup: The start Group ID, plus 1. A value of 0 means the latest group.
+* Subscribe Filter: Identifies acceptable values for start and end group(s)/object(s) to be delivered. See ({{sub-filter}}).
 
-* StartObject: The start Object ID, plus 1. A value of 0 means the latest object.
-This field is not present when Start Group is 0.
+* StartGroup: The start Group ID.
 
-* EndGroup: The end Group ID, plus 1. A value of 0 means the subscription is
-open-ended and continues to the end of the track.
+* StartObject: The start Object ID within the group corresponding to the StartGroup.
 
-* EndObject: The end Object ID, plus 1. A value of 0 means the entire group is
-requested. This field is not present when End Group is 0.
+* EndGroup: The end Group ID. If omitted means, subscription is open-ended and continues to the end of the track.
+
+* EndObject: The end Object ID. This field MUST NOT be present if the EndGroup is omitted.
 
 * Track Request Parameters: The parameters are defined in
 {{version-specific-params}}
+
 
 On successful subscription, the publisher MUST reply with a SUBSCRIBE_OK,
 allowing the subscriber to determine the start group/object when not explicitly
@@ -1264,6 +1265,24 @@ objects from outside the requested start and end.
 TODO: Define the flow where subscribe request matches an existing subscribe id
 (subscription updates.)
 
+### Subscribe Filter {#sub-filter}
+
+The receiver specifies a filter value that allows publisher
+to identify the range of groups and objects that needs to be delivered, wherever applicable.
+
+There are 3 filter values:
+
+Current (0x1) : A filter value of "Current" implies objects from the beginning of the current group.
+
+Latest (0x2): A filter value of "Latest" implies beginning from the current object of the current group.
+
+Absolute (0x3):  For filter value of "Absolute", the group information is obtained from the StartGroup and EndGroup fields,
+the object information is obtained from the StartObject and the
+EndObject fields.
+
+A filter value other than the above MUST be treated as error.
+
+The fields `StartGroup`, `StartObject`, `EndGroup` and `EndObject` MUST be only present if the filer value is `Absolute`, else the subscription MUST be treated as error.
 
 ## SUBSCRIBE_OK {#message-subscribe-ok}
 
