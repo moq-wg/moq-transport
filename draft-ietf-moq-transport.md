@@ -1201,6 +1201,25 @@ OBJECT_STREAM {
 
 ## SUBSCRIBE {#message-subscribe-req}
 
+### Subscribe Filter {#sub-filter}
+
+The receiver specifies a filter value that allows publisher
+to identify the range of groups and objects that needs to be delivered, wherever applicable.
+
+There are 3 filter values:
+
+Current (0x1) : A filter value of "Current" implies objects from the beginning of the current group.
+
+Latest (0x2): A filter value of "Latest" implies beginning from the current object of the current group.
+
+Absolute (0x3):  For filter value of "Absolute", the group information is obtained from the StartGroup and EndGroup fields,
+the object information is obtained from the StartObject and the
+EndObject fields.
+
+A filter value other than the above MUST be treated as error.
+
+
+## SUBSCRIBE Format
 A receiver issues a SUBSCRIBE to a publisher to request a track.
 
 The format of SUBSCRIBE is as follows:
@@ -1211,13 +1230,13 @@ SUBSCRIBE Message {
   Track Alias (i),
   Track Namespace (b),
   Track Name (b),
+  Number of Parameters (i),
+  Track Request Parameters (..) ...,
   Location Filter (i),
-  StartGroup (i),
-  StartObject (i),
+  [StartGroup (i)],
+  [StartObject (i)],
   [EndGroup (i)],
   [ EndObject (i)],
-  Number of Parameters (i),
-  Track Request Parameters (..) ...
 }
 ~~~
 {: #moq-transport-subscribe-format title="MOQT SUBSCRIBE Message"}
@@ -1240,18 +1259,21 @@ close the session with a Duplicate Track Alias error ({{session-termination}}).
 
 * Track Name: Identifies the track name as defined in ({{track-name}}).
 
+* Track Request Parameters: The parameters are defined in
+{{version-specific-params}}
+
 * Subscribe Filter: Identifies acceptable values for start and end group(s)/object(s) to be delivered. See ({{sub-filter}}).
 
-* StartGroup: The start Group ID.
+For filter value of "Absolute", the following interpretation holds:
+
+* StartGroup: The start Group ID. This field MUST be present.
 
 * StartObject: The start Object ID within the group corresponding to the StartGroup.
 
-* EndGroup: The end Group ID. If omitted means, subscription is open-ended and continues to the end of the track.
+* EndGroup: The end Group ID. If omitted implies an open-ended subscription and continues to the end of the track.
 
 * EndObject: The end Object ID. This field MUST NOT be present if the EndGroup is omitted.
 
-* Track Request Parameters: The parameters are defined in
-{{version-specific-params}}
 
 
 On successful subscription, the publisher MUST reply with a SUBSCRIBE_OK,
@@ -1265,24 +1287,7 @@ objects from outside the requested start and end.
 TODO: Define the flow where subscribe request matches an existing subscribe id
 (subscription updates.)
 
-### Subscribe Filter {#sub-filter}
 
-The receiver specifies a filter value that allows publisher
-to identify the range of groups and objects that needs to be delivered, wherever applicable.
-
-There are 3 filter values:
-
-Current (0x1) : A filter value of "Current" implies objects from the beginning of the current group.
-
-Latest (0x2): A filter value of "Latest" implies beginning from the current object of the current group.
-
-Absolute (0x3):  For filter value of "Absolute", the group information is obtained from the StartGroup and EndGroup fields,
-the object information is obtained from the StartObject and the
-EndObject fields.
-
-A filter value other than the above MUST be treated as error.
-
-The fields `StartGroup`, `StartObject`, `EndGroup` and `EndObject` MUST be only present if the filer value is `Absolute`, else the subscription MUST be treated as error.
 
 ## SUBSCRIBE_OK {#message-subscribe-ok}
 
