@@ -1277,7 +1277,7 @@ For filter value of "AbsoluteRange", the following interpretation holds:
 
 * StartGroup: The start Group ID. This field MUST be present.
 
-* StartObject: The start Object ID within the group corresponding to the StartGroup. Omitting this field implies objects from the beginning of the group.
+* StartObject: The start Object ID within the group corresponding to the StartGroup. This field MUST be present.
 
 * EndGroup: The end Group ID. This field MUST be present.
 
