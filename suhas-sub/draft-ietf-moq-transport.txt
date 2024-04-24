@@ -5,13 +5,13 @@
 MOQ                                                            L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 24 October 2024                                            Meta
+Expires: 26 October 2024                                            Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                           22 April 2024
+                                                           24 April 2024
 
 
                        Media over QUIC Transport
@@ -53,7 +53,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 24 October 2024.
+   This Internet-Draft will expire on 26 October 2024.
 
 Copyright Notice
 
@@ -1357,8 +1357,7 @@ Table of Contents
    *  StartGroup: The start Group ID.  This field MUST be present.
 
    *  StartObject: The start Object ID within the group corresponding to
-      the StartGroup.  Omitting this field implies objects from the
-      beginning of the group.
+      the StartGroup.  This field MUST be present.
 
    *  EndGroup: The end Group ID.  This field MUST be present.
 
