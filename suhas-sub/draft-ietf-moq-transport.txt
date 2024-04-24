@@ -1306,7 +1306,7 @@ Table of Contents
      [EndGroup (i),
       EndObject (i)],
      Number of Parameters (i),
-     Track Request Parameters (..) ...,
+     Track Request Parameters (..) ...
    }
 
                      Figure 10: MOQT SUBSCRIBE Message
