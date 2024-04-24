@@ -1218,7 +1218,8 @@ AbsoluteStart (0x3):  Specifies an open-ended subscription with objects
 beginning from the object identified in the StartGroup and StartObject fields.
 
 AbsoluteRange (0x4):  Specifies a closed subscription starting at StartObject
-in the StartGroup and ending at EndObject in EndGroup.
+in StartGroup and ending at EndObject in EndGroup.  The start and end of the
+range are inclusive.
 
 A filter type other than the above MUST be treated as error.
 
