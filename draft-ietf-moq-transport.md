@@ -1241,7 +1241,7 @@ SUBSCRIBE Message {
   [EndGroup (i),
    EndObject (i)],
   Number of Parameters (i),
-  Track Request Parameters (..) ...,
+  Track Request Parameters (..) ...
 }
 ~~~
 {: #moq-transport-subscribe-format title="MOQT SUBSCRIBE Message"}
