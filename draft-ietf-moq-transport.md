@@ -1201,7 +1201,7 @@ OBJECT_STREAM {
 
 ## SUBSCRIBE {#message-subscribe-req}
 
-### Subscribe Location Filter {#sub-filter}
+### Filter Types {#sub-filter}
 
 The subscriber specifies a filter on the subscription to allow
 the publisher to identify which objects need to be delivered.
@@ -1263,14 +1263,15 @@ close the session with a Duplicate Track Alias error ({{session-termination}}).
 
 * Track Name: Identifies the track name as defined in ({{track-name}}).
 
-* Location Filter: Identifies acceptable values for start and end group(s)/object(s)
-  to be delivered. See ({{sub-filter}}).
+* Filter Type: Identifies the type of filter, which also indicates whether
+the StartGroup/StartObject and EndGroup/EndObject fields will be present.
+See ({{sub-filter}}).
 
 * StartGroup: The start Group ID. Only present for "AbsoluteStart" and
-  "AbsoluteRange" filter types.
+"AbsoluteRange" filter types.
 
 * StartObject: The start Object ID within the StartGroup. Only present for
-  "AbsoluteStart" and "AbsoluteRange" filter types.
+"AbsoluteStart" and "AbsoluteRange" filter types.
 
 * EndGroup: The end Group ID. Only present for the "AbsoluteRange" filter type.
 
