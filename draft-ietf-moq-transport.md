@@ -1276,7 +1276,8 @@ See ({{sub-filter}}).
 
 * EndGroup: The end Group ID. Only present for the "AbsoluteRange" filter type.
 
-* EndObject: The end Object ID. Only present for the "AbsoluteRange" filter type.
+* EndObject: The end Object ID, plus 1. A value of 0 means the entire group is
+requested. Only present for the "AbsoluteRange" filter type.
 
 * Track Request Parameters: The parameters are defined in
 {{version-specific-params}}
