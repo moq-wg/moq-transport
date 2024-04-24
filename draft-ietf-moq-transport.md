@@ -1279,7 +1279,6 @@ close the session with a Duplicate Track Alias error ({{session-termination}}).
 * Track Request Parameters: The parameters are defined in
 {{version-specific-params}}
 
-
 On successful subscription, the publisher MUST reply with a SUBSCRIBE_OK,
 allowing the subscriber to determine the start group/object when not explicitly
 specified and the publisher SHOULD start delivering objects.
@@ -1290,7 +1289,6 @@ objects from outside the requested start and end.
 
 TODO: Define the flow where subscribe request matches an existing subscribe id
 (subscription updates.)
-
 
 
 ## SUBSCRIBE_OK {#message-subscribe-ok}
