@@ -2874,14 +2874,18 @@ OBJECT_STREAM {
           <h4 id="name-subscribe-location-filter">
 <a href="#section-6.4.1" class="section-number selfRef">6.4.1. </a><a href="#name-subscribe-location-filter" class="section-name selfRef">Subscribe Location Filter</a>
           </h4>
-<p id="section-6.4.1-1">The receiver specifies a filter value that allows publisher
-to identify the range of groups and objects that needs to be delivered, wherever applicable.<a href="#section-6.4.1-1" class="pilcrow">¶</a></p>
-<p id="section-6.4.1-2">There are 4 filter values:<a href="#section-6.4.1-2" class="pilcrow">¶</a></p>
-<p id="section-6.4.1-3">Current (0x1) : A filter value of "Current" specifies an open-ended subscription with objects from the beginning of the current group.<a href="#section-6.4.1-3" class="pilcrow">¶</a></p>
-<p id="section-6.4.1-4">Latest (0x2): A filter value of "Latest" specifies an open-ended subscription beginning from the current object of the current group.<a href="#section-6.4.1-4" class="pilcrow">¶</a></p>
-<p id="section-6.4.1-5">AbsoluteStart (0x3):  A filter value of "AbsoluteStart" specifies an open-ended subscription with objects beginning from group/object identified in the StartGroup and StartObject fields.<a href="#section-6.4.1-5" class="pilcrow">¶</a></p>
-<p id="section-6.4.1-6">AbsoluteRange (0x4):  A filter value of "AbsoluteRange" specifies a closed subscription. The group information is obtained from the StartGroup and EndGroup fields, the object information is obtained from the StartObject and the EndObject fields.<a href="#section-6.4.1-6" class="pilcrow">¶</a></p>
-<p id="section-6.4.1-7">A filter value other than the above <span class="bcp14">MUST</span> be treated as error.<a href="#section-6.4.1-7" class="pilcrow">¶</a></p>
+<p id="section-6.4.1-1">The subscriber specifies a filter on the subscription to allow
+the publisher to identify which objects need to be delivered.<a href="#section-6.4.1-1" class="pilcrow">¶</a></p>
+<p id="section-6.4.1-2">There are 4 types of filters:<a href="#section-6.4.1-2" class="pilcrow">¶</a></p>
+<p id="section-6.4.1-3">Lastest Group (0x1) : Specifies an open-ended subscription with objects
+from the beginning of the current group.<a href="#section-6.4.1-3" class="pilcrow">¶</a></p>
+<p id="section-6.4.1-4">Latest Object (0x2): Specifies an open-ended subscription beginning from
+the current object of the current group.<a href="#section-6.4.1-4" class="pilcrow">¶</a></p>
+<p id="section-6.4.1-5">AbsoluteStart (0x3):  Specifies an open-ended subscription with objects
+beginning from the object identified in the StartGroup and StartObject fields.<a href="#section-6.4.1-5" class="pilcrow">¶</a></p>
+<p id="section-6.4.1-6">AbsoluteRange (0x4):  Specifies a closed subscription starting at StartObject
+in the StartGroup and ending at EndObject in EndGroup.<a href="#section-6.4.1-6" class="pilcrow">¶</a></p>
+<p id="section-6.4.1-7">A filter type other than the above <span class="bcp14">MUST</span> be treated as error.<a href="#section-6.4.1-7" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="subscribe-format">
@@ -2900,13 +2904,13 @@ SUBSCRIBE Message {
   Track Alias (i),
   Track Namespace (b),
   Track Name (b),
+  Filter Type (i),
+  [StartGroup (i),
+   StartObject (i)],
+  [EndGroup (i),
+   EndObject (i)],
   Number of Parameters (i),
   Track Request Parameters (..) ...,
-  Location Filter (i),
-  [StartGroup (i)],
-  [StartObject (i)],
-  [EndGroup (i)],
-  [EndObject (i)],
 }
 </pre>
 </div>
@@ -2938,46 +2942,36 @@ close the session with a Duplicate Track Alias error (<a href="#session-terminat
               <p id="section-6.4.2-4.4.1">Track Name: Identifies the track name as defined in (<a href="#track-name" class="auto internal xref">Section 2.3.1</a>).<a href="#section-6.4.2-4.4.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-6.4.2-4.5">
-              <p id="section-6.4.2-4.5.1">Track Request Parameters: The parameters are defined in
-<a href="#version-specific-params" class="auto internal xref">Section 6.1.1</a><a href="#section-6.4.2-4.5.1" class="pilcrow">¶</a></p>
+              <p id="section-6.4.2-4.5.1">Location Filter: Identifies acceptable values for start and end group(s)/object(s)
+to be delivered. See (<a href="#sub-filter" class="auto internal xref">Section 6.4.1</a>).<a href="#section-6.4.2-4.5.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-6.4.2-4.6">
-              <p id="section-6.4.2-4.6.1">Location Filter: Identifies acceptable values for start and end group(s)/object(s) to be delivered. See (<a href="#sub-filter" class="auto internal xref">Section 6.4.1</a>).<a href="#section-6.4.2-4.6.1" class="pilcrow">¶</a></p>
+              <p id="section-6.4.2-4.6.1">StartGroup: The start Group ID. Only present for "AbsoluteStart" and
+"AbsoluteRange" filter types.<a href="#section-6.4.2-4.6.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-6.4.2-4.7">
+              <p id="section-6.4.2-4.7.1">StartObject: The start Object ID within the StartGroup. Only present for
+"AbsoluteStart" and "AbsoluteRange" filter types.<a href="#section-6.4.2-4.7.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-6.4.2-4.8">
+              <p id="section-6.4.2-4.8.1">EndGroup: The end Group ID. Only present for the "AbsoluteRange" filter type.<a href="#section-6.4.2-4.8.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-6.4.2-4.9">
+              <p id="section-6.4.2-4.9.1">EndObject: The end Object ID. Only present for the "AbsoluteRange" filter type.<a href="#section-6.4.2-4.9.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-6.4.2-4.10">
+              <p id="section-6.4.2-4.10.1">Track Request Parameters: The parameters are defined in
+<a href="#version-specific-params" class="auto internal xref">Section 6.1.1</a><a href="#section-6.4.2-4.10.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
-<p id="section-6.4.2-5">For filter value of "AbsoluteStart", the following interpretation holds:<a href="#section-6.4.2-5" class="pilcrow">¶</a></p>
-<ul class="normal">
-<li class="normal" id="section-6.4.2-6.1">
-              <p id="section-6.4.2-6.1.1">StartGroup: The start Group ID. This field <span class="bcp14">MUST</span> be present.<a href="#section-6.4.2-6.1.1" class="pilcrow">¶</a></p>
-</li>
-            <li class="normal" id="section-6.4.2-6.2">
-              <p id="section-6.4.2-6.2.1">StartObject: The start Object ID within the group corresponding to the StartGroup. Omitting this field implies objects from the beginning of the group.<a href="#section-6.4.2-6.2.1" class="pilcrow">¶</a></p>
-</li>
-          </ul>
-<p id="section-6.4.2-7">The fields EndGroup and EndObject <span class="bcp14">MUST NOT</span> be present.<a href="#section-6.4.2-7" class="pilcrow">¶</a></p>
-<p id="section-6.4.2-8">For filter value of "AbsoluteRange", the following interpretation holds:<a href="#section-6.4.2-8" class="pilcrow">¶</a></p>
-<ul class="normal">
-<li class="normal" id="section-6.4.2-9.1">
-              <p id="section-6.4.2-9.1.1">StartGroup: The start Group ID. This field <span class="bcp14">MUST</span> be present.<a href="#section-6.4.2-9.1.1" class="pilcrow">¶</a></p>
-</li>
-            <li class="normal" id="section-6.4.2-9.2">
-              <p id="section-6.4.2-9.2.1">StartObject: The start Object ID within the group corresponding to the StartGroup. This field <span class="bcp14">MUST</span> be present.<a href="#section-6.4.2-9.2.1" class="pilcrow">¶</a></p>
-</li>
-            <li class="normal" id="section-6.4.2-9.3">
-              <p id="section-6.4.2-9.3.1">EndGroup: The end Group ID. This field <span class="bcp14">MUST</span> be present.<a href="#section-6.4.2-9.3.1" class="pilcrow">¶</a></p>
-</li>
-            <li class="normal" id="section-6.4.2-9.4">
-              <p id="section-6.4.2-9.4.1">EndObject: The end Object ID. Omitting this field implies until the end of group specified in EndGroup.<a href="#section-6.4.2-9.4.1" class="pilcrow">¶</a></p>
-</li>
-          </ul>
-<p id="section-6.4.2-10">On successful subscription, the publisher <span class="bcp14">MUST</span> reply with a SUBSCRIBE_OK,
+<p id="section-6.4.2-5">On successful subscription, the publisher <span class="bcp14">MUST</span> reply with a SUBSCRIBE_OK,
 allowing the subscriber to determine the start group/object when not explicitly
-specified and the publisher <span class="bcp14">SHOULD</span> start delivering objects.<a href="#section-6.4.2-10" class="pilcrow">¶</a></p>
-<p id="section-6.4.2-11">If a publisher cannot satisfy the requested start or end for the subscription it
+specified and the publisher <span class="bcp14">SHOULD</span> start delivering objects.<a href="#section-6.4.2-5" class="pilcrow">¶</a></p>
+<p id="section-6.4.2-6">If a publisher cannot satisfy the requested start or end for the subscription it
 <span class="bcp14">MAY</span> send a SUBSCRIBE_ERROR with code 'Invalid Range'. A publisher <span class="bcp14">MUST NOT</span> send
-objects from outside the requested start and end.<a href="#section-6.4.2-11" class="pilcrow">¶</a></p>
-<p id="section-6.4.2-12">TODO: Define the flow where subscribe request matches an existing subscribe id
-(subscription updates.)<a href="#section-6.4.2-12" class="pilcrow">¶</a></p>
+objects from outside the requested start and end.<a href="#section-6.4.2-6" class="pilcrow">¶</a></p>
+<p id="section-6.4.2-7">TODO: Define the flow where subscribe request matches an existing subscribe id
+(subscription updates.)<a href="#section-6.4.2-7" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
