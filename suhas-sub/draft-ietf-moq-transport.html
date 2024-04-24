@@ -1309,7 +1309,7 @@ networks and is designed for high scale and low latency distribution.<a href="#s
                 <p id="section-toc.1-1.6.2.4.1"><a href="#section-6.4" class="auto internal xref">6.4</a>.  <a href="#name-subscribe" class="internal xref">SUBSCRIBE</a></p>
 <ul class="compact toc ulBare ulEmpty">
 <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.4.2.1">
-                    <p id="section-toc.1-1.6.2.4.2.1.1"><a href="#section-6.4.1" class="auto internal xref">6.4.1</a>.  <a href="#name-subscribe-location-filter" class="internal xref">Subscribe Location Filter</a></p>
+                    <p id="section-toc.1-1.6.2.4.2.1.1"><a href="#section-6.4.1" class="auto internal xref">6.4.1</a>.  <a href="#name-filter-types" class="internal xref">Filter Types</a></p>
 </li>
                   <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.4.2.2">
                     <p id="section-toc.1-1.6.2.4.2.2.1"><a href="#section-6.4.2" class="auto internal xref">6.4.2</a>.  <a href="#name-subscribe-format" class="internal xref">SUBSCRIBE Format</a></p>
@@ -2871,8 +2871,8 @@ OBJECT_STREAM {
         </h3>
 <div id="sub-filter">
 <section id="section-6.4.1">
-          <h4 id="name-subscribe-location-filter">
-<a href="#section-6.4.1" class="section-number selfRef">6.4.1. </a><a href="#name-subscribe-location-filter" class="section-name selfRef">Subscribe Location Filter</a>
+          <h4 id="name-filter-types">
+<a href="#section-6.4.1" class="section-number selfRef">6.4.1. </a><a href="#name-filter-types" class="section-name selfRef">Filter Types</a>
           </h4>
 <p id="section-6.4.1-1">The subscriber specifies a filter on the subscription to allow
 the publisher to identify which objects need to be delivered.<a href="#section-6.4.1-1" class="pilcrow">¶</a></p>
@@ -2942,8 +2942,9 @@ close the session with a Duplicate Track Alias error (<a href="#session-terminat
               <p id="section-6.4.2-4.4.1">Track Name: Identifies the track name as defined in (<a href="#track-name" class="auto internal xref">Section 2.3.1</a>).<a href="#section-6.4.2-4.4.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-6.4.2-4.5">
-              <p id="section-6.4.2-4.5.1">Location Filter: Identifies acceptable values for start and end group(s)/object(s)
-to be delivered. See (<a href="#sub-filter" class="auto internal xref">Section 6.4.1</a>).<a href="#section-6.4.2-4.5.1" class="pilcrow">¶</a></p>
+              <p id="section-6.4.2-4.5.1">Filter Type: Identifies the type of filter, which also indicates whether
+the StartGroup/StartObject and EndGroup/EndObject fields will be present.
+See (<a href="#sub-filter" class="auto internal xref">Section 6.4.1</a>).<a href="#section-6.4.2-4.5.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-6.4.2-4.6">
               <p id="section-6.4.2-4.6.1">StartGroup: The start Group ID. Only present for "AbsoluteStart" and
