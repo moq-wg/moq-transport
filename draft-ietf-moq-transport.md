@@ -1015,15 +1015,6 @@ are beyond the end of a group or track. Every object has an associated
          group. This is sent right after the last object in the
          track. This SHOULD be cached.
 
-* 0x5 := Indicates Object was dropped at a relay. Sent by a relay
-         indicating the object identified by the ObjectId was
-         dropped. This SHOULD NOT be cached.
-
-* 0x6 := Indicates Group was dropped at a relay. Sent by a relay
-         indicating some of the objects in the group identified by the
-         GroupId were dropped. The Object ID is one greater than last
-         object sent and MAY be zero. This SHOULD NOT be cached.
-
 Open Issue: We could make end of track and end of group just be a status
 set on the last object sent on the group or track. This would mean the
 status could no longer optional and only occur when the payload length
