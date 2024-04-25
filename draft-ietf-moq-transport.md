@@ -1015,17 +1015,6 @@ are beyond the end of a group or track. Every object has an associated
          group. This is sent right after the last object in the
          track. This SHOULD be cached.
 
-Open Issue: We could make end of track and end of group just be a status
-set on the last object sent on the group or track. This would mean the
-status could no longer optional and only occur when the payload length
-was zero as it would be needed in non zero length packets. It would also
-have the issue that when a P frame is produced, the software getting
-data from the decoder often does not know if it is the last P frame
-until the next frame is encoded and the software gets an I frame. We do
-not want a solution where we add a whole frame of latency on the encoder
-waiting for next frame so it can set the end of group field on the last
-last object in the group.
-
 Any other value SHOULD be treated as a protocol error and terminate the
 session with a Protocol Violation ({{session-termination}}).
 
