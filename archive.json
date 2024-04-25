@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2024-04-23T01:09:03.606979+00:00",
+  "timestamp": "2024-04-25T01:10:37.462286+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -15670,6 +15670,50 @@
           "updatedAt": "2024-04-22T13:10:23Z"
         }
       ]
+    },
+    {
+      "number": 440,
+      "id": "I_kwDOG2Ho4M6Gy53j",
+      "title": "Need expiry time / time to live ",
+      "url": "https://github.com/moq-wg/moq-transport/issues/440",
+      "state": "OPEN",
+      "author": "fluffy",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [
+        "Needs PR",
+        "Implementation Blocker",
+        "Needs Discussion"
+      ],
+      "body": "At some point we removed the time to live of how long obhects exist in the cache before they are removed. \r\n\r\nIt is becoming an significant implementation blocker to not have some version of this.  I would like to add some version of this back soon even if we later change the exact details of how times are calculated and represented. \r\n\r\n\r\n",
+      "createdAt": "2024-04-24T14:50:21Z",
+      "updatedAt": "2024-04-24T15:35:32Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "+1 I think this is something we should address before the interim.\r\n\r\n> At some point we removed the time to live of how long objects exist in the cache before they are removed\r\n\r\nLooking back to -00, we've never had TTLs in the draft, perhaps there were pre-adoption versions that had it?\r\n\r\nWe do have issue #249, perhaps this can be closed as a duplicate?",
+          "createdAt": "2024-04-24T15:35:31Z",
+          "updatedAt": "2024-04-24T15:35:31Z"
+        }
+      ]
+    },
+    {
+      "number": 441,
+      "id": "I_kwDOG2Ho4M6Gz9_F",
+      "title": "Ability to filter which Objects are sent in a Subscription",
+      "url": "https://github.com/moq-wg/moq-transport/issues/441",
+      "state": "OPEN",
+      "author": "wilaw",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Imagine a track, sent as frame-per stream, with an I-frame every 2s and each GOP in a Group. \r\nIn order to create a trick-play preview of this track, it would be convenient to just receive the I-frames, i.e object 0 from each group.\r\n\r\nTo do this , we should create the ability in specify an OBJECT-FILTER in our SUBSCRIBE. The object filter can have a simply syntax to specify a range of object numbers that should be delivered. For example: \r\n\r\n```\r\n[0] - only send objects with an ID of 0\r\n[0,5] - only send objects with an ID of 0 or 5.\r\n[0..5] - only send objects in the range 0 to 5 inclusive.\r\n[0..2, 16..20] - only send objects in the range 0 to 5 inclusive, or 16..20 inclusive.\r\n```\r\n\r\nWe could optionally extend this concept to group numbers too. I don't have an immediate use case for that, but I could imagine one involving future layered encodings in the same track, where I wanted to pull multiplexed ranges of groups. ",
+      "createdAt": "2024-04-24T17:03:49Z",
+      "updatedAt": "2024-04-24T17:03:49Z",
+      "closedAt": null,
+      "comments": []
     }
   ],
   "pulls": [
@@ -53980,7 +54024,7 @@
       "labels": [],
       "body": " This PR adds a status field to the object that allows an relay to indicate an object or group was lost or dropped. \r\n \r\n It also allows a producer to indicate a object or group will not be produced including the cases for end of group and end of track. \r\n \r\n The PR probably needs a bit more text on what what producers and relays do but I think this is close enough to get some initial discussion on this solution. \r\n\r\nFixes #427 #423 ",
       "createdAt": "2024-04-10T15:38:48Z",
-      "updatedAt": "2024-04-22T18:52:04Z",
+      "updatedAt": "2024-04-24T16:14:25Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "9d80b4ecfe2763b6598e28064aacb35962e8aeae",
@@ -54061,6 +54105,13 @@
           "body": "> An object can be both dropped, the end of a group, and the end of a track\r\n\r\nI think Cullen's update addressed this by making \"end of group\" and \"end of track\" have *different object IDs* than the last actual object.  Should we further state that only objects with status 0 can be \"dropped by a relay\"?  All the other statuses may be needed by the subscriber, and all should be very small.\r\n\r\nWould you be ok with moving this PR forward if we split out 0x5 and 0x6 for now?",
           "createdAt": "2024-04-22T18:52:04Z",
           "updatedAt": "2024-04-22T18:52:04Z"
+        },
+        {
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "Note to cullen - remove the two codes. Clean up other comments. Ping Ian when done and ready to merge. ",
+          "createdAt": "2024-04-24T16:14:24Z",
+          "updatedAt": "2024-04-24T16:14:24Z"
         }
       ],
       "reviews": [
@@ -54778,9 +54829,9 @@
             },
             {
               "originalPosition": 28,
-              "body": "To clarify, there's no payload? Is it on the same stream (currently can't be encoded) or a separate stream?\r\n\r\nIMO We should have am explicit message (still on the data plane) instead of overloading OBJECT. It's just more explicit and we can avoid encoding redundant/confusing OBJECT header information, like priority.",
+              "body": "To clarify, there's no payload? Is it on the same stream (currently can't be encoded) or a separate stream?\r\n\r\nI'm really not a fan of these phantom OBJECTs, especially because it breaks the assumption that there's always one OBJECT per stream.",
               "createdAt": "2024-04-22T18:03:40Z",
-              "updatedAt": "2024-04-22T18:19:58Z"
+              "updatedAt": "2024-04-23T16:29:03Z"
             },
             {
               "originalPosition": 62,
@@ -54805,6 +54856,102 @@
               "body": "What happens if this object is dropped? I think @afrind brought up that there's no way to also indicate that a dropped object is the end of the group/track. An object can't both be 0x4 and 0x5/0x6.\r\n\r\nIMO any `GROUP_END` / `TRACK_END` indication should be reliable. I think we set ourselves up for painful edge cases if we allow this information to get dropped via a RESET_STREAM.",
               "createdAt": "2024-04-22T18:15:53Z",
               "updatedAt": "2024-04-22T18:19:58Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M54QUOW",
+          "commit": {
+            "abbreviatedOid": "05fa5dc"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "LG, but some minor comments to clarify that all statuses besides 0x0 don't have a payload.\r\n\r\nAnd I would prefer to remove 0x5 and 0x6 for now.",
+          "createdAt": "2024-04-23T15:05:28Z",
+          "updatedAt": "2024-04-23T15:13:51Z",
+          "comments": [
+            {
+              "originalPosition": 78,
+              "body": "I assumed we were doing that on a separate stream?",
+              "createdAt": "2024-04-23T15:05:29Z",
+              "updatedAt": "2024-04-23T15:13:51Z"
+            },
+            {
+              "originalPosition": 16,
+              "body": "This is only a valid value for OBJECT_STREAM, correct?",
+              "createdAt": "2024-04-23T15:06:29Z",
+              "updatedAt": "2024-04-23T15:13:51Z"
+            },
+            {
+              "originalPosition": 4,
+              "body": "This it can also signal GROUP_END and TRACK_END.",
+              "createdAt": "2024-04-23T15:07:28Z",
+              "updatedAt": "2024-04-23T15:13:51Z"
+            },
+            {
+              "originalPosition": 10,
+              "body": "The status has a wider set of functionality than just drops and gaps.\r\n\r\nCan you clarify that all status values except 0x0 do not have any payload?",
+              "createdAt": "2024-04-23T15:09:56Z",
+              "updatedAt": "2024-04-23T15:13:51Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M54RC2g",
+          "commit": {
+            "abbreviatedOid": "05fa5dc"
+          },
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "state": "CHANGES_REQUESTED",
+          "body": "",
+          "createdAt": "2024-04-23T16:25:35Z",
+          "updatedAt": "2024-04-23T16:27:07Z",
+          "comments": [
+            {
+              "originalPosition": 115,
+              "body": "What happens if we get a stream FIN without status 0x3? Is that a fatal error or can we use it as an implicit signal?",
+              "createdAt": "2024-04-23T16:25:35Z",
+              "updatedAt": "2024-04-23T16:27:07Z"
+            },
+            {
+              "originalPosition": 101,
+              "body": "What happens if we get a stream FIN without status 0x4. Is that a fatal error or is it implicit?",
+              "createdAt": "2024-04-23T16:26:19Z",
+              "updatedAt": "2024-04-23T16:27:07Z"
+            },
+            {
+              "originalPosition": 101,
+              "body": "Likewise what happens if the group ID increments without a status 0x3?",
+              "createdAt": "2024-04-23T16:26:55Z",
+              "updatedAt": "2024-04-23T16:27:07Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M54RFR0",
+          "commit": {
+            "abbreviatedOid": "05fa5dc"
+          },
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-04-23T16:30:49Z",
+          "updatedAt": "2024-04-23T16:33:33Z",
+          "comments": [
+            {
+              "originalPosition": 78,
+              "body": "No the text indicates it should be sent on the same stream as the OBJECT. I think a separate stream (and a separate message) would definitely be an improvement.",
+              "createdAt": "2024-04-23T16:30:49Z",
+              "updatedAt": "2024-04-23T16:33:33Z"
+            },
+            {
+              "originalPosition": 115,
+              "body": "I'd like it to be implicit, or banned.",
+              "createdAt": "2024-04-23T16:31:54Z",
+              "updatedAt": "2024-04-23T16:33:33Z"
             }
           ]
         }
@@ -55329,7 +55476,7 @@
       "labels": [],
       "body": "This removes the `N/latest` functionality which is super confusing. It's also just cleaner to use exclusive end ranges instead of the previously implied inclusive ranges.\r\n\r\nNote that to receive a single group, you need to use:\r\n```\r\n    start_group=N  start_object=0\r\n    end_group=N+1  end_object=0\r\n```\r\n\r\nPreviously that was accomplished with:\r\n```\r\n    start_group=N  start_object=1\r\n    end_group=N    end_object=0\r\n```",
       "createdAt": "2024-04-19T17:30:54Z",
-      "updatedAt": "2024-04-22T18:28:01Z",
+      "updatedAt": "2024-04-24T16:20:46Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "9d80b4ecfe2763b6598e28064aacb35962e8aeae",
@@ -55354,6 +55501,13 @@
           "body": "Submitted https://github.com/moq-wg/moq-transport/pull/439 as another way to clarify some ambiguities.",
           "createdAt": "2024-04-22T18:28:01Z",
           "updatedAt": "2024-04-22T18:28:01Z"
+        },
+        {
+          "author": "wilaw",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "This PR assumes the end_group N+1 exists. What about the case of an asset which only has groups from 1..10. If I want to subscribe to all of these, I have request \r\n\r\n start_group=1  start_object=0\r\n end_group=11  end_object=0\r\n\r\nThis is semantically awkward to me, since it references an entity (group 11) which does not exist. It would be so much cleaner and more intuitive if the API allowed us to ask for what we want, via inclusive threshold. I would rename them to \"first\" and \"last\" to make their syntax clearer. So to subscribe to groups 1..10 I could do\r\n\r\nfirst_group=1  start_object=0\r\nlast_group=10  end_object=0\r\n\r\nI then receive receive exactly what I ask for. \r\n\r\n\r\n\r\n\r\n",
+          "createdAt": "2024-04-24T16:20:45Z",
+          "updatedAt": "2024-04-24T16:20:45Z"
         }
       ],
       "reviews": [
@@ -55502,12 +55656,6 @@
               "updatedAt": "2024-04-21T22:47:37Z"
             },
             {
-              "originalPosition": 9,
-              "body": "The use cases for latest/latest are really weak - I think we could live without that for now. ",
-              "createdAt": "2024-04-21T22:44:48Z",
-              "updatedAt": "2024-04-21T22:47:37Z"
-            },
-            {
               "originalPosition": 24,
               "body": "We 100% need latest/0 so perhaps just some text to clear that up.   ",
               "createdAt": "2024-04-21T22:46:10Z",
@@ -55520,22 +55668,24 @@
     {
       "number": 439,
       "id": "PR_kwDOG2Ho4M5tYbw7",
-      "title": "Simplify/Clarify Subscribe ",
+      "title": "Simplify/Clarify Subscribe by adding 4 modes",
       "url": "https://github.com/moq-wg/moq-transport/pull/439",
       "state": "OPEN",
       "author": "suhasHere",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
-      "labels": [],
+      "labels": [
+        "Subscribe"
+      ],
       "body": "I took a stab at another rewrite of Subscribe message which attempts to not use special group and object values. Also add support for multiple subscription flows that have been discussed.\r\n\r\nAs this is a control message, we should be Ok to be elaborate in describing the subscriber needs.",
       "createdAt": "2024-04-22T17:35:24Z",
-      "updatedAt": "2024-04-22T23:09:53Z",
+      "updatedAt": "2024-04-25T00:35:11Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "9d80b4ecfe2763b6598e28064aacb35962e8aeae",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "suhas-sub",
-      "headRefOid": "af82360dcc471ed7770aa76a59467fee4d3e223d",
+      "headRefOid": "534372025e5c2976a5b3e1cb53fac0ac31dcb509",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -55547,6 +55697,13 @@
           "body": "@afrind updated the PR .. please let me know .. thanks",
           "createdAt": "2024-04-22T21:37:42Z",
           "updatedAt": "2024-04-22T21:37:42Z"
+        },
+        {
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "I like that this would move us away from stealing special values from obejct id / group id space. ",
+          "createdAt": "2024-04-24T14:35:07Z",
+          "updatedAt": "2024-04-24T14:35:07Z"
         }
       ],
       "reviews": [
@@ -55707,6 +55864,92 @@
               "body": "I prefer the second, but either works great. How about AbsoluteStart and AbsoluteRange as filter names ?",
               "createdAt": "2024-04-22T20:49:07Z",
               "updatedAt": "2024-04-22T20:50:00Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M54bP2X",
+          "commit": {
+            "abbreviatedOid": "a53b85b"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-04-24T16:40:32Z",
+          "updatedAt": "2024-04-24T16:40:32Z",
+          "comments": [
+            {
+              "originalPosition": 13,
+              "body": "I'd prefer Latest Group and Latest Object as names, because Current and Latest are quite similar.",
+              "createdAt": "2024-04-24T16:40:32Z",
+              "updatedAt": "2024-04-24T16:40:32Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M54bhxu",
+          "commit": {
+            "abbreviatedOid": "a53b85b"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "This looks like a good direction, but the group wanted some small changes, so I'll put those in.",
+          "createdAt": "2024-04-24T17:17:48Z",
+          "updatedAt": "2024-04-24T17:17:48Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M54b4Gd",
+          "commit": {
+            "abbreviatedOid": "18f285d"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-04-24T17:55:59Z",
+          "updatedAt": "2024-04-24T17:56:00Z",
+          "comments": [
+            {
+              "originalPosition": 46,
+              "body": "```suggestion\r\n  Track Request Parameters (..) ...\r\n```",
+              "createdAt": "2024-04-24T17:55:59Z",
+              "updatedAt": "2024-04-24T17:56:00Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M54b4Qd",
+          "commit": {
+            "abbreviatedOid": "97a15a4"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2024-04-24T17:56:14Z",
+          "updatedAt": "2024-04-24T17:56:14Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M54eNUv",
+          "commit": {
+            "abbreviatedOid": "5343720"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-04-25T00:35:11Z",
+          "updatedAt": "2024-04-25T00:35:11Z",
+          "comments": [
+            {
+              "originalPosition": 68,
+              "body": "Heh, I just realized this encoding of inclusive is identical to exclusive on the wire (eg: if I want to end at 10, 11 goes on the wire in either case).  The only difference is the value of End Group when you want the whole group (before, ending at the end of group 7, you encoded 8/0, now it's 7/0).",
+              "createdAt": "2024-04-25T00:35:11Z",
+              "updatedAt": "2024-04-25T00:35:11Z"
             }
           ]
         }
