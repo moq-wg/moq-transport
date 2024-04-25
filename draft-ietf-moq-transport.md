@@ -1023,7 +1023,7 @@ session with a Protocol Violation ({{session-termination}}).
 
 There are times where some of the status information is redundant with
 information learned at the lower layer. For example, when using stream
-per object, the end of Group is redundant.
+per group, the end of Group is redundant.
 
 In most cases messages with a non zero status code are sent on the same
 stream that an object with that GroupID would have been sent on. The
