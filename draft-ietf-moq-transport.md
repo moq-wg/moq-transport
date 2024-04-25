@@ -1208,7 +1208,7 @@ the publisher to identify which objects need to be delivered.
 
 There are 4 types of filters:
 
-Lastest Group (0x1) : Specifies an open-ended subscription with objects
+Latest Group (0x1) : Specifies an open-ended subscription with objects
 from the beginning of the current group.
 
 Latest Object (0x2): Specifies an open-ended subscription beginning from
