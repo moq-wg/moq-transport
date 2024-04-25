@@ -1214,8 +1214,8 @@ from the beginning of the current group.
 Latest Object (0x2): Specifies an open-ended subscription beginning from
 the current object of the current group.
 
-AbsoluteStart (0x3):  Specifies an open-ended subscription with objects
-beginning from the object identified in the StartGroup and StartObject fields.
+AbsoluteStart (0x3):  Specifies an open-ended subscription beginning
+from the object identified in the StartGroup and StartObject fields.
 
 AbsoluteRange (0x4):  Specifies a closed subscription starting at StartObject
 in StartGroup and ending at EndObject in EndGroup.  The start and end of the
