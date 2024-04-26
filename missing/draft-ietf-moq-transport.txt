@@ -5,13 +5,13 @@
 MOQ                                                            L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 23 October 2024                                            Meta
+Expires: 28 October 2024                                            Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                           21 April 2024
+                                                           26 April 2024
 
 
                        Media over QUIC Transport
@@ -53,7 +53,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 23 October 2024.
+   This Internet-Draft will expire on 28 October 2024.
 
 Copyright Notice
 
@@ -1051,17 +1051,18 @@ Table of Contents
       and Datagram.  An Object MUST be sent according to its Object
       Forwarding Preference, described below.
 
-   *  Object Status: As enumeration used for missing or dropped objects
-      that indicates why data is missing.
+   *  Object Status: As enumeration used to indicated missing or dropped
+      objects and as an marker of the end of group or track.
 
    *  Object Payload: An opaque payload intended for the consumer and
       SHOULD NOT be processed by a relay.
 
-   There is also a status field which help subscribers understand what
+   There is also a status field which helps subscribers understand what
    objects it will not receive due to then being dropped, lost, or never
    be produced including the case where they will not be produced
-   because they are beyond the end of a group or track.  Every object
-   has an associated Status that can have following values:
+   because they are beyond the end of a group or track.  The status code
+   can also be used to indicated the end of a group or track.  Every
+   object has an associated Status that can have following values:
 
    *  0x0 := Normal object.  The payload is array of bytes and can by
       empty.
@@ -1085,32 +1086,13 @@ Table of Contents
       is sent right after the last object in the track.  This SHOULD be
       cached.
 
-   *  0x5 := Indicates Object was dropped at a relay.  Sent by a relay
-      indicating the object identified by the ObjectId was dropped.
-      This SHOULD NOT be cached.
-
-   *  0x6 := Indicates Group was dropped at a relay.  Sent by a relay
-      indicating some of the objects in the group identified by the
-      GroupId were dropped.  The Object ID is one greater than last
-      object sent and MAY be zero.  This SHOULD NOT be cached.
-
-   Open Issue: We could make end of track and end of group just be a
-   status set on the last object sent on the group or track.  This would
-   mean the status could no longer optional and only occur when the
-   payload length was zero as it would be needed in non zero length
-   packets.  It would also have the issue that when a P frame is
-   produced, the software getting data from the decoder often does not
-   know if it is the last P frame until the next frame is encoded and
-   the software gets an I frame.  We do not want a solution where we add
-   a whole frame of latency on the encoder waiting for next frame so it
-   can set the end of group field on the last last object in the group.
-
    Any other value SHOULD be treated as a protocol error and terminate
-   the session with a Protocol Violation (Section 3.5).
+   the session with a Protocol Violation (Section 3.5).  Any object with
+   a status code other than zero will have an empty payload.
 
    There are times where some of the status information is redundant
    with information learned at the lower layer.  For example, when using
-   stream per object, the end of Group is redundant.
+   stream per group, the end of Group is redundant.
 
    In most cases messages with a non zero status code are sent on the
    same stream that an object with that GroupID would have been sent on.
