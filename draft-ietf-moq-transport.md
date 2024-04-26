@@ -1020,6 +1020,7 @@ Every object has an associated
 
 Any other value SHOULD be treated as a protocol error and terminate the
 session with a Protocol Violation ({{session-termination}}).
+Any object with a status code other than zero will have an empty payload.
 
 There are times where some of the status information is redundant with
 information learned at the lower layer. For example, when using stream
