@@ -990,8 +990,7 @@ NOT be processed by a relay.
 
 The Object Status lets subscribers understand what objects will not be received
 because they were never produced, are no longer available, or because they
-are beyond the end of a group or track. The status code can also be used to
-indicate the end of a group or track.
+are beyond the end of a group or track.
 
 `Status` that can have following values:
 
