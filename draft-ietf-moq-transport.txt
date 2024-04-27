@@ -5,13 +5,13 @@
 MOQ                                                            L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 19 October 2024                                            Meta
+Expires: 29 October 2024                                            Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                           17 April 2024
+                                                           27 April 2024
 
 
                        Media over QUIC Transport
@@ -53,7 +53,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 19 October 2024.
+   This Internet-Draft will expire on 29 October 2024.
 
 Copyright Notice
 
@@ -115,6 +115,8 @@ Table of Contents
        6.3.3.  Multi-Object Streams
        6.3.4.  Examples:
      6.4.  SUBSCRIBE
+       6.4.1.  Filter Types
+       6.4.2.  SUBSCRIBE Format
      6.5.  SUBSCRIBE_OK
      6.6.  SUBSCRIBE_ERROR
      6.7.  UNSUBSCRIBE
@@ -1264,6 +1266,30 @@ Table of Contents
 
 6.4.  SUBSCRIBE
 
+6.4.1.  Filter Types
+
+   The subscriber specifies a filter on the subscription to allow the
+   publisher to identify which objects need to be delivered.
+
+   There are 4 types of filters:
+
+   Latest Group (0x1) : Specifies an open-ended subscription with
+   objects from the beginning of the current group.
+
+   Latest Object (0x2): Specifies an open-ended subscription beginning
+   from the current object of the current group.
+
+   AbsoluteStart (0x3): Specifies an open-ended subscription beginning
+   from the object identified in the StartGroup and StartObject fields.
+
+   AbsoluteRange (0x4): Specifies a closed subscription starting at
+   StartObject in StartGroup and ending at EndObject in EndGroup.  The
+   start and end of the range are inclusive.
+
+   A filter type other than the above MUST be treated as error.
+
+6.4.2.  SUBSCRIBE Format
+
    A receiver issues a SUBSCRIBE to a publisher to request a track.
 
    The format of SUBSCRIBE is as follows:
@@ -1273,10 +1299,11 @@ Table of Contents
      Track Alias (i),
      Track Namespace (b),
      Track Name (b),
-     StartGroup (i),
-     [ StartObject (i), ]
-     EndGroup (i),
-     [ EndObject (i), ]
+     Filter Type (i),
+     [StartGroup (i),
+      StartObject (i)],
+     [EndGroup (i),
+      EndObject (i)],
      Number of Parameters (i),
      Track Request Parameters (..) ...
    }
@@ -1304,18 +1331,23 @@ Table of Contents
    *  Track Name: Identifies the track name as defined in
       (Section 2.3.1).
 
-   *  StartGroup: The start Group ID, plus 1.  A value of 0 means the
-      latest group.
+   *  Filter Type: Identifies the type of filter, which also indicates
+      whether the StartGroup/StartObject and EndGroup/EndObject fields
+      will be present.  See (Section 6.4.1).
+
+   *  StartGroup: The start Group ID.  Only present for "AbsoluteStart"
+      and "AbsoluteRange" filter types.
 
    *  StartObject: The start Object ID, plus 1.  A value of 0 means the
-      latest object.  This field is not present when Start Group is 0.
+      entire group is requested.  Only present for "AbsoluteStart" and
+      "AbsoluteRange" filter types.
 
-   *  EndGroup: The end Group ID, plus 1.  A value of 0 means the
-      subscription is open-ended and continues to the end of the track.
+   *  EndGroup: The end Group ID.  Only present for the "AbsoluteRange"
+      filter type.
 
    *  EndObject: The end Object ID, plus 1.  A value of 0 means the
-      entire group is requested.  This field is not present when End
-      Group is 0.
+      entire group is requested.  Only present for the "AbsoluteRange"
+      filter type.
 
    *  Track Request Parameters: The parameters are defined in
       Section 6.1.1
