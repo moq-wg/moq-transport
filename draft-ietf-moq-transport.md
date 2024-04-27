@@ -1271,8 +1271,8 @@ See ({{sub-filter}}).
 * StartGroup: The start Group ID. Only present for "AbsoluteStart" and
 "AbsoluteRange" filter types.
 
-* StartObject: The start Object ID within the StartGroup. Only present for
-"AbsoluteStart" and "AbsoluteRange" filter types.
+* StartObject: The start Object ID, plus 1. A value of 0 means the entire group is
+requested. Only present for "AbsoluteStart" and "AbsoluteRange" filter types.
 
 * EndGroup: The end Group ID. Only present for the "AbsoluteRange" filter type.
 
