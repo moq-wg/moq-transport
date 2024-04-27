@@ -994,7 +994,7 @@ are beyond the end of a group or track.
 
 `Status` that can have following values:
 
-* 0x0 := Normal object. The payload is array of bytes and can by empty.
+* 0x0 := Normal object. The payload is array of bytes and can be empty.
 
 * 0x1 := Indicates Object does not exist. Indicates that this object
          does not exist at any publisher and it will not be published in
@@ -1017,11 +1017,10 @@ are beyond the end of a group or track.
 
 Any other value SHOULD be treated as a protocol error and terminate the
 session with a Protocol Violation ({{session-termination}}).
-Any object with a status code other than zero will have an empty payload.
+Any object with a status code other than zero MUST have an empty payload.
 
-There are times where some of the status information is redundant with
-information learned at the lower layer. For example, when using stream
-per group, the end of Group is redundant.
+Though some status information could be inferred from QUIC stream state,
+that information is not reliable and cacheable.
 
 In most cases, messages with a non zero status code are sent on the same
 stream that an object with that GroupID would have been sent on. The
