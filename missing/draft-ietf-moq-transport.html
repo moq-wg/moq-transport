@@ -2622,7 +2622,7 @@ are beyond the end of a group or track.<a href="#section-6.3.1-3" class="pilcrow
 <p id="section-6.3.1-4"><code>Status</code> that can have following values:<a href="#section-6.3.1-4" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-6.3.1-5.1">
-              <p id="section-6.3.1-5.1.1">0x0 := Normal object. The payload is array of bytes and can by empty.<a href="#section-6.3.1-5.1.1" class="pilcrow">¶</a></p>
+              <p id="section-6.3.1-5.1.1">0x0 := Normal object. The payload is array of bytes and can be empty.<a href="#section-6.3.1-5.1.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-6.3.1-5.2">
               <p id="section-6.3.1-5.2.1">0x1 := Indicates Object does not exist. Indicates that this object
@@ -2650,10 +2650,9 @@ are beyond the end of a group or track.<a href="#section-6.3.1-3" class="pilcrow
           </ul>
 <p id="section-6.3.1-6">Any other value <span class="bcp14">SHOULD</span> be treated as a protocol error and terminate the
 session with a Protocol Violation (<a href="#session-termination" class="auto internal xref">Section 3.5</a>).
-Any object with a status code other than zero will have an empty payload.<a href="#section-6.3.1-6" class="pilcrow">¶</a></p>
-<p id="section-6.3.1-7">There are times where some of the status information is redundant with
-information learned at the lower layer. For example, when using stream
-per group, the end of Group is redundant.<a href="#section-6.3.1-7" class="pilcrow">¶</a></p>
+Any object with a status code other than zero <span class="bcp14">MUST</span> have an empty payload.<a href="#section-6.3.1-6" class="pilcrow">¶</a></p>
+<p id="section-6.3.1-7">Though some status information could be inferred from QUIC stream state,
+that information is not reliable and cacheable.<a href="#section-6.3.1-7" class="pilcrow">¶</a></p>
 <p id="section-6.3.1-8">In most cases, messages with a non zero status code are sent on the same
 stream that an object with that GroupID would have been sent on. The
 exception to this is when that stream has been reset; in that case they
