@@ -1315,12 +1315,15 @@ SUBSCRIBE_UPDATE Message {
 {: #moq-transport-subscribe-update-format title="MOQT SUBSCRIBE_UPDATE Message"}
 
 * Subscribe ID: The subscription identifier that is unique within the session.
+This MUST match an existing Subscribe ID.
 
 * StartGroup: The start Group ID.
 
-* StartObject: The start Object ID.
+* StartObject: The start Object ID, plus 1. A value of 0 means the entire group
+is requested.
 
-* EndGroup: The end Group ID.
+* EndGroup: The end Group ID, plus 1.  A value of 0 means the subscription is
+open-ended.
 
 * EndObject: The end Object ID, plus 1. A value of 0 means the entire group is
 requested.
