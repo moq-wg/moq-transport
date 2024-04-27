@@ -5,13 +5,13 @@
 MOQ                                                            L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 27 October 2024                                            Meta
+Expires: 29 October 2024                                            Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                           25 April 2024
+                                                           27 April 2024
 
 
                        Media over QUIC Transport
@@ -53,7 +53,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 27 October 2024.
+   This Internet-Draft will expire on 29 October 2024.
 
 Copyright Notice
 
@@ -1338,8 +1338,9 @@ Table of Contents
    *  StartGroup: The start Group ID.  Only present for "AbsoluteStart"
       and "AbsoluteRange" filter types.
 
-   *  StartObject: The start Object ID within the StartGroup.  Only
-      present for "AbsoluteStart" and "AbsoluteRange" filter types.
+   *  StartObject: The start Object ID, plus 1.  A value of 0 means the
+      entire group is requested.  Only present for "AbsoluteStart" and
+      "AbsoluteRange" filter types.
 
    *  EndGroup: The end Group ID.  Only present for the "AbsoluteRange"
       filter type.
