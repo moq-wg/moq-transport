@@ -1297,10 +1297,10 @@ a prior subscription.  Subscriptions can only become more narrower, not wider,
 because an attempt to widen a subscription could fail.  If Objects before the
 start or after the end of the current subscription are needed, a separate
 subscription can be made. The start Object MUST NOT decrease and when it increases,
-there is no guarantee that a publisher will not send Objects after the new
-start Object.  The end Object MUST NOT increase and when it decreases,
-there is no guarantee that a publisher will not send Objects after the new
-end Object.
+there is no guarantee that a publisher will not have already sent Objects after
+the new start Object.  The end Object MUST NOT increase and when it decreases,
+there is no guarantee that a publisher will not have already sent Objects after
+the new end Object.
 
 The format of SUBSCRIBE_UPDATE is as follows:
 
