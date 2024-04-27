@@ -2986,7 +2986,10 @@ objects from outside the requested start and end.<a href="#section-6.4.2-6" clas
 <a href="#section-6.5" class="section-number selfRef">6.5. </a><a href="#name-subscribe_update" class="section-name selfRef">SUBSCRIBE_UPDATE</a>
         </h3>
 <p id="section-6.5-1">A receiver issues a SUBSCRIBE_UPDATE to a publisher to request a change to
-a prior subscription.  The start Object <span class="bcp14">MUST NOT</span> decrease and when it increases,
+a prior subscription.  Subscriptions can only become more narrower, not wider,
+because an attempt to widen a subscription could fail.  If Objects before the
+start or after the end of the current subscription are needed, a separate
+subscription can be made. The start Object <span class="bcp14">MUST NOT</span> decrease and when it increases,
 there is no guarantee that a publisher will not send Objects after the new
 start Object.  The end Object <span class="bcp14">MUST NOT</span> increase and when it decreases,
 there is no guarantee that a publisher will not send Objects after the new
