@@ -1203,6 +1203,30 @@ OBJECT_STREAM {
 
 ## SUBSCRIBE {#message-subscribe-req}
 
+### Filter Types {#sub-filter}
+
+The subscriber specifies a filter on the subscription to allow
+the publisher to identify which objects need to be delivered.
+
+There are 4 types of filters:
+
+Latest Group (0x1) : Specifies an open-ended subscription with objects
+from the beginning of the current group.
+
+Latest Object (0x2): Specifies an open-ended subscription beginning from
+the current object of the current group.
+
+AbsoluteStart (0x3):  Specifies an open-ended subscription beginning
+from the object identified in the StartGroup and StartObject fields.
+
+AbsoluteRange (0x4):  Specifies a closed subscription starting at StartObject
+in StartGroup and ending at EndObject in EndGroup.  The start and end of the
+range are inclusive.
+
+A filter type other than the above MUST be treated as error.
+
+
+### SUBSCRIBE Format
 A receiver issues a SUBSCRIBE to a publisher to request a track.
 
 The format of SUBSCRIBE is as follows:
@@ -1213,10 +1237,11 @@ SUBSCRIBE Message {
   Track Alias (i),
   Track Namespace (b),
   Track Name (b),
-  StartGroup (i),
-  [ StartObject (i), ]
-  EndGroup (i),
-  [ EndObject (i), ]
+  Filter Type (i),
+  [StartGroup (i),
+   StartObject (i)],
+  [EndGroup (i),
+   EndObject (i)],
   Number of Parameters (i),
   Track Request Parameters (..) ...
 }
@@ -1241,16 +1266,20 @@ close the session with a Duplicate Track Alias error ({{session-termination}}).
 
 * Track Name: Identifies the track name as defined in ({{track-name}}).
 
-* StartGroup: The start Group ID, plus 1. A value of 0 means the latest group.
+* Filter Type: Identifies the type of filter, which also indicates whether
+the StartGroup/StartObject and EndGroup/EndObject fields will be present.
+See ({{sub-filter}}).
 
-* StartObject: The start Object ID, plus 1. A value of 0 means the latest object.
-This field is not present when Start Group is 0.
+* StartGroup: The start Group ID. Only present for "AbsoluteStart" and
+"AbsoluteRange" filter types.
 
-* EndGroup: The end Group ID, plus 1. A value of 0 means the subscription is
-open-ended and continues to the end of the track.
+* StartObject: The start Object ID, plus 1. A value of 0 means the entire group is
+requested. Only present for "AbsoluteStart" and "AbsoluteRange" filter types.
+
+* EndGroup: The end Group ID. Only present for the "AbsoluteRange" filter type.
 
 * EndObject: The end Object ID, plus 1. A value of 0 means the entire group is
-requested. This field is not present when End Group is 0.
+requested. Only present for the "AbsoluteRange" filter type.
 
 * Track Request Parameters: The parameters are defined in
 {{version-specific-params}}
