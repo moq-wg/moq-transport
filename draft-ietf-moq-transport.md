@@ -982,19 +982,17 @@ group.
 object. The preferences are Track, Group, Object and Datagram.  An Object MUST
 be sent according to its `Object Forwarding Preference`, described below.
 
-* Object Status: As enumeration used to indicated missing
-  objects and as an marker of the end of group or track.
-
 * Object Payload: An opaque payload intended for the consumer and SHOULD
 NOT be processed by a relay.
 
-There is also a status field which helps subscribers understand what
-objects it will not receive due to then being dropped, lost, or never be
-produced including the case where they will not be produced because they
-are beyond the end of a group or track.
-The status code can also be used to indicated the end of a group or
-track.
-Every object has an associated
+* Object Status: As enumeration used to indicated missing
+  objects and as an marker of the end of group or track.
+
+The Object Status lets subscribers understand what objects will not be received
+because they were never produced, are no longer available, or because they
+are beyond the end of a group or track. The status code can also be used to
+indicate the end of a group or track.
+
 `Status` that can have following values:
 
 * 0x0 := Normal object. The payload is array of bytes and can by empty.
@@ -1026,7 +1024,7 @@ There are times where some of the status information is redundant with
 information learned at the lower layer. For example, when using stream
 per group, the end of Group is redundant.
 
-In most cases messages with a non zero status code are sent on the same
+In most cases, messages with a non zero status code are sent on the same
 stream that an object with that GroupID would have been sent on. The
 exception to this is when that stream has been reset; in that case they
 are sent on a new stream. This is to avoid the status message being lost
