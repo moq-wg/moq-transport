@@ -1293,7 +1293,10 @@ objects from outside the requested start and end.
 ## SUBSCRIBE_UPDATE {#message-subscribe-update-req}
 
 A receiver issues a SUBSCRIBE_UPDATE to a publisher to request a change to
-a prior subscription.  The start Object MUST NOT decrease and when it increases,
+a prior subscription.  Subscriptions can only become more narrower, not wider,
+because an attempt to widen a subscription could fail.  If Objects before the
+start or after the end of the current subscription are needed, a separate
+subscription can be made. The start Object MUST NOT decrease and when it increases,
 there is no guarantee that a publisher will not send Objects after the new
 start Object.  The end Object MUST NOT increase and when it decreases,
 there is no guarantee that a publisher will not send Objects after the new
