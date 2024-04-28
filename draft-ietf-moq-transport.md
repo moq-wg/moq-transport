@@ -985,7 +985,7 @@ be sent according to its `Object Forwarding Preference`, described below.
 * Object Payload: An opaque payload intended for the consumer and SHOULD
 NOT be processed by a relay.
 
-* Object Status: As enumeration used to indicated missing
+* Object Status: As enumeration used to indicate missing
   objects and as an marker of the end of group or track.
 
 The Object Status lets subscribers understand what objects will not be received
