@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2024-04-25T01:10:37.462286+00:00",
+  "timestamp": "2024-04-28T01:13:43.419346+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -11678,7 +11678,7 @@
       ],
       "body": "As mentioned in the sprawling #289, I think we should allow empty subscriptions, aka subscriptions that match no objects.\r\n\r\n- It would be nice to have a way to check if a track exists without receiving any OBJECTs. The MoQ equivalent of a HTTP HEAD request.\r\n- It could be useful to pre-warm the cache. An empty subscription could be the equivalent of \"I'm interested, but don't have the bandwidth to receive objects yet\". Again, similar to HTTP HEAD requests.\r\n\r\nFor example, a client could issue a `SUBSCRIBE /audio/japanese start=none` to accomplish two separate things:\r\n1. The `/audio/japanese` track exists if it gets a SUBSCRIBE_OK.\r\n2. The encoder/CDN starts producing the `/audio/japanese` track.\r\n3. The client could resubscribe at any point to immediately start receiving the track.",
       "createdAt": "2023-10-23T04:59:36Z",
-      "updatedAt": "2023-10-25T00:40:21Z",
+      "updatedAt": "2024-04-27T15:49:30Z",
       "closedAt": null,
       "comments": [
         {
@@ -11722,6 +11722,13 @@
           "body": "Individual Comment:\r\n\r\nLet's retitle this issue to be more specific about what the ask is.  \r\n\r\nEmpty subscriptions are possible with draft-01.  Their semantics are a bit undefined - eg: a relay or publisher has multiple options - SUBSCRIBE_ERROR, SUBSCRIBE_OK + SUBSCRIBE_FIN, SUBSCRIBE_OK and no FIN, in case the subscriber wants to do something else?  Do we need to mandate a particular behavior for better interoperability?\r\n\r\nThen there's a separate issue about supporting these use cases:\r\n\r\n> 1. Check if the track exists.\r\n> 2. Check if the track is active.\r\n> 3. Check if the track is active, and get notified when the track is closed.\r\n> 4. Check if the track exists and group/object N exists.\r\n\r\nIf these are required, then there's other ways to spell that without changing Subscribe - and none of these cases have anything to do with subscribing except maybe 3? A QUERY_TRACK (eg: HEAD) message that doesn't alter the subscribe state seems like a more apt vehicle.\r\n\r\nHow to pre-warm a cache seems out of scope.\r\n\r\n> set MAX_STREAMS_UNI=0 avoid receiving any objects\r\n\r\nI think we should open a separate issue about this case, and what the relay requirements are (if any) around backpressure.    The same thing can happen if a client runs out of streams and doesn't grant new credit in a timely way.  Are there obligations to keep the subscription open and/or cache at the relay for some period of time, or can a relay aggressively drop objects or reset subscriptions? A naive relay is going to get itself in big trouble very quickly.",
           "createdAt": "2023-10-25T00:40:20Z",
           "updatedAt": "2023-10-25T00:40:20Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Now that we have TRACK_STATUS_REQUEST, can we close this one?  The one use case we haven't completely addressed explicitly is cache pre-warming, which is tracked by #372 ",
+          "createdAt": "2024-04-27T15:49:29Z",
+          "updatedAt": "2024-04-27T15:49:29Z"
         }
       ]
     },
@@ -12835,7 +12842,7 @@
       ],
       "body": "If the relay/origin will never be able to fulfill an entire requested SUBSCRIBE, how can it indicate that?  For example, a sequence of relays and the origin may only keep video within 30 seconds of head and discard older content.\r\n\r\nAs a related question, does the relay need to indicate that there will be gaps in Object or Group IDs so the player doesn't wait for them?\r\n\r\nHigh-Level Q: An object has not been delivered, why?\r\n\r\n1. It doesn't exist anymore.\r\n2. It never existed.\r\n3. There wasn't enough bandwidth to send it based on... (ie: priority, the subscriber's latency requirements, etc)\r\n4. It was sent in a stream/datagram by itself and reordered (I think we have this covered?)",
       "createdAt": "2024-01-24T17:59:34Z",
-      "updatedAt": "2024-03-18T03:31:34Z",
+      "updatedAt": "2024-04-27T15:50:39Z",
       "closedAt": null,
       "comments": [
         {
@@ -12893,6 +12900,13 @@
           "body": "> How can the client tell the difference between groups that are delayed, versus groups that will never come?\r\n\r\nI wonder what parts of this needs to be solved at MOQT layer vs streaming format layer. This seems a requirement specific to certain class of applications.",
           "createdAt": "2024-01-29T23:08:26Z",
           "updatedAt": "2024-01-29T23:08:26Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "#429 is an attempt to address this",
+          "createdAt": "2024-04-27T15:50:38Z",
+          "updatedAt": "2024-04-27T15:50:38Z"
         }
       ]
     },
@@ -13775,7 +13789,7 @@
       ],
       "body": "This came up during interop - \r\n\r\nA relay received a subscribe with start={g=RelativeNext/0 o=Absolute/0}.  Since the relay had not received any objects, it defaulted largest to 0 and interpreted the subscribe as starting at {g=1, o=0}. When {g=0,o=0} arrived, it was not forwarded.  But there's a reasonable interpretation that it should have forwarded treated this as the beginning of the next subscription.\r\n\r\nThis is partially related to #337 and maybe #353",
       "createdAt": "2024-02-13T01:45:40Z",
-      "updatedAt": "2024-03-04T17:56:20Z",
+      "updatedAt": "2024-04-27T15:55:49Z",
       "closedAt": null,
       "comments": [
         {
@@ -13861,6 +13875,13 @@
           "body": "I tried to write some text, but I got confused.  Ignoring object locations for a second and just focusing on groups, I think this is what we want, but I'm unsure how to define \"current\" when there are no objects:\r\n\r\n| Requested Start Group | Requested End Group | Semantic | Does next seen object match subscription |\r\n| --- | --- | --- | --- |\r\n| RelativePrev/1 | RelativePrev/0 | All of the previous group | No |\r\n| RelativePrev/0 | RelativeNext/0 | All of the current group | ? |\r\n| RelativeNext/0 | RelativeNext/1 | All of the next group | ? |\r\n| RelativeNext/1 | RelativeNext/2 | All of the next+1 group | No |\r\n\r\nI think the simplest way to resolve this is to treat the next seen group ID as the \"next\" one and anything attempting to match only \"current\" matches either a) nothing or b) `max(0, next seen group ID - 1)`.  I recognize that b) may be controversial in that we don't require unitary increase in group IDs.  Practically I think subscribers should usually ask for [RelativePrev/0, None] (give me the current group if you know it or the next seen group if you don't).  \r\n\r\nIf we assume that the publisher only says \"ContentExists: false\" when it hasn't published anything, and relays only repeat this when they get it from publishers, then it's somewhat easier to assume that anything before \"next\" simply doesn't exist.  I'm unsure if this covers publisher restart cases well enough though.\r\n\r\nThere's also an asymmetry in this case in that there's no message to communicate how the relative requests were interpreted, as SUBSCRIBE_OK now does when the largest object is known.\r\n\r\nFurther, the algorithm for how to interpret relative object locations in groups with an unknown \"largest object\" may be even murkier, but let's agree what the groups mean and then move on to objects.",
           "createdAt": "2024-02-29T23:38:52Z",
           "updatedAt": "2024-02-29T23:38:52Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Now that #439 is merged I think I can make a PR to address the concern. I think it would be something like:\r\n\r\n```\r\nLatest Group (0x1) : Specifies an open-ended subscription with objects from the beginning of the current group.\r\n->   If no content has been delivered yet, the subscription starts with the first published or received group.\r\n\r\nLatest Object (0x2): Specifies an open-ended subscription beginning from the current object of the current group.\r\n->   If no content has been delivered yet, the subscription starts with the first published or received group.\r\n```\r\n",
+          "createdAt": "2024-04-27T15:55:25Z",
+          "updatedAt": "2024-04-27T15:55:49Z"
         }
       ]
     },
@@ -13977,7 +13998,7 @@
       "id": "I_kwDOG2Ho4M5_vTz8",
       "title": "'Expires' in SUBSCRIBE_OK makes it unclear what the final group and object will be",
       "url": "https://github.com/moq-wg/moq-transport/issues/390",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "ianswett",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
@@ -13986,8 +14007,8 @@
       ],
       "body": "Subscriptions always end with either SUBSCRIBE_FIN or SUBSCRIBE_RESET, except when they Expire and then no control message is sent.  This complicates the state machine and adds another case to handle.\r\n\r\nThe subscriber needs to start a timer or something similar to know when the subscription will end, and it doesn't get to know the final group or object ID.",
       "createdAt": "2024-02-19T20:36:31Z",
-      "updatedAt": "2024-04-10T15:57:26Z",
-      "closedAt": null,
+      "updatedAt": "2024-04-27T15:58:13Z",
+      "closedAt": "2024-04-27T15:58:13Z",
       "comments": [
         {
           "author": "kixelated",
@@ -14016,6 +14037,13 @@
           "body": "Would the solution to this be when the relay expires a subscription, it sends a control message ?  This might all become clearer once we figure out re authentication but at a high level, I want some way that the relays can clean up state on a time line that is under relay control particularly when poorly implemented clients make subscriptions. \r\n\r\n",
           "createdAt": "2024-04-10T15:57:25Z",
           "updatedAt": "2024-04-10T15:57:25Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I think this was resolved by #406 - \r\n\r\n\r\n> A subscription remains active until the publisher of the track terminates the track with a SUBSCRIBE_DONE (see {{message-subscribe-done}}).\r\n",
+          "createdAt": "2024-04-27T15:58:13Z",
+          "updatedAt": "2024-04-27T15:58:13Z"
         }
       ]
     },
@@ -14748,10 +14776,12 @@
       "author": "LPardue",
       "authorAssociation": "NONE",
       "assignees": [],
-      "labels": [],
+      "labels": [
+        "Handshake"
+      ],
       "body": "At IETF 119 we discussed very briefly extensibility of the protocol. It was suggested by Ian that having _some_ extension to test the extension mechanisms/points would be useful before publication of the draft. Greasing (whether as part of MoQT or a separate extension) might be a sufficient to exercise things.",
       "createdAt": "2024-03-18T04:08:36Z",
-      "updatedAt": "2024-03-24T23:46:01Z",
+      "updatedAt": "2024-04-27T14:33:52Z",
       "closedAt": null,
       "comments": [
         {
@@ -15112,10 +15142,12 @@
       "author": "kixelated",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
-      "labels": [],
+      "labels": [
+        "Object Model"
+      ],
       "body": "Feel free to `s/SUBSCRIBE/FETCH/g` in your head.\r\n\r\n## Problem\r\nThe current draft is intentionally vague, but it allows objects to dropped in response to congestion. However, this ambiguity will cause issues for a few use-cases. \r\n\r\nConsider a subscriber that requests a range: \r\n\r\n```\r\n-> SUBSCRIBE start=4 end=7\r\n<- SUBSCRIBE_OK\r\n<- OBJECT group=7\r\n<- OBJECT group=6\r\n<- OBJECT group=4\r\n<- SUBSCRIBE_DONE\r\n```\r\n\r\nAt this moment, group=5 has been promised as part of the SUBSCRIBE but has not arrived yet. This is perfectly normal as objects may be sent over multiple streams which arrive out of order. A reliable live (#419) and VOD player will block playback as they anticipate group=5 to arrive any moment now and they do not want to skip content.\r\n\r\nHowever, if group=5 was dropped for any reason, potentially upstream, then playback will be stalled indefinitely. The only recourse is to set an arbitrary timeout and eventually assume loss, but this will cause additional buffering especially for reliable live.\r\n\r\nFurthermore, a relay that issues this request upstream will mark group=5 in its cache as pending. If a FETCH comes in for start=2 end=5, then the relay could FETCH start=2 end=3 upstream, as it can serve group=4 immediately and group=5 once it arrives at any moment.\r\n\r\nHowever, if group=5 was dropped due to a transient problem (ex. congestion), then the relay would be unaware that it could refetch group=5. Indicating that a dropped object can be retried would be very useful for patching up VODs, as the relay could refill these known holes after network recovery.\r\n\r\n\r\n## Proposal\r\n### 1. `SUBSCRIBE_OK` may contain a subset of the range requested in `SUBSCRIBE`.\r\nThe publisher commits to sending either an object or a drop notification within the specified range.\r\n\r\n```\r\nSUBSCRIBE_OK {\r\n    Subscribe ID (i),\r\n    Start Group (i)\r\n    Start Object (i)\r\n    End Group (i)\r\n    End Object (i)\r\n}\r\n```\r\n(some encoding finagling required)\r\n\r\nOtherwise, a relay that receives a `SUBSCRIBE start=0 end=10000` would be expected to send an object or dropped message for every value within the requested range, even if they left cache long ago.  For example, a DVR player requesting content from 45s ago, but everything older than 30s was already dropped from the cache.\r\n\r\nThis modified `SUBSCRIBE_OK` message tightens the bounds to prevent this.\r\n\r\n### 2. Add a `STREAM_DROPPED` that indicates drops within the `SUBSCRIBE_OK` range.\r\nThe publisher indicates that it cannot deliver the entire range as originally indicated, and one or more objects were dropped.\r\n\r\n```\r\nSTREAM_DROPPED Message {\r\n  Header (STREAM_HEADER_TRACK | STREAM_HEADER_GROUP | STREAM_HEADER_OBJECT),\r\n  Error Code (i)\r\n  Retryable (t)\r\n}\r\n```\r\n\r\nThe publisher sends this message when:\r\n* It drops objects by resetting the tail of a stream.\r\n* It drops objects by not creating a stream.\r\n* It receives a STREAM_DROPPED from upstream (relay only).\r\n\r\nThis will be a relatively rare message except during congestion, with the frequency depending on the stream mode. The entire header is sent for simplicity although some fields may be useless (ex. priority).\r\n\r\nThis message would be sent on a data stream (unidirectional) to avoid unnecessary head-of-line blocking on the control stream (bidirectional). This message is reliable, so it should not be sent on the same stream with potentially unreliable OBJECT messages.\r\n\r\nThere is no drop notification for datagrams, as the publisher does not know if they were dropped.",
       "createdAt": "2024-03-28T18:06:35Z",
-      "updatedAt": "2024-04-06T23:35:30Z",
+      "updatedAt": "2024-04-27T14:41:39Z",
       "closedAt": null,
       "comments": [
         {
@@ -15218,10 +15250,12 @@
       "author": "vasilvv",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
-      "labels": [],
+      "labels": [
+        "Object Model"
+      ],
       "body": "As far as I understand, we currently allow group IDs to have gaps in them, with only requirement for them is that they are monotonically increasing.  This presents a problem with caching.  Assume I am a relay, and I receive a range request for `[10, 20)`; if the origin has never produced group 15, then even if I have the entirety of that range in cache, I would not know that, since 15 would be just missing, and the only thing I can do with that is to request 15 from the origin every time.\r\n\r\nPossible solutions to this problem:\r\n1. Add some mechanism to indicate that 15 is not there (e.g. by putting the number of previous group in the beginning of every group).\r\n2. Require group numbers to be incrementing by one.\r\n\r\nI am fan of approach number 2 since it's conceptually simpler, but I think we can make some version of 1 work.",
       "createdAt": "2024-04-04T16:37:48Z",
-      "updatedAt": "2024-04-10T23:13:29Z",
+      "updatedAt": "2024-04-27T14:26:33Z",
       "closedAt": null,
       "comments": [
         {
@@ -15572,15 +15606,17 @@
       "id": "I_kwDOG2Ho4M6GUZOc",
       "title": "New SUBSCRIBE limitations",
       "url": "https://github.com/moq-wg/moq-transport/issues/436",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "afrind",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
-      "labels": [],
+      "labels": [
+        "Subscribe"
+      ],
       "body": "As currently defined, you can SUBSCRIBE starting from the following points:\r\n\r\n1. The latest group and latest object\r\n2. An absolute group and latest object\r\n3. An absolute group and absolute object\r\n\r\nYou cannot SUBSCRIBE to \r\n\r\na. The latest group with an absolute object\r\nb. The latest group from the beginning\r\nc. The next group after latest, from the beginning\r\n\r\nI'd like to remove 2) (absolute group, latest object).  If this group is in the past, then likely the group is complete and no new objects will come in that group, so it's equivalent to (absolute group + 1, object 0).  If this group is in the future, then it's equivalent to (absolute group, object 0).  If the group is current, it's equivalent to latest/latest.  Does anyone have a use case that requires this mode?\r\n\r\nI'd also like to add b) (latest group, first object) and c) (next group, object 0).  This can be done now with an extra round trip via TRACK_STATUS_REQUEST, so perhaps this is an optimization we can tackle later.",
       "createdAt": "2024-04-19T17:14:33Z",
-      "updatedAt": "2024-04-22T09:38:49Z",
-      "closedAt": null,
+      "updatedAt": "2024-04-27T14:37:49Z",
+      "closedAt": "2024-04-27T14:37:49Z",
       "comments": [
         {
           "author": "kixelated",
@@ -15623,6 +15659,13 @@
           "body": "A +1 to all these points\r\n\r\n> I originally was in favor of case c (next/0) but I have changed my mind for now. IF you need this, you just do case 1 (latest/latest) and toss out object until you get to the next group. \r\n\r\n> TRACK_STATUS_REQUEST solves most problems.\r\n\r\n> to remove case 2 (abs/latest).\r\n\r\nRegarding starting at the latest group at the beginning, this seems like the default starting use case for many players. Therefore per Luke's comment  - `The correct behavior is case b IMO since groups are intended to be sync points.`\r\n",
           "createdAt": "2024-04-22T09:38:48Z",
           "updatedAt": "2024-04-22T09:38:48Z"
+        },
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Fixed by #439 ",
+          "createdAt": "2024-04-27T14:37:45Z",
+          "updatedAt": "2024-04-27T14:37:45Z"
         }
       ]
     },
@@ -15687,7 +15730,7 @@
       ],
       "body": "At some point we removed the time to live of how long obhects exist in the cache before they are removed. \r\n\r\nIt is becoming an significant implementation blocker to not have some version of this.  I would like to add some version of this back soon even if we later change the exact details of how times are calculated and represented. \r\n\r\n\r\n",
       "createdAt": "2024-04-24T14:50:21Z",
-      "updatedAt": "2024-04-24T15:35:32Z",
+      "updatedAt": "2024-04-26T14:52:23Z",
       "closedAt": null,
       "comments": [
         {
@@ -15696,6 +15739,20 @@
           "body": "+1 I think this is something we should address before the interim.\r\n\r\n> At some point we removed the time to live of how long objects exist in the cache before they are removed\r\n\r\nLooking back to -00, we've never had TTLs in the draft, perhaps there were pre-adoption versions that had it?\r\n\r\nWe do have issue #249, perhaps this can be closed as a duplicate?",
           "createdAt": "2024-04-24T15:35:31Z",
           "updatedAt": "2024-04-24T15:35:31Z"
+        },
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I think this is a dupe of #249, but most comments in #249 are before the current forwarding preference Object model, so we should close one of the two issues, but I don't have a strong opinion on which.\r\n\r\n@fluffy Can you clarify why this is a significant implementation blocker?  That might motivate us to ensure we create something that's at least good enough for now.\r\n\r\nSome questions\r\n\r\n- Is TTL an immutable Object property, or specific to a Subscription, or something else?\r\n- Can TTL vary within a Track/Subscription?  Can it vary within a Group?\r\n- Do we want a TTL or absolute expiry time?\r\n- Is there any consequence of keeping an Object longer than it's expiry or purging it from the cache faster?\r\n\r\nPossible Use cases:\r\n\r\n- VC meeting, where I'd expect the TTL to be 0 or very close to it.\r\n- Live video streaming, where I'd expect it to be similar to the client buffer depth or more.\r\n- VoD: Possibly policy based?\r\n",
+          "createdAt": "2024-04-25T18:34:08Z",
+          "updatedAt": "2024-04-25T18:34:08Z"
+        },
+        {
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "Great questions. Agree this is a dup of #249 but so much stuff there I think it might be easier to collect up requirements on a clean issue. \r\n\r\nI'll vaguely use TTL but read that as just some sort of time, could be absolute or delta. More on that later. \r\n\r\nFor interactive like webex, the TTL tends to be very low  - think numbers in the range of a few hundreds to a few thousand milliseconds.  We are sending the P frames with a lower TTL than the I frames as that can significantly reduce cache sizes without much impact on user experience. We are sending video with group per track and audio with datagrams. Clearly many other case would have much higher TTL but just talking about this case. \r\n\r\nRequirements:\r\nCan set per object. Perhaps nice to have some way to optimize when same for all objects in the stream. \r\n\r\nCan represent TTL at about at least 10 ms resolution. \r\n\r\nAn immutable property of the object set by the end publisher / origin. \r\n\r\nThe relays SHOULD cache it for at least the time in the TTL. We would expect to pay a CDN for storage based on this time as well as bandwidth. Clearly there are failure cases and other operational cases where it would be dropped but we would expect the CDN to provide some sort of reasonable SLA on not dropping before that time. As far as the speck goes, I think it should say that \"for relays that cache\" SHOUL keep for at least the time in TTL.  \r\n\r\nThe relay SHOULD NOT forward it after the TTL has expired. It is not longer useful at this point and we don't want the bandwidth used by data that will be thrown out by the client because it is too old. \r\n\r\nOn the topic of this is a TTL style delta or an absolute expiry time. It would be nice to have a solution where the client did not need NTP synchronized time but we could easily live with a requiring synchronized time if that was the best direction. The end publisher would put in a time when it created the object. If we go with the delta style solution, the publisher might put in 500 ms. Each relay that received this object would look at local time it was received and expire it 500 ms after that. People talk about decrementing the delta when it gets sent to other relays but that gets complicated and does not add much value. If we do deltas, I think the delta should just be relative to the time the relay received the object and delta is not changed when the object is sent downstream. Note if we go with absolute time, I imagine clients would get a the current time not from the operating system but from the relay. If we go with absolute time, I think it would be client adds an absolute time stamp of when to expire and we assume the clients and all the relays are NPT synced.  I prefer the time delta approach because it will be smaller on the wire and does not require synchronized time. \r\n\r\nThis is starting to end up an implementation blocker because we want to move our existing pre moq stuff we did with quicr over to match the moq spec. But there is no way we can transition without some sort of ways to send a TTL to the relays. \r\n\r\n",
+          "createdAt": "2024-04-26T14:52:22Z",
+          "updatedAt": "2024-04-26T14:52:22Z"
         }
       ]
     },
@@ -15708,12 +15765,22 @@
       "author": "wilaw",
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
-      "labels": [],
+      "labels": [
+        "Subscribe"
+      ],
       "body": "Imagine a track, sent as frame-per stream, with an I-frame every 2s and each GOP in a Group. \r\nIn order to create a trick-play preview of this track, it would be convenient to just receive the I-frames, i.e object 0 from each group.\r\n\r\nTo do this , we should create the ability in specify an OBJECT-FILTER in our SUBSCRIBE. The object filter can have a simply syntax to specify a range of object numbers that should be delivered. For example: \r\n\r\n```\r\n[0] - only send objects with an ID of 0\r\n[0,5] - only send objects with an ID of 0 or 5.\r\n[0..5] - only send objects in the range 0 to 5 inclusive.\r\n[0..2, 16..20] - only send objects in the range 0 to 5 inclusive, or 16..20 inclusive.\r\n```\r\n\r\nWe could optionally extend this concept to group numbers too. I don't have an immediate use case for that, but I could imagine one involving future layered encodings in the same track, where I wanted to pull multiplexed ranges of groups. ",
       "createdAt": "2024-04-24T17:03:49Z",
-      "updatedAt": "2024-04-24T17:03:49Z",
+      "updatedAt": "2024-04-27T14:26:59Z",
       "closedAt": null,
-      "comments": []
+      "comments": [
+        {
+          "author": "VMatrix1900",
+          "authorAssociation": "NONE",
+          "body": "The concept of filter is useful. By putting it in the subscribe message, each individual client is able to create a shadow sub-track which is tailored to its own needs. I wonder if the similar result can be accomplished by server creating multiple tracks for all clients to subscribe. ",
+          "createdAt": "2024-04-26T03:37:15Z",
+          "updatedAt": "2024-04-26T03:37:15Z"
+        }
+      ]
     }
   ],
   "pulls": [
@@ -49351,7 +49418,7 @@
       ],
       "body": "Fixes #363, Fixes #269\r\n\r\nThis attempts to provide the minimum functionality I expect we'll need, regardless of how SUBSCRIBE is changed in the near future.",
       "createdAt": "2024-02-19T19:05:04Z",
-      "updatedAt": "2024-04-18T01:10:37Z",
+      "updatedAt": "2024-04-27T16:04:18Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "9d80b4ecfe2763b6598e28064aacb35962e8aeae",
@@ -49362,7 +49429,15 @@
       "mergedAt": null,
       "mergedBy": null,
       "mergeCommit": null,
-      "comments": [],
+      "comments": [
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Is this overtaken by #435 ?",
+          "createdAt": "2024-04-27T16:04:17Z",
+          "updatedAt": "2024-04-27T16:04:17Z"
+        }
+      ],
       "reviews": [
         {
           "id": "PRR_kwDOG2Ho4M5wmHwU",
@@ -54021,16 +54096,18 @@
       "author": "fluffy",
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
-      "labels": [],
-      "body": " This PR adds a status field to the object that allows an relay to indicate an object or group was lost or dropped. \r\n \r\n It also allows a producer to indicate a object or group will not be produced including the cases for end of group and end of track. \r\n \r\n The PR probably needs a bit more text on what what producers and relays do but I think this is close enough to get some initial discussion on this solution. \r\n\r\nFixes #427 #423 ",
+      "labels": [
+        "Object Model"
+      ],
+      "body": " This PR adds a status field to the object that allows an relay to indicate an object or group was lost or dropped. \r\n \r\n It also allows a producer to indicate a object or group will not be produced including the cases for end of group and end of track. \r\n \r\n The PR probably needs a bit more text on what what producers and relays do but I think this is close enough to get some initial discussion on this solution. \r\n\r\nFixes #318\r\nFixes #427\r\nFixes most of #423 \r\n\r\nCloses #334\r\nCloses #426",
       "createdAt": "2024-04-10T15:38:48Z",
-      "updatedAt": "2024-04-24T16:14:25Z",
+      "updatedAt": "2024-04-27T21:43:10Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
-      "baseRefOid": "9d80b4ecfe2763b6598e28064aacb35962e8aeae",
+      "baseRefOid": "58ddb790da7a846312a005b64f69f3e2e81ccd1a",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "missing",
-      "headRefOid": "05fa5dcb739789901bb4e28cd49972798e2d750a",
+      "headRefOid": "a5f04d8a72ae1c997f2866396f8984e5144c9714",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -54112,6 +54189,34 @@
           "body": "Note to cullen - remove the two codes. Clean up other comments. Ping Ian when done and ready to merge. ",
           "createdAt": "2024-04-24T16:14:24Z",
           "updatedAt": "2024-04-24T16:14:24Z"
+        },
+        {
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "@ianswett - Can you give this a read and merge if you think it is OK. I did make the change in the PR luke sent to this but it ended up in another PR so github did not see it as done. \r\n",
+          "createdAt": "2024-04-26T11:52:10Z",
+          "updatedAt": "2024-04-26T11:52:10Z"
+        },
+        {
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I did another read through and it looks good to me !! Thanks Cullen",
+          "createdAt": "2024-04-26T15:45:55Z",
+          "updatedAt": "2024-04-26T15:45:55Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Individual Comment:\r\n\r\n>  For applications where they make no sense ( like audio only ) the publisher would not bother.\r\n\r\nThis means a *relay* cannot assume the existence of these marker objects.  That's unfortunate, because I'd like the end-of-group marker to help my relay know when to close fanout streams.  I don't want to rely on QUIC FIN for this - a publisher may use a QUIC FIN to terminate a stream cleanly (delivering all written objects) as part of a graceful shutdown, without wanting to signal the end of group.  In this case, I explicitly *don't* want to close fanout streams, in case the publisher is reconnecting (make before break).\r\n\r\nWould making end markers optional for DATAGRAM tracks sufficiently address the audio only use case?",
+          "createdAt": "2024-04-26T17:34:04Z",
+          "updatedAt": "2024-04-26T17:34:04Z"
+        },
+        {
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "\r\n> > For applications where they make no sense ( like audio only ) the publisher would not bother.\r\n> \r\n> This means a _relay_ cannot assume the existence of these marker objects. That's unfortunate, because I'd like the end-of-group marker to help my relay know when to close fanout streams. I don't want to rely on QUIC FIN for this - a publisher may use a QUIC FIN to terminate a stream cleanly (delivering all written objects) as part of a graceful shutdown, without wanting to signal the end of group. In this case, I explicitly _don't_ want to close fanout streams, in case the publisher is reconnecting (make before break).\r\n> \r\n> Would making end markers optional for DATAGRAM tracks sufficiently address the audio only use case?\r\n\r\nI get your point and need to think about all of that a bit. Lets say the client did send them, would it be a problem if it just crashed without sending them. Would the relay also have a timer or some other way to clean up the state ? Or just wait for subscribe to end ? Just thinking through implications but you raise a good point. \r\n\r\n",
+          "createdAt": "2024-04-27T00:42:21Z",
+          "updatedAt": "2024-04-27T00:42:21Z"
         }
       ],
       "reviews": [
@@ -54946,14 +55051,394 @@
               "body": "No the text indicates it should be sent on the same stream as the OBJECT. I think a separate stream (and a separate message) would definitely be an improvement.",
               "createdAt": "2024-04-23T16:30:49Z",
               "updatedAt": "2024-04-23T16:33:33Z"
-            },
-            {
-              "originalPosition": 115,
-              "body": "I'd like it to be implicit, or banned.",
-              "createdAt": "2024-04-23T16:31:54Z",
-              "updatedAt": "2024-04-23T16:33:33Z"
             }
           ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M54iIiU",
+          "commit": {
+            "abbreviatedOid": "05fa5dc"
+          },
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-04-25T11:15:14Z",
+          "updatedAt": "2024-04-25T11:15:14Z",
+          "comments": [
+            {
+              "originalPosition": 37,
+              "body": "Removed in next version",
+              "createdAt": "2024-04-25T11:15:14Z",
+              "updatedAt": "2024-04-25T11:15:14Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M54iQIZ",
+          "commit": {
+            "abbreviatedOid": "05fa5dc"
+          },
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-04-25T11:32:02Z",
+          "updatedAt": "2024-04-25T11:32:02Z",
+          "comments": [
+            {
+              "originalPosition": 62,
+              "body": "oops - changed as you sugested ",
+              "createdAt": "2024-04-25T11:32:02Z",
+              "updatedAt": "2024-04-25T11:32:02Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M54lH97",
+          "commit": {
+            "abbreviatedOid": "05fa5dc"
+          },
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-04-25T16:10:44Z",
+          "updatedAt": "2024-04-25T16:19:54Z",
+          "comments": [
+            {
+              "originalPosition": 115,
+              "body": "Actually can we remove this for now? Every status is redundant and confusing with this encoding.\r\n\r\n0x1: Implies there can be gaps in group streams which I don't want to support. And if we did end up supporting it, intentional gaps can be detected via the sequence numbers.\r\n\r\n0x2: Should be in the group stream header (or separate message). Using the first object to indicate the entire group is skipped is really confusing and error prone. Also I don't like intentional gaps in groups but that's a separate issue.\r\n\r\n0x3: Conflicts with STREAM FIN. It can only create problems unless we allow multiple streams per group, but that's counterproductive.\r\n\r\n0x4: Should be in the group header (or a separate message). Conflicts with SUBSCRIBE_END since it can indicate the end of the track too.",
+              "createdAt": "2024-04-25T16:10:44Z",
+              "updatedAt": "2024-04-25T16:19:54Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M54lN5K",
+          "commit": {
+            "abbreviatedOid": "05fa5dc"
+          },
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "I removed my -1 so if others think it's fine, merge it.",
+          "createdAt": "2024-04-25T16:23:47Z",
+          "updatedAt": "2024-04-25T16:23:47Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M54sIB7",
+          "commit": {
+            "abbreviatedOid": "05fa5dc"
+          },
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-04-26T11:32:50Z",
+          "updatedAt": "2024-04-26T11:32:50Z",
+          "comments": [
+            {
+              "originalPosition": 10,
+              "body": "fixed in next version",
+              "createdAt": "2024-04-26T11:32:50Z",
+              "updatedAt": "2024-04-26T11:32:51Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M54sLPu",
+          "commit": {
+            "abbreviatedOid": "05fa5dc"
+          },
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-04-26T11:41:18Z",
+          "updatedAt": "2024-04-26T11:41:18Z",
+          "comments": [
+            {
+              "originalPosition": 16,
+              "body": "I'm struggling how to phrase this.  I was thinking  of the obj formats could have an empty payload. ",
+              "createdAt": "2024-04-26T11:41:18Z",
+              "updatedAt": "2024-04-26T11:41:18Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M54sMEg",
+          "commit": {
+            "abbreviatedOid": "05fa5dc"
+          },
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-04-26T11:43:35Z",
+          "updatedAt": "2024-04-26T11:43:35Z",
+          "comments": [
+            {
+              "originalPosition": 31,
+              "body": "Lets say group had three object 0 to 2. And 2 is dropped. I was thinking what is sent is 0, 1 , then message with status code that indicated 2 was dropped, then message with status code that indicates obj 3 would be end of group marker. ",
+              "createdAt": "2024-04-26T11:43:35Z",
+              "updatedAt": "2024-04-26T11:43:35Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M54sMy4",
+          "commit": {
+            "abbreviatedOid": "05fa5dc"
+          },
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-04-26T11:45:32Z",
+          "updatedAt": "2024-04-26T11:45:33Z",
+          "comments": [
+            {
+              "originalPosition": 78,
+              "body": "I'm not following the problem here. There would be no change from what we have today in figuring out legth of message. ",
+              "createdAt": "2024-04-26T11:45:33Z",
+              "updatedAt": "2024-04-26T11:45:33Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M54sNe7",
+          "commit": {
+            "abbreviatedOid": "05fa5dc"
+          },
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-04-26T11:47:12Z",
+          "updatedAt": "2024-04-26T11:47:12Z",
+          "comments": [
+            {
+              "originalPosition": 101,
+              "body": "I don't think this changes what a FIN means in any way and I would not want to use these group and end markers in all cases. For applications where they make sense ( like streaming video ) they can can be used. For applications where they make no sense ( like audio only ) the publisher would not bother. ",
+              "createdAt": "2024-04-26T11:47:12Z",
+              "updatedAt": "2024-04-26T11:47:12Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M54sN56",
+          "commit": {
+            "abbreviatedOid": "05fa5dc"
+          },
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-04-26T11:48:20Z",
+          "updatedAt": "2024-04-26T11:48:20Z",
+          "comments": [
+            {
+              "originalPosition": 115,
+              "body": "Sam thing, status 0x3 is optional, this PR does not change what a FIN does or does not mean. ",
+              "createdAt": "2024-04-26T11:48:20Z",
+              "updatedAt": "2024-04-26T11:48:20Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M54zGG5",
+          "commit": {
+            "abbreviatedOid": "1fc5350"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-04-27T14:47:40Z",
+          "updatedAt": "2024-04-27T14:47:40Z",
+          "comments": [
+            {
+              "originalPosition": 4,
+              "body": "```suggestion\r\n* Object Status: As enumeration used to indicated missing\r\n```",
+              "createdAt": "2024-04-27T14:47:40Z",
+              "updatedAt": "2024-04-27T14:47:40Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M54zGQq",
+          "commit": {
+            "abbreviatedOid": "12968a7"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2024-04-27T14:49:14Z",
+          "updatedAt": "2024-04-27T15:04:43Z",
+          "comments": [
+            {
+              "originalPosition": 16,
+              "body": "I'm ok with this, but is there a difference between an empty object and one that doesn't exist?  Maybe we can put off that discussion for now because I don't think it's critical to making progress.",
+              "createdAt": "2024-04-27T14:49:14Z",
+              "updatedAt": "2024-04-27T15:01:54Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M54zXbN",
+          "commit": {
+            "abbreviatedOid": "a5f04d8"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-04-27T19:24:03Z",
+          "updatedAt": "2024-04-27T19:24:03Z",
+          "comments": [
+            {
+              "originalPosition": 28,
+              "body": "Yes, I added a MUST about this below.",
+              "createdAt": "2024-04-27T19:24:03Z",
+              "updatedAt": "2024-04-27T19:24:03Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M54zbyx",
+          "commit": {
+            "abbreviatedOid": "a5f04d8"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-04-27T21:33:40Z",
+          "updatedAt": "2024-04-27T21:33:40Z",
+          "comments": [
+            {
+              "originalPosition": 4,
+              "body": "indicate",
+              "createdAt": "2024-04-27T21:33:40Z",
+              "updatedAt": "2024-04-27T21:33:40Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M54zbzz",
+          "commit": {
+            "abbreviatedOid": "a5f04d8"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-04-27T21:34:31Z",
+          "updatedAt": "2024-04-27T21:34:32Z",
+          "comments": [
+            {
+              "originalPosition": 5,
+              "body": "s/and as an marker/or mark/ ?",
+              "createdAt": "2024-04-27T21:34:32Z",
+              "updatedAt": "2024-04-27T21:34:32Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M54zb0S",
+          "commit": {
+            "abbreviatedOid": "a5f04d8"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-04-27T21:34:58Z",
+          "updatedAt": "2024-04-27T21:34:58Z",
+          "comments": [
+            {
+              "originalPosition": 7,
+              "body": "s/lets subscribers understand/informs subscribers/",
+              "createdAt": "2024-04-27T21:34:58Z",
+              "updatedAt": "2024-04-27T21:34:58Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M54zb1E",
+          "commit": {
+            "abbreviatedOid": "a5f04d8"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-04-27T21:35:31Z",
+          "updatedAt": "2024-04-27T21:35:31Z",
+          "comments": [
+            {
+              "originalPosition": 11,
+              "body": "remove 'that' ?",
+              "createdAt": "2024-04-27T21:35:31Z",
+              "updatedAt": "2024-04-27T21:35:31Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M54zb3-",
+          "commit": {
+            "abbreviatedOid": "a5f04d8"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-04-27T21:37:53Z",
+          "updatedAt": "2024-04-27T21:37:54Z",
+          "comments": [
+            {
+              "originalPosition": 13,
+              "body": "Given this is in the canonical object part, and payload has already been defined above, maybe it's more clear to define Status first, then in Object Payload state that this property is only present when Status is Normal Object.",
+              "createdAt": "2024-04-27T21:37:54Z",
+              "updatedAt": "2024-04-27T21:37:54Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M54zb_Z",
+          "commit": {
+            "abbreviatedOid": "a5f04d8"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-04-27T21:42:56Z",
+          "updatedAt": "2024-04-27T21:42:56Z",
+          "comments": [
+            {
+              "originalPosition": 28,
+              "body": "> This is sent right after the last object\r\n\r\nCan this be a MUST, at least for Forwarding Preference = Group?",
+              "createdAt": "2024-04-27T21:42:56Z",
+              "updatedAt": "2024-04-27T21:42:56Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M54zb_u",
+          "commit": {
+            "abbreviatedOid": "a5f04d8"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "Individual Review",
+          "createdAt": "2024-04-27T21:43:10Z",
+          "updatedAt": "2024-04-27T21:43:10Z",
+          "comments": []
         }
       ]
     },
@@ -55116,13 +55601,13 @@
       ],
       "body": "This is intended to be complementary to #429 by adding a SUBSCRIBE specific mechanism to indicate hop-by-hop Objects that will not be delivered.  Because this is specific to a SUBSCRIBE, it's not intended to be cacheable.\r\n\r\nBuilds on ideas in #423 \r\n\r\nEach SUBSCRIBE could be moved to their own bidi stream and this could be sent there, but that change can be made separately.",
       "createdAt": "2024-04-17T19:54:44Z",
-      "updatedAt": "2024-04-22T18:37:46Z",
+      "updatedAt": "2024-04-27T19:29:58Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
-      "baseRefOid": "9d80b4ecfe2763b6598e28064aacb35962e8aeae",
+      "baseRefOid": "58ddb790da7a846312a005b64f69f3e2e81ccd1a",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "ianswett-objects-dropped",
-      "headRefOid": "9d47a0927c1afc3cba5b6d04cb9c951f4116e7a8",
+      "headRefOid": "e852c46da67e46282c2221bdfa06f762b6e22bb3",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -55360,6 +55845,26 @@
               "updatedAt": "2024-04-22T18:37:46Z"
             }
           ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M54zXra",
+          "commit": {
+            "abbreviatedOid": "9d47a09"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-04-27T19:29:57Z",
+          "updatedAt": "2024-04-27T19:29:58Z",
+          "comments": [
+            {
+              "originalPosition": 18,
+              "body": "The concept is that OBJECTS_DROPPED is specific to a subscription, so it's on the control stream, and that information isn't cacheable, because the Objects may exist and be retrievable.",
+              "createdAt": "2024-04-27T19:29:58Z",
+              "updatedAt": "2024-04-27T19:29:58Z"
+            }
+          ]
         }
       ]
     },
@@ -55377,13 +55882,13 @@
       ],
       "body": "Replace #385 based on the simplified SUBSCRIBE.\r\n\r\nFixes #269\r\nCloses #385",
       "createdAt": "2024-04-18T01:38:35Z",
-      "updatedAt": "2024-04-22T17:11:59Z",
+      "updatedAt": "2024-04-27T19:59:22Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
-      "baseRefOid": "9d80b4ecfe2763b6598e28064aacb35962e8aeae",
+      "baseRefOid": "58ddb790da7a846312a005b64f69f3e2e81ccd1a",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "ianswett-subscribe-update2",
-      "headRefOid": "6b7cdb9a3a5482913a3a2d7938ad0152b0422ee3",
+      "headRefOid": "69b2a3b00cda2a2497c5e8fb1758f2604ca03c3b",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -55393,27 +55898,27 @@
         {
           "id": "PRR_kwDOG2Ho4M54BCAe",
           "commit": {
-            "abbreviatedOid": "6b7cdb9"
+            "abbreviatedOid": "9bb72cc"
           },
           "author": "fluffy",
           "authorAssociation": "CONTRIBUTOR",
           "state": "APPROVED",
           "body": "What I like about this is we explicitly separate what can be setup in the initial subscription, and what can be changed about it later. I think that will make things easier to understand over the long run. ",
           "createdAt": "2024-04-21T22:22:09Z",
-          "updatedAt": "2024-04-21T22:22:09Z",
+          "updatedAt": "2024-04-27T14:38:15Z",
           "comments": []
         },
         {
           "id": "PRR_kwDOG2Ho4M54BDfS",
           "commit": {
-            "abbreviatedOid": "6b7cdb9"
+            "abbreviatedOid": "9bb72cc"
           },
           "author": "kixelated",
           "authorAssociation": "COLLABORATOR",
           "state": "APPROVED",
           "body": "Being able to increase the start group is a nice way for the subscriber to drop old content it no longer cares about. I like the simplicity.",
           "createdAt": "2024-04-21T22:30:40Z",
-          "updatedAt": "2024-04-21T22:30:56Z",
+          "updatedAt": "2024-04-27T14:38:15Z",
           "comments": []
         },
         {
@@ -55461,6 +55966,26 @@
               "updatedAt": "2024-04-22T17:11:59Z"
             }
           ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M54zYjs",
+          "commit": {
+            "abbreviatedOid": "69b2a3b"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-04-27T19:59:22Z",
+          "updatedAt": "2024-04-27T19:59:22Z",
+          "comments": [
+            {
+              "originalPosition": 14,
+              "body": "I added text to clarify the intent, which is that one can only narrow a subscription, not widen it.",
+              "createdAt": "2024-04-27T19:59:22Z",
+              "updatedAt": "2024-04-27T19:59:22Z"
+            }
+          ]
         }
       ]
     },
@@ -55469,21 +55994,21 @@
       "id": "PR_kwDOG2Ho4M5tM1BL",
       "title": "Exclusive SUBSCRIBE end range",
       "url": "https://github.com/moq-wg/moq-transport/pull/437",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "kixelated",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [],
       "body": "This removes the `N/latest` functionality which is super confusing. It's also just cleaner to use exclusive end ranges instead of the previously implied inclusive ranges.\r\n\r\nNote that to receive a single group, you need to use:\r\n```\r\n    start_group=N  start_object=0\r\n    end_group=N+1  end_object=0\r\n```\r\n\r\nPreviously that was accomplished with:\r\n```\r\n    start_group=N  start_object=1\r\n    end_group=N    end_object=0\r\n```",
       "createdAt": "2024-04-19T17:30:54Z",
-      "updatedAt": "2024-04-24T16:20:46Z",
+      "updatedAt": "2024-04-27T16:00:09Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "9d80b4ecfe2763b6598e28064aacb35962e8aeae",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "kixel-exclusive-end",
       "headRefOid": "70e3129eb45fb52460539d3d7325e697e0687b56",
-      "closedAt": null,
+      "closedAt": "2024-04-27T16:00:08Z",
       "mergedAt": null,
       "mergedBy": null,
       "mergeCommit": null,
@@ -55508,6 +56033,13 @@
           "body": "This PR assumes the end_group N+1 exists. What about the case of an asset which only has groups from 1..10. If I want to subscribe to all of these, I have request \r\n\r\n start_group=1  start_object=0\r\n end_group=11  end_object=0\r\n\r\nThis is semantically awkward to me, since it references an entity (group 11) which does not exist. It would be so much cleaner and more intuitive if the API allowed us to ask for what we want, via inclusive threshold. I would rename them to \"first\" and \"last\" to make their syntax clearer. So to subscribe to groups 1..10 I could do\r\n\r\nfirst_group=1  start_object=0\r\nlast_group=10  end_object=0\r\n\r\nI then receive receive exactly what I ask for. \r\n\r\n\r\n\r\n\r\n",
           "createdAt": "2024-04-24T16:20:45Z",
           "updatedAt": "2024-04-24T16:20:45Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "This spiritually merged into #439",
+          "createdAt": "2024-04-27T16:00:08Z",
+          "updatedAt": "2024-04-27T16:00:08Z"
         }
       ],
       "reviews": [
@@ -55670,26 +56202,28 @@
       "id": "PR_kwDOG2Ho4M5tYbw7",
       "title": "Simplify/Clarify Subscribe by adding 4 modes",
       "url": "https://github.com/moq-wg/moq-transport/pull/439",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "suhasHere",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [
         "Subscribe"
       ],
-      "body": "I took a stab at another rewrite of Subscribe message which attempts to not use special group and object values. Also add support for multiple subscription flows that have been discussed.\r\n\r\nAs this is a control message, we should be Ok to be elaborate in describing the subscriber needs.",
+      "body": "I took a stab at another rewrite of Subscribe message which attempts to not use special group and object values. Also add support for multiple subscription flows that have been discussed.\r\n\r\nAs this is a control message, we should be Ok to be elaborate in describing the subscriber needs.\r\n\r\nThis leaves 0 as a special value for the StartObject and EndObject.\r\n\r\nFixes #436\r\n",
       "createdAt": "2024-04-22T17:35:24Z",
-      "updatedAt": "2024-04-25T00:35:11Z",
+      "updatedAt": "2024-04-27T14:37:31Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "9d80b4ecfe2763b6598e28064aacb35962e8aeae",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "suhas-sub",
-      "headRefOid": "534372025e5c2976a5b3e1cb53fac0ac31dcb509",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "headRefOid": "d1545f15a94d8035fb5add75d2e06f1272ec9229",
+      "closedAt": "2024-04-27T14:08:46Z",
+      "mergedAt": "2024-04-27T14:08:46Z",
+      "mergedBy": "ianswett",
+      "mergeCommit": {
+        "oid": "58ddb790da7a846312a005b64f69f3e2e81ccd1a"
+      },
       "comments": [
         {
           "author": "suhasHere",
@@ -55704,6 +56238,13 @@
           "body": "I like that this would move us away from stealing special values from obejct id / group id space. ",
           "createdAt": "2024-04-24T14:35:07Z",
           "updatedAt": "2024-04-24T14:35:07Z"
+        },
+        {
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "body": "This looks good @ianswett  ..  thanks for the update",
+          "createdAt": "2024-04-25T15:40:29Z",
+          "updatedAt": "2024-04-25T15:40:29Z"
         }
       ],
       "reviews": [
@@ -55952,6 +56493,159 @@
               "updatedAt": "2024-04-25T00:35:11Z"
             }
           ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M54k8iN",
+          "commit": {
+            "abbreviatedOid": "5343720"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-04-25T15:53:07Z",
+          "updatedAt": "2024-04-25T15:53:07Z",
+          "comments": [
+            {
+              "originalPosition": 18,
+              "body": "nit: may be we should converging on ones style for the naming here.",
+              "createdAt": "2024-04-25T15:53:07Z",
+              "updatedAt": "2024-04-25T15:53:07Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M54k8mk",
+          "commit": {
+            "abbreviatedOid": "5343720"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-04-25T15:53:15Z",
+          "updatedAt": "2024-04-25T15:53:15Z",
+          "comments": [
+            {
+              "originalPosition": 11,
+              "body": "s/Lastest/Latest",
+              "createdAt": "2024-04-25T15:53:15Z",
+              "updatedAt": "2024-04-25T15:53:15Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M54mRqC",
+          "commit": {
+            "abbreviatedOid": "5343720"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-04-25T18:30:28Z",
+          "updatedAt": "2024-04-25T18:30:28Z",
+          "comments": [
+            {
+              "originalPosition": 68,
+              "body": "Good point.",
+              "createdAt": "2024-04-25T18:30:28Z",
+              "updatedAt": "2024-04-25T18:30:28Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M54mR7F",
+          "commit": {
+            "abbreviatedOid": "5343720"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-04-25T18:31:06Z",
+          "updatedAt": "2024-04-25T18:31:07Z",
+          "comments": [
+            {
+              "originalPosition": 11,
+              "body": "```suggestion\r\nLatest Group (0x1) : Specifies an open-ended subscription with objects\r\n```",
+              "createdAt": "2024-04-25T18:31:06Z",
+              "updatedAt": "2024-04-25T18:31:07Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M54mS8a",
+          "commit": {
+            "abbreviatedOid": "ff086ba"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-04-25T18:33:27Z",
+          "updatedAt": "2024-04-25T18:33:28Z",
+          "comments": [
+            {
+              "originalPosition": 18,
+              "body": "```suggestion\r\nAbsoluteStart (0x3):  Specifies an open-ended subscription beginning\r\nfrom the object identified in the StartGroup and StartObject fields.\r\n```",
+              "createdAt": "2024-04-25T18:33:28Z",
+              "updatedAt": "2024-04-25T18:33:28Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M54nITR",
+          "commit": {
+            "abbreviatedOid": "e31f096"
+          },
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2024-04-25T20:32:27Z",
+          "updatedAt": "2024-04-25T20:34:30Z",
+          "comments": [
+            {
+              "originalPosition": 20,
+              "body": "Would it be possible to make the end of the range exclusive?\r\n\r\nThat way, if I wanted groups 0 through N, I could request the end to be (N+1, 0) without knowing the size of N, and avoid getting an extra object.",
+              "createdAt": "2024-04-25T20:32:27Z",
+              "updatedAt": "2024-04-25T20:34:30Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M54n8MG",
+          "commit": {
+            "abbreviatedOid": "e31f096"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-04-25T22:46:42Z",
+          "updatedAt": "2024-04-25T22:46:42Z",
+          "comments": [
+            {
+              "originalPosition": 20,
+              "body": "See below, to request groups 0 - N, you say:\r\n\r\n```\r\nAbsoluteRange\r\nStartGroup 0\r\nStartObject 0\r\nEndGroup N\r\nEndObject 0\r\n```\r\nNote StartObject and EndObject = 0 mean different things",
+              "createdAt": "2024-04-25T22:46:42Z",
+              "updatedAt": "2024-04-25T22:46:42Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M54utN5",
+          "commit": {
+            "abbreviatedOid": "e31f096"
+          },
+          "author": "vasilvv",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2024-04-26T17:16:07Z",
+          "updatedAt": "2024-04-26T17:16:07Z",
+          "comments": []
         }
       ]
     }
