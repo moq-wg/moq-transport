@@ -986,7 +986,7 @@ be sent according to its `Object Forwarding Preference`, described below.
 NOT be processed by a relay.
 
 * Object Status: As enumeration used to indicate missing
-  objects and as an marker of the end of group or track.
+  objects or mark the end of a group or track.
 
 The Object Status lets subscribers understand what objects will not be received
 because they were never produced, are no longer available, or because they
