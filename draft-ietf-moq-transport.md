@@ -982,11 +982,13 @@ group.
 object. The preferences are Track, Group, Object and Datagram.  An Object MUST
 be sent according to its `Object Forwarding Preference`, described below.
 
-* Object Payload: An opaque payload intended for the consumer and SHOULD
-NOT be processed by a relay.
-
 * Object Status: As enumeration used to indicate missing
-  objects or mark the end of a group or track.
+objects or mark the end of a group or track. See {{object-status}} below.
+
+* Object Payload: An opaque payload intended for the consumer and SHOULD
+NOT be processed by a relay. Only present when 'Object Status' is Normal (0x0).
+
+#### Object Status {#object-status}
 
 The Object Status informs subscribers what objects will not be received
 because they were never produced, are no longer available, or because they
