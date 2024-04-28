@@ -1063,7 +1063,7 @@ Table of Contents
    received because they were never produced, are no longer available,
    or because they are beyond the end of a group or track.
 
-   Status that can have following values:
+   Status can have following values:
 
    *  0x0 := Normal object.  The payload is array of bytes and can be
       empty.
