@@ -988,7 +988,7 @@ NOT be processed by a relay.
 * Object Status: As enumeration used to indicate missing
   objects or mark the end of a group or track.
 
-The Object Status lets subscribers understand what objects will not be received
+The Object Status informs subscribers what objects will not be received
 because they were never produced, are no longer available, or because they
 are beyond the end of a group or track.
 
