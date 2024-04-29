@@ -984,8 +984,54 @@ group.
 object. The preferences are Track, Group, Object and Datagram.  An Object MUST
 be sent according to its `Object Forwarding Preference`, described below.
 
+* Object Status: As enumeration used to indicate missing
+objects or mark the end of a group or track. See {{object-status}} below.
+
 * Object Payload: An opaque payload intended for the consumer and SHOULD
-NOT be processed by a relay.
+NOT be processed by a relay. Only present when 'Object Status' is Normal (0x0).
+
+#### Object Status {#object-status}
+
+The Object Status informs subscribers what objects will not be received
+because they were never produced, are no longer available, or because they
+are beyond the end of a group or track.
+
+`Status` can have following values:
+
+* 0x0 := Normal object. The payload is array of bytes and can be empty.
+
+* 0x1 := Indicates Object does not exist. Indicates that this object
+         does not exist at any publisher and it will not be published in
+         the future. This SHOULD be cached.
+
+* 0x2 := Indicates Group does not exist. Indicates that objects with
+         this GroupID do not exist at any publisher and they will not be
+         published in the future. This SHOULD be cached.
+
+* 0x3 := Indicates end of Group. ObjectId is one greater that the
+         largest object produced in the group identified by the
+         GroupID. This is sent right after the last object in the
+         group. This SHOULD be cached.
+
+* 0x4 := Indicates end of Track and Group. GroupID is one greater than
+         the largest group produced in this track and the ObjectId is
+         one greater than the largest object produced in that
+         group. This is sent right after the last object in the
+         track. This SHOULD be cached.
+
+Any other value SHOULD be treated as a protocol error and terminate the
+session with a Protocol Violation ({{session-termination}}).
+Any object with a status code other than zero MUST have an empty payload.
+
+Though some status information could be inferred from QUIC stream state,
+that information is not reliable and cacheable.
+
+In most cases, messages with a non zero status code are sent on the same
+stream that an object with that GroupID would have been sent on. The
+exception to this is when that stream has been reset; in that case they
+are sent on a new stream. This is to avoid the status message being lost
+in cases such as a relay dropping a group and reseting the stream the
+group is being sent on.
 
 ### Object Message Formats
 
@@ -1014,6 +1060,7 @@ OBJECT_STREAM Message {
   Group ID (i),
   Object ID (i),
   Object Send Order (i),
+  Object Status (i),
   Object Payload (..),
 }
 ~~~
@@ -1050,6 +1097,7 @@ OBJECT_DATAGRAM Message {
   Group ID (i),
   Object ID (i),
   Object Send Order (i),
+  Object Status (i),
   Object Payload (..),
 }
 ~~~
@@ -1091,12 +1139,14 @@ Forwarding Preference` = `Track`.
 To send an Object with `Object Forwarding Preference` = `Track`, find the open
 stream that is associated with the subscription, or open a new one and send the
 `STREAM_HEADER_TRACK` if needed, then serialize the following object fields.
+The Object Status field is only sent if the Object Payload Length is zero.
 
 ~~~
 {
   Group ID (i),
   Object ID (i),
   Object Payload Length (i),
+  [Object Status (i)],
   Object Payload (..),
 }
 ~~~
@@ -1130,11 +1180,13 @@ To send an Object with `Object Forwarding Preference` = `Group`, find the open
 stream that is associated with the subscription, `Group ID` and `Object
 Send Order`, or open a new one and send the `STREAM_HEADER_GROUP` if needed,
 then serialize the following fields.
+The Object Status field is only sent if the Object Payload Length is zero.
 
 ~~~
 {
   Object ID (i),
   Object Payload Length (i),
+  [Object Status (i)],
   Object Payload (..),
 }
 ~~~
