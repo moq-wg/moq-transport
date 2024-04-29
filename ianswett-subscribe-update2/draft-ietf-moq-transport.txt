@@ -5,13 +5,13 @@
 MOQ                                                            L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 30 October 2024                                            Meta
+Expires: 31 October 2024                                            Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                           28 April 2024
+                                                           29 April 2024
 
 
                        Media over QUIC Transport
@@ -53,7 +53,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 30 October 2024.
+   This Internet-Draft will expire on 31 October 2024.
 
 Copyright Notice
 
@@ -1425,7 +1425,7 @@ Table of Contents
    fail.  If Objects before the start or after the end of the current
    subscription are needed, a separate subscription can be made.  The
    start Object MUST NOT decrease and when it increases, there is no
-   guarantee that a publisher will not have already sent Objects after
+   guarantee that a publisher will not have already sent Objects before
    the new start Object.  The end Object MUST NOT increase and when it
    decreases, there is no guarantee that a publisher will not have
    already sent Objects after the new end Object.
