@@ -1354,7 +1354,7 @@ the new start Object.  The end Object MUST NOT increase and when it decreases,
 there is no guarantee that a publisher will not have already sent Objects after
 the new end Object.
 
-Unlike a new subscription, SUBSCRIBE_UPDATE does not cause an Object to be
+Unlike a new subscription, SUBSCRIBE_UPDATE can not cause an Object to be
 delivered multiple times.
 
 The format of SUBSCRIBE_UPDATE is as follows:
