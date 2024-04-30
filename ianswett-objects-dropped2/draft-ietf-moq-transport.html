@@ -1353,10 +1353,13 @@ networks and is designed for high scale and low latency distribution.<a href="#s
                 <p id="section-toc.1-1.6.2.16.1"><a href="#section-6.16" class="auto internal xref">6.16</a>. <a href="#name-track_status" class="internal xref">TRACK_STATUS</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.17">
-                <p id="section-toc.1-1.6.2.17.1"><a href="#section-6.17" class="auto internal xref">6.17</a>. <a href="#name-objects_dropped" class="internal xref">OBJECTS_DROPPED</a></p>
+                <p id="section-toc.1-1.6.2.17.1"><a href="#section-6.17" class="auto internal xref">6.17</a>. <a href="#name-object_dropped" class="internal xref">OBJECT_DROPPED</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.18">
-                <p id="section-toc.1-1.6.2.18.1"><a href="#section-6.18" class="auto internal xref">6.18</a>. <a href="#name-goaway" class="internal xref">GOAWAY</a></p>
+                <p id="section-toc.1-1.6.2.18.1"><a href="#section-6.18" class="auto internal xref">6.18</a>. <a href="#name-objects_dropped" class="internal xref">OBJECTS_DROPPED</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.19">
+                <p id="section-toc.1-1.6.2.19.1"><a href="#section-6.19" class="auto internal xref">6.19</a>. <a href="#name-goaway" class="internal xref">GOAWAY</a></p>
 </li>
             </ul>
 </li>
@@ -1930,7 +1933,7 @@ that was already in use.<a href="#section-3.5-4.5.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-3.5-4.6">
             <p id="section-3.5-4.6.1">GOAWAY Timeout: The session was closed because the client took too long to
-close the session in response to a GOAWAY (<a href="#message-goaway" class="auto internal xref">Section 6.18</a>) message.
+close the session in response to a GOAWAY (<a href="#message-goaway" class="auto internal xref">Section 6.19</a>) message.
 See session migration (<a href="#session-migration" class="auto internal xref">Section 3.6</a>).<a href="#section-3.5-4.6.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
@@ -1944,7 +1947,7 @@ See session migration (<a href="#session-migration" class="auto internal xref">S
 <p id="section-3.6-1">MoqTransport requires a long-lived and stateful session. However, a service
 provider needs the ability to shutdown/restart a server without waiting for all
 sessions to drain naturally, as that can take days for long-form media.
-MoqTransport avoids this via the GOAWAY message (<a href="#message-goaway" class="auto internal xref">Section 6.18</a>).<a href="#section-3.6-1" class="pilcrow">¶</a></p>
+MoqTransport avoids this via the GOAWAY message (<a href="#message-goaway" class="auto internal xref">Section 6.19</a>).<a href="#section-3.6-1" class="pilcrow">¶</a></p>
 <p id="section-3.6-2">The server sends a GOAWAY message, signaling that the client should establish a
 new session and migrate any active subscriptions. The GOAWAY message may contain
 a new URI for the new session, otherwise the current URI is reused. The server
@@ -2374,12 +2377,16 @@ MOQT Message {
             <td class="text-left" rowspan="1" colspan="1">TRACK_STATUS (<a href="#message-track-status" class="auto internal xref">Section 6.16</a>)</td>
           </tr>
           <tr>
-            <td class="text-right" rowspan="1" colspan="1">0xF</td>
-            <td class="text-left" rowspan="1" colspan="1">OBJECTS_DROPPED (<a href="#message-objects-dropped" class="auto internal xref">Section 6.17</a>)</td>
+            <td class="text-right" rowspan="1" colspan="1">0x10</td>
+            <td class="text-left" rowspan="1" colspan="1">GOAWAY (<a href="#message-goaway" class="auto internal xref">Section 6.19</a>)</td>
           </tr>
           <tr>
-            <td class="text-right" rowspan="1" colspan="1">0x10</td>
-            <td class="text-left" rowspan="1" colspan="1">GOAWAY (<a href="#message-goaway" class="auto internal xref">Section 6.18</a>)</td>
+            <td class="text-right" rowspan="1" colspan="1">0x11</td>
+            <td class="text-left" rowspan="1" colspan="1">OBJECT_DROPPED (<a href="#message-object-dropped" class="auto internal xref">Section 6.17</a>)</td>
+          </tr>
+          <tr>
+            <td class="text-right" rowspan="1" colspan="1">0x12</td>
+            <td class="text-left" rowspan="1" colspan="1">OBJECTS_DROPPED (<a href="#message-objects-dropped" class="auto internal xref">Section 6.18</a>)</td>
           </tr>
           <tr>
             <td class="text-right" rowspan="1" colspan="1">0x40</td>
@@ -3522,27 +3529,28 @@ from the latest arriving message, as they are delivered in order on a single
 stream.<a href="#section-6.16-13" class="pilcrow">¶</a></p>
 </section>
 </div>
-<div id="message-objects-dropped">
+<div id="message-object-dropped">
 <section id="section-6.17">
-        <h3 id="name-objects_dropped">
-<a href="#section-6.17" class="section-number selfRef">6.17. </a><a href="#name-objects_dropped" class="section-name selfRef">OBJECTS_DROPPED</a>
+        <h3 id="name-object_dropped">
+<a href="#section-6.17" class="section-number selfRef">6.17. </a><a href="#name-object_dropped" class="section-name selfRef">OBJECT_DROPPED</a>
         </h3>
-<p id="section-6.17-1">An endpoint sends a 'OBJECTS_DROPPED' message on the control stream when
-one or more Objects from a group will not be delivered for this subscription
-due to congestion or other constraints.  This does not indicate the dropped
-Objects are permanantly unavailable.<a href="#section-6.17-1" class="pilcrow">¶</a></p>
-<span id="name-moqt-objects_dropped-messag"></span><div id="moq-track-objects-dropped">
+<p id="section-6.17-1">An endpoint sends a 'OBJECT_DROPPED' message on the control stream when
+one Object will not be delivered for this subscription due to congestion or
+other constraints.  This does not indicate the dropped Object is permanantly
+unavailable.<a href="#section-6.17-1" class="pilcrow">¶</a></p>
+<span id="name-moqt-object_dropped-message"></span><div id="moq-track-object-dropped">
 <figure id="figure-23">
           <div class="alignLeft art-text artwork" id="section-6.17-2.1">
 <pre>
-OBJECTS_DROPPED Message {
+OBJECT_DROPPED Message {
   Subscribe ID (i),
   Group ID (i),
+  Object ID (i)
 }
 </pre>
 </div>
 <figcaption><a href="#figure-23" class="selfRef">Figure 23</a>:
-<a href="#name-moqt-objects_dropped-messag" class="selfRef">MOQT OBJECTS_DROPPED Message</a>
+<a href="#name-moqt-object_dropped-message" class="selfRef">MOQT OBJECT_DROPPED Message</a>
           </figcaption></figure>
 </div>
 <ul class="normal">
@@ -3550,41 +3558,77 @@ OBJECTS_DROPPED Message {
             <p id="section-6.17-3.1.1">Subscribe ID: Subscription Identifier as defined in <a href="#message-subscribe-req" class="auto internal xref">Section 6.4</a>.<a href="#section-6.17-3.1.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-6.17-3.2">
-            <p id="section-6.17-3.2.1">Group ID: The ID of the group the publisher will no longer send objects for.<a href="#section-6.17-3.2.1" class="pilcrow">¶</a></p>
+            <p id="section-6.17-3.2.1">Group ID: The ID of the group within which an object was dropped.<a href="#section-6.17-3.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-6.17-3.3">
+            <p id="section-6.17-3.3.1">Object ID: The ID of the object within the group the publisher has dropped.<a href="#section-6.17-3.3.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+</section>
+</div>
+<div id="message-objects-dropped">
+<section id="section-6.18">
+        <h3 id="name-objects_dropped">
+<a href="#section-6.18" class="section-number selfRef">6.18. </a><a href="#name-objects_dropped" class="section-name selfRef">OBJECTS_DROPPED</a>
+        </h3>
+<p id="section-6.18-1">An endpoint sends a 'OBJECTS_DROPPED' message on the control stream when
+one or more Objects from a group will not be delivered for this subscription
+due to congestion or other constraints.  This does not indicate the dropped
+Objects are permanantly unavailable.<a href="#section-6.18-1" class="pilcrow">¶</a></p>
+<span id="name-moqt-objects_dropped-messag"></span><div id="moq-track-objects-dropped">
+<figure id="figure-24">
+          <div class="alignLeft art-text artwork" id="section-6.18-2.1">
+<pre>
+OBJECTS_DROPPED Message {
+  Subscribe ID (i),
+  Group ID (i),
+}
+</pre>
+</div>
+<figcaption><a href="#figure-24" class="selfRef">Figure 24</a>:
+<a href="#name-moqt-objects_dropped-messag" class="selfRef">MOQT OBJECTS_DROPPED Message</a>
+          </figcaption></figure>
+</div>
+<ul class="normal">
+<li class="normal" id="section-6.18-3.1">
+            <p id="section-6.18-3.1.1">Subscribe ID: Subscription Identifier as defined in <a href="#message-subscribe-req" class="auto internal xref">Section 6.4</a>.<a href="#section-6.18-3.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-6.18-3.2">
+            <p id="section-6.18-3.2.1">Group ID: The ID of the group the publisher will no longer send objects for.<a href="#section-6.18-3.2.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
 </div>
 <div id="message-goaway">
-<section id="section-6.18">
+<section id="section-6.19">
         <h3 id="name-goaway">
-<a href="#section-6.18" class="section-number selfRef">6.18. </a><a href="#name-goaway" class="section-name selfRef">GOAWAY</a>
+<a href="#section-6.19" class="section-number selfRef">6.19. </a><a href="#name-goaway" class="section-name selfRef">GOAWAY</a>
         </h3>
-<p id="section-6.18-1">The server sends a <code>GOAWAY</code> message to initiate session migration
-(<a href="#session-migration" class="auto internal xref">Section 3.6</a>) with an optional URI.<a href="#section-6.18-1" class="pilcrow">¶</a></p>
-<p id="section-6.18-2">The server <span class="bcp14">MUST</span> terminate the session with a Protocol Violation
+<p id="section-6.19-1">The server sends a <code>GOAWAY</code> message to initiate session migration
+(<a href="#session-migration" class="auto internal xref">Section 3.6</a>) with an optional URI.<a href="#section-6.19-1" class="pilcrow">¶</a></p>
+<p id="section-6.19-2">The server <span class="bcp14">MUST</span> terminate the session with a Protocol Violation
 (<a href="#session-termination" class="auto internal xref">Section 3.5</a>) if it receives a GOAWAY message. The client <span class="bcp14">MUST</span>
 terminate the session with a Protocol Violation (<a href="#session-termination" class="auto internal xref">Section 3.5</a>) if it
-receives multiple GOAWAY messages.<a href="#section-6.18-2" class="pilcrow">¶</a></p>
+receives multiple GOAWAY messages.<a href="#section-6.19-2" class="pilcrow">¶</a></p>
 <span id="name-moqt-goaway-message"></span><div id="moq-transport-goaway-format">
-<figure id="figure-24">
-          <div class="alignLeft art-text artwork" id="section-6.18-3.1">
+<figure id="figure-25">
+          <div class="alignLeft art-text artwork" id="section-6.19-3.1">
 <pre>
 GOAWAY Message {
   New Session URI (b)
 }
 </pre>
 </div>
-<figcaption><a href="#figure-24" class="selfRef">Figure 24</a>:
+<figcaption><a href="#figure-25" class="selfRef">Figure 25</a>:
 <a href="#name-moqt-goaway-message" class="selfRef">MOQT GOAWAY Message</a>
           </figcaption></figure>
 </div>
 <ul class="normal">
-<li class="normal" id="section-6.18-4.1">
-            <p id="section-6.18-4.1.1">New Session URI: The client <span class="bcp14">MUST</span> use this URI for the new session if provided.
+<li class="normal" id="section-6.19-4.1">
+            <p id="section-6.19-4.1.1">New Session URI: The client <span class="bcp14">MUST</span> use this URI for the new session if provided.
 If the URI is zero bytes long, the current URI is reused instead. The new
 session URI <span class="bcp14">SHOULD</span> use the same scheme as the current URL to ensure
-compatibility.<a href="#section-6.18-4.1.1" class="pilcrow">¶</a></p>
+compatibility.<a href="#section-6.19-4.1.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
