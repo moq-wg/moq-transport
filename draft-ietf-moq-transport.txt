@@ -5,13 +5,13 @@
 MOQ                                                            L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 30 October 2024                                            Meta
+Expires: 1 November 2024                                            Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                           28 April 2024
+                                                           30 April 2024
 
 
                        Media over QUIC Transport
@@ -53,7 +53,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 30 October 2024.
+   This Internet-Draft will expire on 1 November 2024.
 
 Copyright Notice
 
@@ -117,18 +117,19 @@ Table of Contents
      6.4.  SUBSCRIBE
        6.4.1.  Filter Types
        6.4.2.  SUBSCRIBE Format
-     6.5.  SUBSCRIBE_OK
-     6.6.  SUBSCRIBE_ERROR
-     6.7.  UNSUBSCRIBE
-     6.8.  SUBSCRIBE_DONE
-     6.9.  ANNOUNCE
-     6.10. ANNOUNCE_OK
-     6.11. ANNOUNCE_ERROR
-     6.12. UNANNOUNCE
-     6.13. ANNOUNCE_CANCEL
-     6.14. TRACK_STATUS_REQUEST
-     6.15. TRACK_STATUS
-     6.16. GOAWAY
+     6.5.  SUBSCRIBE_UPDATE
+     6.6.  SUBSCRIBE_OK
+     6.7.  SUBSCRIBE_ERROR
+     6.8.  UNSUBSCRIBE
+     6.9.  SUBSCRIBE_DONE
+     6.10. ANNOUNCE
+     6.11. ANNOUNCE_OK
+     6.12. ANNOUNCE_ERROR
+     6.13. UNANNOUNCE
+     6.14. ANNOUNCE_CANCEL
+     6.15. TRACK_STATUS_REQUEST
+     6.16. TRACK_STATUS
+     6.17. GOAWAY
    7.  Security Considerations
      7.1.  Resource Exhaustion
    8.  IANA Considerations
@@ -531,7 +532,7 @@ Table of Contents
       that was already in use.
 
    *  GOAWAY Timeout: The session was closed because the client took too
-      long to close the session in response to a GOAWAY (Section 6.16)
+      long to close the session in response to a GOAWAY (Section 6.17)
       message.  See session migration (Section 3.6).
 
 3.6.  Migration
@@ -540,7 +541,7 @@ Table of Contents
    service provider needs the ability to shutdown/restart a server
    without waiting for all sessions to drain naturally, as that can take
    days for long-form media.  MoqTransport avoids this via the GOAWAY
-   message (Section 6.16).
+   message (Section 6.17).
 
    The server sends a GOAWAY message, signaling that the client should
    establish a new session and migrate any active subscriptions.  The
@@ -691,8 +692,8 @@ Table of Contents
    of this specification.
 
    The subscriber making the subscribe request is notified of the result
-   of the subscription, via SUBSCRIBE_OK (Section 6.5) or the
-   SUBSCRIBE_ERROR Section 6.6 control message.  The entity receiving
+   of the subscription, via SUBSCRIBE_OK (Section 6.6) or the
+   SUBSCRIBE_ERROR Section 6.7 control message.  The entity receiving
    the SUBSCRIBE MUST send only a single response to a given SUBSCRIBE
    of either SUBSCRIBE_OK or SUBSCRIBE_ERROR.
 
@@ -701,7 +702,7 @@ Table of Contents
    within the subscription range is forwarded to each active subscriber,
    dependent on the congestion response.  A subscription remains active
    until the publisher of the track terminates the track with a
-   SUBSCRIBE_DONE (see Section 6.8).
+   SUBSCRIBE_DONE (see Section 6.9).
 
    Objects MUST NOT be sent for unsuccessful subscriptions, and if a
    subscriber receives a SUBSCRIBE_ERROR after receiving objects, it
@@ -786,7 +787,7 @@ Table of Contents
    be forwarded to the session that sent ANNOUNCE namespace=foobar.
 
    OBJECT message headers carry a short hop-by-hop Track Alias that maps
-   to the Full Track Name (see Section 6.5).  Relays use the Track Alias
+   to the Full Track Name (see Section 6.6).  Relays use the Track Alias
    of an incoming OBJECT message to identify its track and find the
    active subscribers for that track.  Relays MUST NOT depend on OBJECT
    payload content for making forwarding decisions and MUST only depend
@@ -845,29 +846,29 @@ Table of Contents
               +------+-------------------------------------+
               |  0x3 | SUBSCRIBE (Section 6.4)             |
               +------+-------------------------------------+
-              |  0x4 | SUBSCRIBE_OK (Section 6.5)          |
+              |  0x4 | SUBSCRIBE_OK (Section 6.6)          |
               +------+-------------------------------------+
-              |  0x5 | SUBSCRIBE_ERROR (Section 6.6)       |
+              |  0x5 | SUBSCRIBE_ERROR (Section 6.7)       |
               +------+-------------------------------------+
-              |  0x6 | ANNOUNCE (Section 6.9)              |
+              |  0x6 | ANNOUNCE (Section 6.10)             |
               +------+-------------------------------------+
-              |  0x7 | ANNOUNCE_OK (Section 6.10)          |
+              |  0x7 | ANNOUNCE_OK (Section 6.11)          |
               +------+-------------------------------------+
-              |  0x8 | ANNOUNCE_ERROR (Section 6.11)       |
+              |  0x8 | ANNOUNCE_ERROR (Section 6.12)       |
               +------+-------------------------------------+
-              |  0x9 | UNANNOUNCE (Section 6.12)           |
+              |  0x9 | UNANNOUNCE (Section 6.13)           |
               +------+-------------------------------------+
-              |  0xA | UNSUBSCRIBE (Section 6.7)           |
+              |  0xA | UNSUBSCRIBE (Section 6.8)           |
               +------+-------------------------------------+
-              |  0xB | SUBSCRIBE_DONE (Section 6.8)        |
+              |  0xB | SUBSCRIBE_DONE (Section 6.9)        |
               +------+-------------------------------------+
-              |  0xC | ANNOUNCE_CANCEL (Section 6.13)      |
+              |  0xC | ANNOUNCE_CANCEL (Section 6.14)      |
               +------+-------------------------------------+
-              |  0xD | TRACK_STATUS_REQUEST (Section 6.14) |
+              |  0xD | TRACK_STATUS_REQUEST (Section 6.15) |
               +------+-------------------------------------+
-              |  0xE | TRACK_STATUS (Section 6.15)         |
+              |  0xE | TRACK_STATUS (Section 6.16)         |
               +------+-------------------------------------+
-              | 0x10 | GOAWAY (Section 6.16)               |
+              | 0x10 | GOAWAY (Section 6.17)               |
               +------+-------------------------------------+
               | 0x40 | CLIENT_SETUP (Section 6.2)          |
               +------+-------------------------------------+
@@ -1416,10 +1417,54 @@ Table of Contents
    A publisher MUST NOT send objects from outside the requested start
    and end.
 
-   TODO: Define the flow where subscribe request matches an existing
-   subscribe id (subscription updates.)
+6.5.  SUBSCRIBE_UPDATE
 
-6.5.  SUBSCRIBE_OK
+   A receiver issues a SUBSCRIBE_UPDATE to a publisher to request a
+   change to a prior subscription.  Subscriptions can only become more
+   narrower, not wider, because an attempt to widen a subscription could
+   fail.  If Objects before the start or after the end of the current
+   subscription are needed, a separate subscription can be made.  The
+   start Object MUST NOT decrease and when it increases, there is no
+   guarantee that a publisher will not have already sent Objects before
+   the new start Object.  The end Object MUST NOT increase and when it
+   decreases, there is no guarantee that a publisher will not have
+   already sent Objects after the new end Object.
+
+   Unlike a new subscription, SUBSCRIBE_UPDATE can not cause an Object
+   to be delivered multiple times.
+
+   The format of SUBSCRIBE_UPDATE is as follows:
+
+   SUBSCRIBE_UPDATE Message {
+     Subscribe ID (i),
+     StartGroup (i),
+     StartObject (i),
+     EndGroup (i),
+     EndObject (i),
+     Number of Parameters (i),
+     Track Request Parameters (..) ...
+   }
+
+                  Figure 11: MOQT SUBSCRIBE_UPDATE Message
+
+   *  Subscribe ID: The subscription identifier that is unique within
+      the session.  This MUST match an existing Subscribe ID.
+
+   *  StartGroup: The start Group ID.
+
+   *  StartObject: The start Object ID, plus 1.  A value of 0 means the
+      entire group is requested.
+
+   *  EndGroup: The end Group ID, plus 1.  A value of 0 means the
+      subscription is open-ended.
+
+   *  EndObject: The end Object ID, plus 1.  A value of 0 means the
+      entire group is requested.
+
+   *  Track Request Parameters: The parameters are defined in
+      Section 6.1.1
+
+6.6.  SUBSCRIBE_OK
 
    A SUBSCRIBE_OK control message is sent for successful subscriptions.
 
@@ -1432,7 +1477,7 @@ Table of Contents
      [Largest Object ID (i)]
    }
 
-                    Figure 11: MOQT SUBSCRIBE_OK Message
+                    Figure 12: MOQT SUBSCRIBE_OK Message
 
    *  Subscribe ID: Subscription Identifier as defined in Section 6.4.
 
@@ -1452,7 +1497,7 @@ Table of Contents
       largest Group ID for this track.  This field is only present if
       ContentExists has a value of 1.
 
-6.6.  SUBSCRIBE_ERROR
+6.7.  SUBSCRIBE_ERROR
 
    A publisher sends a SUBSCRIBE_ERROR control message in response to a
    failed SUBSCRIBE.
@@ -1465,7 +1510,7 @@ Table of Contents
      Track Alias (i),
    }
 
-                  Figure 12: MOQT SUBSCRIBE_ERROR Message
+                  Figure 13: MOQT SUBSCRIBE_ERROR Message
 
    *  Subscribe ID: Subscription Identifier as defined in Section 6.4.
 
@@ -1480,7 +1525,7 @@ Table of Contents
       close the connection with a Duplicate Track Alias error
       (Section 3.5).
 
-6.7.  UNSUBSCRIBE
+6.8.  UNSUBSCRIBE
 
    A subscriber issues a UNSUBSCRIBE message to a publisher indicating
    it is no longer interested in receiving media for the specified track
@@ -1494,11 +1539,11 @@ Table of Contents
      Subscribe ID (i)
    }
 
-                    Figure 13: MOQT UNSUBSCRIBE Message
+                    Figure 14: MOQT UNSUBSCRIBE Message
 
    *  Subscribe ID: Subscription Identifier as defined in Section 6.4.
 
-6.8.  SUBSCRIBE_DONE
+6.9.  SUBSCRIBE_DONE
 
    A publisher issues a SUBSCRIBE_DONE message to indicate it is done
    publishing Objects for that subscription.  The Status Code indicates
@@ -1515,7 +1560,7 @@ Table of Contents
      [Final Object (i)],
    }
 
-                   Figure 14: MOQT SUBSCRIBE_DONE Message
+                   Figure 15: MOQT SUBSCRIBE_DONE Message
 
    *  Subscribe ID: Subscription identifier as defined in Section 6.4.
 
@@ -1534,7 +1579,7 @@ Table of Contents
    *  Final Object: The largest Object ID sent by the publisher in an
       OBJECT message in the Final Group for this track.
 
-6.9.  ANNOUNCE
+6.10.  ANNOUNCE
 
    The publisher sends the ANNOUNCE control message to advertise where
    the receiver can route SUBSCRIBEs for tracks within the announced
@@ -1547,14 +1592,14 @@ Table of Contents
      Parameters (..) ...,
    }
 
-                      Figure 15: MOQT ANNOUNCE Message
+                      Figure 16: MOQT ANNOUNCE Message
 
    *  Track Namespace: Identifies a track's namespace as defined in
       (Section 2.3.1)
 
    *  Parameters: The parameters are defined in Section 6.1.1.
 
-6.10.  ANNOUNCE_OK
+6.11.  ANNOUNCE_OK
 
    The receiver sends an ANNOUNCE_OK control message to acknowledge the
    successful authorization and acceptance of an ANNOUNCE message.
@@ -1564,12 +1609,12 @@ Table of Contents
      Track Namespace (b),
    }
 
-                    Figure 16: MOQT ANNOUNCE_OK Message
+                    Figure 17: MOQT ANNOUNCE_OK Message
 
    *  Track Namespace: Identifies the track namespace in the ANNOUNCE
       message for which this response is provided.
 
-6.11.  ANNOUNCE_ERROR
+6.12.  ANNOUNCE_ERROR
 
    The receiver sends an ANNOUNCE_ERROR control message for tracks that
    failed authorization.
@@ -1581,7 +1626,7 @@ Table of Contents
      Reason Phrase (b),
    }
 
-                   Figure 17: MOQT ANNOUNCE_ERROR Message
+                   Figure 18: MOQT ANNOUNCE_ERROR Message
 
    *  Track Namespace: Identifies the track namespace in the ANNOUNCE
       message for which this response is provided.
@@ -1591,7 +1636,7 @@ Table of Contents
 
    *  Reason Phrase: Provides the reason for announcement error.
 
-6.12.  UNANNOUNCE
+6.13.  UNANNOUNCE
 
    The publisher sends the UNANNOUNCE control message to indicate its
    intent to stop serving new subscriptions for tracks within the
@@ -1601,12 +1646,12 @@ Table of Contents
      Track Namespace (b),
    }
 
-                     Figure 18: MOQT UNANNOUNCE Message
+                     Figure 19: MOQT UNANNOUNCE Message
 
    *  Track Namespace: Identifies a track's namespace as defined in
       (Section 2.3.1).
 
-6.13.  ANNOUNCE_CANCEL
+6.14.  ANNOUNCE_CANCEL
 
    The subscriber sends an ANNOUNCE_CANCEL control message to indicate
    it will stop sending new subscriptions for tracks within the provided
@@ -1620,12 +1665,12 @@ Table of Contents
      Track Namespace (b),
    }
 
-                  Figure 19: MOQT ANNOUNCE_CANCEL Message
+                  Figure 20: MOQT ANNOUNCE_CANCEL Message
 
    *  Track Namespace: Identifies a track's namespace as defined in
       (Section 2.3.1).
 
-6.14.  TRACK_STATUS_REQUEST
+6.15.  TRACK_STATUS_REQUEST
 
    A potential subscriber sends a 'TRACK_STATUS_REQUEST' message on the
    control stream to obtain information about the current status of a
@@ -1639,9 +1684,9 @@ Table of Contents
      Track Name (b),
    }
 
-                Figure 20: MOQT TRACK_STATUS_REQUEST Message
+                Figure 21: MOQT TRACK_STATUS_REQUEST Message
 
-6.15.  TRACK_STATUS
+6.16.  TRACK_STATUS
 
    An endpoint sends a 'TRACK_STATUS' message on the control stream in
    response to a TRACK_STATUS_REQUEST message.
@@ -1654,7 +1699,7 @@ Table of Contents
      Last Object ID (i),
    }
 
-                    Figure 21: MOQT TRACK_STATUS Message
+                    Figure 22: MOQT TRACK_STATUS Message
 
    The 'Status Code' field provides additional information about the
    status of the track.  It MUST hold one of the following values.  Any
@@ -1694,7 +1739,7 @@ Table of Contents
    information from the latest arriving message, as they are delivered
    in order on a single stream.
 
-6.16.  GOAWAY
+6.17.  GOAWAY
 
    The server sends a GOAWAY message to initiate session migration
    (Section 3.6) with an optional URI.
@@ -1708,7 +1753,7 @@ Table of Contents
      New Session URI (b)
    }
 
-                       Figure 22: MOQT GOAWAY Message
+                       Figure 23: MOQT GOAWAY Message
 
    *  New Session URI: The client MUST use this URI for the new session
       if provided.  If the URI is zero bytes long, the current URI is
