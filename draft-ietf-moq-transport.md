@@ -1684,7 +1684,7 @@ OBJECT_DROPPED Message {
   Object ID (i)
 }
 ~~~
-{: #moq-track-objects-dropped title="MOQT OBJECT_DROPPED Message"}
+{: #moq-track-object-dropped title="MOQT OBJECT_DROPPED Message"}
 
 * Subscribe ID: Subscription Identifier as defined in {{message-subscribe-req}}.
 
