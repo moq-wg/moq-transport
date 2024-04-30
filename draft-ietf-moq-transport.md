@@ -1642,7 +1642,7 @@ OBJECTS_DROPPED Message {
 
 * Subscribe ID: Subscription Identifier as defined in {{message-subscribe-req}}.
 
-* Group ID: The ID of the group the subscriber does not expect any more Objects for.
+* Group ID: The ID of the group the publisher will no longer send objects for.
 
 ## GOAWAY {#message-goaway}
 The server sends a `GOAWAY` message to initiate session migration
