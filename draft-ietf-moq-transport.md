@@ -1344,9 +1344,52 @@ If a publisher cannot satisfy the requested start or end for the subscription it
 MAY send a SUBSCRIBE_ERROR with code 'Invalid Range'. A publisher MUST NOT send
 objects from outside the requested start and end.
 
-TODO: Define the flow where subscribe request matches an existing subscribe id
-(subscription updates.)
+## SUBSCRIBE_UPDATE {#message-subscribe-update-req}
 
+A receiver issues a SUBSCRIBE_UPDATE to a publisher to request a change to
+a prior subscription.  Subscriptions can only become more narrower, not wider,
+because an attempt to widen a subscription could fail.  If Objects before the
+start or after the end of the current subscription are needed, a separate
+subscription can be made. The start Object MUST NOT decrease and when it increases,
+there is no guarantee that a publisher will not have already sent Objects before
+the new start Object.  The end Object MUST NOT increase and when it decreases,
+there is no guarantee that a publisher will not have already sent Objects after
+the new end Object.
+
+Unlike a new subscription, SUBSCRIBE_UPDATE can not cause an Object to be
+delivered multiple times.
+
+The format of SUBSCRIBE_UPDATE is as follows:
+
+~~~
+SUBSCRIBE_UPDATE Message {
+  Subscribe ID (i),
+  StartGroup (i),
+  StartObject (i),
+  EndGroup (i),
+  EndObject (i),
+  Number of Parameters (i),
+  Track Request Parameters (..) ...
+}
+~~~
+{: #moq-transport-subscribe-update-format title="MOQT SUBSCRIBE_UPDATE Message"}
+
+* Subscribe ID: The subscription identifier that is unique within the session.
+This MUST match an existing Subscribe ID.
+
+* StartGroup: The start Group ID.
+
+* StartObject: The start Object ID, plus 1. A value of 0 means the entire group
+is requested.
+
+* EndGroup: The end Group ID, plus 1.  A value of 0 means the subscription is
+open-ended.
+
+* EndObject: The end Object ID, plus 1. A value of 0 means the entire group is
+requested.
+
+* Track Request Parameters: The parameters are defined in
+{{version-specific-params}}
 
 ## SUBSCRIBE_OK {#message-subscribe-ok}
 
