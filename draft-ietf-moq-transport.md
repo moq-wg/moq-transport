@@ -798,9 +798,11 @@ MOQT Message {
 |-------|-----------------------------------------------------|
 | 0xE   | TRACK_STATUS ({{message-track-status}})             |
 |-------|-----------------------------------------------------|
-| 0xF   | OBJECTS_DROPPED ({{message-objects-dropped}})       |
-|-------|-----------------------------------------------------|
 | 0x10  | GOAWAY ({{message-goaway}})                         |
+|-------|-----------------------------------------------------|
+| 0x11  | OBJECT_DROPPED ({{message-object-dropped}})         |
+|-------|-----------------------------------------------------|
+| 0x12  | OBJECTS_DROPPED ({{message-objects-dropped}})       |
 |-------|-----------------------------------------------------|
 | 0x40  | CLIENT_SETUP ({{message-setup}})                    |
 |-------|-----------------------------------------------------|
@@ -1668,6 +1670,29 @@ The receiver of multiple TRACK_STATUS messages for a track uses the information
 from the latest arriving message, as they are delivered in order on a single
 stream.
 
+## OBJECT_DROPPED {#message-object-dropped}
+
+An endpoint sends a 'OBJECT_DROPPED' message on the control stream when
+one Object will not be delivered for this subscription due to congestion or
+other constraints.  This does not indicate the dropped Object is permanantly
+unavailable.
+
+~~~
+OBJECT_DROPPED Message {
+  Subscribe ID (i),
+  Group ID (i),
+  Object ID (i)
+}
+~~~
+{: #moq-track-objects-dropped title="MOQT OBJECT_DROPPED Message"}
+
+* Subscribe ID: Subscription Identifier as defined in {{message-subscribe-req}}.
+
+* Group ID: The ID of the group within which an object was dropped.
+
+* Object ID: The ID of the object within the group the publisher has dropped.
+
+
 ## OBJECTS_DROPPED {#message-objects-dropped}
 
 An endpoint sends a 'OBJECTS_DROPPED' message on the control stream when
@@ -1686,6 +1711,7 @@ OBJECTS_DROPPED Message {
 * Subscribe ID: Subscription Identifier as defined in {{message-subscribe-req}}.
 
 * Group ID: The ID of the group the publisher will no longer send objects for.
+
 
 ## GOAWAY {#message-goaway}
 The server sends a `GOAWAY` message to initiate session migration
