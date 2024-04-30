@@ -5,13 +5,13 @@
 MOQ                                                            L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 31 October 2024                                            Meta
+Expires: 1 November 2024                                            Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                           29 April 2024
+                                                           30 April 2024
 
 
                        Media over QUIC Transport
@@ -53,7 +53,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 31 October 2024.
+   This Internet-Draft will expire on 1 November 2024.
 
 Copyright Notice
 
@@ -1430,7 +1430,7 @@ Table of Contents
    decreases, there is no guarantee that a publisher will not have
    already sent Objects after the new end Object.
 
-   Unlike a new subscription, SUBSCRIBE_UPDATE does not cause an Object
+   Unlike a new subscription, SUBSCRIBE_UPDATE can not cause an Object
    to be delivered multiple times.
 
    The format of SUBSCRIBE_UPDATE is as follows:
