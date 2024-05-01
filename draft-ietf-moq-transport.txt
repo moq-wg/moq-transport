@@ -5,13 +5,13 @@
 MOQ                                                            L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 1 November 2024                                            Meta
+Expires: 2 November 2024                                            Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                           30 April 2024
+                                                              1 May 2024
 
 
                        Media over QUIC Transport
@@ -53,7 +53,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 1 November 2024.
+   This Internet-Draft will expire on 2 November 2024.
 
 Copyright Notice
 
@@ -1339,7 +1339,9 @@ Table of Contents
 
    AbsoluteRange (0x4): Specifies a closed subscription starting at
    StartObject in StartGroup and ending at EndObject in EndGroup.  The
-   start and end of the range are inclusive.
+   start and end of the range are inclusive.  EndGroup and EndObject
+   MUST specify the same or a later object than StartGroup and
+   StartObject.
 
    A filter type other than the above MUST be treated as error.
 
@@ -1431,7 +1433,9 @@ Table of Contents
    already sent Objects after the new end Object.
 
    Unlike a new subscription, SUBSCRIBE_UPDATE can not cause an Object
-   to be delivered multiple times.
+   to be delivered multiple times.  Like SUBSCRIBE, EndGroup and
+   EndObject MUST specify the same or a later object than StartGroup and
+   StartObject.
 
    The format of SUBSCRIBE_UPDATE is as follows:
 
