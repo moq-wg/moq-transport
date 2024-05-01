@@ -1271,7 +1271,8 @@ from the object identified in the StartGroup and StartObject fields.
 
 AbsoluteRange (0x4):  Specifies a closed subscription starting at StartObject
 in StartGroup and ending at EndObject in EndGroup.  The start and end of the
-range are inclusive.
+range are inclusive.  EndGroup and EndObject MUST specify the same or a later
+object than StartGroup and StartObject.
 
 A filter type other than the above MUST be treated as error.
 
@@ -1355,7 +1356,8 @@ there is no guarantee that a publisher will not have already sent Objects after
 the new end Object.
 
 Unlike a new subscription, SUBSCRIBE_UPDATE can not cause an Object to be
-delivered multiple times.
+delivered multiple times.  Like SUBSCRIBE, EndGroup and EndObject MUST specify the
+same or a later object than StartGroup and StartObject.
 
 The format of SUBSCRIBE_UPDATE is as follows:
 
