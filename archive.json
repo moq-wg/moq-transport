@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2024-04-30T01:08:57.465566+00:00",
+  "timestamp": "2024-05-02T01:08:37.740902+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -11041,7 +11041,7 @@
       "id": "I_kwDOG2Ho4M5zP0Mj",
       "title": "Multiple subscriptions and updating a subscription",
       "url": "https://github.com/moq-wg/moq-transport/issues/269",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "ianswett",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
@@ -11051,8 +11051,8 @@
       ],
       "body": "It would be useful to clarify whether multiple subscriptions are valid, and whether there are any constraints on them (ie: non-overlapping).\r\n\r\n@kixelated brought up the fact that a relay may have to issue overlapping subscribes because it doesn't know whether a relative or absolute subscription is earlier.\r\n\r\nA related question is how one updates a subscription, for example if you wanted to seek closer to realtime, and whether that is just UNSUBSCRIBE/SUBSCRIBE or a new SUBSCRIBE_UPDATE message.  There may be cases where SUBSCRIBE_UPDATE is more efficient and better at avoiding sending duplicate objects.",
       "createdAt": "2023-10-09T17:44:45Z",
-      "updatedAt": "2024-03-04T03:10:59Z",
-      "closedAt": null,
+      "updatedAt": "2024-04-30T01:36:28Z",
+      "closedAt": "2024-04-30T01:36:28Z",
       "comments": [
         {
           "author": "DanielFay22",
@@ -11669,7 +11669,7 @@
       "id": "I_kwDOG2Ho4M50m5yS",
       "title": "Empty subscriptions",
       "url": "https://github.com/moq-wg/moq-transport/issues/296",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "kixelated",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
@@ -11678,8 +11678,8 @@
       ],
       "body": "As mentioned in the sprawling #289, I think we should allow empty subscriptions, aka subscriptions that match no objects.\r\n\r\n- It would be nice to have a way to check if a track exists without receiving any OBJECTs. The MoQ equivalent of a HTTP HEAD request.\r\n- It could be useful to pre-warm the cache. An empty subscription could be the equivalent of \"I'm interested, but don't have the bandwidth to receive objects yet\". Again, similar to HTTP HEAD requests.\r\n\r\nFor example, a client could issue a `SUBSCRIBE /audio/japanese start=none` to accomplish two separate things:\r\n1. The `/audio/japanese` track exists if it gets a SUBSCRIBE_OK.\r\n2. The encoder/CDN starts producing the `/audio/japanese` track.\r\n3. The client could resubscribe at any point to immediately start receiving the track.",
       "createdAt": "2023-10-23T04:59:36Z",
-      "updatedAt": "2024-04-27T15:49:30Z",
-      "closedAt": null,
+      "updatedAt": "2024-05-01T16:15:08Z",
+      "closedAt": "2024-05-01T16:15:08Z",
       "comments": [
         {
           "author": "afrind",
@@ -49470,7 +49470,7 @@
       "id": "PR_kwDOG2Ho4M5nUkw7",
       "title": "Add SUBSCRIBE_UPDATE",
       "url": "https://github.com/moq-wg/moq-transport/pull/385",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "ianswett",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
@@ -49479,14 +49479,14 @@
       ],
       "body": "Fixes #363, Fixes #269\r\n\r\nThis attempts to provide the minimum functionality I expect we'll need, regardless of how SUBSCRIBE is changed in the near future.",
       "createdAt": "2024-02-19T19:05:04Z",
-      "updatedAt": "2024-04-27T16:04:18Z",
+      "updatedAt": "2024-04-30T01:36:27Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "9d80b4ecfe2763b6598e28064aacb35962e8aeae",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "ianswett-subscribe-update",
       "headRefOid": "6d13f6fd407963da2708e7e776c34b3454b6e205",
-      "closedAt": null,
+      "closedAt": "2024-04-30T01:36:27Z",
       "mergedAt": null,
       "mergedBy": null,
       "mergeCommit": null,
@@ -55804,7 +55804,7 @@
       ],
       "body": "This is intended to be complementary to #429 by adding a SUBSCRIBE specific mechanism to indicate hop-by-hop Objects that will not be delivered.  Because this is specific to a SUBSCRIBE, it's not intended to be cacheable.\r\n\r\nBuilds on ideas in #423 \r\n\r\nEach SUBSCRIBE could be moved to their own bidi stream and this could be sent there, but that change can be made separately.\r\n\r\nFixes #345 ",
       "createdAt": "2024-04-17T19:54:44Z",
-      "updatedAt": "2024-04-29T22:34:09Z",
+      "updatedAt": "2024-05-01T16:41:00Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "48b84a38a0a80e6911b716e721cb3eb0fdc9bbf0",
@@ -55836,6 +55836,13 @@
           "body": "The audio stream use case is an interesting one.\r\n\r\nI can imagine this instead being \"Anything prior to this Object that you didn't receive, you probably won't\"?  That means it doesn't scale with the number of Objects.",
           "createdAt": "2024-04-22T17:46:59Z",
           "updatedAt": "2024-04-22T17:46:59Z"
+        },
+        {
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "I think I prefer #434 to this PR. ",
+          "createdAt": "2024-05-01T16:40:59Z",
+          "updatedAt": "2024-05-01T16:40:59Z"
         }
       ],
       "reviews": [
@@ -56196,7 +56203,7 @@
       "id": "PR_kwDOG2Ho4M5s_ZD7",
       "title": "SUBSCRIBE_UPDATE",
       "url": "https://github.com/moq-wg/moq-transport/pull/435",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "ianswett",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
@@ -56205,17 +56212,19 @@
       ],
       "body": "Replace #385 based on the simplified SUBSCRIBE.\r\n\r\nFixes #269\r\nCloses #385",
       "createdAt": "2024-04-18T01:38:35Z",
-      "updatedAt": "2024-04-29T19:07:41Z",
+      "updatedAt": "2024-04-30T01:36:26Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "48b84a38a0a80e6911b716e721cb3eb0fdc9bbf0",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "ianswett-subscribe-update2",
-      "headRefOid": "8174877cc84b0ed615143756bb627f439aa3c399",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "headRefOid": "a6401d5848a8529b4d4ef0e20f49cad7d44e8bcb",
+      "closedAt": "2024-04-30T01:36:26Z",
+      "mergedAt": "2024-04-30T01:36:26Z",
+      "mergedBy": "ianswett",
+      "mergeCommit": {
+        "oid": "b66b303831af86abdb3866a61fc8c23c96871519"
+      },
       "comments": [
         {
           "author": "afrind",
@@ -56364,6 +56373,26 @@
           "createdAt": "2024-04-29T18:30:20Z",
           "updatedAt": "2024-04-29T18:30:20Z",
           "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M54_58x",
+          "commit": {
+            "abbreviatedOid": "8174877"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-04-30T01:35:27Z",
+          "updatedAt": "2024-04-30T01:35:27Z",
+          "comments": [
+            {
+              "originalPosition": 18,
+              "body": "```suggestion\r\nUnlike a new subscription, SUBSCRIBE_UPDATE can not cause an Object to be\r\n```",
+              "createdAt": "2024-04-30T01:35:27Z",
+              "updatedAt": "2024-04-30T01:35:27Z"
+            }
+          ]
         }
       ]
     },
@@ -57030,27 +57059,49 @@
     {
       "number": 443,
       "id": "PR_kwDOG2Ho4M5uEjym",
-      "title": "Indicate a single group has been dropped",
+      "title": "Indicate a single group or object has been dropped on the control stream",
       "url": "https://github.com/moq-wg/moq-transport/pull/443",
       "state": "OPEN",
       "author": "ianswett",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [],
-      "body": "An alternative to #434",
+      "body": "An alternative to #434 that is extremely simple\r\n\r\nFixes #345 \r\nCloses #434 ",
       "createdAt": "2024-04-29T22:33:12Z",
-      "updatedAt": "2024-04-29T22:47:15Z",
+      "updatedAt": "2024-04-30T17:29:42Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
-      "baseRefOid": "48b84a38a0a80e6911b716e721cb3eb0fdc9bbf0",
+      "baseRefOid": "b66b303831af86abdb3866a61fc8c23c96871519",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "ianswett-objects-dropped2",
-      "headRefOid": "5e0d2f1becd46863d5ad73146b749942dd86620b",
+      "headRefOid": "83e277571a9de62c494ecaf82039da48f88bef87",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
       "mergeCommit": null,
-      "comments": [],
+      "comments": [
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> Individual Review:\r\n> \r\n> We'd still have a message to indicate a single object drop, correct?\r\n\r\nThe intent here was to simplify the mechanism as much as possible, so I'd rather not unless there's a specific need?  It doesn't mean you can't drop individual objects, it just means the drop signal is on a group granularity, which I believe aligns with what we intend groups to be for.",
+          "createdAt": "2024-04-30T02:46:01Z",
+          "updatedAt": "2024-04-30T02:46:01Z"
+        },
+        {
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> Individual Review:\n> \n> \n> \n> We'd still have a message to indicate a single object drop, correct?\n\nI think this will be needed for TTL expiry cases too IIU",
+          "createdAt": "2024-04-30T14:01:27Z",
+          "updatedAt": "2024-04-30T14:01:27Z"
+        },
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I've added a message to indicate a single object has been dropped.",
+          "createdAt": "2024-04-30T17:28:13Z",
+          "updatedAt": "2024-04-30T17:28:13Z"
+        }
+      ],
       "reviews": [
         {
           "id": "PRR_kwDOG2Ho4M54_Ab9",
@@ -57071,6 +57122,184 @@
               "updatedAt": "2024-04-29T22:47:15Z"
             }
           ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M54_6zm",
+          "commit": {
+            "abbreviatedOid": "5e0d2f1"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-04-30T01:40:53Z",
+          "updatedAt": "2024-04-30T01:40:53Z",
+          "comments": [
+            {
+              "originalPosition": 30,
+              "body": "With forwarding preference of track, I don't think this would be needed, because if you skipped Objects, it would be very clear.",
+              "createdAt": "2024-04-30T01:40:53Z",
+              "updatedAt": "2024-04-30T01:40:53Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M54_86S",
+          "commit": {
+            "abbreviatedOid": "5e0d2f1"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-04-30T01:53:33Z",
+          "updatedAt": "2024-04-30T01:53:34Z",
+          "comments": [
+            {
+              "originalPosition": 30,
+              "body": "```suggestion\r\n* Group ID: The ID of the group the publisher will no longer send objects for.\r\n```",
+              "createdAt": "2024-04-30T01:53:33Z",
+              "updatedAt": "2024-04-30T01:53:34Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M55FALh",
+          "commit": {
+            "abbreviatedOid": "339ab33"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-04-30T13:24:26Z",
+          "updatedAt": "2024-04-30T13:24:27Z",
+          "comments": [
+            {
+              "originalPosition": 17,
+              "body": "trying to understand what could be examples of \"other constraints\".",
+              "createdAt": "2024-04-30T13:24:27Z",
+              "updatedAt": "2024-04-30T13:24:27Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M55Hle9",
+          "commit": {
+            "abbreviatedOid": "339ab33"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-04-30T17:01:08Z",
+          "updatedAt": "2024-04-30T17:01:08Z",
+          "comments": [
+            {
+              "originalPosition": 17,
+              "body": "Flow control is one, I'm not sure what others would be.  I can imagine other resource limits coming into effect, like memory pressure, etc, but I'm not sure.\r\n\r\nI can be more specific, but I'm not sure it's helpful?",
+              "createdAt": "2024-04-30T17:01:08Z",
+              "updatedAt": "2024-04-30T17:01:09Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M55HwiW",
+          "commit": {
+            "abbreviatedOid": "9e5d0b3"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-04-30T17:26:27Z",
+          "updatedAt": "2024-04-30T17:26:27Z",
+          "comments": [
+            {
+              "originalPosition": 29,
+              "body": "```suggestion\r\n{: #moq-track-object-dropped title=\"MOQT OBJECT_DROPPED Message\"}\r\n```",
+              "createdAt": "2024-04-30T17:26:27Z",
+              "updatedAt": "2024-04-30T17:26:27Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 444,
+      "id": "PR_kwDOG2Ho4M5uFhX1",
+      "title": "The end MUST be after the start",
+      "url": "https://github.com/moq-wg/moq-transport/pull/444",
+      "state": "MERGED",
+      "author": "ianswett",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [
+        "Subscribe"
+      ],
+      "body": "Fixes #296\r\n\r\nThe other option is we can use a delta encoding to make it impossible to specify an earlier object, but I think that would make it more complex.",
+      "createdAt": "2024-04-30T02:41:42Z",
+      "updatedAt": "2024-05-01T16:15:07Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "b66b303831af86abdb3866a61fc8c23c96871519",
+      "headRepository": "moq-wg/moq-transport",
+      "headRefName": "ianswett-no-empty-subscriptions",
+      "headRefOid": "2ebadb3350f05dc215ded5a4777194540678fb58",
+      "closedAt": "2024-05-01T16:15:07Z",
+      "mergedAt": "2024-05-01T16:15:07Z",
+      "mergedBy": "ianswett",
+      "mergeCommit": {
+        "oid": "70787894f42dc39494edbe9d49b6760afbd701c0"
+      },
+      "comments": [
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Good point, I changed it to the same or later object",
+          "createdAt": "2024-04-30T16:57:34Z",
+          "updatedAt": "2024-04-30T16:57:34Z"
+        }
+      ],
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M55E_K9",
+          "commit": {
+            "abbreviatedOid": "b51d637"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2024-04-30T13:22:50Z",
+          "updatedAt": "2024-04-30T13:22:50Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M55GRW3",
+          "commit": {
+            "abbreviatedOid": "b51d637"
+          },
+          "author": "vasilvv",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "After or equals to?\r\n\r\n(in case one requests a single object)",
+          "createdAt": "2024-04-30T15:07:03Z",
+          "updatedAt": "2024-04-30T15:07:03Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M55Otak",
+          "commit": {
+            "abbreviatedOid": "2ebadb3"
+          },
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "LGTM",
+          "createdAt": "2024-05-01T16:11:03Z",
+          "updatedAt": "2024-05-01T16:11:03Z",
+          "comments": []
         }
       ]
     }
