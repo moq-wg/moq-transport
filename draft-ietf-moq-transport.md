@@ -1288,6 +1288,7 @@ SUBSCRIBE Message {
   Track Alias (i),
   Track Namespace (b),
   Track Name (b),
+  Priority (i),
   Filter Type (i),
   [StartGroup (i),
    StartObject (i)],
@@ -1316,6 +1317,10 @@ close the session with a Duplicate Track Alias error ({{session-termination}}).
 ({{track-name}}).
 
 * Track Name: Identifies the track name as defined in ({{track-name}}).
+
+* Priority: Priority of the subscription relative to other active subscriptions.
+A lower number indicates Objects from the subscription SHOULD be sent before
+subscriptions of higher priorities.
 
 * Filter Type: Identifies the type of filter, which also indicates whether
 the StartGroup/StartObject and EndGroup/EndObject fields will be present.
@@ -1368,6 +1373,7 @@ SUBSCRIBE_UPDATE Message {
   StartObject (i),
   EndGroup (i),
   EndObject (i),
+  Priority (i),
   Number of Parameters (i),
   Track Request Parameters (..) ...
 }
@@ -1387,6 +1393,10 @@ open-ended.
 
 * EndObject: The end Object ID, plus 1. A value of 0 means the entire group is
 requested.
+
+* Priority: Priority of the subscription relative to other active subscriptions.
+A lower number indicates Objects from the subscription SHOULD be sent before
+subscriptions of higher priorities.
 
 * Track Request Parameters: The parameters are defined in
 {{version-specific-params}}
