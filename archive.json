@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2024-05-02T01:08:37.740902+00:00",
+  "timestamp": "2024-05-05T01:14:03.975101+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -2620,7 +2620,7 @@
       "id": "I_kwDOG2Ho4M5aICYi",
       "title": "Slice as segment",
       "url": "https://github.com/moq-wg/moq-transport/issues/57",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "ZmGorynych",
       "authorAssociation": "NONE",
       "assignees": [
@@ -2631,8 +2631,8 @@
       ],
       "body": "In some ultra low latency use cases a video frame is encoded in multiple slices (which are independently decodable complete NAL units) and the upper slices are ready earlier than the ones on the bottom. In case of gradual decoder refresh, some slices may be intra-coded and some can be inter-coded.\r\nA frequent optimization is to send slices as they are ready as opposed to waiting till the end of the frame. It looks like this use case is not supported in the draft  ",
       "createdAt": "2022-12-27T18:25:35Z",
-      "updatedAt": "2023-10-18T02:55:20Z",
-      "closedAt": null,
+      "updatedAt": "2024-05-02T01:39:30Z",
+      "closedAt": "2024-05-02T01:39:30Z",
       "comments": [
         {
           "author": "kixelated",
@@ -3644,7 +3644,7 @@
       "id": "I_kwDOG2Ho4M5dLjJL",
       "title": "Initial Delivery Order?",
       "url": "https://github.com/moq-wg/moq-transport/issues/74",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "martinduke",
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
@@ -3653,8 +3653,8 @@
       ],
       "body": "S4.2 remarks that later objects might have a lower delivery order than older objects. Maybe this is obvious, but is it therefore smart to have the first object with an arbitrary large delivery order so that subsequent objects can have a lower one?\r\n\r\nA naive implementation might start with zero, but there are no negative varints.",
       "createdAt": "2023-01-30T22:25:26Z",
-      "updatedAt": "2023-01-31T20:08:47Z",
-      "closedAt": null,
+      "updatedAt": "2024-05-02T01:40:57Z",
+      "closedAt": "2024-05-02T01:40:57Z",
       "comments": []
     },
     {
@@ -13450,7 +13450,7 @@
       "id": "I_kwDOG2Ho4M5-mtXs",
       "title": "UNSUBSCRIBE is underspecified",
       "url": "https://github.com/moq-wg/moq-transport/issues/363",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "ianswett",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
@@ -13460,8 +13460,8 @@
       ],
       "body": "UNSUBSCRIBE has some items I'd like clarified.\r\n\r\nHow do you know the last Group and Object that will be delivered?  Do you get a SUBSCRIBE_RST or SUBSCRIBE_FIN?  Or maybe we want to allow the UNSUBSCRIBE to specify that last Object it wants delivered, somewhat similar to a GOAWAY.  We could also allow the subscriber to RST the SUBSCRIBE?\r\n\r\nOr maybe we don't care about knowing the final Object?",
       "createdAt": "2024-02-07T23:23:04Z",
-      "updatedAt": "2024-03-04T03:10:49Z",
-      "closedAt": null,
+      "updatedAt": "2024-05-02T01:32:22Z",
+      "closedAt": "2024-05-02T01:32:22Z",
       "comments": [
         {
           "author": "ianswett",
@@ -13969,12 +13969,10 @@
       "author": "vasilvv",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
-      "labels": [
-        "Subscribe"
-      ],
+      "labels": [],
       "body": "(prompted by w3c/media-source#320 and w3c/webtransport#522)\r\n\r\nIn traditional HLS/DASH-style live streaming, if the buffer is sufficiently big, the video player can do networking in bursts, rather than receive media continuously; in some circumstances (see the discussion linked above) this can lead to improved battery life.  MoQT is focused on getting media sent as soon as possible, meaning that we can't do anything of this nature even for cases where the buffer is big.  We should think about whether we want to do anyhting about this.",
       "createdAt": "2024-02-16T08:54:11Z",
-      "updatedAt": "2024-02-20T00:02:25Z",
+      "updatedAt": "2024-05-02T01:42:22Z",
       "closedAt": null,
       "comments": [
         {
@@ -14408,7 +14406,7 @@
       ],
       "body": "For low latency audio and video, it's helpful to be able to prioritize one track over another, whether it's audio vs video or one quality of video vs another quality of video.\r\n\r\nThis prioritization can be very helpful for ABR as well.  One might want to request the next quality up in hopes of upswitching, but continue playing the current quality until it's clear the next quality can be delivered, so the higher quality should be lower priority.\r\n\r\nThis is somewhat related to #396",
       "createdAt": "2024-02-29T16:50:47Z",
-      "updatedAt": "2024-03-18T01:10:39Z",
+      "updatedAt": "2024-05-04T23:18:19Z",
       "closedAt": null,
       "comments": [
         {
@@ -14431,6 +14429,13 @@
           "body": "> Individual Comment:\r\n> \r\n> One design consideration here is who can influence the prioritization. In HTTP both the client and the origin server can send a signal, but the server (or terminating proxy) gets the final say.\r\n> \r\n> We have sendOrder/priority field which today is 100% publisher controlled. How would a track level priority construct interact with this?\r\n\r\nBased on the use cases I can think of, I was thinking the subscriber requested priority is considered first, and then the publisher controlled priority is considered.\r\n",
           "createdAt": "2024-03-01T15:23:12Z",
           "updatedAt": "2024-03-01T15:24:01Z"
+        },
+        {
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> Based on the use cases I can think of, I was thinking the subscriber requested priority is considered first, and then the publisher controlled priority is considered.\r\n\r\nAn application (producer + consumer) needs to be aware of relative priorities between the tracks. Say a streaming application that has 4k more important than 1080p.  Catalog would need to identify priorities as defined by the application and the producer delivers them per that. \r\n\r\nCan a subscriber re-oder the priority ? I wonder , if the consumer application is hosted by the same provider of the streaming application, then i don't know why would they have a nerd knob in the application to change the relative priority for consumers to choose.? \r\n\r\nOn the point of ABR,  if its the consumer making the choice of what it needs next based on its read of the network, then it will un-subscribe/pause and subscribe (or vice-versa) to the right track. This is per-subscriber local decision and not related to priorities IIUC.",
+          "createdAt": "2024-05-04T16:41:25Z",
+          "updatedAt": "2024-05-04T23:18:19Z"
         }
       ]
     },
@@ -55804,13 +55809,13 @@
       ],
       "body": "This is intended to be complementary to #429 by adding a SUBSCRIBE specific mechanism to indicate hop-by-hop Objects that will not be delivered.  Because this is specific to a SUBSCRIBE, it's not intended to be cacheable.\r\n\r\nBuilds on ideas in #423 \r\n\r\nEach SUBSCRIBE could be moved to their own bidi stream and this could be sent there, but that change can be made separately.\r\n\r\nFixes #345 ",
       "createdAt": "2024-04-17T19:54:44Z",
-      "updatedAt": "2024-05-01T16:41:00Z",
+      "updatedAt": "2024-05-02T01:37:23Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
-      "baseRefOid": "48b84a38a0a80e6911b716e721cb3eb0fdc9bbf0",
+      "baseRefOid": "70787894f42dc39494edbe9d49b6760afbd701c0",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "ianswett-objects-dropped",
-      "headRefOid": "d934ad179f357a6bd9559c5650c557ea51e1e225",
+      "headRefOid": "7ca0fdd275b2b8eef1de6fe11eff80d5a27db82d",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -57068,13 +57073,13 @@
       "labels": [],
       "body": "An alternative to #434 that is extremely simple\r\n\r\nFixes #345 \r\nCloses #434 ",
       "createdAt": "2024-04-29T22:33:12Z",
-      "updatedAt": "2024-04-30T17:29:42Z",
+      "updatedAt": "2024-05-02T01:32:48Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
-      "baseRefOid": "b66b303831af86abdb3866a61fc8c23c96871519",
+      "baseRefOid": "70787894f42dc39494edbe9d49b6760afbd701c0",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "ianswett-objects-dropped2",
-      "headRefOid": "83e277571a9de62c494ecaf82039da48f88bef87",
+      "headRefOid": "5f306ce5eebdf8ae89ef3903b9720713a09578c3",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -57300,6 +57305,53 @@
           "createdAt": "2024-05-01T16:11:03Z",
           "updatedAt": "2024-05-01T16:11:03Z",
           "comments": []
+        }
+      ]
+    },
+    {
+      "number": 445,
+      "id": "PR_kwDOG2Ho4M5uTSbl",
+      "title": "Add a priority field to subscriptions",
+      "url": "https://github.com/moq-wg/moq-transport/pull/445",
+      "state": "OPEN",
+      "author": "ianswett",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Fixes #403 \r\n\r\nIt seems like we need this, and I'm open to suggestions, but this feels quite straightforward.",
+      "createdAt": "2024-05-02T01:51:45Z",
+      "updatedAt": "2024-05-04T16:33:44Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "70787894f42dc39494edbe9d49b6760afbd701c0",
+      "headRepository": "moq-wg/moq-transport",
+      "headRefName": "ianswett-subscribe-priority",
+      "headRefOid": "270b16ba749dc475f041c3bcb109bfbf991c5633",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M55kGyt",
+          "commit": {
+            "abbreviatedOid": "270b16b"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "CHANGES_REQUESTED",
+          "body": "",
+          "createdAt": "2024-05-04T16:33:39Z",
+          "updatedAt": "2024-05-04T16:33:44Z",
+          "comments": [
+            {
+              "originalPosition": 4,
+              "body": "Priority per subscritpion brings in few complications\r\n- Subscriptions cannot be aggregated\r\n- Upstream subscriptions between relays have to deal with ambiguities when conflicting priorities for the same track are requested.\r\n- Original publisher's expectation cannot be mandated when it sets track/object priorities. ",
+              "createdAt": "2024-05-04T16:33:40Z",
+              "updatedAt": "2024-05-04T16:33:44Z"
+            }
+          ]
         }
       ]
     }
