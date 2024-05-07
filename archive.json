@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2024-05-05T01:14:03.975101+00:00",
+  "timestamp": "2024-05-07T01:10:19.964116+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -14406,7 +14406,7 @@
       ],
       "body": "For low latency audio and video, it's helpful to be able to prioritize one track over another, whether it's audio vs video or one quality of video vs another quality of video.\r\n\r\nThis prioritization can be very helpful for ABR as well.  One might want to request the next quality up in hopes of upswitching, but continue playing the current quality until it's clear the next quality can be delivered, so the higher quality should be lower priority.\r\n\r\nThis is somewhat related to #396",
       "createdAt": "2024-02-29T16:50:47Z",
-      "updatedAt": "2024-05-04T23:18:19Z",
+      "updatedAt": "2024-05-06T17:18:55Z",
       "closedAt": null,
       "comments": [
         {
@@ -14436,6 +14436,48 @@
           "body": "> Based on the use cases I can think of, I was thinking the subscriber requested priority is considered first, and then the publisher controlled priority is considered.\r\n\r\nAn application (producer + consumer) needs to be aware of relative priorities between the tracks. Say a streaming application that has 4k more important than 1080p.  Catalog would need to identify priorities as defined by the application and the producer delivers them per that. \r\n\r\nCan a subscriber re-oder the priority ? I wonder , if the consumer application is hosted by the same provider of the streaming application, then i don't know why would they have a nerd knob in the application to change the relative priority for consumers to choose.? \r\n\r\nOn the point of ABR,  if its the consumer making the choice of what it needs next based on its read of the network, then it will un-subscribe/pause and subscribe (or vice-versa) to the right track. This is per-subscriber local decision and not related to priorities IIUC.",
           "createdAt": "2024-05-04T16:41:25Z",
           "updatedAt": "2024-05-04T23:18:19Z"
+        },
+        {
+          "author": "vasilvv",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I don't think that any scheme other than \"subscriber chooses\" could really work for priorities between tracks.  The reason for that is that a single connection can have multiple tracks from different publishers, thus the publishers don't really have any reliable way of knowing how to set those priorities with respect to other potential publishers.\r\n\r\nSo I imagine this would work something like this:\r\n1. Publisher uses the catalog to indicate how it thinks the tracks should be prioritized within the catalog.\r\n2. Subscriber reads those, potentially combines them with relative priorities of the catalogs themselves (alternatively, uses its own application knowledge to adjust things).\r\n3. Subscriber sends SUBSCRIBE messages to the relay with the priorities.\r\n\r\nYou're correct that this does leave priorities on other hops underdetermined.  That is a bit unfortunate, but I am not sure how much of an issue it is in practice.",
+          "createdAt": "2024-05-05T17:56:01Z",
+          "updatedAt": "2024-05-05T17:56:01Z"
+        },
+        {
+          "author": "wilaw",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "> You're correct that this does leave priorities on other hops underdetermined. That is a bit unfortunate, but I am not sure how much of an issue it is in practice.\r\n\r\nI agree that this will not be an issue in practice, for several reasons:\r\n1. The relay network (CDN) is built to have good intra-network connectivity and capacity, along with intelligent routing around problems, so the chance of congestion is much smaller than over the last-mile.\r\n2. In the case that congestion still occurs, the relays would likely apply fair-share (equal) priority between forwarded tracks.\r\n3. An advanced relay network would still have the option to sample client priorities and use that to prioritize internal traffic. It might chose to do that in order to offer a more competitive SLA than other relay networks. My gut feel is that the overhead to do this, especially over thousands of concurrent tracks, is of little benefit to the end-clients, but our spec design could still allow it. ",
+          "createdAt": "2024-05-06T08:48:24Z",
+          "updatedAt": "2024-05-06T08:48:24Z"
+        },
+        {
+          "author": "vasilvv",
+          "authorAssociation": "COLLABORATOR",
+          "body": "And on ingestion side, the publisher can prioritize the things on the send side without changing anything on the wire (assuming the relay would subscribe without priorities upfront).",
+          "createdAt": "2024-05-06T13:36:32Z",
+          "updatedAt": "2024-05-06T13:36:32Z"
+        },
+        {
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> The reason for that is that a single connection can have multiple tracks from different publishers, thus the publishers don't really have any reliable way of knowing how to set those priorities with respect to other potential publishers.\r\n\r\n@vasilvv  I am trying to better understand the application model in this case. Does all these publishers are served by the same application (a given broadcast with multiple publishers / a given multi-party conference / a given multi-party chat session)  or they can be disparate applications that are combined into set of tracks for a given subscriber ? \r\n\r\n",
+          "createdAt": "2024-05-06T16:41:12Z",
+          "updatedAt": "2024-05-06T16:41:12Z"
+        },
+        {
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> You're correct that this does leave priorities on other hops underdetermined. That is a bit unfortunate, but I am not sure how much of an issue it is in practice.\r\n\r\nI am also concerned about loosing  Subscription aggregation functionality if each subscribe has conflicting set of priority requests.",
+          "createdAt": "2024-05-06T16:42:34Z",
+          "updatedAt": "2024-05-06T16:42:34Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Individual Comment:\r\n\r\nAs someone who has extensively deployed HTTP priorities through multiple layers of relays (proxies) with measurable user experience wins, I'll say that giving all resources equal priority on relay -> relay and relay -> origin hops has worked out well in practice.  The resource you are prioritizing is the bandwidth at the *bottleneck* link, and this is almost always the last mile.  For sufficiently large networks, there's also no fair way to indicate which \"fill\" requests should be treated with higher priorities than others.\r\n\r\nIn contrast, HTTP/2 priorities were designed explicitly so that relays could continue to convey priorities through proxies and the effects were\r\n\r\n1) no one ever deployed this\r\n2) the resulting priority scheme was so difficult to manage, it limited application use\r\n\r\nThese problems resulted in scrapping the scheme after 5 years.\r\n\r\nIn my view, this experience puts the onus on proponents of prioritizing traffic on backhaul links to bring data showing that this is a practical rather than theoretical constraint.\r\n\r\nFurther, we should be asking if providing a transport mechanism to *allow* subscribers to express track priority would break an application that wants exclusive publisher control.  I think the answer is no.\r\n\r\nUltimately HTTP priorities evolved to a point where both the client and the server can express a priority signal.  I think moq can follow a similar model, with perhaps stricter guidance about how to merge these signals.",
+          "createdAt": "2024-05-06T17:18:54Z",
+          "updatedAt": "2024-05-06T17:18:54Z"
         }
       ]
     },
