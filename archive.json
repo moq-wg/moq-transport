@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2024-05-07T01:10:19.964116+00:00",
+  "timestamp": "2024-05-09T01:10:04.657397+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -15784,7 +15784,7 @@
       ],
       "body": "At some point we removed the time to live of how long obhects exist in the cache before they are removed. \r\n\r\nIt is becoming an significant implementation blocker to not have some version of this.  I would like to add some version of this back soon even if we later change the exact details of how times are calculated and represented. \r\n\r\n\r\n",
       "createdAt": "2024-04-24T14:50:21Z",
-      "updatedAt": "2024-04-29T17:51:18Z",
+      "updatedAt": "2024-05-08T20:00:26Z",
       "closedAt": null,
       "comments": [
         {
@@ -15835,6 +15835,27 @@
           "body": "Individual Comment:\r\n\r\nIf the TTL is relative to when the relay receives it, then in Will's example, the cache may expire some content, but on a later request, it can go upstream again and it will either exist or not at that time.  If it exists, then it gets refreshed, if not, it's non-existence is cacheable. \r\n\r\nDo we want/need an optimization that will allow the relay to transition object status from \"normal\" to \"expired/permanently gone\" without another trip upstream?\r\n\r\nJust typing this makes me think we should take a long look at the HTTP caching functions (eg: revalidation) and pick the ones we think make sense for moq. If moq is successful, CDNs will want to adapt HTTP caches to serve these objects, or possibly serve the same objects over moq and HTTP, so we should align where it makes sense.",
           "createdAt": "2024-04-29T17:51:17Z",
           "updatedAt": "2024-04-29T17:51:17Z"
+        },
+        {
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "Updating from conversation from Will today. \r\n\r\nWe have the use case of a where on a 2 hour sports event, the DVR window is 30 minutes and can not scrub back more than 30 minutes from live edge. \r\n\r\nThis leads to wanting to be able to say \"relays don't send this object more than 30 minutes after it was produced\"\r\n\r\nWe also have for real time cases \"don't send this object more than 500 ms after it was received by relay\"\r\n\r\n",
+          "createdAt": "2024-05-08T16:59:56Z",
+          "updatedAt": "2024-05-08T16:59:56Z"
+        },
+        {
+          "author": "vasilvv",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I wonder if it would make sense to make TTL expressed in groups, instead of wall time?\r\n\r\nE.g. TTL=1 means \"stop sending the previous group as soon as the beginning of the new group arrives\", TTL=2 means \"keep the current group and the right before it\", and vice versa. This has an advantage of working with variable-size groups, and also compresses much better.",
+          "createdAt": "2024-05-08T17:00:52Z",
+          "updatedAt": "2024-05-08T17:00:52Z"
+        },
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "That idea makes sense with Stream per Group, but I'm not sure how it applies to the other two Object encodings.",
+          "createdAt": "2024-05-08T20:00:25Z",
+          "updatedAt": "2024-05-08T20:00:25Z"
         }
       ]
     },
@@ -55842,7 +55863,7 @@
       "id": "PR_kwDOG2Ho4M5s-B9G",
       "title": "Add OBJECTS_DROPPED on the control stream",
       "url": "https://github.com/moq-wg/moq-transport/pull/434",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "ianswett",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
@@ -55851,14 +55872,14 @@
       ],
       "body": "This is intended to be complementary to #429 by adding a SUBSCRIBE specific mechanism to indicate hop-by-hop Objects that will not be delivered.  Because this is specific to a SUBSCRIBE, it's not intended to be cacheable.\r\n\r\nBuilds on ideas in #423 \r\n\r\nEach SUBSCRIBE could be moved to their own bidi stream and this could be sent there, but that change can be made separately.\r\n\r\nFixes #345 ",
       "createdAt": "2024-04-17T19:54:44Z",
-      "updatedAt": "2024-05-02T01:37:23Z",
+      "updatedAt": "2024-05-08T19:39:49Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "70787894f42dc39494edbe9d49b6760afbd701c0",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "ianswett-objects-dropped",
       "headRefOid": "7ca0fdd275b2b8eef1de6fe11eff80d5a27db82d",
-      "closedAt": null,
+      "closedAt": "2024-05-08T19:39:48Z",
       "mergedAt": null,
       "mergedBy": null,
       "mergeCommit": null,
@@ -55890,6 +55911,13 @@
           "body": "I think I prefer #434 to this PR. ",
           "createdAt": "2024-05-01T16:40:59Z",
           "updatedAt": "2024-05-01T16:40:59Z"
+        },
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "The current direction is to not include a specific signal for dropping, so closing this PR.",
+          "createdAt": "2024-05-08T19:39:48Z",
+          "updatedAt": "2024-05-08T19:39:48Z"
         }
       ],
       "reviews": [
@@ -57108,21 +57136,21 @@
       "id": "PR_kwDOG2Ho4M5uEjym",
       "title": "Indicate a single group or object has been dropped on the control stream",
       "url": "https://github.com/moq-wg/moq-transport/pull/443",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "ianswett",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [],
       "body": "An alternative to #434 that is extremely simple\r\n\r\nFixes #345 \r\nCloses #434 ",
       "createdAt": "2024-04-29T22:33:12Z",
-      "updatedAt": "2024-05-02T01:32:48Z",
+      "updatedAt": "2024-05-08T19:39:36Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "70787894f42dc39494edbe9d49b6760afbd701c0",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "ianswett-objects-dropped2",
       "headRefOid": "5f306ce5eebdf8ae89ef3903b9720713a09578c3",
-      "closedAt": null,
+      "closedAt": "2024-05-08T19:39:36Z",
       "mergedAt": null,
       "mergedBy": null,
       "mergeCommit": null,
@@ -57147,6 +57175,13 @@
           "body": "I've added a message to indicate a single object has been dropped.",
           "createdAt": "2024-04-30T17:28:13Z",
           "updatedAt": "2024-04-30T17:28:13Z"
+        },
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "The current direction is to not include a specific signal for dropping, so closing this PR.",
+          "createdAt": "2024-05-08T19:39:35Z",
+          "updatedAt": "2024-05-08T19:39:35Z"
         }
       ],
       "reviews": [
