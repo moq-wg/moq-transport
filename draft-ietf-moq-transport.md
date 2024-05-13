@@ -1253,8 +1253,8 @@ STREAM_HEADER_GROUP {
 Stream = 6
 
 OBJECT_STREAM {
-  Subscribe ID = 2
-  Track Alias = 2
+  Subscribe ID = 3
+  Track Alias = 3
   Group ID = 0
   Object ID = 1
   Object Send Order = 0
