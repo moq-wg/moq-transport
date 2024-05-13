@@ -5,13 +5,13 @@
 MOQ                                                            L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 12 October 2024                                            Meta
+Expires: 14 November 2024                                           Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                           10 April 2024
+                                                             13 May 2024
 
 
                        Media over QUIC Transport
@@ -53,7 +53,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 12 October 2024.
+   This Internet-Draft will expire on 14 November 2024.
 
 Copyright Notice
 
@@ -115,21 +115,21 @@ Table of Contents
        6.3.3.  Multi-Object Streams
        6.3.4.  Examples:
      6.4.  SUBSCRIBE
-       6.4.1.  Subscribe Locations
+       6.4.1.  Filter Types
        6.4.2.  SUBSCRIBE Format
-       6.4.3.  Examples
-     6.5.  SUBSCRIBE_OK
-     6.6.  SUBSCRIBE_ERROR
-     6.7.  UNSUBSCRIBE
-     6.8.  SUBSCRIBE_DONE
-     6.9.  ANNOUNCE
-     6.10. ANNOUNCE_OK
-     6.11. ANNOUNCE_ERROR
-     6.12. UNANNOUNCE
-     6.13. ANNOUNCE_CANCEL
-     6.14. TRACK_STATUS_REQUEST
-     6.15. TRACK_STATUS
-     6.16. GOAWAY
+     6.5.  SUBSCRIBE_UPDATE
+     6.6.  SUBSCRIBE_OK
+     6.7.  SUBSCRIBE_ERROR
+     6.8.  UNSUBSCRIBE
+     6.9.  SUBSCRIBE_DONE
+     6.10. ANNOUNCE
+     6.11. ANNOUNCE_OK
+     6.12. ANNOUNCE_ERROR
+     6.13. UNANNOUNCE
+     6.14. ANNOUNCE_CANCEL
+     6.15. TRACK_STATUS_REQUEST
+     6.16. TRACK_STATUS
+     6.17. GOAWAY
    7.  Security Considerations
      7.1.  Resource Exhaustion
    8.  IANA Considerations
@@ -532,7 +532,7 @@ Table of Contents
       that was already in use.
 
    *  GOAWAY Timeout: The session was closed because the client took too
-      long to close the session in response to a GOAWAY (Section 6.16)
+      long to close the session in response to a GOAWAY (Section 6.17)
       message.  See session migration (Section 3.6).
 
 3.6.  Migration
@@ -541,7 +541,7 @@ Table of Contents
    service provider needs the ability to shutdown/restart a server
    without waiting for all sessions to drain naturally, as that can take
    days for long-form media.  MoqTransport avoids this via the GOAWAY
-   message (Section 6.16).
+   message (Section 6.17).
 
    The server sends a GOAWAY message, signaling that the client should
    establish a new session and migrate any active subscriptions.  The
@@ -692,8 +692,8 @@ Table of Contents
    of this specification.
 
    The subscriber making the subscribe request is notified of the result
-   of the subscription, via SUBSCRIBE_OK (Section 6.5) or the
-   SUBSCRIBE_ERROR Section 6.6 control message.  The entity receiving
+   of the subscription, via SUBSCRIBE_OK (Section 6.6) or the
+   SUBSCRIBE_ERROR Section 6.7 control message.  The entity receiving
    the SUBSCRIBE MUST send only a single response to a given SUBSCRIBE
    of either SUBSCRIBE_OK or SUBSCRIBE_ERROR.
 
@@ -702,7 +702,7 @@ Table of Contents
    within the subscription range is forwarded to each active subscriber,
    dependent on the congestion response.  A subscription remains active
    until the publisher of the track terminates the track with a
-   SUBSCRIBE_DONE (see Section 6.8).
+   SUBSCRIBE_DONE (see Section 6.9).
 
    Objects MUST NOT be sent for unsuccessful subscriptions, and if a
    subscriber receives a SUBSCRIBE_ERROR after receiving objects, it
@@ -787,7 +787,7 @@ Table of Contents
    be forwarded to the session that sent ANNOUNCE namespace=foobar.
 
    OBJECT message headers carry a short hop-by-hop Track Alias that maps
-   to the Full Track Name (see Section 6.5).  Relays use the Track Alias
+   to the Full Track Name (see Section 6.6).  Relays use the Track Alias
    of an incoming OBJECT message to identify its track and find the
    active subscribers for that track.  Relays MUST NOT depend on OBJECT
    payload content for making forwarding decisions and MUST only depend
@@ -846,29 +846,29 @@ Table of Contents
               +------+-------------------------------------+
               |  0x3 | SUBSCRIBE (Section 6.4)             |
               +------+-------------------------------------+
-              |  0x4 | SUBSCRIBE_OK (Section 6.5)          |
+              |  0x4 | SUBSCRIBE_OK (Section 6.6)          |
               +------+-------------------------------------+
-              |  0x5 | SUBSCRIBE_ERROR (Section 6.6)       |
+              |  0x5 | SUBSCRIBE_ERROR (Section 6.7)       |
               +------+-------------------------------------+
-              |  0x6 | ANNOUNCE (Section 6.9)              |
+              |  0x6 | ANNOUNCE (Section 6.10)             |
               +------+-------------------------------------+
-              |  0x7 | ANNOUNCE_OK (Section 6.10)          |
+              |  0x7 | ANNOUNCE_OK (Section 6.11)          |
               +------+-------------------------------------+
-              |  0x8 | ANNOUNCE_ERROR (Section 6.11)       |
+              |  0x8 | ANNOUNCE_ERROR (Section 6.12)       |
               +------+-------------------------------------+
-              |  0x9 | UNANNOUNCE (Section 6.12)           |
+              |  0x9 | UNANNOUNCE (Section 6.13)           |
               +------+-------------------------------------+
-              |  0xA | UNSUBSCRIBE (Section 6.7)           |
+              |  0xA | UNSUBSCRIBE (Section 6.8)           |
               +------+-------------------------------------+
-              |  0xB | SUBSCRIBE_DONE (Section 6.8)        |
+              |  0xB | SUBSCRIBE_DONE (Section 6.9)        |
               +------+-------------------------------------+
-              |  0xC | ANNOUNCE_CANCEL (Section 6.13)      |
+              |  0xC | ANNOUNCE_CANCEL (Section 6.14)      |
               +------+-------------------------------------+
-              |  0xD | TRACK_STATUS_REQUEST (Section 6.14) |
+              |  0xD | TRACK_STATUS_REQUEST (Section 6.15) |
               +------+-------------------------------------+
-              |  0xE | TRACK_STATUS (Section 6.15)         |
+              |  0xE | TRACK_STATUS (Section 6.16)         |
               +------+-------------------------------------+
-              | 0x10 | GOAWAY (Section 6.16)               |
+              | 0x10 | GOAWAY (Section 6.17)               |
               +------+-------------------------------------+
               | 0x40 | CLIENT_SETUP (Section 6.2)          |
               +------+-------------------------------------+
@@ -1054,8 +1054,61 @@ Table of Contents
       and Datagram.  An Object MUST be sent according to its Object
       Forwarding Preference, described below.
 
+   *  Cache Duration: The length of time in milliseconds a caching relay
+      SHOULD cache an Object for.  The relay SHOULD NOT begin sending
+      the Object if it has resided in the cache for longer than that
+      time interval.
+
+   *  Object Status: As enumeration used to indicate missing objects or
+      mark the end of a group or track.  See Section 6.3.1.1 below.
+
    *  Object Payload: An opaque payload intended for the consumer and
-      SHOULD NOT be processed by a relay.
+      SHOULD NOT be processed by a relay.  Only present when 'Object
+      Status' is Normal (0x0).
+
+6.3.1.1.  Object Status
+
+   The Object Status informs subscribers what objects will not be
+   received because they were never produced, are no longer available,
+   or because they are beyond the end of a group or track.
+
+   Status can have following values:
+
+   *  0x0 := Normal object.  The payload is array of bytes and can be
+      empty.
+
+   *  0x1 := Indicates Object does not exist.  Indicates that this
+      object does not exist at any publisher and it will not be
+      published in the future.  This SHOULD be cached.
+
+   *  0x2 := Indicates Group does not exist.  Indicates that objects
+      with this GroupID do not exist at any publisher and they will not
+      be published in the future.  This SHOULD be cached.
+
+   *  0x3 := Indicates end of Group.  ObjectId is one greater that the
+      largest object produced in the group identified by the GroupID.
+      This is sent right after the last object in the group.  This
+      SHOULD be cached.
+
+   *  0x4 := Indicates end of Track and Group.  GroupID is one greater
+      than the largest group produced in this track and the ObjectId is
+      one greater than the largest object produced in that group.  This
+      is sent right after the last object in the track.  This SHOULD be
+      cached.
+
+   Any other value SHOULD be treated as a protocol error and terminate
+   the session with a Protocol Violation (Section 3.5).  Any object with
+   a status code other than zero MUST have an empty payload.
+
+   Though some status information could be inferred from QUIC stream
+   state, that information is not reliable and cacheable.
+
+   In most cases, messages with a non zero status code are sent on the
+   same stream that an object with that GroupID would have been sent on.
+   The exception to this is when that stream has been reset; in that
+   case they are sent on a new stream.  This is to avoid the status
+   message being lost in cases such as a relay dropping a group and
+   reseting the stream the group is being sent on.
 
 6.3.2.  Object Message Formats
 
@@ -1084,6 +1137,8 @@ Table of Contents
      Group ID (i),
      Object ID (i),
      Object Send Order (i),
+     Cache Duration (i),
+     Object Status (i),
      Object Payload (..),
    }
 
@@ -1120,6 +1175,8 @@ Table of Contents
      Group ID (i),
      Object ID (i),
      Object Send Order (i),
+     Cache Duration (i),
+     Object Status (i),
      Object Payload (..),
    }
 
@@ -1149,6 +1206,7 @@ Table of Contents
      Subscribe ID (i)
      Track Alias (i),
      Object Send Order (i),
+     Cache Duration (i),
    }
 
                  Figure 6: MOQT STREAM_HEADER_TRACK Message
@@ -1159,12 +1217,14 @@ Table of Contents
    To send an Object with Object Forwarding Preference = Track, find the
    open stream that is associated with the subscription, or open a new
    one and send the STREAM_HEADER_TRACK if needed, then serialize the
-   following object fields.
+   following object fields.  The Object Status field is only sent if the
+   Object Payload Length is zero.
 
    {
      Group ID (i),
      Object ID (i),
      Object Payload Length (i),
+     [Object Status (i)],
      Object Payload (..),
    }
 
@@ -1186,8 +1246,9 @@ Table of Contents
    STREAM_HEADER_GROUP Message {
      Subscribe ID (i),
      Track Alias (i),
-     Group ID (i)
-     Object Send Order (i)
+     Group ID (i),
+     Object Send Order (i),
+     Cache Duration (i),
    }
 
                  Figure 8: MOQT STREAM_HEADER_GROUP Message
@@ -1198,11 +1259,13 @@ Table of Contents
    To send an Object with Object Forwarding Preference = Group, find the
    open stream that is associated with the subscription, Group ID and
    Object Send Order, or open a new one and send the STREAM_HEADER_GROUP
-   if needed, then serialize the following fields.
+   if needed, then serialize the following fields.  The Object Status
+   field is only sent if the Object Payload Length is zero.
 
    {
      Object ID (i),
      Object Payload Length (i),
+     [Object Status (i)],
      Object Payload (..),
    }
 
@@ -1219,6 +1282,7 @@ Table of Contents
      Subscribe ID = 1
      Track Alias = 1
      Object Send Order = 0
+     Cache Duration = 1000
    }
    {
      Group ID = 0
@@ -1243,6 +1307,7 @@ Table of Contents
      Track Alias = 2
      Group ID = 0
      Object Send Order = 0
+     Cache Duration = 1000
    }
    {
      Object ID = 0
@@ -1262,49 +1327,40 @@ Table of Contents
      Track Alias = 2
      Group ID = 0
      Object ID = 1
+     Object Send Order = 0
+     Cache Duration = 1000
      Payload = "moqrocks"
    }
 
 6.4.  SUBSCRIBE
 
-   A receiver issues a SUBSCRIBE to a publisher to request a track.
+6.4.1.  Filter Types
 
-6.4.1.  Subscribe Locations
+   The subscriber specifies a filter on the subscription to allow the
+   publisher to identify which objects need to be delivered.
 
-   The receiver specifies a start and optional end Location for the
-   subscription.  A location value may be an absolute group or object
-   sequence, or it may be a delta relative to the largest group or the
-   largest object in a group.
+   There are 4 types of filters:
 
-   Location {
-     Mode (i),
-     [Value (i)],
-   }
+   Latest Group (0x1) : Specifies an open-ended subscription with
+   objects from the beginning of the current group.
 
-   There are 4 modes:
+   Latest Object (0x2): Specifies an open-ended subscription beginning
+   from the current object of the current group.
 
-   None (0x0): The Location is unspecified, Value is not present
+   AbsoluteStart (0x3): Specifies an open-ended subscription beginning
+   from the object identified in the StartGroup and StartObject fields.
 
-   Absolute (0x1): Value is an absolute sequence
+   AbsoluteRange (0x4): Specifies a closed subscription starting at
+   StartObject in StartGroup and ending at EndObject in EndGroup.  The
+   start and end of the range are inclusive.  EndGroup and EndObject
+   MUST specify the same or a later object than StartGroup and
+   StartObject.
 
-   RelativePrevious (0x2): Value is a delta from the largest sequence.
-   0 is the largest sequence, 1 is the largest sequence - 1, and so on.
-
-   RelativeNext (0x3): Value is a delta from the largest sequence.  0 is
-   the largest sequence + 1, 1 is the largest sequence + 2, and so on.
-
-   The following table shows an example of how the RelativePrevious and
-   RelativeNext values are used to determine the absolute sequence.
-
-   Sequence:                0    1    2    3    4   [5]  [6] ...
-                                                ^
-                                         Largest Sequence
-   RelativePrevious Value:  4    3    2    1    0
-   RelativeNext Value:                               0    1  ...
-
-                        Figure 10: Relative Indexing
+   A filter type other than the above MUST be treated as error.
 
 6.4.2.  SUBSCRIBE Format
+
+   A receiver issues a SUBSCRIBE to a publisher to request a track.
 
    The format of SUBSCRIBE is as follows:
 
@@ -1313,15 +1369,16 @@ Table of Contents
      Track Alias (i),
      Track Namespace (b),
      Track Name (b),
-     StartGroup (Location),
-     StartObject (Location),
-     EndGroup (Location),
-     EndObject (Location),
+     Filter Type (i),
+     [StartGroup (i),
+      StartObject (i)],
+     [EndGroup (i),
+      EndObject (i)],
      Number of Parameters (i),
      Track Request Parameters (..) ...
    }
 
-                     Figure 11: MOQT SUBSCRIBE Message
+                     Figure 10: MOQT SUBSCRIBE Message
 
    *  Subscribe ID: The subscription identifier that is unique within
       the session.  Subscribe ID is a monotonically increasing variable
@@ -1344,86 +1401,87 @@ Table of Contents
    *  Track Name: Identifies the track name as defined in
       (Section 2.3.1).
 
-   *  StartGroup: The Location of the requested group.  StartGroup's
-      Mode MUST NOT be None.
+   *  Filter Type: Identifies the type of filter, which also indicates
+      whether the StartGroup/StartObject and EndGroup/EndObject fields
+      will be present.  See (Section 6.4.1).
 
-   *  StartObject: The Location of the requested object.  StartObject's
-      Mode MUST NOT be None.
+   *  StartGroup: The start Group ID.  Only present for "AbsoluteStart"
+      and "AbsoluteRange" filter types.
 
-   *  EndGroup: The last Group requested in the subscription, inclusive.
-      EndGroup's Mode is None for an open-ended subscription.
+   *  StartObject: The start Object ID, plus 1.  A value of 0 means the
+      entire group is requested.  Only present for "AbsoluteStart" and
+      "AbsoluteRange" filter types.
 
-   *  EndObject: The last Object requested in the subscription,
-      exclusive.  EndObject's Mode MUST be None if EndGroup's Mode is
-      None.  EndObject's Mode MUST NOT be None if EndGroup's Mode is not
-      None.
+   *  EndGroup: The end Group ID.  Only present for the "AbsoluteRange"
+      filter type.
+
+   *  EndObject: The end Object ID, plus 1.  A value of 0 means the
+      entire group is requested.  Only present for the "AbsoluteRange"
+      filter type.
 
    *  Track Request Parameters: The parameters are defined in
       Section 6.1.1
 
-   On successful subscription, the publisher SHOULD start delivering
-   objects from the group ID and object ID described above.
+   On successful subscription, the publisher MUST reply with a
+   SUBSCRIBE_OK, allowing the subscriber to determine the start group/
+   object when not explicitly specified and the publisher SHOULD start
+   delivering objects.
 
    If a publisher cannot satisfy the requested start or end for the
    subscription it MAY send a SUBSCRIBE_ERROR with code 'Invalid Range'.
    A publisher MUST NOT send objects from outside the requested start
    and end.
 
-   TODO: Define the flow where subscribe request matches an existing
-   subscribe id (subscription updates.)
+6.5.  SUBSCRIBE_UPDATE
 
-6.4.3.  Examples
+   A receiver issues a SUBSCRIBE_UPDATE to a publisher to request a
+   change to a prior subscription.  Subscriptions can only become more
+   narrower, not wider, because an attempt to widen a subscription could
+   fail.  If Objects before the start or after the end of the current
+   subscription are needed, a separate subscription can be made.  The
+   start Object MUST NOT decrease and when it increases, there is no
+   guarantee that a publisher will not have already sent Objects before
+   the new start Object.  The end Object MUST NOT increase and when it
+   decreases, there is no guarantee that a publisher will not have
+   already sent Objects after the new end Object.
 
-   1. Now
+   Unlike a new subscription, SUBSCRIBE_UPDATE can not cause an Object
+   to be delivered multiple times.  Like SUBSCRIBE, EndGroup and
+   EndObject MUST specify the same or a later object than StartGroup and
+   StartObject.
 
-   Start Group: Mode=RelativePrevious, Value=0
-   Start Object: Mode=RelateiveNext, Value=0
-   End Group: Mode=None
-   End Object: Mode=None
+   The format of SUBSCRIBE_UPDATE is as follows:
 
-   StartGroup=Largest Group
-   StartObject=Largest Object + 1
+   SUBSCRIBE_UPDATE Message {
+     Subscribe ID (i),
+     StartGroup (i),
+     StartObject (i),
+     EndGroup (i),
+     EndObject (i),
+     Number of Parameters (i),
+     Track Request Parameters (..) ...
+   }
 
-   2. Current
+                  Figure 11: MOQT SUBSCRIBE_UPDATE Message
 
-   Start Group: Mode=RelativePrevious, Value=0
-   Start Object: Mode=Absolute, Value=0
-   End Group: Mode=None
-   End Object: Mode=None
+   *  Subscribe ID: The subscription identifier that is unique within
+      the session.  This MUST match an existing Subscribe ID.
 
-   StartGroup=Largest Group
-   StartObject=0
+   *  StartGroup: The start Group ID.
 
-   3. Previous
+   *  StartObject: The start Object ID, plus 1.  A value of 0 means the
+      entire group is requested.
 
-   Start Group: Mode=RelativePrevious, Value=1
-   Start Object: Mode=Absolute, Value=0
-   End Group: Mode=None
-   End Object: Mode=None
+   *  EndGroup: The end Group ID, plus 1.  A value of 0 means the
+      subscription is open-ended.
 
-   StartGroup=Largest Group - 1
-   StartObject=0
+   *  EndObject: The end Object ID, plus 1.  A value of 0 means the
+      entire group is requested.
 
-   4. Next
+   *  Track Request Parameters: The parameters are defined in
+      Section 6.1.1
 
-   Start Group: Mode=RelativeNext, Value=0
-   Start Object: Mode=Absolute, Value=0
-   End Group: Mode=None
-   End Object: Mode=None
-   StartGroup=Largest Group + 1
-   StartObject=0
-
-   5. Range, All of group 3
-
-   Start Group: Mode=Absolute, Value=3
-   Start Object: Mode=Absolute, Value=0
-   End Group: Mode=Absolute, Value=4
-   End Object: Mode=Absolute, Value=0
-
-   Start = Group 3, Object 0
-   End = Group 3, Object <last>
-
-6.5.  SUBSCRIBE_OK
+6.6.  SUBSCRIBE_OK
 
    A SUBSCRIBE_OK control message is sent for successful subscriptions.
 
@@ -1456,7 +1514,7 @@ Table of Contents
       largest Group ID for this track.  This field is only present if
       ContentExists has a value of 1.
 
-6.6.  SUBSCRIBE_ERROR
+6.7.  SUBSCRIBE_ERROR
 
    A publisher sends a SUBSCRIBE_ERROR control message in response to a
    failed SUBSCRIBE.
@@ -1484,7 +1542,7 @@ Table of Contents
       close the connection with a Duplicate Track Alias error
       (Section 3.5).
 
-6.7.  UNSUBSCRIBE
+6.8.  UNSUBSCRIBE
 
    A subscriber issues a UNSUBSCRIBE message to a publisher indicating
    it is no longer interested in receiving media for the specified track
@@ -1502,7 +1560,7 @@ Table of Contents
 
    *  Subscribe ID: Subscription Identifier as defined in Section 6.4.
 
-6.8.  SUBSCRIBE_DONE
+6.9.  SUBSCRIBE_DONE
 
    A publisher issues a SUBSCRIBE_DONE message to indicate it is done
    publishing Objects for that subscription.  The Status Code indicates
@@ -1538,7 +1596,7 @@ Table of Contents
    *  Final Object: The largest Object ID sent by the publisher in an
       OBJECT message in the Final Group for this track.
 
-6.9.  ANNOUNCE
+6.10.  ANNOUNCE
 
    The publisher sends the ANNOUNCE control message to advertise where
    the receiver can route SUBSCRIBEs for tracks within the announced
@@ -1558,7 +1616,7 @@ Table of Contents
 
    *  Parameters: The parameters are defined in Section 6.1.1.
 
-6.10.  ANNOUNCE_OK
+6.11.  ANNOUNCE_OK
 
    The receiver sends an ANNOUNCE_OK control message to acknowledge the
    successful authorization and acceptance of an ANNOUNCE message.
@@ -1573,7 +1631,7 @@ Table of Contents
    *  Track Namespace: Identifies the track namespace in the ANNOUNCE
       message for which this response is provided.
 
-6.11.  ANNOUNCE_ERROR
+6.12.  ANNOUNCE_ERROR
 
    The receiver sends an ANNOUNCE_ERROR control message for tracks that
    failed authorization.
@@ -1595,7 +1653,7 @@ Table of Contents
 
    *  Reason Phrase: Provides the reason for announcement error.
 
-6.12.  UNANNOUNCE
+6.13.  UNANNOUNCE
 
    The publisher sends the UNANNOUNCE control message to indicate its
    intent to stop serving new subscriptions for tracks within the
@@ -1610,7 +1668,7 @@ Table of Contents
    *  Track Namespace: Identifies a track's namespace as defined in
       (Section 2.3.1).
 
-6.13.  ANNOUNCE_CANCEL
+6.14.  ANNOUNCE_CANCEL
 
    The subscriber sends an ANNOUNCE_CANCEL control message to indicate
    it will stop sending new subscriptions for tracks within the provided
@@ -1629,7 +1687,7 @@ Table of Contents
    *  Track Namespace: Identifies a track's namespace as defined in
       (Section 2.3.1).
 
-6.14.  TRACK_STATUS_REQUEST
+6.15.  TRACK_STATUS_REQUEST
 
    A potential subscriber sends a 'TRACK_STATUS_REQUEST' message on the
    control stream to obtain information about the current status of a
@@ -1645,7 +1703,7 @@ Table of Contents
 
                 Figure 21: MOQT TRACK_STATUS_REQUEST Message
 
-6.15.  TRACK_STATUS
+6.16.  TRACK_STATUS
 
    An endpoint sends a 'TRACK_STATUS' message on the control stream in
    response to a TRACK_STATUS_REQUEST message.
@@ -1698,7 +1756,7 @@ Table of Contents
    information from the latest arriving message, as they are delivered
    in order on a single stream.
 
-6.16.  GOAWAY
+6.17.  GOAWAY
 
    The server sends a GOAWAY message to initiate session migration
    (Section 3.6) with an optional URI.
