@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2024-05-12T01:16:20.103859+00:00",
+  "timestamp": "2024-05-14T01:10:59.969384+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -14797,12 +14797,11 @@
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
       "labels": [
-        "Editorial",
-        "Needs PR"
+        "Editorial"
       ],
       "body": "There are two issues with this example:\r\n\r\nhttps://github.com/moq-wg/moq-transport/blob/80a1fc4eec92a05439e473edb60dcea399b3ca62/draft-ietf-moq-transport.md?plain=1#L1153-L1185\r\n\r\n1. The Object id should be unique, not duplicated.\r\n2. We shouldn't be mixing different forwarding preferences within the same track, per earlier text in this same version of the draft:\r\n\r\nhttps://github.com/moq-wg/moq-transport/blob/80a1fc4eec92a05439e473edb60dcea399b3ca62/draft-ietf-moq-transport.md?plain=1#L975-L978",
       "createdAt": "2024-03-14T19:50:54Z",
-      "updatedAt": "2024-03-18T00:53:04Z",
+      "updatedAt": "2024-05-13T14:09:21Z",
       "closedAt": null,
       "comments": [
         {
@@ -57431,6 +57430,141 @@
           ]
         }
       ]
+    },
+    {
+      "number": 446,
+      "id": "PR_kwDOG2Ho4M5vQxvu",
+      "title": "Add a Cache Duration (aka ttl) field to Objects",
+      "url": "https://github.com/moq-wg/moq-transport/pull/446",
+      "state": "OPEN",
+      "author": "ianswett",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Based on discussion last week and on slack, I believe this is where the WG is heading.\r\n\r\nIt is possible this could be a per-track or per-subscription value to save bytes on the wire, particularly for the Object per Stream or Object per Datagram modes.\r\n\r\nIt's possible this value could be decreased by the cache dwell time at each hop, but I didn't hear clear consensus either way on that question.\r\n\r\nFixes #440\r\nFixes #415 ",
+      "createdAt": "2024-05-13T13:46:14Z",
+      "updatedAt": "2024-05-13T15:52:56Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "70787894f42dc39494edbe9d49b6760afbd701c0",
+      "headRepository": "moq-wg/moq-transport",
+      "headRefName": "ianswett-cache-duration",
+      "headRefOid": "0e68044547a5805356dbea0847e7c38c58eb0c01",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M56XB7r",
+          "commit": {
+            "abbreviatedOid": "0e68044"
+          },
+          "author": "wilaw",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-05-13T14:21:44Z",
+          "updatedAt": "2024-05-13T14:24:29Z",
+          "comments": [
+            {
+              "originalPosition": 6,
+              "body": "Does a value of 0 mean that the object should never be cached?\r\n\r\nIf so, how does a publisher indicate that they have no suggested cache duration to convey? ",
+              "createdAt": "2024-05-13T14:21:44Z",
+              "updatedAt": "2024-05-13T14:24:29Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M56XmQ3",
+          "commit": {
+            "abbreviatedOid": "0e68044"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-05-13T15:15:23Z",
+          "updatedAt": "2024-05-13T15:15:23Z",
+          "comments": [
+            {
+              "originalPosition": 6,
+              "body": "Good question.  Possibly 0 should indicate that there is no duration.  Which presumably means one can cache for however long it makes sense?",
+              "createdAt": "2024-05-13T15:15:23Z",
+              "updatedAt": "2024-05-13T15:15:23Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M56X3Zv",
+          "commit": {
+            "abbreviatedOid": "0e68044"
+          },
+          "author": "wilaw",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-05-13T15:47:02Z",
+          "updatedAt": "2024-05-13T15:47:02Z",
+          "comments": [
+            {
+              "originalPosition": 6,
+              "body": "> Which presumably means one can cache for however long it makes sense?\r\n\r\nThere are two possible (and quite different) meanings of 0:\r\n1. Do not cache the object at all (ie a cache duration of 0 which is consistent with the interpretation of all other non-zero values\r\n2.  The publisher has no opinion, so cache for however long you want. \r\n\r\n",
+              "createdAt": "2024-05-13T15:47:02Z",
+              "updatedAt": "2024-05-13T15:47:02Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M56X6ca",
+          "commit": {
+            "abbreviatedOid": "0e68044"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-05-13T15:52:56Z",
+          "updatedAt": "2024-05-13T15:52:56Z",
+          "comments": [
+            {
+              "originalPosition": 6,
+              "body": "Thanks, and I agree.  In an ideal world, we'd make this optional and if it wasn't present, that would be case 2, but I don't see an easy way to allow for that.",
+              "createdAt": "2024-05-13T15:52:56Z",
+              "updatedAt": "2024-05-13T15:52:57Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 447,
+      "id": "PR_kwDOG2Ho4M5vRdMb",
+      "title": "Organize messages by Publisher and Subscriber",
+      "url": "https://github.com/moq-wg/moq-transport/pull/447",
+      "state": "OPEN",
+      "author": "ianswett",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [
+        "Editorial"
+      ],
+      "body": "This only moves around the text, but I could create section titles for Publisher and Subscriber messages.\r\n\r\nI can also add a column to the message type table if people would like.\r\n\r\nFixes #399 \r\nFixes #309",
+      "createdAt": "2024-05-13T14:56:21Z",
+      "updatedAt": "2024-05-13T14:59:24Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "70787894f42dc39494edbe9d49b6760afbd701c0",
+      "headRepository": "moq-wg/moq-transport",
+      "headRefName": "ianswett-pubsub",
+      "headRefOid": "e456cf2a97ff2fa29e64a110cc6a5a9109d1be3c",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": []
     }
   ]
 }
