@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2024-05-14T01:10:59.969384+00:00",
+  "timestamp": "2024-05-16T01:11:19.321679+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -15783,7 +15783,7 @@
       ],
       "body": "At some point we removed the time to live of how long obhects exist in the cache before they are removed. \r\n\r\nIt is becoming an significant implementation blocker to not have some version of this.  I would like to add some version of this back soon even if we later change the exact details of how times are calculated and represented. \r\n\r\n\r\n",
       "createdAt": "2024-04-24T14:50:21Z",
-      "updatedAt": "2024-05-08T20:00:26Z",
+      "updatedAt": "2024-05-15T15:19:28Z",
       "closedAt": null,
       "comments": [
         {
@@ -15855,6 +15855,13 @@
           "body": "That idea makes sense with Stream per Group, but I'm not sure how it applies to the other two Object encodings.",
           "createdAt": "2024-05-08T20:00:25Z",
           "updatedAt": "2024-05-08T20:00:25Z"
+        },
+        {
+          "author": "vasilvv",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I guess the general observation is that the delivery deadline mechanism should be probably mapping-specific? If you're doing stream-per-group/object, you'd want to be resetting streams, whereas with stream-per-track you don't really have that option.",
+          "createdAt": "2024-05-15T15:19:27Z",
+          "updatedAt": "2024-05-15T15:19:27Z"
         }
       ]
     },
@@ -57443,7 +57450,7 @@
       "labels": [],
       "body": "Based on discussion last week and on slack, I believe this is where the WG is heading.\r\n\r\nIt is possible this could be a per-track or per-subscription value to save bytes on the wire, particularly for the Object per Stream or Object per Datagram modes.\r\n\r\nIt's possible this value could be decreased by the cache dwell time at each hop, but I didn't hear clear consensus either way on that question.\r\n\r\nFixes #440\r\nFixes #415 ",
       "createdAt": "2024-05-13T13:46:14Z",
-      "updatedAt": "2024-05-13T15:52:56Z",
+      "updatedAt": "2024-05-15T17:07:30Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "70787894f42dc39494edbe9d49b6760afbd701c0",
@@ -57454,7 +57461,22 @@
       "mergedAt": null,
       "mergedBy": null,
       "mergeCommit": null,
-      "comments": [],
+      "comments": [
+        {
+          "author": "VMatrix1900",
+          "authorAssociation": "NONE",
+          "body": "IIUC, this field is the TTL of per hop instead of end-to-end. The content origin can set the TTL to end-to-end [deadline](https://datatracker.ietf.org/doc/draft-ma-moq-relay-for-deadline/) and each hop decrease the value then pass it to the downstream relay. Is that correct?",
+          "createdAt": "2024-05-15T03:20:44Z",
+          "updatedAt": "2024-05-15T03:20:44Z"
+        },
+        {
+          "author": "vasilvv",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I'm not sure this PR solves either of the problems we're trying to solve with the cache TTL fields.",
+          "createdAt": "2024-05-15T14:40:05Z",
+          "updatedAt": "2024-05-15T14:40:05Z"
+        }
+      ],
       "reviews": [
         {
           "id": "PRR_kwDOG2Ho4M56XB7r",
@@ -57535,6 +57557,138 @@
               "updatedAt": "2024-05-13T15:52:57Z"
             }
           ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M56cGmy",
+          "commit": {
+            "abbreviatedOid": "0e68044"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "Individual review",
+          "createdAt": "2024-05-14T03:24:45Z",
+          "updatedAt": "2024-05-14T03:24:55Z",
+          "comments": [
+            {
+              "originalPosition": 6,
+              "body": "Encode as duration + 1, and 0 means \"no opinion\"?  It's not pretty but it gets the job done.\r\n\r\nWhy SHOULD NOT send vs MUST NOT send?",
+              "createdAt": "2024-05-14T03:24:45Z",
+              "updatedAt": "2024-05-14T03:24:55Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M56dcZh",
+          "commit": {
+            "abbreviatedOid": "0e68044"
+          },
+          "author": "alvestrand",
+          "authorAssociation": "NONE",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-05-14T07:45:19Z",
+          "updatedAt": "2024-05-14T07:45:19Z",
+          "comments": [
+            {
+              "originalPosition": 6,
+              "body": "https://www.rfc-editor.org/rfc/rfc9000#section-1.3 describes an optional field encoding. Why not use it?\r\n",
+              "createdAt": "2024-05-14T07:45:19Z",
+              "updatedAt": "2024-05-14T07:45:19Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M56jPzx",
+          "commit": {
+            "abbreviatedOid": "0e68044"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-05-14T17:51:25Z",
+          "updatedAt": "2024-05-14T17:51:25Z",
+          "comments": [
+            {
+              "originalPosition": 43,
+              "body": "This doesn't allow per object cache duration for stream per group /stream per track and excepts all the objects within a stream should have same expiry. \r\n",
+              "createdAt": "2024-05-14T17:51:25Z",
+              "updatedAt": "2024-05-14T17:51:26Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M56jP3u",
+          "commit": {
+            "abbreviatedOid": "0e68044"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "This seems to be a good start and we should consider taking this forward. \r\nHowever,  I feel we need to have mechanisms to specify object duration applied to objects for multi-object transport stream mappings. \r\n\r\nMay be something like (for stream per track)\r\n```\r\nSTREAM_HEADER_TRACK Message {\r\n  Subscribe ID (i)\r\n  Track Alias (i),\r\n  Object Send Order (i),\r\n Cache Duration (i)\r\n}\r\n{\r\n  Group ID (i),\r\n  Object ID (i),\r\n  Object Payload Length (i),\r\n  [Object Status (i)],\r\n  [Cache Duration(i)],\r\n  Object Payload (..),\r\n}\r\n\r\nThe cache duration is considered iff payload_length > 0 && not available in STREAM_HEADER_TRACK message\r\n```\r\nor some better way to do so.\r\n\r\n\r\n",
+          "createdAt": "2024-05-14T17:51:34Z",
+          "updatedAt": "2024-05-14T17:57:21Z",
+          "comments": [
+            {
+              "originalPosition": 31,
+              "body": "This doesn't allow per object cache duration for stream per group /stream per track and excepts all the objects within a stream should have same expiry. ",
+              "createdAt": "2024-05-14T17:51:34Z",
+              "updatedAt": "2024-05-14T17:57:21Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M56jRAH",
+          "commit": {
+            "abbreviatedOid": "0e68044"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-05-14T17:54:13Z",
+          "updatedAt": "2024-05-14T17:59:51Z",
+          "comments": [
+            {
+              "originalPosition": 6,
+              "body": "The RFC 9000 notation just states that field *is* present sometimes and not others, but doesn't include a mechanism for a receiver to determine whether the field is present or not.  ",
+              "createdAt": "2024-05-14T17:54:13Z",
+              "updatedAt": "2024-05-14T17:59:51Z"
+            },
+            {
+              "originalPosition": 43,
+              "body": "@suhasHere : That is also how I read this.  Does your application require unique cache duration per object within a group-per-stream, and if so, can you explain the use case the drives it?",
+              "createdAt": "2024-05-14T17:57:35Z",
+              "updatedAt": "2024-05-14T17:59:51Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M56s0T-",
+          "commit": {
+            "abbreviatedOid": "0e68044"
+          },
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "I think this is good start and we should merge this. We need more things over time.  I am fine with 0 and 1 being special values for don't care , and don't cache. \r\n",
+          "createdAt": "2024-05-15T17:02:05Z",
+          "updatedAt": "2024-05-15T17:02:05Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M56s2t9",
+          "commit": {
+            "abbreviatedOid": "0e68044"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "LGTM",
+          "createdAt": "2024-05-15T17:07:30Z",
+          "updatedAt": "2024-05-15T17:07:30Z",
+          "comments": []
         }
       ]
     },
@@ -57552,7 +57706,7 @@
       ],
       "body": "This only moves around the text, but I could create section titles for Publisher and Subscriber messages.\r\n\r\nI can also add a column to the message type table if people would like.\r\n\r\nFixes #399 \r\nFixes #309",
       "createdAt": "2024-05-13T14:56:21Z",
-      "updatedAt": "2024-05-13T14:59:24Z",
+      "updatedAt": "2024-05-15T16:25:41Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "70787894f42dc39494edbe9d49b6760afbd701c0",
@@ -57564,7 +57718,21 @@
       "mergedBy": null,
       "mergeCommit": null,
       "comments": [],
-      "reviews": []
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M56sjhW",
+          "commit": {
+            "abbreviatedOid": "e456cf2"
+          },
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "LGTM",
+          "createdAt": "2024-05-15T16:25:41Z",
+          "updatedAt": "2024-05-15T16:25:41Z",
+          "comments": []
+        }
+      ]
     }
   ]
 }
