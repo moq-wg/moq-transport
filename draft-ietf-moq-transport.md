@@ -1402,7 +1402,9 @@ SUBSCRIBE_OK
   Expires (i),
   ContentExists (f),
   [Largest Group ID (i)],
-  [Largest Object ID (i)]
+  [Largest Object ID (i)],
+  Number of Subscription Parameters (i),
+  Subscription Parameters (..) ...
 }
 ~~~
 {: #moq-transport-subscribe-ok format title="MOQT SUBSCRIBE_OK Message"}
@@ -1423,6 +1425,26 @@ present.
 * Largest Object ID: the largest Object ID available within the largest Group ID
 for this track. This field is only present if ContentExists has a value of 1.
 
+* Subscription Parameters: optional key-value pairs formatted as described in {{params}}.
+
+### Subscription Paramteres  {#subscription-parameters}
+
+SUBSCRIBE_OK may contain zero or more parameters describing either the
+properties of the track, or the properties of an individual subscription.
+
+The following properties are defined in this document:
+
+* AVAILABILITY_LIMIT_ABSOLUTE: an integer expressing an absolute time in the
+  number of seconds since 1970-01-01T00:00Z in UTC.  If present, the relay MUST
+  NOT start forwarding any objects received through this subscription after the
+  time point specified by this parameter is in the past.
+* AVAILABILITY_LIMIT_RELATIVE: an integer expressing a number of seconds.  If
+  present, the relay MUST NOT start forwarding any individual object received
+  through this subscription after the specified number of seconds has elapsed
+  since the object in question has been fully received.
+
+If both AVAILABILITY_LIMIT_ABSOLUTE and AVAILABILITY_LIMIT_RELATIVE are
+specified, both of those limitations apply.
 
 ## SUBSCRIBE_ERROR {#message-subscribe-error}
 
