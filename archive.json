@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2024-05-16T01:11:19.321679+00:00",
+  "timestamp": "2024-05-19T01:15:59.755936+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -15783,7 +15783,7 @@
       ],
       "body": "At some point we removed the time to live of how long obhects exist in the cache before they are removed. \r\n\r\nIt is becoming an significant implementation blocker to not have some version of this.  I would like to add some version of this back soon even if we later change the exact details of how times are calculated and represented. \r\n\r\n\r\n",
       "createdAt": "2024-04-24T14:50:21Z",
-      "updatedAt": "2024-05-15T15:19:28Z",
+      "updatedAt": "2024-05-16T18:39:28Z",
       "closedAt": null,
       "comments": [
         {
@@ -15862,6 +15862,13 @@
           "body": "I guess the general observation is that the delivery deadline mechanism should be probably mapping-specific? If you're doing stream-per-group/object, you'd want to be resetting streams, whereas with stream-per-track you don't really have that option.",
           "createdAt": "2024-05-15T15:19:27Z",
           "updatedAt": "2024-05-15T15:19:27Z"
+        },
+        {
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I feel making cache duration as timeline based delivery deadline is somewhat confusing. Should I, as publisher , need a given object beyond a certain point in time to be stored in my relay network, in order to meet my application requirements ,  is one way of thinking about it. This makes is independent of transport mapping or mechanisms.  \r\n\r\n",
+          "createdAt": "2024-05-16T18:39:27Z",
+          "updatedAt": "2024-05-16T18:39:27Z"
         }
       ]
     },
@@ -15905,7 +15912,7 @@
       ],
       "body": "#429 introduced the Status field for Objects, which can have a value that signals the end of a group (0x3). \r\n\r\nThe draft states:\r\n\r\n> This is sent right after the last object in the group. \r\n\r\nI read this to mean that whenever a publisher publishes the last object in a group, it also publishes the end-of-group marker (eg: it is mandatory).   However, it seems like this might create high overhead - eg in an audio only track where every sample is its own group.\r\n\r\nFor a fanout relay handling group-per-stream tracks, the end of group marker is a signal that it can close the downstream streams.  Yes, the relay needs a timeout as well, to catch malicious or buggy producers, but I'd prefer that be the rare, and proactively clean up the state since it could be quite large.\r\n\r\nThe other modes seem less critical for a relay, I think? However, I worry about interoperability between producers and consumers if we don't make it required in other stream modes.  That could be part of a streaming format specification rather than the core transport.\r\n\r\nGiven that datagrams are inherently unreliable, I don't know that we need to mandate end-of-group markers there.",
       "createdAt": "2024-04-28T16:33:53Z",
-      "updatedAt": "2024-04-29T22:14:01Z",
+      "updatedAt": "2024-05-16T18:23:55Z",
       "closedAt": null,
       "comments": [
         {
@@ -15914,6 +15921,34 @@
           "body": "I think the cleanest option is to require them and make them mandatory, unless something like an OBJECTS_DROPPED message is sent.  We can make the wire encoding very efficient as long as the producer knows that an Object is the final Object in a group when it's published.\r\n\r\nI think end of track is equally important, but there are no efficiency concerns there.",
           "createdAt": "2024-04-29T22:14:01Z",
           "updatedAt": "2024-04-29T22:14:01Z"
+        },
+        {
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "I don't think even know what saying they are mandatory would even mean at the  transport level.  Can a producer wait forever before sending the end of group ? Can anyone else rely on receiving the end of group with a given window ? what would break if not sent.  \r\n\r\nI do see how a something like loc or warp would say how they have to be used but transport seems like the wrong level to say if they are used or not.   If sending end of group increase the bandwidth of low bit rate audio by a non trivial amount, then I dont think they will be used in cases where the applications know that there is only one audio packet per group. ",
+          "createdAt": "2024-05-16T14:28:14Z",
+          "updatedAt": "2024-05-16T14:28:14Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Individual Comment:\r\n\r\n> I don't think even know what saying they are mandatory would even mean at the transport level. Can a producer wait forever before sending the end of group ? Can anyone else rely on receiving the end of group with a given window ? what would break if not sent.\r\n\r\nSee the original post:\r\n\r\n> For a fanout relay handling group-per-stream tracks, the end of group marker is a signal that it can close the downstream streams. Yes, the relay needs a timeout as well, to catch malicious or buggy producers, but I'd prefer that be the rare, and proactively clean up the state since it could be quite large.\r\n\r\nCould we have \"publishers SHOULD send end-of-group markers when using group-per-stream\", with text explaining why this is helpful for relay state management? \r\n\r\nI'm assuming audio is datagrams so it's not impacted.  Knowing the end of group in stream-per-track is obvious (the group number changes).  In stream-per-object it might be useful to the receiver but I'm not sure it's critical at the relay right now, though a use case may emerge as we move forward.\r\n\r\n",
+          "createdAt": "2024-05-16T15:53:55Z",
+          "updatedAt": "2024-05-16T15:53:55Z"
+        },
+        {
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "I guess the part I am missing is what does the relay do with this information and how it is useful. \r\n",
+          "createdAt": "2024-05-16T16:53:49Z",
+          "updatedAt": "2024-05-16T16:53:49Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> I guess the part I am missing is what does the relay do with this information and how it is useful.\r\n\r\nAssume a fan-out relay with one publishing track fanning out to 1 million subscribers.\r\n\r\npublisher opens a stream for group 0, sends objects 0\r\nrelay opens a stream for each of 1 million downstream subscribers and pushes object 0\r\npublisher sends a FIN for its group stream\r\n\r\nShould the relay close the 1 million downstream streams now?\r\n\r\nIf the publisher sends the end-of-group marker, it is explicit that the relay can close these streams immediately (there is also a timer-based cleanup path for publisher crashes etc).  I don't think we should infer end-of-group from QUIC FIN - I imagine there may be some high availability scenarios where a redundant publisher could take over, and hence prefer an explicit signal. I doubt the overhead of the end-of-group marker will make a difference in this scenario -- it's a handful of bytes that will either go in the packet with the final object or the packet that had the FIN.",
+          "createdAt": "2024-05-16T18:23:53Z",
+          "updatedAt": "2024-05-16T18:23:53Z"
         }
       ]
     }
