@@ -1402,7 +1402,8 @@ SUBSCRIBE_OK
   Expires (i),
   ContentExists (f),
   [Largest Group ID (i)],
-  [Largest Object ID (i)]
+  [Largest Object ID (i)],
+  Delivery Timeout (i)
 }
 ~~~
 {: #moq-transport-subscribe-ok format title="MOQT SUBSCRIBE_OK Message"}
@@ -1422,6 +1423,27 @@ present.
 
 * Largest Object ID: the largest Object ID available within the largest Group ID
 for this track. This field is only present if ContentExists has a value of 1.
+
+* Delivery Timeout: a number of milliseconds indicating the duration for which
+  a relay should attempt forwarding objects, or zero to indicate that no such
+  time limit is provided.  The specific semantics of this field depend on the
+  forwarding preference ({{object-message-formats}}) used by the objects on the
+  track in question:
+
+    - If the Object Forwarding Preference is `Datagram`, once the specified
+      number of milliseconds has passed since the datagram was received via
+      this subscription, the relay SHOULD NOT forward that datagram.
+    - If the Object Forwarding Preference is `Object`, once the specified
+      number of milliseconds has passed since the object was fully received via
+      this subscription, the relay SHOULD NOT open new streams for the object
+      in question, and SHOULD reset all existing streams if those have been
+      already opened.
+    - If the Object Forwarding Preference is `Group`, once the specified number
+      of milliseconds has passed since the final object of the group was fully
+      received via this subscription, the relay SHOULD NOT open new streams for
+      the group in question, and SHOULD reset all existing streams if those
+      have been already opened.
+    - If the Object Forwarding Preference is `Track`, the timeout MUST be zero.
 
 
 ## SUBSCRIBE_ERROR {#message-subscribe-error}
