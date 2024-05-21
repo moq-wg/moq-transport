@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2024-05-19T01:15:59.755936+00:00",
+  "timestamp": "2024-05-21T01:11:18.288491+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -57766,6 +57766,120 @@
           "createdAt": "2024-05-15T16:25:41Z",
           "updatedAt": "2024-05-15T16:25:41Z",
           "comments": []
+        }
+      ]
+    },
+    {
+      "number": 448,
+      "id": "PR_kwDOG2Ho4M5v-Crb",
+      "title": "Add availability limits to MoQ subscriptions",
+      "url": "https://github.com/moq-wg/moq-transport/pull/448",
+      "state": "OPEN",
+      "author": "vasilvv",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Those are long-term limits on how long a relay can keep serving objects from cache, primarily meant to be used to enforce content-related policies, rather than be used as a technical measure for optimizing delivery.",
+      "createdAt": "2024-05-20T14:52:21Z",
+      "updatedAt": "2024-05-20T15:44:51Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "70787894f42dc39494edbe9d49b6760afbd701c0",
+      "headRepository": "vasilvv/warp-draft",
+      "headRefName": "availability",
+      "headRefOid": "7643d4453bf21392c94a0fcb53d439dd96ea205a",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M57LCnP",
+          "commit": {
+            "abbreviatedOid": "7643d44"
+          },
+          "author": "wilaw",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-05-20T15:40:08Z",
+          "updatedAt": "2024-05-20T15:44:51Z",
+          "comments": [
+            {
+              "originalPosition": 24,
+              "body": "This AVAILABILITY_LIMIT_ABSOLUTE is the same time for the whole subscription. What about the following use-cases:\r\n\r\n1. A 24x7 live linear stream, in which the broadcaster wants users to have access to the last 24 hrs?\r\n2. A sports game in which the allowed DVR window is 2 hrs. behind the live head?\r\n\r\nIn both these cases, the AVAILABILITY_LIMIT_ABSOLUTE varies depending on when the GROUP or OBJECT is published and is not a fixed property of the subscription. \r\n\r\nAVAILABILITY_LIMIT_RELATIVE can be a property of the subscription. I'd suggest leaving that in the PR and then moving the AVAILABILITY_LIMIT_ABSOLUTE to an Object (Group) property. It can be efficiently communicated via our Stream header if it is the same for all objects within a Group. ",
+              "createdAt": "2024-05-20T15:40:09Z",
+              "updatedAt": "2024-05-20T15:44:51Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 449,
+      "id": "PR_kwDOG2Ho4M5v-I4X",
+      "title": "Add delivery timeouts",
+      "url": "https://github.com/moq-wg/moq-transport/pull/449",
+      "state": "OPEN",
+      "author": "vasilvv",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "The timeouts in this PR are defined to to ensure that the invariant properties implied by the object delivery preference are maintained, e.g. if stream-per-group is used, it is impossible to accidentally timeout an object in the middle of the group.\r\n\r\nFixes #440",
+      "createdAt": "2024-05-20T15:06:37Z",
+      "updatedAt": "2024-05-20T23:52:26Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "70787894f42dc39494edbe9d49b6760afbd701c0",
+      "headRepository": "vasilvv/warp-draft",
+      "headRefName": "timeout",
+      "headRefOid": "6c125aee8a0d4a2c831bf074401cfa3e5556a7ce",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M57LlKb",
+          "commit": {
+            "abbreviatedOid": "6c125ae"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-05-20T17:04:19Z",
+          "updatedAt": "2024-05-20T17:04:19Z",
+          "comments": [
+            {
+              "originalPosition": 18,
+              "body": "clarification question:\r\nSince the `Delivery Timeout` is in the SubscribeOK, how does the relay expected to know it's value ? ",
+              "createdAt": "2024-05-20T17:04:19Z",
+              "updatedAt": "2024-05-20T17:04:19Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M57N2JS",
+          "commit": {
+            "abbreviatedOid": "6c125ae"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "Individual Comment",
+          "createdAt": "2024-05-20T23:52:17Z",
+          "updatedAt": "2024-05-20T23:52:26Z",
+          "comments": [
+            {
+              "originalPosition": 18,
+              "body": "Assuming the objects the relay has to serve were delivered to it via moq subscriptions, it can cache and use the value it received when it performed the upstream subscription.  This will work if the value is immutable per track.\r\n\r\nThere's a corner case here, where the relay receives an object from upstream before the upstream Subscribe OK.  There's no way to know if the object has passed its delivery timeout.  It's probably ok to assume the object is valid to deliver in this case.",
+              "createdAt": "2024-05-20T23:52:17Z",
+              "updatedAt": "2024-05-20T23:52:26Z"
+            }
+          ]
         }
       ]
     }
