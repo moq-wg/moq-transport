@@ -1400,6 +1400,7 @@ SUBSCRIBE_OK
 {
   Subscribe ID (i),
   Expires (i),
+  Max Cache Duration (i),
   ContentExists (f),
   [Largest Group ID (i)],
   [Largest Object ID (i)]
@@ -1414,11 +1415,19 @@ longer valid. A value of 0 indicates that the subscription does not expire
 or expires at an unknown time.  Expires is advisory and a subscription can
 end prior to the expiry time or last longer.
 
+* Max Cache Duration: The maximum length of time in milliseconds a caching
+relay MAY cache the subscription for.  A value of 0 indicates there is no limit.
+The relay MUST NOT begin sending Objects for a new subscription from cache if
+it's older than Max Cache Duration. When a relay responds with SUBSCRIBE_OK,
+the amount of time since the corresponding upstream subscription was made is
+subtracted when sending the Max Cache Duration.
+
 * ContentExists: 1 if an object has been published on this track, 0 if not.
 If 0, then the Largest Group ID and Largest Object ID fields will not be
 present.
 
-* Largest Group ID: the largest Group ID available for this track. This field is only present if ContentExists has a value of 1.
+* Largest Group ID: the largest Group ID available for this track. This field is
+only present if ContentExists has a value of 1.
 
 * Largest Object ID: the largest Object ID available within the largest Group ID
 for this track. This field is only present if ContentExists has a value of 1.
