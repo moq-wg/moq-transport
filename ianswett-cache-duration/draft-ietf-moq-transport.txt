@@ -1060,7 +1060,8 @@ Table of Contents
       NOT begin sending the Object if it has resided in the cache for
       longer than that time interval.  When sending an Object, the
       amount of time the Object spent in cache is deducted from the Max
-      Cache Duration value before the Object is sent.
+      Cache Duration value before the Object is sent.  Exceeding the
+      duration does not cause a change in the 'Object Status'.
 
    *  Object Status: As enumeration used to indicate missing objects or
       mark the end of a group or track.  See Section 6.3.1.1 below.

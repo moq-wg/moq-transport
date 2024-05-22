@@ -2617,7 +2617,8 @@ relay <span class="bcp14">MAY</span> cache an Object for.  A value of 0 indicate
 how long to cache the Object. The relay <span class="bcp14">MUST NOT</span> begin sending the Object if it
 has resided in the cache for longer than that time interval. When sending an
 Object, the amount of time the Object spent in cache is deducted from the
-Max Cache Duration value before the Object is sent.<a href="#section-6.3.1-2.6.1" class="pilcrow">¶</a></p>
+Max Cache Duration value before the Object is sent. Exceeding the duration
+does not cause a change in the 'Object Status'.<a href="#section-6.3.1-2.6.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-6.3.1-2.7">
               <p id="section-6.3.1-2.7.1">Object Status: As enumeration used to indicate missing
