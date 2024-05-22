@@ -2612,10 +2612,12 @@ object. The preferences are Track, Group, Object and Datagram.  An Object <span 
 be sent according to its <code>Object Forwarding Preference</code>, described below.<a href="#section-6.3.1-2.5.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-6.3.1-2.6">
-              <p id="section-6.3.1-2.6.1">Cache Duration: The length of time in milliseconds a caching relay <span class="bcp14">SHOULD</span>
-cache an Object for.  A value of 0 indicates the relay should decide how
-long to cache the Object. The relay <span class="bcp14">SHOULD NOT</span> begin sending the Object if it
-has resided in the cache for longer than that time interval.<a href="#section-6.3.1-2.6.1" class="pilcrow">¶</a></p>
+              <p id="section-6.3.1-2.6.1">Max Cache Duration: The maximum length of time in milliseconds a caching
+relay <span class="bcp14">MAY</span> cache an Object for.  A value of 0 indicates the relay should decide
+how long to cache the Object. The relay <span class="bcp14">MUST NOT</span> begin sending the Object if it
+has resided in the cache for longer than that time interval. When sending an
+Object, the amount of time the Object spent in cache is deducted from the
+Max Cache Duration value before the Object is sent.<a href="#section-6.3.1-2.6.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-6.3.1-2.7">
               <p id="section-6.3.1-2.7.1">Object Status: As enumeration used to indicate missing
@@ -2705,7 +2707,7 @@ OBJECT_STREAM Message {
   Group ID (i),
   Object ID (i),
   Object Send Order (i),
-  Cache Duration (i),
+  Max Cache Duration (i),
   Object Status (i),
   Object Payload (..),
 }
@@ -2752,7 +2754,7 @@ OBJECT_DATAGRAM Message {
   Group ID (i),
   Object ID (i),
   Object Send Order (i),
-  Cache Duration (i),
+  Max Cache Duration (i),
   Object Status (i),
   Object Payload (..),
 }
@@ -2789,7 +2791,7 @@ STREAM_HEADER_TRACK Message {
   Subscribe ID (i)
   Track Alias (i),
   Object Send Order (i),
-  Cache Duration (i),
+  Max Cache Duration (i),
 }
 </pre>
 </div>
@@ -2837,7 +2839,7 @@ STREAM_HEADER_GROUP Message {
   Track Alias (i),
   Group ID (i),
   Object Send Order (i),
-  Cache Duration (i),
+  Max Cache Duration (i),
 }
 </pre>
 </div>
@@ -2884,7 +2886,7 @@ STREAM_HEADER_TRACK {
   Subscribe ID = 1
   Track Alias = 1
   Object Send Order = 0
-  Cache Duration = 1000
+  Max Cache Duration = 1000
 }
 {
   Group ID = 0
@@ -2911,7 +2913,7 @@ STREAM_HEADER_GROUP {
   Track Alias = 2
   Group ID = 0
   Object Send Order = 0
-  Cache Duration = 1000
+  Max Cache Duration = 1000
 }
 {
   Object ID = 0
@@ -2932,7 +2934,7 @@ OBJECT_STREAM {
   Group ID = 0
   Object ID = 1
   Object Send Order = 0
-  Cache Duration = 1000
+  Max Cache Duration = 1000
   Payload = "moqrocks"
 }
 </pre><a href="#section-6.3.4-4" class="pilcrow">¶</a>

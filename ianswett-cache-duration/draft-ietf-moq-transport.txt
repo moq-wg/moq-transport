@@ -1054,11 +1054,13 @@ Table of Contents
       and Datagram.  An Object MUST be sent according to its Object
       Forwarding Preference, described below.
 
-   *  Cache Duration: The length of time in milliseconds a caching relay
-      SHOULD cache an Object for.  A value of 0 indicates the relay
-      should decide how long to cache the Object.  The relay SHOULD NOT
-      begin sending the Object if it has resided in the cache for longer
-      than that time interval.
+   *  Max Cache Duration: The maximum length of time in milliseconds a
+      caching relay MAY cache an Object for.  A value of 0 indicates the
+      relay should decide how long to cache the Object.  The relay MUST
+      NOT begin sending the Object if it has resided in the cache for
+      longer than that time interval.  When sending an Object, the
+      amount of time the Object spent in cache is deducted from the Max
+      Cache Duration value before the Object is sent.
 
    *  Object Status: As enumeration used to indicate missing objects or
       mark the end of a group or track.  See Section 6.3.1.1 below.
@@ -1138,7 +1140,7 @@ Table of Contents
      Group ID (i),
      Object ID (i),
      Object Send Order (i),
-     Cache Duration (i),
+     Max Cache Duration (i),
      Object Status (i),
      Object Payload (..),
    }
@@ -1176,7 +1178,7 @@ Table of Contents
      Group ID (i),
      Object ID (i),
      Object Send Order (i),
-     Cache Duration (i),
+     Max Cache Duration (i),
      Object Status (i),
      Object Payload (..),
    }
@@ -1207,7 +1209,7 @@ Table of Contents
      Subscribe ID (i)
      Track Alias (i),
      Object Send Order (i),
-     Cache Duration (i),
+     Max Cache Duration (i),
    }
 
                  Figure 6: MOQT STREAM_HEADER_TRACK Message
@@ -1249,7 +1251,7 @@ Table of Contents
      Track Alias (i),
      Group ID (i),
      Object Send Order (i),
-     Cache Duration (i),
+     Max Cache Duration (i),
    }
 
                  Figure 8: MOQT STREAM_HEADER_GROUP Message
@@ -1283,7 +1285,7 @@ Table of Contents
      Subscribe ID = 1
      Track Alias = 1
      Object Send Order = 0
-     Cache Duration = 1000
+     Max Cache Duration = 1000
    }
    {
      Group ID = 0
@@ -1308,7 +1310,7 @@ Table of Contents
      Track Alias = 2
      Group ID = 0
      Object Send Order = 0
-     Cache Duration = 1000
+     Max Cache Duration = 1000
    }
    {
      Object ID = 0
@@ -1329,7 +1331,7 @@ Table of Contents
      Group ID = 0
      Object ID = 1
      Object Send Order = 0
-     Cache Duration = 1000
+     Max Cache Duration = 1000
      Payload = "moqrocks"
    }
 
