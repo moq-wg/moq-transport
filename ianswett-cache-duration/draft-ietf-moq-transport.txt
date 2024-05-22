@@ -5,13 +5,13 @@
 MOQ                                                            L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 14 November 2024                                           Meta
+Expires: 23 November 2024                                           Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                             13 May 2024
+                                                             22 May 2024
 
 
                        Media over QUIC Transport
@@ -53,7 +53,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 14 November 2024.
+   This Internet-Draft will expire on 23 November 2024.
 
 Copyright Notice
 
@@ -1055,9 +1055,10 @@ Table of Contents
       Forwarding Preference, described below.
 
    *  Cache Duration: The length of time in milliseconds a caching relay
-      SHOULD cache an Object for.  The relay SHOULD NOT begin sending
-      the Object if it has resided in the cache for longer than that
-      time interval.
+      SHOULD cache an Object for.  A value of 0 indicates the relay
+      should decide how long to cache the Object.  The relay SHOULD NOT
+      begin sending the Object if it has resided in the cache for longer
+      than that time interval.
 
    *  Object Status: As enumeration used to indicate missing objects or
       mark the end of a group or track.  See Section 6.3.1.1 below.
