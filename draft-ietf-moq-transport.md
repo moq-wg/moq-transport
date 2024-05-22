@@ -983,7 +983,8 @@ object. The preferences are Track, Group, Object and Datagram.  An Object MUST
 be sent according to its `Object Forwarding Preference`, described below.
 
 * Cache Duration: The length of time in milliseconds a caching relay SHOULD
-cache an Object for.  The relay SHOULD NOT begin sending the Object if it
+cache an Object for.  A value of 0 indicates the relay should decide how
+long to cache the Object. The relay SHOULD NOT begin sending the Object if it
 has resided in the cache for longer than that time interval.
 
 * Object Status: As enumeration used to indicate missing
