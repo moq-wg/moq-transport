@@ -987,7 +987,8 @@ relay MAY cache an Object for.  A value of 0 indicates the relay should decide
 how long to cache the Object. The relay MUST NOT begin sending the Object if it
 has resided in the cache for longer than that time interval. When sending an
 Object, the amount of time the Object spent in cache is deducted from the
-Max Cache Duration value before the Object is sent.
+Max Cache Duration value before the Object is sent. Exceeding the duration
+does not cause a change in the 'Object Status'.
 
 * Object Status: As enumeration used to indicate missing
 objects or mark the end of a group or track. See {{object-status}} below.
