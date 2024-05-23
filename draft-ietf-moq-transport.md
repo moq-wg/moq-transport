@@ -982,7 +982,7 @@ group.
 object. The preferences are Track, Group, Object and Datagram.  An Object MUST
 be sent according to its `Object Forwarding Preference`, described below.
 
-* Max Cache Duration: The maximum length of time in milliseconds a caching
+* Max Cache Duration: The maximum length of time in seconds a caching
 relay MAY cache an Object for.  A value of 0 indicates the relay should decide
 how long to cache the Object. The relay MUST NOT begin sending the Object if it
 has resided in the cache for longer than that time interval. When sending an
