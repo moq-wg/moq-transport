@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2024-05-21T01:11:18.288491+00:00",
+  "timestamp": "2024-05-23T01:11:16.047632+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -15783,7 +15783,7 @@
       ],
       "body": "At some point we removed the time to live of how long obhects exist in the cache before they are removed. \r\n\r\nIt is becoming an significant implementation blocker to not have some version of this.  I would like to add some version of this back soon even if we later change the exact details of how times are calculated and represented. \r\n\r\n\r\n",
       "createdAt": "2024-04-24T14:50:21Z",
-      "updatedAt": "2024-05-16T18:39:28Z",
+      "updatedAt": "2024-05-21T21:29:02Z",
       "closedAt": null,
       "comments": [
         {
@@ -15869,6 +15869,13 @@
           "body": "I feel making cache duration as timeline based delivery deadline is somewhat confusing. Should I, as publisher , need a given object beyond a certain point in time to be stored in my relay network, in order to meet my application requirements ,  is one way of thinking about it. This makes is independent of transport mapping or mechanisms.  \r\n\r\n",
           "createdAt": "2024-05-16T18:39:27Z",
           "updatedAt": "2024-05-16T18:39:27Z"
+        },
+        {
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "> I guess the general observation is that the delivery deadline mechanism should be probably mapping-specific? If you're doing stream-per-group/object, you'd want to be resetting streams, whereas with stream-per-track you don't really have that option.\r\n\r\nI think once we get the basic mechanism down, then we need to look at if / how interacts with stream reset",
+          "createdAt": "2024-05-21T21:29:01Z",
+          "updatedAt": "2024-05-21T21:29:01Z"
         }
       ]
     },
@@ -15912,7 +15919,7 @@
       ],
       "body": "#429 introduced the Status field for Objects, which can have a value that signals the end of a group (0x3). \r\n\r\nThe draft states:\r\n\r\n> This is sent right after the last object in the group. \r\n\r\nI read this to mean that whenever a publisher publishes the last object in a group, it also publishes the end-of-group marker (eg: it is mandatory).   However, it seems like this might create high overhead - eg in an audio only track where every sample is its own group.\r\n\r\nFor a fanout relay handling group-per-stream tracks, the end of group marker is a signal that it can close the downstream streams.  Yes, the relay needs a timeout as well, to catch malicious or buggy producers, but I'd prefer that be the rare, and proactively clean up the state since it could be quite large.\r\n\r\nThe other modes seem less critical for a relay, I think? However, I worry about interoperability between producers and consumers if we don't make it required in other stream modes.  That could be part of a streaming format specification rather than the core transport.\r\n\r\nGiven that datagrams are inherently unreliable, I don't know that we need to mandate end-of-group markers there.",
       "createdAt": "2024-04-28T16:33:53Z",
-      "updatedAt": "2024-05-16T18:23:55Z",
+      "updatedAt": "2024-05-21T21:35:52Z",
       "closedAt": null,
       "comments": [
         {
@@ -15949,6 +15956,13 @@
           "body": "> I guess the part I am missing is what does the relay do with this information and how it is useful.\r\n\r\nAssume a fan-out relay with one publishing track fanning out to 1 million subscribers.\r\n\r\npublisher opens a stream for group 0, sends objects 0\r\nrelay opens a stream for each of 1 million downstream subscribers and pushes object 0\r\npublisher sends a FIN for its group stream\r\n\r\nShould the relay close the 1 million downstream streams now?\r\n\r\nIf the publisher sends the end-of-group marker, it is explicit that the relay can close these streams immediately (there is also a timer-based cleanup path for publisher crashes etc).  I don't think we should infer end-of-group from QUIC FIN - I imagine there may be some high availability scenarios where a redundant publisher could take over, and hence prefer an explicit signal. I doubt the overhead of the end-of-group marker will make a difference in this scenario -- it's a handful of bytes that will either go in the packet with the final object or the packet that had the FIN.",
           "createdAt": "2024-05-16T18:23:53Z",
           "updatedAt": "2024-05-16T18:23:53Z"
+        },
+        {
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "Just want to say that I find Alan's point above really convincing. However, this does make me want to have a very low bandwidth impact way to solve this.  I also am wondering if better way of managing streams is just close ones that have not been used recently. I think we need some more thought on how relays close streams. ",
+          "createdAt": "2024-05-21T21:35:50Z",
+          "updatedAt": "2024-05-21T21:35:50Z"
         }
       ]
     }
@@ -57485,13 +57499,13 @@
       "labels": [],
       "body": "Based on discussion last week and on slack, I believe this is where the WG is heading.\r\n\r\nIt is possible this could be a per-track or per-subscription value to save bytes on the wire, particularly for the Object per Stream or Object per Datagram modes.\r\n\r\nIt's possible this value could be decreased by the cache dwell time at each hop, but I didn't hear clear consensus either way on that question.\r\n\r\nFixes #440\r\nFixes #415 ",
       "createdAt": "2024-05-13T13:46:14Z",
-      "updatedAt": "2024-05-15T17:07:30Z",
+      "updatedAt": "2024-05-22T18:06:30Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "70787894f42dc39494edbe9d49b6760afbd701c0",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "ianswett-cache-duration",
-      "headRefOid": "0e68044547a5805356dbea0847e7c38c58eb0c01",
+      "headRefOid": "21a14d1b9df31d057e170b6f90606dea7bb01f3d",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -57724,6 +57738,92 @@
           "createdAt": "2024-05-15T17:07:30Z",
           "updatedAt": "2024-05-15T17:07:30Z",
           "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M57ZCm0",
+          "commit": {
+            "abbreviatedOid": "0e68044"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-05-22T06:00:18Z",
+          "updatedAt": "2024-05-22T06:00:18Z",
+          "comments": [
+            {
+              "originalPosition": 43,
+              "body": "@afrind  I feel object property and stream mapping are being mixed . Object property like duration is application scoped property that indicates how long a object can be cached. Stream mapping OTOH is transport mechanism. An application want an object to expire from the cache the same way regardless of the stream mapping being used.\r\n\r\n ",
+              "createdAt": "2024-05-22T06:00:18Z",
+              "updatedAt": "2024-05-22T06:07:14Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M57ejyt",
+          "commit": {
+            "abbreviatedOid": "0e68044"
+          },
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-05-22T15:20:38Z",
+          "updatedAt": "2024-05-22T15:30:58Z",
+          "comments": [
+            {
+              "originalPosition": 43,
+              "body": "> This doesn't allow per object cache duration for stream per group /stream per track and excepts all the objects within a stream should have same expiry.\r\n\r\nThat's absolutely the point. The ability to introduce gaps in a QUIC stream is counterproductive, and the application is explicitly trying to use a QUIC stream to avoid these gaps.",
+              "createdAt": "2024-05-22T15:27:54Z",
+              "updatedAt": "2024-05-22T15:30:58Z"
+            },
+            {
+              "originalPosition": 43,
+              "body": "> I feel object property and stream mapping are being mixed\r\n\r\nI agree, the object model and stream mapping are in direct conflict and it needs to be fixed. The entire point of the stream mapping is to inherit the properties of QUIC streams, but that's pointless if the object model vetoes it.",
+              "createdAt": "2024-05-22T15:29:46Z",
+              "updatedAt": "2024-05-22T15:30:58Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M57e0P1",
+          "commit": {
+            "abbreviatedOid": "0e68044"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-05-22T15:48:05Z",
+          "updatedAt": "2024-05-22T15:48:05Z",
+          "comments": [
+            {
+              "originalPosition": 43,
+              "body": "I think the goal of the stream mapping is to efficiently provide the transport features the application needs.  In some cases, HoL blocking is a feature, and sometimes it's a bug/negative for example.",
+              "createdAt": "2024-05-22T15:48:05Z",
+              "updatedAt": "2024-05-22T15:48:05Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M57ffGz",
+          "commit": {
+            "abbreviatedOid": "0e68044"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-05-22T17:01:02Z",
+          "updatedAt": "2024-05-22T17:01:02Z",
+          "comments": [
+            {
+              "originalPosition": 43,
+              "body": "+1 to what @ianswett said",
+              "createdAt": "2024-05-22T17:01:02Z",
+              "updatedAt": "2024-05-22T17:01:02Z"
+            }
+          ]
         }
       ]
     },
@@ -57781,7 +57881,7 @@
       "labels": [],
       "body": "Those are long-term limits on how long a relay can keep serving objects from cache, primarily meant to be used to enforce content-related policies, rather than be used as a technical measure for optimizing delivery.",
       "createdAt": "2024-05-20T14:52:21Z",
-      "updatedAt": "2024-05-20T15:44:51Z",
+      "updatedAt": "2024-05-22T15:17:28Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "70787894f42dc39494edbe9d49b6760afbd701c0",
@@ -57813,6 +57913,185 @@
               "updatedAt": "2024-05-20T15:44:51Z"
             }
           ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M57XErj",
+          "commit": {
+            "abbreviatedOid": "7643d44"
+          },
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "CHANGES_REQUESTED",
+          "body": "As a side note, I think do need an extension machoism such as the one you propose here and I hope you might make a PR with something like this for all the extension points. \r\n",
+          "createdAt": "2024-05-21T21:20:41Z",
+          "updatedAt": "2024-05-21T21:44:34Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M57XFd6",
+          "commit": {
+            "abbreviatedOid": "7643d44"
+          },
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-05-21T21:23:18Z",
+          "updatedAt": "2024-05-21T21:23:19Z",
+          "comments": [
+            {
+              "originalPosition": 24,
+              "body": "I can see how it make sense to have both a relative and absolute time limits in much the way you have desired here but for reasons I listed in the other PR. I do not think they can be an subscriber attributes. \r\n\r\nThe specific use case Will brought forward required it to be be publisher based not subscriber. ",
+              "createdAt": "2024-05-21T21:23:18Z",
+              "updatedAt": "2024-05-21T21:23:19Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M57XFl7",
+          "commit": {
+            "abbreviatedOid": "7643d44"
+          },
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-05-21T21:23:44Z",
+          "updatedAt": "2024-05-21T21:23:44Z",
+          "comments": [
+            {
+              "originalPosition": 28,
+              "body": "I think relative would need to be in mili seconds not seconds. ",
+              "createdAt": "2024-05-21T21:23:44Z",
+              "updatedAt": "2024-05-21T21:23:44Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M57XHhS",
+          "commit": {
+            "abbreviatedOid": "7643d44"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-05-21T21:30:22Z",
+          "updatedAt": "2024-05-21T21:30:22Z",
+          "comments": [
+            {
+              "originalPosition": 24,
+              "body": "@fluffy : the properties in the PR are transmitted by the publisher in the SUBSCRIBE OK, so I read them as being set by the publisher.",
+              "createdAt": "2024-05-21T21:30:22Z",
+              "updatedAt": "2024-05-21T21:30:22Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M57XKp8",
+          "commit": {
+            "abbreviatedOid": "7643d44"
+          },
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-05-21T21:40:47Z",
+          "updatedAt": "2024-05-21T21:40:47Z",
+          "comments": [
+            {
+              "originalPosition": 24,
+              "body": "oh, crap , you are right. I was reading on github and without all the file context and thought they were on the subscribe message. thanks ",
+              "createdAt": "2024-05-21T21:40:47Z",
+              "updatedAt": "2024-05-21T21:40:48Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M57XOpj",
+          "commit": {
+            "abbreviatedOid": "7643d44"
+          },
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-05-21T21:47:17Z",
+          "updatedAt": "2024-05-21T21:47:17Z",
+          "comments": [
+            {
+              "originalPosition": 31,
+              "body": "small nit and not critical, but I think this would be better expresses as since the start or receiving the object. ",
+              "createdAt": "2024-05-21T21:47:17Z",
+              "updatedAt": "2024-05-21T21:47:17Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M57ZB7G",
+          "commit": {
+            "abbreviatedOid": "7643d44"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-05-22T05:57:59Z",
+          "updatedAt": "2024-05-22T05:57:59Z",
+          "comments": [
+            {
+              "originalPosition": 24,
+              "body": "I feel this property AVAILABILITY_LIMIT_RELATIVE and DeliveryTimeout are very similar and should be scoped per object in general and not subscription.",
+              "createdAt": "2024-05-22T05:57:59Z",
+              "updatedAt": "2024-05-22T05:58:00Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M57at18",
+          "commit": {
+            "abbreviatedOid": "7643d44"
+          },
+          "author": "VMatrix1900",
+          "authorAssociation": "NONE",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-05-22T09:08:12Z",
+          "updatedAt": "2024-05-22T09:08:12Z",
+          "comments": [
+            {
+              "originalPosition": 1,
+              "body": "What is the difference between AVAILABILITY_LIMIT_ABSOLUTE and Expires? Can we use Expires to enforce the content policy? Or, use AUTHORIZATION INFO to carry a token with the lifetime?",
+              "createdAt": "2024-05-22T09:08:12Z",
+              "updatedAt": "2024-05-22T09:08:12Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M57egD6",
+          "commit": {
+            "abbreviatedOid": "7643d44"
+          },
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-05-22T15:14:28Z",
+          "updatedAt": "2024-05-22T15:17:28Z",
+          "comments": [
+            {
+              "originalPosition": 24,
+              "body": "Yeah, conceptually these should be part of TRACK_INFO",
+              "createdAt": "2024-05-22T15:14:29Z",
+              "updatedAt": "2024-05-22T15:17:28Z"
+            },
+            {
+              "originalPosition": 24,
+              "body": "I don't think there's a good use-case for absolute end times in a live streaming protocol. If you already know the total length of the broadcast ahead of time, you can set a relative limit too.",
+              "createdAt": "2024-05-22T15:16:26Z",
+              "updatedAt": "2024-05-22T15:17:28Z"
+            }
+          ]
         }
       ]
     },
@@ -57828,7 +58107,7 @@
       "labels": [],
       "body": "The timeouts in this PR are defined to to ensure that the invariant properties implied by the object delivery preference are maintained, e.g. if stream-per-group is used, it is impossible to accidentally timeout an object in the middle of the group.\r\n\r\nFixes #440",
       "createdAt": "2024-05-20T15:06:37Z",
-      "updatedAt": "2024-05-20T23:52:26Z",
+      "updatedAt": "2024-05-22T15:44:03Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "70787894f42dc39494edbe9d49b6760afbd701c0",
@@ -57839,7 +58118,50 @@
       "mergedAt": null,
       "mergedBy": null,
       "mergeCommit": null,
-      "comments": [],
+      "comments": [
+        {
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> if stream-per-group is used, it is impossible to accidentally timeout an object in the middle of the group.\r\n\r\nI am not sure what would be issue .. isn't its application's choice rather than transport requirement ?  Just trying to understand the constraint better",
+          "createdAt": "2024-05-21T17:51:37Z",
+          "updatedAt": "2024-05-21T17:51:37Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Individual Comment: \r\n\r\n> what is a object property VS what is per subscription property\r\n\r\nI agree this should be more clear in this PR.  I'm assuming this is an immutable *track* property reported in Subscribe OK.  @vasilvv can you clarify?\r\n\r\n> > if stream-per-group is used, it is impossible to accidentally timeout an object in the middle of the group.\r\n> \r\n> I am not sure what would be issue .. isn't its application's choice rather than transport requirement ? Just trying to understand the constraint better\r\n\r\nI think this highlights something that may require additional discussion; I get the sense different wg members have different assumptions about how streams move through relays.\r\n\r\nMy view is that when a publisher chooses to deliver objects in stream-per-group or stream-per-track modes, it is doing so because it wants the reliability and ordering guarantees QUIC provides to streams.  Therefore, a relay **can't** remove an object from the middle of such a stream, since this changes the reliability properties my app depends on.  The current draft has language reflecting this:\r\n\r\n> A relay MUST not reorder or drop objects received on a multi-object stream when forwarding to subscribers, unless it has application specific information.\r\n\r\nWith this in mind, I'm inclined to agree with the stream-per-group restrictions in this PR - if a relay is delivering a group on a stream, and encounters an object that has exceeded the delivery timeout and won't deliver it, the only option is to close the stream and move on.  I'm also in favor of some kind of restriction on dropping objects using stream-per-track (either disallowing it entirely, or closing the stream).\r\n\r\nIf reordering or dropping objects at relays is important to application behavior, I would think the publisher would choose datagram or stream-per-object forwarding preferences.\r\n\r\n**Is there a use case for using stream-per-group/track, but allowing the relay to drop or reorder objects?**\r\n\r\nIf so, how is it better than using a stream-per-object or datagram mapping?",
+          "createdAt": "2024-05-21T18:32:49Z",
+          "updatedAt": "2024-05-21T18:32:49Z"
+        },
+        {
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> Therefore, a relay **can't** remove an object from the middle of such a stream, since this changes the reliability properties my app depends on.\r\n\r\nThis is not entirely true. If the application wants no objects to be dropped end to end across relats, it will set the duration to reflect its slowest subscriber ( in the case where there  is a mix of different subscriber types ???) . This is done regardless of delivery mechanisms (stream mapping) being used .",
+          "createdAt": "2024-05-22T05:28:55Z",
+          "updatedAt": "2024-05-22T05:28:55Z"
+        },
+        {
+          "author": "VMatrix1900",
+          "authorAssociation": "NONE",
+          "body": "> > Therefore, a relay **can't** remove an object from the middle of such a stream, since this changes the reliability properties my app depends on.\r\n> \r\n> This is not entirely true. If the application wants no objects to be dropped end to end across relats, it will set the duration to reflect its slowest subscriber ( in the case where there is a mix of different subscriber types ???) . This is done regardless of delivery mechanisms (stream mapping) being used .\r\n\r\nDelivery timeout only applies for real-time transmission, prioritizing data freshness over reliability. For DVR usecase([relays don't send this object more than 30 minutes after it was produced](https://github.com/moq-wg/moq-transport/issues/440#issuecomment-2101018276)), 100% reliability is desired. This is more related to content policy: #448",
+          "createdAt": "2024-05-22T09:02:03Z",
+          "updatedAt": "2024-05-22T09:02:03Z"
+        },
+        {
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> > > Therefore, a relay **can't** remove an object from the middle of such a stream, since this changes the reliability properties my app depends on.\r\n> > \r\n> > \r\n> > This is not entirely true. If the application wants no objects to be dropped end to end across relats, it will set the duration to reflect its slowest subscriber ( in the case where there is a mix of different subscriber types ???) . This is done regardless of delivery mechanisms (stream mapping) being used .\r\n> \r\n> Delivery timeout only applies for real-time transmission, prioritizing data freshness over reliability. For DVR usecase([relays don't send this object more than 30 minutes after it was produced](https://github.com/moq-wg/moq-transport/issues/440#issuecomment-2101018276)), 100% reliability is desired. This is more related to content policy: #448\r\n\r\nFrom what i read, a delivery timeout of 0 means , no restrictions . yes , i do agree the some of the concerns is auth/policy related , as in, until when origin thinks the content is valid. ",
+          "createdAt": "2024-05-22T15:22:26Z",
+          "updatedAt": "2024-05-22T15:22:26Z"
+        },
+        {
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "body": " > **Is there a use case for using stream-per-group/track, but allowing the relay to drop or reorder objects?**\r\n\r\n@suhasHere \r\n\r\nAbsolutely not. Never attempt to reorder or introduce a gap in a QUIC stream. Use multiple streams at drop/reorder boundaries instead. \r\n\r\nThe application chooses these boundaries via the stream mapping. If you're using a stream per group, then you've forfeited the ability to drop/reorder individual objects which is *entirely* the point. Now the decoder doesn't need to deal with that possibility.",
+          "createdAt": "2024-05-22T15:43:30Z",
+          "updatedAt": "2024-05-22T15:44:03Z"
+        }
+      ],
       "reviews": [
         {
           "id": "PRR_kwDOG2Ho4M57LlKb",
@@ -57880,8 +58202,87 @@
               "updatedAt": "2024-05-20T23:52:26Z"
             }
           ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M57Vn2s",
+          "commit": {
+            "abbreviatedOid": "6c125ae"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-05-21T17:54:03Z",
+          "updatedAt": "2024-05-21T17:54:04Z",
+          "comments": [
+            {
+              "originalPosition": 18,
+              "body": "@afrind  thanks ..\r\n\r\nI am trying to wrap my head around the right set of requirements :\r\n  - what is a object  property  VS\r\n  - what is per subscription property \r\n\r\nDeliveryTimeout seems to be object property as defined by the publisher. It doesn't change per subscription ? OR do we expect these to change per subscription ? If not, CacheDuration PR seems to be heading the right direction",
+              "createdAt": "2024-05-21T17:54:03Z",
+              "updatedAt": "2024-05-21T17:54:04Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M57XB1j",
+          "commit": {
+            "abbreviatedOid": "6c125ae"
+          },
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "CHANGES_REQUESTED",
+          "body": "I don't think this will work for a bunch of the use cases for a few reason:\r\n\r\n1. some use cases the times outs are not the same for all objects in the subscriptions \r\n\r\nI need to think about if that is important or not \r\n",
+          "createdAt": "2024-05-21T21:14:01Z",
+          "updatedAt": "2024-05-21T21:42:37Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M57erb2",
+          "commit": {
+            "abbreviatedOid": "6c125ae"
+          },
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "I think this is the best approach by a mile. I'd also love the ability for the subscriber to indicate the delivery timeout too, so it could indicate the maximum jitter buffer size and let the publisher deal with dropping old content.",
+          "createdAt": "2024-05-22T15:33:36Z",
+          "updatedAt": "2024-05-22T15:36:04Z",
+          "comments": [
+            {
+              "originalPosition": 29,
+              "body": "Interesting that this is based on the final object; I really like it.",
+              "createdAt": "2024-05-22T15:33:36Z",
+              "updatedAt": "2024-05-22T15:36:04Z"
+            }
+          ]
         }
       ]
+    },
+    {
+      "number": 450,
+      "id": "PR_kwDOG2Ho4M5wPGJr",
+      "title": "Max Cache Duration per Subscription",
+      "url": "https://github.com/moq-wg/moq-transport/pull/450",
+      "state": "OPEN",
+      "author": "ianswett",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "A variant of #446 that is on a Subscription granularity, instead of Object.\r\n\r\nFixes #440 ",
+      "createdAt": "2024-05-22T17:39:39Z",
+      "updatedAt": "2024-05-22T17:50:59Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "70787894f42dc39494edbe9d49b6760afbd701c0",
+      "headRepository": "moq-wg/moq-transport",
+      "headRefName": "ianswett-max-cache-duration",
+      "headRefOid": "26233a416bfaffe05375117a97373f65918a234d",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": []
     }
   ]
 }
