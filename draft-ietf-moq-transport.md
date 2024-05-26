@@ -533,7 +533,7 @@ Goals of Object Priority include:
 * Create more reliable behavior of relays
 
 The publisher's Object Priority SHOULD be followed when possible. The
-contents of each object are still delivered in order.
+contents of each object are delivered in order.
 
 When the publisher chooses which object to send next, they apply the
 following rules:
