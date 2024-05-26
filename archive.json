@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2024-05-23T01:11:16.047632+00:00",
+  "timestamp": "2024-05-26T01:16:58.207763+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -57499,13 +57499,13 @@
       "labels": [],
       "body": "Based on discussion last week and on slack, I believe this is where the WG is heading.\r\n\r\nIt is possible this could be a per-track or per-subscription value to save bytes on the wire, particularly for the Object per Stream or Object per Datagram modes.\r\n\r\nIt's possible this value could be decreased by the cache dwell time at each hop, but I didn't hear clear consensus either way on that question.\r\n\r\nFixes #440\r\nFixes #415 ",
       "createdAt": "2024-05-13T13:46:14Z",
-      "updatedAt": "2024-05-22T18:06:30Z",
+      "updatedAt": "2024-05-23T23:13:37Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "70787894f42dc39494edbe9d49b6760afbd701c0",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "ianswett-cache-duration",
-      "headRefOid": "21a14d1b9df31d057e170b6f90606dea7bb01f3d",
+      "headRefOid": "90693814253a7faf13170f09a4853dfa8534175c",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -57824,6 +57824,86 @@
               "updatedAt": "2024-05-22T17:01:02Z"
             }
           ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M57i811",
+          "commit": {
+            "abbreviatedOid": "21a14d1"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-05-23T03:39:47Z",
+          "updatedAt": "2024-05-23T03:39:53Z",
+          "comments": [
+            {
+              "originalPosition": 10,
+              "body": "I am fine with this, but don't see if we need to advice on deducting the time spent each hop. \r\n",
+              "createdAt": "2024-05-23T03:39:47Z",
+              "updatedAt": "2024-05-23T03:39:53Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M57rFhR",
+          "commit": {
+            "abbreviatedOid": "0e68044"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-05-23T20:01:44Z",
+          "updatedAt": "2024-05-23T20:01:44Z",
+          "comments": [
+            {
+              "originalPosition": 6,
+              "body": "Changed to MUST NOT BTW",
+              "createdAt": "2024-05-23T20:01:44Z",
+              "updatedAt": "2024-05-23T20:01:44Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M57rGWu",
+          "commit": {
+            "abbreviatedOid": "0e68044"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-05-23T20:03:56Z",
+          "updatedAt": "2024-05-23T20:03:56Z",
+          "comments": [
+            {
+              "originalPosition": 31,
+              "body": "Agreed.  I'd like to see if this is really necessary, since it adds more framing overhead and as I mentioned in the call, I think it might end up being better to use priorities to achieve what you're trying to achieve with TTL.",
+              "createdAt": "2024-05-23T20:03:56Z",
+              "updatedAt": "2024-05-23T20:03:56Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M57rG61",
+          "commit": {
+            "abbreviatedOid": "21a14d1"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-05-23T20:05:25Z",
+          "updatedAt": "2024-05-23T20:05:25Z",
+          "comments": [
+            {
+              "originalPosition": 10,
+              "body": "If we expect this to prevent an Object from being in cache for too long, I think we need to do the subtraction?",
+              "createdAt": "2024-05-23T20:05:25Z",
+              "updatedAt": "2024-05-23T20:05:25Z"
+            }
+          ]
         }
       ]
     },
@@ -58107,7 +58187,7 @@
       "labels": [],
       "body": "The timeouts in this PR are defined to to ensure that the invariant properties implied by the object delivery preference are maintained, e.g. if stream-per-group is used, it is impossible to accidentally timeout an object in the middle of the group.\r\n\r\nFixes #440",
       "createdAt": "2024-05-20T15:06:37Z",
-      "updatedAt": "2024-05-22T15:44:03Z",
+      "updatedAt": "2024-05-23T14:41:07Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "70787894f42dc39494edbe9d49b6760afbd701c0",
@@ -58255,6 +58335,19 @@
               "updatedAt": "2024-05-22T15:36:04Z"
             }
           ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M57oZ8r",
+          "commit": {
+            "abbreviatedOid": "6c125ae"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "Based on conversation Wednesday, @vasilvv is going to change this PR to be subscriber controlled.",
+          "createdAt": "2024-05-23T14:41:07Z",
+          "updatedAt": "2024-05-23T14:41:07Z",
+          "comments": []
         }
       ]
     },
@@ -58270,7 +58363,7 @@
       "labels": [],
       "body": "A variant of #446 that is on a Subscription granularity, instead of Object.\r\n\r\nFixes #440 ",
       "createdAt": "2024-05-22T17:39:39Z",
-      "updatedAt": "2024-05-22T17:50:59Z",
+      "updatedAt": "2024-05-23T14:28:56Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "70787894f42dc39494edbe9d49b6760afbd701c0",
@@ -58281,7 +58374,22 @@
       "mergedAt": null,
       "mergedBy": null,
       "mergeCommit": null,
-      "comments": [],
+      "comments": [
+        {
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Per my read of the room, i would prefer #446  as it is gives better flexibility for the application than enforcing it per subscription ( as it applies the same value to all the objects) . Also not sure if there are cases where this can change between the subscriptions  either",
+          "createdAt": "2024-05-23T03:41:55Z",
+          "updatedAt": "2024-05-23T03:41:55Z"
+        },
+        {
+          "author": "VMatrix1900",
+          "authorAssociation": "NONE",
+          "body": "\r\n> Per my read of the room, i would prefer #446 as it is gives better flexibility for the application than enforcing it per subscription ( as it applies the same value to all the objects) . Also not sure if there are cases where this can change between the subscriptions either\r\n\r\n+1, Cache Duration per object is more flexible.\r\n",
+          "createdAt": "2024-05-23T14:28:54Z",
+          "updatedAt": "2024-05-23T14:28:54Z"
+        }
+      ],
       "reviews": []
     }
   ]
