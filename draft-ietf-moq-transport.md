@@ -1043,6 +1043,7 @@ would be sent as soon as the publisher or relay received them.
 
 ### Delivery Timeout {#delivery-timeout}
 
+The maximum number of milliseconds a publisher should attempt forwarding objects.
 The semantics of the timeout depend on the forwarding preference
 ({{object-message-formats}}) of the track:
 
