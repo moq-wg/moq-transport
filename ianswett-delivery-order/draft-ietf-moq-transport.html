@@ -2647,14 +2647,16 @@ object than StartGroup and StartObject.<a href="#section-6.4.1-6" class="pilcrow
 use case.  Their responses to congestion are different: In Order prioritizes
 completeness and Latest prioritizes receiving the most recent Objects.<a href="#section-6.4.2-1" class="pilcrow">¶</a></p>
 <p id="section-6.4.2-2">There are 2 delivery orders:<a href="#section-6.4.2-2" class="pilcrow">¶</a></p>
-<p id="section-6.4.2-3">In Order (0x1): Delivers Objects in ascending Group Id, and then ascending
-Object Id order, as fast as possible.  Objects are sent on a single stream at
+<p id="section-6.4.2-3">In Order (0x1): Delivers Objects in order of ascending Group Id and then
+ascending Object Id, as fast as possible.  Objects are sent on a single stream at
 once, starting with the 'Stream Header Track' header. When an Object or Group
 is no longer available, the status (<a href="#object-status" class="auto internal xref">Section 6.11.1.1</a>) indicates that.
 A SUBSCRIBE_UPDATE could narrow a subscription and it could make sense to skip
 over ranges of Objects. In this case, a publisher <span class="bcp14">MAY</span> reset the existing stream
 and start sending on a new one, with the same Subscribe ID.  Publishers <span class="bcp14">MUST NOT</span>
-skip Objects otherwise.<a href="#section-6.4.2-3" class="pilcrow">¶</a></p>
+skip Objects otherwise.  Because there are no unexplained Object gaps, it is
+not necessary to send Objects with the 'End of Group' status or 'End of Track'
+status.<a href="#section-6.4.2-3" class="pilcrow">¶</a></p>
 <p id="section-6.4.2-4">Latest (0x2): Objects from the most recent Group <span class="bcp14">SHOULD</span> be delivered first,
 in ascending Object ID order when possible, unless indicated otherwise by
 an Object's 'Object Send Order' or another mechanism.  Objects <span class="bcp14">MAY</span> be delivered
