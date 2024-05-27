@@ -1592,7 +1592,7 @@ end prior to the expiry time or last longer.
 
 * Delivery Timeout: The number of milliseconds the publisher has agreed to attempt
 forwarding objects, or zero to indicate no limit.  MUST be 0 when the SUBSCRIBE
-specified a 'Delivery Order' of 'Strict In Order'. See ({{delivery-timeout}}) above.
+requested a 'Delivery Order' of 'Strict In Order'. See ({{delivery-timeout}}) above.
 
 * ContentExists: 1 if an object has been published on this track, 0 if not.
 If 0, then the Largest Group ID and Largest Object ID fields will not be
