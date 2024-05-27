@@ -1019,9 +1019,8 @@ is no longer available, the status ({{object-status}}) indicates that.
 A SUBSCRIBE_UPDATE could narrow a subscription and it could make sense to skip
 over ranges of Objects. In this case, a publisher MAY reset the existing stream
 and start sending on a new one, with the same Subscribe ID.  Publishers MUST NOT
-skip Objects otherwise.  Because there are no unexplained Object gaps, it is
-not necessary to send Objects with the 'End of Group' status or 'End of Track'
-status.
+skip Objects otherwise.  Because there is no explicit Group ID, publishers MUST
+send Objects with the 'End of Group' status to indicate the end of the Group.
 
 Latest (0x2): Objects from the most recent Group SHOULD be delivered first,
 in ascending Object ID order when possible, unless indicated otherwise by
@@ -1406,7 +1405,9 @@ ID`.
 
 ~~~
 STREAM_HEADER_TRACK Message {
-  Subscribe ID (i)
+  Subscribe ID (i),
+  Group ID (i),
+  Object ID (i),
 }
 ~~~
 {: #stream-header-track-format title="MOQT STREAM_HEADER_TRACK Message"}
@@ -1421,8 +1422,6 @@ The Object Status field is only sent if the Object Payload Length is zero.
 
 ~~~
 {
-  Group ID (i),
-  Object ID (i),
   Object Payload Length (i),
   [Object Status (i)],
   Object Payload (..),
