@@ -1046,9 +1046,9 @@ close the session with a Duplicate Track Alias error ({{session-termination}}).
 
 * Track Name: Identifies the track name as defined in ({{track-name}}).
 
-* Priority: Priority of the subscription relative to other active subscriptions.
-A lower number indicates Objects from the subscription SHOULD be sent before
-subscriptions of higher priorities.
+* Priority: Priority of the subscription relative to other subscriptions within
+the MoQ Session. A lower number indicates Objects from the subscription SHOULD
+be sent before subscriptions of higher priorities.
 
 * Filter Type: Identifies the type of filter, which also indicates whether
 the StartGroup/StartObject and EndGroup/EndObject fields will be present.
@@ -1111,9 +1111,9 @@ SUBSCRIBE_UPDATE Message {
 * Subscribe ID: The subscription identifier that is unique within the session.
 This MUST match an existing Subscribe ID.
 
-* Priority: Priority of the subscription relative to other active subscriptions.
-A lower number indicates Objects from the subscription SHOULD be sent before
-subscriptions of higher priorities.
+* Priority: Priority of the subscription relative to other subscriptions within
+the MoQ Session. A lower number indicates Objects from the subscription SHOULD
+be sent before subscriptions of higher priorities.
 
 * StartGroup: The start Group ID.
 
