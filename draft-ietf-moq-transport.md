@@ -1023,7 +1023,7 @@ SUBSCRIBE Message {
   [EndGroup (i),
    EndObject (i)],
   Number of Parameters (i),
-  Track Request Parameters (..) ...
+  Subscribe Parameters (..) ...
 }
 ~~~
 {: #moq-transport-subscribe-format title="MOQT SUBSCRIBE Message"}
@@ -1061,8 +1061,7 @@ requested. Only present for "AbsoluteStart" and "AbsoluteRange" filter types.
 * EndObject: The end Object ID, plus 1. A value of 0 means the entire group is
 requested. Only present for the "AbsoluteRange" filter type.
 
-* Track Request Parameters: The parameters are defined in
-{{version-specific-params}}
+* Subscribe Parameters: The parameters are defined in {{version-specific-params}}.
 
 On successful subscription, the publisher MUST reply with a SUBSCRIBE_OK,
 allowing the subscriber to determine the start group/object when not explicitly
@@ -1098,7 +1097,7 @@ SUBSCRIBE_UPDATE Message {
   EndGroup (i),
   EndObject (i),
   Number of Parameters (i),
-  Track Request Parameters (..) ...
+  Subscribe Parameters (..) ...
 }
 ~~~
 {: #moq-transport-subscribe-update-format title="MOQT SUBSCRIBE_UPDATE Message"}
@@ -1117,8 +1116,7 @@ open-ended.
 * EndObject: The end Object ID, plus 1. A value of 0 means the entire group is
 requested.
 
-* Track Request Parameters: The parameters are defined in
-{{version-specific-params}}
+* Subscribe Parameters: The parameters are defined in {{version-specific-params}}.
 
 ## UNSUBSCRIBE {#message-unsubscribe}
 
@@ -1509,145 +1507,6 @@ OBJECT_STREAM {
 }
 ~~~
 
-
-## SUBSCRIBE {#message-subscribe-req}
-
-### Filter Types {#sub-filter}
-
-The subscriber specifies a filter on the subscription to allow
-the publisher to identify which objects need to be delivered.
-
-There are 4 types of filters:
-
-Latest Group (0x1) : Specifies an open-ended subscription with objects
-from the beginning of the current group.
-
-Latest Object (0x2): Specifies an open-ended subscription beginning from
-the current object of the current group.
-
-AbsoluteStart (0x3):  Specifies an open-ended subscription beginning
-from the object identified in the StartGroup and StartObject fields.
-
-AbsoluteRange (0x4):  Specifies a closed subscription starting at StartObject
-in StartGroup and ending at EndObject in EndGroup.  The start and end of the
-range are inclusive.  EndGroup and EndObject MUST specify the same or a later
-object than StartGroup and StartObject.
-
-A filter type other than the above MUST be treated as error.
-
-
-### SUBSCRIBE Format
-
-A subscriber issues a SUBSCRIBE to a publisher to request objects from a track.
-
-The format of SUBSCRIBE is as follows:
-
-~~~
-SUBSCRIBE Message {
-  Subscribe ID (i),
-  Track Alias (i),
-  Track Namespace (b),
-  Track Name (b),
-  Filter Type (i),
-  [StartGroup (i),
-   StartObject (i)],
-  [EndGroup (i),
-   EndObject (i)],
-  Number of Parameters (i),
-  Subscribe Parameters (..) ...
-}
-~~~
-{: #moq-transport-subscribe-format title="MOQT SUBSCRIBE Message"}
-
-* Subscribe ID: The subscription identifier that is unique within the session.
-`Subscribe ID` is a monotonically increasing variable length integer which
-MUST not be reused within a session. `Subscribe ID` is used by subscribers and
-the publishers to identify a given subscription. Subscribers specify the
-`Subscribe ID` and it is included in the corresponding SUBSCRIBE_OK or
-SUBSCRIBE_ERROR messages.
-
-* Track Alias: A session specific identifier for the track.
-Messages that reference a track, such as OBJECT ({{message-object}}),
-reference this Track Alias instead of the Track Name and Track Namespace to
-reduce overhead. If the Track Alias is already in use, the publisher MUST
-close the session with a Duplicate Track Alias error ({{session-termination}}).
-
-* Track Namespace: Identifies the namespace of the track as defined in
-({{track-name}}).
-
-* Track Name: Identifies the track name as defined in ({{track-name}}).
-
-* Filter Type: Identifies the type of filter, which also indicates whether
-the StartGroup/StartObject and EndGroup/EndObject fields will be present.
-See ({{sub-filter}}).
-
-* StartGroup: The start Group ID. Only present for "AbsoluteStart" and
-"AbsoluteRange" filter types.
-
-* StartObject: The start Object ID, plus 1. A value of 0 means the entire group is
-requested. Only present for "AbsoluteStart" and "AbsoluteRange" filter types.
-
-* EndGroup: The end Group ID. Only present for the "AbsoluteRange" filter type.
-
-* EndObject: The end Object ID, plus 1. A value of 0 means the entire group is
-requested. Only present for the "AbsoluteRange" filter type.
-
-* Subscribe Parameters: The parameters are defined in {{version-specific-params}}.
-
-On successful subscription, the publisher MUST reply with a SUBSCRIBE_OK,
-allowing the subscriber to determine the start group/object when not explicitly
-specified and the publisher SHOULD start delivering objects.
-
-If a publisher cannot satisfy the requested start or end for the subscription it
-MAY send a SUBSCRIBE_ERROR with code 'Invalid Range'. A publisher MUST NOT send
-objects from outside the requested start and end.
-
-## SUBSCRIBE_UPDATE {#message-subscribe-update-req}
-
-A subscriber issues a SUBSCRIBE_UPDATE to a publisher to request a change to
-a prior subscription.  Subscriptions can only become more narrower, not wider,
-because an attempt to widen a subscription could fail.  If Objects before the
-start or after the end of the current subscription are needed, a separate
-subscription can be made. The start Object MUST NOT decrease and when it increases,
-there is no guarantee that a publisher will not have already sent Objects before
-the new start Object.  The end Object MUST NOT increase and when it decreases,
-there is no guarantee that a publisher will not have already sent Objects after
-the new end Object.
-
-Unlike a new subscription, SUBSCRIBE_UPDATE can not cause an Object to be
-delivered multiple times.  Like SUBSCRIBE, EndGroup and EndObject MUST specify the
-same or a later object than StartGroup and StartObject.
-
-The format of SUBSCRIBE_UPDATE is as follows:
-
-~~~
-SUBSCRIBE_UPDATE Message {
-  Subscribe ID (i),
-  StartGroup (i),
-  StartObject (i),
-  EndGroup (i),
-  EndObject (i),
-  Number of Parameters (i),
-  Subscribe Parameters (..) ...
-}
-~~~
-{: #moq-transport-subscribe-update-format title="MOQT SUBSCRIBE_UPDATE Message"}
-
-* Subscribe ID: The subscription identifier that is unique within the session.
-This MUST match an existing Subscribe ID.
-
-* StartGroup: The start Group ID.
-
-* StartObject: The start Object ID, plus 1. A value of 0 means the entire group
-is requested.
-
-* EndGroup: The end Group ID, plus 1.  A value of 0 means the subscription is
-open-ended.
-
-* EndObject: The end Object ID, plus 1. A value of 0 means the entire group is
-requested.
-
-* Subscribe Parameters: The parameters are defined in {{version-specific-params}}.
 
 ## SUBSCRIBE_OK {#message-subscribe-ok}
 
