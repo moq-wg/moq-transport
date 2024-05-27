@@ -1121,8 +1121,9 @@ Table of Contents
 
 6.4.3.  Delivery Timeout
 
-   The semantics of the timeout depend on the forwarding preference
-   (Section 6.11.2) of the track:
+   The maximum number of milliseconds a publisher should attempt
+   forwarding objects.  The semantics of the timeout depend on the
+   forwarding preference (Section 6.11.2) of the track:
 
 - If the Object Forwarding Preference is `Datagram`, once the specified
   number of milliseconds has passed since the Object was received via
