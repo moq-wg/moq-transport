@@ -2654,9 +2654,8 @@ is no longer available, the status (<a href="#object-status" class="auto interna
 A SUBSCRIBE_UPDATE could narrow a subscription and it could make sense to skip
 over ranges of Objects. In this case, a publisher <span class="bcp14">MAY</span> reset the existing stream
 and start sending on a new one, with the same Subscribe ID.  Publishers <span class="bcp14">MUST NOT</span>
-skip Objects otherwise.  Because there are no unexplained Object gaps, it is
-not necessary to send Objects with the 'End of Group' status or 'End of Track'
-status.<a href="#section-6.4.2-3" class="pilcrow">¶</a></p>
+skip Objects otherwise.  Because there is no explicit Group ID, publishers <span class="bcp14">MUST</span>
+send Objects with the 'End of Group' status to indicate the end of the Group.<a href="#section-6.4.2-3" class="pilcrow">¶</a></p>
 <p id="section-6.4.2-4">Latest (0x2): Objects from the most recent Group <span class="bcp14">SHOULD</span> be delivered first,
 in ascending Object ID order when possible, unless indicated otherwise by
 an Object's 'Object Send Order' or another mechanism.  Objects <span class="bcp14">MAY</span> be delivered
@@ -3173,7 +3172,9 @@ ID</code>.<a href="#section-6.11.3-5" class="pilcrow">¶</a></p>
             <div class="alignLeft art-text artwork" id="section-6.11.3-6.1">
 <pre>
 STREAM_HEADER_TRACK Message {
-  Subscribe ID (i)
+  Subscribe ID (i),
+  Group ID (i),
+  Object ID (i),
 }
 </pre>
 </div>
@@ -3192,8 +3193,6 @@ The Object Status field is only sent if the Object Payload Length is zero.<a hre
             <div class="alignLeft art-text artwork" id="section-6.11.3-9.1">
 <pre>
 {
-  Group ID (i),
-  Object ID (i),
   Object Payload Length (i),
   [Object Status (i)],
   Object Payload (..),
