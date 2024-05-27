@@ -754,8 +754,8 @@ limits.  See section 2.2 in {{QUIC}}.
 
 # Messages {#message}
 
-Both unidirectional and bidirectional streams contain sequences of
-length-delimited messages.
+Unidirectional streams and datagrams contain Objects and all other
+messages are sent on a bidirectional stream.
 
 An endpoint that receives an unknown message type MUST close the session.
 
@@ -956,11 +956,268 @@ client MUST set the PATH parameter to the `path-abempty` portion of the
 URI; if `query` is present, the client MUST concatenate `?`, followed by
 the `query` portion of the URI to the parameter.
 
+## GOAWAY {#message-goaway}
+The server sends a `GOAWAY` message to initiate session migration
+({{session-migration}}) with an optional URI.
+
+The server MUST terminate the session with a Protocol Violation
+({{session-termination}}) if it receives a GOAWAY message. The client MUST
+terminate the session with a Protocol Violation ({{session-termination}}) if it
+receives multiple GOAWAY messages.
+
+~~~
+GOAWAY Message {
+  New Session URI (b)
+}
+~~~
+{: #moq-transport-goaway-format title="MOQT GOAWAY Message"}
+
+* New Session URI: The client MUST use this URI for the new session if provided.
+  If the URI is zero bytes long, the current URI is reused instead. The new
+  session URI SHOULD use the same scheme as the current URL to ensure
+  compatibility.
+
+
+
+## SUBSCRIBE {#message-subscribe-req}
+
+### Filter Types {#sub-filter}
+
+The subscriber specifies a filter on the subscription to allow
+the publisher to identify which objects need to be delivered.
+
+There are 4 types of filters:
+
+Latest Group (0x1) : Specifies an open-ended subscription with objects
+from the beginning of the current group.
+
+Latest Object (0x2): Specifies an open-ended subscription beginning from
+the current object of the current group.
+
+AbsoluteStart (0x3):  Specifies an open-ended subscription beginning
+from the object identified in the StartGroup and StartObject fields.
+
+AbsoluteRange (0x4):  Specifies a closed subscription starting at StartObject
+in StartGroup and ending at EndObject in EndGroup.  The start and end of the
+range are inclusive.  EndGroup and EndObject MUST specify the same or a later
+object than StartGroup and StartObject.
+
+A filter type other than the above MUST be treated as error.
+
+
+### SUBSCRIBE Format
+A receiver issues a SUBSCRIBE to a publisher to request a track.
+
+The format of SUBSCRIBE is as follows:
+
+~~~
+SUBSCRIBE Message {
+  Subscribe ID (i),
+  Track Alias (i),
+  Track Namespace (b),
+  Track Name (b),
+  Filter Type (i),
+  [StartGroup (i),
+   StartObject (i)],
+  [EndGroup (i),
+   EndObject (i)],
+  Number of Parameters (i),
+  Track Request Parameters (..) ...
+}
+~~~
+{: #moq-transport-subscribe-format title="MOQT SUBSCRIBE Message"}
+
+* Subscribe ID: The subscription identifier that is unique within the session.
+`Subscribe ID` is a monotonically increasing variable length integer which
+MUST not be reused within a session. `Subscribe ID` is used by subscribers and
+the publishers to identify a given subscription. Subscribers specify the
+`Subscribe ID` and it is included in the corresponding SUBSCRIBE_OK or
+SUBSCRIBE_ERROR messages.
+
+* Track Alias: A session specific identifier for the track.
+Messages that reference a track, such as OBJECT ({{message-object}}),
+reference this Track Alias instead of the Track Name and Track Namespace to
+reduce overhead. If the Track Alias is already in use, the publisher MUST
+close the session with a Duplicate Track Alias error ({{session-termination}}).
+
+* Track Namespace: Identifies the namespace of the track as defined in
+({{track-name}}).
+
+* Track Name: Identifies the track name as defined in ({{track-name}}).
+
+* Filter Type: Identifies the type of filter, which also indicates whether
+the StartGroup/StartObject and EndGroup/EndObject fields will be present.
+See ({{sub-filter}}).
+
+* StartGroup: The start Group ID. Only present for "AbsoluteStart" and
+"AbsoluteRange" filter types.
+
+* StartObject: The start Object ID, plus 1. A value of 0 means the entire group is
+requested. Only present for "AbsoluteStart" and "AbsoluteRange" filter types.
+
+* EndGroup: The end Group ID. Only present for the "AbsoluteRange" filter type.
+
+* EndObject: The end Object ID, plus 1. A value of 0 means the entire group is
+requested. Only present for the "AbsoluteRange" filter type.
+
+* Track Request Parameters: The parameters are defined in
+{{version-specific-params}}
+
+On successful subscription, the publisher MUST reply with a SUBSCRIBE_OK,
+allowing the subscriber to determine the start group/object when not explicitly
+specified and the publisher SHOULD start delivering objects.
+
+If a publisher cannot satisfy the requested start or end for the subscription it
+MAY send a SUBSCRIBE_ERROR with code 'Invalid Range'. A publisher MUST NOT send
+objects from outside the requested start and end.
+
+## SUBSCRIBE_UPDATE {#message-subscribe-update-req}
+
+A receiver issues a SUBSCRIBE_UPDATE to a publisher to request a change to
+a prior subscription.  Subscriptions can only become more narrower, not wider,
+because an attempt to widen a subscription could fail.  If Objects before the
+start or after the end of the current subscription are needed, a separate
+subscription can be made. The start Object MUST NOT decrease and when it increases,
+there is no guarantee that a publisher will not have already sent Objects before
+the new start Object.  The end Object MUST NOT increase and when it decreases,
+there is no guarantee that a publisher will not have already sent Objects after
+the new end Object.
+
+Unlike a new subscription, SUBSCRIBE_UPDATE can not cause an Object to be
+delivered multiple times.  Like SUBSCRIBE, EndGroup and EndObject MUST specify the
+same or a later object than StartGroup and StartObject.
+
+The format of SUBSCRIBE_UPDATE is as follows:
+
+~~~
+SUBSCRIBE_UPDATE Message {
+  Subscribe ID (i),
+  StartGroup (i),
+  StartObject (i),
+  EndGroup (i),
+  EndObject (i),
+  Number of Parameters (i),
+  Track Request Parameters (..) ...
+}
+~~~
+{: #moq-transport-subscribe-update-format title="MOQT SUBSCRIBE_UPDATE Message"}
+
+* Subscribe ID: The subscription identifier that is unique within the session.
+This MUST match an existing Subscribe ID.
+
+* StartGroup: The start Group ID.
+
+* StartObject: The start Object ID, plus 1. A value of 0 means the entire group
+is requested.
+
+* EndGroup: The end Group ID, plus 1.  A value of 0 means the subscription is
+open-ended.
+
+* EndObject: The end Object ID, plus 1. A value of 0 means the entire group is
+requested.
+
+* Track Request Parameters: The parameters are defined in
+{{version-specific-params}}
+
+## UNSUBSCRIBE {#message-unsubscribe}
+
+A subscriber issues a `UNSUBSCRIBE` message to a publisher indicating it is no
+longer interested in receiving media for the specified track and Objects
+should stop being sent as soon as possible.  The publisher sends a
+SUBSCRIBE_DONE to acknowledge the unsubscribe was successful and indicate
+the final Object.
+
+The format of `UNSUBSCRIBE` is as follows:
+
+~~~
+UNSUBSCRIBE Message {
+  Subscribe ID (i)
+}
+~~~
+{: #moq-transport-unsubscribe-format title="MOQT UNSUBSCRIBE Message"}
+
+* Subscribe ID: Subscription Identifier as defined in {{message-subscribe-req}}.
+
+## ANNOUNCE_OK {#message-announce-ok}
+
+The subscriber sends an ANNOUNCE_OK control message to acknowledge the
+successful authorization and acceptance of an ANNOUNCE message.
+
+~~~
+ANNOUNCE_OK
+{
+  Track Namespace (b),
+}
+~~~
+{: #moq-transport-announce-ok format title="MOQT ANNOUNCE_OK Message"}
+
+* Track Namespace: Identifies the track namespace in the ANNOUNCE
+message for which this response is provided.
+
+## ANNOUNCE_ERROR {#message-announce-error}
+
+The subscriber sends an ANNOUNCE_ERROR control message for tracks that
+failed authorization.
+
+~~~
+ANNOUNCE_ERROR
+{
+  Track Namespace (b),
+  Error Code (i),
+  Reason Phrase (b),
+}
+~~~
+{: #moq-transport-announce-error format title="MOQT ANNOUNCE_ERROR Message"}
+
+* Track Namespace: Identifies the track namespace in the ANNOUNCE
+message for which this response is provided.
+
+* Error Code: Identifies an integer error code for announcement failure.
+
+* Reason Phrase: Provides the reason for announcement error.
+
+## ANNOUNCE_CANCEL {#message-announce-cancel}
+
+The subscriber sends an `ANNOUNCE_CANCEL` control message to
+indicate it will stop sending new subscriptions for tracks
+within the provided Track Namespace.
+
+If a publisher receives new subscriptions for that namespace after
+receiving an ANNOUNCE_CANCEL, it SHOULD close the session as a
+'Protocol Violation'.
+
+~~~
+ANNOUNCE_CANCEL Message {
+  Track Namespace (b),
+}
+~~~
+{: #moq-transport-announce-cancel-format title="MOQT ANNOUNCE_CANCEL Message"}
+
+* Track Namespace: Identifies a track's namespace as defined in
+({{track-name}}).
+
+## TRACK_STATUS_REQUEST {#message-track-status-req}
+
+A potential subscriber sends a 'TRACK_STATUS_REQUEST' message on the control
+stream to obtain information about the current status of a given track.
+
+A TRACK_STATUS message MUST be sent in response to each TRACK_STATUS_REQUEST.
+
+~~~
+TRACK_STATUS_REQUEST Message {
+  Track Namespace (b),
+  Track Name (b),
+}
+~~~
+{: #moq-track-status-request-format title="MOQT TRACK_STATUS_REQUEST Message"}
+
+
+
 ## OBJECT {#message-object}
 
 An OBJECT message contains a range of contiguous bytes from from the
 specified track, as well as associated metadata required to deliver,
-cache, and forward it.
+cache, and forward it.  Objects are sent by publishers.
 
 ### Canonical Object Fields
 
@@ -1251,149 +1508,11 @@ OBJECT_STREAM {
 }
 ~~~
 
-## SUBSCRIBE {#message-subscribe-req}
-
-### Filter Types {#sub-filter}
-
-The subscriber specifies a filter on the subscription to allow
-the publisher to identify which objects need to be delivered.
-
-There are 4 types of filters:
-
-Latest Group (0x1) : Specifies an open-ended subscription with objects
-from the beginning of the current group.
-
-Latest Object (0x2): Specifies an open-ended subscription beginning from
-the current object of the current group.
-
-AbsoluteStart (0x3):  Specifies an open-ended subscription beginning
-from the object identified in the StartGroup and StartObject fields.
-
-AbsoluteRange (0x4):  Specifies a closed subscription starting at StartObject
-in StartGroup and ending at EndObject in EndGroup.  The start and end of the
-range are inclusive.  EndGroup and EndObject MUST specify the same or a later
-object than StartGroup and StartObject.
-
-A filter type other than the above MUST be treated as error.
-
-
-### SUBSCRIBE Format
-A receiver issues a SUBSCRIBE to a publisher to request a track.
-
-The format of SUBSCRIBE is as follows:
-
-~~~
-SUBSCRIBE Message {
-  Subscribe ID (i),
-  Track Alias (i),
-  Track Namespace (b),
-  Track Name (b),
-  Filter Type (i),
-  [StartGroup (i),
-   StartObject (i)],
-  [EndGroup (i),
-   EndObject (i)],
-  Number of Parameters (i),
-  Track Request Parameters (..) ...
-}
-~~~
-{: #moq-transport-subscribe-format title="MOQT SUBSCRIBE Message"}
-
-* Subscribe ID: The subscription identifier that is unique within the session.
-`Subscribe ID` is a monotonically increasing variable length integer which
-MUST not be reused within a session. `Subscribe ID` is used by subscribers and
-the publishers to identify a given subscription. Subscribers specify the
-`Subscribe ID` and it is included in the corresponding SUBSCRIBE_OK or
-SUBSCRIBE_ERROR messages.
-
-* Track Alias: A session specific identifier for the track.
-Messages that reference a track, such as OBJECT ({{message-object}}),
-reference this Track Alias instead of the Track Name and Track Namespace to
-reduce overhead. If the Track Alias is already in use, the publisher MUST
-close the session with a Duplicate Track Alias error ({{session-termination}}).
-
-* Track Namespace: Identifies the namespace of the track as defined in
-({{track-name}}).
-
-* Track Name: Identifies the track name as defined in ({{track-name}}).
-
-* Filter Type: Identifies the type of filter, which also indicates whether
-the StartGroup/StartObject and EndGroup/EndObject fields will be present.
-See ({{sub-filter}}).
-
-* StartGroup: The start Group ID. Only present for "AbsoluteStart" and
-"AbsoluteRange" filter types.
-
-* StartObject: The start Object ID, plus 1. A value of 0 means the entire group is
-requested. Only present for "AbsoluteStart" and "AbsoluteRange" filter types.
-
-* EndGroup: The end Group ID. Only present for the "AbsoluteRange" filter type.
-
-* EndObject: The end Object ID, plus 1. A value of 0 means the entire group is
-requested. Only present for the "AbsoluteRange" filter type.
-
-* Track Request Parameters: The parameters are defined in
-{{version-specific-params}}
-
-On successful subscription, the publisher MUST reply with a SUBSCRIBE_OK,
-allowing the subscriber to determine the start group/object when not explicitly
-specified and the publisher SHOULD start delivering objects.
-
-If a publisher cannot satisfy the requested start or end for the subscription it
-MAY send a SUBSCRIBE_ERROR with code 'Invalid Range'. A publisher MUST NOT send
-objects from outside the requested start and end.
-
-## SUBSCRIBE_UPDATE {#message-subscribe-update-req}
-
-A receiver issues a SUBSCRIBE_UPDATE to a publisher to request a change to
-a prior subscription.  Subscriptions can only become more narrower, not wider,
-because an attempt to widen a subscription could fail.  If Objects before the
-start or after the end of the current subscription are needed, a separate
-subscription can be made. The start Object MUST NOT decrease and when it increases,
-there is no guarantee that a publisher will not have already sent Objects before
-the new start Object.  The end Object MUST NOT increase and when it decreases,
-there is no guarantee that a publisher will not have already sent Objects after
-the new end Object.
-
-Unlike a new subscription, SUBSCRIBE_UPDATE can not cause an Object to be
-delivered multiple times.  Like SUBSCRIBE, EndGroup and EndObject MUST specify the
-same or a later object than StartGroup and StartObject.
-
-The format of SUBSCRIBE_UPDATE is as follows:
-
-~~~
-SUBSCRIBE_UPDATE Message {
-  Subscribe ID (i),
-  StartGroup (i),
-  StartObject (i),
-  EndGroup (i),
-  EndObject (i),
-  Number of Parameters (i),
-  Track Request Parameters (..) ...
-}
-~~~
-{: #moq-transport-subscribe-update-format title="MOQT SUBSCRIBE_UPDATE Message"}
-
-* Subscribe ID: The subscription identifier that is unique within the session.
-This MUST match an existing Subscribe ID.
-
-* StartGroup: The start Group ID.
-
-* StartObject: The start Object ID, plus 1. A value of 0 means the entire group
-is requested.
-
-* EndGroup: The end Group ID, plus 1.  A value of 0 means the subscription is
-open-ended.
-
-* EndObject: The end Object ID, plus 1. A value of 0 means the entire group is
-requested.
-
-* Track Request Parameters: The parameters are defined in
-{{version-specific-params}}
 
 ## SUBSCRIBE_OK {#message-subscribe-ok}
 
-A SUBSCRIBE_OK control message is sent for successful subscriptions.
+A publisher sends a SUBSCRIBE_OK control message for successful
+subscriptions.
 
 ~~~
 SUBSCRIBE_OK
@@ -1426,8 +1545,8 @@ subtracted when sending the Max Cache Duration.
 If 0, then the Largest Group ID and Largest Object ID fields will not be
 present.
 
-* Largest Group ID: the largest Group ID available for this track. This field is
-only present if ContentExists has a value of 1.
+* Largest Group ID: the largest Group ID available for this track. This field
+is only present if ContentExists has a value of 1.
 
 * Largest Object ID: the largest Object ID available within the largest Group ID
 for this track. This field is only present if ContentExists has a value of 1.
@@ -1460,30 +1579,12 @@ SUBSCRIBE_ERROR
   the receiver MUST close the connection with a Duplicate Track Alias error
   ({{session-termination}}).
 
-## UNSUBSCRIBE {#message-unsubscribe}
-
-A subscriber issues a `UNSUBSCRIBE` message to a publisher indicating it is no
-longer interested in receiving media for the specified track and Objects
-should stop being sent as soon as possible.  The publisher sends a
-SUBSCRIBE_DONE to acknowledge the unsubscribe was successful and indicate
-the final Object.
-
-The format of `UNSUBSCRIBE` is as follows:
-
-~~~
-UNSUBSCRIBE Message {
-  Subscribe ID (i)
-}
-~~~
-{: #moq-transport-unsubscribe-format title="MOQT UNSUBSCRIBE Message"}
-
-* Subscribe ID: Subscription Identifier as defined in {{message-subscribe-req}}.
 
 ## SUBSCRIBE_DONE {#message-subscribe-done}
 
-A publisher issues a `SUBSCRIBE_DONE` message to indicate it
-is done publishing Objects for that subscription.  The Status Code indicates why
-the subscription ended, and whether it was an error.
+A publisher sends a `SUBSCRIBE_DONE` message to indicate it is done publishing
+Objects for that subscription.  The Status Code indicates why the subscription ended,
+and whether it was an error.
 
 The format of `SUBSCRIBE_DONE` is as follows:
 
@@ -1535,44 +1636,6 @@ ANNOUNCE Message {
 
 * Parameters: The parameters are defined in {{version-specific-params}}.
 
-## ANNOUNCE_OK {#message-announce-ok}
-
-The receiver sends an ANNOUNCE_OK control message to acknowledge the
-successful authorization and acceptance of an ANNOUNCE message.
-
-~~~
-ANNOUNCE_OK
-{
-  Track Namespace (b),
-}
-~~~
-{: #moq-transport-announce-ok format title="MOQT ANNOUNCE_OK Message"}
-
-* Track Namespace: Identifies the track namespace in the ANNOUNCE
-message for which this response is provided.
-
-## ANNOUNCE_ERROR {#message-announce-error}
-
-The receiver sends an ANNOUNCE_ERROR control message for tracks that
-failed authorization.
-
-~~~
-ANNOUNCE_ERROR
-{
-  Track Namespace (b),
-  Error Code (i),
-  Reason Phrase (b),
-}
-~~~
-{: #moq-transport-announce-error format title="MOQT ANNOUNCE_ERROR Message"}
-
-* Track Namespace: Identifies the track namespace in the ANNOUNCE
-message for which this response is provided.
-
-* Error Code: Identifies an integer error code for announcement failure.
-
-* Reason Phrase: Provides the reason for announcement error.
-
 
 ## UNANNOUNCE {#message-unannounce}
 
@@ -1590,44 +1653,10 @@ UNANNOUNCE Message {
 * Track Namespace: Identifies a track's namespace as defined in
 ({{track-name}}).
 
-## ANNOUNCE_CANCEL {#message-announce-cancel}
-
-The subscriber sends an `ANNOUNCE_CANCEL` control message to
-indicate it will stop sending new subscriptions for tracks
-within the provided Track Namespace.
-
-If a publisher receives new subscriptions for that namespace after
-receiving an ANNOUNCE_CANCEL, it SHOULD close the session as a
-'Protocol Violation'.
-
-~~~
-ANNOUNCE_CANCEL Message {
-  Track Namespace (b),
-}
-~~~
-{: #moq-transport-announce-cancel-format title="MOQT ANNOUNCE_CANCEL Message"}
-
-* Track Namespace: Identifies a track's namespace as defined in
-({{track-name}}).
-
-## TRACK_STATUS_REQUEST {#message-track-status-req}
-
-A potential subscriber sends a 'TRACK_STATUS_REQUEST' message on the control
- stream to obtain information about the current status of a given track.
-
-A TRACK_STATUS message MUST be sent in response to each TRACK_STATUS_REQUEST.
-
-~~~
-TRACK_STATUS_REQUEST Message {
-  Track Namespace (b),
-  Track Name (b),
-}
-~~~
-{: #moq-track-status-request-format title="MOQT TRACK_STATUS_REQUEST Message"}
 
 ## TRACK_STATUS {#message-track-status}
 
-An endpoint sends a 'TRACK_STATUS' message on the control stream in response
+A publisher sends a 'TRACK_STATUS' message on the control stream in response
 to a TRACK_STATUS_REQUEST message.
 
 ~~~
@@ -1677,26 +1706,6 @@ The receiver of multiple TRACK_STATUS messages for a track uses the information
 from the latest arriving message, as they are delivered in order on a single
 stream.
 
-## GOAWAY {#message-goaway}
-The server sends a `GOAWAY` message to initiate session migration
-({{session-migration}}) with an optional URI.
-
-The server MUST terminate the session with a Protocol Violation
-({{session-termination}}) if it receives a GOAWAY message. The client MUST
-terminate the session with a Protocol Violation ({{session-termination}}) if it
-receives multiple GOAWAY messages.
-
-~~~
-GOAWAY Message {
-  New Session URI (b)
-}
-~~~
-{: #moq-transport-goaway-format title="MOQT GOAWAY Message"}
-
-* New Session URI: The client MUST use this URI for the new session if provided.
-  If the URI is zero bytes long, the current URI is reused instead. The new
-  session URI SHOULD use the same scheme as the current URL to ensure
-  compatibility.
 
 
 # Security Considerations {#security}
