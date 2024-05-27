@@ -1086,8 +1086,8 @@ requested. Only present for "AbsoluteStart" and "AbsoluteRange" filter types.
 * EndObject: The end Object ID, plus 1. A value of 0 means the entire group is
 requested. Only present for the "AbsoluteRange" filter type.
 
-* Delivery Preference: Indicates how Objects should be transmitted and dropped.
-See ({{delivery-preference}}) above.
+* Delivery Order: Indicates how Objects should be transmitted and dropped.
+See ({{delivery-order}}) above.
 
 * Track Request Parameters: The parameters are defined in
 {{version-specific-params}}
