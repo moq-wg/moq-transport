@@ -1301,7 +1301,10 @@ networks and is designed for high scale and low latency distribution.<a href="#s
                     <p id="section-toc.1-1.6.2.4.2.2.1"><a href="#section-6.4.2" class="auto internal xref">6.4.2</a>.  <a href="#name-delivery-order" class="internal xref">Delivery Order</a></p>
 </li>
                   <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.4.2.3">
-                    <p id="section-toc.1-1.6.2.4.2.3.1"><a href="#section-6.4.3" class="auto internal xref">6.4.3</a>.  <a href="#name-subscribe-format" class="internal xref">SUBSCRIBE Format</a></p>
+                    <p id="section-toc.1-1.6.2.4.2.3.1"><a href="#section-6.4.3" class="auto internal xref">6.4.3</a>.  <a href="#name-delivery-timeout" class="internal xref">Delivery Timeout</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.4.2.4">
+                    <p id="section-toc.1-1.6.2.4.2.4.1"><a href="#section-6.4.4" class="auto internal xref">6.4.4</a>.  <a href="#name-subscribe-format" class="internal xref">SUBSCRIBE Format</a></p>
 </li>
                 </ul>
 </li>
@@ -2646,8 +2649,8 @@ object than StartGroup and StartObject.<a href="#section-6.4.1-6" class="pilcrow
 <p id="section-6.4.2-1">A subscriber can prefer different Object delivery orders depending upon the
 use case.  Their responses to congestion are different: In Order prioritizes
 completeness and Latest prioritizes receiving the most recent Objects.<a href="#section-6.4.2-1" class="pilcrow">¶</a></p>
-<p id="section-6.4.2-2">There are 2 delivery orders:<a href="#section-6.4.2-2" class="pilcrow">¶</a></p>
-<p id="section-6.4.2-3">In Order (0x1): Delivers Objects in order of ascending Group Id and then
+<p id="section-6.4.2-2">There are 3 delivery orders:<a href="#section-6.4.2-2" class="pilcrow">¶</a></p>
+<p id="section-6.4.2-3">Strict In Order (0x1): Delivers Objects in order of ascending Group Id and then
 ascending Object Id, as fast as possible.  Objects are sent on a single stream at
 once, starting with the 'Stream Header Track' header. When an Object or Group
 is no longer available, the status (<a href="#object-status" class="auto internal xref">Section 6.11.1.1</a>) indicates that.
@@ -2655,26 +2658,59 @@ A SUBSCRIBE_UPDATE could narrow a subscription and it could make sense to skip
 over ranges of Objects. In this case, a publisher <span class="bcp14">MAY</span> reset the existing stream
 and start sending on a new one, with the same Subscribe ID.  Publishers <span class="bcp14">MUST NOT</span>
 skip Objects otherwise.  Because there is no explicit Group ID, publishers <span class="bcp14">MUST</span>
-send Objects with the 'End of Group' status to indicate the end of the Group.<a href="#section-6.4.2-3" class="pilcrow">¶</a></p>
-<p id="section-6.4.2-4">Latest (0x2): Objects from the most recent Group <span class="bcp14">SHOULD</span> be delivered first,
+send Objects with the 'End of Group' status to indicate the end of the Group.
+The 'Delivery Timeout' field is not present for this (0x1) mode.<a href="#section-6.4.2-3" class="pilcrow">¶</a></p>
+<p id="section-6.4.2-4">Latest In Order (0x2): Objects that have not exceeded the 'Delivery Timeout'
+(<a href="#delivery-timeout" class="auto internal xref">Section 6.4.3</a>) <span class="bcp14">SHOULD</span> be delivered in order.  Objects can be delivered
+via OBJECT_STREAM, OBJECT_DATAGRAM, or STREAM_HEADER_GROUP streams, but
+<span class="bcp14">MUST NOT</span> change the delivery preference during a subscription.<a href="#section-6.4.2-4" class="pilcrow">¶</a></p>
+<p id="section-6.4.2-5">Latest (0x3): Objects from the most recent Group <span class="bcp14">SHOULD</span> be delivered first,
 in ascending Object ID order when possible, unless indicated otherwise by
 an Object's 'Object Send Order' or another mechanism.  Objects <span class="bcp14">MAY</span> be delivered
 via OBJECT_STREAM, OBJECT_DATAGRAM, or STREAM_HEADER_GROUP streams, but
-<span class="bcp14">MUST NOT</span> change the delivery preference during a subscription.
-A subscriber <span class="bcp14">MUST NOT</span> make two simultaneous 'Latest' subscriptions for the
-same Track.<a href="#section-6.4.2-4" class="pilcrow">¶</a></p>
+<span class="bcp14">MUST NOT</span> change the delivery preference during a subscription.<a href="#section-6.4.2-5" class="pilcrow">¶</a></p>
+<p id="section-6.4.2-6">A subscriber <span class="bcp14">MUST NOT</span> make two simultaneous subscriptions of type
+'Latest In Order' or 'Latest' for the same Track, because both could be
+delivered by the same Track Alias and they would compete for bandwidth
+and other resources.  When bandwidth is sufficient, a 'Latest In Order' and
+'Latest' subscription would be delivering the same Objects, because Objects
+would be sent as soon as the publisher or relay received them.<a href="#section-6.4.2-6" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="delivery-timeout">
+<section id="section-6.4.3">
+          <h4 id="name-delivery-timeout">
+<a href="#section-6.4.3" class="section-number selfRef">6.4.3. </a><a href="#name-delivery-timeout" class="section-name selfRef">Delivery Timeout</a>
+          </h4>
+<p id="section-6.4.3-1">The semantics of the timeout depend on the forwarding preference
+(<a href="#object-message-formats" class="auto internal xref">Section 6.11.2</a>) of the track:<a href="#section-6.4.3-1" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-6.4.3-2">
+<pre>
+- If the Object Forwarding Preference is `Datagram`, once the specified
+  number of milliseconds has passed since the Object was received via
+  this subscription, the relay SHOULD NOT forward it.
+- If the Object Forwarding Preference is `Object`, once the specified
+  number of milliseconds has passed since the Object was fully received for
+  this subscription, the relay SHOULD NOT open a new stream to send the
+  Object in question, and SHOULD reset an existing stream if it is open.
+- If the Object Forwarding Preference is `Group`, once the specified number
+  of milliseconds has passed since the final Object of the Group was fully
+  received for this subscription, the relay SHOULD NOT open a new stream
+  for the group, and SHOULD reset an existing stream if it is open.
+</pre><a href="#section-6.4.3-2" class="pilcrow">¶</a>
+</div>
 </section>
 </div>
 <div id="subscribe-format">
-<section id="section-6.4.3">
+<section id="section-6.4.4">
           <h4 id="name-subscribe-format">
-<a href="#section-6.4.3" class="section-number selfRef">6.4.3. </a><a href="#name-subscribe-format" class="section-name selfRef">SUBSCRIBE Format</a>
+<a href="#section-6.4.4" class="section-number selfRef">6.4.4. </a><a href="#name-subscribe-format" class="section-name selfRef">SUBSCRIBE Format</a>
           </h4>
-<p id="section-6.4.3-1">A receiver issues a SUBSCRIBE to a publisher to request a track.<a href="#section-6.4.3-1" class="pilcrow">¶</a></p>
-<p id="section-6.4.3-2">The format of SUBSCRIBE is as follows:<a href="#section-6.4.3-2" class="pilcrow">¶</a></p>
+<p id="section-6.4.4-1">A receiver issues a SUBSCRIBE to a publisher to request a track.<a href="#section-6.4.4-1" class="pilcrow">¶</a></p>
+<p id="section-6.4.4-2">The format of SUBSCRIBE is as follows:<a href="#section-6.4.4-2" class="pilcrow">¶</a></p>
 <span id="name-moqt-subscribe-message"></span><div id="moq-transport-subscribe-format">
 <figure id="figure-5">
-            <div class="alignLeft art-text artwork" id="section-6.4.3-3.1">
+            <div class="alignLeft art-text artwork" id="section-6.4.4-3.1">
 <pre>
 SUBSCRIBE Message {
   Subscribe ID (i),
@@ -2687,6 +2723,7 @@ SUBSCRIBE Message {
   [EndGroup (i),
    EndObject (i)],
   Delivery Order (i),
+  [Delivery Timeout (i)],
   Number of Parameters (i),
   Track Request Parameters (..) ...
 }
@@ -2697,63 +2734,69 @@ SUBSCRIBE Message {
             </figcaption></figure>
 </div>
 <ul class="normal">
-<li class="normal" id="section-6.4.3-4.1">
-              <p id="section-6.4.3-4.1.1">Subscribe ID: The subscription identifier that is unique within the session.
+<li class="normal" id="section-6.4.4-4.1">
+              <p id="section-6.4.4-4.1.1">Subscribe ID: The subscription identifier that is unique within the session.
 <code>Subscribe ID</code> is a monotonically increasing variable length integer which
 <span class="bcp14">MUST</span> not be reused within a session. <code>Subscribe ID</code> is used by subscribers and
 the publishers to identify a given subscription. Subscribers specify the
 <code>Subscribe ID</code> and it is included in the corresponding SUBSCRIBE_OK or
-SUBSCRIBE_ERROR messages.<a href="#section-6.4.3-4.1.1" class="pilcrow">¶</a></p>
+SUBSCRIBE_ERROR messages.<a href="#section-6.4.4-4.1.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-6.4.3-4.2">
-              <p id="section-6.4.3-4.2.1">Track Alias: A session specific identifier for the track.
+            <li class="normal" id="section-6.4.4-4.2">
+              <p id="section-6.4.4-4.2.1">Track Alias: A session specific identifier for the track.
 Messages that reference a track, such as OBJECT (<a href="#message-object" class="auto internal xref">Section 6.11</a>),
 reference this Track Alias instead of the Track Name and Track Namespace to
 reduce overhead. If the Track Alias is already in use, the publisher <span class="bcp14">MUST</span>
-close the session with a Duplicate Track Alias error (<a href="#session-termination" class="auto internal xref">Section 3.5</a>).<a href="#section-6.4.3-4.2.1" class="pilcrow">¶</a></p>
+close the session with a Duplicate Track Alias error (<a href="#session-termination" class="auto internal xref">Section 3.5</a>).<a href="#section-6.4.4-4.2.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-6.4.3-4.3">
-              <p id="section-6.4.3-4.3.1">Track Namespace: Identifies the namespace of the track as defined in
-(<a href="#track-name" class="auto internal xref">Section 2.3.1</a>).<a href="#section-6.4.3-4.3.1" class="pilcrow">¶</a></p>
+            <li class="normal" id="section-6.4.4-4.3">
+              <p id="section-6.4.4-4.3.1">Track Namespace: Identifies the namespace of the track as defined in
+(<a href="#track-name" class="auto internal xref">Section 2.3.1</a>).<a href="#section-6.4.4-4.3.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-6.4.3-4.4">
-              <p id="section-6.4.3-4.4.1">Track Name: Identifies the track name as defined in (<a href="#track-name" class="auto internal xref">Section 2.3.1</a>).<a href="#section-6.4.3-4.4.1" class="pilcrow">¶</a></p>
+            <li class="normal" id="section-6.4.4-4.4">
+              <p id="section-6.4.4-4.4.1">Track Name: Identifies the track name as defined in (<a href="#track-name" class="auto internal xref">Section 2.3.1</a>).<a href="#section-6.4.4-4.4.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-6.4.3-4.5">
-              <p id="section-6.4.3-4.5.1">Filter Type: Identifies the type of filter, which also indicates whether
+            <li class="normal" id="section-6.4.4-4.5">
+              <p id="section-6.4.4-4.5.1">Filter Type: Identifies the type of filter, which also indicates whether
 the StartGroup/StartObject and EndGroup/EndObject fields will be present.
-See (<a href="#sub-filter" class="auto internal xref">Section 6.4.1</a>).<a href="#section-6.4.3-4.5.1" class="pilcrow">¶</a></p>
+See (<a href="#sub-filter" class="auto internal xref">Section 6.4.1</a>).<a href="#section-6.4.4-4.5.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-6.4.3-4.6">
-              <p id="section-6.4.3-4.6.1">StartGroup: The start Group ID. Only present for "AbsoluteStart" and
-"AbsoluteRange" filter types.<a href="#section-6.4.3-4.6.1" class="pilcrow">¶</a></p>
+            <li class="normal" id="section-6.4.4-4.6">
+              <p id="section-6.4.4-4.6.1">StartGroup: The start Group ID. Only present for "AbsoluteStart" and
+"AbsoluteRange" filter types.<a href="#section-6.4.4-4.6.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-6.4.3-4.7">
-              <p id="section-6.4.3-4.7.1">StartObject: The start Object ID, plus 1. A value of 0 means the entire group is
-requested. Only present for "AbsoluteStart" and "AbsoluteRange" filter types.<a href="#section-6.4.3-4.7.1" class="pilcrow">¶</a></p>
+            <li class="normal" id="section-6.4.4-4.7">
+              <p id="section-6.4.4-4.7.1">StartObject: The start Object ID, plus 1. A value of 0 means the entire group is
+requested. Only present for "AbsoluteStart" and "AbsoluteRange" filter types.<a href="#section-6.4.4-4.7.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-6.4.3-4.8">
-              <p id="section-6.4.3-4.8.1">EndGroup: The end Group ID. Only present for the "AbsoluteRange" filter type.<a href="#section-6.4.3-4.8.1" class="pilcrow">¶</a></p>
+            <li class="normal" id="section-6.4.4-4.8">
+              <p id="section-6.4.4-4.8.1">EndGroup: The end Group ID. Only present for the "AbsoluteRange" filter type.<a href="#section-6.4.4-4.8.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-6.4.3-4.9">
-              <p id="section-6.4.3-4.9.1">EndObject: The end Object ID, plus 1. A value of 0 means the entire group is
-requested. Only present for the "AbsoluteRange" filter type.<a href="#section-6.4.3-4.9.1" class="pilcrow">¶</a></p>
+            <li class="normal" id="section-6.4.4-4.9">
+              <p id="section-6.4.4-4.9.1">EndObject: The end Object ID, plus 1. A value of 0 means the entire group is
+requested. Only present for the "AbsoluteRange" filter type.<a href="#section-6.4.4-4.9.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-6.4.3-4.10">
-              <p id="section-6.4.3-4.10.1">Delivery Order: Indicates how Objects should be transmitted and dropped.
-See (<a href="#delivery-order" class="auto internal xref">Section 6.4.2</a>) above.<a href="#section-6.4.3-4.10.1" class="pilcrow">¶</a></p>
+            <li class="normal" id="section-6.4.4-4.10">
+              <p id="section-6.4.4-4.10.1">Delivery Order: Indicates how Objects should be transmitted and dropped.
+See (<a href="#delivery-order" class="auto internal xref">Section 6.4.2</a>) above.<a href="#section-6.4.4-4.10.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-6.4.3-4.11">
-              <p id="section-6.4.3-4.11.1">Track Request Parameters: The parameters are defined in
-<a href="#version-specific-params" class="auto internal xref">Section 6.1.1</a><a href="#section-6.4.3-4.11.1" class="pilcrow">¶</a></p>
+            <li class="normal" id="section-6.4.4-4.11">
+              <p id="section-6.4.4-4.11.1">Delivery Timeout: The maximum number of milliseconds a relay should attempt
+forwarding objects, or zero to indicate no limit.  Not present when
+'Delivery Order' is 'Strict In Order'. The actual value is confirmed by the
+publisher in SUBSCRIBE_OK. See (<a href="#delivery-timeout" class="auto internal xref">Section 6.4.3</a>) above.<a href="#section-6.4.4-4.11.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-6.4.4-4.12">
+              <p id="section-6.4.4-4.12.1">Track Request Parameters: The parameters are defined in
+<a href="#version-specific-params" class="auto internal xref">Section 6.1.1</a><a href="#section-6.4.4-4.12.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
-<p id="section-6.4.3-5">On successful subscription, the publisher <span class="bcp14">MUST</span> reply with a SUBSCRIBE_OK,
+<p id="section-6.4.4-5">On successful subscription, the publisher <span class="bcp14">MUST</span> reply with a SUBSCRIBE_OK,
 allowing the subscriber to determine the start group/object when not explicitly
-specified and the publisher <span class="bcp14">SHOULD</span> start delivering objects.<a href="#section-6.4.3-5" class="pilcrow">¶</a></p>
-<p id="section-6.4.3-6">If a publisher cannot satisfy the requested start or end for the subscription it
+specified and the publisher <span class="bcp14">SHOULD</span> start delivering objects.<a href="#section-6.4.4-5" class="pilcrow">¶</a></p>
+<p id="section-6.4.4-6">If a publisher cannot satisfy the requested start or end for the subscription it
 <span class="bcp14">MAY</span> send a SUBSCRIBE_ERROR with code 'Invalid Range'. A publisher <span class="bcp14">MUST NOT</span> send
-objects from outside the requested start and end.<a href="#section-6.4.3-6" class="pilcrow">¶</a></p>
+objects from outside the requested start and end.<a href="#section-6.4.4-6" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -3333,6 +3376,7 @@ SUBSCRIBE_OK
 {
   Subscribe ID (i),
   Expires (i),
+  Delivery Timeout (i),
   ContentExists (f),
   [Largest Group ID (i)],
   [Largest Object ID (i)]
@@ -3354,17 +3398,22 @@ or expires at an unknown time.  Expires is advisory and a subscription can
 end prior to the expiry time or last longer.<a href="#section-6.12-3.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-6.12-3.3">
-            <p id="section-6.12-3.3.1">ContentExists: 1 if an object has been published on this track, 0 if not.
-If 0, then the Largest Group ID and Largest Object ID fields will not be
-present.<a href="#section-6.12-3.3.1" class="pilcrow">¶</a></p>
+            <p id="section-6.12-3.3.1">Delivery Timeout: The number of milliseconds the publisher has agreed to attempt
+forwarding objects, or zero to indicate no limit.  <span class="bcp14">MUST</span> be 0 when the SUBSCRIBE
+specified a 'Delivery Order' of 'Strict In Order'. See (<a href="#delivery-timeout" class="auto internal xref">Section 6.4.3</a>) above.<a href="#section-6.12-3.3.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-6.12-3.4">
-            <p id="section-6.12-3.4.1">Largest Group ID: the largest Group ID available for this track. This field
-is only present if ContentExists has a value of 1.<a href="#section-6.12-3.4.1" class="pilcrow">¶</a></p>
+            <p id="section-6.12-3.4.1">ContentExists: 1 if an object has been published on this track, 0 if not.
+If 0, then the Largest Group ID and Largest Object ID fields will not be
+present.<a href="#section-6.12-3.4.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-6.12-3.5">
-            <p id="section-6.12-3.5.1">Largest Object ID: the largest Object ID available within the largest Group ID
-for this track. This field is only present if ContentExists has a value of 1.<a href="#section-6.12-3.5.1" class="pilcrow">¶</a></p>
+            <p id="section-6.12-3.5.1">Largest Group ID: the largest Group ID available for this track. This field
+is only present if ContentExists has a value of 1.<a href="#section-6.12-3.5.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-6.12-3.6">
+            <p id="section-6.12-3.6.1">Largest Object ID: the largest Object ID available within the largest Group ID
+for this track. This field is only present if ContentExists has a value of 1.<a href="#section-6.12-3.6.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
