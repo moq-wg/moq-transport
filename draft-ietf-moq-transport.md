@@ -1010,9 +1010,9 @@ A subscriber can prefer different Object delivery orders depending upon the
 use case.  Their responses to congestion are different: In Order prioritizes
 completeness and Latest prioritizes receiving the most recent Objects.
 
-There are 2 delivery orders:
+There are 3 delivery orders:
 
-In Order (0x1): Delivers Objects in order of ascending Group Id and then
+Strict In Order (0x1): Delivers Objects in order of ascending Group Id and then
 ascending Object Id, as fast as possible.  Objects are sent on a single stream at
 once, starting with the 'Stream Header Track' header. When an Object or Group
 is no longer available, the status ({{object-status}}) indicates that.
@@ -1021,14 +1021,42 @@ over ranges of Objects. In this case, a publisher MAY reset the existing stream
 and start sending on a new one, with the same Subscribe ID.  Publishers MUST NOT
 skip Objects otherwise.  Because there is no explicit Group ID, publishers MUST
 send Objects with the 'End of Group' status to indicate the end of the Group.
+The 'Delivery Timeout' field is not present for this (0x1) mode.
 
-Latest (0x2): Objects from the most recent Group SHOULD be delivered first,
+Latest In Order (0x2): Objects that have not exceeded the 'Delivery Timeout'
+({{delivery-timeout}}) SHOULD be delivered in order.  Objects can be delivered
+via OBJECT_STREAM, OBJECT_DATAGRAM, or STREAM_HEADER_GROUP streams, but
+MUST NOT change the delivery preference during a subscription.
+
+Latest (0x3): Objects from the most recent Group SHOULD be delivered first,
 in ascending Object ID order when possible, unless indicated otherwise by
 an Object's 'Object Send Order' or another mechanism.  Objects MAY be delivered
 via OBJECT_STREAM, OBJECT_DATAGRAM, or STREAM_HEADER_GROUP streams, but
 MUST NOT change the delivery preference during a subscription.
-A subscriber MUST NOT make two simultaneous 'Latest' subscriptions for the
-same Track.
+
+A subscriber MUST NOT make two simultaneous subscriptions of type
+'Latest In Order' or 'Latest' for the same Track, because both could be
+delivered by the same Track Alias and they would compete for bandwidth
+and other resources.  When bandwidth is sufficient, a 'Latest In Order' and
+'Latest' subscription would be delivering the same Objects, because Objects
+would be sent as soon as the publisher or relay received them.
+
+### Delivery Timeout {#delivery-timeout}
+
+The semantics of the timeout depend on the forwarding preference
+({{object-message-formats}}) of the track:
+
+    - If the Object Forwarding Preference is `Datagram`, once the specified
+      number of milliseconds has passed since the Object was received via
+      this subscription, the relay SHOULD NOT forward it.
+    - If the Object Forwarding Preference is `Object`, once the specified
+      number of milliseconds has passed since the Object was fully received for
+      this subscription, the relay SHOULD NOT open a new stream to send the
+      Object in question, and SHOULD reset an existing stream if it is open.
+    - If the Object Forwarding Preference is `Group`, once the specified number
+      of milliseconds has passed since the final Object of the Group was fully
+      received for this subscription, the relay SHOULD NOT open a new stream
+      for the group, and SHOULD reset an existing stream if it is open.
 
 
 ### SUBSCRIBE Format
@@ -1048,6 +1076,7 @@ SUBSCRIBE Message {
   [EndGroup (i),
    EndObject (i)],
   Delivery Order (i),
+  [Delivery Timeout (i)],
   Number of Parameters (i),
   Track Request Parameters (..) ...
 }
@@ -1089,6 +1118,11 @@ requested. Only present for the "AbsoluteRange" filter type.
 
 * Delivery Order: Indicates how Objects should be transmitted and dropped.
 See ({{delivery-order}}) above.
+
+* Delivery Timeout: The maximum number of milliseconds a relay should attempt
+forwarding objects, or zero to indicate no limit.  Not present when
+'Delivery Order' is 'Strict In Order'. The actual value is confirmed by the
+publisher in SUBSCRIBE_OK. See ({{delivery-timeout}}) above.
 
 * Track Request Parameters: The parameters are defined in
 {{version-specific-params}}
@@ -1540,6 +1574,7 @@ SUBSCRIBE_OK
 {
   Subscribe ID (i),
   Expires (i),
+  Delivery Timeout (i),
   ContentExists (f),
   [Largest Group ID (i)],
   [Largest Object ID (i)]
@@ -1553,6 +1588,10 @@ SUBSCRIBE_OK
 longer valid. A value of 0 indicates that the subscription does not expire
 or expires at an unknown time.  Expires is advisory and a subscription can
 end prior to the expiry time or last longer.
+
+* Delivery Timeout: The number of milliseconds the publisher has agreed to attempt
+forwarding objects, or zero to indicate no limit.  MUST be 0 when the SUBSCRIBE
+specified a 'Delivery Order' of 'Strict In Order'. See ({{delivery-timeout}}) above.
 
 * ContentExists: 1 if an object has been published on this track, 0 if not.
 If 0, then the Largest Group ID and Largest Object ID fields will not be
