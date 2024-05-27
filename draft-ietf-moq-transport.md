@@ -1012,13 +1012,14 @@ completeness and Latest prioritizes receiving the most recent Objects.
 
 There are 2 delivery orders:
 
-In Order (0x1): In Order subscriptions are delivered as fast as possible on
-a single stream at once, starting with the 'Stream Header Track' header.
-When an Object or Group is no longer available, the status ({{object-status}})
-should indicate that. A SUBSCRIBE_UPDATE could narrow a subscription and
-it could make sense to skip over ranges of Objects. In this case, a publisher
-MAY reset the existing stream and start sending on a new one, with the same
-Subscribe ID.  Publishers MUST NOT skip Objects otherwise.
+In Order (0x1): Delivers Objects in ascending Group Id, and then ascending
+Object Id order, as fast as possible.  Objects are sent on a single stream at
+once, starting with the 'Stream Header Track' header. When an Object or Group
+is no longer available, the status ({{object-status}}) indicates that.
+A SUBSCRIBE_UPDATE could narrow a subscription and it could make sense to skip
+over ranges of Objects. In this case, a publisher MAY reset the existing stream
+and start sending on a new one, with the same Subscribe ID.  Publishers MUST NOT
+skip Objects otherwise.
 
 Latest (0x2): Objects from the most recent Group SHOULD be delivered first,
 in ascending Object ID order when possible, unless indicated otherwise by
