@@ -5,13 +5,13 @@
 MOQ                                                            L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 27 November 2024                                           Meta
+Expires: 28 November 2024                                           Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                             26 May 2024
+                                                             27 May 2024
 
 
                        Media over QUIC Transport
@@ -53,7 +53,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 27 November 2024.
+   This Internet-Draft will expire on 28 November 2024.
 
 Copyright Notice
 
@@ -109,27 +109,27 @@ Table of Contents
      6.2.  CLIENT_SETUP and SERVER_SETUP
        6.2.1.  Versions
        6.2.2.  Setup Parameters
-     6.3.  OBJECT
-       6.3.1.  Canonical Object Fields
-       6.3.2.  Object Message Formats
-       6.3.3.  Multi-Object Streams
-       6.3.4.  Examples:
+     6.3.  GOAWAY
      6.4.  SUBSCRIBE
        6.4.1.  Filter Types
        6.4.2.  SUBSCRIBE Format
      6.5.  SUBSCRIBE_UPDATE
-     6.6.  SUBSCRIBE_OK
-     6.7.  SUBSCRIBE_ERROR
-     6.8.  UNSUBSCRIBE
-     6.9.  SUBSCRIBE_DONE
-     6.10. ANNOUNCE
-     6.11. ANNOUNCE_OK
-     6.12. ANNOUNCE_ERROR
-     6.13. UNANNOUNCE
-     6.14. ANNOUNCE_CANCEL
-     6.15. TRACK_STATUS_REQUEST
-     6.16. TRACK_STATUS
-     6.17. GOAWAY
+     6.6.  UNSUBSCRIBE
+     6.7.  ANNOUNCE_OK
+     6.8.  ANNOUNCE_ERROR
+     6.9.  ANNOUNCE_CANCEL
+     6.10. TRACK_STATUS_REQUEST
+     6.11. OBJECT
+       6.11.1.  Canonical Object Fields
+       6.11.2.  Object Message Formats
+       6.11.3.  Multi-Object Streams
+       6.11.4.  Examples:
+     6.12. SUBSCRIBE_OK
+     6.13. SUBSCRIBE_ERROR
+     6.14. SUBSCRIBE_DONE
+     6.15. ANNOUNCE
+     6.16. UNANNOUNCE
+     6.17. TRACK_STATUS
    7.  Security Considerations
      7.1.  Resource Exhaustion
    8.  IANA Considerations
@@ -261,7 +261,8 @@ Table of Contents
       (Section 2.1).
 
    Track:  An encoded bitstream.  Tracks contain a sequential series of
-      one or more groups and are the subscribable entity with MOQT.
+      one or more groups and are the subscribable entity with MOQT.  See
+      (Section 2.3).
 
 1.3.  Notational Conventions
 
@@ -532,7 +533,7 @@ Table of Contents
       that was already in use.
 
    *  GOAWAY Timeout: The session was closed because the client took too
-      long to close the session in response to a GOAWAY (Section 6.17)
+      long to close the session in response to a GOAWAY (Section 6.3)
       message.  See session migration (Section 3.6).
 
 3.6.  Migration
@@ -541,7 +542,7 @@ Table of Contents
    service provider needs the ability to shutdown/restart a server
    without waiting for all sessions to drain naturally, as that can take
    days for long-form media.  MoqTransport avoids this via the GOAWAY
-   message (Section 6.17).
+   message (Section 6.3).
 
    The server sends a GOAWAY message, signaling that the client should
    establish a new session and migrate any active subscriptions.  The
@@ -692,8 +693,8 @@ Table of Contents
    of this specification.
 
    The subscriber making the subscribe request is notified of the result
-   of the subscription, via SUBSCRIBE_OK (Section 6.6) or the
-   SUBSCRIBE_ERROR Section 6.7 control message.  The entity receiving
+   of the subscription, via SUBSCRIBE_OK (Section 6.12) or the
+   SUBSCRIBE_ERROR Section 6.13 control message.  The entity receiving
    the SUBSCRIBE MUST send only a single response to a given SUBSCRIBE
    of either SUBSCRIBE_OK or SUBSCRIBE_ERROR.
 
@@ -702,7 +703,7 @@ Table of Contents
    within the subscription range is forwarded to each active subscriber,
    dependent on the congestion response.  A subscription remains active
    until the publisher of the track terminates the track with a
-   SUBSCRIBE_DONE (see Section 6.9).
+   SUBSCRIBE_DONE (see Section 6.14).
 
    Objects MUST NOT be sent for unsuccessful subscriptions, and if a
    subscriber receives a SUBSCRIBE_ERROR after receiving objects, it
@@ -787,14 +788,14 @@ Table of Contents
    be forwarded to the session that sent ANNOUNCE namespace=foobar.
 
    OBJECT message headers carry a short hop-by-hop Track Alias that maps
-   to the Full Track Name (see Section 6.6).  Relays use the Track Alias
-   of an incoming OBJECT message to identify its track and find the
-   active subscribers for that track.  Relays MUST NOT depend on OBJECT
-   payload content for making forwarding decisions and MUST only depend
-   on the fields, such as priority order and other metadata properties
-   in the OBJECT message header.  Unless determined by congestion
-   response, Relays MUST forward the OBJECT message to the matching
-   subscribers.
+   to the Full Track Name (see Section 6.12).  Relays use the Track
+   Alias of an incoming OBJECT message to identify its track and find
+   the active subscribers for that track.  Relays MUST NOT depend on
+   OBJECT payload content for making forwarding decisions and MUST only
+   depend on the fields, such as priority order and other metadata
+   properties in the OBJECT message header.  Unless determined by
+   congestion response, Relays MUST forward the OBJECT message to the
+   matching subscribers.
 
 5.3.  Congestion Response at Relays
 
@@ -805,7 +806,7 @@ Table of Contents
 5.4.  Relay Object Handling
 
    MOQT encodes the delivery information for a stream via OBJECT headers
-   (Section 6.3).  A relay MUST NOT modify Object properties when
+   (Section 6.11).  A relay MUST NOT modify Object properties when
    forwarding.
 
    A relay MUST treat the object payload as opaque.  A relay MUST NOT
@@ -824,8 +825,8 @@ Table of Contents
 
 6.  Messages
 
-   Both unidirectional and bidirectional streams contain sequences of
-   length-delimited messages.
+   Unidirectional streams and datagrams contain Objects and all other
+   messages are sent on a bidirectional stream.
 
    An endpoint that receives an unknown message type MUST close the
    session.
@@ -837,49 +838,49 @@ Table of Contents
 
                            Figure 1: MOQT Message
 
-              +======+=====================================+
-              |   ID | Messages                            |
-              +======+=====================================+
-              |  0x0 | OBJECT_STREAM (Section 6.3.2)       |
-              +------+-------------------------------------+
-              |  0x1 | OBJECT_DATAGRAM (Section 6.3.2)     |
-              +------+-------------------------------------+
-              |  0x3 | SUBSCRIBE (Section 6.4)             |
-              +------+-------------------------------------+
-              |  0x4 | SUBSCRIBE_OK (Section 6.6)          |
-              +------+-------------------------------------+
-              |  0x5 | SUBSCRIBE_ERROR (Section 6.7)       |
-              +------+-------------------------------------+
-              |  0x6 | ANNOUNCE (Section 6.10)             |
-              +------+-------------------------------------+
-              |  0x7 | ANNOUNCE_OK (Section 6.11)          |
-              +------+-------------------------------------+
-              |  0x8 | ANNOUNCE_ERROR (Section 6.12)       |
-              +------+-------------------------------------+
-              |  0x9 | UNANNOUNCE (Section 6.13)           |
-              +------+-------------------------------------+
-              |  0xA | UNSUBSCRIBE (Section 6.8)           |
-              +------+-------------------------------------+
-              |  0xB | SUBSCRIBE_DONE (Section 6.9)        |
-              +------+-------------------------------------+
-              |  0xC | ANNOUNCE_CANCEL (Section 6.14)      |
-              +------+-------------------------------------+
-              |  0xD | TRACK_STATUS_REQUEST (Section 6.15) |
-              +------+-------------------------------------+
-              |  0xE | TRACK_STATUS (Section 6.16)         |
-              +------+-------------------------------------+
-              | 0x10 | GOAWAY (Section 6.17)               |
-              +------+-------------------------------------+
-              | 0x40 | CLIENT_SETUP (Section 6.2)          |
-              +------+-------------------------------------+
-              | 0x41 | SERVER_SETUP (Section 6.2)          |
-              +------+-------------------------------------+
-              | 0x50 | STREAM_HEADER_TRACK (Section 6.3.3) |
-              +------+-------------------------------------+
-              | 0x51 | STREAM_HEADER_GROUP (Section 6.3.3) |
-              +------+-------------------------------------+
+              +======+======================================+
+              |   ID | Messages                             |
+              +======+======================================+
+              |  0x0 | OBJECT_STREAM (Section 6.11.2)       |
+              +------+--------------------------------------+
+              |  0x1 | OBJECT_DATAGRAM (Section 6.11.2)     |
+              +------+--------------------------------------+
+              |  0x3 | SUBSCRIBE (Section 6.4)              |
+              +------+--------------------------------------+
+              |  0x4 | SUBSCRIBE_OK (Section 6.12)          |
+              +------+--------------------------------------+
+              |  0x5 | SUBSCRIBE_ERROR (Section 6.13)       |
+              +------+--------------------------------------+
+              |  0x6 | ANNOUNCE (Section 6.15)              |
+              +------+--------------------------------------+
+              |  0x7 | ANNOUNCE_OK (Section 6.7)            |
+              +------+--------------------------------------+
+              |  0x8 | ANNOUNCE_ERROR (Section 6.8)         |
+              +------+--------------------------------------+
+              |  0x9 | UNANNOUNCE (Section 6.16)            |
+              +------+--------------------------------------+
+              |  0xA | UNSUBSCRIBE (Section 6.6)            |
+              +------+--------------------------------------+
+              |  0xB | SUBSCRIBE_DONE (Section 6.14)        |
+              +------+--------------------------------------+
+              |  0xC | ANNOUNCE_CANCEL (Section 6.9)        |
+              +------+--------------------------------------+
+              |  0xD | TRACK_STATUS_REQUEST (Section 6.10)  |
+              +------+--------------------------------------+
+              |  0xE | TRACK_STATUS (Section 6.17)          |
+              +------+--------------------------------------+
+              | 0x10 | GOAWAY (Section 6.3)                 |
+              +------+--------------------------------------+
+              | 0x40 | CLIENT_SETUP (Section 6.2)           |
+              +------+--------------------------------------+
+              | 0x41 | SERVER_SETUP (Section 6.2)           |
+              +------+--------------------------------------+
+              | 0x50 | STREAM_HEADER_TRACK (Section 6.11.3) |
+              +------+--------------------------------------+
+              | 0x51 | STREAM_HEADER_GROUP (Section 6.11.3) |
+              +------+--------------------------------------+
 
-                                 Table 4
+                                  Table 4
 
 6.1.  Parameters
 
@@ -1027,297 +1028,26 @@ Table of Contents
    URI; if query is present, the client MUST concatenate ?, followed by
    the query portion of the URI to the parameter.
 
-6.3.  OBJECT
+6.3.  GOAWAY
 
-   An OBJECT message contains a range of contiguous bytes from from the
-   specified track, as well as associated metadata required to deliver,
-   cache, and forward it.
+   The server sends a GOAWAY message to initiate session migration
+   (Section 3.6) with an optional URI.
 
-6.3.1.  Canonical Object Fields
+   The server MUST terminate the session with a Protocol Violation
+   (Section 3.5) if it receives a GOAWAY message.  The client MUST
+   terminate the session with a Protocol Violation (Section 3.5) if it
+   receives multiple GOAWAY messages.
 
-   A canonical MoQ Object has the following information:
-
-   *  Track Namespace and Track Name: The track this object belongs to.
-
-   *  Group ID: The object is a member of the indicated group ID
-      Section 2.2 within the track.
-
-   *  Object ID: The order of the object within the group.  The IDs
-      starts at 0, increasing sequentially for each object within the
-      group.
-
-   *  Object Send Order: An integer indicating the object send order
-      Section 4.1.1 or priority Section 4.1.2 value.
-
-   *  Object Forwarding Preference: An enumeration indicating how a
-      sender sends an object.  The preferences are Track, Group, Object
-      and Datagram.  An Object MUST be sent according to its Object
-      Forwarding Preference, described below.
-
-   *  Object Status: As enumeration used to indicate missing objects or
-      mark the end of a group or track.  See Section 6.3.1.1 below.
-
-   *  Object Payload: An opaque payload intended for the consumer and
-      SHOULD NOT be processed by a relay.  Only present when 'Object
-      Status' is Normal (0x0).
-
-6.3.1.1.  Object Status
-
-   The Object Status informs subscribers what objects will not be
-   received because they were never produced, are no longer available,
-   or because they are beyond the end of a group or track.
-
-   Status can have following values:
-
-   *  0x0 := Normal object.  The payload is array of bytes and can be
-      empty.
-
-   *  0x1 := Indicates Object does not exist.  Indicates that this
-      object does not exist at any publisher and it will not be
-      published in the future.  This SHOULD be cached.
-
-   *  0x2 := Indicates Group does not exist.  Indicates that objects
-      with this GroupID do not exist at any publisher and they will not
-      be published in the future.  This SHOULD be cached.
-
-   *  0x3 := Indicates end of Group.  ObjectId is one greater that the
-      largest object produced in the group identified by the GroupID.
-      This is sent right after the last object in the group.  This
-      SHOULD be cached.
-
-   *  0x4 := Indicates end of Track and Group.  GroupID is one greater
-      than the largest group produced in this track and the ObjectId is
-      one greater than the largest object produced in that group.  This
-      is sent right after the last object in the track.  This SHOULD be
-      cached.
-
-   Any other value SHOULD be treated as a protocol error and terminate
-   the session with a Protocol Violation (Section 3.5).  Any object with
-   a status code other than zero MUST have an empty payload.
-
-   Though some status information could be inferred from QUIC stream
-   state, that information is not reliable and cacheable.
-
-   In most cases, messages with a non zero status code are sent on the
-   same stream that an object with that GroupID would have been sent on.
-   The exception to this is when that stream has been reset; in that
-   case they are sent on a new stream.  This is to avoid the status
-   message being lost in cases such as a relay dropping a group and
-   reseting the stream the group is being sent on.
-
-6.3.2.  Object Message Formats
-
-   Every Track has a single 'Object Forwarding Preference' and
-   publishers MUST NOT mix different forwarding preferences within a
-   single track.  If a subscriber receives different forwarding
-   preferences for a track, it SHOULD close the session with an error of
-   'Protocol Violation'.
-
-   *Object Stream Message*
-
-   An OBJECT_STREAM message carries a single object on a stream.  There
-   is no explicit length of the payload; it is determined by the end of
-   the stream.  An OBJECT_STREAM message MUST be the first and only
-   message on a unidirectional stream.
-
-   An Object received in an OBJECT_STREAM message has an Object
-   Forwarding Preference = Object.
-
-   To send an Object with Object Forwarding Preference = Object, open a
-   stream, serialize object fields below, and terminate the stream.
-
-   OBJECT_STREAM Message {
-     Subscribe ID (i),
-     Track Alias (i),
-     Group ID (i),
-     Object ID (i),
-     Object Send Order (i),
-     Object Status (i),
-     Object Payload (..),
+   GOAWAY Message {
+     New Session URI (b)
    }
 
-                    Figure 4: MOQT OBJECT_STREAM Message
+                       Figure 4: MOQT GOAWAY Message
 
-   *  Subscribe ID: Subscription Identifier as defined in Section 6.4.
-
-   *  Track Alias: Identifies the Track Namespace and Track Name as
-      defined in Section 6.4.
-
-   If the Track Namespace and Track Name identified by the Track Alias
-   are different from those specified in the subscription identified by
-   Subscribe ID, the receiver MUST close the session with a Protocol
-   Violation.
-
-   *  Other fields: As described in Section 6.3.1.
-
-   *Object Datagram Message*
-
-   An OBJECT_DATAGRAM message carries a single object in a datagram.
-   There is no explicit length of the payload; it is determined by the
-   length of the datagram.
-
-   An Object received in an OBJECT_DATAGRAM message has an Object
-   Forwarding Preference = Datagram.  To send an Object with Object
-   Forwarding Preference = Datagram, determine the length of the fields
-   and payload and send the Object as datagram.  In certain scenarios
-   where the object size can be larger than maximum datagram size for
-   the session, the Object will be dropped.
-
-   OBJECT_DATAGRAM Message {
-     Subscribe ID (i),
-     Track Alias (i),
-     Group ID (i),
-     Object ID (i),
-     Object Send Order (i),
-     Object Status (i),
-     Object Payload (..),
-   }
-
-                   Figure 5: MOQT OBJECT_DATAGRAM Message
-
-6.3.3.  Multi-Object Streams
-
-   When multiple objects are sent on a stream, the stream begins with a
-   stream header message and is followed by one or more sets of
-   serialized object fields.  If a stream ends gracefully in the middle
-   of a serialized Object, terminate the session with a Protocol
-   Violation.
-
-   A sender SHOULD NOT open more than one multi-object stream at a time
-   with the same stream header message type and fields.
-
-   TODO: figure out how a relay closes these streams
-
-   *Stream Header Track*
-
-   When a stream begins with STREAM_HEADER_TRACK, all objects on the
-   stream belong to the track requested in the Subscribe message
-   identified by Subscribe ID.  All objects on the stream have the
-   Object Send Order specified in the stream header.
-
-   STREAM_HEADER_TRACK Message {
-     Subscribe ID (i)
-     Track Alias (i),
-     Object Send Order (i),
-   }
-
-                 Figure 6: MOQT STREAM_HEADER_TRACK Message
-
-   All Objects received on a stream opened with STREAM_HEADER_TRACK have
-   an Object Forwarding Preference = Track.
-
-   To send an Object with Object Forwarding Preference = Track, find the
-   open stream that is associated with the subscription, or open a new
-   one and send the STREAM_HEADER_TRACK if needed, then serialize the
-   following object fields.  The Object Status field is only sent if the
-   Object Payload Length is zero.
-
-   {
-     Group ID (i),
-     Object ID (i),
-     Object Payload Length (i),
-     [Object Status (i)],
-     Object Payload (..),
-   }
-
-                 Figure 7: MOQT Track Stream Object Fields
-
-   *Stream Header Group*
-
-   A sender MUST NOT send an Object on a stream if its Group ID is less
-   than a previously sent Group ID on that stream, or if its Object ID
-   is less than or equal to a previously sent Object ID within a given
-   group on that stream.
-
-   When a stream begins with STREAM_HEADER_GROUP, all objects on the
-   stream belong to the track requested in the Subscribe message
-   identified by Subscribe ID and the group indicated by Group ID.  All
-   objects on the stream have the Object Send Order specified in the
-   stream header.
-
-   STREAM_HEADER_GROUP Message {
-     Subscribe ID (i),
-     Track Alias (i),
-     Group ID (i)
-     Object Send Order (i)
-   }
-
-                 Figure 8: MOQT STREAM_HEADER_GROUP Message
-
-   All Objects received on a stream opened with STREAM_HEADER_GROUP have
-   an Object Forwarding Preference = Group.
-
-   To send an Object with Object Forwarding Preference = Group, find the
-   open stream that is associated with the subscription, Group ID and
-   Object Send Order, or open a new one and send the STREAM_HEADER_GROUP
-   if needed, then serialize the following fields.  The Object Status
-   field is only sent if the Object Payload Length is zero.
-
-   {
-     Object ID (i),
-     Object Payload Length (i),
-     [Object Status (i)],
-     Object Payload (..),
-   }
-
-                 Figure 9: MOQT Group Stream Object Fields
-
-   A sender MUST NOT send an Object on a stream if its Object ID is less
-   than a previously sent Object ID within a given group in that stream.
-
-6.3.4.  Examples:
-
-   Sending a track on one stream:
-
-   STREAM_HEADER_TRACK {
-     Subscribe ID = 1
-     Track Alias = 1
-     Object Send Order = 0
-   }
-   {
-     Group ID = 0
-     Object ID = 0
-     Object Payload Length = 4
-     Payload = "abcd"
-   }
-   {
-     Group ID = 1
-     Object ID = 0
-     Object Payload Length = 4
-     Payload = "efgh"
-   }
-
-   Sending a group on one stream, with a unordered object in the group
-   appearing on its own stream.
-
-   Stream = 2
-
-   STREAM_HEADER_GROUP {
-     Subscribe ID = 2
-     Track Alias = 2
-     Group ID = 0
-     Object Send Order = 0
-   }
-   {
-     Object ID = 0
-     Object Payload Length = 4
-     Payload = "abcd"
-   }
-   {
-     Object ID = 1
-     Object Payload Length = 4
-     Payload = "efgh"
-   }
-
-   Stream = 6
-
-   OBJECT_STREAM {
-     Subscribe ID = 2
-     Track Alias = 2
-     Group ID = 0
-     Object ID = 1
-     Payload = "moqrocks"
-   }
+   *  New Session URI: The client MUST use this URI for the new session
+      if provided.  If the URI is zero bytes long, the current URI is
+      reused instead.  The new session URI SHOULD use the same scheme as
+      the current URL to ensure compatibility.
 
 6.4.  SUBSCRIBE
 
@@ -1365,7 +1095,7 @@ Table of Contents
      Subscribe Parameters (..) ...
    }
 
-                     Figure 10: MOQT SUBSCRIBE Message
+                      Figure 5: MOQT SUBSCRIBE Message
 
    *  Subscribe ID: The subscription identifier that is unique within
       the session.  Subscribe ID is a monotonically increasing variable
@@ -1376,7 +1106,7 @@ Table of Contents
       messages.
 
    *  Track Alias: A session specific identifier for the track.
-      Messages that reference a track, such as OBJECT (Section 6.3),
+      Messages that reference a track, such as OBJECT (Section 6.11),
       reference this Track Alias instead of the Track Name and Track
       Namespace to reduce overhead.  If the Track Alias is already in
       use, the publisher MUST close the session with a Duplicate Track
@@ -1448,7 +1178,7 @@ Table of Contents
      Subscribe Parameters (..) ...
    }
 
-                  Figure 11: MOQT SUBSCRIBE_UPDATE Message
+                  Figure 6: MOQT SUBSCRIBE_UPDATE Message
 
    *  Subscribe ID: The subscription identifier that is unique within
       the session.  This MUST match an existing Subscribe ID.
@@ -1466,9 +1196,392 @@ Table of Contents
 
    *  Subscribe Parameters: The parameters are defined in Section 6.1.1.
 
-6.6.  SUBSCRIBE_OK
+6.6.  UNSUBSCRIBE
 
-   A SUBSCRIBE_OK control message is sent for successful subscriptions.
+   A subscriber issues a UNSUBSCRIBE message to a publisher indicating
+   it is no longer interested in receiving media for the specified track
+   and Objects should stop being sent as soon as possible.  The
+   publisher sends a SUBSCRIBE_DONE to acknowledge the unsubscribe was
+   successful and indicate the final Object.
+
+   The format of UNSUBSCRIBE is as follows:
+
+   UNSUBSCRIBE Message {
+     Subscribe ID (i)
+   }
+
+                     Figure 7: MOQT UNSUBSCRIBE Message
+
+   *  Subscribe ID: Subscription Identifier as defined in Section 6.4.
+
+6.7.  ANNOUNCE_OK
+
+   The subscriber sends an ANNOUNCE_OK control message to acknowledge
+   the successful authorization and acceptance of an ANNOUNCE message.
+
+   ANNOUNCE_OK
+   {
+     Track Namespace (b),
+   }
+
+                     Figure 8: MOQT ANNOUNCE_OK Message
+
+   *  Track Namespace: Identifies the track namespace in the ANNOUNCE
+      message for which this response is provided.
+
+6.8.  ANNOUNCE_ERROR
+
+   The subscriber sends an ANNOUNCE_ERROR control message for tracks
+   that failed authorization.
+
+   ANNOUNCE_ERROR
+   {
+     Track Namespace (b),
+     Error Code (i),
+     Reason Phrase (b),
+   }
+
+                   Figure 9: MOQT ANNOUNCE_ERROR Message
+
+   *  Track Namespace: Identifies the track namespace in the ANNOUNCE
+      message for which this response is provided.
+
+   *  Error Code: Identifies an integer error code for announcement
+      failure.
+
+   *  Reason Phrase: Provides the reason for announcement error.
+
+6.9.  ANNOUNCE_CANCEL
+
+   The subscriber sends an ANNOUNCE_CANCEL control message to indicate
+   it will stop sending new subscriptions for tracks within the provided
+   Track Namespace.
+
+   If a publisher receives new subscriptions for that namespace after
+   receiving an ANNOUNCE_CANCEL, it SHOULD close the session as a
+   'Protocol Violation'.
+
+   ANNOUNCE_CANCEL Message {
+     Track Namespace (b),
+   }
+
+                  Figure 10: MOQT ANNOUNCE_CANCEL Message
+
+   *  Track Namespace: Identifies a track's namespace as defined in
+      (Section 2.3.1).
+
+6.10.  TRACK_STATUS_REQUEST
+
+   A potential subscriber sends a 'TRACK_STATUS_REQUEST' message on the
+   control stream to obtain information about the current status of a
+   given track.
+
+   A TRACK_STATUS message MUST be sent in response to each
+   TRACK_STATUS_REQUEST.
+
+   TRACK_STATUS_REQUEST Message {
+     Track Namespace (b),
+     Track Name (b),
+   }
+
+                Figure 11: MOQT TRACK_STATUS_REQUEST Message
+
+6.11.  OBJECT
+
+   An OBJECT message contains a range of contiguous bytes from from the
+   specified track, as well as associated metadata required to deliver,
+   cache, and forward it.  Objects are sent by publishers.
+
+6.11.1.  Canonical Object Fields
+
+   A canonical MoQ Object has the following information:
+
+   *  Track Namespace and Track Name: The track this object belongs to.
+
+   *  Group ID: The object is a member of the indicated group ID
+      Section 2.2 within the track.
+
+   *  Object ID: The order of the object within the group.  The IDs
+      starts at 0, increasing sequentially for each object within the
+      group.
+
+   *  Object Send Order: An integer indicating the object send order
+      Section 4.1.1 or priority Section 4.1.2 value.
+
+   *  Object Forwarding Preference: An enumeration indicating how a
+      sender sends an object.  The preferences are Track, Group, Object
+      and Datagram.  An Object MUST be sent according to its Object
+      Forwarding Preference, described below.
+
+   *  Object Status: As enumeration used to indicate missing objects or
+      mark the end of a group or track.  See Section 6.11.1.1 below.
+
+   *  Object Payload: An opaque payload intended for the consumer and
+      SHOULD NOT be processed by a relay.  Only present when 'Object
+      Status' is Normal (0x0).
+
+6.11.1.1.  Object Status
+
+   The Object Status informs subscribers what objects will not be
+   received because they were never produced, are no longer available,
+   or because they are beyond the end of a group or track.
+
+   Status can have following values:
+
+   *  0x0 := Normal object.  The payload is array of bytes and can be
+      empty.
+
+   *  0x1 := Indicates Object does not exist.  Indicates that this
+      object does not exist at any publisher and it will not be
+      published in the future.  This SHOULD be cached.
+
+   *  0x2 := Indicates Group does not exist.  Indicates that objects
+      with this GroupID do not exist at any publisher and they will not
+      be published in the future.  This SHOULD be cached.
+
+   *  0x3 := Indicates end of Group.  ObjectId is one greater that the
+      largest object produced in the group identified by the GroupID.
+      This is sent right after the last object in the group.  This
+      SHOULD be cached.
+
+   *  0x4 := Indicates end of Track and Group.  GroupID is one greater
+      than the largest group produced in this track and the ObjectId is
+      one greater than the largest object produced in that group.  This
+      is sent right after the last object in the track.  This SHOULD be
+      cached.
+
+   Any other value SHOULD be treated as a protocol error and terminate
+   the session with a Protocol Violation (Section 3.5).  Any object with
+   a status code other than zero MUST have an empty payload.
+
+   Though some status information could be inferred from QUIC stream
+   state, that information is not reliable and cacheable.
+
+   In most cases, messages with a non zero status code are sent on the
+   same stream that an object with that GroupID would have been sent on.
+   The exception to this is when that stream has been reset; in that
+   case they are sent on a new stream.  This is to avoid the status
+   message being lost in cases such as a relay dropping a group and
+   reseting the stream the group is being sent on.
+
+6.11.2.  Object Message Formats
+
+   Every Track has a single 'Object Forwarding Preference' and
+   publishers MUST NOT mix different forwarding preferences within a
+   single track.  If a subscriber receives different forwarding
+   preferences for a track, it SHOULD close the session with an error of
+   'Protocol Violation'.
+
+   *Object Stream Message*
+
+   An OBJECT_STREAM message carries a single object on a stream.  There
+   is no explicit length of the payload; it is determined by the end of
+   the stream.  An OBJECT_STREAM message MUST be the first and only
+   message on a unidirectional stream.
+
+   An Object received in an OBJECT_STREAM message has an Object
+   Forwarding Preference = Object.
+
+   To send an Object with Object Forwarding Preference = Object, open a
+   stream, serialize object fields below, and terminate the stream.
+
+   OBJECT_STREAM Message {
+     Subscribe ID (i),
+     Track Alias (i),
+     Group ID (i),
+     Object ID (i),
+     Object Send Order (i),
+     Object Status (i),
+     Object Payload (..),
+   }
+
+                   Figure 12: MOQT OBJECT_STREAM Message
+
+   *  Subscribe ID: Subscription Identifier as defined in Section 6.4.
+
+   *  Track Alias: Identifies the Track Namespace and Track Name as
+      defined in Section 6.4.
+
+   If the Track Namespace and Track Name identified by the Track Alias
+   are different from those specified in the subscription identified by
+   Subscribe ID, the receiver MUST close the session with a Protocol
+   Violation.
+
+   *  Other fields: As described in Section 6.11.1.
+
+   *Object Datagram Message*
+
+   An OBJECT_DATAGRAM message carries a single object in a datagram.
+   There is no explicit length of the payload; it is determined by the
+   length of the datagram.
+
+   An Object received in an OBJECT_DATAGRAM message has an Object
+   Forwarding Preference = Datagram.  To send an Object with Object
+   Forwarding Preference = Datagram, determine the length of the fields
+   and payload and send the Object as datagram.  In certain scenarios
+   where the object size can be larger than maximum datagram size for
+   the session, the Object will be dropped.
+
+   OBJECT_DATAGRAM Message {
+     Subscribe ID (i),
+     Track Alias (i),
+     Group ID (i),
+     Object ID (i),
+     Object Send Order (i),
+     Object Status (i),
+     Object Payload (..),
+   }
+
+                  Figure 13: MOQT OBJECT_DATAGRAM Message
+
+6.11.3.  Multi-Object Streams
+
+   When multiple objects are sent on a stream, the stream begins with a
+   stream header message and is followed by one or more sets of
+   serialized object fields.  If a stream ends gracefully in the middle
+   of a serialized Object, terminate the session with a Protocol
+   Violation.
+
+   A sender SHOULD NOT open more than one multi-object stream at a time
+   with the same stream header message type and fields.
+
+   TODO: figure out how a relay closes these streams
+
+   *Stream Header Track*
+
+   When a stream begins with STREAM_HEADER_TRACK, all objects on the
+   stream belong to the track requested in the Subscribe message
+   identified by Subscribe ID.  All objects on the stream have the
+   Object Send Order specified in the stream header.
+
+   STREAM_HEADER_TRACK Message {
+     Subscribe ID (i)
+     Track Alias (i),
+     Object Send Order (i),
+   }
+
+                Figure 14: MOQT STREAM_HEADER_TRACK Message
+
+   All Objects received on a stream opened with STREAM_HEADER_TRACK have
+   an Object Forwarding Preference = Track.
+
+   To send an Object with Object Forwarding Preference = Track, find the
+   open stream that is associated with the subscription, or open a new
+   one and send the STREAM_HEADER_TRACK if needed, then serialize the
+   following object fields.  The Object Status field is only sent if the
+   Object Payload Length is zero.
+
+   {
+     Group ID (i),
+     Object ID (i),
+     Object Payload Length (i),
+     [Object Status (i)],
+     Object Payload (..),
+   }
+
+                 Figure 15: MOQT Track Stream Object Fields
+
+   *Stream Header Group*
+
+   A sender MUST NOT send an Object on a stream if its Group ID is less
+   than a previously sent Group ID on that stream, or if its Object ID
+   is less than or equal to a previously sent Object ID within a given
+   group on that stream.
+
+   When a stream begins with STREAM_HEADER_GROUP, all objects on the
+   stream belong to the track requested in the Subscribe message
+   identified by Subscribe ID and the group indicated by Group ID.  All
+   objects on the stream have the Object Send Order specified in the
+   stream header.
+
+   STREAM_HEADER_GROUP Message {
+     Subscribe ID (i),
+     Track Alias (i),
+     Group ID (i)
+     Object Send Order (i)
+   }
+
+                Figure 16: MOQT STREAM_HEADER_GROUP Message
+
+   All Objects received on a stream opened with STREAM_HEADER_GROUP have
+   an Object Forwarding Preference = Group.
+
+   To send an Object with Object Forwarding Preference = Group, find the
+   open stream that is associated with the subscription, Group ID and
+   Object Send Order, or open a new one and send the STREAM_HEADER_GROUP
+   if needed, then serialize the following fields.  The Object Status
+   field is only sent if the Object Payload Length is zero.
+
+   {
+     Object ID (i),
+     Object Payload Length (i),
+     [Object Status (i)],
+     Object Payload (..),
+   }
+
+                 Figure 17: MOQT Group Stream Object Fields
+
+   A sender MUST NOT send an Object on a stream if its Object ID is less
+   than a previously sent Object ID within a given group in that stream.
+
+6.11.4.  Examples:
+
+   Sending a track on one stream:
+
+   STREAM_HEADER_TRACK {
+     Subscribe ID = 1
+     Track Alias = 1
+     Object Send Order = 0
+   }
+   {
+     Group ID = 0
+     Object ID = 0
+     Object Payload Length = 4
+     Payload = "abcd"
+   }
+   {
+     Group ID = 1
+     Object ID = 0
+     Object Payload Length = 4
+     Payload = "efgh"
+   }
+
+   Sending a group on one stream, with a unordered object in the group
+   appearing on its own stream.
+
+   Stream = 2
+
+   STREAM_HEADER_GROUP {
+     Subscribe ID = 2
+     Track Alias = 2
+     Group ID = 0
+     Object Send Order = 0
+   }
+   {
+     Object ID = 0
+     Object Payload Length = 4
+     Payload = "abcd"
+   }
+   {
+     Object ID = 1
+     Object Payload Length = 4
+     Payload = "efgh"
+   }
+
+   Stream = 6
+
+   OBJECT_STREAM {
+     Subscribe ID = 2
+     Track Alias = 2
+     Group ID = 0
+     Object ID = 1
+     Payload = "moqrocks"
+   }
+
+6.12.  SUBSCRIBE_OK
+
+   A publisher sends a SUBSCRIBE_OK control message for successful
+   subscriptions.
 
    SUBSCRIBE_OK
    {
@@ -1479,7 +1592,7 @@ Table of Contents
      [Largest Object ID (i)]
    }
 
-                    Figure 12: MOQT SUBSCRIBE_OK Message
+                    Figure 18: MOQT SUBSCRIBE_OK Message
 
    *  Subscribe ID: Subscription Identifier as defined in Section 6.4.
 
@@ -1499,7 +1612,7 @@ Table of Contents
       largest Group ID for this track.  This field is only present if
       ContentExists has a value of 1.
 
-6.7.  SUBSCRIBE_ERROR
+6.13.  SUBSCRIBE_ERROR
 
    A publisher sends a SUBSCRIBE_ERROR control message in response to a
    failed SUBSCRIBE.
@@ -1512,7 +1625,7 @@ Table of Contents
      Track Alias (i),
    }
 
-                  Figure 13: MOQT SUBSCRIBE_ERROR Message
+                  Figure 19: MOQT SUBSCRIBE_ERROR Message
 
    *  Subscribe ID: Subscription Identifier as defined in Section 6.4.
 
@@ -1527,27 +1640,9 @@ Table of Contents
       close the connection with a Duplicate Track Alias error
       (Section 3.5).
 
-6.8.  UNSUBSCRIBE
+6.14.  SUBSCRIBE_DONE
 
-   A subscriber issues a UNSUBSCRIBE message to a publisher indicating
-   it is no longer interested in receiving media for the specified track
-   and Objects should stop being sent as soon as possible.  The
-   publisher sends a SUBSCRIBE_DONE to acknowledge the unsubscribe was
-   successful and indicate the final Object.
-
-   The format of UNSUBSCRIBE is as follows:
-
-   UNSUBSCRIBE Message {
-     Subscribe ID (i)
-   }
-
-                    Figure 14: MOQT UNSUBSCRIBE Message
-
-   *  Subscribe ID: Subscription Identifier as defined in Section 6.4.
-
-6.9.  SUBSCRIBE_DONE
-
-   A publisher issues a SUBSCRIBE_DONE message to indicate it is done
+   A publisher sends a SUBSCRIBE_DONE message to indicate it is done
    publishing Objects for that subscription.  The Status Code indicates
    why the subscription ended, and whether it was an error.
 
@@ -1562,7 +1657,7 @@ Table of Contents
      [Final Object (i)],
    }
 
-                   Figure 15: MOQT SUBSCRIBE_DONE Message
+                   Figure 20: MOQT SUBSCRIBE_DONE Message
 
    *  Subscribe ID: Subscription identifier as defined in Section 6.4.
 
@@ -1581,7 +1676,7 @@ Table of Contents
    *  Final Object: The largest Object ID sent by the publisher in an
       OBJECT message in the Final Group for this track.
 
-6.10.  ANNOUNCE
+6.15.  ANNOUNCE
 
    The publisher sends the ANNOUNCE control message to advertise where
    the receiver can route SUBSCRIBEs for tracks within the announced
@@ -1594,51 +1689,14 @@ Table of Contents
      Parameters (..) ...,
    }
 
-                      Figure 16: MOQT ANNOUNCE Message
+                      Figure 21: MOQT ANNOUNCE Message
 
    *  Track Namespace: Identifies a track's namespace as defined in
       (Section 2.3.1)
 
    *  Parameters: The parameters are defined in Section 6.1.1.
 
-6.11.  ANNOUNCE_OK
-
-   The receiver sends an ANNOUNCE_OK control message to acknowledge the
-   successful authorization and acceptance of an ANNOUNCE message.
-
-   ANNOUNCE_OK
-   {
-     Track Namespace (b),
-   }
-
-                    Figure 17: MOQT ANNOUNCE_OK Message
-
-   *  Track Namespace: Identifies the track namespace in the ANNOUNCE
-      message for which this response is provided.
-
-6.12.  ANNOUNCE_ERROR
-
-   The receiver sends an ANNOUNCE_ERROR control message for tracks that
-   failed authorization.
-
-   ANNOUNCE_ERROR
-   {
-     Track Namespace (b),
-     Error Code (i),
-     Reason Phrase (b),
-   }
-
-                   Figure 18: MOQT ANNOUNCE_ERROR Message
-
-   *  Track Namespace: Identifies the track namespace in the ANNOUNCE
-      message for which this response is provided.
-
-   *  Error Code: Identifies an integer error code for announcement
-      failure.
-
-   *  Reason Phrase: Provides the reason for announcement error.
-
-6.13.  UNANNOUNCE
+6.16.  UNANNOUNCE
 
    The publisher sends the UNANNOUNCE control message to indicate its
    intent to stop serving new subscriptions for tracks within the
@@ -1648,49 +1706,14 @@ Table of Contents
      Track Namespace (b),
    }
 
-                     Figure 19: MOQT UNANNOUNCE Message
+                     Figure 22: MOQT UNANNOUNCE Message
 
    *  Track Namespace: Identifies a track's namespace as defined in
       (Section 2.3.1).
 
-6.14.  ANNOUNCE_CANCEL
+6.17.  TRACK_STATUS
 
-   The subscriber sends an ANNOUNCE_CANCEL control message to indicate
-   it will stop sending new subscriptions for tracks within the provided
-   Track Namespace.
-
-   If a publisher receives new subscriptions for that namespace after
-   receiving an ANNOUNCE_CANCEL, it SHOULD close the session as a
-   'Protocol Violation'.
-
-   ANNOUNCE_CANCEL Message {
-     Track Namespace (b),
-   }
-
-                  Figure 20: MOQT ANNOUNCE_CANCEL Message
-
-   *  Track Namespace: Identifies a track's namespace as defined in
-      (Section 2.3.1).
-
-6.15.  TRACK_STATUS_REQUEST
-
-   A potential subscriber sends a 'TRACK_STATUS_REQUEST' message on the
-   control stream to obtain information about the current status of a
-   given track.
-
-   A TRACK_STATUS message MUST be sent in response to each
-   TRACK_STATUS_REQUEST.
-
-   TRACK_STATUS_REQUEST Message {
-     Track Namespace (b),
-     Track Name (b),
-   }
-
-                Figure 21: MOQT TRACK_STATUS_REQUEST Message
-
-6.16.  TRACK_STATUS
-
-   An endpoint sends a 'TRACK_STATUS' message on the control stream in
+   A publisher sends a 'TRACK_STATUS' message on the control stream in
    response to a TRACK_STATUS_REQUEST message.
 
    TRACK_STATUS Message {
@@ -1701,7 +1724,7 @@ Table of Contents
      Last Object ID (i),
    }
 
-                    Figure 22: MOQT TRACK_STATUS Message
+                    Figure 23: MOQT TRACK_STATUS Message
 
    The 'Status Code' field provides additional information about the
    status of the track.  It MUST hold one of the following values.  Any
@@ -1741,27 +1764,6 @@ Table of Contents
    information from the latest arriving message, as they are delivered
    in order on a single stream.
 
-6.17.  GOAWAY
-
-   The server sends a GOAWAY message to initiate session migration
-   (Section 3.6) with an optional URI.
-
-   The server MUST terminate the session with a Protocol Violation
-   (Section 3.5) if it receives a GOAWAY message.  The client MUST
-   terminate the session with a Protocol Violation (Section 3.5) if it
-   receives multiple GOAWAY messages.
-
-   GOAWAY Message {
-     New Session URI (b)
-   }
-
-                       Figure 23: MOQT GOAWAY Message
-
-   *  New Session URI: The client MUST use this URI for the new session
-      if provided.  If the URI is zero bytes long, the current URI is
-      reused instead.  The new session URI SHOULD use the same scheme as
-      the current URL to ensure compatibility.
-
 7.  Security Considerations
 
    TODO: Expand this section, including subscriptions.
@@ -1798,11 +1800,7 @@ Table of Contents
 
    *  Announce Error codes
 
-   *  Track format numbers
-
    *  Message types
-
-   *  Object headers
 
    TODO: register the URI scheme and the ALPN
 
