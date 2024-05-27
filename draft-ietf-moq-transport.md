@@ -1004,6 +1004,30 @@ object than StartGroup and StartObject.
 
 A filter type other than the above MUST be treated as error.
 
+### Delivery Order {#delivery-order}
+
+A subscriber can prefer different Object delivery orders depending upon the
+use case.  Their responses to congestion are different: In Order prioritizes
+completeness and Latest prioritizes receiving the most recent Objects.
+
+There are 2 delivery orders:
+
+In Order (0x1): In Order subscriptions are delivered as fast as possible on
+a single stream at once, starting with the 'Stream Header Track' header.
+When an Object or Group is no longer available, the status ({{object-status}})
+should indicate that. A SUBSCRIBE_UPDATE could narrow a subscription and
+it could make sense to skip over ranges of Objects. In this case, a publisher
+MAY reset the existing stream and start sending on a new one, with the same
+Subscribe ID.  Publishers MUST NOT skip Objects otherwise.
+
+Latest (0x2): Objects from the most recent Group SHOULD be delivered first,
+in ascending Object ID order when possible, unless indicated otherwise by
+an Object's 'Object Send Order' or another mechanism.  Objects MAY be delivered
+via OBJECT_STREAM, OBJECT_DATAGRAM, or STREAM_HEADER_GROUP streams, but
+MUST NOT change the delivery preference during a subscription.
+A subscriber MUST NOT make two simultaneous 'Latest' subscriptions for the
+same Track.
+
 
 ### SUBSCRIBE Format
 A receiver issues a SUBSCRIBE to a publisher to request a track.
@@ -1021,6 +1045,7 @@ SUBSCRIBE Message {
    StartObject (i)],
   [EndGroup (i),
    EndObject (i)],
+  Delivery Order (i),
   Number of Parameters (i),
   Track Request Parameters (..) ...
 }
@@ -1059,6 +1084,9 @@ requested. Only present for "AbsoluteStart" and "AbsoluteRange" filter types.
 
 * EndObject: The end Object ID, plus 1. A value of 0 means the entire group is
 requested. Only present for the "AbsoluteRange" filter type.
+
+* Delivery Preference: Indicates how Objects should be transmitted and dropped.
+See ({{delivery-preference}}) above.
 
 * Track Request Parameters: The parameters are defined in
 {{version-specific-params}}
@@ -1310,7 +1338,6 @@ serialize object fields below, and terminate the stream.
 
 ~~~
 OBJECT_STREAM Message {
-  Subscribe ID (i),
   Track Alias (i),
   Group ID (i),
   Object ID (i),
@@ -1320,8 +1347,6 @@ OBJECT_STREAM Message {
 }
 ~~~
 {: #moq-transport-object-stream-format title="MOQT OBJECT_STREAM Message"}
-
-* Subscribe ID: Subscription Identifier as defined in {{message-subscribe-req}}.
 
 * Track Alias: Identifies the Track Namespace and Track Name as defined in
 {{message-subscribe-req}}.
@@ -1347,7 +1372,6 @@ will be dropped.
 
 ~~~
 OBJECT_DATAGRAM Message {
-  Subscribe ID (i),
   Track Alias (i),
   Group ID (i),
   Object ID (i),
@@ -1375,15 +1399,11 @@ TODO: figure out how a relay closes these streams
 
 When a stream begins with `STREAM_HEADER_TRACK`, all objects on the stream
 belong to the track requested in the Subscribe message identified by `Subscribe
-ID`.  All objects on the stream have the `Object Send Order` specified in the
-stream header.
-
+ID`.
 
 ~~~
 STREAM_HEADER_TRACK Message {
   Subscribe ID (i)
-  Track Alias (i),
-  Object Send Order (i),
 }
 ~~~
 {: #stream-header-track-format title="MOQT STREAM_HEADER_TRACK Message"}
@@ -1414,13 +1434,12 @@ previously sent Group ID on that stream, or if its Object ID is less than or
 equal to a previously sent Object ID within a given group on that stream.
 
 When a stream begins with `STREAM_HEADER_GROUP`, all objects on the stream
-belong to the track requested in the Subscribe message identified by `Subscribe
-ID` and the group indicated by `Group ID`.  All objects on the stream
+belong to the track requested in the Subscribe message identified by `Track
+Alias` and the group indicated by `Group ID`.  All objects on the stream
 have the `Object Send Order` specified in the stream header.
 
 ~~~
 STREAM_HEADER_GROUP Message {
-  Subscribe ID (i),
   Track Alias (i),
   Group ID (i)
   Object Send Order (i)
