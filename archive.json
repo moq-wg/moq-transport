@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2024-05-26T01:16:58.207763+00:00",
+  "timestamp": "2024-05-28T01:12:00.579843+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -11850,7 +11850,7 @@
       "id": "I_kwDOG2Ho4M51RAwJ",
       "title": "Classify messages by ROLE",
       "url": "https://github.com/moq-wg/moq-transport/issues/309",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "kixelated",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
@@ -11859,8 +11859,8 @@
       ],
       "body": "Here is the SUBSCRIBE family of messages:\r\n\r\n```rust\r\nSUBSCRIBE = 0x3,\r\nSUBSCRIBE_OK = 0x4,\r\nSUBSCRIBE_ERROR = 0x5,\r\nUNSUBSCRIBE = 0xa,\r\nSUBSCRIBE_FIN = 0xb,\r\nSUBSCRIBE_RESET = 0xc,\r\n```\r\n\r\nI have two separate modules for publishing and subscribing as they are fully* independent in MoqTransport. Additionally, some applications will only publish or subscribe, so it's not necessary to implement/expose the full API surface.\r\n\r\nHowever, at a glance, it's not clear which messages are sent by each role. I think it would help a lot if we classified which role sends which messages:\r\n\r\n```rust\r\n// Sent by a subscriber\r\nSUBSCRIBE = 0x3,\r\nUNSUBSCRIBE = 0xa,\r\n\r\n// Sent by a publisher\r\nSUBSCRIBE_OK = 0x4,\r\nSUBSCRIBE_ERROR = 0x5,\r\nSUBSCRIBE_FIN = 0xb,\r\nSUBSCRIBE_RESET = 0xc,\r\n```\r\n\r\nFor example, I think it makes it a lot clearer that a subscriber needs to accept 3(!) possible error messages.",
       "createdAt": "2023-10-30T03:18:02Z",
-      "updatedAt": "2023-10-30T04:20:12Z",
-      "closedAt": null,
+      "updatedAt": "2024-05-27T16:19:31Z",
+      "closedAt": "2024-05-27T16:19:31Z",
       "comments": [
         {
           "author": "kixelated",
@@ -14253,7 +14253,7 @@
       "id": "I_kwDOG2Ho4M6APh0h",
       "title": "Organize messages by role",
       "url": "https://github.com/moq-wg/moq-transport/issues/399",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "ianswett",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
@@ -14262,8 +14262,8 @@
       ],
       "body": "The discussion on PR #395 suggested a reorg of messages and how to discuss them in the Role section.\r\n\r\n> _afrind_ \r\n> If we reorganized the document into \"publisher messages\" and \"subscriber messages\", then the text here (and below) could be improved. We could say:\r\n> \r\n> The endpoint MUST NOT send any subscriber messages. If the endpoint receives any publisher messages, it MUST close the connection with \"error code TBD\".\r\n> \r\n>  _kixelated_ \r\n> +1 I would love to see this.\r\n> \r\n>  _kixelated_ \r\n> A simple way of doing it would be to add a \"sent by (role)\" column to the table of messages and IDs.\r\n\r\n",
       "createdAt": "2024-02-23T18:00:13Z",
-      "updatedAt": "2024-02-23T18:04:09Z",
-      "closedAt": null,
+      "updatedAt": "2024-05-27T16:19:31Z",
+      "closedAt": "2024-05-27T16:19:31Z",
       "comments": []
     },
     {
@@ -14406,7 +14406,7 @@
       ],
       "body": "For low latency audio and video, it's helpful to be able to prioritize one track over another, whether it's audio vs video or one quality of video vs another quality of video.\r\n\r\nThis prioritization can be very helpful for ABR as well.  One might want to request the next quality up in hopes of upswitching, but continue playing the current quality until it's clear the next quality can be delivered, so the higher quality should be lower priority.\r\n\r\nThis is somewhat related to #396",
       "createdAt": "2024-02-29T16:50:47Z",
-      "updatedAt": "2024-05-06T17:18:55Z",
+      "updatedAt": "2024-05-28T00:57:11Z",
       "closedAt": null,
       "comments": [
         {
@@ -14478,6 +14478,13 @@
           "body": "Individual Comment:\r\n\r\nAs someone who has extensively deployed HTTP priorities through multiple layers of relays (proxies) with measurable user experience wins, I'll say that giving all resources equal priority on relay -> relay and relay -> origin hops has worked out well in practice.  The resource you are prioritizing is the bandwidth at the *bottleneck* link, and this is almost always the last mile.  For sufficiently large networks, there's also no fair way to indicate which \"fill\" requests should be treated with higher priorities than others.\r\n\r\nIn contrast, HTTP/2 priorities were designed explicitly so that relays could continue to convey priorities through proxies and the effects were\r\n\r\n1) no one ever deployed this\r\n2) the resulting priority scheme was so difficult to manage, it limited application use\r\n\r\nThese problems resulted in scrapping the scheme after 5 years.\r\n\r\nIn my view, this experience puts the onus on proponents of prioritizing traffic on backhaul links to bring data showing that this is a practical rather than theoretical constraint.\r\n\r\nFurther, we should be asking if providing a transport mechanism to *allow* subscribers to express track priority would break an application that wants exclusive publisher control.  I think the answer is no.\r\n\r\nUltimately HTTP priorities evolved to a point where both the client and the server can express a priority signal.  I think moq can follow a similar model, with perhaps stricter guidance about how to merge these signals.",
           "createdAt": "2024-05-06T17:18:54Z",
           "updatedAt": "2024-05-06T17:18:54Z"
+        },
+        {
+          "author": "LPardue",
+          "authorAssociation": "NONE",
+          "body": "+1 to Alan's comments on bottlenecks and backhaul. \r\n\r\nRFC 9218 had to tread a fine line with its guidance on scheduling and merging. MoQ can do something different but it should all be written out with care.",
+          "createdAt": "2024-05-28T00:57:11Z",
+          "updatedAt": "2024-05-28T00:57:11Z"
         }
       ]
     },
@@ -15603,11 +15610,12 @@
       "labels": [
         "Requirement",
         "Needs PR",
-        "Needs Discussion"
+        "Needs Discussion",
+        "Object Model"
       ],
       "body": "The whole draft needed a pass at some point for extensibility but a more immediate concern is to play with various things, we need a way of adding header to an object that the relay can read.  The LOC draft has a line about needing this, I think Will had some use cases that needed it, and it would help with experimenting and migrating some pre standard implementations to the current version of the draft. \r\n\r\nThe requirement would be there was a way to define new headers in extensions, there was a way to indicate if the header needs to be understood by relays, reviewers, both, or neither. \r\n\r\n",
       "createdAt": "2024-04-17T17:28:34Z",
-      "updatedAt": "2024-04-22T14:42:36Z",
+      "updatedAt": "2024-05-27T19:31:17Z",
       "closedAt": null,
       "comments": [
         {
@@ -52066,13 +52074,13 @@
       "labels": [],
       "body": "Merges the two send order approaches because it appears they're very similar from the perspective of MoQ transport and removes text that is not relevant to MoQ Transport.",
       "createdAt": "2024-03-18T12:28:48Z",
-      "updatedAt": "2024-03-24T22:21:21Z",
+      "updatedAt": "2024-05-26T20:03:50Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "ad67a19f1e6abbe4331b73ad49360726783a2bb8",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "ianswett-clarify-send-order",
-      "headRefOid": "921363e93501e29720da445de5e15238f2697d79",
+      "headRefOid": "c961abd3356243a133021d436d85eca096560e61",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -52328,6 +52336,26 @@
               "updatedAt": "2024-03-24T22:21:21Z"
             }
           ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M579ug2",
+          "commit": {
+            "abbreviatedOid": "921363e"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-05-26T20:03:43Z",
+          "updatedAt": "2024-05-26T20:03:43Z",
+          "comments": [
+            {
+              "originalPosition": 28,
+              "body": "```suggestion\r\ncontents of each object are delivered in order.\r\n```",
+              "createdAt": "2024-05-26T20:03:43Z",
+              "updatedAt": "2024-05-26T20:03:44Z"
+            }
+          ]
         }
       ]
     },
@@ -52411,9 +52439,9 @@
       "labels": [
         "Subscribe"
       ],
-      "body": "A PR corresponding to: https://datatracker.ietf.org/meeting/119/materials/slides-119-moq-subscribe-and-fetch\r\n\r\nFixes #269 \r\nFixes #296\r\nFixes #350 \r\nFixes #326\r\nFixes #377\r\nFixes #312 \r\nFixes #353\r\n\r\nAlso relevant to #396, #326\r\n\r\nSome open questions:\r\n - Do we want OBJECT_FETCH_DATAGRAM to be transmitted over datagrams only?",
+      "body": "A PR corresponding to: https://datatracker.ietf.org/meeting/119/materials/slides-119-moq-subscribe-and-fetch\r\n\r\nFixes #269 \r\nFixes #296\r\nFixes #350 \r\nFixes #326\r\nFixes #377\r\n\r\nAlso relevant to #396, #326\r\n\r\nSome open questions:\r\n - Do we want OBJECT_FETCH_DATAGRAM to be transmitted over datagrams only?",
       "createdAt": "2024-03-19T06:11:41Z",
-      "updatedAt": "2024-04-10T15:37:16Z",
+      "updatedAt": "2024-05-27T16:54:50Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "ad67a19f1e6abbe4331b73ad49360726783a2bb8",
@@ -57452,13 +57480,13 @@
       "labels": [],
       "body": "Fixes #403 \r\n\r\nIt seems like we need this, and I'm open to suggestions, but this feels quite straightforward.",
       "createdAt": "2024-05-02T01:51:45Z",
-      "updatedAt": "2024-05-04T16:33:44Z",
+      "updatedAt": "2024-05-28T01:10:21Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
-      "baseRefOid": "70787894f42dc39494edbe9d49b6760afbd701c0",
+      "baseRefOid": "d05778bed2aa7dd601f4cd201fec5075b056de33",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "ianswett-subscribe-priority",
-      "headRefOid": "270b16ba749dc475f041c3bcb109bfbf991c5633",
+      "headRefOid": "43862303c4e56b4a9a90a985f30c885e2b10943f",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -57484,6 +57512,99 @@
               "updatedAt": "2024-05-04T16:33:44Z"
             }
           ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M579uWu",
+          "commit": {
+            "abbreviatedOid": "270b16b"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-05-26T19:57:24Z",
+          "updatedAt": "2024-05-26T19:57:25Z",
+          "comments": [
+            {
+              "originalPosition": 4,
+              "body": "Why can't they be aggregated?  Clearly a relay will have to make a choice about what the upstream priority should be, but this at least gives it an ability to do that.\r\n\r\nPriorities are within a track, why would one have priorities across tracks?  A subscriber may be subscribing to multiple different things at once, potentially from different namespaces, so having priorities apply between tracks is confusing.",
+              "createdAt": "2024-05-26T19:57:24Z",
+              "updatedAt": "2024-05-26T19:57:25Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M58Dmy6",
+          "commit": {
+            "abbreviatedOid": "270b16b"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-05-27T17:51:25Z",
+          "updatedAt": "2024-05-27T17:51:26Z",
+          "comments": [
+            {
+              "originalPosition": 4,
+              "body": "in general , a way for a subscriber to express priority does makes sense. I do have few thoughts \\\r\n\r\nOn aggregation: if 2 subscribers for the same track ask different priorities to a relay, the relay has to do some sort of logic to determine which one to pick. The easiest way to resolve this is \"the publisher priority wins in such a case\" . Perhaps we should document that in the relay section ?? Also I think the priority field needs to be optional.\r\n\r\nOn priority and track relation: Subscription is per track and if a subscriber asks for video track and audio track, it would ask that with 2 different priorities and we should allow that. isn't that the case or am I missing something ? ",
+              "createdAt": "2024-05-27T17:51:26Z",
+              "updatedAt": "2024-05-27T17:51:26Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M58Dp5C",
+          "commit": {
+            "abbreviatedOid": "270b16b"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-05-27T18:08:13Z",
+          "updatedAt": "2024-05-27T18:08:13Z",
+          "comments": [
+            {
+              "originalPosition": 4,
+              "body": "I'm inclined not to say anything on aggregation.  CDNs and such deal with this today (HTTP priorities are similar to this) and I'm not sure being proscriptive helps.  This is very much intended as a property on a given subscription within a session, so I wouldn't expect it typically makes sense to go upstream, just like we don't act on HTTP priorities when coalescing upstream.\r\n\r\nI'm fine with making it optional, but I have no idea what to make the default? This priority is purely relative, and there's no absolute meaning.",
+              "createdAt": "2024-05-27T18:08:13Z",
+              "updatedAt": "2024-05-27T18:08:13Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M58EVlG",
+          "commit": {
+            "abbreviatedOid": "4386230"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-05-27T22:45:56Z",
+          "updatedAt": "2024-05-27T22:45:56Z",
+          "comments": [
+            {
+              "originalPosition": 4,
+              "body": "> I'm inclined not to say anything on aggregation.  CDNs and such deal with this today (HTTP priorities are similar to this) and I'm not sure being proscriptive helps.  This is very much intended as a property on a given subscription within a session, so I wouldn't expect it typically makes sense to go upstream, just like we don't act on HTTP priorities when coalescing upstream.\n> \n> \n> \n> I'm fine with making it optional, but I have no idea what to make the default? This priority is purely relative, and there's no absolute meaning.\n\nThe default will be publisher set priority. \n\n+1 on not carrying over the priority upstream and thus applies to just the last mile. This allows for subscriptions aggregation. We should add a note to clarify this though. ",
+              "createdAt": "2024-05-27T22:45:56Z",
+              "updatedAt": "2024-05-27T22:45:56Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M58ElY8",
+          "commit": {
+            "abbreviatedOid": "4386230"
+          },
+          "author": "LPardue",
+          "authorAssociation": "NONE",
+          "state": "CHANGES_REQUESTED",
+          "body": "This is, IMO, too ambiguous about what happens when the values are equal. One option would be to bandwidth share, another would be to tie break based on some other parameter like the session ID (I.e. in HTTP we prefer lower stream IDs because that indicates an earlier request, not sure that translates to MoQ).\r\n\r\nI'm not a huge fan of the name `Priority` because that is so overloaded. It seems like this single value is precedence.\r\n\r\nDo we really need 2^62 levels? All the feedback I heard in the HTTP priorities discussion said that too many options is confusing. Do we have any understanding of how many concurrent sessions a MoQ use case has? Imy crystal ball suggests we can probably drop this field to 16-bits and be totally fine.",
+          "createdAt": "2024-05-28T01:10:21Z",
+          "updatedAt": "2024-05-28T01:10:21Z",
+          "comments": []
         }
       ]
     },
@@ -57499,13 +57620,13 @@
       "labels": [],
       "body": "Based on discussion last week and on slack, I believe this is where the WG is heading.\r\n\r\nIt is possible this could be a per-track or per-subscription value to save bytes on the wire, particularly for the Object per Stream or Object per Datagram modes.\r\n\r\nIt's possible this value could be decreased by the cache dwell time at each hop, but I didn't hear clear consensus either way on that question.\r\n\r\nFixes #440\r\nFixes #415 ",
       "createdAt": "2024-05-13T13:46:14Z",
-      "updatedAt": "2024-05-23T23:13:37Z",
+      "updatedAt": "2024-05-27T16:44:17Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
-      "baseRefOid": "70787894f42dc39494edbe9d49b6760afbd701c0",
+      "baseRefOid": "d05778bed2aa7dd601f4cd201fec5075b056de33",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "ianswett-cache-duration",
-      "headRefOid": "90693814253a7faf13170f09a4853dfa8534175c",
+      "headRefOid": "4849bb79651edbadc5ffcb33ce14036ac7755bc4",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -57912,7 +58033,7 @@
       "id": "PR_kwDOG2Ho4M5vRdMb",
       "title": "Organize messages by Publisher and Subscriber",
       "url": "https://github.com/moq-wg/moq-transport/pull/447",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "ianswett",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
@@ -57921,18 +58042,28 @@
       ],
       "body": "This only moves around the text, but I could create section titles for Publisher and Subscriber messages.\r\n\r\nI can also add a column to the message type table if people would like.\r\n\r\nFixes #399 \r\nFixes #309",
       "createdAt": "2024-05-13T14:56:21Z",
-      "updatedAt": "2024-05-15T16:25:41Z",
+      "updatedAt": "2024-05-27T16:20:11Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "70787894f42dc39494edbe9d49b6760afbd701c0",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "ianswett-pubsub",
       "headRefOid": "e456cf2a97ff2fa29e64a110cc6a5a9109d1be3c",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
-      "comments": [],
+      "closedAt": "2024-05-27T16:19:30Z",
+      "mergedAt": "2024-05-27T16:19:30Z",
+      "mergedBy": "ianswett",
+      "mergeCommit": {
+        "oid": "d05778bed2aa7dd601f4cd201fec5075b056de33"
+      },
+      "comments": [
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I merged this to avoid conflicts, but I will do a follow-up or two.",
+          "createdAt": "2024-05-27T16:20:10Z",
+          "updatedAt": "2024-05-27T16:20:10Z"
+        }
+      ],
       "reviews": [
         {
           "id": "PRR_kwDOG2Ho4M56sjhW",
@@ -57961,13 +58092,13 @@
       "labels": [],
       "body": "Those are long-term limits on how long a relay can keep serving objects from cache, primarily meant to be used to enforce content-related policies, rather than be used as a technical measure for optimizing delivery.",
       "createdAt": "2024-05-20T14:52:21Z",
-      "updatedAt": "2024-05-22T15:17:28Z",
+      "updatedAt": "2024-05-27T17:02:33Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
-      "baseRefOid": "70787894f42dc39494edbe9d49b6760afbd701c0",
+      "baseRefOid": "d05778bed2aa7dd601f4cd201fec5075b056de33",
       "headRepository": "vasilvv/warp-draft",
       "headRefName": "availability",
-      "headRefOid": "7643d4453bf21392c94a0fcb53d439dd96ea205a",
+      "headRefOid": "d449f3ade0019ce22b22f109a1db26faf2168139",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -58187,13 +58318,13 @@
       "labels": [],
       "body": "The timeouts in this PR are defined to to ensure that the invariant properties implied by the object delivery preference are maintained, e.g. if stream-per-group is used, it is impossible to accidentally timeout an object in the middle of the group.\r\n\r\nFixes #440",
       "createdAt": "2024-05-20T15:06:37Z",
-      "updatedAt": "2024-05-23T14:41:07Z",
+      "updatedAt": "2024-05-27T17:03:10Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
-      "baseRefOid": "70787894f42dc39494edbe9d49b6760afbd701c0",
+      "baseRefOid": "d05778bed2aa7dd601f4cd201fec5075b056de33",
       "headRepository": "vasilvv/warp-draft",
       "headRefName": "timeout",
-      "headRefOid": "6c125aee8a0d4a2c831bf074401cfa3e5556a7ce",
+      "headRefOid": "0d41dcd792c1c66c48dafbfb989c18633ff3dd52",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -58363,13 +58494,13 @@
       "labels": [],
       "body": "A variant of #446 that is on a Subscription granularity, instead of Object.\r\n\r\nFixes #440 ",
       "createdAt": "2024-05-22T17:39:39Z",
-      "updatedAt": "2024-05-23T14:28:56Z",
+      "updatedAt": "2024-05-27T16:46:02Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
-      "baseRefOid": "70787894f42dc39494edbe9d49b6760afbd701c0",
+      "baseRefOid": "d05778bed2aa7dd601f4cd201fec5075b056de33",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "ianswett-max-cache-duration",
-      "headRefOid": "26233a416bfaffe05375117a97373f65918a234d",
+      "headRefOid": "edcb48d4df6a429e2c810200c103b1df00706938",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -58391,6 +58522,97 @@
         }
       ],
       "reviews": []
+    },
+    {
+      "number": 451,
+      "id": "PR_kwDOG2Ho4M5wmL9x",
+      "title": "Rename Track Request Parameters to Subscribe Parameters",
+      "url": "https://github.com/moq-wg/moq-transport/pull/451",
+      "state": "OPEN",
+      "author": "ianswett",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [
+        "Editorial"
+      ],
+      "body": "Seems like a more obvious name.",
+      "createdAt": "2024-05-26T18:37:52Z",
+      "updatedAt": "2024-05-27T17:52:05Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "d05778bed2aa7dd601f4cd201fec5075b056de33",
+      "headRepository": "moq-wg/moq-transport",
+      "headRefName": "ianswett-subcribe-params",
+      "headRefOid": "3066f0698f27f01460bf2b7cf3b36a1cde88765b",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M58Dm58",
+          "commit": {
+            "abbreviatedOid": "3066f06"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2024-05-27T17:52:05Z",
+          "updatedAt": "2024-05-27T17:52:05Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 452,
+      "id": "PR_kwDOG2Ho4M5wsJdM",
+      "title": "Delivery Order (aka Fetch lives)",
+      "url": "https://github.com/moq-wg/moq-transport/pull/452",
+      "state": "OPEN",
+      "author": "ianswett",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [
+        "Subscribe"
+      ],
+      "body": "Takes an opinionated approach to adding 'Fetch' style functionality within the existing mechanisms.\r\n\r\nCan be split up if people prefer.\r\n\r\nPulls in concepts from #411, #428 and #449 (Delivery Timeout)\r\n\r\nFixes #269\r\nFixes #326\r\nFixes #350\r\nFixes #396 \r\nFixes #419\r\nFixes #431 \r\nFixes #442\r\n\r\nRelevant to #422, because we can omit the Object ID for 'In Order' delivery mode.\r\n\r\nCloses #421\r\nCloses #449",
+      "createdAt": "2024-05-27T18:42:39Z",
+      "updatedAt": "2024-05-27T21:23:25Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "d05778bed2aa7dd601f4cd201fec5075b056de33",
+      "headRepository": "moq-wg/moq-transport",
+      "headRefName": "ianswett-delivery-order",
+      "headRefOid": "a46e1b87a265663a76b2aa51b47759dee81faef0",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M58EHVh",
+          "commit": {
+            "abbreviatedOid": "f270c56"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-05-27T20:51:58Z",
+          "updatedAt": "2024-05-27T20:51:58Z",
+          "comments": [
+            {
+              "originalPosition": 170,
+              "body": "```suggestion\r\nrequested a 'Delivery Order' of 'Strict In Order'. See ({{delivery-timeout}}) above.\r\n```",
+              "createdAt": "2024-05-27T20:51:58Z",
+              "updatedAt": "2024-05-27T20:51:58Z"
+            }
+          ]
+        }
+      ]
     }
   ]
 }
