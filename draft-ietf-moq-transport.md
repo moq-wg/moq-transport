@@ -875,12 +875,12 @@ semantics of this field depend on the forwarding preference
   subscription, the relay SHOULD NOT forward that datagram.
 - If the Object Forwarding Preference is `Object`, once the specified number of
   milliseconds has passed since the object was fully received, the relay SHOULD
-  NOT open new streams for the object in question, and SHOULD reset all
-  existing streams if those have been already opened.
+  NOT open a new stream for the object in question, and SHOULD reset the
+  existing stream if it has been already opened.
 - If the Object Forwarding Preference is `Group`, once the specified number of
   milliseconds has passed since the final object of the group was fully
-  received, the relay SHOULD NOT open new streams for the group in question,
-  and SHOULD reset all existing streams if those have been already opened.
+  received, the relay SHOULD NOT open a new stream for the group in question,
+  and SHOULD reset the existing stream if it has been already opened.
 - If the Object Forwarding Preference is `Track`, this parameter MUST NOT be
   present.
 
