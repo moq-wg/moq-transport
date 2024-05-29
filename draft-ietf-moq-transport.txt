@@ -5,13 +5,13 @@
 MOQ                                                            L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 28 November 2024                                           Meta
+Expires: 30 November 2024                                           Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                             27 May 2024
+                                                             29 May 2024
 
 
                        Media over QUIC Transport
@@ -53,7 +53,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 28 November 2024.
+   This Internet-Draft will expire on 30 November 2024.
 
 Copyright Notice
 
@@ -1124,9 +1124,8 @@ Table of Contents
    *  StartGroup: The start Group ID.  Only present for "AbsoluteStart"
       and "AbsoluteRange" filter types.
 
-   *  StartObject: The start Object ID, plus 1.  A value of 0 means the
-      entire group is requested.  Only present for "AbsoluteStart" and
-      "AbsoluteRange" filter types.
+   *  StartObject: The start Object ID.  Only present for
+      "AbsoluteStart" and "AbsoluteRange" filter types.
 
    *  EndGroup: The end Group ID.  Only present for the "AbsoluteRange"
       filter type.
@@ -1185,8 +1184,7 @@ Table of Contents
 
    *  StartGroup: The start Group ID.
 
-   *  StartObject: The start Object ID, plus 1.  A value of 0 means the
-      entire group is requested.
+   *  StartObject: The start Object ID.
 
    *  EndGroup: The end Group ID, plus 1.  A value of 0 means the
       subscription is open-ended.
