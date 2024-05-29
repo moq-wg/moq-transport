@@ -1253,7 +1253,7 @@ single value applies to all Objects within the stream. For example, if a Group
 has two Objects, and the Object Forwarding Preference is 'Group', then
 only a single Max Cache Duration can be conveyed to a future subscriber,
 even if there was a substantial time gap between receiving the first and
-second Object.
+second Object in the Group.
 
 * Object Status: As enumeration used to indicate missing
 objects or mark the end of a group or track. See {{object-status}} below.
