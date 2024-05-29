@@ -1052,8 +1052,8 @@ See ({{sub-filter}}).
 * StartGroup: The start Group ID. Only present for "AbsoluteStart" and
 "AbsoluteRange" filter types.
 
-* StartObject: The start Object ID, plus 1. A value of 0 means the entire group is
-requested. Only present for "AbsoluteStart" and "AbsoluteRange" filter types.
+* StartObject: The start Object ID. Only present for "AbsoluteStart" and
+"AbsoluteRange" filter types.
 
 * EndGroup: The end Group ID. Only present for the "AbsoluteRange" filter type.
 
@@ -1107,10 +1107,9 @@ This MUST match an existing Subscribe ID.
 
 * StartGroup: The start Group ID.
 
-* StartObject: The start Object ID, plus 1. A value of 0 means the entire group
-is requested.
+* StartObject: The start Object ID.
 
-* EndGroup: The end Group ID, plus 1.  A value of 0 means the subscription is
+* EndGroup: The end Group ID, plus 1. A value of 0 means the subscription is
 open-ended.
 
 * EndObject: The end Object ID, plus 1. A value of 0 means the entire group is
