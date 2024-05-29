@@ -1247,6 +1247,14 @@ Object, the amount of time the Object spent in cache is deducted from the
 Max Cache Duration value before the Object is sent. Exceeding the duration
 does not cause a change in the 'Object Status'.
 
+The Cache Duration is only expressed in the stream header, so the Object
+Forwarding Preference dictates the granularity of cache duration, because a
+single value applies to all Objects within the stream. For example, if a Group
+has two Objects, and the Object Forwarding Preference is 'Group', then
+only a single Max Cache Duration can be conveyed to a future subscriber,
+even if there was a substantial time gap between receiving the first and
+second Object.
+
 * Object Status: As enumeration used to indicate missing
 objects or mark the end of a group or track. See {{object-status}} below.
 
