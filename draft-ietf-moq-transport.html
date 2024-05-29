@@ -1567,7 +1567,8 @@ bytes. Objects form the base element in the MOQT model. See
 <dt id="section-1.2-2.19">Track:</dt>
           <dd style="margin-left: 1.5em" id="section-1.2-2.20">
             <p id="section-1.2-2.20.1">An encoded bitstream. Tracks contain a sequential series of one or
-more groups and are the subscribable entity with MOQT.<a href="#section-1.2-2.20.1" class="pilcrow">¶</a></p>
+more groups and are the subscribable entity with MOQT.
+See (<a href="#model-track" class="auto internal xref">Section 2.3</a>).<a href="#section-1.2-2.20.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
 </dl>
@@ -2657,7 +2658,7 @@ SUBSCRIBE Message {
   [EndGroup (i),
    EndObject (i)],
   Number of Parameters (i),
-  Track Request Parameters (..) ...
+  Subscribe Parameters (..) ...
 }
 </pre>
 </div>
@@ -2709,8 +2710,7 @@ See (<a href="#sub-filter" class="auto internal xref">Section 6.4.1</a>).<a href
 requested. Only present for the "AbsoluteRange" filter type.<a href="#section-6.4.2-4.9.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-6.4.2-4.10">
-              <p id="section-6.4.2-4.10.1">Track Request Parameters: The parameters are defined in
-<a href="#version-specific-params" class="auto internal xref">Section 6.1.1</a><a href="#section-6.4.2-4.10.1" class="pilcrow">¶</a></p>
+              <p id="section-6.4.2-4.10.1">Subscribe Parameters: The parameters are defined in <a href="#version-specific-params" class="auto internal xref">Section 6.1.1</a>.<a href="#section-6.4.2-4.10.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
 <p id="section-6.4.2-5">On successful subscription, the publisher <span class="bcp14">MUST</span> reply with a SUBSCRIBE_OK,
@@ -2752,7 +2752,7 @@ SUBSCRIBE_UPDATE Message {
   EndGroup (i),
   EndObject (i),
   Number of Parameters (i),
-  Track Request Parameters (..) ...
+  Subscribe Parameters (..) ...
 }
 </pre>
 </div>
@@ -2780,8 +2780,7 @@ open-ended.<a href="#section-6.5-5.4.1" class="pilcrow">¶</a></p>
 requested.<a href="#section-6.5-5.5.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-6.5-5.6">
-            <p id="section-6.5-5.6.1">Track Request Parameters: The parameters are defined in
-<a href="#version-specific-params" class="auto internal xref">Section 6.1.1</a><a href="#section-6.5-5.6.1" class="pilcrow">¶</a></p>
+            <p id="section-6.5-5.6.1">Subscribe Parameters: The parameters are defined in <a href="#version-specific-params" class="auto internal xref">Section 6.1.1</a>.<a href="#section-6.5-5.6.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
@@ -3595,7 +3594,7 @@ reaching a resource limit.<a href="#section-7.1-4" class="pilcrow">¶</a></p>
           <p id="section-8-2.2.1">Setup parameters<a href="#section-8-2.2.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="section-8-2.3">
-          <p id="section-8-2.3.1">Track Request parameters<a href="#section-8-2.3.1" class="pilcrow">¶</a></p>
+          <p id="section-8-2.3.1">Subscribe parameters<a href="#section-8-2.3.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="section-8-2.4">
           <p id="section-8-2.4.1">Subscribe Error codes<a href="#section-8-2.4.1" class="pilcrow">¶</a></p>
@@ -3604,13 +3603,7 @@ reaching a resource limit.<a href="#section-7.1-4" class="pilcrow">¶</a></p>
           <p id="section-8-2.5.1">Announce Error codes<a href="#section-8-2.5.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="section-8-2.6">
-          <p id="section-8-2.6.1">Track format numbers<a href="#section-8-2.6.1" class="pilcrow">¶</a></p>
-</li>
-        <li class="normal" id="section-8-2.7">
-          <p id="section-8-2.7.1">Message types<a href="#section-8-2.7.1" class="pilcrow">¶</a></p>
-</li>
-        <li class="normal" id="section-8-2.8">
-          <p id="section-8-2.8.1">Object headers<a href="#section-8-2.8.1" class="pilcrow">¶</a></p>
+          <p id="section-8-2.6.1">Message types<a href="#section-8-2.6.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
 <p id="section-8-3">TODO: register the URI scheme and the ALPN<a href="#section-8-3" class="pilcrow">¶</a></p>

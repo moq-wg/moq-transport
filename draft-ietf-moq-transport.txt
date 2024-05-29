@@ -261,7 +261,8 @@ Table of Contents
       (Section 2.1).
 
    Track:  An encoded bitstream.  Tracks contain a sequential series of
-      one or more groups and are the subscribable entity with MOQT.
+      one or more groups and are the subscribable entity with MOQT.  See
+      (Section 2.3).
 
 1.3.  Notational Conventions
 
@@ -1091,7 +1092,7 @@ Table of Contents
      [EndGroup (i),
       EndObject (i)],
      Number of Parameters (i),
-     Track Request Parameters (..) ...
+     Subscribe Parameters (..) ...
    }
 
                       Figure 5: MOQT SUBSCRIBE Message
@@ -1134,8 +1135,7 @@ Table of Contents
       entire group is requested.  Only present for the "AbsoluteRange"
       filter type.
 
-   *  Track Request Parameters: The parameters are defined in
-      Section 6.1.1
+   *  Subscribe Parameters: The parameters are defined in Section 6.1.1.
 
    On successful subscription, the publisher MUST reply with a
    SUBSCRIBE_OK, allowing the subscriber to determine the start group/
@@ -1174,7 +1174,7 @@ Table of Contents
      EndGroup (i),
      EndObject (i),
      Number of Parameters (i),
-     Track Request Parameters (..) ...
+     Subscribe Parameters (..) ...
    }
 
                   Figure 6: MOQT SUBSCRIBE_UPDATE Message
@@ -1192,8 +1192,7 @@ Table of Contents
    *  EndObject: The end Object ID, plus 1.  A value of 0 means the
       entire group is requested.
 
-   *  Track Request Parameters: The parameters are defined in
-      Section 6.1.1
+   *  Subscribe Parameters: The parameters are defined in Section 6.1.1.
 
 6.6.  UNSUBSCRIBE
 
@@ -1793,17 +1792,13 @@ Table of Contents
 
    *  Setup parameters
 
-   *  Track Request parameters
+   *  Subscribe parameters
 
    *  Subscribe Error codes
 
    *  Announce Error codes
 
-   *  Track format numbers
-
    *  Message types
-
-   *  Object headers
 
    TODO: register the URI scheme and the ALPN
 
