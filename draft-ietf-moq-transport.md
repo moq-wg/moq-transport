@@ -202,6 +202,7 @@ Track:
 
 : An encoded bitstream. Tracks contain a sequential series of one or
   more groups and are the subscribable entity with MOQT.
+  See ({{model-track}}).
 
 
 ## Notational Conventions
@@ -1022,7 +1023,7 @@ SUBSCRIBE Message {
   [EndGroup (i),
    EndObject (i)],
   Number of Parameters (i),
-  Track Request Parameters (..) ...
+  Subscribe Parameters (..) ...
 }
 ~~~
 {: #moq-transport-subscribe-format title="MOQT SUBSCRIBE Message"}
@@ -1060,8 +1061,7 @@ See ({{sub-filter}}).
 * EndObject: The end Object ID, plus 1. A value of 0 means the entire group is
 requested. Only present for the "AbsoluteRange" filter type.
 
-* Track Request Parameters: The parameters are defined in
-{{version-specific-params}}
+* Subscribe Parameters: The parameters are defined in {{version-specific-params}}.
 
 On successful subscription, the publisher MUST reply with a SUBSCRIBE_OK,
 allowing the subscriber to determine the start group/object when not explicitly
@@ -1097,7 +1097,7 @@ SUBSCRIBE_UPDATE Message {
   EndGroup (i),
   EndObject (i),
   Number of Parameters (i),
-  Track Request Parameters (..) ...
+  Subscribe Parameters (..) ...
 }
 ~~~
 {: #moq-transport-subscribe-update-format title="MOQT SUBSCRIBE_UPDATE Message"}
@@ -1115,8 +1115,7 @@ open-ended.
 * EndObject: The end Object ID, plus 1. A value of 0 means the entire group is
 requested.
 
-* Track Request Parameters: The parameters are defined in
-{{version-specific-params}}
+* Subscribe Parameters: The parameters are defined in {{version-specific-params}}.
 
 ## UNSUBSCRIBE {#message-unsubscribe}
 
@@ -1728,12 +1727,10 @@ TODO: fill out currently missing registries:
 
 * MOQT version numbers
 * Setup parameters
-* Track Request parameters
+* Subscribe parameters
 * Subscribe Error codes
 * Announce Error codes
-* Track format numbers
 * Message types
-* Object headers
 
 TODO: register the URI scheme and the ALPN
 
