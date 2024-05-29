@@ -5,13 +5,13 @@
 MOQ                                                            L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 28 November 2024                                           Meta
+Expires: 30 November 2024                                           Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                             27 May 2024
+                                                             29 May 2024
 
 
                        Media over QUIC Transport
@@ -53,7 +53,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 28 November 2024.
+   This Internet-Draft will expire on 30 November 2024.
 
 Copyright Notice
 
@@ -1314,7 +1314,7 @@ Table of Contents
       and Datagram.  An Object MUST be sent according to its Object
       Forwarding Preference, described below.
 
-   *  Max Cache Duration: The maximum length of time in seconds a
+   *  Max Cache Duration: The maximum length of time in milliseconds a
       caching relay MAY cache an Object for.  A value of 0 indicates the
       relay should decide how long to cache the Object.  The relay MUST
       NOT begin sending the Object if it has resided in the cache for
