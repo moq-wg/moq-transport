@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2024-05-28T01:12:00.579843+00:00",
+  "timestamp": "2024-05-30T01:12:41.572470+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -15971,6 +15971,30 @@
           "body": "Just want to say that I find Alan's point above really convincing. However, this does make me want to have a very low bandwidth impact way to solve this.  I also am wondering if better way of managing streams is just close ones that have not been used recently. I think we need some more thought on how relays close streams. ",
           "createdAt": "2024-05-21T21:35:50Z",
           "updatedAt": "2024-05-21T21:35:50Z"
+        }
+      ]
+    },
+    {
+      "number": 453,
+      "id": "I_kwDOG2Ho4M6Khvco",
+      "title": "Special Value for StartObject and EndObject for SUBSCRIBE",
+      "url": "https://github.com/moq-wg/moq-transport/issues/453",
+      "state": "CLOSED",
+      "author": "martinduke",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "I'm not totally sure what to do with the special value of 0 for StartObject and EndObject.\r\n\r\nIf StartObject == 0, that's requesting the whole group. But if it's 1, that maps to a first object of zero, which is also consistent with  requesting the whole group.\r\n\r\nFor EndObject, the special value makes sense, because the subscriber might not know how many objects there are.\r\n\r\nThere's also the error case where StartObject == 0 and EndObject != 0, or the reverse.\r\n\r\nIMO it would make more sense for EndObject to have the special value at zero, but not StartObject.",
+      "createdAt": "2024-05-29T19:34:41Z",
+      "updatedAt": "2024-05-29T20:20:30Z",
+      "closedAt": "2024-05-29T20:20:30Z",
+      "comments": [
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "You're correct, this was an editorial error on my part.  I did not intend to make StartObject have a special value.",
+          "createdAt": "2024-05-29T19:51:11Z",
+          "updatedAt": "2024-05-29T19:51:11Z"
         }
       ]
     }
@@ -57480,7 +57504,7 @@
       "labels": [],
       "body": "Fixes #403 \r\n\r\nIt seems like we need this, and I'm open to suggestions, but this feels quite straightforward.",
       "createdAt": "2024-05-02T01:51:45Z",
-      "updatedAt": "2024-05-28T01:10:21Z",
+      "updatedAt": "2024-05-28T01:13:04Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "d05778bed2aa7dd601f4cd201fec5075b056de33",
@@ -57491,7 +57515,15 @@
       "mergedAt": null,
       "mergedBy": null,
       "mergeCommit": null,
-      "comments": [],
+      "comments": [
+        {
+          "author": "LPardue",
+          "authorAssociation": "NONE",
+          "body": "I might suggest that we move scheduling guidance out of field definitions and into its own section. That will make future edits simpler, for example if we take on additional refinements once there's some experience.",
+          "createdAt": "2024-05-28T01:13:03Z",
+          "updatedAt": "2024-05-28T01:13:03Z"
+        }
+      ],
       "reviews": [
         {
           "id": "PRR_kwDOG2Ho4M55kGyt",
@@ -57547,9 +57579,9 @@
           "comments": [
             {
               "originalPosition": 4,
-              "body": "in general , a way for a subscriber to express priority does makes sense. I do have few thoughts \\\r\n\r\nOn aggregation: if 2 subscribers for the same track ask different priorities to a relay, the relay has to do some sort of logic to determine which one to pick. The easiest way to resolve this is \"the publisher priority wins in such a case\" . Perhaps we should document that in the relay section ?? Also I think the priority field needs to be optional.\r\n\r\nOn priority and track relation: Subscription is per track and if a subscriber asks for video track and audio track, it would ask that with 2 different priorities and we should allow that. isn't that the case or am I missing something ? ",
+              "body": "\r\n\r\nOn aggregation: if 2 subscribers for the same track ask different priorities to a relay, the relay has to do some sort of logic to determine which one to pick. The easiest way to resolve this is \"the publisher priority wins in such a case\" . Perhaps we should document that in the relay section ?? Also I think the priority field needs to be optional.\r\n\r\nOn priority and track relation: Subscription is per track and if a subscriber asks for video track and audio track, it would ask that with 2 different priorities and we should allow that. isn't that the case or am I missing something ? ",
               "createdAt": "2024-05-27T17:51:26Z",
-              "updatedAt": "2024-05-27T17:51:26Z"
+              "updatedAt": "2024-05-28T10:53:38Z"
             }
           ]
         },
@@ -57611,7 +57643,7 @@
     {
       "number": 446,
       "id": "PR_kwDOG2Ho4M5vQxvu",
-      "title": "Add a Cache Duration (aka ttl) field to Objects",
+      "title": "Add a Max Cache Duration (aka ttl) field to Objects",
       "url": "https://github.com/moq-wg/moq-transport/pull/446",
       "state": "OPEN",
       "author": "ianswett",
@@ -57620,13 +57652,13 @@
       "labels": [],
       "body": "Based on discussion last week and on slack, I believe this is where the WG is heading.\r\n\r\nIt is possible this could be a per-track or per-subscription value to save bytes on the wire, particularly for the Object per Stream or Object per Datagram modes.\r\n\r\nIt's possible this value could be decreased by the cache dwell time at each hop, but I didn't hear clear consensus either way on that question.\r\n\r\nFixes #440\r\nFixes #415 ",
       "createdAt": "2024-05-13T13:46:14Z",
-      "updatedAt": "2024-05-27T16:44:17Z",
+      "updatedAt": "2024-05-29T22:52:26Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "d05778bed2aa7dd601f4cd201fec5075b056de33",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "ianswett-cache-duration",
-      "headRefOid": "4849bb79651edbadc5ffcb33ce14036ac7755bc4",
+      "headRefOid": "d2e07c717f0c8e715905eef6a2fce67bba2ebb14",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -58025,6 +58057,206 @@
               "updatedAt": "2024-05-23T20:05:25Z"
             }
           ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M58VTQk",
+          "commit": {
+            "abbreviatedOid": "4849bb7"
+          },
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-05-29T16:59:41Z",
+          "updatedAt": "2024-05-29T16:59:41Z",
+          "comments": [
+            {
+              "originalPosition": 4,
+              "body": "I would prefer milli seconds to seconds. ",
+              "createdAt": "2024-05-29T16:59:41Z",
+              "updatedAt": "2024-05-29T16:59:41Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M58VWCV",
+          "commit": {
+            "abbreviatedOid": "4849bb7"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-05-29T17:04:13Z",
+          "updatedAt": "2024-05-29T17:04:14Z",
+          "comments": [
+            {
+              "originalPosition": 4,
+              "body": "I changed it because HTTP MaxAge is in seconds, and In the Object per Stream or Object per Datagram cases, using seconds saves at least a byte.\r\n\r\nBut I can change it back to ms if we're fine with the extra byte+ of overhead.",
+              "createdAt": "2024-05-29T17:04:14Z",
+              "updatedAt": "2024-05-29T17:04:14Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M58VWag",
+          "commit": {
+            "abbreviatedOid": "21a14d1"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-05-29T17:05:02Z",
+          "updatedAt": "2024-05-29T17:05:02Z",
+          "comments": [
+            {
+              "originalPosition": 10,
+              "body": "agreed .. other than milliseconds vs seconds , this looks fine to me.",
+              "createdAt": "2024-05-29T17:05:02Z",
+              "updatedAt": "2024-05-29T17:05:03Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M58VZA2",
+          "commit": {
+            "abbreviatedOid": "4849bb7"
+          },
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-05-29T17:11:01Z",
+          "updatedAt": "2024-05-29T17:11:01Z",
+          "comments": [
+            {
+              "originalPosition": 47,
+              "body": "I don't get how this will work with when combined with the removing the amount of time that has elapsed sitting in cache. Consider a stream per track mode where the timeout is set to 30 minutes from the use case Will had.  The first object I will call A is published at noon and a later object is polished at 15 minutes later at 12:15 and I will call this object B. \r\n\r\nThen a downstream relay subscribes 10 minutes after start to the track. It gets a stream header with a 20 minute time out since we are substracting the 10 min that track was sitting in ubstream realy. For object A, that is great, it will time out at 12:30. However, for object B, it seems it will time out 20 minutes after it was publshed, not 30 as request. So it will time out at 12:30 when it should be around will 12:40. \r\n\r\nNot sure I am explaining this well but hope you get idea.  ",
+              "createdAt": "2024-05-29T17:11:01Z",
+              "updatedAt": "2024-05-29T17:11:01Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M58VZqH",
+          "commit": {
+            "abbreviatedOid": "4849bb7"
+          },
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-05-29T17:12:31Z",
+          "updatedAt": "2024-05-29T17:12:31Z",
+          "comments": [
+            {
+              "originalPosition": 47,
+              "body": "I am trying to say we need more clarity how the time is decrement for time in cache in the stream per track and stream per group modes. This problem only come up because the timeout is in the header not the object in those mode. Moving might be the easy fix. ",
+              "createdAt": "2024-05-29T17:12:31Z",
+              "updatedAt": "2024-05-29T17:12:31Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M58Vdau",
+          "commit": {
+            "abbreviatedOid": "4849bb7"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-05-29T17:21:06Z",
+          "updatedAt": "2024-05-29T17:21:06Z",
+          "comments": [
+            {
+              "originalPosition": 4,
+              "body": "Individual Comment:\r\n\r\nI view Max Cache Duration primarily as a lever to help content providers manage their CDN budgets, rather than changing anything functional with delivery.  If so, does 1000 milliseconds vs 50 or 100 milliseconds max-age make a difference?  I think #449 is a better direction to prevent relays from sending old content, rather than relying on cache expiration behavior.\r\n\r\nIf the extra byte is a problem, we can always find a new compression encoding later (maybe send milliseconds / 50 on the wire)",
+              "createdAt": "2024-05-29T17:21:06Z",
+              "updatedAt": "2024-05-29T17:21:06Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M58VxKy",
+          "commit": {
+            "abbreviatedOid": "bfeec80"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-05-29T18:05:50Z",
+          "updatedAt": "2024-05-29T18:05:50Z",
+          "comments": [
+            {
+              "originalPosition": 10,
+              "body": "I changed it back to ms.",
+              "createdAt": "2024-05-29T18:05:50Z",
+              "updatedAt": "2024-05-29T18:05:50Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M58V1Ex",
+          "commit": {
+            "abbreviatedOid": "bfeec80"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-05-29T18:15:03Z",
+          "updatedAt": "2024-05-29T18:15:03Z",
+          "comments": [
+            {
+              "originalPosition": 47,
+              "body": "I think moving them to be per-Object may create some other weird circumstances, such as the first few Objects of a Group/Track expiring, but the ones that arrived later haven't, but they aren't useful without the start of the Group.",
+              "createdAt": "2024-05-29T18:15:03Z",
+              "updatedAt": "2024-05-29T18:15:03Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M58YVkN",
+          "commit": {
+            "abbreviatedOid": "6462f87"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-05-29T22:48:21Z",
+          "updatedAt": "2024-05-29T22:48:21Z",
+          "comments": [
+            {
+              "originalPosition": 47,
+              "body": "I updated this PR with another paragraph, PTAL",
+              "createdAt": "2024-05-29T22:48:21Z",
+              "updatedAt": "2024-05-29T22:51:10Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M58YX3G",
+          "commit": {
+            "abbreviatedOid": "6462f87"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-05-29T22:52:23Z",
+          "updatedAt": "2024-05-29T22:52:23Z",
+          "comments": [
+            {
+              "originalPosition": 18,
+              "body": "```suggestion\r\nsecond Object in the Group.\r\n```",
+              "createdAt": "2024-05-29T22:52:23Z",
+              "updatedAt": "2024-05-29T22:52:23Z"
+            }
+          ]
         }
       ]
     },
@@ -58318,13 +58550,13 @@
       "labels": [],
       "body": "The timeouts in this PR are defined to to ensure that the invariant properties implied by the object delivery preference are maintained, e.g. if stream-per-group is used, it is impossible to accidentally timeout an object in the middle of the group.\r\n\r\nFixes #440",
       "createdAt": "2024-05-20T15:06:37Z",
-      "updatedAt": "2024-05-27T17:03:10Z",
+      "updatedAt": "2024-05-29T22:40:38Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "d05778bed2aa7dd601f4cd201fec5075b056de33",
       "headRepository": "vasilvv/warp-draft",
       "headRefName": "timeout",
-      "headRefOid": "0d41dcd792c1c66c48dafbfb989c18633ff3dd52",
+      "headRefOid": "ecda08178f65bddcb2c7bbb49b41c5fc8f6fc832",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -58371,6 +58603,20 @@
           "body": " > **Is there a use case for using stream-per-group/track, but allowing the relay to drop or reorder objects?**\r\n\r\n@suhasHere \r\n\r\nAbsolutely not. Never attempt to reorder or introduce a gap in a QUIC stream. Use multiple streams at drop/reorder boundaries instead. \r\n\r\nThe application chooses these boundaries via the stream mapping. If you're using a stream per group, then you've forfeited the ability to drop/reorder individual objects which is *entirely* the point. Now the decoder doesn't need to deal with that possibility.",
           "createdAt": "2024-05-22T15:43:30Z",
           "updatedAt": "2024-05-22T15:44:03Z"
+        },
+        {
+          "author": "vasilvv",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> Based on conversation Wednesday, @vasilvv is going to change this PR to be subscriber controlled.\r\n\r\nDid that (also since it's a parameter now, zero is no longer a special value).",
+          "createdAt": "2024-05-28T08:00:09Z",
+          "updatedAt": "2024-05-28T08:00:09Z"
+        },
+        {
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "body": "From the interim discussions:\r\n  - it will help to elaborate a bit on the use-case (even informatively) and when the timeout is triggered esp for stream per group mapping and the expected behavior \r\n    *  Are we allowing for new group to trigger reset of the stream for the older group(s)\r\n    * Does this span across multiple groups ? \r\n  ",
+          "createdAt": "2024-05-29T17:03:16Z",
+          "updatedAt": "2024-05-29T17:03:16Z"
         }
       ],
       "reviews": [
@@ -58479,6 +58725,125 @@
           "createdAt": "2024-05-23T14:41:07Z",
           "updatedAt": "2024-05-23T14:41:07Z",
           "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M58LUS6",
+          "commit": {
+            "abbreviatedOid": "6b2afb1"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "Individual Review",
+          "createdAt": "2024-05-28T16:20:00Z",
+          "updatedAt": "2024-05-28T16:22:13Z",
+          "comments": [
+            {
+              "originalPosition": 18,
+              "body": "The relay should only open one such stream per subscription, right?  Perhaps remove the plurals?",
+              "createdAt": "2024-05-28T16:20:00Z",
+              "updatedAt": "2024-05-28T16:22:13Z"
+            },
+            {
+              "originalPosition": 23,
+              "body": "In the current design, this means the forwarding preference of the track must be known by the subscriber.  Perhaps it's better to a) ignore it or b) reset the stream after the timeout.",
+              "createdAt": "2024-05-28T16:21:34Z",
+              "updatedAt": "2024-05-28T16:22:13Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M58Q4Wp",
+          "commit": {
+            "abbreviatedOid": "6b2afb1"
+          },
+          "author": "vasilvv",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-05-29T09:09:14Z",
+          "updatedAt": "2024-05-29T09:09:14Z",
+          "comments": [
+            {
+              "originalPosition": 18,
+              "body": "Good point, now that this is scoped per subscription, there can be only one stream. Fixed.",
+              "createdAt": "2024-05-29T09:09:14Z",
+              "updatedAt": "2024-05-29T09:09:14Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M58Q5Gs",
+          "commit": {
+            "abbreviatedOid": "6b2afb1"
+          },
+          "author": "vasilvv",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-05-29T09:10:36Z",
+          "updatedAt": "2024-05-29T09:10:36Z",
+          "comments": [
+            {
+              "originalPosition": 23,
+              "body": "Should we necessarily design around the requirement of it being not known in advance, or a mismatch?  I feel like if the subscriber expects something like stream-per-track, and it gets datagrams instead, it's going to have a bad time.",
+              "createdAt": "2024-05-29T09:10:36Z",
+              "updatedAt": "2024-05-29T09:10:37Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M58VDZp",
+          "commit": {
+            "abbreviatedOid": "ecda081"
+          },
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "CHANGES_REQUESTED",
+          "body": "For this to make sense as a way to not get things that are outside the jitter buffer, I don't think this works to use the end of the steam. For the jitter buffer use case, it seems like we want this to work with datagrams and perhaps the other stream modes. \r\n\r\nThis would be better if it was limited to only be meaningful for final subscriber to relay. But if that relay is downstream of constrained link, then this does not solve the problem. ",
+          "createdAt": "2024-05-29T16:30:51Z",
+          "updatedAt": "2024-05-29T16:30:51Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M58VLuW",
+          "commit": {
+            "abbreviatedOid": "ecda081"
+          },
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-05-29T16:45:33Z",
+          "updatedAt": "2024-05-29T16:45:34Z",
+          "comments": [
+            {
+              "originalPosition": 4,
+              "body": "It seems like what this actually is a stream reset time ",
+              "createdAt": "2024-05-29T16:45:34Z",
+              "updatedAt": "2024-05-29T16:45:34Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M58YROM",
+          "commit": {
+            "abbreviatedOid": "ecda081"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-05-29T22:40:38Z",
+          "updatedAt": "2024-05-29T22:40:38Z",
+          "comments": [
+            {
+              "originalPosition": 23,
+              "body": "That's why I made Stream per track only used by the 'Strict In Order' mode in: https://github.com/moq-wg/moq-transport/pull/452",
+              "createdAt": "2024-05-29T22:40:38Z",
+              "updatedAt": "2024-05-29T22:40:38Z"
+            }
+          ]
         }
       ]
     },
@@ -58494,7 +58859,7 @@
       "labels": [],
       "body": "A variant of #446 that is on a Subscription granularity, instead of Object.\r\n\r\nFixes #440 ",
       "createdAt": "2024-05-22T17:39:39Z",
-      "updatedAt": "2024-05-27T16:46:02Z",
+      "updatedAt": "2024-05-28T16:32:26Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "d05778bed2aa7dd601f4cd201fec5075b056de33",
@@ -58521,14 +58886,35 @@
           "updatedAt": "2024-05-23T14:28:54Z"
         }
       ],
-      "reviews": []
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M57hkov",
+          "commit": {
+            "abbreviatedOid": "edcb48d"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-05-22T21:22:02Z",
+          "updatedAt": "2024-05-28T16:32:26Z",
+          "comments": [
+            {
+              "originalPosition": 13,
+              "body": "Does this have value for non-relays (eg: subscriber side caches?)",
+              "createdAt": "2024-05-22T21:22:03Z",
+              "updatedAt": "2024-05-28T16:32:26Z"
+            }
+          ]
+        }
+      ]
     },
     {
       "number": 451,
       "id": "PR_kwDOG2Ho4M5wmL9x",
       "title": "Rename Track Request Parameters to Subscribe Parameters",
       "url": "https://github.com/moq-wg/moq-transport/pull/451",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "ianswett",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
@@ -58537,17 +58923,19 @@
       ],
       "body": "Seems like a more obvious name.",
       "createdAt": "2024-05-26T18:37:52Z",
-      "updatedAt": "2024-05-27T17:52:05Z",
+      "updatedAt": "2024-05-29T20:21:06Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "d05778bed2aa7dd601f4cd201fec5075b056de33",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "ianswett-subcribe-params",
       "headRefOid": "3066f0698f27f01460bf2b7cf3b36a1cde88765b",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "closedAt": "2024-05-29T20:21:06Z",
+      "mergedAt": "2024-05-29T20:21:06Z",
+      "mergedBy": "ianswett",
+      "mergeCommit": {
+        "oid": "bdc1cd04c94bb0d04b363a1603b77ec29783da32"
+      },
       "comments": [],
       "reviews": [
         {
@@ -58561,6 +58949,19 @@
           "body": "",
           "createdAt": "2024-05-27T17:52:05Z",
           "updatedAt": "2024-05-27T17:52:05Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M58VJ0S",
+          "commit": {
+            "abbreviatedOid": "3066f06"
+          },
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2024-05-29T16:41:38Z",
+          "updatedAt": "2024-05-29T16:41:38Z",
           "comments": []
         }
       ]
@@ -58579,13 +58980,13 @@
       ],
       "body": "Takes an opinionated approach to adding 'Fetch' style functionality within the existing mechanisms.\r\n\r\nCan be split up if people prefer.\r\n\r\nPulls in concepts from #411, #428 and #449 (Delivery Timeout)\r\n\r\nFixes #269\r\nFixes #326\r\nFixes #350\r\nFixes #396 \r\nFixes #419\r\nFixes #431 \r\nFixes #442\r\n\r\nRelevant to #422, because we can omit the Object ID for 'In Order' delivery mode.\r\n\r\nCloses #421\r\nCloses #449",
       "createdAt": "2024-05-27T18:42:39Z",
-      "updatedAt": "2024-05-27T21:23:25Z",
+      "updatedAt": "2024-05-30T00:28:15Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
-      "baseRefOid": "d05778bed2aa7dd601f4cd201fec5075b056de33",
+      "baseRefOid": "bdc1cd04c94bb0d04b363a1603b77ec29783da32",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "ianswett-delivery-order",
-      "headRefOid": "a46e1b87a265663a76b2aa51b47759dee81faef0",
+      "headRefOid": "c5eec0a0e5cf276c3cc5b0e196016be29123c562",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -58611,6 +59012,119 @@
               "updatedAt": "2024-05-27T20:51:58Z"
             }
           ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M58Lcsf",
+          "commit": {
+            "abbreviatedOid": "a46e1b8"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "Individual Review",
+          "createdAt": "2024-05-28T16:36:04Z",
+          "updatedAt": "2024-05-28T16:43:43Z",
+          "comments": [
+            {
+              "originalPosition": 18,
+              "body": "The MAY + MUST NOT is somewhat confusing. I think you are trying to say the publisher MAY continue to send objects that are no longer in the subscription, or reset the stream and open a new one in order to skip them?",
+              "createdAt": "2024-05-28T16:36:04Z",
+              "updatedAt": "2024-05-28T16:43:43Z"
+            },
+            {
+              "originalPosition": 20,
+              "body": "Why do you say there is no explicit group id?  Don't the objects in Stream-per-track contain the group ID?",
+              "createdAt": "2024-05-28T16:36:54Z",
+              "updatedAt": "2024-05-28T16:43:43Z"
+            },
+            {
+              "originalPosition": 24,
+              "body": "Can you clarify the expected behavior when a relay has a gap in their cache?  eg: The relay has object 1, 2 and 4.  \r\n\r\nMy read is that the relay MUST go upstream at least once to fill this gap, or get a tombstone for it.",
+              "createdAt": "2024-05-28T16:38:52Z",
+              "updatedAt": "2024-05-28T16:43:43Z"
+            },
+            {
+              "originalPosition": 38,
+              "body": "What about subscribes behind the live head?  Wouldn't the two modes deliver the resources in opposite orders?",
+              "createdAt": "2024-05-28T16:42:44Z",
+              "updatedAt": "2024-05-28T16:43:43Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 454,
+      "id": "PR_kwDOG2Ho4M5w7hGR",
+      "title": "Remove special value for SUBSCRIBE StartObject",
+      "url": "https://github.com/moq-wg/moq-transport/pull/454",
+      "state": "MERGED",
+      "author": "martinduke",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Fixes #453 ",
+      "createdAt": "2024-05-29T19:55:39Z",
+      "updatedAt": "2024-05-29T20:20:29Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "d05778bed2aa7dd601f4cd201fec5075b056de33",
+      "headRepository": "martinduke/moq-transport",
+      "headRefName": "start-object",
+      "headRefOid": "840e0ee0cbcf964d5c126f76529e8796788c2a91",
+      "closedAt": "2024-05-29T20:20:29Z",
+      "mergedAt": "2024-05-29T20:20:29Z",
+      "mergedBy": "ianswett",
+      "mergeCommit": {
+        "oid": "74bbe288ecb1a05c7c7b056d31ab6e0b7bccaaf1"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M58Wjl5",
+          "commit": {
+            "abbreviatedOid": "3b7f6b4"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "Can you fix SUBSCRIBE_UPDATE as well?",
+          "createdAt": "2024-05-29T19:58:57Z",
+          "updatedAt": "2024-05-29T19:58:57Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M58WwKq",
+          "commit": {
+            "abbreviatedOid": "e87d871"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-05-29T20:15:41Z",
+          "updatedAt": "2024-05-29T20:15:41Z",
+          "comments": [
+            {
+              "originalPosition": 21,
+              "body": "I did intentionally make 0 special in this case, to allow an open ended subscription to continue to be open ended.",
+              "createdAt": "2024-05-29T20:15:41Z",
+              "updatedAt": "2024-05-29T20:15:41Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M58WzCv",
+          "commit": {
+            "abbreviatedOid": "840e0ee"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2024-05-29T20:19:30Z",
+          "updatedAt": "2024-05-29T20:19:30Z",
+          "comments": []
         }
       ]
     }
