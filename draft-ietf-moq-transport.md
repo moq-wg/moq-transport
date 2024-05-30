@@ -202,6 +202,7 @@ Track:
 
 : An encoded bitstream. Tracks contain a sequential series of one or
   more groups and are the subscribable entity with MOQT.
+  See ({{model-track}}).
 
 
 ## Notational Conventions
@@ -1079,7 +1080,7 @@ SUBSCRIBE Message {
   Delivery Order (i),
   [Delivery Timeout (i)],
   Number of Parameters (i),
-  Track Request Parameters (..) ...
+  Subscribe Parameters (..) ...
 }
 ~~~
 {: #moq-transport-subscribe-format title="MOQT SUBSCRIBE Message"}
@@ -1109,8 +1110,8 @@ See ({{sub-filter}}).
 * StartGroup: The start Group ID. Only present for "AbsoluteStart" and
 "AbsoluteRange" filter types.
 
-* StartObject: The start Object ID, plus 1. A value of 0 means the entire group is
-requested. Only present for "AbsoluteStart" and "AbsoluteRange" filter types.
+* StartObject: The start Object ID. Only present for "AbsoluteStart" and
+"AbsoluteRange" filter types.
 
 * EndGroup: The end Group ID. Only present for the "AbsoluteRange" filter type.
 
@@ -1125,8 +1126,7 @@ forwarding objects, or zero to indicate no limit.  Not present when
 'Delivery Order' is 'Strict In Order'. The actual value is confirmed by the
 publisher in SUBSCRIBE_OK. See ({{delivery-timeout}}) above.
 
-* Track Request Parameters: The parameters are defined in
-{{version-specific-params}}
+* Subscribe Parameters: The parameters are defined in {{version-specific-params}}.
 
 On successful subscription, the publisher MUST reply with a SUBSCRIBE_OK,
 allowing the subscriber to determine the start group/object when not explicitly
@@ -1162,7 +1162,7 @@ SUBSCRIBE_UPDATE Message {
   EndGroup (i),
   EndObject (i),
   Number of Parameters (i),
-  Track Request Parameters (..) ...
+  Subscribe Parameters (..) ...
 }
 ~~~
 {: #moq-transport-subscribe-update-format title="MOQT SUBSCRIBE_UPDATE Message"}
@@ -1172,17 +1172,15 @@ This MUST match an existing Subscribe ID.
 
 * StartGroup: The start Group ID.
 
-* StartObject: The start Object ID, plus 1. A value of 0 means the entire group
-is requested.
+* StartObject: The start Object ID.
 
-* EndGroup: The end Group ID, plus 1.  A value of 0 means the subscription is
+* EndGroup: The end Group ID, plus 1. A value of 0 means the subscription is
 open-ended.
 
 * EndObject: The end Object ID, plus 1. A value of 0 means the entire group is
 requested.
 
-* Track Request Parameters: The parameters are defined in
-{{version-specific-params}}
+* Subscribe Parameters: The parameters are defined in {{version-specific-params}}.
 
 ## UNSUBSCRIBE {#message-unsubscribe}
 
@@ -1790,12 +1788,10 @@ TODO: fill out currently missing registries:
 
 * MOQT version numbers
 * Setup parameters
-* Track Request parameters
+* Subscribe parameters
 * Subscribe Error codes
 * Announce Error codes
-* Track format numbers
 * Message types
-* Object headers
 
 TODO: register the URI scheme and the ALPN
 
