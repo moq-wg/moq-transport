@@ -5,13 +5,13 @@
 MOQ                                                            L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 30 November 2024                                           Meta
+Expires: 3 December 2024                                            Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                             29 May 2024
+                                                             1 June 2024
 
 
                        Media over QUIC Transport
@@ -53,7 +53,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 30 November 2024.
+   This Internet-Draft will expire on 3 December 2024.
 
 Copyright Notice
 
@@ -844,6 +844,8 @@ Table of Contents
               |  0x0 | OBJECT_STREAM (Section 6.11.2)       |
               +------+--------------------------------------+
               |  0x1 | OBJECT_DATAGRAM (Section 6.11.2)     |
+              +------+--------------------------------------+
+              |  0x2 | SUBSCRIBE_UPDATE (Section 6.5)       |
               +------+--------------------------------------+
               |  0x3 | SUBSCRIBE (Section 6.4)              |
               +------+--------------------------------------+
