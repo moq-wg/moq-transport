@@ -773,7 +773,9 @@ MOQT Message {
 |------:|:----------------------------------------------------|
 | 0x0   | OBJECT_STREAM ({{object-message-formats}})          |
 |-------|-----------------------------------------------------|
-| 0x1   | OBJECT_DATAGRAM ({{object-message-formats}}) |
+| 0x1   | OBJECT_DATAGRAM ({{object-message-formats}})        |
+|-------|-----------------------------------------------------|
+| 0x2   | SUBSCRIBE_UPDATE ({{message-subscribe--update-req}})|
 |-------|-----------------------------------------------------|
 | 0x3   | SUBSCRIBE ({{message-subscribe-req}})               |
 |-------|-----------------------------------------------------|
