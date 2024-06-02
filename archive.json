@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2024-05-30T01:12:41.572470+00:00",
+  "timestamp": "2024-06-02T01:17:19.321236+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -15997,6 +15997,38 @@
           "updatedAt": "2024-05-29T19:51:11Z"
         }
       ]
+    },
+    {
+      "number": 455,
+      "id": "I_kwDOG2Ho4M6KxzNc",
+      "title": "SUBSCRIBE_UPDATE Message code and error cases",
+      "url": "https://github.com/moq-wg/moq-transport/issues/455",
+      "state": "OPEN",
+      "author": "martinduke",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Table 4 is missing SUBSCRIBE_UPDATE, so there's no code for this message type.\r\n\r\nSection 6.5 doesn't say what to do when the update is malformed, in some way. SUBSCRIBE_ERROR? \r\n \r\nIs a bogus SUBSCRIBE_UPDATE ignored, or does it nuke the original subscribe?",
+      "createdAt": "2024-05-31T17:41:53Z",
+      "updatedAt": "2024-05-31T17:41:53Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 456,
+      "id": "I_kwDOG2Ho4M6Kyf1l",
+      "title": "SUBSCRIBE_DONE final object ",
+      "url": "https://github.com/moq-wg/moq-transport/issues/456",
+      "state": "OPEN",
+      "author": "martinduke",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Section 6.14 says:\r\n\r\n\"Final Group: The largest Group ID sent by the publisher in an OBJECT message in this track.\r\n\r\nFinal Object: The largest Object ID sent by the publisher in an OBJECT message in the Final Group for this track.\"\r\n\r\nIs it for the track, or for the subscribe? \r\n\r\nI support it being for the track, as that requires less publisher bookkeeping. But if it's that, we should probably make it clear that we really mean \"for the track\", unrelated to whatever was delivered from that subscribe_id.\r\n\r\n",
+      "createdAt": "2024-05-31T19:48:50Z",
+      "updatedAt": "2024-05-31T19:48:50Z",
+      "closedAt": null,
+      "comments": []
     }
   ],
   "pulls": [
@@ -58550,13 +58582,13 @@
       "labels": [],
       "body": "The timeouts in this PR are defined to to ensure that the invariant properties implied by the object delivery preference are maintained, e.g. if stream-per-group is used, it is impossible to accidentally timeout an object in the middle of the group.\r\n\r\nFixes #440",
       "createdAt": "2024-05-20T15:06:37Z",
-      "updatedAt": "2024-05-29T22:40:38Z",
+      "updatedAt": "2024-05-30T17:35:17Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
-      "baseRefOid": "d05778bed2aa7dd601f4cd201fec5075b056de33",
+      "baseRefOid": "bdc1cd04c94bb0d04b363a1603b77ec29783da32",
       "headRepository": "vasilvv/warp-draft",
       "headRefName": "timeout",
-      "headRefOid": "ecda08178f65bddcb2c7bbb49b41c5fc8f6fc832",
+      "headRefOid": "72f0b9789f0e0471fab81d5bd076006df3f69aef",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -58617,6 +58649,13 @@
           "body": "From the interim discussions:\r\n  - it will help to elaborate a bit on the use-case (even informatively) and when the timeout is triggered esp for stream per group mapping and the expected behavior \r\n    *  Are we allowing for new group to trigger reset of the stream for the older group(s)\r\n    * Does this span across multiple groups ? \r\n  ",
           "createdAt": "2024-05-29T17:03:16Z",
           "updatedAt": "2024-05-29T17:03:16Z"
+        },
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "From an individual perspective, I think this functionality is interesting, though I realize there are more edge cases than I first thought.\r\n\r\nFor example, we're doing Object per stream, and there are 5 Objects in a group and they arrive in reverse order (for whatever reason), is the real intent that the last Object expires first?  Similar question for any single Object that arrives late due to loss/etc.  Differences on the order of an RTT or two will occur fairly regularly I expect, so it'd be good to clarify the expected behavior.\r\n\r\nThe other observation is that if one is willing to send frequent SUBSCRIBE_UPDATE messages that increase the Start, you can achieve very similar behavior without any direct reliance upon time and dealing with the question I just posed.  Besides the annoyance of sending and processing SUBSCRIBE_UPDATE messages, is there a reason SUBSCRIBE_UPDATE can't solve the same problems?",
+          "createdAt": "2024-05-30T17:35:16Z",
+          "updatedAt": "2024-05-30T17:35:16Z"
         }
       ],
       "reviews": [
@@ -59124,6 +59163,68 @@
           "body": "",
           "createdAt": "2024-05-29T20:19:30Z",
           "updatedAt": "2024-05-29T20:19:30Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 457,
+      "id": "PR_kwDOG2Ho4M5xLaWo",
+      "title": "Add a message code for SUBSCRIBE_UPDATE",
+      "url": "https://github.com/moq-wg/moq-transport/pull/457",
+      "state": "MERGED",
+      "author": "ianswett",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Thanks @martinduke for noticing this!\r\n\r\nFixes the quick part of #455 ",
+      "createdAt": "2024-06-01T01:16:09Z",
+      "updatedAt": "2024-06-01T02:59:30Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "bdc1cd04c94bb0d04b363a1603b77ec29783da32",
+      "headRepository": "moq-wg/moq-transport",
+      "headRefName": "ianswett-sub-update-code",
+      "headRefOid": "7b083a8f7627ed872fcf0a8a4f68bd266a2edf75",
+      "closedAt": "2024-06-01T02:59:30Z",
+      "mergedAt": "2024-06-01T02:59:30Z",
+      "mergedBy": "ianswett",
+      "mergeCommit": {
+        "oid": "ad7504fbc08f0753d400a911b19af54a2011a245"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M58sALa",
+          "commit": {
+            "abbreviatedOid": "ac614d6"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-06-01T01:17:53Z",
+          "updatedAt": "2024-06-01T01:17:53Z",
+          "comments": [
+            {
+              "originalPosition": 7,
+              "body": "```suggestion\r\n| 0x2   | SUBSCRIBE_UPDATE ({{message-subscribe-update-req}})|\r\n```",
+              "createdAt": "2024-06-01T01:17:53Z",
+              "updatedAt": "2024-06-01T01:17:53Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M58sG6j",
+          "commit": {
+            "abbreviatedOid": "7b083a8"
+          },
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2024-06-01T02:48:09Z",
+          "updatedAt": "2024-06-01T02:48:09Z",
           "comments": []
         }
       ]
