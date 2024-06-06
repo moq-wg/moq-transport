@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2024-06-04T01:13:39.455008+00:00",
+  "timestamp": "2024-06-06T01:13:08.496686+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -49066,7 +49066,7 @@
       "labels": [],
       "body": "Attempts to address some of the usecases discussed in #372 \r\n\r\nLove to hear feedback",
       "createdAt": "2024-02-16T20:20:32Z",
-      "updatedAt": "2024-02-28T00:02:39Z",
+      "updatedAt": "2024-06-05T13:59:12Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "d8e0951dbe8d1f8d0186e59c0afd5e26cc858925",
@@ -49091,6 +49091,20 @@
           "body": "TBH, I'm still not convinced we need this.  I feel like it's a fix for a problem we may have in the future, but we're unsure, because we haven't resolved a number of other details about how priorities, unreliability, etc work.",
           "createdAt": "2024-02-28T00:02:37Z",
           "updatedAt": "2024-02-28T00:02:37Z"
+        },
+        {
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "In the past, I had asked if this was actually significantly better than just unsubscribe then re subscribe and I was talking to someone that had implemented this and got an interesting insight that I wanted to add here. In a multithreaded relay, creating a subscription will typically require a global lock to create the upstream subscription to deal with case of two clients trying to subscribe to same thing at the same time. However, this subscribe update would only need to lock the one downstream subscription and if there was only one thread handle that subscription, there may be no need of a lock. \r\n\r\nThat seemed like a pretty compelling argument to be able to do this a subscribe update that changed the state of the subscribe vs constantly deleting and recreating the whole subscribe. ",
+          "createdAt": "2024-06-05T13:39:27Z",
+          "updatedAt": "2024-06-05T13:39:27Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Individual Comment: \r\n\r\nI have an alternate proposal that will solve this use case and I think a couple others, which is adding a form of flow control or rate control to subscriptions. Subscribe would have a param like \"max group\", and the publisher could only send up to the max group before the subscription would pause.  The subscriber would unblock by sending a larger max group.  So you could implement \"parked\" by sending max group = 0.\r\n\r\nThe additional use case is related to VoD and live rewind, where the subscriber is consuming the track at playback speed but behind the live head.  Today that's accomplished with the client making a series of range subscribes.",
+          "createdAt": "2024-06-05T13:59:11Z",
+          "updatedAt": "2024-06-05T13:59:11Z"
         }
       ],
       "reviews": [
@@ -52130,7 +52144,7 @@
       "labels": [],
       "body": "Merges the two send order approaches because it appears they're very similar from the perspective of MoQ transport and removes text that is not relevant to MoQ Transport.",
       "createdAt": "2024-03-18T12:28:48Z",
-      "updatedAt": "2024-05-26T20:03:50Z",
+      "updatedAt": "2024-06-05T13:54:41Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "ad67a19f1e6abbe4331b73ad49360726783a2bb8",
@@ -52412,6 +52426,19 @@
               "updatedAt": "2024-05-26T20:03:44Z"
             }
           ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M59IIxy",
+          "commit": {
+            "abbreviatedOid": "c961abd"
+          },
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "CHANGES_REQUESTED",
+          "body": "Clearly would should discuss in Seattle. \r\n\r\nThe big open use case issue for me on this is when doing stream per group, do we need to support different priorities in the group. All the object would still be sent in order with no gaps in the stream. Where this would change things is if you had two different tracks A and B and let say object 0 had arrived for both of them at same time with priorties saying for object 0 in both group, A had priority over B, then later for object 1 arrives for both but the sends wants B to have priority ver A.  \r\n\r\nI don't know if we have a use case that needs this or not but if we do, then we probably what the priority in object not the stream header. If we don't then makes sense to put in stream header.  \r\n\r\nWe should specify that the priority passed on down to quick stream is the priority of the first object in the stream and the priority of quic stream does not change after creation of the quic stream. ",
+          "createdAt": "2024-06-05T13:54:41Z",
+          "updatedAt": "2024-06-05T13:54:41Z",
+          "comments": []
         }
       ]
     },
@@ -57536,7 +57563,7 @@
       "labels": [],
       "body": "Fixes #403 \r\n\r\nIt seems like we need this, and I'm open to suggestions, but this feels quite straightforward.",
       "createdAt": "2024-05-02T01:51:45Z",
-      "updatedAt": "2024-05-28T01:13:04Z",
+      "updatedAt": "2024-06-05T13:31:18Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "d05778bed2aa7dd601f4cd201fec5075b056de33",
@@ -57669,6 +57696,26 @@
           "createdAt": "2024-05-28T01:10:21Z",
           "updatedAt": "2024-05-28T01:10:21Z",
           "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M59H22o",
+          "commit": {
+            "abbreviatedOid": "4386230"
+          },
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "CHANGES_REQUESTED",
+          "body": "I think we should talk about this at Seattle meeting. \r\n\r\nThis needs to talk about how it interacts with other priorities. I need to talk about what happens upstream ( if anything ).  As it is written, I can't figure out if this works when the congested links is upstream of last relay. ",
+          "createdAt": "2024-06-05T13:29:49Z",
+          "updatedAt": "2024-06-05T13:31:18Z",
+          "comments": [
+            {
+              "originalPosition": 4,
+              "body": "To me, calling this something other than priority would make more sense if the goal was to combine this with other priorities.  If this was called \"preference\" and relays sent things with highest preference first and then if the preferences of two thing were equal, then looked at priority to decide which next or something like this. ",
+              "createdAt": "2024-06-05T13:29:50Z",
+              "updatedAt": "2024-06-05T13:31:18Z"
+            }
+          ]
         }
       ]
     },
@@ -57684,13 +57731,13 @@
       "labels": [],
       "body": "Based on discussion last week and on slack, I believe this is where the WG is heading.\r\n\r\nIt is possible this could be a per-track or per-subscription value to save bytes on the wire, particularly for the Object per Stream or Object per Datagram modes.\r\n\r\nIt's possible this value could be decreased by the cache dwell time at each hop, but I didn't hear clear consensus either way on that question.\r\n\r\nFixes #440\r\nFixes #415 ",
       "createdAt": "2024-05-13T13:46:14Z",
-      "updatedAt": "2024-05-29T22:52:26Z",
+      "updatedAt": "2024-06-05T16:37:31Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
-      "baseRefOid": "d05778bed2aa7dd601f4cd201fec5075b056de33",
+      "baseRefOid": "ad7504fbc08f0753d400a911b19af54a2011a245",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "ianswett-cache-duration",
-      "headRefOid": "d2e07c717f0c8e715905eef6a2fce67bba2ebb14",
+      "headRefOid": "10103a40bac329b0e6daccaca554a153fad5bfde",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -57709,6 +57756,27 @@
           "body": "I'm not sure this PR solves either of the problems we're trying to solve with the cache TTL fields.",
           "createdAt": "2024-05-15T14:40:05Z",
           "updatedAt": "2024-05-15T14:40:05Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Individual Review:\r\n\r\nI think this PR needs additional, probably normative, guidance about when a caching relay starts the expiration timer.  For example, if using stream-per-object and the object is large, does the timer start when placing the first or last byte of the object in cache.  The same is true of other forwarding modes.",
+          "createdAt": "2024-06-04T17:05:15Z",
+          "updatedAt": "2024-06-04T17:05:15Z"
+        },
+        {
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "Just for notes ... Mo raised key point on call that if we tail drop things in some priority mechanism, then we may never get the end of group marker. We probably need to adjust text to be very careful about how we detect we are never going to get any more data on this group or track",
+          "createdAt": "2024-06-05T16:32:46Z",
+          "updatedAt": "2024-06-05T16:32:46Z"
+        },
+        {
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "Victor had point that perhaps we should use the start of next group to start timer instead end of current group",
+          "createdAt": "2024-06-05T16:37:30Z",
+          "updatedAt": "2024-06-05T16:37:30Z"
         }
       ],
       "reviews": [
@@ -57918,10 +57986,10 @@
           },
           "author": "suhasHere",
           "authorAssociation": "COLLABORATOR",
-          "state": "APPROVED",
+          "state": "DISMISSED",
           "body": "LGTM",
           "createdAt": "2024-05-15T17:07:30Z",
-          "updatedAt": "2024-05-15T17:07:30Z",
+          "updatedAt": "2024-06-04T14:40:33Z",
           "comments": []
         },
         {
@@ -58289,6 +58357,39 @@
               "updatedAt": "2024-05-29T22:52:23Z"
             }
           ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5877CN",
+          "commit": {
+            "abbreviatedOid": "d2e07c7"
+          },
+          "author": "vasilvv",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "It is still unclear to me which of many problems this specific field is trying to solve.",
+          "createdAt": "2024-06-04T11:15:18Z",
+          "updatedAt": "2024-06-04T11:19:33Z",
+          "comments": [
+            {
+              "originalPosition": 18,
+              "body": "Does this imply that you can have the beginning of the group expire before the end of the group?",
+              "createdAt": "2024-06-04T11:15:18Z",
+              "updatedAt": "2024-06-04T11:19:33Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M58-CNY",
+          "commit": {
+            "abbreviatedOid": "d2e07c7"
+          },
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "CHANGES_REQUESTED",
+          "body": "still want to talk about this some more - there has been many changes",
+          "createdAt": "2024-06-04T14:44:43Z",
+          "updatedAt": "2024-06-04T14:44:43Z",
+          "comments": []
         }
       ]
     },
@@ -58582,7 +58683,7 @@
       "labels": [],
       "body": "The timeouts in this PR are defined to to ensure that the invariant properties implied by the object delivery preference are maintained, e.g. if stream-per-group is used, it is impossible to accidentally timeout an object in the middle of the group.\r\n\r\nFixes #440",
       "createdAt": "2024-05-20T15:06:37Z",
-      "updatedAt": "2024-05-30T17:35:17Z",
+      "updatedAt": "2024-06-05T13:24:20Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "bdc1cd04c94bb0d04b363a1603b77ec29783da32",
@@ -58883,6 +58984,44 @@
               "updatedAt": "2024-05-29T22:40:38Z"
             }
           ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M59HrSF",
+          "commit": {
+            "abbreviatedOid": "72f0b97"
+          },
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "CHANGES_REQUESTED",
+          "body": "Overall I think this changes what gets delivered next and would make more sense to discuss at Seattle interim. ",
+          "createdAt": "2024-06-05T13:18:27Z",
+          "updatedAt": "2024-06-05T13:24:20Z",
+          "comments": [
+            {
+              "originalPosition": 14,
+              "body": "\"received via this subscription\" does not make sense to me. ",
+              "createdAt": "2024-06-05T13:18:27Z",
+              "updatedAt": "2024-06-05T13:24:20Z"
+            },
+            {
+              "originalPosition": 23,
+              "body": "If we did this, I think track could be handled the same way of group and simply reset the stream and end the track if time has been exceeded. ",
+              "createdAt": "2024-06-05T13:20:41Z",
+              "updatedAt": "2024-06-05T13:24:21Z"
+            },
+            {
+              "originalPosition": 11,
+              "body": "I think all these case could be exactly the same which is if the time is exceeded, the stream in use (if any) gets reset and for stream per track that implies no more of the track will be sent, for stream per group that imples no more of the group will be sent. ",
+              "createdAt": "2024-06-05T13:22:23Z",
+              "updatedAt": "2024-06-05T13:24:21Z"
+            },
+            {
+              "originalPosition": 8,
+              "body": "Give this does not somehow propagate to upstream relays, I don't think this will meet work for the use cases where the last relay is downstream of the congested link. ",
+              "createdAt": "2024-06-05T13:23:24Z",
+              "updatedAt": "2024-06-05T13:24:21Z"
+            }
+          ]
         }
       ]
     },
@@ -58898,7 +59037,7 @@
       "labels": [],
       "body": "A variant of #446 that is on a Subscription granularity, instead of Object.\r\n\r\nFixes #440 ",
       "createdAt": "2024-05-22T17:39:39Z",
-      "updatedAt": "2024-05-28T16:32:26Z",
+      "updatedAt": "2024-06-05T13:12:56Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "d05778bed2aa7dd601f4cd201fec5075b056de33",
@@ -58945,6 +59084,19 @@
               "updatedAt": "2024-05-28T16:32:26Z"
             }
           ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M59HknN",
+          "commit": {
+            "abbreviatedOid": "edcb48d"
+          },
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "CHANGES_REQUESTED",
+          "body": " I don't understand how the relay would know the answer to this at the time the subscribe happened, and I don't understand what use case the applications would need to get this from the relay instead of some other way like the manifest. \r\n\r\n",
+          "createdAt": "2024-06-05T13:12:56Z",
+          "updatedAt": "2024-06-05T13:12:56Z",
+          "comments": []
         }
       ]
     },
@@ -59019,7 +59171,7 @@
       ],
       "body": "Takes an opinionated approach to adding 'Fetch' style functionality within the existing mechanisms.\r\n\r\nCan be split up if people prefer.\r\n\r\nPulls in concepts from #411, #428 and #449 (Delivery Timeout)\r\n\r\nFixes #269\r\nFixes #326\r\nFixes #350\r\nFixes #396 \r\nFixes #419\r\nFixes #431 \r\nFixes #442\r\n\r\nRelevant to #422, because we can omit the Object ID for 'In Order' delivery mode.\r\n\r\nCloses #421\r\nCloses #449",
       "createdAt": "2024-05-27T18:42:39Z",
-      "updatedAt": "2024-05-30T00:28:15Z",
+      "updatedAt": "2024-06-05T15:55:24Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "bdc1cd04c94bb0d04b363a1603b77ec29783da32",
@@ -59087,6 +59239,145 @@
               "body": "What about subscribes behind the live head?  Wouldn't the two modes deliver the resources in opposite orders?",
               "createdAt": "2024-05-28T16:42:44Z",
               "updatedAt": "2024-05-28T16:43:43Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5877Gn",
+          "commit": {
+            "abbreviatedOid": "c5eec0a"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-06-04T11:15:27Z",
+          "updatedAt": "2024-06-04T11:15:27Z",
+          "comments": [
+            {
+              "originalPosition": 18,
+              "body": "Wonder why does this not apply for stream per group or stream per object cases. ",
+              "createdAt": "2024-06-04T11:15:27Z",
+              "updatedAt": "2024-06-04T11:15:27Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5878IQ",
+          "commit": {
+            "abbreviatedOid": "c5eec0a"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "CHANGES_REQUESTED",
+          "body": "Thanks for the PR. I feel this PR is hitting some of the cases we need. \r\nI think this PR does need some more work to clarify few options - basically the interactions between priority across the delivery order options, what to do if there are gaps and cache duration. Relay upstreaming a subscription and what to pick or is it scoped to just last mile.\r\n\r\nMay be this is all some text clarification. But as-is I am not clear it addresses the issue completely. \r\n\r\n",
+          "createdAt": "2024-06-04T11:17:36Z",
+          "updatedAt": "2024-06-04T11:24:06Z",
+          "comments": [
+            {
+              "originalPosition": 23,
+              "body": "by \"latest\" do we mean, new groups will be prioritized before prior groups?",
+              "createdAt": "2024-06-04T11:17:36Z",
+              "updatedAt": "2024-06-04T11:24:06Z"
+            },
+            {
+              "originalPosition": 28,
+              "body": "Latest here is more clear compared to the previous option.",
+              "createdAt": "2024-06-04T11:18:15Z",
+              "updatedAt": "2024-06-04T11:24:06Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M58_S_-",
+          "commit": {
+            "abbreviatedOid": "c5eec0a"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-06-04T17:07:57Z",
+          "updatedAt": "2024-06-04T17:11:11Z",
+          "comments": [
+            {
+              "originalPosition": 18,
+              "body": "@suhasHere my read of this mode is that it overrides the publisher preference.  If subscriber asks for in-order, then the track is delivered in a single stream regardless.",
+              "createdAt": "2024-06-04T17:07:57Z",
+              "updatedAt": "2024-06-04T17:11:11Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M59D2B9",
+          "commit": {
+            "abbreviatedOid": "c5eec0a"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-06-05T06:35:02Z",
+          "updatedAt": "2024-06-05T06:35:02Z",
+          "comments": [
+            {
+              "originalPosition": 18,
+              "body": "ah! makes sense .. I missed that. ",
+              "createdAt": "2024-06-05T06:35:02Z",
+              "updatedAt": "2024-06-05T06:35:03Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M59D23i",
+          "commit": {
+            "abbreviatedOid": "c5eec0a"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-06-05T06:37:16Z",
+          "updatedAt": "2024-06-05T06:37:16Z",
+          "comments": [
+            {
+              "originalPosition": 24,
+              "body": "+1 to @afrind  . we need some text to explain when to go upstream vs when to deliver what is there ? May be its already there and I am not seeing it ( so apologies if that's the case)",
+              "createdAt": "2024-06-05T06:37:16Z",
+              "updatedAt": "2024-06-05T06:37:16Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M59HWta",
+          "commit": {
+            "abbreviatedOid": "c5eec0a"
+          },
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "CHANGES_REQUESTED",
+          "body": "I think we should talk about this at the Seattle interim starting with use cases we are trying to solve.\r\n\r\nIt is really hard to review a proposal like this without understanding if / how this propagates upstream. ",
+          "createdAt": "2024-06-05T13:04:16Z",
+          "updatedAt": "2024-06-05T13:04:16Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M59JaKf",
+          "commit": {
+            "abbreviatedOid": "c5eec0a"
+          },
+          "author": "englishm",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-06-05T15:55:24Z",
+          "updatedAt": "2024-06-05T15:55:24Z",
+          "comments": [
+            {
+              "originalPosition": 38,
+              "body": "To me, this is the key question, not just in this context, but re: caching expectations as a whole. \r\n\r\nWhat behavior do we expect when a relay is serving active subscribers at the live edge, but a new subscribe comes in so far behind the live edge that all of the delivery timeouts have expired and none of the objects are in cache any longer? Then, what about the case where _some_ objects haven't yet expired, but others have? Should that behavior be any different?",
+              "createdAt": "2024-06-05T15:55:24Z",
+              "updatedAt": "2024-06-05T15:55:24Z"
             }
           ]
         }
