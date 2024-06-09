@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2024-06-06T01:13:08.496686+00:00",
+  "timestamp": "2024-06-09T01:19:47.715658+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -15742,7 +15742,7 @@
       "labels": [],
       "body": "Need a term for upstream, downstream and the original publisher that is not a relay and the final subscriber that is not a relay. ",
       "createdAt": "2024-04-21T17:08:38Z",
-      "updatedAt": "2024-04-22T13:10:24Z",
+      "updatedAt": "2024-06-06T19:01:49Z",
       "closedAt": null,
       "comments": [
         {
@@ -15772,6 +15772,13 @@
           "body": "Yah I think of upstream as the direction the subscribes go and downstream the direction the objects flow so that seems pretty easy. \r\n\r\n\"end consumer\" seems workable for C but I would think of A also being an \"end client\" as client can be producer or subscriber. \r\n\r\nJust bike shedding but perhaps \"source producer\" for A and \"end consumer\" for C.  ",
           "createdAt": "2024-04-22T13:10:23Z",
           "updatedAt": "2024-04-22T13:10:23Z"
+        },
+        {
+          "author": "TimEvens",
+          "authorAssociation": "NONE",
+          "body": "Any update on this? \r\n\r\nSection 1.2 in draft 04 still only defines `producer` and `consumer` yet the draft refers to them as publisher and subscriber. \r\n\r\nInteractions indicate that SUBSCRIBE is sent by the subscriber and SUBSCRIBE_OK is sent by the publisher, but the actual interaction is that the relay acts/proxies as a subscriber to publisher (client endpoint) and acts/proxies SUBSCRIBE_OK to subscriber.   \r\n\r\nThe reason the relay is acting as proxy instead of just relaying messages is because it's not merely forwarding out what it received. Instead it's interacting and responding to a subscribe that may be way after the publication start time. \r\n",
+          "createdAt": "2024-06-06T19:01:48Z",
+          "updatedAt": "2024-06-06T19:01:48Z"
         }
       ]
     },
@@ -16027,6 +16034,70 @@
       "body": "Section 6.14 says:\r\n\r\n\"Final Group: The largest Group ID sent by the publisher in an OBJECT message in this track.\r\n\r\nFinal Object: The largest Object ID sent by the publisher in an OBJECT message in the Final Group for this track.\"\r\n\r\nIs it for the track, or for the subscribe? \r\n\r\nI support it being for the track, as that requires less publisher bookkeeping. But if it's that, we should probably make it clear that we really mean \"for the track\", unrelated to whatever was delivered from that subscribe_id.\r\n\r\n",
       "createdAt": "2024-05-31T19:48:50Z",
       "updatedAt": "2024-05-31T19:48:50Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 458,
+      "id": "I_kwDOG2Ho4M6LZzan",
+      "title": "Session Initialization Clarification with datagrams",
+      "url": "https://github.com/moq-wg/moq-transport/issues/458",
+      "state": "OPEN",
+      "author": "TimEvens",
+      "authorAssociation": "NONE",
+      "assignees": [],
+      "labels": [],
+      "body": "Section 3.3 states *\"The first stream opened is a client-initiated bidirectional control stream where the peers exchange Setup messages ([Section 6.2](https://datatracker.ietf.org/doc/html/draft-ietf-moq-transport-04#message-setup))\"* but does not state what we should do about datagrams being sent before the control stream as well as before **CLIENT_SETUP**/**SERVER_SETUP**.  \r\n\r\nShould the connection be closed by protocol violation if DATAGRAM is received matching **any** of the following conditions:\r\n\r\n* Control bi-dir stream not yet created; session hasn't been established\r\n* `CLIENT_SETUP` and `SERVER_SETUP` not compete; session hasn't been established\r\n* `CLIENT_SETUP` role is `0x02` **SUBSCRIBER**; publishing is not allowed\r\n",
+      "createdAt": "2024-06-06T17:22:09Z",
+      "updatedAt": "2024-06-06T17:22:09Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 459,
+      "id": "I_kwDOG2Ho4M6LaE5K",
+      "title": "Session Establishment sequence and timeouts",
+      "url": "https://github.com/moq-wg/moq-transport/issues/459",
+      "state": "OPEN",
+      "author": "TimEvens",
+      "authorAssociation": "NONE",
+      "assignees": [],
+      "labels": [],
+      "body": "Section 3.3 and 6.2 do not clearly  identify that `CLIENT_SETUP` is the first message over the control stream, sent by the client,  and that the server will wait till that arrives so that it can respond to it via a `SERVER_SETUP`. In section 6.2.1 under versions, it does indicate that the server responds to the client supported version list with a selected \"client\" version, which means that `SERVER_SETUP` is a response message to a `CLIENT_SETUP`. \r\n\r\nFor example... \r\n\r\n```mermaid\r\nsequenceDiagram\r\n    participant client\r\n    participant server\r\nclient ->>+server:QUIC connection\r\nserver -->>-client:QUIC established \r\nclient ->>+server:Create bi-dir stream\r\nclient ->>server:CLIENT_SETUP\r\nserver -->>-client:SERVER_SETUP\r\n``` \r\n\r\nHow long should/must the server wait for the `CLIENT_SETUP` message? QUIC level keep alives will keep the connection alive and the server will be stuck in lingering state for a `CLIENT_SETUP` message.  The client should also have some expected wait time for a  `SERVER_SETUP` response message.",
+      "createdAt": "2024-06-06T18:03:28Z",
+      "updatedAt": "2024-06-06T18:03:28Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 460,
+      "id": "I_kwDOG2Ho4M6LaHkb",
+      "title": "SETUP Parameters Key vs Type",
+      "url": "https://github.com/moq-wg/moq-transport/issues/460",
+      "state": "OPEN",
+      "author": "TimEvens",
+      "authorAssociation": "NONE",
+      "assignees": [],
+      "labels": [],
+      "body": "Section 6.2.2.1 (Role) and section 6.2.2.2 (PATH) indicate `key 0x00` and `key 0x01`.  Shouldn't key be `type`? ",
+      "createdAt": "2024-06-06T18:10:31Z",
+      "updatedAt": "2024-06-06T18:10:31Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 461,
+      "id": "I_kwDOG2Ho4M6LaPKh",
+      "title": "ENDPOINT_ID setup parameter",
+      "url": "https://github.com/moq-wg/moq-transport/issues/461",
+      "state": "OPEN",
+      "author": "TimEvens",
+      "authorAssociation": "NONE",
+      "assignees": [],
+      "labels": [],
+      "body": "We have a need to identify the endpoint that we are connecting with.  Both client and server need to be identified by both ends of the connection. We use this identifier to correlate metrics through all layers of the application.  Today we use this ID to build a topology graph (tree of publisher and subscribers) and their path through relays.  The ID is also used to inform clients which relay they have connected to, used for troubleshooting/debugs/etc.  The IP address or FQDN used to connect to the relay does not identify the actual relay instance connected to when the relay is behind a load balancer and/or anycast.  \r\n\r\nExample parameter text. \r\n\r\nENDPOINT_ID Parameter\r\n\r\nThe ENDPOINT_ID parameter (type 0x0x) is an optional setup parameter that identifies the endpoint sending the CLIENT_SETUP or SERVER_SETUP message. The value is a variable length binary byte array that is unique within the application defined scope.  The server MUST include an ENDPOINT_ID if CLIENT_SETUP sends it.  Servers include the endpoint ID in logs, metrics, and other reporting. \r\n\r\n> [!NOTE]\r\n> While endpoint is often identified in the track namespace, it cannot be used by the sever/relay when considering\r\n> the server/relay does not participate in the encoding scheme.  Relays do not have a specific track to identify\r\n> itself to the client, so the client doesn't know which relay it connects to.  Depending on application design, \r\n> namespace may not uniquely identify a specific endpoint/connection for logging/metrics/tracing/... Relay to relay peering also does not have dedicated tracks for themselves, leaving each relay unaware of which relay instance they are connected. ",
+      "createdAt": "2024-06-06T18:30:20Z",
+      "updatedAt": "2024-06-06T18:41:37Z",
       "closedAt": null,
       "comments": []
     }
