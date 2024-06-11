@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2024-06-09T01:19:47.715658+00:00",
+  "timestamp": "2024-06-11T01:14:49.280433+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -9036,15 +9036,15 @@
       "id": "I_kwDOG2Ho4M5s5f4a",
       "title": "Define Upstream and Downstream ",
       "url": "https://github.com/moq-wg/moq-transport/issues/229",
-      "state": "CLOSED",
+      "state": "OPEN",
       "author": "fluffy",
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
       "labels": [],
       "body": "\r\nLuke took some confused text I sent and made it really clear by using upstream and downstream. I think we should add those to are defined terminology.  They would help many places. \r\n\r\n\r\n\r\n",
       "createdAt": "2023-07-28T19:49:57Z",
-      "updatedAt": "2023-10-18T00:46:56Z",
-      "closedAt": "2023-10-18T00:46:55Z",
+      "updatedAt": "2024-06-10T15:45:51Z",
+      "closedAt": null,
       "comments": [
         {
           "author": "ianswett",
@@ -9108,6 +9108,27 @@
           "body": "We don't currently use Upstream or Downstream in MOQT, so I'm closing this.",
           "createdAt": "2023-10-18T00:46:55Z",
           "updatedAt": "2023-10-18T00:46:55Z"
+        },
+        {
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "reopen because I still think we need a term along these lines - yes we don't have a term like this today but that is the problem. ",
+          "createdAt": "2024-06-10T15:42:51Z",
+          "updatedAt": "2024-06-10T15:42:51Z"
+        },
+        {
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "I like end subscriber / publisher but not keen on origin. The problem is the term origin in HTTP has so much to do with auth and I would like to point out in HTTP when a client does a HTTP POST, the client that did the post is not the origin. I think origin is going to get complicated when we add auth to MoQT and rather not use that term for something different than how HTTP uses it. ",
+          "createdAt": "2024-06-10T15:44:43Z",
+          "updatedAt": "2024-06-10T15:44:43Z"
+        },
+        {
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "Related to #438 ",
+          "createdAt": "2024-06-10T15:45:50Z",
+          "updatedAt": "2024-06-10T15:45:50Z"
         }
       ]
     },
@@ -15742,7 +15763,7 @@
       "labels": [],
       "body": "Need a term for upstream, downstream and the original publisher that is not a relay and the final subscriber that is not a relay. ",
       "createdAt": "2024-04-21T17:08:38Z",
-      "updatedAt": "2024-06-06T19:01:49Z",
+      "updatedAt": "2024-06-10T06:20:48Z",
       "closedAt": null,
       "comments": [
         {
@@ -15779,6 +15800,13 @@
           "body": "Any update on this? \r\n\r\nSection 1.2 in draft 04 still only defines `producer` and `consumer` yet the draft refers to them as publisher and subscriber. \r\n\r\nInteractions indicate that SUBSCRIBE is sent by the subscriber and SUBSCRIBE_OK is sent by the publisher, but the actual interaction is that the relay acts/proxies as a subscriber to publisher (client endpoint) and acts/proxies SUBSCRIBE_OK to subscriber.   \r\n\r\nThe reason the relay is acting as proxy instead of just relaying messages is because it's not merely forwarding out what it received. Instead it's interacting and responding to a subscribe that may be way after the publication start time. \r\n",
           "createdAt": "2024-06-06T19:01:48Z",
           "updatedAt": "2024-06-06T19:01:48Z"
+        },
+        {
+          "author": "englishm",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "Some other previous discussion:\r\nhttps://github.com/moq-wg/moq-transport/issues/229\r\n\r\nI had proposed there \"Origin Publisher\" and \"End Subscriber\" to describe the terminal points of an end to end delivery chain.",
+          "createdAt": "2024-06-10T06:20:47Z",
+          "updatedAt": "2024-06-10T06:20:47Z"
         }
       ]
     },
