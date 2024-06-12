@@ -1310,8 +1310,8 @@ group is being sent on.
 
 ### Object Message Formats
 
-Every Track has a single 'Object Forwarding Preference' the Original Publisher
-MUST NOT mix different forwarding preferences within a single track.
+Every Track has a single 'Object Forwarding Preference' and the Original
+Publisher MUST NOT mix different forwarding preferences within a single track.
 If a subscriber receives different forwarding preferences for a track, it
 SHOULD close the session with an error of 'Protocol Violation'.
 
