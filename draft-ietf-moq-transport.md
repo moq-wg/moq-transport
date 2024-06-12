@@ -171,13 +171,34 @@ Endpoint:
 
 : A Client or Server.
 
-Producer:
+Publisher:
 
-: An endpoint sending media over the network.
+: An endpoint that sends tracks.
 
-Consumer:
+Subscriber:
 
-: An endpoint receiving media over the network.
+: An endpoint that subscribes to and receives tracks.
+
+Original Publisher:
+
+: The first publisher of a given track.
+
+End Subscriber:
+
+: A subscriber that independently initiates a subscription.
+
+Relay:
+
+: An entitly that is both a Publisher and a Subscriber, but not the Original
+Publisher or End Subscriber.
+
+Upstream:
+
+: In the direction of the Original Publisher
+
+Downstream:
+
+: In the direction of the End Subscriber(s)
 
 Transport session:
 
@@ -274,14 +295,13 @@ identical sequence of bytes regardless of how or where it is retrieved.
 An Object can become unavailable, but it's contents MUST NOT change over
 time.
 
-Objects are comprised of two parts: metadata and a payload.
-The metadata is never encrypted and is always
-visible to relays. The payload portion may be encrypted, in which case
-it is only visible to the producer and consumer. The application is
-solely responsible for the content of the object payload. This includes
-the underlying encoding, compression, any end-to-end encryption, or
-authentication. A relay MUST NOT combine, split, or otherwise modify
-object payloads.
+Objects are comprised of two parts: metadata and a payload.  The metadata is
+never encrypted and is always visible to relays. The payload portion may be
+encrypted, in which case it is only visible to the Original Publisher and End
+Subscribers. The application is solely responsible for the content of the object
+payload. This includes the underlying encoding, compression, any end-to-end
+encryption, or authentication. A relay MUST NOT combine, split, or otherwise
+modify object payloads.
 
 ## Groups {#model-group}
 
@@ -289,15 +309,15 @@ A group is a collection of objects and is a sub-unit of a track
 ({{model-track}}).  Objects within a group SHOULD NOT depend on objects
 in other groups.  A group behaves as a join point for subscriptions.
 A new subscriber might not want to receive the entire track, and may
-instead opt to receive only the latest group(s).  The sender then
+instead opt to receive only the latest group(s).  The publisher then
 selectively transmits objects based on their group membership.
 
 ## Track {#model-track}
 
 A track is a sequence of groups ({{model-group}}). It is the entity
-against which a consumer issues a subscription request.  A subscriber
+against which a subscriber issues a subscription request.  A subscriber
 can request to receive individual tracks starting at a group boundary,
-including any new objects pushed by the producer while the track is
+including any new objects pushed by the publisher while the track is
 active.
 
 ### Track Naming and Scopes {#track-name}
@@ -436,7 +456,7 @@ layer.  Doing so results in the session being closed as a 'Protocol Violation'.
 ## Stream Cancellation
 
 Streams aside from the control stream MAY be canceled due to congestion
-or other reasons by either the sender or receiver. Early termination of a
+or other reasons by either the publisher or subscriber. Early termination of a
 stream does not affect the MoQ application state, and therefore has no
 effect on outstanding subscriptions.
 
@@ -563,17 +583,17 @@ throughput is limited.  Note that the contents within each object are
 still delivered in order; this send order only applies to the ordering
 between objects.
 
-A sender MUST send each object over a dedicated stream.  The library
+A publisher MUST send each object over a dedicated stream.  The library
 should support prioritization ({{priority-congestion}}) such that
 streams are transmitted in send order.
 
-A receiver MUST NOT assume that objects will be received in send order,
+A subscriber MUST NOT assume that objects will be received in send order,
 for the following reasons:
 
 * Newly encoded objects can have a smaller send order than outstanding
   objects.
 * Packet loss or flow control can delay the send of individual streams.
-* The sender might not support stream prioritization.
+* The publisher might not support stream prioritization.
 
 TODO: Refer to Congestion Response and Prioritization Section for
 further details on various proposals.
@@ -743,7 +763,7 @@ combine, split, or otherwise modify object payloads.  A relay SHOULD
 prioritize streams ({{priority-congestion}}) based on the send
 order/priority.
 
-A sender SHOULD begin sending incomplete objects when available to
+A publisher SHOULD begin sending incomplete objects when available to
 avoid incurring additional latency.
 
 A relay that reads from a stream and writes to stream in order will
@@ -848,8 +868,8 @@ of the Parameter Value field in bytes.
 
 Each parameter description will indicate the data type in the Parameter Value
 field. If a receiver understands a parameter type, and the parameter length
-implied by that type does not match the Parameter Length field, the receiver MUST
-terminate the session with error code 'Parameter Length Mismatch'.
+implied by that type does not match the Parameter Length field, the receiver
+MUST terminate the session with error code 'Parameter Length Mismatch'.
 
 ### Version Specific Parameters {#version-specific-params}
 
@@ -1009,7 +1029,7 @@ A filter type other than the above MUST be treated as error.
 
 
 ### SUBSCRIBE Format
-A receiver issues a SUBSCRIBE to a publisher to request a track.
+A subscriber issues a SUBSCRIBE to a publisher to request a track.
 
 The format of SUBSCRIBE is as follows:
 
@@ -1075,7 +1095,7 @@ objects from outside the requested start and end.
 
 ## SUBSCRIBE_UPDATE {#message-subscribe-update-req}
 
-A receiver issues a SUBSCRIBE_UPDATE to a publisher to request a change to
+A subscriber issues a SUBSCRIBE_UPDATE to a publisher to request a change to
 a prior subscription.  Subscriptions can only become more narrower, not wider,
 because an attempt to widen a subscription could fail.  If Objects before the
 start or after the end of the current subscription are needed, a separate
@@ -1235,14 +1255,14 @@ group.
 * Object Send Order: An integer indicating the object send order
 {{send-order}} or priority {{ordering-by-priorities}} value.
 
-* Object Forwarding Preference: An enumeration indicating how a sender sends an
-object. The preferences are Track, Group, Object and Datagram.  An Object MUST
-be sent according to its `Object Forwarding Preference`, described below.
+* Object Forwarding Preference: An enumeration indicating how a publisher sends
+an object. The preferences are Track, Group, Object and Datagram.  An Object
+MUST be sent according to its `Object Forwarding Preference`, described below.
 
 * Object Status: As enumeration used to indicate missing
 objects or mark the end of a group or track. See {{object-status}} below.
 
-* Object Payload: An opaque payload intended for the consumer and SHOULD
+* Object Payload: An opaque payload intended for an End Subscriber and SHOULD
 NOT be processed by a relay. Only present when 'Object Status' is Normal (0x0).
 
 #### Object Status {#object-status}
@@ -1290,7 +1310,7 @@ group is being sent on.
 
 ### Object Message Formats
 
-Every Track has a single 'Object Forwarding Preference' and publishers
+Every Track has a single 'Object Forwarding Preference' the Original Publisher
 MUST NOT mix different forwarding preferences within a single track.
 If a subscriber receives different forwarding preferences for a track, it
 SHOULD close the session with an error of 'Protocol Violation'.
@@ -1328,7 +1348,7 @@ OBJECT_STREAM Message {
 
 If the Track Namespace and Track Name identified by the Track Alias are
 different from those specified in the subscription identified by Subscribe ID,
-the receiver MUST close the session with a Protocol Violation.
+the subscriber MUST close the session with a Protocol Violation.
 
 * Other fields: As described in {{canonical-object-fields}}.
 
@@ -1365,7 +1385,7 @@ header message and is followed by one or more sets of serialized object fields.
 If a stream ends gracefully in the middle of a serialized Object, terminate the
 session with a Protocol Violation.
 
-A sender SHOULD NOT open more than one multi-object stream at a time with the
+A publisher SHOULD NOT open more than one multi-object stream at a time with the
 same stream header message type and fields.
 
 
@@ -1409,7 +1429,7 @@ The Object Status field is only sent if the Object Payload Length is zero.
 
 **Stream Header Group**
 
-A sender MUST NOT send an Object on a stream if its Group ID is less than a
+A publisher MUST NOT send an Object on a stream if its Group ID is less than a
 previously sent Group ID on that stream, or if its Object ID is less than or
 equal to a previously sent Object ID within a given group on that stream.
 
@@ -1447,7 +1467,7 @@ The Object Status field is only sent if the Object Payload Length is zero.
 ~~~
 {: #object-group-format title="MOQT Group Stream Object Fields"}
 
-A sender MUST NOT send an Object on a stream if its Object ID is less than a
+A publisher MUST NOT send an Object on a stream if its Object ID is less than a
 previously sent Object ID within a given group in that stream.
 
 ### Examples:
@@ -1568,7 +1588,7 @@ SUBSCRIBE_ERROR
 
 * Track Alias: When Error Code is 'Retry Track Alias', the subscriber SHOULD re-issue the
   SUBSCRIBE with this Track Alias instead. If this Track Alias is already in use,
-  the receiver MUST close the connection with a Duplicate Track Alias error
+  the subscriber MUST close the connection with a Duplicate Track Alias error
   ({{session-termination}}).
 
 
@@ -1678,7 +1698,7 @@ value is a malformed message.
 0x03: The track has finished, so there is no "live edge." Subsequent fields
 contain the highest Group and object ID known.
 
-0x04: The sender is a relay that cannot obtain the current track status from
+0x04: The publisher is a relay that cannot obtain the current track status from
 upstream. Subsequent fields contain the largest group and object ID known.
 
 Any other value in the Status Code field is a malformed message.
@@ -1717,9 +1737,9 @@ Endpoints MAY impose a MAX STREAM count limit which would restrict the
 number of concurrent streams which a MOQT Streaming Format could have in
 flight.
 
-The producer prioritizes and transmits streams out of order.  Streams
-might be starved indefinitely during congestion.  The producer and
-consumer MUST cancel a stream, preferably the lowest priority, after
+The publisher prioritizes and transmits streams out of order.  Streams
+might be starved indefinitely during congestion.  The publisher and
+subscriber MUST cancel a stream, preferably the lowest priority, after
 reaching a resource limit.
 
 
