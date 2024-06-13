@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2024-06-11T01:14:49.280433+00:00",
+  "timestamp": "2024-06-13T01:13:59.312612+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -13948,7 +13948,7 @@
       ],
       "body": "Currently, there's one message section and number space. It's confusing to read and it's not clear what messages can be encoded on a control stream, data stream, or datagram.\r\n\r\n### Proposal 1: Annotate Table\r\n| id | name | context |\r\n|-|-|-|\r\n| 0x0 | OBJECT_STREAM | data |\r\n| 0x1 | OBJECT_DATAGRAM | datagram |\r\n| 0x3 | SUBSCRIBE | control |\r\n| 0x4 | SUBSCRIBE_OK | control |\r\n| 0x5 | SUBSCRIBE_ERROR | control |\r\n| 0x6 | ANNOUNCE | control |\r\n| 0x7 | ANNOUNCE_OK | control |\r\n| 0x8 | ANNOUNCE_ERROR | control |\r\n| 0x9 | UNANNOUNCE | control |\r\n| 0xa | UNSUBSCRIBE | control |\r\n| 0xb | SUBSCRIBE_FIN | control |\r\n| 0xc| SUBSCRIBE_RST | control |\r\n| 0x10 | GOAWAY | control |\r\n| 0x40 | CLIENT_SETUP | control |\r\n| 0x41 | SERVER_SETUP | control |\r\n| 0x50 | STREAM_HEADER_TRACK | data |\r\n| 0x51 | STREAM_HEADER_GROUP | data |\r\n\r\n\r\n### Proposal 2: Split Numberspace\r\n**control messages (bidirectional streams)**\r\n| id | name |\r\n|-|-|\r\n| 0x0 | CLIENT_SETUP |\r\n| 0x1 | SERVER_SETUP |\r\n| 0x3 | SUBSCRIBE |\r\n| 0x4 | SUBSCRIBE_OK |\r\n| 0x5 | SUBSCRIBE_ERROR |\r\n| 0x6 | ANNOUNCE |\r\n| 0x7 | ANNOUNCE_OK |\r\n| 0x8 | ANNOUNCE_ERROR |\r\n| 0x9 | UNANNOUNCE |\r\n| 0xa | UNSUBSCRIBE |\r\n| 0xb | SUBSCRIBE_FIN |\r\n| 0xc| SUBSCRIBE_RST |\r\n| 0x10 | GOAWAY |\r\n\r\n**data messages (unidirectional streams)**\r\n| id | name |\r\n|-|-|\r\n| 0x0 | OBJECT_STREAM |\r\n| 0x1 | OBJECT_TRACK |\r\n| 0x2 | OBJECT_GROUP |\r\n\r\n**datagram messages:**\r\n| id | name |\r\n|-|-|\r\n| 0x0 | OBJECT_DATAGRAM |\r\n",
       "createdAt": "2024-02-14T17:52:42Z",
-      "updatedAt": "2024-03-18T01:25:30Z",
+      "updatedAt": "2024-06-12T18:43:25Z",
       "closedAt": null,
       "comments": [
         {
@@ -13978,6 +13978,20 @@
           "body": "How clever, fair point.  It seems like people prefer 2, do you want to write a PR for that?",
           "createdAt": "2024-02-18T20:18:56Z",
           "updatedAt": "2024-02-18T20:18:56Z"
+        },
+        {
+          "author": "huitema",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "I don't think that we *need* to split the spaces, except maybe for datagrams. With the varint encoding, any number from 0 to 63 encodes on exactly one byte. With proposal #2, we would still have one byte of \"type\" at the beginning of each unidir stream, because we would need to differentiate between 3 encodings.\r\n\r\nHaving unique types allows for having just one set of functions to encode or decode messages. If anything, that simplifies writing test code -- for example, we can have a single fuzzer for all message types, which is nice.\r\n\r\nHaving unique types also provides some forward flexibility, should we ever decide to change the way we send control messages.\r\n\r\nWhat I would like, however, is to simplify the naming. We have currently \"proposal 1\". @kixelated is proposing a change, so let me propose my own changes: \r\n\r\nProposal 1 | @kixelated  | @huitema   |\r\n------------|-------------|----------------|\r\nOBJECT_STREAM | OBJECT_STREAM | STREAM_HEADER_OBJECT |\r\nSTREAM_HEADER_TRACK | OBJECT_TRACK | STREAM_HEADER_TRACK |\r\nSTREAM_HEADER_GROUP | OBJECT_GROUP | STREAM_HEADER_GROUP  |\r\nOBJECT_DATAGRAM | OBJECT_DATAGRAM | DATAGRAM_HEADER |\r\nunnamed | unnamed | SINGLE_OBJECT_HEADER |\r\n\r\nThe first 3 codes correspond to the beginning of a stream, which is why I like having them qualified as \"stream header\". Otherwise, we have to remember that a stream starts with a \"stream header something\", unless it starts via an \"object header\", which by the way is not quite the same as the unnamed object header used when sending multiple objects in a stream.\r\n\r\nAs for the datagram header, we have only one value. We could save one byte and make the \"key\" byte implicit when decoding datagrams.",
+          "createdAt": "2024-06-12T18:40:57Z",
+          "updatedAt": "2024-06-12T18:40:57Z"
+        },
+        {
+          "author": "huitema",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "Also, we will have to decide whether the key is a varint or a byte. If we stay with varint, then we will have to specify whether long varint encodings like \"0xc000000000000000\" are legit.",
+          "createdAt": "2024-06-12T18:43:24Z",
+          "updatedAt": "2024-06-12T18:43:24Z"
         }
       ]
     },
@@ -14591,7 +14605,7 @@
       ],
       "body": " Does it ever make sense to queue a datagram before transmission, and if so for how long? How does this tie into object TTLs?",
       "createdAt": "2024-03-05T23:45:49Z",
-      "updatedAt": "2024-03-24T23:51:23Z",
+      "updatedAt": "2024-06-12T20:00:03Z",
       "closedAt": null,
       "comments": [
         {
@@ -14712,6 +14726,13 @@
           "body": "I think objects should queue the same way regardless of if they are on datagrapms or streams. In both cases there needs to be some sort of time to live to stop infinite growth and there needs to be priority/send order algorithm that determines what object gets sent next when the congestion window opens up. ",
           "createdAt": "2024-03-24T23:51:22Z",
           "updatedAt": "2024-03-24T23:51:22Z"
+        },
+        {
+          "author": "huitema",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "Stacks can send multiple QUIC datagrams in a QUIC packet. Take the case of an application sending 20 bytes audio datagrams every 20 ms. If the link is congested, several datagrams will be queued. They will probably all be shipped in a single QUIC packet, unless the stack is specifically programmed to not send more than one datagram per packet.\r\n\r\nQUIC never states the order in which QUIC frames received in the same packet shall be processed. Many stacks do left to right, but right to left or any other order is fine. If datagrams are sent on the same packet, their delivery order is unspecified. This makes applications of \"send order\" a bit problematic...",
+          "createdAt": "2024-06-12T19:59:30Z",
+          "updatedAt": "2024-06-12T20:00:03Z"
         }
       ]
     },
@@ -14745,7 +14766,7 @@
       ],
       "body": "Now that Datagram is no longer just a suggestion, should there be some sort of error if we get OBJECT_DATAGRAM on a Stream?",
       "createdAt": "2024-03-06T17:41:58Z",
-      "updatedAt": "2024-03-19T07:55:36Z",
+      "updatedAt": "2024-06-12T19:49:42Z",
       "closedAt": null,
       "comments": [
         {
@@ -14761,6 +14782,13 @@
           "body": "I view this as \"protocol error\" and any time we get that we should tear down the QUIC connection with appropriate error. ",
           "createdAt": "2024-03-19T07:55:34Z",
           "updatedAt": "2024-03-19T07:55:34Z"
+        },
+        {
+          "author": "huitema",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "There is a simple way to not have that error: just do not allocate a number for the type \"OBJECT_DATAGRAM\", and state that the content of a datagram is implicitly of state \"OBJECT_DATAGRAM\". Also saves one byte per datagram.",
+          "createdAt": "2024-06-12T19:49:41Z",
+          "updatedAt": "2024-06-12T19:49:41Z"
         }
       ]
     },
@@ -16109,9 +16137,17 @@
       "labels": [],
       "body": "Section 6.2.2.1 (Role) and section 6.2.2.2 (PATH) indicate `key 0x00` and `key 0x01`.  Shouldn't key be `type`? ",
       "createdAt": "2024-06-06T18:10:31Z",
-      "updatedAt": "2024-06-06T18:10:31Z",
+      "updatedAt": "2024-06-12T00:11:20Z",
       "closedAt": null,
-      "comments": []
+      "comments": [
+        {
+          "author": "huitema",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "The \"parameters\" syntax is defined in section 6.1 as:\r\n~~~\r\n   Parameter {\r\n     Parameter Type (i),\r\n     Parameter Length (i),\r\n     Parameter Value (..),\r\n   }\r\n  ~~~\r\nWe should be consistent, and refer to \"Parameter Type 0x1\", etc.",
+          "createdAt": "2024-06-12T00:11:19Z",
+          "updatedAt": "2024-06-12T00:11:19Z"
+        }
+      ]
     },
     {
       "number": 461,
@@ -16126,6 +16162,53 @@
       "body": "We have a need to identify the endpoint that we are connecting with.  Both client and server need to be identified by both ends of the connection. We use this identifier to correlate metrics through all layers of the application.  Today we use this ID to build a topology graph (tree of publisher and subscribers) and their path through relays.  The ID is also used to inform clients which relay they have connected to, used for troubleshooting/debugs/etc.  The IP address or FQDN used to connect to the relay does not identify the actual relay instance connected to when the relay is behind a load balancer and/or anycast.  \r\n\r\nExample parameter text. \r\n\r\nENDPOINT_ID Parameter\r\n\r\nThe ENDPOINT_ID parameter (type 0x0x) is an optional setup parameter that identifies the endpoint sending the CLIENT_SETUP or SERVER_SETUP message. The value is a variable length binary byte array that is unique within the application defined scope.  The server MUST include an ENDPOINT_ID if CLIENT_SETUP sends it.  Servers include the endpoint ID in logs, metrics, and other reporting. \r\n\r\n> [!NOTE]\r\n> While endpoint is often identified in the track namespace, it cannot be used by the sever/relay when considering\r\n> the server/relay does not participate in the encoding scheme.  Relays do not have a specific track to identify\r\n> itself to the client, so the client doesn't know which relay it connects to.  Depending on application design, \r\n> namespace may not uniquely identify a specific endpoint/connection for logging/metrics/tracing/... Relay to relay peering also does not have dedicated tracks for themselves, leaving each relay unaware of which relay instance they are connected. ",
       "createdAt": "2024-06-06T18:30:20Z",
       "updatedAt": "2024-06-06T18:41:37Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 462,
+      "id": "I_kwDOG2Ho4M6L6ui9",
+      "title": "Limits on the amount of buffered data",
+      "url": "https://github.com/moq-wg/moq-transport/issues/462",
+      "state": "OPEN",
+      "author": "vasilvv",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "If the relay is sending data to a subscriber, and the link between the subscriber and the relay cannot sustain the bitrate of the track, eventually the relay will have to buffer more and more data.  At some point, the relay would have to drop the data; we should specify how that happens (lowest priority stream gets dropped first?).",
+      "createdAt": "2024-06-11T22:45:40Z",
+      "updatedAt": "2024-06-12T00:21:57Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Individual Comment:\r\n\r\n+1  We need to specify what happens in this case.  I think there's two parts: \r\n\r\n1) selecting what gets dropped (this is a priority question)\r\n2) the mechanism for dropping (stream resets, etc).",
+          "createdAt": "2024-06-11T22:53:34Z",
+          "updatedAt": "2024-06-11T22:53:34Z"
+        },
+        {
+          "author": "englishm",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "+1\r\n\r\nExpanding Alan's list, I think we should determine:\r\n\r\n- (1a?) valid boundaries for dropping data (group? object? byte? bit?)\r\n- (2a?) under what circumstances the subscriber needs to be informed of the dropped data (do we need different verbs with different semantics in this case, e.g. fetch/subscribe? is dropping data always permitted and something all subscribers must be able to tolerate?)\r\n- (2b?) the means of informing subscribers of dropped data (implied or explicit)\r\n",
+          "createdAt": "2024-06-12T00:21:56Z",
+          "updatedAt": "2024-06-12T00:21:56Z"
+        }
+      ]
+    },
+    {
+      "number": 464,
+      "id": "I_kwDOG2Ho4M6MCxr5",
+      "title": "Isn't spending two bytes for STREAM_HEADER_GROUP a bit wasteful?",
+      "url": "https://github.com/moq-wg/moq-transport/issues/464",
+      "state": "OPEN",
+      "author": "huitema",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "The \"message\" syntax is defined as:\r\n~~~\r\n   MOQT Message {\r\n     Message Type (i),\r\n     Message Payload (..),\r\n   }\r\n~~~\r\nThe unidirectional streams start with messages of one of the types:\r\n~~~\r\n              +======+======================================+\r\n              |   ID | Messages                             |\r\n              +======+======================================+\r\n              |  0x0 | OBJECT_STREAM (Section 6.11.2)       |\r\n              +------+--------------------------------------+\r\n              | 0x50 | STREAM_HEADER_TRACK (Section 6.11.3) |\r\n              +------+--------------------------------------+\r\n              | 0x51 | STREAM_HEADER_GROUP (Section 6.11.3) |\r\n              +------+--------------------------------------+\r\n~~~\r\nWhen encoded as a varint, the codes 0x50 and 0x51 take two bytes -- 0x4050 or 0x4051. That seems a tiny bit wasteful. How about changing those codes to 0x30 and 0x31, which encode on a single byte?",
+      "createdAt": "2024-06-12T19:31:19Z",
+      "updatedAt": "2024-06-12T19:31:19Z",
       "closedAt": null,
       "comments": []
     }
@@ -57830,7 +57913,7 @@
       "labels": [],
       "body": "Based on discussion last week and on slack, I believe this is where the WG is heading.\r\n\r\nIt is possible this could be a per-track or per-subscription value to save bytes on the wire, particularly for the Object per Stream or Object per Datagram modes.\r\n\r\nIt's possible this value could be decreased by the cache dwell time at each hop, but I didn't hear clear consensus either way on that question.\r\n\r\nFixes #440\r\nFixes #415 ",
       "createdAt": "2024-05-13T13:46:14Z",
-      "updatedAt": "2024-06-05T16:37:31Z",
+      "updatedAt": "2024-06-11T16:45:27Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "ad7504fbc08f0753d400a911b19af54a2011a245",
@@ -57876,6 +57959,13 @@
           "body": "Victor had point that perhaps we should use the start of next group to start timer instead end of current group",
           "createdAt": "2024-06-05T16:37:30Z",
           "updatedAt": "2024-06-05T16:37:30Z"
+        },
+        {
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Some of the open issues from the last interim\r\n\r\n - how to deal with non ending groups or groups who length are dynamic\r\n - should the timer be started at the start of each object's arrival rather than group arrival or end",
+          "createdAt": "2024-06-11T16:45:26Z",
+          "updatedAt": "2024-06-11T16:45:26Z"
         }
       ],
       "reviews": [
@@ -58556,7 +58646,7 @@
       "labels": [],
       "body": "Those are long-term limits on how long a relay can keep serving objects from cache, primarily meant to be used to enforce content-related policies, rather than be used as a technical measure for optimizing delivery.",
       "createdAt": "2024-05-20T14:52:21Z",
-      "updatedAt": "2024-05-27T17:02:33Z",
+      "updatedAt": "2024-06-12T15:51:25Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "d05778bed2aa7dd601f4cd201fec5075b056de33",
@@ -58567,7 +58657,29 @@
       "mergedAt": null,
       "mergedBy": null,
       "mergeCommit": null,
-      "comments": [],
+      "comments": [
+        {
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "This is deeply in the case of what gets sent next which we said we would discuss at the interim. \r\n\r\nThe problem in evaluating this is the questions of if this is the only mechanism but something added in addition to other approaches that solve the other use case. \r\n\r\nThis needs more information about how relays handle it, how is it cached etc. We can discuss on call",
+          "createdAt": "2024-06-12T15:07:53Z",
+          "updatedAt": "2024-06-12T15:07:53Z"
+        },
+        {
+          "author": "wilaw",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "I have been thinking about this problem and have changed my mind a bit since my original comment. I think we should add only cache duration limits to objects|groups|tracks (and not availability limits). Once this cache limit has expired, the relay MUST go upstream to retrieve a fresh copy of the object. If the object is no longer available, then the origin will use our [Object Status](https://moq-wg.github.io/moq-transport/draft-ietf-moq-transport.html#name-object-status) flag to indicate that the object is no longer available. Relays may cache this response, just like we cache origin 404s today. This not-available response may itself carry a suggested cache duration. ",
+          "createdAt": "2024-06-12T15:42:00Z",
+          "updatedAt": "2024-06-12T15:42:45Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Individual Comment:\r\n\r\n> This is deeply in the case of what gets sent next which we said we would discuss at the interim.\r\n\r\nThe next interim is about priorities, and I view this as related but orthogonal.\r\n\r\nIn my view, priorities help you decide what to send next when you have more than one thing to send.  Anything related to cache duration, availability or delivery timeouts can only change how many choices you have.",
+          "createdAt": "2024-06-12T15:51:24Z",
+          "updatedAt": "2024-06-12T15:51:24Z"
+        }
+      ],
       "reviews": [
         {
           "id": "PRR_kwDOG2Ho4M57LCnP",
@@ -59616,6 +59728,66 @@
           "createdAt": "2024-06-01T02:48:09Z",
           "updatedAt": "2024-06-01T02:48:09Z",
           "comments": []
+        }
+      ]
+    },
+    {
+      "number": 463,
+      "id": "PR_kwDOG2Ho4M5yLeAo",
+      "title": "Updated Terminology",
+      "url": "https://github.com/moq-wg/moq-transport/pull/463",
+      "state": "OPEN",
+      "author": "afrind",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Replaces producer/consumer with publisher/subscriber, and introduces new terms for the Original Publisher, End Subscriber and relay.  Also replaced some instances of sender/receiver with publisher/subscriber, except instances that were referring to a particular message.\r\n\r\nAdded Upstream and Downstream to the definitions section.  Upstream has two uses so far and downstream has none.\r\n\r\nFixes: #157\r\nFixes: #229\r\nFixes: #438",
+      "createdAt": "2024-06-12T02:53:43Z",
+      "updatedAt": "2024-06-12T16:59:38Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "ad7504fbc08f0753d400a911b19af54a2011a245",
+      "headRepository": "moq-wg/moq-transport",
+      "headRefName": "terminology-update",
+      "headRefOid": "de0eb6b45cadb4f9ea99d65558a39e9743d232d0",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M599-hf",
+          "commit": {
+            "abbreviatedOid": "de0eb6b"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2024-06-12T15:30:52Z",
+          "updatedAt": "2024-06-12T15:30:52Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M59-wCX",
+          "commit": {
+            "abbreviatedOid": "de0eb6b"
+          },
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "Look Good To Me. ",
+          "createdAt": "2024-06-12T16:59:05Z",
+          "updatedAt": "2024-06-12T16:59:38Z",
+          "comments": [
+            {
+              "originalPosition": 18,
+              "body": "I like this but I want to highlight a subtle part of this - if two clients are publishing different group to the same track. Only one of them is the Original publisher. I think this is fine. ",
+              "createdAt": "2024-06-12T16:59:05Z",
+              "updatedAt": "2024-06-12T16:59:38Z"
+            }
+          ]
         }
       ]
     }
