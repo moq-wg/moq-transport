@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2024-06-13T01:13:59.312612+00:00",
+  "timestamp": "2024-06-16T01:19:47.860641+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -16121,9 +16121,17 @@
       "labels": [],
       "body": "Section 3.3 and 6.2 do not clearly  identify that `CLIENT_SETUP` is the first message over the control stream, sent by the client,  and that the server will wait till that arrives so that it can respond to it via a `SERVER_SETUP`. In section 6.2.1 under versions, it does indicate that the server responds to the client supported version list with a selected \"client\" version, which means that `SERVER_SETUP` is a response message to a `CLIENT_SETUP`. \r\n\r\nFor example... \r\n\r\n```mermaid\r\nsequenceDiagram\r\n    participant client\r\n    participant server\r\nclient ->>+server:QUIC connection\r\nserver -->>-client:QUIC established \r\nclient ->>+server:Create bi-dir stream\r\nclient ->>server:CLIENT_SETUP\r\nserver -->>-client:SERVER_SETUP\r\n``` \r\n\r\nHow long should/must the server wait for the `CLIENT_SETUP` message? QUIC level keep alives will keep the connection alive and the server will be stuck in lingering state for a `CLIENT_SETUP` message.  The client should also have some expected wait time for a  `SERVER_SETUP` response message.",
       "createdAt": "2024-06-06T18:03:28Z",
-      "updatedAt": "2024-06-06T18:03:28Z",
+      "updatedAt": "2024-06-14T17:57:35Z",
       "closedAt": null,
-      "comments": []
+      "comments": [
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Individual Comment: \r\n\r\nI don't think the draft should specify explicit timeouts for the peer to send a message, each implementation or application will define its own reasonable limits.  Perhaps we could mention the usefulness of timeouts in general in the security section?",
+          "createdAt": "2024-06-14T17:57:34Z",
+          "updatedAt": "2024-06-14T17:57:34Z"
+        }
+      ]
     },
     {
       "number": 460,
@@ -16134,10 +16142,12 @@
       "author": "TimEvens",
       "authorAssociation": "NONE",
       "assignees": [],
-      "labels": [],
+      "labels": [
+        "Editorial"
+      ],
       "body": "Section 6.2.2.1 (Role) and section 6.2.2.2 (PATH) indicate `key 0x00` and `key 0x01`.  Shouldn't key be `type`? ",
       "createdAt": "2024-06-06T18:10:31Z",
-      "updatedAt": "2024-06-12T00:11:20Z",
+      "updatedAt": "2024-06-14T17:48:42Z",
       "closedAt": null,
       "comments": [
         {
@@ -16174,10 +16184,12 @@
       "author": "vasilvv",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
-      "labels": [],
+      "labels": [
+        "Transmission"
+      ],
       "body": "If the relay is sending data to a subscriber, and the link between the subscriber and the relay cannot sustain the bitrate of the track, eventually the relay will have to buffer more and more data.  At some point, the relay would have to drop the data; we should specify how that happens (lowest priority stream gets dropped first?).",
       "createdAt": "2024-06-11T22:45:40Z",
-      "updatedAt": "2024-06-12T00:21:57Z",
+      "updatedAt": "2024-06-14T17:47:09Z",
       "closedAt": null,
       "comments": [
         {
@@ -16205,12 +16217,97 @@
       "author": "huitema",
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
-      "labels": [],
+      "labels": [
+        "Wire Format"
+      ],
       "body": "The \"message\" syntax is defined as:\r\n~~~\r\n   MOQT Message {\r\n     Message Type (i),\r\n     Message Payload (..),\r\n   }\r\n~~~\r\nThe unidirectional streams start with messages of one of the types:\r\n~~~\r\n              +======+======================================+\r\n              |   ID | Messages                             |\r\n              +======+======================================+\r\n              |  0x0 | OBJECT_STREAM (Section 6.11.2)       |\r\n              +------+--------------------------------------+\r\n              | 0x50 | STREAM_HEADER_TRACK (Section 6.11.3) |\r\n              +------+--------------------------------------+\r\n              | 0x51 | STREAM_HEADER_GROUP (Section 6.11.3) |\r\n              +------+--------------------------------------+\r\n~~~\r\nWhen encoded as a varint, the codes 0x50 and 0x51 take two bytes -- 0x4050 or 0x4051. That seems a tiny bit wasteful. How about changing those codes to 0x30 and 0x31, which encode on a single byte?",
       "createdAt": "2024-06-12T19:31:19Z",
-      "updatedAt": "2024-06-12T19:31:19Z",
+      "updatedAt": "2024-06-14T17:46:33Z",
       "closedAt": null,
       "comments": []
+    },
+    {
+      "number": 465,
+      "id": "I_kwDOG2Ho4M6MLjcH",
+      "title": "SUBSCRIBE_DONE logic is gruesome",
+      "url": "https://github.com/moq-wg/moq-transport/issues/465",
+      "state": "OPEN",
+      "author": "martinduke",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "How does a relay know when to send SUBSCRIBE_DONE?\r\n\r\nThe purpose of relay is to aggregate subscribes, so if overlapping subscribes come in with different endpoints I can't rely on a SUBSCRIBE_DONE from upstream.\r\n\r\nIf a SUBSCRIBE is entirely for future objects, the easiest thing to do is to send it when I've sent the last object ID, or a higher ID is published. One can add a timer per subscribe to allow for reordering, or just accept that reordered objects arriving after the last won't be delivered. I can't simply keep state for each object in the subscribe because I have no idea where there are object or group gaps. (maybe this is the use case for explicitly communicating these gaps after all?)\r\n\r\nIf a SUBSCRIBE is entirely for past objects, either I am serving them from cache (in which case I can provide an API to the cache to call when it is fully served), or I have to send a SUBSCRIBE upstream. If the SUBSCRIBE is unique, then I'll get a SUBSCRIBE_DONE from upstream. If it's aggregated somehow, once again I have to either watch for the last sequence number and run a timer, or keep score of all the objects I expect to see. IIUC, as it stands there is no guarantee that a subscribe for past objects will give me the complete set of objects.\r\n\r\nIf a SUBSCRIBE is for both past and future objects, then the union of both algorithms must both return true in order for the relay to send SUBSCRIBE_DONE. So the sender has to keep track of two separate object ranges independently. Because the SUBSCRIBE may arrive just as the publisher is incrementing the group ID, I need to track the max object ID in each group so I can tell when the past portion of the subscription is done.\r\n\r\nAt the origin, this is somewhat simpler in that published objects can be assumed to arrive in order and without gaps, and past objects can arrive in their own order and without gaps.",
+      "createdAt": "2024-06-13T18:47:37Z",
+      "updatedAt": "2024-06-14T15:48:56Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "body": "+1 I can't figure out when a publisher is supposed to send this message. Is it supposed to wait until all data streams have been acknowledged or reset? Unfortunately that's not possible with many QUIC libraries (including W3C WebTransport) so the best you can do is a timer.\r\n\r\nFor transfork, I put the subscriber in control of terminating a subscription when all data (within the requested range) has been received. It does require drop notifications though (or reliable reset).",
+          "createdAt": "2024-06-14T00:50:11Z",
+          "updatedAt": "2024-06-14T00:52:41Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Individual Comment:\r\n\r\n> maybe this is the use case for explicitly communicating these gaps after all?\r\n\r\n> as it stands there is no guarantee that a subscribe for past objects will give me the complete set of objects.\r\n\r\nWhat if we added these requirements/guarantees?  A publisher is required to send every sequential group/object id in the range with no gaps (either the object or a placeholder object with the status explaining why no group/object is there), or terminate the subscription with error.  End-of-group and end-of-track markers are also required.  \r\n\r\nIt would make things much easier to reason about - I kind of like the idea.  For sure it adds some overhead - is that a dealbreaker?  It's a handful of bytes to skip and object or group or end of a group.\r\n\r\nI'm not sure even those guarantees would solve the SUBSCRIBE_DONE problem though.  Reordering of stream-per-object streams, datagrams in general, and stream resets (undefined) still seem problematic. Maybe timers are inevitable.",
+          "createdAt": "2024-06-14T02:33:50Z",
+          "updatedAt": "2024-06-14T02:33:50Z"
+        },
+        {
+          "author": "vasilvv",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I wonder if we need to separate two kinds of SUBSCRIBE_DONE.\r\n\r\nOne is \"EOF\" generated by the original publisher.  Those can be forwarded as-is, and don't necessarily indicate that there won't be further objects due to reordering.  SUBSCRIBE_DONE isn't really needed for finite range subscribes, since the subscriber knows where that one ends.\r\n\r\nAnother is \"error, and I closed the subscribe\".  That one can be generated both by the relay and the original publisher.",
+          "createdAt": "2024-06-14T13:47:06Z",
+          "updatedAt": "2024-06-14T13:47:06Z"
+        },
+        {
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "> Individual Comment:\r\n> \r\n> > maybe this is the use case for explicitly communicating these gaps after all?\r\n> \r\n> > as it stands there is no guarantee that a subscribe for past objects will give me the complete set of objects.\r\n> \r\n> What if we added these requirements/guarantees? A publisher is required to send every sequential group/object id in the range with no gaps (either the object or a placeholder object with the status explaining why no group/object is there), or terminate the subscription with error. End-of-group and end-of-track markers are also required.\r\n> \r\n> It would make things much easier to reason about - I kind of like the idea. For sure it adds some overhead - is that a dealbreaker? It's a handful of bytes to skip and object or group or end of a group.\r\n> \r\n> I'm not sure even those guarantees would solve the SUBSCRIBE_DONE problem though. Reordering of stream-per-object streams, datagrams in general, and stream resets (undefined) still seem problematic. Maybe timers are inevitable.\r\n\r\nYes, as it stands, the spec provides essentially no expectations for what actually arrives for a subscribe. The sender might choose to omit objects in the middle of a group even though it has those objects. There are no requirements for the order in which things are sent.\r\n\r\nAnd of course, there are the different stream mappings which have their own implications; in some cases FIN or RST of a stream might provide a hint, though I know Ian is resistant to exposing these explicit QUIC signals to MoQT.\r\n\r\nIt makes coding the receiver quite challenging.",
+          "createdAt": "2024-06-14T15:48:54Z",
+          "updatedAt": "2024-06-14T15:48:54Z"
+        }
+      ]
+    },
+    {
+      "number": 466,
+      "id": "I_kwDOG2Ho4M6MNWRI",
+      "title": "Object Status makes me sad",
+      "url": "https://github.com/moq-wg/moq-transport/issues/466",
+      "state": "OPEN",
+      "author": "kixelated",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "- Requires an additional stream per group, when using a stream per object.\r\n- Makes objects \"nullable\" in the API (empty payload != status 0x1)\r\n- status != 0 wastes a byte on a zeroed size\r\n\r\nI think we should use a GROUP_END and TRACK_END message instead of overloading OBJECT. And an application can use an empty payload to indicate gaps... or whatever encoding it wants.",
+      "createdAt": "2024-06-14T01:33:50Z",
+      "updatedAt": "2024-06-14T02:50:16Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Individual Comment:\r\n\r\n> Requires an additional stream per group, when using a stream per object.\r\n\r\nThis is annoying.  #442 asks the question if publishers are required to send end of group messages.\r\n\r\n> Makes objects \"nullable\" in the API (empty payload != status 0x1)\r\n\r\nCan you explain more? Do you mean that it is now possible to have a \"Normal\" object with an empty body and you would prefer this was not allowed?  \r\n\r\nKeep in mind the API is not what is standardized, and you can make an API as opinionated as you want.  Many HTTP APIs don't give you access to the full protocol (streaming post body, trailers, and push are commonly omitted features).\r\n\r\n> status != 0 wastes a byte on a zeroed size\r\n\r\nThis seems fixable by defining the length field as only present on non-zero status?\r\n\r\n> we should use a GROUP_END and TRACK_END message ...\r\n \r\nOne important function of Object Status is the ability to communicate that an object is permanently unavailable.",
+          "createdAt": "2024-06-14T01:58:28Z",
+          "updatedAt": "2024-06-14T01:58:28Z"
+        },
+        {
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> Can you explain more? Do you mean that it is now possible to have a \"Normal\" object with an empty body and you would prefer this was not allowed?\r\n>\r\n> Keep in mind the API is not what is standardized, and you can make an API as opinionated as you want. Many HTTP APIs don't give you access to the full protocol (streaming post body, trailers, and push are commonly omitted features).\r\n\r\nYeah exactly, a MoQ API should not allow applications to set the object status manually because it's ripe for misuse.\r\n\r\nTo support status=0x1, I would design an API using `std::optional<std::vector<uint8_t>> payload` (ur welcome for C++).\r\n\r\nBut why does the application need both nullopt and an empty payload? What's the use case? What's the difference between an empty payload and status 0x1?\r\n\r\n> > status != 0 wastes a byte on a zeroed size\r\n> \r\n> This seems fixable by defining the length field as only present on non-zero status?\r\n\r\nAka make the status codes separate message types. They're still on the \"data plane\" as unidirectional streams.\r\n\r\n> > we should use a GROUP_END and TRACK_END message ...\r\n> \r\n> One important function of Object Status is the ability to communicate that an object is permanently unavailable.\r\n\r\nNo, it means that the object never existed from the application's point of view. We agreed that we needed a separate mechanism for dropping objects, such that an object status should be immutable.",
+          "createdAt": "2024-06-14T02:22:58Z",
+          "updatedAt": "2024-06-14T02:22:58Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Individual Comment:\r\n\r\n> Yeah exactly, a MoQ API should not allow applications to set the object status manually because it's ripe for misuse.\r\n\r\n> To support status=0x1, I would design an API using std::optional<std::vector<uint8_t>> payload (ur welcome for C++).\r\n\r\nI haven't written the code yet, but I'd probably just have two APIs?  `publishObject(header, payload)` and `publishPlaceholder(header, status)`.  I write lots of APIs that are ripe for abuse though :D \r\n\r\n> No, it means that the object never existed from the application's point of view. \r\n\r\nThat's not what draft-04 says:\r\n\r\n> Indicates Object does not exist. Indicates that this object does not exist at any publisher and it will not be published in the future. This SHOULD be cached.\r\n\r\nSeems like an Original publisher could send a status=0 obj at time T and if someone asks at time T + N, it could send status=0x1.\r\n",
+          "createdAt": "2024-06-14T02:50:14Z",
+          "updatedAt": "2024-06-14T02:50:14Z"
+        }
+      ]
     }
   ],
   "pulls": [
