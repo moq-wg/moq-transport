@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2024-06-16T01:19:47.860641+00:00",
+  "timestamp": "2024-06-18T01:14:49.734237+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -16306,6 +16306,60 @@
           "body": "Individual Comment:\r\n\r\n> Yeah exactly, a MoQ API should not allow applications to set the object status manually because it's ripe for misuse.\r\n\r\n> To support status=0x1, I would design an API using std::optional<std::vector<uint8_t>> payload (ur welcome for C++).\r\n\r\nI haven't written the code yet, but I'd probably just have two APIs?  `publishObject(header, payload)` and `publishPlaceholder(header, status)`.  I write lots of APIs that are ripe for abuse though :D \r\n\r\n> No, it means that the object never existed from the application's point of view. \r\n\r\nThat's not what draft-04 says:\r\n\r\n> Indicates Object does not exist. Indicates that this object does not exist at any publisher and it will not be published in the future. This SHOULD be cached.\r\n\r\nSeems like an Original publisher could send a status=0 obj at time T and if someone asks at time T + N, it could send status=0x1.\r\n",
           "createdAt": "2024-06-14T02:50:14Z",
           "updatedAt": "2024-06-14T02:50:14Z"
+        }
+      ]
+    },
+    {
+      "number": 467,
+      "id": "I_kwDOG2Ho4M6Mi1Hc",
+      "title": "SUBSCRIBE_UPDATE response/error handling",
+      "url": "https://github.com/moq-wg/moq-transport/issues/467",
+      "state": "OPEN",
+      "author": "roticv",
+      "authorAssociation": "NONE",
+      "assignees": [],
+      "labels": [],
+      "body": "Draft 04 currently doesn't mention about sending any response when the SUBSCRIBE_UPDATE is successful or when it fails even though the draft hints on possible failures\r\n\r\n>   If Objects before the start or after the end of the current\r\n>   subscription are needed, a separate subscription can be made.  The\r\n>   start Object MUST NOT decrease and when it increases, there is no\r\n>   guarantee that a publisher will not have already sent Objects before\r\n>   the new start Object.  The end Object MUST NOT increase and when it\r\n>   decreases, there is no guarantee that a publisher will not have\r\n>   already sent Objects after the new end Object.\r\n\r\nThe above suggests that an error should be sent to inform the client that it is making invalid subscription updates.",
+      "createdAt": "2024-06-17T18:15:10Z",
+      "updatedAt": "2024-06-17T18:15:10Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 468,
+      "id": "I_kwDOG2Ho4M6Mjokn",
+      "title": "Subscriber filter type enum should start at 0",
+      "url": "https://github.com/moq-wg/moq-transport/issues/468",
+      "state": "OPEN",
+      "author": "afrind",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "All other enum types start at 0.",
+      "createdAt": "2024-06-17T20:00:28Z",
+      "updatedAt": "2024-06-18T00:58:23Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "body": "`ROLE` starts at 1 too",
+          "createdAt": "2024-06-17T20:44:10Z",
+          "updatedAt": "2024-06-17T20:44:10Z"
+        },
+        {
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "In general, I think it is really nice to have a value defined as Invalid and that will never be used by the enum or extension. That value is often zero. Agree we should be consistent and don't really care much one way or another. (and if you receive an enum with this value, it is a protcol error ). ",
+          "createdAt": "2024-06-17T20:48:14Z",
+          "updatedAt": "2024-06-17T20:48:14Z"
+        },
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Shall I create a bikeshed label now?",
+          "createdAt": "2024-06-18T00:58:21Z",
+          "updatedAt": "2024-06-18T00:58:21Z"
         }
       ]
     }
@@ -59479,7 +59533,7 @@
       ],
       "body": "Takes an opinionated approach to adding 'Fetch' style functionality within the existing mechanisms.\r\n\r\nCan be split up if people prefer.\r\n\r\nPulls in concepts from #411, #428 and #449 (Delivery Timeout)\r\n\r\nFixes #269\r\nFixes #326\r\nFixes #350\r\nFixes #396 \r\nFixes #419\r\nFixes #431 \r\nFixes #442\r\n\r\nRelevant to #422, because we can omit the Object ID for 'In Order' delivery mode.\r\n\r\nCloses #421\r\nCloses #449",
       "createdAt": "2024-05-27T18:42:39Z",
-      "updatedAt": "2024-06-05T15:55:24Z",
+      "updatedAt": "2024-06-17T17:13:40Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "bdc1cd04c94bb0d04b363a1603b77ec29783da32",
@@ -59688,6 +59742,26 @@
               "updatedAt": "2024-06-05T15:55:24Z"
             }
           ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5-kTYH",
+          "commit": {
+            "abbreviatedOid": "c5eec0a"
+          },
+          "author": "wilaw",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-06-17T17:13:39Z",
+          "updatedAt": "2024-06-17T17:13:40Z",
+          "comments": [
+            {
+              "originalPosition": 12,
+              "body": "How can a relay implement this requirement that it deliver Groups in ascending order? Our group IDs are non-contiguous. As a consequence, if a relay receives group #10 and then group #12, should it wait for Group #11? It can never tell if 11 exists or not. ",
+              "createdAt": "2024-06-17T17:13:39Z",
+              "updatedAt": "2024-06-17T17:13:40Z"
+            }
+          ]
         }
       ]
     },
@@ -59840,7 +59914,7 @@
       "labels": [],
       "body": "Replaces producer/consumer with publisher/subscriber, and introduces new terms for the Original Publisher, End Subscriber and relay.  Also replaced some instances of sender/receiver with publisher/subscriber, except instances that were referring to a particular message.\r\n\r\nAdded Upstream and Downstream to the definitions section.  Upstream has two uses so far and downstream has none.\r\n\r\nFixes: #157\r\nFixes: #229\r\nFixes: #438",
       "createdAt": "2024-06-12T02:53:43Z",
-      "updatedAt": "2024-06-12T16:59:38Z",
+      "updatedAt": "2024-06-17T23:37:16Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "ad7504fbc08f0753d400a911b19af54a2011a245",
@@ -59883,6 +59957,178 @@
               "body": "I like this but I want to highlight a subtle part of this - if two clients are publishing different group to the same track. Only one of them is the Original publisher. I think this is fine. ",
               "createdAt": "2024-06-12T16:59:05Z",
               "updatedAt": "2024-06-12T16:59:38Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5-kQmn",
+          "commit": {
+            "abbreviatedOid": "de0eb6b"
+          },
+          "author": "wilaw",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-06-17T17:06:46Z",
+          "updatedAt": "2024-06-17T17:06:46Z",
+          "comments": [
+            {
+              "originalPosition": 53,
+              "body": "In order to implement per-session ad insertion, we may want to give certain edge-servers the ability to read and modify catalogs in a edge-compute type of implementation. In this case it might better to say\r\n\r\n> The payload portion may be encrypted, in which case it is only visible to the Original Publisher, End Subscribers and application-authorized relays. ",
+              "createdAt": "2024-06-17T17:06:46Z",
+              "updatedAt": "2024-06-17T17:06:46Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5-kROD",
+          "commit": {
+            "abbreviatedOid": "de0eb6b"
+          },
+          "author": "wilaw",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-06-17T17:08:17Z",
+          "updatedAt": "2024-06-17T17:08:18Z",
+          "comments": [
+            {
+              "originalPosition": 57,
+              "body": "Some edge relays may be authorized to modify content. Therefore we should relax this constraint to\r\n\r\n> A relay MUST NOT combine, split, or otherwise modify object payloads unless authorized to by an application.  ",
+              "createdAt": "2024-06-17T17:08:18Z",
+              "updatedAt": "2024-06-17T17:08:18Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5-kTtM",
+          "commit": {
+            "abbreviatedOid": "de0eb6b"
+          },
+          "author": "englishm",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-06-17T17:14:24Z",
+          "updatedAt": "2024-06-17T17:14:24Z",
+          "comments": [
+            {
+              "originalPosition": 53,
+              "body": "While I agree that manipulating catalogs with edge compute is a valid use case, I don't think we should blur the lines of what a relay is here, but instead consider that node something different. One way of framing it would be to consider it both an end subscriber for the original catalog track and an original publisher for the modified catalog.",
+              "createdAt": "2024-06-17T17:14:24Z",
+              "updatedAt": "2024-06-17T17:14:24Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5-kUwX",
+          "commit": {
+            "abbreviatedOid": "de0eb6b"
+          },
+          "author": "englishm",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-06-17T17:17:03Z",
+          "updatedAt": "2024-06-17T17:17:03Z",
+          "comments": [
+            {
+              "originalPosition": 57,
+              "body": "As above, I'd rather we keep this strict and consider any modifying entity to be something other than a relay. We need a very minimal baseline for what's necessary to provide simple fan out capacity.",
+              "createdAt": "2024-06-17T17:17:03Z",
+              "updatedAt": "2024-06-17T17:17:03Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5-k1wi",
+          "commit": {
+            "abbreviatedOid": "de0eb6b"
+          },
+          "author": "englishm",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-06-17T18:22:51Z",
+          "updatedAt": "2024-06-17T18:22:51Z",
+          "comments": [
+            {
+              "originalPosition": 57,
+              "body": "Follow up based on in-person discussion just now: my concerns here are primarily about whether other entities in a system can rely on immutability of objects within tracks of the same name regardless of where they received them from, or if that immutability guarantee is more limited. \r\n\r\nIf we allow application-authorized modification to occur, I think it would be helpful to have a name for such authorized entities that is clearly distinct from simple fan out relays to make it more explicit when they are in play and when applications and systems designers may need to account for additional variability.",
+              "createdAt": "2024-06-17T18:22:51Z",
+              "updatedAt": "2024-06-17T18:22:51Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5-mkBR",
+          "commit": {
+            "abbreviatedOid": "de0eb6b"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-06-17T23:03:05Z",
+          "updatedAt": "2024-06-17T23:30:42Z",
+          "comments": [
+            {
+              "originalPosition": 18,
+              "body": "```suggestion\r\n: The originating publisher of a given track.\r\n```",
+              "createdAt": "2024-06-17T23:03:05Z",
+              "updatedAt": "2024-06-17T23:30:42Z"
+            },
+            {
+              "originalPosition": 8,
+              "body": "```suggestion\r\n: An endpoint that handles subscriptions by sending requested Objects from the requested track.\r\n```",
+              "createdAt": "2024-06-17T23:04:47Z",
+              "updatedAt": "2024-06-17T23:30:42Z"
+            },
+            {
+              "originalPosition": 22,
+              "body": "```suggestion\r\n: A subscriber that initiates a subscription and does not send the data on to other subscribers.\r\n```",
+              "createdAt": "2024-06-17T23:09:29Z",
+              "updatedAt": "2024-06-17T23:30:42Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5-ms9S",
+          "commit": {
+            "abbreviatedOid": "de0eb6b"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-06-17T23:32:27Z",
+          "updatedAt": "2024-06-17T23:33:11Z",
+          "comments": [
+            {
+              "originalPosition": 18,
+              "body": "circular definition?",
+              "createdAt": "2024-06-17T23:32:27Z",
+              "updatedAt": "2024-06-17T23:33:11Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5-mt6Q",
+          "commit": {
+            "abbreviatedOid": "de0eb6b"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-06-17T23:37:15Z",
+          "updatedAt": "2024-06-17T23:37:16Z",
+          "comments": [
+            {
+              "originalPosition": 53,
+              "body": "The use case is very much valid, but this is intended as an editorial PR, so if you think that's a use case we need to address, please file an issue.",
+              "createdAt": "2024-06-17T23:37:16Z",
+              "updatedAt": "2024-06-17T23:37:16Z"
             }
           ]
         }
