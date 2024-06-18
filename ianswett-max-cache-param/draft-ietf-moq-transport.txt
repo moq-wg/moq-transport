@@ -1630,6 +1630,8 @@ Table of Contents
    If present, the relay MUST NOT start forwarding any individual Object
    received through this subscription after the specified number of
    seconds has elapsed since the beginning of the Object was received.
+   This means Objects earlier in a stream will expire earlier than
+   Objects later in the stream.
 
 6.13.  SUBSCRIBE_ERROR
 
