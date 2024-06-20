@@ -251,8 +251,8 @@ Table of Contents
 
    Original Publisher:  The initial publisher of a given track.
 
-   End Subscriber:  A subscriber that independently initiates a
-      subscription.
+   End Subscriber:  A subscriber that initiates a subscription and does
+      not send the data on to other subscribers.
 
    Relay:  An entitly that is both a Publisher and a Subscriber, but not
       the Original Publisher or End Subscriber.
