@@ -249,7 +249,7 @@ Table of Contents
 
    Subscriber:  An endpoint that subscribes to and receives tracks.
 
-   Original Publisher:  The first publisher of a given track.
+   Original Publisher:  The initial publisher of a given track.
 
    End Subscriber:  A subscriber that independently initiates a
       subscription.
