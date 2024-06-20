@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2024-06-18T01:14:49.734237+00:00",
+  "timestamp": "2024-06-20T01:13:03.093328+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -16070,10 +16070,12 @@
       "author": "martinduke",
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
-      "labels": [],
+      "labels": [
+        "Needs PR"
+      ],
       "body": "Table 4 is missing SUBSCRIBE_UPDATE, so there's no code for this message type.\r\n\r\nSection 6.5 doesn't say what to do when the update is malformed, in some way. SUBSCRIBE_ERROR? \r\n \r\nIs a bogus SUBSCRIBE_UPDATE ignored, or does it nuke the original subscribe?",
       "createdAt": "2024-05-31T17:41:53Z",
-      "updatedAt": "2024-05-31T17:41:53Z",
+      "updatedAt": "2024-06-18T17:26:17Z",
       "closedAt": null,
       "comments": []
     },
@@ -16321,9 +16323,17 @@
       "labels": [],
       "body": "Draft 04 currently doesn't mention about sending any response when the SUBSCRIBE_UPDATE is successful or when it fails even though the draft hints on possible failures\r\n\r\n>   If Objects before the start or after the end of the current\r\n>   subscription are needed, a separate subscription can be made.  The\r\n>   start Object MUST NOT decrease and when it increases, there is no\r\n>   guarantee that a publisher will not have already sent Objects before\r\n>   the new start Object.  The end Object MUST NOT increase and when it\r\n>   decreases, there is no guarantee that a publisher will not have\r\n>   already sent Objects after the new end Object.\r\n\r\nThe above suggests that an error should be sent to inform the client that it is making invalid subscription updates.",
       "createdAt": "2024-06-17T18:15:10Z",
-      "updatedAt": "2024-06-17T18:15:10Z",
+      "updatedAt": "2024-06-18T17:17:56Z",
       "closedAt": null,
-      "comments": []
+      "comments": [
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "#455 documents some other aspects of SUBSCRIBE_UPDATE that are underspecified.",
+          "createdAt": "2024-06-18T17:17:54Z",
+          "updatedAt": "2024-06-18T17:17:54Z"
+        }
+      ]
     },
     {
       "number": 468,
@@ -60129,6 +60139,53 @@
               "body": "The use case is very much valid, but this is intended as an editorial PR, so if you think that's a use case we need to address, please file an issue.",
               "createdAt": "2024-06-17T23:37:16Z",
               "updatedAt": "2024-06-17T23:37:16Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 469,
+      "id": "PR_kwDOG2Ho4M5y21M5",
+      "title": "Add MAX_CACHE_DURATION to SUBSCRIBE_OK Params",
+      "url": "https://github.com/moq-wg/moq-transport/pull/469",
+      "state": "OPEN",
+      "author": "ianswett",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "A tweaked version of #448 \r\n\r\nFixes #440\r\nCloses #450 \r\n\r\nI'll note that we might want to add params to TRACK_STATUS and allow this to be returned from that as well, which would allow a relay to keep it in its cache.\r\n\r\nAttempts to write down where we ended up at the end of the June 12th interim.",
+      "createdAt": "2024-06-18T17:50:49Z",
+      "updatedAt": "2024-06-18T18:04:46Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "ad7504fbc08f0753d400a911b19af54a2011a245",
+      "headRepository": "moq-wg/moq-transport",
+      "headRefName": "ianswett-max-cache-param",
+      "headRefOid": "49c1cac13aaf26f776a5a8a7f0338a1e6a78222d",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M5-utud",
+          "commit": {
+            "abbreviatedOid": "3e354ee"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-06-18T18:04:40Z",
+          "updatedAt": "2024-06-18T18:04:40Z",
+          "comments": [
+            {
+              "originalPosition": 37,
+              "body": "```suggestion\r\nin a multi-object stream will expire earlier than Objects later in the stream.\r\n```",
+              "createdAt": "2024-06-18T18:04:40Z",
+              "updatedAt": "2024-06-18T18:04:40Z"
             }
           ]
         }
