@@ -173,7 +173,7 @@ Endpoint:
 
 Publisher:
 
-: An endpoint that sends tracks.
+: An endpoint that handles subscriptions by sending requested Objects from the requested track.
 
 Subscriber:
 
