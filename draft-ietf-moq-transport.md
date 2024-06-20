@@ -181,7 +181,7 @@ Subscriber:
 
 Original Publisher:
 
-: The first publisher of a given track.
+: The initial publisher of a given track.
 
 End Subscriber:
 
