@@ -23,17 +23,17 @@ networks and is designed for high scale and low latency distribution.
 <meta content="draft-ietf-moq-transport-latest" name="ietf.draft">
 <!-- Generator version information:
   xml2rfc 3.21.0
-    Python 3.11.9
+    Python 3.12.3
     ConfigArgParse 1.7
     google-i18n-address 3.1.0
     intervaltree 3.1.0
-    Jinja2 3.1.2
-    lxml 4.9.3
-    platformdirs 4.2.1
+    Jinja2 3.1.4
+    lxml 4.9.4
+    platformdirs 4.2.2
     pycountry 22.3.5
     PyYAML 6.0.1
     requests 2.31.0
-    setuptools 68.2.2
+    setuptools 69.5.1
     six 1.16.0
     wcwidth 0.2.13
 -->
@@ -1038,7 +1038,7 @@ svg :is([fill="white"], [fill^="#fff"]) {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Curley, et al.</td>
-<td class="center">Expires 3 December 2024</td>
+<td class="center">Expires 22 December 2024</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1051,12 +1051,12 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dd class="internet-draft">draft-ietf-moq-transport-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2024-06-01" class="published">1 June 2024</time>
+<time datetime="2024-06-20" class="published">20 June 2024</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2024-12-03">3 December 2024</time></dd>
+<dd class="expires"><time datetime="2024-12-22">22 December 2024</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1123,7 +1123,7 @@ networks and is designed for high scale and low latency distribution.<a href="#s
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 3 December 2024.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 22 December 2024.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1531,44 +1531,70 @@ appear in all capitals, as shown here.<a href="#section-1.2-1" class="pilcrow">�
             <p id="section-1.2-2.6.1">A Client or Server.<a href="#section-1.2-2.6.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-1.2-2.7">Producer:</dt>
+<dt id="section-1.2-2.7">Publisher:</dt>
           <dd style="margin-left: 1.5em" id="section-1.2-2.8">
-            <p id="section-1.2-2.8.1">An endpoint sending media over the network.<a href="#section-1.2-2.8.1" class="pilcrow">¶</a></p>
+            <p id="section-1.2-2.8.1">An endpoint that handles subscriptions by sending requested Objects from the requested track.<a href="#section-1.2-2.8.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-1.2-2.9">Consumer:</dt>
+<dt id="section-1.2-2.9">Subscriber:</dt>
           <dd style="margin-left: 1.5em" id="section-1.2-2.10">
-            <p id="section-1.2-2.10.1">An endpoint receiving media over the network.<a href="#section-1.2-2.10.1" class="pilcrow">¶</a></p>
+            <p id="section-1.2-2.10.1">An endpoint that subscribes to and receives tracks.<a href="#section-1.2-2.10.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-1.2-2.11">Transport session:</dt>
+<dt id="section-1.2-2.11">Original Publisher:</dt>
           <dd style="margin-left: 1.5em" id="section-1.2-2.12">
-            <p id="section-1.2-2.12.1">A raw QUIC connection or a WebTransport session.<a href="#section-1.2-2.12.1" class="pilcrow">¶</a></p>
+            <p id="section-1.2-2.12.1">The initial publisher of a given track.<a href="#section-1.2-2.12.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-1.2-2.13">Congestion:</dt>
+<dt id="section-1.2-2.13">End Subscriber:</dt>
           <dd style="margin-left: 1.5em" id="section-1.2-2.14">
-            <p id="section-1.2-2.14.1">Packet loss and queuing caused by degraded or overloaded networks.<a href="#section-1.2-2.14.1" class="pilcrow">¶</a></p>
+            <p id="section-1.2-2.14.1">A subscriber that initiates a subscription and does not send the data on to other subscribers.<a href="#section-1.2-2.14.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-1.2-2.15">Group:</dt>
+<dt id="section-1.2-2.15">Relay:</dt>
           <dd style="margin-left: 1.5em" id="section-1.2-2.16">
-            <p id="section-1.2-2.16.1">A temporal sequence of objects. A group represents a join point in a
-track. See (<a href="#model-group" class="auto internal xref">Section 2.2</a>).<a href="#section-1.2-2.16.1" class="pilcrow">¶</a></p>
+            <p id="section-1.2-2.16.1">An entitly that is both a Publisher and a Subscriber, but not the Original
+Publisher or End Subscriber.<a href="#section-1.2-2.16.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-1.2-2.17">Object:</dt>
+<dt id="section-1.2-2.17">Upstream:</dt>
           <dd style="margin-left: 1.5em" id="section-1.2-2.18">
-            <p id="section-1.2-2.18.1">An object is an addressable unit whose payload is a sequence of
-bytes. Objects form the base element in the MOQT model. See
-(<a href="#model-object" class="auto internal xref">Section 2.1</a>).<a href="#section-1.2-2.18.1" class="pilcrow">¶</a></p>
+            <p id="section-1.2-2.18.1">In the direction of the Original Publisher<a href="#section-1.2-2.18.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-1.2-2.19">Track:</dt>
+<dt id="section-1.2-2.19">Downstream:</dt>
           <dd style="margin-left: 1.5em" id="section-1.2-2.20">
-            <p id="section-1.2-2.20.1">An encoded bitstream. Tracks contain a sequential series of one or
+            <p id="section-1.2-2.20.1">In the direction of the End Subscriber(s)<a href="#section-1.2-2.20.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-1.2-2.21">Transport session:</dt>
+          <dd style="margin-left: 1.5em" id="section-1.2-2.22">
+            <p id="section-1.2-2.22.1">A raw QUIC connection or a WebTransport session.<a href="#section-1.2-2.22.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-1.2-2.23">Congestion:</dt>
+          <dd style="margin-left: 1.5em" id="section-1.2-2.24">
+            <p id="section-1.2-2.24.1">Packet loss and queuing caused by degraded or overloaded networks.<a href="#section-1.2-2.24.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-1.2-2.25">Group:</dt>
+          <dd style="margin-left: 1.5em" id="section-1.2-2.26">
+            <p id="section-1.2-2.26.1">A temporal sequence of objects. A group represents a join point in a
+track. See (<a href="#model-group" class="auto internal xref">Section 2.2</a>).<a href="#section-1.2-2.26.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-1.2-2.27">Object:</dt>
+          <dd style="margin-left: 1.5em" id="section-1.2-2.28">
+            <p id="section-1.2-2.28.1">An object is an addressable unit whose payload is a sequence of
+bytes. Objects form the base element in the MOQT model. See
+(<a href="#model-object" class="auto internal xref">Section 2.1</a>).<a href="#section-1.2-2.28.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-1.2-2.29">Track:</dt>
+          <dd style="margin-left: 1.5em" id="section-1.2-2.30">
+            <p id="section-1.2-2.30.1">An encoded bitstream. Tracks contain a sequential series of one or
 more groups and are the subscribable entity with MOQT.
-See (<a href="#model-track" class="auto internal xref">Section 2.3</a>).<a href="#section-1.2-2.20.1" class="pilcrow">¶</a></p>
+See (<a href="#model-track" class="auto internal xref">Section 2.3</a>).<a href="#section-1.2-2.30.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
 </dl>
@@ -1659,14 +1685,13 @@ its track namespace, track name, group ID, and object ID, and must be an
 identical sequence of bytes regardless of how or where it is retrieved.
 An Object can become unavailable, but it's contents <span class="bcp14">MUST NOT</span> change over
 time.<a href="#section-2.1-1" class="pilcrow">¶</a></p>
-<p id="section-2.1-2">Objects are comprised of two parts: metadata and a payload.
-The metadata is never encrypted and is always
-visible to relays. The payload portion may be encrypted, in which case
-it is only visible to the producer and consumer. The application is
-solely responsible for the content of the object payload. This includes
-the underlying encoding, compression, any end-to-end encryption, or
-authentication. A relay <span class="bcp14">MUST NOT</span> combine, split, or otherwise modify
-object payloads.<a href="#section-2.1-2" class="pilcrow">¶</a></p>
+<p id="section-2.1-2">Objects are comprised of two parts: metadata and a payload.  The metadata is
+never encrypted and is always visible to relays. The payload portion may be
+encrypted, in which case it is only visible to the Original Publisher and End
+Subscribers. The application is solely responsible for the content of the object
+payload. This includes the underlying encoding, compression, any end-to-end
+encryption, or authentication. A relay <span class="bcp14">MUST NOT</span> combine, split, or otherwise
+modify object payloads.<a href="#section-2.1-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="model-group">
@@ -1678,7 +1703,7 @@ object payloads.<a href="#section-2.1-2" class="pilcrow">¶</a></p>
 (<a href="#model-track" class="auto internal xref">Section 2.3</a>).  Objects within a group <span class="bcp14">SHOULD NOT</span> depend on objects
 in other groups.  A group behaves as a join point for subscriptions.
 A new subscriber might not want to receive the entire track, and may
-instead opt to receive only the latest group(s).  The sender then
+instead opt to receive only the latest group(s).  The publisher then
 selectively transmits objects based on their group membership.<a href="#section-2.2-1" class="pilcrow">¶</a></p>
 </section>
 </div>
@@ -1688,9 +1713,9 @@ selectively transmits objects based on their group membership.<a href="#section-
 <a href="#section-2.3" class="section-number selfRef">2.3. </a><a href="#name-track" class="section-name selfRef">Track</a>
         </h3>
 <p id="section-2.3-1">A track is a sequence of groups (<a href="#model-group" class="auto internal xref">Section 2.2</a>). It is the entity
-against which a consumer issues a subscription request.  A subscriber
+against which a subscriber issues a subscription request.  A subscriber
 can request to receive individual tracks starting at a group boundary,
-including any new objects pushed by the producer while the track is
+including any new objects pushed by the publisher while the track is
 active.<a href="#section-2.3-1" class="pilcrow">¶</a></p>
 <div id="track-name">
 <section id="section-2.3.1">
@@ -1852,7 +1877,7 @@ layer.  Doing so results in the session being closed as a 'Protocol Violation'.<
 <a href="#section-3.4" class="section-number selfRef">3.4. </a><a href="#name-stream-cancellation" class="section-name selfRef">Stream Cancellation</a>
         </h3>
 <p id="section-3.4-1">Streams aside from the control stream <span class="bcp14">MAY</span> be canceled due to congestion
-or other reasons by either the sender or receiver. Early termination of a
+or other reasons by either the publisher or subscriber. Early termination of a
 stream does not affect the MoQ application state, and therefore has no
 effect on outstanding subscriptions.<a href="#section-3.4-1" class="pilcrow">¶</a></p>
 </section>
@@ -2034,10 +2059,10 @@ possible, to ensure that the most important media is delivered when
 throughput is limited.  Note that the contents within each object are
 still delivered in order; this send order only applies to the ordering
 between objects.<a href="#section-4.1.1-2" class="pilcrow">¶</a></p>
-<p id="section-4.1.1-3">A sender <span class="bcp14">MUST</span> send each object over a dedicated stream.  The library
+<p id="section-4.1.1-3">A publisher <span class="bcp14">MUST</span> send each object over a dedicated stream.  The library
 should support prioritization (<a href="#priority-congestion" class="auto internal xref">Section 4</a>) such that
 streams are transmitted in send order.<a href="#section-4.1.1-3" class="pilcrow">¶</a></p>
-<p id="section-4.1.1-4">A receiver <span class="bcp14">MUST NOT</span> assume that objects will be received in send order,
+<p id="section-4.1.1-4">A subscriber <span class="bcp14">MUST NOT</span> assume that objects will be received in send order,
 for the following reasons:<a href="#section-4.1.1-4" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-4.1.1-5.1">
@@ -2048,7 +2073,7 @@ objects.<a href="#section-4.1.1-5.1.1" class="pilcrow">¶</a></p>
               <p id="section-4.1.1-5.2.1">Packet loss or flow control can delay the send of individual streams.<a href="#section-4.1.1-5.2.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-4.1.1-5.3">
-              <p id="section-4.1.1-5.3.1">The sender might not support stream prioritization.<a href="#section-4.1.1-5.3.1" class="pilcrow">¶</a></p>
+              <p id="section-4.1.1-5.3.1">The publisher might not support stream prioritization.<a href="#section-4.1.1-5.3.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
 <p id="section-4.1.1-6">TODO: Refer to Congestion Response and Prioritization Section for
@@ -2272,7 +2297,7 @@ forwarding.<a href="#section-5.4-1" class="pilcrow">¶</a></p>
 combine, split, or otherwise modify object payloads.  A relay <span class="bcp14">SHOULD</span>
 prioritize streams (<a href="#priority-congestion" class="auto internal xref">Section 4</a>) based on the send
 order/priority.<a href="#section-5.4-2" class="pilcrow">¶</a></p>
-<p id="section-5.4-3">A sender <span class="bcp14">SHOULD</span> begin sending incomplete objects when available to
+<p id="section-5.4-3">A publisher <span class="bcp14">SHOULD</span> begin sending incomplete objects when available to
 avoid incurring additional latency.<a href="#section-5.4-3" class="pilcrow">¶</a></p>
 <p id="section-5.4-4">A relay that reads from a stream and writes to stream in order will
 introduce head-of-line blocking.  Packet loss will cause stream data to
@@ -2435,8 +2460,8 @@ specific parameter types are defined in <a href="#version-specific-params" class
 of the Parameter Value field in bytes.<a href="#section-6.1-8" class="pilcrow">¶</a></p>
 <p id="section-6.1-9">Each parameter description will indicate the data type in the Parameter Value
 field. If a receiver understands a parameter type, and the parameter length
-implied by that type does not match the Parameter Length field, the receiver <span class="bcp14">MUST</span>
-terminate the session with error code 'Parameter Length Mismatch'.<a href="#section-6.1-9" class="pilcrow">¶</a></p>
+implied by that type does not match the Parameter Length field, the receiver
+<span class="bcp14">MUST</span> terminate the session with error code 'Parameter Length Mismatch'.<a href="#section-6.1-9" class="pilcrow">¶</a></p>
 <div id="version-specific-params">
 <section id="section-6.1.1">
           <h4 id="name-version-specific-parameters">
@@ -2645,7 +2670,7 @@ object than StartGroup and StartObject.<a href="#section-6.4.1-6" class="pilcrow
           <h4 id="name-subscribe-format">
 <a href="#section-6.4.2" class="section-number selfRef">6.4.2. </a><a href="#name-subscribe-format" class="section-name selfRef">SUBSCRIBE Format</a>
           </h4>
-<p id="section-6.4.2-1">A receiver issues a SUBSCRIBE to a publisher to request a track.<a href="#section-6.4.2-1" class="pilcrow">¶</a></p>
+<p id="section-6.4.2-1">A subscriber issues a SUBSCRIBE to a publisher to request a track.<a href="#section-6.4.2-1" class="pilcrow">¶</a></p>
 <p id="section-6.4.2-2">The format of SUBSCRIBE is as follows:<a href="#section-6.4.2-2" class="pilcrow">¶</a></p>
 <span id="name-moqt-subscribe-message"></span><div id="moq-transport-subscribe-format">
 <figure id="figure-5">
@@ -2732,7 +2757,7 @@ objects from outside the requested start and end.<a href="#section-6.4.2-6" clas
         <h3 id="name-subscribe_update">
 <a href="#section-6.5" class="section-number selfRef">6.5. </a><a href="#name-subscribe_update" class="section-name selfRef">SUBSCRIBE_UPDATE</a>
         </h3>
-<p id="section-6.5-1">A receiver issues a SUBSCRIBE_UPDATE to a publisher to request a change to
+<p id="section-6.5-1">A subscriber issues a SUBSCRIBE_UPDATE to a publisher to request a change to
 a prior subscription.  Subscriptions can only become more narrower, not wider,
 because an attempt to widen a subscription could fail.  If Objects before the
 start or after the end of the current subscription are needed, a separate
@@ -2974,16 +2999,16 @@ group.<a href="#section-6.11.1-2.3.1" class="pilcrow">¶</a></p>
 <a href="#send-order" class="auto internal xref">Section 4.1.1</a> or priority <a href="#ordering-by-priorities" class="auto internal xref">Section 4.1.2</a> value.<a href="#section-6.11.1-2.4.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-6.11.1-2.5">
-              <p id="section-6.11.1-2.5.1">Object Forwarding Preference: An enumeration indicating how a sender sends an
-object. The preferences are Track, Group, Object and Datagram.  An Object <span class="bcp14">MUST</span>
-be sent according to its <code>Object Forwarding Preference</code>, described below.<a href="#section-6.11.1-2.5.1" class="pilcrow">¶</a></p>
+              <p id="section-6.11.1-2.5.1">Object Forwarding Preference: An enumeration indicating how a publisher sends
+an object. The preferences are Track, Group, Object and Datagram.  An Object
+<span class="bcp14">MUST</span> be sent according to its <code>Object Forwarding Preference</code>, described below.<a href="#section-6.11.1-2.5.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-6.11.1-2.6">
               <p id="section-6.11.1-2.6.1">Object Status: As enumeration used to indicate missing
 objects or mark the end of a group or track. See <a href="#object-status" class="auto internal xref">Section 6.11.1.1</a> below.<a href="#section-6.11.1-2.6.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-6.11.1-2.7">
-              <p id="section-6.11.1-2.7.1">Object Payload: An opaque payload intended for the consumer and <span class="bcp14">SHOULD NOT</span> be processed by a relay. Only present when 'Object Status' is Normal (0x0).<a href="#section-6.11.1-2.7.1" class="pilcrow">¶</a></p>
+              <p id="section-6.11.1-2.7.1">Object Payload: An opaque payload intended for an End Subscriber and <span class="bcp14">SHOULD NOT</span> be processed by a relay. Only present when 'Object Status' is Normal (0x0).<a href="#section-6.11.1-2.7.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
 <div id="object-status">
@@ -3043,8 +3068,8 @@ group is being sent on.<a href="#section-6.11.1.1-6" class="pilcrow">¶</a></p>
           <h4 id="name-object-message-formats">
 <a href="#section-6.11.2" class="section-number selfRef">6.11.2. </a><a href="#name-object-message-formats" class="section-name selfRef">Object Message Formats</a>
           </h4>
-<p id="section-6.11.2-1">Every Track has a single 'Object Forwarding Preference' and publishers
-<span class="bcp14">MUST NOT</span> mix different forwarding preferences within a single track.
+<p id="section-6.11.2-1">Every Track has a single 'Object Forwarding Preference' and the Original
+Publisher <span class="bcp14">MUST NOT</span> mix different forwarding preferences within a single track.
 If a subscriber receives different forwarding preferences for a track, it
 <span class="bcp14">SHOULD</span> close the session with an error of 'Protocol Violation'.<a href="#section-6.11.2-1" class="pilcrow">¶</a></p>
 <p id="section-6.11.2-2"><strong>Object Stream Message</strong><a href="#section-6.11.2-2" class="pilcrow">¶</a></p>
@@ -3086,7 +3111,7 @@ OBJECT_STREAM Message {
           </ul>
 <p id="section-6.11.2-8">If the Track Namespace and Track Name identified by the Track Alias are
 different from those specified in the subscription identified by Subscribe ID,
-the receiver <span class="bcp14">MUST</span> close the session with a Protocol Violation.<a href="#section-6.11.2-8" class="pilcrow">¶</a></p>
+the subscriber <span class="bcp14">MUST</span> close the session with a Protocol Violation.<a href="#section-6.11.2-8" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-6.11.2-9.1">
               <p id="section-6.11.2-9.1.1">Other fields: As described in <a href="#canonical-object-fields" class="auto internal xref">Section 6.11.1</a>.<a href="#section-6.11.2-9.1.1" class="pilcrow">¶</a></p>
@@ -3132,7 +3157,7 @@ OBJECT_DATAGRAM Message {
 header message and is followed by one or more sets of serialized object fields.
 If a stream ends gracefully in the middle of a serialized Object, terminate the
 session with a Protocol Violation.<a href="#section-6.11.3-1" class="pilcrow">¶</a></p>
-<p id="section-6.11.3-2">A sender <span class="bcp14">SHOULD NOT</span> open more than one multi-object stream at a time with the
+<p id="section-6.11.3-2">A publisher <span class="bcp14">SHOULD NOT</span> open more than one multi-object stream at a time with the
 same stream header message type and fields.<a href="#section-6.11.3-2" class="pilcrow">¶</a></p>
 <p id="section-6.11.3-3">TODO: figure out how a relay closes these streams<a href="#section-6.11.3-3" class="pilcrow">¶</a></p>
 <p id="section-6.11.3-4"><strong>Stream Header Track</strong><a href="#section-6.11.3-4" class="pilcrow">¶</a></p>
@@ -3179,7 +3204,7 @@ The Object Status field is only sent if the Object Payload Length is zero.<a hre
             </figcaption></figure>
 </div>
 <p id="section-6.11.3-10"><strong>Stream Header Group</strong><a href="#section-6.11.3-10" class="pilcrow">¶</a></p>
-<p id="section-6.11.3-11">A sender <span class="bcp14">MUST NOT</span> send an Object on a stream if its Group ID is less than a
+<p id="section-6.11.3-11">A publisher <span class="bcp14">MUST NOT</span> send an Object on a stream if its Group ID is less than a
 previously sent Group ID on that stream, or if its Object ID is less than or
 equal to a previously sent Object ID within a given group on that stream.<a href="#section-6.11.3-11" class="pilcrow">¶</a></p>
 <p id="section-6.11.3-12">When a stream begins with <code>STREAM_HEADER_GROUP</code>, all objects on the stream
@@ -3225,7 +3250,7 @@ The Object Status field is only sent if the Object Payload Length is zero.<a hre
 <a href="#name-moqt-group-stream-object-fi" class="selfRef">MOQT Group Stream Object Fields</a>
             </figcaption></figure>
 </div>
-<p id="section-6.11.3-17">A sender <span class="bcp14">MUST NOT</span> send an Object on a stream if its Object ID is less than a
+<p id="section-6.11.3-17">A publisher <span class="bcp14">MUST NOT</span> send an Object on a stream if its Object ID is less than a
 previously sent Object ID within a given group in that stream.<a href="#section-6.11.3-17" class="pilcrow">¶</a></p>
 </section>
 </div>
@@ -3382,7 +3407,7 @@ SUBSCRIBE_ERROR
           <li class="normal" id="section-6.13-3.4">
             <p id="section-6.13-3.4.1">Track Alias: When Error Code is 'Retry Track Alias', the subscriber <span class="bcp14">SHOULD</span> re-issue the
 SUBSCRIBE with this Track Alias instead. If this Track Alias is already in use,
-the receiver <span class="bcp14">MUST</span> close the connection with a Duplicate Track Alias error
+the subscriber <span class="bcp14">MUST</span> close the connection with a Duplicate Track Alias error
 (<a href="#session-termination" class="auto internal xref">Section 3.5</a>).<a href="#section-6.13-3.4.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
@@ -3539,7 +3564,7 @@ value is a malformed message.<a href="#section-6.17-5" class="pilcrow">¶</a></p
 value is a malformed message.<a href="#section-6.17-6" class="pilcrow">¶</a></p>
 <p id="section-6.17-7">0x03: The track has finished, so there is no "live edge." Subsequent fields
 contain the highest Group and object ID known.<a href="#section-6.17-7" class="pilcrow">¶</a></p>
-<p id="section-6.17-8">0x04: The sender is a relay that cannot obtain the current track status from
+<p id="section-6.17-8">0x04: The publisher is a relay that cannot obtain the current track status from
 upstream. Subsequent fields contain the largest group and object ID known.<a href="#section-6.17-8" class="pilcrow">¶</a></p>
 <p id="section-6.17-9">Any other value in the Status Code field is a malformed message.<a href="#section-6.17-9" class="pilcrow">¶</a></p>
 <p id="section-6.17-10">When a relay is subscribed to a track, it can simply return the highest group
@@ -3576,9 +3601,9 @@ anticipated bitrate.<a href="#section-7.1-2" class="pilcrow">¶</a></p>
 <p id="section-7.1-3">Endpoints <span class="bcp14">MAY</span> impose a MAX STREAM count limit which would restrict the
 number of concurrent streams which a MOQT Streaming Format could have in
 flight.<a href="#section-7.1-3" class="pilcrow">¶</a></p>
-<p id="section-7.1-4">The producer prioritizes and transmits streams out of order.  Streams
-might be starved indefinitely during congestion.  The producer and
-consumer <span class="bcp14">MUST</span> cancel a stream, preferably the lowest priority, after
+<p id="section-7.1-4">The publisher prioritizes and transmits streams out of order.  Streams
+might be starved indefinitely during congestion.  The publisher and
+subscriber <span class="bcp14">MUST</span> cancel a stream, preferably the lowest priority, after
 reaching a resource limit.<a href="#section-7.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>

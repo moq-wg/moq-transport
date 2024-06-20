@@ -5,13 +5,13 @@
 MOQ                                                            L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 3 December 2024                                            Meta
+Expires: 22 December 2024                                           Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                             1 June 2024
+                                                            20 June 2024
 
 
                        Media over QUIC Transport
@@ -53,7 +53,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 3 December 2024.
+   This Internet-Draft will expire on 22 December 2024.
 
 Copyright Notice
 
@@ -244,9 +244,22 @@ Table of Contents
 
    Endpoint:  A Client or Server.
 
-   Producer:  An endpoint sending media over the network.
+   Publisher:  An endpoint that handles subscriptions by sending
+      requested Objects from the requested track.
 
-   Consumer:  An endpoint receiving media over the network.
+   Subscriber:  An endpoint that subscribes to and receives tracks.
+
+   Original Publisher:  The initial publisher of a given track.
+
+   End Subscriber:  A subscriber that initiates a subscription and does
+      not send the data on to other subscribers.
+
+   Relay:  An entitly that is both a Publisher and a Subscriber, but not
+      the Original Publisher or End Subscriber.
+
+   Upstream:  In the direction of the Original Publisher
+
+   Downstream:  In the direction of the End Subscriber(s)
 
    Transport session:  A raw QUIC connection or a WebTransport session.
 
@@ -322,10 +335,11 @@ Table of Contents
    Objects are comprised of two parts: metadata and a payload.  The
    metadata is never encrypted and is always visible to relays.  The
    payload portion may be encrypted, in which case it is only visible to
-   the producer and consumer.  The application is solely responsible for
-   the content of the object payload.  This includes the underlying
-   encoding, compression, any end-to-end encryption, or authentication.
-   A relay MUST NOT combine, split, or otherwise modify object payloads.
+   the Original Publisher and End Subscribers.  The application is
+   solely responsible for the content of the object payload.  This
+   includes the underlying encoding, compression, any end-to-end
+   encryption, or authentication.  A relay MUST NOT combine, split, or
+   otherwise modify object payloads.
 
 2.2.  Groups
 
@@ -333,16 +347,16 @@ Table of Contents
    (Section 2.3).  Objects within a group SHOULD NOT depend on objects
    in other groups.  A group behaves as a join point for subscriptions.
    A new subscriber might not want to receive the entire track, and may
-   instead opt to receive only the latest group(s).  The sender then
+   instead opt to receive only the latest group(s).  The publisher then
    selectively transmits objects based on their group membership.
 
 2.3.  Track
 
    A track is a sequence of groups (Section 2.2).  It is the entity
-   against which a consumer issues a subscription request.  A subscriber
-   can request to receive individual tracks starting at a group
-   boundary, including any new objects pushed by the producer while the
-   track is active.
+   against which a subscriber issues a subscription request.  A
+   subscriber can request to receive individual tracks starting at a
+   group boundary, including any new objects pushed by the publisher
+   while the track is active.
 
 2.3.1.  Track Naming and Scopes
 
@@ -484,9 +498,9 @@ Table of Contents
 3.4.  Stream Cancellation
 
    Streams aside from the control stream MAY be canceled due to
-   congestion or other reasons by either the sender or receiver.  Early
-   termination of a stream does not affect the MoQ application state,
-   and therefore has no effect on outstanding subscriptions.
+   congestion or other reasons by either the publisher or subscriber.
+   Early termination of a stream does not affect the MoQ application
+   state, and therefore has no effect on outstanding subscriptions.
 
 3.5.  Termination
 
@@ -623,11 +637,11 @@ Table of Contents
    object are still delivered in order; this send order only applies to
    the ordering between objects.
 
-   A sender MUST send each object over a dedicated stream.  The library
-   should support prioritization (Section 4) such that streams are
-   transmitted in send order.
+   A publisher MUST send each object over a dedicated stream.  The
+   library should support prioritization (Section 4) such that streams
+   are transmitted in send order.
 
-   A receiver MUST NOT assume that objects will be received in send
+   A subscriber MUST NOT assume that objects will be received in send
    order, for the following reasons:
 
    *  Newly encoded objects can have a smaller send order than
@@ -636,7 +650,7 @@ Table of Contents
    *  Packet loss or flow control can delay the send of individual
       streams.
 
-   *  The sender might not support stream prioritization.
+   *  The publisher might not support stream prioritization.
 
    TODO: Refer to Congestion Response and Prioritization Section for
    further details on various proposals.
@@ -813,7 +827,7 @@ Table of Contents
    combine, split, or otherwise modify object payloads.  A relay SHOULD
    prioritize streams (Section 4) based on the send order/priority.
 
-   A sender SHOULD begin sending incomplete objects when available to
+   A publisher SHOULD begin sending incomplete objects when available to
    avoid incurring additional latency.
 
    A relay that reads from a stream and writes to stream in order will
@@ -1079,7 +1093,7 @@ Table of Contents
 
 6.4.2.  SUBSCRIBE Format
 
-   A receiver issues a SUBSCRIBE to a publisher to request a track.
+   A subscriber issues a SUBSCRIBE to a publisher to request a track.
 
    The format of SUBSCRIBE is as follows:
 
@@ -1151,7 +1165,7 @@ Table of Contents
 
 6.5.  SUBSCRIBE_UPDATE
 
-   A receiver issues a SUBSCRIBE_UPDATE to a publisher to request a
+   A subscriber issues a SUBSCRIBE_UPDATE to a publisher to request a
    change to a prior subscription.  Subscriptions can only become more
    narrower, not wider, because an attempt to widen a subscription could
    fail.  If Objects before the start or after the end of the current
@@ -1309,15 +1323,15 @@ Table of Contents
       Section 4.1.1 or priority Section 4.1.2 value.
 
    *  Object Forwarding Preference: An enumeration indicating how a
-      sender sends an object.  The preferences are Track, Group, Object
-      and Datagram.  An Object MUST be sent according to its Object
-      Forwarding Preference, described below.
+      publisher sends an object.  The preferences are Track, Group,
+      Object and Datagram.  An Object MUST be sent according to its
+      Object Forwarding Preference, described below.
 
    *  Object Status: As enumeration used to indicate missing objects or
       mark the end of a group or track.  See Section 6.11.1.1 below.
 
-   *  Object Payload: An opaque payload intended for the consumer and
-      SHOULD NOT be processed by a relay.  Only present when 'Object
+   *  Object Payload: An opaque payload intended for an End Subscriber
+      and SHOULD NOT be processed by a relay.  Only present when 'Object
       Status' is Normal (0x0).
 
 6.11.1.1.  Object Status
@@ -1366,9 +1380,9 @@ Table of Contents
 
 6.11.2.  Object Message Formats
 
-   Every Track has a single 'Object Forwarding Preference' and
-   publishers MUST NOT mix different forwarding preferences within a
-   single track.  If a subscriber receives different forwarding
+   Every Track has a single 'Object Forwarding Preference' and the
+   Original Publisher MUST NOT mix different forwarding preferences
+   within a single track.  If a subscriber receives different forwarding
    preferences for a track, it SHOULD close the session with an error of
    'Protocol Violation'.
 
@@ -1404,7 +1418,7 @@ Table of Contents
 
    If the Track Namespace and Track Name identified by the Track Alias
    are different from those specified in the subscription identified by
-   Subscribe ID, the receiver MUST close the session with a Protocol
+   Subscribe ID, the subscriber MUST close the session with a Protocol
    Violation.
 
    *  Other fields: As described in Section 6.11.1.
@@ -1442,8 +1456,8 @@ Table of Contents
    of a serialized Object, terminate the session with a Protocol
    Violation.
 
-   A sender SHOULD NOT open more than one multi-object stream at a time
-   with the same stream header message type and fields.
+   A publisher SHOULD NOT open more than one multi-object stream at a
+   time with the same stream header message type and fields.
 
    TODO: figure out how a relay closes these streams
 
@@ -1483,10 +1497,10 @@ Table of Contents
 
    *Stream Header Group*
 
-   A sender MUST NOT send an Object on a stream if its Group ID is less
-   than a previously sent Group ID on that stream, or if its Object ID
-   is less than or equal to a previously sent Object ID within a given
-   group on that stream.
+   A publisher MUST NOT send an Object on a stream if its Group ID is
+   less than a previously sent Group ID on that stream, or if its Object
+   ID is less than or equal to a previously sent Object ID within a
+   given group on that stream.
 
    When a stream begins with STREAM_HEADER_GROUP, all objects on the
    stream belong to the track requested in the Subscribe message
@@ -1521,8 +1535,9 @@ Table of Contents
 
                  Figure 17: MOQT Group Stream Object Fields
 
-   A sender MUST NOT send an Object on a stream if its Object ID is less
-   than a previously sent Object ID within a given group in that stream.
+   A publisher MUST NOT send an Object on a stream if its Object ID is
+   less than a previously sent Object ID within a given group in that
+   stream.
 
 6.11.4.  Examples:
 
@@ -1636,8 +1651,8 @@ Table of Contents
 
    *  Track Alias: When Error Code is 'Retry Track Alias', the
       subscriber SHOULD re-issue the SUBSCRIBE with this Track Alias
-      instead.  If this Track Alias is already in use, the receiver MUST
-      close the connection with a Duplicate Track Alias error
+      instead.  If this Track Alias is already in use, the subscriber
+      MUST close the connection with a Duplicate Track Alias error
       (Section 3.5).
 
 6.14.  SUBSCRIBE_DONE
@@ -1742,7 +1757,7 @@ Table of Contents
    0x03: The track has finished, so there is no "live edge."  Subsequent
    fields contain the highest Group and object ID known.
 
-   0x04: The sender is a relay that cannot obtain the current track
+   0x04: The publisher is a relay that cannot obtain the current track
    status from upstream.  Subsequent fields contain the largest group
    and object ID known.
 
@@ -1781,10 +1796,10 @@ Table of Contents
    the number of concurrent streams which a MOQT Streaming Format could
    have in flight.
 
-   The producer prioritizes and transmits streams out of order.  Streams
-   might be starved indefinitely during congestion.  The producer and
-   consumer MUST cancel a stream, preferably the lowest priority, after
-   reaching a resource limit.
+   The publisher prioritizes and transmits streams out of order.
+   Streams might be starved indefinitely during congestion.  The
+   publisher and subscriber MUST cancel a stream, preferably the lowest
+   priority, after reaching a resource limit.
 
 8.  IANA Considerations
 
