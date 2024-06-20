@@ -185,7 +185,7 @@ Original Publisher:
 
 End Subscriber:
 
-: A subscriber that independently initiates a subscription.
+: A subscriber that initiates a subscription and does not send the data on to other subscribers.
 
 Relay:
 
