@@ -825,7 +825,7 @@ ASCII string.
 The SUBSCRIBER_PRIORITY parameter (key 0x03) allows a subscriber to specify the
 priority of a subscription relative to other subscriptions in the same session.
 Lower numbers get higher priority and values range from 0 to 255 inclusive.
-More details on priorities are documented in {{}}
+More details on priorities are documented in {{priorities}}
 
 ## CLIENT_SETUP and SERVER_SETUP {#message-setup}
 
