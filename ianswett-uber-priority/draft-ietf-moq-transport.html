@@ -1235,6 +1235,11 @@ networks and is designed for high scale and low latency distribution.<a href="#s
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4">
             <p id="section-toc.1-1.4.1"><a href="#section-4" class="auto internal xref">4</a>.  <a href="#name-priorities" class="internal xref">Priorities</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.1">
+                <p id="section-toc.1-1.4.2.1.1"><a href="#section-4.1" class="auto internal xref">4.1</a>.  <a href="#name-priority-algorithm" class="internal xref">Priority Algorithm</a></p>
+</li>
+            </ul>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5">
             <p id="section-toc.1-1.5.1"><a href="#section-5" class="auto internal xref">5</a>.  <a href="#name-relays-2" class="internal xref">Relays</a></p>
@@ -1986,21 +1991,28 @@ in every stream header.  As such, the subscriber's priority is a property
 of the subscription and the original publisher's priority is a property
 of the Track and the Objects it contains. In both cases, a lower value
 indicates a higher priority, with 0 being the highest priority.<a href="#section-4-2" class="pilcrow">¶</a></p>
-<p id="section-4-3">The publisher <span class="bcp14">SHOULD</span> respect the subscriber and original publisher's
-priorities.<a href="#section-4-3" class="pilcrow">¶</a></p>
-<p id="section-4-4">In addition, SUBSCRIBE specifies a Delivery Order of either
+<p id="section-4-3">When specified, the SUBSCRIBER_PRIORITY is considered first in selecting
+a subscription to send data on within a given session.  The effective
+original subscriber priority is that of the highest priority data
+currently available to send for that subscription.  For example, if
+the subscription had some data at priority 6 and other data at priority
+10, then the subscription priority would be 6.<a href="#section-4-3" class="pilcrow">¶</a></p>
+<p id="section-4-4">The subscriber's priority can be changed via a SUBSCRIBE_UPDATE message.<a href="#section-4-4" class="pilcrow">¶</a></p>
+<p id="section-4-5">The publisher <span class="bcp14">SHOULD</span> respect the subscriber and original publisher's
+priorities.<a href="#section-4-5" class="pilcrow">¶</a></p>
+<p id="section-4-6">In addition, SUBSCRIBE specifies a Delivery Order of either
 'Ascending' or 'Descending', which indicates whether the lowest or
 highest Group Id <span class="bcp14">SHOULD</span> be delivered first when multiple Groups are
-available to send.<a href="#section-4-4" class="pilcrow">¶</a></p>
-<p id="section-4-5">Within the same group, and the same priority level,
+available to send.<a href="#section-4-6" class="pilcrow">¶</a></p>
+<p id="section-4-7">Within the same group, and the same priority level,
 objects with a lower Object Id are always sent before objects with a
-higher Object Id, regardless of the specified Delivery Order.<a href="#section-4-5" class="pilcrow">¶</a></p>
-<p id="section-4-6">Relays <span class="bcp14">SHOULD NOT</span> directly use SUBSCRIBER_PRIORITY or Delivery Order
+higher Object Id, regardless of the specified Delivery Order.<a href="#section-4-7" class="pilcrow">¶</a></p>
+<p id="section-4-8">Relays <span class="bcp14">SHOULD NOT</span> directly use SUBSCRIBER_PRIORITY or Delivery Order
 from incoming subscriptions for upstream subscriptions. Relays use of
 SUBSCRIBER_PRIORITY for upstream subscriptions is based on
 a number of factors specific to it, such as the populatity of the
-content or policy.<a href="#section-4-6" class="pilcrow">¶</a></p>
-<p id="section-4-7">MoQ Sessions can span multiple namespaces, but priorities are treated
+content or policy.<a href="#section-4-8" class="pilcrow">¶</a></p>
+<p id="section-4-9">MoQ Sessions can span multiple namespaces, and priorities are treated
 equally, regardless of the namespace.  The subscriber's priority is
 considered first, so there is no incentive for the original publisher
 to attempt to prioritize all of its Tracks higher than another
@@ -2008,7 +2020,14 @@ namespace.  Additionally, it is anticipated that when multiple namespaces
 are present within a session, the namespaces could be coordinating,
 possibly part of the same application.  In cases when pooling among
 namespaces is expected to cause issues, multiple MoQ sessions, either
-within a single connection or on multiple connections can be used.<a href="#section-4-7" class="pilcrow">¶</a></p>
+within a single connection or on multiple connections can be used.<a href="#section-4-9" class="pilcrow">¶</a></p>
+<div id="priority-algorithm">
+<section id="section-4.1">
+        <h3 id="name-priority-algorithm">
+<a href="#section-4.1" class="section-number selfRef">4.1. </a><a href="#name-priority-algorithm" class="section-name selfRef">Priority Algorithm</a>
+      </h3>
+</section>
+</div>
 </section>
 </div>
 <div id="relays-moq">
