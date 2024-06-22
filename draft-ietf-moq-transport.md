@@ -549,7 +549,7 @@ indicates a higher priority, with 0 being the highest priority.
 The publisher SHOULD respect the subscriber and original publisher's
 priorities.
 
-In addition, the SUBSCRIBE specifies a Delivery Order of either
+In addition, SUBSCRIBE specifies a Delivery Order of either
 'Ascending' or 'Descending', which indicates whether the lowest or
 highest Group Id SHOULD be delivered first when multiple Groups are
 available to send.
