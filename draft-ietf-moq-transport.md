@@ -85,8 +85,7 @@ discovery and subscription.
 
 * {{session}} covers aspects of setting up a MOQT session.
 
-* {{priority-congestion}} covers protocol considerations on
-  prioritization schemes and congestion response overall.
+* {{priority}} covers mechanisms for prioritizing subscriptions.
 
 * {{relays-moq}} covers behavior at the relay entities.
 
@@ -681,12 +680,6 @@ fields, such as priority order and other metadata properties in the
 OBJECT message header. Unless determined by congestion response, Relays
 MUST forward the OBJECT message to the matching subscribers.
 
-## Congestion Response at Relays
-
-TODO: Refer to {{priority-congestion}}. Add details to describe relay
-behavior when merging or splitting streams and interactions with
-congestion response.
-
 ## Relay Object Handling
 
 MOQT encodes the delivery information for a stream via OBJECT headers
@@ -695,8 +688,7 @@ forwarding.
 
 A relay MUST treat the object payload as opaque.  A relay MUST NOT
 combine, split, or otherwise modify object payloads.  A relay SHOULD
-prioritize streams ({{priority-congestion}}) based on the send
-order/priority.
+prioritize sending Objects based on {{priorities}}.
 
 A publisher SHOULD begin sending incomplete objects when available to
 avoid incurring additional latency.
