@@ -583,24 +583,24 @@ Table of Contents
    the transmission order of Objects within a session in the presence of
    congestion.
 
-   The subscriber can indicate the priority of a subscription via the
-   SUBSCRIBER_PRIORITY param and the original publisher indicates
+   The subscriber indicates the priority of a subscription via the
+   Subscriber Priority field and the original publisher indicates
    priority in every stream header.  As such, the subscriber's priority
    is a property of the subscription and the original publisher's
    priority is a property of the Track and the Objects it contains.  In
    both cases, a lower value indicates a higher priority, with 0 being
    the highest priority.
 
-   When specified, the SUBSCRIBER_PRIORITY is considered first in
-   selecting a subscription to send data on within a given session.  The
-   original subscriber priority can change within the track, so
-   subscription is prioritized based on the highest priority data
-   currently available to send.  For example, if the subscription had
-   some data at priority 6 and other data at priority 10, then the
-   subscription priority would be 6.  When both the subscriber and
-   original publisher priorities for a subscription are equal, send
-   order is implmentation-depdendent, but the expectation is that all
-   subscriptions will be able to send at least some data.
+   The Subscriber Priority is considered first when selecting a
+   subscription to send data on within a given session.  The original
+   subscriber priority can change within the track, so subscription is
+   prioritized based on the highest priority data currently available to
+   send.  For example, if the subscription had some data at priority 6
+   and other data at priority 10, then the subscription priority would
+   be 6.  When both the subscriber and original publisher priorities for
+   a subscription are equal, send order is implmentation-depdendent, but
+   the expectation is that all subscriptions will be able to send at
+   least some data.
 
    The subscriber's priority can be changed via a SUBSCRIBE_UPDATE
    message.
@@ -617,9 +617,9 @@ Table of Contents
    lower Object Id are always sent before objects with a higher Object
    Id, regardless of the specified Delivery Order.
 
-   Relays SHOULD NOT directly use SUBSCRIBER_PRIORITY or Delivery Order
+   Relays SHOULD NOT directly use Subscriber Priority or Delivery Order
    from incoming subscriptions for upstream subscriptions.  Relays use
-   of SUBSCRIBER_PRIORITY for upstream subscriptions is based on a
+   of Subscriber Priority for upstream subscriptions is based on a
    number of factors specific to it, such as the populatity of the
    content or policy.
 
@@ -899,14 +899,6 @@ Table of Contents
    parameter is populated for cases where the authorization is required
    at the track level.  The value is an ASCII string.
 
-6.1.1.2.  SUBSCRIBER_PRIORITY Parameter
-
-   The SUBSCRIBER_PRIORITY parameter (key 0x03) allows a subscriber to
-   specify the priority of a subscription relative to other
-   subscriptions in the same session.  Lower numbers get higher priority
-   and values range from 0 to 255 inclusive.  More details on priorities
-   are documented in Section 4
-
 6.2.  CLIENT_SETUP and SERVER_SETUP
 
    The CLIENT_SETUP and SERVER_SETUP messages are the first messages
@@ -1056,6 +1048,7 @@ Table of Contents
      Track Alias (i),
      Track Namespace (b),
      Track Name (b),
+     Priority (8),
      Delivery Order (8),
      Filter Type (i),
      [StartGroup (i),
@@ -1088,6 +1081,11 @@ Table of Contents
 
    *  Track Name: Identifies the track name as defined in
       (Section 2.3.1).
+
+   *  Subscriber Priority: Specifies the priority of a subscription
+      relative to other subscriptions in the same session.  Lower
+      numbers get higher priority.  More details on priorities are
+      documented in Section 4.
 
    *  Delivery Order: Requests Objects for the subscription be
       delievered in Ascending (0x0) or Descending (0x1) order.  See
