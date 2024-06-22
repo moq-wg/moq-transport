@@ -85,7 +85,7 @@ discovery and subscription.
 
 * {{session}} covers aspects of setting up a MOQT session.
 
-* {{priority}} covers mechanisms for prioritizing subscriptions.
+* {{priorities}} covers mechanisms for prioritizing subscriptions.
 
 * {{relays-moq}} covers behavior at the relay entities.
 
