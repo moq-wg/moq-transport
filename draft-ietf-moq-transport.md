@@ -1697,7 +1697,6 @@ TRACK_STATUS Message {
   Status Code (i),
   Last Group ID (i),
   Last Object ID (i),
-  
 }
 ~~~
 {: #moq-track-status-format title="MOQT TRACK_STATUS Message"}
