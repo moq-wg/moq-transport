@@ -546,6 +546,15 @@ of the subscription and the original publisher's priority is a property
 of the Track and the Objects it contains. In both cases, a lower value
 indicates a higher priority, with 0 being the highest priority.
 
+When specified, the SUBSCRIBER_PRIORITY is considered first in selecting
+a subscription to send data on within a given session.  The effective
+original subscriber priority is that of the highest priority data
+currently available to send for that subscription.  For example, if
+the subscription had some data at priority 6 and other data at priority
+10, then the subscription priority would be 6.
+
+The subscriber's priority can be changed via a SUBSCRIBE_UPDATE message.
+
 The publisher SHOULD respect the subscriber and original publisher's
 priorities.
 
@@ -564,7 +573,7 @@ SUBSCRIBER_PRIORITY for upstream subscriptions is based on
 a number of factors specific to it, such as the populatity of the
 content or policy.
 
-MoQ Sessions can span multiple namespaces, but priorities are treated
+MoQ Sessions can span multiple namespaces, and priorities are treated
 equally, regardless of the namespace.  The subscriber's priority is
 considered first, so there is no incentive for the original publisher
 to attempt to prioritize all of its Tracks higher than another
@@ -573,6 +582,10 @@ are present within a session, the namespaces could be coordinating,
 possibly part of the same application.  In cases when pooling among
 namespaces is expected to cause issues, multiple MoQ sessions, either
 within a single connection or on multiple connections can be used.
+
+## Priority Algorithm
+
+
 
 # Relays {#relays-moq}
 
