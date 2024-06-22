@@ -541,10 +541,13 @@ congestion.
 
 The subscriber can indicate the priority of a subscription via the
 SUBSCRIBER_PRIORITY param and the original publisher indicates priority
-in every stream header.  In both cases, a lower value indicates a
-higher priority, with 0 being the highest priority.
+in every stream header.  As such, the subscriber's priority is a property
+of the subscription and the original publisher's priority is a property
+of the Track and the Objects it contains. In both cases, a lower value
+indicates a higher priority, with 0 being the highest priority.
 
-The publisher SHOULD respect the subscriber and publisher's priorities.
+The publisher SHOULD respect the subscriber and original publisher's
+priorities.
 
 In addition, the SUBSCRIBE specifies a Delivery Order of either
 'Ascending' or 'Descending', which indicates whether the lowest or
