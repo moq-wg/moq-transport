@@ -1580,6 +1580,8 @@ present, the relay MUST NOT start forwarding any individual Object received
 through this subscription after the specified number of milliseconds has elapsed
 since the beginning of the Object was received.  This means Objects earlier
 in a multi-object stream will expire earlier than Objects later in the stream.
+Once Objects have expired, their state becomes unknown, and a relay that
+handles a subscription that includes those Objects re-requests them.
 
 ## SUBSCRIBE_ERROR {#message-subscribe-error}
 
@@ -1695,6 +1697,7 @@ TRACK_STATUS Message {
   Status Code (i),
   Last Group ID (i),
   Last Object ID (i),
+  
 }
 ~~~
 {: #moq-track-status-format title="MOQT TRACK_STATUS Message"}
