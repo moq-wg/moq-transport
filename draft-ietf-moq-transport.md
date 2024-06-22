@@ -539,14 +539,14 @@ MoQ priorities allow a subscriber and original publisher to influence
 the transmission order of Objects within a session in the presence of
 congestion.
 
-The subscriber can indicate the priority of a subscription via the
-SUBSCRIBER_PRIORITY param and the original publisher indicates priority
+The subscriber indicates the priority of a subscription via the
+Subscriber Priority field and the original publisher indicates priority
 in every stream header.  As such, the subscriber's priority is a property
 of the subscription and the original publisher's priority is a property
 of the Track and the Objects it contains. In both cases, a lower value
 indicates a higher priority, with 0 being the highest priority.
 
-When specified, the SUBSCRIBER_PRIORITY is considered first in selecting
+The Subscriber Priority is considered first when selecting
 a subscription to send data on within a given session.  The original
 subscriber priority can change within the track, so subscription is
 prioritized based on the highest priority data currently available to send.
@@ -570,9 +570,9 @@ Within the same group, and the same priority level,
 objects with a lower Object Id are always sent before objects with a
 higher Object Id, regardless of the specified Delivery Order.
 
-Relays SHOULD NOT directly use SUBSCRIBER_PRIORITY or Delivery Order
+Relays SHOULD NOT directly use Subscriber Priority or Delivery Order
 from incoming subscriptions for upstream subscriptions. Relays use of
-SUBSCRIBER_PRIORITY for upstream subscriptions is based on
+Subscriber Priority for upstream subscriptions is based on
 a number of factors specific to it, such as the populatity of the
 content or policy.
 
@@ -842,13 +842,6 @@ information in a SUBSCRIBE or ANNOUNCE message. This parameter is populated for
 cases where the authorization is required at the track level. The value is an
 ASCII string.
 
-#### SUBSCRIBER_PRIORITY Parameter
-
-The SUBSCRIBER_PRIORITY parameter (key 0x03) allows a subscriber to specify the
-priority of a subscription relative to other subscriptions in the same session.
-Lower numbers get higher priority and values range from 0 to 255 inclusive.
-More details on priorities are documented in {{priorities}}
-
 ## CLIENT_SETUP and SERVER_SETUP {#message-setup}
 
 The `CLIENT_SETUP` and `SERVER_SETUP` messages are the first messages exchanged
@@ -1003,6 +996,7 @@ SUBSCRIBE Message {
   Track Alias (i),
   Track Namespace (b),
   Track Name (b),
+  Priority (8),
   Delivery Order (8),
   Filter Type (i),
   [StartGroup (i),
@@ -1032,6 +1026,10 @@ close the session with a Duplicate Track Alias error ({{session-termination}}).
 ({{track-name}}).
 
 * Track Name: Identifies the track name as defined in ({{track-name}}).
+
+* Subscriber Priority: Specifies the priority of a subscription relative to
+other subscriptions in the same session. Lower numbers get higher priority.
+More details on priorities are documented in {{priorities}}.
 
 * Delivery Order: Requests Objects for the subscription be delievered in
 Ascending (0x0) or Descending (0x1) order. See {{priorities}}.
