@@ -547,11 +547,11 @@ of the Track and the Objects it contains. In both cases, a lower value
 indicates a higher priority, with 0 being the highest priority.
 
 When specified, the SUBSCRIBER_PRIORITY is considered first in selecting
-a subscription to send data on within a given session.  The effective
-original subscriber priority is that of the highest priority data
-currently available to send for that subscription.  For example, if
-the subscription had some data at priority 6 and other data at priority
-10, then the subscription priority would be 6.
+a subscription to send data on within a given session.  The original
+subscriber priority can change within the track, so subscription is
+prioritized based on the highest priority data currently available to send.
+For example, if the subscription had some data at priority 6 and other data
+at priority 10, then the subscription priority would be 6.
 
 The subscriber's priority can be changed via a SUBSCRIBE_UPDATE message.
 
