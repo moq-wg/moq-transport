@@ -556,13 +556,23 @@ available to send.
 
 Within the same group, and the same priority level,
 objects with a lower Object Id are always sent before objects with a
-higher Object Id, regardless of the specified delivery_order.
+higher Object Id, regardless of the specified Delivery Order.
 
 Relays SHOULD NOT directly use SUBSCRIBER_PRIORITY or Delivery Order
 from incoming subscriptions for upstream subscriptions. Relays use of
 SUBSCRIBER_PRIORITY for upstream subscriptions is based on
 a number of factors specific to it, such as the populatity of the
 content or policy.
+
+MoQ Sessions can span multiple namespaces, but priorities are treated
+equally, regardless of the namespace.  The subscriber's priority is
+considered first, so there is no incentive for the original publisher
+to attempt to prioritize all of its Tracks higher than another
+namespace.  Additionally, it is anticipated that when multiple namespaces
+are present within a session, the namespaces could be coordinating,
+possibly part of the same application.  In cases when pooling among
+namespaces is expected to cause issues, multiple MoQ sessions, either
+within a single connection or on multiple connections can be used.
 
 # Relays {#relays-moq}
 
