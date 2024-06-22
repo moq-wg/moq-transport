@@ -541,7 +541,8 @@ congestion.
 
 The subscriber can indicate the priority of a subscription via the
 SUBSCRIBER_PRIORITY param and the original publisher indicates priority
-in every stream header.
+in every stream header.  In both cases, a lower value indicates a
+higher priority, with 0 being the highest priority.
 
 The publisher SHOULD respect the subscriber and publisher's priorities.
 
