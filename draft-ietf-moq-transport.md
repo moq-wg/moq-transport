@@ -551,7 +551,10 @@ a subscription to send data on within a given session.  The original
 subscriber priority can change within the track, so subscription is
 prioritized based on the highest priority data currently available to send.
 For example, if the subscription had some data at priority 6 and other data
-at priority 10, then the subscription priority would be 6.
+at priority 10, then the subscription priority would be 6.  When both
+the subscriber and original publisher priorities for a subscription are
+equal, send order is implmentation-depdendent, but the expectation
+is that all subscriptions will be able to send at least some data.
 
 The subscriber's priority can be changed via a SUBSCRIBE_UPDATE message.
 
