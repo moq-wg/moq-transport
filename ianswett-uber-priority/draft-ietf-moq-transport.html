@@ -1982,7 +1982,8 @@ the transmission order of Objects within a session in the presence of
 congestion.<a href="#section-4-1" class="pilcrow">¶</a></p>
 <p id="section-4-2">The subscriber can indicate the priority of a subscription via the
 SUBSCRIBER_PRIORITY param and the original publisher indicates priority
-in every stream header.<a href="#section-4-2" class="pilcrow">¶</a></p>
+in every stream header.  In both cases, a lower value indicates a
+higher priority, with 0 being the highest priority.<a href="#section-4-2" class="pilcrow">¶</a></p>
 <p id="section-4-3">The publisher <span class="bcp14">SHOULD</span> respect the subscriber and publisher's priorities.<a href="#section-4-3" class="pilcrow">¶</a></p>
 <p id="section-4-4">In addition, the SUBSCRIBE specifies a Delivery Order of either
 'Ascending' or 'Descending', which indicates whether the lowest or
