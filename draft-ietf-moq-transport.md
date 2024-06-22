@@ -554,7 +554,7 @@ Within the same group, and the same priority level,
 objects with a lower Object Id are always sent before objects with a
 higher Object Id, regardless of the specified delivery_order.
 
-Relays SHOULD NOT directly use SUBSCRIBER_PRIORITY or Delivery Order 
+Relays SHOULD NOT directly use SUBSCRIBER_PRIORITY or Delivery Order
 from incoming subscriptions for upstream subscriptions. Relays use of
 SUBSCRIBER_PRIORITY for upstream subscriptions is based on
 a number of factors specific to it, such as the populatity of the
