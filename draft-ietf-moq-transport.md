@@ -534,32 +534,19 @@ expects more OBJECTs to be delivered. The server closes the session with a
 'GOAWAY Timeout' if the client doesn't close the session quickly enough.
 
 
-# Prioritization and Congestion Response {#priority-congestion}
-
-TODO: This is a placeholder section to capture details on how the MOQT
-protocol deals with prioritization and congestion overall.
-
-This section is expected to cover details on:
-
-- Prioritization Schemes.
-- Congestion Algorithms and impacts.
-- Mapping considerations for one object per stream vs multiple objects
-  per stream.
-- Considerations for merging multiple streams across domains onto single
-  connection and interactions with specific prioritization schemes.
-
-## Priorities {#priorities}
+# Priorities {#priorities}
 
 MoQ priorities allow a subscriber and original publisher to influence
 the transmission order of Objects within a session in the presence of
 congestion.
 
-The subscriber can optionally indicate a priority in a SUBSCRIBE and
-the original publisher indicates a priority within every stream header.
+The subscriber can indicate the priority of a subscription via the
+SUBSCRIBER_PRIORITY param and the original publisher indicates priority
+in every stream header.
 
 The publisher SHOULD respect the subscriber and publisher's priorities.
 
-In addition, the SUBSCRIBE specifies a delivery_order of either
+In addition, the SUBSCRIBE specifies a Delivery Order of either
 'Ascending' or 'Descending', which indicates whether the lowest or
 highest Group Id SHOULD be delivered first when multiple Groups are
 available to send.
@@ -568,6 +555,11 @@ Within the same group, and the same priority level,
 objects with a lower Object Id are always sent before objects with a
 higher Object Id, regardless of the specified delivery_order.
 
+Relays SHOULD NOT directly use SUBSCRIBER_PRIORITY or Delivery Order 
+from incoming subscriptions for upstream subscriptions. Relays use of
+SUBSCRIBER_PRIORITY for upstream subscriptions is based on
+a number of factors specific to it, such as the populatity of the
+content or policy.
 
 # Relays {#relays-moq}
 
@@ -576,6 +568,10 @@ architecture. Relays can be used to form an overlay delivery network,
 similar in functionality to Content Delivery Networks
 (CDNs). Additionally, relays serve as policy enforcement points by
 validating subscribe and publish requests at the edge of a network.
+
+Relays are not required to cache Objects, but relays need to have
+the ability to distribute one upstream subscription to multiple
+downstream subscriptions.
 
 ## Subscriber Interactions
 
