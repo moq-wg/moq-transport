@@ -1219,8 +1219,8 @@ A canonical MoQ Object has the following information:
 IDs starts at 0, increasing sequentially for each object within the
 group.
 
-* Priority: An 8 bit integer indicating the publisher's priority for the Object
-{{priorities}}.
+* Publisher Priority: An 8 bit integer indicating the publisher's priority for
+the Object {{priorities}}.
 
 * Object Forwarding Preference: An enumeration indicating how a publisher sends
 an object. The preferences are Track, Group, Object and Datagram.  An Object
@@ -1301,7 +1301,7 @@ OBJECT_STREAM Message {
   Track Alias (i),
   Group ID (i),
   Object ID (i),
-  Priority (8),
+  Publisher Priority (8),
   Object Status (i),
   Object Payload (..),
 }
@@ -1338,7 +1338,7 @@ OBJECT_DATAGRAM Message {
   Track Alias (i),
   Group ID (i),
   Object ID (i),
-  Priority (8),
+  Publisher Priority (8),
   Object Status (i),
   Object Payload (..),
 }
@@ -1370,7 +1370,7 @@ stream header.
 STREAM_HEADER_TRACK Message {
   Subscribe ID (i)
   Track Alias (i),
-  Priority (8),
+  Publisher Priority (8),
 }
 ~~~
 {: #stream-header-track-format title="MOQT STREAM_HEADER_TRACK Message"}
@@ -1410,7 +1410,7 @@ STREAM_HEADER_GROUP Message {
   Subscribe ID (i),
   Track Alias (i),
   Group ID (i),
-  Priority (8),
+  Publisher Priority (8),
 }
 ~~~
 {: #stream-header-group-format title="MOQT STREAM_HEADER_GROUP Message"}
@@ -1445,7 +1445,7 @@ Sending a track on one stream:
 STREAM_HEADER_TRACK {
   Subscribe ID = 1
   Track Alias = 1
-  Priority = 0
+  Publisher Priority = 0
 }
 {
   Group ID = 0
@@ -1471,7 +1471,7 @@ STREAM_HEADER_GROUP {
   Subscribe ID = 2
   Track Alias = 2
   Group ID = 0
-  Priority = 0
+  Publisher Priority = 0
 }
 {
   Object ID = 0
