@@ -573,7 +573,7 @@ higher Object Id, regardless of the specified Delivery Order.
 Relays SHOULD NOT directly use Subscriber Priority or Delivery Order
 from incoming subscriptions for upstream subscriptions. Relays use of
 Subscriber Priority for upstream subscriptions is based on
-a number of factors specific to it, such as the populatity of the
+a number of factors specific to it, such as the popularity of the
 content or policy.
 
 MoQ Sessions can span multiple namespaces, and priorities are treated
