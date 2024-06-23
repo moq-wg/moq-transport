@@ -5,13 +5,13 @@
 MOQ                                                            L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 24 December 2024                                           Meta
+Expires: 25 December 2024                                           Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                            22 June 2024
+                                                            23 June 2024
 
 
                        Media over QUIC Transport
@@ -53,7 +53,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 24 December 2024.
+   This Internet-Draft will expire on 25 December 2024.
 
 Copyright Notice
 
@@ -1276,8 +1276,8 @@ Table of Contents
       starts at 0, increasing sequentially for each object within the
       group.
 
-   *  Priority: An 8 bit integer indicating the publisher's priority for
-      the Object Section 4.
+   *  Publisher Priority: An 8 bit integer indicating the publisher's
+      priority for the Object Section 4.
 
    *  Object Forwarding Preference: An enumeration indicating how a
       publisher sends an object.  The preferences are Track, Group,
@@ -1361,7 +1361,7 @@ Table of Contents
      Track Alias (i),
      Group ID (i),
      Object ID (i),
-     Priority (8),
+     Publisher Priority (8),
      Object Status (i),
      Object Payload (..),
    }
@@ -1398,7 +1398,7 @@ Table of Contents
      Track Alias (i),
      Group ID (i),
      Object ID (i),
-     Priority (8),
+     Publisher Priority (8),
      Object Status (i),
      Object Payload (..),
    }
@@ -1428,7 +1428,7 @@ Table of Contents
    STREAM_HEADER_TRACK Message {
      Subscribe ID (i)
      Track Alias (i),
-     Priority (8),
+     Publisher Priority (8),
    }
 
                 Figure 14: MOQT STREAM_HEADER_TRACK Message
@@ -1469,7 +1469,7 @@ Table of Contents
      Subscribe ID (i),
      Track Alias (i),
      Group ID (i),
-     Priority (8),
+     Publisher Priority (8),
    }
 
                 Figure 16: MOQT STREAM_HEADER_GROUP Message
@@ -1503,7 +1503,7 @@ Table of Contents
    STREAM_HEADER_TRACK {
      Subscribe ID = 1
      Track Alias = 1
-     Priority = 0
+     Publisher Priority = 0
    }
    {
      Group ID = 0
@@ -1527,7 +1527,7 @@ Table of Contents
      Subscribe ID = 2
      Track Alias = 2
      Group ID = 0
-     Priority = 0
+     Publisher Priority = 0
    }
    {
      Object ID = 0
