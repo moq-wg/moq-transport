@@ -1992,14 +1992,14 @@ of the subscription and the original publisher's priority is a property
 of the Track and the Objects it contains. In both cases, a lower value
 indicates a higher priority, with 0 being the highest priority.<a href="#section-4-2" class="pilcrow">¶</a></p>
 <p id="section-4-3">The Subscriber Priority is considered first when selecting
-a subscription to send data on within a given session.  The original
-subscriber priority can change within the track, so subscription is
-prioritized based on the highest priority data currently available to send.
-For example, if the subscription had some data at priority 6 and other data
-at priority 10, then the subscription priority would be 6.  When both
-the subscriber and original publisher priorities for a subscription are
-equal, send order is implmentation-depdendent, but the expectation
-is that all subscriptions will be able to send at least some data.<a href="#section-4-3" class="pilcrow">¶</a></p>
+a subscription to send data on within a given session. The original
+publisher priority is considered next and can change within the track,
+so subscriptions are prioritized based on the highest priority data
+available to send. For example, if the subscription had data at
+priority 6 and priority 10 to send, the subscription priority would be 6.
+When both the subscriber and original publisher priorities for a
+subscription are equal, send order is implementation-dependent, but the
+expectation is that all subscriptions will be able to send some data.<a href="#section-4-3" class="pilcrow">¶</a></p>
 <p id="section-4-4">The subscriber's priority can be changed via a SUBSCRIBE_UPDATE message.<a href="#section-4-4" class="pilcrow">¶</a></p>
 <p id="section-4-5">The publisher <span class="bcp14">SHOULD</span> respect the subscriber and original publisher's
 priorities.<a href="#section-4-5" class="pilcrow">¶</a></p>
@@ -2583,7 +2583,7 @@ SUBSCRIBE Message {
   Track Alias (i),
   Track Namespace (b),
   Track Name (b),
-  Priority (8),
+  Subscriber Priority (8),
   Delivery Order (8),
   Filter Type (i),
   [StartGroup (i),
@@ -2625,7 +2625,7 @@ close the session with a Duplicate Track Alias error (<a href="#session-terminat
             <li class="normal" id="section-6.4.2-4.5">
               <p id="section-6.4.2-4.5.1">Subscriber Priority: Specifies the priority of a subscription relative to
 other subscriptions in the same session. Lower numbers get higher priority.
-More details on priorities are documented in <a href="#priorities" class="auto internal xref">Section 4</a>.<a href="#section-6.4.2-4.5.1" class="pilcrow">¶</a></p>
+See <a href="#priorities" class="auto internal xref">Section 4</a>.<a href="#section-6.4.2-4.5.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-6.4.2-4.6">
               <p id="section-6.4.2-4.6.1">Delivery Order: Requests Objects for the subscription be delievered in
@@ -2694,6 +2694,7 @@ SUBSCRIBE_UPDATE Message {
   StartObject (i),
   EndGroup (i),
   EndObject (i),
+  Subscriber Priority (8),
   Number of Parameters (i),
   Subscribe Parameters (..) ...
 }
@@ -2723,7 +2724,12 @@ open-ended.<a href="#section-6.5-5.4.1" class="pilcrow">¶</a></p>
 requested.<a href="#section-6.5-5.5.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-6.5-5.6">
-            <p id="section-6.5-5.6.1">Subscribe Parameters: The parameters are defined in <a href="#version-specific-params" class="auto internal xref">Section 6.1.1</a>.<a href="#section-6.5-5.6.1" class="pilcrow">¶</a></p>
+            <p id="section-6.5-5.6.1">Subscriber Priority: Specifies the priority of a subscription relative to
+other subscriptions in the same session. Lower numbers get higher priority.
+See <a href="#priorities" class="auto internal xref">Section 4</a>.<a href="#section-6.5-5.6.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-6.5-5.7">
+            <p id="section-6.5-5.7.1">Subscribe Parameters: The parameters are defined in <a href="#version-specific-params" class="auto internal xref">Section 6.1.1</a>.<a href="#section-6.5-5.7.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
