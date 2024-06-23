@@ -547,14 +547,14 @@ of the Track and the Objects it contains. In both cases, a lower value
 indicates a higher priority, with 0 being the highest priority.
 
 The Subscriber Priority is considered first when selecting
-a subscription to send data on within a given session.  The original
-subscriber priority can change within the track, so subscription is
-prioritized based on the highest priority data currently available to send.
-For example, if the subscription had some data at priority 6 and other data
-at priority 10, then the subscription priority would be 6.  When both
-the subscriber and original publisher priorities for a subscription are
-equal, send order is implmentation-depdendent, but the expectation
-is that all subscriptions will be able to send at least some data.
+a subscription to send data on within a given session. The original
+publisher priority is considered next and can change within the track,
+so subscriptions are prioritized based on the highest priority data
+available to send. For example, if the subscription had data at
+priority 6 and priority 10 to send, the subscription priority would be 6.
+When both the subscriber and original publisher priorities for a
+subscription are equal, send order is implementation-dependent, but the
+expectation is that all subscriptions will be able to send some data.
 
 The subscriber's priority can be changed via a SUBSCRIBE_UPDATE message.
 
@@ -996,7 +996,7 @@ SUBSCRIBE Message {
   Track Alias (i),
   Track Namespace (b),
   Track Name (b),
-  Priority (8),
+  Subscriber Priority (8),
   Delivery Order (8),
   Filter Type (i),
   [StartGroup (i),
@@ -1029,7 +1029,7 @@ close the session with a Duplicate Track Alias error ({{session-termination}}).
 
 * Subscriber Priority: Specifies the priority of a subscription relative to
 other subscriptions in the same session. Lower numbers get higher priority.
-More details on priorities are documented in {{priorities}}.
+See {{priorities}}.
 
 * Delivery Order: Requests Objects for the subscription be delievered in
 Ascending (0x0) or Descending (0x1) order. See {{priorities}}.
@@ -1085,6 +1085,7 @@ SUBSCRIBE_UPDATE Message {
   StartObject (i),
   EndGroup (i),
   EndObject (i),
+  Subscriber Priority (8),
   Number of Parameters (i),
   Subscribe Parameters (..) ...
 }
@@ -1103,6 +1104,10 @@ open-ended.
 
 * EndObject: The end Object ID, plus 1. A value of 0 means the entire group is
 requested.
+
+* Subscriber Priority: Specifies the priority of a subscription relative to
+other subscriptions in the same session. Lower numbers get higher priority.
+See {{priorities}}.
 
 * Subscribe Parameters: The parameters are defined in {{version-specific-params}}.
 
