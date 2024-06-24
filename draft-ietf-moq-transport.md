@@ -1259,6 +1259,22 @@ group.
 an object. The preferences are Track, Group, Object and Datagram.  An Object
 MUST be sent according to its `Object Forwarding Preference`, described below.
 
+* Max Cache Duration: The maximum length of time in milliseconds a caching
+relay MAY cache an Object for.  A value of 0 indicates the relay should decide
+how long to cache the Object. The relay MUST NOT begin sending the Object if it
+has resided in the cache for longer than that time interval. When sending an
+Object, the amount of time the Object spent in cache is deducted from the
+Max Cache Duration value before the Object is sent. Exceeding the duration
+does not cause a change in the 'Object Status'.
+
+The Cache Duration is only expressed in the stream header, so the Object
+Forwarding Preference dictates the granularity of cache duration, because a
+single value applies to all Objects within the stream. For example, if a Group
+has two Objects, and the Object Forwarding Preference is 'Group', then
+only a single Max Cache Duration can be conveyed to a future subscriber,
+even if there was a substantial time gap between receiving the first and
+second Object in the Group.
+
 * Object Status: As enumeration used to indicate missing
 objects or mark the end of a group or track. See {{object-status}} below.
 
@@ -1335,6 +1351,7 @@ OBJECT_STREAM Message {
   Group ID (i),
   Object ID (i),
   Object Send Order (i),
+  Max Cache Duration (i),
   Object Status (i),
   Object Payload (..),
 }
@@ -1372,6 +1389,7 @@ OBJECT_DATAGRAM Message {
   Group ID (i),
   Object ID (i),
   Object Send Order (i),
+  Max Cache Duration (i),
   Object Status (i),
   Object Payload (..),
 }
@@ -1404,6 +1422,7 @@ STREAM_HEADER_TRACK Message {
   Subscribe ID (i)
   Track Alias (i),
   Object Send Order (i),
+  Max Cache Duration (i),
 }
 ~~~
 {: #stream-header-track-format title="MOQT STREAM_HEADER_TRACK Message"}
@@ -1442,8 +1461,9 @@ have the `Object Send Order` specified in the stream header.
 STREAM_HEADER_GROUP Message {
   Subscribe ID (i),
   Track Alias (i),
-  Group ID (i)
-  Object Send Order (i)
+  Group ID (i),
+  Object Send Order (i),
+  Max Cache Duration (i),
 }
 ~~~
 {: #stream-header-group-format title="MOQT STREAM_HEADER_GROUP Message"}
@@ -1479,6 +1499,7 @@ STREAM_HEADER_TRACK {
   Subscribe ID = 1
   Track Alias = 1
   Object Send Order = 0
+  Max Cache Duration = 1000
 }
 {
   Group ID = 0
@@ -1505,6 +1526,7 @@ STREAM_HEADER_GROUP {
   Track Alias = 2
   Group ID = 0
   Object Send Order = 0
+  Max Cache Duration = 1000
 }
 {
   Object ID = 0
@@ -1520,10 +1542,12 @@ STREAM_HEADER_GROUP {
 Stream = 6
 
 OBJECT_STREAM {
-  Subscribe ID = 2
-  Track Alias = 2
+  Subscribe ID = 3
+  Track Alias = 3
   Group ID = 0
   Object ID = 1
+  Object Send Order = 0
+  Max Cache Duration = 1000
   Payload = "moqrocks"
 }
 ~~~
