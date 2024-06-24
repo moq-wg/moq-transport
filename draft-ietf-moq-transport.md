@@ -1032,7 +1032,7 @@ other subscriptions in the same session. Lower numbers get higher priority.
 See {{priorities}}.
 
 * Delivery Order: Requests Objects for the subscription be delievered in
-Ascending (0x0) or Descending (0x1) order. See {{priorities}}.
+Ascending (0x0) or Descending (0x1) order by group. See {{priorities}}.
 Values larger than 0x1 are a protocol error.
 
 * Filter Type: Identifies the type of filter, which also indicates whether
