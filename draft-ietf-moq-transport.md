@@ -539,6 +539,10 @@ MoQ priorities allow a subscriber and original publisher to influence
 the transmission order of Objects within a session in the presence of
 congestion.
 
+Given the critical nature of control messages and their relatively
+small size, the control stream SHOULD be prioritized higher than all
+subscribed Objects.
+
 The subscriber indicates the priority of a subscription via the
 Subscriber Priority field and the original publisher indicates priority
 in every stream header.  As such, the subscriber's priority is a property
