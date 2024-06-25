@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2024-06-23T01:18:50.980257+00:00",
+  "timestamp": "2024-06-25T01:14:35.928495+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -16400,6 +16400,120 @@
       "updatedAt": "2024-06-22T20:12:59Z",
       "closedAt": null,
       "comments": []
+    },
+    {
+      "number": 473,
+      "id": "I_kwDOG2Ho4M6NS8ft",
+      "title": "Should there be size limits for messages and strings?",
+      "url": "https://github.com/moq-wg/moq-transport/issues/473",
+      "state": "OPEN",
+      "author": "huitema",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "The messages defined in MoQ Transport include variable length components:\r\n\r\n* name space,\r\n* track name,\r\n* setup path,\r\n* go away URI,\r\n* authorization info,\r\n* number of supported versions,\r\n* number of setup or subscribe parameters.\r\n\r\nThese components have no specified maximum size, which opens an avenue for DOS attacks: start sending a message with components of arbitrary length, up to 2^62, and watch as the other endpoint allocates memory to hold the message. Application developers are very likely to mitigate the DOS attack by setting some limits, either to the global size of messages or to the size of individual components. We may expect different implementations to pick different limits, with a fairly good potential of causing interoperability issues.\r\n\r\nMaybe we should specify some limits.",
+      "createdAt": "2024-06-24T15:37:25Z",
+      "updatedAt": "2024-06-24T18:40:39Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "TimEvens",
+          "authorAssociation": "NONE",
+          "body": "+1 to having some limits. I think we should have some defaults in the standard and then negotiate those during client/server setup.   ",
+          "createdAt": "2024-06-24T18:19:45Z",
+          "updatedAt": "2024-06-24T18:19:45Z"
+        },
+        {
+          "author": "LPardue",
+          "authorAssociation": "NONE",
+          "body": "Guidance on limits is good.\r\n\r\nHowever, limit negotiation doesn't tend to work well when intermediaries enter the mix. We've seen this in HTTP/2 and HTTP/3 with the max field section size parameter. If a proxy is given something from the origin that exceeds the client's limit, its not really advisable to silently drop it. ",
+          "createdAt": "2024-06-24T18:40:37Z",
+          "updatedAt": "2024-06-24T18:40:37Z"
+        }
+      ]
+    },
+    {
+      "number": 474,
+      "id": "I_kwDOG2Ho4M6NTIC_",
+      "title": "Trial parsing is not the most efficient",
+      "url": "https://github.com/moq-wg/moq-transport/issues/474",
+      "state": "OPEN",
+      "author": "huitema",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "The MoQ transport messages are encoded as a combination of varints, bit strings, and t-l-v objects. In the absence of a \"header length\" field, applications have to resort to trial parsing: accumulate some incoming bytes from the stream, try to parse those bytes as a message, and if that fail accumulate more bytes and retry. This may not be a huge problem in normal operation. The peer endpoint will compose a message and typically send those bytes all at once; the QUIC stack will deliver them all at once, but even so there may be cases where the QUIC stack cannot send them in a single STREAM_DATA messages, so the logic for \"accumulate and try\" has to be present.\r\n\r\nSuppose a peer sending its data one byte at a time, because it is either malicious or buggy. The length of the message cannot be computed before all components are parsed: the first byte of each varint defines its length, the length field of bits or bytes strings need to be parsed in full, then number of parameters or versions needs to be known. To obtain the length of a component, all components before it need to be parsed, which means that the number of trial parsing is typically a function of the number of components -- maybe an O(N2) function since the cost of each trial depends on the number of components before it. That number can be very large for messages including parameters, because the number of parameters cannot be known in advance -- the peer could send an arbitrary number of them in an attempt to \"greasing\". Parsing is a somewhat CPU intensive operation, which implies that trial parsing can be exploited for a mild DOS attack.\r\n\r\nPrepend a length field to messages would mitigate trial parsing, but I am not sure that we need to fix this. Having limits on message size would impose a de-facto limit on the processing cost of each message. A malicious attackers could send series of short messages such as \"subscribe updates\" to trigger the same CPU consumption. In typical QUIC stacks, the main CPU load comes form passing messages through the OS/app boundary in socket calls, and an attacker could DOS the target by sending series of short messages. The next component is the cost of encryption and decryption, compared to which the cost of trial decryption is probably small. We may decide to do nothing, but it would be nice in that case to have a documentation of the reasoning (as in this issue), and maybe a discussion of why the attack does not matter in the security section.\r\n\r\nAddressing the \"limits\" issue (#473) would also somewhat mitigate the problem, as limiting the \"number of parameters\" appears to be the main way to increase the number of components in messages.",
+      "createdAt": "2024-06-24T16:02:12Z",
+      "updatedAt": "2024-06-24T21:05:29Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "body": "MoQ's message encoding is similar to QUIC's, but the difference is that QUIC datagrams have a finite size and are not susceptible to a trickle attack.\r\n\r\nI've implemented two types of MoQ parsers:\r\n\r\n1. Async state machine.\r\n2. Trial parser.\r\n\r\nThe async parser is easy in some languages (JavaScript, Go). There could be excessive wake ups if the stream is written one byte at a time but I that's a fundamental QUIC problem (userspace wakeup).\r\n\r\nMy trial parser (Rust) returns a `More(min_bytes_needed)` error to help mitigate this attack. You can return the remaining size (ex. string/VarInt) in addition to the minimum size of any remaining fields (usually 1 byte). \r\n\r\nYou could implement a state machine manually too, but a trial parser will be fine if you don't allocate on the heap.\r\n\r\nI'm on the fence if we should length prefix or not. I've implemented both and think streaming is easier in general across multiple languages, but I do think this decoding gotcha is real.",
+          "createdAt": "2024-06-24T17:18:53Z",
+          "updatedAt": "2024-06-24T17:18:53Z"
+        },
+        {
+          "author": "huitema",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "I wrote a trial parser in C that also returns the min number of additional bytes needed, like your Rust parser, but there can be a big difference between the min number and the max number: for a varint, 1 byte versus 8 bytes; for a TLV, 2 bytes for 2 varints versus 8+8+length. That's how I came to the estimate O(number_of_components^2).\r\n\r\nI am also on the fence, as I said in the top post. The simplest mitigation would be to limit the number of parameters allowed in Setup or Subscribe parameters. Currently, the lists contain one or two values, but given greasing the max is effectively unlimited.",
+          "createdAt": "2024-06-24T18:20:46Z",
+          "updatedAt": "2024-06-24T18:20:46Z"
+        },
+        {
+          "author": "LPardue",
+          "authorAssociation": "NONE",
+          "body": "This sounds like what HTTP/3 frame and stream parsing already has to deal with, or am I overlooking something unique to MoQT?",
+          "createdAt": "2024-06-24T18:36:54Z",
+          "updatedAt": "2024-06-24T18:36:54Z"
+        },
+        {
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I would like to put a limit on number of parameters per version. For the draft-04 it is 2. If in the future drafts we add more, we can increase the max as needed. Any one using more than max for a given version will result in protocol error. \r\n\r\n",
+          "createdAt": "2024-06-24T18:37:58Z",
+          "updatedAt": "2024-06-24T21:05:29Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> This sounds like what HTTP/3 frame and stream parsing already has to deal with, or am I overlooking something unique to MoQT?\r\n\r\nH3 has an upfront frame length, so you can avoid dribbling byte/reparsing attacks",
+          "createdAt": "2024-06-24T19:42:08Z",
+          "updatedAt": "2024-06-24T19:42:08Z"
+        },
+        {
+          "author": "LPardue",
+          "authorAssociation": "NONE",
+          "body": "OK, I think this is a real problem then. +1 to fixing it ",
+          "createdAt": "2024-06-24T19:47:13Z",
+          "updatedAt": "2024-06-24T19:47:13Z"
+        }
+      ]
+    },
+    {
+      "number": 475,
+      "id": "I_kwDOG2Ho4M6NWFav",
+      "title": "No way to keep two subscriptions with identical priority in sync",
+      "url": "https://github.com/moq-wg/moq-transport/issues/475",
+      "state": "OPEN",
+      "author": "ianswett",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "If two subscriptions have identical priority, the current way to ensure both receive enough data is based on the Object receipt time at the relay.\r\n\r\nIf one subscription experiences a large delay at any stage, which could even include delay in publication of one track vs another for the same content (ie: transcoding), it would be easy for them to become substantially out of sync, potentially impacting QoE, particularly for very low latency use cases.\r\n\r\nThree suggested ways forward include:\r\n 1) Decide this is not a problem we care to solve\r\n 2) Decide we want to enable syncing, but don't care about actual time\r\n 3) Decide we care about actual time for use cases like server-side ABR and include a relative timestamp",
+      "createdAt": "2024-06-25T00:49:44Z",
+      "updatedAt": "2024-06-25T01:06:05Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Individual comment:\r\n\r\nThis is a use case I care about, I\u2019d like to see a method of synchronization included in moqt. \r\n\r\nI don\u2019t have a strong preference about using time or not.",
+          "createdAt": "2024-06-25T01:06:04Z",
+          "updatedAt": "2024-06-25T01:06:04Z"
+        }
+      ]
     }
   ],
   "pulls": [
@@ -60193,7 +60307,7 @@
       "labels": [],
       "body": "A tweaked version of #448 \r\n\r\nFixes #440\r\nCloses #450 \r\n\r\nI'll note that we might want to add params to TRACK_STATUS and allow this to be returned from that as well, which would allow a relay to keep it in its cache.\r\n\r\nAttempts to write down where we ended up at the end of the June 12th interim.",
       "createdAt": "2024-06-18T17:50:49Z",
-      "updatedAt": "2024-06-22T19:37:57Z",
+      "updatedAt": "2024-06-23T21:57:05Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "12d4dc8687a219778db1c8f60f5a4aa94a852c37",
@@ -60293,6 +60407,19 @@
               "updatedAt": "2024-06-22T16:37:15Z"
             }
           ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5_OJ7V",
+          "commit": {
+            "abbreviatedOid": "724f2d2"
+          },
+          "author": "huitema",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "MAX_CACHE_DURATION is a bit of a foot gun, especially if we find long groups in which objects depend on all preceding objects. Would be nice to have some nuance...",
+          "createdAt": "2024-06-23T21:57:05Z",
+          "updatedAt": "2024-06-23T21:57:05Z",
+          "comments": []
         }
       ]
     },
@@ -60308,13 +60435,13 @@
       "labels": [],
       "body": "Adds a SUBSCRIBER_PRIORITY param that can be specified in SUBSCRIBE or SUBSCRIBE_UPDATE to indicate subscriber priority.  Adds Delivery Order to SUBSCRIBE to allow indicating Ascending or Descending.  Cleans up the existing priorities section and how Original Subscriber driven priorities are used.\r\n\r\nFixes #326 \r\nFixes #396 \r\nFixes #403\r\nFixes #419 \r\n\r\nCloses #445",
       "createdAt": "2024-06-22T16:35:36Z",
-      "updatedAt": "2024-06-23T01:17:39Z",
+      "updatedAt": "2024-06-25T00:20:09Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "12d4dc8687a219778db1c8f60f5a4aa94a852c37",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "ianswett-uber-priority",
-      "headRefOid": "441ecf065149b535da70c4652ac6b0ae5a6755e9",
+      "headRefOid": "1bd6788b828fb48bf3e08bd95debc6561ed1f27d",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -60482,6 +60609,281 @@
               "updatedAt": "2024-06-23T01:17:40Z"
             }
           ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5_MggC",
+          "commit": {
+            "abbreviatedOid": "a97a91f"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-06-23T01:36:19Z",
+          "updatedAt": "2024-06-23T01:36:19Z",
+          "comments": [
+            {
+              "originalPosition": 82,
+              "body": "```suggestion\r\na number of factors specific to it, such as the popularity of the\r\n```",
+              "createdAt": "2024-06-23T01:36:19Z",
+              "updatedAt": "2024-06-23T01:36:20Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5_MzYT",
+          "commit": {
+            "abbreviatedOid": "7ddfd11"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "This is coming along pretty well. thanks for the PR. I plan to give proper read next week, but overall shape of this is pretty good.",
+          "createdAt": "2024-06-23T04:23:45Z",
+          "updatedAt": "2024-06-23T04:23:45Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5_M1A0",
+          "commit": {
+            "abbreviatedOid": "7ddfd11"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-06-23T04:42:44Z",
+          "updatedAt": "2024-06-23T04:42:44Z",
+          "comments": [
+            {
+              "originalPosition": 217,
+              "body": "I think we should make this optional or make a special value for \"no preference, follow publisher prioirty\"",
+              "createdAt": "2024-06-23T04:42:44Z",
+              "updatedAt": "2024-06-23T04:42:44Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5_M1QI",
+          "commit": {
+            "abbreviatedOid": "7ddfd11"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-06-23T04:44:46Z",
+          "updatedAt": "2024-06-23T04:44:46Z",
+          "comments": [
+            {
+              "originalPosition": 208,
+              "body": "Ascending or Descending order of the group.",
+              "createdAt": "2024-06-23T04:44:46Z",
+              "updatedAt": "2024-06-23T04:44:47Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5_NOOv",
+          "commit": {
+            "abbreviatedOid": "7ddfd11"
+          },
+          "author": "vasilvv",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-06-23T07:38:26Z",
+          "updatedAt": "2024-06-23T07:38:26Z",
+          "comments": [
+            {
+              "originalPosition": 217,
+              "body": "My understanding of the mechanism at which we arrived at the interim is that if the subscriber does not care, it can set all priorities to the same value (e.g. `0x80`), and in that case, the publisher priorities take action.  The advantage of this approach is that if, for some reason, the subscriber decides later that it wants one track higher, it can set it to something like `0x70`, without having to reason about what priorities publisher assigned to its tracks.  It's also really easy to implement (`Final Priority = Subscriber Priority * 256 + Publisher Priority`).",
+              "createdAt": "2024-06-23T07:38:26Z",
+              "updatedAt": "2024-06-23T07:38:26Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5_XE-O",
+          "commit": {
+            "abbreviatedOid": "7ddfd11"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-06-24T21:08:44Z",
+          "updatedAt": "2024-06-24T21:08:44Z",
+          "comments": [
+            {
+              "originalPosition": 217,
+              "body": "I am fine with it,  but I am not sure how to communicate the idea of not to set value of 0x1 as priority to the applications,  implying the most important after the control stream for all the tracks, whereas the subscriber's intent was indeed \" i don't care, please follow publisher's priority\" .\r\n\r\nVS\r\n\r\nif a subscriber set all value of \"0x1\", may be it needs it to be so. but we end up following publisher's priority.\r\n\r\nOne way to make it is encode this field as optional and when missing follow publisher's priority for the track.",
+              "createdAt": "2024-06-24T21:08:44Z",
+              "updatedAt": "2024-06-24T21:11:50Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5_XIAL",
+          "commit": {
+            "abbreviatedOid": "7ddfd11"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-06-24T21:12:35Z",
+          "updatedAt": "2024-06-24T21:12:35Z",
+          "comments": [
+            {
+              "originalPosition": 217,
+              "body": "Individual Comment:\r\n\r\n> most important after the control stream for all the tracks\r\n\r\nShould we just add explicit text that control stream always has priority over non-control? \r\n\r\nIn that case, any value indicates \"don't care, default to publisher\" so long as the client sends the *same* value for all subscribes.\r\n",
+              "createdAt": "2024-06-24T21:12:35Z",
+              "updatedAt": "2024-06-24T21:12:35Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5_XYVl",
+          "commit": {
+            "abbreviatedOid": "a085820"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-06-24T21:41:20Z",
+          "updatedAt": "2024-06-24T21:41:21Z",
+          "comments": [
+            {
+              "originalPosition": 219,
+              "body": "Done.",
+              "createdAt": "2024-06-24T21:41:21Z",
+              "updatedAt": "2024-06-24T21:41:21Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5_XZtE",
+          "commit": {
+            "abbreviatedOid": "7ddfd11"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-06-24T21:44:55Z",
+          "updatedAt": "2024-06-24T21:44:55Z",
+          "comments": [
+            {
+              "originalPosition": 217,
+              "body": "Sure, I can add text about the control stream.",
+              "createdAt": "2024-06-24T21:44:55Z",
+              "updatedAt": "2024-06-24T21:44:55Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5_XZ9k",
+          "commit": {
+            "abbreviatedOid": "7ddfd11"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-06-24T21:45:51Z",
+          "updatedAt": "2024-06-24T21:45:51Z",
+          "comments": [
+            {
+              "originalPosition": 207,
+              "body": "```suggestion\r\nAscending (0x0) or Descending (0x1) order by group. See {{priorities}}.\r\n```",
+              "createdAt": "2024-06-24T21:45:51Z",
+              "updatedAt": "2024-06-24T21:45:52Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5_XaEH",
+          "commit": {
+            "abbreviatedOid": "1bd6788"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-06-24T21:46:12Z",
+          "updatedAt": "2024-06-24T21:46:12Z",
+          "comments": [
+            {
+              "originalPosition": 208,
+              "body": "Good point, done.",
+              "createdAt": "2024-06-24T21:46:12Z",
+              "updatedAt": "2024-06-24T21:46:12Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5_YHkh",
+          "commit": {
+            "abbreviatedOid": "7ddfd11"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-06-25T00:20:08Z",
+          "updatedAt": "2024-06-25T00:20:09Z",
+          "comments": [
+            {
+              "originalPosition": 217,
+              "body": "yes .. control stream should go with the most important priority and clarifying that will be good.",
+              "createdAt": "2024-06-25T00:20:09Z",
+              "updatedAt": "2024-06-25T00:20:09Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 472,
+      "id": "PR_kwDOG2Ho4M5zYebU",
+      "title": "Fix errors in OBJECT_STREAM example",
+      "url": "https://github.com/moq-wg/moq-transport/pull/472",
+      "state": "OPEN",
+      "author": "ianswett",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [
+        "Editorial"
+      ],
+      "body": "Fixes #415 \r\n\r\nThis was in another PR, but better to fix it separately.",
+      "createdAt": "2024-06-24T15:21:07Z",
+      "updatedAt": "2024-06-24T21:05:56Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "12d4dc8687a219778db1c8f60f5a4aa94a852c37",
+      "headRepository": "moq-wg/moq-transport",
+      "headRefName": "ianswett-example-errors",
+      "headRefOid": "23f4578de7d767fdec0f128d2076be81ad7b3029",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M5_XCTh",
+          "commit": {
+            "abbreviatedOid": "23f4578"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2024-06-24T21:05:56Z",
+          "updatedAt": "2024-06-24T21:05:56Z",
+          "comments": []
         }
       ]
     }
