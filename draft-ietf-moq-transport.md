@@ -1542,7 +1542,9 @@ SUBSCRIBE_OK
   Expires (i),
   ContentExists (f),
   [Largest Group ID (i)],
-  [Largest Object ID (i)]
+  [Largest Object ID (i)],
+  Number of Subscription Parameters (i),
+  Subscription Parameters (..) ...
 }
 ~~~
 {: #moq-transport-subscribe-ok format title="MOQT SUBSCRIBE_OK Message"}
@@ -1558,12 +1560,29 @@ end prior to the expiry time or last longer.
 If 0, then the Largest Group ID and Largest Object ID fields will not be
 present.
 
-* Largest Group ID: the largest Group ID available for this track. This field
+* Largest Group ID: The largest Group ID available for this track. This field
 is only present if ContentExists has a value of 1.
 
-* Largest Object ID: the largest Object ID available within the largest Group ID
+* Largest Object ID: The largest Object ID available within the largest Group ID
 for this track. This field is only present if ContentExists has a value of 1.
 
+* Subscription Parameters: Optional key-value pairs formatted as described in
+{{params}}.
+
+### Subscription Parameters  {#subscription-parameters}
+
+SUBSCRIBE_OK may contain zero or more parameters describing either the
+properties of the track, or the properties of an individual subscription.
+
+The following property is defined in this document:
+
+MAX_CACHE_DURATION: An integer expressing a number of milliseconds. If
+present, the relay MUST NOT start forwarding any individual Object received
+through this subscription after the specified number of milliseconds has elapsed
+since the beginning of the Object was received.  This means Objects earlier
+in a multi-object stream will expire earlier than Objects later in the stream.
+Once Objects have expired, their state becomes unknown, and a relay that
+handles a subscription that includes those Objects re-requests them.
 
 ## SUBSCRIBE_ERROR {#message-subscribe-error}
 
