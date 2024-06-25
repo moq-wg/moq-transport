@@ -1038,7 +1038,7 @@ svg :is([fill="white"], [fill^="#fff"]) {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Curley, et al.</td>
-<td class="center">Expires 26 December 2024</td>
+<td class="center">Expires 27 December 2024</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1051,12 +1051,12 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dd class="internet-draft">draft-ietf-moq-transport-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2024-06-24" class="published">24 June 2024</time>
+<time datetime="2024-06-25" class="published">25 June 2024</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2024-12-26">26 December 2024</time></dd>
+<dd class="expires"><time datetime="2024-12-27">27 December 2024</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1123,7 +1123,7 @@ networks and is designed for high scale and low latency distribution.<a href="#s
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 26 December 2024.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 27 December 2024.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1985,13 +1985,16 @@ expects more OBJECTs to be delivered. The server closes the session with a
 <p id="section-4-1">MoQ priorities allow a subscriber and original publisher to influence
 the transmission order of Objects within a session in the presence of
 congestion.<a href="#section-4-1" class="pilcrow">¶</a></p>
-<p id="section-4-2">The subscriber indicates the priority of a subscription via the
+<p id="section-4-2">Given the critical nature of control messages and their relatively
+small size, the control stream <span class="bcp14">SHOULD</span> be prioritized higher than all
+subscribed Objects.<a href="#section-4-2" class="pilcrow">¶</a></p>
+<p id="section-4-3">The subscriber indicates the priority of a subscription via the
 Subscriber Priority field and the original publisher indicates priority
 in every stream header.  As such, the subscriber's priority is a property
 of the subscription and the original publisher's priority is a property
 of the Track and the Objects it contains. In both cases, a lower value
-indicates a higher priority, with 0 being the highest priority.<a href="#section-4-2" class="pilcrow">¶</a></p>
-<p id="section-4-3">The Subscriber Priority is considered first when selecting
+indicates a higher priority, with 0 being the highest priority.<a href="#section-4-3" class="pilcrow">¶</a></p>
+<p id="section-4-4">The Subscriber Priority is considered first when selecting
 a subscription to send data on within a given session. The original
 publisher priority is considered next and can change within the track,
 so subscriptions are prioritized based on the highest priority data
@@ -1999,23 +2002,23 @@ available to send. For example, if the subscription had data at
 priority 6 and priority 10 to send, the subscription priority would be 6.
 When both the subscriber and original publisher priorities for a
 subscription are equal, send order is implementation-dependent, but the
-expectation is that all subscriptions will be able to send some data.<a href="#section-4-3" class="pilcrow">¶</a></p>
-<p id="section-4-4">The subscriber's priority can be changed via a SUBSCRIBE_UPDATE message.<a href="#section-4-4" class="pilcrow">¶</a></p>
-<p id="section-4-5">The publisher <span class="bcp14">SHOULD</span> respect the subscriber and original publisher's
-priorities.<a href="#section-4-5" class="pilcrow">¶</a></p>
-<p id="section-4-6">In addition, SUBSCRIBE specifies a Delivery Order of either
+expectation is that all subscriptions will be able to send some data.<a href="#section-4-4" class="pilcrow">¶</a></p>
+<p id="section-4-5">The subscriber's priority can be changed via a SUBSCRIBE_UPDATE message.<a href="#section-4-5" class="pilcrow">¶</a></p>
+<p id="section-4-6">The publisher <span class="bcp14">SHOULD</span> respect the subscriber and original publisher's
+priorities.<a href="#section-4-6" class="pilcrow">¶</a></p>
+<p id="section-4-7">In addition, SUBSCRIBE specifies a Delivery Order of either
 'Ascending' or 'Descending', which indicates whether the lowest or
 highest Group Id <span class="bcp14">SHOULD</span> be delivered first when multiple Groups are
-available to send.<a href="#section-4-6" class="pilcrow">¶</a></p>
-<p id="section-4-7">Within the same group, and the same priority level,
+available to send.<a href="#section-4-7" class="pilcrow">¶</a></p>
+<p id="section-4-8">Within the same group, and the same priority level,
 objects with a lower Object Id are always sent before objects with a
-higher Object Id, regardless of the specified Delivery Order.<a href="#section-4-7" class="pilcrow">¶</a></p>
-<p id="section-4-8">Relays <span class="bcp14">SHOULD NOT</span> directly use Subscriber Priority or Delivery Order
+higher Object Id, regardless of the specified Delivery Order.<a href="#section-4-8" class="pilcrow">¶</a></p>
+<p id="section-4-9">Relays <span class="bcp14">SHOULD NOT</span> directly use Subscriber Priority or Delivery Order
 from incoming subscriptions for upstream subscriptions. Relays use of
 Subscriber Priority for upstream subscriptions is based on
 a number of factors specific to it, such as the popularity of the
-content or policy.<a href="#section-4-8" class="pilcrow">¶</a></p>
-<p id="section-4-9">MoQ Sessions can span multiple namespaces, and priorities are treated
+content or policy.<a href="#section-4-9" class="pilcrow">¶</a></p>
+<p id="section-4-10">MoQ Sessions can span multiple namespaces, and priorities are treated
 equally, regardless of the namespace.  The subscriber's priority is
 considered first, so there is no incentive for the original publisher
 to attempt to prioritize all of its Tracks higher than another
@@ -2023,7 +2026,7 @@ namespace.  Additionally, it is anticipated that when multiple namespaces
 are present within a session, the namespaces could be coordinating,
 possibly part of the same application.  In cases when pooling among
 namespaces is expected to cause issues, multiple MoQ sessions, either
-within a single connection or on multiple connections can be used.<a href="#section-4-9" class="pilcrow">¶</a></p>
+within a single connection or on multiple connections can be used.<a href="#section-4-10" class="pilcrow">¶</a></p>
 <div id="priority-algorithm">
 <section id="section-4.1">
         <h3 id="name-priority-algorithm">
