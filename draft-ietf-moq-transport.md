@@ -1515,6 +1515,7 @@ SUBSCRIBE_OK
 {
   Subscribe ID (i),
   Expires (i),
+  Group Order (8),
   ContentExists (f),
   [Largest Group ID (i)],
   [Largest Object ID (i)]
@@ -1528,6 +1529,10 @@ SUBSCRIBE_OK
 longer valid. A value of 0 indicates that the subscription does not expire
 or expires at an unknown time.  Expires is advisory and a subscription can
 end prior to the expiry time or last longer.
+
+* Group Order: Indicates the subscrption will be delivered in
+Ascending (0x1) or Descending (0x2) order by group. See {{priorities}}.
+Values of 0x0 and those larger than 0x2 are a protocol error.
 
 * ContentExists: 1 if an object has been published on this track, 0 if not.
 If 0, then the Largest Group ID and Largest Object ID fields will not be
