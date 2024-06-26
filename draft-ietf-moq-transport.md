@@ -562,17 +562,17 @@ expectation is that all subscriptions will be able to send some data.
 
 The subscriber's priority can be changed via a SUBSCRIBE_UPDATE message.
 
-In addition, SUBSCRIBE specifies a Delivery Order of either
+In addition, SUBSCRIBE specifies a Group Order of either
 'Ascending' or 'Descending', which indicates whether the lowest or
 highest Group Id SHOULD be sent first when multiple Groups are
 available to send.
 
 Within the same group, and the same priority level,
 objects with a lower Object Id are always sent before objects with a
-higher Object Id, regardless of the specified Delivery Order.
+higher Object Id, regardless of the specified Group Order.
 
 Relays SHOULD respect the subscriber and original publisher's priorities.
-Relays SHOULD NOT directly use Subscriber Priority or Delivery Order
+Relays SHOULD NOT directly use Subscriber Priority or Group Order
 from incoming subscriptions for upstream subscriptions. Relays use of
 Subscriber Priority for upstream subscriptions is based on
 a number of factors specific to it, such as the popularity of the
@@ -999,7 +999,7 @@ SUBSCRIBE Message {
   Track Namespace (b),
   Track Name (b),
   Subscriber Priority (8),
-  Delivery Order (8),
+  Group Order (8),
   Filter Type (i),
   [StartGroup (i),
    StartObject (i)],
@@ -1033,7 +1033,7 @@ close the session with a Duplicate Track Alias error ({{session-termination}}).
 other subscriptions in the same session. Lower numbers get higher priority.
 See {{priorities}}.
 
-* Delivery Order: Requests Objects for the subscription be delievered in
+* Group Order: Requests Objects for the subscription be delievered in
 Ascending (0x0) or Descending (0x1) order by group. See {{priorities}}.
 Values larger than 0x1 are a protocol error.
 
