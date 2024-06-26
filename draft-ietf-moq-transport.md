@@ -562,9 +562,6 @@ expectation is that all subscriptions will be able to send some data.
 
 The subscriber's priority can be changed via a SUBSCRIBE_UPDATE message.
 
-The publisher SHOULD respect the subscriber and original publisher's
-priorities.
-
 In addition, SUBSCRIBE specifies a Delivery Order of either
 'Ascending' or 'Descending', which indicates whether the lowest or
 highest Group Id SHOULD be delivered first when multiple Groups are
@@ -574,6 +571,7 @@ Within the same group, and the same priority level,
 objects with a lower Object Id are always sent before objects with a
 higher Object Id, regardless of the specified Delivery Order.
 
+Relays SHOULD respect the subscriber and original publisher's priorities.
 Relays SHOULD NOT directly use Subscriber Priority or Delivery Order
 from incoming subscriptions for upstream subscriptions. Relays use of
 Subscriber Priority for upstream subscriptions is based on
