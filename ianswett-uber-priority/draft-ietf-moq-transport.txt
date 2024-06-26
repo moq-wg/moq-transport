@@ -609,9 +609,6 @@ Table of Contents
    The subscriber's priority can be changed via a SUBSCRIBE_UPDATE
    message.
 
-   The publisher SHOULD respect the subscriber and original publisher's
-   priorities.
-
    In addition, SUBSCRIBE specifies a Delivery Order of either
    'Ascending' or 'Descending', which indicates whether the lowest or
    highest Group Id SHOULD be delivered first when multiple Groups are
@@ -621,11 +618,12 @@ Table of Contents
    lower Object Id are always sent before objects with a higher Object
    Id, regardless of the specified Delivery Order.
 
-   Relays SHOULD NOT directly use Subscriber Priority or Delivery Order
-   from incoming subscriptions for upstream subscriptions.  Relays use
-   of Subscriber Priority for upstream subscriptions is based on a
-   number of factors specific to it, such as the popularity of the
-   content or policy.
+   Relays SHOULD respect the subscriber and original publisher's
+   priorities.  Relays SHOULD NOT directly use Subscriber Priority or
+   Delivery Order from incoming subscriptions for upstream
+   subscriptions.  Relays use of Subscriber Priority for upstream
+   subscriptions is based on a number of factors specific to it, such as
+   the popularity of the content or policy.
 
    MoQ Sessions can span multiple namespaces, and priorities are treated
    equally, regardless of the namespace.  The subscriber's priority is
