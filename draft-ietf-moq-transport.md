@@ -1027,6 +1027,61 @@ object than StartGroup and StartObject.
 
 A filter type other than the above MUST be treated as error.
 
+### Delivery Order {#delivery-order}
+
+A subscriber can prefer different Object delivery orders depending upon the
+use case.  Their responses to congestion are different: In Order prioritizes
+completeness and Latest prioritizes receiving the most recent Objects.
+
+There are 3 delivery orders:
+
+Strict In Order (0x1): Delivers Objects in order of ascending Group Id and then
+ascending Object Id, as fast as possible.  Objects are sent on a single stream at
+once, starting with the 'Stream Header Track' header. When an Object or Group
+is no longer available, the status ({{object-status}}) indicates that.
+A SUBSCRIBE_UPDATE could narrow a subscription and it could make sense to skip
+over ranges of Objects. In this case, a publisher MAY reset the existing stream
+and start sending on a new one, with the same Subscribe ID.  Publishers MUST NOT
+skip Objects otherwise.  Because there is no explicit Group ID, publishers MUST
+send Objects with the 'End of Group' status to indicate the end of the Group.
+The 'Delivery Timeout' field is not present for this (0x1) mode.
+
+Latest In Order (0x2): Objects that have not exceeded the 'Delivery Timeout'
+({{delivery-timeout}}) SHOULD be delivered in order.  Objects can be delivered
+via OBJECT_STREAM, OBJECT_DATAGRAM, or STREAM_HEADER_GROUP streams, but
+MUST NOT change the delivery preference during a subscription.
+
+Latest (0x3): Objects from the most recent Group SHOULD be delivered first,
+in ascending Object ID order when possible, unless indicated otherwise by
+an Object's 'Object Send Order' or another mechanism.  Objects MAY be delivered
+via OBJECT_STREAM, OBJECT_DATAGRAM, or STREAM_HEADER_GROUP streams, but
+MUST NOT change the delivery preference during a subscription.
+
+A subscriber MUST NOT make two simultaneous subscriptions of type
+'Latest In Order' or 'Latest' for the same Track, because both could be
+delivered by the same Track Alias and they would compete for bandwidth
+and other resources.  When bandwidth is sufficient, a 'Latest In Order' and
+'Latest' subscription would be delivering the same Objects, because Objects
+would be sent as soon as the publisher or relay received them.
+
+### Delivery Timeout {#delivery-timeout}
+
+The maximum number of milliseconds a publisher should attempt forwarding objects.
+The semantics of the timeout depend on the forwarding preference
+({{object-message-formats}}) of the track:
+
+    - If the Object Forwarding Preference is `Datagram`, once the specified
+      number of milliseconds has passed since the Object was received via
+      this subscription, the relay SHOULD NOT forward it.
+    - If the Object Forwarding Preference is `Object`, once the specified
+      number of milliseconds has passed since the Object was fully received for
+      this subscription, the relay SHOULD NOT open a new stream to send the
+      Object in question, and SHOULD reset an existing stream if it is open.
+    - If the Object Forwarding Preference is `Group`, once the specified number
+      of milliseconds has passed since the final Object of the Group was fully
+      received for this subscription, the relay SHOULD NOT open a new stream
+      for the group, and SHOULD reset an existing stream if it is open.
+
 
 ### SUBSCRIBE Format
 A subscriber issues a SUBSCRIBE to a publisher to request a track.
@@ -1044,6 +1099,8 @@ SUBSCRIBE Message {
    StartObject (i)],
   [EndGroup (i),
    EndObject (i)],
+  Delivery Order (i),
+  [Delivery Timeout (i)],
   Number of Parameters (i),
   Subscribe Parameters (..) ...
 }
@@ -1082,6 +1139,14 @@ See ({{sub-filter}}).
 
 * EndObject: The end Object ID, plus 1. A value of 0 means the entire group is
 requested. Only present for the "AbsoluteRange" filter type.
+
+* Delivery Order: Indicates how Objects should be transmitted and dropped.
+See ({{delivery-order}}) above.
+
+* Delivery Timeout: The maximum number of milliseconds a relay should attempt
+forwarding objects, or zero to indicate no limit.  Not present when
+'Delivery Order' is 'Strict In Order'. The actual value is confirmed by the
+publisher in SUBSCRIBE_OK. See ({{delivery-timeout}}) above.
 
 * Subscribe Parameters: The parameters are defined in {{version-specific-params}}.
 
@@ -1330,7 +1395,6 @@ serialize object fields below, and terminate the stream.
 
 ~~~
 OBJECT_STREAM Message {
-  Subscribe ID (i),
   Track Alias (i),
   Group ID (i),
   Object ID (i),
@@ -1340,8 +1404,6 @@ OBJECT_STREAM Message {
 }
 ~~~
 {: #moq-transport-object-stream-format title="MOQT OBJECT_STREAM Message"}
-
-* Subscribe ID: Subscription Identifier as defined in {{message-subscribe-req}}.
 
 * Track Alias: Identifies the Track Namespace and Track Name as defined in
 {{message-subscribe-req}}.
@@ -1367,7 +1429,6 @@ will be dropped.
 
 ~~~
 OBJECT_DATAGRAM Message {
-  Subscribe ID (i),
   Track Alias (i),
   Group ID (i),
   Object ID (i),
@@ -1395,15 +1456,13 @@ TODO: figure out how a relay closes these streams
 
 When a stream begins with `STREAM_HEADER_TRACK`, all objects on the stream
 belong to the track requested in the Subscribe message identified by `Subscribe
-ID`.  All objects on the stream have the `Object Send Order` specified in the
-stream header.
-
+ID`.
 
 ~~~
 STREAM_HEADER_TRACK Message {
-  Subscribe ID (i)
-  Track Alias (i),
-  Object Send Order (i),
+  Subscribe ID (i),
+  Group ID (i),
+  Object ID (i),
 }
 ~~~
 {: #stream-header-track-format title="MOQT STREAM_HEADER_TRACK Message"}
@@ -1418,8 +1477,6 @@ The Object Status field is only sent if the Object Payload Length is zero.
 
 ~~~
 {
-  Group ID (i),
-  Object ID (i),
   Object Payload Length (i),
   [Object Status (i)],
   Object Payload (..),
@@ -1434,13 +1491,12 @@ previously sent Group ID on that stream, or if its Object ID is less than or
 equal to a previously sent Object ID within a given group on that stream.
 
 When a stream begins with `STREAM_HEADER_GROUP`, all objects on the stream
-belong to the track requested in the Subscribe message identified by `Subscribe
-ID` and the group indicated by `Group ID`.  All objects on the stream
+belong to the track requested in the Subscribe message identified by `Track
+Alias` and the group indicated by `Group ID`.  All objects on the stream
 have the `Object Send Order` specified in the stream header.
 
 ~~~
 STREAM_HEADER_GROUP Message {
-  Subscribe ID (i),
   Track Alias (i),
   Group ID (i)
   Object Send Order (i)
@@ -1540,6 +1596,7 @@ SUBSCRIBE_OK
 {
   Subscribe ID (i),
   Expires (i),
+  Delivery Timeout (i),
   ContentExists (f),
   [Largest Group ID (i)],
   [Largest Object ID (i)]
@@ -1553,6 +1610,10 @@ SUBSCRIBE_OK
 longer valid. A value of 0 indicates that the subscription does not expire
 or expires at an unknown time.  Expires is advisory and a subscription can
 end prior to the expiry time or last longer.
+
+* Delivery Timeout: The number of milliseconds the publisher has agreed to attempt
+forwarding objects, or zero to indicate no limit.  MUST be 0 when the SUBSCRIBE
+requested a 'Delivery Order' of 'Strict In Order'. See ({{delivery-timeout}}) above.
 
 * ContentExists: 1 if an object has been published on this track, 0 if not.
 If 0, then the Largest Group ID and Largest Object ID fields will not be
