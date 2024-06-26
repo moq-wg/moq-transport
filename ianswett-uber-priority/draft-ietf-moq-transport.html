@@ -2004,15 +2004,15 @@ When both the subscriber and original publisher priorities for a
 subscription are equal, send order is implementation-dependent, but the
 expectation is that all subscriptions will be able to send some data.<a href="#section-4-4" class="pilcrow">¶</a></p>
 <p id="section-4-5">The subscriber's priority can be changed via a SUBSCRIBE_UPDATE message.<a href="#section-4-5" class="pilcrow">¶</a></p>
-<p id="section-4-6">In addition, SUBSCRIBE specifies a Delivery Order of either
+<p id="section-4-6">In addition, SUBSCRIBE specifies a Group Order of either
 'Ascending' or 'Descending', which indicates whether the lowest or
 highest Group Id <span class="bcp14">SHOULD</span> be sent first when multiple Groups are
 available to send.<a href="#section-4-6" class="pilcrow">¶</a></p>
 <p id="section-4-7">Within the same group, and the same priority level,
 objects with a lower Object Id are always sent before objects with a
-higher Object Id, regardless of the specified Delivery Order.<a href="#section-4-7" class="pilcrow">¶</a></p>
+higher Object Id, regardless of the specified Group Order.<a href="#section-4-7" class="pilcrow">¶</a></p>
 <p id="section-4-8">Relays <span class="bcp14">SHOULD</span> respect the subscriber and original publisher's priorities.
-Relays <span class="bcp14">SHOULD NOT</span> directly use Subscriber Priority or Delivery Order
+Relays <span class="bcp14">SHOULD NOT</span> directly use Subscriber Priority or Group Order
 from incoming subscriptions for upstream subscriptions. Relays use of
 Subscriber Priority for upstream subscriptions is based on
 a number of factors specific to it, such as the popularity of the
@@ -2586,7 +2586,7 @@ SUBSCRIBE Message {
   Track Namespace (b),
   Track Name (b),
   Subscriber Priority (8),
-  Delivery Order (8),
+  Group Order (8),
   Filter Type (i),
   [StartGroup (i),
    StartObject (i)],
@@ -2630,7 +2630,7 @@ other subscriptions in the same session. Lower numbers get higher priority.
 See <a href="#priorities" class="auto internal xref">Section 4</a>.<a href="#section-6.4.2-4.5.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-6.4.2-4.6">
-              <p id="section-6.4.2-4.6.1">Delivery Order: Requests Objects for the subscription be delievered in
+              <p id="section-6.4.2-4.6.1">Group Order: Requests Objects for the subscription be delievered in
 Ascending (0x0) or Descending (0x1) order by group. See <a href="#priorities" class="auto internal xref">Section 4</a>.
 Values larger than 0x1 are a protocol error.<a href="#section-6.4.2-4.6.1" class="pilcrow">¶</a></p>
 </li>

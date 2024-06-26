@@ -609,21 +609,20 @@ Table of Contents
    The subscriber's priority can be changed via a SUBSCRIBE_UPDATE
    message.
 
-   In addition, SUBSCRIBE specifies a Delivery Order of either
-   'Ascending' or 'Descending', which indicates whether the lowest or
-   highest Group Id SHOULD be sent first when multiple Groups are
-   available to send.
+   In addition, SUBSCRIBE specifies a Group Order of either 'Ascending'
+   or 'Descending', which indicates whether the lowest or highest Group
+   Id SHOULD be sent first when multiple Groups are available to send.
 
    Within the same group, and the same priority level, objects with a
    lower Object Id are always sent before objects with a higher Object
-   Id, regardless of the specified Delivery Order.
+   Id, regardless of the specified Group Order.
 
    Relays SHOULD respect the subscriber and original publisher's
    priorities.  Relays SHOULD NOT directly use Subscriber Priority or
-   Delivery Order from incoming subscriptions for upstream
-   subscriptions.  Relays use of Subscriber Priority for upstream
-   subscriptions is based on a number of factors specific to it, such as
-   the popularity of the content or policy.
+   Group Order from incoming subscriptions for upstream subscriptions.
+   Relays use of Subscriber Priority for upstream subscriptions is based
+   on a number of factors specific to it, such as the popularity of the
+   content or policy.
 
    MoQ Sessions can span multiple namespaces, and priorities are treated
    equally, regardless of the namespace.  The subscriber's priority is
@@ -1051,7 +1050,7 @@ Table of Contents
      Track Namespace (b),
      Track Name (b),
      Subscriber Priority (8),
-     Delivery Order (8),
+     Group Order (8),
      Filter Type (i),
      [StartGroup (i),
       StartObject (i)],
@@ -1088,9 +1087,9 @@ Table of Contents
       relative to other subscriptions in the same session.  Lower
       numbers get higher priority.  See Section 4.
 
-   *  Delivery Order: Requests Objects for the subscription be
-      delievered in Ascending (0x0) or Descending (0x1) order by group.
-      See Section 4.  Values larger than 0x1 are a protocol error.
+   *  Group Order: Requests Objects for the subscription be delievered
+      in Ascending (0x0) or Descending (0x1) order by group.  See
+      Section 4.  Values larger than 0x1 are a protocol error.
 
    *  Filter Type: Identifies the type of filter, which also indicates
       whether the StartGroup/StartObject and EndGroup/EndObject fields
