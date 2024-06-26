@@ -2004,8 +2004,8 @@ When both the subscriber and original publisher priorities for a
 subscription are equal, send order is implementation-dependent, but the
 expectation is that all subscriptions will be able to send some data.<a href="#section-4-4" class="pilcrow">¶</a></p>
 <p id="section-4-5">The subscriber's priority can be changed via a SUBSCRIBE_UPDATE message.<a href="#section-4-5" class="pilcrow">¶</a></p>
-<p id="section-4-6">In addition, SUBSCRIBE specifies a Group Order of either
-'Ascending' or 'Descending', which indicates whether the lowest or
+<p id="section-4-6">In addition, SUBSCRIBE or SUBSCRIBE_OK specifies a Group Order of
+either 'Ascending' or 'Descending', which indicates whether the lowest or
 highest Group Id <span class="bcp14">SHOULD</span> be sent first when multiple Groups are
 available to send.<a href="#section-4-6" class="pilcrow">¶</a></p>
 <p id="section-4-7">Within the same group, and the same priority level,
@@ -2630,9 +2630,10 @@ other subscriptions in the same session. Lower numbers get higher priority.
 See <a href="#priorities" class="auto internal xref">Section 4</a>.<a href="#section-6.4.2-4.5.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-6.4.2-4.6">
-              <p id="section-6.4.2-4.6.1">Group Order: Requests Objects for the subscription be delievered in
-Ascending (0x0) or Descending (0x1) order by group. See <a href="#priorities" class="auto internal xref">Section 4</a>.
-Values larger than 0x1 are a protocol error.<a href="#section-6.4.2-4.6.1" class="pilcrow">¶</a></p>
+              <p id="section-6.4.2-4.6.1">Group Order: Allows the subscriber to requests Objects be delivered in
+Ascending (0x1) or Descending (0x2) order by group. See <a href="#priorities" class="auto internal xref">Section 4</a>.
+A value of 0x0 indicates the original publisher's Group Order <span class="bcp14">SHOULD</span> be
+used. Values larger than 0x2 are a protocol error.<a href="#section-6.4.2-4.6.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-6.4.2-4.7">
               <p id="section-6.4.2-4.7.1">Filter Type: Identifies the type of filter, which also indicates whether
