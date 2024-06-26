@@ -564,7 +564,7 @@ The subscriber's priority can be changed via a SUBSCRIBE_UPDATE message.
 
 In addition, SUBSCRIBE specifies a Delivery Order of either
 'Ascending' or 'Descending', which indicates whether the lowest or
-highest Group Id SHOULD be delivered first when multiple Groups are
+highest Group Id SHOULD be sent first when multiple Groups are
 available to send.
 
 Within the same group, and the same priority level,
