@@ -562,8 +562,8 @@ expectation is that all subscriptions will be able to send some data.
 
 The subscriber's priority can be changed via a SUBSCRIBE_UPDATE message.
 
-In addition, SUBSCRIBE specifies a Group Order of either
-'Ascending' or 'Descending', which indicates whether the lowest or
+In addition, SUBSCRIBE or SUBSCRIBE_OK specifies a Group Order of
+either 'Ascending' or 'Descending', which indicates whether the lowest or
 highest Group Id SHOULD be sent first when multiple Groups are
 available to send.
 
@@ -1033,9 +1033,10 @@ close the session with a Duplicate Track Alias error ({{session-termination}}).
 other subscriptions in the same session. Lower numbers get higher priority.
 See {{priorities}}.
 
-* Group Order: Requests Objects for the subscription be delievered in
-Ascending (0x0) or Descending (0x1) order by group. See {{priorities}}.
-Values larger than 0x1 are a protocol error.
+* Group Order: Allows the subscriber to requests Objects be delivered in
+Ascending (0x1) or Descending (0x2) order by group. See {{priorities}}.
+A value of 0x0 indicates the original publisher's Group Order SHOULD be
+used. Values larger than 0x2 are a protocol error.
 
 * Filter Type: Identifies the type of filter, which also indicates whether
 the StartGroup/StartObject and EndGroup/EndObject fields will be present.
