@@ -5,13 +5,13 @@
 MOQ                                                            L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 28 December 2024                                           Meta
+Expires: 29 December 2024                                           Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                            26 June 2024
+                                                            27 June 2024
 
 
                        Media over QUIC Transport
@@ -53,7 +53,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 28 December 2024.
+   This Internet-Draft will expire on 29 December 2024.
 
 Copyright Notice
 
@@ -1088,9 +1088,9 @@ Table of Contents
       relative to other subscriptions in the same session.  Lower
       numbers get higher priority.  See Section 4.
 
-   *  Group Order: Allows the subscriber to requests Objects be
-      delivered in Ascending (0x1) or Descending (0x2) order by group.
-      See Section 4.  A value of 0x0 indicates the original publisher's
+   *  Group Order: Allows the subscriber to request Objects be delivered
+      in Ascending (0x1) or Descending (0x2) order by group.  See
+      Section 4.  A value of 0x0 indicates the original publisher's
       Group Order SHOULD be used.  Values larger than 0x2 are a protocol
       error.
 
@@ -1150,6 +1150,7 @@ Table of Contents
      EndGroup (i),
      EndObject (i),
      Subscriber Priority (8),
+     Group Order (8),
      Number of Parameters (i),
      Subscribe Parameters (..) ...
    }
@@ -1172,6 +1173,12 @@ Table of Contents
    *  Subscriber Priority: Specifies the priority of a subscription
       relative to other subscriptions in the same session.  Lower
       numbers get higher priority.  See Section 4.
+
+   *  Group Order: Allows the subscriber to request Objects be delivered
+      in Ascending (0x1) or Descending (0x2) order by group.  See
+      Section 4.  A value of 0x0 indicates the original publisher's
+      Group Order SHOULD be used.  Values larger than 0x2 are a protocol
+      error.
 
    *  Subscribe Parameters: The parameters are defined in Section 6.1.1.
 
@@ -1583,7 +1590,7 @@ Table of Contents
       not expire or expires at an unknown time.  Expires is advisory and
       a subscription can end prior to the expiry time or last longer.
 
-   *  Group Order: Indicates the subscrption will be delivered in
+   *  Group Order: Indicates the subscription will be delivered in
       Ascending (0x1) or Descending (0x2) order by group.  See
       Section 4.  Values of 0x0 and those larger than 0x2 are a protocol
       error.
