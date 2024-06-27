@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2024-06-25T01:14:35.928495+00:00",
+  "timestamp": "2024-06-27T01:14:49.484033+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -14848,7 +14848,7 @@
       "id": "I_kwDOG2Ho4M6CXVKX",
       "title": "Errors in second example in section 6.3.4 of draft-03",
       "url": "https://github.com/moq-wg/moq-transport/issues/415",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "englishm",
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
@@ -14857,8 +14857,8 @@
       ],
       "body": "There are two issues with this example:\r\n\r\nhttps://github.com/moq-wg/moq-transport/blob/80a1fc4eec92a05439e473edb60dcea399b3ca62/draft-ietf-moq-transport.md?plain=1#L1153-L1185\r\n\r\n1. The Object id should be unique, not duplicated.\r\n2. We shouldn't be mixing different forwarding preferences within the same track, per earlier text in this same version of the draft:\r\n\r\nhttps://github.com/moq-wg/moq-transport/blob/80a1fc4eec92a05439e473edb60dcea399b3ca62/draft-ietf-moq-transport.md?plain=1#L975-L978",
       "createdAt": "2024-03-14T19:50:54Z",
-      "updatedAt": "2024-05-13T14:09:21Z",
-      "closedAt": null,
+      "updatedAt": "2024-06-25T15:08:24Z",
+      "closedAt": "2024-06-25T15:08:24Z",
       "comments": [
         {
           "author": "fluffy",
@@ -15138,10 +15138,12 @@
       "author": "fluffy",
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
-      "labels": [],
-      "body": "Note in the draft that raq QUIC can to 0-RTT moq setup but webtransport does not suppoir this. Add text to security section of why this is safe. ",
+      "labels": [
+        "Handshake"
+      ],
+      "body": "Note in the draft that raw QUIC can to 0-RTT moq setup but webtransport does not support this. Add text to security section of why this is safe. ",
       "createdAt": "2024-03-18T21:49:13Z",
-      "updatedAt": "2024-03-24T23:44:05Z",
+      "updatedAt": "2024-06-25T02:06:15Z",
       "closedAt": null,
       "comments": [
         {
@@ -16328,10 +16330,12 @@
       "author": "roticv",
       "authorAssociation": "NONE",
       "assignees": [],
-      "labels": [],
+      "labels": [
+        "Subscribe"
+      ],
       "body": "Draft 04 currently doesn't mention about sending any response when the SUBSCRIBE_UPDATE is successful or when it fails even though the draft hints on possible failures\r\n\r\n>   If Objects before the start or after the end of the current\r\n>   subscription are needed, a separate subscription can be made.  The\r\n>   start Object MUST NOT decrease and when it increases, there is no\r\n>   guarantee that a publisher will not have already sent Objects before\r\n>   the new start Object.  The end Object MUST NOT increase and when it\r\n>   decreases, there is no guarantee that a publisher will not have\r\n>   already sent Objects after the new end Object.\r\n\r\nThe above suggests that an error should be sent to inform the client that it is making invalid subscription updates.",
       "createdAt": "2024-06-17T18:15:10Z",
-      "updatedAt": "2024-06-18T17:17:56Z",
+      "updatedAt": "2024-06-25T02:03:50Z",
       "closedAt": null,
       "comments": [
         {
@@ -16393,11 +16397,12 @@
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [
-        "ABR"
+        "ABR",
+        "Transmission"
       ],
       "body": "There was a discussion at the interim about how having one or more priority values indicate less than best effort might be useful, and I believe client side ABR is a good use case.\r\n\r\nHow does a client decide to switch to a higher quality?  With the proposed priority scheme, the higher quality could be made lower priority, but it doesn't prevent higher quality data from consuming a large portion of the bandwidth and causing congestion that negatively impacts delivery of the lower quality.\r\n\r\nTo give a typical example, the client is considering switching to the next highest quality, which is 2x the high bitrate of the current video quality.  The current quality is consuming slightly more than 1/2 of the subscriber's bandwidth, so the subscriber will not have the bandwidth to switch to the higher quality.  Without caution, too much data could be sent and cause bufferbloat and/or loss.\r\n\r\nMy strawman proposal is that LBE means is that if the publisher only had LBE content to send, it would alter its behavior in terms of how much/when to send.  For example, the core BBR model sets the CWND to 2*BDP the vast majority of the time, but maybe LBE would not be sent unless CWND is < 1.5*BDP.  This ensures there is always CWND available for higher priority data.  Ideally BBR should be pacing limited, and when it's CWND limited, something is typically going poorly.",
       "createdAt": "2024-06-22T20:12:51Z",
-      "updatedAt": "2024-06-22T20:12:59Z",
+      "updatedAt": "2024-06-25T02:03:15Z",
       "closedAt": null,
       "comments": []
     },
@@ -16410,10 +16415,12 @@
       "author": "huitema",
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
-      "labels": [],
+      "labels": [
+        "Wire Format"
+      ],
       "body": "The messages defined in MoQ Transport include variable length components:\r\n\r\n* name space,\r\n* track name,\r\n* setup path,\r\n* go away URI,\r\n* authorization info,\r\n* number of supported versions,\r\n* number of setup or subscribe parameters.\r\n\r\nThese components have no specified maximum size, which opens an avenue for DOS attacks: start sending a message with components of arbitrary length, up to 2^62, and watch as the other endpoint allocates memory to hold the message. Application developers are very likely to mitigate the DOS attack by setting some limits, either to the global size of messages or to the size of individual components. We may expect different implementations to pick different limits, with a fairly good potential of causing interoperability issues.\r\n\r\nMaybe we should specify some limits.",
       "createdAt": "2024-06-24T15:37:25Z",
-      "updatedAt": "2024-06-24T18:40:39Z",
+      "updatedAt": "2024-06-25T02:02:56Z",
       "closedAt": null,
       "comments": [
         {
@@ -16441,10 +16448,12 @@
       "author": "huitema",
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
-      "labels": [],
+      "labels": [
+        "Wire Format"
+      ],
       "body": "The MoQ transport messages are encoded as a combination of varints, bit strings, and t-l-v objects. In the absence of a \"header length\" field, applications have to resort to trial parsing: accumulate some incoming bytes from the stream, try to parse those bytes as a message, and if that fail accumulate more bytes and retry. This may not be a huge problem in normal operation. The peer endpoint will compose a message and typically send those bytes all at once; the QUIC stack will deliver them all at once, but even so there may be cases where the QUIC stack cannot send them in a single STREAM_DATA messages, so the logic for \"accumulate and try\" has to be present.\r\n\r\nSuppose a peer sending its data one byte at a time, because it is either malicious or buggy. The length of the message cannot be computed before all components are parsed: the first byte of each varint defines its length, the length field of bits or bytes strings need to be parsed in full, then number of parameters or versions needs to be known. To obtain the length of a component, all components before it need to be parsed, which means that the number of trial parsing is typically a function of the number of components -- maybe an O(N2) function since the cost of each trial depends on the number of components before it. That number can be very large for messages including parameters, because the number of parameters cannot be known in advance -- the peer could send an arbitrary number of them in an attempt to \"greasing\". Parsing is a somewhat CPU intensive operation, which implies that trial parsing can be exploited for a mild DOS attack.\r\n\r\nPrepend a length field to messages would mitigate trial parsing, but I am not sure that we need to fix this. Having limits on message size would impose a de-facto limit on the processing cost of each message. A malicious attackers could send series of short messages such as \"subscribe updates\" to trigger the same CPU consumption. In typical QUIC stacks, the main CPU load comes form passing messages through the OS/app boundary in socket calls, and an attacker could DOS the target by sending series of short messages. The next component is the cost of encryption and decryption, compared to which the cost of trial decryption is probably small. We may decide to do nothing, but it would be nice in that case to have a documentation of the reasoning (as in this issue), and maybe a discussion of why the attack does not matter in the security section.\r\n\r\nAddressing the \"limits\" issue (#473) would also somewhat mitigate the problem, as limiting the \"number of parameters\" appears to be the main way to increase the number of components in messages.",
       "createdAt": "2024-06-24T16:02:12Z",
-      "updatedAt": "2024-06-24T21:05:29Z",
+      "updatedAt": "2024-06-25T02:02:38Z",
       "closedAt": null,
       "comments": [
         {
@@ -16500,10 +16509,12 @@
       "author": "ianswett",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
-      "labels": [],
+      "labels": [
+        "Transmission"
+      ],
       "body": "If two subscriptions have identical priority, the current way to ensure both receive enough data is based on the Object receipt time at the relay.\r\n\r\nIf one subscription experiences a large delay at any stage, which could even include delay in publication of one track vs another for the same content (ie: transcoding), it would be easy for them to become substantially out of sync, potentially impacting QoE, particularly for very low latency use cases.\r\n\r\nThree suggested ways forward include:\r\n 1) Decide this is not a problem we care to solve\r\n 2) Decide we want to enable syncing, but don't care about actual time\r\n 3) Decide we care about actual time for use cases like server-side ABR and include a relative timestamp",
       "createdAt": "2024-06-25T00:49:44Z",
-      "updatedAt": "2024-06-25T01:06:05Z",
+      "updatedAt": "2024-06-25T02:13:06Z",
       "closedAt": null,
       "comments": [
         {
@@ -16512,6 +16523,13 @@
           "body": "Individual comment:\r\n\r\nThis is a use case I care about, I\u2019d like to see a method of synchronization included in moqt. \r\n\r\nI don\u2019t have a strong preference about using time or not.",
           "createdAt": "2024-06-25T01:06:04Z",
           "updatedAt": "2024-06-25T01:06:04Z"
+        },
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "As an individual:\r\n\r\nI believe using the timestamp enables server side ABR, which I believe is valuable, but there may be other mechanisms that enable that.",
+          "createdAt": "2024-06-25T02:13:05Z",
+          "updatedAt": "2024-06-25T02:13:05Z"
         }
       ]
     }
@@ -60307,13 +60325,13 @@
       "labels": [],
       "body": "A tweaked version of #448 \r\n\r\nFixes #440\r\nCloses #450 \r\n\r\nI'll note that we might want to add params to TRACK_STATUS and allow this to be returned from that as well, which would allow a relay to keep it in its cache.\r\n\r\nAttempts to write down where we ended up at the end of the June 12th interim.",
       "createdAt": "2024-06-18T17:50:49Z",
-      "updatedAt": "2024-06-23T21:57:05Z",
+      "updatedAt": "2024-06-25T16:05:23Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
-      "baseRefOid": "12d4dc8687a219778db1c8f60f5a4aa94a852c37",
+      "baseRefOid": "36ff04b11862448de0b5fafb4d864f34def30041",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "ianswett-max-cache-param",
-      "headRefOid": "724f2d2a765c99b56d07dcef80385c6452b94d22",
+      "headRefOid": "daffbf012a134a96a4213e987b647f4fc954bc9c",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -60435,13 +60453,13 @@
       "labels": [],
       "body": "Adds a SUBSCRIBER_PRIORITY param that can be specified in SUBSCRIBE or SUBSCRIBE_UPDATE to indicate subscriber priority.  Adds Delivery Order to SUBSCRIBE to allow indicating Ascending or Descending.  Cleans up the existing priorities section and how Original Subscriber driven priorities are used.\r\n\r\nFixes #326 \r\nFixes #396 \r\nFixes #403\r\nFixes #419 \r\n\r\nCloses #445",
       "createdAt": "2024-06-22T16:35:36Z",
-      "updatedAt": "2024-06-25T00:20:09Z",
+      "updatedAt": "2024-06-26T22:41:32Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
-      "baseRefOid": "12d4dc8687a219778db1c8f60f5a4aa94a852c37",
+      "baseRefOid": "36ff04b11862448de0b5fafb4d864f34def30041",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "ianswett-uber-priority",
-      "headRefOid": "1bd6788b828fb48bf3e08bd95debc6561ed1f27d",
+      "headRefOid": "751c65e2876e24de03730132b8688ff02f30e2cb",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -60842,6 +60860,308 @@
               "updatedAt": "2024-06-25T00:20:09Z"
             }
           ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5_YpLC",
+          "commit": {
+            "abbreviatedOid": "c04f70e"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-06-25T02:06:52Z",
+          "updatedAt": "2024-06-25T02:06:52Z",
+          "comments": [
+            {
+              "originalPosition": 217,
+              "body": "I added a normative statement about the control stream being the highest priority, PTAL",
+              "createdAt": "2024-06-25T02:06:52Z",
+              "updatedAt": "2024-06-25T02:10:39Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5_h8TN",
+          "commit": {
+            "abbreviatedOid": "c04f70e"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "CHANGES_REQUESTED",
+          "body": "Few nits and clarification. Overall looking good. Thanks for the PR",
+          "createdAt": "2024-06-25T19:18:23Z",
+          "updatedAt": "2024-06-25T19:19:50Z",
+          "comments": [
+            {
+              "originalPosition": 91,
+              "body": "I wonder if we should add the note  on publisher preference here too",
+              "createdAt": "2024-06-25T19:18:23Z",
+              "updatedAt": "2024-06-25T19:19:50Z"
+            },
+            {
+              "originalPosition": 217,
+              "body": "It would be good to say, if all the subscriber priorities are equal , publisher priorirty is followed for the objects correspnding to the subscribed tracks ?\r\n",
+              "createdAt": "2024-06-25T19:19:28Z",
+              "updatedAt": "2024-06-25T21:34:25Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5_i5fo",
+          "commit": {
+            "abbreviatedOid": "c04f70e"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-06-25T21:01:34Z",
+          "updatedAt": "2024-06-25T21:04:35Z",
+          "comments": [
+            {
+              "originalPosition": 91,
+              "body": "@suhasHere : what's your suggestion?  Something like:\r\n\r\n`In the absence of other specific reasons, relays SHOULD give all upstream subscriptions equal priority`",
+              "createdAt": "2024-06-25T21:01:34Z",
+              "updatedAt": "2024-06-25T21:04:35Z"
+            },
+            {
+              "originalPosition": 217,
+              "body": "Line 553-555 is *close* to what your are asking but could be clarified.\r\n\r\nCurrent:\r\n\r\n> The Subscriber Priority is considered first when selecting\r\na subscription to send data on within a given session. The original\r\npublisher priority is considered next...\r\n\r\nMaybe:\r\n\r\n> The Subscriber Priority is considered first when selecting\r\na subscription to send data on within a given session. When two or more subscriptions have equal Subscriber Priority, the original\r\npublisher priority is considered next...",
+              "createdAt": "2024-06-25T21:04:28Z",
+              "updatedAt": "2024-06-25T21:04:35Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5_i8jg",
+          "commit": {
+            "abbreviatedOid": "c04f70e"
+          },
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-06-25T21:07:09Z",
+          "updatedAt": "2024-06-25T21:41:46Z",
+          "comments": [
+            {
+              "originalPosition": 45,
+              "body": "I think it's less confusing if you say publisher priority is per stream, instead of per track.",
+              "createdAt": "2024-06-25T21:09:33Z",
+              "updatedAt": "2024-06-25T21:41:46Z"
+            },
+            {
+              "originalPosition": 54,
+              "body": "Is this retroactive?",
+              "createdAt": "2024-06-25T21:10:05Z",
+              "updatedAt": "2024-06-25T21:41:46Z"
+            },
+            {
+              "originalPosition": 81,
+              "body": "A good reason to call it `Group Order` instead of `Delivery Order`; it doesn't apply to object ordering.",
+              "createdAt": "2024-06-25T21:12:11Z",
+              "updatedAt": "2024-06-25T21:41:46Z"
+            },
+            {
+              "originalPosition": 101,
+              "body": "A subscriber will often want to use the default publisher priority, so this isn't always true.",
+              "createdAt": "2024-06-25T21:15:04Z",
+              "updatedAt": "2024-06-25T21:41:46Z"
+            },
+            {
+              "originalPosition": 107,
+              "body": "I don't think this will work in practice. There's too many use-cases where publishers are not coordinated because they're using different software or versions. \r\n\r\nex. I want to show multiple Twitch streams on the same page. There's just no way that I can have OBS and ffmpeg agree to publish with the same priority scheme. It doesn't have to be malicious; one of the publishers is undoubtedly going to monopolize the connection.\r\n\r\nDialing a new connection is expensive and removes the ability to use subscriber priorities. I would totally agree with using multiple QUIC sessions if it had such a layer, but the alternative is WebTransport pooling...\r\n\r\nAnd yes, you could use subscriber priorities only to avoid this issue, but that's a big limitation that could be easily solved by sandboxing namespaces. Relays can't use the subscriber's priority anyway and will have to sandbox namespaces if using MoQ over the backbone.",
+              "createdAt": "2024-06-25T21:18:24Z",
+              "updatedAt": "2024-06-25T21:41:46Z"
+            },
+            {
+              "originalPosition": 162,
+              "body": "A proxy is a relay too.",
+              "createdAt": "2024-06-25T21:19:05Z",
+              "updatedAt": "2024-06-25T21:41:46Z"
+            },
+            {
+              "originalPosition": 220,
+              "body": "What about changing the group order too? It would be useful for toggling between reliable and unreliable playback.",
+              "createdAt": "2024-06-25T21:21:00Z",
+              "updatedAt": "2024-06-25T21:41:46Z"
+            },
+            {
+              "originalPosition": 75,
+              "body": "This is only true when groups have the same priority, since we're allowing the publisher priority to change per stream. ",
+              "createdAt": "2024-06-25T21:22:24Z",
+              "updatedAt": "2024-06-25T21:41:46Z"
+            },
+            {
+              "originalPosition": 87,
+              "body": "As briefly discussed at the interim, we also need the `Publisher Group Order` in SUBSCRIBE_OK and TRACK_STATUS. Relays should use that instead of the `Subscriber's Group Order`.",
+              "createdAt": "2024-06-25T21:24:21Z",
+              "updatedAt": "2024-06-25T21:41:46Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5_sNr7",
+          "commit": {
+            "abbreviatedOid": "6804eca"
+          },
+          "author": "janaiyengar",
+          "authorAssociation": "NONE",
+          "state": "COMMENTED",
+          "body": "A few suggestions",
+          "createdAt": "2024-06-26T15:55:55Z",
+          "updatedAt": "2024-06-26T16:24:04Z",
+          "comments": [
+            {
+              "originalPosition": 52,
+              "body": "This statement seems unnecessary. The para above says /how/ a sender uses priorities, what does this sentence add beyond that?",
+              "createdAt": "2024-06-26T15:55:55Z",
+              "updatedAt": "2024-06-26T16:24:04Z"
+            },
+            {
+              "originalPosition": 75,
+              "body": "```suggestion\r\nhighest Group Id SHOULD be sent first when multiple Groups are\r\n```",
+              "createdAt": "2024-06-26T15:56:41Z",
+              "updatedAt": "2024-06-26T16:24:04Z"
+            },
+            {
+              "originalPosition": 75,
+              "body": "Seems like \"Delivery Order\" is a misnomer, but that can be fixed separately.",
+              "createdAt": "2024-06-26T15:57:05Z",
+              "updatedAt": "2024-06-26T16:24:04Z"
+            },
+            {
+              "originalPosition": 211,
+              "body": "```suggestion\r\n* Group Send Order: Requests that objects be picked from Groups in the\r\nsubscription in Ascending (0x0) or Descending (0x1) order. See {{priorities}}.\r\nValues larger than 0x1 are a protocol error.\r\n```",
+              "createdAt": "2024-06-26T16:22:42Z",
+              "updatedAt": "2024-06-26T16:24:04Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5_u-sz",
+          "commit": {
+            "abbreviatedOid": "13d2e4c"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "I made some updates, though I haven't clarified the text about priority changing between streams on a subscription.  PTAL",
+          "createdAt": "2024-06-26T21:40:06Z",
+          "updatedAt": "2024-06-26T22:05:55Z",
+          "comments": [
+            {
+              "originalPosition": 54,
+              "body": "It is an update to the subscription, so it'd apply to any data available for sending on that subscription.",
+              "createdAt": "2024-06-26T21:40:06Z",
+              "updatedAt": "2024-06-26T22:05:56Z"
+            },
+            {
+              "originalPosition": 52,
+              "body": "It adds a SHOULD, but I can put that elsewhere",
+              "createdAt": "2024-06-26T21:41:16Z",
+              "updatedAt": "2024-06-26T22:05:55Z"
+            },
+            {
+              "originalPosition": 81,
+              "body": "Good point, renaming.",
+              "createdAt": "2024-06-26T21:43:54Z",
+              "updatedAt": "2024-06-26T22:05:56Z"
+            },
+            {
+              "originalPosition": 91,
+              "body": "I'm hesitant to spend text telling relays what to do, since they'll do what they want in reality.  Telling them what not to do because it's a footgun seems more valuable.",
+              "createdAt": "2024-06-26T21:51:45Z",
+              "updatedAt": "2024-06-26T22:05:56Z"
+            },
+            {
+              "originalPosition": 107,
+              "body": "This is all non-normative text intended to describe a potential problem.  I don't want to create yet another session layer in MoQ when there's already one in WebTransport and eventually there might be one in QUIC.  Different applications are different, and for some apps, multiple namespaces may be fine, and for others it's not.  Possibly there's a better way of saying that?",
+              "createdAt": "2024-06-26T21:55:13Z",
+              "updatedAt": "2024-06-26T22:05:56Z"
+            },
+            {
+              "originalPosition": 162,
+              "body": "The intent of this sentence is to make it clear that they're different.  Which I think is useful, because proxies typically have substantially different functionality.",
+              "createdAt": "2024-06-26T21:56:54Z",
+              "updatedAt": "2024-06-26T22:05:56Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5_vI1K",
+          "commit": {
+            "abbreviatedOid": "13d2e4c"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "Individual Review: \r\n\r\nYou're still planning the publisher original group order bit in Subscribe OK too?",
+          "createdAt": "2024-06-26T22:18:00Z",
+          "updatedAt": "2024-06-26T22:41:32Z",
+          "comments": [
+            {
+              "originalPosition": 36,
+              "body": "stream or datagram header ",
+              "createdAt": "2024-06-26T22:18:00Z",
+              "updatedAt": "2024-06-26T22:41:32Z"
+            },
+            {
+              "originalPosition": 43,
+              "body": "> When two or more tracks have equal subscriber priority, the original publisher priority is considered next",
+              "createdAt": "2024-06-26T22:18:55Z",
+              "updatedAt": "2024-06-26T22:41:32Z"
+            },
+            {
+              "originalPosition": 49,
+              "body": "It's not that `sub-pri == orig-pub-pri`, it's when `sub1.pri == sub2.pri` and `pub1.pri == pub2.pri`\r\n\r\n> When the subscriber and original publisher priorities for two or more tracks are both equal",
+              "createdAt": "2024-06-26T22:22:04Z",
+              "updatedAt": "2024-06-26T22:41:32Z"
+            },
+            {
+              "originalPosition": 45,
+              "body": "You will need to update this bit, since we agreed it's latest, not highest.",
+              "createdAt": "2024-06-26T22:22:59Z",
+              "updatedAt": "2024-06-26T22:41:32Z"
+            },
+            {
+              "originalPosition": 77,
+              "body": "I think we should revisit this for stream-per-object and datagram.  Forcing these to be in object ID order seems like a restriction of functionality that is not strictly required.",
+              "createdAt": "2024-06-26T22:24:08Z",
+              "updatedAt": "2024-06-26T22:41:32Z"
+            },
+            {
+              "originalPosition": 83,
+              "body": "s/Subscriber Priority/priority fields/ ?",
+              "createdAt": "2024-06-26T22:25:09Z",
+              "updatedAt": "2024-06-26T22:41:32Z"
+            },
+            {
+              "originalPosition": 107,
+              "body": "I'd rather say that a relay shouldn't compare publisher priorities from uncoordinated publishers, but comparing them from coordinate publishers is fine.  Within a namespace, we can assert all tracks have coordinated priority, but between two namespaces, it would presently have to be implementation dependent.  That said, it shouldn't be hard to fix - break off part of namespace into another tuple field (application or something).",
+              "createdAt": "2024-06-26T22:36:48Z",
+              "updatedAt": "2024-06-26T22:41:32Z"
+            },
+            {
+              "originalPosition": 107,
+              "body": "This section left intentionally blank?",
+              "createdAt": "2024-06-26T22:37:04Z",
+              "updatedAt": "2024-06-26T22:41:32Z"
+            },
+            {
+              "originalPosition": 162,
+              "body": "Why can't a relay be a 1:1 relay?  I'd just chop the sentence at\r\n\r\n> Relays are not required to cache Objects\r\n\r\nThe recently merged terminology says \r\n\r\n> Relay: An entitly that is both a Publisher and a Subscriber, but not the Original Publisher or End Subscriber.",
+              "createdAt": "2024-06-26T22:39:22Z",
+              "updatedAt": "2024-06-26T22:41:32Z"
+            },
+            {
+              "originalPosition": 220,
+              "body": "+1 add Group Order to Subscribe Update",
+              "createdAt": "2024-06-26T22:40:26Z",
+              "updatedAt": "2024-06-26T22:41:32Z"
+            }
+          ]
         }
       ]
     },
@@ -60850,7 +61170,7 @@
       "id": "PR_kwDOG2Ho4M5zYebU",
       "title": "Fix errors in OBJECT_STREAM example",
       "url": "https://github.com/moq-wg/moq-transport/pull/472",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "ianswett",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
@@ -60859,17 +61179,19 @@
       ],
       "body": "Fixes #415 \r\n\r\nThis was in another PR, but better to fix it separately.",
       "createdAt": "2024-06-24T15:21:07Z",
-      "updatedAt": "2024-06-24T21:05:56Z",
+      "updatedAt": "2024-06-25T15:08:23Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "12d4dc8687a219778db1c8f60f5a4aa94a852c37",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "ianswett-example-errors",
       "headRefOid": "23f4578de7d767fdec0f128d2076be81ad7b3029",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "closedAt": "2024-06-25T15:08:23Z",
+      "mergedAt": "2024-06-25T15:08:23Z",
+      "mergedBy": "ianswett",
+      "mergeCommit": {
+        "oid": "36ff04b11862448de0b5fafb4d864f34def30041"
+      },
       "comments": [],
       "reviews": [
         {
