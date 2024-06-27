@@ -1033,7 +1033,7 @@ close the session with a Duplicate Track Alias error ({{session-termination}}).
 other subscriptions in the same session. Lower numbers get higher priority.
 See {{priorities}}.
 
-* Group Order: Allows the subscriber to requests Objects be delivered in
+* Group Order: Allows the subscriber to request Objects be delivered in
 Ascending (0x1) or Descending (0x2) order by group. See {{priorities}}.
 A value of 0x0 indicates the original publisher's Group Order SHOULD be
 used. Values larger than 0x2 are a protocol error.
@@ -1089,6 +1089,7 @@ SUBSCRIBE_UPDATE Message {
   EndGroup (i),
   EndObject (i),
   Subscriber Priority (8),
+  Group Order (8),
   Number of Parameters (i),
   Subscribe Parameters (..) ...
 }
@@ -1111,6 +1112,11 @@ requested.
 * Subscriber Priority: Specifies the priority of a subscription relative to
 other subscriptions in the same session. Lower numbers get higher priority.
 See {{priorities}}.
+
+* Group Order: Allows the subscriber to request Objects be delivered in
+Ascending (0x1) or Descending (0x2) order by group. See {{priorities}}.
+A value of 0x0 indicates the original publisher's Group Order SHOULD be
+used. Values larger than 0x2 are a protocol error.
 
 * Subscribe Parameters: The parameters are defined in {{version-specific-params}}.
 
@@ -1530,7 +1536,7 @@ longer valid. A value of 0 indicates that the subscription does not expire
 or expires at an unknown time.  Expires is advisory and a subscription can
 end prior to the expiry time or last longer.
 
-* Group Order: Indicates the subscrption will be delivered in
+* Group Order: Indicates the subscription will be delivered in
 Ascending (0x1) or Descending (0x2) order by group. See {{priorities}}.
 Values of 0x0 and those larger than 0x2 are a protocol error.
 
