@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2024-06-27T01:14:49.484033+00:00",
+  "timestamp": "2024-06-30T01:20:39.814222+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -16125,7 +16125,7 @@
       "labels": [],
       "body": "Section 3.3 and 6.2 do not clearly  identify that `CLIENT_SETUP` is the first message over the control stream, sent by the client,  and that the server will wait till that arrives so that it can respond to it via a `SERVER_SETUP`. In section 6.2.1 under versions, it does indicate that the server responds to the client supported version list with a selected \"client\" version, which means that `SERVER_SETUP` is a response message to a `CLIENT_SETUP`. \r\n\r\nFor example... \r\n\r\n```mermaid\r\nsequenceDiagram\r\n    participant client\r\n    participant server\r\nclient ->>+server:QUIC connection\r\nserver -->>-client:QUIC established \r\nclient ->>+server:Create bi-dir stream\r\nclient ->>server:CLIENT_SETUP\r\nserver -->>-client:SERVER_SETUP\r\n``` \r\n\r\nHow long should/must the server wait for the `CLIENT_SETUP` message? QUIC level keep alives will keep the connection alive and the server will be stuck in lingering state for a `CLIENT_SETUP` message.  The client should also have some expected wait time for a  `SERVER_SETUP` response message.",
       "createdAt": "2024-06-06T18:03:28Z",
-      "updatedAt": "2024-06-14T17:57:35Z",
+      "updatedAt": "2024-06-29T18:24:41Z",
       "closedAt": null,
       "comments": [
         {
@@ -16134,6 +16134,13 @@
           "body": "Individual Comment: \r\n\r\nI don't think the draft should specify explicit timeouts for the peer to send a message, each implementation or application will define its own reasonable limits.  Perhaps we could mention the usefulness of timeouts in general in the security section?",
           "createdAt": "2024-06-14T17:57:34Z",
           "updatedAt": "2024-06-14T17:57:34Z"
+        },
+        {
+          "author": "TimEvens",
+          "authorAssociation": "NONE",
+          "body": "@afrind , At a minimum, yes... update the security section with the need to have timeouts because the lack of timeout enables DoS exploits.\r\n\r\nRegarding what the draft should indicate in terms of timeout... I believe timeouts will be implemented by every production implementation of MOQT relay.  Clients may get away without implementing a timeout ,but likely every production client will also have a timeout. Negotiating this timeout, such as via a CLIENT_SETUP/SERVER_SETUP would help to avoid error recovery responses to fast reconnect only to result in the same situation.  IMO, the MOQT draft **MUST** at minimum define a new termination reason code (**Section 3.5**) for the following:\r\n\r\n* `Receive Control Message Timeout` -    Timeout while processing the control message\r\n* `Receive Object Header Timeout` - Timeout while receiving the object datagram header, stream per object header, stream per track header, stream per group header, and the object data header in the case of stream per group or track.\r\n* `Received Object Payload Timeout` -  Timeout specifically relating to receiving the payload data per the object payload length\r\n\r\n",
+          "createdAt": "2024-06-29T18:21:28Z",
+          "updatedAt": "2024-06-29T18:24:41Z"
         }
       ]
     },
@@ -16175,7 +16182,7 @@
       "labels": [],
       "body": "We have a need to identify the endpoint that we are connecting with.  Both client and server need to be identified by both ends of the connection. We use this identifier to correlate metrics through all layers of the application.  Today we use this ID to build a topology graph (tree of publisher and subscribers) and their path through relays.  The ID is also used to inform clients which relay they have connected to, used for troubleshooting/debugs/etc.  The IP address or FQDN used to connect to the relay does not identify the actual relay instance connected to when the relay is behind a load balancer and/or anycast.  \r\n\r\nExample parameter text. \r\n\r\nENDPOINT_ID Parameter\r\n\r\nThe ENDPOINT_ID parameter (type 0x0x) is an optional setup parameter that identifies the endpoint sending the CLIENT_SETUP or SERVER_SETUP message. The value is a variable length binary byte array that is unique within the application defined scope.  The server MUST include an ENDPOINT_ID if CLIENT_SETUP sends it.  Servers include the endpoint ID in logs, metrics, and other reporting. \r\n\r\n> [!NOTE]\r\n> While endpoint is often identified in the track namespace, it cannot be used by the sever/relay when considering\r\n> the server/relay does not participate in the encoding scheme.  Relays do not have a specific track to identify\r\n> itself to the client, so the client doesn't know which relay it connects to.  Depending on application design, \r\n> namespace may not uniquely identify a specific endpoint/connection for logging/metrics/tracing/... Relay to relay peering also does not have dedicated tracks for themselves, leaving each relay unaware of which relay instance they are connected. ",
       "createdAt": "2024-06-06T18:30:20Z",
-      "updatedAt": "2024-06-20T04:04:44Z",
+      "updatedAt": "2024-06-29T17:46:00Z",
       "closedAt": null,
       "comments": [
         {
@@ -16184,6 +16191,13 @@
           "body": "I think it's fine to create a parameter like this, but unless there's a use of this ID elsewhere in the draft, it seems very application specific?  In general, I'm not excited about having endpoints send any information that isn't clearly actionable by the receiver.\r\n\r\nUnderstanding the topology is interesting, but currently we don't have a metrics collection system in moqt or any other use of such an identifier.",
           "createdAt": "2024-06-20T04:04:43Z",
           "updatedAt": "2024-06-20T04:04:43Z"
+        },
+        {
+          "author": "TimEvens",
+          "authorAssociation": "NONE",
+          "body": "@ianswett, Regardless of adding this right now or later, parameter types should be changed to an IANA registry that can then be updated easily with subsequent RFCs that go into details of the entry. The types should have a well known range for development/experimental. The current draft says to ignore unknown parameter types, which is one way to handle this, but it's not ideal when compliance that requires specific types. I suggest having the experimental range that can then be safely ignored. \r\n\r\n\r\nAdding endpoint_id to this draft saves time in having to write an immediate subsequent  RFC to update the IANA registry for endpoint_id.  Endpoint is very important for traceability as well as possibility replacing the need for `subscribe_id`, which I'll write another issue about.  \r\n\r\n\r\n",
+          "createdAt": "2024-06-29T17:45:58Z",
+          "updatedAt": "2024-06-29T17:45:58Z"
         }
       ]
     },
@@ -16532,6 +16546,46 @@
           "updatedAt": "2024-06-25T02:13:05Z"
         }
       ]
+    },
+    {
+      "number": 476,
+      "id": "I_kwDOG2Ho4M6N61LP",
+      "title": "SUBSCRIBE with absolute ranges and flow control",
+      "url": "https://github.com/moq-wg/moq-transport/issues/476",
+      "state": "OPEN",
+      "author": "vasilvv",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "This is another SUBSCRIBE-vs-FETCH issue, but with a specific implementation aspect of it.\r\n\r\nAssume I have a group-per-stream track.  I can subscribe to groups 1000 to 2000; it is entirely plausible that the publisher has all of those in cache immediately available, so in a naive implementation it can just open 1000 streams and start sending things; it would run into a flow control, and starve everything else on the connection.\r\n\r\nWe could set some limit on how many streams an individual subscription has, and that would be one way of solving this: if you set deliver order to ASC, you would process old streams first, and once those are processed (something we don't actually have a signal either), you'd start sending the next group.  Is this what we actually want?",
+      "createdAt": "2024-06-28T19:04:00Z",
+      "updatedAt": "2024-06-28T19:38:06Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Individual Comment:\r\n\r\n+1 to some kind of subscription level flow control or rate control when behind live head.  It's a problem for absolute start also.  The [moxygen date server](https://github.com/facebookexperimental/moxygen/tree/main/moxygen/samples/date) has groups going back to 1970, and I've hit this problem when I specify the wrong start group (eg: 0)",
+          "createdAt": "2024-06-28T19:38:05Z",
+          "updatedAt": "2024-06-28T19:38:05Z"
+        }
+      ]
+    },
+    {
+      "number": 477,
+      "id": "I_kwDOG2Ho4M6N-Ul7",
+      "title": "Unclear on sequence of control message responses",
+      "url": "https://github.com/moq-wg/moq-transport/issues/477",
+      "state": "OPEN",
+      "author": "TimEvens",
+      "authorAssociation": "NONE",
+      "assignees": [],
+      "labels": [],
+      "body": "Many control messages have a specific expected response that in some cases **MUST** happen before sending another control message involving the pending state of another, such as one relating to a namespace. It's unclear in the draft which messages require this and which do not. \r\n\r\nFor example the assumed behavior is shown below where the announce and announce_ok are exchanged before any other control message that would relate to that namespace.\r\n\r\n```mermaid\r\nsequenceDiagram\r\n    participant P as Publisher\r\n    participant R as \"Relay/Server\"\r\n \r\n    P->>R: ANNOUNCE namespace=ABC\r\n    R-->>P: ANNOUNCE_OK namespace=ABC    \r\n    Note right of P: Ready for subscriptions to tracks\r\n\r\n    R->>P: SUBSCRIBE (namespace=ABC, name=HDVideo)\r\n    P-->>R: SUBSCRIBE_OK (ok for HDVideo)\r\n    R->>P: SUBSCRIBE (namespace=ABC, name=SDVideo)\r\n    R->>P: SUBSCRIBE (namespace=ABC, name=LRVideo)\r\n    R->>P: SUBSCRIBE (namespace=ABC, name=AudioOpus)\r\n    P-->>R: SUBSCRIBE_OK (ok for SDvideo)\r\n    P-->>R: SUBSCRIBE_OK (ok for LRVideo)\r\n    P-->>R: SUBSCRIBE_OK (ok for AudioOpus)\r\n```\r\n\r\nBelow is the possible interpretability problem flow that could cause problems if not clearly articulated in MOQT. The below shows that the implementations assumes that the namespace is not available/exist unless it's been OK'd first. Any subscribes that arrive while pending OK result in error. \r\n\r\n```mermaid\r\nsequenceDiagram\r\n    participant P as Publisher\r\n    participant R as \"Relay/Server\"\r\n \r\n    P->>R: ANNOUNCE namespace=ABC\r\n\r\n    R->>P: SUBSCRIBE (namespace=ABC, name=HDVideo)\r\n    P-->>R: SUBSCRIBE_ERROR (NOT EXIST)\r\n    R->>P: SUBSCRIBE (namespace=ABC, name=SDVideo)\r\n    P-->>R: SUBSCRIBE_ERROR (NOT EXIST)\r\n    R->>P: SUBSCRIBE (namespace=ABC, name=LRVideo)\r\n    P-->>R: SUBSCRIBE_ERROR (NOT EXIST)\r\n    R->>P: SUBSCRIBE (namespace=ABC, name=AudioOpus)\r\n    P-->>R: SUBSCRIBE_ERROR (NOT EXIST)\r\n    R-->>P: ANNOUNCE_OK namespace=ABC    \r\n\r\n    Note right of P: Sadly now we are ready to accept subscriptions\r\n```\r\n\r\nWhat I would like to see is that we should accept subscriptions while waiting for the announce OK. The fact that the subsription was sent by the relay indicates that an OK will follow at some point. Maybe the implementation will hold off on actually sending data for those subscribes till it gets the announce OK, but at least it will accept those subscribes so that the relay doesn't have to subscribe in trial and error fashion. \r\n\r\nI use the `ANNOUNCE` flow as an example above, but the problem in MOQT not clearly defining the flows of requests and responses allowed prior to other requests exposes interpretability challenges.  \r\n\r\nFor example, `SUBSCRIBE_DONE` is not clearly defined as informational, but it appears that it is. SUBSCRIBE_DONE is a way for the publisher to indicate it's done sending on a track (namespace + name = fullname = track alias), but there is no mention that an `UNSUBSCRIBE` should be issued in response to that. The lack of sending the unsubscribe means that the relay will still have state that the subscription is still active with the publisher regardless of the publisher sending SUBSCRIBE_DONE.\r\n\r\n If or when the publisher decides to send again on the track the subscription is still valid and should resume as it was before. But that's a **BIG IF** as some implementers may treat sending a SUBSCRIBE_DONE as if it equaled UNSUBSCRIBE... hence requiring the relay/server to subscribe again after the SUBSCRIBE_DONE.  This is not good for interoperability. \r\n \r\nAn example of how this could become a real-world problem is when a user disables their camera for a little while, which results in the publisher sending a SUBSCRIBE _DONE, but then shortly later the user enables the camera... \r\n\r\n",
+      "createdAt": "2024-06-29T19:02:17Z",
+      "updatedAt": "2024-06-29T19:21:20Z",
+      "closedAt": null,
+      "comments": []
     }
   ],
   "pulls": [
@@ -60453,13 +60507,13 @@
       "labels": [],
       "body": "Adds a SUBSCRIBER_PRIORITY param that can be specified in SUBSCRIBE or SUBSCRIBE_UPDATE to indicate subscriber priority.  Adds Delivery Order to SUBSCRIBE to allow indicating Ascending or Descending.  Cleans up the existing priorities section and how Original Subscriber driven priorities are used.\r\n\r\nFixes #326 \r\nFixes #396 \r\nFixes #403\r\nFixes #419 \r\n\r\nCloses #445",
       "createdAt": "2024-06-22T16:35:36Z",
-      "updatedAt": "2024-06-26T22:41:32Z",
+      "updatedAt": "2024-06-28T17:08:15Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "36ff04b11862448de0b5fafb4d864f34def30041",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "ianswett-uber-priority",
-      "headRefOid": "751c65e2876e24de03730132b8688ff02f30e2cb",
+      "headRefOid": "a6ed5ef0c5d302cdaca9cd5e7c603eb07b9d7247",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -61160,6 +61214,324 @@
               "body": "+1 add Group Order to Subscribe Update",
               "createdAt": "2024-06-26T22:40:26Z",
               "updatedAt": "2024-06-26T22:41:32Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5_v16d",
+          "commit": {
+            "abbreviatedOid": "751c65e"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-06-27T01:52:22Z",
+          "updatedAt": "2024-06-27T01:52:22Z",
+          "comments": [
+            {
+              "originalPosition": 220,
+              "body": "I worry that could create a number of edge cases.  A large benefit of SUBSCRIBE_UPDATE vs UNSUBSCRIBE/SUBSCRIBE is it avoids missing Objects or double-sending Objects.\r\n\r\nBut I'm not writing the code, so if you think it's useful and won't add unnecessary complexity, I'll add it.",
+              "createdAt": "2024-06-27T01:52:22Z",
+              "updatedAt": "2024-06-27T01:52:22Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5_9IJo",
+          "commit": {
+            "abbreviatedOid": "a6ed5ef"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "Individual Comment",
+          "createdAt": "2024-06-28T00:17:13Z",
+          "updatedAt": "2024-06-28T00:18:29Z",
+          "comments": [
+            {
+              "originalPosition": 220,
+              "body": "Omitting this from subscribe update in favor of unsub/sub is ok, but you might want to add a note that it's intentional.",
+              "createdAt": "2024-06-28T00:17:13Z",
+              "updatedAt": "2024-06-28T00:18:29Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5_-X1t",
+          "commit": {
+            "abbreviatedOid": "a6ed5ef"
+          },
+          "author": "englishm",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-06-28T05:18:14Z",
+          "updatedAt": "2024-06-28T05:18:14Z",
+          "comments": [
+            {
+              "originalPosition": 95,
+              "body": "We may have a problem here. If we expect aggregating relays to not forward subscriber priority preferences, then, in fact, all middle hops are likely to fall to publisher priority and may incentivize priority inflation. On the other hand, relays are going to do what they're going to do, and, it's possible that publisher priorities may be ignored for middle hops in practice.",
+              "createdAt": "2024-06-28T05:18:14Z",
+              "updatedAt": "2024-06-28T05:18:14Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5_-Zwg",
+          "commit": {
+            "abbreviatedOid": "a6ed5ef"
+          },
+          "author": "englishm",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-06-28T05:25:57Z",
+          "updatedAt": "2024-06-28T05:25:57Z",
+          "comments": [
+            {
+              "originalPosition": 162,
+              "body": "This gets a bit off topic, but I think the more important property of a relay is that it republishes tracks from an upstream publisher without modification. I think there may be another entity we could define which could consume one or more tracks from upstream publishers and act as the original publisher for some new tracks (e.g. in the case of \"manifest manipulation\" use cases at the edge), but I think that's something we should discuss separately.",
+              "createdAt": "2024-06-28T05:25:57Z",
+              "updatedAt": "2024-06-28T05:25:57Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M5_-bW5",
+          "commit": {
+            "abbreviatedOid": "a6ed5ef"
+          },
+          "author": "englishm",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-06-28T05:31:13Z",
+          "updatedAt": "2024-06-28T05:31:13Z",
+          "comments": [
+            {
+              "originalPosition": 162,
+              "body": "As for this bit of text, I'm fine with it either way. To me, it makes explicit that relays may optionally be relatively stateless fan out nodes without any significant local caches, so long as they still allow downstream subscribers to subscribe to tracks from an upstream publisher.",
+              "createdAt": "2024-06-28T05:31:13Z",
+              "updatedAt": "2024-06-28T05:31:13Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6ADDDn",
+          "commit": {
+            "abbreviatedOid": "a6ed5ef"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-06-28T15:11:28Z",
+          "updatedAt": "2024-06-28T15:11:29Z",
+          "comments": [
+            {
+              "originalPosition": 45,
+              "body": "I feel this is right as it is worded .. ",
+              "createdAt": "2024-06-28T15:11:28Z",
+              "updatedAt": "2024-06-28T15:11:29Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6ADSeK",
+          "commit": {
+            "abbreviatedOid": "a6ed5ef"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-06-28T15:41:27Z",
+          "updatedAt": "2024-06-28T15:41:27Z",
+          "comments": [
+            {
+              "originalPosition": 107,
+              "body": "+1 on filling this with the psuedo-code .. ",
+              "createdAt": "2024-06-28T15:41:27Z",
+              "updatedAt": "2024-06-28T15:41:27Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6ADVeH",
+          "commit": {
+            "abbreviatedOid": "a6ed5ef"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-06-28T15:47:41Z",
+          "updatedAt": "2024-06-28T15:47:41Z",
+          "comments": [
+            {
+              "originalPosition": 107,
+              "body": "I agree with Ian. it is tough to be prescriptive and the proposed text pretty much is well defined",
+              "createdAt": "2024-06-28T15:47:41Z",
+              "updatedAt": "2024-06-28T15:47:42Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6ADWg2",
+          "commit": {
+            "abbreviatedOid": "a6ed5ef"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-06-28T15:50:16Z",
+          "updatedAt": "2024-06-28T15:50:16Z",
+          "comments": [
+            {
+              "originalPosition": 220,
+              "body": "+1 to @ianswett ",
+              "createdAt": "2024-06-28T15:50:16Z",
+              "updatedAt": "2024-06-28T15:50:16Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6ADW1c",
+          "commit": {
+            "abbreviatedOid": "a6ed5ef"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-06-28T15:51:02Z",
+          "updatedAt": "2024-06-28T15:51:02Z",
+          "comments": [
+            {
+              "originalPosition": 221,
+              "body": "I don't think we need this in Subscribe_Update. ",
+              "createdAt": "2024-06-28T15:51:02Z",
+              "updatedAt": "2024-06-28T15:51:02Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6ADCd1",
+          "commit": {
+            "abbreviatedOid": "a6ed5ef"
+          },
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "Ian, I think this does an great job of covering what we agreed to the the interim. Thank you for the hard work on it. Few comments on things that I think could be a bit clearer and one small thing that seemed under specified. ",
+          "createdAt": "2024-06-28T15:10:11Z",
+          "updatedAt": "2024-06-28T15:54:58Z",
+          "comments": [
+            {
+              "originalPosition": 49,
+              "body": "given we use \"send order\" to talk about Ascending / Descending, I got confused when I read this. I think it could be less confusing to replace \"send order\" with \"track selected to send next object\" or something like that. ",
+              "createdAt": "2024-06-28T15:10:11Z",
+              "updatedAt": "2024-06-28T15:54:59Z"
+            },
+            {
+              "originalPosition": 45,
+              "body": "We agreed on highest at this point, the latest is for other part. So I think this is correct as written here. Just to reason about this this, think about a track being send stream per object where publisher priorities changed. I don't think publisher priority is per stream - to start with it is for datagrams too. ",
+              "createdAt": "2024-06-28T15:12:52Z",
+              "updatedAt": "2024-06-28T15:54:59Z"
+            },
+            {
+              "originalPosition": 77,
+              "body": "This seems correct as written and covers the case where the publisher priority is the same but we need to also cover the case where where publisher priorities are not the same in which  case publisher priority determines which is sent first. This may just be implied here but better to say. ",
+              "createdAt": "2024-06-28T15:16:25Z",
+              "updatedAt": "2024-06-28T15:54:59Z"
+            },
+            {
+              "originalPosition": 36,
+              "body": "Agree with Alan ",
+              "createdAt": "2024-06-28T15:17:56Z",
+              "updatedAt": "2024-06-28T15:54:59Z"
+            },
+            {
+              "originalPosition": 54,
+              "body": "I imagine lots of implementations would  not apply the new priority to data that had already been send or queued to the outgoing QUIC stream and certainly not to UDP datagrams already sent to the OS kernel.  So I think this is a quality of implementation and implementation choice. ",
+              "createdAt": "2024-06-28T15:28:25Z",
+              "updatedAt": "2024-06-28T15:54:59Z"
+            },
+            {
+              "originalPosition": 67,
+              "body": "This seems slightly under specified. If a last mile relay received two different values in both SUBSCRIBE and SUBSCRIBE_OK, we need to say which one takes priority.  We agreed on the end subscriber would take priority so this should have a bit more text to say value in SUBSCRIBE overrides in value in SUBSCRIBE_OK.",
+              "createdAt": "2024-06-28T15:31:30Z",
+              "updatedAt": "2024-06-28T15:54:59Z"
+            },
+            {
+              "originalPosition": 83,
+              "body": "I like original text better because priority fields seems a bit undefined to me. ",
+              "createdAt": "2024-06-28T15:33:26Z",
+              "updatedAt": "2024-06-28T15:54:59Z"
+            },
+            {
+              "originalPosition": 95,
+              "body": "I get what you are saying here but relays have to deal with a reasonable solution to this just to even be able to run lots of different applications on the same relay network even when application never have more than one namespace. I think there are two keys parts of this 1) we are not trying to specify how a relay network moves data around inside the relays and 2) relays will do what relays do. \r\n\r\nSo thought relays could have if they don't think about this problem, I don't think we can say much more that this. ",
+              "createdAt": "2024-06-28T15:41:23Z",
+              "updatedAt": "2024-06-28T15:54:59Z"
+            },
+            {
+              "originalPosition": 107,
+              "body": "Alan, I don't think that would help, that just moves the same problem to the next layer and it would be turtles all the way down. The basic issue is when a content delivery network delivers content for lots of different applications/customers, it needs to decide how it will be \"fair\" between the application/customers and that is way more complicated that just use whatever the priority header asked for. ",
+              "createdAt": "2024-06-28T15:47:02Z",
+              "updatedAt": "2024-06-28T15:54:59Z"
+            },
+            {
+              "originalPosition": 220,
+              "body": "Luke, I thought you were complaining about too many options :-)  I don't see the use case with this but at first glance does not seem like it would complicated the implementation too much so I am fine with it getting added. ",
+              "createdAt": "2024-06-28T15:52:28Z",
+              "updatedAt": "2024-06-28T15:54:59Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6ADqjI",
+          "commit": {
+            "abbreviatedOid": "a6ed5ef"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "Individual Comments: \r\n\r\nBuried in here is a proposal for a different algorithm to resolve the priority of a track when it has multiple different priorities in flight.",
+          "createdAt": "2024-06-28T16:28:39Z",
+          "updatedAt": "2024-06-28T17:08:15Z",
+          "comments": [
+            {
+              "originalPosition": 45,
+              "body": "> We agreed on highest at this point, the latest is for other part.\r\n\r\nThis was part of the discussion from Wednesday's call.  The consensus was that using highest priority value in the track to select a track does not work well.  If you use highest, then priority can only be increased and not decreased.  \r\n\r\nExample, assume two tracks, stream-per-group and each has 2 groups to send from:\r\nTrack A: group1, pri=1; group2, pri=2\r\nTrack B: group1, pri=2; group2, pri=1\r\n\r\nUsing max, the algorithm would treat these tracks with *equal* priority, and move to another tiebreaker.\r\n\r\nThe room felt (I think unanimously) that the most recent value should set the track priority, so in the above example, Track B would be higher than Track A.  Which group from Track B is determined by the group-send-order.\r\n\r\nReflecting more, I think logically what bits we want to send in the above example depends on the group order.  If using ascending groups, a track's priority is the priority of it's lowest group to send and if descending, a track's priority is the priority of it's highest group to send.  Now, if Track A and Track B are both ascending, A > B.  If they are both descending, B > A.  If they mismatch, it is a tie.\r\n\r\nWhen using stream/datagram-per-object, the priority of a group is the highest priority among queued object for that group.\r\n\r\nThat feels right to me but the implementation might be complex to implement.",
+              "createdAt": "2024-06-28T16:28:39Z",
+              "updatedAt": "2024-06-28T17:08:15Z"
+            },
+            {
+              "originalPosition": 77,
+              "body": "Ah I missed \"...and the same priority level\".\r\n\r\nThat may be workable - it affords an option to create a \"virtual layer\" within the track, which may be what Mo was asking for re temporal scalability?\r\n\r\neg: 30 fps objects get `pri=<track priority>` and 60 fps objects get `pri=<track priority> + 1`\r\n\r\n",
+              "createdAt": "2024-06-28T16:39:34Z",
+              "updatedAt": "2024-06-28T17:08:15Z"
+            },
+            {
+              "originalPosition": 83,
+              "body": "Not needed anymore, the text now specifies both fields explicitly.",
+              "createdAt": "2024-06-28T16:41:46Z",
+              "updatedAt": "2024-06-28T17:08:15Z"
+            },
+            {
+              "originalPosition": 107,
+              "body": "I agree with Luke that saying \"this won't be a problem\" is not good.  We should say that there's some risk to blindly comparing publisher priorities when you don't know if they are coordinated, caveat emptor.",
+              "createdAt": "2024-06-28T16:47:59Z",
+              "updatedAt": "2024-06-28T17:08:15Z"
+            },
+            {
+              "originalPosition": 107,
+              "body": "I'm ok landing without the pseudo code and filling later, but the blank section is odd.",
+              "createdAt": "2024-06-28T16:49:34Z",
+              "updatedAt": "2024-06-28T17:08:15Z"
             }
           ]
         }
