@@ -545,10 +545,10 @@ subscribed Objects.
 
 The subscriber indicates the priority of a subscription via the
 Subscriber Priority field and the original publisher indicates priority
-in every stream header.  As such, the subscriber's priority is a property
-of the subscription and the original publisher's priority is a property
-of the Track and the Objects it contains. In both cases, a lower value
-indicates a higher priority, with 0 being the highest priority.
+in every stream or datagram header.  As such, the subscriber's priority is a
+property of the subscription and the original publisher's priority is a
+property of the Track and the Objects it contains. In both cases, a lower
+value indicates a higher priority, with 0 being the highest priority.
 
 The Subscriber Priority is considered first when selecting
 a subscription to send data on within a given session. The original
