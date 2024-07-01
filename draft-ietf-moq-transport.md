@@ -583,9 +583,10 @@ instead an UNSUBSCRIBE and SUBSCRIBE can be used.
 Relays SHOULD respect the subscriber and original publisher's priorities.
 Relays SHOULD NOT directly use Subscriber Priority or Group Order
 from incoming subscriptions for upstream subscriptions. Relays use of
-Subscriber Priority for upstream subscriptions is based on
-a number of factors specific to it, such as the popularity of the
-content or policy.
+Subscriber Priority for upstream subscriptions can be based on
+factors specific to it, such as the popularity of the
+content or policy, or relays can specify the same value for all
+upstream subscriptions.
 
 MoQ Sessions can span multiple namespaces, and priorities are treated
 equally, regardless of the namespace.  The subscriber's priority is
