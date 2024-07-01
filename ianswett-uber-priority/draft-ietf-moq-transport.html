@@ -1998,7 +1998,9 @@ had data at priority 6 and priority 10 to send, the subscription priority would
 be 6. When both the subscriber and original publisher priorities for a
 subscription are equal, send order is implementation-dependent, but the
 expectation is that all subscriptions will be able to send some data.<a href="#section-4-4" class="pilcrow">¶</a></p>
-<p id="section-4-5">The subscriber's priority can be changed via a SUBSCRIBE_UPDATE message.<a href="#section-4-5" class="pilcrow">¶</a></p>
+<p id="section-4-5">The subscriber's priority can be changed via a SUBSCRIBE_UPDATE message.
+This updates the priority of all unsent data within the subscription,
+though the details of the reprioitization are implementation-specific.<a href="#section-4-5" class="pilcrow">¶</a></p>
 <p id="section-4-6">In addition, SUBSCRIBE or SUBSCRIBE_OK specifies a Group Order of
 either 'Ascending' or 'Descending', which indicates whether the lowest or
 highest Group Id <span class="bcp14">SHOULD</span> be sent first when multiple Groups are

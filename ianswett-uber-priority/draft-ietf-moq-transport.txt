@@ -607,7 +607,9 @@ Table of Contents
    data.
 
    The subscriber's priority can be changed via a SUBSCRIBE_UPDATE
-   message.
+   message.  This updates the priority of all unsent data within the
+   subscription, though the details of the reprioitization are
+   implementation-specific.
 
    In addition, SUBSCRIBE or SUBSCRIBE_OK specifies a Group Order of
    either 'Ascending' or 'Descending', which indicates whether the
