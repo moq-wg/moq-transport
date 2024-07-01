@@ -588,11 +588,11 @@ factors specific to it, such as the popularity of the
 content or policy, or relays can specify the same value for all
 upstream subscriptions.
 
-MoQ Sessions can span multiple namespaces, and priorities are treated
-equally, regardless of the namespace.  The subscriber's priority is
-considered first, so there is no incentive for the original publisher
-to attempt to prioritize all of its Tracks higher than another
-namespace.  Additionally, it is anticipated that when multiple namespaces
+MoQ Sessions can span multiple namespaces, and priorities may or may not
+be coordinated across namespaces.  The subscriber's priority is
+considered first, so there is a mechanism for a subscriber to fix
+incompatibilities between different namespaces prioritization schemes.
+Additionally, it is anticipated that when multiple namespaces
 are present within a session, the namespaces could be coordinating,
 possibly part of the same application.  In cases when pooling among
 namespaces is expected to cause issues, multiple MoQ sessions, either
