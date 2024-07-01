@@ -2001,13 +2001,17 @@ expectation is that all subscriptions will be able to send some data.<a href="#s
 <p id="section-4-5">The subscriber's priority can be changed via a SUBSCRIBE_UPDATE message.
 This updates the priority of all unsent data within the subscription,
 though the details of the reprioitization are implementation-specific.<a href="#section-4-5" class="pilcrow">¶</a></p>
-<p id="section-4-6">In addition, SUBSCRIBE or SUBSCRIBE_OK specifies a Group Order of
-either 'Ascending' or 'Descending', which indicates whether the lowest or
-highest Group Id <span class="bcp14">SHOULD</span> be sent first when multiple Groups are
-available to send.<a href="#section-4-6" class="pilcrow">¶</a></p>
-<p id="section-4-7">Within the same group, and the same priority level,
-objects with a lower Object Id are always sent before objects with a
-higher Object Id, regardless of the specified Group Order.<a href="#section-4-7" class="pilcrow">¶</a></p>
+<p id="section-4-6">Subscriptions have a Group Order of either 'Ascending' or 'Descending',
+which indicates whether the lowest or highest Group Id <span class="bcp14">SHOULD</span> be sent first
+when multiple Groups are available to send.  A subscriber can specify either
+'Ascending' or 'Descending' in the SUBSCRIBE message or they can specify they
+want to use the Original Publisher's Group Order, which is indicated in
+the corresponding SUBSCRIBE_OK.<a href="#section-4-6" class="pilcrow">¶</a></p>
+<p id="section-4-7">Within the same Group, and the same priority level,
+Objects with a lower Object Id are always sent before objects with a
+higher Object Id, regardless of the specified Group Order. If the priority
+varies within a Group, higher priority Objects are sent before lower
+priority Objects.<a href="#section-4-7" class="pilcrow">¶</a></p>
 <p id="section-4-8">The Group Order cannot be changed via a SUBSCRIBE_UPDATE message, and
 instead an UNSUBSCRIBE and SUBSCRIBE can be used.<a href="#section-4-8" class="pilcrow">¶</a></p>
 <p id="section-4-9">Relays <span class="bcp14">SHOULD</span> respect the subscriber and original publisher's priorities.

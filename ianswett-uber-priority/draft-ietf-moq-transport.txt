@@ -611,14 +611,19 @@ Table of Contents
    subscription, though the details of the reprioitization are
    implementation-specific.
 
-   In addition, SUBSCRIBE or SUBSCRIBE_OK specifies a Group Order of
-   either 'Ascending' or 'Descending', which indicates whether the
-   lowest or highest Group Id SHOULD be sent first when multiple Groups
-   are available to send.
+   Subscriptions have a Group Order of either 'Ascending' or
+   'Descending', which indicates whether the lowest or highest Group Id
+   SHOULD be sent first when multiple Groups are available to send.  A
+   subscriber can specify either 'Ascending' or 'Descending' in the
+   SUBSCRIBE message or they can specify they want to use the Original
+   Publisher's Group Order, which is indicated in the corresponding
+   SUBSCRIBE_OK.
 
-   Within the same group, and the same priority level, objects with a
+   Within the same Group, and the same priority level, Objects with a
    lower Object Id are always sent before objects with a higher Object
-   Id, regardless of the specified Group Order.
+   Id, regardless of the specified Group Order.  If the priority varies
+   within a Group, higher priority Objects are sent before lower
+   priority Objects.
 
    The Group Order cannot be changed via a SUBSCRIBE_UPDATE message, and
    instead an UNSUBSCRIBE and SUBSCRIBE can be used.
