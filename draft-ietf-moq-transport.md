@@ -588,9 +588,6 @@ possibly part of the same application.  In cases when pooling among
 namespaces is expected to cause issues, multiple MoQ sessions, either
 within a single connection or on multiple connections can be used.
 
-## Priority Algorithm
-
-
 
 # Relays {#relays-moq}
 
