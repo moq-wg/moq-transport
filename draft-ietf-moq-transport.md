@@ -597,9 +597,7 @@ similar in functionality to Content Delivery Networks
 (CDNs). Additionally, relays serve as policy enforcement points by
 validating subscribe and publish requests at the edge of a network.
 
-Relays are not required to cache Objects, but relays need to have
-the ability to distribute one upstream subscription to multiple
-downstream subscriptions.
+Relays can cache Objects, but are not required to.
 
 ## Subscriber Interactions
 
