@@ -561,6 +561,8 @@ subscription are equal, send order is implementation-dependent, but the
 expectation is that all subscriptions will be able to send some data.
 
 The subscriber's priority can be changed via a SUBSCRIBE_UPDATE message.
+This updates the priority of all unsent data within the subscription,
+though the details of the reprioitization are implementation-specific.
 
 In addition, SUBSCRIBE or SUBSCRIBE_OK specifies a Group Order of
 either 'Ascending' or 'Descending', which indicates whether the lowest or
