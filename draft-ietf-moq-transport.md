@@ -588,7 +588,7 @@ factors specific to it, such as the popularity of the
 content or policy, or relays can specify the same value for all
 upstream subscriptions.
 
-MoQ Sessions can span multiple namespaces, and priorities may or may not
+MoQ Sessions can span multiple namespaces, and priorities might not
 be coordinated across namespaces.  The subscriber's priority is
 considered first, so there is a mechanism for a subscriber to fix
 incompatibilities between different namespaces prioritization schemes.
