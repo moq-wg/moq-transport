@@ -551,12 +551,12 @@ property of the Track and the Objects it contains. In both cases, a lower
 value indicates a higher priority, with 0 being the highest priority.
 
 The Subscriber Priority is considered first when selecting
-a subscription to send data on within a given session. The original
-publisher priority is considered next and can change within the track,
-so subscriptions are prioritized based on the highest priority data
-available to send. For example, if the subscription had data at
-priority 6 and priority 10 to send, the subscription priority would be 6.
-When both the subscriber and original publisher priorities for a
+a subscription to send data on within a given session. When two or more tracks
+have equal subscriber priority, the original publisher priority is considered
+next and can change within the track, so subscriptions are prioritized based
+on the highest priority data available to send. For example, if the subscription
+had data at priority 6 and priority 10 to send, the subscription priority would
+be 6. When both the subscriber and original publisher priorities for a
 subscription are equal, send order is implementation-dependent, but the
 expectation is that all subscriptions will be able to send some data.
 
