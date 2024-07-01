@@ -95,7 +95,6 @@ Table of Contents
      3.5.  Termination
      3.6.  Migration
    4.  Priorities
-     4.1.  Priority Algorithm
    5.  Relays
      5.1.  Subscriber Interactions
      5.2.  Publisher Interactions
@@ -636,8 +635,6 @@ Table of Contents
    pooling among namespaces is expected to cause issues, multiple MoQ
    sessions, either within a single connection or on multiple
    connections can be used.
-
-4.1.  Priority Algorithm
 
 5.  Relays
 
