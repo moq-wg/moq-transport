@@ -573,6 +573,9 @@ Within the same group, and the same priority level,
 objects with a lower Object Id are always sent before objects with a
 higher Object Id, regardless of the specified Group Order.
 
+The Group Order cannot be changed via a SUBSCRIBE_UPDATE message, and
+instead an UNSUBSCRIBE and SUBSCRIBE can be used.
+
 Relays SHOULD respect the subscriber and original publisher's priorities.
 Relays SHOULD NOT directly use Subscriber Priority or Group Order
 from incoming subscriptions for upstream subscriptions. Relays use of
