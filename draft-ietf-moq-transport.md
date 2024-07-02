@@ -1094,7 +1094,6 @@ SUBSCRIBE_UPDATE Message {
   EndGroup (i),
   EndObject (i),
   Subscriber Priority (8),
-  Group Order (8),
   Number of Parameters (i),
   Subscribe Parameters (..) ...
 }
@@ -1117,11 +1116,6 @@ requested.
 * Subscriber Priority: Specifies the priority of a subscription relative to
 other subscriptions in the same session. Lower numbers get higher priority.
 See {{priorities}}.
-
-* Group Order: Allows the subscriber to request Objects be delivered in
-Ascending (0x1) or Descending (0x2) order by group. See {{priorities}}.
-A value of 0x0 indicates the original publisher's Group Order SHOULD be
-used. Values larger than 0x2 are a protocol error.
 
 * Subscribe Parameters: The parameters are defined in {{version-specific-params}}.
 
