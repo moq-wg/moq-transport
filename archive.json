@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2024-06-30T01:20:39.814222+00:00",
+  "timestamp": "2024-07-02T01:15:23.964199+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -16584,6 +16584,24 @@
       "body": "Many control messages have a specific expected response that in some cases **MUST** happen before sending another control message involving the pending state of another, such as one relating to a namespace. It's unclear in the draft which messages require this and which do not. \r\n\r\nFor example the assumed behavior is shown below where the announce and announce_ok are exchanged before any other control message that would relate to that namespace.\r\n\r\n```mermaid\r\nsequenceDiagram\r\n    participant P as Publisher\r\n    participant R as \"Relay/Server\"\r\n \r\n    P->>R: ANNOUNCE namespace=ABC\r\n    R-->>P: ANNOUNCE_OK namespace=ABC    \r\n    Note right of P: Ready for subscriptions to tracks\r\n\r\n    R->>P: SUBSCRIBE (namespace=ABC, name=HDVideo)\r\n    P-->>R: SUBSCRIBE_OK (ok for HDVideo)\r\n    R->>P: SUBSCRIBE (namespace=ABC, name=SDVideo)\r\n    R->>P: SUBSCRIBE (namespace=ABC, name=LRVideo)\r\n    R->>P: SUBSCRIBE (namespace=ABC, name=AudioOpus)\r\n    P-->>R: SUBSCRIBE_OK (ok for SDvideo)\r\n    P-->>R: SUBSCRIBE_OK (ok for LRVideo)\r\n    P-->>R: SUBSCRIBE_OK (ok for AudioOpus)\r\n```\r\n\r\nBelow is the possible interpretability problem flow that could cause problems if not clearly articulated in MOQT. The below shows that the implementations assumes that the namespace is not available/exist unless it's been OK'd first. Any subscribes that arrive while pending OK result in error. \r\n\r\n```mermaid\r\nsequenceDiagram\r\n    participant P as Publisher\r\n    participant R as \"Relay/Server\"\r\n \r\n    P->>R: ANNOUNCE namespace=ABC\r\n\r\n    R->>P: SUBSCRIBE (namespace=ABC, name=HDVideo)\r\n    P-->>R: SUBSCRIBE_ERROR (NOT EXIST)\r\n    R->>P: SUBSCRIBE (namespace=ABC, name=SDVideo)\r\n    P-->>R: SUBSCRIBE_ERROR (NOT EXIST)\r\n    R->>P: SUBSCRIBE (namespace=ABC, name=LRVideo)\r\n    P-->>R: SUBSCRIBE_ERROR (NOT EXIST)\r\n    R->>P: SUBSCRIBE (namespace=ABC, name=AudioOpus)\r\n    P-->>R: SUBSCRIBE_ERROR (NOT EXIST)\r\n    R-->>P: ANNOUNCE_OK namespace=ABC    \r\n\r\n    Note right of P: Sadly now we are ready to accept subscriptions\r\n```\r\n\r\nWhat I would like to see is that we should accept subscriptions while waiting for the announce OK. The fact that the subsription was sent by the relay indicates that an OK will follow at some point. Maybe the implementation will hold off on actually sending data for those subscribes till it gets the announce OK, but at least it will accept those subscribes so that the relay doesn't have to subscribe in trial and error fashion. \r\n\r\nI use the `ANNOUNCE` flow as an example above, but the problem in MOQT not clearly defining the flows of requests and responses allowed prior to other requests exposes interpretability challenges.  \r\n\r\nFor example, `SUBSCRIBE_DONE` is not clearly defined as informational, but it appears that it is. SUBSCRIBE_DONE is a way for the publisher to indicate it's done sending on a track (namespace + name = fullname = track alias), but there is no mention that an `UNSUBSCRIBE` should be issued in response to that. The lack of sending the unsubscribe means that the relay will still have state that the subscription is still active with the publisher regardless of the publisher sending SUBSCRIBE_DONE.\r\n\r\n If or when the publisher decides to send again on the track the subscription is still valid and should resume as it was before. But that's a **BIG IF** as some implementers may treat sending a SUBSCRIBE_DONE as if it equaled UNSUBSCRIBE... hence requiring the relay/server to subscribe again after the SUBSCRIBE_DONE.  This is not good for interoperability. \r\n \r\nAn example of how this could become a real-world problem is when a user disables their camera for a little while, which results in the publisher sending a SUBSCRIBE _DONE, but then shortly later the user enables the camera... \r\n\r\n",
       "createdAt": "2024-06-29T19:02:17Z",
       "updatedAt": "2024-06-29T19:21:20Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 478,
+      "id": "I_kwDOG2Ho4M6OHzD5",
+      "title": "Add psuedocode for the priority algorithm from #470",
+      "url": "https://github.com/moq-wg/moq-transport/issues/478",
+      "state": "OPEN",
+      "author": "ianswett",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [
+        "Editorial"
+      ],
+      "body": "As a follow-up to https://github.com/moq-wg/moq-transport/pull/470",
+      "createdAt": "2024-07-01T17:44:46Z",
+      "updatedAt": "2024-07-01T17:44:46Z",
       "closedAt": null,
       "comments": []
     }
@@ -58120,21 +58138,21 @@
       "id": "PR_kwDOG2Ho4M5uTSbl",
       "title": "Add a priority field to subscriptions",
       "url": "https://github.com/moq-wg/moq-transport/pull/445",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "ianswett",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [],
       "body": "Fixes #403 \r\n\r\nIt seems like we need this, and I'm open to suggestions, but this feels quite straightforward.",
       "createdAt": "2024-05-02T01:51:45Z",
-      "updatedAt": "2024-06-05T13:31:18Z",
+      "updatedAt": "2024-07-01T20:48:31Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "d05778bed2aa7dd601f4cd201fec5075b056de33",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "ianswett-subscribe-priority",
       "headRefOid": "43862303c4e56b4a9a90a985f30c885e2b10943f",
-      "closedAt": null,
+      "closedAt": "2024-07-01T20:48:31Z",
       "mergedAt": null,
       "mergedBy": null,
       "mergeCommit": null,
@@ -58145,6 +58163,13 @@
           "body": "I might suggest that we move scheduling guidance out of field definitions and into its own section. That will make future edits simpler, for example if we take on additional refinements once there's some experience.",
           "createdAt": "2024-05-28T01:13:03Z",
           "updatedAt": "2024-05-28T01:13:03Z"
+        },
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Closing in favor of #470 ",
+          "createdAt": "2024-07-01T20:48:31Z",
+          "updatedAt": "2024-07-01T20:48:31Z"
         }
       ],
       "reviews": [
@@ -60498,22 +60523,22 @@
     {
       "number": 470,
       "id": "PR_kwDOG2Ho4M5zQOJb",
-      "title": "Add Priority and Delivery Order to SUBSCRIBE, clarify Publisher Priority",
+      "title": "Add Priority and Group Send Order to SUBSCRIBE, clarify Publisher Priority",
       "url": "https://github.com/moq-wg/moq-transport/pull/470",
       "state": "OPEN",
       "author": "ianswett",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [],
-      "body": "Adds a SUBSCRIBER_PRIORITY param that can be specified in SUBSCRIBE or SUBSCRIBE_UPDATE to indicate subscriber priority.  Adds Delivery Order to SUBSCRIBE to allow indicating Ascending or Descending.  Cleans up the existing priorities section and how Original Subscriber driven priorities are used.\r\n\r\nFixes #326 \r\nFixes #396 \r\nFixes #403\r\nFixes #419 \r\n\r\nCloses #445",
+      "body": "Adds a SUBSCRIBER_PRIORITY param that can be specified in SUBSCRIBE or SUBSCRIBE_UPDATE to indicate subscriber priority.  Adds Group Order to SUBSCRIBE to allow indicating Ascending or Descending.  Cleans up the existing priorities section and how Original Subscriber driven priorities are used.\r\n\r\nFixes #326 \r\nFixes #396 \r\nFixes #403\r\nFixes #419 \r\n\r\nCloses #445",
       "createdAt": "2024-06-22T16:35:36Z",
-      "updatedAt": "2024-06-28T17:08:15Z",
+      "updatedAt": "2024-07-01T19:49:06Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "36ff04b11862448de0b5fafb4d864f34def30041",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "ianswett-uber-priority",
-      "headRefOid": "a6ed5ef0c5d302cdaca9cd5e7c603eb07b9d7247",
+      "headRefOid": "0d351ff159edd188cf0cbc5d857463e7b24ae20b",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -61532,6 +61557,184 @@
               "body": "I'm ok landing without the pseudo code and filling later, but the blank section is odd.",
               "createdAt": "2024-06-28T16:49:34Z",
               "updatedAt": "2024-06-28T17:08:15Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6ARBoK",
+          "commit": {
+            "abbreviatedOid": "a6ed5ef"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-07-01T17:39:05Z",
+          "updatedAt": "2024-07-01T17:39:05Z",
+          "comments": [
+            {
+              "originalPosition": 36,
+              "body": "Good point, done",
+              "createdAt": "2024-07-01T17:39:05Z",
+              "updatedAt": "2024-07-01T17:39:05Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6ARE7C",
+          "commit": {
+            "abbreviatedOid": "09e6d8e"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-07-01T17:43:36Z",
+          "updatedAt": "2024-07-01T17:43:37Z",
+          "comments": [
+            {
+              "originalPosition": 107,
+              "body": "Removed for now and filed https://github.com/moq-wg/moq-transport/issues/478",
+              "createdAt": "2024-07-01T17:43:36Z",
+              "updatedAt": "2024-07-01T17:45:09Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6ARG3U",
+          "commit": {
+            "abbreviatedOid": "74ca340"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-07-01T17:48:05Z",
+          "updatedAt": "2024-07-01T17:48:06Z",
+          "comments": [
+            {
+              "originalPosition": 162,
+              "body": "Based on the definition, I'll shorten this sentence and clarify some other text.",
+              "createdAt": "2024-07-01T17:48:05Z",
+              "updatedAt": "2024-07-01T17:48:06Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6ARMzC",
+          "commit": {
+            "abbreviatedOid": "cc451f2"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "I tried to address most comments, PTAL",
+          "createdAt": "2024-07-01T18:04:40Z",
+          "updatedAt": "2024-07-01T19:21:57Z",
+          "comments": [
+            {
+              "originalPosition": 54,
+              "body": "Agreed, I added a comment to that effect.",
+              "createdAt": "2024-07-01T18:04:40Z",
+              "updatedAt": "2024-07-01T19:21:57Z"
+            },
+            {
+              "originalPosition": 217,
+              "body": "I took Alan's suggestion, so I think this is resolved?",
+              "createdAt": "2024-07-01T18:11:36Z",
+              "updatedAt": "2024-07-01T19:21:57Z"
+            },
+            {
+              "originalPosition": 220,
+              "body": "I added a sentence in the Priorities section about how you need to use UNSUBSCRIBE and SUBSCRIBE.\r\n\r\nOne use case I can think of (ie: switching from live head (Descending) to slightly behind live (Ascending)) is better suited to UNSUBSCRIBE and SUBSCRIBE anyway, because you'd want to specify the new start point at wherever you currently are in time, not what's in scope for the current subscription.",
+              "createdAt": "2024-07-01T18:20:15Z",
+              "updatedAt": "2024-07-01T19:21:57Z"
+            },
+            {
+              "originalPosition": 77,
+              "body": "True, I added a bit more text to clarify what happens when priority varies within a group.",
+              "createdAt": "2024-07-01T19:15:40Z",
+              "updatedAt": "2024-07-01T19:21:57Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6ARpNC",
+          "commit": {
+            "abbreviatedOid": "a6ed5ef"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-07-01T19:22:50Z",
+          "updatedAt": "2024-07-01T19:22:50Z",
+          "comments": [
+            {
+              "originalPosition": 67,
+              "body": "Good point, I rewrote this paragraph to better match the current framing.",
+              "createdAt": "2024-07-01T19:22:50Z",
+              "updatedAt": "2024-07-01T19:22:50Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6ARsp5",
+          "commit": {
+            "abbreviatedOid": "cc451f2"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-07-01T19:33:43Z",
+          "updatedAt": "2024-07-01T19:33:43Z",
+          "comments": [
+            {
+              "originalPosition": 91,
+              "body": "I expanded the sentence a bit more to note that a relay can use a single Subscriber Priority value for all upstream subscriptions.",
+              "createdAt": "2024-07-01T19:33:43Z",
+              "updatedAt": "2024-07-01T19:33:44Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6ARvym",
+          "commit": {
+            "abbreviatedOid": "d366503"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-07-01T19:44:01Z",
+          "updatedAt": "2024-07-01T19:44:02Z",
+          "comments": [
+            {
+              "originalPosition": 101,
+              "body": "Fair point, I changed this to text that points out the subscriber priority provides a mechanism to override.",
+              "createdAt": "2024-07-01T19:44:01Z",
+              "updatedAt": "2024-07-01T19:44:02Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6ARw5j",
+          "commit": {
+            "abbreviatedOid": "d366503"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-07-01T19:47:34Z",
+          "updatedAt": "2024-07-01T19:47:34Z",
+          "comments": [
+            {
+              "originalPosition": 107,
+              "body": "I updated this with more nuanced language that indicates namespaces may or may not have compatible prioritization schemes.",
+              "createdAt": "2024-07-01T19:47:34Z",
+              "updatedAt": "2024-07-01T19:47:35Z"
             }
           ]
         }
