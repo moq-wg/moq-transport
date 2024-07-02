@@ -5,13 +5,13 @@
 MOQ                                                            L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 2 January 2025                                             Meta
+Expires: 3 January 2025                                             Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                             1 July 2024
+                                                             2 July 2024
 
 
                        Media over QUIC Transport
@@ -53,7 +53,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 2 January 2025.
+   This Internet-Draft will expire on 3 January 2025.
 
 Copyright Notice
 
@@ -1157,7 +1157,6 @@ Table of Contents
      EndGroup (i),
      EndObject (i),
      Subscriber Priority (8),
-     Group Order (8),
      Number of Parameters (i),
      Subscribe Parameters (..) ...
    }
@@ -1180,12 +1179,6 @@ Table of Contents
    *  Subscriber Priority: Specifies the priority of a subscription
       relative to other subscriptions in the same session.  Lower
       numbers get higher priority.  See Section 4.
-
-   *  Group Order: Allows the subscriber to request Objects be delivered
-      in Ascending (0x1) or Descending (0x2) order by group.  See
-      Section 4.  A value of 0x0 indicates the original publisher's
-      Group Order SHOULD be used.  Values larger than 0x2 are a protocol
-      error.
 
    *  Subscribe Parameters: The parameters are defined in Section 6.1.1.
 
