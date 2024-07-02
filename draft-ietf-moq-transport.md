@@ -885,6 +885,32 @@ information in a SUBSCRIBE or ANNOUNCE message. This parameter is populated for
 cases where the authorization is required at the track level. The value is an
 ASCII string.
 
+#### DELIVERY TIMEOUT Parameter {#delivery-timeout}
+
+DELIVERY TIMEOUT parameter (key 0x03) MAY appear in a SUBSCRIBE or a
+SUBSCRIBE_UDPATE message.  It is a number of milliseconds indicating the
+duration for which the relay should attempt forwarding objects. The specific
+semantics of this field depend on the forwarding preference
+({{object-message-formats}}) used by the objects on the track in question:
+
+- If the Object Forwarding Preference is `Datagram`, once the specified number
+  of milliseconds has passed since the datagram was received via this
+  subscription, the relay SHOULD NOT forward that datagram.
+- If the Object Forwarding Preference is `Object`, once the specified number of
+  milliseconds has passed since the object was fully received, the relay SHOULD
+  NOT open a new stream for the object in question, and SHOULD reset the
+  existing stream if it has been already opened.
+- If the Object Forwarding Preference is `Group`, once the specified number of
+  milliseconds has passed since the final object of the group was fully
+  received, the relay SHOULD NOT open a new stream for the group in question,
+  and SHOULD reset the existing stream if it has been already opened.
+- If the Object Forwarding Preference is `Track`, this parameter MUST NOT be
+  present.
+
+If the parameter is absent, no timeout is requested by the subscriber.  If
+there are other timeouts that apply to a specific object or group, the earliest
+one is used.
+
 ## CLIENT_SETUP and SERVER_SETUP {#message-setup}
 
 The `CLIENT_SETUP` and `SERVER_SETUP` messages are the first messages exchanged
