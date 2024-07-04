@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2024-07-02T01:15:23.964199+00:00",
+  "timestamp": "2024-07-04T01:15:23.055694+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -12443,7 +12443,7 @@
       "id": "I_kwDOG2Ho4M519fr0",
       "title": "Hints & sendOrder how can they work together",
       "url": "https://github.com/moq-wg/moq-transport/issues/326",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "jordicenzano",
       "authorAssociation": "NONE",
       "assignees": [],
@@ -12453,8 +12453,8 @@
       ],
       "body": "If we use hints on SUBSCRIBE (StartGroup, StartObject) I assume is to request objects from the past. Thinking about the live rewind or VOD (archived after live):\r\n- The objects have a sendOrder burnt-in, and since those were part of a live stream that sendOrder is probably increasing (meaning more recent, higher priority)\r\n- If player requests objects from 1h in the past, and relay respects the sendOrder the player will start receiving objects from the end of the live stream to the start. Also those will be sent at wire speed\r\n\r\nIt seems for VOD-like use cases we need a different type of delivery than live edge. Perhaps we should do sliding window and/or sendOrder updates?\r\n\r\nFinals questions:\r\n- Can we use current current hints to deliver VOD?\r\n- Do we need to add signals?",
       "createdAt": "2023-11-06T12:40:25Z",
-      "updatedAt": "2024-03-18T03:30:47Z",
-      "closedAt": null,
+      "updatedAt": "2024-07-03T19:34:33Z",
+      "closedAt": "2024-07-03T19:34:33Z",
       "comments": [
         {
           "author": "kixelated",
@@ -14125,7 +14125,7 @@
       "id": "I_kwDOG2Ho4M5_wmMi",
       "title": "How does a relay/publisher know what to prioritize or drop?",
       "url": "https://github.com/moq-wg/moq-transport/issues/396",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "ianswett",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
@@ -14135,8 +14135,8 @@
       ],
       "body": "It's unclear to me what objects a relay should prioritize or drop when congestion limited.  This is discussed in a few places, but I want to only focus on the question of what to send first and when to give up on sending an Object entirely.\r\n\r\nSpecific examples:\r\n\r\n1. Is there a point at which Objects from a subscription should no longer be transmitted?  If so, what determines that time?\r\n2. How does a relay decide whether to send the newest object or oldest?  Does it depend upon group boundaries?\r\n3. Can a relay infer that some Objects are droppable if they have lower priority than other Objects in the same group?\r\n\r\nMy strawman proposal is that subscriptions should have numerical priorities, so a relay knows whether it should send Objects from one subscription or another given limited bandwidth.  Additionally, subscriptions should have a TTL so relays know at what point they should stop retransmitting Objects.\r\n\r\n",
       "createdAt": "2024-02-20T03:08:57Z",
-      "updatedAt": "2024-03-18T01:10:58Z",
-      "closedAt": null,
+      "updatedAt": "2024-07-03T19:34:33Z",
+      "closedAt": "2024-07-03T19:34:33Z",
       "comments": [
         {
           "author": "kixelated",
@@ -14431,7 +14431,7 @@
       "id": "I_kwDOG2Ho4M6A2NM7",
       "title": "No way to prioritize one track above another",
       "url": "https://github.com/moq-wg/moq-transport/issues/403",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "ianswett",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
@@ -14441,8 +14441,8 @@
       ],
       "body": "For low latency audio and video, it's helpful to be able to prioritize one track over another, whether it's audio vs video or one quality of video vs another quality of video.\r\n\r\nThis prioritization can be very helpful for ABR as well.  One might want to request the next quality up in hopes of upswitching, but continue playing the current quality until it's clear the next quality can be delivered, so the higher quality should be lower priority.\r\n\r\nThis is somewhat related to #396",
       "createdAt": "2024-02-29T16:50:47Z",
-      "updatedAt": "2024-05-28T00:57:11Z",
-      "closedAt": null,
+      "updatedAt": "2024-07-03T19:34:34Z",
+      "closedAt": "2024-07-03T19:34:33Z",
       "comments": [
         {
           "author": "fluffy",
@@ -14900,15 +14900,15 @@
       "id": "I_kwDOG2Ho4M6CvEvr",
       "title": "Reliable Live use-case",
       "url": "https://github.com/moq-wg/moq-transport/issues/419",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "kixelated",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [],
       "body": "I'm just going to coin a new term: **reliable live**\r\n\r\nIt's the use-case when a viewer wants to receive live content but doesn't want to skip anything, as quality is more important than latency. This is an extremely common scenario currently served by HLS/DASH and needs to be supported by MoQ too.\r\n\r\nThe player implements this by pausing playback (buffering) when the buffer is depleted until it reaches a minimum size. There's also a target latency, which is effectively the buffer size at steady state. The player will not skip over content unless there is an explicit gap. Let's assume fixed group sizes for simplicity. All of the below examples use:\r\n```\r\ngroup_size=2s\r\ntarget_buffer=5s\r\nmin_buffer=1s\r\n```\r\n\r\n## Current Draft\r\nIn the current draft, a player start playback by issuing:\r\n\r\n```\r\n-> SUBSCRIBE 480p start=-2\r\n<- SUBSCRIBE_OK 480p latest=6835\r\n```\r\n\r\nWe added #343 so the player would know to start playback at group 6833, buffering any future groups. Unfortunately the player currently doesn't know about gaps, so it could block indefinitely waiting for 6834 (or any group). We need some sort of GROUP_DROPPED message to signal that the player should skip over, much like a DISCONTINUITY in HLS. This has been touted as a feature of FETCH, but it's something we also need for SUBSCRIBE.\r\n\r\nThe bigger issue is prioritization. If the send_order is decreasing, which is required to allow players to skip over old content, then the buffer will fill _backwards_.\r\n\r\n```\r\n-> SUBSCRIBE 480p start=-2\r\n<- SUBSCRIBE_OK 480p latest=6835\r\n<- OBJECT group=6835 send_order=0\r\n<- OBJECT group=6834 send_order=1\r\n<- OBJECT group=6833 send_order=2\r\n```\r\n\r\nPlayback is blocked waiting for the first 1s of group 6833 but we receive newer groups first in their entirety, including possibly some of 6836 as it starts being generated. We will eventually be able to play this data, but this will dramatically increase startup and buffering time. This is also a problem for DVR, as the prioritization required for live does not make sense for VOD.\r\n\r\nThe broadcaster could remedy this by baking in head-of-line blocking into send_order but I don't want to do that. A participant on a conference stage may want interactive latency, while a viewer may want high quality (HoLB) instead. A viewer on a TV will want high quality, while a viewer using an interactive application will want low latency. It's not the end of the world but it's a missed opportunity.\r\n\r\nThe other option is to fetch each group one at a time like HLS/DASH:\r\n```\r\n-> SUBSCRIBE 480p start=-2 end=-1\r\n<- SUBSCRIBE_OK 480p latest=6835\r\n<- OBJECT group=6833\r\n<- SUBSCRIBE_DONE 480p\r\n-> SUBSCRIBE 480p start=6834 end=6835\r\n<- SUBSCRIBE_OK 480p latest=6835\r\n<- OBJECT group=6834\r\n<- SUBSCRIBE_DONE 480p\r\n-> SUBSCRIBE 480p start=6835 end=6836\r\n<- SUBSCRIBE_OK 480p latest=6836\r\n<- OBJECT group=6835\r\n<- SUBSCRIBE_DONE 480p\r\n```\r\n\r\nYikes, not only is this annoying and inefficient, but it increases latency. That's because the next SUBSCRIBE can only be issued only once the final object in the group has been received, causing an RTT of no network connectivity which of course corresponds with a massive I-frame that needs to be delivered. We can do better.\r\n\r\n## Fetch #368 \r\nThere are multiple fetch APIs floating around, but the gist is that FETCH returns old content while SUBSCRIBE returns new content. Here's how the player would playback from my understanding:\r\n\r\n```\r\n-> SUBSCRIBE timeline\r\n<- SUBSCRIBE_OK timeline\r\n<- OBJECT timeline\r\n-> FETCH 480p start=6833 end=6834\r\n<- FETCH_OK\r\n-> SUBSCRIBE 480p start=6835\r\n<- SUBSCRIBE_OK\r\n```\r\n\r\nThis is complicated, as it depends on an outside track to determine which group roughly corresponds to ~5s target latency for the initial FETCH. But it's actually wrong.\r\n\r\nThere's the assumption that SUBSCRIBE can be used once we're caught up to live but that's not true because of the aforementioned prioritization issue; the buffer will be filled backwards during congestion. This won't happen on startup due to FETCH but will still occur afterwards.\r\n\r\nJust like in the current draft, you either have to bake head-of-line blocking into send_order, or you need to FETCH one group at a time:\r\n\r\n```\r\n-> SUBSCRIBE timeline\r\n<- SUBSCRIBE_OK timeline\r\n<- OBJECT timeline\r\n-> FETCH 480p start=6833 end=6834\r\n<- FETCH_OK 480p latest=6835\r\n<- OBJECT group=6833\r\n-> FETCH 480p start=6834 end=6835\r\n<- FETCH_OK 480p latest=6835\r\n<- OBJECT group=6834\r\n-> FETCH 480p start=6835 end=6836\r\n<- FETCH_OK 480p latest=6836\r\n<- GROUP 6835\r\n```\r\n\r\nOr there's a world where you could switch a SUBSCRIBE to FETCH once you learn it's no longer the newest group. This is extra extra gross though.\r\n\r\n## SUBSCRIBE ORDER #411 \r\nI recently put forth another proposal to deal with this use-case:\r\n\r\n```\r\n-> SUBSCRIBE start=-2 order=ASC\r\n<- SUBSCRIBE_OK latest=6835\r\n<- OBJECT group=6833\r\n<- OBJECT group=6834\r\n<- OBJECT group=6835\r\n```\r\n\r\nNote that this is best-effort ordering: the groups are still sent on separate streams. The benefit of this approach is that another viewer could achieve lower latency by using the reverse order. This will let the player drop when the buffer is depleted, rather than buffer:\r\n\r\n```\r\n-> SUBSCRIBE start=-2 order=DESC\r\n<- SUBSCRIBE_OK latest=6835\r\n<- OBJECT group=6835\r\n<- OBJECT group=6834\r\n<- OBJECT group=6833\r\n```\r\n\r\nThe downside of this approach is that a relay has trouble knowing which variant of SUBSCRIBE to send upstream. I would advocate for always sending `order=DESC` if there's competing requests, as that's the more latency sensitive mode, but it's ultimately business logic.\r\n\r\nThe ability to deliver groups in order is one of the proposed features of FETCH, but I think we make it a flag on SUBSCRIBE instead. So is the ability to detect when a group is dropped, but that too is required for SUBSCRIBE.",
       "createdAt": "2024-03-18T21:33:58Z",
-      "updatedAt": "2024-04-05T05:16:59Z",
-      "closedAt": null,
+      "updatedAt": "2024-07-03T19:34:34Z",
+      "closedAt": "2024-07-03T19:34:34Z",
       "comments": [
         {
           "author": "suhasHere",
@@ -16090,12 +16090,22 @@
       "author": "martinduke",
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
-      "labels": [],
+      "labels": [
+        "Subscribe"
+      ],
       "body": "Section 6.14 says:\r\n\r\n\"Final Group: The largest Group ID sent by the publisher in an OBJECT message in this track.\r\n\r\nFinal Object: The largest Object ID sent by the publisher in an OBJECT message in the Final Group for this track.\"\r\n\r\nIs it for the track, or for the subscribe? \r\n\r\nI support it being for the track, as that requires less publisher bookkeeping. But if it's that, we should probably make it clear that we really mean \"for the track\", unrelated to whatever was delivered from that subscribe_id.\r\n\r\n",
       "createdAt": "2024-05-31T19:48:50Z",
-      "updatedAt": "2024-05-31T19:48:50Z",
+      "updatedAt": "2024-07-04T00:39:58Z",
       "closedAt": null,
-      "comments": []
+      "comments": [
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I believe the intent of this field is to tell the peer what the last Object to expect from a subscription is.\r\n\r\n* If a track ends, then that's clearly the last Object produced for the track.\r\n* If the subscription specifies a endpoint, this is likely a bit redundant?\r\n* It seems like UNSUBSCRIBE is the case this is most valuable, because one doesn't know what the final Object is?\r\n\r\nI'm not convinced there's a good use case for UNSUBSCRIBE.  Instead one can SUBSCRIBE_UPDATE to an Object either already received or one you expect to receive in the near future.  That provides similar functionality with one fewer mechanism.\r\n\r\nIf a publisher cancels a SUBSCRIBE, is it useful to have the last Object sent in that message?  As you said, that could require a good bit of publisher bookkeeping and either it ends up being extraordinarily conservative or difficult to track.  It seems better to set the expectation that the subscriber likely won't receive any more data from the subscription.",
+          "createdAt": "2024-07-04T00:39:57Z",
+          "updatedAt": "2024-07-04T00:39:57Z"
+        }
+      ]
     },
     {
       "number": 458,
@@ -16173,7 +16183,7 @@
     {
       "number": 461,
       "id": "I_kwDOG2Ho4M6LaPKh",
-      "title": "ENDPOINT_ID setup parameter",
+      "title": "An ENDPOINT_ID setup parameter would ease debugging/etc",
       "url": "https://github.com/moq-wg/moq-transport/issues/461",
       "state": "OPEN",
       "author": "TimEvens",
@@ -16182,7 +16192,7 @@
       "labels": [],
       "body": "We have a need to identify the endpoint that we are connecting with.  Both client and server need to be identified by both ends of the connection. We use this identifier to correlate metrics through all layers of the application.  Today we use this ID to build a topology graph (tree of publisher and subscribers) and their path through relays.  The ID is also used to inform clients which relay they have connected to, used for troubleshooting/debugs/etc.  The IP address or FQDN used to connect to the relay does not identify the actual relay instance connected to when the relay is behind a load balancer and/or anycast.  \r\n\r\nExample parameter text. \r\n\r\nENDPOINT_ID Parameter\r\n\r\nThe ENDPOINT_ID parameter (type 0x0x) is an optional setup parameter that identifies the endpoint sending the CLIENT_SETUP or SERVER_SETUP message. The value is a variable length binary byte array that is unique within the application defined scope.  The server MUST include an ENDPOINT_ID if CLIENT_SETUP sends it.  Servers include the endpoint ID in logs, metrics, and other reporting. \r\n\r\n> [!NOTE]\r\n> While endpoint is often identified in the track namespace, it cannot be used by the sever/relay when considering\r\n> the server/relay does not participate in the encoding scheme.  Relays do not have a specific track to identify\r\n> itself to the client, so the client doesn't know which relay it connects to.  Depending on application design, \r\n> namespace may not uniquely identify a specific endpoint/connection for logging/metrics/tracing/... Relay to relay peering also does not have dedicated tracks for themselves, leaving each relay unaware of which relay instance they are connected. ",
       "createdAt": "2024-06-06T18:30:20Z",
-      "updatedAt": "2024-06-29T17:46:00Z",
+      "updatedAt": "2024-07-04T00:28:43Z",
       "closedAt": null,
       "comments": [
         {
@@ -16198,6 +16208,13 @@
           "body": "@ianswett, Regardless of adding this right now or later, parameter types should be changed to an IANA registry that can then be updated easily with subsequent RFCs that go into details of the entry. The types should have a well known range for development/experimental. The current draft says to ignore unknown parameter types, which is one way to handle this, but it's not ideal when compliance that requires specific types. I suggest having the experimental range that can then be safely ignored. \r\n\r\n\r\nAdding endpoint_id to this draft saves time in having to write an immediate subsequent  RFC to update the IANA registry for endpoint_id.  Endpoint is very important for traceability as well as possibility replacing the need for `subscribe_id`, which I'll write another issue about.  \r\n\r\n\r\n",
           "createdAt": "2024-06-29T17:45:58Z",
           "updatedAt": "2024-06-29T17:45:58Z"
+        },
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "So it the current issue that our IANA policy about registration of parameters is woefully underspecified?  I agree that is an issue and there's a TODO and I believe another issue about that.",
+          "createdAt": "2024-07-04T00:27:23Z",
+          "updatedAt": "2024-07-04T00:27:23Z"
         }
       ]
     },
@@ -16559,7 +16576,7 @@
       "labels": [],
       "body": "This is another SUBSCRIBE-vs-FETCH issue, but with a specific implementation aspect of it.\r\n\r\nAssume I have a group-per-stream track.  I can subscribe to groups 1000 to 2000; it is entirely plausible that the publisher has all of those in cache immediately available, so in a naive implementation it can just open 1000 streams and start sending things; it would run into a flow control, and starve everything else on the connection.\r\n\r\nWe could set some limit on how many streams an individual subscription has, and that would be one way of solving this: if you set deliver order to ASC, you would process old streams first, and once those are processed (something we don't actually have a signal either), you'd start sending the next group.  Is this what we actually want?",
       "createdAt": "2024-06-28T19:04:00Z",
-      "updatedAt": "2024-06-28T19:38:06Z",
+      "updatedAt": "2024-07-02T12:10:58Z",
       "closedAt": null,
       "comments": [
         {
@@ -16568,6 +16585,13 @@
           "body": "Individual Comment:\r\n\r\n+1 to some kind of subscription level flow control or rate control when behind live head.  It's a problem for absolute start also.  The [moxygen date server](https://github.com/facebookexperimental/moxygen/tree/main/moxygen/samples/date) has groups going back to 1970, and I've hit this problem when I specify the wrong start group (eg: 0)",
           "createdAt": "2024-06-28T19:38:05Z",
           "updatedAt": "2024-06-28T19:38:05Z"
+        },
+        {
+          "author": "wilaw",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "Several solutions jump to mind:\r\n\r\n1. Setting max-concurrent-streams is an interesting approach and would be simpler to implement for the relay. It might still lead to starvation of competing traffic if not set low enough, however as long as it's applied per connection then the subscriber would be DOSing themself and would have the means to change it. \r\n\r\n2. It might be useful for players fetching cached (or instantly available) content to be able to specify a maximum per-connection send rate. This would allows the player to request 1000-2000 but limit the throughput to say 105% of the encoded bitrate, which would give them a slowly incrementing forward buffer. Would it be computationally expensive for the relay to implement this throttling , as it might need to to micro-bursts that on aggregate provide the target throughput? We wouldn't want to reduce the egress capacity of a relay by forcing it to implement throttling. \r\n3. A third approach is that we don't do anything. A naive player would subscribe to range 1000-2000 and flood the connection. However a smarter player could request 1000-1010, 1011-1020 .. etc and thereby manage the peak bursts. Relays could apply their own protection limits for concurrent streams when sending data. ",
+          "createdAt": "2024-07-02T12:10:56Z",
+          "updatedAt": "2024-07-02T12:10:56Z"
         }
       ]
     },
@@ -16597,11 +16621,12 @@
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [
-        "Editorial"
+        "Editorial",
+        "Needs PR"
       ],
       "body": "As a follow-up to https://github.com/moq-wg/moq-transport/pull/470",
       "createdAt": "2024-07-01T17:44:46Z",
-      "updatedAt": "2024-07-01T17:44:46Z",
+      "updatedAt": "2024-07-04T00:22:51Z",
       "closedAt": null,
       "comments": []
     }
@@ -49641,7 +49666,7 @@
       "labels": [],
       "body": "Attempts to address some of the usecases discussed in #372 \r\n\r\nLove to hear feedback",
       "createdAt": "2024-02-16T20:20:32Z",
-      "updatedAt": "2024-06-05T13:59:12Z",
+      "updatedAt": "2024-07-03T02:33:40Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "d8e0951dbe8d1f8d0186e59c0afd5e26cc858925",
@@ -49680,6 +49705,13 @@
           "body": "Individual Comment: \r\n\r\nI have an alternate proposal that will solve this use case and I think a couple others, which is adding a form of flow control or rate control to subscriptions. Subscribe would have a param like \"max group\", and the publisher could only send up to the max group before the subscription would pause.  The subscriber would unblock by sending a larger max group.  So you could implement \"parked\" by sending max group = 0.\r\n\r\nThe additional use case is related to VoD and live rewind, where the subscriber is consuming the track at playback speed but behind the live head.  Today that's accomplished with the client making a series of range subscribes.",
           "createdAt": "2024-06-05T13:59:11Z",
           "updatedAt": "2024-06-05T13:59:11Z"
+        },
+        {
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I would like to see some form of this discussed as this is helping a real functionality . @afrind @martinduke wondering any thoughts on how should we proceed ? Thanks",
+          "createdAt": "2024-07-03T02:33:38Z",
+          "updatedAt": "2024-07-03T02:33:38Z"
         }
       ],
       "reviews": [
@@ -53535,7 +53567,7 @@
             "abbreviatedOid": "6e19b12"
           },
           "author": "janaiyengar",
-          "authorAssociation": "NONE",
+          "authorAssociation": "CONTRIBUTOR",
           "state": "COMMENTED",
           "body": "Broadly looks good, follows the arc of what we discussed. ",
           "createdAt": "2024-03-19T08:20:18Z",
@@ -60525,24 +60557,26 @@
       "id": "PR_kwDOG2Ho4M5zQOJb",
       "title": "Add Priority and Group Send Order to SUBSCRIBE, clarify Publisher Priority",
       "url": "https://github.com/moq-wg/moq-transport/pull/470",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "ianswett",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [],
       "body": "Adds a SUBSCRIBER_PRIORITY param that can be specified in SUBSCRIBE or SUBSCRIBE_UPDATE to indicate subscriber priority.  Adds Group Order to SUBSCRIBE to allow indicating Ascending or Descending.  Cleans up the existing priorities section and how Original Subscriber driven priorities are used.\r\n\r\nFixes #326 \r\nFixes #396 \r\nFixes #403\r\nFixes #419 \r\n\r\nCloses #445",
       "createdAt": "2024-06-22T16:35:36Z",
-      "updatedAt": "2024-07-01T19:49:06Z",
+      "updatedAt": "2024-07-03T19:34:32Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "36ff04b11862448de0b5fafb4d864f34def30041",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "ianswett-uber-priority",
-      "headRefOid": "0d351ff159edd188cf0cbc5d857463e7b24ae20b",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "headRefOid": "fd21a0de6b1fece3524aaef5e09abff80bdcb3a5",
+      "closedAt": "2024-07-03T19:34:31Z",
+      "mergedAt": "2024-07-03T19:34:31Z",
+      "mergedBy": "ianswett",
+      "mergeCommit": {
+        "oid": "27064916d2582cdd8ded943c679d06760eeb4a27"
+      },
       "comments": [],
       "reviews": [
         {
@@ -61086,7 +61120,7 @@
             "abbreviatedOid": "6804eca"
           },
           "author": "janaiyengar",
-          "authorAssociation": "NONE",
+          "authorAssociation": "CONTRIBUTOR",
           "state": "COMMENTED",
           "body": "A few suggestions",
           "createdAt": "2024-06-26T15:55:55Z",
@@ -61735,6 +61769,152 @@
               "body": "I updated this with more nuanced language that indicates namespaces may or may not have compatible prioritization schemes.",
               "createdAt": "2024-07-01T19:47:34Z",
               "updatedAt": "2024-07-01T19:47:35Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6ATmry",
+          "commit": {
+            "abbreviatedOid": "0d351ff"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-07-02T03:57:34Z",
+          "updatedAt": "2024-07-02T03:57:35Z",
+          "comments": [
+            {
+              "originalPosition": 133,
+              "body": "s/  send order is / the track whose object is being selected is /",
+              "createdAt": "2024-07-02T03:57:35Z",
+              "updatedAt": "2024-07-02T03:57:35Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6ATnym",
+          "commit": {
+            "abbreviatedOid": "0d351ff"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "@ianswett  the new changes look great. I have one change for removing the Group Order from the Subscribe Update message and define an error type when someone changes it in the update message.",
+          "createdAt": "2024-07-02T04:01:24Z",
+          "updatedAt": "2024-07-02T04:03:19Z",
+          "comments": [
+            {
+              "originalPosition": 252,
+              "body": "Line 580 indicates that group order cannot be changed via Subscribe update and I agree with that. We need to remove Group Order from the Update message though",
+              "createdAt": "2024-07-02T04:01:24Z",
+              "updatedAt": "2024-07-02T04:03:19Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6AWKhv",
+          "commit": {
+            "abbreviatedOid": "0d351ff"
+          },
+          "author": "vasilvv",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2024-07-02T09:40:22Z",
+          "updatedAt": "2024-07-02T09:45:25Z",
+          "comments": [
+            {
+              "originalPosition": 146,
+              "body": "I'm confused, does this imply that a single group can have multiple priorities within it?",
+              "createdAt": "2024-07-02T09:40:22Z",
+              "updatedAt": "2024-07-02T09:45:25Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6AYnEy",
+          "commit": {
+            "abbreviatedOid": "0d351ff"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-07-02T13:59:08Z",
+          "updatedAt": "2024-07-02T13:59:08Z",
+          "comments": [
+            {
+              "originalPosition": 252,
+              "body": "Thanks for catching that, removed.",
+              "createdAt": "2024-07-02T13:59:08Z",
+              "updatedAt": "2024-07-02T13:59:08Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6AYnxY",
+          "commit": {
+            "abbreviatedOid": "0d351ff"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-07-02T13:59:51Z",
+          "updatedAt": "2024-07-02T13:59:51Z",
+          "comments": [
+            {
+              "originalPosition": 146,
+              "body": "With Stream-per-Object, each Object can have a different priority in the current wire format.",
+              "createdAt": "2024-07-02T13:59:51Z",
+              "updatedAt": "2024-07-02T13:59:51Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6AZsH2",
+          "commit": {
+            "abbreviatedOid": "0d351ff"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-07-02T15:38:21Z",
+          "updatedAt": "2024-07-02T15:38:21Z",
+          "comments": [
+            {
+              "originalPosition": 133,
+              "body": "Good point, this text was a bit unclear.  I rewrote it to hopefully be more clear.",
+              "createdAt": "2024-07-02T15:38:21Z",
+              "updatedAt": "2024-07-02T15:38:21Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6AatGm",
+          "commit": {
+            "abbreviatedOid": "fd21a0d"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "Individual Comments:",
+          "createdAt": "2024-07-02T17:40:55Z",
+          "updatedAt": "2024-07-02T17:42:38Z",
+          "comments": [
+            {
+              "originalPosition": 107,
+              "body": "I am ok with merging the new language.  Long term, I don't plan to compare uncoordinated publisher priorities in my generic relay, and may make a proposal for how to avoid doing so.",
+              "createdAt": "2024-07-02T17:40:55Z",
+              "updatedAt": "2024-07-02T17:42:38Z"
+            },
+            {
+              "originalPosition": 220,
+              "body": "The new text looks good.",
+              "createdAt": "2024-07-02T17:41:32Z",
+              "updatedAt": "2024-07-02T17:42:38Z"
             }
           ]
         }
