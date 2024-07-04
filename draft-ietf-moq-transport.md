@@ -626,7 +626,7 @@ a given SUBSCRIBE of either SUBSCRIBE_OK or SUBSCRIBE_ERROR.
 
 For successful subscriptions, the publisher maintains a list of
 subscribers for each track. For subscriptions with `DeliveryPreference`
-of `0x1 Ready` , each new OBJECT belonging to the
+of `0x1 Ready`, each new OBJECT belonging to the
 track within the subscription range is forwarded to all the matching
 subscribers, dependent on the congestion response. For subscriptions with
 `DeliveryPreference` value of `0x0 Freeze`, a relay implementation
