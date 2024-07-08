@@ -1080,8 +1080,8 @@ there is no guarantee that a publisher will not have already sent Objects before
 the new start Object.  The end Object MUST NOT increase and when it decreases,
 there is no guarantee that a publisher will not have already sent Objects after
 the new end Object. A publisher SHOULD close the Session as a 'Protocol Violation'
-if the SUBSCRIBE_UPDATE violates either rule or if the subscriber specifies a Subscribe
-ID that has never existed within the Session.
+if the SUBSCRIBE_UPDATE violates either rule or if the subscriber specifies a
+Subscribe ID that does not exist within the Session.
 
 Unlike a new subscription, SUBSCRIBE_UPDATE can not cause an Object to be
 delivered multiple times.  Like SUBSCRIBE, EndGroup and EndObject MUST specify the
