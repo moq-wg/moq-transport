@@ -1037,7 +1037,7 @@ svg :is([fill="white"], [fill^="#fff"]) {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Curley, et al.</td>
-<td class="center">Expires 5 January 2025</td>
+<td class="center">Expires 9 January 2025</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1050,12 +1050,12 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dd class="internet-draft">draft-ietf-moq-transport-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2024-07-04" class="published">4 July 2024</time>
+<time datetime="2024-07-08" class="published">8 July 2024</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2025-01-05">5 January 2025</time></dd>
+<dd class="expires"><time datetime="2025-01-09">9 January 2025</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1122,7 +1122,7 @@ networks and is designed for high scale and low latency distribution.<a href="#s
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 5 January 2025.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 9 January 2025.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -2678,8 +2678,8 @@ there is no guarantee that a publisher will not have already sent Objects before
 the new start Object.  The end Object <span class="bcp14">MUST NOT</span> increase and when it decreases,
 there is no guarantee that a publisher will not have already sent Objects after
 the new end Object. A publisher <span class="bcp14">SHOULD</span> close the Session as a 'Protocol Violation'
-if the SUBSCRIBE_UPDATE violates either rule or if it specifies a Subscribe ID
-that has never existed within the Session.<a href="#section-6.5-1" class="pilcrow">¶</a></p>
+if the SUBSCRIBE_UPDATE violates either rule or if the subscriber specifies a Subscribe
+ID that has never existed within the Session.<a href="#section-6.5-1" class="pilcrow">¶</a></p>
 <p id="section-6.5-2">Unlike a new subscription, SUBSCRIBE_UPDATE can not cause an Object to be
 delivered multiple times.  Like SUBSCRIBE, EndGroup and EndObject <span class="bcp14">MUST</span> specify the
 same or a later object than StartGroup and StartObject.<a href="#section-6.5-2" class="pilcrow">¶</a></p>

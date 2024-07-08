@@ -5,13 +5,13 @@
 MOQ                                                            L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 5 January 2025                                             Meta
+Expires: 9 January 2025                                             Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                             4 July 2024
+                                                             8 July 2024
 
 
                        Media over QUIC Transport
@@ -53,7 +53,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 5 January 2025.
+   This Internet-Draft will expire on 9 January 2025.
 
 Copyright Notice
 
@@ -1143,8 +1143,8 @@ Table of Contents
    decreases, there is no guarantee that a publisher will not have
    already sent Objects after the new end Object.  A publisher SHOULD
    close the Session as a 'Protocol Violation' if the SUBSCRIBE_UPDATE
-   violates either rule or if it specifies a Subscribe ID that has never
-   existed within the Session.
+   violates either rule or if the subscriber specifies a Subscribe ID
+   that has never existed within the Session.
 
    Unlike a new subscription, SUBSCRIBE_UPDATE can not cause an Object
    to be delivered multiple times.  Like SUBSCRIBE, EndGroup and
