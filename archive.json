@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2024-07-07T01:21:28.005875+00:00",
+  "timestamp": "2024-07-09T01:16:20.101043+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -16083,15 +16083,15 @@
       "id": "I_kwDOG2Ho4M6KxzNc",
       "title": "SUBSCRIBE_UPDATE Message code and error cases",
       "url": "https://github.com/moq-wg/moq-transport/issues/455",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "martinduke",
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
       "labels": [],
       "body": "Table 4 is missing SUBSCRIBE_UPDATE, so there's no code for this message type.\r\n\r\nSection 6.5 doesn't say what to do when the update is malformed, in some way. SUBSCRIBE_ERROR? \r\n \r\nIs a bogus SUBSCRIBE_UPDATE ignored, or does it nuke the original subscribe?",
       "createdAt": "2024-05-31T17:41:53Z",
-      "updatedAt": "2024-07-05T23:21:53Z",
-      "closedAt": null,
+      "updatedAt": "2024-07-08T16:15:25Z",
+      "closedAt": "2024-07-08T16:15:25Z",
       "comments": []
     },
     {
@@ -16399,7 +16399,7 @@
       "id": "I_kwDOG2Ho4M6Mi1Hc",
       "title": "SUBSCRIBE_UPDATE response/error handling",
       "url": "https://github.com/moq-wg/moq-transport/issues/467",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "roticv",
       "authorAssociation": "NONE",
       "assignees": [],
@@ -16408,8 +16408,8 @@
       ],
       "body": "Draft 04 currently doesn't mention about sending any response when the SUBSCRIBE_UPDATE is successful or when it fails even though the draft hints on possible failures\r\n\r\n>   If Objects before the start or after the end of the current\r\n>   subscription are needed, a separate subscription can be made.  The\r\n>   start Object MUST NOT decrease and when it increases, there is no\r\n>   guarantee that a publisher will not have already sent Objects before\r\n>   the new start Object.  The end Object MUST NOT increase and when it\r\n>   decreases, there is no guarantee that a publisher will not have\r\n>   already sent Objects after the new end Object.\r\n\r\nThe above suggests that an error should be sent to inform the client that it is making invalid subscription updates.",
       "createdAt": "2024-06-17T18:15:10Z",
-      "updatedAt": "2024-06-25T02:03:50Z",
-      "closedAt": null,
+      "updatedAt": "2024-07-08T16:15:26Z",
+      "closedAt": "2024-07-08T16:15:26Z",
       "comments": [
         {
           "author": "ianswett",
@@ -16493,7 +16493,7 @@
       ],
       "body": "The messages defined in MoQ Transport include variable length components:\r\n\r\n* name space,\r\n* track name,\r\n* setup path,\r\n* go away URI,\r\n* authorization info,\r\n* number of supported versions,\r\n* number of setup or subscribe parameters.\r\n\r\nThese components have no specified maximum size, which opens an avenue for DOS attacks: start sending a message with components of arbitrary length, up to 2^62, and watch as the other endpoint allocates memory to hold the message. Application developers are very likely to mitigate the DOS attack by setting some limits, either to the global size of messages or to the size of individual components. We may expect different implementations to pick different limits, with a fairly good potential of causing interoperability issues.\r\n\r\nMaybe we should specify some limits.",
       "createdAt": "2024-06-24T15:37:25Z",
-      "updatedAt": "2024-07-05T21:06:40Z",
+      "updatedAt": "2024-07-08T20:47:56Z",
       "closedAt": null,
       "comments": [
         {
@@ -16537,6 +16537,13 @@
           "body": "The error code in the application-specific variant of CONNECTION_CLOSE\" is defined as \"codes defined by the application protocol\". So it is completely legit to put the specific MoQ code there. You may also want to use a reason phrase if you want to facilitate debugging.\r\n",
           "createdAt": "2024-07-05T21:06:24Z",
           "updatedAt": "2024-07-05T21:06:40Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> You may also want to use a reason phrase\r\n\r\nAn endorsement for reason phrases!\r\n\r\nSee also #273 ",
+          "createdAt": "2024-07-08T20:47:55Z",
+          "updatedAt": "2024-07-08T20:47:55Z"
         }
       ]
     },
@@ -16554,7 +16561,7 @@
       ],
       "body": "The MoQ transport messages are encoded as a combination of varints, bit strings, and t-l-v objects. In the absence of a \"header length\" field, applications have to resort to trial parsing: accumulate some incoming bytes from the stream, try to parse those bytes as a message, and if that fail accumulate more bytes and retry. This may not be a huge problem in normal operation. The peer endpoint will compose a message and typically send those bytes all at once; the QUIC stack will deliver them all at once, but even so there may be cases where the QUIC stack cannot send them in a single STREAM_DATA messages, so the logic for \"accumulate and try\" has to be present.\r\n\r\nSuppose a peer sending its data one byte at a time, because it is either malicious or buggy. The length of the message cannot be computed before all components are parsed: the first byte of each varint defines its length, the length field of bits or bytes strings need to be parsed in full, then number of parameters or versions needs to be known. To obtain the length of a component, all components before it need to be parsed, which means that the number of trial parsing is typically a function of the number of components -- maybe an O(N2) function since the cost of each trial depends on the number of components before it. That number can be very large for messages including parameters, because the number of parameters cannot be known in advance -- the peer could send an arbitrary number of them in an attempt to \"greasing\". Parsing is a somewhat CPU intensive operation, which implies that trial parsing can be exploited for a mild DOS attack.\r\n\r\nPrepend a length field to messages would mitigate trial parsing, but I am not sure that we need to fix this. Having limits on message size would impose a de-facto limit on the processing cost of each message. A malicious attackers could send series of short messages such as \"subscribe updates\" to trigger the same CPU consumption. In typical QUIC stacks, the main CPU load comes form passing messages through the OS/app boundary in socket calls, and an attacker could DOS the target by sending series of short messages. The next component is the cost of encryption and decryption, compared to which the cost of trial decryption is probably small. We may decide to do nothing, but it would be nice in that case to have a documentation of the reasoning (as in this issue), and maybe a discussion of why the attack does not matter in the security section.\r\n\r\nAddressing the \"limits\" issue (#473) would also somewhat mitigate the problem, as limiting the \"number of parameters\" appears to be the main way to increase the number of components in messages.",
       "createdAt": "2024-06-24T16:02:12Z",
-      "updatedAt": "2024-07-07T01:05:34Z",
+      "updatedAt": "2024-07-08T15:42:56Z",
       "closedAt": null,
       "comments": [
         {
@@ -16626,6 +16633,13 @@
           "body": "> For control messages on bidi streams, we could just use fixed-size 32-bit length prefix\r\n\r\nI think we keep it a VarInt. If an encoder wants to use a fixed size length, it can use a 30-bit varint (first two bits are `10`).\r\n\r\nI would instead allocate/reuse a buffer for each message with 8 bytes at the start, skipping the first N bytes based on the final varint size. It's a little more complicated but worth the savings since most of these messages will need a 1 byte size anyway.\r\n\r\nI just really want to avoid nested messages like MP4 and TLS, where the majority of the bytes used are 32-bit id/size pairs. It's both a waste and annoying to encode `id1, size, id2, size-4, id3, size-8 ...`. It's also the reason why the fMP4 overhead is not suitable for audio; MoQ can't repeat the same mistake.",
           "createdAt": "2024-07-07T01:03:49Z",
           "updatedAt": "2024-07-07T01:05:34Z"
+        },
+        {
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "+1 luke ",
+          "createdAt": "2024-07-08T15:42:55Z",
+          "updatedAt": "2024-07-08T15:42:55Z"
         }
       ]
     },
@@ -16643,7 +16657,7 @@
       ],
       "body": "If two subscriptions have identical priority, the current way to ensure both receive enough data is based on the Object receipt time at the relay.\r\n\r\nIf one subscription experiences a large delay at any stage, which could even include delay in publication of one track vs another for the same content (ie: transcoding), it would be easy for them to become substantially out of sync, potentially impacting QoE, particularly for very low latency use cases.\r\n\r\nThree suggested ways forward include:\r\n 1) Decide this is not a problem we care to solve\r\n 2) Decide we want to enable syncing, but don't care about actual time\r\n 3) Decide we care about actual time for use cases like server-side ABR and include a relative timestamp",
       "createdAt": "2024-06-25T00:49:44Z",
-      "updatedAt": "2024-07-05T23:21:22Z",
+      "updatedAt": "2024-07-08T22:26:19Z",
       "closedAt": null,
       "comments": [
         {
@@ -16673,6 +16687,20 @@
           "body": "Once the client starts communicating some sort of Delivery Timeout that's likely analogous to its jitter buffer, I believe this becomes more valuable, so possible we should revisit once that lands.",
           "createdAt": "2024-07-05T23:21:22Z",
           "updatedAt": "2024-07-05T23:21:22Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Individual Comment:\r\n\r\n> Only the end subscriber has the catalog to even know what in sync means for this case.\r\n\r\nThe original publisher also knows what tracks are related and what in sync means.  With appropriate metadata, a relay can ensure that track A doesn't get too far ahead of track B, without requiring each of a million subscribers to continually resubscribe the same content to achieve the same effect.",
+          "createdAt": "2024-07-08T19:40:21Z",
+          "updatedAt": "2024-07-08T19:40:21Z"
+        },
+        {
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "If something can be done in an end subscriber, I tend to favor that over a solution that adds more meta data and state that the relays need to keep track of but agree this could be done in the relays. I suspect it would end up just looking like priorities that were incremented at the \"sync\" boundaries. ",
+          "createdAt": "2024-07-08T22:26:19Z",
+          "updatedAt": "2024-07-08T22:26:19Z"
         }
       ]
     },
@@ -16785,7 +16813,7 @@
       ],
       "body": "When we originally added track-per-stream, I was skeptical of it being useful, as it's basically equivalent to sending media over TCP, which is a poor fit for latency-sensitive applications (and something that people already can do equally well using other widely-adopted protocols).\r\n\r\nNow that we have some further experience with this, the drawbacks of supporting track-per-stream become more apparent:\r\n1. There's a non-trivial amount of code required to support each individual stream mapping.\r\n2. There's a non-trivial amount of design effort and specification text required to support each individual stream mapping.\r\n3. Due to its nature, track-per-stream has its unique design challenges that other mappings don't have (if anything goes wrong, the entire subscription has to be thrown out, making things like timeouts hard to define).\r\n\r\nIn the narrow use cases where stream-per-track is actually useful, the application can use stream-per-group, and reassemble things itself.  Thus, I'm strongly in favor of removing it, at least as a publisher-selected stream mapping (we can discuss what FETCH does when we get back to that).",
       "createdAt": "2024-07-05T17:48:04Z",
-      "updatedAt": "2024-07-06T04:01:13Z",
+      "updatedAt": "2024-07-08T15:40:37Z",
       "closedAt": null,
       "comments": [
         {
@@ -16801,8 +16829,83 @@
           "body": "+1 This mode is a constant edge case that is susceptible to congestion. We shouldn't encourage RTMP-like behavior since the alternative (stream per group) is pretty straightforward.",
           "createdAt": "2024-07-06T04:01:12Z",
           "updatedAt": "2024-07-06T04:01:12Z"
+        },
+        {
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "at the time we decided this, some people were adamant about it and I seem to recall many of the use cases did not involve audio or video. I'd rather defer changing things we already decided on until we get more of the rest of draft done and a bit more implementations experience.  We have not yet seen what start happening as we run out streams. \r\n\r\nI guess I am just saying I would rather leave this along for next 6 months and work on more critical stuff. ",
+          "createdAt": "2024-07-08T15:40:36Z",
+          "updatedAt": "2024-07-08T15:40:36Z"
         }
       ]
+    },
+    {
+      "number": 481,
+      "id": "I_kwDOG2Ho4M6O1o9j",
+      "title": "Error codes for streams being reset",
+      "url": "https://github.com/moq-wg/moq-transport/issues/481",
+      "state": "OPEN",
+      "author": "vasilvv",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "We currently do not define error codes with which streams are supposed to be reset.\r\n\r\nI can think of at least four of those:\r\n\r\n1. GENERIC -- for unknown reasons\r\n2. SUBSCRIPTION_GONE -- the subscription associated with the stream has been terminated.\r\n3. TIMEOUT -- for stream timeouts (possibly defer until we have a PR ready for that).\r\n4. STREAM_LIMIT_EXCEEDED -- the associated subscription has too many streams associated with it, so we discarded the lowest priority one (probably should be a part of #462).",
+      "createdAt": "2024-07-08T19:47:23Z",
+      "updatedAt": "2024-07-08T22:51:58Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "+1 \r\n\r\nThe only thing I would suggest is git rid of GENERIC and make error codes for whatever needs one. \r\n\r\n",
+          "createdAt": "2024-07-08T22:17:57Z",
+          "updatedAt": "2024-07-08T22:17:57Z"
+        },
+        {
+          "author": "TimEvens",
+          "authorAssociation": "NONE",
+          "body": "We need to discuss stream transition and if we use FIN or RESET for that. Stream transition is when we are moving to a new group.  Maybe we have an error code for transition to new stream, but right now we use zero for the app code reason.  This was an interop issue as some folks assumed, because the draft-05 doesn't indicate otherwise, that upon transition to a new group you close by FIN. That doesn't work because stuff gets stuck inflight with FIN.  RESET allows us to immediately move to a new group, which might be to specifically mitigate some head of line blocking issue caused by say retransmissions, ... \r\n\r\nRegardless, the above reads as informational.  We need to indicate that it's not just informational. If you receive a timeout, shouldn't you clean up the state of the subscription? Do you send an `UNSUBSCRIBE` still or is it enough that the timeout means the relay/pub/server has cleaned up the subscription and `UNSUBSCRIBE` isn't needed anymore?.?\r\n\r\n",
+          "createdAt": "2024-07-08T22:30:22Z",
+          "updatedAt": "2024-07-08T22:32:14Z"
+        },
+        {
+          "author": "vasilvv",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> [...] upon transition to a new group you close by FIN. That doesn't work because stuff gets stuck inflight with FIN.\r\n\r\nIt is possible to reset a stream that has already been closed with a FIN (in fact, WebTransport WG went out of its way to support that).  That's why the per-stream timeouts (like the ones defined in #449) should be kept around even after FIN is sent.\r\n\r\n>  If you receive a timeout, shouldn't you clean up the state of the subscription?\r\n\r\nThe TIMEOUT I was referencing above is timeout for a single group/object, not necessarily the track as a whole.",
+          "createdAt": "2024-07-08T22:42:51Z",
+          "updatedAt": "2024-07-08T22:42:51Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Individual Comment:\r\n\r\n> If you receive a timeout, shouldn't you clean up the state of the subscription\r\n\r\nIf I squint I think Victor was suggesting the TIMEOUT code would be sent on a stream where you started sending an object but then you passed the delivery timeout (which is in the process of being defined)?  I don't think resetting any particular stream should affect subscription state, except perhaps stream-per-track implicitly?\r\n\r\nAlso, is there a different set of codes we need for STOP_SENDING?",
+          "createdAt": "2024-07-08T22:44:50Z",
+          "updatedAt": "2024-07-08T22:44:50Z"
+        },
+        {
+          "author": "TimEvens",
+          "authorAssociation": "NONE",
+          "body": ">  The TIMEOUT I was referencing above is timeout for a single group/object, not necessarily the track as a whole.\r\n\r\nWe need to be very clear on the error codes, when to use them for which stream (e.g., is it for a data uni stream and/or control stream?), and what it means when you receive that based on the mode of the data uni stream, ...  As you mentioned above with per-group, you should only close out that group and wait for the next one in the subscription, but in per-track we should likely close out the subscription maybe as there is only one way to recover from that.  \r\n\r\n",
+          "createdAt": "2024-07-08T22:51:57Z",
+          "updatedAt": "2024-07-08T22:51:57Z"
+        }
+      ]
+    },
+    {
+      "number": 482,
+      "id": "I_kwDOG2Ho4M6O2c_e",
+      "title": "Challenges with being too vague on `subscribe_id` and `track_alias`",
+      "url": "https://github.com/moq-wg/moq-transport/issues/482",
+      "state": "OPEN",
+      "author": "TimEvens",
+      "authorAssociation": "NONE",
+      "assignees": [],
+      "labels": [],
+      "body": "As I read the draft, `SUBSCRIBE_ID` is the distinguisher of a given subscription. `TRACK_ALIAS`  is made unique for a subscription state by indicating *\"If the Track Alias is already in use, the publisher **MUST** close the session with a Duplicate Track Alias error.\"* \r\n\r\nThe `TRACK_ALIAS` is mentioned as *\"A session specific identifier for the track.\"*. It is initially set by the subscriber, where the publisher **MAY** reject... likely not if it wants to avoid long subscribe times.   The draft does not indicate that the track alias is a hash of track `namespace + name` or not.  \r\n\r\nIf the client implementation uses a sequence ID for both subscribe ID and track alias, then it could result in duplicate subscribes that would result in the relay building state, propagating the subscribe toward the publisher to solicit a response of OK/ERROR. In some implementations that support headless publishers, the relay would send a subscribe OK immediately.\r\n\r\nThe edge relay that has the connection to the publisher performs state compression of subscribes, but that's only at the `track_alias` level per the draft.  In this case, the track alias is different, resulting in a new subscribe (duplicate when looking at the `namespace+name`) being created to the publisher. \r\n\r\nThe publisher receives the subscribe with a new `SUBSCRIBE_ID` and `TRACK_ALIAS` and starts to publish data objects using the `SUBSCRIBE_ID` and `TRACK_ALIAS` that match internally the **track** `namespace + name`.  If one or more clients do this repeatedly, it would result in all relays and the actual publisher itself sending duplicate data that matches `namespace + name`.  \r\n\r\nBelow diagram illustrates the above.\r\n\r\n```mermaid\r\nsequenceDiagram\r\n    actor P as Actual Publisher\r\n    participant R1 as Relay 1\r\n    participant R2 as Relay 2\r\n    actor S as Lazy Subscriber\r\n\r\n    S ->>R2: SUBSCRIBE (id=5, space=clock, name=second, alias=100)\r\n    R2-->>S: SUBSCRIBE_OK (id=5, alias=100)\r\n    R2 ->>R1:  SUBSCRIBE (id=99, space=clock, name=second, alias=9901)\r\n    R1 -->>R2: SUBSCRIBE_OK (id=99, alias=9901)\r\n    R2 ->>P:  SUBSCRIBE (id=14, space=clock, name=second, alias=31)\r\n    P -->>R1: SUBSCRIBE_OK (id=14, alias=31)\r\n    P -) R1: OBJECT (id=14, alias=31, g=1, id=1)\r\n    R1 -)R2: OBJECT (id=99, alias=9901,  g=1, id=1)\r\n    R2 -)S: OBJECT (id=5, alias=100, g=1, id=1)\r\n    Note right of P: Objects are flowing for namespace = clock, name = second\r\n    Note left of S: Lazy subscriber sends another SUBSCRIBE\r\n\r\n    S ->>R2: SUBSCRIBE (id=6, space=clock, name=second, alias=101)\r\n    R2-->>S: SUBSCRIBE_OK (id=6, alias=101)\r\n    R2 ->>R1:  SUBSCRIBE (id=100, space=clock, name=second, alias=9902)\r\n    R1 -->>R2: SUBSCRIBE_OK (id=100, alias=9902)\r\n    R2 ->>P:  SUBSCRIBE (id=15, space=clock, name=second, alias=32)\r\n    P -->>R1: SUBSCRIBE_OK (id=15, alias=32)\r\n\r\n\r\n    P -) R1: OBJECT (id=14, alias=31, g=1, id=2)\r\n    R1 -)R2: OBJECT (id=99, alias=9901,  g=1, id=2)\r\n    R2 -)S: OBJECT (id=5, alias=100, g=1, id=2)\r\n\r\n   Note left of S: Below object is duplicate due to duplicate subscribes for same namespace + name\r\n\r\n    P -) R1: OBJECT (id=15, alias=32, g=1, id=2)\r\n    R1 -)R2: OBJECT (id=100, alias=9902,  g=1, id=2)\r\n    R2 -)S: OBJECT (id=6, alias=101, g=1, id=2)\r\n\r\n```\r\n\r\n### Resolutions\r\n\r\nI'm sure there are many reasonable fixes for this... below are a few. \r\n\r\n#### (1) Update protocol spec to make track namespace and name active at one time only per client/subscriber session\r\n\r\nThis would change the verbiage of duplicate track detection to perform duplication check on `namespace` and `name` instead of only on track alias.  The state machine for subscribe **SHOULD** change to move `TRACK_ALIAS` from `SUBSCRIBE` **TO** `SUBSCRIBE_OK`.   This simplifies the state machine by reducing the complexity in:\r\n\r\n* detection and elimination of duplicate subscribes\r\n* eliminating the challenges with having to deal with `SUBSCRIBE_ERROR=Duplicate Track Alias` trial and error responses\r\n\r\n#### (2) Hash **Track** `namespace` and `name`\r\nA hash of namespace and name would allow for the duplicate track detection to work per draft, but... Track alias has a max value of 62 bits. Collisions are the largest pitfall for using a hash of two values.\r\n\r\n#### (3) Registry/directory service of **Track** `namespace` and `name`\r\nRegistry/directory service could act as gatekeeper of track aliases.  While this would work, it introduces another micro service for a simple pub/sub, which isn't great. It will also slow the subscribe process down.  Many other issues will likely arise with this approach. \r\n\r\n\r\n",
+      "createdAt": "2024-07-08T21:51:01Z",
+      "updatedAt": "2024-07-08T21:51:01Z",
+      "closedAt": null,
+      "comments": []
     }
   ],
   "pulls": [
@@ -62273,24 +62376,26 @@
       "id": "PR_kwDOG2Ho4M50eF6N",
       "title": "Invalid SUBSCRIBE_UPDATE is a Protocol Violation",
       "url": "https://github.com/moq-wg/moq-transport/pull/479",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "ianswett",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [],
       "body": "This case seems easily avoidable by a subscriber, so the simplest option is to close the session.\r\n\r\nFixes #455\r\nFixes #467",
       "createdAt": "2024-07-04T18:26:54Z",
-      "updatedAt": "2024-07-05T06:04:13Z",
+      "updatedAt": "2024-07-08T16:15:25Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "27064916d2582cdd8ded943c679d06760eeb4a27",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "ianswett-update-protocol-violation",
-      "headRefOid": "db6a5f8e727b6a5e344412cc9e1834ddd1e3cb6c",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "headRefOid": "258e6c2c2dec5785706c7d342a1375f731d75550",
+      "closedAt": "2024-07-08T16:15:24Z",
+      "mergedAt": "2024-07-08T16:15:24Z",
+      "mergedBy": "ianswett",
+      "mergeCommit": {
+        "oid": "b70f8b5a2f7eaf441509f909b554a73a8a09c0c1"
+      },
       "comments": [],
       "reviews": [
         {
@@ -62305,6 +62410,112 @@
           "createdAt": "2024-07-05T06:04:13Z",
           "updatedAt": "2024-07-05T06:04:13Z",
           "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6A92nE",
+          "commit": {
+            "abbreviatedOid": "db6a5f8"
+          },
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "LGTM",
+          "createdAt": "2024-07-08T15:33:03Z",
+          "updatedAt": "2024-07-08T15:33:03Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6A-LvS",
+          "commit": {
+            "abbreviatedOid": "db6a5f8"
+          },
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2024-07-08T16:06:22Z",
+          "updatedAt": "2024-07-08T16:06:27Z",
+          "comments": [
+            {
+              "originalPosition": 7,
+              "body": "Since we have a single control stream, we can assume everything is ordered.\r\n\r\n```suggestion\r\nthat does not exist within the Session.\r\n```",
+              "createdAt": "2024-07-08T16:06:22Z",
+              "updatedAt": "2024-07-08T16:06:27Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6A-NZu",
+          "commit": {
+            "abbreviatedOid": "db6a5f8"
+          },
+          "author": "janaiyengar",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-07-08T16:09:51Z",
+          "updatedAt": "2024-07-08T16:09:51Z",
+          "comments": [
+            {
+              "originalPosition": 7,
+              "body": "```suggestion\r\nthe new end Object. A publisher SHOULD close the Session as a 'Protocol Violation'\r\nif the SUBSCRIBE_UPDATE violates either rule or if the subscriber specifies a Subscribe\r\nID that has never existed within the Session.\r\n```",
+              "createdAt": "2024-07-08T16:09:51Z",
+              "updatedAt": "2024-07-08T16:09:52Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6A-Nhd",
+          "commit": {
+            "abbreviatedOid": "db6a5f8"
+          },
+          "author": "janaiyengar",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "One nit, but LGTM",
+          "createdAt": "2024-07-08T16:10:06Z",
+          "updatedAt": "2024-07-08T16:10:06Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6A-N1z",
+          "commit": {
+            "abbreviatedOid": "db6a5f8"
+          },
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-07-08T16:10:38Z",
+          "updatedAt": "2024-07-08T16:10:38Z",
+          "comments": [
+            {
+              "originalPosition": 7,
+              "body": "also this way you don't have to remember every subscribe ID that has ever existed.",
+              "createdAt": "2024-07-08T16:10:38Z",
+              "updatedAt": "2024-07-08T16:10:38Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6A-O6_",
+          "commit": {
+            "abbreviatedOid": "db6a5f8"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-07-08T16:12:23Z",
+          "updatedAt": "2024-07-08T16:12:23Z",
+          "comments": [
+            {
+              "originalPosition": 7,
+              "body": "Done",
+              "createdAt": "2024-07-08T16:12:23Z",
+              "updatedAt": "2024-07-08T16:12:23Z"
+            }
+          ]
         }
       ]
     }
