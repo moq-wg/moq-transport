@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2024-07-09T01:16:20.101043+00:00",
+  "timestamp": "2024-07-11T01:17:04.067546+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -16108,7 +16108,7 @@
       ],
       "body": "Section 6.14 says:\r\n\r\n\"Final Group: The largest Group ID sent by the publisher in an OBJECT message in this track.\r\n\r\nFinal Object: The largest Object ID sent by the publisher in an OBJECT message in the Final Group for this track.\"\r\n\r\nIs it for the track, or for the subscribe? \r\n\r\nI support it being for the track, as that requires less publisher bookkeeping. But if it's that, we should probably make it clear that we really mean \"for the track\", unrelated to whatever was delivered from that subscribe_id.\r\n\r\n",
       "createdAt": "2024-05-31T19:48:50Z",
-      "updatedAt": "2024-07-04T00:39:58Z",
+      "updatedAt": "2024-07-10T14:41:03Z",
       "closedAt": null,
       "comments": [
         {
@@ -16117,6 +16117,13 @@
           "body": "I believe the intent of this field is to tell the peer what the last Object to expect from a subscription is.\r\n\r\n* If a track ends, then that's clearly the last Object produced for the track.\r\n* If the subscription specifies a endpoint, this is likely a bit redundant?\r\n* It seems like UNSUBSCRIBE is the case this is most valuable, because one doesn't know what the final Object is?\r\n\r\nI'm not convinced there's a good use case for UNSUBSCRIBE.  Instead one can SUBSCRIBE_UPDATE to an Object either already received or one you expect to receive in the near future.  That provides similar functionality with one fewer mechanism.\r\n\r\nIf a publisher cancels a SUBSCRIBE, is it useful to have the last Object sent in that message?  As you said, that could require a good bit of publisher bookkeeping and either it ends up being extraordinarily conservative or difficult to track.  It seems better to set the expectation that the subscriber likely won't receive any more data from the subscription.",
           "createdAt": "2024-07-04T00:39:57Z",
           "updatedAt": "2024-07-04T00:39:57Z"
+        },
+        {
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "I don't feel strongly about it, but we should fix the text to say what you intend it to say.",
+          "createdAt": "2024-07-10T14:41:02Z",
+          "updatedAt": "2024-07-10T14:41:02Z"
         }
       ]
     },
@@ -16302,7 +16309,7 @@
       "labels": [],
       "body": "How does a relay know when to send SUBSCRIBE_DONE?\r\n\r\nThe purpose of relay is to aggregate subscribes, so if overlapping subscribes come in with different endpoints I can't rely on a SUBSCRIBE_DONE from upstream.\r\n\r\nIf a SUBSCRIBE is entirely for future objects, the easiest thing to do is to send it when I've sent the last object ID, or a higher ID is published. One can add a timer per subscribe to allow for reordering, or just accept that reordered objects arriving after the last won't be delivered. I can't simply keep state for each object in the subscribe because I have no idea where there are object or group gaps. (maybe this is the use case for explicitly communicating these gaps after all?)\r\n\r\nIf a SUBSCRIBE is entirely for past objects, either I am serving them from cache (in which case I can provide an API to the cache to call when it is fully served), or I have to send a SUBSCRIBE upstream. If the SUBSCRIBE is unique, then I'll get a SUBSCRIBE_DONE from upstream. If it's aggregated somehow, once again I have to either watch for the last sequence number and run a timer, or keep score of all the objects I expect to see. IIUC, as it stands there is no guarantee that a subscribe for past objects will give me the complete set of objects.\r\n\r\nIf a SUBSCRIBE is for both past and future objects, then the union of both algorithms must both return true in order for the relay to send SUBSCRIBE_DONE. So the sender has to keep track of two separate object ranges independently. Because the SUBSCRIBE may arrive just as the publisher is incrementing the group ID, I need to track the max object ID in each group so I can tell when the past portion of the subscription is done.\r\n\r\nAt the origin, this is somewhat simpler in that published objects can be assumed to arrive in order and without gaps, and past objects can arrive in their own order and without gaps.",
       "createdAt": "2024-06-13T18:47:37Z",
-      "updatedAt": "2024-07-05T23:45:41Z",
+      "updatedAt": "2024-07-09T16:43:23Z",
       "closedAt": null,
       "comments": [
         {
@@ -16339,6 +16346,27 @@
           "body": "Both `SUBSCRIBE_DONE` and `ANNOUNCE_CANCEL` handling appears to be unclear and could lead to interop issues with different implementations. For example, I handled this a little differently for now due to this unclarity and how to deal with the churn it causes.  https://github.com/Quicr/libquicr/blob/main/docs/moq-implementation.md#unannounce-flow goes over this a little bit.\r\n\r\n#### Regarding cache fulfillment\r\nI agree with @vasilvv  that SUBSCRIBE_DONE doesn't make much sense with fetch fulfillment as it could get problematic with the various state scenarios. Instead, I think fulfillment should use per-track and upon end of track/stream the data transfer is over... regardless if you got the last group/object or not. Reason why you wouldn't get last object could be caused by a stream that is closed due to RESET for whatever reason.  Using stream per track simplifies cache fulfillment in many ways, including the issues that arise with datagrams and mixed modes of live vs cache.  If the receiver believes they didn't get all they wanted, then they should request it again... considering it should have been delivered originally, and if not it's likely due to an error or that cache didn't have all the data or was purged while it was fulfilling it. \r\n\r\n#### Regarding Live Data Flows and  subscription/publication states\r\nMy interpretation of the current draft-04 is that `SUBSCRIBE_DONE` purpose is for the original publisher to indicate to close a track/data flow that was subscribed by the relay/server.  The original publisher may issue SUBSCRIBE_DONE for the following:\r\n\r\n* File/flow/data is done, such as EOF, no more data to send\r\n* Data flow has stopped, such as camera was disconnected or otherwise user-control disabled\r\n\r\nIn the above, the EOF makes most sense for SUBSCRIBE_DONE, but it doesn't really make sense for the latter.  If a camera is disabled, what is the process to start that stream/flow again when the camera is again enabled? For example, the user is playing with a switch and it's going on/off repeatedly.... Do we really expect every subscriber to re-subscribe repeatedly for each switch? That causes unnecessary churn, which would likely result in noticeable prolonged gaps of media by each subscribing user. If so, MOQT needs to further clarify that `SUBSCRIBE_DONE = subscription END` which results in streams closing everywhere upon receiving `SUBSCRIBE_DONE`. Considering there is no pause/resume, SUBSCRIBE_DONE is the only way to indicate this, but it does mean we have a lot of churn caused by it.\r\n\r\nBelow is what I think the flow is supposed to be per the current draft-04. \r\n\r\n```mermaid\r\nflowchart TD\r\n   SD[/SUBSCRIBE_DONE/]-->RHS{\"Relay Have\\nSubscribers?\"}\r\n   RHS-- No --> rss[\"(1) Remove Subscription State\"]\r\n   rss --> End\r\n   RHS-- Yes --> l_1((\"(2) for Each\\nSubscriber\"))\r\n   l_1 --> send_sd[SUBSCRIBE_DONE]\r\n   send_sd--> cs[\"(3) QUIC stream? FIN close it\"]\r\n   cs -->l_1\r\n```\r\n\r\n1. Subscription state is removed if it exists in the relay upon `SUBSCRIBE_DONE`.  Normally in the implementation this would be done after sending `SUBSCRIBE_DONE` to each subscriber\r\n2. Iterate over each subscriber and generate `SUBSCRIBE_DONE` using the `subscribe_id` known for that subscribe\r\n3. If the stream exists, close it using QUIC FIN close process. \r\n\r\n> [!NOTE]\r\n> Publisher received data rate does not equal the subscriber transmission rate. One or more\r\n> subscribers may fall behind because they have slower TX rates or congestion, including priority backlog.\r\n> This can result in subscribes having a pending TX queue that grows over time. \r\n\r\nItems **(2)** and **(3)** above are in question here. Should we wait to `send SUBSCRIBE_DONE` and stream close via FIN upon transmission of last/max object received by publisher or not???? For live tracks I suggest **NO**.  Just close it, it's over and should end/stop immediately.  If you didn't get the full data, then you were too slow to begin with.  For different use-cases where reliable data is being transferred and is delay tolerant, then I say **MAYBE**.   It's the **maybe** case that's complicated. Should we linger subscribes/tracks that haven't finished emptying their transmit queue? \r\n\r\nOne way to handle this, which I see pretty easy for us to implement, is to flag the state of the subscribe track as pending subscribe_done. In this state the track will not receive any new objects, but it will finish/emptying its transmit queue... Upon the last object being sent from its queue, FIN followed by `SUBSCRIBE_DONE` would be issued. Unfortunately, this process could take several seconds, even minutes under some very bad network scenarios, so timeouts will be needed. At some point, you need to give up and say it's over and I gave you enough time to get it. Although, where's the ERROR message to indicate this timeout? \r\n\r\nBelow is an example of the flow: \r\n\r\n```mermaid\r\nflowchart TD\r\n   SD[/SUBSCRIBE_DONE/]-->RHS{\"Relay Have\\nSubscribers?\"}\r\n   RHS-- No --> rss[\"(1) Remove Subscription State\"]\r\n   rss --> End\r\n   RHS-- Yes --> l_1((\"(2) for Each\\nSubscriber\"))\r\n   l_1 --> mark_us[Mark state as subscribe done]\r\n   mark_us -->l_1\r\n   cs -->l_1\r\n```\r\n\r\nBelow illustrates the flow of a new thread/process/asyncio/ type monitor that monitors subscribes and their pending done states. It's unfortunate that we have to add something to check them, but normally that's not much effort/code and it shouldn't impact scale. \r\n\r\n```mermaid\r\nflowchart LR\r\n   sl[[Check Subscribe States]] --> sp{Subscribe done pending?}\r\n   sp-- Yes --> qm{Is TX Queue Empty?}\r\n   sp-- No --> sl\r\n   qm -- Yes --> send_d[Send SUBSCRIBE_DONE]\r\n   send_d--> cs[\"QUIC stream? FIN close it\"]\r\n   qm -- No --> sl\r\n    send_d --> rs[Remove Subscribe State]\r\n```\r\n\r\nAn `UNSUBSCRIBE` could be received during the linger/pending subscribe_done state. In this case, it should be simple to handle this. If unsubscribe is received, then immediately remove the subscribe state and send a FIN close on the stream if using QUIC stream.  The other side is likely to have sent a FIN first, so race condition handling would/should take care of this at the QUIC layer. \r\n\r\n",
           "createdAt": "2024-07-05T23:41:15Z",
           "updatedAt": "2024-07-05T23:45:41Z"
+        },
+        {
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Subscribe done serves 2 purposes \r\n\r\nLet's consider a topology where original publisher --> Relay --> 10000 subscribers\r\n\r\n1. Publisher connection abruptly ends\r\n    If relay detects connection timeout from a publisher that was actively publishing media , it can trigger \"Subscribe Done\" downstream to all the subscribers with appropriate condition indicating the reason for closing the subscriptions\r\n\r\n2. Publisher ends the session normally\r\n   In this case the publisher ends the subscription by sending \"Subscribe Done\" to the relay with condition indicating normal close. This can be used by relay to trigger downstream subscribers of the same\r\n\r\nOn the case when relay has been aggregating subscribes, the logic is exactly same.  A relay can aggregate subscribes only that are not overlapping. If a relay has aggregated few subscriptions to a single subscription upstream and if the publisher is ending that subscription, then the relay will close all the subscriptions that belonged to the aggregation set.\r\n\r\n",
+          "createdAt": "2024-07-09T05:00:23Z",
+          "updatedAt": "2024-07-09T05:00:23Z"
+        },
+        {
+          "author": "vasilvv",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> Publisher ends the session normally\r\n> In this case the publisher ends the subscription by sending \"Subscribe Done\" to the relay with condition indicating normal close. This can be used by relay to trigger downstream subscribers of the same\r\n\r\nThis sounds redundant to 0x4 object status (end of group and track).\r\n\r\n> A relay can aggregate subscribes only that are not overlapping.\r\n\r\nI'm not sure what you mean by that, because if I interpret that statement literally, relay would ~never be able to aggregate anything unless all clients subscribe at exactly the same time.",
+          "createdAt": "2024-07-09T13:53:09Z",
+          "updatedAt": "2024-07-09T13:53:09Z"
+        },
+        {
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "body": "\r\n\r\n\r\n> > Publisher ends the session normally\r\n> > In this case the publisher ends the subscription by sending \"Subscribe Done\" to the relay with condition indicating normal close. This can be used by relay to trigger downstream subscribers of the same\r\n> \r\n> This sounds redundant to 0x4 object status (end of group and track).\r\n> \r\n\r\nGood point. \r\n\r\n> > A relay can aggregate subscribes only that are not overlapping.\r\n> \r\n> I'm not sure what you mean by that, because if I interpret that statement literally, relay would ~never be able to aggregate anything unless all clients subscribe at exactly the same time.\r\n\r\nRelay should be able to aggregate most of the times except few cases. One example i can think of \r\n\r\nRelay has aggregated subscriptions from multiple latest group onwards for serving live edge\r\nThen a new subscribe arrives asking for older data , absolute range , for example \r\n\r\nIn this case, a relay need to make a new subscription request since it doesn't have any of that data ever retrieved/cached. Yes, making it a fetch explicitly will help with some of the semantics around aggregations for subscriptions. But the way we have it today, a new subscribe needs to be sent upstream in this case and cannot use aggregation.\r\n\r\nAm i missing anything here ?",
+          "createdAt": "2024-07-09T16:43:22Z",
+          "updatedAt": "2024-07-09T16:43:22Z"
         }
       ]
     },
@@ -16716,7 +16744,7 @@
       "labels": [],
       "body": "This is another SUBSCRIBE-vs-FETCH issue, but with a specific implementation aspect of it.\r\n\r\nAssume I have a group-per-stream track.  I can subscribe to groups 1000 to 2000; it is entirely plausible that the publisher has all of those in cache immediately available, so in a naive implementation it can just open 1000 streams and start sending things; it would run into a flow control, and starve everything else on the connection.\r\n\r\nWe could set some limit on how many streams an individual subscription has, and that would be one way of solving this: if you set deliver order to ASC, you would process old streams first, and once those are processed (something we don't actually have a signal either), you'd start sending the next group.  Is this what we actually want?",
       "createdAt": "2024-06-28T19:04:00Z",
-      "updatedAt": "2024-07-05T20:49:05Z",
+      "updatedAt": "2024-07-09T19:06:58Z",
       "closedAt": null,
       "comments": [
         {
@@ -16746,6 +16774,20 @@
           "body": "My two-cents:\r\n\r\n* When servicing requested objects from the past/cache; the transmission should use `per-track` to deliver those objects. \r\n* If there is an end-range requested, then end of track/stream is end of retrieval.  \r\n* If there is no end-range and the client is expecting to tap into the live stream at the same time as receiving cached objects, then the live stream will follow the publisher delivery mode of using stream per-track, per-group, per-object, or datagram. \r\n* It's a bit slippery when it comes to datagram and the mix between cache and live.  I still say use per-track to deliver cache, KISS and use delivery mode of the live stream... \r\n* When delivering the live feed, it won't have the cache of objects that would cause a flood of streams. \r\n\r\nThe above being said, there is a challenge with flow control of using MOQT with relay-to-relay peering sessions. Regardless of cache, we'll have this challenge if every producer uses per-object with live data flows.  The aggregated QUIC connection used between two relays could easily have in the millions of active streams.  Is that ideal with QUIC? \r\n",
           "createdAt": "2024-07-05T20:48:11Z",
           "updatedAt": "2024-07-05T20:49:05Z"
+        },
+        {
+          "author": "vasilvv",
+          "authorAssociation": "COLLABORATOR",
+          "body": "One observation I have is that even if we do flow control, there is a bit of awkward dynamic here with doing fetches of large ranges.\r\n\r\nLet's say we have 10 clients, and each of them requests same 1000 groups simultaneously.  Ideally, those would all arrive at the same time, and we would forward them immediately.  Now, assume one client can consume 100 groups per second, the second client can consume 50 groups per second, the third can do 25, and so on.  We probably don't want a system in which relay has to hold all 1000 objects while the slowest client receives them.  We can deal with this in at least four ways:\r\n\r\n1. Throttle upstream subscription to slowest.  This is extremely suboptimal since it means that the slowest client will affect all others.  This also doesn't work when the requests only partially overlap.\r\n2. Require the clients only request data in small chunks.  If the client requests something and unable to receive that in time, subscribe would fail and client would have to resubscribe at the updated range.\r\n3. Make the relay request data in small chunks upon cache miss.  This would mean that a single subscribe would potentially result in hundreds of upstream subscribes spread over time.\r\n4. Do not deduplicate fetches at all.  This is bad, since we'd be re-requesting data that we have in local cache.  It would also be a downgrade from HLS/DASH.",
+          "createdAt": "2024-07-09T14:13:48Z",
+          "updatedAt": "2024-07-09T14:13:48Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Individual Comment: \r\n\r\nIsn't the scenario you describe similar to HTTP cache fill?  \r\n\r\nYou probably shouldn't throttle cache fill to the slowest client, and you shouldn't OOM your relay buffering for them either.  We do something like: \r\n\r\nFill at line rate and write back to an external cache\r\nHold a fixed size in memory buffer per client\r\nIf the client exceeds the buffer, switch them to filling from the external cache (or go back upstream) when they drain it.",
+          "createdAt": "2024-07-09T19:06:57Z",
+          "updatedAt": "2024-07-09T19:06:57Z"
         }
       ]
     },
@@ -16851,7 +16893,7 @@
       "labels": [],
       "body": "We currently do not define error codes with which streams are supposed to be reset.\r\n\r\nI can think of at least four of those:\r\n\r\n1. GENERIC -- for unknown reasons\r\n2. SUBSCRIPTION_GONE -- the subscription associated with the stream has been terminated.\r\n3. TIMEOUT -- for stream timeouts (possibly defer until we have a PR ready for that).\r\n4. STREAM_LIMIT_EXCEEDED -- the associated subscription has too many streams associated with it, so we discarded the lowest priority one (probably should be a part of #462).",
       "createdAt": "2024-07-08T19:47:23Z",
-      "updatedAt": "2024-07-08T22:51:58Z",
+      "updatedAt": "2024-07-10T23:10:26Z",
       "closedAt": null,
       "comments": [
         {
@@ -16888,6 +16930,13 @@
           "body": ">  The TIMEOUT I was referencing above is timeout for a single group/object, not necessarily the track as a whole.\r\n\r\nWe need to be very clear on the error codes, when to use them for which stream (e.g., is it for a data uni stream and/or control stream?), and what it means when you receive that based on the mode of the data uni stream, ...  As you mentioned above with per-group, you should only close out that group and wait for the next one in the subscription, but in per-track we should likely close out the subscription maybe as there is only one way to recover from that.  \r\n\r\n",
           "createdAt": "2024-07-08T22:51:57Z",
           "updatedAt": "2024-07-08T22:51:57Z"
+        },
+        {
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "We should open a separate issue on when to FIN / RST a stream. I feel pretty strongly that when you go to a new group, you should *not* RST the previous group because this would result in loss of data when there was no need to loose data. Experiments back this up. Instead, when doing stream per group, just FIN the stream and then when it hits the timeout of the last object, then it would be appropriate to RST the group. I want to be clear that we have talked a lot about how to detect the end of group and start of a the next group does not necessarily mean end of the previous group. That might be the case with H264 but sees less likely with things like long term reference frames in future codecs",
+          "createdAt": "2024-07-10T23:10:25Z",
+          "updatedAt": "2024-07-10T23:10:25Z"
         }
       ]
     },
@@ -16903,9 +16952,24 @@
       "labels": [],
       "body": "As I read the draft, `SUBSCRIBE_ID` is the distinguisher of a given subscription. `TRACK_ALIAS`  is made unique for a subscription state by indicating *\"If the Track Alias is already in use, the publisher **MUST** close the session with a Duplicate Track Alias error.\"* \r\n\r\nThe `TRACK_ALIAS` is mentioned as *\"A session specific identifier for the track.\"*. It is initially set by the subscriber, where the publisher **MAY** reject... likely not if it wants to avoid long subscribe times.   The draft does not indicate that the track alias is a hash of track `namespace + name` or not.  \r\n\r\nIf the client implementation uses a sequence ID for both subscribe ID and track alias, then it could result in duplicate subscribes that would result in the relay building state, propagating the subscribe toward the publisher to solicit a response of OK/ERROR. In some implementations that support headless publishers, the relay would send a subscribe OK immediately.\r\n\r\nThe edge relay that has the connection to the publisher performs state compression of subscribes, but that's only at the `track_alias` level per the draft.  In this case, the track alias is different, resulting in a new subscribe (duplicate when looking at the `namespace+name`) being created to the publisher. \r\n\r\nThe publisher receives the subscribe with a new `SUBSCRIBE_ID` and `TRACK_ALIAS` and starts to publish data objects using the `SUBSCRIBE_ID` and `TRACK_ALIAS` that match internally the **track** `namespace + name`.  If one or more clients do this repeatedly, it would result in all relays and the actual publisher itself sending duplicate data that matches `namespace + name`.  \r\n\r\nBelow diagram illustrates the above.\r\n\r\n```mermaid\r\nsequenceDiagram\r\n    actor P as Actual Publisher\r\n    participant R1 as Relay 1\r\n    participant R2 as Relay 2\r\n    actor S as Lazy Subscriber\r\n\r\n    S ->>R2: SUBSCRIBE (id=5, space=clock, name=second, alias=100)\r\n    R2-->>S: SUBSCRIBE_OK (id=5, alias=100)\r\n    R2 ->>R1:  SUBSCRIBE (id=99, space=clock, name=second, alias=9901)\r\n    R1 -->>R2: SUBSCRIBE_OK (id=99, alias=9901)\r\n    R2 ->>P:  SUBSCRIBE (id=14, space=clock, name=second, alias=31)\r\n    P -->>R1: SUBSCRIBE_OK (id=14, alias=31)\r\n    P -) R1: OBJECT (id=14, alias=31, g=1, id=1)\r\n    R1 -)R2: OBJECT (id=99, alias=9901,  g=1, id=1)\r\n    R2 -)S: OBJECT (id=5, alias=100, g=1, id=1)\r\n    Note right of P: Objects are flowing for namespace = clock, name = second\r\n    Note left of S: Lazy subscriber sends another SUBSCRIBE\r\n\r\n    S ->>R2: SUBSCRIBE (id=6, space=clock, name=second, alias=101)\r\n    R2-->>S: SUBSCRIBE_OK (id=6, alias=101)\r\n    R2 ->>R1:  SUBSCRIBE (id=100, space=clock, name=second, alias=9902)\r\n    R1 -->>R2: SUBSCRIBE_OK (id=100, alias=9902)\r\n    R2 ->>P:  SUBSCRIBE (id=15, space=clock, name=second, alias=32)\r\n    P -->>R1: SUBSCRIBE_OK (id=15, alias=32)\r\n\r\n\r\n    P -) R1: OBJECT (id=14, alias=31, g=1, id=2)\r\n    R1 -)R2: OBJECT (id=99, alias=9901,  g=1, id=2)\r\n    R2 -)S: OBJECT (id=5, alias=100, g=1, id=2)\r\n\r\n   Note left of S: Below object is duplicate due to duplicate subscribes for same namespace + name\r\n\r\n    P -) R1: OBJECT (id=15, alias=32, g=1, id=2)\r\n    R1 -)R2: OBJECT (id=100, alias=9902,  g=1, id=2)\r\n    R2 -)S: OBJECT (id=6, alias=101, g=1, id=2)\r\n\r\n```\r\n\r\n### Resolutions\r\n\r\nI'm sure there are many reasonable fixes for this... below are a few. \r\n\r\n#### (1) Update protocol spec to make track namespace and name active at one time only per client/subscriber session\r\n\r\nThis would change the verbiage of duplicate track detection to perform duplication check on `namespace` and `name` instead of only on track alias.  The state machine for subscribe **SHOULD** change to move `TRACK_ALIAS` from `SUBSCRIBE` **TO** `SUBSCRIBE_OK`.   This simplifies the state machine by reducing the complexity in:\r\n\r\n* detection and elimination of duplicate subscribes\r\n* eliminating the challenges with having to deal with `SUBSCRIBE_ERROR=Duplicate Track Alias` trial and error responses\r\n\r\n#### (2) Hash **Track** `namespace` and `name`\r\nA hash of namespace and name would allow for the duplicate track detection to work per draft, but... Track alias has a max value of 62 bits. Collisions are the largest pitfall for using a hash of two values.\r\n\r\n#### (3) Registry/directory service of **Track** `namespace` and `name`\r\nRegistry/directory service could act as gatekeeper of track aliases.  While this would work, it introduces another micro service for a simple pub/sub, which isn't great. It will also slow the subscribe process down.  Many other issues will likely arise with this approach. \r\n\r\n\r\n",
       "createdAt": "2024-07-08T21:51:01Z",
-      "updatedAt": "2024-07-08T21:51:01Z",
+      "updatedAt": "2024-07-09T05:03:11Z",
       "closedAt": null,
-      "comments": []
+      "comments": [
+        {
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> If the client implementation uses a sequence ID for both subscribe ID and track alias, then it could result in duplicate subscribes that would result in the relay building state, propagating the subscribe toward the publisher to solicit a response of OK/ERROR\r\n\r\nI don't understand duplicate subscribes issue here ? can you please elaborate .",
+          "createdAt": "2024-07-09T04:32:50Z",
+          "updatedAt": "2024-07-09T04:32:50Z"
+        },
+        {
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "body": "If a subscriber sends 2 subscriptions for the same track to a publisher ( ignoring relays for a bit here and also ignoring any form if Ids ), what should be the expected behavior of the publisher ? \r\n\r\nThere are few  options \r\n1. Publisher sends 2 copies of the objects (wherever they overlap) \r\n2. Publisher rejects the second subscribe since it is in the same connection \r\n3. Publisher sends only 1 copy of the overlapping objects \r\n\r\nWhat is in draft today allows for 1.  ",
+          "createdAt": "2024-07-09T05:03:10Z",
+          "updatedAt": "2024-07-09T05:03:10Z"
+        }
+      ]
     }
   ],
   "pulls": [
