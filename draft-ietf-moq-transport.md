@@ -1298,12 +1298,14 @@ Publisher MUST NOT mix different forwarding preferences within a single track.
 If a subscriber receives different forwarding preferences for a track, it
 SHOULD close the session with an error of 'Protocol Violation'.
 
+An `OBJECT_STREAM` message, a `STREAM_HEADER_TRACK` message or a 
+`STREAM_HEADER_GROUP` message MUST be the first and only message on a 
+unidirectional stream.
+
 **Object Stream Message**
 
 An `OBJECT_STREAM` message carries a single object on a stream.  There is no
-explicit length of the payload; it is determined by the end of the stream.  An
-`OBJECT_STREAM` message MUST be the first and only message on a unidirectional
-stream.
+explicit length of the payload; it is determined by the end of the stream.
 
 An Object received in an `OBJECT_STREAM` message has an `Object Forwarding
 Preference` = `Object`.
