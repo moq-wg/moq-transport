@@ -850,6 +850,26 @@ information in a SUBSCRIBE or ANNOUNCE message. This parameter is populated for
 cases where the authorization is required at the track level. The value is an
 ASCII string.
 
+#### DELIVERY TIMEOUT Parameter {#delivery-timeout}
+
+DELIVERY TIMEOUT parameter (key 0x03) MAY appear in a SUBSCRIBE, SUBSCRIBE_OK,
+or a SUBSCRIBE_UDPATE message.  It is duration in milliseconds the relay
+SHOULD attempt forwarding objects.  If both the subscriber and publisher
+specify the field, the relay takes min of publisher and subscriber time for the
+subscription.  The publisher SHOULD always specify the value received from an
+upstream subscription when there is one, not the min. The start time for the
+timeout is based on when the beginning of the Object is received, and does not
+depend upon the forwarding preference. If an earlier Object arrives later than
+subsequent Objects, relays can consider the receipt time as that of the next
+later Object, with the assumption that the Object's data was reordered.
+
+If neither the subscriber or publisher specify DELIVERY TIMEOUT, Objects are
+delivered as indicated by their Group Order and Priority.
+
+When sent by a subscriber, this parameter is intended to be specific to a
+subscription, so it SHOULD NOT be forwarded upstream by a relay that intends
+to serve multiple subscriptions for the same track.
+
 ## CLIENT_SETUP and SERVER_SETUP {#message-setup}
 
 The `CLIENT_SETUP` and `SERVER_SETUP` messages are the first messages exchanged
