@@ -858,12 +858,12 @@ the relay SHOULD continue to attempt forwarding Objects after they have been
 received.  The start time for the timeout is based on when the beginning of the
 Object is received, and does not depend upon the forwarding preference. 
 
-If both the subscriber and publisher specify the field, the relay and subscriber
-use the min of publisher and subscriber values for the subscription.  The publisher
-SHOULD always specify the value received from an upstream subscription when there
-is one, and nothing otherwise. If an earlier Object arrives later than
-subsequent Objects, relays can consider the receipt time as that of the next
-later Object, with the assumption that the Object's data was reordered.
+If both the subscriber and publisher specify the field, they use the min of the
+two values for the subscription.  The publisher SHOULD always specify the value
+received from an upstream subscription when there is one, and nothing otherwise.
+If an earlier Object arrives later than subsequent Objects, relays can consider
+the receipt time as that of the next later Object, with the assumption that the
+Object's data was reordered.
 
 If neither the subscriber or publisher specify DELIVERY TIMEOUT, Objects are
 delivered as indicated by their Group Order and Priority.
