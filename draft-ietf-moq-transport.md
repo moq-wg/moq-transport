@@ -872,6 +872,10 @@ When sent by a subscriber, this parameter is intended to be specific to a
 subscription, so it SHOULD NOT be forwarded upstream by a relay that intends
 to serve multiple subscriptions for the same track.
 
+Publishers SHOULD consider whether the entire Object is likely to be delivered
+before sending any data for that Object, taking into account priorities,
+congestion control, and any other relevant information.
+
 ## CLIENT_SETUP and SERVER_SETUP {#message-setup}
 
 The `CLIENT_SETUP` and `SERVER_SETUP` messages are the first messages exchanged
