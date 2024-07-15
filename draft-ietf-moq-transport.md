@@ -85,8 +85,7 @@ discovery and subscription.
 
 * {{session}} covers aspects of setting up a MOQT session.
 
-* {{priority-congestion}} covers protocol considerations on
-  prioritization schemes and congestion response overall.
+* {{priorities}} covers mechanisms for prioritizing subscriptions.
 
 * {{relays-moq}} covers behavior at the relay entities.
 
@@ -534,100 +533,71 @@ expects more OBJECTs to be delivered. The server closes the session with a
 'GOAWAY Timeout' if the client doesn't close the session quickly enough.
 
 
-# Prioritization and Congestion Response {#priority-congestion}
+# Priorities {#priorities}
 
-TODO: This is a placeholder section to capture details on how the MOQT
-protocol deals with prioritization and congestion overall.
+MoQ priorities allow a subscriber and original publisher to influence
+the transmission order of Objects within a session in the presence of
+congestion.
 
-This section is expected to cover details on:
+Given the critical nature of control messages and their relatively
+small size, the control stream SHOULD be prioritized higher than all
+subscribed Objects.
 
-- Prioritization Schemes.
-- Congestion Algorithms and impacts.
-- Mapping considerations for one object per stream vs multiple objects
-  per stream.
-- Considerations for merging multiple streams across domains onto single
-  connection and interactions with specific prioritization schemes.
+The subscriber indicates the priority of a subscription via the
+Subscriber Priority field and the original publisher indicates priority
+in every stream or datagram header.  As such, the subscriber's priority is a
+property of the subscription and the original publisher's priority is a
+property of the Track and the Objects it contains. In both cases, a lower
+value indicates a higher priority, with 0 being the highest priority.
 
-## Order Priorities and Options
+The Subscriber Priority is considered first when selecting a subscription
+to send data on within a given session. When two or more subscriptions
+have equal subscriber priority, the original publisher priority is considered
+next and can change within the track, so subscriptions are prioritized based
+on the highest priority data available to send. For example, if the subscription
+had data at priority 6 and priority 10 to send, the subscription priority would
+be 6. When both the subscriber and original publisher priorities for a
+subscription are equal, how much data to send from each subscription is
+implementation-dependent, but the expectation is that all subscriptions will
+be able to send some data.
 
-At the point of this writing, the working group has not reached
-consensus on several important goals, such as:
+The subscriber's priority can be changed via a SUBSCRIBE_UPDATE message.
+This updates the priority of all unsent data within the subscription,
+though the details of the reprioitization are implementation-specific.
 
-* Ensuring that objects are delivered in the order intended by the
-  emitter
-* Allowing nodes and relays to skip or delay some objects to deal with
-  congestion
-* Ensuring that emitters can accurately predict the behavior of relays
-* Ensuring that when relays have to skip and delay objects belonging to
-  different tracks that they do it in a predictable way if tracks are
-  explicitly coordinated and in a fair way if they are not.
+Subscriptions have a Group Order of either 'Ascending' or 'Descending',
+which indicates whether the lowest or highest Group Id SHOULD be sent first
+when multiple Groups are available to send.  A subscriber can specify either
+'Ascending' or 'Descending' in the SUBSCRIBE message or they can specify they
+want to use the Original Publisher's Group Order, which is indicated in
+the corresponding SUBSCRIBE_OK.
 
-The working group has been considering two alternatives: marking objects
-belonging to a track with an explicit "send order"; and, defining
-algorithms combining tracks, priorities and object order within a
-group. The two proposals are listed in {{send-order}} and
-{{ordering-by-priorities}}.  We expect further work before a consensus
-is reached.
+Within the same Group, and the same priority level,
+Objects with a lower Object Id are always sent before objects with a
+higher Object Id, regardless of the specified Group Order. If the priority
+varies within a Group, higher priority Objects are sent before lower
+priority Objects.
 
-### Proposal - Send Order {#send-order}
+The Group Order cannot be changed via a SUBSCRIBE_UPDATE message, and
+instead an UNSUBSCRIBE and SUBSCRIBE can be used.
 
-Media is produced with an intended order, both in terms of when media
-should be presented (PTS) and when media should be decoded (DTS).  As
-stated in the introduction, the network is unable to maintain this
-ordering during congestion without increasing latency.
+Relays SHOULD respect the subscriber and original publisher's priorities.
+Relays SHOULD NOT directly use Subscriber Priority or Group Order
+from incoming subscriptions for upstream subscriptions. Relays use of
+Subscriber Priority for upstream subscriptions can be based on
+factors specific to it, such as the popularity of the
+content or policy, or relays can specify the same value for all
+upstream subscriptions.
 
-The encoder determines how to behave during congestion by assigning each
-object a numeric send order.  The send order SHOULD be followed when
-possible, to ensure that the most important media is delivered when
-throughput is limited.  Note that the contents within each object are
-still delivered in order; this send order only applies to the ordering
-between objects.
-
-A publisher MUST send each object over a dedicated stream.  The library
-should support prioritization ({{priority-congestion}}) such that
-streams are transmitted in send order.
-
-A subscriber MUST NOT assume that objects will be received in send order,
-for the following reasons:
-
-* Newly encoded objects can have a smaller send order than outstanding
-  objects.
-* Packet loss or flow control can delay the send of individual streams.
-* The publisher might not support stream prioritization.
-
-TODO: Refer to Congestion Response and Prioritization Section for
-further details on various proposals.
-
-### Proposal - Ordering by Priorities {#ordering-by-priorities}
-
-Media is produced as a set of layers, such as for example low definition
-and high definition, or low frame rate and high frame rate. Each object
-belonging to a track and a group has two attributes: the object-id, and
-the priority (or layer).
-
-When nodes or relays have to choose which object to send next, they
-apply the following rules:
-
-* within the same group, objects with a lower priority number (e.g. P1)
-  are always sent before objects with a numerically greater priority
-  number (e.g., P2)
-* within the same group, and the same priority level, objects with a
-  lower object-id are always sent before objects with a higher
-  object-id.
-* objects from later groups are normally always sent before objects of
-  previous groups.
-
-The latter rule is generally agreed as a way to ensure freshness, and to
-recover quickly if queues and delays accumulate during a congestion
-period. However, there may be cases when finishing the transmission of
-an ongoing group results in better user experience than strict adherence
-to the freshness rule. We expect that that the working group will
-eventually reach consensus and define meta data that controls this
-behavior.
-
-There have been proposals to allow emitters to coordinate the allocation
-of layer priorities across multiple coordinated tracks. At this point,
-these proposals have not reached consensus.
+MoQ Sessions can span multiple namespaces, and priorities might not
+be coordinated across namespaces.  The subscriber's priority is
+considered first, so there is a mechanism for a subscriber to fix
+incompatibilities between different namespaces prioritization schemes.
+Additionally, it is anticipated that when multiple namespaces
+are present within a session, the namespaces could be coordinating,
+possibly part of the same application.  In cases when pooling among
+namespaces is expected to cause issues, multiple MoQ sessions, either
+within a single connection or on multiple connections can be used.
 
 
 # Relays {#relays-moq}
@@ -637,6 +607,8 @@ architecture. Relays can be used to form an overlay delivery network,
 similar in functionality to Content Delivery Networks
 (CDNs). Additionally, relays serve as policy enforcement points by
 validating subscribe and publish requests at the edge of a network.
+
+Relays can cache Objects, but are not required to.
 
 ## Subscriber Interactions
 
@@ -746,12 +718,6 @@ fields, such as priority order and other metadata properties in the
 OBJECT message header. Unless determined by congestion response, Relays
 MUST forward the OBJECT message to the matching subscribers.
 
-## Congestion Response at Relays
-
-TODO: Refer to {{priority-congestion}}. Add details to describe relay
-behavior when merging or splitting streams and interactions with
-congestion response.
-
 ## Relay Object Handling
 
 MOQT encodes the delivery information for a stream via OBJECT headers
@@ -760,8 +726,7 @@ forwarding.
 
 A relay MUST treat the object payload as opaque.  A relay MUST NOT
 combine, split, or otherwise modify object payloads.  A relay SHOULD
-prioritize streams ({{priority-congestion}}) based on the send
-order/priority.
+prioritize sending Objects based on {{priorities}}.
 
 A publisher SHOULD begin sending incomplete objects when available to
 avoid incurring additional latency.
@@ -1039,6 +1004,8 @@ SUBSCRIBE Message {
   Track Alias (i),
   Track Namespace (b),
   Track Name (b),
+  Subscriber Priority (8),
+  Group Order (8),
   Filter Type (i),
   [StartGroup (i),
    StartObject (i)],
@@ -1067,6 +1034,15 @@ close the session with a Duplicate Track Alias error ({{session-termination}}).
 ({{track-name}}).
 
 * Track Name: Identifies the track name as defined in ({{track-name}}).
+
+* Subscriber Priority: Specifies the priority of a subscription relative to
+other subscriptions in the same session. Lower numbers get higher priority.
+See {{priorities}}.
+
+* Group Order: Allows the subscriber to request Objects be delivered in
+Ascending (0x1) or Descending (0x2) order by group. See {{priorities}}.
+A value of 0x0 indicates the original publisher's Group Order SHOULD be
+used. Values larger than 0x2 are a protocol error.
 
 * Filter Type: Identifies the type of filter, which also indicates whether
 the StartGroup/StartObject and EndGroup/EndObject fields will be present.
@@ -1103,7 +1079,9 @@ subscription can be made. The start Object MUST NOT decrease and when it increas
 there is no guarantee that a publisher will not have already sent Objects before
 the new start Object.  The end Object MUST NOT increase and when it decreases,
 there is no guarantee that a publisher will not have already sent Objects after
-the new end Object.
+the new end Object. A publisher SHOULD close the Session as a 'Protocol Violation'
+if the SUBSCRIBE_UPDATE violates either rule or if the subscriber specifies a
+Subscribe ID that does not exist within the Session.
 
 Unlike a new subscription, SUBSCRIBE_UPDATE can not cause an Object to be
 delivered multiple times.  Like SUBSCRIBE, EndGroup and EndObject MUST specify the
@@ -1118,6 +1096,7 @@ SUBSCRIBE_UPDATE Message {
   StartObject (i),
   EndGroup (i),
   EndObject (i),
+  Subscriber Priority (8),
   Number of Parameters (i),
   Subscribe Parameters (..) ...
 }
@@ -1136,6 +1115,10 @@ open-ended.
 
 * EndObject: The end Object ID, plus 1. A value of 0 means the entire group is
 requested.
+
+* Subscriber Priority: Specifies the priority of a subscription relative to
+other subscriptions in the same session. Lower numbers get higher priority.
+See {{priorities}}.
 
 * Subscribe Parameters: The parameters are defined in {{version-specific-params}}.
 
@@ -1252,8 +1235,8 @@ A canonical MoQ Object has the following information:
 IDs starts at 0, increasing sequentially for each object within the
 group.
 
-* Object Send Order: An integer indicating the object send order
-{{send-order}} or priority {{ordering-by-priorities}} value.
+* Publisher Priority: An 8 bit integer indicating the publisher's priority for
+the Object {{priorities}}.
 
 * Object Forwarding Preference: An enumeration indicating how a publisher sends
 an object. The preferences are Track, Group, Object and Datagram.  An Object
@@ -1334,7 +1317,7 @@ OBJECT_STREAM Message {
   Track Alias (i),
   Group ID (i),
   Object ID (i),
-  Object Send Order (i),
+  Publisher Priority (8),
   Object Status (i),
   Object Payload (..),
 }
@@ -1371,7 +1354,7 @@ OBJECT_DATAGRAM Message {
   Track Alias (i),
   Group ID (i),
   Object ID (i),
-  Object Send Order (i),
+  Publisher Priority (8),
   Object Status (i),
   Object Payload (..),
 }
@@ -1403,7 +1386,7 @@ stream header.
 STREAM_HEADER_TRACK Message {
   Subscribe ID (i)
   Track Alias (i),
-  Object Send Order (i),
+  Publisher Priority (8),
 }
 ~~~
 {: #stream-header-track-format title="MOQT STREAM_HEADER_TRACK Message"}
@@ -1442,8 +1425,8 @@ have the `Object Send Order` specified in the stream header.
 STREAM_HEADER_GROUP Message {
   Subscribe ID (i),
   Track Alias (i),
-  Group ID (i)
-  Object Send Order (i)
+  Group ID (i),
+  Publisher Priority (8),
 }
 ~~~
 {: #stream-header-group-format title="MOQT STREAM_HEADER_GROUP Message"}
@@ -1478,7 +1461,7 @@ Sending a track on one stream:
 STREAM_HEADER_TRACK {
   Subscribe ID = 1
   Track Alias = 1
-  Object Send Order = 0
+  Publisher Priority = 0
 }
 {
   Group ID = 0
@@ -1504,7 +1487,7 @@ STREAM_HEADER_GROUP {
   Subscribe ID = 2
   Track Alias = 2
   Group ID = 0
-  Object Send Order = 0
+  Publisher Priority = 0
 }
 {
   Object ID = 0
@@ -1540,6 +1523,7 @@ SUBSCRIBE_OK
 {
   Subscribe ID (i),
   Expires (i),
+  Group Order (8),
   ContentExists (f),
   [Largest Group ID (i)],
   [Largest Object ID (i)],
@@ -1555,6 +1539,10 @@ SUBSCRIBE_OK
 longer valid. A value of 0 indicates that the subscription does not expire
 or expires at an unknown time.  Expires is advisory and a subscription can
 end prior to the expiry time or last longer.
+
+* Group Order: Indicates the subscription will be delivered in
+Ascending (0x1) or Descending (0x2) order by group. See {{priorities}}.
+Values of 0x0 and those larger than 0x2 are a protocol error.
 
 * ContentExists: 1 if an object has been published on this track, 0 if not.
 If 0, then the Largest Group ID and Largest Object ID fields will not be
