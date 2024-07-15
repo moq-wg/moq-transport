@@ -3314,7 +3314,7 @@ for this track. This field is only present if ContentExists has a value of 1.<a 
 <p id="section-6.12.1-1">SUBSCRIBE_OK may contain zero or more parameters describing either the
 properties of the track, or the properties of an individual subscription.<a href="#section-6.12.1-1" class="pilcrow">¶</a></p>
 <p id="section-6.12.1-2">The following property is defined in this document:<a href="#section-6.12.1-2" class="pilcrow">¶</a></p>
-<p id="section-6.12.1-3">MAX_CACHE_DURATION: An integer expressing a number of milliseconds. If
+<p id="section-6.12.1-3">MAX_CACHE_DURATION (key 0x01): An integer expressing a number of milliseconds. If
 present, the relay <span class="bcp14">MUST NOT</span> start forwarding any individual Object received
 through this subscription after the specified number of milliseconds has elapsed
 since the beginning of the Object was received.  This means Objects earlier
