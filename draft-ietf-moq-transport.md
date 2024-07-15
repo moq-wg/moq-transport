@@ -1564,7 +1564,7 @@ properties of the track, or the properties of an individual subscription.
 
 The following property is defined in this document:
 
-MAX_CACHE_DURATION: An integer expressing a number of milliseconds. If
+MAX_CACHE_DURATION (key 0x01): An integer expressing a number of milliseconds. If
 present, the relay MUST NOT start forwarding any individual Object received
 through this subscription after the specified number of milliseconds has elapsed
 since the beginning of the Object was received.  This means Objects earlier
