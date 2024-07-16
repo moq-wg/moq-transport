@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2024-07-14T01:22:24.090839+00:00",
+  "timestamp": "2024-07-16T01:18:16.437120+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -13263,12 +13263,12 @@
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [
-        "Needs PR",
+        "Object Model",
         "Wire Format"
       ],
       "body": "In our current encoding, you can stream objects without knowing their length in advance if your forwarding preference is Object or Datagram, but not if it's Track or Stream (since those require explicit lengths in the front).  I feel like those two aspects should not be tied: we should either support or not support streaming for all preferences.",
       "createdAt": "2024-02-05T14:19:55Z",
-      "updatedAt": "2024-02-19T23:49:58Z",
+      "updatedAt": "2024-07-15T21:56:06Z",
       "closedAt": null,
       "comments": [
         {
@@ -15208,11 +15208,12 @@
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [
+        "Object Model",
         "Wire Format"
       ],
       "body": "When sending a stream per group, the object_id MUST increment by 1 based on my interpretation of the draft:\r\n\r\n> Object ID: The order of the object within the group. The IDs starts at 0, increasing sequentially for each object within the group.\r\n\r\nand\r\n\r\n> A relay MUST not reorder or drop objects received on a multi-object stream when forwarding to subscribers, unless it has application specific information.\r\n\r\nTechnically, the broadcaster could produce a stream that doesn't increment by one, but that doesn't make any sense and feels like a loophole to close. I much prefer things to be sequential and I don't want the application stuffing context into these relay-specific headers anyway.\r\n\r\nIf this makes sense, then we can optimize the wire encoding. **Proposed**:\r\n```\r\nSTREAM_HEADER_GROUP Message {\r\n  Subscribe ID (i),\r\n  Track Alias (i),\r\n  Group ID (i)\r\n  + First Object ID (i)\r\n  Object Send Order (i)\r\n}\r\n\r\n{\r\n  - Object ID (i),\r\n  Object Payload Length (i),\r\n  Object Payload (..),\r\n}\r\n```\r\n\r\nWe need to know the ID of the first object to handle subscriptions that start at a non-zero object. Otherwise, the receiver does +1 to compute the next object's ID. We'll save some bytes for larger groups but IMO more importantly, rule out some illegal encodings.",
       "createdAt": "2024-03-23T12:29:51Z",
-      "updatedAt": "2024-03-30T15:16:18Z",
+      "updatedAt": "2024-07-15T21:47:55Z",
       "closedAt": null,
       "comments": [
         {
@@ -16800,7 +16801,7 @@
       "labels": [],
       "body": "This is another SUBSCRIBE-vs-FETCH issue, but with a specific implementation aspect of it.\r\n\r\nAssume I have a group-per-stream track.  I can subscribe to groups 1000 to 2000; it is entirely plausible that the publisher has all of those in cache immediately available, so in a naive implementation it can just open 1000 streams and start sending things; it would run into a flow control, and starve everything else on the connection.\r\n\r\nWe could set some limit on how many streams an individual subscription has, and that would be one way of solving this: if you set deliver order to ASC, you would process old streams first, and once those are processed (something we don't actually have a signal either), you'd start sending the next group.  Is this what we actually want?",
       "createdAt": "2024-06-28T19:04:00Z",
-      "updatedAt": "2024-07-09T19:06:58Z",
+      "updatedAt": "2024-07-15T18:40:31Z",
       "closedAt": null,
       "comments": [
         {
@@ -16844,6 +16845,13 @@
           "body": "Individual Comment: \r\n\r\nIsn't the scenario you describe similar to HTTP cache fill?  \r\n\r\nYou probably shouldn't throttle cache fill to the slowest client, and you shouldn't OOM your relay buffering for them either.  We do something like: \r\n\r\nFill at line rate and write back to an external cache\r\nHold a fixed size in memory buffer per client\r\nIf the client exceeds the buffer, switch them to filling from the external cache (or go back upstream) when they drain it.",
           "createdAt": "2024-07-09T19:06:57Z",
           "updatedAt": "2024-07-09T19:06:57Z"
+        },
+        {
+          "author": "vasilvv",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> Isn't the scenario you describe similar to HTTP cache fill?\r\n\r\nKind of, except you're cache-filling a bunch of potentially overlapping range requests for a single resource.",
+          "createdAt": "2024-07-15T18:40:30Z",
+          "updatedAt": "2024-07-15T18:40:30Z"
         }
       ]
     },
@@ -17006,9 +17014,9 @@
       "authorAssociation": "NONE",
       "assignees": [],
       "labels": [],
-      "body": "As I read the draft, `SUBSCRIBE_ID` is the distinguisher of a given subscription. `TRACK_ALIAS`  is made unique for a subscription state by indicating *\"If the Track Alias is already in use, the publisher **MUST** close the session with a Duplicate Track Alias error.\"* \r\n\r\nThe `TRACK_ALIAS` is mentioned as *\"A session specific identifier for the track.\"*. It is initially set by the subscriber, where the publisher **MAY** reject... likely not if it wants to avoid long subscribe times.   The draft does not indicate that the track alias is a hash of track `namespace + name` or not.  \r\n\r\nIf the client implementation uses a sequence ID for both subscribe ID and track alias, then it could result in duplicate subscribes that would result in the relay building state, propagating the subscribe toward the publisher to solicit a response of OK/ERROR. In some implementations that support headless publishers, the relay would send a subscribe OK immediately.\r\n\r\nThe edge relay that has the connection to the publisher performs state compression of subscribes, but that's only at the `track_alias` level per the draft.  In this case, the track alias is different, resulting in a new subscribe (duplicate when looking at the `namespace+name`) being created to the publisher. \r\n\r\nThe publisher receives the subscribe with a new `SUBSCRIBE_ID` and `TRACK_ALIAS` and starts to publish data objects using the `SUBSCRIBE_ID` and `TRACK_ALIAS` that match internally the **track** `namespace + name`.  If one or more clients do this repeatedly, it would result in all relays and the actual publisher itself sending duplicate data that matches `namespace + name`.  \r\n\r\nBelow diagram illustrates the above.\r\n\r\n```mermaid\r\nsequenceDiagram\r\n    actor P as Actual Publisher\r\n    participant R1 as Relay 1\r\n    participant R2 as Relay 2\r\n    actor S as Lazy Subscriber\r\n\r\n    S ->>R2: SUBSCRIBE (id=5, space=clock, name=second, alias=100)\r\n    R2-->>S: SUBSCRIBE_OK (id=5, alias=100)\r\n    R2 ->>R1:  SUBSCRIBE (id=99, space=clock, name=second, alias=9901)\r\n    R1 -->>R2: SUBSCRIBE_OK (id=99, alias=9901)\r\n    R2 ->>P:  SUBSCRIBE (id=14, space=clock, name=second, alias=31)\r\n    P -->>R1: SUBSCRIBE_OK (id=14, alias=31)\r\n    P -) R1: OBJECT (id=14, alias=31, g=1, id=1)\r\n    R1 -)R2: OBJECT (id=99, alias=9901,  g=1, id=1)\r\n    R2 -)S: OBJECT (id=5, alias=100, g=1, id=1)\r\n    Note right of P: Objects are flowing for namespace = clock, name = second\r\n    Note left of S: Lazy subscriber sends another SUBSCRIBE\r\n\r\n    S ->>R2: SUBSCRIBE (id=6, space=clock, name=second, alias=101)\r\n    R2-->>S: SUBSCRIBE_OK (id=6, alias=101)\r\n    R2 ->>R1:  SUBSCRIBE (id=100, space=clock, name=second, alias=9902)\r\n    R1 -->>R2: SUBSCRIBE_OK (id=100, alias=9902)\r\n    R2 ->>P:  SUBSCRIBE (id=15, space=clock, name=second, alias=32)\r\n    P -->>R1: SUBSCRIBE_OK (id=15, alias=32)\r\n\r\n\r\n    P -) R1: OBJECT (id=14, alias=31, g=1, id=2)\r\n    R1 -)R2: OBJECT (id=99, alias=9901,  g=1, id=2)\r\n    R2 -)S: OBJECT (id=5, alias=100, g=1, id=2)\r\n\r\n   Note left of S: Below object is duplicate due to duplicate subscribes for same namespace + name\r\n\r\n    P -) R1: OBJECT (id=15, alias=32, g=1, id=2)\r\n    R1 -)R2: OBJECT (id=100, alias=9902,  g=1, id=2)\r\n    R2 -)S: OBJECT (id=6, alias=101, g=1, id=2)\r\n\r\n```\r\n\r\n### Resolutions\r\n\r\nI'm sure there are many reasonable fixes for this... below are a few. \r\n\r\n#### (1) Update protocol spec to make track namespace and name active at one time only per client/subscriber session\r\n\r\nThis would change the verbiage of duplicate track detection to perform duplication check on `namespace` and `name` instead of only on track alias.  The state machine for subscribe **SHOULD** change to move `TRACK_ALIAS` from `SUBSCRIBE` **TO** `SUBSCRIBE_OK`.   This simplifies the state machine by reducing the complexity in:\r\n\r\n* detection and elimination of duplicate subscribes\r\n* eliminating the challenges with having to deal with `SUBSCRIBE_ERROR=Duplicate Track Alias` trial and error responses\r\n\r\n#### (2) Hash **Track** `namespace` and `name`\r\nA hash of namespace and name would allow for the duplicate track detection to work per draft, but... Track alias has a max value of 62 bits. Collisions are the largest pitfall for using a hash of two values.\r\n\r\n#### (3) Registry/directory service of **Track** `namespace` and `name`\r\nRegistry/directory service could act as gatekeeper of track aliases.  While this would work, it introduces another micro service for a simple pub/sub, which isn't great. It will also slow the subscribe process down.  Many other issues will likely arise with this approach. \r\n\r\n\r\n",
+      "body": "As I read the draft, `SUBSCRIBE_ID` is the distinguisher of a given subscription. `TRACK_ALIAS`  is made unique for a subscription state by indicating *\"If the Track Alias is already in use, the publisher **MUST** close the session with a Duplicate Track Alias error.\"* \r\n\r\nThe `TRACK_ALIAS` is mentioned as *\"A session specific identifier for the track.\"*. It is initially set by the subscriber, where the publisher **MAY** reject... likely not if it wants to avoid long subscribe times.   The draft does not indicate that the track alias is a hash of track `namespace + name` or not.  \r\n\r\nIf the client implementation uses a sequence ID for both subscribe ID and track alias, then it could result in duplicate subscribes that would result in the relay building state, propagating the subscribe toward the publisher to solicit a response of OK/ERROR. In some implementations that support headless publishers, the relay would send a subscribe OK immediately.\r\n\r\nThe edge relay that has the connection to the publisher performs state compression of subscribes, but that's only at the `track_alias` level per the draft.  In this case, the track alias is different, resulting in a new subscribe (duplicate when looking at the `namespace+name`) being created to the publisher. \r\n\r\nThe publisher receives the subscribe with a new `SUBSCRIBE_ID` and `TRACK_ALIAS` and starts to publish data objects using the `SUBSCRIBE_ID` and `TRACK_ALIAS` that match internally the **track** `namespace + name`.  If one or more clients do this repeatedly, it would result in all relays and the actual publisher itself sending duplicate data that matches `namespace + name`.  \r\n\r\nBelow diagram illustrates the above.\r\n\r\n```mermaid\r\nsequenceDiagram\r\n    actor P as Actual Publisher\r\n    participant R1 as Relay 1\r\n    participant R2 as Relay 2\r\n    actor S as Lazy Subscriber\r\n\r\n    S ->>R2: SUBSCRIBE (id=5, space=clock, name=second, alias=100)\r\n    R2-->>S: SUBSCRIBE_OK (id=5, alias=100)\r\n    R2 ->>R1:  SUBSCRIBE (id=99, space=clock, name=second, alias=9901)\r\n    R1 -->>R2: SUBSCRIBE_OK (id=99, alias=9901)\r\n    R1 ->>P:  SUBSCRIBE (id=14, space=clock, name=second, alias=31)\r\n    P -->>R1: SUBSCRIBE_OK (id=14, alias=31)\r\n    P -) R1: OBJECT (id=14, alias=31, g=1, id=1)\r\n    R1 -)R2: OBJECT (id=99, alias=9901,  g=1, id=1)\r\n    R2 -)S: OBJECT (id=5, alias=100, g=1, id=1)\r\n    Note right of P: Objects are flowing for namespace = clock, name = second\r\n    Note left of S: Lazy subscriber sends another SUBSCRIBE\r\n\r\n    S ->>R2: SUBSCRIBE (id=6, space=clock, name=second, alias=101)\r\n    R2-->>S: SUBSCRIBE_OK (id=6, alias=101)\r\n    R2 ->>R1:  SUBSCRIBE (id=100, space=clock, name=second, alias=9902)\r\n    R1 -->>R2: SUBSCRIBE_OK (id=100, alias=9902)\r\n    R1 ->>P:  SUBSCRIBE (id=15, space=clock, name=second, alias=32)\r\n    P -->>R1: SUBSCRIBE_OK (id=15, alias=32)\r\n\r\n\r\n    P -) R1: OBJECT (id=14, alias=31, g=1, id=2)\r\n    R1 -)R2: OBJECT (id=99, alias=9901,  g=1, id=2)\r\n    R2 -)S: OBJECT (id=5, alias=100, g=1, id=2)\r\n\r\n   Note left of S: Below object is duplicate due to duplicate subscribes for same namespace + name\r\n\r\n    P -) R1: OBJECT (id=15, alias=32, g=1, id=2)\r\n    R1 -)R2: OBJECT (id=100, alias=9902,  g=1, id=2)\r\n    R2 -)S: OBJECT (id=6, alias=101, g=1, id=2)\r\n\r\n```\r\n\r\n### Resolutions\r\n\r\nI'm sure there are many reasonable fixes for this... below are a few. \r\n\r\n#### (1) Update protocol spec to make track namespace and name active at one time only per client/subscriber session\r\n\r\nThis would change the verbiage of duplicate track detection to perform duplication check on `namespace` and `name` instead of only on track alias.  The state machine for subscribe **SHOULD** change to move `TRACK_ALIAS` from `SUBSCRIBE` **TO** `SUBSCRIBE_OK`.   This simplifies the state machine by reducing the complexity in:\r\n\r\n* detection and elimination of duplicate subscribes\r\n* eliminating the challenges with having to deal with `SUBSCRIBE_ERROR=Duplicate Track Alias` trial and error responses\r\n\r\n#### (2) Hash **Track** `namespace` and `name`\r\nA hash of namespace and name would allow for the duplicate track detection to work per draft, but... Track alias has a max value of 62 bits. Collisions are the largest pitfall for using a hash of two values.\r\n\r\n#### (3) Registry/directory service of **Track** `namespace` and `name`\r\nRegistry/directory service could act as gatekeeper of track aliases.  While this would work, it introduces another micro service for a simple pub/sub, which isn't great. It will also slow the subscribe process down.  Many other issues will likely arise with this approach. \r\n\r\n\r\n",
       "createdAt": "2024-07-08T21:51:01Z",
-      "updatedAt": "2024-07-12T17:31:09Z",
+      "updatedAt": "2024-07-14T03:52:59Z",
       "closedAt": null,
       "comments": [
         {
@@ -17053,7 +17061,7 @@
       "labels": [],
       "body": "This is a redux of #228, now that I've heard from multiple other wg participants they are now interested in such a mechanism.\r\n\r\nConsider using moq for a chat or other application where a relay has many publishers for the same application.  In order for subscribes to be routed to the correct publishing endpoints, each publisher/participant needs to announce a unique namespace (this is how moq-chat operates, see https://afrind.github.io/draft-frindell-moq-chat/draft-frindell-moq-chat.html#section-4.4).\r\n\r\nThis creates an issue: how do participants learn about the namespaces/tracks other clients have ANNOUNCED to the relay within the same chat room? I originally filed #228 thinking there should be a mechanism by which a client can declare their interest in new announcements and become a catalog-less means of track discovery. Based on wg feedback at the time, I updated moq-chat to use a different discovery mechanism involving a simple catalog.\r\n\r\nHere's an alternate proposal:\r\n\r\n```\r\nSUBSCRIBE_NAMESPACE {\r\n   Track Namespace Prefix (b),\r\n   Auth Info (b)\r\n }\r\n```\r\n\r\nThis would inform the relay to forward any ANNOUNCE with a prefix match, if authorized.\r\n\r\nSo in moq-chat, each new participant would do this:\r\n\r\n```\r\nANNOUNCE(namespace=\"moq-chat/id/participant/<name>\")\r\nSUBSCRIBE_NAMESPACE(prefix=\"moq-chat/id/participant/\")\r\n```\r\n\r\nAnd a relay would reply with:\r\n\r\n```\r\nANNOUNCE_OK\r\nSUBSCRIBE_NAMESPACE_OK\r\n# existing announcements matching namespace prefix\r\nANNOUNCE(namespace=\"moq-chat/id/participant/<member1>\") \r\nANNOUNCE(namespace=\"moq-chat/id/participant/<member2>\")\r\nANNOUNCE(namespace=\"moq-chat/id/participant/<member3>\")\r\n...\r\n```\r\n\r\nIt would also forward any new ANNOUNCEs or ANNOUNCE_CANCELs matching the prefix to the participant.\r\n\r\nThe new participant then issues standard SUBSCRIBE to each existing chat member\r\n```\r\nSUBSCRIBE(namespace=\"moq-chat/id/participant/<member1>\", name=\"chat\") \r\nSUBSCRIBE(namespace=\"moq-chat/id/participant/<member2>\", name=\"chat\") \r\n...\r\n```\r\n\r\nThis would remove the need for a catalog in some multi-publisher applications (eg: key distribution https://suhashere.github.io/moq-e2ee-mls/draft-jennings-moq-e2ee-mls.html), but also keep the scope of ANNOUNCE the same as it is today.",
       "createdAt": "2024-07-11T15:05:21Z",
-      "updatedAt": "2024-07-12T01:16:10Z",
+      "updatedAt": "2024-07-15T17:38:18Z",
       "closedAt": null,
       "comments": [
         {
@@ -17062,6 +17070,27 @@
           "body": "We definitely need a discovery mechanism like this.\r\n\r\nI built [moq-dir](https://github.com/kixelated/moq-rs?tab=readme-ov-file#moq-dir) which is basically the same thing as Alan has proposed. The difference is that it produces tracks based on received announcements where each announce/unannounce is an object.\r\n\r\nI'm a little torn on if this should be part of MoQT or layered on top of tracks. I do think it's super useful especially for conferencing to discover all participants and should be standardized in some capacity.",
           "createdAt": "2024-07-12T01:15:50Z",
           "updatedAt": "2024-07-12T01:16:10Z"
+        },
+        {
+          "author": "wilaw",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "Two clarification questions for you\r\n\r\n1. For this subscription\r\n\r\n```\r\nSUBSCRIBE(namespace=\"moq-chat/id/participant/<member1>\", name=\"chat\") \r\nSUBSCRIBE(namespace=\"moq-chat/id/participant/<member2>\", name=\"chat\") \r\n```\r\n\r\nHow does the end-subscriber know to use the track name \"chat\"?\r\n\r\n2.  How this would work for a new user at a cold edge, i.e. one that had not seen that namespace before?\r\n\r\nEnd-subscriber issues\r\n\r\n```\r\nANNOUNCE(namespace=\"moq-chat/id/participant/<name>\")\r\nSUBSCRIBE_NAMESPACE(prefix=\"moq-chat/id/participant/\")\r\n```\r\n\r\nRelay sends a ANNOUNCE_OK and a SUBSCRIBE_NAMESPACE_OK. Then, because it has never seen that namespace before, it issues its own SUBSCRIBE_NAMESPACE(prefix=\"moq-chat/id/participant/\") upstream ?\r\n\r\nSome time later, it will receive a series of announces which it caches and then forwards to the end-user\r\n\r\n```\r\nANNOUNCE(namespace=\"moq-chat/id/participant/<member1>\") \r\nANNOUNCE(namespace=\"moq-chat/id/participant/<member2>\")\r\nANNOUNCE(namespace=\"moq-chat/id/participant/<member3>\")\r\n```\r\n\r\nFor scalability, is it true that the ANNOUNCES are only forwarded to subscribers who have previously explicitly asked for them? ",
+          "createdAt": "2024-07-15T12:10:10Z",
+          "updatedAt": "2024-07-15T12:10:10Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> How does the end-subscriber know to use the track name \"chat\"?\r\n\r\nIn my case, that's baked into the client and server.  I think it's similar in the MLS key distribution mechanism.  I agree that this can't convey more specific track metadata, but you could replace \"chat\" with \"catalog\" and use the same mechanism to get a per-publisher catalog.\r\n\r\n> Then, because it has never seen that namespace before, it issues its own SUBSCRIBE_NAMESPACE(prefix=\"moq-chat/id/participant/\") upstream ?\r\n\r\nNo, it would just forward any new ANNOUNCEs that come (from any upstream) that match.  I'm hand waving a bit past authentication here.\r\n\r\n> For scalability, is it true that the ANNOUNCES are only forwarded to subscribers who have previously explicitly asked for them?\r\n\r\nYes.\r\n",
+          "createdAt": "2024-07-15T15:41:57Z",
+          "updatedAt": "2024-07-15T15:41:57Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Individual Comment:\r\n\r\nAfter talking with Tim, I realized a problem with my proposal:\r\n\r\n```\r\nSUBSCRIBE_NAMESPACE {\r\n   Track Namespace Prefix (b),\r\n    ...\r\n }\r\n```\r\n\r\nIf I `SUBSCRIBE_NAMESPACE /abc`, I will also get ANNOUNCEs for /abcdefg.  This is the Track Namespace/Track Name problem all over again, with the same solution: I propose we also split a Publisher ID tuple out from Track Namespace.\r\n\r\nSo would be:\r\n\r\n`Full Track Name = Track Namespace | Publisher ID | Track Name`\r\n\r\nAny of the three components can be empty - giving applications flexibility in track naming.\r\n\r\n`SUBSCRIBE_NAMESPACE` would specify an exact match on Track Namespace, rather than prefix bits.\r\n\r\n```\r\nSUBSCRIBE_NAMESPACE {\r\n   Track Namespace (b),\r\n    ...\r\n }\r\n```\r\n\r\nSplitting namespace into two fields could also help resolve some of our \"duplicate announce\" issues -- eg it is possible to distinguish a reconnect case (same publisher ID) from a redundant broadcaster (different publisher IDs).\r\n",
+          "createdAt": "2024-07-15T17:38:17Z",
+          "updatedAt": "2024-07-15T17:38:17Z"
         }
       ]
     }
@@ -53584,7 +53613,7 @@
       "id": "PR_kwDOG2Ho4M5qC1Xh",
       "title": "Split SUBSCRIBE into SUBSCRIBE and FETCH",
       "url": "https://github.com/moq-wg/moq-transport/pull/421",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "ianswett",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
@@ -53593,14 +53622,14 @@
       ],
       "body": "A PR corresponding to: https://datatracker.ietf.org/meeting/119/materials/slides-119-moq-subscribe-and-fetch\r\n\r\nFixes #269 \r\nFixes #296\r\nFixes #350 \r\nFixes #326\r\nFixes #377\r\n\r\nAlso relevant to #396, #326\r\n\r\nSome open questions:\r\n - Do we want OBJECT_FETCH_DATAGRAM to be transmitted over datagrams only?",
       "createdAt": "2024-03-19T06:11:41Z",
-      "updatedAt": "2024-05-27T16:54:50Z",
+      "updatedAt": "2024-07-15T22:02:34Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "ad67a19f1e6abbe4331b73ad49360726783a2bb8",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "ianswett-subscribe-v2",
       "headRefOid": "6e19b12483d3ac0856a6738d470c9ffe7a1036ce",
-      "closedAt": null,
+      "closedAt": "2024-07-15T22:02:33Z",
       "mergedAt": null,
       "mergedBy": null,
       "mergeCommit": null,
@@ -53660,6 +53689,13 @@
           "body": "Please see my related email on the the list. Thanks\r\n",
           "createdAt": "2024-03-24T23:32:36Z",
           "updatedAt": "2024-03-24T23:32:36Z"
+        },
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "The draft has evolved substantially, so if we want to revisit SUBSCRIBE vs FETCH, we will need a new PR.",
+          "createdAt": "2024-07-15T22:02:33Z",
+          "updatedAt": "2024-07-15T22:02:33Z"
         }
       ],
       "reviews": [
@@ -60351,7 +60387,7 @@
       "id": "PR_kwDOG2Ho4M5wsJdM",
       "title": "Delivery Order (aka Fetch lives)",
       "url": "https://github.com/moq-wg/moq-transport/pull/452",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "ianswett",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
@@ -60360,18 +60396,26 @@
       ],
       "body": "Takes an opinionated approach to adding 'Fetch' style functionality within the existing mechanisms.\r\n\r\nCan be split up if people prefer.\r\n\r\nPulls in concepts from #411, #428 and #449 (Delivery Timeout)\r\n\r\nFixes #269\r\nFixes #326\r\nFixes #350\r\nFixes #396 \r\nFixes #419\r\nFixes #431 \r\nFixes #442\r\n\r\nRelevant to #422, because we can omit the Object ID for 'In Order' delivery mode.\r\n\r\nCloses #421\r\nCloses #449",
       "createdAt": "2024-05-27T18:42:39Z",
-      "updatedAt": "2024-07-04T17:23:37Z",
+      "updatedAt": "2024-07-15T22:01:40Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "bdc1cd04c94bb0d04b363a1603b77ec29783da32",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "ianswett-delivery-order",
       "headRefOid": "c5eec0a0e5cf276c3cc5b0e196016be29123c562",
-      "closedAt": null,
+      "closedAt": "2024-07-15T22:01:40Z",
       "mergedAt": null,
       "mergedBy": null,
       "mergeCommit": null,
-      "comments": [],
+      "comments": [
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Most of these changes are in other PRs, so closing this.",
+          "createdAt": "2024-07-15T22:01:40Z",
+          "updatedAt": "2024-07-15T22:01:40Z"
+        }
+      ],
       "reviews": [
         {
           "id": "PRR_kwDOG2Ho4M58EHVh",
@@ -60988,13 +61032,13 @@
       "labels": [],
       "body": "A tweaked version of #448 \r\n\r\nFixes #440\r\nCloses #450 \r\n\r\nI'll note that we might want to add params to TRACK_STATUS and allow this to be returned from that as well, which would allow a relay to keep it in its cache.\r\n\r\nAttempts to write down where we ended up at the end of the June 12th interim.",
       "createdAt": "2024-06-18T17:50:49Z",
-      "updatedAt": "2024-07-04T16:49:37Z",
+      "updatedAt": "2024-07-15T22:08:01Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
-      "baseRefOid": "36ff04b11862448de0b5fafb4d864f34def30041",
+      "baseRefOid": "b70f8b5a2f7eaf441509f909b554a73a8a09c0c1",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "ianswett-max-cache-param",
-      "headRefOid": "daffbf012a134a96a4213e987b647f4fc954bc9c",
+      "headRefOid": "cf0589e72ba5094796df9b7b9b82a53c0bb69c8d",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -61105,14 +61149,14 @@
         {
           "id": "PRR_kwDOG2Ho4M6As7tG",
           "commit": {
-            "abbreviatedOid": "daffbf0"
+            "abbreviatedOid": "bc48400"
           },
           "author": "fluffy",
           "authorAssociation": "CONTRIBUTOR",
           "state": "APPROVED",
           "body": "Looks good to me. ",
           "createdAt": "2024-07-04T16:49:37Z",
-          "updatedAt": "2024-07-04T16:49:37Z",
+          "updatedAt": "2024-07-15T22:04:13Z",
           "comments": []
         }
       ]
@@ -62720,7 +62764,7 @@
     {
       "number": 485,
       "id": "PR_kwDOG2Ho4M51QR7u",
-      "title": "Clarify duplicate track alias in Subsrcibes",
+      "title": "Clarify duplicate track alias in Subscribes",
       "url": "https://github.com/moq-wg/moq-transport/pull/485",
       "state": "OPEN",
       "author": "suhasHere",
@@ -62729,7 +62773,7 @@
       "labels": [],
       "body": "Small editorial clarification on duplicate track alias for subscriptions that addresses aspects of #482 ",
       "createdAt": "2024-07-12T19:22:16Z",
-      "updatedAt": "2024-07-12T19:22:22Z",
+      "updatedAt": "2024-07-15T22:00:49Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "b70f8b5a2f7eaf441509f909b554a73a8a09c0c1",
@@ -62741,7 +62785,34 @@
       "mergedBy": null,
       "mergeCommit": null,
       "comments": [],
-      "reviews": []
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M6Bu-Dk",
+          "commit": {
+            "abbreviatedOid": "7898eff"
+          },
+          "author": "TimEvens",
+          "authorAssociation": "NONE",
+          "state": "COMMENTED",
+          "body": "Does this mean we close the complete quic session? Can we just reject the subscribe? ",
+          "createdAt": "2024-07-14T03:54:27Z",
+          "updatedAt": "2024-07-14T03:54:27Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6B3ST2",
+          "commit": {
+            "abbreviatedOid": "7898eff"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "I feel like this is reasonable, but I'd like to sort out how we're using Track Alias and Subscribe ID anyway.  It would be ideal to do that next week, but if others would like this merged in the meantime, I have no objection.",
+          "createdAt": "2024-07-15T22:00:49Z",
+          "updatedAt": "2024-07-15T22:00:49Z",
+          "comments": []
+        }
+      ]
     },
     {
       "number": 486,
@@ -62757,13 +62828,13 @@
       ],
       "body": "Pulls in some text from #449 and attempts to convey the conclusions of the Seattle interim.\r\n\r\nCloses #449",
       "createdAt": "2024-07-12T20:06:34Z",
-      "updatedAt": "2024-07-12T20:32:07Z",
+      "updatedAt": "2024-07-15T21:49:34Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "b70f8b5a2f7eaf441509f909b554a73a8a09c0c1",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "ianswett-delivery-timeout",
-      "headRefOid": "4a66ed8228a8b1d75d11f828d464e5173932074f",
+      "headRefOid": "519e4fe86e3cf4cf7b6e58f87d22787c9eeb25ab",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -62789,8 +62860,76 @@
               "updatedAt": "2024-07-12T20:22:52Z"
             }
           ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6BxsRq",
+          "commit": {
+            "abbreviatedOid": "519e4fe"
+          },
+          "author": "wilaw",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-07-15T09:47:19Z",
+          "updatedAt": "2024-07-15T09:47:20Z",
+          "comments": [
+            {
+              "originalPosition": 26,
+              "body": "> Publishers SHOULD consider whether the entire Object is likely to be delivered\r\n\r\nHow can a relay comply with this requirement? In most cases it does not know the size of the object when it begins forwarding it. ",
+              "createdAt": "2024-07-15T09:47:19Z",
+              "updatedAt": "2024-07-15T09:47:20Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6B3OLE",
+          "commit": {
+            "abbreviatedOid": "519e4fe"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-07-15T21:49:33Z",
+          "updatedAt": "2024-07-15T21:49:34Z",
+          "comments": [
+            {
+              "originalPosition": 26,
+              "body": "With the exception of Object per stream/datagram, the Object header always contains a length.  And at some point, we had consensus to add a length in the Object per stream/datagram case as well.  #355 ",
+              "createdAt": "2024-07-15T21:49:33Z",
+              "updatedAt": "2024-07-15T21:49:34Z"
+            }
+          ]
         }
       ]
+    },
+    {
+      "number": 487,
+      "id": "PR_kwDOG2Ho4M51cIBE",
+      "title": "Add an explicit length to OBJECT_STREAM and OBJECT_DATAGRAM",
+      "url": "https://github.com/moq-wg/moq-transport/pull/487",
+      "state": "OPEN",
+      "author": "ianswett",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [
+        "Object Model"
+      ],
+      "body": "This had consensus in the past, but a PR wasn't written.\r\n\r\nParticularly now that we have Object Status, which is optional for all other mappings, it makes sense to add the length and make things consistent.\r\n\r\nFixes #355",
+      "createdAt": "2024-07-15T21:55:48Z",
+      "updatedAt": "2024-07-15T21:55:48Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "b70f8b5a2f7eaf441509f909b554a73a8a09c0c1",
+      "headRepository": "moq-wg/moq-transport",
+      "headRefName": "ianswett-add-object-length",
+      "headRefOid": "8fb11691d0a0941bf309fb30e294659197ab42bb",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": []
     }
   ]
 }
