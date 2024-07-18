@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2024-07-16T01:18:16.437120+00:00",
+  "timestamp": "2024-07-18T01:15:44.085460+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -62924,6 +62924,34 @@
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "ianswett-add-object-length",
       "headRefOid": "8fb11691d0a0941bf309fb30e294659197ab42bb",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": []
+    },
+    {
+      "number": 488,
+      "id": "PR_kwDOG2Ho4M51heDm",
+      "title": "At least one SUBSCRIBE_OK to return SUBSCRIBE_OK",
+      "url": "https://github.com/moq-wg/moq-transport/pull/488",
+      "state": "OPEN",
+      "author": "ianswett",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [
+        "Subscribe"
+      ],
+      "body": "This is a bit different from HTTP, but having at least one SUBSCRIBE_OK succeed ensures the track exists in some sense, as well as allowing a relay to populate the Group Order field.\r\n\r\nThis is intended as a clarification, but it adds normative language.",
+      "createdAt": "2024-07-16T14:25:36Z",
+      "updatedAt": "2024-07-16T14:25:36Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "b70f8b5a2f7eaf441509f909b554a73a8a09c0c1",
+      "headRepository": "moq-wg/moq-transport",
+      "headRefName": "ianswett-subscribe-ok-upstream",
+      "headRefOid": "2d65c8694de9bebfa8526036f8de9a1672ccf9b2",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
