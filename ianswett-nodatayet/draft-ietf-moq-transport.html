@@ -18,11 +18,11 @@ media to publish data and have it consumed via subscription by a
 multiplicity of endpoints. It supports intermediate content distribution
 networks and is designed for high scale and low latency distribution. 
     " name="description">
-<meta content="xml2rfc 3.21.0" name="generator">
+<meta content="xml2rfc 3.22.0" name="generator">
 <meta content="Internet-Draft" name="keyword">
 <meta content="draft-ietf-moq-transport-latest" name="ietf.draft">
 <!-- Generator version information:
-  xml2rfc 3.21.0
+  xml2rfc 3.22.0
     Python 3.12.3
     ConfigArgParse 1.7
     google-i18n-address 3.1.0
@@ -32,9 +32,8 @@ networks and is designed for high scale and low latency distribution.
     platformdirs 4.2.2
     pycountry 22.3.5
     PyYAML 6.0.1
-    requests 2.31.0
+    requests 2.32.3
     setuptools 69.5.1
-    six 1.16.0
     wcwidth 0.2.13
 -->
 <link href="draft-ietf-moq-transport.xml" rel="alternate" type="application/rfc+xml">
@@ -1034,11 +1033,11 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <thead><tr>
 <td class="left">Internet-Draft</td>
 <td class="center">moq-transport</td>
-<td class="right">June 2024</td>
+<td class="right">July 2024</td>
 </tr></thead>
 <tfoot><tr>
 <td class="left">Curley, et al.</td>
-<td class="center">Expires 22 December 2024</td>
+<td class="center">Expires 24 January 2025</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1051,12 +1050,12 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dd class="internet-draft">draft-ietf-moq-transport-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2024-06-20" class="published">20 June 2024</time>
+<time datetime="2024-07-23" class="published">23 July 2024</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2024-12-22">22 December 2024</time></dd>
+<dd class="expires"><time datetime="2025-01-24">24 January 2025</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1123,7 +1122,7 @@ networks and is designed for high scale and low latency distribution.<a href="#s
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 22 December 2024.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 24 January 2025.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1234,20 +1233,7 @@ networks and is designed for high scale and low latency distribution.<a href="#s
             </ul>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4">
-            <p id="section-toc.1-1.4.1"><a href="#section-4" class="auto internal xref">4</a>.  <a href="#name-prioritization-and-congesti" class="internal xref">Prioritization and Congestion Response</a></p>
-<ul class="compact toc ulBare ulEmpty">
-<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.1">
-                <p id="section-toc.1-1.4.2.1.1"><a href="#section-4.1" class="auto internal xref">4.1</a>.  <a href="#name-order-priorities-and-option" class="internal xref">Order Priorities and Options</a></p>
-<ul class="compact toc ulBare ulEmpty">
-<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.1.2.1">
-                    <p id="section-toc.1-1.4.2.1.2.1.1"><a href="#section-4.1.1" class="auto internal xref">4.1.1</a>.  <a href="#name-proposal-send-order" class="internal xref">Proposal - Send Order</a></p>
-</li>
-                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.1.2.2">
-                    <p id="section-toc.1-1.4.2.1.2.2.1"><a href="#section-4.1.2" class="auto internal xref">4.1.2</a>.  <a href="#name-proposal-ordering-by-priori" class="internal xref">Proposal - Ordering by Priorities</a></p>
-</li>
-                </ul>
-</li>
-            </ul>
+            <p id="section-toc.1-1.4.1"><a href="#section-4" class="auto internal xref">4</a>.  <a href="#name-priorities" class="internal xref">Priorities</a></p>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5">
             <p id="section-toc.1-1.5.1"><a href="#section-5" class="auto internal xref">5</a>.  <a href="#name-relays-2" class="internal xref">Relays</a></p>
@@ -1259,10 +1245,7 @@ networks and is designed for high scale and low latency distribution.<a href="#s
                 <p id="section-toc.1-1.5.2.2.1"><a href="#section-5.2" class="auto internal xref">5.2</a>.  <a href="#name-publisher-interactions" class="internal xref">Publisher Interactions</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.3">
-                <p id="section-toc.1-1.5.2.3.1"><a href="#section-5.3" class="auto internal xref">5.3</a>.  <a href="#name-congestion-response-at-rela" class="internal xref">Congestion Response at Relays</a></p>
-</li>
-              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.4">
-                <p id="section-toc.1-1.5.2.4.1"><a href="#section-5.4" class="auto internal xref">5.4</a>.  <a href="#name-relay-object-handling" class="internal xref">Relay Object Handling</a></p>
+                <p id="section-toc.1-1.5.2.3.1"><a href="#section-5.3" class="auto internal xref">5.3</a>.  <a href="#name-relay-object-handling" class="internal xref">Relay Object Handling</a></p>
 </li>
             </ul>
 </li>
@@ -1414,8 +1397,7 @@ discovery and subscription.<a href="#section-1-2" class="pilcrow">¶</a></p>
           <p id="section-1-3.2.1"><a href="#session" class="auto internal xref">Section 3</a> covers aspects of setting up a MOQT session.<a href="#section-1-3.2.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="section-1-3.3">
-          <p id="section-1-3.3.1"><a href="#priority-congestion" class="auto internal xref">Section 4</a> covers protocol considerations on
-prioritization schemes and congestion response overall.<a href="#section-1-3.3.1" class="pilcrow">¶</a></p>
+          <p id="section-1-3.3.1"><a href="#priorities" class="auto internal xref">Section 4</a> covers mechanisms for prioritizing subscriptions.<a href="#section-1-3.3.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="section-1-3.4">
           <p id="section-1-3.4.1"><a href="#relays-moq" class="auto internal xref">Section 5</a> covers behavior at the relay entities.<a href="#section-1-3.4.1" class="pilcrow">¶</a></p>
@@ -1989,138 +1971,65 @@ expects more OBJECTs to be delivered. The server closes the session with a
 </div>
 </section>
 </div>
-<div id="priority-congestion">
+<div id="priorities">
 <section id="section-4">
-      <h2 id="name-prioritization-and-congesti">
-<a href="#section-4" class="section-number selfRef">4. </a><a href="#name-prioritization-and-congesti" class="section-name selfRef">Prioritization and Congestion Response</a>
+      <h2 id="name-priorities">
+<a href="#section-4" class="section-number selfRef">4. </a><a href="#name-priorities" class="section-name selfRef">Priorities</a>
       </h2>
-<p id="section-4-1">TODO: This is a placeholder section to capture details on how the MOQT
-protocol deals with prioritization and congestion overall.<a href="#section-4-1" class="pilcrow">¶</a></p>
-<p id="section-4-2">This section is expected to cover details on:<a href="#section-4-2" class="pilcrow">¶</a></p>
-<ul class="normal">
-<li class="normal" id="section-4-3.1">
-          <p id="section-4-3.1.1">Prioritization Schemes.<a href="#section-4-3.1.1" class="pilcrow">¶</a></p>
-</li>
-        <li class="normal" id="section-4-3.2">
-          <p id="section-4-3.2.1">Congestion Algorithms and impacts.<a href="#section-4-3.2.1" class="pilcrow">¶</a></p>
-</li>
-        <li class="normal" id="section-4-3.3">
-          <p id="section-4-3.3.1">Mapping considerations for one object per stream vs multiple objects
-per stream.<a href="#section-4-3.3.1" class="pilcrow">¶</a></p>
-</li>
-        <li class="normal" id="section-4-3.4">
-          <p id="section-4-3.4.1">Considerations for merging multiple streams across domains onto single
-connection and interactions with specific prioritization schemes.<a href="#section-4-3.4.1" class="pilcrow">¶</a></p>
-</li>
-      </ul>
-<div id="order-priorities-and-options">
-<section id="section-4.1">
-        <h3 id="name-order-priorities-and-option">
-<a href="#section-4.1" class="section-number selfRef">4.1. </a><a href="#name-order-priorities-and-option" class="section-name selfRef">Order Priorities and Options</a>
-        </h3>
-<p id="section-4.1-1">At the point of this writing, the working group has not reached
-consensus on several important goals, such as:<a href="#section-4.1-1" class="pilcrow">¶</a></p>
-<ul class="normal">
-<li class="normal" id="section-4.1-2.1">
-            <p id="section-4.1-2.1.1">Ensuring that objects are delivered in the order intended by the
-emitter<a href="#section-4.1-2.1.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="section-4.1-2.2">
-            <p id="section-4.1-2.2.1">Allowing nodes and relays to skip or delay some objects to deal with
-congestion<a href="#section-4.1-2.2.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="section-4.1-2.3">
-            <p id="section-4.1-2.3.1">Ensuring that emitters can accurately predict the behavior of relays<a href="#section-4.1-2.3.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="section-4.1-2.4">
-            <p id="section-4.1-2.4.1">Ensuring that when relays have to skip and delay objects belonging to
-different tracks that they do it in a predictable way if tracks are
-explicitly coordinated and in a fair way if they are not.<a href="#section-4.1-2.4.1" class="pilcrow">¶</a></p>
-</li>
-        </ul>
-<p id="section-4.1-3">The working group has been considering two alternatives: marking objects
-belonging to a track with an explicit "send order"; and, defining
-algorithms combining tracks, priorities and object order within a
-group. The two proposals are listed in <a href="#send-order" class="auto internal xref">Section 4.1.1</a> and
-<a href="#ordering-by-priorities" class="auto internal xref">Section 4.1.2</a>.  We expect further work before a consensus
-is reached.<a href="#section-4.1-3" class="pilcrow">¶</a></p>
-<div id="send-order">
-<section id="section-4.1.1">
-          <h4 id="name-proposal-send-order">
-<a href="#section-4.1.1" class="section-number selfRef">4.1.1. </a><a href="#name-proposal-send-order" class="section-name selfRef">Proposal - Send Order</a>
-          </h4>
-<p id="section-4.1.1-1">Media is produced with an intended order, both in terms of when media
-should be presented (PTS) and when media should be decoded (DTS).  As
-stated in the introduction, the network is unable to maintain this
-ordering during congestion without increasing latency.<a href="#section-4.1.1-1" class="pilcrow">¶</a></p>
-<p id="section-4.1.1-2">The encoder determines how to behave during congestion by assigning each
-object a numeric send order.  The send order <span class="bcp14">SHOULD</span> be followed when
-possible, to ensure that the most important media is delivered when
-throughput is limited.  Note that the contents within each object are
-still delivered in order; this send order only applies to the ordering
-between objects.<a href="#section-4.1.1-2" class="pilcrow">¶</a></p>
-<p id="section-4.1.1-3">A publisher <span class="bcp14">MUST</span> send each object over a dedicated stream.  The library
-should support prioritization (<a href="#priority-congestion" class="auto internal xref">Section 4</a>) such that
-streams are transmitted in send order.<a href="#section-4.1.1-3" class="pilcrow">¶</a></p>
-<p id="section-4.1.1-4">A subscriber <span class="bcp14">MUST NOT</span> assume that objects will be received in send order,
-for the following reasons:<a href="#section-4.1.1-4" class="pilcrow">¶</a></p>
-<ul class="normal">
-<li class="normal" id="section-4.1.1-5.1">
-              <p id="section-4.1.1-5.1.1">Newly encoded objects can have a smaller send order than outstanding
-objects.<a href="#section-4.1.1-5.1.1" class="pilcrow">¶</a></p>
-</li>
-            <li class="normal" id="section-4.1.1-5.2">
-              <p id="section-4.1.1-5.2.1">Packet loss or flow control can delay the send of individual streams.<a href="#section-4.1.1-5.2.1" class="pilcrow">¶</a></p>
-</li>
-            <li class="normal" id="section-4.1.1-5.3">
-              <p id="section-4.1.1-5.3.1">The publisher might not support stream prioritization.<a href="#section-4.1.1-5.3.1" class="pilcrow">¶</a></p>
-</li>
-          </ul>
-<p id="section-4.1.1-6">TODO: Refer to Congestion Response and Prioritization Section for
-further details on various proposals.<a href="#section-4.1.1-6" class="pilcrow">¶</a></p>
-</section>
-</div>
-<div id="ordering-by-priorities">
-<section id="section-4.1.2">
-          <h4 id="name-proposal-ordering-by-priori">
-<a href="#section-4.1.2" class="section-number selfRef">4.1.2. </a><a href="#name-proposal-ordering-by-priori" class="section-name selfRef">Proposal - Ordering by Priorities</a>
-          </h4>
-<p id="section-4.1.2-1">Media is produced as a set of layers, such as for example low definition
-and high definition, or low frame rate and high frame rate. Each object
-belonging to a track and a group has two attributes: the object-id, and
-the priority (or layer).<a href="#section-4.1.2-1" class="pilcrow">¶</a></p>
-<p id="section-4.1.2-2">When nodes or relays have to choose which object to send next, they
-apply the following rules:<a href="#section-4.1.2-2" class="pilcrow">¶</a></p>
-<ul class="normal">
-<li class="normal" id="section-4.1.2-3.1">
-              <p id="section-4.1.2-3.1.1">within the same group, objects with a lower priority number (e.g. P1)
-are always sent before objects with a numerically greater priority
-number (e.g., P2)<a href="#section-4.1.2-3.1.1" class="pilcrow">¶</a></p>
-</li>
-            <li class="normal" id="section-4.1.2-3.2">
-              <p id="section-4.1.2-3.2.1">within the same group, and the same priority level, objects with a
-lower object-id are always sent before objects with a higher
-object-id.<a href="#section-4.1.2-3.2.1" class="pilcrow">¶</a></p>
-</li>
-            <li class="normal" id="section-4.1.2-3.3">
-              <p id="section-4.1.2-3.3.1">objects from later groups are normally always sent before objects of
-previous groups.<a href="#section-4.1.2-3.3.1" class="pilcrow">¶</a></p>
-</li>
-          </ul>
-<p id="section-4.1.2-4">The latter rule is generally agreed as a way to ensure freshness, and to
-recover quickly if queues and delays accumulate during a congestion
-period. However, there may be cases when finishing the transmission of
-an ongoing group results in better user experience than strict adherence
-to the freshness rule. We expect that that the working group will
-eventually reach consensus and define meta data that controls this
-behavior.<a href="#section-4.1.2-4" class="pilcrow">¶</a></p>
-<p id="section-4.1.2-5">There have been proposals to allow emitters to coordinate the allocation
-of layer priorities across multiple coordinated tracks. At this point,
-these proposals have not reached consensus.<a href="#section-4.1.2-5" class="pilcrow">¶</a></p>
-</section>
-</div>
-</section>
-</div>
+<p id="section-4-1">MoQ priorities allow a subscriber and original publisher to influence
+the transmission order of Objects within a session in the presence of
+congestion.<a href="#section-4-1" class="pilcrow">¶</a></p>
+<p id="section-4-2">Given the critical nature of control messages and their relatively
+small size, the control stream <span class="bcp14">SHOULD</span> be prioritized higher than all
+subscribed Objects.<a href="#section-4-2" class="pilcrow">¶</a></p>
+<p id="section-4-3">The subscriber indicates the priority of a subscription via the
+Subscriber Priority field and the original publisher indicates priority
+in every stream or datagram header.  As such, the subscriber's priority is a
+property of the subscription and the original publisher's priority is a
+property of the Track and the Objects it contains. In both cases, a lower
+value indicates a higher priority, with 0 being the highest priority.<a href="#section-4-3" class="pilcrow">¶</a></p>
+<p id="section-4-4">The Subscriber Priority is considered first when selecting a subscription
+to send data on within a given session. When two or more subscriptions
+have equal subscriber priority, the original publisher priority is considered
+next and can change within the track, so subscriptions are prioritized based
+on the highest priority data available to send. For example, if the subscription
+had data at priority 6 and priority 10 to send, the subscription priority would
+be 6. When both the subscriber and original publisher priorities for a
+subscription are equal, how much data to send from each subscription is
+implementation-dependent, but the expectation is that all subscriptions will
+be able to send some data.<a href="#section-4-4" class="pilcrow">¶</a></p>
+<p id="section-4-5">The subscriber's priority can be changed via a SUBSCRIBE_UPDATE message.
+This updates the priority of all unsent data within the subscription,
+though the details of the reprioitization are implementation-specific.<a href="#section-4-5" class="pilcrow">¶</a></p>
+<p id="section-4-6">Subscriptions have a Group Order of either 'Ascending' or 'Descending',
+which indicates whether the lowest or highest Group Id <span class="bcp14">SHOULD</span> be sent first
+when multiple Groups are available to send.  A subscriber can specify either
+'Ascending' or 'Descending' in the SUBSCRIBE message or they can specify they
+want to use the Original Publisher's Group Order, which is indicated in
+the corresponding SUBSCRIBE_OK.<a href="#section-4-6" class="pilcrow">¶</a></p>
+<p id="section-4-7">Within the same Group, and the same priority level,
+Objects with a lower Object Id are always sent before objects with a
+higher Object Id, regardless of the specified Group Order. If the priority
+varies within a Group, higher priority Objects are sent before lower
+priority Objects.<a href="#section-4-7" class="pilcrow">¶</a></p>
+<p id="section-4-8">The Group Order cannot be changed via a SUBSCRIBE_UPDATE message, and
+instead an UNSUBSCRIBE and SUBSCRIBE can be used.<a href="#section-4-8" class="pilcrow">¶</a></p>
+<p id="section-4-9">Relays <span class="bcp14">SHOULD</span> respect the subscriber and original publisher's priorities.
+Relays <span class="bcp14">SHOULD NOT</span> directly use Subscriber Priority or Group Order
+from incoming subscriptions for upstream subscriptions. Relays use of
+Subscriber Priority for upstream subscriptions can be based on
+factors specific to it, such as the popularity of the
+content or policy, or relays can specify the same value for all
+upstream subscriptions.<a href="#section-4-9" class="pilcrow">¶</a></p>
+<p id="section-4-10">MoQ Sessions can span multiple namespaces, and priorities might not
+be coordinated across namespaces.  The subscriber's priority is
+considered first, so there is a mechanism for a subscriber to fix
+incompatibilities between different namespaces prioritization schemes.
+Additionally, it is anticipated that when multiple namespaces
+are present within a session, the namespaces could be coordinating,
+possibly part of the same application.  In cases when pooling among
+namespaces is expected to cause issues, multiple MoQ sessions, either
+within a single connection or on multiple connections can be used.<a href="#section-4-10" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="relays-moq">
@@ -2133,6 +2042,7 @@ architecture. Relays can be used to form an overlay delivery network,
 similar in functionality to Content Delivery Networks
 (CDNs). Additionally, relays serve as policy enforcement points by
 validating subscribe and publish requests at the edge of a network.<a href="#section-5-1" class="pilcrow">¶</a></p>
+<p id="section-5-2">Relays can cache Objects, but are not required to.<a href="#section-5-2" class="pilcrow">¶</a></p>
 <div id="subscriber-interactions">
 <section id="section-5.1">
         <h3 id="name-subscriber-interactions">
@@ -2275,36 +2185,25 @@ OBJECT message header. Unless determined by congestion response, Relays
 <span class="bcp14">MUST</span> forward the OBJECT message to the matching subscribers.<a href="#section-5.2-6" class="pilcrow">¶</a></p>
 </section>
 </div>
-<div id="congestion-response-at-relays">
-<section id="section-5.3">
-        <h3 id="name-congestion-response-at-rela">
-<a href="#section-5.3" class="section-number selfRef">5.3. </a><a href="#name-congestion-response-at-rela" class="section-name selfRef">Congestion Response at Relays</a>
-        </h3>
-<p id="section-5.3-1">TODO: Refer to <a href="#priority-congestion" class="auto internal xref">Section 4</a>. Add details to describe relay
-behavior when merging or splitting streams and interactions with
-congestion response.<a href="#section-5.3-1" class="pilcrow">¶</a></p>
-</section>
-</div>
 <div id="relay-object-handling">
-<section id="section-5.4">
+<section id="section-5.3">
         <h3 id="name-relay-object-handling">
-<a href="#section-5.4" class="section-number selfRef">5.4. </a><a href="#name-relay-object-handling" class="section-name selfRef">Relay Object Handling</a>
+<a href="#section-5.3" class="section-number selfRef">5.3. </a><a href="#name-relay-object-handling" class="section-name selfRef">Relay Object Handling</a>
         </h3>
-<p id="section-5.4-1">MOQT encodes the delivery information for a stream via OBJECT headers
+<p id="section-5.3-1">MOQT encodes the delivery information for a stream via OBJECT headers
 (<a href="#message-object" class="auto internal xref">Section 6.11</a>).  A relay <span class="bcp14">MUST NOT</span> modify Object properties when
-forwarding.<a href="#section-5.4-1" class="pilcrow">¶</a></p>
-<p id="section-5.4-2">A relay <span class="bcp14">MUST</span> treat the object payload as opaque.  A relay <span class="bcp14">MUST NOT</span>
+forwarding.<a href="#section-5.3-1" class="pilcrow">¶</a></p>
+<p id="section-5.3-2">A relay <span class="bcp14">MUST</span> treat the object payload as opaque.  A relay <span class="bcp14">MUST NOT</span>
 combine, split, or otherwise modify object payloads.  A relay <span class="bcp14">SHOULD</span>
-prioritize streams (<a href="#priority-congestion" class="auto internal xref">Section 4</a>) based on the send
-order/priority.<a href="#section-5.4-2" class="pilcrow">¶</a></p>
-<p id="section-5.4-3">A publisher <span class="bcp14">SHOULD</span> begin sending incomplete objects when available to
-avoid incurring additional latency.<a href="#section-5.4-3" class="pilcrow">¶</a></p>
-<p id="section-5.4-4">A relay that reads from a stream and writes to stream in order will
+prioritize sending Objects based on <a href="#priorities" class="auto internal xref">Section 4</a>.<a href="#section-5.3-2" class="pilcrow">¶</a></p>
+<p id="section-5.3-3">A publisher <span class="bcp14">SHOULD</span> begin sending incomplete objects when available to
+avoid incurring additional latency.<a href="#section-5.3-3" class="pilcrow">¶</a></p>
+<p id="section-5.3-4">A relay that reads from a stream and writes to stream in order will
 introduce head-of-line blocking.  Packet loss will cause stream data to
 be buffered in the library, awaiting in order delivery, which will
 increase latency over additional hops.  To mitigate this, a relay <span class="bcp14">SHOULD</span>
 read and write stream data out of order subject to flow control
-limits.  See section 2.2 in <span>[<a href="#QUIC" class="cite xref">QUIC</a>]</span>.<a href="#section-5.4-4" class="pilcrow">¶</a></p>
+limits.  See section 2.2 in <span>[<a href="#QUIC" class="cite xref">QUIC</a>]</span>.<a href="#section-5.3-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -2653,9 +2552,11 @@ compatibility.<a href="#section-6.3-4.1.1" class="pilcrow">¶</a></p>
 the publisher to identify which objects need to be delivered.<a href="#section-6.4.1-1" class="pilcrow">¶</a></p>
 <p id="section-6.4.1-2">There are 4 types of filters:<a href="#section-6.4.1-2" class="pilcrow">¶</a></p>
 <p id="section-6.4.1-3">Latest Group (0x1) : Specifies an open-ended subscription with objects
-from the beginning of the current group.<a href="#section-6.4.1-3" class="pilcrow">¶</a></p>
+from the beginning of the current group.  If no content has been delivered yet,
+the subscription starts with the first published or received group.<a href="#section-6.4.1-3" class="pilcrow">¶</a></p>
 <p id="section-6.4.1-4">Latest Object (0x2): Specifies an open-ended subscription beginning from
-the current object of the current group.<a href="#section-6.4.1-4" class="pilcrow">¶</a></p>
+the current object of the current group.  If no content has been delivered yet,
+the subscription starts with the first published or received group.<a href="#section-6.4.1-4" class="pilcrow">¶</a></p>
 <p id="section-6.4.1-5">AbsoluteStart (0x3):  Specifies an open-ended subscription beginning
 from the object identified in the StartGroup and StartObject fields.<a href="#section-6.4.1-5" class="pilcrow">¶</a></p>
 <p id="section-6.4.1-6">AbsoluteRange (0x4):  Specifies a closed subscription starting at StartObject
@@ -2681,6 +2582,8 @@ SUBSCRIBE Message {
   Track Alias (i),
   Track Namespace (b),
   Track Name (b),
+  Subscriber Priority (8),
+  Group Order (8),
   Filter Type (i),
   [StartGroup (i),
    StartObject (i)],
@@ -2719,27 +2622,38 @@ close the session with a Duplicate Track Alias error (<a href="#session-terminat
               <p id="section-6.4.2-4.4.1">Track Name: Identifies the track name as defined in (<a href="#track-name" class="auto internal xref">Section 2.3.1</a>).<a href="#section-6.4.2-4.4.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-6.4.2-4.5">
-              <p id="section-6.4.2-4.5.1">Filter Type: Identifies the type of filter, which also indicates whether
-the StartGroup/StartObject and EndGroup/EndObject fields will be present.
-See (<a href="#sub-filter" class="auto internal xref">Section 6.4.1</a>).<a href="#section-6.4.2-4.5.1" class="pilcrow">¶</a></p>
+              <p id="section-6.4.2-4.5.1">Subscriber Priority: Specifies the priority of a subscription relative to
+other subscriptions in the same session. Lower numbers get higher priority.
+See <a href="#priorities" class="auto internal xref">Section 4</a>.<a href="#section-6.4.2-4.5.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-6.4.2-4.6">
-              <p id="section-6.4.2-4.6.1">StartGroup: The start Group ID. Only present for "AbsoluteStart" and
-"AbsoluteRange" filter types.<a href="#section-6.4.2-4.6.1" class="pilcrow">¶</a></p>
+              <p id="section-6.4.2-4.6.1">Group Order: Allows the subscriber to request Objects be delivered in
+Ascending (0x1) or Descending (0x2) order by group. See <a href="#priorities" class="auto internal xref">Section 4</a>.
+A value of 0x0 indicates the original publisher's Group Order <span class="bcp14">SHOULD</span> be
+used. Values larger than 0x2 are a protocol error.<a href="#section-6.4.2-4.6.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-6.4.2-4.7">
-              <p id="section-6.4.2-4.7.1">StartObject: The start Object ID. Only present for "AbsoluteStart" and
-"AbsoluteRange" filter types.<a href="#section-6.4.2-4.7.1" class="pilcrow">¶</a></p>
+              <p id="section-6.4.2-4.7.1">Filter Type: Identifies the type of filter, which also indicates whether
+the StartGroup/StartObject and EndGroup/EndObject fields will be present.
+See (<a href="#sub-filter" class="auto internal xref">Section 6.4.1</a>).<a href="#section-6.4.2-4.7.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-6.4.2-4.8">
-              <p id="section-6.4.2-4.8.1">EndGroup: The end Group ID. Only present for the "AbsoluteRange" filter type.<a href="#section-6.4.2-4.8.1" class="pilcrow">¶</a></p>
+              <p id="section-6.4.2-4.8.1">StartGroup: The start Group ID. Only present for "AbsoluteStart" and
+"AbsoluteRange" filter types.<a href="#section-6.4.2-4.8.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-6.4.2-4.9">
-              <p id="section-6.4.2-4.9.1">EndObject: The end Object ID, plus 1. A value of 0 means the entire group is
-requested. Only present for the "AbsoluteRange" filter type.<a href="#section-6.4.2-4.9.1" class="pilcrow">¶</a></p>
+              <p id="section-6.4.2-4.9.1">StartObject: The start Object ID. Only present for "AbsoluteStart" and
+"AbsoluteRange" filter types.<a href="#section-6.4.2-4.9.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-6.4.2-4.10">
-              <p id="section-6.4.2-4.10.1">Subscribe Parameters: The parameters are defined in <a href="#version-specific-params" class="auto internal xref">Section 6.1.1</a>.<a href="#section-6.4.2-4.10.1" class="pilcrow">¶</a></p>
+              <p id="section-6.4.2-4.10.1">EndGroup: The end Group ID. Only present for the "AbsoluteRange" filter type.<a href="#section-6.4.2-4.10.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-6.4.2-4.11">
+              <p id="section-6.4.2-4.11.1">EndObject: The end Object ID, plus 1. A value of 0 means the entire group is
+requested. Only present for the "AbsoluteRange" filter type.<a href="#section-6.4.2-4.11.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-6.4.2-4.12">
+              <p id="section-6.4.2-4.12.1">Subscribe Parameters: The parameters are defined in <a href="#version-specific-params" class="auto internal xref">Section 6.1.1</a>.<a href="#section-6.4.2-4.12.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
 <p id="section-6.4.2-5">On successful subscription, the publisher <span class="bcp14">MUST</span> reply with a SUBSCRIBE_OK,
@@ -2765,7 +2679,9 @@ subscription can be made. The start Object <span class="bcp14">MUST NOT</span> d
 there is no guarantee that a publisher will not have already sent Objects before
 the new start Object.  The end Object <span class="bcp14">MUST NOT</span> increase and when it decreases,
 there is no guarantee that a publisher will not have already sent Objects after
-the new end Object.<a href="#section-6.5-1" class="pilcrow">¶</a></p>
+the new end Object. A publisher <span class="bcp14">SHOULD</span> close the Session as a 'Protocol Violation'
+if the SUBSCRIBE_UPDATE violates either rule or if the subscriber specifies a
+Subscribe ID that does not exist within the Session.<a href="#section-6.5-1" class="pilcrow">¶</a></p>
 <p id="section-6.5-2">Unlike a new subscription, SUBSCRIBE_UPDATE can not cause an Object to be
 delivered multiple times.  Like SUBSCRIBE, EndGroup and EndObject <span class="bcp14">MUST</span> specify the
 same or a later object than StartGroup and StartObject.<a href="#section-6.5-2" class="pilcrow">¶</a></p>
@@ -2780,6 +2696,7 @@ SUBSCRIBE_UPDATE Message {
   StartObject (i),
   EndGroup (i),
   EndObject (i),
+  Subscriber Priority (8),
   Number of Parameters (i),
   Subscribe Parameters (..) ...
 }
@@ -2809,7 +2726,12 @@ open-ended.<a href="#section-6.5-5.4.1" class="pilcrow">¶</a></p>
 requested.<a href="#section-6.5-5.5.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-6.5-5.6">
-            <p id="section-6.5-5.6.1">Subscribe Parameters: The parameters are defined in <a href="#version-specific-params" class="auto internal xref">Section 6.1.1</a>.<a href="#section-6.5-5.6.1" class="pilcrow">¶</a></p>
+            <p id="section-6.5-5.6.1">Subscriber Priority: Specifies the priority of a subscription relative to
+other subscriptions in the same session. Lower numbers get higher priority.
+See <a href="#priorities" class="auto internal xref">Section 4</a>.<a href="#section-6.5-5.6.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-6.5-5.7">
+            <p id="section-6.5-5.7.1">Subscribe Parameters: The parameters are defined in <a href="#version-specific-params" class="auto internal xref">Section 6.1.1</a>.<a href="#section-6.5-5.7.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
@@ -2995,8 +2917,8 @@ IDs starts at 0, increasing sequentially for each object within the
 group.<a href="#section-6.11.1-2.3.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-6.11.1-2.4">
-              <p id="section-6.11.1-2.4.1">Object Send Order: An integer indicating the object send order
-<a href="#send-order" class="auto internal xref">Section 4.1.1</a> or priority <a href="#ordering-by-priorities" class="auto internal xref">Section 4.1.2</a> value.<a href="#section-6.11.1-2.4.1" class="pilcrow">¶</a></p>
+              <p id="section-6.11.1-2.4.1">Publisher Priority: An 8 bit integer indicating the publisher's priority for
+the Object <a href="#priorities" class="auto internal xref">Section 4</a>.<a href="#section-6.11.1-2.4.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-6.11.1-2.5">
               <p id="section-6.11.1-2.5.1">Object Forwarding Preference: An enumeration indicating how a publisher sends
@@ -3090,7 +3012,7 @@ OBJECT_STREAM Message {
   Track Alias (i),
   Group ID (i),
   Object ID (i),
-  Object Send Order (i),
+  Publisher Priority (8),
   Object Status (i),
   Object Payload (..),
 }
@@ -3136,7 +3058,7 @@ OBJECT_DATAGRAM Message {
   Track Alias (i),
   Group ID (i),
   Object ID (i),
-  Object Send Order (i),
+  Publisher Priority (8),
   Object Status (i),
   Object Payload (..),
 }
@@ -3172,7 +3094,7 @@ stream header.<a href="#section-6.11.3-5" class="pilcrow">¶</a></p>
 STREAM_HEADER_TRACK Message {
   Subscribe ID (i)
   Track Alias (i),
-  Object Send Order (i),
+  Publisher Priority (8),
 }
 </pre>
 </div>
@@ -3218,8 +3140,8 @@ have the <code>Object Send Order</code> specified in the stream header.<a href="
 STREAM_HEADER_GROUP Message {
   Subscribe ID (i),
   Track Alias (i),
-  Group ID (i)
-  Object Send Order (i)
+  Group ID (i),
+  Publisher Priority (8),
 }
 </pre>
 </div>
@@ -3265,7 +3187,7 @@ previously sent Object ID within a given group in that stream.<a href="#section-
 STREAM_HEADER_TRACK {
   Subscribe ID = 1
   Track Alias = 1
-  Object Send Order = 0
+  Publisher Priority = 0
 }
 {
   Group ID = 0
@@ -3291,7 +3213,7 @@ STREAM_HEADER_GROUP {
   Subscribe ID = 2
   Track Alias = 2
   Group ID = 0
-  Object Send Order = 0
+  Publisher Priority = 0
 }
 {
   Object ID = 0
@@ -3307,10 +3229,11 @@ STREAM_HEADER_GROUP {
 Stream = 6
 
 OBJECT_STREAM {
-  Subscribe ID = 2
-  Track Alias = 2
+  Subscribe ID = 3
+  Track Alias = 3
   Group ID = 0
   Object ID = 1
+  Object Send Order = 0
   Payload = "moqrocks"
 }
 </pre><a href="#section-6.11.4-4" class="pilcrow">¶</a>
@@ -3334,6 +3257,7 @@ SUBSCRIBE_OK
 {
   Subscribe ID (i),
   Expires (i),
+  Group Order (8),
   ContentExists (f),
   [Largest Group ID (i)],
   [Largest Object ID (i)]
@@ -3355,17 +3279,22 @@ or expires at an unknown time.  Expires is advisory and a subscription can
 end prior to the expiry time or last longer.<a href="#section-6.12-3.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-6.12-3.3">
-            <p id="section-6.12-3.3.1">ContentExists: 1 if an object has been published on this track, 0 if not.
-If 0, then the Largest Group ID and Largest Object ID fields will not be
-present.<a href="#section-6.12-3.3.1" class="pilcrow">¶</a></p>
+            <p id="section-6.12-3.3.1">Group Order: Indicates the subscription will be delivered in
+Ascending (0x1) or Descending (0x2) order by group. See <a href="#priorities" class="auto internal xref">Section 4</a>.
+Values of 0x0 and those larger than 0x2 are a protocol error.<a href="#section-6.12-3.3.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-6.12-3.4">
-            <p id="section-6.12-3.4.1">Largest Group ID: the largest Group ID available for this track. This field
-is only present if ContentExists has a value of 1.<a href="#section-6.12-3.4.1" class="pilcrow">¶</a></p>
+            <p id="section-6.12-3.4.1">ContentExists: 1 if an object has been published on this track, 0 if not.
+If 0, then the Largest Group ID and Largest Object ID fields will not be
+present.<a href="#section-6.12-3.4.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-6.12-3.5">
-            <p id="section-6.12-3.5.1">Largest Object ID: the largest Object ID available within the largest Group ID
-for this track. This field is only present if ContentExists has a value of 1.<a href="#section-6.12-3.5.1" class="pilcrow">¶</a></p>
+            <p id="section-6.12-3.5.1">Largest Group ID: the largest Group ID available for this track. This field
+is only present if ContentExists has a value of 1.<a href="#section-6.12-3.5.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-6.12-3.6">
+            <p id="section-6.12-3.6.1">Largest Object ID: the largest Object ID available within the largest Group ID
+for this track. This field is only present if ContentExists has a value of 1.<a href="#section-6.12-3.6.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
@@ -3681,6 +3610,7 @@ leading varint in catalog track objects.<a href="#section-8-4" class="pilcrow">�
       </ul>
 </section>
 </div>
+<div id="sec-combined-references">
 <section id="section-10">
       <h2 id="name-references">
 <a href="#name-references" class="section-name selfRef">References</a>
@@ -3744,6 +3674,7 @@ leading varint in catalog track objects.<a href="#section-8-4" class="pilcrow">�
 </section>
 </div>
 </section>
+</div>
 <div id="authors-addresses">
 <section id="appendix-A">
       <h2 id="name-authors-addresses">
