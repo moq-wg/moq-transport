@@ -977,10 +977,12 @@ the publisher to identify which objects need to be delivered.
 There are 4 types of filters:
 
 Latest Group (0x1) : Specifies an open-ended subscription with objects
-from the beginning of the current group.
+from the beginning of the current group.  If no content has been delivered yet,
+the subscription starts with the first published or received group.
 
 Latest Object (0x2): Specifies an open-ended subscription beginning from
-the current object of the current group.
+the current object of the current group.  If no content has been delivered yet,
+the subscription starts with the first published or received group.
 
 AbsoluteStart (0x3):  Specifies an open-ended subscription beginning
 from the object identified in the StartGroup and StartObject fields.
