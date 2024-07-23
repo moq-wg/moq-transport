@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2024-07-21T01:22:24.220016+00:00",
+  "timestamp": "2024-07-23T01:17:21.153783+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -17061,7 +17061,7 @@
       "labels": [],
       "body": "This is a redux of #228, now that I've heard from multiple other wg participants they are now interested in such a mechanism.\r\n\r\nConsider using moq for a chat or other application where a relay has many publishers for the same application.  In order for subscribes to be routed to the correct publishing endpoints, each publisher/participant needs to announce a unique namespace (this is how moq-chat operates, see https://afrind.github.io/draft-frindell-moq-chat/draft-frindell-moq-chat.html#section-4.4).\r\n\r\nThis creates an issue: how do participants learn about the namespaces/tracks other clients have ANNOUNCED to the relay within the same chat room? I originally filed #228 thinking there should be a mechanism by which a client can declare their interest in new announcements and become a catalog-less means of track discovery. Based on wg feedback at the time, I updated moq-chat to use a different discovery mechanism involving a simple catalog.\r\n\r\nHere's an alternate proposal:\r\n\r\n```\r\nSUBSCRIBE_NAMESPACE {\r\n   Track Namespace Prefix (b),\r\n   Auth Info (b)\r\n }\r\n```\r\n\r\nThis would inform the relay to forward any ANNOUNCE with a prefix match, if authorized.\r\n\r\nSo in moq-chat, each new participant would do this:\r\n\r\n```\r\nANNOUNCE(namespace=\"moq-chat/id/participant/<name>\")\r\nSUBSCRIBE_NAMESPACE(prefix=\"moq-chat/id/participant/\")\r\n```\r\n\r\nAnd a relay would reply with:\r\n\r\n```\r\nANNOUNCE_OK\r\nSUBSCRIBE_NAMESPACE_OK\r\n# existing announcements matching namespace prefix\r\nANNOUNCE(namespace=\"moq-chat/id/participant/<member1>\") \r\nANNOUNCE(namespace=\"moq-chat/id/participant/<member2>\")\r\nANNOUNCE(namespace=\"moq-chat/id/participant/<member3>\")\r\n...\r\n```\r\n\r\nIt would also forward any new ANNOUNCEs or ANNOUNCE_CANCELs matching the prefix to the participant.\r\n\r\nThe new participant then issues standard SUBSCRIBE to each existing chat member\r\n```\r\nSUBSCRIBE(namespace=\"moq-chat/id/participant/<member1>\", name=\"chat\") \r\nSUBSCRIBE(namespace=\"moq-chat/id/participant/<member2>\", name=\"chat\") \r\n...\r\n```\r\n\r\nThis would remove the need for a catalog in some multi-publisher applications (eg: key distribution https://suhashere.github.io/moq-e2ee-mls/draft-jennings-moq-e2ee-mls.html), but also keep the scope of ANNOUNCE the same as it is today.",
       "createdAt": "2024-07-11T15:05:21Z",
-      "updatedAt": "2024-07-15T17:38:18Z",
+      "updatedAt": "2024-07-22T21:56:50Z",
       "closedAt": null,
       "comments": [
         {
@@ -17091,6 +17091,13 @@
           "body": "Individual Comment:\r\n\r\nAfter talking with Tim, I realized a problem with my proposal:\r\n\r\n```\r\nSUBSCRIBE_NAMESPACE {\r\n   Track Namespace Prefix (b),\r\n    ...\r\n }\r\n```\r\n\r\nIf I `SUBSCRIBE_NAMESPACE /abc`, I will also get ANNOUNCEs for /abcdefg.  This is the Track Namespace/Track Name problem all over again, with the same solution: I propose we also split a Publisher ID tuple out from Track Namespace.\r\n\r\nSo would be:\r\n\r\n`Full Track Name = Track Namespace | Publisher ID | Track Name`\r\n\r\nAny of the three components can be empty - giving applications flexibility in track naming.\r\n\r\n`SUBSCRIBE_NAMESPACE` would specify an exact match on Track Namespace, rather than prefix bits.\r\n\r\n```\r\nSUBSCRIBE_NAMESPACE {\r\n   Track Namespace (b),\r\n    ...\r\n }\r\n```\r\n\r\nSplitting namespace into two fields could also help resolve some of our \"duplicate announce\" issues -- eg it is possible to distinguish a reconnect case (same publisher ID) from a redundant broadcaster (different publisher IDs).\r\n",
           "createdAt": "2024-07-15T17:38:17Z",
           "updatedAt": "2024-07-15T17:38:17Z"
+        },
+        {
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "Your proposal the top makes sense to me, and the issue of if you subscribe to abc you get abcdef seems like exactly what we want, not a problem. It seems like adding publisher id breaks the properties we need. ",
+          "createdAt": "2024-07-22T21:56:50Z",
+          "updatedAt": "2024-07-22T21:56:50Z"
         }
       ]
     }
