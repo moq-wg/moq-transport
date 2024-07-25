@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2024-07-23T01:17:21.153783+00:00",
+  "timestamp": "2024-07-25T01:17:13.637878+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -92,6 +92,11 @@
       "name": "Transmission",
       "description": "Issues involving what to transmit when, what to drop, priorities, etc",
       "color": "0052cc"
+    },
+    {
+      "name": "Security/DoS",
+      "description": "Issues with MoQ's security or ways it may be vulnerable to denial of service / resource exhaustion",
+      "color": "b60205"
     }
   ],
   "issues": [
@@ -1897,7 +1902,7 @@
       ],
       "body": "There were few discussions that discussed on dealing with congestion and needing more thinking around decisions around how and when to drop things. ",
       "createdAt": "2022-11-10T23:52:32Z",
-      "updatedAt": "2024-02-20T02:26:34Z",
+      "updatedAt": "2024-07-23T14:09:30Z",
       "closedAt": null,
       "comments": [
         {
@@ -1941,6 +1946,13 @@
           "body": "This is one area where WebRTC has advantage over MoQ. While I don't think the draft should have any text, it would be good to have a plan we can point to. Getting your timestamp draft adopted eventually sounds like a good plan to me.",
           "createdAt": "2023-10-28T23:30:49Z",
           "updatedAt": "2023-10-28T23:31:46Z"
+        },
+        {
+          "author": "PercyLau",
+          "authorAssociation": "NONE",
+          "body": "> You definitely don't want to ACK every packet individually. If you want per-packet timestamps, I wrote a draft that was used by some internal projects. https://www.ietf.org/archive/id/draft-smith-quic-receive-ts-00.html\r\n> \r\n> It can probably be improved, but it works with GCC and similar congestion controllers.\r\n> \r\n> I agree that if you're app-limited often enough, you should be able to skip PROBE_RTT in BBRv2/3. I keep wanting to write a version of the BBR bandwidth estimator that uses timestamps, but it's hard for me to know how much better it'd be without just doing it.\r\n> \r\n> This is an interesting topic, but is there a clear ack for the QUIC WG or text we should add to the existing draft? I'm inclined to park this for now and wait for more deployment experience.\r\n\r\nIt is possible to construct a case that ack every packet is not necessary, but vice versa. Acknowledgement mechanism seems to be some kind of compression of network state information. E.g., current ack format can be interpreted as a way using delta encoding to compresse a simplified black-box model which only determines if a packet is lost or not. Further, the upper application layer may have an impact on what kind of compression algorithm we choose to represent. We don't know the accurate state changes of upper application layer under different packet receiving patterns. In other words, we lack a detailed analytic framework from an information-theory perspective.",
+          "createdAt": "2024-07-23T14:09:29Z",
+          "updatedAt": "2024-07-23T14:09:29Z"
         }
       ]
     },
@@ -8554,10 +8566,12 @@
       "assignees": [
         "ianswett"
       ],
-      "labels": [],
+      "labels": [
+        "Editorial"
+      ],
       "body": "Now that this is a repo for, I think, a WG adopted doc, there's a number of improvements that could be made to improve it e.g. the description is stale, there's no link to the repo from the document, the markdown filename doesn't match the document name etc. These are all minor things but cumulatively make it harder for contributors. It would be great to get them fixed up.",
       "createdAt": "2023-07-17T21:58:26Z",
-      "updatedAt": "2023-07-24T21:22:53Z",
+      "updatedAt": "2024-07-24T17:04:07Z",
       "closedAt": null,
       "comments": [
         {
@@ -13668,10 +13682,12 @@
       "author": "wilaw",
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
-      "labels": [],
+      "labels": [
+        "Subscribe"
+      ],
       "body": "At the interim there was interest in creating the ability for a receiver to ask a sender to subscribe to a track but not to forward it. The purpose of this is to minimize the delay when the receiver SUBSCRIBES to the track in the future. \r\n\r\nDesign considerations\r\n1. This would need to be converted to a regular SUBSCRIBE for forward requests. So any relay receiving a PREWARM request MUST never forward it.\r\n2. Is there a matching UNPREWARM, or would a regular UNSUBSCRIBE suffice?\r\n3. Do we need a new method PREWARM or can it be a flag on the existing SUBSCRIBE?\r\n4. This is a powerful DDOS attack vector. How do we mitigate that threat in the design? ",
       "createdAt": "2024-02-08T19:36:06Z",
-      "updatedAt": "2024-02-27T14:47:18Z",
+      "updatedAt": "2024-07-24T17:03:38Z",
       "closedAt": null,
       "comments": [
         {
@@ -13808,11 +13824,12 @@
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
       "labels": [
-        "Parked"
+        "Parked",
+        "Security/DoS"
       ],
       "body": "\r\nIn the security section, we should think about the type of DDOS attacks that can be made against the relays, and then check we have the right things in place for the relays to mitigate them. ",
       "createdAt": "2024-02-08T22:23:02Z",
-      "updatedAt": "2024-02-08T22:24:43Z",
+      "updatedAt": "2024-07-23T17:56:52Z",
       "closedAt": null,
       "comments": []
     },
@@ -14332,10 +14349,12 @@
       "author": "fluffy",
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
-      "labels": [],
+      "labels": [
+        "Editorial"
+      ],
       "body": "I was reading the draft from the point of view of a new person that wanted to try and understand it and implement it. It's hard to get the big picture of what is happening as well as the corner cases. \r\n\r\nI think some call flow diagrams would really help people easily get what is going on. ",
       "createdAt": "2024-02-27T14:30:38Z",
-      "updatedAt": "2024-02-28T16:28:08Z",
+      "updatedAt": "2024-07-24T17:02:58Z",
       "closedAt": null,
       "comments": [
         {
@@ -15168,11 +15187,12 @@
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
       "labels": [
-        "Handshake"
+        "Handshake",
+        "Security/DoS"
       ],
       "body": "Note in the draft that raw QUIC can to 0-RTT moq setup but webtransport does not support this. Add text to security section of why this is safe. ",
       "createdAt": "2024-03-18T21:49:13Z",
-      "updatedAt": "2024-06-25T02:06:15Z",
+      "updatedAt": "2024-07-24T17:03:24Z",
       "closedAt": null,
       "comments": [
         {
@@ -15880,13 +15900,12 @@
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
       "labels": [
-        "Needs PR",
         "Implementation Blocker",
         "Needs Discussion"
       ],
       "body": "At some point we removed the time to live of how long obhects exist in the cache before they are removed. \r\n\r\nIt is becoming an significant implementation blocker to not have some version of this.  I would like to add some version of this back soon even if we later change the exact details of how times are calculated and represented. \r\n\r\n\r\n",
       "createdAt": "2024-04-24T14:50:21Z",
-      "updatedAt": "2024-05-21T21:29:02Z",
+      "updatedAt": "2024-07-23T17:54:31Z",
       "closedAt": null,
       "comments": [
         {
@@ -16186,10 +16205,12 @@
       "author": "TimEvens",
       "authorAssociation": "NONE",
       "assignees": [],
-      "labels": [],
+      "labels": [
+        "Handshake"
+      ],
       "body": "Section 3.3 states *\"The first stream opened is a client-initiated bidirectional control stream where the peers exchange Setup messages ([Section 6.2](https://datatracker.ietf.org/doc/html/draft-ietf-moq-transport-04#message-setup))\"* but does not state what we should do about datagrams being sent before the control stream as well as before **CLIENT_SETUP**/**SERVER_SETUP**.  \r\n\r\nShould the connection be closed by protocol violation if DATAGRAM is received matching **any** of the following conditions:\r\n\r\n* Control bi-dir stream not yet created; session hasn't been established\r\n* `CLIENT_SETUP` and `SERVER_SETUP` not compete; session hasn't been established\r\n* `CLIENT_SETUP` role is `0x02` **SUBSCRIBER**; publishing is not allowed\r\n",
       "createdAt": "2024-06-06T17:22:09Z",
-      "updatedAt": "2024-06-06T17:22:09Z",
+      "updatedAt": "2024-07-24T16:56:20Z",
       "closedAt": null,
       "comments": []
     },
@@ -16202,10 +16223,12 @@
       "author": "TimEvens",
       "authorAssociation": "NONE",
       "assignees": [],
-      "labels": [],
+      "labels": [
+        "Handshake"
+      ],
       "body": "Section 3.3 and 6.2 do not clearly  identify that `CLIENT_SETUP` is the first message over the control stream, sent by the client,  and that the server will wait till that arrives so that it can respond to it via a `SERVER_SETUP`. In section 6.2.1 under versions, it does indicate that the server responds to the client supported version list with a selected \"client\" version, which means that `SERVER_SETUP` is a response message to a `CLIENT_SETUP`. \r\n\r\nFor example... \r\n\r\n```mermaid\r\nsequenceDiagram\r\n    participant client\r\n    participant server\r\nclient ->>+server:QUIC connection\r\nserver -->>-client:QUIC established \r\nclient ->>+server:Create bi-dir stream\r\nclient ->>server:CLIENT_SETUP\r\nserver -->>-client:SERVER_SETUP\r\n``` \r\n\r\nHow long should/must the server wait for the `CLIENT_SETUP` message? QUIC level keep alives will keep the connection alive and the server will be stuck in lingering state for a `CLIENT_SETUP` message.  The client should also have some expected wait time for a  `SERVER_SETUP` response message.",
       "createdAt": "2024-06-06T18:03:28Z",
-      "updatedAt": "2024-06-29T18:24:41Z",
+      "updatedAt": "2024-07-24T16:55:54Z",
       "closedAt": null,
       "comments": [
         {
@@ -16259,10 +16282,12 @@
       "author": "TimEvens",
       "authorAssociation": "NONE",
       "assignees": [],
-      "labels": [],
+      "labels": [
+        "Wire Format"
+      ],
       "body": "We have a need to identify the endpoint that we are connecting with.  Both client and server need to be identified by both ends of the connection. We use this identifier to correlate metrics through all layers of the application.  Today we use this ID to build a topology graph (tree of publisher and subscribers) and their path through relays.  The ID is also used to inform clients which relay they have connected to, used for troubleshooting/debugs/etc.  The IP address or FQDN used to connect to the relay does not identify the actual relay instance connected to when the relay is behind a load balancer and/or anycast.  \r\n\r\nExample parameter text. \r\n\r\nENDPOINT_ID Parameter\r\n\r\nThe ENDPOINT_ID parameter (type 0x0x) is an optional setup parameter that identifies the endpoint sending the CLIENT_SETUP or SERVER_SETUP message. The value is a variable length binary byte array that is unique within the application defined scope.  The server MUST include an ENDPOINT_ID if CLIENT_SETUP sends it.  Servers include the endpoint ID in logs, metrics, and other reporting. \r\n\r\n> [!NOTE]\r\n> While endpoint is often identified in the track namespace, it cannot be used by the sever/relay when considering\r\n> the server/relay does not participate in the encoding scheme.  Relays do not have a specific track to identify\r\n> itself to the client, so the client doesn't know which relay it connects to.  Depending on application design, \r\n> namespace may not uniquely identify a specific endpoint/connection for logging/metrics/tracing/... Relay to relay peering also does not have dedicated tracks for themselves, leaving each relay unaware of which relay instance they are connected. ",
       "createdAt": "2024-06-06T18:30:20Z",
-      "updatedAt": "2024-07-04T00:28:43Z",
+      "updatedAt": "2024-07-24T16:55:32Z",
       "closedAt": null,
       "comments": [
         {
@@ -16298,11 +16323,12 @@
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [
-        "Transmission"
+        "Transmission",
+        "Security/DoS"
       ],
       "body": "If the relay is sending data to a subscriber, and the link between the subscriber and the relay cannot sustain the bitrate of the track, eventually the relay will have to buffer more and more data.  At some point, the relay would have to drop the data; we should specify how that happens (lowest priority stream gets dropped first?).",
       "createdAt": "2024-06-11T22:45:40Z",
-      "updatedAt": "2024-06-14T17:47:09Z",
+      "updatedAt": "2024-07-23T17:54:03Z",
       "closedAt": null,
       "comments": [
         {
@@ -16356,10 +16382,12 @@
       "author": "martinduke",
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
-      "labels": [],
+      "labels": [
+        "Subscribe"
+      ],
       "body": "How does a relay know when to send SUBSCRIBE_DONE?\r\n\r\nThe purpose of relay is to aggregate subscribes, so if overlapping subscribes come in with different endpoints I can't rely on a SUBSCRIBE_DONE from upstream.\r\n\r\nIf a SUBSCRIBE is entirely for future objects, the easiest thing to do is to send it when I've sent the last object ID, or a higher ID is published. One can add a timer per subscribe to allow for reordering, or just accept that reordered objects arriving after the last won't be delivered. I can't simply keep state for each object in the subscribe because I have no idea where there are object or group gaps. (maybe this is the use case for explicitly communicating these gaps after all?)\r\n\r\nIf a SUBSCRIBE is entirely for past objects, either I am serving them from cache (in which case I can provide an API to the cache to call when it is fully served), or I have to send a SUBSCRIBE upstream. If the SUBSCRIBE is unique, then I'll get a SUBSCRIBE_DONE from upstream. If it's aggregated somehow, once again I have to either watch for the last sequence number and run a timer, or keep score of all the objects I expect to see. IIUC, as it stands there is no guarantee that a subscribe for past objects will give me the complete set of objects.\r\n\r\nIf a SUBSCRIBE is for both past and future objects, then the union of both algorithms must both return true in order for the relay to send SUBSCRIBE_DONE. So the sender has to keep track of two separate object ranges independently. Because the SUBSCRIBE may arrive just as the publisher is incrementing the group ID, I need to track the max object ID in each group so I can tell when the past portion of the subscription is done.\r\n\r\nAt the origin, this is somewhat simpler in that published objects can be assumed to arrive in order and without gaps, and past objects can arrive in their own order and without gaps.",
       "createdAt": "2024-06-13T18:47:37Z",
-      "updatedAt": "2024-07-13T00:18:18Z",
+      "updatedAt": "2024-07-24T16:55:08Z",
       "closedAt": null,
       "comments": [
         {
@@ -16436,10 +16464,12 @@
       "author": "kixelated",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
-      "labels": [],
+      "labels": [
+        "Object Model"
+      ],
       "body": "- Requires an additional stream per group, when using a stream per object.\r\n- Makes objects \"nullable\" in the API (empty payload != status 0x1)\r\n- status != 0 wastes a byte on a zeroed size\r\n\r\nI think we should use a GROUP_END and TRACK_END message instead of overloading OBJECT. And an application can use an empty payload to indicate gaps... or whatever encoding it wants.",
       "createdAt": "2024-06-14T01:33:50Z",
-      "updatedAt": "2024-07-06T03:50:40Z",
+      "updatedAt": "2024-07-24T16:54:52Z",
       "closedAt": null,
       "comments": [
         {
@@ -16574,11 +16604,12 @@
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
       "labels": [
-        "Wire Format"
+        "Wire Format",
+        "Security/DoS"
       ],
       "body": "The messages defined in MoQ Transport include variable length components:\r\n\r\n* name space,\r\n* track name,\r\n* setup path,\r\n* go away URI,\r\n* authorization info,\r\n* number of supported versions,\r\n* number of setup or subscribe parameters.\r\n\r\nThese components have no specified maximum size, which opens an avenue for DOS attacks: start sending a message with components of arbitrary length, up to 2^62, and watch as the other endpoint allocates memory to hold the message. Application developers are very likely to mitigate the DOS attack by setting some limits, either to the global size of messages or to the size of individual components. We may expect different implementations to pick different limits, with a fairly good potential of causing interoperability issues.\r\n\r\nMaybe we should specify some limits.",
       "createdAt": "2024-06-24T15:37:25Z",
-      "updatedAt": "2024-07-08T20:47:56Z",
+      "updatedAt": "2024-07-23T17:53:34Z",
       "closedAt": null,
       "comments": [
         {
@@ -16798,10 +16829,12 @@
       "author": "vasilvv",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
-      "labels": [],
+      "labels": [
+        "Security/DoS"
+      ],
       "body": "This is another SUBSCRIBE-vs-FETCH issue, but with a specific implementation aspect of it.\r\n\r\nAssume I have a group-per-stream track.  I can subscribe to groups 1000 to 2000; it is entirely plausible that the publisher has all of those in cache immediately available, so in a naive implementation it can just open 1000 streams and start sending things; it would run into a flow control, and starve everything else on the connection.\r\n\r\nWe could set some limit on how many streams an individual subscription has, and that would be one way of solving this: if you set deliver order to ASC, you would process old streams first, and once those are processed (something we don't actually have a signal either), you'd start sending the next group.  Is this what we actually want?",
       "createdAt": "2024-06-28T19:04:00Z",
-      "updatedAt": "2024-07-15T18:40:31Z",
+      "updatedAt": "2024-07-24T16:54:05Z",
       "closedAt": null,
       "comments": [
         {
@@ -16954,10 +16987,12 @@
       "author": "vasilvv",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
-      "labels": [],
+      "labels": [
+        "Wire Format"
+      ],
       "body": "We currently do not define error codes with which streams are supposed to be reset.\r\n\r\nI can think of at least four of those:\r\n\r\n1. GENERIC -- for unknown reasons\r\n2. SUBSCRIPTION_GONE -- the subscription associated with the stream has been terminated.\r\n3. TIMEOUT -- for stream timeouts (possibly defer until we have a PR ready for that).\r\n4. STREAM_LIMIT_EXCEEDED -- the associated subscription has too many streams associated with it, so we discarded the lowest priority one (probably should be a part of #462).",
       "createdAt": "2024-07-08T19:47:23Z",
-      "updatedAt": "2024-07-10T23:10:26Z",
+      "updatedAt": "2024-07-24T17:04:36Z",
       "closedAt": null,
       "comments": [
         {
@@ -17013,10 +17048,12 @@
       "author": "TimEvens",
       "authorAssociation": "NONE",
       "assignees": [],
-      "labels": [],
+      "labels": [
+        "Wire Format"
+      ],
       "body": "As I read the draft, `SUBSCRIBE_ID` is the distinguisher of a given subscription. `TRACK_ALIAS`  is made unique for a subscription state by indicating *\"If the Track Alias is already in use, the publisher **MUST** close the session with a Duplicate Track Alias error.\"* \r\n\r\nThe `TRACK_ALIAS` is mentioned as *\"A session specific identifier for the track.\"*. It is initially set by the subscriber, where the publisher **MAY** reject... likely not if it wants to avoid long subscribe times.   The draft does not indicate that the track alias is a hash of track `namespace + name` or not.  \r\n\r\nIf the client implementation uses a sequence ID for both subscribe ID and track alias, then it could result in duplicate subscribes that would result in the relay building state, propagating the subscribe toward the publisher to solicit a response of OK/ERROR. In some implementations that support headless publishers, the relay would send a subscribe OK immediately.\r\n\r\nThe edge relay that has the connection to the publisher performs state compression of subscribes, but that's only at the `track_alias` level per the draft.  In this case, the track alias is different, resulting in a new subscribe (duplicate when looking at the `namespace+name`) being created to the publisher. \r\n\r\nThe publisher receives the subscribe with a new `SUBSCRIBE_ID` and `TRACK_ALIAS` and starts to publish data objects using the `SUBSCRIBE_ID` and `TRACK_ALIAS` that match internally the **track** `namespace + name`.  If one or more clients do this repeatedly, it would result in all relays and the actual publisher itself sending duplicate data that matches `namespace + name`.  \r\n\r\nBelow diagram illustrates the above.\r\n\r\n```mermaid\r\nsequenceDiagram\r\n    actor P as Actual Publisher\r\n    participant R1 as Relay 1\r\n    participant R2 as Relay 2\r\n    actor S as Lazy Subscriber\r\n\r\n    S ->>R2: SUBSCRIBE (id=5, space=clock, name=second, alias=100)\r\n    R2-->>S: SUBSCRIBE_OK (id=5, alias=100)\r\n    R2 ->>R1:  SUBSCRIBE (id=99, space=clock, name=second, alias=9901)\r\n    R1 -->>R2: SUBSCRIBE_OK (id=99, alias=9901)\r\n    R1 ->>P:  SUBSCRIBE (id=14, space=clock, name=second, alias=31)\r\n    P -->>R1: SUBSCRIBE_OK (id=14, alias=31)\r\n    P -) R1: OBJECT (id=14, alias=31, g=1, id=1)\r\n    R1 -)R2: OBJECT (id=99, alias=9901,  g=1, id=1)\r\n    R2 -)S: OBJECT (id=5, alias=100, g=1, id=1)\r\n    Note right of P: Objects are flowing for namespace = clock, name = second\r\n    Note left of S: Lazy subscriber sends another SUBSCRIBE\r\n\r\n    S ->>R2: SUBSCRIBE (id=6, space=clock, name=second, alias=101)\r\n    R2-->>S: SUBSCRIBE_OK (id=6, alias=101)\r\n    R2 ->>R1:  SUBSCRIBE (id=100, space=clock, name=second, alias=9902)\r\n    R1 -->>R2: SUBSCRIBE_OK (id=100, alias=9902)\r\n    R1 ->>P:  SUBSCRIBE (id=15, space=clock, name=second, alias=32)\r\n    P -->>R1: SUBSCRIBE_OK (id=15, alias=32)\r\n\r\n\r\n    P -) R1: OBJECT (id=14, alias=31, g=1, id=2)\r\n    R1 -)R2: OBJECT (id=99, alias=9901,  g=1, id=2)\r\n    R2 -)S: OBJECT (id=5, alias=100, g=1, id=2)\r\n\r\n   Note left of S: Below object is duplicate due to duplicate subscribes for same namespace + name\r\n\r\n    P -) R1: OBJECT (id=15, alias=32, g=1, id=2)\r\n    R1 -)R2: OBJECT (id=100, alias=9902,  g=1, id=2)\r\n    R2 -)S: OBJECT (id=6, alias=101, g=1, id=2)\r\n\r\n```\r\n\r\n### Resolutions\r\n\r\nI'm sure there are many reasonable fixes for this... below are a few. \r\n\r\n#### (1) Update protocol spec to make track namespace and name active at one time only per client/subscriber session\r\n\r\nThis would change the verbiage of duplicate track detection to perform duplication check on `namespace` and `name` instead of only on track alias.  The state machine for subscribe **SHOULD** change to move `TRACK_ALIAS` from `SUBSCRIBE` **TO** `SUBSCRIBE_OK`.   This simplifies the state machine by reducing the complexity in:\r\n\r\n* detection and elimination of duplicate subscribes\r\n* eliminating the challenges with having to deal with `SUBSCRIBE_ERROR=Duplicate Track Alias` trial and error responses\r\n\r\n#### (2) Hash **Track** `namespace` and `name`\r\nA hash of namespace and name would allow for the duplicate track detection to work per draft, but... Track alias has a max value of 62 bits. Collisions are the largest pitfall for using a hash of two values.\r\n\r\n#### (3) Registry/directory service of **Track** `namespace` and `name`\r\nRegistry/directory service could act as gatekeeper of track aliases.  While this would work, it introduces another micro service for a simple pub/sub, which isn't great. It will also slow the subscribe process down.  Many other issues will likely arise with this approach. \r\n\r\n\r\n",
       "createdAt": "2024-07-08T21:51:01Z",
-      "updatedAt": "2024-07-14T03:52:59Z",
+      "updatedAt": "2024-07-24T17:04:58Z",
       "closedAt": null,
       "comments": [
         {
@@ -17058,10 +17095,12 @@
       "author": "afrind",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
-      "labels": [],
+      "labels": [
+        "Announce"
+      ],
       "body": "This is a redux of #228, now that I've heard from multiple other wg participants they are now interested in such a mechanism.\r\n\r\nConsider using moq for a chat or other application where a relay has many publishers for the same application.  In order for subscribes to be routed to the correct publishing endpoints, each publisher/participant needs to announce a unique namespace (this is how moq-chat operates, see https://afrind.github.io/draft-frindell-moq-chat/draft-frindell-moq-chat.html#section-4.4).\r\n\r\nThis creates an issue: how do participants learn about the namespaces/tracks other clients have ANNOUNCED to the relay within the same chat room? I originally filed #228 thinking there should be a mechanism by which a client can declare their interest in new announcements and become a catalog-less means of track discovery. Based on wg feedback at the time, I updated moq-chat to use a different discovery mechanism involving a simple catalog.\r\n\r\nHere's an alternate proposal:\r\n\r\n```\r\nSUBSCRIBE_NAMESPACE {\r\n   Track Namespace Prefix (b),\r\n   Auth Info (b)\r\n }\r\n```\r\n\r\nThis would inform the relay to forward any ANNOUNCE with a prefix match, if authorized.\r\n\r\nSo in moq-chat, each new participant would do this:\r\n\r\n```\r\nANNOUNCE(namespace=\"moq-chat/id/participant/<name>\")\r\nSUBSCRIBE_NAMESPACE(prefix=\"moq-chat/id/participant/\")\r\n```\r\n\r\nAnd a relay would reply with:\r\n\r\n```\r\nANNOUNCE_OK\r\nSUBSCRIBE_NAMESPACE_OK\r\n# existing announcements matching namespace prefix\r\nANNOUNCE(namespace=\"moq-chat/id/participant/<member1>\") \r\nANNOUNCE(namespace=\"moq-chat/id/participant/<member2>\")\r\nANNOUNCE(namespace=\"moq-chat/id/participant/<member3>\")\r\n...\r\n```\r\n\r\nIt would also forward any new ANNOUNCEs or ANNOUNCE_CANCELs matching the prefix to the participant.\r\n\r\nThe new participant then issues standard SUBSCRIBE to each existing chat member\r\n```\r\nSUBSCRIBE(namespace=\"moq-chat/id/participant/<member1>\", name=\"chat\") \r\nSUBSCRIBE(namespace=\"moq-chat/id/participant/<member2>\", name=\"chat\") \r\n...\r\n```\r\n\r\nThis would remove the need for a catalog in some multi-publisher applications (eg: key distribution https://suhashere.github.io/moq-e2ee-mls/draft-jennings-moq-e2ee-mls.html), but also keep the scope of ANNOUNCE the same as it is today.",
       "createdAt": "2024-07-11T15:05:21Z",
-      "updatedAt": "2024-07-22T21:56:50Z",
+      "updatedAt": "2024-07-24T16:51:25Z",
       "closedAt": null,
       "comments": [
         {
@@ -17098,6 +17137,116 @@
           "body": "Your proposal the top makes sense to me, and the issue of if you subscribe to abc you get abcdef seems like exactly what we want, not a problem. It seems like adding publisher id breaks the properties we need. ",
           "createdAt": "2024-07-22T21:56:50Z",
           "updatedAt": "2024-07-22T21:56:50Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Individual Comment:\r\n\r\nUsing prefixes as a selection criteria *can* work, but places restrictions on how applications construct namespaces in order to prevent receiving information from unrelated publishers and applications.\r\n\r\nConsider a generic relay that is designed to handle moq traffic from a multitude of uncoordinated applications.  Each application can select whatever namespace they like, so there's no guarantee in the system that they won't pick overlapping namespaces.  The only mechanism that can help today is the Auth Info field - whomever grants authorization must prevent issuing tokens for overlapping namespaces to uncoordinated applications.  This doesn't feel scalable to me.\r\n\r\nConversely, using tuples and exact matches (a solution we have already agreed on for Track namespace + name) is unambiguous and doesn't require coordination or prescriptive namespace design. \r\n\r\n> It seems like adding publisher id breaks the properties we need.\r\n\r\nI don't see how this breaks.  Can you explain the properties you need that are broken?\r\n\r\nUsing moq-chat as an example, a chat room has a namespace (eg \"moq-chat/<id>\"), each participant has a publisher ID (eg \"afrind\" or \"fluffy\") and each track has a name (eg \"chat\", \"audio\", or \"catalog\").  \r\n\r\nANNOUNCE would contain a (namespace, publisher ID) tuple.  \r\n\r\nSUBSCRIBE would contain a full track name (namespace, publisher ID, name).\r\n\r\nSUBSCRIBE_NAMESPACE would inform an endpoint about all the publishers in the relay that are using the namespace, which gives subscribers all the information they need to issue subscribes for the tracks they are interested in.",
+          "createdAt": "2024-07-23T15:33:07Z",
+          "updatedAt": "2024-07-23T15:33:07Z"
+        },
+        {
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I called it `moq-dir` because it works like a file system with a `/` delimiter. \r\n\r\n```\r\n-> SUBSCRIBE namespace=\"/\" track=\"meeting/abc123\"\r\n```\r\n\r\nThe `moq-dir` namespace is `\"/\"` because it gets ANNOUNCED like any other publisher. It's kind of like a drive and in theory it could be sharded per-customer or something. It also means that any namespaces that do not start with `/` will not be publicly indexed by `moq-dir` (aka private namespaces).\r\n\r\nThe track indicates the desired directory, returning a list of any namespaces with the prefix `<namespace>/<track>/` but only one level deep.\r\n\r\nThe objects return similar results to `ls` but with a `+` or `-` prefix indicating change:\r\n```\r\n<- OBJECT payload=+alice\r\n<- OBJECT payload=+bob\r\n\r\n-> SUBSCRIBE namespace=\"/meeting/abc123/alice\" track=\".catalog\"\r\n-> SUBSCRIBE namespace=\"/meeting/abc123/bob\" track=\".catalog\"\r\n```\r\n\r\nLike @afrind said, you could extend this to support a glob instead via `*` but there's performance ramifications. \r\n\r\nIn my implementation, I basically bucket each ANNOUNCE by the dirname of the namespace. It's deterministic and can be pre-computed. Performing a glob, on the other hand, requires a more complicated data structure that basically has to be done on demand.\r\n\r\nAnd to clarify, this is for NAMESPACES ONLY. QuicR used * but that was for tracks; the same use-case might not apply.",
+          "createdAt": "2024-07-23T19:32:12Z",
+          "updatedAt": "2024-07-23T19:32:12Z"
+        },
+        {
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I am not comfortable with moq layer enforcing name restrictions as it is very specific to application domain. Where to split and how many splits to have is decided by the application. I feel the original proposal with matching prefix bit works pretty well. The problems listed above are not really issues but may be expectation from the clients. \r\n\r\n",
+          "createdAt": "2024-07-23T21:21:41Z",
+          "updatedAt": "2024-07-23T21:21:41Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Individual Comment:\r\n\r\nThese arguments feel the same as the namespace and name tuple split, and we reached consensus on using tuples and exact matching.  Why were you comfortable with (namespace, name) being a tuple but not (namespace, id, name)? ",
+          "createdAt": "2024-07-23T21:29:44Z",
+          "updatedAt": "2024-07-23T21:29:44Z"
+        },
+        {
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> Individual Comment:\r\n> \r\n> These arguments feel the same as the namespace and name tuple split, and we reached consensus on using tuples and exact matching. Why were you comfortable with (namespace, name) being a tuple but not (namespace, id, name)?\r\n\r\nbecause it is not solving any new problem. Nothing here stops from different clients using same publisher id and a generic relay has to make exactly same decision as your original problem statement .. Also as an application i might want 4 way split or different split point and I don't think we want it to be enforced at the moq layer .. \r\n",
+          "createdAt": "2024-07-23T21:37:58Z",
+          "updatedAt": "2024-07-23T21:59:52Z"
+        },
+        {
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "body": "@suhasHere namespace could be an array of strings instead of using an explicit separator like `/`",
+          "createdAt": "2024-07-23T22:52:31Z",
+          "updatedAt": "2024-07-23T22:52:31Z"
+        },
+        {
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "body": "But I do think we should eventually apply some restrictions/scheme to namespaces in the same vein as URLs. Binary blobs are nice until you actually try to inspect/share them...",
+          "createdAt": "2024-07-23T22:56:18Z",
+          "updatedAt": "2024-07-23T22:56:32Z"
+        },
+        {
+          "author": "vasilvv",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I have a bit of a concern as to whether this mechanism scales with the number of subscribers.  I guess the relay network has to store all announcements somehow anyways, so this mechanism would essentially provide a way to access that state.\r\n\r\nI'm not a fan of prefix matches, nor am I a fan of making full track name even bigger, given that this doesn't show up in 90% of scenarios.  I'd propose something like:\r\n1. Add a special announce_tag field in ANNOUNCE.\r\n2. SUBSCRIBE_TAG lets you specify the exact announce_tag you're listening for.",
+          "createdAt": "2024-07-23T23:11:03Z",
+          "updatedAt": "2024-07-23T23:11:03Z"
+        },
+        {
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "body": "\r\n> 2\\. SUBSCRIBE_TAG lets you specify the exact announce_tag you're listening for.\r\n\r\nCouple of questions\r\n1. How does the subscribers learn the announce_tag\r\n2. is announce_tag same as the publisher_id (other than being in a different part of the protocol)\r\n",
+          "createdAt": "2024-07-24T00:36:30Z",
+          "updatedAt": "2024-07-24T00:36:30Z"
+        },
+        {
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> But I do think we should eventually apply some restrictions/scheme to namespaces in the same vein as URLs. Binary blobs are nice until you actually try to inspect/share them...\r\n\r\nCouple of observations:\r\n\r\n1. Relay forwarding layer (dataplane) need not/should not  have to be aware of the structure\r\n2. Relay control plane can have the function  mapping between binary representation to the application representation (strings for example), if needed for inspection or even sharing with humans. \r\n",
+          "createdAt": "2024-07-24T00:39:16Z",
+          "updatedAt": "2024-07-24T01:05:46Z"
+        }
+      ]
+    },
+    {
+      "number": 490,
+      "id": "I_kwDOG2Ho4M6Qn8Le",
+      "title": "QUIC flow control does not map cleanly to MoQ subscriptions",
+      "url": "https://github.com/moq-wg/moq-transport/issues/490",
+      "state": "OPEN",
+      "author": "ianswett",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [
+        "Security/DoS"
+      ],
+      "body": "QUIC flow control doesn't work cleanly with MoQ, because a MoQ subscription can and is typically expected to span multiple streams, and can span multiple subscriptions per session. As a result, neither QUIC's session or stream flow control map cleanly to MoQ subscriptions.\r\n\r\nAs a contrast, HTTP is a single stream all the way through, and it's possible to exert backpressure, particularly within proxies.\r\n\r\nFor large requests to a proxy, this creates a challenge, because it can create a number of small range requests, but it doesn't know how large they should be.   The different stream mappings only make this more complex to reason about.  This is one case where stream per subscription/track is trivial.\r\n\r\nOne possible solution is to have each hop of MoQ decide how to use streams, and if there was a request for a large range that was in the past and subscription was in ascending group order, it could be delivered over a single QUIC stream, at least until it got close to the live edge.",
+      "createdAt": "2024-07-24T01:18:02Z",
+      "updatedAt": "2024-07-24T21:47:33Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "body": "May be this is a good time to resurrect fetch vs subscribe as well. Some of the fetch semantics can be clearly defined to allow for using only one stream (esp large ranges ), if the relay decides to do so.\r\n\r\nLive edge use-cases and old data retrieval use-cases have different requirements and it is bit unfortunate that there is no clean way to separate.\r\n\r\nThis might also help more carefully define live edge use-cases too and reason about it as the problem space is scoped.",
+          "createdAt": "2024-07-24T18:08:13Z",
+          "updatedAt": "2024-07-24T18:08:13Z"
+        },
+        {
+          "author": "vasilvv",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I agree that there is a difference between flow control for the live data vs flow control for the things that already exist.\r\n\r\nLive data in general should not be hitting flow control, since ideally we would discard all of the stale data early enough for us to always fit within the flow control window.\r\n\r\nIf the data already exists, we do need an end-to-end flow control solution, and putting a fetch on a single stream is probably the easiest answer.",
+          "createdAt": "2024-07-24T18:18:41Z",
+          "updatedAt": "2024-07-24T18:18:41Z"
+        },
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I realized this is very similar to #476 ",
+          "createdAt": "2024-07-24T21:47:32Z",
+          "updatedAt": "2024-07-24T21:47:32Z"
         }
       ]
     }
@@ -62959,6 +63108,34 @@
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "ianswett-subscribe-ok-upstream",
       "headRefOid": "2d65c8694de9bebfa8526036f8de9a1672ccf9b2",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": []
+    },
+    {
+      "number": 489,
+      "id": "PR_kwDOG2Ho4M52P3eH",
+      "title": "Clarify what Latest Group/Object send when there's no data",
+      "url": "https://github.com/moq-wg/moq-transport/pull/489",
+      "state": "OPEN",
+      "author": "ianswett",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [
+        "Editorial"
+      ],
+      "body": "Fixes #377",
+      "createdAt": "2024-07-23T18:02:48Z",
+      "updatedAt": "2024-07-23T18:02:49Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "b70f8b5a2f7eaf441509f909b554a73a8a09c0c1",
+      "headRepository": "moq-wg/moq-transport",
+      "headRefName": "ianswett-nodatayet",
+      "headRefOid": "14a504fa13c05af19122119ea2ea8c8f3fe790ad",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
