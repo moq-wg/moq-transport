@@ -2059,7 +2059,12 @@ outside the scope of this specification.<a href="#section-5.1-1" class="pilcrow"
 the subscription, via SUBSCRIBE_OK (<a href="#message-subscribe-ok" class="auto internal xref">Section 6.12</a>) or the
 SUBSCRIBE_ERROR <a href="#message-subscribe-error" class="auto internal xref">Section 6.13</a> control message.
 The entity receiving the SUBSCRIBE <span class="bcp14">MUST</span> send only a single response to
-a given SUBSCRIBE of either SUBSCRIBE_OK or SUBSCRIBE_ERROR.<a href="#section-5.1-2" class="pilcrow">¶</a></p>
+a given SUBSCRIBE of either SUBSCRIBE_OK or SUBSCRIBE_ERROR.
+If a relay does not already have a subscription for the track,
+or if the subscription does not cover all the requested Objects, it
+will need to make an upstream subscription.  The relay <span class="bcp14">SHOULD NOT</span>
+return a SUBCRIBE_OK until at least one SUBSCRIBE_OK has been
+received for the track, to ensure the Group Order is correct.<a href="#section-5.1-2" class="pilcrow">¶</a></p>
 <p id="section-5.1-3">For successful subscriptions, the publisher maintains a list of
 subscribers for each track. Each new OBJECT belonging to the
 track within the subscription range is forwarded to each active
@@ -2073,8 +2078,8 @@ with a 'Protocol Violation'.<a href="#section-5.1-4" class="pilcrow">¶</a></p>
 forwarding to subscribers, unless it has application specific information.<a href="#section-5.1-5" class="pilcrow">¶</a></p>
 <p id="section-5.1-6">Relays <span class="bcp14">MAY</span> aggregate authorized subscriptions for a given track when
 multiple subscribers request the same track. Subscription aggregation
-allows relays to make only a single forward subscription for the
-track. The published content received from the forward subscription
+allows relays to make only a single upstream subscription for the
+track. The published content received from the upstream subscription
 request is cached and shared among the pending subscribers.<a href="#section-5.1-6" class="pilcrow">¶</a></p>
 <p id="section-5.1-7">The application <span class="bcp14">SHOULD</span> use a relevant error code in SUBSCRIBE_ERROR,
 as defined below:<a href="#section-5.1-7" class="pilcrow">¶</a></p>
