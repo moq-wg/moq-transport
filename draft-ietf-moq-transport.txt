@@ -5,13 +5,13 @@
 MOQ                                                            L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 9 January 2025                                             Meta
+Expires: 26 January 2025                                            Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                             8 July 2024
+                                                            25 July 2024
 
 
                        Media over QUIC Transport
@@ -53,7 +53,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 9 January 2025.
+   This Internet-Draft will expire on 26 January 2025.
 
 Copyright Notice
 
@@ -1081,9 +1081,9 @@ Table of Contents
    *  Track Alias: A session specific identifier for the track.
       Messages that reference a track, such as OBJECT (Section 6.11),
       reference this Track Alias instead of the Track Name and Track
-      Namespace to reduce overhead.  If the Track Alias is already in
-      use, the publisher MUST close the session with a Duplicate Track
-      Alias error (Section 3.5).
+      Namespace to reduce overhead.  If the Track Alias is already being
+      used for a different track, the publisher MUST close the session
+      with a Duplicate Track Alias error (Section 3.5).
 
    *  Track Namespace: Identifies the namespace of the track as defined
       in (Section 2.3.1).
