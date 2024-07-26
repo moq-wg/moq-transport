@@ -958,9 +958,8 @@ the `query` portion of the URI to the parameter.
 #### MAX_SUBSCRIBE_ID {#max-subscribe-id}
 
 The MAX_SUBSCRIBE_ID parameter (key 0x02) communicates an initial value for
-the Maximum Subscribe ID the peer can use when making subscriptions.
-The default value is 0, so if not specified, the peer MUST NOT create
-subscriptions.
+the Maximum Subscribe ID to the receiving subscriber. The default value is 0,
+so if not specified, the peer MUST NOT create subscriptions.
 
 
 ## GOAWAY {#message-goaway}
