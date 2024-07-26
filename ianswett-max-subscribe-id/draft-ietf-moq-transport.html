@@ -1791,10 +1791,10 @@ URI with a "moq" scheme.  The "moq" URI scheme is defined as follows,
 using definitions from <span>[<a href="#RFC3986" class="cite xref">RFC3986</a>]</span>:<a href="#section-3.1.2-1" class="pilcrow">¶</a></p>
 <div class="alignLeft art-text artwork" id="section-3.1.2-2">
 <pre>
-moq-URI = "moqt" "://" authority path-abempty [ "?" query ]
+moq-URI = "moqt" "://" ty path-abempty [ "?" query ]
 </pre><a href="#section-3.1.2-2" class="pilcrow">¶</a>
 </div>
-<p id="section-3.1.2-3">The <code>authority</code> portion <span class="bcp14">MUST NOT</span> contain a non-empty <code>host</code> portion.
+<p id="section-3.1.2-3">The <code>ty</code> portion <span class="bcp14">MUST NOT</span> contain a non-empty <code>host</code> portion.
 The <code>moq</code> URI scheme supports the <code>/.well-known/</code> path prefix defined in
 <span>[<a href="#RFC8615" class="cite xref">RFC8615</a>]</span>.<a href="#section-3.1.2-3" class="pilcrow">¶</a></p>
 <p id="section-3.1.2-4">This protocol does not specify any semantics on the <code>path-abempty</code> and
@@ -2397,17 +2397,6 @@ cases where the authorization is required at the track level. The value is an
 ASCII string.<a href="#section-6.1.1.1-1" class="pilcrow">¶</a></p>
 </section>
 </div>
-<div id="max-subscribe-id">
-<section id="section-6.1.1.2">
-            <h5 id="name-max_subscribe_id">
-<a href="#section-6.1.1.2" class="section-number selfRef">6.1.1.2. </a><a href="#name-max_subscribe_id" class="section-name selfRef">MAX_SUBSCRIBE_ID</a>
-            </h5>
-<p id="section-6.1.1.2-1">The MAX_SUBSCRIBE_ID parameter (key 0x03) communicates an initial value for
-the Maximum Subscribe ID the peer can use when making subscriptions.
-The default value is 0, so if not specified, the peer <span class="bcp14">MUST NOT</span> create
-subscriptions.<a href="#section-6.1.1.2-1" class="pilcrow">¶</a></p>
-</section>
-</div>
 </section>
 </div>
 </section>
@@ -2478,8 +2467,8 @@ identified as 0xff00000D.<a href="#section-6.2.1-4" class="pilcrow">¶</a></p>
           </h4>
 <div id="role">
 <section id="section-6.2.2.1">
-            <h5 id="name-role-parameter">
-<a href="#section-6.2.2.1" class="section-number selfRef">6.2.2.1. </a><a href="#name-role-parameter" class="section-name selfRef">ROLE parameter</a>
+            <h5 id="name-role">
+<a href="#section-6.2.2.1" class="section-number selfRef">6.2.2.1. </a><a href="#name-role" class="section-name selfRef">ROLE</a>
             </h5>
 <p id="section-6.2.2.1-1">The ROLE parameter (key 0x00) allows each endpoint to independently specify what
 functionality they support for the session. It has three possible values,
@@ -2513,8 +2502,8 @@ parameter is missing or is not one of the three above-specified values.<a href="
 </div>
 <div id="path">
 <section id="section-6.2.2.2">
-            <h5 id="name-path-parameter">
-<a href="#section-6.2.2.2" class="section-number selfRef">6.2.2.2. </a><a href="#name-path-parameter" class="section-name selfRef">PATH parameter</a>
+            <h5 id="name-path">
+<a href="#section-6.2.2.2" class="section-number selfRef">6.2.2.2. </a><a href="#name-path" class="section-name selfRef">PATH</a>
             </h5>
 <p id="section-6.2.2.2-1">The PATH parameter (key 0x01) allows the client to specify the path of
 the MoQ URI when using native QUIC (<span>[<a href="#QUIC" class="cite xref">QUIC</a>]</span>).  It <span class="bcp14">MUST NOT</span> be used by
@@ -2525,6 +2514,17 @@ the connection. It follows the URI formatting rules <span>[<a href="#RFC3986" cl
 client <span class="bcp14">MUST</span> set the PATH parameter to the <code>path-abempty</code> portion of the
 URI; if <code>query</code> is present, the client <span class="bcp14">MUST</span> concatenate <code>?</code>, followed by
 the <code>query</code> portion of the URI to the parameter.<a href="#section-6.2.2.2-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="max-subscribe-id">
+<section id="section-6.2.2.3">
+            <h5 id="name-max_subscribe_id">
+<a href="#section-6.2.2.3" class="section-number selfRef">6.2.2.3. </a><a href="#name-max_subscribe_id" class="section-name selfRef">MAX_SUBSCRIBE_ID</a>
+            </h5>
+<p id="section-6.2.2.3-1">The MAX_SUBSCRIBE_ID parameter (key 0x02) communicates an initial value for
+the Maximum Subscribe ID the peer can use when making subscriptions.
+The default value is 0, so if not specified, the peer <span class="bcp14">MUST NOT</span> create
+subscriptions.<a href="#section-6.2.2.3-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>

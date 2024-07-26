@@ -423,10 +423,10 @@ Table of Contents
    a URI with a "moq" scheme.  The "moq" URI scheme is defined as
    follows, using definitions from [RFC3986]:
 
-   moq-URI = "moqt" "://" authority path-abempty [ "?" query ]
+   moq-URI = "moqt" "://" ty path-abempty [ "?" query ]
 
-   The authority portion MUST NOT contain a non-empty host portion.  The
-   moq URI scheme supports the /.well-known/ path prefix defined in
+   The ty portion MUST NOT contain a non-empty host portion.  The moq
+   URI scheme supports the /.well-known/ path prefix defined in
    [RFC8615].
 
    This protocol does not specify any semantics on the path-abempty and
@@ -920,13 +920,6 @@ Table of Contents
    parameter is populated for cases where the authorization is required
    at the track level.  The value is an ASCII string.
 
-6.1.1.2.  MAX_SUBSCRIBE_ID
-
-   The MAX_SUBSCRIBE_ID parameter (key 0x03) communicates an initial
-   value for the Maximum Subscribe ID the peer can use when making
-   subscriptions.  The default value is 0, so if not specified, the peer
-   MUST NOT create subscriptions.
-
 6.2.  CLIENT_SETUP and SERVER_SETUP
 
    The CLIENT_SETUP and SERVER_SETUP messages are the first messages
@@ -983,7 +976,7 @@ Table of Contents
 
 6.2.2.  Setup Parameters
 
-6.2.2.1.  ROLE parameter
+6.2.2.1.  ROLE
 
    The ROLE parameter (key 0x00) allows each endpoint to independently
    specify what functionality they support for the session.  It has
@@ -1005,7 +998,7 @@ Table of Contents
    ROLE parameter is missing or is not one of the three above-specified
    values.
 
-6.2.2.2.  PATH parameter
+6.2.2.2.  PATH
 
    The PATH parameter (key 0x01) allows the client to specify the path
    of the MoQ URI when using native QUIC ([QUIC]).  It MUST NOT be used
@@ -1017,6 +1010,13 @@ Table of Contents
    client MUST set the PATH parameter to the path-abempty portion of the
    URI; if query is present, the client MUST concatenate ?, followed by
    the query portion of the URI to the parameter.
+
+6.2.2.3.  MAX_SUBSCRIBE_ID
+
+   The MAX_SUBSCRIBE_ID parameter (key 0x02) communicates an initial
+   value for the Maximum Subscribe ID the peer can use when making
+   subscriptions.  The default value is 0, so if not specified, the peer
+   MUST NOT create subscriptions.
 
 6.3.  GOAWAY
 
