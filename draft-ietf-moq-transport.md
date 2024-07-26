@@ -1317,8 +1317,7 @@ SHOULD close the session with an error of 'Protocol Violation'.
 
 **Object Stream Message**
 
-An `OBJECT_STREAM` message carries a single object on a stream.  There is no
-explicit length of the payload; it is determined by the end of the stream.  An
+An `OBJECT_STREAM` message carries a single object on a stream.  An
 `OBJECT_STREAM` message MUST be the first and only message on a unidirectional
 stream.
 
@@ -1335,7 +1334,8 @@ OBJECT_STREAM Message {
   Group ID (i),
   Object ID (i),
   Publisher Priority (8),
-  Object Status (i),
+  Object Payload Length (i),
+  [Object Status (i)],
   Object Payload (..),
 }
 ~~~
@@ -1355,8 +1355,6 @@ the subscriber MUST close the session with a Protocol Violation.
 **Object Datagram Message**
 
 An `OBJECT_DATAGRAM` message carries a single object in a datagram.
-There is no explicit length of the payload; it is determined by the
-length of the datagram.
 
 An Object received in an `OBJECT_DATAGRAM` message has an `Object
 Forwarding Preference` = `Datagram`. To send an Object with `Object
@@ -1372,7 +1370,8 @@ OBJECT_DATAGRAM Message {
   Group ID (i),
   Object ID (i),
   Publisher Priority (8),
-  Object Status (i),
+  Object Payload Length (i),
+  [Object Status (i)],
   Object Payload (..),
 }
 ~~~
