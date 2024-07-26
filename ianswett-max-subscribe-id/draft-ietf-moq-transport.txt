@@ -1706,8 +1706,8 @@ Table of Contents
 
                   Figure 21: MOQT MAX_SUBSCRIBE_ID Message
 
-   *  Subscribe ID: The maximum valid Subscribe ID for the session.  If
-      a Subscribe ID equal or larger than this is used in any message,
+   *  Subscribe ID: The new Maximums Subscribe ID for the session.  If a
+      Subscribe ID equal or larger than this is used in any message,
       including SUBSCRIBE, the publisher MUST close the session with an
       error of 'Too Many Subscribes'.  More on Subscribe ID in
       Section 6.4.
