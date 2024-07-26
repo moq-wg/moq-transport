@@ -389,10 +389,10 @@ URI with a "moq" scheme.  The "moq" URI scheme is defined as follows,
 using definitions from {{!RFC3986}}:
 
 ~~~~~~~~~~~~~~~
-moq-URI = "moqt" "://" authority path-abempty [ "?" query ]
+moq-URI = "moqt" "://" ty path-abempty [ "?" query ]
 ~~~~~~~~~~~~~~~
 
-The `authority` portion MUST NOT contain a non-empty `host` portion.
+The `ty` portion MUST NOT contain a non-empty `host` portion.
 The `moq` URI scheme supports the `/.well-known/` path prefix defined in
 {{!RFC8615}}.
 
@@ -860,13 +860,6 @@ information in a SUBSCRIBE or ANNOUNCE message. This parameter is populated for
 cases where the authorization is required at the track level. The value is an
 ASCII string.
 
-#### MAX_SUBSCRIBE_ID {#max-subscribe-id}
-
-The MAX_SUBSCRIBE_ID parameter (key 0x03) communicates an initial value for
-the Maximum Subscribe ID the peer can use when making subscriptions.
-The default value is 0, so if not specified, the peer MUST NOT create
-subscriptions.
-
 
 ## CLIENT_SETUP and SERVER_SETUP {#message-setup}
 
@@ -922,7 +915,7 @@ identified as 0xff00000D.
 
 ### Setup Parameters {#setup-params}
 
-#### ROLE parameter {#role}
+#### ROLE {#role}
 
 The ROLE parameter (key 0x00) allows each endpoint to independently specify what
 functionality they support for the session. It has three possible values,
@@ -949,7 +942,7 @@ Both endpoints MUST send a ROLE parameter with one of the three values
 specified above. Both endpoints MUST close the session if the ROLE
 parameter is missing or is not one of the three above-specified values.
 
-#### PATH parameter {#path}
+#### PATH {#path}
 
 The PATH parameter (key 0x01) allows the client to specify the path of
 the MoQ URI when using native QUIC ({{QUIC}}).  It MUST NOT be used by
@@ -961,6 +954,14 @@ When connecting to a server using a URI with the "moq" scheme, the
 client MUST set the PATH parameter to the `path-abempty` portion of the
 URI; if `query` is present, the client MUST concatenate `?`, followed by
 the `query` portion of the URI to the parameter.
+
+#### MAX_SUBSCRIBE_ID {#max-subscribe-id}
+
+The MAX_SUBSCRIBE_ID parameter (key 0x02) communicates an initial value for
+the Maximum Subscribe ID the peer can use when making subscriptions.
+The default value is 0, so if not specified, the peer MUST NOT create
+subscriptions.
+
 
 ## GOAWAY {#message-goaway}
 The server sends a `GOAWAY` message to initiate session migration
