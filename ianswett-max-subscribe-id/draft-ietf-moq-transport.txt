@@ -437,9 +437,9 @@ Table of Contents
    given URI by setting up a QUIC connection to the host and port
    identified by the authority section of the URI.  The path-abempty and
    query portions of the URI are communicated to the server using the
-   PATH parameter (Section 6.2.2.2) which is sent in the CLIENT_message
-   at the start of the session.  The ALPN value [RFC7301] used by the
-   protocol is moq-00.
+   PATH parameter (Section 6.2.2.2) which is sent in the CLIENT_SETUP
+   message at the start of the session.  The ALPN value [RFC7301] used
+   by the protocol is moq-00.
 
 3.2.  Version and Extension Negotiation
 
