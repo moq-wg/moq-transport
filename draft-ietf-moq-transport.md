@@ -389,10 +389,10 @@ URI with a "moq" scheme.  The "moq" URI scheme is defined as follows,
 using definitions from {{!RFC3986}}:
 
 ~~~~~~~~~~~~~~~
-moq-URI = "moqt" "://" ty path-abempty [ "?" query ]
+moq-URI = "moqt" "://" authority path-abempty [ "?" query ]
 ~~~~~~~~~~~~~~~
 
-The `ty` portion MUST NOT contain a non-empty `host` portion.
+The `authority` portion MUST NOT contain a non-empty `host` portion.
 The `moq` URI scheme supports the `/.well-known/` path prefix defined in
 {{!RFC8615}}.
 
