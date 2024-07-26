@@ -437,9 +437,9 @@ Table of Contents
    given URI by setting up a QUIC connection to the host and port
    identified by the authority section of the URI.  The path-abempty and
    query portions of the URI are communicated to the server using the
-   PATH parameter (Section 6.2.2.2) which is sent in the CLIENT_SETUP
-   message at the start of the session.  The ALPN value [RFC7301] used
-   by the protocol is moq-00.
+   PATH parameter (Section 6.2.2.2) which is sent in the CLIENT_message
+   at the start of the session.  The ALPN value [RFC7301] used by the
+   protocol is moq-00.
 
 3.2.  Version and Extension Negotiation
 
@@ -912,12 +912,21 @@ Table of Contents
    separate namespace, it is impossible for these parameters to appear
    in Setup messages.
 
-6.1.1.1.  AUTHORIZATION INFO Parameter
+6.1.1.1.  AUTHORIZATION INFO
 
    AUTHORIZATION INFO parameter (key 0x02) identifies a track's
    authorization information in a SUBSCRIBE or ANNOUNCE message.  This
    parameter is populated for cases where the authorization is required
    at the track level.  The value is an ASCII string.
+
+6.1.1.2.  MAX_SUBSCRIBE_ID
+
+   The MAX_SUBSCRIBE_ID parameter (key 0x03) communicates an initial
+   value for the Maximum Subscribe ID the peer can use when making
+   subscriptions.  If not specified, the peer MUST NOT create
+   subscriptions.  Subscribers (0x02) MUST NOT specify a
+   MAX_SUBSCIBE_ID, because the role indicates it cannot handle
+   subscriptions.
 
 6.2.  CLIENT_SETUP and SERVER_SETUP
 

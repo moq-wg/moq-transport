@@ -1330,7 +1330,7 @@ networks and is designed for high scale and low latency distribution.<a href="#s
                 <p id="section-toc.1-1.6.2.14.1"><a href="#section-6.14" class="auto internal xref">6.14</a>. <a href="#name-subscribe_done" class="internal xref">SUBSCRIBE_DONE</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.15">
-                <p id="section-toc.1-1.6.2.15.1"><a href="#section-6.15" class="auto internal xref">6.15</a>. <a href="#name-max_subscribe_id" class="internal xref">MAX_SUBSCRIBE_ID</a></p>
+                <p id="section-toc.1-1.6.2.15.1"><a href="#section-6.15" class="auto internal xref">6.15</a>. <a href="#name-max_subscribe_id-2" class="internal xref">MAX_SUBSCRIBE_ID</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.16">
                 <p id="section-toc.1-1.6.2.16.1"><a href="#section-6.16" class="auto internal xref">6.16</a>. <a href="#name-announce" class="internal xref">ANNOUNCE</a></p>
@@ -1804,7 +1804,7 @@ application.<a href="#section-3.1.2-4" class="pilcrow">¶</a></p>
 given URI by setting up a QUIC connection to the host and port
 identified by the <code>authority</code> section of the URI.  The <code>path-abempty</code>
 and <code>query</code> portions of the URI are communicated to the server using the
-PATH parameter (<a href="#path" class="auto internal xref">Section 6.2.2.2</a>) which is sent in the CLIENT_SETUP message at the
+PATH parameter (<a href="#path" class="auto internal xref">Section 6.2.2.2</a>) which is sent in the CLIENT_message at the
 start of the session.  The ALPN value <span>[<a href="#RFC7301" class="cite xref">RFC7301</a>]</span> used by the protocol
 is <code>moq-00</code>.<a href="#section-3.1.2-5" class="pilcrow">¶</a></p>
 </section>
@@ -2388,13 +2388,25 @@ Note that since Setup parameters use a separate namespace, it is impossible for
 these parameters to appear in Setup messages.<a href="#section-6.1.1-1" class="pilcrow">¶</a></p>
 <div id="authorization-info">
 <section id="section-6.1.1.1">
-            <h5 id="name-authorization-info-paramete">
-<a href="#section-6.1.1.1" class="section-number selfRef">6.1.1.1. </a><a href="#name-authorization-info-paramete" class="section-name selfRef">AUTHORIZATION INFO Parameter</a>
+            <h5 id="name-authorization-info">
+<a href="#section-6.1.1.1" class="section-number selfRef">6.1.1.1. </a><a href="#name-authorization-info" class="section-name selfRef">AUTHORIZATION INFO</a>
             </h5>
 <p id="section-6.1.1.1-1">AUTHORIZATION INFO parameter (key 0x02) identifies a track's authorization
 information in a SUBSCRIBE or ANNOUNCE message. This parameter is populated for
 cases where the authorization is required at the track level. The value is an
 ASCII string.<a href="#section-6.1.1.1-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="max-subscribe-id">
+<section id="section-6.1.1.2">
+            <h5 id="name-max_subscribe_id">
+<a href="#section-6.1.1.2" class="section-number selfRef">6.1.1.2. </a><a href="#name-max_subscribe_id" class="section-name selfRef">MAX_SUBSCRIBE_ID</a>
+            </h5>
+<p id="section-6.1.1.2-1">The MAX_SUBSCRIBE_ID parameter (key 0x03) communicates an initial value for
+the Maximum Subscribe ID the peer can use when making subscriptions.
+If not specified, the peer <span class="bcp14">MUST NOT</span> create subscriptions. Subscribers (0x02)
+<span class="bcp14">MUST NOT</span> specify a MAX_SUBSCIBE_ID, because the role indicates it cannot
+handle subscriptions.<a href="#section-6.1.1.2-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -3409,8 +3421,8 @@ message in the <code>Final Group</code> for this track.<a href="#section-6.14-4.
 </div>
 <div id="message-max-subscribe-id">
 <section id="section-6.15">
-        <h3 id="name-max_subscribe_id">
-<a href="#section-6.15" class="section-number selfRef">6.15. </a><a href="#name-max_subscribe_id" class="section-name selfRef">MAX_SUBSCRIBE_ID</a>
+        <h3 id="name-max_subscribe_id-2">
+<a href="#section-6.15" class="section-number selfRef">6.15. </a><a href="#name-max_subscribe_id-2" class="section-name selfRef">MAX_SUBSCRIBE_ID</a>
         </h3>
 <p id="section-6.15-1">A publisher sends a MAX_SUBSCRIBE_ID message to increase the number of
 subscriptions a subscriber can create within a session.<a href="#section-6.15-1" class="pilcrow">¶</a></p>
