@@ -1652,8 +1652,8 @@ MAX_SUBSCRIBE_ID
 {: #moq-transport-max-subscribe-id format title="MOQT MAX_SUBSCRIBE_ID Message"}
 
 * Subscribe ID: The maximum valid Subscribe ID for the session. If a Subscribe ID
-larger than this is used in any message, including SUBSCRIBE, the publisher MUST
-close the session with an error of 'Too Many Subscribes'.
+equal or larger than this is used in any message, including SUBSCRIBE,
+the publisher MUST close the session with an error of 'Too Many Subscribes'.
 More on Subscribe ID in {{message-subscribe-req}}.
 
 
