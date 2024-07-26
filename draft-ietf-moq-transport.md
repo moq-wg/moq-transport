@@ -404,7 +404,7 @@ The client can establish a connection to a MoQ server identified by a
 given URI by setting up a QUIC connection to the host and port
 identified by the `authority` section of the URI.  The `path-abempty`
 and `query` portions of the URI are communicated to the server using the
-PATH parameter ({{path}}) which is sent in the CLIENT_message at the
+PATH parameter ({{path}}) which is sent in the CLIENT_SETUP message at the
 start of the session.  The ALPN value {{!RFC7301}} used by the protocol
 is `moq-00`.
 
