@@ -625,6 +625,11 @@ the subscription, via SUBSCRIBE_OK ({{message-subscribe-ok}}) or the
 SUBSCRIBE_ERROR {{message-subscribe-error}} control message.
 The entity receiving the SUBSCRIBE MUST send only a single response to
 a given SUBSCRIBE of either SUBSCRIBE_OK or SUBSCRIBE_ERROR.
+If a relay does not already have a subscription for the track,
+or if the subscription does not cover all the requested Objects, it
+will need to make an upstream subscription.  The relay SHOULD NOT
+return a SUBCRIBE_OK until at least one SUBSCRIBE_OK has been
+received for the track, to ensure the Group Order is correct.
 
 For successful subscriptions, the publisher maintains a list of
 subscribers for each track. Each new OBJECT belonging to the
@@ -642,8 +647,8 @@ forwarding to subscribers, unless it has application specific information.
 
 Relays MAY aggregate authorized subscriptions for a given track when
 multiple subscribers request the same track. Subscription aggregation
-allows relays to make only a single forward subscription for the
-track. The published content received from the forward subscription
+allows relays to make only a single upstream subscription for the
+track. The published content received from the upstream subscription
 request is cached and shared among the pending subscribers.
 
 The application SHOULD use a relevant error code in SUBSCRIBE_ERROR,
@@ -1027,8 +1032,7 @@ SUBSCRIBE_ERROR messages.
 * Track Alias: A session specific identifier for the track.
 Messages that reference a track, such as OBJECT ({{message-object}}),
 reference this Track Alias instead of the Track Name and Track Namespace to
-reduce overhead. If the Track Alias is already in use, the publisher MUST
-close the session with a Duplicate Track Alias error ({{session-termination}}).
+reduce overhead. If the Track Alias is already being used for a different track, the publisher MUST close the session with a Duplicate Track Alias error ({{session-termination}}).
 
 * Track Namespace: Identifies the namespace of the track as defined in
 ({{track-name}}).
