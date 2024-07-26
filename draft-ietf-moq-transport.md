@@ -504,7 +504,7 @@ code, as defined below:
   that was already in use.
 
 * Too Many Subscribes: The session was closed because the subscriber used
-  a Subscribe ID larger than the current Maximum Subscribe ID.
+  a Subscribe ID equal or larger than the current Maximum Subscribe ID.
 
 * GOAWAY Timeout: The session was closed because the client took too long to
   close the session in response to a GOAWAY ({{message-goaway}}) message.
