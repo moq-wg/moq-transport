@@ -1037,7 +1037,7 @@ svg :is([fill="white"], [fill^="#fff"]) {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Curley, et al.</td>
-<td class="center">Expires 16 January 2025</td>
+<td class="center">Expires 27 January 2025</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1050,12 +1050,12 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dd class="internet-draft">draft-ietf-moq-transport-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2024-07-15" class="published">15 July 2024</time>
+<time datetime="2024-07-26" class="published">26 July 2024</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2025-01-16">16 January 2025</time></dd>
+<dd class="expires"><time datetime="2025-01-27">27 January 2025</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1122,7 +1122,7 @@ networks and is designed for high scale and low latency distribution.<a href="#s
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 16 January 2025.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 27 January 2025.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -2064,7 +2064,12 @@ outside the scope of this specification.<a href="#section-5.1-1" class="pilcrow"
 the subscription, via SUBSCRIBE_OK (<a href="#message-subscribe-ok" class="auto internal xref">Section 6.12</a>) or the
 SUBSCRIBE_ERROR <a href="#message-subscribe-error" class="auto internal xref">Section 6.13</a> control message.
 The entity receiving the SUBSCRIBE <span class="bcp14">MUST</span> send only a single response to
-a given SUBSCRIBE of either SUBSCRIBE_OK or SUBSCRIBE_ERROR.<a href="#section-5.1-2" class="pilcrow">¶</a></p>
+a given SUBSCRIBE of either SUBSCRIBE_OK or SUBSCRIBE_ERROR.
+If a relay does not already have a subscription for the track,
+or if the subscription does not cover all the requested Objects, it
+will need to make an upstream subscription.  The relay <span class="bcp14">SHOULD NOT</span>
+return a SUBCRIBE_OK until at least one SUBSCRIBE_OK has been
+received for the track, to ensure the Group Order is correct.<a href="#section-5.1-2" class="pilcrow">¶</a></p>
 <p id="section-5.1-3">For successful subscriptions, the publisher maintains a list of
 subscribers for each track. Each new OBJECT belonging to the
 track within the subscription range is forwarded to each active
@@ -2078,8 +2083,8 @@ with a 'Protocol Violation'.<a href="#section-5.1-4" class="pilcrow">¶</a></p>
 forwarding to subscribers, unless it has application specific information.<a href="#section-5.1-5" class="pilcrow">¶</a></p>
 <p id="section-5.1-6">Relays <span class="bcp14">MAY</span> aggregate authorized subscriptions for a given track when
 multiple subscribers request the same track. Subscription aggregation
-allows relays to make only a single forward subscription for the
-track. The published content received from the forward subscription
+allows relays to make only a single upstream subscription for the
+track. The published content received from the upstream subscription
 request is cached and shared among the pending subscribers.<a href="#section-5.1-6" class="pilcrow">¶</a></p>
 <p id="section-5.1-7">The application <span class="bcp14">SHOULD</span> use a relevant error code in SUBSCRIBE_ERROR,
 as defined below:<a href="#section-5.1-7" class="pilcrow">¶</a></p>
@@ -2614,8 +2619,7 @@ SUBSCRIBE_ERROR messages.<a href="#section-6.4.2-4.1.1" class="pilcrow">¶</a></
               <p id="section-6.4.2-4.2.1">Track Alias: A session specific identifier for the track.
 Messages that reference a track, such as OBJECT (<a href="#message-object" class="auto internal xref">Section 6.11</a>),
 reference this Track Alias instead of the Track Name and Track Namespace to
-reduce overhead. If the Track Alias is already in use, the publisher <span class="bcp14">MUST</span>
-close the session with a Duplicate Track Alias error (<a href="#session-termination" class="auto internal xref">Section 3.5</a>).<a href="#section-6.4.2-4.2.1" class="pilcrow">¶</a></p>
+reduce overhead. If the Track Alias is already being used for a different track, the publisher <span class="bcp14">MUST</span> close the session with a Duplicate Track Alias error (<a href="#session-termination" class="auto internal xref">Section 3.5</a>).<a href="#section-6.4.2-4.2.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-6.4.2-4.3">
               <p id="section-6.4.2-4.3.1">Track Namespace: Identifies the namespace of the track as defined in
@@ -3636,6 +3640,7 @@ leading varint in catalog track objects.<a href="#section-8-4" class="pilcrow">�
       </ul>
 </section>
 </div>
+<div id="sec-combined-references">
 <section id="section-10">
       <h2 id="name-references">
 <a href="#name-references" class="section-name selfRef">References</a>
@@ -3699,6 +3704,7 @@ leading varint in catalog track objects.<a href="#section-8-4" class="pilcrow">�
 </section>
 </div>
 </section>
+</div>
 <div id="authors-addresses">
 <section id="appendix-A">
       <h2 id="name-authors-addresses">
