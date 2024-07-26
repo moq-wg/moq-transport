@@ -1381,9 +1381,8 @@ TODO: figure out how a relay closes these streams
 
 When a stream begins with `STREAM_HEADER_TRACK`, all objects on the stream
 belong to the track requested in the Subscribe message identified by `Subscribe
-ID`.  All objects on the stream have the `Object Send Order` specified in the
+ID`.  All objects on the stream have the `Publisher Priority` specified in the
 stream header.
-
 
 ~~~
 STREAM_HEADER_TRACK Message {
@@ -1413,16 +1412,16 @@ The Object Status field is only sent if the Object Payload Length is zero.
 ~~~
 {: #object-track-format title="MOQT Track Stream Object Fields"}
 
-**Stream Header Group**
-
 A publisher MUST NOT send an Object on a stream if its Group ID is less than a
 previously sent Group ID on that stream, or if its Object ID is less than or
 equal to a previously sent Object ID within a given group on that stream.
 
+**Stream Header Group**
+
 When a stream begins with `STREAM_HEADER_GROUP`, all objects on the stream
 belong to the track requested in the Subscribe message identified by `Subscribe
 ID` and the group indicated by `Group ID`.  All objects on the stream
-have the `Object Send Order` specified in the stream header.
+have the `Publisher Priority` specified in the stream header.
 
 ~~~
 STREAM_HEADER_GROUP Message {
@@ -1438,9 +1437,10 @@ All Objects received on a stream opened with `STREAM_HEADER_GROUP` have an
 `Object Forwarding Preference` = `Group`.
 
 To send an Object with `Object Forwarding Preference` = `Group`, find the open
-stream that is associated with the subscription, `Group ID` and `Object
-Send Order`, or open a new one and send the `STREAM_HEADER_GROUP` if needed,
-then serialize the following fields.
+stream that is associated with the subscription and `Group ID`, or open a new
+one and send the `STREAM_HEADER_GROUP` if needed, then serialize the following
+fields.
+
 The Object Status field is only sent if the Object Payload Length is zero.
 
 ~~~
@@ -1510,7 +1510,7 @@ OBJECT_STREAM {
   Track Alias = 3
   Group ID = 0
   Object ID = 1
-  Object Send Order = 0
+  Publisher Priority = 0
   Payload = "moqrocks"
 }
 ~~~
