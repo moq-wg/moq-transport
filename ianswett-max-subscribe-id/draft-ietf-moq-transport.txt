@@ -1014,9 +1014,9 @@ Table of Contents
 6.2.2.3.  MAX_SUBSCRIBE_ID
 
    The MAX_SUBSCRIBE_ID parameter (key 0x02) communicates an initial
-   value for the Maximum Subscribe ID the peer can use when making
-   subscriptions.  The default value is 0, so if not specified, the peer
-   MUST NOT create subscriptions.
+   value for the Maximum Subscribe ID to the receiving subscriber.  The
+   default value is 0, so if not specified, the peer MUST NOT create
+   subscriptions.
 
 6.3.  GOAWAY
 
