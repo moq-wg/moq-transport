@@ -404,7 +404,7 @@ The client can establish a connection to a MoQ server identified by a
 given URI by setting up a QUIC connection to the host and port
 identified by the `authority` section of the URI.  The `path-abempty`
 and `query` portions of the URI are communicated to the server using the
-PATH parameter ({{path}}) which is sent in the CLIENT_SETUP message at the
+PATH parameter ({{path}}) which is sent in the CLIENT_message at the
 start of the session.  The ALPN value {{!RFC7301}} used by the protocol
 is `moq-00`.
 
@@ -853,12 +853,21 @@ it can appear. If it appears in some other type of message, it MUST be ignored.
 Note that since Setup parameters use a separate namespace, it is impossible for
 these parameters to appear in Setup messages.
 
-#### AUTHORIZATION INFO Parameter {#authorization-info}
+#### AUTHORIZATION INFO {#authorization-info}
 
 AUTHORIZATION INFO parameter (key 0x02) identifies a track's authorization
 information in a SUBSCRIBE or ANNOUNCE message. This parameter is populated for
 cases where the authorization is required at the track level. The value is an
 ASCII string.
+
+#### MAX_SUBSCRIBE_ID {#max-subscribe-id}
+
+The MAX_SUBSCRIBE_ID parameter (key 0x03) communicates an initial value for
+the Maximum Subscribe ID the peer can use when making subscriptions.
+If not specified, the peer MUST NOT create subscriptions. Subscribers (0x02)
+MUST NOT specify a MAX_SUBSCIBE_ID, because the role indicates it cannot
+handle subscriptions.
+
 
 ## CLIENT_SETUP and SERVER_SETUP {#message-setup}
 
