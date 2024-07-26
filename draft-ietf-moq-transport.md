@@ -864,9 +864,8 @@ ASCII string.
 
 The MAX_SUBSCRIBE_ID parameter (key 0x03) communicates an initial value for
 the Maximum Subscribe ID the peer can use when making subscriptions.
-If not specified, the peer MUST NOT create subscriptions. Subscribers (0x02)
-MUST NOT specify a MAX_SUBSCIBE_ID, because the role indicates it cannot
-handle subscriptions.
+The default value is 0, so if not specified, the peer MUST NOT create
+subscriptions.
 
 
 ## CLIENT_SETUP and SERVER_SETUP {#message-setup}
