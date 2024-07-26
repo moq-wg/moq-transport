@@ -3002,8 +3002,7 @@ Publisher <span class="bcp14">MUST NOT</span> mix different forwarding preferenc
 If a subscriber receives different forwarding preferences for a track, it
 <span class="bcp14">SHOULD</span> close the session with an error of 'Protocol Violation'.<a href="#section-6.11.2-1" class="pilcrow">¶</a></p>
 <p id="section-6.11.2-2"><strong>Object Stream Message</strong><a href="#section-6.11.2-2" class="pilcrow">¶</a></p>
-<p id="section-6.11.2-3">An <code>OBJECT_STREAM</code> message carries a single object on a stream.  There is no
-explicit length of the payload; it is determined by the end of the stream.  An
+<p id="section-6.11.2-3">An <code>OBJECT_STREAM</code> message carries a single object on a stream.  An
 <code>OBJECT_STREAM</code> message <span class="bcp14">MUST</span> be the first and only message on a unidirectional
 stream.<a href="#section-6.11.2-3" class="pilcrow">¶</a></p>
 <p id="section-6.11.2-4">An Object received in an <code>OBJECT_STREAM</code> message has an <code>Object Forwarding
@@ -3020,7 +3019,8 @@ OBJECT_STREAM Message {
   Group ID (i),
   Object ID (i),
   Publisher Priority (8),
-  Object Status (i),
+  Object Payload Length (i),
+  [Object Status (i)],
   Object Payload (..),
 }
 </pre>
@@ -3047,9 +3047,7 @@ the subscriber <span class="bcp14">MUST</span> close the session with a Protocol
 </li>
           </ul>
 <p id="section-6.11.2-10"><strong>Object Datagram Message</strong><a href="#section-6.11.2-10" class="pilcrow">¶</a></p>
-<p id="section-6.11.2-11">An <code>OBJECT_DATAGRAM</code> message carries a single object in a datagram.
-There is no explicit length of the payload; it is determined by the
-length of the datagram.<a href="#section-6.11.2-11" class="pilcrow">¶</a></p>
+<p id="section-6.11.2-11">An <code>OBJECT_DATAGRAM</code> message carries a single object in a datagram.<a href="#section-6.11.2-11" class="pilcrow">¶</a></p>
 <p id="section-6.11.2-12">An Object received in an <code>OBJECT_DATAGRAM</code> message has an <code>Object
 Forwarding Preference</code> = <code>Datagram</code>. To send an Object with <code>Object
 Forwarding Preference</code> = <code>Datagram</code>, determine the length of the fields and
@@ -3066,7 +3064,8 @@ OBJECT_DATAGRAM Message {
   Group ID (i),
   Object ID (i),
   Publisher Priority (8),
-  Object Status (i),
+  Object Payload Length (i),
+  [Object Status (i)],
   Object Payload (..),
 }
 </pre>
