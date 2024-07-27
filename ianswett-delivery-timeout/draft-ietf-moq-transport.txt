@@ -5,13 +5,13 @@
 MOQ                                                            L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 27 January 2025                                            Meta
+Expires: 28 January 2025                                            Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                            26 July 2024
+                                                            27 July 2024
 
 
                        Media over QUIC Transport
@@ -53,7 +53,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 27 January 2025.
+   This Internet-Draft will expire on 28 January 2025.
 
 Copyright Notice
 
@@ -1615,7 +1615,9 @@ Table of Contents
      Group Order (8),
      ContentExists (f),
      [Largest Group ID (i)],
-     [Largest Object ID (i)]
+     [Largest Object ID (i)],
+     Number of Parameters (i),
+     Subscribe Parameters (..) ...
    }
 
                     Figure 18: MOQT SUBSCRIBE_OK Message
@@ -1642,6 +1644,8 @@ Table of Contents
    *  Largest Object ID: the largest Object ID available within the
       largest Group ID for this track.  This field is only present if
       ContentExists has a value of 1.
+
+   *  Subscribe Parameters: The parameters are defined in Section 6.1.1.
 
 6.13.  SUBSCRIBE_ERROR
 
