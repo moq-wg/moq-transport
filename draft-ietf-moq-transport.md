@@ -1556,7 +1556,9 @@ SUBSCRIBE_OK
   Group Order (8),
   ContentExists (f),
   [Largest Group ID (i)],
-  [Largest Object ID (i)]
+  [Largest Object ID (i)],
+  Number of Parameters (i),
+  Subscribe Parameters (..) ...
 }
 ~~~
 {: #moq-transport-subscribe-ok format title="MOQT SUBSCRIBE_OK Message"}
@@ -1582,6 +1584,7 @@ is only present if ContentExists has a value of 1.
 * Largest Object ID: the largest Object ID available within the largest Group ID
 for this track. This field is only present if ContentExists has a value of 1.
 
+* Subscribe Parameters: The parameters are defined in {{version-specific-params}}.
 
 ## SUBSCRIBE_ERROR {#message-subscribe-error}
 
