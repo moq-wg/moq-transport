@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2024-07-25T01:17:13.637878+00:00",
+  "timestamp": "2024-07-28T01:22:48.380913+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -11276,11 +11276,12 @@
       "assignees": [],
       "labels": [
         "Needs PR",
-        "Subscribe"
+        "Subscribe",
+        "Security/DoS"
       ],
       "body": "Currently, there's no way to limit the number of simultaneous subscriptions.  QUIC stream limits cannot effectively be used to limit the number of subscriptions, so I'd suggest MoQ have a limit.\r\n\r\nThe simplest idea would be to have a limit specified as a parameter in the server's SETUP message.\r\n\r\nAs a related question, even with limits, what happens if a client subscribes to a number of streams that it doesn't have the bandwidth to support?  ie: 10 4k video streams and they're on a slow link?  Possibly the subscriptions could fail with an error code indicating that the server didn't have enough bandwidth to request them and/or serve them to the client?",
       "createdAt": "2023-10-10T18:23:44Z",
-      "updatedAt": "2023-11-09T16:57:45Z",
+      "updatedAt": "2024-07-26T04:48:08Z",
       "closedAt": null,
       "comments": [
         {
@@ -11338,6 +11339,13 @@
           "body": "As a follow-up to adding a Subscribe ID, we'll add a SETUP field or param to indicate the initial value and a MAX_SUBSCRIBE_ID frame to increase the limit, similar to QUIC flow control.",
           "createdAt": "2023-11-09T16:57:44Z",
           "updatedAt": "2023-11-09T16:57:44Z"
+        },
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "The consensus at the session today was to go with a QUIC style approach, so I wrote #491 \r\n\r\nThere was interest in a similar approach for announces, but announces don't yet have an ID, so that will have to wait.",
+          "createdAt": "2024-07-26T04:48:06Z",
+          "updatedAt": "2024-07-26T04:48:06Z"
         }
       ]
     },
@@ -13272,7 +13280,7 @@
       "id": "I_kwDOG2Ho4M5-SHsb",
       "title": "Objects with unknown length and forwarding preferences",
       "url": "https://github.com/moq-wg/moq-transport/issues/355",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "vasilvv",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
@@ -13282,8 +13290,8 @@
       ],
       "body": "In our current encoding, you can stream objects without knowing their length in advance if your forwarding preference is Object or Datagram, but not if it's Track or Stream (since those require explicit lengths in the front).  I feel like those two aspects should not be tied: we should either support or not support streaming for all preferences.",
       "createdAt": "2024-02-05T14:19:55Z",
-      "updatedAt": "2024-07-15T21:56:06Z",
-      "closedAt": null,
+      "updatedAt": "2024-07-26T06:44:22Z",
+      "closedAt": "2024-07-26T06:44:22Z",
       "comments": [
         {
           "author": "afrind",
@@ -16387,7 +16395,7 @@
       ],
       "body": "How does a relay know when to send SUBSCRIBE_DONE?\r\n\r\nThe purpose of relay is to aggregate subscribes, so if overlapping subscribes come in with different endpoints I can't rely on a SUBSCRIBE_DONE from upstream.\r\n\r\nIf a SUBSCRIBE is entirely for future objects, the easiest thing to do is to send it when I've sent the last object ID, or a higher ID is published. One can add a timer per subscribe to allow for reordering, or just accept that reordered objects arriving after the last won't be delivered. I can't simply keep state for each object in the subscribe because I have no idea where there are object or group gaps. (maybe this is the use case for explicitly communicating these gaps after all?)\r\n\r\nIf a SUBSCRIBE is entirely for past objects, either I am serving them from cache (in which case I can provide an API to the cache to call when it is fully served), or I have to send a SUBSCRIBE upstream. If the SUBSCRIBE is unique, then I'll get a SUBSCRIBE_DONE from upstream. If it's aggregated somehow, once again I have to either watch for the last sequence number and run a timer, or keep score of all the objects I expect to see. IIUC, as it stands there is no guarantee that a subscribe for past objects will give me the complete set of objects.\r\n\r\nIf a SUBSCRIBE is for both past and future objects, then the union of both algorithms must both return true in order for the relay to send SUBSCRIBE_DONE. So the sender has to keep track of two separate object ranges independently. Because the SUBSCRIBE may arrive just as the publisher is incrementing the group ID, I need to track the max object ID in each group so I can tell when the past portion of the subscription is done.\r\n\r\nAt the origin, this is somewhat simpler in that published objects can be assumed to arrive in order and without gaps, and past objects can arrive in their own order and without gaps.",
       "createdAt": "2024-06-13T18:47:37Z",
-      "updatedAt": "2024-07-24T16:55:08Z",
+      "updatedAt": "2024-07-25T17:13:25Z",
       "closedAt": null,
       "comments": [
         {
@@ -16452,6 +16460,13 @@
           "body": "Individual Comment:\r\n\r\nThinking about using SUBSCRIBE_UPDATE to indicate a fixed endpoint for track that is currently live.  When can a relay remove this subscriber from the forwarding table?  The current logic in moxygen ends the subscription as soon as it sees an object past the endpoint, but that completely ignores the reordering case.",
           "createdAt": "2024-07-13T00:18:17Z",
           "updatedAt": "2024-07-13T00:18:17Z"
+        },
+        {
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "I don't understand why we have a subscribe done at all - what is this used for?",
+          "createdAt": "2024-07-25T17:13:24Z",
+          "updatedAt": "2024-07-25T17:13:24Z"
         }
       ]
     },
@@ -16773,7 +16788,7 @@
       ],
       "body": "If two subscriptions have identical priority, the current way to ensure both receive enough data is based on the Object receipt time at the relay.\r\n\r\nIf one subscription experiences a large delay at any stage, which could even include delay in publication of one track vs another for the same content (ie: transcoding), it would be easy for them to become substantially out of sync, potentially impacting QoE, particularly for very low latency use cases.\r\n\r\nThree suggested ways forward include:\r\n 1) Decide this is not a problem we care to solve\r\n 2) Decide we want to enable syncing, but don't care about actual time\r\n 3) Decide we care about actual time for use cases like server-side ABR and include a relative timestamp",
       "createdAt": "2024-06-25T00:49:44Z",
-      "updatedAt": "2024-07-08T22:26:19Z",
+      "updatedAt": "2024-07-26T22:04:15Z",
       "closedAt": null,
       "comments": [
         {
@@ -16817,6 +16832,48 @@
           "body": "If something can be done in an end subscriber, I tend to favor that over a solution that adds more meta data and state that the relays need to keep track of but agree this could be done in the relays. I suspect it would end up just looking like priorities that were incremented at the \"sync\" boundaries. ",
           "createdAt": "2024-07-08T22:26:19Z",
           "updatedAt": "2024-07-08T22:26:19Z"
+        },
+        {
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I am bit concerned about relay need to learn about various application relationships between tracks and their semantics. \r\n\r\nFew examples might be\r\n- AV sync\r\n- sync because of related game moves\r\n- sync because of language and translations\r\n- sync becauase of real time transcription\r\n\r\n\r\nMy preference would be to leave these out of relays and have end points handle them",
+          "createdAt": "2024-07-25T20:41:29Z",
+          "updatedAt": "2024-07-25T20:41:29Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Individual Comment:\r\n\r\nI also don't think moq is appropriate for all possible application synchronization information.  However, we've seen in video delivery cases where one required track gets too far ahead of another required track and causing stalls.  Having a guard-rail here is desirable.  Cullen's suggestion to bumping priority at sync boundaries is the right-ish direction, but we will bump up against the 8 bit limit.  Doing it by group is another possibility, but the sync timescale might be much smaller than group size.",
+          "createdAt": "2024-07-25T22:33:05Z",
+          "updatedAt": "2024-07-25T22:33:05Z"
+        },
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Assuming Group Ids imply time synchronization could work sometimes, but feels very brittle.\r\n\r\nI don't think every application needs this, but this could be very valuable for a number of applications, so I believe it's worth consideration.  And I suspect it would improve performance in the vast majority of low latency video use cases.\r\n\r\nI'll note that if one wanted to put enhancement layers in different tracks, which is still a potential approach, time sync would be critical to it working well.",
+          "createdAt": "2024-07-26T07:20:09Z",
+          "updatedAt": "2024-07-26T07:20:09Z"
+        },
+        {
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "I think we can massage this to not require group ID time synchronization across subscriptions. It works like this:\r\n\r\n1. Take the set of all subscriptions on the session.\r\n\r\n2. Eliminate all subscriptions with no data to deliver.\r\n\r\n3. Eliminate all subscriptions that do not have the highest subscriber priority.\r\n\r\n4. Take the highest or lowest group ID of each subscription depending on the subscriber's stated group order.\r\n\r\n5. Identify the highest-priority undelivered object from any of those groups, and eliminate any subscriptions that do not have an object in the chosen group with that priority.\r\n\r\n6. Select a subscription using any algorithm, and send the lowest object ID with the maximum priority.\r\n\r\nThis isn't quite as simple as concatenating subscriber priority | group ID | object priority into a long integer, but it works .\r\n\r\nI can write a PR to this effect if desired.",
+          "createdAt": "2024-07-26T21:59:00Z",
+          "updatedAt": "2024-07-26T21:59:00Z"
+        },
+        {
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "I don't really know how to handle a case where the subscriber assigns the same priority to SUBSCRIBE(1,0 .. 5, 10) and SUBSCRIBE (11, 0 .. 14, 10) for the same track. Given Descending order, groups 5 and 14 would be equally important, but that seems really weird.\r\n\r\nMaybe another argument for FETCH having a totally different scheme.",
+          "createdAt": "2024-07-26T22:00:51Z",
+          "updatedAt": "2024-07-26T22:00:51Z"
+        },
+        {
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "Or is the intent that group membership is the lowest-order bits? (i.e. eliminate all but the highest-priority objects, then sort by Group and Object ID)?",
+          "createdAt": "2024-07-26T22:04:14Z",
+          "updatedAt": "2024-07-26T22:04:14Z"
         }
       ]
     },
@@ -17094,13 +17151,16 @@
       "state": "OPEN",
       "author": "afrind",
       "authorAssociation": "COLLABORATOR",
-      "assignees": [],
+      "assignees": [
+        "afrind"
+      ],
       "labels": [
+        "Needs PR",
         "Announce"
       ],
       "body": "This is a redux of #228, now that I've heard from multiple other wg participants they are now interested in such a mechanism.\r\n\r\nConsider using moq for a chat or other application where a relay has many publishers for the same application.  In order for subscribes to be routed to the correct publishing endpoints, each publisher/participant needs to announce a unique namespace (this is how moq-chat operates, see https://afrind.github.io/draft-frindell-moq-chat/draft-frindell-moq-chat.html#section-4.4).\r\n\r\nThis creates an issue: how do participants learn about the namespaces/tracks other clients have ANNOUNCED to the relay within the same chat room? I originally filed #228 thinking there should be a mechanism by which a client can declare their interest in new announcements and become a catalog-less means of track discovery. Based on wg feedback at the time, I updated moq-chat to use a different discovery mechanism involving a simple catalog.\r\n\r\nHere's an alternate proposal:\r\n\r\n```\r\nSUBSCRIBE_NAMESPACE {\r\n   Track Namespace Prefix (b),\r\n   Auth Info (b)\r\n }\r\n```\r\n\r\nThis would inform the relay to forward any ANNOUNCE with a prefix match, if authorized.\r\n\r\nSo in moq-chat, each new participant would do this:\r\n\r\n```\r\nANNOUNCE(namespace=\"moq-chat/id/participant/<name>\")\r\nSUBSCRIBE_NAMESPACE(prefix=\"moq-chat/id/participant/\")\r\n```\r\n\r\nAnd a relay would reply with:\r\n\r\n```\r\nANNOUNCE_OK\r\nSUBSCRIBE_NAMESPACE_OK\r\n# existing announcements matching namespace prefix\r\nANNOUNCE(namespace=\"moq-chat/id/participant/<member1>\") \r\nANNOUNCE(namespace=\"moq-chat/id/participant/<member2>\")\r\nANNOUNCE(namespace=\"moq-chat/id/participant/<member3>\")\r\n...\r\n```\r\n\r\nIt would also forward any new ANNOUNCEs or ANNOUNCE_CANCELs matching the prefix to the participant.\r\n\r\nThe new participant then issues standard SUBSCRIBE to each existing chat member\r\n```\r\nSUBSCRIBE(namespace=\"moq-chat/id/participant/<member1>\", name=\"chat\") \r\nSUBSCRIBE(namespace=\"moq-chat/id/participant/<member2>\", name=\"chat\") \r\n...\r\n```\r\n\r\nThis would remove the need for a catalog in some multi-publisher applications (eg: key distribution https://suhashere.github.io/moq-e2ee-mls/draft-jennings-moq-e2ee-mls.html), but also keep the scope of ANNOUNCE the same as it is today.",
       "createdAt": "2024-07-11T15:05:21Z",
-      "updatedAt": "2024-07-24T16:51:25Z",
+      "updatedAt": "2024-07-26T07:03:18Z",
       "closedAt": null,
       "comments": [
         {
@@ -17207,6 +17267,13 @@
           "body": "> But I do think we should eventually apply some restrictions/scheme to namespaces in the same vein as URLs. Binary blobs are nice until you actually try to inspect/share them...\r\n\r\nCouple of observations:\r\n\r\n1. Relay forwarding layer (dataplane) need not/should not  have to be aware of the structure\r\n2. Relay control plane can have the function  mapping between binary representation to the application representation (strings for example), if needed for inspection or even sharing with humans. \r\n",
           "createdAt": "2024-07-24T00:39:16Z",
           "updatedAt": "2024-07-24T01:05:46Z"
+        },
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "The slides seem quite reasonable to me, can you write up a PR?",
+          "createdAt": "2024-07-26T07:03:02Z",
+          "updatedAt": "2024-07-26T07:03:02Z"
         }
       ]
     },
@@ -17247,6 +17314,44 @@
           "body": "I realized this is very similar to #476 ",
           "createdAt": "2024-07-24T21:47:32Z",
           "updatedAt": "2024-07-24T21:47:32Z"
+        }
+      ]
+    },
+    {
+      "number": 492,
+      "id": "I_kwDOG2Ho4M6Q7K4a",
+      "title": "Group IDs may not indicate a temporal ordering - Then what is a Group ID?",
+      "url": "https://github.com/moq-wg/moq-transport/issues/492",
+      "state": "OPEN",
+      "author": "ianswett",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "@fluffy and @wilaw Said that group IDs may be sparsely used, particularly in cases when they were chosen in a way to avoid collisions.\r\n\r\nThis sounds like an interesting set of use cases, but previously my understanding was that groups indicated some sort of temporal ordering, even if it's not strict.  If Group IDs don't imply temporal ordering and join points, and instead they're a way to publish Objects in a way that don't collide with one another, it seems like a different thing?\r\n\r\n\r\nTop of head strawman: Possibly different users could have the ability to publish Objects as themself for a single track?\r\n\r\nHaving a few specific use cases would be helpful here, because it feels like there are real use cases, and the existing mechanisms might be awkward at best?  It would also be useful to understand the use cases so we understand if they're in scope for MoQ.",
+      "createdAt": "2024-07-26T05:03:51Z",
+      "updatedAt": "2024-07-27T20:22:37Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Possibly relevant to #484 ",
+          "createdAt": "2024-07-26T06:54:09Z",
+          "updatedAt": "2024-07-26T06:54:09Z"
+        },
+        {
+          "author": "wilaw",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "I have advocated strongly for having Group IDs begin at 0 and increment by 1, with no gaps. This restriction (which is identical to what we have for Objects) brings us some valuable benefits:\r\n1. Arbitrary relays, without any other information, can know if Groups are missing\r\n2. Clients can tell if groups are missing, without having a catalog to define the numbering scheme. \r\n\r\nI spoke this over with Cullen and Suhas. They mentioned that they have a use-case in which clients will publish data under the same namespace and name, but using different ranges of groups IDs (correct me if I'm wrong there guys) and that therefore GroupIDs cannot increment by 1. My concern is that this one use-case is burdening the transport with a whole ton of complexity around knowing where there are gaps. Witness #423. I'd like to simplify moq-transport by setting restrictions on GroupsIDs and then help brainstorm alternate solutions to their multi-publisher use-case that are compliant with a simpler version of moqt. ",
+          "createdAt": "2024-07-26T16:33:54Z",
+          "updatedAt": "2024-07-27T20:22:37Z"
+        },
+        {
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I completely disagree with the use-case @fluffy and @suhasHere have suggested. A track must have a single publisher and I just can't envision how MoQ would work otherwise.\r\n\r\nIf you have multiple publishers, then make multiple tracks/namespaces. A subscriber can request them all. Or a muxer can request them all and produce a new merged track at incrementing group boundaries.",
+          "createdAt": "2024-07-26T18:25:24Z",
+          "updatedAt": "2024-07-26T18:25:24Z"
         }
       ]
     }
@@ -50279,21 +50384,21 @@
       "id": "PR_kwDOG2Ho4M5nIUMO",
       "title": "Subscriber indicator on track readiness",
       "url": "https://github.com/moq-wg/moq-transport/pull/381",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "suhasHere",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [],
       "body": "Attempts to address some of the usecases discussed in #372 \r\n\r\nLove to hear feedback",
       "createdAt": "2024-02-16T20:20:32Z",
-      "updatedAt": "2024-07-04T17:13:52Z",
+      "updatedAt": "2024-07-25T18:20:13Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "d8e0951dbe8d1f8d0186e59c0afd5e26cc858925",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "warmup",
       "headRefOid": "ee8a510db0235b859bfed54f587140d7c3a6153b",
-      "closedAt": null,
+      "closedAt": "2024-07-25T18:20:13Z",
       "mergedAt": null,
       "mergedBy": null,
       "mergeCommit": null,
@@ -50332,6 +50437,13 @@
           "body": "I would like to see some form of this discussed as this is helping a real functionality . @afrind @martinduke wondering any thoughts on how should we proceed ? Thanks",
           "createdAt": "2024-07-03T02:33:38Z",
           "updatedAt": "2024-07-03T02:33:38Z"
+        },
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "In an effort to get the number of open PRs down, I'd like to close this for now, and we can revisit it later.",
+          "createdAt": "2024-07-25T18:20:13Z",
+          "updatedAt": "2024-07-25T18:20:13Z"
         }
       ],
       "reviews": [
@@ -58992,21 +59104,21 @@
       "id": "PR_kwDOG2Ho4M5vQxvu",
       "title": "Add a Max Cache Duration (aka ttl) field to Objects",
       "url": "https://github.com/moq-wg/moq-transport/pull/446",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "ianswett",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [],
       "body": "Based on discussion last week and on slack, I believe this is where the WG is heading.\r\n\r\nIt is possible this could be a per-track or per-subscription value to save bytes on the wire, particularly for the Object per Stream or Object per Datagram modes.\r\n\r\nIt's possible this value could be decreased by the cache dwell time at each hop, but I didn't hear clear consensus either way on that question.\r\n\r\nFixes #440\r\nFixes #415 ",
       "createdAt": "2024-05-13T13:46:14Z",
-      "updatedAt": "2024-07-04T17:08:58Z",
+      "updatedAt": "2024-07-25T17:59:33Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "ad7504fbc08f0753d400a911b19af54a2011a245",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "ianswett-cache-duration",
       "headRefOid": "10103a40bac329b0e6daccaca554a153fad5bfde",
-      "closedAt": null,
+      "closedAt": "2024-07-25T17:59:33Z",
       "mergedAt": null,
       "mergedBy": null,
       "mergeCommit": null,
@@ -59052,6 +59164,13 @@
           "body": "Some of the open issues from the last interim\r\n\r\n - how to deal with non ending groups or groups who length are dynamic\r\n - should the timer be started at the start of each object's arrival rather than group arrival or end",
           "createdAt": "2024-06-11T16:45:26Z",
           "updatedAt": "2024-06-11T16:45:26Z"
+        },
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Closing this in favor of a newer PR, #469 ",
+          "createdAt": "2024-07-25T17:59:33Z",
+          "updatedAt": "2024-07-25T17:59:33Z"
         }
       ],
       "reviews": [
@@ -59738,21 +59857,21 @@
       "id": "PR_kwDOG2Ho4M5v-Crb",
       "title": "Add availability limits to MoQ subscriptions",
       "url": "https://github.com/moq-wg/moq-transport/pull/448",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "vasilvv",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [],
       "body": "Those are long-term limits on how long a relay can keep serving objects from cache, primarily meant to be used to enforce content-related policies, rather than be used as a technical measure for optimizing delivery.",
       "createdAt": "2024-05-20T14:52:21Z",
-      "updatedAt": "2024-06-12T15:51:25Z",
+      "updatedAt": "2024-07-25T18:00:55Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "d05778bed2aa7dd601f4cd201fec5075b056de33",
       "headRepository": "vasilvv/warp-draft",
       "headRefName": "availability",
       "headRefOid": "d449f3ade0019ce22b22f109a1db26faf2168139",
-      "closedAt": null,
+      "closedAt": "2024-07-25T18:00:55Z",
       "mergedAt": null,
       "mergedBy": null,
       "mergeCommit": null,
@@ -59777,6 +59896,13 @@
           "body": "Individual Comment:\r\n\r\n> This is deeply in the case of what gets sent next which we said we would discuss at the interim.\r\n\r\nThe next interim is about priorities, and I view this as related but orthogonal.\r\n\r\nIn my view, priorities help you decide what to send next when you have more than one thing to send.  Anything related to cache duration, availability or delivery timeouts can only change how many choices you have.",
           "createdAt": "2024-06-12T15:51:24Z",
           "updatedAt": "2024-06-12T15:51:24Z"
+        },
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Closing this in favor of #469 ",
+          "createdAt": "2024-07-25T18:00:55Z",
+          "updatedAt": "2024-07-25T18:00:55Z"
         }
       ],
       "reviews": [
@@ -59986,21 +60112,21 @@
       "id": "PR_kwDOG2Ho4M5v-I4X",
       "title": "Add delivery timeouts",
       "url": "https://github.com/moq-wg/moq-transport/pull/449",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "vasilvv",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [],
       "body": "The timeouts in this PR are defined to to ensure that the invariant properties implied by the object delivery preference are maintained, e.g. if stream-per-group is used, it is impossible to accidentally timeout an object in the middle of the group.\r\n\r\nFixes #440",
       "createdAt": "2024-05-20T15:06:37Z",
-      "updatedAt": "2024-07-04T17:02:33Z",
+      "updatedAt": "2024-07-25T18:00:30Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "bdc1cd04c94bb0d04b363a1603b77ec29783da32",
       "headRepository": "vasilvv/warp-draft",
       "headRefName": "timeout",
       "headRefOid": "72f0b9789f0e0471fab81d5bd076006df3f69aef",
-      "closedAt": null,
+      "closedAt": "2024-07-25T18:00:30Z",
       "mergedAt": null,
       "mergedBy": null,
       "mergeCommit": null,
@@ -60067,6 +60193,13 @@
           "body": "From an individual perspective, I think this functionality is interesting, though I realize there are more edge cases than I first thought.\r\n\r\nFor example, we're doing Object per stream, and there are 5 Objects in a group and they arrive in reverse order (for whatever reason), is the real intent that the last Object expires first?  Similar question for any single Object that arrives late due to loss/etc.  Differences on the order of an RTT or two will occur fairly regularly I expect, so it'd be good to clarify the expected behavior.\r\n\r\nThe other observation is that if one is willing to send frequent SUBSCRIBE_UPDATE messages that increase the Start, you can achieve very similar behavior without any direct reliance upon time and dealing with the question I just posed.  Besides the annoyance of sending and processing SUBSCRIBE_UPDATE messages, is there a reason SUBSCRIBE_UPDATE can't solve the same problems?",
           "createdAt": "2024-05-30T17:35:16Z",
           "updatedAt": "2024-05-30T17:35:16Z"
+        },
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Closing this in favor of #486",
+          "createdAt": "2024-07-25T18:00:30Z",
+          "updatedAt": "2024-07-25T18:00:30Z"
         }
       ],
       "reviews": [
@@ -60373,21 +60506,21 @@
       "id": "PR_kwDOG2Ho4M5wPGJr",
       "title": "Max Cache Duration per Subscription",
       "url": "https://github.com/moq-wg/moq-transport/pull/450",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "ianswett",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [],
       "body": "A variant of #446 that is on a Subscription granularity, instead of Object.\r\n\r\nFixes #440 ",
       "createdAt": "2024-05-22T17:39:39Z",
-      "updatedAt": "2024-07-04T16:59:21Z",
+      "updatedAt": "2024-07-25T18:00:01Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "d05778bed2aa7dd601f4cd201fec5075b056de33",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "ianswett-max-cache-duration",
       "headRefOid": "edcb48d4df6a429e2c810200c103b1df00706938",
-      "closedAt": null,
+      "closedAt": "2024-07-25T18:00:01Z",
       "mergedAt": null,
       "mergedBy": null,
       "mergeCommit": null,
@@ -60405,6 +60538,13 @@
           "body": "\r\n> Per my read of the room, i would prefer #446 as it is gives better flexibility for the application than enforcing it per subscription ( as it applies the same value to all the objects) . Also not sure if there are cases where this can change between the subscriptions either\r\n\r\n+1, Cache Duration per object is more flexible.\r\n",
           "createdAt": "2024-05-23T14:28:54Z",
           "updatedAt": "2024-05-23T14:28:54Z"
+        },
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Closing this in favor of #469 ",
+          "createdAt": "2024-07-25T18:00:01Z",
+          "updatedAt": "2024-07-25T18:00:01Z"
         }
       ],
       "reviews": [
@@ -61186,15 +61326,15 @@
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [],
-      "body": "A tweaked version of #448 \r\n\r\nFixes #440\r\n\r\nCloses #450 \r\nCloses #448\r\n\r\nI'll note that we might want to add params to TRACK_STATUS and allow this to be returned from that as well, which would allow a relay to keep it in its cache.\r\n\r\nAttempts to write down where we ended up at the end of the June 12th interim.",
+      "body": "A tweaked version of #448 \r\n\r\nFixes #440\r\nFixes #249\r\n\r\nCloses #450 \r\nCloses #448\r\n\r\nI'll note that we might want to add params to TRACK_STATUS and allow this to be returned from that as well, which would allow a relay to keep it in its cache.\r\n\r\nAttempts to write down where we ended up at the end of the June 12th interim.",
       "createdAt": "2024-06-18T17:50:49Z",
-      "updatedAt": "2024-07-21T00:46:28Z",
+      "updatedAt": "2024-07-26T17:50:35Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
-      "baseRefOid": "b70f8b5a2f7eaf441509f909b554a73a8a09c0c1",
+      "baseRefOid": "20811e3db87a7e45f6000361ecb31a50bbc4b0a6",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "ianswett-max-cache-param",
-      "headRefOid": "cf0589e72ba5094796df9b7b9b82a53c0bb69c8d",
+      "headRefOid": "7e2ba9e7e3dc05434361b04809a32c08a0b91afd",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -61314,6 +61454,26 @@
           "createdAt": "2024-07-04T16:49:37Z",
           "updatedAt": "2024-07-15T22:04:13Z",
           "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6DRlIN",
+          "commit": {
+            "abbreviatedOid": "7e2ba9e"
+          },
+          "author": "mengelbart",
+          "authorAssociation": "NONE",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-07-26T17:50:35Z",
+          "updatedAt": "2024-07-26T17:50:35Z",
+          "comments": [
+            {
+              "originalPosition": 33,
+              "body": "Should relays forward the parameter to downstream relays, and if so, what value should be used?",
+              "createdAt": "2024-07-26T17:50:35Z",
+              "updatedAt": "2024-07-26T17:50:35Z"
+            }
+          ]
         }
       ]
     },
@@ -62882,21 +63042,21 @@
       "id": "PR_kwDOG2Ho4M51EXjb",
       "title": "STREAM_HEADER_TRACK and STREAM_HEADER_GROUP can in unidirectional stream",
       "url": "https://github.com/moq-wg/moq-transport/pull/483",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "jiuhaizhang",
       "authorAssociation": "NONE",
       "assignees": [],
       "labels": [],
       "body": "STREAM_HEADER_TRACK and STREAM_HEADER_GROUP can in unidirectional stream. \r\nBut in https://datatracker.ietf.org/doc/html/draft-ietf-moq-transport-05#section-6.11.2-2 \r\n'An OBJECT_STREAM message MUST be the first and only message on a unidirectional stream.'\r\n\r\n\r\n",
       "createdAt": "2024-07-11T09:06:25Z",
-      "updatedAt": "2024-07-12T17:36:49Z",
+      "updatedAt": "2024-07-25T18:03:21Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "b70f8b5a2f7eaf441509f909b554a73a8a09c0c1",
       "headRepository": "jiuhaizhang/moq-transport",
       "headRefName": "jiuhaizhang-message-in-unibidirectional-stream",
       "headRefOid": "bd441b0f050c27b1ec6d68d395da442b8089aa54",
-      "closedAt": null,
+      "closedAt": "2024-07-25T18:03:21Z",
       "mergedAt": null,
       "mergedBy": null,
       "mergeCommit": null,
@@ -62922,24 +63082,26 @@
       "id": "PR_kwDOG2Ho4M51QR7u",
       "title": "Clarify duplicate track alias in Subscribes",
       "url": "https://github.com/moq-wg/moq-transport/pull/485",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "suhasHere",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [],
       "body": "Small editorial clarification on duplicate track alias for subscriptions that addresses aspects of #482 ",
       "createdAt": "2024-07-12T19:22:16Z",
-      "updatedAt": "2024-07-15T22:00:49Z",
+      "updatedAt": "2024-07-25T18:01:50Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "b70f8b5a2f7eaf441509f909b554a73a8a09c0c1",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "clarify_subscribe",
       "headRefOid": "7898effb6f704aeee742c150b09b2afe547ce1ee",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "closedAt": "2024-07-25T18:01:50Z",
+      "mergedAt": "2024-07-25T18:01:50Z",
+      "mergedBy": "ianswett",
+      "mergeCommit": {
+        "oid": "a56db649d4ba3b524dfdd5361a2158a815e591c5"
+      },
       "comments": [],
       "reviews": [
         {
@@ -62967,6 +63129,32 @@
           "createdAt": "2024-07-15T22:00:49Z",
           "updatedAt": "2024-07-15T22:00:49Z",
           "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6DIMyO",
+          "commit": {
+            "abbreviatedOid": "7898eff"
+          },
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2024-07-25T17:33:47Z",
+          "updatedAt": "2024-07-25T17:33:47Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6DIbAu",
+          "commit": {
+            "abbreviatedOid": "7898eff"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2024-07-25T18:01:43Z",
+          "updatedAt": "2024-07-25T18:01:43Z",
+          "comments": []
         }
       ]
     },
@@ -62982,15 +63170,15 @@
       "labels": [
         "Subscribe"
       ],
-      "body": "Pulls in some text from #449 and attempts to convey the conclusions of the Seattle interim.\r\n\r\nCloses #449",
+      "body": "Pulls in some text from #449 and attempts to convey the conclusions of the Seattle interim.\r\n\r\nAdds Subscribe Parameters to SUBSCRIBE_OK to allow this parameter to be optional in SUBSCRIBE_OK.\r\n\r\nCloses #449",
       "createdAt": "2024-07-12T20:06:34Z",
-      "updatedAt": "2024-07-15T21:49:34Z",
+      "updatedAt": "2024-07-27T23:53:52Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
-      "baseRefOid": "b70f8b5a2f7eaf441509f909b554a73a8a09c0c1",
+      "baseRefOid": "0ba94987396ee248c524999dcb677c96d7cbd01d",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "ianswett-delivery-timeout",
-      "headRefOid": "519e4fe86e3cf4cf7b6e58f87d22787c9eeb25ab",
+      "headRefOid": "dc508415b3aed159a810b9bea470c70d6c5b12ac",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -63056,6 +63244,125 @@
               "updatedAt": "2024-07-15T21:49:34Z"
             }
           ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6DIGeK",
+          "commit": {
+            "abbreviatedOid": "40ce8b3"
+          },
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "LGTM",
+          "createdAt": "2024-07-25T17:20:03Z",
+          "updatedAt": "2024-07-26T06:28:49Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6DIG9F",
+          "commit": {
+            "abbreviatedOid": "519e4fe"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-07-25T17:20:56Z",
+          "updatedAt": "2024-07-25T17:20:57Z",
+          "comments": [
+            {
+              "originalPosition": 12,
+              "body": "I think this is useful but IIRC i don't see a place where the publisher can indicate the delivery timeout.",
+              "createdAt": "2024-07-25T17:20:56Z",
+              "updatedAt": "2024-07-25T17:20:57Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6DIIA1",
+          "commit": {
+            "abbreviatedOid": "519e4fe"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "CHANGES_REQUESTED",
+          "body": "This is useful addition. I have a minor clarification. Otherwise looks good.",
+          "createdAt": "2024-07-25T17:23:20Z",
+          "updatedAt": "2024-07-25T17:23:20Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6DMSCF",
+          "commit": {
+            "abbreviatedOid": "519e4fe"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-07-26T06:28:09Z",
+          "updatedAt": "2024-07-26T06:28:09Z",
+          "comments": [
+            {
+              "originalPosition": 12,
+              "body": "By making it a param, the intent is that a subscriber can use it in SUBSCRIBE or publisher can use it in SUBSCRIBE_OK.",
+              "createdAt": "2024-07-26T06:28:09Z",
+              "updatedAt": "2024-07-26T06:28:09Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6DPtjL",
+          "commit": {
+            "abbreviatedOid": "519e4fe"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-07-26T13:57:39Z",
+          "updatedAt": "2024-07-26T13:57:39Z",
+          "comments": [
+            {
+              "originalPosition": 12,
+              "body": "Makes sense .. however, we don't have parameters in SUBSCRIBE_OK defined today unless I am misreading it",
+              "createdAt": "2024-07-26T13:57:39Z",
+              "updatedAt": "2024-07-26T14:03:06Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6DPtst",
+          "commit": {
+            "abbreviatedOid": "40ce8b3"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2024-07-26T13:57:55Z",
+          "updatedAt": "2024-07-26T13:57:55Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6DUtzS",
+          "commit": {
+            "abbreviatedOid": "519e4fe"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-07-27T23:50:51Z",
+          "updatedAt": "2024-07-27T23:50:51Z",
+          "comments": [
+            {
+              "originalPosition": 12,
+              "body": "Good catch, for some reason I thought we'd already added parameters to SUBSCRIBE_OK, so I'll do that now.",
+              "createdAt": "2024-07-27T23:50:51Z",
+              "updatedAt": "2024-07-27T23:50:51Z"
+            }
+          ]
         }
       ]
     },
@@ -63064,7 +63371,7 @@
       "id": "PR_kwDOG2Ho4M51cIBE",
       "title": "Add an explicit length to OBJECT_STREAM and OBJECT_DATAGRAM",
       "url": "https://github.com/moq-wg/moq-transport/pull/487",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "ianswett",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
@@ -63073,26 +63380,55 @@
       ],
       "body": "This had consensus in the past, but a PR wasn't written.\r\n\r\nParticularly now that we have Object Status, which is optional for all other mappings, it makes sense to add the length and make things consistent.\r\n\r\nFixes #355",
       "createdAt": "2024-07-15T21:55:48Z",
-      "updatedAt": "2024-07-15T21:55:48Z",
+      "updatedAt": "2024-07-26T06:44:21Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
-      "baseRefOid": "b70f8b5a2f7eaf441509f909b554a73a8a09c0c1",
+      "baseRefOid": "0ba94987396ee248c524999dcb677c96d7cbd01d",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "ianswett-add-object-length",
-      "headRefOid": "8fb11691d0a0941bf309fb30e294659197ab42bb",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "headRefOid": "5ca438001710ee00fedc0dc42820ea17c61ae12d",
+      "closedAt": "2024-07-26T06:44:21Z",
+      "mergedAt": "2024-07-26T06:44:21Z",
+      "mergedBy": "ianswett",
+      "mergeCommit": {
+        "oid": "20811e3db87a7e45f6000361ecb31a50bbc4b0a6"
+      },
       "comments": [],
-      "reviews": []
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M6DIIBg",
+          "commit": {
+            "abbreviatedOid": "5ca4380"
+          },
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "LGTM ",
+          "createdAt": "2024-07-25T17:23:22Z",
+          "updatedAt": "2024-07-26T06:35:47Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6DIwma",
+          "commit": {
+            "abbreviatedOid": "5ca4380"
+          },
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2024-07-25T18:38:34Z",
+          "updatedAt": "2024-07-26T06:35:47Z",
+          "comments": []
+        }
+      ]
     },
     {
       "number": 488,
       "id": "PR_kwDOG2Ho4M51heDm",
       "title": "At least one SUBSCRIBE_OK to return SUBSCRIBE_OK",
       "url": "https://github.com/moq-wg/moq-transport/pull/488",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "ianswett",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
@@ -63101,19 +63437,35 @@
       ],
       "body": "This is a bit different from HTTP, but having at least one SUBSCRIBE_OK succeed ensures the track exists in some sense, as well as allowing a relay to populate the Group Order field.\r\n\r\nThis is intended as a clarification, but it adds normative language.",
       "createdAt": "2024-07-16T14:25:36Z",
-      "updatedAt": "2024-07-16T14:25:36Z",
+      "updatedAt": "2024-07-25T18:04:01Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "b70f8b5a2f7eaf441509f909b554a73a8a09c0c1",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "ianswett-subscribe-ok-upstream",
       "headRefOid": "2d65c8694de9bebfa8526036f8de9a1672ccf9b2",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "closedAt": "2024-07-25T18:04:00Z",
+      "mergedAt": "2024-07-25T18:04:00Z",
+      "mergedBy": "ianswett",
+      "mergeCommit": {
+        "oid": "0ba94987396ee248c524999dcb677c96d7cbd01d"
+      },
       "comments": [],
-      "reviews": []
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M6DIEkp",
+          "commit": {
+            "abbreviatedOid": "2d65c86"
+          },
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "LGTM",
+          "createdAt": "2024-07-25T17:16:04Z",
+          "updatedAt": "2024-07-25T17:16:04Z",
+          "comments": []
+        }
+      ]
     },
     {
       "number": 489,
@@ -63129,13 +63481,195 @@
       ],
       "body": "Fixes #377",
       "createdAt": "2024-07-23T18:02:48Z",
-      "updatedAt": "2024-07-23T18:02:49Z",
+      "updatedAt": "2024-07-27T03:50:26Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
-      "baseRefOid": "b70f8b5a2f7eaf441509f909b554a73a8a09c0c1",
+      "baseRefOid": "0ba94987396ee248c524999dcb677c96d7cbd01d",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "ianswett-nodatayet",
-      "headRefOid": "14a504fa13c05af19122119ea2ea8c8f3fe790ad",
+      "headRefOid": "a4564365d8d055407f3554d70ce3c7163b6e1b77",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M6DT6vj",
+          "commit": {
+            "abbreviatedOid": "a456436"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "LGTM",
+          "createdAt": "2024-07-27T03:50:26Z",
+          "updatedAt": "2024-07-27T03:50:26Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 491,
+      "id": "PR_kwDOG2Ho4M52iB64",
+      "title": "Add MAX_SUBSCRIBE_ID to limit number of subscriptions",
+      "url": "https://github.com/moq-wg/moq-transport/pull/491",
+      "state": "OPEN",
+      "author": "ianswett",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Fixes #272\r\n\r\nSome diffs are due to me reflowing text to fit the line limits, so please ignore those.\r\n\r\nOnce we have this and a limit on announce IDs, it seems likely that we'll be able to get rid of 'Role', but for now it can stay.",
+      "createdAt": "2024-07-26T02:58:25Z",
+      "updatedAt": "2024-07-26T06:50:28Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "20811e3db87a7e45f6000361ecb31a50bbc4b0a6",
+      "headRepository": "moq-wg/moq-transport",
+      "headRefName": "ianswett-max-subscribe-id",
+      "headRefOid": "fdd004e0c4a86077d8ca5441aa263fb3a46c92d2",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M6DLhAp",
+          "commit": {
+            "abbreviatedOid": "a6ba0ae"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-07-26T03:14:05Z",
+          "updatedAt": "2024-07-26T03:14:05Z",
+          "comments": [
+            {
+              "originalPosition": 5,
+              "body": "```suggestion\r\nPATH parameter ({{path}}) which is sent in the CLIENT_SETUP message at the\r\n```",
+              "createdAt": "2024-07-26T03:14:05Z",
+              "updatedAt": "2024-07-26T03:14:05Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6DLhkM",
+          "commit": {
+            "abbreviatedOid": "8102d69"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-07-26T03:17:48Z",
+          "updatedAt": "2024-07-26T03:17:48Z",
+          "comments": [
+            {
+              "originalPosition": 89,
+              "body": "```suggestion\r\n* Subscribe ID: The new Maximums Subscribe ID for the session. If a Subscribe ID\r\n```",
+              "createdAt": "2024-07-26T03:17:48Z",
+              "updatedAt": "2024-07-26T03:17:48Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6DLikp",
+          "commit": {
+            "abbreviatedOid": "8a55e7f"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-07-26T03:24:31Z",
+          "updatedAt": "2024-07-26T03:24:32Z",
+          "comments": [
+            {
+              "originalPosition": 14,
+              "body": "```suggestion\r\n  a Subscribe ID equal or larger than the current Maximum Subscribe ID.\r\n```",
+              "createdAt": "2024-07-26T03:24:31Z",
+              "updatedAt": "2024-07-26T03:24:32Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 493,
+      "id": "PR_kwDOG2Ho4M52oCsM",
+      "title": "Clean up mistakes on object description",
+      "url": "https://github.com/moq-wg/moq-transport/pull/493",
+      "state": "MERGED",
+      "author": "martinduke",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "There are some obsolete references to Object Send Order, and part of the STREAM_HEADER_TRACK description seems to have slipped below the header for the following section.",
+      "createdAt": "2024-07-26T23:03:33Z",
+      "updatedAt": "2024-07-27T23:59:18Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "20811e3db87a7e45f6000361ecb31a50bbc4b0a6",
+      "headRepository": "martinduke/moq-transport",
+      "headRefName": "object-cleanup",
+      "headRefOid": "c7bdc3de8456e7bcdeeb11e4c23f27cfb1baba15",
+      "closedAt": "2024-07-27T23:59:18Z",
+      "mergedAt": "2024-07-27T23:59:18Z",
+      "mergedBy": "ianswett",
+      "mergeCommit": {
+        "oid": "3269617c59015ba17beae9bc48da0606448fdf8a"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M6DT6t7",
+          "commit": {
+            "abbreviatedOid": "c7bdc3d"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "Thanks for fixing these .. LGTM",
+          "createdAt": "2024-07-27T03:49:15Z",
+          "updatedAt": "2024-07-27T03:49:15Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6DUt5u",
+          "commit": {
+            "abbreviatedOid": "c7bdc3d"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2024-07-27T23:59:08Z",
+          "updatedAt": "2024-07-27T23:59:08Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 494,
+      "id": "PR_kwDOG2Ho4M52oDZM",
+      "title": "Peeps First Attempt",
+      "url": "https://github.com/moq-wg/moq-transport/pull/494",
+      "state": "OPEN",
+      "author": "martinduke",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "I have foregone any premature optimization of the encodings here.\r\n\r\nAsking @janaiyengar to take a first look.",
+      "createdAt": "2024-07-26T23:09:07Z",
+      "updatedAt": "2024-07-26T23:09:07Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "20811e3db87a7e45f6000361ecb31a50bbc4b0a6",
+      "headRepository": "martinduke/moq-transport",
+      "headRefName": "peeps",
+      "headRefOid": "9b628b1d69c612210ab602b95cd465f6bbef96ce",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
