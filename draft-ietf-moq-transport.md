@@ -1350,9 +1350,9 @@ reduces the number of streams required to transmit a group.
 "Group does not exist" and "end of Track and Group" messages have unique Group
 IDs and therefore are always constitute a single-object Peep.
 
-If a stream is reset the "end of Group" message present in a peep is fully
-acknowledged, that message is instead send on a separate stream with the same
-peep ID.
+If a stream is reset before the "end of Group" message present in a peep is
+fully acknowledged, that message is instead sent on a separate stream with the
+same peep ID.
 
 ### Object Message Formats
 
