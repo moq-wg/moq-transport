@@ -324,10 +324,21 @@ description in the remainder of this section does not apply.
 QUIC streams offer in-order reliable delivery, differentiation of priority in
 delivery, and the ability to cancel sending and retransmission of data.
 
-In general, higher object IDs in a peep are dependent on lower object IDs
-in that peep. If an object is dependent on a lower object ID in a peep but
-higher object IDs in the same peep are not dependent on it, it should
-generally be in a separate peep.
+Every object belongs to exactly one Peep.
+
+Original publishers assign each Peep a Peep ID, and do so as they see fit.
+However, the following strategy is RECOMMENDED:
+
+- Higher object IDs are dependent on lower object IDs in the same peep.
+
+- If two objects are dependent on the same lower object ID, but are not
+dependent on each other, one ought to assigned the same peep as the lower
+ID, but the other ought to be in a different peep. The second peep would
+ideally have a lower priority than the one with two objects.
+
+- There often multiple assignment schemes that meet these conditions.
+Original publishers ought to choose an assignment that minimizes the number
+of peeps (and therefore QUIC streams) in the group.
 
 For example, imagine that Object 3 and Object 2 are both dependent on Object
 1, but are have no depedency relationship with each other. It would
@@ -335,10 +346,18 @@ therefore be appropriate for Objects 1 and 3 to be in one peep and Object 2
 in another, with lower priority. The separate stream prevents delivery of
 Object 3 from being blocked by the loss of Object 2.
 
-Original publishers assign each Peep a Peep ID.
+Alternatively, objects 1 and 2 could be in one peep and 3 in another. The
+optimal choice would depend on the dependencies of later objects.
 
-Every object belongs to exactly one Peep. Applications define this mapping,
-but SHOULD follow the guidelines above when mapping objects to peeps.
+An original publisher might not follow these guidelines. Reasons would
+include implementation complexity, lack of foreknowledge of the dependencies
+of further objects, the knowledge that the transport is WebTransport over
+HTTP/2 (thus introducing head-of-line blocking across streams), or knowledge
+of low session stream limits that require aggregation of independent objects
+into the same stream.
+
+For the purposes of peep assignment, the dependencies of objects with non-
+normal status are described in {{object-status}}.
 
 ## Groups {#model-group}
 
@@ -1286,7 +1305,6 @@ TRACK_STATUS_REQUEST Message {
 ~~~
 {: #moq-track-status-request-format title="MOQT TRACK_STATUS_REQUEST Message"}
 
-
 ## SUBSCRIBE_OK {#message-subscribe-ok}
 
 A publisher sends a SUBSCRIBE_OK control message for successful
@@ -1512,7 +1530,7 @@ Publisher MUST NOT mix different forwarding preferences within a single track.
 If a subscriber receives different forwarding preferences for a track, it
 SHOULD close the session with an error of 'Protocol Violation'.
 
-## Object Headers {#message-object}
+## OBJECT {#message-object}
 
 An OBJECT message contains a range of contiguous bytes from from the
 specified track, as well as associated metadata required to deliver,
@@ -1762,6 +1780,8 @@ STREAM_HEADER_PEEP {
   Payload = "efgh"
 }
 ~~~
+
+
 
 # Security Considerations {#security}
 
