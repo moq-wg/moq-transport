@@ -1382,7 +1382,7 @@ Though some status information could be inferred from QUIC stream state,
 that information is not reliable and cacheable.
 
 For the purposes of Peep assignment, original publishers SHOULD treat
-"Object does not exist: and "end of Group" messages as dependent on the previous
+"Object does not exist" and "end of Group" messages as dependent on the previous
 object ID and highest Normal object ID in the group, respectively. This
 reduces the number of streams required to transmit a group.
 
