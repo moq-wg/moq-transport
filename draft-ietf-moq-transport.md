@@ -1305,6 +1305,268 @@ TRACK_STATUS_REQUEST Message {
 ~~~
 {: #moq-track-status-request-format title="MOQT TRACK_STATUS_REQUEST Message"}
 
+<<<<<<< HEAD
+=======
+
+
+## OBJECT {#message-object}
+
+An OBJECT message contains a range of contiguous bytes from from the
+specified track, as well as associated metadata required to deliver,
+cache, and forward it.  Objects are sent by publishers.
+
+### Canonical Object Fields {#object-fields}
+
+A canonical MoQ Object has the following information:
+
+* Track Namespace and Track Name: The track this object belongs to.
+
+* Group ID: The object is a member of the indicated group ID
+{{model-group}} within the track.
+
+* Object ID: The order of the object within the group.  The
+IDs starts at 0, increasing sequentially for each object within the
+group.
+
+* Publisher Priority: An 8 bit integer indicating the publisher's priority for
+the Object {{priorities}}.
+
+* Object Forwarding Preference: An enumeration indicating how a publisher sends
+an object. The preferences are Track, Peep, and Datagram.  An Object
+MUST be sent according to its `Object Forwarding Preference`, described below.
+
+* Peep ID: The object is a member of the indicated peep ID ({{model-peep}})
+within the group. This field is omitted if the Object Forwarding Preference is
+Track or Datagram.
+
+* Object Status: As enumeration used to indicate missing
+objects or mark the end of a group or track. See {{object-status}} below.
+
+* Object Payload: An opaque payload intended for an End Subscriber and SHOULD
+NOT be processed by a relay. Only present when 'Object Status' is Normal (0x0).
+
+#### Object Status {#object-status}
+
+The Object Status informs subscribers what objects will not be received
+because they were never produced, are no longer available, or because they
+are beyond the end of a group or track.
+
+`Status` can have following values:
+
+* 0x0 := Normal object. The payload is array of bytes and can be empty.
+
+* 0x1 := Indicates Object does not exist. Indicates that this object
+         does not exist at any publisher and it will not be published in
+         the future. This SHOULD be cached.
+
+* 0x2 := Indicates Group does not exist. Indicates that objects with
+         this GroupID do not exist at any publisher and they will not be
+         published in the future. This SHOULD be cached.
+
+* 0x3 := Indicates end of Group. ObjectId is one greater that the
+         largest object produced in the group identified by the
+         GroupID. This is sent right after the last object in the
+         group. This SHOULD be cached.
+
+* 0x4 := Indicates end of Track and Group. GroupID is one greater than
+         the largest group produced in this track and the ObjectId is
+         one greater than the largest object produced in that
+         group. This is sent right after the last object in the
+         track. This SHOULD be cached.
+
+Any other value SHOULD be treated as a protocol error and terminate the
+session with a Protocol Violation ({{session-termination}}).
+Any object with a status code other than zero MUST have an empty payload.
+
+Though some status information could be inferred from QUIC stream state,
+that information is not reliable and cacheable.
+
+For the purposes of Peep assignment, original publishers SHOULD treat
+"Object does not exist: and "end of Group" messages as dependent on the previous
+object ID and highest Normal object ID in the group, respectively. This
+reduces the number of streams required to transmit a group.
+
+"Group does not exist" and "end of Track and Group" messages have unique Group
+IDs and therefore are always constitute a single-object Peep.
+
+If a stream is reset before the "end of Group" message present in a peep is
+fully acknowledged, that message is instead sent on a separate stream with the
+same peep ID.
+
+### Object Message Formats
+
+Every Track has a single 'Object Forwarding Preference' and the Original
+Publisher MUST NOT mix different forwarding preferences within a single track.
+If a subscriber receives different forwarding preferences for a track, it
+SHOULD close the session with an error of 'Protocol Violation'.
+
+**Object Datagram Message**
+
+An `OBJECT_DATAGRAM` message carries a single object in a datagram.
+
+An Object received in an `OBJECT_DATAGRAM` message has an `Object
+Forwarding Preference` = `Datagram`. To send an Object with `Object
+Forwarding Preference` = `Datagram`, determine the length of the fields and
+payload and send the Object as datagram. In certain scenarios where the object
+size can be larger than maximum datagram size for the session, the Object
+will be dropped.
+
+~~~
+OBJECT_DATAGRAM Message {
+  Subscribe ID (i),
+  Track Alias (i),
+  Group ID (i),
+  Object ID (i),
+  Publisher Priority (8),
+  Object Payload Length (i),
+  [Object Status (i)],
+  Object Payload (..),
+}
+~~~
+{: #object-datagram-format title="MOQT OBJECT_DATAGRAM Message"}
+
+### Streams
+
+When objects are sent on streams, the stream begins with a stream
+header message and is followed by one or more sets of serialized object fields.
+If a stream ends gracefully in the middle of a serialized Object, terminate the
+session with a Protocol Violation.
+
+A publisher SHOULD NOT open more than one stream at a time with the same stream
+header message type and fields.
+
+
+TODO: figure out how a relay closes these streams
+
+**Stream Header Track**
+
+When a stream begins with `STREAM_HEADER_TRACK`, all objects on the stream
+belong to the track requested in the Subscribe message identified by `Subscribe
+ID`.  All objects on the stream have the `Publisher Priority` specified in the
+stream header.
+
+~~~
+STREAM_HEADER_TRACK Message {
+  Subscribe ID (i)
+  Track Alias (i),
+  Publisher Priority (8),
+}
+~~~
+{: #stream-header-track-format title="MOQT STREAM_HEADER_TRACK Message"}
+
+All Objects received on a stream opened with STREAM_HEADER_TRACK have an `Object
+Forwarding Preference` = `Track`.
+
+To send an Object with `Object Forwarding Preference` = `Track`, find the open
+stream that is associated with the subscription, or open a new one and send the
+`STREAM_HEADER_TRACK` if needed, then serialize the following object fields.
+The Object Status field is only sent if the Object Payload Length is zero.
+
+~~~
+{
+  Group ID (i),
+  Object ID (i),
+  Object Payload Length (i),
+  [Object Status (i)],
+  Object Payload (..),
+}
+~~~
+{: #object-track-format title="MOQT Track Stream Object Fields"}
+
+A publisher MUST NOT send an Object on a stream if its Group ID is less than a
+previously sent Group ID on that stream, or if its Object ID is less than or
+equal to a previously sent Object ID with the same Group ID.
+
+**Stream Header Peep**
+
+When a stream begins with `STREAM_HEADER_PEEP`, all objects on the stream
+belong to the track requested in the Subscribe message identified by `Subscribe
+ID` and the peep indicated by 'Group ID' and `Peep ID`.
+
+~~~
+STREAM_HEADER_PEEP Message {
+  Subscribe ID (i),
+  Track Alias (i),
+  Group ID (i),
+  Peep ID (i),
+  Publisher Priority (8),
+}
+~~~
+{: #stream-header-peep-format title="MOQT STREAM_HEADER_PEEP Message"}
+
+All Objects received on a stream opened with `STREAM_HEADER_PEEP` have an
+`Object Forwarding Preference` = `Peep`.
+
+To send an Object with `Object Forwarding Preference` = `Peep`, find the open
+stream that is associated with the subscription, `Group ID` and `Peep ID`,
+or open a new one and send the `STREAM_HEADER_PEEP`. Then serialize the
+ollowing fields.
+
+The Object Status field is only sent if the Object Payload Length is zero.
+
+~~~
+{
+  Object ID (i),
+  Object Payload Length (i),
+  [Object Status (i)],
+  Object Payload (..),
+}
+~~~
+{: #object-group-format title="MOQT Group Stream Object Fields"}
+
+A publisher MUST NOT send an Object on a stream if its Object ID is less than a
+previously sent Object ID within a given group in that stream.
+
+### Examples:
+
+Sending a track on one stream:
+
+~~~
+STREAM_HEADER_TRACK {
+  Subscribe ID = 1
+  Track Alias = 1
+  Publisher Priority = 0
+}
+{
+  Group ID = 0
+  Object ID = 0
+  Object Payload Length = 4
+  Payload = "abcd"
+}
+{
+  Group ID = 1
+  Object ID = 0
+  Object Payload Length = 4
+  Payload = "efgh"
+}
+~~~
+
+Sending a peep on one stream:
+
+~~~
+Stream = 2
+
+STREAM_HEADER_PEEP {
+  Subscribe ID = 2
+  Track Alias = 2
+  Group ID = 0
+  Peep ID = 0
+  Publisher Priority = 0
+}
+{
+  Object ID = 0
+  Object Payload Length = 4
+  Payload = "abcd"
+}
+{
+  Object ID = 1
+  Object Payload Length = 4
+  Payload = "efgh"
+}
+~~~
+
+
+>>>>>>> bb27020 (typos)
 ## SUBSCRIBE_OK {#message-subscribe-ok}
 
 A publisher sends a SUBSCRIBE_OK control message for successful
