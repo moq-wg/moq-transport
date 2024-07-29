@@ -1379,7 +1379,7 @@ TODO: figure out how a relay closes these streams
 
 When a stream begins with `STREAM_HEADER_TRACK`, all objects on the stream
 belong to the track requested in the Subscribe message identified by `Subscribe
-ID`.  All objects on the stream have the `Object Send Order` specified in the
+ID`.  All objects on the stream have the `Publisher Priority` specified in the
 stream header.
 
 ~~~
