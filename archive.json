@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2024-07-28T01:22:48.380913+00:00",
+  "timestamp": "2024-07-30T01:17:32.350182+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -1902,7 +1902,7 @@
       ],
       "body": "There were few discussions that discussed on dealing with congestion and needing more thinking around decisions around how and when to drop things. ",
       "createdAt": "2022-11-10T23:52:32Z",
-      "updatedAt": "2024-07-23T14:09:30Z",
+      "updatedAt": "2024-07-29T08:07:54Z",
       "closedAt": null,
       "comments": [
         {
@@ -1953,6 +1953,13 @@
           "body": "> You definitely don't want to ACK every packet individually. If you want per-packet timestamps, I wrote a draft that was used by some internal projects. https://www.ietf.org/archive/id/draft-smith-quic-receive-ts-00.html\r\n> \r\n> It can probably be improved, but it works with GCC and similar congestion controllers.\r\n> \r\n> I agree that if you're app-limited often enough, you should be able to skip PROBE_RTT in BBRv2/3. I keep wanting to write a version of the BBR bandwidth estimator that uses timestamps, but it's hard for me to know how much better it'd be without just doing it.\r\n> \r\n> This is an interesting topic, but is there a clear ack for the QUIC WG or text we should add to the existing draft? I'm inclined to park this for now and wait for more deployment experience.\r\n\r\nIt is possible to construct a case that ack every packet is not necessary, but vice versa. Acknowledgement mechanism seems to be some kind of compression of network state information. E.g., current ack format can be interpreted as a way using delta encoding to compresse a simplified black-box model which only determines if a packet is lost or not. Further, the upper application layer may have an impact on what kind of compression algorithm we choose to represent. We don't know the accurate state changes of upper application layer under different packet receiving patterns. In other words, we lack a detailed analytic framework from an information-theory perspective.",
           "createdAt": "2024-07-23T14:09:29Z",
           "updatedAt": "2024-07-23T14:09:29Z"
+        },
+        {
+          "author": "alvestrand",
+          "authorAssociation": "NONE",
+          "body": "Determining a proper information-theoretic approach for building new CC mechanisms is probably the business of CCWG, not the business of MOQ.\r\n\r\n(The experience with building Goog-CC / Transport-wide is that knowing the delay of every packet is very helpful in determining what's happening in the network - but the information can be easily packed up in bundles, so it's not necessary to have an ACK for every packet.)\r\n",
+          "createdAt": "2024-07-29T08:07:53Z",
+          "updatedAt": "2024-07-29T08:07:53Z"
         }
       ]
     },
@@ -17329,7 +17336,7 @@
       "labels": [],
       "body": "@fluffy and @wilaw Said that group IDs may be sparsely used, particularly in cases when they were chosen in a way to avoid collisions.\r\n\r\nThis sounds like an interesting set of use cases, but previously my understanding was that groups indicated some sort of temporal ordering, even if it's not strict.  If Group IDs don't imply temporal ordering and join points, and instead they're a way to publish Objects in a way that don't collide with one another, it seems like a different thing?\r\n\r\n\r\nTop of head strawman: Possibly different users could have the ability to publish Objects as themself for a single track?\r\n\r\nHaving a few specific use cases would be helpful here, because it feels like there are real use cases, and the existing mechanisms might be awkward at best?  It would also be useful to understand the use cases so we understand if they're in scope for MoQ.",
       "createdAt": "2024-07-26T05:03:51Z",
-      "updatedAt": "2024-07-27T20:22:37Z",
+      "updatedAt": "2024-07-29T08:14:35Z",
       "closedAt": null,
       "comments": [
         {
@@ -17352,6 +17359,13 @@
           "body": "I completely disagree with the use-case @fluffy and @suhasHere have suggested. A track must have a single publisher and I just can't envision how MoQ would work otherwise.\r\n\r\nIf you have multiple publishers, then make multiple tracks/namespaces. A subscriber can request them all. Or a muxer can request them all and produce a new merged track at incrementing group boundaries.",
           "createdAt": "2024-07-26T18:25:24Z",
           "updatedAt": "2024-07-26T18:25:24Z"
+        },
+        {
+          "author": "gwendalsimon",
+          "authorAssociation": "NONE",
+          "body": " I am also in favor of Group ID beginning at 0 and incrementing by 1. ",
+          "createdAt": "2024-07-29T08:14:34Z",
+          "updatedAt": "2024-07-29T08:14:34Z"
         }
       ]
     }
@@ -63172,7 +63186,7 @@
       ],
       "body": "Pulls in some text from #449 and attempts to convey the conclusions of the Seattle interim.\r\n\r\nAdds Subscribe Parameters to SUBSCRIBE_OK to allow this parameter to be optional in SUBSCRIBE_OK.\r\n\r\nCloses #449",
       "createdAt": "2024-07-12T20:06:34Z",
-      "updatedAt": "2024-07-27T23:53:52Z",
+      "updatedAt": "2024-07-28T15:44:32Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "0ba94987396ee248c524999dcb677c96d7cbd01d",
@@ -63361,6 +63375,26 @@
               "body": "Good catch, for some reason I thought we'd already added parameters to SUBSCRIBE_OK, so I'll do that now.",
               "createdAt": "2024-07-27T23:50:51Z",
               "updatedAt": "2024-07-27T23:50:51Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6DVyhL",
+          "commit": {
+            "abbreviatedOid": "dc50841"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-07-28T15:44:32Z",
+          "updatedAt": "2024-07-28T15:44:32Z",
+          "comments": [
+            {
+              "originalPosition": 12,
+              "body": "Thanks Ian. Looks good ",
+              "createdAt": "2024-07-28T15:44:32Z",
+              "updatedAt": "2024-07-28T15:44:32Z"
             }
           ]
         }
@@ -63663,13 +63697,13 @@
       "labels": [],
       "body": "I have foregone any premature optimization of the encodings here.\r\n\r\nAsking @janaiyengar to take a first look.",
       "createdAt": "2024-07-26T23:09:07Z",
-      "updatedAt": "2024-07-26T23:09:07Z",
+      "updatedAt": "2024-07-29T22:53:46Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
-      "baseRefOid": "20811e3db87a7e45f6000361ecb31a50bbc4b0a6",
+      "baseRefOid": "3269617c59015ba17beae9bc48da0606448fdf8a",
       "headRepository": "martinduke/moq-transport",
       "headRefName": "peeps",
-      "headRefOid": "9b628b1d69c612210ab602b95cd465f6bbef96ce",
+      "headRefOid": "a75ed5cd112880f9e38d82f056dea8b5977827cb",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
