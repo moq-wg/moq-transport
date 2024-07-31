@@ -855,6 +855,32 @@ information in a SUBSCRIBE or ANNOUNCE message. This parameter is populated for
 cases where the authorization is required at the track level. The value is an
 ASCII string.
 
+#### DELIVERY TIMEOUT Parameter {#delivery-timeout}
+
+The DELIVERY TIMEOUT parameter (key 0x03) MAY appear in a SUBSCRIBE,
+SUBSCRIBE_OK, or a SUBSCRIBE_UDPATE message.  It is the duration in milliseconds
+the relay SHOULD continue to attempt forwarding Objects after they have been
+received.  The start time for the timeout is based on when the beginning of the
+Object is received, and does not depend upon the forwarding preference.
+
+If both the subscriber and publisher specify the parameter, they use the min of the
+two values for the subscription.  The publisher SHOULD always specify the value
+received from an upstream subscription when there is one, and nothing otherwise.
+If an earlier Object arrives later than subsequent Objects, relays can consider
+the receipt time as that of the next later Object, with the assumption that the
+Object's data was reordered.
+
+If neither the subscriber or publisher specify DELIVERY TIMEOUT, Objects are
+delivered as indicated by their Group Order and Priority.
+
+When sent by a subscriber, this parameter is intended to be specific to a
+subscription, so it SHOULD NOT be forwarded upstream by a relay that intends
+to serve multiple subscriptions for the same track.
+
+Publishers SHOULD consider whether the entire Object is likely to be delivered
+before sending any data for that Object, taking into account priorities,
+congestion control, and any other relevant information.
+
 ## CLIENT_SETUP and SERVER_SETUP {#message-setup}
 
 The `CLIENT_SETUP` and `SERVER_SETUP` messages are the first messages exchanged
@@ -1529,7 +1555,9 @@ SUBSCRIBE_OK
   Group Order (8),
   ContentExists (f),
   [Largest Group ID (i)],
-  [Largest Object ID (i)]
+  [Largest Object ID (i)],
+  Number of Parameters (i),
+  Subscribe Parameters (..) ...
 }
 ~~~
 {: #moq-transport-subscribe-ok format title="MOQT SUBSCRIBE_OK Message"}
@@ -1555,6 +1583,7 @@ is only present if ContentExists has a value of 1.
 * Largest Object ID: the largest Object ID available within the largest Group ID
 for this track. This field is only present if ContentExists has a value of 1.
 
+* Subscribe Parameters: The parameters are defined in {{version-specific-params}}.
 
 ## SUBSCRIBE_ERROR {#message-subscribe-error}
 
