@@ -1595,8 +1595,7 @@ is only present if ContentExists has a value of 1.
 * Largest Object ID: The largest Object ID available within the largest Group ID
 for this track. This field is only present if ContentExists has a value of 1.
 
-* Subscribe Parameters: Optional key-value pairs formatted as described in
-{{version-specific-params}}.
+* Subscribe Parameters: The parameters are defined in {{version-specific-params}}.
 
 
 ## SUBSCRIBE_ERROR {#message-subscribe-error}
