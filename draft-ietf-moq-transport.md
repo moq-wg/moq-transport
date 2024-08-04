@@ -1597,7 +1597,6 @@ for this track. This field is only present if ContentExists has a value of 1.
 
 * Subscribe Parameters: The parameters are defined in {{version-specific-params}}.
 
-
 ## SUBSCRIBE_ERROR {#message-subscribe-error}
 
 A publisher sends a SUBSCRIBE_ERROR control message in response to a
