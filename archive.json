@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2024-08-01T01:23:50.832808+00:00",
+  "timestamp": "2024-08-04T01:23:10.455578+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -16626,7 +16626,7 @@
       ],
       "body": "There was a discussion at the interim about how having one or more priority values indicate less than best effort might be useful, and I believe client side ABR is a good use case.\r\n\r\nHow does a client decide to switch to a higher quality?  With the proposed priority scheme, the higher quality could be made lower priority, but it doesn't prevent higher quality data from consuming a large portion of the bandwidth and causing congestion that negatively impacts delivery of the lower quality.\r\n\r\nTo give a typical example, the client is considering switching to the next highest quality, which is 2x the high bitrate of the current video quality.  The current quality is consuming slightly more than 1/2 of the subscriber's bandwidth, so the subscriber will not have the bandwidth to switch to the higher quality.  Without caution, too much data could be sent and cause bufferbloat and/or loss.\r\n\r\nMy strawman proposal is that LBE means is that if the publisher only had LBE content to send, it would alter its behavior in terms of how much/when to send.  For example, the core BBR model sets the CWND to 2*BDP the vast majority of the time, but maybe LBE would not be sent unless CWND is < 1.5*BDP.  This ensures there is always CWND available for higher priority data.  Ideally BBR should be pacing limited, and when it's CWND limited, something is typically going poorly.",
       "createdAt": "2024-06-22T20:12:51Z",
-      "updatedAt": "2024-07-31T22:04:12Z",
+      "updatedAt": "2024-08-01T06:49:24Z",
       "closedAt": null,
       "comments": [
         {
@@ -16635,6 +16635,13 @@
           "body": "FWIW ... I took the discussion about less than best effort to mean that we the DSCP markings for the data would be LE as defined in https://www.rfc-editor.org/rfc/rfc8622.html - I can see value in BBR being aware if data was less than best effort or not. ",
           "createdAt": "2024-07-31T22:04:11Z",
           "updatedAt": "2024-07-31T22:04:11Z"
+        },
+        {
+          "author": "alvestrand",
+          "authorAssociation": "NONE",
+          "body": "Does QUIC have options to vary DSCP between different packets on the same connection?\r\nI remember that when we discussed DSCP in WebRTC, we landed on a recommendation that all packets under a single congestion controller MUST use the same DSCP codepoint.\r\n\r\nI've been believing that MOQ priority was \"local priority\" as defined by https://github.com/w3c/webrtc-priority/issues/7\r\n",
+          "createdAt": "2024-08-01T06:49:23Z",
+          "updatedAt": "2024-08-01T06:49:23Z"
         }
       ]
     },
@@ -17414,7 +17421,7 @@
       "labels": [],
       "body": "@fluffy and @wilaw Said that group IDs may be sparsely used, particularly in cases when they were chosen in a way to avoid collisions.\r\n\r\nThis sounds like an interesting set of use cases, but previously my understanding was that groups indicated some sort of temporal ordering, even if it's not strict.  If Group IDs don't imply temporal ordering and join points, and instead they're a way to publish Objects in a way that don't collide with one another, it seems like a different thing?\r\n\r\n\r\nTop of head strawman: Possibly different users could have the ability to publish Objects as themself for a single track?\r\n\r\nHaving a few specific use cases would be helpful here, because it feels like there are real use cases, and the existing mechanisms might be awkward at best?  It would also be useful to understand the use cases so we understand if they're in scope for MoQ.",
       "createdAt": "2024-07-26T05:03:51Z",
-      "updatedAt": "2024-07-31T21:50:22Z",
+      "updatedAt": "2024-08-01T19:58:18Z",
       "closedAt": null,
       "comments": [
         {
@@ -17514,6 +17521,44 @@
           "body": "So the use case for fetch has generally been VOD and getting the most recent 15 seconds on live streaming video. Both of these case would make sense to use sequential groups so I don't see this problem. The use case people have brought up about sparse groups are not so much cases where getting the old data makes much sense and also some of them the applications know what the groups are if they wanted them. \r\n\r\nI'm of course not suggesting a classic VOD use case would use non sequential groups,  however it might on scalable codecs, but what I don't see why the relays do anything different if groups have to be sequential or not. \r\n\r\nConsider a live streaming like use case where groups are sequential and it is stream per group. A relay gets 3 streams coming in to it and on stream A get gets an object in group 1, on stream B it just waiting and has not received anything yet. And on stream C it gets an object from group 3. I probably don't want to have the relays not send objects from group C because they are waiting for something that might arrived from group 2. I'm not understanding what people think they want to do in the relays that requires the groups to be sequential. \r\n\r\nOverall, we need a design for fetch (lacking a better name for subscribe to old data). If fetch ends up for priority reasons to be delivered over a single stream, then it upstream just puts in order stream. Of course other designs are possible but am not getting what people want and why\r\n",
           "createdAt": "2024-07-31T21:50:21Z",
           "updatedAt": "2024-07-31T21:50:21Z"
+        },
+        {
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> @suhasHere @fluffy and others,\r\n> \r\n> We're not looking for solutions to support non-sequential groups yet - we're still looking to get documentation of the application use case that drives the non-sequential group requirement.\r\n\r\nMy intent was not to provide a solution. I was instead proposing non-normative clarification text on the solution space which applies similarly regardless of the groupId structure. \r\n\r\nHowever, I feel once we resolve fetch api, flow control and limits around handling large absolute ranges, we can revisit to see if groupId are still the issue or not.",
+          "createdAt": "2024-08-01T16:32:40Z",
+          "updatedAt": "2024-08-01T16:32:40Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> They mentioned that they have a use-case in which clients will publish data under the same namespace and name, but using different ranges of groups IDs (correct me if I'm wrong there guys) and that therefore GroupIDs cannot increment by 1. \r\n\r\nAre logging and metrics the motivating use cases for multiple publishers of the same track?  Reading the drafts, it doesn't appear like that is the intent, or you could get collisions.  If you have any use cases like this, can you share them?",
+          "createdAt": "2024-08-01T19:58:17Z",
+          "updatedAt": "2024-08-01T19:58:17Z"
+        }
+      ]
+    },
+    {
+      "number": 496,
+      "id": "I_kwDOG2Ho4M6Ri8gD",
+      "title": "Content access protection: transport of authentication tokens",
+      "url": "https://github.com/moq-wg/moq-transport/issues/496",
+      "state": "OPEN",
+      "author": "gwendalsimon",
+      "authorAssociation": "NONE",
+      "assignees": [],
+      "labels": [],
+      "body": "Tokens are essential elements of security policies. In the current video streaming, the end-user (the one who consumes the content) gets one \"individual\" token from the Content Owner security system. The end-user sends this token when starting a session (requesting the manifest/playlist); the server process the token to either grant access to the stream or reject it. The token is sent from the client to the server via 1/ cookies, 2/ query parameter, 3/ URL path, 4/ HTTP header.\r\n\r\nIn MoQ, we would ideally need a token with the subscription message to decide whether an end-user can access a track or not. It looks like none of the 4 options is doable with MOQT. Am I wrong here? Should we add a \"token\" field in the subscription message to let the client add some authentication parameters, which the relay is expected to process? If so, the token could be a CWT, typically based on CTA-Wave Common Access Token.",
+      "createdAt": "2024-08-01T08:46:43Z",
+      "updatedAt": "2024-08-01T14:39:58Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "body": "There is Auth Info parameter for this purpose that will be used in Subscribe. The format of it is opaque to keep the token and other  fields specific to the application . iirc from my recollection of weekly calls, security/privacy/authz will be topic of discussions for upcoming interims ",
+          "createdAt": "2024-08-01T14:39:57Z",
+          "updatedAt": "2024-08-01T14:39:57Z"
         }
       ]
     }
@@ -61490,7 +61535,7 @@
       "labels": [],
       "body": "A tweaked version of #448 \r\n\r\nFixes #440\r\nFixes #249\r\n\r\nCloses #450 \r\nCloses #448\r\n\r\nI'll note that we might want to add params to TRACK_STATUS and allow this to be returned from that as well, which would allow a relay to keep it in its cache.\r\n\r\nAttempts to write down where we ended up at the end of the June 12th interim.",
       "createdAt": "2024-06-18T17:50:49Z",
-      "updatedAt": "2024-07-26T17:50:35Z",
+      "updatedAt": "2024-08-02T03:51:56Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "20811e3db87a7e45f6000361ecb31a50bbc4b0a6",
@@ -61636,6 +61681,19 @@
               "updatedAt": "2024-07-26T17:50:35Z"
             }
           ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6D_ms0",
+          "commit": {
+            "abbreviatedOid": "7e2ba9e"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "This looks good . ",
+          "createdAt": "2024-08-02T03:51:56Z",
+          "updatedAt": "2024-08-02T03:51:56Z",
+          "comments": []
         }
       ]
     },
@@ -63849,7 +63907,7 @@
       "labels": [],
       "body": "I have foregone any premature optimization of the encodings here.\r\n\r\nAsking @janaiyengar to take a first look.",
       "createdAt": "2024-07-26T23:09:07Z",
-      "updatedAt": "2024-07-31T18:45:54Z",
+      "updatedAt": "2024-08-01T18:20:02Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "b7a9bdf8494b4a3f2b5f2fa53a5235fd76aeb68c",
@@ -64072,6 +64130,26 @@
               "body": "I'd extract the priority part and put it in another sentence afterwards such as\r\n\r\n\"Furthermore, many implementations offer the ability to control the relative priority of streams, which allows control over the scheduling of sending data on active streams\"\r\n\r\nOr something like that",
               "createdAt": "2024-07-31T18:45:54Z",
               "updatedAt": "2024-07-31T18:45:54Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6D8Dxd",
+          "commit": {
+            "abbreviatedOid": "e5bf316"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-01T18:20:02Z",
+          "updatedAt": "2024-08-01T18:20:02Z",
+          "comments": [
+            {
+              "originalPosition": 20,
+              "body": "+1 on making it explicit that Peeps are scoped to a given Group",
+              "createdAt": "2024-08-01T18:20:02Z",
+              "updatedAt": "2024-08-01T18:20:02Z"
             }
           ]
         }
