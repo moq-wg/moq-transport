@@ -1662,8 +1662,7 @@ Table of Contents
       largest Group ID for this track.  This field is only present if
       ContentExists has a value of 1.
 
-   *  Subscribe Parameters: Optional key-value pairs formatted as
-      described in Section 6.1.1.
+   *  Subscribe Parameters: The parameters are defined in Section 6.1.1.
 
 6.13.  SUBSCRIBE_ERROR
 
