@@ -272,6 +272,12 @@ x (f):
   protocol error and SHOULD terminate the session with a Protocol
   Violation ({{session-termination}}).
 
+x (t):
+
+: Indicates that x consists of a variable length integer encoding as
+  described in ({{?RFC9000, Section 16}}), followed by that many variable length
+  tuple fields, each of which are encoded as (b) above.
+
 
 To reduce unnecessary use of bandwidth, variable length integers SHOULD
 be encoded using the least number of bytes possible to represent the
@@ -325,6 +331,20 @@ In MOQT, every track has a track name and a track namespace associated
 with it.  A track name identifies an individual track within the
 namespace.
 
+Track namespace is an N-tuple of bytes where N can be between 1 and 32.  The
+structured nature of Track Namespace allows relays and applications to
+manipulate prefixes of a namespace. Track name is a sequence of bytes.
+
+In this specification, both the Track Namespace tuple fields and the Track Name
+are not constrained to a specific encoding. They carry a sequence of bytes and
+comparison between two Track Namespace tuple fields or Track Names is done by
+exact comparison of the bytes. Specifications that use MoQ Transport may
+constrain the information in these fields, for example by restricting them to
+UTF-8. Any specification that does needs to specify the canonicalization into
+the bytes in the Track Namespace or Track Name such that exact comparison works.
+
+### Scope {#track-scope}
+
 A MOQT scope is a set of servers (as identified by their connection
 URIs) for which the tuple of Track Name and Track Namespace are
 guaranteed to be unique and identify a specific track. It is up to
@@ -340,15 +360,6 @@ MOQT does not provide any in-band content negotiation methods similar to
 the ones defined by HTTP ({{?RFC9110, Section 10}}); if, at a given
 moment in time, two tracks within the same scope contain different data,
 they have to have different names and/or namespaces.
-
-In this specification, both the Track Namespace and the Track Name are
-not constrained to a specific encoding. They carry a sequence of
-bytes and comparison between two Track Namespaces or Track Names is
-done by exact comparison of the bytes. Specifications that use MoQ Transport
-may constrain the information in these fields, for example by restricting
-them to UTF-8. Any specification that does needs to specify the
-canonicalization into the bytes in the Track Namespace or Track Name
-such that exact comparison works.
 
 ### Connection URL
 
@@ -793,6 +804,14 @@ MOQT Message {
 |-------|-----------------------------------------------------|
 | 0x10  | GOAWAY ({{message-goaway}})                         |
 |-------|-----------------------------------------------------|
+| 0x11  | SUBSCRIBE_NAMESPACE ({{message-subscribe-ns}})      |
+|-------|-----------------------------------------------------|
+| 0x12  | SUBSCRIBE_NAMESPACE_OK ({{message-sub-ns-ok}})      |
+|-------|-----------------------------------------------------|
+| 0x13  | SUBSCRIBE_NAMESPACE_ERROR ({{message-sub-ns-error}} |
+|-------|-----------------------------------------------------|
+| 0x14  | UNSUBSCRIBE_NAMESPACE ({{message-unsub-ns}})        |
+|-------|-----------------------------------------------------|
 | 0x40  | CLIENT_SETUP ({{message-setup}})                    |
 |-------|-----------------------------------------------------|
 | 0x41  | SERVER_SETUP ({{message-setup}})                    |
@@ -851,9 +870,9 @@ these parameters to appear in Setup messages.
 #### AUTHORIZATION INFO Parameter {#authorization-info}
 
 AUTHORIZATION INFO parameter (key 0x02) identifies a track's authorization
-information in a SUBSCRIBE or ANNOUNCE message. This parameter is populated for
-cases where the authorization is required at the track level. The value is an
-ASCII string.
+information in a SUBSCRIBE, SUBSCRIBE_NAMESPACE or ANNOUNCE message. This
+parameter is populated for cases where the authorization is required at the
+track level. The value is an ASCII string.
 
 #### DELIVERY TIMEOUT Parameter {#delivery-timeout}
 
@@ -1045,7 +1064,7 @@ The format of SUBSCRIBE is as follows:
 SUBSCRIBE Message {
   Subscribe ID (i),
   Track Alias (i),
-  Track Namespace (b),
+  Track Namespace (t),
   Track Name (b),
   Subscriber Priority (8),
   Group Order (8),
@@ -1191,7 +1210,7 @@ successful authorization and acceptance of an ANNOUNCE message.
 ~~~
 ANNOUNCE_OK
 {
-  Track Namespace (b),
+  Track Namespace (t),
 }
 ~~~
 {: #moq-transport-announce-ok format title="MOQT ANNOUNCE_OK Message"}
@@ -1207,7 +1226,7 @@ failed authorization.
 ~~~
 ANNOUNCE_ERROR
 {
-  Track Namespace (b),
+  Track Namespace (t),
   Error Code (i),
   Reason Phrase (b),
 }
@@ -1233,7 +1252,7 @@ receiving an ANNOUNCE_CANCEL, it SHOULD close the session as a
 
 ~~~
 ANNOUNCE_CANCEL Message {
-  Track Namespace (b),
+  Track Namespace (t),
 }
 ~~~
 {: #moq-transport-announce-cancel-format title="MOQT ANNOUNCE_CANCEL Message"}
@@ -1250,13 +1269,66 @@ A TRACK_STATUS message MUST be sent in response to each TRACK_STATUS_REQUEST.
 
 ~~~
 TRACK_STATUS_REQUEST Message {
-  Track Namespace (b),
+  Track Namespace (t),
   Track Name (b),
 }
 ~~~
 {: #moq-track-status-request-format title="MOQT TRACK_STATUS_REQUEST Message"}
 
+## SUBSCRIBE_NAMESPACE {#message-subscribe-ns}
 
+The subscriber sends the SUBSCRIBE_NAMESPACE control message to a publisher to
+request the current set of matching announcements, as well as future updates to
+the set.
+
+~~~
+SUBSCRIBE_NAMESPACE Message {
+  Track Namespace Prefix (t),
+  Number of Parameters (i),
+  Parameters (..) ...,
+}
+~~~
+{: #moq-transport-subscribe-ns-format title="MOQT SUBSCRIBE_NAMESPACE Message"}
+
+* Track Namespace Prefix: An N-Tuple of byte fields which are matched against
+track namespaces known to the publisher.  For example, if the publisher is a
+relay that has received ANNOUNCE messages for namespaces ("example.com",
+"meeting", "123", "participant=100") and ("example.com", "meeting", "123",
+"participant=200"), a SUBSCRIBE_NAMESPACE for ("example.com", "meeting", "123")
+would match both.
+
+* Parameters: The parameters are defined in {{version-specific-params}}.
+
+The publisher will respond with SUBSCRIBE_NAMESPACE_OK or
+SUBSCRIBE_NAMESPACE_ERROR.  If the SUBSCRIBE_NAMESPACE is successful,
+the publisher will forward any matching ANNOUNCE messages to the subscriber
+that it has not yet sent.  If the set of matching ANNOUNCE messages changes, the
+publisher sends the corresponding ANNOUNCE or UNANNOUNCE message.
+
+The publisher MUST ensure the subscriber is authorized to perform this
+namespace subscription.
+
+SUBSCRIBE_NAMESPACE is not required for a publisher to send ANNOUNCE and
+UNANNOUNCE messages to a subscriber.  It is useful in applications or relays
+where subscribers are only interested in or authorized to access a subset of
+available annoucements.
+
+## UNSUBSCRIBE_NAMESPACE {#message-unsub-ns}
+
+A subscriber issues a `UNSUBSCRIBE_NAMESPACE` message to a publisher indicating
+it is no longer interested in ANNOUNCE and UNANNOUNCE messages for the specified
+track namespace prefix.
+
+The format of `UNSUBSCRIBE_NAMESPACE` is as follows:
+
+~~~
+UNSUBSCRIBE_NAMESPACE Message {
+  Track Namespace Prefix (t)
+}
+~~~
+{: #moq-transport-unsub-ns-format title="MOQT UNSUBSCRIBE Message"}
+
+* Track Namespace Prefix: As defined in {{message-subscribe-ns}}.
 
 ## OBJECT {#message-object}
 
@@ -1669,7 +1741,7 @@ publish tracks under this namespace.
 
 ~~~
 ANNOUNCE Message {
-  Track Namespace (b),
+  Track Namespace (t),
   Number of Parameters (i),
   Parameters (..) ...,
 }
@@ -1690,7 +1762,7 @@ within the provided Track Namespace.
 
 ~~~
 UNANNOUNCE Message {
-  Track Namespace (b),
+  Track Namespace (t),
 }
 ~~~
 {: #moq-transport-unannounce-format title="MOQT UNANNOUNCE Message"}
@@ -1706,7 +1778,7 @@ to a TRACK_STATUS_REQUEST message.
 
 ~~~
 TRACK_STATUS Message {
-  Track Namespace (b),
+  Track Namespace (t),
   Track Name (b),
   Status Code (i),
   Last Group ID (i),
@@ -1751,6 +1823,42 @@ The receiver of multiple TRACK_STATUS messages for a track uses the information
 from the latest arriving message, as they are delivered in order on a single
 stream.
 
+## SUBSCRIBE_NAMESPACE_OK {#message-sub-ns-ok}
+
+A publisher sends a SUBSCRIBE_NAMESPACE_OK control message for successful
+namespace subscriptions.
+
+~~~
+SUBSCRIBE_NAMESPACE_OK
+{
+  Track Namespace Prefix (t),
+}
+~~~
+{: #moq-transport-sub-ns-ok format title="MOQT SUBSCRIBE_NAMESPACE_OK Message"}
+
+* Track Namespace Prefix: As defined in {{message-subscribe-ns}}.
+
+## SUBSCRIBE_NAMESPACE_ERROR {#message-sub-ns-error}
+
+A publisher sends a SUBSCRIBE_NAMESPACE_ERROR control message in response to a
+failed SUBSCRIBE_NAMESPACE.
+
+~~~
+SUBSCRIBE_NAMESPACE_ERROR
+{
+  Track Namespace Prefix (t),
+  Error Code (i),
+  Reason Phrase (b),
+}
+~~~
+{: #moq-transport-sub-ns-error format title="MOQT SUBSCRIBE_NAMESPACE_ERROR Message"}
+
+* Track Namespace Prefix: As defined in {{message-subscribe-ns}}.
+
+* Error Code: Identifies an integer error code for the namespace subscription
+failure.
+
+* Reason Phrase: Provides the reason for the namespace subscription error.
 
 
 # Security Considerations {#security}
