@@ -717,11 +717,8 @@ the session that sent ANNOUNCE namespace=foobar.
 OBJECT message headers carry a short hop-by-hop `Track Alias` that maps to
 the Full Track Name (see {{message-subscribe-ok}}). Relays use the
 `Track Alias` of an incoming OBJECT message to identify its track and find
-the active subscribers for that track. Relays MUST NOT depend on OBJECT
-payload content for making forwarding decisions and MUST only depend on the
-fields, such as priority order and other metadata properties in the
-OBJECT message header. Unless determined by congestion response, Relays
-MUST forward the OBJECT message to the matching subscribers.
+the active subscribers for that track. Unless determined by congestion response,
+Relays MUST forward the OBJECT message to the matching subscribers.
 
 ## Relay Object Handling
 
