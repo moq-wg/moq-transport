@@ -883,6 +883,16 @@ Publishers SHOULD consider whether the entire Object is likely to be delivered
 before sending any data for that Object, taking into account priorities,
 congestion control, and any other relevant information.
 
+#### MAX CACHE DURATION Parameter {#max-cache-duration}
+
+MAX_CACHE_DURATION (key 0x04): An integer expressing a number of milliseconds. If
+present, the relay MUST NOT start forwarding any individual Object received
+through this subscription after the specified number of milliseconds has elapsed
+since the beginning of the Object was received.  This means Objects earlier
+in a multi-object stream will expire earlier than Objects later in the stream.
+Once Objects have expired, their state becomes unknown, and a relay that
+handles a subscription that includes those Objects re-requests them.
+
 ## CLIENT_SETUP and SERVER_SETUP {#message-setup}
 
 The `CLIENT_SETUP` and `SERVER_SETUP` messages are the first messages exchanged
@@ -1581,10 +1591,10 @@ Values of 0x0 and those larger than 0x2 are a protocol error.
 If 0, then the Largest Group ID and Largest Object ID fields will not be
 present.
 
-* Largest Group ID: the largest Group ID available for this track. This field
+* Largest Group ID: The largest Group ID available for this track. This field
 is only present if ContentExists has a value of 1.
 
-* Largest Object ID: the largest Object ID available within the largest Group ID
+* Largest Object ID: The largest Object ID available within the largest Group ID
 for this track. This field is only present if ContentExists has a value of 1.
 
 * Subscribe Parameters: The parameters are defined in {{version-specific-params}}.
