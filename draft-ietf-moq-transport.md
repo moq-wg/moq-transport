@@ -324,9 +324,8 @@ However, the following strategy is RECOMMENDED:
 - Higher object IDs are dependent on lower object IDs in the same peep.
 
 - If two objects are dependent on the same lower object ID, but are not
-dependent on each other, one ought to assigned the same peep as the lower
-ID, but the other ought to be in a different peep. The second peep would
-ideally have a lower priority than the one with two objects.
+dependent on each other, the higher priority Object ought to be included in the same
+peep as the lower object ID, and the other Object ought to be in a different peep.
 
 - There often multiple assignment schemes that meet these conditions.
 Original publishers ought to choose an assignment that minimizes the number
