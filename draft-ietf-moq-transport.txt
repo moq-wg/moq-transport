@@ -5,13 +5,13 @@
 MOQ                                                            L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 1 February 2025                                            Meta
+Expires: 6 February 2025                                            Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                            31 July 2024
+                                                           5 August 2024
 
 
                        Media over QUIC Transport
@@ -53,7 +53,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 1 February 2025.
+   This Internet-Draft will expire on 6 February 2025.
 
 Copyright Notice
 
@@ -942,6 +942,18 @@ Table of Contents
    account priorities, congestion control, and any other relevant
    information.
 
+6.1.1.3.  MAX CACHE DURATION Parameter
+
+   MAX_CACHE_DURATION (key 0x04): An integer expressing a number of
+   milliseconds.  If present, the relay MUST NOT start forwarding any
+   individual Object received through this subscription after the
+   specified number of milliseconds has elapsed since the beginning of
+   the Object was received.  This means Objects earlier in a multi-
+   object stream will expire earlier than Objects later in the stream.
+   Once Objects have expired, their state becomes unknown, and a relay
+   that handles a subscription that includes those Objects re-requests
+   them.
+
 6.2.  CLIENT_SETUP and SERVER_SETUP
 
    The CLIENT_SETUP and SERVER_SETUP messages are the first messages
@@ -1643,10 +1655,10 @@ Table of Contents
       if not.  If 0, then the Largest Group ID and Largest Object ID
       fields will not be present.
 
-   *  Largest Group ID: the largest Group ID available for this track.
+   *  Largest Group ID: The largest Group ID available for this track.
       This field is only present if ContentExists has a value of 1.
 
-   *  Largest Object ID: the largest Object ID available within the
+   *  Largest Object ID: The largest Object ID available within the
       largest Group ID for this track.  This field is only present if
       ContentExists has a value of 1.
 
