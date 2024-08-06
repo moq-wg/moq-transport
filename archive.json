@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2024-08-04T01:23:10.455578+00:00",
+  "timestamp": "2024-08-06T01:17:53.596777+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -903,11 +903,12 @@
       "authorAssociation": "NONE",
       "assignees": [],
       "labels": [
-        "Handshake"
+        "Handshake",
+        "Parked"
       ],
       "body": "It could help to add some text on relays support and extension. I'll try to provide some input there, from draft-defoy-moq-relay-network-handling. You may want to look at this draft for more context (this draft considers both stream-based and datagram-based MOQ, but it becomes simpler here because we are only using streams).\r\n\r\n- To support future relays, which may rely on metadata not present in the base protocol, an extension mechanism seems necessary. \r\n  - Negotiation within WebTransport-based protocol: negotiation of an extension could use HTTP headers when setting up the WebTransport session with connect (this is similar to how ECN support is negotiated in MASQUE in draft-schinazi-masque-connect-udp-ecn). This makes it possible for a relay to reject a connection establishment, if the extension it needs is missing.\r\n  - Negotiation within raw QUIC-based protocol could use QUIC transport parameters.\r\n  - The interest in using HTTP headers (or QUIC transport parameters) is that the session will only be opened if all extensions are accepted. Other methods can be used (e.g., using a message at the very beginning of the QUIC session), but in this case the session will be created and closed immediately if the negotiation fails.\r\n  - One open question is whether a MOQ relay could/should participate actively to the negotiation, beyond rejecting a request it does not like. For example, it could add a header in the CONNECT request forwarded to the server, to add an extension it needs.\r\n- Even with relays that can work with metadata currently defined in the base protocol, I wonder how it would work with optional metadata. Some relays may accept optional metadata (i.e., provide a certain level of service when a metadata field is present, and provide another level of service when it is not present). But what if a relay needs a timestamp to properly provide its service? One possibility is to define and use an extension, which specifies that certain optional metadata fields are mandatory when this extension is used.\r\n- What an extension can do could include:\r\n  - Defining new frames, defining where these new frames can be used (e.g., in independent streams or within existing streams, such as \"before media data frames\").\r\n  - Mandating the use of optional fields or frames\r\n  - Specifying whether new frames are encrypted end-to-end or only authenticated.\r\n- Also should we specify somewhere that unknown frames should be ignored?",
       "createdAt": "2022-10-23T21:52:03Z",
-      "updatedAt": "2024-02-20T02:20:10Z",
+      "updatedAt": "2024-08-05T16:44:57Z",
       "closedAt": null,
       "comments": [
         {
@@ -1690,7 +1691,7 @@
       "id": "I_kwDOG2Ho4M5V-rmP",
       "title": "Timestamps and metadata redundancy",
       "url": "https://github.com/moq-wg/moq-transport/issues/34",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "vasilvv",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
@@ -1699,8 +1700,8 @@
       ],
       "body": "The draft currently defines a timestamp layer property that's the min-PTS of the bitstream in the layer.  I find those kind of parameters somewhat concerning, because the timing information at the layer level may contradict what's in CMAF (this is already a problem for certain codec/container situations that usually results in odd implementation-defined behavior).\r\n\r\nI believe that `order` should be enough, and we should remove the timestamp (the current text in the draft suggests its actual utility is currently unclear)",
       "createdAt": "2022-11-09T17:40:31Z",
-      "updatedAt": "2023-10-17T01:24:44Z",
-      "closedAt": null,
+      "updatedAt": "2024-08-05T19:43:55Z",
+      "closedAt": "2024-08-05T19:43:54Z",
       "comments": [
         {
           "author": "suhasHere",
@@ -1729,6 +1730,13 @@
           "body": "\n> And then we have a separate things, which is how long to keep this before it useless. This allows the relays to get rid of stuff that is of no use and allows the application to indicate how long it wants to be billed for storage on the relay.\n> \nWill the business model of such relay charge based on the storage? From what I know, most current Live streaming CDN system are charging for the total media delivery throughput(viewers * bitrate) which is meaningful to the customer. After all, the customer pays for its live content to be delivered instead of being stored in some kind of cold storage.\n\nThat being said, I agree the delivery order and the expiration/lifetime is two different kinds of timestamp. We should not expose both them in one form of raw media timestamp and hope that the relay/endpoint derives the correct dropping and cache purging behavior by its own logic. Better way is to define a clear command in the control message(metadata) so that relay does not need to understand the media/codec specific logic.",
           "createdAt": "2022-11-12T22:42:05Z",
           "updatedAt": "2022-11-12T22:42:05Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "There's no timestamp in the current draft, and some of the discussion here is going to delivery timeouts.  Closing as this has been overtaken by events.  Please open a new issue if you think there's something that needs to be addressed here.",
+          "createdAt": "2024-08-05T19:43:54Z",
+          "updatedAt": "2024-08-05T19:43:54Z"
         }
       ]
     },
@@ -1896,13 +1904,16 @@
       "state": "OPEN",
       "author": "suhasHere",
       "authorAssociation": "COLLABORATOR",
-      "assignees": [],
+      "assignees": [
+        "ianswett"
+      ],
       "labels": [
+        "Needs PR",
         "ABR"
       ],
       "body": "There were few discussions that discussed on dealing with congestion and needing more thinking around decisions around how and when to drop things. ",
       "createdAt": "2022-11-10T23:52:32Z",
-      "updatedAt": "2024-07-29T08:07:54Z",
+      "updatedAt": "2024-08-05T16:48:17Z",
       "closedAt": null,
       "comments": [
         {
@@ -1960,6 +1971,13 @@
           "body": "Determining a proper information-theoretic approach for building new CC mechanisms is probably the business of CCWG, not the business of MOQ.\r\n\r\n(The experience with building Goog-CC / Transport-wide is that knowing the delay of every packet is very helpful in determining what's happening in the network - but the information can be easily packed up in bundles, so it's not necessary to have an ACK for every packet.)\r\n",
           "createdAt": "2024-07-29T08:07:53Z",
           "updatedAt": "2024-07-29T08:07:53Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Ian will write a PR with best practice guidance for interaction with congestion control.",
+          "createdAt": "2024-08-05T16:48:10Z",
+          "updatedAt": "2024-08-05T16:48:10Z"
         }
       ]
     },
@@ -1971,13 +1989,13 @@
       "state": "OPEN",
       "author": "kixelated",
       "authorAssociation": "COLLABORATOR",
-      "assignees": [],
-      "labels": [
-        "Parked"
+      "assignees": [
+        "kixelated"
       ],
+      "labels": [],
       "body": "This was brought up by @suhasHere, and also at IETF 115 by @huitema.\r\n\r\nLet's assume a sender wants to transmit a stream with 3k bytes passed through a relay. The relay will read from the source stream and write any data to the destination stream. The sender fragments the stream into 3 packets of 1k bytes each.\r\n\r\n1. The 1st packet arrives. The QUIC library will flush the contents to the application, which then writes to the destination stream.\r\n2. The 2nd packet is dropped. If will be retransmitted later when a gap is detected.\r\n3. The 3rd packet arrives. The QUIC library will NOT flush the contents to the application due to the gap.\r\n4. The 2nd packet is retransmitted and arrives. The QUIC library will flush the stream contents of the 2nd and 3rd packet to the application, which then writes to the destination stream.\r\n\r\nThis relay setup means we do not immediately transmit stream contents as they arrive. Each additional relay exacerbates the issue.\r\n\r\nI will note that is not an issue specific to MoQ or even QUIC, as TCP relays suffer the same problem. However it's a larger issue for live media as latency is critical.",
       "createdAt": "2022-11-11T10:36:50Z",
-      "updatedAt": "2024-02-20T02:27:33Z",
+      "updatedAt": "2024-08-05T16:53:26Z",
       "closedAt": null,
       "comments": [
         {
@@ -2105,6 +2123,13 @@
           "body": "> This seems like an optimization one can do at the relay if the necessary library API is present. Is this something that needs text and something like a RECOMMENDED normative statement, or just leave it up to relays to do their best?\r\n\r\nYeah, I don't even think we mention it. It only matters for real-time latency over bandwidth constrained relays; situational at best.",
           "createdAt": "2023-10-17T04:23:16Z",
           "updatedAt": "2023-10-17T04:23:16Z"
+        },
+        {
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "@kixelated would  like to do a PR on this, or should we close this issue?",
+          "createdAt": "2024-08-05T16:49:49Z",
+          "updatedAt": "2024-08-05T16:49:49Z"
         }
       ]
     },
@@ -2186,7 +2211,7 @@
       "id": "I_kwDOG2Ho4M5WcLCh",
       "title": "Controlling encoding parameters on the receive side",
       "url": "https://github.com/moq-wg/moq-transport/issues/42",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "vasilvv",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
@@ -2195,8 +2220,8 @@
       ],
       "body": "Currently, all of the parameters like expiration time for layers are always configured by the sender.  This makes sense in most cases (when doing delivery to the CDN or to an end user), however, in case of ingestion, the receiver might have a better understanding of, say, when the layers should expire.  We should provide a way for the receiver to give hints to the encoder.",
       "createdAt": "2022-11-15T18:52:46Z",
-      "updatedAt": "2024-02-20T02:28:07Z",
-      "closedAt": null,
+      "updatedAt": "2024-08-05T19:42:07Z",
+      "closedAt": "2024-08-05T19:42:07Z",
       "comments": [
         {
           "author": "kixelated",
@@ -2218,24 +2243,32 @@
           "body": "+1. The receiver has the final say on the QoE. Feeding the QoE back to sender can help the sender side optimization. Like [QoE feedback in this draft](https://datatracker.ietf.org/doc/draft-ma-quic-mpqoe/).",
           "createdAt": "2023-01-28T06:40:54Z",
           "updatedAt": "2023-01-28T06:40:54Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Delivery timeouts are coming (#449) which are a way for the subscriber to influence the publisher timeouts in the ingest case.  As for codecs, etc, I think the current model is for the broadcaster to advertise all the options via a catalog and let the ingest point subscribe.  Closing for now, please open a new issue if there is still something to fix here.",
+          "createdAt": "2024-08-05T19:42:07Z",
+          "updatedAt": "2024-08-05T19:42:07Z"
         }
       ]
     },
     {
       "number": 44,
       "id": "I_kwDOG2Ho4M5Wi6ue",
-      "title": "Auto Bitrate Selection",
+      "title": "Enable Auto Bitrate Selection",
       "url": "https://github.com/moq-wg/moq-transport/issues/44",
       "state": "OPEN",
       "author": "kixelated",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [
+        "Needs Discussion",
         "ABR"
       ],
       "body": "We're unable to modify the encoder bitrate for 1:N distribution. The common approach to deal with this is to encode multiple renditions, each at a different bitrate/resolution, and choose one to serve to each viewer.\r\n\r\nMy plan is to treat each rendition as a separate track and use `group_id` to group renditions (#43). However, there's some particulars about who chooses the next track, and when that choice takes impact. Traditionally in HLS/DASH, the receiver chooses both.\r\n\r\n### WHO\r\nOne of the things that I've learned at Twitch is that client-side ABR just does not work for per frame delivery, which is necessary to minimize latency. The receiver lacks access to the sender's congestion controller and cannot measure the network bitrate when application-limited. We could have the sender frequently push the estimated bitrate to the receiver, but to be the most responsive the sender should choose the rendition to use.\r\n\r\nWe still need the ability for the receiver to choose any number of tracks manually. The user might manually select a rendition, or it might not support a rendition (based on resolution or profile), or the sender just don't know what language the user wants.\r\n\r\n### WHEN\r\nThe other thing I've learned from LL-HLS is that a constantly updating a playlist is a pain and can introduce latency. I would like something push based, where the sender just knows the next segment to push, instead of needing to constantly inform the receiver so it can select one.\r\n\r\nAnother one of my requirements is that renditions do not need to be aligned. This means renditions could have different GoP sizes, including an extremely frequent one like HESP. Just because the current track has an independently decodable segment does not mean that the requested track will also have one at the same timestamp. \r\n\r\nIt's not clear when to switch between tracks. Should it happen immediately, at the next I-frame, a previous I-frame, a specific timestamp, etc? How does the sender or receiver even know where these boundaries exist?",
       "createdAt": "2022-11-16T17:26:44Z",
-      "updatedAt": "2024-02-19T23:35:05Z",
+      "updatedAt": "2024-08-05T20:01:56Z",
       "closedAt": null,
       "comments": [
         {
@@ -2286,6 +2319,34 @@
           "body": "> Does MOQT draft prevent the server side ABR? Publisher are free to adjust the bitrate of any track, right?\r\n\r\nThe sender can do whatever it wants to do with its tracks as long as the receivers are notified of the changes (one way or another) or the changes are within acceptable limits per the catalog/manifest. None of this removes the need for client-side rate adaptation which we still need for a variety of reasons.",
           "createdAt": "2023-06-05T10:06:30Z",
           "updatedAt": "2023-06-05T10:06:30Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "The transport needs the mechanisms to enable ABR, but the algorithms for ABR are not transport.  The current mechanisms are catalogs, SUBSCRIBE, UNSUBSCRIBE, and SUBSCRIBE_UPDATE.  Let's focus this issue on whether these are sufficient.",
+          "createdAt": "2024-08-05T16:53:21Z",
+          "updatedAt": "2024-08-05T16:53:21Z"
+        },
+        {
+          "author": "wilaw",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "> Let's focus this issue on whether these are sufficient.\r\n\r\nThe current mechanisms are insufficient  to enable server-side ABR. If we chose to do it, could extend our transport API to introduce the concept of SELECTIVE-SUBSCRIBE. In this, the subscriber asks for a plurality of tracks, but sets throughput thresholds at which one should be sent to the subscriber at a time. Switch point would be next group boundary. The assumption is that the server has some notion of the throughput in that connection, in order to make that server-side decision. This doesn't doesn't require too much smarts on the server at all. If the server doesn't support it, it could reply with a SUBSCRIBE-ERROR. ",
+          "createdAt": "2024-08-05T17:29:05Z",
+          "updatedAt": "2024-08-05T17:29:05Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "@wilaw how do you think this issue intersects with #259?  Should we merge them?",
+          "createdAt": "2024-08-05T19:47:58Z",
+          "updatedAt": "2024-08-05T19:47:58Z"
+        },
+        {
+          "author": "wilaw",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "@afrind  - yes, 'server auto bitrate selection' and 'sender side ABR' are addressing the same issue. ",
+          "createdAt": "2024-08-05T20:01:54Z",
+          "updatedAt": "2024-08-05T20:01:54Z"
         }
       ]
     },
@@ -2823,98 +2884,6 @@
           "body": "Based on @kixelated suggestion, closing this as obsolete.\r\n\r\nIf there's an issue we want to extract from this, please create a new issue.",
           "createdAt": "2023-07-24T21:55:02Z",
           "updatedAt": "2023-07-24T21:55:02Z"
-        }
-      ]
-    },
-    {
-      "number": 64,
-      "id": "I_kwDOG2Ho4M5cSlj2",
-      "title": "Catalog track definition insufficient to communicate client selection criteria",
-      "url": "https://github.com/moq-wg/moq-transport/issues/64",
-      "state": "OPEN",
-      "author": "wilaw",
-      "authorAssociation": "CONTRIBUTOR",
-      "assignees": [
-        "wilaw"
-      ],
-      "labels": [
-        "streaming format draft",
-        "NotTransport"
-      ],
-      "body": "The current CATALOG allows for an overly simplistic track definition\r\n\r\n> Track Descriptor {\r\n>   Track ID (i),\r\n>   Container Format (i),\r\n>   Container Init Payload (b)\r\n> }\r\n\r\nThese fields do not include sufficient semantics to communicate selection criteria present in modern streaming productions. Some examples would include:\r\n\r\n- language  - audio tracks in english, french german\r\n- accessibility options - video description, signing\r\n- captions\r\n- subtitles \r\n- codec - HEVC, AVC, VVC\r\n- resolution - 1080p, 2160p, \r\n- framerate - 30,60,24\r\n- spatial audio - 5.1, Dolby Atmos\r\n",
-      "createdAt": "2023-01-19T01:21:12Z",
-      "updatedAt": "2023-11-10T12:17:08Z",
-      "closedAt": null,
-      "comments": [
-        {
-          "author": "vasilvv",
-          "authorAssociation": "COLLABORATOR",
-          "body": "That is by design.  All of those are available in the Container Init Payload, which in case of fMP4 would contain a MOOV atom.",
-          "createdAt": "2023-01-21T03:03:44Z",
-          "updatedAt": "2023-01-21T03:03:44Z"
-        },
-        {
-          "author": "suhasHere",
-          "authorAssociation": "COLLABORATOR",
-          "body": "This assumes fMP4 as the only container format and supports a specific set of use-cases with specific set of constraints\r\n",
-          "createdAt": "2023-01-22T01:42:55Z",
-          "updatedAt": "2023-01-22T01:42:55Z"
-        },
-        {
-          "author": "vasilvv",
-          "authorAssociation": "COLLABORATOR",
-          "body": "Indeed, if you are defining a format that is not fMP4, you would need to figure out how to specify all of those details for the newly defined format.",
-          "createdAt": "2023-01-22T17:13:48Z",
-          "updatedAt": "2023-01-22T17:13:48Z"
-        },
-        {
-          "author": "suhasHere",
-          "authorAssociation": "COLLABORATOR",
-          "body": "That's true ... but I am not seeing a reason why CATALOG message define any structure .. All it needs is \r\n\r\n```\r\nCATALOG Message {\r\n  WarpStreamid/TrackId\r\n [Container Type(8)],\r\n  Length(i),\r\n  Payload(...)...\r\n}\r\n``` \r\nplease note the catalog payload might be encrypted too and its contents is not useful for intermediaries .",
-          "createdAt": "2023-01-23T23:16:04Z",
-          "updatedAt": "2023-01-23T23:16:54Z"
-        },
-        {
-          "author": "kixelated",
-          "authorAssociation": "COLLABORATOR",
-          "body": "> That's true ... but I am not seeing a reason why CATALOG message define any structure .. All it needs is\r\n> \r\n> ```\r\n> CATALOG Message {\r\n>   WarpStreamid/TrackId\r\n>  [Container Type(8)],\r\n>   Length(i),\r\n>   Payload(...)...\r\n> }\r\n> ```\r\n> \r\n> please note the catalog payload might be encrypted too and its contents is not useful for intermediaries .\r\n\r\nYep that's the idea, and is almost verbatim in the draft. The only difference is that a CATALOG message can have multiple tracks, but each `Track Descriptor` is exactly as you described.\r\n\r\nI like the idea of splitting each track descriptor into a separate message (#43 had the TRACK message) so tracks can be added/updated/removed independently. The CATALOG message with all tracks was a compromise.",
-          "createdAt": "2023-01-27T14:53:22Z",
-          "updatedAt": "2023-01-27T14:53:22Z"
-        },
-        {
-          "author": "kixelated",
-          "authorAssociation": "COLLABORATOR",
-          "body": "> The current CATALOG allows for an overly simplistic track definition\r\n> \r\n> > Track Descriptor {\r\n> > Track ID (i),\r\n> > Container Format (i),\r\n> > Container Init Payload (b)\r\n> > }\r\n> \r\n> These fields do not include sufficient semantics to communicate selection criteria present in modern streaming productions. Some examples would include:\r\n> \r\n> * language  - audio tracks in english, french german\r\n> * accessibility options - video description, signing\r\n> * captions\r\n> * subtitles\r\n> * codec - HEVC, AVC, VVC\r\n> * resolution - 1080p, 2160p,\r\n> * framerate - 30,60,24\r\n> * spatial audio - 5.1, Dolby Atmos\r\n\r\nLike Victor mentioned, [he realized](https://github.com/kixelated/warp-draft/pull/43#issuecomment-1319023237) that most of this stuff was already in the fMP4 init segment (`trak` box) and it was redundant to include in the CATALOG. The relay shouldn't parse any of this information so it's nice to delegate it to an opaque \"container format\" blob that only the broadcaster/viewer will support.\r\n\r\nI think all of your examples are present in `trak` but there's a few things missing in fMP4 that might be useful, like peak bitrate, and we should discuss how to add those fields. Modify fMP4? Add a new track format? Add additional fields to the CATALOG message?\r\n\r\nI'd love to see us specify more track formats. A possible example would be \"HLS\", where the `Container Init Payload` would be a `EXT-X-STREAM-INF` string and the `Object Payload` would be a TS segment (including SPS/PPS). And possibly rename \"container\" to something else (\"track format\"?) so it's less confusing.",
-          "createdAt": "2023-01-27T16:02:20Z",
-          "updatedAt": "2023-01-27T16:03:47Z"
-        },
-        {
-          "author": "wilaw",
-          "authorAssociation": "CONTRIBUTOR",
-          "body": "Label for Ted: Architectural",
-          "createdAt": "2023-01-28T00:17:59Z",
-          "updatedAt": "2023-01-28T00:17:59Z"
-        },
-        {
-          "author": "wilaw",
-          "authorAssociation": "CONTRIBUTOR",
-          "body": "The resolution of this issue depends on two other issues - specifically [Relax the CATALOG definition to decouple the base protocol from the streaming format #66](https://github.com/kixelated/warp-draft/issues/66) and [Move Catalog details to its own spec #85](https://github.com/kixelated/warp-draft/issues/85). If either of these issues is adopted, then the track definition will be a function of the CATALOG description that may or may not reside in a separate spec. \r\n\r\nIf neither issue is adopted, then we need to address how to extend the the current WARP draft track definition. \r\n\r\n> here's a few things missing in fMP4 that might be useful, like peak bitrate, and we should discuss how to add those fields. Modify fMP4? Add a new track format? Add additional fields to the CATALOG message?\r\n\r\n@kixelated  - modifying fmp4 via ISO/MPEG will take a long time and is not a process we would want to follow for ad-hoc changes to selection criteria. The more flexible path for MoQ would be to extend the track format and/or CATALOG message fields to hold the new selection criteria. While we could hang new fields off of CATALOG, they would increase with application requirements. Consider for example a live VR game in which the client subscribes to streaming mp4 texture maps based on spatial location, velocity and degree-of-invisibility (i'm making that up to illustrate my point). We could add TRACK.location, TRACK.velocity and TRACK.invisibility.  This could take a year or so to push through IETF. Then we'd need to wait for relay providers  to pick up those changes and deploy support for them. That could take another year. That's a long delay before the game developer could use MoQ to stream their game in production. And that's just one application. What if there were ten different ones that all needed different fields in the CATALOG. After years of updates, we'd have 50 or more custom fields in TRACK catering to different applications. So a more flexible approach would be define a standardized key/value selection field for TRACK for carrying application-specific selection criteria not contained within the INIT object. For example TRACK.SELECTION = [{key:value}]. This could be used by all applications for custom selection and it would not require any spec updates. ",
-          "createdAt": "2023-02-27T20:21:00Z",
-          "updatedAt": "2023-02-27T20:21:00Z"
-        },
-        {
-          "author": "afrind",
-          "authorAssociation": "COLLABORATOR",
-          "body": "Catalog track definitions are being moved out to https://github.com/wilaw/MoQ, so maybe we can close this?",
-          "createdAt": "2023-05-05T20:25:03Z",
-          "updatedAt": "2023-05-05T20:25:03Z"
-        },
-        {
-          "author": "afrind",
-          "authorAssociation": "COLLABORATOR",
-          "body": "@wilaw do you have this issue captured in your repo and can you close this out?",
-          "createdAt": "2023-05-26T23:41:58Z",
-          "updatedAt": "2023-05-26T23:41:58Z"
         }
       ]
     },
@@ -3578,54 +3547,6 @@
       ]
     },
     {
-      "number": 71,
-      "id": "I_kwDOG2Ho4M5dDLQ-",
-      "title": "Generic clients connect via single URL ",
-      "url": "https://github.com/moq-wg/moq-transport/issues/71",
-      "state": "OPEN",
-      "author": "kixelated",
-      "authorAssociation": "COLLABORATOR",
-      "assignees": [],
-      "labels": [
-        "Requirement",
-        "NotTransport"
-      ],
-      "body": "This is more of a requirement. \n\nWe need the ability for generic clients to publish and/or view a broadcast via a single URL. Examples of generic clients include OBS, ffmpeg, ExoPlayer, moq.js (TBD), and any other implementations.\n\nCurrently, Twitch broadcasters publish broadcasts via a `rtmp://` URL and viewers can consume via a HTTP HLS URL. We would want something similar for MoQ.\n\nIf there's a good reason we can require more than just a URL, but it has to be simple enough and explicitly part of the specification. No punting responsibility to the application because it hurts interoperability. An example is WebRTC, which did not specify how to exchange the SDP offer, and was only recently fixed by introducing WHIP and WHEP.",
-      "createdAt": "2023-01-29T04:01:30Z",
-      "updatedAt": "2024-02-19T23:37:15Z",
-      "closedAt": null,
-      "comments": [
-        {
-          "author": "afrind",
-          "authorAssociation": "COLLABORATOR",
-          "body": "Based on how the current draft reads, I think you could construct a URL like:\r\n\r\nhttps://example.org/webtransport-endpoint?full-track-name=X&auth=token\r\n\r\n[or similar for raw QUIC, but using the moq:// scheme]\r\n\r\nThis would establish a QUIC/H3 connection to example.org, a session to /webtransport-endpoint (WT CONNECT or SETUP PATH) and a SUBSCRIBE to full-track-name, with the associated auth (see #159 for example flow).\r\n\r\nThere are of course other ways to spell this.  Should this draft explain how to go from a full URL through connection/session establishment + sequence of messages?\r\n\r\n@kixelated ",
-          "createdAt": "2023-05-26T23:41:09Z",
-          "updatedAt": "2023-05-26T23:41:09Z"
-        },
-        {
-          "author": "fluffy",
-          "authorAssociation": "CONTRIBUTOR",
-          "body": "I think this should be in it's own draft, not part of the transport draft. It need to point at the appropriate catalog, transport etc.  I think it should also specify what media codecs are MTI and what are optional.  To have interoperable, it needs to be that if I give the player the URL, I know that if can be played.  Similarly, if the URL is publish, a client that is implements whatever the spec that de",
-          "createdAt": "2023-10-05T11:35:10Z",
-          "updatedAt": "2023-10-05T11:35:10Z"
-        },
-        {
-          "author": "kixelated",
-          "authorAssociation": "COLLABORATOR",
-          "body": "Yeah, this would be part of the Warp draft, not the transport draft.",
-          "createdAt": "2023-10-05T11:36:42Z",
-          "updatedAt": "2023-10-05T11:36:42Z"
-        },
-        {
-          "author": "afrind",
-          "authorAssociation": "COLLABORATOR",
-          "body": "What is the relationship of this issue to #268?  Can one be closed?",
-          "createdAt": "2023-11-10T12:18:33Z",
-          "updatedAt": "2023-11-10T12:18:33Z"
-        }
-      ]
-    },
-    {
       "number": 73,
       "id": "I_kwDOG2Ho4M5dLiMt",
       "title": "QUIC is over UDP",
@@ -3811,13 +3732,16 @@
       "state": "OPEN",
       "author": "kpugin",
       "authorAssociation": "COLLABORATOR",
-      "assignees": [],
+      "assignees": [
+        "fluffy"
+      ],
       "labels": [
+        "Announce",
         "Subscribe"
       ],
       "body": "In [Model](https://github.com/kixelated/warp-draft/blame/main/draft-lcurley-warp.md#L186) section it says that each Media object is uniquely identified within broadcast, track, etc. I am wondering how reconnect would work - wouldn't it require publisher to maintain state? What happens if one encoder box fails and broadcast needs to be resumed from another box?",
       "createdAt": "2023-01-31T16:39:49Z",
-      "updatedAt": "2024-02-19T23:36:10Z",
+      "updatedAt": "2024-08-05T17:03:51Z",
       "closedAt": null,
       "comments": [
         {
@@ -4217,7 +4141,7 @@
       "id": "I_kwDOG2Ho4M5dZtXh",
       "title": "1 producer received per broadcast? multiple producers received per broadcast",
       "url": "https://github.com/moq-wg/moq-transport/issues/87",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "vr000m",
       "authorAssociation": "NONE",
       "assignees": [],
@@ -4226,8 +4150,8 @@
       ],
       "body": "There seems to be a strong assumption to have 1 publisher in a broadcast. \r\n\r\nFor use-cases in which there are multiple broadcasters, is the viewer watching one broadcast or several? There is a bandwidth/fairness consequence of a viewer watching multiple broadcasts.\r\n\r\nFor example: NFL Red zone.\r\n\r\nESPN is ingesting several broadcasts, each game could be its own broadcast. some one could be watching just one of the games, however, it is possible for a viewer watching Red zone get simultaneous games, the priority of these individual feeds maybe equal. In this case the relay and the viewer can co-ordinate a way to get all/some of the streams depending on the user-experience.\r\n\r\nOr another similar example is video conferencing, such as, town halls, fitness, newscasts, etc. where there may be a few speakers and several more viewers.",
       "createdAt": "2023-02-01T23:29:54Z",
-      "updatedAt": "2023-10-18T02:55:18Z",
-      "closedAt": null,
+      "updatedAt": "2024-08-05T19:38:25Z",
+      "closedAt": "2024-08-05T19:38:25Z",
       "comments": [
         {
           "author": "suhasHere",
@@ -4284,6 +4208,13 @@
           "body": "Thanks, I misunderstood this issue.\r\n\r\nI'm happy to close it, but it sounds like it's definitely NotTransport, so I marked it as such for now.",
           "createdAt": "2023-07-24T23:58:54Z",
           "updatedAt": "2023-07-24T23:58:54Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> I think this issue is concerns muxing. If I have N input broadcasts/connections, can I combine them into 1 output broadcast/connection?\r\n\r\nThe answer in the current draft is yes.  An entity can consume N broadcasts and publish their own that is a composition of the inputs.",
+          "createdAt": "2024-08-05T19:38:25Z",
+          "updatedAt": "2024-08-05T19:38:25Z"
         }
       ]
     },
@@ -5684,18 +5615,20 @@
     {
       "number": 131,
       "id": "I_kwDOG2Ho4M5i5bBa",
-      "title": "Overhead for audio only conference ",
+      "title": "Compute overhead for audio only conference ",
       "url": "https://github.com/moq-wg/moq-transport/issues/131",
       "state": "OPEN",
       "author": "fluffy",
       "authorAssociation": "CONTRIBUTOR",
-      "assignees": [],
+      "assignees": [
+        "suhasHere"
+      ],
       "labels": [
         "NotTransport"
       ],
       "body": "We need to work to get the number of bytes sent for a use case like clubhouse to relatively efficient. ( I am thinking something similar to RTP ) \r\n\r\n",
       "createdAt": "2023-04-07T21:29:02Z",
-      "updatedAt": "2023-11-10T12:44:15Z",
+      "updatedAt": "2024-08-05T19:37:01Z",
       "closedAt": null,
       "comments": [
         {
@@ -5718,6 +5651,13 @@
           "body": "Individual Comment:\r\n\r\n+1 that this measurement is very useful, an interested party asked me for the same.  \r\n\r\nCan we assign someone who is able to send audio over moqt-01 (perhaps @suhasHere or @jordicenzano) to compute the current overhead with their implementation?  This data may inform further work we need to do.",
           "createdAt": "2023-11-10T12:44:14Z",
           "updatedAt": "2023-11-10T12:44:14Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "@suhasHere can you measure this in your implementation and report back",
+          "createdAt": "2024-08-05T19:37:00Z",
+          "updatedAt": "2024-08-05T19:37:00Z"
         }
       ]
     },
@@ -6174,60 +6114,6 @@
           "body": "Both proposals are in the draft.",
           "createdAt": "2023-05-26T23:24:10Z",
           "updatedAt": "2023-05-26T23:24:10Z"
-        }
-      ]
-    },
-    {
-      "number": 140,
-      "id": "I_kwDOG2Ho4M5kAWuG",
-      "title": "Supporting a publisher outputting multiple media formats simultaneously",
-      "url": "https://github.com/moq-wg/moq-transport/issues/140",
-      "state": "OPEN",
-      "author": "wilaw",
-      "authorAssociation": "CONTRIBUTOR",
-      "assignees": [],
-      "labels": [
-        "NotTransport"
-      ],
-      "body": "In the current workflow, the client requests a catalog using a reserved name and that catalog specifies which media format it represents using an IANA registered ID. There can only be one catalog, and hence one media format, for a given content bundle. \r\n\r\nWhat happens if the publisher wants to publish content via two different media formats simultaneously? Should we allow this and if so, how can we enable the identification of the formats that are available? \r\n\r\nDoes the client need to be able to ask which formats are available for a given resource before requesting the catalog for that format? \r\n\r\n",
-      "createdAt": "2023-04-21T05:05:17Z",
-      "updatedAt": "2023-10-17T01:22:28Z",
-      "closedAt": null,
-      "comments": [
-        {
-          "author": "suhasHere",
-          "authorAssociation": "COLLABORATOR",
-          "body": "this issue made me think that we need to define following terms in the transport spec\r\n- media format\r\n- media container format\r\n- catalog format\r\n\r\nI wonder if `meida format` is too generic a term ?",
-          "createdAt": "2023-04-21T06:17:50Z",
-          "updatedAt": "2023-04-21T06:17:50Z"
-        },
-        {
-          "author": "wilaw",
-          "authorAssociation": "CONTRIBUTOR",
-          "body": "In discussing this with @kixelated we came up with several different solutions\r\n\r\n1. We continue what works for HLS and DASH today, which is that the client knows what format it expects before it begins playback. The connection URL to the publisher dictates what format is used by the catalog and only one catalog. IN a world where we have MoQ formats also called HLS and DASH (for simplicity), this would look like:\r\n\r\nClient connects to `https://cdn.example.com/hls/some/path`\r\nA 'catalog' subscription returns a catalog in hls format\r\n\r\nClient connects to `https://cdn.example.com/dash/some/path`\r\nA 'catalog' subscription returns a catalog in dash format\r\n\r\n\r\n2. We create reserved catalog names for each media format. They can specify these names as part of their IANA reservation. \r\n\r\nClient connects to `https://cdn.example.com/some/path`\r\nA subscription to \"catalog-hls' returns a catalog in hls format\r\nA subscription to \"catalog-dash' returns a catalog in the dash format\r\n\r\n3. The publisher returns a master catalog that lists all the media formats and their tracks that it is producing. \r\nClient connects to `https://cdn.example.com/some/path`\r\nA subscription to 'catalog' returns a catalog with the following pseudo-structure\r\n\r\n```\r\nCatalog {\r\n    Formats [\r\n        { hls : tracks [ ..] }\r\n        { dash : tracks [ ..] }\r\n    ]\r\n}\r\n```\r\n\r\n\r\n\r\n",
-          "createdAt": "2023-04-21T15:42:47Z",
-          "updatedAt": "2023-04-21T15:42:47Z"
-        },
-        {
-          "author": "hardie",
-          "authorAssociation": "COLLABORATOR",
-          "body": "On Fri, Apr 21, 2023 at 4:42\u202fPM Will Law ***@***.***> wrote:\n\n> In discussing this with @kixelated <https://github.com/kixelated> we came\n> up with several different solutions\n>\n>    1. We continue what works for HLS and DASH today, which is that the\n>    client knows what format it expects before it begins playback. The\n>    connection URL to the publisher dictates what format is used by the catalog\n>    and only one catalog. IN a world where we have MoQ formats also called HLS\n>    and DASH (for simplicity), this would look like:\n>\n> Client connects to https://cdn.example.com/hls/some/path\n> A 'catalog' subscription returns a catalog in hls format\n>\n> Client connects to https://cdn.example.com/dash/some/path\n> A 'catalog' subscription returns a catalog in dash format\n>\n(personal hat)\n\nBoth BCP 56 and BCP 190 strongly urge protocol designers not to assume that\nyou can define path elements as specific to a particular usage of HTTP\n(Section 3.2 of BCP 56 and BCP 190 Section 2.3).  Other than .well-known,\nthis approach has to be a hint or it's probably a non-starter.\n\nregards,\n\nTed\n\n\n>    1. We create reserved catalog names for each media format. They can\n>    specify these names as part of their IANA reservation.\n>\n> Client connects to https://cdn.example.com/some/path\n> A subscription to \"catalog-hls' returns a catalog in hls format\n> A subscription to \"catalog-dash' returns a catalog in the dash format\n>\n>    1. The publisher returns a master catalog that lists all the media\n>    formats and their tracks that it is producing.\n>    Client connects to https://cdn.example.com/some/path\n>    A subscription to 'catalog' returns a catalog with the following\n>    pseudo-structure\n>\n> Catalog {\n>     Formats [\n>         { hls : tracks [ ..] }\n>         { dash : tracks [ ..] }\n>     ]\n> }\n>\n> \u2014\n> Reply to this email directly, view it on GitHub\n> <https://github.com/kixelated/warp-draft/issues/140#issuecomment-1518017619>,\n> or unsubscribe\n> <https://github.com/notifications/unsubscribe-auth/AAKVXZGCKFOWGO3GTXH6DXTXCKTIFANCNFSM6AAAAAAXGMCBNQ>\n> .\n> You are receiving this because you are subscribed to this thread.Message\n> ID: ***@***.***>\n>\n",
-          "createdAt": "2023-04-21T16:55:43Z",
-          "updatedAt": "2023-04-21T16:55:43Z"
-        },
-        {
-          "author": "suhasHere",
-          "authorAssociation": "COLLABORATOR",
-          "body": "Why can't we either specify in SETUP message or add as Track Request Parameter to identify the format needed ?",
-          "createdAt": "2023-04-22T00:14:06Z",
-          "updatedAt": "2023-04-22T00:14:06Z"
-        },
-        {
-          "author": "fluffy",
-          "authorAssociation": "CONTRIBUTOR",
-          "body": "wow - I wish we called this something different than media format. I thought this bug was going to be about if I could output AV1 and AV2 and the same time. We absolutely need to be about have a client that supports AV1 and AV2 be able to do both or we have no way to transitions from AV1 to AV2 before all clients support AV2. \r\n\r\nI suspect we have the same issues here, if a system is trying to move from an old format say DASH  to something new like QuicDASH, you will want publishes to be able to publish both during the transition and the old clients to subscribe to the old and clients that support both to subscribe to the new. ",
-          "createdAt": "2023-04-22T14:16:11Z",
-          "updatedAt": "2023-04-22T14:16:11Z"
         }
       ]
     },
@@ -7235,7 +7121,7 @@
       "id": "I_kwDOG2Ho4M5mY0EA",
       "title": "Document full contribution and distribution flow",
       "url": "https://github.com/moq-wg/moq-transport/issues/159",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "kixelated",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
@@ -7244,8 +7130,8 @@
       ],
       "body": "Here's what I think the full flow looks like. It hasn't been explicitly stated, and maybe that's the source of some disagreements.\r\n\r\n### Step 1 - Producer configuration\r\nA producer (ex. OBS) is given a few pieces of information:\r\n- `connect_url`: Used to establish the WebTransport/QUIC connection.\r\n- `track_namespace`: Used to identify the broadcast.\r\n- `auth`: Any authentication details that need to be provided.\r\n\r\n### Step 2 - Producer catalog\r\nThe producer creates a catalog that contains any number of tracks. Each track has:\r\n- `track_namespace`: (optional) if not provided, the track inherits the catalog namespace.\r\n- `track_name`: This is specific to the application (ex. \"audio\", \"video_480p\", etc).\r\n- `media_properties`: Indicates how media is encoded, and how tracks are related to each other.\r\n\r\n### Step 3 - Producer connect\r\nThe producer establishes the QUIC connection to the provided `connect_url`.\r\n\r\n### Step 4 - Producer announce\r\nWhen it is ready, the producer sends an ANNOUNCE containing: \r\n- `track_namespace`\r\n- `auth`\r\n\r\nThe server replies with ANNOUNCE OK. The broadcast is now ready for consumption.\r\n\r\n### Step 5 - Consumer configuration\r\nA consumer (ex. VLC) is given a few pieces of information:\r\n- `connect_url`\r\n- `track_namespace`\r\n- `auth`\r\n\r\n### Step 6 - Consumer connect\r\nThe consumer establishes the QUIC connection to the provided `connect_url`.\r\n\r\n### Step 7 - Consumer catalog\r\nThe consumer issues a SUBSCRIBE for the catalog:\r\n- `track_namespace`\r\n- `track_name`: `catalog` or `/` (TODO)\r\n- `auth`\r\n\r\n### Step 8 - Relay routing\r\nAny intermediate relay (optional with peer-to-peer) will route the SUBSCRIBE to the publisher. SUBSCRIPTIONS may be deduplicated and cached if the relay is able to perform authentication.\r\n\r\nThe producer replies with a SUBSCRIBE OK and transmits OBJECTs for the requested track. The OBJECTs flow back over the same connection as the SUBSCRIBE until they reach the consumer(s).\r\n\r\n### Step 9 - Consumer parses catalog\r\nThe consumer receives the catalog and parses it. For each track, it learns:\r\n- `track_namespace`\r\n- `track_name`\r\n- `media_properties`\r\n\r\n### Step 10 - Consumer subscribe\r\nThe consumer issues a SUBSCRIBE for each track it would like. These flow to the publisher and back as described in step 8.",
       "createdAt": "2023-05-19T20:24:17Z",
-      "updatedAt": "2024-02-20T02:32:29Z",
-      "closedAt": null,
+      "updatedAt": "2024-08-05T19:34:35Z",
+      "closedAt": "2024-08-05T19:34:35Z",
       "comments": [
         {
           "author": "afrind",
@@ -7267,6 +7153,13 @@
           "body": "Should we move this to a wiki or something?",
           "createdAt": "2023-10-03T23:47:11Z",
           "updatedAt": "2023-10-03T23:47:11Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I'm closing this issue as it doesn't represent something that needs to change right now.",
+          "createdAt": "2024-08-05T19:34:35Z",
+          "updatedAt": "2024-08-05T19:34:35Z"
         }
       ]
     },
@@ -7871,74 +7764,6 @@
       ]
     },
     {
-      "number": 208,
-      "id": "I_kwDOG2Ho4M5oFml2",
-      "title": "Streaming format negotiation",
-      "url": "https://github.com/moq-wg/moq-transport/issues/208",
-      "state": "OPEN",
-      "author": "fiestajetsam",
-      "authorAssociation": "NONE",
-      "assignees": [],
-      "labels": [
-        "NotTransport"
-      ],
-      "body": "At June interim Wil Law presented the [WARP streaming format](https://datatracker.ietf.org/doc/slides-interim-2023-moq-08-sessa-warp-streaming-format/), which identifies itself within the payload using the first varint bytes. This is a concern as it implies:\r\n* All formats must at least start with a varint, and does not permit other formats to use different structures\r\n* It could impede negotiation for catalogue formats as it happens after at least one format is sent\r\n\r\nDiscussion in the chat suggested to provide the format in the transport as part of an ANNOUNCE, but instead of having it as part of the name, if it makes sense to use a varint include it as a separate field.",
-      "createdAt": "2023-06-07T16:42:27Z",
-      "updatedAt": "2023-10-18T02:53:58Z",
-      "closedAt": null,
-      "comments": [
-        {
-          "author": "kixelated",
-          "authorAssociation": "COLLABORATOR",
-          "body": "I think it's strange to include the catalog format/version inside the catalog itself. It means a subscriber has to request the catalog before it knows if it can parse it. \r\n\r\nHere's my proposal for \"track format\" as part of the ANNOUNCE (#150). It basically moves the track format/version varint to the ANNOUNCE message, allowing it to behave like a catalog of catalogs.\r\n\r\nAn alternative I kind of like is something @vasilvv has mentioned. We can use the track name to identify the catalog format, much like how an extension is used to identify a file format. For example, `ANNOUNCE catalog.moov catalog.m3u8` would advertise two possible catalog tracks.",
-          "createdAt": "2023-06-09T04:43:41Z",
-          "updatedAt": "2023-06-09T04:43:41Z"
-        },
-        {
-          "author": "fiestajetsam",
-          "authorAssociation": "NONE",
-          "body": "@kixelated I don't think using \"file extensions\" like Victor suggested would be good for implementations - all the other data is part of a structure of some kind, but to separate catalog name from format you have to `split('.')` seems a kludge. I think ANNOUNCE might need a bit more thought on its structure and both sender/receiver behaviours - in particular being descriptive of what happens when a format is unsupported. I'm happy to make a PR.",
-          "createdAt": "2023-06-09T08:05:57Z",
-          "updatedAt": "2023-06-09T08:05:57Z"
-        },
-        {
-          "author": "vasilvv",
-          "authorAssociation": "COLLABORATOR",
-          "body": "To clarify, my proposal was roughly:\r\n\r\n1. Every format has an associated catalog name (`/warp`, `/loc`, or, if we unify the catalog format, `/catalog_v1` or something).\r\n2. The client knows the names of the catalogs corresponding to formats that it supports, so it just sends something like `SUBSCRIBE /warp OR /loc OR /someotherformat`, and it will result in being subscribed to the first format that exists.\r\n\r\nNote that this does require a SUBSCRIBE message that allows requesting a list of multiple alternative tracks, but it keeps the ANNOUNCE message as-is.  An alternative would be having a list of available catalogs in ANNOUNCE, and only subscribing to one of those.\r\n\r\n> all the other data is part of a structure of some kind, but to separate catalog name from format you have to split('.') seems a kludge\r\n\r\nYou don't have to separate those, those are fixed strings.",
-          "createdAt": "2023-06-09T09:03:46Z",
-          "updatedAt": "2023-06-09T09:03:46Z"
-        },
-        {
-          "author": "kixelated",
-          "authorAssociation": "COLLABORATOR",
-          "body": "Sorry @vasilvv, I didn't meant to misrepresent your proposal. Let me try to summarize the options proposed so far.\r\n\r\n**How does the receiver learn about available catalog tracks?**\r\n  1. There's a fixed catalog track.\r\n  2. There's a fixed catalog track per format, and the receiver blindly subscribes to all supported formats.\r\n  3. The ANNOUNCE messages contains a list of tracks.\r\n\r\n**How is the track format encoded?**\r\n  1. The first few bytes of the track\r\n  2. The full name of the track.\r\n  3. The track name prefix/suffix.\r\n  4. A separate field in ANNOUNCE.\r\n\r\nAll of the proposal need some sort of track format registry.",
-          "createdAt": "2023-06-09T17:46:21Z",
-          "updatedAt": "2023-06-09T17:46:21Z"
-        },
-        {
-          "author": "kixelated",
-          "authorAssociation": "COLLABORATOR",
-          "body": "I personally like making ANNOUNCE mandatory, sent immediately after SETUP when ROLE=publisher. At a minimum, the ANNOUNCE contains a list of catalog tracks and some way to identify the format.\r\n\r\nThat way receiver knows that a track both exists and is supported _prior_ to subscribing to it.",
-          "createdAt": "2023-06-09T17:56:30Z",
-          "updatedAt": "2023-06-09T17:56:30Z"
-        },
-        {
-          "author": "wilaw",
-          "authorAssociation": "CONTRIBUTOR",
-          "body": "I like Victor's proposal of each streaming format defining a unique name for its catalog. We can ensure uniqueness by having the catalog name being one of the registered attributes in the IANA table for MOQT Streaming Formats. \r\n\r\nSince a catalog is just a track, the ANNOUNCE does not have to specify the type of streaming format, it simply announces the name of the track, since the the name would then infers the type. \r\n\r\nFurther, if we enforce the convention that track names are relative to the catalog (or conversely that track names carry the catalog full track name as a prefix), then we have a concise mechanism for announcing multi-format content. Consider the case of a producer emitting two sets of content, one packaged for /warp and the other for /loc. \r\n\r\nThe total tracks it is producing would be:\r\nexample.com/alice/12345/warp\r\nexample.com/alice/12345/warp/video\r\nexample.com/alice/12345/warp/audio\r\nexample.com/alice/12345/loc\r\nexample.com/alice/12345/loc/abc/front\r\nexample.com/alice/12345/loc/abc/back\r\nexample.com/alice/12345/loc/abc/audio\r\n\r\nThe ANNOUNCE could then simply advertise the catalogs\r\n{\r\nexample.com/alice/12345/warp;\r\nexample.com/alice/12345/loc\r\n}\r\n\r\nIn fact, since relays don't need to understand catalog formats, the ANNOUNCE could just advertise the minimum common path for the all the content that client is publishing, which would be\r\n{\r\nexample.com/alice/12345/\r\n}\r\n\r\n\r\n\r\n",
-          "createdAt": "2023-06-22T23:34:23Z",
-          "updatedAt": "2023-06-22T23:34:23Z"
-        },
-        {
-          "author": "alvestrand",
-          "authorAssociation": "NONE",
-          "body": "Note that reusing the \"track\" namespace for a set of standardized names now means that you have both a controlled namespace (the standard names) and an uncontrollled namespace (server chosen names) in the same protocol field.\r\n\r\nIf you want to do that, good practice is to reserve some prefix for one of the usages, so that they can never collide.\r\n",
-          "createdAt": "2023-07-24T23:25:10Z",
-          "updatedAt": "2023-07-24T23:25:10Z"
-        }
-      ]
-    },
-    {
       "number": 209,
       "id": "I_kwDOG2Ho4M5oPWU4",
       "title": "Naming: Track ID or Subscription ID or ?",
@@ -8442,13 +8267,15 @@
       "state": "OPEN",
       "author": "gwendalsimon",
       "authorAssociation": "NONE",
-      "assignees": [],
+      "assignees": [
+        "afrind"
+      ],
       "labels": [
-        "NotTransport"
+        "Needs PR"
       ],
       "body": "Line 572. \u201c[Relays] MUST only depend on the fields [for making forwarding decisions]\u201d. \r\n\r\nI am not sure to understand why we would like to restrict here the behavior of Relays to forward the Objects to subscribers.  We can imagine edge processing for the implementation of forwarding decisions based on third-party validation (possibly based on payload). Furthermore, this restriction is not necessary for the norm to be implemented.",
       "createdAt": "2023-06-20T06:38:24Z",
-      "updatedAt": "2024-02-19T23:28:13Z",
+      "updatedAt": "2024-08-05T18:53:30Z",
       "closedAt": null,
       "comments": [
         {
@@ -8471,6 +8298,13 @@
           "body": "I am always confused when we use the term Relay to mean more than one thing. My thinking so far is, these are the middleboxes who have no role with payload of the MOQ objects. Yes, it cannot be enforced and a implementation can do whatever it wants. However, when we define security properties, we need to be clear on Relay's role. OTOH middleboxes like SFUs, transcoders are more flexible to access payload and may be payload headers  based on the architecture and they fall into different category when defining the security of the system.",
           "createdAt": "2023-07-06T04:10:52Z",
           "updatedAt": "2023-07-06T04:10:52Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "This is marked not-transport, but the issue was filed against text in moqt, so maybe that's not correct. ",
+          "createdAt": "2024-08-05T18:53:28Z",
+          "updatedAt": "2024-08-05T18:53:28Z"
         }
       ]
     },
@@ -8482,13 +8316,15 @@
       "state": "OPEN",
       "author": "gwendalsimon",
       "authorAssociation": "NONE",
-      "assignees": [],
+      "assignees": [
+        "mzanaty"
+      ],
       "labels": [
         "Editorial"
       ],
       "body": "Here are some editorial notes on the document\r\n\r\n- Line 72. \u201c_MOQT is a generic protocol **is** designed to work_\u201d \r\n- Line 91-93. \u201c_The development of MOQT is driven by goals in a number of areas - specifically latency, the robustness of QUIC, workflow efficiency and relay support._\u201d This sentence is intriguing. What does the robustness of QUIC mean? Latency, workflow efficiency, relay support are not \u201careas\u201d or maybe area should be defined. (side note on the missing Oxford comma in this sentence)\r\n- The Section 1.1.1. Latency as a whole is very confusing. HTTP-based streaming is not designed for low latency mostly due to the essential request-response paradigm. Queuing on the path has a insignificant impact on the end-to-end latency for HAS. The \u201cspeed at which a protocol can detect queuing\u201d is not related to the relatively high latency issues of HAS. Overall, I see a mix of unrelated subjects here, which makes the paragraph overall meaningless. I would recommend starting the paragraph with a topic sentence (which may be the last one of the current paragraph).\r\n- Line 120. \u201c_Applying QUIC to HAS \u2026_\u201d (and the following sentences) is not necessary. The reasons for which QUIC does not bring advantages to HAS are still debatable on many points. This QUIC-on-HAS remark could raise unnecessary questions although the beginning of Section 1.1.2 is clear and sufficient to convey the message.\r\n- Line 125. \u201c_Universal_\u201d has a too broad sense. Do you mean \u201cUnicity of protocol in the whole pipeline\u201d (or something like this)?\r\n- Line 127. \u201c_Internet delivered media today has protocols optimized for ingest\u2026_\u201d I don\u2019t understand this sentence.\r\n- Line 127. Some examples of protocols could be good to support these claims. Note that WHIP is an attempt to unify the protocol.\r\n- Line 146. \u201c_to treat relays as first-class citizens of the protocol_\u201d is an excellent marketing message but it does not mean anything in a technical norm. Furthermore, see my two reserves above. I\u2019d claim that the current draft is not making relay first-class, on the contrary.\r\n- Line 179. \u201c_a join point_\u201d joint?\r\n- Line 231. \u201c_The application is solely responsible for the content of the object payload._\u201d What is the application? It is a bit confusing. It has not been defined.\r\n- Line 269 .\u201c_within a single MOQT scope, subscribing to the same full track name would result in the subscriber receiving the data for the same track._\u201d I am not sure to understand this sentence. Is a single MOQT scope a scope with only one server or do you mean \u201cwithin a MOQT scope\u201d? the two \u201csame\u201d adjectives are confusing too.\r\n- Line 273. It would be better to stick to \u201c_servers_\u201d or to \u201c_connection URIs_\u201d to refer to the elements of the scope.\r\n- Line 339. \u201cThe `authority` portion MUST NOT contain a non-empty `host` portion.\u201d Is it a double negation to say that the \u2018authority\u2019 MUST contain an empty \u2018host\u2019 portion? \r\n- Line 357. This sentence may require a MUST.\r\n- Line 359. \u201c_for exchanging \u2026_\u201d and following sentences are not related to session initialization. They are rather remarks that would be a fit with the draft Section 4.\r\n- +1 to the TODO remarks on line 381. This should be in Section 4.\r\n- Line 654. \u201c_it allows the peers\u2026_\u201d The term \u201c_peer_\u201d is used 7 times. It is supposed to be an \u201c_endpoint_\u201d (as defined Line 173), unless peer and endpoint have different meaning (in which case peer must be defined)\r\n- Line 693. \u201c_A relay that reads from a stream and writes to stream in order will introduce head-of-line blocking._\u201d I don\u2019t understand this claim.",
       "createdAt": "2023-06-20T06:51:10Z",
-      "updatedAt": "2023-07-24T20:58:55Z",
+      "updatedAt": "2024-08-05T22:37:06Z",
       "closedAt": null,
       "comments": [
         {
@@ -8497,6 +8333,20 @@
           "body": "Thanks for the feedback.  I'm going to mark this as Editorial, but there are a number of points here.  If you believe any of them are not editorial (ie: \"Line 357. This sentence may require a MUST.\"), please split into a separate issue.",
           "createdAt": "2023-07-24T20:58:33Z",
           "updatedAt": "2023-07-24T20:58:33Z"
+        },
+        {
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "Will assign to Mo.",
+          "createdAt": "2024-08-05T17:07:30Z",
+          "updatedAt": "2024-08-05T17:07:30Z"
+        },
+        {
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "@mzanaty Please go through these and fix any that still apply.",
+          "createdAt": "2024-08-05T22:37:05Z",
+          "updatedAt": "2024-08-05T22:37:05Z"
         }
       ]
     },
@@ -8505,7 +8355,7 @@
       "id": "I_kwDOG2Ho4M5p8yx2",
       "title": "Encoding unknown parameters",
       "url": "https://github.com/moq-wg/moq-transport/issues/219",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "kixelated",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
@@ -8515,8 +8365,8 @@
       ],
       "body": "The SETUP/ANNOUNCE/SUBSCRIBE messages are encoded like this:\r\n\r\n```\r\nmessage_type:   varint\r\nmessage_size:   varint\r\ntrack_id:       varint\r\nparam_1_id:     varint\r\n* param_1_size: varint\r\nparam_1_value:  bytes | varint\r\nparam_2_id:     varint\r\n* param_2_size: varint\r\nparam_2_value:  bytes | varint\r\n...\r\n\r\n* ANNOUNCE/SUBSCRIBE do not state if each value has a size\r\n```\r\n\r\nMessages and parameters need a size if we support unknowns, otherwise it's impossible to skip them. However:\r\n\r\n- **It's a waste**. This is particularly true for varints, as they have a variable length (1-8 bytes) and each of them must be prefixed with a varint size. This defeats the entire purpose of using the first two bits of a varint to encode the size.\r\n- **It's a pain to encode**. An encoder needs to precompute the size of each message/param or use copy between temporary buffers. Other encodings like TLS and MP4 can seek backwards to populate the size later, but that's only possible with fixed size integers (not varints*) and is quite annoying. \r\n- **It's a pain to decode**. A decoder needs to use nested readers limited based on the size, or provide each `decode` method with the remaining length. It's a protocol error if any reader is done without 0 bytes remaining to read.\r\n- **It prohibits streaming**. The required message length means you can't use stream encoders. We added a special case for 0 to mean undefined length, but that makes decoding more difficult and it prohibits future messages on the same stream.",
       "createdAt": "2023-06-27T18:41:53Z",
-      "updatedAt": "2023-10-05T18:47:22Z",
-      "closedAt": null,
+      "updatedAt": "2024-08-05T17:09:24Z",
+      "closedAt": "2024-08-05T17:09:24Z",
       "comments": [
         {
           "author": "kixelated",
@@ -8559,6 +8409,13 @@
           "body": "#255 provides a fix to this issue, but there was a question about whether something more complex (ie: structured headers) might eventually be necessary.",
           "createdAt": "2023-10-05T18:47:22Z",
           "updatedAt": "2023-10-05T18:47:22Z"
+        },
+        {
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "Fixed by #255. Please open a new issue if the fix is unsatisfactory.",
+          "createdAt": "2024-08-05T17:09:24Z",
+          "updatedAt": "2024-08-05T17:09:24Z"
         }
       ]
     },
@@ -8571,14 +8428,14 @@
       "author": "LPardue",
       "authorAssociation": "NONE",
       "assignees": [
-        "ianswett"
+        "afrind"
       ],
       "labels": [
         "Editorial"
       ],
       "body": "Now that this is a repo for, I think, a WG adopted doc, there's a number of improvements that could be made to improve it e.g. the description is stale, there's no link to the repo from the document, the markdown filename doesn't match the document name etc. These are all minor things but cumulatively make it harder for contributors. It would be great to get them fixed up.",
       "createdAt": "2023-07-17T21:58:26Z",
-      "updatedAt": "2024-07-24T17:04:07Z",
+      "updatedAt": "2024-08-05T17:08:06Z",
       "closedAt": null,
       "comments": [
         {
@@ -8706,7 +8563,7 @@
       "id": "I_kwDOG2Ho4M5saJ0W",
       "title": "Need object delimiters  in the OBJECT header ",
       "url": "https://github.com/moq-wg/moq-transport/issues/224",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "suhasHere",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
@@ -8715,8 +8572,8 @@
       ],
       "body": "While implementing stream carrying multiple objects, where the stream was carrying a GOP with multiple encoded frames in it,  the spec currently lacks object delimiters to implement caching at relays and consuming objects at the MOQ consumer library\r\n\r\nMy proposal is to extend OBJECT Header to have the following strucutre\r\n\r\n```\r\nOBJECT Message {\r\n  Track ID (i),\r\n  Group Sequence (i),\r\n  Object Sequence (i),\r\n  Object Send Order (i),\r\n  [Object Length (i)],\r\n  [Last Object Previous Group (i)],\r\n  Object Payload (b),\r\n}\r\n\r\n```\r\n\r\n* Object Length: Indicates the length of the object, if known\r\n* Last Object Previous Group : Indicates the last object sequence of the previous group and is sent as part of first object in a given group\r\n\r\n\r\n",
       "createdAt": "2023-07-24T16:57:53Z",
-      "updatedAt": "2023-10-18T02:55:14Z",
-      "closedAt": null,
+      "updatedAt": "2024-08-05T17:11:21Z",
+      "closedAt": "2024-08-05T17:11:21Z",
       "comments": [
         {
           "author": "kixelated",
@@ -8759,6 +8616,13 @@
           "body": "Every group beginning is a sync point and having information there to identity is useful property\n\nNew message will have same race issues.\n\nYes if there are more than one group lost , you lost too many already. We can always extend it to include group number as well to help. This is anyways sent in the first object\n\nWhat I am proposing is a hint to apply \n- course correction at relays \n- apply application decision at the consumer\n\n",
           "createdAt": "2023-07-27T19:58:37Z",
           "updatedAt": "2023-07-27T19:58:37Z"
+        },
+        {
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "This was addressed with Object Status, closing.",
+          "createdAt": "2024-08-05T17:11:21Z",
+          "updatedAt": "2024-08-05T17:11:21Z"
         }
       ]
     },
@@ -8770,14 +8634,16 @@
       "state": "OPEN",
       "author": "suhasHere",
       "authorAssociation": "COLLABORATOR",
-      "assignees": [],
+      "assignees": [
+        "fluffy"
+      ],
       "labels": [
         "Needs PR",
         "Announce"
       ],
       "body": "While implementing MOQT relay,  I stumbled upon #204. Thinking through authorization implementation a bit more , I think the current spec needs to clarify this behavior.\r\n\r\nProposal is to say, when a conflicting announce happens,  the Relay MUST reject with an appropriate error type in the ANNOUNCE_ERROR message when the authorization disallows\r\n\r\n```\r\nERROR_CONFLICT_TRACK\r\n```\r\n\r\nHowever, if the authorization policy allows such an allocation of namespaces, then clarify Relay interaction to indicate the most recent ANNOUNCE wins. \r\n",
       "createdAt": "2023-07-24T17:42:27Z",
-      "updatedAt": "2024-02-07T22:55:36Z",
+      "updatedAt": "2024-08-05T17:11:44Z",
       "closedAt": null,
       "comments": [
         {
@@ -8879,7 +8745,9 @@
       "state": "OPEN",
       "author": "fluffy",
       "authorAssociation": "CONTRIBUTOR",
-      "assignees": [],
+      "assignees": [
+        "fluffy"
+      ],
       "labels": [
         "Needs PR",
         "Needs Discussion",
@@ -8887,7 +8755,7 @@
       ],
       "body": "\r\nWhen the relays received an ANNOUNCE with exact same name as previous ANNOUNCE, what happens? \r\n\r\nOptions seem to be replace previous ANNOUNCE data or return an error. \r\n\r\nThis is related to https://github.com/moq-wg/moq-transport/issues/225 and https://github.com/moq-wg/moq-transport/issues/204\r\n\r\nDiscussion to follow in thread \r\n\r\n",
       "createdAt": "2023-07-24T23:31:00Z",
-      "updatedAt": "2023-11-06T15:27:58Z",
+      "updatedAt": "2024-08-05T17:12:01Z",
       "closedAt": null,
       "comments": [
         {
@@ -9118,7 +8986,7 @@
         },
         {
           "author": "englishm",
-          "authorAssociation": "CONTRIBUTOR",
+          "authorAssociation": "COLLABORATOR",
           "body": "(Reposting my edited comment because apparently edits don't generate e-mail and I know some people follow these discussions primarily through e-mail.)\r\n\r\n~~+1 to the Publisher and Subscriber being per-hop roles~~ Edit: I'm changing my mind on this slightly. Will is right that it can get confusing because an endpoint may assume both roles for the same connection. It's still good to have the Publisher and Subscriber roles to be able to describe the direction of a particular media flow within a single connection, however, it may often be more useful to focus on the Client and Server aspect of how the underlying QUIC connection is initiated.\r\n\r\nI agree it would be helpful to have clear terms referring the ultimate endpoints of (a possible chain of relayed) connections.\r\nPerhaps \"Origin Publisher\" and \"End Subscriber\" could work for those terms?\r\n\r\n+1 to using Upstream to refer to towards or closer to the \"Origin Publisher\" and Downstream to refer to away from or further from the \"Origin Publisher.\" These relative directional or proximity-describing terms are often useful in describing different scenarios and possible issues.\r\n\r\nEdit cont.: I'm realizing that we don't so much need to chose between all of these words as we need to clarify exactly what each pair of words means and in which contexts they apply.",
           "createdAt": "2023-09-07T13:01:50Z",
           "updatedAt": "2023-09-07T13:01:50Z"
@@ -9291,14 +9159,16 @@
       "state": "OPEN",
       "author": "kixelated",
       "authorAssociation": "COLLABORATOR",
-      "assignees": [],
+      "assignees": [
+        "ianswett"
+      ],
       "labels": [
         "Needs PR",
         "Subscribe"
       ],
       "body": "We should have a section that documents the subscription state machine, like QUIC does with stream states: https://www.rfc-editor.org/rfc/rfc9000.html#section-3\r\n\r\nIt makes it significantly easier to discuss about which messages are necessary and reason about what is available at each state. Implementations are certainly allowed to work outside of this framework, but personally it was a super valuable reference when I was implementing QUIC streams.\r\n\r\nThere's not much point documenting the current subscription states because they dead-end quickly. Here's my proposal that supports publisher and subscriber resets, via RESET and STOP respectively:\r\n\r\n### Publisher\r\n![publisher](https://github.com/moq-wg/moq-transport/assets/432854/9d0e8fbd-8434-4d4e-a56c-dd973945a473)\r\n\r\n### Subscriber\r\n![subscriber](https://github.com/moq-wg/moq-transport/assets/432854/cdd1c981-9887-45e1-90e3-a2c260651201)\r\n",
       "createdAt": "2023-08-18T18:06:49Z",
-      "updatedAt": "2024-07-05T23:25:17Z",
+      "updatedAt": "2024-08-05T17:13:11Z",
       "closedAt": null,
       "comments": [
         {
@@ -9342,6 +9212,13 @@
           "body": "> If both are trying to close this at the same time, there is a condition where the group_id pair: *SUBSCRIBE_STOP*: request_end_group and the racing *SUBSCRIBE_RESET*: end_group doesn't match. If the client requested a later group than the end_group in the racing SUBSCRIBE_REST this requires client side action to update its expectations (as it may cause an error condition for the application using the transport). The state machine will also have to be clear on whether SUBSCRIBE_RESET used as a SUBSCRIBE_STOP_OKAY can ever alter the end_group proposed in SUBSCRIBE_STOP (e.g. to a group id that's already in flight).\r\n\r\nExactly. That's why I added a separate \"stop\" state for the subscriber instead of jumping straight to \"closed\". \r\n\r\nUltimately, the publisher is the authority on the start/end group. It knows the minimum sequence in the cache and the maximum sequence that has been transmitted. The subscriber can hint a start/end but it has imperfect information until it gets an explicit reply.\r\n\r\nSuppose a subscriber sends a STOP with group X, an RTT passes, and then receives a RESET with group Y.\r\n- **X < Y** occurs when the publisher had already transmitted Y by the time the STOP arrived.\r\n- **X == Y** is possible but unlikely for any live source due to transmission delay.\r\n- **X > Y** occurs when the publisher never transmitted X, or the publisher reset first.\r\n\r\nA subscriber may choose to process objects while in the \"stop\" state (valid in QUIC), during which time it MAY receive objects >X. Once it receives the RESET and transitions to the \"closed\" state, then it MUST NOT receive objects >Y.",
           "createdAt": "2023-08-23T16:56:53Z",
           "updatedAt": "2023-08-23T16:59:12Z"
+        },
+        {
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "Related #465",
+          "createdAt": "2024-08-05T17:13:10Z",
+          "updatedAt": "2024-08-05T17:13:10Z"
         }
       ]
     },
@@ -9535,13 +9412,15 @@
       "state": "OPEN",
       "author": "kixelated",
       "authorAssociation": "COLLABORATOR",
-      "assignees": [],
+      "assignees": [
+        "kixelated"
+      ],
       "labels": [
         "Handshake"
       ],
       "body": "Splitting discussion in #212 into a separate issue.\r\n\r\nThe current draft states that the client initiates the session via a CLIENT_SETUP message and then server replies with a SERVER_SETUP. The client sends a list of supported versions and its role, while the server chooses a version and reaffirms the role. This is done via a bidirectional stream opened by the client.\r\n\r\nHowever, depending on the underlying transport, the client won't always be the first endpoint allowed to send a flight, so this incurs a half-RTT of latency:\r\n\r\n* WebTransport: Client is allowed to send first (before CONNECT response), but most implementations will let the server send first (after 2xx CONNECT response)\r\n* QUIC: Client sends first with 0-RTT, while the server sends first with 1-RTT (most common).",
       "createdAt": "2023-09-10T16:38:18Z",
-      "updatedAt": "2024-03-18T20:44:05Z",
+      "updatedAt": "2024-08-05T17:24:38Z",
       "closedAt": null,
       "comments": [
         {
@@ -9585,6 +9464,13 @@
           "body": "> the 'server' from the perspective of a QUIC connection could initiate a MoQ session with a CLIENT_SETUP message\r\n\r\nDid we intend to allow this?",
           "createdAt": "2024-03-18T20:44:04Z",
           "updatedAt": "2024-03-18T20:44:04Z"
+        },
+        {
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "@kixelated: this will require a new version negotiation design, because SERVER_SETUP currently depends on CLIENT_SETUP. So you can progress this issue by (1) closing it, (2) starting a discussion a new design, or (3) filing a PR.",
+          "createdAt": "2024-08-05T17:24:36Z",
+          "updatedAt": "2024-08-05T17:24:36Z"
         }
       ]
     },
@@ -9596,13 +9482,15 @@
       "state": "OPEN",
       "author": "kixelated",
       "authorAssociation": "COLLABORATOR",
-      "assignees": [],
+      "assignees": [
+        "kixelated"
+      ],
       "labels": [
         "Handshake"
       ],
       "body": "A few issues have cropped up because we support QUIC and WebTransport with a unified SETUP handshake.\r\n\r\n- #232 was closed because there's a desire to use ALPN for native QUIC, however no such functionality exists in WebTransport.\r\n- #135 added a path to the SETUP message, mirroring WebTransport because no such functionality exists in QUIC.\r\n- #242 incurs an additional half RTT delay with native QUIC because the client sends the SETUP message first.\r\n\r\nDo we separate the QUIC and WebTransport handshakes, or continue to combine them into the same mechanism?",
       "createdAt": "2023-09-11T00:03:50Z",
-      "updatedAt": "2023-10-03T23:39:38Z",
+      "updatedAt": "2024-08-05T17:27:09Z",
       "closedAt": null,
       "comments": [
         {
@@ -9611,6 +9499,13 @@
           "body": "I think we have a separate handshakes for QUIC and WebTransport that better utilize the underlying transport.\r\n\r\n* QUIC could leverage ALPN.\r\n* WebTransport could leverage the CONNECT request.\r\n* WebTransport could leverage session pooling.\r\n\r\nHowever, I do want to avoid differences after the connection is established.",
           "createdAt": "2023-09-11T00:07:59Z",
           "updatedAt": "2023-09-11T00:08:34Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Chairs: it looks like webtransport is going to have an ALPN like mechanism.  Is that sufficient to unify the handshakes across QUIC and WebTrans?",
+          "createdAt": "2024-08-05T17:27:08Z",
+          "updatedAt": "2024-08-05T17:27:08Z"
         }
       ]
     },
@@ -10019,7 +9914,7 @@
         },
         {
           "author": "englishm",
-          "authorAssociation": "CONTRIBUTOR",
+          "authorAssociation": "COLLABORATOR",
           "body": "> > I think that's not what it meant. By \"latest\", relays starts delivering whatever it has in the cache as the most recent group/object and it doesn't need to remember anything about it other than they happen to be in cache.\r\n> \r\n> The key point we're forgetting in the freshness quandary (or perhaps it is implicit) is that the _relay knows whether it has an open subscription for a given track_. This is a key bit of information. If it does have an open subscription, then the objects it has in cache are by definition the latest, and hence any 'relative' or 'latest' queries can be satisfied. If it does not have an open subscription, then it cannot make any determination about the freshness of any objects, even if it has some in cache and it must renew its subscription before responding.\r\n> \r\n> To illustrate this, consider a relay which has groups 637,638,639 in cache. Five minutes later another client joins issues a SUBSCRIBE (latest). The response of the relay should be different in the two cases below:\r\n> \r\n> * It has an open subscription for that track - in this case it knows that those are still the latest objects available for that track and so it would return 639\r\n> * It does not have an open subscription for that track (because the prior client that subscribed went away) - in this case the relay must make a SUBSCRIBE(latest) request upstream and return the first group it receives (perhaps 763) to the client.\r\n> \r\n\r\nThis is good insight and I think the proposed behavior makes good sense.\r\n\r\n> > But would love to hear from @wilaw where we can't do away with absolute groups\r\n> \r\n> The advantage of relative requests is that the player does not need any understanding of the relationship between group number and time. This makes for simple players, as long as they don't need to seek behind live with any accuracy. The relative datum, in this case the \"live edge\", is constantly changing, and for players that need to seek back accurately this can be a problem. Depending on when you make your request and how long it is queued by intermediaries, you may get two different answers. Absolute groups make precise group selection for more deterministic and are robust. For live-only players (such as the web meeting use case), we probably could get by with relative addressing alone. However since our charter includes intermediate and higher levels of latency, we should design moq-transport such that it is flexible enough to handle both relative and absolute group addressing.\r\n\r\nIn particular, I would like to see MoQ also support some improvements for DVR or even VoD playback, for example: faster frame-accurate seeking. We don't necessarily need the protocol to provide a complete implementation, but having the ability to absolutely address groups would be especially useful in that context. One concern I have about adding timestamps into the mix is in how they would apply to content being played back at arbitrary points in time relative to the original recording time.",
           "createdAt": "2023-09-26T13:24:35Z",
           "updatedAt": "2023-09-26T13:24:35Z"
@@ -10196,7 +10091,7 @@
       "id": "I_kwDOG2Ho4M5w0qSM",
       "title": "Object/group TTL",
       "url": "https://github.com/moq-wg/moq-transport/issues/249",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "kixelated",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
@@ -10205,8 +10100,8 @@
       ],
       "body": "I'm (properly) implementing caching in my relay and need to know how long to cache an object.\r\n\r\nFor example, a catalog object should be cached until the session terminates. Meanwhile a media segment should only be cached for X seconds. The relay could evict the cache earlier than that, and possibly refetch the object if it's still within the advertised expires window.\r\n\r\nIt doesn't seem valid to have objects with different cache expirations in a group. For example, there's never a reason why you would expire the I-frame, but not the P-frames that depend on it. Expiration should ideally be a group property but there's no message to express that currently.",
       "createdAt": "2023-09-12T16:19:24Z",
-      "updatedAt": "2024-03-01T15:30:26Z",
-      "closedAt": null,
+      "updatedAt": "2024-08-05T16:35:19Z",
+      "closedAt": "2024-08-05T16:35:18Z",
       "comments": [
         {
           "author": "kixelated",
@@ -11280,7 +11175,9 @@
       "state": "OPEN",
       "author": "ianswett",
       "authorAssociation": "COLLABORATOR",
-      "assignees": [],
+      "assignees": [
+        "englishm"
+      ],
       "labels": [
         "Needs PR",
         "Subscribe",
@@ -11288,7 +11185,7 @@
       ],
       "body": "Currently, there's no way to limit the number of simultaneous subscriptions.  QUIC stream limits cannot effectively be used to limit the number of subscriptions, so I'd suggest MoQ have a limit.\r\n\r\nThe simplest idea would be to have a limit specified as a parameter in the server's SETUP message.\r\n\r\nAs a related question, even with limits, what happens if a client subscribes to a number of streams that it doesn't have the bandwidth to support?  ie: 10 4k video streams and they're on a slow link?  Possibly the subscriptions could fail with an error code indicating that the server didn't have enough bandwidth to request them and/or serve them to the client?",
       "createdAt": "2023-10-10T18:23:44Z",
-      "updatedAt": "2024-07-26T04:48:08Z",
+      "updatedAt": "2024-08-05T18:35:53Z",
       "closedAt": null,
       "comments": [
         {
@@ -11353,6 +11250,13 @@
           "body": "The consensus at the session today was to go with a QUIC style approach, so I wrote #491 \r\n\r\nThere was interest in a similar approach for announces, but announces don't yet have an ID, so that will have to wait.",
           "createdAt": "2024-07-26T04:48:06Z",
           "updatedAt": "2024-07-26T04:48:06Z"
+        },
+        {
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "Will assign to Mike English",
+          "createdAt": "2024-08-05T17:28:57Z",
+          "updatedAt": "2024-08-05T17:28:57Z"
         }
       ]
     },
@@ -12348,7 +12252,7 @@
         },
         {
           "author": "englishm",
-          "authorAssociation": "CONTRIBUTOR",
+          "authorAssociation": "COLLABORATOR",
           "body": "Seconding @kixelated's suggestion that we probably want to have FEC at the underlying QUIC layer. Part of the value of MoQ is being able to benefit from these types of enhancements to QUIC itself as it continues to grow and mature.",
           "createdAt": "2023-11-02T19:37:12Z",
           "updatedAt": "2023-11-02T19:37:12Z"
@@ -12683,7 +12587,7 @@
         },
         {
           "author": "englishm",
-          "authorAssociation": "CONTRIBUTOR",
+          "authorAssociation": "COLLABORATOR",
           "body": "+1 to some kind of unique token here. Unsure about the details.",
           "createdAt": "2024-02-07T22:55:28Z",
           "updatedAt": "2024-02-07T22:55:28Z"
@@ -12881,7 +12785,7 @@
       "id": "I_kwDOG2Ho4M59GT7A",
       "title": "What if/Why will never deliver an Object/Track",
       "url": "https://github.com/moq-wg/moq-transport/issues/345",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "ianswett",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
@@ -12893,8 +12797,8 @@
       ],
       "body": "If the relay/origin will never be able to fulfill an entire requested SUBSCRIBE, how can it indicate that?  For example, a sequence of relays and the origin may only keep video within 30 seconds of head and discard older content.\r\n\r\nAs a related question, does the relay need to indicate that there will be gaps in Object or Group IDs so the player doesn't wait for them?\r\n\r\nHigh-Level Q: An object has not been delivered, why?\r\n\r\n1. It doesn't exist anymore.\r\n2. It never existed.\r\n3. There wasn't enough bandwidth to send it based on... (ie: priority, the subscriber's latency requirements, etc)\r\n4. It was sent in a stream/datagram by itself and reordered (I think we have this covered?)",
       "createdAt": "2024-01-24T17:59:34Z",
-      "updatedAt": "2024-04-27T15:50:39Z",
-      "closedAt": null,
+      "updatedAt": "2024-08-05T17:35:20Z",
+      "closedAt": "2024-08-05T17:35:20Z",
       "comments": [
         {
           "author": "kixcord",
@@ -12958,6 +12862,13 @@
           "body": "#429 is an attempt to address this",
           "createdAt": "2024-04-27T15:50:38Z",
           "updatedAt": "2024-04-27T15:50:38Z"
+        },
+        {
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "Fixed by the Object Status Field, closing.",
+          "createdAt": "2024-08-05T17:35:20Z",
+          "updatedAt": "2024-08-05T17:35:20Z"
         }
       ]
     },
@@ -13659,32 +13570,6 @@
           "body": "No, but I'd like to resolve a number of other issues first, such how ABR is going to work.  My past experience is that this is extremely difficult to get right, so doing so for a general purpose application is extraordinarily difficult.",
           "createdAt": "2024-02-11T02:51:06Z",
           "updatedAt": "2024-02-11T02:51:06Z"
-        }
-      ]
-    },
-    {
-      "number": 371,
-      "id": "I_kwDOG2Ho4M5-tgKt",
-      "title": "Client side bandwidth estimation is difficult with app-limited traffic",
-      "url": "https://github.com/moq-wg/moq-transport/issues/371",
-      "state": "OPEN",
-      "author": "ianswett",
-      "authorAssociation": "COLLABORATOR",
-      "assignees": [],
-      "labels": [
-        "NotTransport"
-      ],
-      "body": "Client side bandwidth estimation is a challenge when the client doesn't know when the sender was app-limited and when it was congestion control limited.\r\n\r\nOne solution is to add a TIMESTAMP frame that has a relative timestamp of when the packet was serialized/sent.  It could also be useful to have a bool to indicate whether the sender was app-limited prior to the packet being sent.\r\n\r\nChristian has a draft (https://www.ietf.org/archive/id/draft-huitema-quic-ts-08.html) that could be used for this purpose.  The draft was written with the idea that it would be bundled with an ACK to allow removal of latency variability on the reverse path, but it seems like it could be bundled with some or all MOQ packets to improve client bandwidth estimation.",
-      "createdAt": "2024-02-08T18:50:36Z",
-      "updatedAt": "2024-02-11T02:43:16Z",
-      "closedAt": null,
-      "comments": [
-        {
-          "author": "ianswett",
-          "authorAssociation": "COLLABORATOR",
-          "body": "After more consideration, I tend to think this is not an moqt issue, but it is one worth addressing in WARP.  I'm happy to help with text if that's useful.\r\n\r\nKeeping it open because I think it could end up being critical to client side ABR.",
-          "createdAt": "2024-02-11T02:43:15Z",
-          "updatedAt": "2024-02-11T02:43:15Z"
         }
       ]
     },
@@ -14898,11 +14783,12 @@
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [
-        "Announce"
+        "Announce",
+        "Wire Format"
       ],
       "body": "It's meant to be sent by the subscriber, indicating that the announce is no longer accepted. The fields should mirror ANNOUNCE_ERROR so the subscriber can indicate stuff like authentication expired, another announce was received, etc.",
       "createdAt": "2024-03-08T22:22:11Z",
-      "updatedAt": "2024-03-18T00:27:56Z",
+      "updatedAt": "2024-08-06T00:11:50Z",
       "closedAt": null,
       "comments": []
     },
@@ -14913,7 +14799,7 @@
       "url": "https://github.com/moq-wg/moq-transport/issues/415",
       "state": "CLOSED",
       "author": "englishm",
-      "authorAssociation": "CONTRIBUTOR",
+      "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [
         "Editorial"
@@ -15722,7 +15608,9 @@
       "state": "OPEN",
       "author": "fluffy",
       "authorAssociation": "CONTRIBUTOR",
-      "assignees": [],
+      "assignees": [
+        "wilaw"
+      ],
       "labels": [
         "Requirement",
         "Needs PR",
@@ -15731,7 +15619,7 @@
       ],
       "body": "The whole draft needed a pass at some point for extensibility but a more immediate concern is to play with various things, we need a way of adding header to an object that the relay can read.  The LOC draft has a line about needing this, I think Will had some use cases that needed it, and it would help with experimenting and migrating some pre standard implementations to the current version of the draft. \r\n\r\nThe requirement would be there was a way to define new headers in extensions, there was a way to indicate if the header needs to be understood by relays, reviewers, both, or neither. \r\n\r\n",
       "createdAt": "2024-04-17T17:28:34Z",
-      "updatedAt": "2024-05-27T19:31:17Z",
+      "updatedAt": "2024-08-05T17:36:57Z",
       "closedAt": null,
       "comments": [
         {
@@ -15898,7 +15786,7 @@
         },
         {
           "author": "englishm",
-          "authorAssociation": "CONTRIBUTOR",
+          "authorAssociation": "COLLABORATOR",
           "body": "Some other previous discussion:\r\nhttps://github.com/moq-wg/moq-transport/issues/229\r\n\r\nI had proposed there \"Origin Publisher\" and \"End Subscriber\" to describe the terminal points of an end to end delivery chain.",
           "createdAt": "2024-06-10T06:20:47Z",
           "updatedAt": "2024-06-10T06:20:47Z"
@@ -15910,7 +15798,7 @@
       "id": "I_kwDOG2Ho4M6Gy53j",
       "title": "Need expiry time / time to live ",
       "url": "https://github.com/moq-wg/moq-transport/issues/440",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "fluffy",
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
@@ -15920,8 +15808,8 @@
       ],
       "body": "At some point we removed the time to live of how long obhects exist in the cache before they are removed. \r\n\r\nIt is becoming an significant implementation blocker to not have some version of this.  I would like to add some version of this back soon even if we later change the exact details of how times are calculated and represented. \r\n\r\n\r\n",
       "createdAt": "2024-04-24T14:50:21Z",
-      "updatedAt": "2024-07-23T17:54:31Z",
-      "closedAt": null,
+      "updatedAt": "2024-08-05T16:35:18Z",
+      "closedAt": "2024-08-05T16:35:18Z",
       "comments": [
         {
           "author": "afrind",
@@ -16362,7 +16250,7 @@
         },
         {
           "author": "englishm",
-          "authorAssociation": "CONTRIBUTOR",
+          "authorAssociation": "COLLABORATOR",
           "body": "+1\r\n\r\nExpanding Alan's list, I think we should determine:\r\n\r\n- (1a?) valid boundaries for dropping data (group? object? byte? bit?)\r\n- (2a?) under what circumstances the subscriber needs to be informed of the dropped data (do we need different verbs with different semantics in this case, e.g. fetch/subscribe? is dropping data always permitted and something all subscribers must be able to tolerate?)\r\n- (2b?) the means of informing subscribers of dropped data (implied or explicit)\r\n",
           "createdAt": "2024-06-12T00:21:56Z",
           "updatedAt": "2024-06-12T00:21:56Z"
@@ -16505,7 +16393,7 @@
       ],
       "body": "- Requires an additional stream per group, when using a stream per object.\r\n- Makes objects \"nullable\" in the API (empty payload != status 0x1)\r\n- status != 0 wastes a byte on a zeroed size\r\n\r\nI think we should use a GROUP_END and TRACK_END message instead of overloading OBJECT. And an application can use an empty payload to indicate gaps... or whatever encoding it wants.",
       "createdAt": "2024-06-14T01:33:50Z",
-      "updatedAt": "2024-07-24T16:54:52Z",
+      "updatedAt": "2024-08-05T16:27:06Z",
       "closedAt": null,
       "comments": [
         {
@@ -16542,6 +16430,20 @@
           "body": "> We have been around this countless times now. Your proposal does not work. Imagine I something is doing stream per track and the publisher looses wifi for a fraction of a second then reconnects. At this point all the end subscribers think the track as ended, disconnect, and will not reconnect.\r\n\r\n@fluffy I don't understand, can you explain? Are you suggesting that the relay inserts status=0x1 objects on a reconnection?",
           "createdAt": "2024-07-06T03:50:39Z",
           "updatedAt": "2024-07-06T03:50:39Z"
+        },
+        {
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "IMO the case for \"Object/Group does not exist\" is pretty clear-cut: does it make sense for the receiver to wait on this missing object ID or not? Unless of course, we get rid of Object ID gaps, which I would be fine with.\r\n\r\nIt would be useful to be a bit more specific about the use case for EndOfGroup. It's useful to confirm that you got everything in a group, but the negative signal is not getting the EndOfGroup message, but this is more efficiently one by just attaching some sort of FIN bit to the last normal Object.\r\n\r\nThe added value of the EndOfGroup object is if it's useful to know the highest Object ID when the receiver doesn't have all the intervening objects; the non-normal object is cheaper to send, if it ought to be sent. I'm not sure what I would do with this information, as a receiver. So I'd be in favor of replacing this message with an end-of-group message type or flag.",
+          "createdAt": "2024-08-05T16:25:02Z",
+          "updatedAt": "2024-08-05T16:25:02Z"
+        },
+        {
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "I would also add that Peeps, should we adopt them, makes EndOfGroup a bit worse. Strictly speaking, EndOfGroup is independent and therefore gets its own peep, which is gross.\r\n\r\nYou could make it dependent on the highest Object ID, which saves a stream but again calls into question why we need this message at all.",
+          "createdAt": "2024-08-05T16:27:04Z",
+          "updatedAt": "2024-08-05T16:27:04Z"
         }
       ]
     },
@@ -17055,14 +16957,16 @@
       "state": "OPEN",
       "author": "ianswett",
       "authorAssociation": "COLLABORATOR",
-      "assignees": [],
+      "assignees": [
+        "ianswett"
+      ],
       "labels": [
         "Editorial",
         "Needs PR"
       ],
       "body": "As a follow-up to https://github.com/moq-wg/moq-transport/pull/470",
       "createdAt": "2024-07-01T17:44:46Z",
-      "updatedAt": "2024-07-04T00:22:51Z",
+      "updatedAt": "2024-08-05T17:37:58Z",
       "closedAt": null,
       "comments": []
     },
@@ -17080,7 +16984,7 @@
       ],
       "body": "When we originally added track-per-stream, I was skeptical of it being useful, as it's basically equivalent to sending media over TCP, which is a poor fit for latency-sensitive applications (and something that people already can do equally well using other widely-adopted protocols).\r\n\r\nNow that we have some further experience with this, the drawbacks of supporting track-per-stream become more apparent:\r\n1. There's a non-trivial amount of code required to support each individual stream mapping.\r\n2. There's a non-trivial amount of design effort and specification text required to support each individual stream mapping.\r\n3. Due to its nature, track-per-stream has its unique design challenges that other mappings don't have (if anything goes wrong, the entire subscription has to be thrown out, making things like timeouts hard to define).\r\n\r\nIn the narrow use cases where stream-per-track is actually useful, the application can use stream-per-group, and reassemble things itself.  Thus, I'm strongly in favor of removing it, at least as a publisher-selected stream mapping (we can discuss what FETCH does when we get back to that).",
       "createdAt": "2024-07-05T17:48:04Z",
-      "updatedAt": "2024-07-08T15:40:37Z",
+      "updatedAt": "2024-08-05T16:16:19Z",
       "closedAt": null,
       "comments": [
         {
@@ -17103,6 +17007,13 @@
           "body": "at the time we decided this, some people were adamant about it and I seem to recall many of the use cases did not involve audio or video. I'd rather defer changing things we already decided on until we get more of the rest of draft done and a bit more implementations experience.  We have not yet seen what start happening as we run out streams. \r\n\r\nI guess I am just saying I would rather leave this along for next 6 months and work on more critical stuff. ",
           "createdAt": "2024-07-08T15:40:36Z",
           "updatedAt": "2024-07-08T15:40:36Z"
+        },
+        {
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "One point from @TimEvens \r\n\r\n> \r\n> A **track** is an overlay that can be depicted as a line from publisher to each subscriber. QUIC streams are per-hop and are **NOT** end-to-end via relay(s) in MOQT. The stream used or number of streams used to deliver data via the track overlay should not suffer from a single hop that has a problem. A more robust infrastructure would have mitigation and recovery per-hop to limit the amount of churn experienced by the unaffected.\r\n> \r\n\r\nBut in effect, they are end to end, because Forwarding Preference is a track property. If there is any stream-constrained hop in the path, everyone has to use stream-per-track to mitigate the problem. But this decision is made at the original publisher with no a-priori knowledge of any such constraints.\r\n\r\n\r\n",
+          "createdAt": "2024-08-05T16:16:18Z",
+          "updatedAt": "2024-08-05T16:16:18Z"
         }
       ]
     },
@@ -17226,12 +17137,11 @@
         "afrind"
       ],
       "labels": [
-        "Needs PR",
         "Announce"
       ],
       "body": "This is a redux of #228, now that I've heard from multiple other wg participants they are now interested in such a mechanism.\r\n\r\nConsider using moq for a chat or other application where a relay has many publishers for the same application.  In order for subscribes to be routed to the correct publishing endpoints, each publisher/participant needs to announce a unique namespace (this is how moq-chat operates, see https://afrind.github.io/draft-frindell-moq-chat/draft-frindell-moq-chat.html#section-4.4).\r\n\r\nThis creates an issue: how do participants learn about the namespaces/tracks other clients have ANNOUNCED to the relay within the same chat room? I originally filed #228 thinking there should be a mechanism by which a client can declare their interest in new announcements and become a catalog-less means of track discovery. Based on wg feedback at the time, I updated moq-chat to use a different discovery mechanism involving a simple catalog.\r\n\r\nHere's an alternate proposal:\r\n\r\n```\r\nSUBSCRIBE_NAMESPACE {\r\n   Track Namespace Prefix (b),\r\n   Auth Info (b)\r\n }\r\n```\r\n\r\nThis would inform the relay to forward any ANNOUNCE with a prefix match, if authorized.\r\n\r\nSo in moq-chat, each new participant would do this:\r\n\r\n```\r\nANNOUNCE(namespace=\"moq-chat/id/participant/<name>\")\r\nSUBSCRIBE_NAMESPACE(prefix=\"moq-chat/id/participant/\")\r\n```\r\n\r\nAnd a relay would reply with:\r\n\r\n```\r\nANNOUNCE_OK\r\nSUBSCRIBE_NAMESPACE_OK\r\n# existing announcements matching namespace prefix\r\nANNOUNCE(namespace=\"moq-chat/id/participant/<member1>\") \r\nANNOUNCE(namespace=\"moq-chat/id/participant/<member2>\")\r\nANNOUNCE(namespace=\"moq-chat/id/participant/<member3>\")\r\n...\r\n```\r\n\r\nIt would also forward any new ANNOUNCEs or ANNOUNCE_CANCELs matching the prefix to the participant.\r\n\r\nThe new participant then issues standard SUBSCRIBE to each existing chat member\r\n```\r\nSUBSCRIBE(namespace=\"moq-chat/id/participant/<member1>\", name=\"chat\") \r\nSUBSCRIBE(namespace=\"moq-chat/id/participant/<member2>\", name=\"chat\") \r\n...\r\n```\r\n\r\nThis would remove the need for a catalog in some multi-publisher applications (eg: key distribution https://suhashere.github.io/moq-e2ee-mls/draft-jennings-moq-e2ee-mls.html), but also keep the scope of ANNOUNCE the same as it is today.",
       "createdAt": "2024-07-11T15:05:21Z",
-      "updatedAt": "2024-07-31T17:03:45Z",
+      "updatedAt": "2024-08-05T22:24:11Z",
       "closedAt": null,
       "comments": [
         {
@@ -17352,6 +17262,13 @@
           "body": "+1 on PR ",
           "createdAt": "2024-07-31T17:03:44Z",
           "updatedAt": "2024-07-31T17:03:44Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> ...nor am I a fan of making full track name even bigger, given that this doesn't show up in 90% of scenarios. I'd propose something like:\r\n> \r\n> 1. Add a special announce_tag field in ANNOUNCE.\r\n> 2. SUBSCRIBE_TAG lets you specify the exact announce_tag you're listening for.\r\n\r\nI view announce tags as providing the similar functionality as making namespace an n-tuple.  The difference is whether the tags are part of the identifier, or just metadata for the announcement.  If it's metadata, it may get redundant with the name, but it doesn't matter *that* much given the frequency of announcements and subscribe namespace.\r\n\r\nI may try to write the PR for both and let the wg decide.",
+          "createdAt": "2024-08-05T19:59:09Z",
+          "updatedAt": "2024-08-05T19:59:09Z"
         }
       ]
     },
@@ -17421,7 +17338,7 @@
       "labels": [],
       "body": "@fluffy and @wilaw Said that group IDs may be sparsely used, particularly in cases when they were chosen in a way to avoid collisions.\r\n\r\nThis sounds like an interesting set of use cases, but previously my understanding was that groups indicated some sort of temporal ordering, even if it's not strict.  If Group IDs don't imply temporal ordering and join points, and instead they're a way to publish Objects in a way that don't collide with one another, it seems like a different thing?\r\n\r\n\r\nTop of head strawman: Possibly different users could have the ability to publish Objects as themself for a single track?\r\n\r\nHaving a few specific use cases would be helpful here, because it feels like there are real use cases, and the existing mechanisms might be awkward at best?  It would also be useful to understand the use cases so we understand if they're in scope for MoQ.",
       "createdAt": "2024-07-26T05:03:51Z",
-      "updatedAt": "2024-08-01T19:58:18Z",
+      "updatedAt": "2024-08-06T00:31:15Z",
       "closedAt": null,
       "comments": [
         {
@@ -17535,6 +17452,13 @@
           "body": "> They mentioned that they have a use-case in which clients will publish data under the same namespace and name, but using different ranges of groups IDs (correct me if I'm wrong there guys) and that therefore GroupIDs cannot increment by 1. \r\n\r\nAre logging and metrics the motivating use cases for multiple publishers of the same track?  Reading the drafts, it doesn't appear like that is the intent, or you could get collisions.  If you have any use cases like this, can you share them?",
           "createdAt": "2024-08-01T19:58:17Z",
           "updatedAt": "2024-08-01T19:58:17Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Individual Comment:\r\n\r\n> previously my understanding was that groups indicated some sort of temporal ordering, even if it's not strict\r\n\r\nBased on how SUBSCRIBE is defined now, I think both group IDs and object IDs have to indicate an ordering.  If I SUBSCRIBE at a given start group and object, only published objects with groups numerically greater than or equal to that will be delivered.  This is similar with SUBSCRIBE_UPDATE specifying the end of a subscription.  Object IDs are also numerically comparable for prioritization within their group and priority level.  There's text all over the draft implying these comparisons are valid, for example in stream-per-track, group IDs cannot go backwards.\r\n\r\nIf an application wants to pick IDs at random, use a hash scheme, or dole out ranges to multiple publishers where newer things have numerically smaller IDs, then some funny interactions and protocol violations may ensue.  No one has publicly specified a use case yet for doing this.",
+          "createdAt": "2024-08-06T00:31:15Z",
+          "updatedAt": "2024-08-06T00:31:15Z"
         }
       ]
     },
@@ -17543,15 +17467,15 @@
       "id": "I_kwDOG2Ho4M6Ri8gD",
       "title": "Content access protection: transport of authentication tokens",
       "url": "https://github.com/moq-wg/moq-transport/issues/496",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "gwendalsimon",
       "authorAssociation": "NONE",
       "assignees": [],
       "labels": [],
       "body": "Tokens are essential elements of security policies. In the current video streaming, the end-user (the one who consumes the content) gets one \"individual\" token from the Content Owner security system. The end-user sends this token when starting a session (requesting the manifest/playlist); the server process the token to either grant access to the stream or reject it. The token is sent from the client to the server via 1/ cookies, 2/ query parameter, 3/ URL path, 4/ HTTP header.\r\n\r\nIn MoQ, we would ideally need a token with the subscription message to decide whether an end-user can access a track or not. It looks like none of the 4 options is doable with MOQT. Am I wrong here? Should we add a \"token\" field in the subscription message to let the client add some authentication parameters, which the relay is expected to process? If so, the token could be a CWT, typically based on CTA-Wave Common Access Token.",
       "createdAt": "2024-08-01T08:46:43Z",
-      "updatedAt": "2024-08-01T14:39:58Z",
-      "closedAt": null,
+      "updatedAt": "2024-08-06T00:15:32Z",
+      "closedAt": "2024-08-06T00:15:32Z",
       "comments": [
         {
           "author": "suhasHere",
@@ -17559,8 +17483,31 @@
           "body": "There is Auth Info parameter for this purpose that will be used in Subscribe. The format of it is opaque to keep the token and other  fields specific to the application . iirc from my recollection of weekly calls, security/privacy/authz will be topic of discussions for upcoming interims ",
           "createdAt": "2024-08-01T14:39:57Z",
           "updatedAt": "2024-08-01T14:39:57Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I think Auth Info is what you want right now.  The group has said they want to revisit auth in more detail but probably after a few other topics are sorted.  Please reopen if you need more in the short term, or have other specific requirements we should consider.",
+          "createdAt": "2024-08-06T00:15:32Z",
+          "updatedAt": "2024-08-06T00:15:32Z"
         }
       ]
+    },
+    {
+      "number": 501,
+      "id": "I_kwDOG2Ho4M6SAjHt",
+      "title": "All of the _OK and _ERROR messages are annoying and redundant",
+      "url": "https://github.com/moq-wg/moq-transport/issues/501",
+      "state": "OPEN",
+      "author": "afrind",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "As I wrote up the PR for SUBSCRIBE_NAMESPACE, I found it kind of annoying that I had to add these messages, when they are largely boilerplate copies of other messages.  If we get to 3 or more messages that have _OK and _ERROR, it's probably time to refactor?\r\n\r\nI'm thinking we can make generic CONTROL_OK and CONTROL_ERROR messages that satisfy the basics, and possibly extend them when we have additional message-specific fields.\r\n\r\nOne rough sketch would be that every control message has a Control Message ID (which is a superset of the existing subscribe ID), and the new messages are:\r\n\r\n```\r\nCONTROL_OK {\r\n  Control Message ID (i)\r\n  Type (i)\r\n  [Control OK Payload (..)]\r\n}\r\n```\r\n\r\n```\r\nCONTROL_ERROR {\r\n  Control Message ID (i)\r\n  Error Code (i)\r\n  Reason Phrase (b)\r\n  Type (i)\r\n  [Control Error Payload (..)]\r\n}\r\n```\r\n\r\nThe `Type` field would contain the code point for the original control message, and the payload would be present if needed (eg: SUBSCRIBE_OK).  Or maybe the Control Message ID space reuses the code-point bits to encode the message type, or something.",
+      "createdAt": "2024-08-05T23:05:23Z",
+      "updatedAt": "2024-08-05T23:05:23Z",
+      "closedAt": null,
+      "comments": []
     }
   ],
   "pulls": [
@@ -21820,7 +21767,7 @@
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [],
-      "body": "This PR attempts to address #68\r\n\r\nthe goal of this PR is to\r\n- Define terminologies that is generic (hopefully with less ambiguities) across application domains\r\n- Define relationships between different resources that make up  the data model \r\n- Specify interactions between entities of the MoQ architecture when dealing with the data model\r\n",
+      "body": "This PR attempts to address moq-wg/moq-transport#68\r\n\r\nthe goal of this PR is to\r\n- Define terminologies that is generic (hopefully with less ambiguities) across application domains\r\n- Define relationships between different resources that make up  the data model \r\n- Specify interactions between entities of the MoQ architecture when dealing with the data model\r\n",
       "createdAt": "2023-01-22T01:46:48Z",
       "updatedAt": "2023-05-05T16:55:38Z",
       "baseRepository": "moq-wg/moq-transport",
@@ -21844,7 +21791,7 @@
         {
           "author": "vasilvv",
           "authorAssociation": "COLLABORATOR",
-          "body": "This PR has two parts; I will go over each part individually.\r\n\r\n------\r\n\r\nThe first part is a rewrite of the existing model section that replaces the broadcast/track/object model with a five-level model.  Since the PR does not diff easily, I am going to attempt to summarize the changes while trying to express my opinion on them one-by-one.\r\n\r\n1. The old concept of \"broadcast\" has been renamed into WarpMediaSession.  I think I like the term \"media session\" (though I'm not so sure about using CamelCase for all the terms).\r\n1. What was formerly known as \"tracks\" is now split into \"media representation\" and \"WARP stream\".  Those appear to be in one-to-one correspondence, though I do not understand what is the actual difference between those two.  I can't say I am particularly fond of the term \"representation\", and I object to use of word \"stream\" for anything that is not a QUIC stream, since that makes things confusing.  If the issue is that \"tracks\" are too specific to live media, we can use \"media feeds\", which I think was in the original model PR.\r\n1. A layer of \"object groups\" is added that reflects the dependencies between objects.  I am not sure an extra level here is useful compared to the previous approach of just annotating the dependency properties directly in the objects themselves, but I do agree that we should have something of this nature.\r\n1. The media objects are still referred to as media objects, though there is some text about encryption and authentication of those.  I don't believe that text belongs in the model, since encryption is fundamentally an issue specific to a particular media format.\r\n\r\n------\r\n\r\nThe second part of this PR is the \"Scope / Goals of the Data Model\" section that introduces the notion of publishers, subscribers and relays into the draft.  I don't believe this should be a part of the model by itself (it is probably more appropriate to the section describing how the relays work), for two reasons.\r\n\r\nThe first reason is that this is not applicable to all use cases. For example, it focuses on the notion that the media receivers need to subscribe to things before receiving them, but there are plenty of cases where one side can just open a connection and start sending media (live ingestion, streaming media from a laptop to a smart device, etc). It also suggests a handshake mechanism between the publisher and the origin server, which is not a distinction that has to exist in all scenarios.\r\n\r\nThe second reason is that I believe that the fact that the media is being relayed should be mostly opaque to the endpoints producing and consuming media.  Setting authentication question aside, a generic HLS player can play media based on a playlist URL alone, not knowing where it's served from (this applies to HTTP in general); similarly, a generic RTMP ingestion client can send media to an RTMP server based on a server URL (plus auth key) alone, without caring what happens next to it.  As player and ingestion client vendors are likely going to constitute the majority of the target audience of this document long-term, I believe the model section should minimize description of parts that are not immediately relevant to them.\r\n\r\n--------\r\n\r\nMy general issue while reviewing this PR is that it tries to address a lot of problems at once, and since it does not explain exactly what are the specific problems it is trying to address, I mostly have to infer those myself.  It would be helpful if the issue #68 specifically spelled out what the issues are; as in, what is the use case affected, what is needed for that specific use case, and why the current model does not allow that to happen.",
+          "body": "This PR has two parts; I will go over each part individually.\r\n\r\n------\r\n\r\nThe first part is a rewrite of the existing model section that replaces the broadcast/track/object model with a five-level model.  Since the PR does not diff easily, I am going to attempt to summarize the changes while trying to express my opinion on them one-by-one.\r\n\r\n1. The old concept of \"broadcast\" has been renamed into WarpMediaSession.  I think I like the term \"media session\" (though I'm not so sure about using CamelCase for all the terms).\r\n1. What was formerly known as \"tracks\" is now split into \"media representation\" and \"WARP stream\".  Those appear to be in one-to-one correspondence, though I do not understand what is the actual difference between those two.  I can't say I am particularly fond of the term \"representation\", and I object to use of word \"stream\" for anything that is not a QUIC stream, since that makes things confusing.  If the issue is that \"tracks\" are too specific to live media, we can use \"media feeds\", which I think was in the original model PR.\r\n1. A layer of \"object groups\" is added that reflects the dependencies between objects.  I am not sure an extra level here is useful compared to the previous approach of just annotating the dependency properties directly in the objects themselves, but I do agree that we should have something of this nature.\r\n1. The media objects are still referred to as media objects, though there is some text about encryption and authentication of those.  I don't believe that text belongs in the model, since encryption is fundamentally an issue specific to a particular media format.\r\n\r\n------\r\n\r\nThe second part of this PR is the \"Scope / Goals of the Data Model\" section that introduces the notion of publishers, subscribers and relays into the draft.  I don't believe this should be a part of the model by itself (it is probably more appropriate to the section describing how the relays work), for two reasons.\r\n\r\nThe first reason is that this is not applicable to all use cases. For example, it focuses on the notion that the media receivers need to subscribe to things before receiving them, but there are plenty of cases where one side can just open a connection and start sending media (live ingestion, streaming media from a laptop to a smart device, etc). It also suggests a handshake mechanism between the publisher and the origin server, which is not a distinction that has to exist in all scenarios.\r\n\r\nThe second reason is that I believe that the fact that the media is being relayed should be mostly opaque to the endpoints producing and consuming media.  Setting authentication question aside, a generic HLS player can play media based on a playlist URL alone, not knowing where it's served from (this applies to HTTP in general); similarly, a generic RTMP ingestion client can send media to an RTMP server based on a server URL (plus auth key) alone, without caring what happens next to it.  As player and ingestion client vendors are likely going to constitute the majority of the target audience of this document long-term, I believe the model section should minimize description of parts that are not immediately relevant to them.\r\n\r\n--------\r\n\r\nMy general issue while reviewing this PR is that it tries to address a lot of problems at once, and since it does not explain exactly what are the specific problems it is trying to address, I mostly have to infer those myself.  It would be helpful if the issue moq-wg/moq-transport#68 specifically spelled out what the issues are; as in, what is the use case affected, what is needed for that specific use case, and why the current model does not allow that to happen.",
           "createdAt": "2023-01-28T05:40:28Z",
           "updatedAt": "2023-01-28T05:40:28Z"
         },
@@ -21900,7 +21847,7 @@
         {
           "author": "afrind",
           "authorAssociation": "COLLABORATOR",
-          "body": "Has this been overtaken by events, such as #121?  Can we close?",
+          "body": "Has this been overtaken by events, such as moq-wg/moq-transport#121?  Can we close?",
           "createdAt": "2023-04-21T19:07:38Z",
           "updatedAt": "2023-04-21T19:07:38Z"
         }
@@ -45909,7 +45856,7 @@
       "url": "https://github.com/moq-wg/moq-transport/pull/299",
       "state": "MERGED",
       "author": "englishm",
-      "authorAssociation": "CONTRIBUTOR",
+      "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [],
       "body": "per https://github.com/moq-wg/moq-transport/issues/268 \r\n\r\nTODO: Denote need to register w/ IANA",
@@ -61103,7 +61050,7 @@
             "abbreviatedOid": "c5eec0a"
           },
           "author": "englishm",
-          "authorAssociation": "CONTRIBUTOR",
+          "authorAssociation": "COLLABORATOR",
           "state": "COMMENTED",
           "body": "",
           "createdAt": "2024-06-05T15:55:24Z",
@@ -61395,7 +61342,7 @@
             "abbreviatedOid": "de0eb6b"
           },
           "author": "englishm",
-          "authorAssociation": "CONTRIBUTOR",
+          "authorAssociation": "COLLABORATOR",
           "state": "COMMENTED",
           "body": "",
           "createdAt": "2024-06-17T17:14:24Z",
@@ -61415,7 +61362,7 @@
             "abbreviatedOid": "de0eb6b"
           },
           "author": "englishm",
-          "authorAssociation": "CONTRIBUTOR",
+          "authorAssociation": "COLLABORATOR",
           "state": "COMMENTED",
           "body": "",
           "createdAt": "2024-06-17T17:17:03Z",
@@ -61435,7 +61382,7 @@
             "abbreviatedOid": "de0eb6b"
           },
           "author": "englishm",
-          "authorAssociation": "CONTRIBUTOR",
+          "authorAssociation": "COLLABORATOR",
           "state": "COMMENTED",
           "body": "",
           "createdAt": "2024-06-17T18:22:51Z",
@@ -61528,24 +61475,26 @@
       "id": "PR_kwDOG2Ho4M5y21M5",
       "title": "Add MAX_CACHE_DURATION to SUBSCRIBE_OK Params",
       "url": "https://github.com/moq-wg/moq-transport/pull/469",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "ianswett",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [],
       "body": "A tweaked version of #448 \r\n\r\nFixes #440\r\nFixes #249\r\n\r\nCloses #450 \r\nCloses #448\r\n\r\nI'll note that we might want to add params to TRACK_STATUS and allow this to be returned from that as well, which would allow a relay to keep it in its cache.\r\n\r\nAttempts to write down where we ended up at the end of the June 12th interim.",
       "createdAt": "2024-06-18T17:50:49Z",
-      "updatedAt": "2024-08-02T03:51:56Z",
+      "updatedAt": "2024-08-05T16:35:17Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
-      "baseRefOid": "20811e3db87a7e45f6000361ecb31a50bbc4b0a6",
+      "baseRefOid": "b7a9bdf8494b4a3f2b5f2fa53a5235fd76aeb68c",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "ianswett-max-cache-param",
-      "headRefOid": "7e2ba9e7e3dc05434361b04809a32c08a0b91afd",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "headRefOid": "d8c60db7f01ff2d6eb6a94379a0d4da929368042",
+      "closedAt": "2024-08-05T16:35:17Z",
+      "mergedAt": "2024-08-05T16:35:17Z",
+      "mergedBy": "ianswett",
+      "mergeCommit": {
+        "oid": "1eb58843008dc591826118839d66221164538209"
+      },
       "comments": [
         {
           "author": "ianswett",
@@ -61694,6 +61643,26 @@
           "createdAt": "2024-08-02T03:51:56Z",
           "updatedAt": "2024-08-02T03:51:56Z",
           "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6ELA7Q",
+          "commit": {
+            "abbreviatedOid": "1eaaeda"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-04T08:03:03Z",
+          "updatedAt": "2024-08-04T08:03:03Z",
+          "comments": [
+            {
+              "originalPosition": 31,
+              "body": "```suggestion\r\n\r\n```",
+              "createdAt": "2024-08-04T08:03:03Z",
+              "updatedAt": "2024-08-04T08:03:03Z"
+            }
+          ]
         }
       ]
     },
@@ -62467,7 +62436,7 @@
             "abbreviatedOid": "a6ed5ef"
           },
           "author": "englishm",
-          "authorAssociation": "CONTRIBUTOR",
+          "authorAssociation": "COLLABORATOR",
           "state": "COMMENTED",
           "body": "",
           "createdAt": "2024-06-28T05:18:14Z",
@@ -62487,7 +62456,7 @@
             "abbreviatedOid": "a6ed5ef"
           },
           "author": "englishm",
-          "authorAssociation": "CONTRIBUTOR",
+          "authorAssociation": "COLLABORATOR",
           "state": "COMMENTED",
           "body": "",
           "createdAt": "2024-06-28T05:25:57Z",
@@ -62507,7 +62476,7 @@
             "abbreviatedOid": "a6ed5ef"
           },
           "author": "englishm",
-          "authorAssociation": "CONTRIBUTOR",
+          "authorAssociation": "COLLABORATOR",
           "state": "COMMENTED",
           "body": "",
           "createdAt": "2024-06-28T05:31:13Z",
@@ -63765,13 +63734,13 @@
       "labels": [],
       "body": "Fixes #272\r\n\r\nSome diffs are due to me reflowing text to fit the line limits, so please ignore those.\r\n\r\nOnce we have this and a limit on announce IDs, it seems likely that we'll be able to get rid of 'Role', but for now it can stay.",
       "createdAt": "2024-07-26T02:58:25Z",
-      "updatedAt": "2024-07-31T14:25:55Z",
+      "updatedAt": "2024-08-05T16:35:43Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
-      "baseRefOid": "b7a9bdf8494b4a3f2b5f2fa53a5235fd76aeb68c",
+      "baseRefOid": "1eb58843008dc591826118839d66221164538209",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "ianswett-max-subscribe-id",
-      "headRefOid": "90b6881b0f66f75132086b450951d970f469be3b",
+      "headRefOid": "89fe75f5ea7a3e8d89fdccf32b8325eb5bc6bda2",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -63907,13 +63876,13 @@
       "labels": [],
       "body": "I have foregone any premature optimization of the encodings here.\r\n\r\nAsking @janaiyengar to take a first look.",
       "createdAt": "2024-07-26T23:09:07Z",
-      "updatedAt": "2024-08-01T18:20:02Z",
+      "updatedAt": "2024-08-05T18:03:43Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "b7a9bdf8494b4a3f2b5f2fa53a5235fd76aeb68c",
       "headRepository": "martinduke/moq-transport",
       "headRefName": "peeps",
-      "headRefOid": "e5bf316d3e75bbbce6e5eb4f65fe6fc17b384e37",
+      "headRefOid": "deb6758d91bdfb2e3f97d2c69995842a0abfeeee",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -63932,6 +63901,27 @@
           "body": "> How does one close a peep? Currently, in our implementation, we rely in combination of delivery preference and object status for that.\r\n\r\nI think a Stream FIN would be sufficient.",
           "createdAt": "2024-07-30T17:00:12Z",
           "updatedAt": "2024-07-30T17:00:12Z"
+        },
+        {
+          "author": "vasilvv",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> > How does one close a peep? Currently, in our implementation, we rely in combination of delivery preference and object status for that.\r\n> \r\n> I think a Stream FIN would be sufficient.\r\n\r\nHow am I supposed to know when to send a FIN?",
+          "createdAt": "2024-08-05T16:48:21Z",
+          "updatedAt": "2024-08-05T16:48:21Z"
+        },
+        {
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "> > > How does one close a peep? Currently, in our implementation, we rely in combination of delivery preference and object status for that.\r\n> > \r\n> > \r\n> > I think a Stream FIN would be sufficient.\r\n> \r\n> How am I supposed to know when to send a FIN?\r\n\r\nThe publisher sends a FIN when the Peep is done. The relay knows a Peep is complete when it receives the FIN from upstream.",
+          "createdAt": "2024-08-05T17:58:57Z",
+          "updatedAt": "2024-08-05T17:58:57Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> The publisher sends a FIN when the Peep is done. The relay knows a Peep is complete when it receives the FIN from upstream.\r\n\r\nIs there ever a case where a publisher needs to close a stream and ensure all data on it is delivered, but does not know that the peep is done, or knows it is not done.  For example - in response to an unsubscribe or graceful closure.",
+          "createdAt": "2024-08-05T18:02:15Z",
+          "updatedAt": "2024-08-05T18:02:15Z"
         }
       ],
       "reviews": [
@@ -64171,13 +64161,153 @@
       ],
       "body": "Alan's suggestion",
       "createdAt": "2024-07-31T14:54:08Z",
-      "updatedAt": "2024-07-31T14:54:08Z",
+      "updatedAt": "2024-08-05T21:21:42Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
-      "baseRefOid": "b7a9bdf8494b4a3f2b5f2fa53a5235fd76aeb68c",
+      "baseRefOid": "1eb58843008dc591826118839d66221164538209",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "ianswett-no-explicit-signal",
-      "headRefOid": "28884632a1d234624bba28a036d4fb9889adbd69",
+      "headRefOid": "1f471c067e862bd33b7ad8c7857c27fb7f47f1bc",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": []
+    },
+    {
+      "number": 497,
+      "id": "PR_kwDOG2Ho4M53fRe2",
+      "title": "Remove normative restriction on relays forwarding decision input",
+      "url": "https://github.com/moq-wg/moq-transport/pull/497",
+      "state": "OPEN",
+      "author": "afrind",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "I removed this sentence:\r\n\r\nRelays MUST NOT depend on OBJECT payload content for making forwarding decisions and MUST only depend on the fields, such as priority order and other metadata properties in the OBJECT message header.\r\n\r\nWe already have text explaining that the object payload content can be encrypted (section 2.1).  I think that makes it clear that a relay can't do anything with the object payload unless it has the encryption keys or a priori knowledge they are cleartext.\r\n\r\nThe sentence itself was overly restrictive (relays could use other inputs, for example out of band information from configuration or business relationships).  The preceding sentence explains how to find subscribers to this track, the subsequent one says \"MUST forward\", and we have an entire section explaining what to do with priority order now.\r\n\r\nFixes: #217",
+      "createdAt": "2024-08-05T19:33:18Z",
+      "updatedAt": "2024-08-05T21:20:47Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "1eb58843008dc591826118839d66221164538209",
+      "headRepository": "moq-wg/moq-transport",
+      "headRefName": "relay-forwarding",
+      "headRefOid": "e6e093d4978f78eba2d64184846ee3f2c80fa393",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M6EULvH",
+          "commit": {
+            "abbreviatedOid": "e6e093d"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-05T21:20:41Z",
+          "updatedAt": "2024-08-05T21:20:41Z",
+          "comments": [
+            {
+              "originalPosition": 10,
+              "body": "This is a bit out of date with the current priority/etc functionality how about:\r\n\r\n```suggestion\r\nthe active subscribers for that track. Relays MUST forward OBJECT messages to\r\nmatching subscribers in accordance to each subscription's priority, group order,\r\nand delivery timeout.\r\n```",
+              "createdAt": "2024-08-05T21:20:41Z",
+              "updatedAt": "2024-08-05T21:20:42Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6EULw2",
+          "commit": {
+            "abbreviatedOid": "e6e093d"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2024-08-05T21:20:47Z",
+          "updatedAt": "2024-08-05T21:20:47Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 498,
+      "id": "PR_kwDOG2Ho4M53f6Zw",
+      "title": "SUBSCRIBE_NAMESPACE",
+      "url": "https://github.com/moq-wg/moq-transport/pull/498",
+      "state": "OPEN",
+      "author": "afrind",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "This message suite allows subscribers to express interest in ANNOUNCE/UNANNOUNCE for set of namespaces that match a prefix.  To accomplish safe prefix matching, Track Namesapce is redefined from a single byte array to a N-Tuple of byte arrays.\r\n\r\nFixes: #484",
+      "createdAt": "2024-08-05T21:31:01Z",
+      "updatedAt": "2024-08-05T21:31:01Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "1eb58843008dc591826118839d66221164538209",
+      "headRepository": "moq-wg/moq-transport",
+      "headRefName": "subscribe-namespace",
+      "headRefOid": "764dcae488d2d7a608c8d0720047d81d250fab7d",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": []
+    },
+    {
+      "number": 499,
+      "id": "PR_kwDOG2Ho4M53f-em",
+      "title": "Always use ALPN for version negotiation",
+      "url": "https://github.com/moq-wg/moq-transport/pull/499",
+      "state": "OPEN",
+      "author": "ianswett",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [
+        "Handshake"
+      ],
+      "body": "Or the WebTransport equivalent, \"WT-Available-Protocols\".\r\n\r\nRemoves version negotiation from the MoQ SETUP messages.\r\n\r\nFixes #242 \r\nFixes #243\r\nRelated to #83",
+      "createdAt": "2024-08-05T21:46:30Z",
+      "updatedAt": "2024-08-05T21:48:14Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "1eb58843008dc591826118839d66221164538209",
+      "headRepository": "moq-wg/moq-transport",
+      "headRefName": "ianswett-use-alpn",
+      "headRefOid": "52f01b456b639a192b6c78d891519b7bdd98dd9b",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": []
+    },
+    {
+      "number": 500,
+      "id": "PR_kwDOG2Ho4M53gKNZ",
+      "title": "Update draft metadata",
+      "url": "https://github.com/moq-wg/moq-transport/pull/500",
+      "state": "OPEN",
+      "author": "afrind",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Fixes: #221",
+      "createdAt": "2024-08-05T22:37:38Z",
+      "updatedAt": "2024-08-05T22:37:38Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "1eb58843008dc591826118839d66221164538209",
+      "headRepository": "moq-wg/moq-transport",
+      "headRefName": "editorial-qol",
+      "headRefOid": "522177d18d249927def42414b1ee99da403239db",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
