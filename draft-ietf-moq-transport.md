@@ -1370,7 +1370,7 @@ Extension Header {
 {: #object-extension-format title="Object Extension Header Format"}
 
 * Header type: an unsigned 32-bit integer, registered in the IANA table
-  'MOQ Extension Headers'. See {{#iana}}.
+  'MOQ Extension Headers'. See {{iana}}.
 
 ##### Extension Header type 0 {#extension-header-zero}
 
@@ -1397,7 +1397,6 @@ Header Value {
   and is not IANA registered.
 * Payload: the contents of the header. The combined size of the name and payload
   contents MUST NOT exceed 10240 bytes.
-  
 
 ### Object Message Formats
 
