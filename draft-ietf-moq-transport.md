@@ -6,10 +6,18 @@ date: {DATE}
 category: std
 
 ipr: trust200902
-area: Applications and Real-Time
+area:  "Web and Internet Transport"
 submissionType: IETF
-workgroup: MOQ
-keyword: Internet-Draft
+workgroup: "Media Over QUIC"
+keyword:
+ - media over quic
+venue:
+  group: "Media Over QUIC"
+  type: "Working Group"
+  mail: "moq@ietf.org"
+  arch: "https://mailarchive.ietf.org/arch/browse/moq/"
+  github: "moq-wg/moq-transport"
+  latest: "https://moq-wg.github.io/moq-transport/draft-ietf-moq-transport.html"
 
 stand_alone: yes
 smart_quotes: no
