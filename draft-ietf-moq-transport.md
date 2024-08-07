@@ -745,7 +745,7 @@ limits.  See section 2.2 in {{QUIC}}.
 
 # Control Messages {#message}
 
-MOQT uses a signle bidirectional stream to exchange control messages, as
+MOQT uses a single bidirectional stream to exchange control messages, as
 defined in {{session-init}}.  Every signle message on the control stream is
 formatted as follows:
 
