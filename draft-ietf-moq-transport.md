@@ -1458,7 +1458,7 @@ stream.
 
 # Data Streams {#data-streams}
 
-A publisher sends Objects matching a subscription on Data Streams. 
+A publisher sends Objects matching a subscription on Data Streams.
 
 All unidirectional MOQT streams, as well as all datagrams, start with a
 variable-length integer indicating the type of the stream in question.
