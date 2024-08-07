@@ -2,16 +2,16 @@
 
 
 
-MOQ                                                            L. Curley
+Media Over QUIC                                                L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 6 February 2025                                            Meta
+Expires: 8 February 2025                                            Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                           5 August 2024
+                                                           7 August 2024
 
 
                        Media over QUIC Transport
@@ -27,13 +27,19 @@ Abstract
    intermediate content distribution networks and is designed for high
    scale and low latency distribution.
 
-Discussion Venues
+About This Document
 
    This note is to be removed before publishing as an RFC.
 
+   The latest revision of this draft can be found at https://moq-
+   wg.github.io/moq-transport/draft-ietf-moq-transport.html.  Status
+   information for this document may be found at
+   https://datatracker.ietf.org/doc/draft-ietf-moq-transport/.
+
    Discussion of this document takes place on the Media Over QUIC
-   Working Group mailing list (moq@ietf.org), which is archived at
-   https://mailarchive.ietf.org/arch/browse/moq/.
+   Working Group mailing list (mailto:moq@ietf.org), which is archived
+   at https://mailarchive.ietf.org/arch/browse/moq/.  Subscribe at
+   https://www.ietf.org/mailman/listinfo/moq/.
 
    Source for this draft and an issue tracker can be found at
    https://github.com/moq-wg/moq-transport.
@@ -53,7 +59,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 6 February 2025.
+   This Internet-Draft will expire on 8 February 2025.
 
 Copyright Notice
 
@@ -770,12 +776,9 @@ Table of Contents
    OBJECT message headers carry a short hop-by-hop Track Alias that maps
    to the Full Track Name (see Section 6.12).  Relays use the Track
    Alias of an incoming OBJECT message to identify its track and find
-   the active subscribers for that track.  Relays MUST NOT depend on
-   OBJECT payload content for making forwarding decisions and MUST only
-   depend on the fields, such as priority order and other metadata
-   properties in the OBJECT message header.  Unless determined by
-   congestion response, Relays MUST forward the OBJECT message to the
-   matching subscribers.
+   the active subscribers for that track.  Relays MUST forward OBJECT
+   messages to matching subscribers in accordance to each subscription's
+   priority, group order, and delivery timeout.
 
 5.3.  Relay Object Handling
 
