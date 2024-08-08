@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2024-08-06T01:17:53.596777+00:00",
+  "timestamp": "2024-08-08T01:18:24.516054+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -8264,7 +8264,7 @@
       "id": "I_kwDOG2Ho4M5pL97l",
       "title": "relay forwarding objects",
       "url": "https://github.com/moq-wg/moq-transport/issues/217",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "gwendalsimon",
       "authorAssociation": "NONE",
       "assignees": [
@@ -8275,8 +8275,8 @@
       ],
       "body": "Line 572. \u201c[Relays] MUST only depend on the fields [for making forwarding decisions]\u201d. \r\n\r\nI am not sure to understand why we would like to restrict here the behavior of Relays to forward the Objects to subscribers.  We can imagine edge processing for the implementation of forwarding decisions based on third-party validation (possibly based on payload). Furthermore, this restriction is not necessary for the norm to be implemented.",
       "createdAt": "2023-06-20T06:38:24Z",
-      "updatedAt": "2024-08-05T18:53:30Z",
-      "closedAt": null,
+      "updatedAt": "2024-08-07T17:01:50Z",
+      "closedAt": "2024-08-07T17:01:50Z",
       "comments": [
         {
           "author": "wilaw",
@@ -8424,7 +8424,7 @@
       "id": "I_kwDOG2Ho4M5rzmiy",
       "title": "Repo quality of life post migration",
       "url": "https://github.com/moq-wg/moq-transport/issues/221",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "LPardue",
       "authorAssociation": "NONE",
       "assignees": [
@@ -8435,8 +8435,8 @@
       ],
       "body": "Now that this is a repo for, I think, a WG adopted doc, there's a number of improvements that could be made to improve it e.g. the description is stale, there's no link to the repo from the document, the markdown filename doesn't match the document name etc. These are all minor things but cumulatively make it harder for contributors. It would be great to get them fixed up.",
       "createdAt": "2023-07-17T21:58:26Z",
-      "updatedAt": "2024-08-05T17:08:06Z",
-      "closedAt": null,
+      "updatedAt": "2024-08-06T15:50:45Z",
+      "closedAt": "2024-08-06T15:50:45Z",
       "comments": [
         {
           "author": "fluffy",
@@ -14781,14 +14781,16 @@
       "state": "OPEN",
       "author": "kixelated",
       "authorAssociation": "COLLABORATOR",
-      "assignees": [],
+      "assignees": [
+        "suhasHere"
+      ],
       "labels": [
         "Announce",
         "Wire Format"
       ],
       "body": "It's meant to be sent by the subscriber, indicating that the announce is no longer accepted. The fields should mirror ANNOUNCE_ERROR so the subscriber can indicate stuff like authentication expired, another announce was received, etc.",
       "createdAt": "2024-03-08T22:22:11Z",
-      "updatedAt": "2024-08-06T00:11:50Z",
+      "updatedAt": "2024-08-06T19:18:23Z",
       "closedAt": null,
       "comments": []
     },
@@ -15619,7 +15621,7 @@
       ],
       "body": "The whole draft needed a pass at some point for extensibility but a more immediate concern is to play with various things, we need a way of adding header to an object that the relay can read.  The LOC draft has a line about needing this, I think Will had some use cases that needed it, and it would help with experimenting and migrating some pre standard implementations to the current version of the draft. \r\n\r\nThe requirement would be there was a way to define new headers in extensions, there was a way to indicate if the header needs to be understood by relays, reviewers, both, or neither. \r\n\r\n",
       "createdAt": "2024-04-17T17:28:34Z",
-      "updatedAt": "2024-08-05T17:36:57Z",
+      "updatedAt": "2024-08-07T15:55:33Z",
       "closedAt": null,
       "comments": [
         {
@@ -15663,6 +15665,20 @@
           "body": "> It seems to me you need to know the number of them to know when to stop parsing. \r\n\r\nI think it would work without, because the Extension(i) value in the object header would give the total number of bytes assigned to the extensions. 0 indicates no extensions. For a positive value B, any receiver could parse their way down until totalExtensionBytesProcessed  = B and then they would know that the next byte represents the start of the Object payload and not the next TLV extension.  \r\n",
           "createdAt": "2024-04-22T14:42:35Z",
           "updatedAt": "2024-04-22T14:42:35Z"
+        },
+        {
+          "author": "vasilvv",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I would like to see specific use cases presented for this before discussing further.\r\n\r\n> IMO, if a header needs to be understood by relays, then it should be part of the moqt specification and not part of some extensibility scheme. Therefore I'd say that headers are NEVER mandatory to be understood by relays. Headers, if present, are to be understood only by those nodes that know to look for them. All other nodes would ignore them.\r\n\r\nI'm not sure this makes sense to me.  If a specific piece of metadata does not need to be understood by relays, you can just put it into the object payload.",
+          "createdAt": "2024-08-07T14:17:34Z",
+          "updatedAt": "2024-08-07T14:17:34Z"
+        },
+        {
+          "author": "wilaw",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "> If a specific piece of metadata does not need to be understood by relays, you can just put it into the object payload.\r\n\r\nBut what if some relays need to use it while the rest can ignore and forward it? Here's an example: imagine a advertising header that only the outermost relay ( the edge relay) will use to manipulate data that it sends to the end subscribers. We can't put this info in the object payload because that is opaque to relays and may be encrypted. Therefore we would like to have this extension header be preserved and forwarded (but not understood or parsed) by distribution relays and then only the last relay, which is programmed to look for it, would actually parse and use it.  ",
+          "createdAt": "2024-08-07T15:55:33Z",
+          "updatedAt": "2024-08-07T15:55:33Z"
         }
       ]
     },
@@ -16265,13 +16281,15 @@
       "state": "OPEN",
       "author": "huitema",
       "authorAssociation": "CONTRIBUTOR",
-      "assignees": [],
+      "assignees": [
+        "suhasHere"
+      ],
       "labels": [
         "Wire Format"
       ],
       "body": "The \"message\" syntax is defined as:\r\n~~~\r\n   MOQT Message {\r\n     Message Type (i),\r\n     Message Payload (..),\r\n   }\r\n~~~\r\nThe unidirectional streams start with messages of one of the types:\r\n~~~\r\n              +======+======================================+\r\n              |   ID | Messages                             |\r\n              +======+======================================+\r\n              |  0x0 | OBJECT_STREAM (Section 6.11.2)       |\r\n              +------+--------------------------------------+\r\n              | 0x50 | STREAM_HEADER_TRACK (Section 6.11.3) |\r\n              +------+--------------------------------------+\r\n              | 0x51 | STREAM_HEADER_GROUP (Section 6.11.3) |\r\n              +------+--------------------------------------+\r\n~~~\r\nWhen encoded as a varint, the codes 0x50 and 0x51 take two bytes -- 0x4050 or 0x4051. That seems a tiny bit wasteful. How about changing those codes to 0x30 and 0x31, which encode on a single byte?",
       "createdAt": "2024-06-12T19:31:19Z",
-      "updatedAt": "2024-07-04T17:49:54Z",
+      "updatedAt": "2024-08-06T19:18:36Z",
       "closedAt": null,
       "comments": [
         {
@@ -16487,7 +16505,7 @@
       ],
       "body": "Role, Subscribe Filter = start at 0x1\r\nSetup Params, Object Status, Track Status codes, Subscribe Done, other error codes = start at 0x0",
       "createdAt": "2024-06-17T20:00:28Z",
-      "updatedAt": "2024-06-20T21:14:15Z",
+      "updatedAt": "2024-08-06T05:13:58Z",
       "closedAt": null,
       "comments": [
         {
@@ -16510,6 +16528,13 @@
           "body": "Shall I create a bikeshed label now?",
           "createdAt": "2024-06-18T00:58:21Z",
           "updatedAt": "2024-06-18T00:58:21Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Individual Comment:\r\n\r\nI'll note that Role has a reason to start at 1 -- Pub (0x01) | Sub (0x02) = PubSub (0x03).",
+          "createdAt": "2024-08-06T05:13:57Z",
+          "updatedAt": "2024-08-06T05:13:57Z"
         }
       ]
     },
@@ -16624,13 +16649,15 @@
       "state": "OPEN",
       "author": "huitema",
       "authorAssociation": "CONTRIBUTOR",
-      "assignees": [],
+      "assignees": [
+        "suhasHere"
+      ],
       "labels": [
         "Wire Format"
       ],
       "body": "The MoQ transport messages are encoded as a combination of varints, bit strings, and t-l-v objects. In the absence of a \"header length\" field, applications have to resort to trial parsing: accumulate some incoming bytes from the stream, try to parse those bytes as a message, and if that fail accumulate more bytes and retry. This may not be a huge problem in normal operation. The peer endpoint will compose a message and typically send those bytes all at once; the QUIC stack will deliver them all at once, but even so there may be cases where the QUIC stack cannot send them in a single STREAM_DATA messages, so the logic for \"accumulate and try\" has to be present.\r\n\r\nSuppose a peer sending its data one byte at a time, because it is either malicious or buggy. The length of the message cannot be computed before all components are parsed: the first byte of each varint defines its length, the length field of bits or bytes strings need to be parsed in full, then number of parameters or versions needs to be known. To obtain the length of a component, all components before it need to be parsed, which means that the number of trial parsing is typically a function of the number of components -- maybe an O(N2) function since the cost of each trial depends on the number of components before it. That number can be very large for messages including parameters, because the number of parameters cannot be known in advance -- the peer could send an arbitrary number of them in an attempt to \"greasing\". Parsing is a somewhat CPU intensive operation, which implies that trial parsing can be exploited for a mild DOS attack.\r\n\r\nPrepend a length field to messages would mitigate trial parsing, but I am not sure that we need to fix this. Having limits on message size would impose a de-facto limit on the processing cost of each message. A malicious attackers could send series of short messages such as \"subscribe updates\" to trigger the same CPU consumption. In typical QUIC stacks, the main CPU load comes form passing messages through the OS/app boundary in socket calls, and an attacker could DOS the target by sending series of short messages. The next component is the cost of encryption and decryption, compared to which the cost of trial decryption is probably small. We may decide to do nothing, but it would be nice in that case to have a documentation of the reasoning (as in this issue), and maybe a discussion of why the attack does not matter in the security section.\r\n\r\nAddressing the \"limits\" issue (#473) would also somewhat mitigate the problem, as limiting the \"number of parameters\" appears to be the main way to increase the number of components in messages.",
       "createdAt": "2024-06-24T16:02:12Z",
-      "updatedAt": "2024-07-08T15:42:56Z",
+      "updatedAt": "2024-08-06T19:17:58Z",
       "closedAt": null,
       "comments": [
         {
@@ -63734,13 +63761,13 @@
       "labels": [],
       "body": "Fixes #272\r\n\r\nSome diffs are due to me reflowing text to fit the line limits, so please ignore those.\r\n\r\nOnce we have this and a limit on announce IDs, it seems likely that we'll be able to get rid of 'Role', but for now it can stay.",
       "createdAt": "2024-07-26T02:58:25Z",
-      "updatedAt": "2024-08-05T16:35:43Z",
+      "updatedAt": "2024-08-07T16:37:20Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
-      "baseRefOid": "1eb58843008dc591826118839d66221164538209",
+      "baseRefOid": "bac470e2aa4bf90e7ff57da29b5ba34e5dd47642",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "ianswett-max-subscribe-id",
-      "headRefOid": "89fe75f5ea7a3e8d89fdccf32b8325eb5bc6bda2",
+      "headRefOid": "6e825f8bae837c24abb996329cbfed9c42fcf758",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -63804,6 +63831,58 @@
               "body": "```suggestion\r\n  a Subscribe ID equal or larger than the current Maximum Subscribe ID.\r\n```",
               "createdAt": "2024-07-26T03:24:31Z",
               "updatedAt": "2024-07-26T03:24:32Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6EpNnK",
+          "commit": {
+            "abbreviatedOid": "89fe75f"
+          },
+          "author": "englishm",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-07T14:35:29Z",
+          "updatedAt": "2024-08-07T14:51:20Z",
+          "comments": [
+            {
+              "originalPosition": 14,
+              "body": "Is it expected that a publisher MUST close an entire session under these circumstances? Or could it just not fulfill the subscription request? I guess maybe we don't have another way to signal the latter.",
+              "createdAt": "2024-08-07T14:35:30Z",
+              "updatedAt": "2024-08-07T14:51:20Z"
+            },
+            {
+              "originalPosition": 14,
+              "body": "My concern would be that the potential impact on aggregating subscribers (relays) could be substantial if they erroneously open too many subscriptions (or are somehow coerced into doing so).",
+              "createdAt": "2024-08-07T14:38:06Z",
+              "updatedAt": "2024-08-07T14:51:20Z"
+            },
+            {
+              "originalPosition": 14,
+              "body": "That said, having a limit here is better than no limit, so I'd be fine revisiting this concern at a later date.",
+              "createdAt": "2024-08-07T14:51:05Z",
+              "updatedAt": "2024-08-07T14:51:20Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6EqT9K",
+          "commit": {
+            "abbreviatedOid": "6e825f8"
+          },
+          "author": "vasilvv",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-07T16:37:20Z",
+          "updatedAt": "2024-08-07T16:37:20Z",
+          "comments": [
+            {
+              "originalPosition": 50,
+              "body": "This is unnecessary, since you can just send a MAX_SUBSCRIBE_ID immediately after the SETUP message.",
+              "createdAt": "2024-08-07T16:37:20Z",
+              "updatedAt": "2024-08-07T16:37:20Z"
             }
           ]
         }
@@ -63876,7 +63955,7 @@
       "labels": [],
       "body": "I have foregone any premature optimization of the encodings here.\r\n\r\nAsking @janaiyengar to take a first look.",
       "createdAt": "2024-07-26T23:09:07Z",
-      "updatedAt": "2024-08-05T18:03:43Z",
+      "updatedAt": "2024-08-06T08:27:49Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "b7a9bdf8494b4a3f2b5f2fa53a5235fd76aeb68c",
@@ -63922,6 +64001,13 @@
           "body": "> The publisher sends a FIN when the Peep is done. The relay knows a Peep is complete when it receives the FIN from upstream.\r\n\r\nIs there ever a case where a publisher needs to close a stream and ensure all data on it is delivered, but does not know that the peep is done, or knows it is not done.  For example - in response to an unsubscribe or graceful closure.",
           "createdAt": "2024-08-05T18:02:15Z",
           "updatedAt": "2024-08-05T18:02:15Z"
+        },
+        {
+          "author": "vasilvv",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> The publisher sends a FIN when the Peep is done. The relay knows a Peep is complete when it receives the FIN from upstream.\r\n\r\nHow is this represented in the cache?  Are FINs guaranteed to be always at the same position?\r\n\r\nOne scenario where the sender might FIN a peep earlier is if the next object in the peep is past subscription end, though I'm not sure how we'd hit this in practice.",
+          "createdAt": "2024-08-06T08:27:48Z",
+          "updatedAt": "2024-08-06T08:27:48Z"
         }
       ],
       "reviews": [
@@ -64161,13 +64247,13 @@
       ],
       "body": "Alan's suggestion",
       "createdAt": "2024-07-31T14:54:08Z",
-      "updatedAt": "2024-08-05T21:21:42Z",
+      "updatedAt": "2024-08-07T17:02:29Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
-      "baseRefOid": "1eb58843008dc591826118839d66221164538209",
+      "baseRefOid": "7b4e54fd94d0928e1e0959546fc39b0c703f4fa5",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "ianswett-no-explicit-signal",
-      "headRefOid": "1f471c067e862bd33b7ad8c7857c27fb7f47f1bc",
+      "headRefOid": "9be939091a3f00cf63ad91d40db8a76ca4f74ad5",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -64180,24 +64266,26 @@
       "id": "PR_kwDOG2Ho4M53fRe2",
       "title": "Remove normative restriction on relays forwarding decision input",
       "url": "https://github.com/moq-wg/moq-transport/pull/497",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "afrind",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [],
       "body": "I removed this sentence:\r\n\r\nRelays MUST NOT depend on OBJECT payload content for making forwarding decisions and MUST only depend on the fields, such as priority order and other metadata properties in the OBJECT message header.\r\n\r\nWe already have text explaining that the object payload content can be encrypted (section 2.1).  I think that makes it clear that a relay can't do anything with the object payload unless it has the encryption keys or a priori knowledge they are cleartext.\r\n\r\nThe sentence itself was overly restrictive (relays could use other inputs, for example out of band information from configuration or business relationships).  The preceding sentence explains how to find subscribers to this track, the subsequent one says \"MUST forward\", and we have an entire section explaining what to do with priority order now.\r\n\r\nFixes: #217",
       "createdAt": "2024-08-05T19:33:18Z",
-      "updatedAt": "2024-08-05T21:20:47Z",
+      "updatedAt": "2024-08-07T17:01:49Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
-      "baseRefOid": "1eb58843008dc591826118839d66221164538209",
+      "baseRefOid": "bac470e2aa4bf90e7ff57da29b5ba34e5dd47642",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "relay-forwarding",
-      "headRefOid": "e6e093d4978f78eba2d64184846ee3f2c80fa393",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "headRefOid": "a2047d6d7ba91ccd9dd5f2e11bf5b92b71f9b106",
+      "closedAt": "2024-08-07T17:01:49Z",
+      "mergedAt": "2024-08-07T17:01:49Z",
+      "mergedBy": "ianswett",
+      "mergeCommit": {
+        "oid": "7b4e54fd94d0928e1e0959546fc39b0c703f4fa5"
+      },
       "comments": [],
       "reviews": [
         {
@@ -64232,6 +64320,19 @@
           "createdAt": "2024-08-05T21:20:47Z",
           "updatedAt": "2024-08-05T21:20:47Z",
           "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6Eqdj4",
+          "commit": {
+            "abbreviatedOid": "a2047d6"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2024-08-07T16:57:12Z",
+          "updatedAt": "2024-08-07T16:57:20Z",
+          "comments": []
         }
       ]
     },
@@ -64247,7 +64348,7 @@
       "labels": [],
       "body": "This message suite allows subscribers to express interest in ANNOUNCE/UNANNOUNCE for set of namespaces that match a prefix.  To accomplish safe prefix matching, Track Namesapce is redefined from a single byte array to a N-Tuple of byte arrays.\r\n\r\nFixes: #484",
       "createdAt": "2024-08-05T21:31:01Z",
-      "updatedAt": "2024-08-05T21:31:01Z",
+      "updatedAt": "2024-08-07T21:23:50Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "1eb58843008dc591826118839d66221164538209",
@@ -64258,8 +64359,353 @@
       "mergedAt": null,
       "mergedBy": null,
       "mergeCommit": null,
-      "comments": [],
-      "reviews": []
+      "comments": [
+        {
+          "author": "wilaw",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "Philosophical question - we now have a N-32 tuple of namespace components and then a track name that hangs off the end. What's the utility in that? Could not the track name just be one of the namespace components? \r\n\r\n**Can we simplify MOQT by getting rid of the concept of namespace and instead having a N-32 tuple track name?** ",
+          "createdAt": "2024-08-07T09:33:46Z",
+          "updatedAt": "2024-08-07T09:33:46Z"
+        },
+        {
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "body": "This is a good start. I am sure we will fix aspects of it as we explore futher, but overall LGTM",
+          "createdAt": "2024-08-07T21:23:48Z",
+          "updatedAt": "2024-08-07T21:23:48Z"
+        }
+      ],
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M6Edf-m",
+          "commit": {
+            "abbreviatedOid": "764dcae"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-06T22:16:33Z",
+          "updatedAt": "2024-08-06T22:16:33Z",
+          "comments": [
+            {
+              "originalPosition": 9,
+              "body": "thanks for this.",
+              "createdAt": "2024-08-06T22:16:33Z",
+              "updatedAt": "2024-08-06T22:16:33Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6EdgJ5",
+          "commit": {
+            "abbreviatedOid": "764dcae"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-06T22:17:15Z",
+          "updatedAt": "2024-08-06T22:17:15Z",
+          "comments": [
+            {
+              "originalPosition": 17,
+              "body": "not sure if we need to limit the number of tuples. but we should instead have limit on the overall length. ",
+              "createdAt": "2024-08-06T22:17:15Z",
+              "updatedAt": "2024-08-06T22:17:15Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6EdgPl",
+          "commit": {
+            "abbreviatedOid": "764dcae"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-06T22:17:39Z",
+          "updatedAt": "2024-08-06T22:17:39Z",
+          "comments": [
+            {
+              "originalPosition": 17,
+              "body": "I wonder if we need this to be \"Ordered N-tuple\" . From the definition of tuple from prog lang, it is sequence , but not sure if we need to make it clear.",
+              "createdAt": "2024-08-06T22:17:39Z",
+              "updatedAt": "2024-08-06T22:26:29Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6Edhjg",
+          "commit": {
+            "abbreviatedOid": "764dcae"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-06T22:23:42Z",
+          "updatedAt": "2024-08-06T22:23:42Z",
+          "comments": [
+            {
+              "originalPosition": 74,
+              "body": "just noted, the value of token needs to be opaque bytes not ASCII string :-D",
+              "createdAt": "2024-08-06T22:23:42Z",
+              "updatedAt": "2024-08-06T22:23:42Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6Ediz8",
+          "commit": {
+            "abbreviatedOid": "764dcae"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-06T22:28:27Z",
+          "updatedAt": "2024-08-06T22:28:27Z",
+          "comments": [
+            {
+              "originalPosition": 27,
+              "body": "I think need to add text on what happens when certain tuples are missing in subscribes and how to ensure the match is happening at the right tuple or should we constrain saying a if tuple is not specified, rest of the tuple elments MUST be ignored for comparision",
+              "createdAt": "2024-08-06T22:28:27Z",
+              "updatedAt": "2024-08-06T22:28:27Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6Edjt-",
+          "commit": {
+            "abbreviatedOid": "764dcae"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-06T22:32:04Z",
+          "updatedAt": "2024-08-06T22:32:04Z",
+          "comments": [
+            {
+              "originalPosition": 143,
+              "body": "this example is bit misleading but the intent is fine. May be better way to say is\r\n(\"example.com\", \"meeting/123\", \"participant/100\")\r\n\r\nThe mix of a=b, vs split info is confusing.",
+              "createdAt": "2024-08-06T22:32:04Z",
+              "updatedAt": "2024-08-06T22:32:04Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6EdkfB",
+          "commit": {
+            "abbreviatedOid": "764dcae"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-06T22:35:33Z",
+          "updatedAt": "2024-08-06T22:35:34Z",
+          "comments": [
+            {
+              "originalPosition": 145,
+              "body": "this is a good example. Same comment as missing tuple element applies here too.  Say if we  had following tuple\r\n\r\nANNOUNCE messages for namespaces (\"example.com\", \"location/earth\",\r\n\"meeting/123\", \"participant/100\") and (\"example.com\", \"location/earth\", \"meeting/123\", \r\n\"participant/200\"), a SUBSCRIBE_NAMESPACE for (\"example.com\",  \"location/earth\",) should match both the tuples as well. \r\n\r\nAnother example \r\n\r\nANNOUNCE messages for namespaces (\"example.com\", \"location/earth\",\r\n\"meeting/123\", \"participant/100\") and (\"example.com\", \"meeting/123\", \r\n\"participant/200\"), a SUBSCRIBE_NAMESPACE for (\"example.com\",  \"location/earth\") should only the first one. \r\n\r\n@afrind what are your thoughts ?\r\n",
+              "createdAt": "2024-08-06T22:35:33Z",
+              "updatedAt": "2024-08-07T08:17:17Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6EdlGF",
+          "commit": {
+            "abbreviatedOid": "764dcae"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-06T22:38:26Z",
+          "updatedAt": "2024-08-06T22:38:26Z",
+          "comments": [
+            {
+              "originalPosition": 152,
+              "body": "Today ANNOUNCE message doesn't get sent to the subscriber.  Do we intend for the subscriber to issue Subscribe once it receives announce ?",
+              "createdAt": "2024-08-06T22:38:26Z",
+              "updatedAt": "2024-08-06T22:38:26Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6EdlbH",
+          "commit": {
+            "abbreviatedOid": "764dcae"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "@afrind Huge thanks for this PR. This is coming along pretty well.\r\nI do have few clarification questions and few details that, if added, will make it easy to reason about.",
+          "createdAt": "2024-08-06T22:39:56Z",
+          "updatedAt": "2024-08-06T22:39:56Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6EdmeV",
+          "commit": {
+            "abbreviatedOid": "764dcae"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "Thanks for the review.",
+          "createdAt": "2024-08-06T22:44:20Z",
+          "updatedAt": "2024-08-06T22:56:41Z",
+          "comments": [
+            {
+              "originalPosition": 17,
+              "body": "The limit on the number of tuples allows the relay to bound the complexity of a tree-structure used to implement tuple prefix matching.\r\n\r\nOrdered tuple seems more specific, I'll update it.",
+              "createdAt": "2024-08-06T22:44:20Z",
+              "updatedAt": "2024-08-06T22:56:41Z"
+            },
+            {
+              "originalPosition": 27,
+              "body": "As I have defined it, you cannot omit a tuple in SUBSCRIBE_NAMESPACE.  eg: if a namespace is (a, b, c) and your prefix is (a, c), c is compared against b, and does not match.",
+              "createdAt": "2024-08-06T22:45:36Z",
+              "updatedAt": "2024-08-06T22:56:41Z"
+            },
+            {
+              "originalPosition": 74,
+              "body": "Please open a new issue :P",
+              "createdAt": "2024-08-06T22:45:58Z",
+              "updatedAt": "2024-08-06T22:56:41Z"
+            },
+            {
+              "originalPosition": 143,
+              "body": "Good point.  I'll restructure the example to make it more clear.",
+              "createdAt": "2024-08-06T22:46:34Z",
+              "updatedAt": "2024-08-06T22:56:41Z"
+            },
+            {
+              "originalPosition": 145,
+              "body": "My first cut at this only performs prefix matching, rather than arbitrary non-prefix matches as in your example.  The goal was to limit the complexity required to implement SUBSCRIBE_NAMESPACE efficiently in relays.\r\n\r\nDo you have use cases that cannot be represented as prefixes that would require arbitrary match?",
+              "createdAt": "2024-08-06T22:48:39Z",
+              "updatedAt": "2024-08-06T22:56:41Z"
+            },
+            {
+              "originalPosition": 152,
+              "body": "The ANNOUNCE message can be sent by any publisher to any subscriber.  Today, the draft does not require ANNOUNCE before subscribe and this PR does not change that.  I was looking for text that indicates the optionality of ANNOUNCE and we don't seem to have it, but we should.\r\n\r\nAs for how SUBSCRIBE_NAMESPACE works, the function is to make the subscriber aware of the announcements known to the publisher (which could be a relay, but doesn't have to be), hence this PR communicates those in the form of the ANNOUNCE / UNANNOUNCE messages themselves.  The general pattern I expect is that the subscriber would issue some subscribes in response to the ANNOUNCE's received in response to SUBSCRIBE_NAMESPACE.",
+              "createdAt": "2024-08-06T22:55:49Z",
+              "updatedAt": "2024-08-06T22:56:41Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6Eg_ud",
+          "commit": {
+            "abbreviatedOid": "764dcae"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-07T08:15:54Z",
+          "updatedAt": "2024-08-07T08:15:54Z",
+          "comments": [
+            {
+              "originalPosition": 27,
+              "body": "ah .. makes sense .. thanks",
+              "createdAt": "2024-08-07T08:15:54Z",
+              "updatedAt": "2024-08-07T08:15:55Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6EhCWY",
+          "commit": {
+            "abbreviatedOid": "764dcae"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-07T08:17:44Z",
+          "updatedAt": "2024-08-07T08:17:44Z",
+          "comments": [
+            {
+              "originalPosition": 145,
+              "body": "No prefix match works. May be i misread the details.",
+              "createdAt": "2024-08-07T08:17:44Z",
+              "updatedAt": "2024-08-07T08:17:44Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6EhCse",
+          "commit": {
+            "abbreviatedOid": "764dcae"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-07T08:18:00Z",
+          "updatedAt": "2024-08-07T08:18:00Z",
+          "comments": [
+            {
+              "originalPosition": 152,
+              "body": "That makes sense.  thanks",
+              "createdAt": "2024-08-07T08:18:00Z",
+              "updatedAt": "2024-08-07T08:18:00Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6Eir_h",
+          "commit": {
+            "abbreviatedOid": "764dcae"
+          },
+          "author": "wilaw",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-07T09:29:21Z",
+          "updatedAt": "2024-08-07T09:29:22Z",
+          "comments": [
+            {
+              "originalPosition": 74,
+              "body": "Do we require different AUTH tokens for different components of the namespace, or do we assume that the token structure is sophisticated enough to match the tuple boundaries? For example, do we envisage one token that allows you to subscribe to \r\n\r\n`example.com/conference/session12345/`\r\n\r\nbut at the same time blocks you from\r\n\r\n`example.com/conference`\r\n\r\n",
+              "createdAt": "2024-08-07T09:29:21Z",
+              "updatedAt": "2024-08-07T09:29:22Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6Epf8z",
+          "commit": {
+            "abbreviatedOid": "764dcae"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "Regarding Will's question:\r\n\r\n> Can we simplify MOQT by getting rid of the concept of namespace and instead having a N-32 tuple track name?\r\n\r\nThis also crossed my mind.  At present, ANNOUNCE only announces namespace and SUBSCRIBE still requires a FULL match on namespace to route through a relay, so the distinction between namespace and name is serving a purpose.  I guess we could say the last component is always the track name.  I was hesitant in any case to completely undo track naming in this PR.",
+          "createdAt": "2024-08-07T15:02:13Z",
+          "updatedAt": "2024-08-07T15:12:01Z",
+          "comments": [
+            {
+              "originalPosition": 74,
+              "body": "I think we need auth schemes that allow for that distinction.",
+              "createdAt": "2024-08-07T15:02:13Z",
+              "updatedAt": "2024-08-07T15:12:01Z"
+            },
+            {
+              "originalPosition": 145,
+              "body": "I misread your examples too but I think we're still on the same page.\r\n\r\nIf the namespaces are (a, b, c, x) and (a, b, c, y), SUBSCRIBE_NAMESPACE(a, b) matches both.\r\n\r\nIf the namespaces are (a, b, c, x) and (a, c, y), SUBSCRIBE_NAMEPACE(a, b) only matches the first one.",
+              "createdAt": "2024-08-07T15:05:07Z",
+              "updatedAt": "2024-08-07T15:12:01Z"
+            }
+          ]
+        }
+      ]
     },
     {
       "number": 499,
@@ -64271,11 +64717,12 @@
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [
-        "Handshake"
+        "Handshake",
+        "Parked"
       ],
       "body": "Or the WebTransport equivalent, \"WT-Available-Protocols\".\r\n\r\nRemoves version negotiation from the MoQ SETUP messages.\r\n\r\nFixes #242 \r\nFixes #243\r\nRelated to #83",
       "createdAt": "2024-08-05T21:46:30Z",
-      "updatedAt": "2024-08-05T21:48:14Z",
+      "updatedAt": "2024-08-07T16:52:24Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "1eb58843008dc591826118839d66221164538209",
@@ -64286,34 +64733,674 @@
       "mergedAt": null,
       "mergedBy": null,
       "mergeCommit": null,
-      "comments": [],
-      "reviews": []
+      "comments": [
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "The group thinks this is a good direction, but we want to wait until Chrome supports this to merge this PR.",
+          "createdAt": "2024-08-07T16:52:17Z",
+          "updatedAt": "2024-08-07T16:52:17Z"
+        }
+      ],
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M6Edlsg",
+          "commit": {
+            "abbreviatedOid": "52f01b4"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-06T22:40:57Z",
+          "updatedAt": "2024-08-06T22:40:57Z",
+          "comments": [
+            {
+              "originalPosition": 4,
+              "body": "MoQT",
+              "createdAt": "2024-08-06T22:40:57Z",
+              "updatedAt": "2024-08-06T22:40:57Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6EdmBn",
+          "commit": {
+            "abbreviatedOid": "52f01b4"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2024-08-06T22:42:12Z",
+          "updatedAt": "2024-08-06T22:42:12Z",
+          "comments": []
+        }
+      ]
     },
     {
       "number": 500,
       "id": "PR_kwDOG2Ho4M53gKNZ",
       "title": "Update draft metadata",
       "url": "https://github.com/moq-wg/moq-transport/pull/500",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "afrind",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [],
       "body": "Fixes: #221",
       "createdAt": "2024-08-05T22:37:38Z",
-      "updatedAt": "2024-08-05T22:37:38Z",
+      "updatedAt": "2024-08-06T15:50:44Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "1eb58843008dc591826118839d66221164538209",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "editorial-qol",
       "headRefOid": "522177d18d249927def42414b1ee99da403239db",
+      "closedAt": "2024-08-06T15:50:44Z",
+      "mergedAt": "2024-08-06T15:50:44Z",
+      "mergedBy": "afrind",
+      "mergeCommit": {
+        "oid": "bac470e2aa4bf90e7ff57da29b5ba34e5dd47642"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M6EWA3G",
+          "commit": {
+            "abbreviatedOid": "522177d"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2024-08-06T06:11:27Z",
+          "updatedAt": "2024-08-06T06:11:27Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 502,
+      "id": "PR_kwDOG2Ho4M53kuDY",
+      "title": "Adding an Extensible Object Header",
+      "url": "https://github.com/moq-wg/moq-transport/pull/502",
+      "state": "OPEN",
+      "author": "wilaw",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "This PR adds an extensible header to Objects, as well as updating the SETUP parameters to allow negotiation of required extension header parameters. Extensible headers have types which are IANA registered. A new Extensible header is defined and reserved with type 0x0, allowing name/value data to be passed in a manner compatible with HTTP headers.  A new example is added showing serialization of an Object with an extensible header. \r\n\r\nFixes: #433 ",
+      "createdAt": "2024-08-06T13:38:35Z",
+      "updatedAt": "2024-08-07T21:30:22Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "bac470e2aa4bf90e7ff57da29b5ba34e5dd47642",
+      "headRepository": "wilaw/moq-transport",
+      "headRefName": "patch-1",
+      "headRefOid": "8ccf41ca51eb38a7d34ae8e8d4169cb0ebd93e65",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
       "mergeCommit": null,
+      "comments": [
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Individual Comment:\r\n\r\nThis seems generally ok.  Perhaps there's an optimization where Object encodings don't carry even the count field unless at least one extension is negotiated.\r\n\r\nThe wider problem I see with this design is that extension negotiation is hop-by-hop (HTTP has similar problems with SETTINGS).  What happens when, say, the publisher and relay negotiate use of an extension, but one of the subscribers to the relay does not?",
+          "createdAt": "2024-08-06T16:01:28Z",
+          "updatedAt": "2024-08-06T16:01:28Z"
+        },
+        {
+          "author": "wilaw",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "> The wider problem I see with this design is that extension negotiation is hop-by-hop \r\n\r\nFair comment. We have the same problem with our MOQT version. It is negotiated hop-by-hop and there is nothing currently to enforce a MOQT version (or a extension support) across a delivery chain. \r\n\r\nOne solution on the extension side would be that Object Extensions, from a relay perspective, are always optional within a given moqt version. If we require an new Object header in a future version, then whichever spec defines that new version would also define the new object header as a first-class header and not an extension.  We could  remove the SETUP component. Any node (relay, or end subscriber) could test for the presence of the Extension , in much the same way that a HTTP server tests for the presence of a request header. ",
+          "createdAt": "2024-08-06T16:25:42Z",
+          "updatedAt": "2024-08-06T16:25:42Z"
+        }
+      ],
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M6EddcU",
+          "commit": {
+            "abbreviatedOid": "8ccf41c"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-06T22:05:50Z",
+          "updatedAt": "2024-08-06T22:05:51Z",
+          "comments": [
+            {
+              "originalPosition": 22,
+              "body": "I think this should allow actual extensions too not just the count. isn't it?  This will be needed especially when serving object from the cache, then those extensions needs to be sent along",
+              "createdAt": "2024-08-06T22:05:50Z",
+              "updatedAt": "2024-08-06T22:05:51Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6Edeap",
+          "commit": {
+            "abbreviatedOid": "8ccf41c"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-06T22:09:56Z",
+          "updatedAt": "2024-08-06T22:09:56Z",
+          "comments": [
+            {
+              "originalPosition": 35,
+              "body": "I understand the MUST. But I wonder if we should add a indicator in each extension to include if it needs to be forwarded as well.  These extension headers must not be modified by the relays either to be complete. Since some of the extensions are useful to downstream.",
+              "createdAt": "2024-08-06T22:09:56Z",
+              "updatedAt": "2024-08-06T22:09:56Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6Ede9t",
+          "commit": {
+            "abbreviatedOid": "8ccf41c"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-06T22:12:04Z",
+          "updatedAt": "2024-08-06T22:12:05Z",
+          "comments": [
+            {
+              "originalPosition": 57,
+              "body": "I don't think we need this defined ? Can you please share your thoughts on why we need this ?",
+              "createdAt": "2024-08-06T22:12:04Z",
+              "updatedAt": "2024-08-06T22:12:05Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6EdfPV",
+          "commit": {
+            "abbreviatedOid": "8ccf41c"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-06T22:13:18Z",
+          "updatedAt": "2024-08-06T22:13:18Z",
+          "comments": [
+            {
+              "originalPosition": 49,
+              "body": "Header Value should be opaque bytes. ",
+              "createdAt": "2024-08-06T22:13:18Z",
+              "updatedAt": "2024-08-06T22:13:18Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6EdfoO",
+          "commit": {
+            "abbreviatedOid": "8ccf41c"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-06T22:14:58Z",
+          "updatedAt": "2024-08-06T22:14:59Z",
+          "comments": [
+            {
+              "originalPosition": 55,
+              "body": "I think we are missing iana section. \r\nAt a high level, the iana registration must have\r\n - extension type, reference to rfc that defines the extenson\r\n -  this needs to be specification required",
+              "createdAt": "2024-08-06T22:14:59Z",
+              "updatedAt": "2024-08-06T22:14:59Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6EdfwV",
+          "commit": {
+            "abbreviatedOid": "8ccf41c"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "Thanks @wilaw  for this PR. I like the direction of this PR and have few clarification questions/nits.",
+          "createdAt": "2024-08-06T22:15:31Z",
+          "updatedAt": "2024-08-06T22:15:31Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6Ei1-2",
+          "commit": {
+            "abbreviatedOid": "8ccf41c"
+          },
+          "author": "wilaw",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-07T09:36:15Z",
+          "updatedAt": "2024-08-07T09:36:16Z",
+          "comments": [
+            {
+              "originalPosition": 35,
+              "body": "The assumption is that these extensions headers must always be forwarded and must not be modified by any relay. I could add language stating that explicitly?  ",
+              "createdAt": "2024-08-07T09:36:15Z",
+              "updatedAt": "2024-08-07T09:36:16Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6Ei9LY",
+          "commit": {
+            "abbreviatedOid": "8ccf41c"
+          },
+          "author": "wilaw",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-07T09:41:15Z",
+          "updatedAt": "2024-08-07T09:41:15Z",
+          "comments": [
+            {
+              "originalPosition": 57,
+              "body": "This default extension header provides a simple way to add ad-hoc name/value pairs to any object. This is similar to the ability of clients and servers to define custom request and response headers in HTTP-land. That functionality has proven extremely useful and efficient in enabling rapid development, testing and deployment of solutions without having to go to IANA registries or revise specifications. I'd like a similar capability within MOQT hence Extension Header Type Zero. ",
+              "createdAt": "2024-08-07T09:41:15Z",
+              "updatedAt": "2024-08-07T09:41:15Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6EjIGj",
+          "commit": {
+            "abbreviatedOid": "8ccf41c"
+          },
+          "author": "wilaw",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-07T09:48:45Z",
+          "updatedAt": "2024-08-07T09:48:45Z",
+          "comments": [
+            {
+              "originalPosition": 55,
+              "body": "Yes, the [IANA section ](https://moq-wg.github.io/moq-transport/draft-ietf-moq-transport.html#name-iana-considerations)of the whole MOQT document is a big todo. I added the requirement to define the MOQ extension Headers table to Section 8. I figure the editors plan to handle all the IANA stuff towards the end. It will be specifications required etc once it is defined. ",
+              "createdAt": "2024-08-07T09:48:45Z",
+              "updatedAt": "2024-08-07T09:48:45Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6EjJEF",
+          "commit": {
+            "abbreviatedOid": "8ccf41c"
+          },
+          "author": "wilaw",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-07T09:49:26Z",
+          "updatedAt": "2024-08-07T09:49:26Z",
+          "comments": [
+            {
+              "originalPosition": 49,
+              "body": "Clarification - opaque to whom - the relays?  Object headers values are not opaque to relays and nor are Extension Header values. If an application wants to hide content from a relay then it needs to place it in the Object payload (which is opaque) and not the headers. ",
+              "createdAt": "2024-08-07T09:49:26Z",
+              "updatedAt": "2024-08-07T09:49:26Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6EjL9l",
+          "commit": {
+            "abbreviatedOid": "8ccf41c"
+          },
+          "author": "wilaw",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-07T09:51:25Z",
+          "updatedAt": "2024-08-07T09:51:26Z",
+          "comments": [
+            {
+              "originalPosition": 22,
+              "body": "I was thinking that Extension headers are immutable. If the publisher adds them, then any relay forwarding that object must preserve them. The object would be cached along with any extension headers it was carrying. ",
+              "createdAt": "2024-08-07T09:51:26Z",
+              "updatedAt": "2024-08-07T09:51:26Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6ElBnN",
+          "commit": {
+            "abbreviatedOid": "8ccf41c"
+          },
+          "author": "mengelbart",
+          "authorAssociation": "NONE",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-07T11:16:26Z",
+          "updatedAt": "2024-08-07T11:34:13Z",
+          "comments": [
+            {
+              "originalPosition": 9,
+              "body": "This contradicts [section 6.1](https://moq-wg.github.io/moq-transport/draft-ietf-moq-transport.html#section-6.1), which states that there MUST NOT be duplicate parameters. I'm fine with lifting that restriction, though. If necessary, I think we could add this restriction to individual parameters that can't be duplicated.\r\n\r\n```suggestion\r\nparameter is optional. Multiple of these parameters MAY be sent in a\r\n```",
+              "createdAt": "2024-08-07T11:16:26Z",
+              "updatedAt": "2024-08-07T11:34:13Z"
+            },
+            {
+              "originalPosition": 22,
+              "body": "I think @suhasHere meant that the actual object extensions should be included as a canonical field, not just the count.",
+              "createdAt": "2024-08-07T11:17:31Z",
+              "updatedAt": "2024-08-07T11:34:13Z"
+            },
+            {
+              "originalPosition": 35,
+              "body": "I think explicit language to state that extensions must be forwarded would be useful. Maybe it's enough to replace \"MUST be parsed\" with \"MUST be forwarded\"?",
+              "createdAt": "2024-08-07T11:19:42Z",
+              "updatedAt": "2024-08-07T11:34:14Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6Eqnk8",
+          "commit": {
+            "abbreviatedOid": "8ccf41c"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-07T17:16:03Z",
+          "updatedAt": "2024-08-07T17:16:03Z",
+          "comments": [
+            {
+              "originalPosition": 35,
+              "body": "I think we should say that headers MUST be forwarded and MUST NOT be modified if that's what we intend.\r\n\r\nI'd like to have these authenticated when using MoQ per-object encryption, but that's a different draft.",
+              "createdAt": "2024-08-07T17:16:03Z",
+              "updatedAt": "2024-08-07T17:16:03Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6EsYro",
+          "commit": {
+            "abbreviatedOid": "8ccf41c"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-07T21:27:56Z",
+          "updatedAt": "2024-08-07T21:27:56Z",
+          "comments": [
+            {
+              "originalPosition": 35,
+              "body": "agree with @ianswett  and @mengelbart  .. Making it explicit is good in these cases.\r\n\r\nI see GroupId, ObjectId and Extension Header can fall in to this category. \r\n\r\nSecure objects uses ObjectId and GroupId to be authenticated and encrypted end to end, for example.\r\n\r\nI am sure there will some use-cases that would have extensions whose scope is hop by hop too. I will be totally ok to have an scope field in the extension that identifies if it is between original-publisher and end-subscriber or not.",
+              "createdAt": "2024-08-07T21:27:56Z",
+              "updatedAt": "2024-08-07T21:27:56Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6EsY-v",
+          "commit": {
+            "abbreviatedOid": "8ccf41c"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-07T21:28:54Z",
+          "updatedAt": "2024-08-07T21:28:54Z",
+          "comments": [
+            {
+              "originalPosition": 57,
+              "body": "Thanks for the context.  Still i don't see if this adds much value in end to end context. ",
+              "createdAt": "2024-08-07T21:28:54Z",
+              "updatedAt": "2024-08-07T21:28:54Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6EsZXL",
+          "commit": {
+            "abbreviatedOid": "8ccf41c"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-07T21:30:05Z",
+          "updatedAt": "2024-08-07T21:30:06Z",
+          "comments": [
+            {
+              "originalPosition": 49,
+              "body": "If a relay supports an extension, it can parse it.  We know that from setup message that if a relay supports an extension or not, isn't it.\r\n\r\n",
+              "createdAt": "2024-08-07T21:30:05Z",
+              "updatedAt": "2024-08-07T21:30:06Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6EsZcg",
+          "commit": {
+            "abbreviatedOid": "8ccf41c"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-07T21:30:21Z",
+          "updatedAt": "2024-08-07T21:30:22Z",
+          "comments": [
+            {
+              "originalPosition": 55,
+              "body": "+1 .. makes sense. thanks",
+              "createdAt": "2024-08-07T21:30:22Z",
+              "updatedAt": "2024-08-07T21:30:22Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 503,
+      "id": "PR_kwDOG2Ho4M53uMEk",
+      "title": "Split definition of messages for unidirectional and bidirectional streams",
+      "url": "https://github.com/moq-wg/moq-transport/pull/503",
+      "state": "MERGED",
+      "author": "vasilvv",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "This is technically not purely editorial, but should be backwards-compatible in practice.\r\n\r\nThis PR does minimal editing to the existing text, and mostly moves things around.  The text in \"Data Streams\" section needs more cleanup (e.g. to stop referring to \"OBJECT messages\" that haven't been a thing for a while), but this is out of scope for this PR.",
+      "createdAt": "2024-08-07T14:31:00Z",
+      "updatedAt": "2024-08-07T19:37:44Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "7b4e54fd94d0928e1e0959546fc39b0c703f4fa5",
+      "headRepository": "vasilvv/warp-draft",
+      "headRefName": "message-split",
+      "headRefOid": "71f3602d8f6431c4901eea2a3ba0507992e5fe39",
+      "closedAt": "2024-08-07T19:37:44Z",
+      "mergedAt": "2024-08-07T19:37:44Z",
+      "mergedBy": "ianswett",
+      "mergeCommit": {
+        "oid": "e1f5486c362954912f3b730145138420e317bb58"
+      },
       "comments": [],
-      "reviews": []
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M6EpO_2",
+          "commit": {
+            "abbreviatedOid": "431d6c5"
+          },
+          "author": "zafergurel",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-07T14:37:36Z",
+          "updatedAt": "2024-08-07T14:37:36Z",
+          "comments": [
+            {
+              "originalPosition": 11,
+              "body": "A small typo:\r\n\r\n```suggestion\r\nMOQT uses a single bidirectional stream to exchange control messages, as\r\n```",
+              "createdAt": "2024-08-07T14:37:36Z",
+              "updatedAt": "2024-08-07T14:37:36Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6EpobG",
+          "commit": {
+            "abbreviatedOid": "431d6c5"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "Individual Review:\r\n\r\nThis split makes sense and helps implementers know that you can write one parser for control messages and another for data streams, rather than implementing them all in one place like I did (and have to undo) in moxygen.",
+          "createdAt": "2024-08-07T15:15:55Z",
+          "updatedAt": "2024-08-07T15:17:14Z",
+          "comments": [
+            {
+              "originalPosition": 259,
+              "body": "Should we give OBJECT_DATAGRAM code point 0 also to avoid the problem in #410 ",
+              "createdAt": "2024-08-07T15:15:55Z",
+              "updatedAt": "2024-08-07T15:17:14Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6EpzOc",
+          "commit": {
+            "abbreviatedOid": "431d6c5"
+          },
+          "author": "vasilvv",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-07T15:33:45Z",
+          "updatedAt": "2024-08-07T15:33:45Z",
+          "comments": [
+            {
+              "originalPosition": 259,
+              "body": "Probably yes, though probably not in this PR.",
+              "createdAt": "2024-08-07T15:33:45Z",
+              "updatedAt": "2024-08-07T15:33:45Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6Ep1iL",
+          "commit": {
+            "abbreviatedOid": "8b26036"
+          },
+          "author": "mengelbart",
+          "authorAssociation": "NONE",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-07T15:37:50Z",
+          "updatedAt": "2024-08-07T15:37:50Z",
+          "comments": [
+            {
+              "originalPosition": 259,
+              "body": "Given that both OBJECT_STREAM and OBJECT_DATAGRAM have the same fields and objects with forwarding preference \"Datagram\" are either sent as datagrams or dropped, is there a reason to keep both messages instead of using the same type? That would avoid the problem of receiving datagrams on streams, too.",
+              "createdAt": "2024-08-07T15:37:50Z",
+              "updatedAt": "2024-08-07T15:37:50Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6Ep2a1",
+          "commit": {
+            "abbreviatedOid": "431d6c5"
+          },
+          "author": "mengelbart",
+          "authorAssociation": "NONE",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-07T15:39:29Z",
+          "updatedAt": "2024-08-07T15:39:29Z",
+          "comments": [
+            {
+              "originalPosition": 259,
+              "body": "oh I see that was your suggestion. Please ignore :D ",
+              "createdAt": "2024-08-07T15:39:29Z",
+              "updatedAt": "2024-08-07T15:39:29Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6Eqkrc",
+          "commit": {
+            "abbreviatedOid": "c7c18bd"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2024-08-07T17:10:04Z",
+          "updatedAt": "2024-08-07T17:10:11Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6Eq21P",
+          "commit": {
+            "abbreviatedOid": "c7c18bd"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-07T17:48:37Z",
+          "updatedAt": "2024-08-07T17:48:37Z",
+          "comments": [
+            {
+              "originalPosition": 250,
+              "body": "May be we need to add a note on what are Data Streams for ?",
+              "createdAt": "2024-08-07T17:48:37Z",
+              "updatedAt": "2024-08-07T17:48:37Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6Eq3eD",
+          "commit": {
+            "abbreviatedOid": "c7c18bd"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "LGTM . Had a small nit .",
+          "createdAt": "2024-08-07T17:50:12Z",
+          "updatedAt": "2024-08-07T17:50:12Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6Erox4",
+          "commit": {
+            "abbreviatedOid": "c7c18bd"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-07T19:35:37Z",
+          "updatedAt": "2024-08-07T19:35:37Z",
+          "comments": [
+            {
+              "originalPosition": 250,
+              "body": "Good point, I added a sentence.",
+              "createdAt": "2024-08-07T19:35:37Z",
+              "updatedAt": "2024-08-07T19:35:37Z"
+            }
+          ]
+        }
+      ]
     }
   ]
 }
