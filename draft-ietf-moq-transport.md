@@ -493,6 +493,8 @@ code, as defined below:
 |------|---------------------------|
 | 0x5  | Parameter Length Mismatch |
 |------|---------------------------|
+| 0x6  | Too Many Subscribes       |
+|------|---------------------------|
 | 0x10 | GOAWAY Timeout            |
 |------|---------------------------|
 
@@ -508,6 +510,9 @@ code, as defined below:
 
 * Duplicate Track Alias: The endpoint attempted to use a Track Alias
   that was already in use.
+
+* Too Many Subscribes: The session was closed because the subscriber used
+  a Subscribe ID equal or larger than the current Maximum Subscribe ID.
 
 * GOAWAY Timeout: The session was closed because the client took too long to
   close the session in response to a GOAWAY ({{message-goaway}}) message.
@@ -847,7 +852,7 @@ it can appear. If it appears in some other type of message, it MUST be ignored.
 Note that since Setup parameters use a separate namespace, it is impossible for
 these parameters to appear in Setup messages.
 
-#### AUTHORIZATION INFO Parameter {#authorization-info}
+#### AUTHORIZATION INFO {#authorization-info}
 
 AUTHORIZATION INFO parameter (key 0x02) identifies a track's authorization
 information in a SUBSCRIBE or ANNOUNCE message. This parameter is populated for
@@ -944,7 +949,7 @@ identified as 0xff00000D.
 
 ### Setup Parameters {#setup-params}
 
-#### ROLE parameter {#role}
+#### ROLE {#role}
 
 The ROLE parameter (key 0x00) allows each endpoint to independently specify what
 functionality they support for the session. It has three possible values,
@@ -971,7 +976,7 @@ Both endpoints MUST send a ROLE parameter with one of the three values
 specified above. Both endpoints MUST close the session if the ROLE
 parameter is missing or is not one of the three above-specified values.
 
-#### PATH parameter {#path}
+#### PATH {#path}
 
 The PATH parameter (key 0x01) allows the client to specify the path of
 the MoQ URI when using native QUIC ({{QUIC}}).  It MUST NOT be used by
@@ -983,6 +988,13 @@ When connecting to a server using a URI with the "moq" scheme, the
 client MUST set the PATH parameter to the `path-abempty` portion of the
 URI; if `query` is present, the client MUST concatenate `?`, followed by
 the `query` portion of the URI to the parameter.
+
+#### MAX_SUBSCRIBE_ID {#max-subscribe-id}
+
+The MAX_SUBSCRIBE_ID parameter (key 0x02) communicates an initial value for
+the Maximum Subscribe ID to the receiving subscriber. The default value is 0,
+so if not specified, the peer MUST NOT create subscriptions.
+
 
 ## GOAWAY {#message-goaway}
 The server sends a `GOAWAY` message to initiate session migration
@@ -1059,17 +1071,17 @@ SUBSCRIBE Message {
 ~~~
 {: #moq-transport-subscribe-format title="MOQT SUBSCRIBE Message"}
 
-* Subscribe ID: The subscription identifier that is unique within the session.
-`Subscribe ID` is a monotonically increasing variable length integer which
-MUST not be reused within a session. `Subscribe ID` is used by subscribers and
-the publishers to identify a given subscription. Subscribers specify the
-`Subscribe ID` and it is included in the corresponding SUBSCRIBE_OK or
-SUBSCRIBE_ERROR messages.
+* Subscribe ID: The subscriber specified identifier used to manage a
+subscription. `Subscribe ID` is a variable length integer that MUST be
+unique and monotonically increasing within a session and MUST be less
+than the session's Maximum Subscribe ID.
 
 * Track Alias: A session specific identifier for the track.
 Messages that reference a track, such as OBJECT ({{message-object}}),
 reference this Track Alias instead of the Track Name and Track Namespace to
-reduce overhead. If the Track Alias is already being used for a different track, the publisher MUST close the session with a Duplicate Track Alias error ({{session-termination}}).
+reduce overhead. If the Track Alias is already being used for a different
+track, the publisher MUST close the session with a Duplicate Track Alias
+error ({{session-termination}}).
 
 * Track Namespace: Identifies the namespace of the track as defined in
 ({{track-name}}).
@@ -1362,6 +1374,29 @@ message in this track.
 
 * Final Object: The largest Object ID sent by the publisher in an OBJECT
 message in the `Final Group` for this track.
+
+## MAX_SUBSCRIBE_ID {#message-max-subscribe-id}
+
+A publisher sends a MAX_SUBSCRIBE_ID message to increase the number of
+subscriptions a subscriber can create within a session.
+
+The Maximum Subscribe Id MUST only increase within a session, and
+receipt of a MAX_SUBSCRIBE_ID message with an equal or smaller Subscribe ID
+value is a 'Protocol Violation'.
+
+~~~
+MAX_SUBSCRIBE_ID
+{
+  Subscribe ID (i),
+}
+~~~
+{: #moq-transport-max-subscribe-id format title="MOQT MAX_SUBSCRIBE_ID Message"}
+
+* Subscribe ID: The new Maximum Subscribe ID for the session. If a Subscribe ID
+equal or larger than this is received in any message, including SUBSCRIBE,
+the publisher MUST close the session with an error of 'Too Many Subscribes'.
+More on Subscribe ID in {{message-subscribe-req}}.
+
 
 ## ANNOUNCE {#message-announce}
 
