@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2024-08-08T01:18:24.516054+00:00",
+  "timestamp": "2024-08-11T01:24:28.905574+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -16993,7 +16993,7 @@
       ],
       "body": "As a follow-up to https://github.com/moq-wg/moq-transport/pull/470",
       "createdAt": "2024-07-01T17:44:46Z",
-      "updatedAt": "2024-08-05T17:37:58Z",
+      "updatedAt": "2024-08-08T15:59:02Z",
       "closedAt": null,
       "comments": []
     },
@@ -17535,6 +17535,37 @@
       "updatedAt": "2024-08-05T23:05:23Z",
       "closedAt": null,
       "comments": []
+    },
+    {
+      "number": 504,
+      "id": "I_kwDOG2Ho4M6Sio-I",
+      "title": "Recommend use of mid-range values as default priority in implementations",
+      "url": "https://github.com/moq-wg/moq-transport/issues/504",
+      "state": "OPEN",
+      "author": "englishm",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "The text we landed for [draft-05](https://www.ietf.org/archive/id/draft-ietf-moq-transport-05.html) to define priorities (https://github.com/moq-wg/moq-transport/pull/470) indicates that we should use a 8 bits (`x (L)` where `L` is `8`) to convey subscriber priority and similarly a byte to convey publisher priority.\r\n\r\n> `Subscriber Priority (8),`\r\n( https://www.ietf.org/archive/id/draft-ietf-moq-transport-05.html#section-6.4.2-2 )\r\n\r\n> Publisher Priority: An 8 bit integer indicating the publisher's priority for the Object\r\n ( https://www.ietf.org/archive/id/draft-ietf-moq-transport-05.html#section-6.11.1 )\r\n\r\nThe text also indicates that lower values have higher priority which I read as meaning 1 (`0000 0001`) should be sent before 10 (`0000 1010`), ~~but we don't seem to explicitly indicate anywhere whether we expect these values to be interpreted as signed or unsigned integers.~~\r\n\r\n~~Should `1000 0101` be sent before or after `0000 0101`?~~ (After)\r\n\r\n~~Is `1000 0101` -5 (i8) or 133 (u8)?~~ `1000 0101` is 133 (u8)\r\n\r\nEdit: We should probably recommend that implementations use a mid-range value like `127` as a default to allow for prioritizing both above and below it. (The MoQT spec doesn't need to **define** a default since these values are currently always explicit on the wire, but I think it would be helpful to provide guidance here.)",
+      "createdAt": "2024-08-09T19:37:53Z",
+      "updatedAt": "2024-08-09T20:23:03Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "englishm",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I have a slight preference for treating these priorities as signed values because it makes `0` a good default for implementations to choose. That way it's possible to go above or below the default.\r\n\r\nThe same is possible with unsigned values, too, but if we go that direction we may want to provide some guidance to that effect (recommending something like `127` or `128` as a default mid-range value).",
+          "createdAt": "2024-08-09T19:57:32Z",
+          "updatedAt": "2024-08-09T19:57:32Z"
+        },
+        {
+          "author": "englishm",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Oh, nevermind, @mengelbart noticed some text I missed in section 4: \"with 0 being the highest priority\" which would imply these are unsigned int values, `u8`.\r\n\r\nIt may still be helpful to make that more explicit and recommend a default mid-range value.",
+          "createdAt": "2024-08-09T20:02:14Z",
+          "updatedAt": "2024-08-09T20:02:14Z"
+        }
+      ]
     }
   ],
   "pulls": [
@@ -63761,7 +63792,7 @@
       "labels": [],
       "body": "Fixes #272\r\n\r\nSome diffs are due to me reflowing text to fit the line limits, so please ignore those.\r\n\r\nOnce we have this and a limit on announce IDs, it seems likely that we'll be able to get rid of 'Role', but for now it can stay.",
       "createdAt": "2024-07-26T02:58:25Z",
-      "updatedAt": "2024-08-07T16:37:20Z",
+      "updatedAt": "2024-08-08T16:53:42Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "bac470e2aa4bf90e7ff57da29b5ba34e5dd47642",
@@ -63772,7 +63803,15 @@
       "mergedAt": null,
       "mergedBy": null,
       "mergeCommit": null,
-      "comments": [],
+      "comments": [
+        {
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Thanks @ianswett  . this looks like a good improvement. I have few clarification questions and bit of extra work for you to add some informative text, if my comment seems ok to you.",
+          "createdAt": "2024-08-08T16:53:40Z",
+          "updatedAt": "2024-08-08T16:53:40Z"
+        }
+      ],
       "reviews": [
         {
           "id": "PRR_kwDOG2Ho4M6DLhAp",
@@ -63883,6 +63922,46 @@
               "body": "This is unnecessary, since you can just send a MAX_SUBSCRIBE_ID immediately after the SETUP message.",
               "createdAt": "2024-08-07T16:37:20Z",
               "updatedAt": "2024-08-07T16:37:20Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6E0sHG",
+          "commit": {
+            "abbreviatedOid": "6e825f8"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-08T16:51:22Z",
+          "updatedAt": "2024-08-08T16:51:22Z",
+          "comments": [
+            {
+              "originalPosition": 92,
+              "body": "i wonder if we need to add a non-normative note on what a publisher would like to do this and how do they pick such an value. I do understand that this is very application/implementation specific, however, a few notes on reasons causing the below will be beneficial ( can be in appendix too )\r\n   - choosing a value for it \r\n   - updating the value\r\n   ",
+              "createdAt": "2024-08-08T16:51:22Z",
+              "updatedAt": "2024-08-08T16:51:23Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6E0ssg",
+          "commit": {
+            "abbreviatedOid": "6e825f8"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-08T16:52:40Z",
+          "updatedAt": "2024-08-08T16:52:40Z",
+          "comments": [
+            {
+              "originalPosition": 96,
+              "body": "If a subscriber received  MAX_SUBSCRIBE_ID with value lesser than previous MAX_SUBSCRIBE_ID sent by the publisher, are we saying here that the subscriber needs to close the session ? I am not sure if that is feasible to do or can be enforced.",
+              "createdAt": "2024-08-08T16:52:40Z",
+              "updatedAt": "2024-08-08T16:52:40Z"
             }
           ]
         }
@@ -64348,7 +64427,7 @@
       "labels": [],
       "body": "This message suite allows subscribers to express interest in ANNOUNCE/UNANNOUNCE for set of namespaces that match a prefix.  To accomplish safe prefix matching, Track Namesapce is redefined from a single byte array to a N-Tuple of byte arrays.\r\n\r\nFixes: #484",
       "createdAt": "2024-08-05T21:31:01Z",
-      "updatedAt": "2024-08-07T21:23:50Z",
+      "updatedAt": "2024-08-10T14:45:53Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "1eb58843008dc591826118839d66221164538209",
@@ -64704,6 +64783,19 @@
               "updatedAt": "2024-08-07T15:12:01Z"
             }
           ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6FAWes",
+          "commit": {
+            "abbreviatedOid": "764dcae"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2024-08-10T14:45:53Z",
+          "updatedAt": "2024-08-10T14:45:53Z",
+          "comments": []
         }
       ]
     },
@@ -64832,7 +64924,7 @@
       "labels": [],
       "body": "This PR adds an extensible header to Objects, as well as updating the SETUP parameters to allow negotiation of required extension header parameters. Extensible headers have types which are IANA registered. A new Extensible header is defined and reserved with type 0x0, allowing name/value data to be passed in a manner compatible with HTTP headers.  A new example is added showing serialization of an Object with an extensible header. \r\n\r\nFixes: #433 ",
       "createdAt": "2024-08-06T13:38:35Z",
-      "updatedAt": "2024-08-07T21:30:22Z",
+      "updatedAt": "2024-08-08T08:55:49Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "bac470e2aa4bf90e7ff57da29b5ba34e5dd47642",
@@ -65202,6 +65294,26 @@
               "body": "+1 .. makes sense. thanks",
               "createdAt": "2024-08-07T21:30:22Z",
               "updatedAt": "2024-08-07T21:30:22Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6EwVfK",
+          "commit": {
+            "abbreviatedOid": "8ccf41c"
+          },
+          "author": "wilaw",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-08T08:55:49Z",
+          "updatedAt": "2024-08-08T08:55:49Z",
+          "comments": [
+            {
+              "originalPosition": 9,
+              "body": "@mengelbart  - good point. We either \r\n1. redefine section 6.1 to indicate that no duplicate parameters are allowed except for Required-Extension, which may be duplicated. \r\n2. Or we change the serialization of the VALUE of the REQUIRED-EXTENSION parameter. Since each extension type is a varint, and the length of the parameter is specified, the parser can just keep reading varints until it reaches the length. In this way, multiple extension types can be communicated in a single REQUIRED-EXTENSION parameter and we can retain the existing requirement that parameters MUST NOT be duplicated. \r\n\r\nPreference?",
+              "createdAt": "2024-08-08T08:55:49Z",
+              "updatedAt": "2024-08-08T08:55:49Z"
             }
           ]
         }
