@@ -310,7 +310,7 @@ payload. This includes the underlying encoding, compression, any end-to-end
 encryption, or authentication. A relay MUST NOT combine, split, or otherwise
 modify object payloads.
 
-## Peeps {#model-peeps}
+## Peeps {#model-peep}
 
 A peep is a collection of one or more objects and is a sub-unit of a group
 ({{model-group}}). A peep consists of a set of objects within a Group that
@@ -1522,13 +1522,11 @@ variable-length integer indicating the type of the stream in question.
 |-------|-----------------------------------------------------|
 | ID    | Stream Type                                         |
 |------:|:----------------------------------------------------|
-| 0x0   | OBJECT_STREAM ({{object-stream}})                   |
-|-------|-----------------------------------------------------|
 | 0x1   | OBJECT_DATAGRAM ({{object-datagram}})               |
 |-------|-----------------------------------------------------|
 | 0x50  | STREAM_HEADER_TRACK ({{stream-header-track}})       |
 |-------|-----------------------------------------------------|
-| 0x51  | STREAM_HEADER_GROUP ({{stream-header-group}})       |
+| 0x52  | STREAM_HEADER_PEEP  ({{stream-header-peep}})        |
 |-------|-----------------------------------------------------|
 
 An endpoint that receives an unknown stream type MUST close the session.
@@ -1618,7 +1616,7 @@ in cases such as a relay dropping a group and reseting the stream the
 group is being sent on.
 
 
-## Object Datagram Message
+## Object Datagram Message {#object-datagram}
 
 An `OBJECT_DATAGRAM` message carries a single object in a datagram.
 
