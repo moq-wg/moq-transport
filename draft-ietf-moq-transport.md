@@ -313,20 +313,26 @@ modify object payloads.
 ## Peeps {#model-peeps}
 
 A peep is a collection of one or more objects and is a sub-unit of a group
-({{model-group}}). A peep consists of a set of objects within a group that
+({{model-group}}). A peep consists of a set of objects within a Group that
 have a dependency and priority relationship consistent with sharing a QUIC
-stream.
+stream. In some cases, a Group will be most effectively delivered using more
+than one stream..
 
 When a Track's forwarding preference (see {{object-fields}}) is "Track" or
 "Datagram", Groups do not contain Peeps, no Peep IDs are assigned, and the
 description in the remainder of this section does not apply.
 
-QUIC streams offer in-order reliable delivery, differentiation of priority in
-delivery, and the ability to cancel sending and retransmission of data.
+QUIC streams offer in-order reliable delivery and the ability to cancel sending
+and retransmission of data. Furthermore, many implementations offer the ability
+to control the relative priority of streams, which allows control over the
+scheduling of sending data on active streams.
 
-Every object belongs to exactly one Peep.
+Every object within a Group belongs to exactly one Peep.
 
-Original publishers assign each Peep a Peep ID, and do so as they see fit.
+Original publishers assign each Peep a Peep ID, and do so as they see fit. The
+scope of a Peep ID is a Group, so Peeps from different Groups MAY share a Peep
+ID without implying any relationship between them.
+
 However, the following strategy is RECOMMENDED:
 
 - Higher object IDs are dependent on lower object IDs in the same peep.
@@ -1365,14 +1371,18 @@ are beyond the end of a group or track.
 
 * 0x3 := Indicates end of Group. ObjectId is one greater that the
          largest object produced in the group identified by the
-         GroupID. This is sent right after the last object in the
-         group. This SHOULD be cached.
+         GroupID, including any end of Peep objects. This is sent right after
+         the last object, of any Status, in the group. This SHOULD be cached.
 
 * 0x4 := Indicates end of Track and Group. GroupID is one greater than
          the largest group produced in this track and the ObjectId is
          one greater than the largest object produced in that
          group. This is sent right after the last object in the
          track. This SHOULD be cached.
+
+* 0x5 := Indicates end of Peep. ObjectIds increment by one, beginning after the
+         last normal Object in the Group. These objects MUST NOT appear if
+         normal Objects in the group are not assigned Peep IDs. 
 
 Any other value SHOULD be treated as a protocol error and terminate the
 session with a Protocol Violation ({{session-termination}}).
@@ -1382,9 +1392,11 @@ Though some status information could be inferred from QUIC stream state,
 that information is not reliable and cacheable.
 
 For the purposes of Peep assignment, original publishers SHOULD treat
-"Object does not exist" and "end of Group" messages as dependent on the previous
-object ID and highest Normal object ID in the group, respectively. This
-reduces the number of streams required to transmit a group.
+"Object does not exist" and "end of Peep" objects as dependent on the previous
+object ID in the Group and highest Normal object ID in the peep, respectively.
+End of Group objects SHOULD be treated as dependent on the Object with the
+highest ID in the group. This reduces the number of streams required to transmit
+a group.
 
 "Group does not exist" and "end of Track and Group" messages have unique Group
 IDs and therefore are always constitute a single-object Peep.
