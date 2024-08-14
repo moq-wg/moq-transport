@@ -1311,6 +1311,8 @@ TRACK_STATUS_REQUEST Message {
 ~~~
 {: #moq-track-status-request-format title="MOQT TRACK_STATUS_REQUEST Message"}
 
+
+
 ## SUBSCRIBE_OK {#message-subscribe-ok}
 
 A publisher sends a SUBSCRIBE_OK control message for successful
@@ -1536,8 +1538,7 @@ Publisher MUST NOT mix different forwarding preferences within a single track.
 If a subscriber receives different forwarding preferences for a track, it
 SHOULD close the session with an error of 'Protocol Violation'.
 
-
-## OBJECT {#message-object}
+## Object Headers {#message-object}
 
 An OBJECT message contains a range of contiguous bytes from from the
 specified track, as well as associated metadata required to deliver,
@@ -1616,14 +1617,8 @@ are sent on a new stream. This is to avoid the status message being lost
 in cases such as a relay dropping a group and reseting the stream the
 group is being sent on.
 
-### Object Message Formats
 
-Every Track has a single 'Object Forwarding Preference' and the Original
-Publisher MUST NOT mix different forwarding preferences within a single track.
-If a subscriber receives different forwarding preferences for a track, it
-SHOULD close the session with an error of 'Protocol Violation'.
-
-**Object Datagram Message**
+## Object Datagram Message
 
 An `OBJECT_DATAGRAM` message carries a single object in a datagram.
 
@@ -1648,7 +1643,7 @@ OBJECT_DATAGRAM Message {
 ~~~
 {: #object-datagram-format title="MOQT OBJECT_DATAGRAM Message"}
 
-### Streams
+## Streams
 
 When objects are sent on streams, the stream begins with a stream
 header message and is followed by one or more sets of serialized object fields.
@@ -1661,11 +1656,11 @@ header message type and fields.
 
 TODO: figure out how a relay closes these streams
 
-**Stream Header Track**
+### Stream Header Track
 
 When a stream begins with `STREAM_HEADER_TRACK`, all objects on the stream
 belong to the track requested in the Subscribe message identified by `Subscribe
-ID`.  All objects on the stream have the `Object Send Order` specified in the
+ID`.  All objects on the stream have the `Publisher Priority' specified in the
 stream header.
 
 ~~~
@@ -1700,7 +1695,7 @@ A publisher MUST NOT send an Object on a stream if its Group ID is less than a
 previously sent Group ID on that stream, or if its Object ID is less than or
 equal to a previously sent Object ID with the same Group ID.
 
-**Stream Header Peep**
+### Stream Header Peep
 
 When a stream begins with `STREAM_HEADER_PEEP`, all objects on the stream
 belong to the track requested in the Subscribe message identified by `Subscribe
@@ -1740,7 +1735,7 @@ The Object Status field is only sent if the Object Payload Length is zero.
 A publisher MUST NOT send an Object on a stream if its Object ID is less than a
 previously sent Object ID within a given group in that stream.
 
-### Examples:
+## Examples
 
 Sending a track on one stream:
 
@@ -1787,7 +1782,6 @@ STREAM_HEADER_PEEP {
   Payload = "efgh"
 }
 ~~~
-
 
 
 
