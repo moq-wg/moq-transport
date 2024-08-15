@@ -1658,7 +1658,7 @@ TODO: figure out how a relay closes these streams
 
 When a stream begins with `STREAM_HEADER_TRACK`, all objects on the stream
 belong to the track requested in the Subscribe message identified by `Subscribe
-ID`.  All objects on the stream have the `Publisher Priority' specified in the
+ID`.  All objects on the stream have the `Publisher Priority` specified in the
 stream header.
 
 ~~~
@@ -1716,7 +1716,7 @@ All Objects received on a stream opened with `STREAM_HEADER_PEEP` have an
 To send an Object with `Object Forwarding Preference` = `Peep`, find the open
 stream that is associated with the subscription, `Group ID` and `Peep ID`,
 or open a new one and send the `STREAM_HEADER_PEEP`. Then serialize the
-ollowing fields.
+following fields.
 
 The Object Status field is only sent if the Object Payload Length is zero.
 
