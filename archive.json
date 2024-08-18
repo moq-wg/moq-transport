@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2024-08-15T01:14:53.514151+00:00",
+  "timestamp": "2024-08-18T01:23:07.435590+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -3741,12 +3741,13 @@
         "fluffy"
       ],
       "labels": [
+        "Needs PR",
         "Announce",
         "Subscribe"
       ],
       "body": "In [Model](https://github.com/kixelated/warp-draft/blame/main/draft-lcurley-warp.md#L186) section it says that each Media object is uniquely identified within broadcast, track, etc. I am wondering how reconnect would work - wouldn't it require publisher to maintain state? What happens if one encoder box fails and broadcast needs to be resumed from another box?",
       "createdAt": "2023-01-31T16:39:49Z",
-      "updatedAt": "2024-08-05T17:03:51Z",
+      "updatedAt": "2024-08-15T17:58:07Z",
       "closedAt": null,
       "comments": [
         {
@@ -8325,11 +8326,12 @@
         "mzanaty"
       ],
       "labels": [
-        "Editorial"
+        "Editorial",
+        "Needs PR"
       ],
       "body": "Here are some editorial notes on the document\r\n\r\n- Line 72. \u201c_MOQT is a generic protocol **is** designed to work_\u201d \r\n- Line 91-93. \u201c_The development of MOQT is driven by goals in a number of areas - specifically latency, the robustness of QUIC, workflow efficiency and relay support._\u201d This sentence is intriguing. What does the robustness of QUIC mean? Latency, workflow efficiency, relay support are not \u201careas\u201d or maybe area should be defined. (side note on the missing Oxford comma in this sentence)\r\n- The Section 1.1.1. Latency as a whole is very confusing. HTTP-based streaming is not designed for low latency mostly due to the essential request-response paradigm. Queuing on the path has a insignificant impact on the end-to-end latency for HAS. The \u201cspeed at which a protocol can detect queuing\u201d is not related to the relatively high latency issues of HAS. Overall, I see a mix of unrelated subjects here, which makes the paragraph overall meaningless. I would recommend starting the paragraph with a topic sentence (which may be the last one of the current paragraph).\r\n- Line 120. \u201c_Applying QUIC to HAS \u2026_\u201d (and the following sentences) is not necessary. The reasons for which QUIC does not bring advantages to HAS are still debatable on many points. This QUIC-on-HAS remark could raise unnecessary questions although the beginning of Section 1.1.2 is clear and sufficient to convey the message.\r\n- Line 125. \u201c_Universal_\u201d has a too broad sense. Do you mean \u201cUnicity of protocol in the whole pipeline\u201d (or something like this)?\r\n- Line 127. \u201c_Internet delivered media today has protocols optimized for ingest\u2026_\u201d I don\u2019t understand this sentence.\r\n- Line 127. Some examples of protocols could be good to support these claims. Note that WHIP is an attempt to unify the protocol.\r\n- Line 146. \u201c_to treat relays as first-class citizens of the protocol_\u201d is an excellent marketing message but it does not mean anything in a technical norm. Furthermore, see my two reserves above. I\u2019d claim that the current draft is not making relay first-class, on the contrary.\r\n- Line 179. \u201c_a join point_\u201d joint?\r\n- Line 231. \u201c_The application is solely responsible for the content of the object payload._\u201d What is the application? It is a bit confusing. It has not been defined.\r\n- Line 269 .\u201c_within a single MOQT scope, subscribing to the same full track name would result in the subscriber receiving the data for the same track._\u201d I am not sure to understand this sentence. Is a single MOQT scope a scope with only one server or do you mean \u201cwithin a MOQT scope\u201d? the two \u201csame\u201d adjectives are confusing too.\r\n- Line 273. It would be better to stick to \u201c_servers_\u201d or to \u201c_connection URIs_\u201d to refer to the elements of the scope.\r\n- Line 339. \u201cThe `authority` portion MUST NOT contain a non-empty `host` portion.\u201d Is it a double negation to say that the \u2018authority\u2019 MUST contain an empty \u2018host\u2019 portion? \r\n- Line 357. This sentence may require a MUST.\r\n- Line 359. \u201c_for exchanging \u2026_\u201d and following sentences are not related to session initialization. They are rather remarks that would be a fit with the draft Section 4.\r\n- +1 to the TODO remarks on line 381. This should be in Section 4.\r\n- Line 654. \u201c_it allows the peers\u2026_\u201d The term \u201c_peer_\u201d is used 7 times. It is supposed to be an \u201c_endpoint_\u201d (as defined Line 173), unless peer and endpoint have different meaning (in which case peer must be defined)\r\n- Line 693. \u201c_A relay that reads from a stream and writes to stream in order will introduce head-of-line blocking._\u201d I don\u2019t understand this claim.",
       "createdAt": "2023-06-20T06:51:10Z",
-      "updatedAt": "2024-08-05T22:37:06Z",
+      "updatedAt": "2024-08-15T17:57:59Z",
       "closedAt": null,
       "comments": [
         {
@@ -8755,12 +8757,11 @@
       ],
       "labels": [
         "Needs PR",
-        "Needs Discussion",
         "Announce"
       ],
       "body": "\r\nWhen the relays received an ANNOUNCE with exact same name as previous ANNOUNCE, what happens? \r\n\r\nOptions seem to be replace previous ANNOUNCE data or return an error. \r\n\r\nThis is related to https://github.com/moq-wg/moq-transport/issues/225 and https://github.com/moq-wg/moq-transport/issues/204\r\n\r\nDiscussion to follow in thread \r\n\r\n",
       "createdAt": "2023-07-24T23:31:00Z",
-      "updatedAt": "2024-08-05T17:12:01Z",
+      "updatedAt": "2024-08-15T17:48:06Z",
       "closedAt": null,
       "comments": [
         {
@@ -12661,11 +12662,12 @@
         "afrind"
       ],
       "labels": [
-        "Editorial"
+        "Editorial",
+        "Needs PR"
       ],
       "body": "My understanding is that MoQ is always hop-by-hop encrypted by virtue of working over QUIC or WebTransport, and therefore a \"relay\" as described in the draft can only inspect Track/Group/Object metadata if it terminates QUIC.  The document should clarify the requirements.",
       "createdAt": "2023-11-10T15:58:52Z",
-      "updatedAt": "2024-08-14T16:29:12Z",
+      "updatedAt": "2024-08-15T17:57:48Z",
       "closedAt": null,
       "comments": [
         {
@@ -12967,11 +12969,12 @@
         "englishm"
       ],
       "labels": [
+        "Needs PR",
         "Wire Format"
       ],
       "body": "I woudld think that \"track doesn't exist\" and \"unauthorized\" would be useful error codes, but they don't seem to fit in 'Invalid Range' or 'Retry Track Alias'.",
       "createdAt": "2024-01-25T20:47:18Z",
-      "updatedAt": "2024-08-14T19:42:58Z",
+      "updatedAt": "2024-08-15T17:57:38Z",
       "closedAt": null,
       "comments": [
         {
@@ -14900,12 +14903,13 @@
         "suhasHere"
       ],
       "labels": [
+        "Needs PR",
         "Announce",
         "Wire Format"
       ],
       "body": "It's meant to be sent by the subscriber, indicating that the announce is no longer accepted. The fields should mirror ANNOUNCE_ERROR so the subscriber can indicate stuff like authentication expired, another announce was received, etc.",
       "createdAt": "2024-03-08T22:22:11Z",
-      "updatedAt": "2024-08-06T19:18:23Z",
+      "updatedAt": "2024-08-15T17:57:23Z",
       "closedAt": null,
       "comments": []
     },
@@ -16402,11 +16406,12 @@
         "suhasHere"
       ],
       "labels": [
+        "Needs PR",
         "Wire Format"
       ],
       "body": "The \"message\" syntax is defined as:\r\n~~~\r\n   MOQT Message {\r\n     Message Type (i),\r\n     Message Payload (..),\r\n   }\r\n~~~\r\nThe unidirectional streams start with messages of one of the types:\r\n~~~\r\n              +======+======================================+\r\n              |   ID | Messages                             |\r\n              +======+======================================+\r\n              |  0x0 | OBJECT_STREAM (Section 6.11.2)       |\r\n              +------+--------------------------------------+\r\n              | 0x50 | STREAM_HEADER_TRACK (Section 6.11.3) |\r\n              +------+--------------------------------------+\r\n              | 0x51 | STREAM_HEADER_GROUP (Section 6.11.3) |\r\n              +------+--------------------------------------+\r\n~~~\r\nWhen encoded as a varint, the codes 0x50 and 0x51 take two bytes -- 0x4050 or 0x4051. That seems a tiny bit wasteful. How about changing those codes to 0x30 and 0x31, which encode on a single byte?",
       "createdAt": "2024-06-12T19:31:19Z",
-      "updatedAt": "2024-08-06T19:18:36Z",
+      "updatedAt": "2024-08-15T17:57:15Z",
       "closedAt": null,
       "comments": [
         {
@@ -16771,11 +16776,12 @@
         "suhasHere"
       ],
       "labels": [
+        "Needs PR",
         "Wire Format"
       ],
       "body": "The MoQ transport messages are encoded as a combination of varints, bit strings, and t-l-v objects. In the absence of a \"header length\" field, applications have to resort to trial parsing: accumulate some incoming bytes from the stream, try to parse those bytes as a message, and if that fail accumulate more bytes and retry. This may not be a huge problem in normal operation. The peer endpoint will compose a message and typically send those bytes all at once; the QUIC stack will deliver them all at once, but even so there may be cases where the QUIC stack cannot send them in a single STREAM_DATA messages, so the logic for \"accumulate and try\" has to be present.\r\n\r\nSuppose a peer sending its data one byte at a time, because it is either malicious or buggy. The length of the message cannot be computed before all components are parsed: the first byte of each varint defines its length, the length field of bits or bytes strings need to be parsed in full, then number of parameters or versions needs to be known. To obtain the length of a component, all components before it need to be parsed, which means that the number of trial parsing is typically a function of the number of components -- maybe an O(N2) function since the cost of each trial depends on the number of components before it. That number can be very large for messages including parameters, because the number of parameters cannot be known in advance -- the peer could send an arbitrary number of them in an attempt to \"greasing\". Parsing is a somewhat CPU intensive operation, which implies that trial parsing can be exploited for a mild DOS attack.\r\n\r\nPrepend a length field to messages would mitigate trial parsing, but I am not sure that we need to fix this. Having limits on message size would impose a de-facto limit on the processing cost of each message. A malicious attackers could send series of short messages such as \"subscribe updates\" to trigger the same CPU consumption. In typical QUIC stacks, the main CPU load comes form passing messages through the OS/app boundary in socket calls, and an attacker could DOS the target by sending series of short messages. The next component is the cost of encryption and decryption, compared to which the cost of trial decryption is probably small. We may decide to do nothing, but it would be nice in that case to have a documentation of the reasoning (as in this issue), and maybe a discussion of why the attack does not matter in the security section.\r\n\r\nAddressing the \"limits\" issue (#473) would also somewhat mitigate the problem, as limiting the \"number of parameters\" appears to be the main way to increase the number of components in messages.",
       "createdAt": "2024-06-24T16:02:12Z",
-      "updatedAt": "2024-08-06T19:17:58Z",
+      "updatedAt": "2024-08-15T17:57:05Z",
       "closedAt": null,
       "comments": [
         {
@@ -64175,13 +64181,13 @@
       "labels": [],
       "body": "I have foregone any premature optimization of the encodings here.\r\n\r\nAsking @janaiyengar to take a first look.",
       "createdAt": "2024-07-26T23:09:07Z",
-      "updatedAt": "2024-08-14T19:57:52Z",
+      "updatedAt": "2024-08-17T19:32:14Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "e336866faa3b8af70890f49685706318b7e5af9a",
       "headRepository": "martinduke/moq-transport",
       "headRefName": "peeps",
-      "headRefOid": "88d079c9e2d5de7b7789a169f335bd06acaf7968",
+      "headRefOid": "06471d752b1a8c9e7a57195fe051775ebc205561",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -64520,6 +64526,199 @@
               "body": "This would work, but IIUC we don't currently allow multiple objects in a Datagram, so this seems like a different discussion.",
               "createdAt": "2024-08-14T17:47:16Z",
               "updatedAt": "2024-08-14T17:47:17Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6FfTDp",
+          "commit": {
+            "abbreviatedOid": "88d079c"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-15T03:34:26Z",
+          "updatedAt": "2024-08-15T03:34:26Z",
+          "comments": [
+            {
+              "originalPosition": 49,
+              "body": "May be I wasn't clear in my above comment.  \r\nYes , each peep must maps to a QUIC Stream and making it explicit is good thing. \r\nAll i was trying to say the conditions listed are examples and not conditions as such. If it was listed under non-normative example of few possible ways a group can have peeps in it , i think it would be more clearer.",
+              "createdAt": "2024-08-15T03:34:26Z",
+              "updatedAt": "2024-08-15T03:34:26Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6FfThq",
+          "commit": {
+            "abbreviatedOid": "88d079c"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-15T03:37:23Z",
+          "updatedAt": "2024-08-15T03:37:23Z",
+          "comments": [
+            {
+              "originalPosition": 71,
+              "body": "We should s/Peeps/Objects. \r\n\r\nObjects have priorities and the objects in a group that has same priority can be assigned to a given peep (since peep == stream). ",
+              "createdAt": "2024-08-15T03:37:23Z",
+              "updatedAt": "2024-08-15T03:37:23Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6FfUBZ",
+          "commit": {
+            "abbreviatedOid": "88d079c"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-15T03:40:30Z",
+          "updatedAt": "2024-08-15T03:40:30Z",
+          "comments": [
+            {
+              "originalPosition": 85,
+              "body": "I don't think the new suggested changes are needed since the paragraph starts with \"Within the same Group, and the same priority level,\" which implies if there were multiple peeps and differ in priorities, they are sent in the priority order.\r\n",
+              "createdAt": "2024-08-15T03:40:30Z",
+              "updatedAt": "2024-08-15T03:40:30Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6FfUX9",
+          "commit": {
+            "abbreviatedOid": "88d079c"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-15T03:42:50Z",
+          "updatedAt": "2024-08-15T03:42:50Z",
+          "comments": [
+            {
+              "originalPosition": 199,
+              "body": "nit s/'/`",
+              "createdAt": "2024-08-15T03:42:50Z",
+              "updatedAt": "2024-08-15T03:42:50Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6FfU1x",
+          "commit": {
+            "abbreviatedOid": "88d079c"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-15T03:45:29Z",
+          "updatedAt": "2024-08-15T03:45:29Z",
+          "comments": [
+            {
+              "originalPosition": 245,
+              "body": "type in word following",
+              "createdAt": "2024-08-15T03:45:29Z",
+              "updatedAt": "2024-08-15T03:45:29Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6FfVUA",
+          "commit": {
+            "abbreviatedOid": "88d079c"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "thansk @martinduke for the new set of edits. I just had few nits/clarification points. PLease let me know your thoughts. \r\nI am liking the general direction.",
+          "createdAt": "2024-08-15T03:48:32Z",
+          "updatedAt": "2024-08-15T03:48:32Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6Fjm_J",
+          "commit": {
+            "abbreviatedOid": "a75ed5c"
+          },
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-15T15:50:53Z",
+          "updatedAt": "2024-08-15T15:50:53Z",
+          "comments": [
+            {
+              "originalPosition": 49,
+              "body": "No, I think I understand. You would prefer that there is no normative guidance, but that we provide an example of a separate mapping. I would prefer that we have a SHOULD with the recognition that there are reasons a publisher might choose a different mapping.\r\n\r\nI'm not going to lie down in the road over this, but would like to hear the opinions of others. If most agree with you, I'm happy to make the change.",
+              "createdAt": "2024-08-15T15:50:53Z",
+              "updatedAt": "2024-08-15T15:50:53Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6Fjn_t",
+          "commit": {
+            "abbreviatedOid": "88d079c"
+          },
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-15T15:52:34Z",
+          "updatedAt": "2024-08-15T15:52:35Z",
+          "comments": [
+            {
+              "originalPosition": 71,
+              "body": "I guess I don't follow. What would it mean for two objects in a peep to have different priorities? Object priorities make sense in the current document, because each object can be its own stream. But in this PR, that's just a case where each Peep is only one object.",
+              "createdAt": "2024-08-15T15:52:34Z",
+              "updatedAt": "2024-08-15T15:52:35Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6FjpDu",
+          "commit": {
+            "abbreviatedOid": "88d079c"
+          },
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-15T15:54:31Z",
+          "updatedAt": "2024-08-15T15:54:31Z",
+          "comments": [
+            {
+              "originalPosition": 85,
+              "body": "I agree that strictly speaking, the logic here is somewhat redundant. But I think the new text makes it clearer. Do you disagree?",
+              "createdAt": "2024-08-15T15:54:31Z",
+              "updatedAt": "2024-08-15T15:54:32Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6Fwtz_",
+          "commit": {
+            "abbreviatedOid": "88d079c"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-17T19:32:14Z",
+          "updatedAt": "2024-08-17T19:32:14Z",
+          "comments": [
+            {
+              "originalPosition": 71,
+              "body": "What i meant it  is , since peeps are priority grouping within a stream, all the objects with a same priority value belong to same peep. This enables delivering peep as a QUIC Stream.  Application sets priorities on objects and what is cached are objects.",
+              "createdAt": "2024-08-17T19:32:14Z",
+              "updatedAt": "2024-08-17T19:32:14Z"
             }
           ]
         }
