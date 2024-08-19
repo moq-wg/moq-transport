@@ -1809,12 +1809,6 @@ TODO: fill out currently missing registries:
 
 TODO: register the URI scheme and the ALPN
 
-TODO: the MOQT spec should establish the IANA registration table for MoQ
-Streaming Formats. Each MoQ streaming format can then register its type
-in that table. The MoQ Streaming Format type MUST be carried as the
-leading varint in catalog track objects.
-
-
 # Contributors
 {:numbered="false"}
 
