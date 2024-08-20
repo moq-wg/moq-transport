@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2024-08-18T01:23:07.435590+00:00",
+  "timestamp": "2024-08-20T01:18:12.279580+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -12043,7 +12043,7 @@
       ],
       "body": "How big can a group be? I know we (probably) won't be able to set a fixed limit, but I feel like we need to answer this in order to know what kind of design assumptions to make.\r\n\r\nIs a single group expected to be small enough to fit in the cache?  Will the protocol work if a media track is just a single group that is being appended to for hours if not days?  I was thinking about stream mapping and the resource-use-at-relays problem earlier today, and realized we might not currently have a conclusive answer for those.",
       "createdAt": "2023-10-30T06:33:27Z",
-      "updatedAt": "2024-08-14T16:22:06Z",
+      "updatedAt": "2024-08-19T11:21:09Z",
       "closedAt": null,
       "comments": [
         {
@@ -12094,6 +12094,13 @@
           "body": "@vasilvv are you fine with @fluffy's point? If so, please close the issue.",
           "createdAt": "2024-08-14T16:22:06Z",
           "updatedAt": "2024-08-14T16:22:06Z"
+        },
+        {
+          "author": "vasilvv",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I think we should add a note that groups can be in practice arbitrarily big.",
+          "createdAt": "2024-08-19T11:21:08Z",
+          "updatedAt": "2024-08-19T11:21:08Z"
         }
       ]
     },
@@ -17711,6 +17718,22 @@
       "body": "7.1.1.1 currently says:\r\n\r\n> 0x4 := Indicates end of Track and Group. GroupID is one greater than the largest group produced in this track and the ObjectId is one greater than the largest object produced in that group. This is sent right after the last object in the track. This SHOULD be cached.\r\n\r\nThis is confusing. I *think* this means that if the last real object in a track is (10,3), then we'll send an end of Track and Group object with sequence (11, 4)?\r\n\r\nI can imagine use cases where the publisher ends the group, and then finds out the track is ending. So would it send EndOfGroup(10,4) and EndOfTrackAndGroup(11, 5)?\r\n\r\nMaybe we could instead separate EndOfGroup and EndOfTrack and make EOT's sequence {last_group + 1, 0}?",
       "createdAt": "2024-08-14T17:54:03Z",
       "updatedAt": "2024-08-14T17:54:09Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 506,
+      "id": "I_kwDOG2Ho4M6Tb3dP",
+      "title": "Remove irrelevant language around IANA registration for MoQ Streaming Formats",
+      "url": "https://github.com/moq-wg/moq-transport/issues/506",
+      "state": "OPEN",
+      "author": "wilaw",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "This language exists in current draft and refers to an old scheme in which MOQT registered the streaming formats and had a scheme in which the leading varint of the catalog defined the format. This has been superseded by an externalized catalog format and this TODO should be removed. \r\n\r\n> TODO: the MOQT spec should establish the IANA registration table for MoQ Streaming Formats. Each MoQ streaming format can then register its type in that table. The MoQ Streaming Format type MUST be carried as the leading varint in catalog track objects.\r\n\r\nThe IANA table for MOQ streaming formats should be managed instead by the Catalog draft, which references those entries. ",
+      "createdAt": "2024-08-19T14:51:00Z",
+      "updatedAt": "2024-08-19T14:51:00Z",
       "closedAt": null,
       "comments": []
     }
@@ -64181,7 +64204,7 @@
       "labels": [],
       "body": "I have foregone any premature optimization of the encodings here.\r\n\r\nAsking @janaiyengar to take a first look.",
       "createdAt": "2024-07-26T23:09:07Z",
-      "updatedAt": "2024-08-17T19:32:14Z",
+      "updatedAt": "2024-08-19T17:59:11Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "e336866faa3b8af70890f49685706318b7e5af9a",
@@ -64716,9 +64739,49 @@
           "comments": [
             {
               "originalPosition": 71,
-              "body": "What i meant it  is , since peeps are priority grouping within a stream, all the objects with a same priority value belong to same peep. This enables delivering peep as a QUIC Stream.  Application sets priorities on objects and what is cached are objects.",
+              "body": "What i meant it  is , since peeps are priority grouping within a moqt group. All the objects with a same priority value get assigned to the same peep. This enables delivering peep as a QUIC Stream.  Application sets priorities on objects and what is cached are objects.",
               "createdAt": "2024-08-17T19:32:14Z",
-              "updatedAt": "2024-08-17T19:32:14Z"
+              "updatedAt": "2024-08-18T16:13:50Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6F25F-",
+          "commit": {
+            "abbreviatedOid": "88d079c"
+          },
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-19T14:47:59Z",
+          "updatedAt": "2024-08-19T14:48:00Z",
+          "comments": [
+            {
+              "originalPosition": 71,
+              "body": "I understand what you mean now.\r\n\r\nI had not envisioned that objects with the same priority must be in the same peep. For example, two objects could have the same priority but no dependency relationship. But if no one has a use case for that, I'm happy to make it impossible for two peeps to have the same priority: just make the Peep ID also be the priority (thus also shrinking the wire image).",
+              "createdAt": "2024-08-19T14:47:59Z",
+              "updatedAt": "2024-08-19T14:48:00Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6F4YIs",
+          "commit": {
+            "abbreviatedOid": "88d079c"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-19T17:59:11Z",
+          "updatedAt": "2024-08-19T17:59:11Z",
+          "comments": [
+            {
+              "originalPosition": 71,
+              "body": "I can't think of use-cases where two objects with same priority end up in different peeps. On making the peepId as the priority, i would prefer keeping priority as 8 bit field as we have today and overloading with an ID looses that ability.",
+              "createdAt": "2024-08-19T17:59:11Z",
+              "updatedAt": "2024-08-19T17:59:11Z"
             }
           ]
         }
@@ -65925,6 +65988,59 @@
               "updatedAt": "2024-08-07T19:35:37Z"
             }
           ]
+        }
+      ]
+    },
+    {
+      "number": 507,
+      "id": "PR_kwDOG2Ho4M54v00T",
+      "title": "Removing TODO around MOQ Streaming Format registration",
+      "url": "https://github.com/moq-wg/moq-transport/pull/507",
+      "state": "OPEN",
+      "author": "wilaw",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Fixes #506 ",
+      "createdAt": "2024-08-19T14:56:53Z",
+      "updatedAt": "2024-08-20T00:42:17Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "e336866faa3b8af70890f49685706318b7e5af9a",
+      "headRepository": "wilaw/moq-transport",
+      "headRefName": "patch-2",
+      "headRefOid": "1027e65e229db555696647b74d56a9a9880caed5",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M6F4AhY",
+          "commit": {
+            "abbreviatedOid": "1027e65"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2024-08-19T17:04:33Z",
+          "updatedAt": "2024-08-19T17:04:33Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6F6vpc",
+          "commit": {
+            "abbreviatedOid": "1027e65"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2024-08-20T00:42:17Z",
+          "updatedAt": "2024-08-20T00:42:17Z",
+          "comments": []
         }
       ]
     }
