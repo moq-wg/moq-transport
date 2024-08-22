@@ -1304,9 +1304,11 @@ MUST be sent according to its `Object Forwarding Preference`, described below.
 * Object Status: As enumeration used to indicate missing
 objects or mark the end of a group or track. See {{object-status}} below.
 
-* Object Extension count: the number of Object Extension Headers present. See
-  {{object-extensions}} below. A value of 0 indicates that no Object Extension
-  Headers are present.
+* Object Extension Count: The number of Object Extensions present. A value of 0
+  indicates that no Object Extension Headers are present.
+  
+* Object Extensions : an optional concatenation of Object Extension Headers. See
+  {{object-extensions}} below.
 
 * Object Payload: An opaque payload intended for an End Subscriber and SHOULD
 NOT be processed by a relay. Only present when 'Object Status' is Normal (0x0).
@@ -1356,13 +1358,11 @@ group is being sent on.
 
 #### Object Extension {#object-extensions}
 An Object Extension is a concatenation of optional Extension Headers. These
-headers are visible to relays. Extension headers specified via the
-REQUIRED-EXTENSIONS parameter {{required-extensions}} in the SETUP message
-MUST be parsed by relays. Extension headers not specified via the
-REQUIRED-EXTENSIONS parameter MAY be ignored by relays. The purpose of
-Extension Headers is to allow the transmission of application-specific
-data as well as future evolution of the transport protocol. Object
-Extensions are serialized as defined below:
+headers are visible to relays. Extension headers MUST be forwarded and
+MUST NOT be modified by relays. The purpose of Extension Headers is to
+allow the transmission of application-specific data as well as future
+evolution of the transport protocol. Object Extensions are serialized as
+defined below:
 
 ~~~
 Object Extension {
