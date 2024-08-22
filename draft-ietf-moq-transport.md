@@ -1593,6 +1593,9 @@ are beyond the end of a group or track.
          group. This is sent right after the last object in the
          track. This SHOULD be cached.
 
+* 0x5 := Indicates end of Peep. Object ID is one greater than the largest
+         normal object ID in the Peep.
+
 Any other value SHOULD be treated as a protocol error and terminate the
 session with a Protocol Violation ({{session-termination}}).
 Any object with a status code other than zero MUST have an empty payload.
