@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2024-08-20T01:18:12.279580+00:00",
+  "timestamp": "2024-08-22T01:20:15.823225+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -64204,7 +64204,7 @@
       "labels": [],
       "body": "I have foregone any premature optimization of the encodings here.\r\n\r\nAsking @janaiyengar to take a first look.",
       "createdAt": "2024-07-26T23:09:07Z",
-      "updatedAt": "2024-08-19T17:59:11Z",
+      "updatedAt": "2024-08-21T17:24:40Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "e336866faa3b8af70890f49685706318b7e5af9a",
@@ -64271,6 +64271,27 @@
           "body": "OK, I believe I've fully addressed all comments except for those I've left unresolved. @suhasHere @ianswett  If you are satisfied with my response, please resolve the comment.",
           "createdAt": "2024-08-14T18:39:33Z",
           "updatedAt": "2024-08-14T18:39:33Z"
+        },
+        {
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "No normative language, summarize what streams are.",
+          "createdAt": "2024-08-21T16:13:39Z",
+          "updatedAt": "2024-08-21T16:13:39Z"
+        },
+        {
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "@afrind wants to make a proposal, wait for that",
+          "createdAt": "2024-08-21T16:51:50Z",
+          "updatedAt": "2024-08-21T16:51:50Z"
+        },
+        {
+          "author": "wilaw",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "For bikesheading on the name, I make these two proposals:\r\n1. \"Stream\" - this correlates directly with the mapping to QUIC. Simple to comprehend and explain. \r\n2. \"Block\" - this denotes contiguity and avoids overloaded use of the term \"stream\".\r\n",
+          "createdAt": "2024-08-21T16:59:23Z",
+          "updatedAt": "2024-08-21T16:59:23Z"
         }
       ],
       "reviews": [
@@ -64784,6 +64805,106 @@
               "updatedAt": "2024-08-19T17:59:11Z"
             }
           ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6GMGlQ",
+          "commit": {
+            "abbreviatedOid": "a75ed5c"
+          },
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-21T16:18:51Z",
+          "updatedAt": "2024-08-21T16:18:51Z",
+          "comments": [
+            {
+              "originalPosition": 49,
+              "body": "Interim: Remove normative language, describe what streams do.",
+              "createdAt": "2024-08-21T16:18:51Z",
+              "updatedAt": "2024-08-21T16:18:51Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6GMIm_",
+          "commit": {
+            "abbreviatedOid": "a75ed5c"
+          },
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-21T16:22:17Z",
+          "updatedAt": "2024-08-21T16:22:17Z",
+          "comments": [
+            {
+              "originalPosition": 49,
+              "body": "Increasing object ID is a MUST",
+              "createdAt": "2024-08-21T16:22:17Z",
+              "updatedAt": "2024-08-21T16:22:17Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6GMJM5",
+          "commit": {
+            "abbreviatedOid": "e5bf316"
+          },
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-21T16:23:16Z",
+          "updatedAt": "2024-08-21T16:23:16Z",
+          "comments": [
+            {
+              "originalPosition": 11,
+              "body": "Interim: Ian is OK with this",
+              "createdAt": "2024-08-21T16:23:16Z",
+              "updatedAt": "2024-08-21T16:23:16Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6GMTu3",
+          "commit": {
+            "abbreviatedOid": "88d079c"
+          },
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-21T16:41:58Z",
+          "updatedAt": "2024-08-21T16:41:58Z",
+          "comments": [
+            {
+              "originalPosition": 71,
+              "body": "Interim: people like all peeps having a different priority, but Alan may have a use case? We'll leave it as is for now.",
+              "createdAt": "2024-08-21T16:41:58Z",
+              "updatedAt": "2024-08-21T16:41:58Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6GMroR",
+          "commit": {
+            "abbreviatedOid": "06471d7"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-21T17:24:40Z",
+          "updatedAt": "2024-08-21T17:24:40Z",
+          "comments": [
+            {
+              "originalPosition": 85,
+              "body": "The language is confusing because Peeps don't have priority, Objects do.  All objects in the same peep have the same priority, so you can call that the priority of the Peep, but the wording isn't totally clear.\r\n\r\nMandating increasing object ID within a peep is a good thing, but using object ID as the tie-breaker between peeps with equivalent object priority is not good.\r\n\r\nConsider this case, where all objects have priority 128:\r\n\r\nPeep/Stream 1:\r\n\r\nObject 1, Object 3\r\n\r\nPeep/Stream 2:\r\n\r\nObject 2, Object 4\r\n\r\nLet' assume all data has been written to the QUIC stack.  At the point when all the bytes of Object 1 are sent, the priority of Peep/Stream 2 needs to change to be higher than Peep/Stream 1.  This is way more complex than most implementers what to deal with.\r\n\r\nSo we can:\r\n\r\n1. Make Peep ID the tie-breaker - with the same priority, lower peep ID goes first\r\n2. Collapse Peep ID and Priority:\r\n  2a. Use 62 bits - priority gets larger in kind of an ugly way\r\n  2b. Use 8 bits - restricts maximum peeps per group, which probably breaks some object-per-stream cases\r\n3. Leave the language as is, which is super hard to implement\r\n4. Leave the wire image the same, but add a SHOULD NOT set two peeps to the same priority (but realizing that they will be the same when numPeeps > 256).\r\n5. Something else?\r\n",
+              "createdAt": "2024-08-21T17:24:40Z",
+              "updatedAt": "2024-08-21T17:24:40Z"
+            }
+          ]
         }
       ]
     },
@@ -64803,13 +64924,13 @@
       ],
       "body": "Alan's suggestion",
       "createdAt": "2024-07-31T14:54:08Z",
-      "updatedAt": "2024-08-07T17:02:29Z",
+      "updatedAt": "2024-08-21T16:49:41Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
-      "baseRefOid": "7b4e54fd94d0928e1e0959546fc39b0c703f4fa5",
+      "baseRefOid": "e336866faa3b8af70890f49685706318b7e5af9a",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "ianswett-no-explicit-signal",
-      "headRefOid": "9be939091a3f00cf63ad91d40db8a76ca4f74ad5",
+      "headRefOid": "d3541e12c29da4b2025132175497e7467b021106",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -64904,13 +65025,13 @@
       "labels": [],
       "body": "This message suite allows subscribers to express interest in ANNOUNCE/UNANNOUNCE for set of namespaces that match a prefix.  To accomplish safe prefix matching, Track Namesapce is redefined from a single byte array to a N-Tuple of byte arrays.\r\n\r\nFixes: #484",
       "createdAt": "2024-08-05T21:31:01Z",
-      "updatedAt": "2024-08-10T14:45:53Z",
+      "updatedAt": "2024-08-21T16:51:20Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
-      "baseRefOid": "1eb58843008dc591826118839d66221164538209",
+      "baseRefOid": "e336866faa3b8af70890f49685706318b7e5af9a",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "subscribe-namespace",
-      "headRefOid": "764dcae488d2d7a608c8d0720047d81d250fab7d",
+      "headRefOid": "e2c12d3afeb6c1b47a11633b9992b060a76677cf",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -65264,14 +65385,14 @@
         {
           "id": "PRR_kwDOG2Ho4M6FAWes",
           "commit": {
-            "abbreviatedOid": "764dcae"
+            "abbreviatedOid": "e2c12d3"
           },
           "author": "suhasHere",
           "authorAssociation": "COLLABORATOR",
           "state": "APPROVED",
           "body": "",
           "createdAt": "2024-08-10T14:45:53Z",
-          "updatedAt": "2024-08-10T14:45:53Z",
+          "updatedAt": "2024-08-21T16:51:20Z",
           "comments": []
         }
       ]
