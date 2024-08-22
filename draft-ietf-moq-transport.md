@@ -329,22 +329,24 @@ scheduling of sending data on active streams.
 
 Every object within a Group belongs to exactly one Peep.
 
-Original publishers assign each Peep a Peep ID, and do so as they see fit. The
+Original publishers assign each Peep a Peep ID, and do so as they see fit.  The
 scope of a Peep ID is a Group, so Peeps from different Groups MAY share a Peep
-ID without implying any relationship between them.
+ID without implying any relationship between them. In general, publishers assign
+objects to peeps in order to leverage the features of QUIC streams as described
+above.
 
-However, the following strategy is RECOMMENDED:
+An example strategy for using QUIC stream properties follows. If object A is
+dependent on object B, then delivery of A can follow B, i.e. B and A can be
+usefully delivered over a single QUIC stream. Furthermore, in this example:
 
-- Higher object IDs are dependent on lower object IDs in the same peep.
+- If an object is dependent on all previous objects in a Peep, it is added to
+that Peep.
 
-- If two objects are dependent on the same lower object ID, but are not
-dependent on each other, one ought to assigned the same peep as the lower
-ID, but the other ought to be in a different peep. The second peep would
-ideally have a lower priority than the one with two objects.
+- If an object is not dependent on some of the objects in a Peep, it goes in
+a different Peep.
 
-- There often multiple assignment schemes that meet these conditions.
-Original publishers ought to choose an assignment that minimizes the number
-of peeps (and therefore QUIC streams) in the group.
+- There are often many ways to compose Peeps that meet these criteria. Where
+possible, choose the composition that results in the fewest Peeps in a group.
 
 For example, imagine that Object 3 and Object 2 are both dependent on Object
 1, but are have no depedency relationship with each other. It would
@@ -354,16 +356,6 @@ Object 3 from being blocked by the loss of Object 2.
 
 Alternatively, objects 1 and 2 could be in one peep and 3 in another. The
 optimal choice would depend on the dependencies of later objects.
-
-An original publisher might not follow these guidelines. Reasons would
-include implementation complexity, lack of foreknowledge of the dependencies
-of further objects, the knowledge that the transport is WebTransport over
-HTTP/2 (thus introducing head-of-line blocking across streams), or knowledge
-of low session stream limits that require aggregation of independent objects
-into the same stream.
-
-For the purposes of peep assignment, the dependencies of objects with non-
-normal status are described in {{object-status}}.
 
 ## Groups {#model-group}
 
@@ -1607,14 +1599,6 @@ Any object with a status code other than zero MUST have an empty payload.
 
 Though some status information could be inferred from QUIC stream state,
 that information is not reliable and cacheable.
-
-In most cases, messages with a non zero status code are sent on the same
-stream that an object with that GroupID would have been sent on. The
-exception to this is when that stream has been reset; in that case they
-are sent on a new stream. This is to avoid the status message being lost
-in cases such as a relay dropping a group and reseting the stream the
-group is being sent on.
-
 
 ## Object Datagram Message {#object-datagram}
 
