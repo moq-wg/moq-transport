@@ -996,11 +996,10 @@ the `query` portion of the URI to the parameter.
 #### REQUIRED-EXTENSION parameter {#required-extensions}
 
 The REQUIRED-EXTENSION parameter (key 0x02) allows the client to specify
-an Extension Header type {{object-extensions}} which is required for
-operation. The value is the 32-bit type expressed as a varint. This
-parameter is optional. Multiple of these parameters may be sent in a
-SETUP message. If the server does not support a requested
-REQUIRED-EXTENSION, then it MUST close the connection.
+multiple Extension Header types {{object-extensions}} which are required for
+operation. The value is a concatenation of varints, each describing a
+32-bit extension header type. This parameter is optional. If the server does
+not support a requested REQUIRED-EXTENSION, then it MUST close the connection.
 
 ## GOAWAY {#message-goaway}
 The server sends a `GOAWAY` message to initiate session migration
