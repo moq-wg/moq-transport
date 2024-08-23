@@ -5,13 +5,13 @@
 Media Over QUIC                                                L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 22 February 2025                                           Meta
+Expires: 24 February 2025                                           Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                          21 August 2024
+                                                          23 August 2024
 
 
                        Media over QUIC Transport
@@ -59,7 +59,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 22 February 2025.
+   This Internet-Draft will expire on 24 February 2025.
 
 Copyright Notice
 
@@ -1880,11 +1880,6 @@ Table of Contents
    *  Message types
 
    TODO: register the URI scheme and the ALPN
-
-   TODO: the MOQT spec should establish the IANA registration table for
-   MoQ Streaming Formats.  Each MoQ streaming format can then register
-   its type in that table.  The MoQ Streaming Format type MUST be
-   carried as the leading varint in catalog track objects.
 
 Contributors
 
