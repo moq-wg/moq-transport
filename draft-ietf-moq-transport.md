@@ -319,7 +319,7 @@ stream. In some cases, a Group will be most effectively delivered using more
 than one QUIC stream.
 
 When a Track's forwarding preference (see {{object-fields}}) is "Track" or
-"Datagram", Groups do not contain Peeps, no Peep IDs are assigned, and the
+"Datagram", Objects are not sent in Peeps, no Peep IDs are assigned, and the
 description in the remainder of this section does not apply.
 
 QUIC streams offer in-order reliable delivery and the ability to cancel sending
