@@ -282,7 +282,7 @@ x (f):
 
 x (t):
 
-: Indicates that x consists of a variable length integer encoding as
+: Indicates that x is a tuple, consisting of a variable length integer encoded as
   described in ({{?RFC9000, Section 16}}), followed by that many variable length
   tuple fields, each of which are encoded as (b) above.
 
