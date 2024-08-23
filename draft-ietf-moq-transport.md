@@ -348,14 +348,6 @@ a different Peep.
 - There are often many ways to compose Peeps that meet these criteria. Where
 possible, choose the composition that results in the fewest Peeps in a group.
 
-For example, imagine that Object 3 and Object 2 are both dependent on Object
-1, but are have no depedency relationship with each other. It would
-therefore be appropriate for Objects 1 and 3 to be in one peep and Object 2
-in another, with lower priority. The separate stream prevents delivery of
-Object 3 from being blocked by the loss of Object 2.
-
-Alternatively, objects 1 and 2 could be in one peep and 3 in another. The
-optimal choice would depend on the dependencies of later objects.
 
 ## Groups {#model-group}
 
