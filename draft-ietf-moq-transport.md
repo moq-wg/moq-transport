@@ -346,7 +346,8 @@ that Peep.
 a different Peep.
 
 - There are often many ways to compose Peeps that meet these criteria. Where
-possible, choose the composition that results in the fewest Peeps in a group.
+possible, choose the composition that results in the fewest Peeps in a group
+to minimize the number of QUIC streams used.
 
 
 ## Groups {#model-group}
