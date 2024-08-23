@@ -335,14 +335,14 @@ ID without implying any relationship between them. In general, publishers assign
 objects to peeps in order to leverage the features of QUIC streams as described
 above.
 
-An example strategy for using QUIC stream properties follows. If object A is
-dependent on object B, then delivery of A can follow B, i.e. B and A can be
+An example strategy for using QUIC stream properties follows. If object B is
+dependent on object A, then delivery of B can follow A, i.e. A and B can be
 usefully delivered over a single QUIC stream. Furthermore, in this example:
 
 - If an object is dependent on all previous objects in a Peep, it is added to
 that Peep.
 
-- If an object is not dependent on some of the objects in a Peep, it goes in
+- If an object is not dependent on all of the objects in a Peep, it goes in
 a different Peep.
 
 - There are often many ways to compose Peeps that meet these criteria. Where
