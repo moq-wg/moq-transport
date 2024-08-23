@@ -5,13 +5,13 @@
 Media Over QUIC                                                L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 22 February 2025                                           Meta
+Expires: 24 February 2025                                           Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                          21 August 2024
+                                                          23 August 2024
 
 
                        Media over QUIC Transport
@@ -59,7 +59,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 22 February 2025.
+   This Internet-Draft will expire on 24 February 2025.
 
 Copyright Notice
 
@@ -322,10 +322,10 @@ Table of Contents
       other value is a protocol error and SHOULD terminate the session
       with a Protocol Violation (Section 3.5).
 
-   x (t):  Indicates that x consists of a variable length integer
-      encoding as described in ([RFC9000], Section 16), followed by that
-      many variable length tuple fields, each of which are encoded as
-      (b) above.
+   x (t):  Indicates that x is a tuple, consisting of a variable length
+      integer encoded as described in ([RFC9000], Section 16), followed
+      by that many variable length tuple fields, each of which are
+      encoded as (b) above.
 
    To reduce unnecessary use of bandwidth, variable length integers
    SHOULD be encoded using the least number of bytes possible to
