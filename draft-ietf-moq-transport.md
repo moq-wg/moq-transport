@@ -312,8 +312,8 @@ modify object payloads.
 
 ## Peeps {#model-peep}
 
-A peep is a collection of one or more objects and is a sub-unit of a group
-({{model-group}}). A peep consists of a set of objects within a Group that
+A peep is a sequence of one or more objects from the same group
+({{model-group}}) in ascending order by Object ID. Objects in a peep
 have a dependency and priority relationship consistent with sharing a QUIC
 stream. In some cases, a Group will be most effectively delivered using more
 than one stream.
