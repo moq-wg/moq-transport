@@ -623,8 +623,10 @@ Within the same Group, and the same priority level,
 Objects with a lower Object Id are always sent before objects with a
 higher Object Id, regardless of the specified Group Order. If the group
 contains more than one Peep and the priority varies between these Peeps,
-higher priority Peeps are sent before lower priority Peeps, and Objects
-in peeps are sent in increasing Object Id order.
+higher priority Peeps are sent before lower priority Peeps. If the priority of
+two Peeps in a Group are equal, there is no normative requirement for which of
+those Peeps is sent next. Within a Peep, Objects MUST bs sent in increasing
+Object ID order.
 
 The Group Order cannot be changed via a SUBSCRIBE_UPDATE message, and
 instead an UNSUBSCRIBE and SUBSCRIBE can be used.
