@@ -359,7 +359,7 @@ optimal choice would depend on the dependencies of later objects.
 
 ## Groups {#model-group}
 
-A group is a collection of one or more peeps and is a sub-unit of a track
+A group is a collection of objects and is a sub-unit of a track
 ({{model-track}}).  Objects within a group SHOULD NOT depend on objects
 in other groups.  A group behaves as a join point for subscriptions.
 A new subscriber might not want to receive the entire track, and may
