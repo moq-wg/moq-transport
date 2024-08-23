@@ -316,7 +316,7 @@ A peep is a sequence of one or more objects from the same group
 ({{model-group}}) in ascending order by Object ID. Objects in a peep
 have a dependency and priority relationship consistent with sharing a QUIC
 stream. In some cases, a Group will be most effectively delivered using more
-than one stream.
+than one QUIC stream.
 
 When a Track's forwarding preference (see {{object-fields}}) is "Track" or
 "Datagram", Groups do not contain Peeps, no Peep IDs are assigned, and the
