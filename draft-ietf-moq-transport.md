@@ -1014,6 +1014,12 @@ GOAWAY Message {
 The subscriber specifies a filter on the subscription to allow
 the publisher to identify which objects need to be delivered.
 
+If a subscriber wants to subscribe to Objects both before and after
+the Latest Object, it can send a SUBSCRIBE for the Latest Object
+followed by a SUBSCRIBE of type AbsoluteStart.  Depending upon the
+application, one might want to send both SUBSCRIBEs at the same time
+or wait for the first to return before sending the second.
+
 There are 3 types of filters:
 
 Latest Object (0x2): Specifies an open-ended subscription beginning from
