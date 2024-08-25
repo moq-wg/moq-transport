@@ -2619,9 +2619,9 @@ SUBSCRIBE_ERROR.<a href="#section-6.4.1-5" class="pilcrow">¶</a></p>
 <p id="section-6.4.1-6">A filter type other than the above <span class="bcp14">MUST</span> be treated as error.<a href="#section-6.4.1-6" class="pilcrow">¶</a></p>
 <p id="section-6.4.1-7">If a subscriber wants to subscribe to Objects both before and after
 the Latest Object, it can send a SUBSCRIBE for the Latest Object
-followed by a SUBSCRIBE of type AbsoluteStart.  Depending upon the
-application, one might want to send both SUBSCRIBEs at the same time
-or wait for the first to return before sending the second.<a href="#section-6.4.1-7" class="pilcrow">¶</a></p>
+followed by a SUBSCRIBE of type AbsoluteStart or AbsoluteRange.
+Depending upon the application, one might want to send both SUBSCRIBEs
+at the same time or wait for the first to return before sending the second.<a href="#section-6.4.1-7" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="subscribe-format">
