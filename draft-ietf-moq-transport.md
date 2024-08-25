@@ -1019,7 +1019,9 @@ There are 3 types of filters:
 
 Latest Object (0x2): Specifies an open-ended subscription beginning from
 the current object of the current group.  If no content has been delivered yet,
-the subscription starts with the first published or received group.
+the subscription starts with the first published or received group. Subscribers
+MUST NOT issue more than one subscription for the Latest Object of a track
+within the same session.
 
 AbsoluteStart (0x3):  Specifies an open-ended subscription beginning
 from the Object identified in the StartGroup and StartObject fields and ending
