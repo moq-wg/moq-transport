@@ -1014,23 +1014,24 @@ GOAWAY Message {
 The subscriber specifies a filter on the subscription to allow
 the publisher to identify which objects need to be delivered.
 
-There are 4 types of filters:
-
-Latest Group (0x1) : Specifies an open-ended subscription with objects
-from the beginning of the current group.  If no content has been delivered yet,
-the subscription starts with the first published or received group.
+There are 3 types of filters:
 
 Latest Object (0x2): Specifies an open-ended subscription beginning from
 the current object of the current group.  If no content has been delivered yet,
 the subscription starts with the first published or received group.
 
 AbsoluteStart (0x3):  Specifies an open-ended subscription beginning
-from the object identified in the StartGroup and StartObject fields.
+from the Object identified in the StartGroup and StartObject fields and ending
+at the Latest Object, exclusive.  If no Objects have been published after
+StartGroup and StartObject, the subscription is immediately closed with a
+SUBSCRIBE_ERROR.
 
 AbsoluteRange (0x4):  Specifies a closed subscription starting at StartObject
 in StartGroup and ending at EndObject in EndGroup.  The start and end of the
 range are inclusive.  EndGroup and EndObject MUST specify the same or a later
-object than StartGroup and StartObject.
+object than StartGroup and StartObject. If no Objects have been published
+within the range, the subscription is immediately closed with a
+SUBSCRIBE_ERROR.
 
 A filter type other than the above MUST be treated as error.
 
@@ -1069,7 +1070,9 @@ SUBSCRIBE_ERROR messages.
 * Track Alias: A session specific identifier for the track.
 Messages that reference a track, such as OBJECT ({{message-object}}),
 reference this Track Alias instead of the Track Name and Track Namespace to
-reduce overhead. If the Track Alias is already being used for a different track, the publisher MUST close the session with a Duplicate Track Alias error ({{session-termination}}).
+reduce overhead. If the Track Alias is already being used for a different track,
+the publisher MUST close the session with a
+Duplicate Track Alias error ({{session-termination}}).
 
 * Track Namespace: Identifies the namespace of the track as defined in
 ({{track-name}}).
