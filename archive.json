@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2024-08-22T01:20:15.823225+00:00",
+  "timestamp": "2024-08-25T01:25:20.281237+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -17684,7 +17684,7 @@
       "labels": [],
       "body": "The text we landed for [draft-05](https://www.ietf.org/archive/id/draft-ietf-moq-transport-05.html) to define priorities (https://github.com/moq-wg/moq-transport/pull/470) indicates that we should use a 8 bits (`x (L)` where `L` is `8`) to convey subscriber priority and similarly a byte to convey publisher priority.\r\n\r\n> `Subscriber Priority (8),`\r\n( https://www.ietf.org/archive/id/draft-ietf-moq-transport-05.html#section-6.4.2-2 )\r\n\r\n> Publisher Priority: An 8 bit integer indicating the publisher's priority for the Object\r\n ( https://www.ietf.org/archive/id/draft-ietf-moq-transport-05.html#section-6.11.1 )\r\n\r\nThe text also indicates that lower values have higher priority which I read as meaning 1 (`0000 0001`) should be sent before 10 (`0000 1010`), ~~but we don't seem to explicitly indicate anywhere whether we expect these values to be interpreted as signed or unsigned integers.~~\r\n\r\n~~Should `1000 0101` be sent before or after `0000 0101`?~~ (After)\r\n\r\n~~Is `1000 0101` -5 (i8) or 133 (u8)?~~ `1000 0101` is 133 (u8)\r\n\r\nEdit: We should probably recommend that implementations use a mid-range value like `127` as a default to allow for prioritizing both above and below it. (The MoQT spec doesn't need to **define** a default since these values are currently always explicit on the wire, but I think it would be helpful to provide guidance here.)",
       "createdAt": "2024-08-09T19:37:53Z",
-      "updatedAt": "2024-08-09T20:23:03Z",
+      "updatedAt": "2024-08-23T14:28:25Z",
       "closedAt": null,
       "comments": [
         {
@@ -17700,6 +17700,13 @@
           "body": "Oh, nevermind, @mengelbart noticed some text I missed in section 4: \"with 0 being the highest priority\" which would imply these are unsigned int values, `u8`.\r\n\r\nIt may still be helpful to make that more explicit and recommend a default mid-range value.",
           "createdAt": "2024-08-09T20:02:14Z",
           "updatedAt": "2024-08-09T20:02:14Z"
+        },
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I'm fine with some editorial text here if that's how we want to resolve it? (PRs welcome @englishm )\r\n\r\nI'm also ok with it being signed, since it it nice for 0 to be a 'default' value, but we don't use signed integers anywhere else in MoQ, so I'm a bit concerned that using them in exactly one spot could be confusing or error prone?",
+          "createdAt": "2024-08-23T14:28:24Z",
+          "updatedAt": "2024-08-23T14:28:24Z"
         }
       ]
     },
@@ -17726,16 +17733,54 @@
       "id": "I_kwDOG2Ho4M6Tb3dP",
       "title": "Remove irrelevant language around IANA registration for MoQ Streaming Formats",
       "url": "https://github.com/moq-wg/moq-transport/issues/506",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "wilaw",
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
       "labels": [],
       "body": "This language exists in current draft and refers to an old scheme in which MOQT registered the streaming formats and had a scheme in which the leading varint of the catalog defined the format. This has been superseded by an externalized catalog format and this TODO should be removed. \r\n\r\n> TODO: the MOQT spec should establish the IANA registration table for MoQ Streaming Formats. Each MoQ streaming format can then register its type in that table. The MoQ Streaming Format type MUST be carried as the leading varint in catalog track objects.\r\n\r\nThe IANA table for MOQ streaming formats should be managed instead by the Catalog draft, which references those entries. ",
       "createdAt": "2024-08-19T14:51:00Z",
-      "updatedAt": "2024-08-19T14:51:00Z",
-      "closedAt": null,
+      "updatedAt": "2024-08-23T15:09:55Z",
+      "closedAt": "2024-08-23T15:09:55Z",
       "comments": []
+    },
+    {
+      "number": 508,
+      "id": "I_kwDOG2Ho4M6T_vhN",
+      "title": "Simplify naming by removing the distinction between Track Namespace and Track Name",
+      "url": "https://github.com/moq-wg/moq-transport/issues/508",
+      "state": "OPEN",
+      "author": "wilaw",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Alan's PR https://github.com/moq-wg/moq-transport/pull/498 introduced a N-tuple construct for namespace, in which the namespace is made up of an ordered sequence of between 1 - 32 byte arrays. This allows us to construct namespaces in the form\r\n\r\n`example.com` `meeting` `abc123` `alice`\r\n\r\nAlice would publish tracks under this namespace called audio|video|catalog leading to the final track identifiers being\r\n\r\n`example.com` `meeting` `abc123` `alice` `audio`\r\n`example.com` `meeting` `abc123` `alice` `video`\r\n`example.com` `meeting` `abc123` `alice` `catalog`\r\n\r\n\r\nAt this point, the distinction between the track name and last stanza of the namespace is arbitrary and I would argue, unnecessary.\r\n\r\nWe could remove the separate concepts of TRACK-NAMESPACE and TRACK-NAME and instead coalesce this down to a single construct of TRACK-NAME, which would hold the same definition as a bounded N-tuple. So under the simplified scheme, the TRACK-NAMES would be \r\n\r\n`example.com` `meeting` `abc123` `alice` `audio`\r\n`example.com` `meeting` `abc123` `alice` `video`\r\n`example.com` `meeting` `abc123` `alice` `catalog`\r\n\r\nAlice as the publisher would ANNOUNCE the _minimum prefix_ which uniquely describes describes the content she is responsible for, in this case, she would announce\r\n\r\n`example.com` `meeting` `abc123` `alice`\r\n\r\nThis schema then allows for easy aggregate subscription. We could remove the need for SUBSCRIBE-NAMESPACE. For example, a subscriber wanting to receive everything produced by Alice would SUBSCRIBE  to \r\n\r\n`example.com` `meeting` `abc123` `alice`\r\n\r\nSomeone wanting to receive all feeds from meeting abc123 would SUBSCRIBE to\r\n\r\n`example.com` `meeting` `abc123`\r\n\r\nIf we standardize some means of communicating a null (*) stanza, and if different publishers produced\r\n\r\n`example.com` `meeting` `abc123`\r\n`statistics.com` `metrics` `abc123`\r\n\r\nthe someone wanting both the meeting and metrics for abc123 could SUBSCRIBE to \r\n\r\n`    ` `    ` `abc123`",
+      "createdAt": "2024-08-23T11:42:58Z",
+      "updatedAt": "2024-08-24T05:10:44Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I generally like the suggestion here except the  last ```<null> <null> abc123```.  If we allow nulls or (.*) regex parsing in between , it just makes things pretty slow.  We can start with prefix matching to begin with and see if we need to add more flexibility ?",
+          "createdAt": "2024-08-23T21:54:15Z",
+          "updatedAt": "2024-08-23T21:56:10Z"
+        },
+        {
+          "author": "alvestrand",
+          "authorAssociation": "NONE",
+          "body": "Having complete names from the name root to the tree node you want to point\r\nto is usually a Good Thing (experience with DNS searchpaths).\r\nIf nulls were allowed, subscribing to \"foo\" would result in \"mallory foo\"\r\npopping up in your feed when you just wanted to listen to \"alice foo\" and\r\n\"bob foo\", with no knowledge ahead of time that Mallory existed.\r\n\r\n\r\n\r\nOn Fri, Aug 23, 2024 at 11:54\u202fPM Suhas Nandakumar ***@***.***>\r\nwrote:\r\n\r\n> I generally like the suggestion here except the last abc123. If we allow\r\n> nulls or (.*) regex parsing in between , it just makes things pretty slow.\r\n> We can start with prefix matching to begin with,\r\n>\r\n> \u2014\r\n> Reply to this email directly, view it on GitHub\r\n> <https://github.com/moq-wg/moq-transport/issues/508#issuecomment-2307857881>,\r\n> or unsubscribe\r\n> <https://github.com/notifications/unsubscribe-auth/AADVM7LXRN6XHGXUTUYLHU3ZS6VR3AVCNFSM6AAAAABNAAPHZWVHI2DSMVQWIX3LMV43OSLTON2WKQ3PNVWWK3TUHMZDGMBXHA2TOOBYGE>\r\n> .\r\n> You are receiving this because you are subscribed to this thread.Message\r\n> ID: ***@***.***>\r\n>\r\n",
+          "createdAt": "2024-08-24T03:26:42Z",
+          "updatedAt": "2024-08-24T03:26:42Z"
+        },
+        {
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> Having complete names from the name root to the tree node you want to point to is usually a Good Thing (experience with DNS searchpaths).\r\n\r\n+1",
+          "createdAt": "2024-08-24T05:10:42Z",
+          "updatedAt": "2024-08-24T05:10:42Z"
+        }
+      ]
     }
   ],
   "pulls": [
@@ -63962,7 +64007,7 @@
       "labels": [],
       "body": "Fixes #272\r\n\r\nSome diffs are due to me reflowing text to fit the line limits, so please ignore those.\r\n\r\nOnce we have this and a limit on announce IDs, it seems likely that we'll be able to get rid of 'Role', but for now it can stay.",
       "createdAt": "2024-07-26T02:58:25Z",
-      "updatedAt": "2024-08-08T16:53:42Z",
+      "updatedAt": "2024-08-23T22:52:34Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "bac470e2aa4bf90e7ff57da29b5ba34e5dd47642",
@@ -64134,6 +64179,19 @@
               "updatedAt": "2024-08-08T16:52:40Z"
             }
           ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6GmVg7",
+          "commit": {
+            "abbreviatedOid": "6e825f8"
+          },
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "This seems like a really complicated way to limit the subscribes. I understand how it mirror streams but that had pretty different constrains.  Why don't we just have an subscribe error of \"too many subscriptions\"? \r\n\r\n",
+          "createdAt": "2024-08-23T22:52:34Z",
+          "updatedAt": "2024-08-23T22:52:34Z",
+          "comments": []
         }
       ]
     },
@@ -64204,13 +64262,13 @@
       "labels": [],
       "body": "I have foregone any premature optimization of the encodings here.\r\n\r\nAsking @janaiyengar to take a first look.",
       "createdAt": "2024-07-26T23:09:07Z",
-      "updatedAt": "2024-08-21T17:24:40Z",
+      "updatedAt": "2024-08-24T03:14:58Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
-      "baseRefOid": "e336866faa3b8af70890f49685706318b7e5af9a",
+      "baseRefOid": "636b5dc056cbd6d3b7df6bffcabb7aa336ecda7f",
       "headRepository": "martinduke/moq-transport",
       "headRefName": "peeps",
-      "headRefOid": "06471d752b1a8c9e7a57195fe051775ebc205561",
+      "headRefOid": "338941500bee6f543eeaf97194557a815b9f2382",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -64292,6 +64350,20 @@
           "body": "For bikesheading on the name, I make these two proposals:\r\n1. \"Stream\" - this correlates directly with the mapping to QUIC. Simple to comprehend and explain. \r\n2. \"Block\" - this denotes contiguity and avoids overloaded use of the term \"stream\".\r\n",
           "createdAt": "2024-08-21T16:59:23Z",
           "updatedAt": "2024-08-21T16:59:23Z"
+        },
+        {
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "I have made all changes I know to do. I am awaiting @afrind making a concrete proposal on the question of whether or not two Peeps can have the same priority, and the wire image implications downstream from that.",
+          "createdAt": "2024-08-22T22:05:49Z",
+          "updatedAt": "2024-08-22T22:05:49Z"
+        },
+        {
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "Why have Peep ID be a tiebreaker if we also have priority? Just let the streams have the same priority!",
+          "createdAt": "2024-08-23T16:21:48Z",
+          "updatedAt": "2024-08-23T16:21:48Z"
         }
       ],
       "reviews": [
@@ -64905,6 +64977,700 @@
               "updatedAt": "2024-08-21T17:24:40Z"
             }
           ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6GakEn",
+          "commit": {
+            "abbreviatedOid": "88d079c"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-22T16:23:27Z",
+          "updatedAt": "2024-08-22T16:23:27Z",
+          "comments": [
+            {
+              "originalPosition": 85,
+              "body": "+1 on keeping priority as part of the Object and not a Peep's property. I think we need  to fix text to make sure that's reflected so. \r\nAlso option 1 would be my choice",
+              "createdAt": "2024-08-22T16:23:27Z",
+              "updatedAt": "2024-08-22T16:23:27Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6GdfRa",
+          "commit": {
+            "abbreviatedOid": "88d079c"
+          },
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-22T22:04:11Z",
+          "updatedAt": "2024-08-22T22:04:11Z",
+          "comments": [
+            {
+              "originalPosition": 85,
+              "body": "@suhasHere, I have no idea how priority can meaningfully be an Object property? Priorities are implemented at the QUIC stream level, so how do two object in the same stream have different priority?",
+              "createdAt": "2024-08-22T22:04:11Z",
+              "updatedAt": "2024-08-22T22:04:11Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6GfAFb",
+          "commit": {
+            "abbreviatedOid": "88d079c"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-23T04:19:50Z",
+          "updatedAt": "2024-08-23T04:19:50Z",
+          "comments": [
+            {
+              "originalPosition": 85,
+              "body": "So a MOQ Application interfaces with moq object model and assigns priorities to the objects. The moq stack has a new object to send ( output of the priority decision algorithm), it looks at the object priority and does one of the following to match moq object priority to QUIC Stream.  \r\n   - create a new stream , set the priority of the stream to match the priority of the object or\r\n   - If there is already a stream created (as per first step) , pick that stream and send the object over that stream.\r\n   \r\nWhen relays receive the objects, the canonical object has priority saved as well. So relay for downstream can apply the similar logic.",
+              "createdAt": "2024-08-23T04:19:50Z",
+              "updatedAt": "2024-08-23T04:19:50Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6GjSz7",
+          "commit": {
+            "abbreviatedOid": "43653fd"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "Looks very good overall, some detailed suggestions.",
+          "createdAt": "2024-08-23T14:30:46Z",
+          "updatedAt": "2024-08-23T14:53:07Z",
+          "comments": [
+            {
+              "originalPosition": 7,
+              "body": "```suggestion\r\nA peep is a sequence of one or more objects from the same group\r\n({{model-group}}) in ascending order by Object ID. Objects in a peep\r\n```",
+              "createdAt": "2024-08-23T14:30:46Z",
+              "updatedAt": "2024-08-23T14:53:07Z"
+            },
+            {
+              "originalPosition": 10,
+              "body": "```suggestion\r\nthan one QUIC stream.\r\n```",
+              "createdAt": "2024-08-23T14:32:05Z",
+              "updatedAt": "2024-08-23T14:53:07Z"
+            },
+            {
+              "originalPosition": 14,
+              "body": "```suggestion\r\n\"Datagram\", Objects are not sent in Peeps, no Peep IDs are assigned, and the\r\ndescription in the remainder of this section does not apply.\r\n```",
+              "createdAt": "2024-08-23T14:32:57Z",
+              "updatedAt": "2024-08-23T14:53:07Z"
+            },
+            {
+              "originalPosition": 21,
+              "body": "What if an Object appears in multiple Peeps?  Should the session be closed with a protocol error or something similar if it's detected?",
+              "createdAt": "2024-08-23T14:35:16Z",
+              "updatedAt": "2024-08-23T14:53:07Z"
+            },
+            {
+              "originalPosition": 30,
+              "body": "Nit: usually I see examples B following A in examples?",
+              "createdAt": "2024-08-23T14:38:33Z",
+              "updatedAt": "2024-08-23T14:53:07Z"
+            },
+            {
+              "originalPosition": 40,
+              "body": "This last point about minimizing the number of streams/peeps used could be important.  I wonder if that deserves a RECOMMENDED or SHOULD because it minimizes resource usage and the possibility of running out of available streams.",
+              "createdAt": "2024-08-23T14:40:22Z",
+              "updatedAt": "2024-08-23T14:53:07Z"
+            },
+            {
+              "originalPosition": 49,
+              "body": "```suggestion\r\n```\r\n\r\nI'm inclined to remove this example entirely.",
+              "createdAt": "2024-08-23T14:40:55Z",
+              "updatedAt": "2024-08-23T14:53:07Z"
+            },
+            {
+              "originalPosition": 54,
+              "body": "```suggestion\r\nA group is a collection of objects and is a sub-unit of a track\r\n```\r\nI think it makes more sense to keep the existing definition here.",
+              "createdAt": "2024-08-23T14:43:36Z",
+              "updatedAt": "2024-08-23T14:53:08Z"
+            },
+            {
+              "originalPosition": 85,
+              "body": "For now, I think making Peep ID the tiebreaker is probably best, but it does feel very duplicative to the priority then.\r\n\r\nI also question whether a limit of 256 peeps in a Group is a problem?  I can't even think of a use case where one needs 8 peeps.",
+              "createdAt": "2024-08-23T14:49:20Z",
+              "updatedAt": "2024-08-23T14:53:08Z"
+            },
+            {
+              "originalPosition": 124,
+              "body": "Do we need this?  I'd be inclined not to add it until we have a use case.",
+              "createdAt": "2024-08-23T14:50:25Z",
+              "updatedAt": "2024-08-23T14:53:08Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6GkBjg",
+          "commit": {
+            "abbreviatedOid": "43653fd"
+          },
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-23T16:04:07Z",
+          "updatedAt": "2024-08-23T16:04:08Z",
+          "comments": [
+            {
+              "originalPosition": 21,
+              "body": "I think this is the same as any other object that appears twice on the wire with different properties. If the sequences match but the payloads are different, what do we do?",
+              "createdAt": "2024-08-23T16:04:08Z",
+              "updatedAt": "2024-08-23T16:04:08Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6GkCv3",
+          "commit": {
+            "abbreviatedOid": "43653fd"
+          },
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-23T16:07:10Z",
+          "updatedAt": "2024-08-23T16:07:10Z",
+          "comments": [
+            {
+              "originalPosition": 124,
+              "body": "There was a long discussion up-thread where Victor asked for this. As a relay, I don't know when to close the stream until I see this. The alternative is to leave all streams open until the Group is done, which I suppose would work?",
+              "createdAt": "2024-08-23T16:07:10Z",
+              "updatedAt": "2024-08-23T16:07:10Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6GkDg6",
+          "commit": {
+            "abbreviatedOid": "43653fd"
+          },
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-23T16:09:03Z",
+          "updatedAt": "2024-08-23T16:09:03Z",
+          "comments": [
+            {
+              "originalPosition": 40,
+              "body": "I would be fine with that, but (1) I got pretty firm \"no normative text\" feedback, and more importantly (2) in the absence of any other normative guidance, I don't know how to write this. If there are no guidelines whatsoever for peep assignment except \"minimize # of peeps\", that collapses pretty quickly to stream-per-group.",
+              "createdAt": "2024-08-23T16:09:03Z",
+              "updatedAt": "2024-08-23T16:09:03Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6GkPxY",
+          "commit": {
+            "abbreviatedOid": "11fd0f7"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-23T16:39:30Z",
+          "updatedAt": "2024-08-23T16:39:30Z",
+          "comments": [
+            {
+              "originalPosition": 21,
+              "body": "Fair, i was more thinking about the exact same Object being included in two different peeps.",
+              "createdAt": "2024-08-23T16:39:30Z",
+              "updatedAt": "2024-08-23T16:39:31Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6GkRat",
+          "commit": {
+            "abbreviatedOid": "11fd0f7"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-23T16:43:02Z",
+          "updatedAt": "2024-08-23T16:43:03Z",
+          "comments": [
+            {
+              "originalPosition": 40,
+              "body": "What you have now is fine as guidance, so given there was a lack of interest in normative text, let's keep it as is.",
+              "createdAt": "2024-08-23T16:43:03Z",
+              "updatedAt": "2024-08-23T16:43:03Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6GkR7_",
+          "commit": {
+            "abbreviatedOid": "11fd0f7"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-23T16:44:17Z",
+          "updatedAt": "2024-08-23T16:44:17Z",
+          "comments": [
+            {
+              "originalPosition": 124,
+              "body": "Interesting point.  I'm fine with adding it then.",
+              "createdAt": "2024-08-23T16:44:17Z",
+              "updatedAt": "2024-08-23T16:44:17Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6GkSGQ",
+          "commit": {
+            "abbreviatedOid": "aee179c"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2024-08-23T16:44:32Z",
+          "updatedAt": "2024-08-23T16:44:40Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6GkZFL",
+          "commit": {
+            "abbreviatedOid": "43653fd"
+          },
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-23T16:56:29Z",
+          "updatedAt": "2024-08-23T16:56:29Z",
+          "comments": [
+            {
+              "originalPosition": 21,
+              "body": "Every object has one peep ID on the wire. So if the same object is delivered twice with different Peep IDs, that's like any other case where the same objects arrives with different metadata or content.\r\n\r\nMaybe the interesting error case is a QUIC stream that carries multiple peeps.",
+              "createdAt": "2024-08-23T16:56:29Z",
+              "updatedAt": "2024-08-23T16:56:29Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6GkfXo",
+          "commit": {
+            "abbreviatedOid": "43653fd"
+          },
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-23T17:09:37Z",
+          "updatedAt": "2024-08-23T17:09:38Z",
+          "comments": [
+            {
+              "originalPosition": 21,
+              "body": "Correction: a QUIC stream can't carry multiple peeps because the Peep ID is only expressed once in the stream.",
+              "createdAt": "2024-08-23T17:09:37Z",
+              "updatedAt": "2024-08-23T17:09:38Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6Gkn-x",
+          "commit": {
+            "abbreviatedOid": "8680442"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-23T17:26:16Z",
+          "updatedAt": "2024-08-23T17:26:16Z",
+          "comments": [
+            {
+              "originalPosition": 67,
+              "body": "Individual Comment: \r\n\r\nWe had stream-per-object and object ID was the tie breaker.  To get the same functionality with stream-per-peep, you need peep ID as a tie breaker.  You might need > 256 peeps per group when you are using object-per-peep (eg: stream-per-object).",
+              "createdAt": "2024-08-23T17:26:16Z",
+              "updatedAt": "2024-08-23T17:26:16Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6Gk4hh",
+          "commit": {
+            "abbreviatedOid": "8680442"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2024-08-23T18:06:28Z",
+          "updatedAt": "2024-08-23T18:06:28Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6Gk6d_",
+          "commit": {
+            "abbreviatedOid": "8680442"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-23T18:11:32Z",
+          "updatedAt": "2024-08-23T18:11:32Z",
+          "comments": [
+            {
+              "originalPosition": 40,
+              "body": "```suggestion\r\npossible, choose the composition that results in the fewest Peeps in a group\r\nto minimize the number of QUIC streams used.\r\n```",
+              "createdAt": "2024-08-23T18:11:32Z",
+              "updatedAt": "2024-08-23T18:11:33Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6GmJUJ",
+          "commit": {
+            "abbreviatedOid": "3389415"
+          },
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "CHANGES_REQUESTED",
+          "body": "Conceptually agree with the big picture here but bunch of details I think need to be sorted out before we merge. ",
+          "createdAt": "2024-08-23T21:43:38Z",
+          "updatedAt": "2024-08-23T22:03:20Z",
+          "comments": [
+            {
+              "originalPosition": 4,
+              "body": "We need a name that is more descriptive that Peeps. I know why we were using it as a place holder name, but I think we are not at the point that we need a name that help readers understand the what this does. ",
+              "createdAt": "2024-08-23T21:43:38Z",
+              "updatedAt": "2024-08-23T22:03:20Z"
+            },
+            {
+              "originalPosition": 21,
+              "body": "my 2 cents is that this would all be easier to describe if instead of trying to make a peep a think, we said every object has peep-id and then that indicates how the the owe decide which quic stream an object is sent on.  ",
+              "createdAt": "2024-08-23T21:46:12Z",
+              "updatedAt": "2024-08-23T22:03:20Z"
+            },
+            {
+              "originalPosition": 52,
+              "body": "This seems wrong. Priority is a property of the object. It used by MoQ to decide what object to send next and can be mapped down to the QUIC stream.  We should jut say all the objects in the same group with the same peep-id MUST have the same publisher priority. ",
+              "createdAt": "2024-08-23T21:55:12Z",
+              "updatedAt": "2024-08-23T22:03:20Z"
+            },
+            {
+              "originalPosition": 66,
+              "body": "As an application developer, I think I want the opposite of this. If I want different priorities, I will set the priority. But if I want to fair share across two peeps I would set the priorities to be the same. If we peep-ID also influences the priority, there is no way to do this because the peed-id can not be the same.  My suggestion would be to remove this stuff about peep-id changing any priorities. ",
+              "createdAt": "2024-08-23T21:58:14Z",
+              "updatedAt": "2024-08-23T22:03:20Z"
+            },
+            {
+              "originalPosition": 114,
+              "body": "I think how we indicate end of group /  end of peep deservers it own discussion and PR. I think I like this but see it as separable issue. ",
+              "createdAt": "2024-08-23T22:00:13Z",
+              "updatedAt": "2024-08-23T22:03:20Z"
+            },
+            {
+              "originalPosition": 199,
+              "body": "I think we should add a note here that there could be other streams with older objects. This is going to happen in reconnect corner cases. ",
+              "createdAt": "2024-08-23T22:01:49Z",
+              "updatedAt": "2024-08-23T22:03:20Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6GmPPv",
+          "commit": {
+            "abbreviatedOid": "3389415"
+          },
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-23T22:09:22Z",
+          "updatedAt": "2024-08-23T22:09:23Z",
+          "comments": [
+            {
+              "originalPosition": 114,
+              "body": "do you want me to revert this change?",
+              "createdAt": "2024-08-23T22:09:22Z",
+              "updatedAt": "2024-08-23T22:09:23Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6GmP3F",
+          "commit": {
+            "abbreviatedOid": "3389415"
+          },
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-23T22:12:33Z",
+          "updatedAt": "2024-08-23T22:12:33Z",
+          "comments": [
+            {
+              "originalPosition": 4,
+              "body": "I am happy to change it once someone identifies a consensus, but don't want to hold it up over a bikeshed",
+              "createdAt": "2024-08-23T22:12:33Z",
+              "updatedAt": "2024-08-23T22:12:33Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6GmQGz",
+          "commit": {
+            "abbreviatedOid": "3389415"
+          },
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-23T22:14:07Z",
+          "updatedAt": "2024-08-23T22:14:07Z",
+          "comments": [
+            {
+              "originalPosition": 52,
+              "body": "this seems like semantics? the wire image only allows you to send one priority per peep, so whatever metaphysical priority the application assigns to objects has no discernible effect inside MoQT.",
+              "createdAt": "2024-08-23T22:14:07Z",
+              "updatedAt": "2024-08-23T22:14:07Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6GmQxe",
+          "commit": {
+            "abbreviatedOid": "3389415"
+          },
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-23T22:18:35Z",
+          "updatedAt": "2024-08-23T22:18:35Z",
+          "comments": [
+            {
+              "originalPosition": 114,
+              "body": "FYI there was a discussion on this point up thread.",
+              "createdAt": "2024-08-23T22:18:35Z",
+              "updatedAt": "2024-08-23T22:18:36Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6GmPnv",
+          "commit": {
+            "abbreviatedOid": "3389415"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "Individual Comments",
+          "createdAt": "2024-08-23T22:11:14Z",
+          "updatedAt": "2024-08-23T22:31:45Z",
+          "comments": [
+            {
+              "originalPosition": 4,
+              "body": "> we are not at the point\r\n\r\nI assume you meant to say \"we *are* at the point\"?",
+              "createdAt": "2024-08-23T22:11:14Z",
+              "updatedAt": "2024-08-23T22:31:45Z"
+            },
+            {
+              "originalPosition": 52,
+              "body": "> We should jut say all the objects in the same group with the same peep-id MUST have the same publisher priority.\r\n\r\nThis is necessarily true from our wire encoding, which I think everyone is happy with, so we're only talking about how best to convey the concepts.",
+              "createdAt": "2024-08-23T22:15:15Z",
+              "updatedAt": "2024-08-23T22:31:45Z"
+            },
+            {
+              "originalPosition": 66,
+              "body": "This is preserving what is in the current draft for stream-per-object - there was never a way to fair share objects in this mode, because Object ID was the tiebreaker.  \r\n\r\nAdding Peeps opens the question of if we want to be able to fair share peeps.  In the interim I argued for a use case, but after consulting with the originators of said use case, I decided that a strict ordering is probably what they want.  I propose we advance this PR keeping as close to the existing behavior (Peep ID tiebreakers), and revisit fair-sharing them separately.",
+              "createdAt": "2024-08-23T22:22:30Z",
+              "updatedAt": "2024-08-23T22:31:45Z"
+            },
+            {
+              "originalPosition": 114,
+              "body": "Reverting this change will break my relay, so I don't want you to revert it.  However, I'm ok with switching it to \"PeepContinues\" and if a Peep ends without it, the stream FIN indicates end-of-peep.",
+              "createdAt": "2024-08-23T22:23:00Z",
+              "updatedAt": "2024-08-23T22:31:45Z"
+            },
+            {
+              "originalPosition": 199,
+              "body": "Let's add that in the batch of PRs that deal with reconnect, etc.",
+              "createdAt": "2024-08-23T22:26:21Z",
+              "updatedAt": "2024-08-23T22:31:45Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6GmWHP",
+          "commit": {
+            "abbreviatedOid": "3389415"
+          },
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-23T22:57:19Z",
+          "updatedAt": "2024-08-23T22:57:19Z",
+          "comments": [
+            {
+              "originalPosition": 4,
+              "body": "oops yes - sorry - i did mean we are at the point we should pick a good name. ",
+              "createdAt": "2024-08-23T22:57:19Z",
+              "updatedAt": "2024-08-23T22:57:19Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6GmXcS",
+          "commit": {
+            "abbreviatedOid": "3389415"
+          },
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-23T23:08:18Z",
+          "updatedAt": "2024-08-23T23:08:18Z",
+          "comments": [
+            {
+              "originalPosition": 52,
+              "body": "Martin, I think you are missing the key point of what a moq priority is. Imagine QUIC had no priorities at all and at the QUIC layer things acted in the way QUIC would if the priorities were all set to the same thing.  In this case, MoQ priorities are still super useful and help the application decide which object gets sent next to the QUIC stack. And for implementations that don't send stuff to the QUIC stack until the congestion window opens up for the stream, this allows them moq level to get a wide range of priorities behavior to happen. The reason real time stuff is implemented this way is because once you put something on the QUIC stack, a huge limitation of QUIC APIs is there is no way to remove it, so if it expires before it is sent, you use up the bandwidth anyways. \r\n\r\nSo what I am trying to say is priorities in MoQ are much more than just telling the quic stream what priority to use. They change the oder of what gets put into the quic stack. ",
+              "createdAt": "2024-08-23T23:08:18Z",
+              "updatedAt": "2024-08-23T23:08:18Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6Gmhh8",
+          "commit": {
+            "abbreviatedOid": "3389415"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-23T23:32:53Z",
+          "updatedAt": "2024-08-23T23:32:53Z",
+          "comments": [
+            {
+              "originalPosition": 21,
+              "body": "From an Object model perspective, I think that's a good direction, @fluffy \r\n\r\nThe wire format as proposed allows one to violate that Object model, which is where I was going with my normative suggestion.  It also allows Object ID to decrease, which we might want to fix in a follow-up PR.",
+              "createdAt": "2024-08-23T23:32:53Z",
+              "updatedAt": "2024-08-23T23:32:53Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6Gmui1",
+          "commit": {
+            "abbreviatedOid": "3389415"
+          },
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-24T02:50:36Z",
+          "updatedAt": "2024-08-24T02:50:36Z",
+          "comments": [
+            {
+              "originalPosition": 199,
+              "body": "Fair enough - that makes sense to deal with it then ",
+              "createdAt": "2024-08-24T02:50:36Z",
+              "updatedAt": "2024-08-24T02:50:36Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6Gmu3b",
+          "commit": {
+            "abbreviatedOid": "3389415"
+          },
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-24T02:58:27Z",
+          "updatedAt": "2024-08-24T02:58:27Z",
+          "comments": [
+            {
+              "originalPosition": 4,
+              "body": "What would you think of instead of PeepID, calling it StreamAlias. Define it as things with different StreamAlias MUST NOT be on the same QUIC stream and things with the same StreamAlias inside the same group SHOULD be on the same QUIC stream. \r\n\r\nI'm not sure I love this name but I'm just trying to provide some sort of constructive suggestions. \r\n\r\n",
+              "createdAt": "2024-08-24T02:58:27Z",
+              "updatedAt": "2024-08-24T02:58:27Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6GmvF8",
+          "commit": {
+            "abbreviatedOid": "3389415"
+          },
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-24T03:04:08Z",
+          "updatedAt": "2024-08-24T03:04:08Z",
+          "comments": [
+            {
+              "originalPosition": 66,
+              "body": "this seems just less flexible than the alternative I can't see why we would do that",
+              "createdAt": "2024-08-24T03:04:08Z",
+              "updatedAt": "2024-08-24T03:04:08Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6GmvVd",
+          "commit": {
+            "abbreviatedOid": "3389415"
+          },
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-24T03:06:27Z",
+          "updatedAt": "2024-08-24T03:06:27Z",
+          "comments": [
+            {
+              "originalPosition": 114,
+              "body": "oh, it was marked resolved so I missed it. I will go comment on it ",
+              "createdAt": "2024-08-24T03:06:27Z",
+              "updatedAt": "2024-08-24T03:06:27Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6GmxdG",
+          "commit": {
+            "abbreviatedOid": "43653fd"
+          },
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-24T03:14:57Z",
+          "updatedAt": "2024-08-24T03:14:58Z",
+          "comments": [
+            {
+              "originalPosition": 124,
+              "body": "So this is basically the tombstone approach and I am a fan of that. However, I think we need to do this the same way end a group and end a track and this. Given we took the \"last flag\" approach to end of group and end track. I think we should stay consistent here and do this the same way. \r\n\r\nSo my proposal is basically we put an \"End of Peep\" marker in the Object Status. I would restructure the Object Status to have bit 0 indicate End of Peep, bit 1 indicate End of Group, bit 2 indicate End of Track.  While we are at it, having a non optional Object Status in every Object would probably use less bandwidth than making it optional. \r\n\r\nThoughts on this approach ? ",
+              "createdAt": "2024-08-24T03:14:57Z",
+              "updatedAt": "2024-08-24T03:14:58Z"
+            }
+          ]
         }
       ]
     },
@@ -64924,19 +65690,33 @@
       ],
       "body": "Alan's suggestion",
       "createdAt": "2024-07-31T14:54:08Z",
-      "updatedAt": "2024-08-21T16:49:41Z",
+      "updatedAt": "2024-08-23T22:53:58Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
-      "baseRefOid": "e336866faa3b8af70890f49685706318b7e5af9a",
+      "baseRefOid": "636b5dc056cbd6d3b7df6bffcabb7aa336ecda7f",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "ianswett-no-explicit-signal",
-      "headRefOid": "d3541e12c29da4b2025132175497e7467b021106",
+      "headRefOid": "a3c53bfc85bceae9ff6c29265eb7e970f9c7f621",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
       "mergeCommit": null,
       "comments": [],
-      "reviews": []
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M6GmVrx",
+          "commit": {
+            "abbreviatedOid": "a3c53bf"
+          },
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2024-08-23T22:53:58Z",
+          "updatedAt": "2024-08-23T22:53:58Z",
+          "comments": []
+        }
+      ]
     },
     {
       "number": 497,
@@ -65025,13 +65805,13 @@
       "labels": [],
       "body": "This message suite allows subscribers to express interest in ANNOUNCE/UNANNOUNCE for set of namespaces that match a prefix.  To accomplish safe prefix matching, Track Namesapce is redefined from a single byte array to a N-Tuple of byte arrays.\r\n\r\nFixes: #484",
       "createdAt": "2024-08-05T21:31:01Z",
-      "updatedAt": "2024-08-21T16:51:20Z",
+      "updatedAt": "2024-08-24T03:44:38Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "e336866faa3b8af70890f49685706318b7e5af9a",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "subscribe-namespace",
-      "headRefOid": "e2c12d3afeb6c1b47a11633b9992b060a76677cf",
+      "headRefOid": "e71ba85d32c24a31ed738c3fde75d5bb4dc0fde9",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -65050,6 +65830,34 @@
           "body": "This is a good start. I am sure we will fix aspects of it as we explore futher, but overall LGTM",
           "createdAt": "2024-08-07T21:23:48Z",
           "updatedAt": "2024-08-07T21:23:48Z"
+        },
+        {
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "It would be good to also bring in the changes proposed in #508 \r\n",
+          "createdAt": "2024-08-23T22:48:05Z",
+          "updatedAt": "2024-08-23T22:48:05Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> It would be good to also bring in the changes proposed in #508\r\n\r\nI will try to take a stab at that but I'm worried the scope is going to blow up this PR, and we'd do better to handle that in a follow up.  I mentioned this briefly in the interim, but this PR adds significant functionality that is currently not possible so I am biased towards an iterative approach.",
+          "createdAt": "2024-08-23T23:14:54Z",
+          "updatedAt": "2024-08-23T23:14:54Z"
+        },
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "To be clear, I'm happy to land this and then evaluate other improvements like #508 subsequently.",
+          "createdAt": "2024-08-23T23:24:44Z",
+          "updatedAt": "2024-08-23T23:24:44Z"
+        },
+        {
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "body": "just 2 cents, #508  addresses important design aspects which i feel would be good to consider bringing in this PR as it applies not just to announces but subscribes in general. It would be good to evaulate this PR in the context of #508 ",
+          "createdAt": "2024-08-24T03:44:37Z",
+          "updatedAt": "2024-08-24T03:44:37Z"
         }
       ],
       "reviews": [
@@ -65394,6 +66202,170 @@
           "createdAt": "2024-08-10T14:45:53Z",
           "updatedAt": "2024-08-21T16:51:20Z",
           "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6Gjo8M",
+          "commit": {
+            "abbreviatedOid": "e2c12d3"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "Some comments, but overall LGTM",
+          "createdAt": "2024-08-23T15:12:58Z",
+          "updatedAt": "2024-08-23T15:21:50Z",
+          "comments": [
+            {
+              "originalPosition": 6,
+              "body": "```suggestion\r\n: Indicates that x is a tuple, consisting of a variable length integer encoded as\r\n```",
+              "createdAt": "2024-08-23T15:12:59Z",
+              "updatedAt": "2024-08-23T15:21:50Z"
+            },
+            {
+              "originalPosition": 132,
+              "body": "If I do SUBSCRIBE_NAMESPACE to \"foo\" and \"foo/bar\", do I get announces for \"foo/bar\" once or twice?",
+              "createdAt": "2024-08-23T15:20:41Z",
+              "updatedAt": "2024-08-23T15:21:50Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6Gj8Vc",
+          "commit": {
+            "abbreviatedOid": "e2c12d3"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-23T15:52:11Z",
+          "updatedAt": "2024-08-23T15:52:11Z",
+          "comments": [
+            {
+              "originalPosition": 127,
+              "body": "Are there use cases where you'd only want new ANNOUNCEs and not old ones?  ie: Disconnect and reconnect?\r\n\r\nWe could make ANNOUNCE a special type of Object that relays understand, and then if you subscribe to a prefix of a track, you get a subscription to all ANNOUNCEs for that namespace.\r\n\r\nThen the only real mechanism one has is subscriptions, which is sort of nice.  And you could ask for only new announces if you wanted, or to resume updates from some point?\r\n\r\nI guess the negative here is you'd want a way to not retrieve any announces that were obsolete?  But since we can just drop Objects from the past for whatever reason we want, we could omit anything that was no longer active.",
+              "createdAt": "2024-08-23T15:52:11Z",
+              "updatedAt": "2024-08-23T16:01:18Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6Gj9uC",
+          "commit": {
+            "abbreviatedOid": "e2c12d3"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-23T15:55:01Z",
+          "updatedAt": "2024-08-23T15:55:02Z",
+          "comments": [
+            {
+              "originalPosition": 132,
+              "body": "Also, if I could associate an ANNOUNCE with a SUBSCRIBE_NAMESPACE, I could omit the prefix portion, which might save quite a few bytes on the wire.",
+              "createdAt": "2024-08-23T15:55:02Z",
+              "updatedAt": "2024-08-23T15:55:02Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6Gl_3U",
+          "commit": {
+            "abbreviatedOid": "e2c12d3"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-23T21:09:10Z",
+          "updatedAt": "2024-08-23T21:15:25Z",
+          "comments": [
+            {
+              "originalPosition": 127,
+              "body": "CC: @kixelated who had a similar idea -- there's a special track that contains the ANNOUNCE messages as objects.\r\n\r\nYou could sort of mitigate the negative by marking cancelled announce objects as \"Not Exists\".  \r\n\r\nYou'd need to have a reserved name for such a track, which is kind of strange.  Should we pivot to that direction or folks like it as is?",
+              "createdAt": "2024-08-23T21:09:10Z",
+              "updatedAt": "2024-08-23T21:15:25Z"
+            },
+            {
+              "originalPosition": 132,
+              "body": "> If I do SUBSCRIBE_NAMESPACE to \"foo\" and \"foo/bar\", do I get announces for \"foo/bar\" once or twice?\r\n\r\nI think twice?  Maybe we should disallow overlapping SUBSCRIBE_NAMESPACE for this reason?  We can say that if you receive a SUBSCRIBE_NAMESPACE for (foo) when you already had (foo, bar), you cancel the (foo, bar) one.",
+              "createdAt": "2024-08-23T21:11:32Z",
+              "updatedAt": "2024-08-23T21:15:25Z"
+            },
+            {
+              "originalPosition": 132,
+              "body": "> Also, if I could associate an ANNOUNCE with a SUBSCRIBE_NAMESPACE, I could omit the prefix portion, which might save quite a few bytes on the wire.\r\n\r\nThat would have to be optional because the protocol allows for blind ANNOUNCE messages.  But I agree it's a nice optimization, and would allow for de-duplicating if we allowed overlapping SUBSCRIBE_NAMESPACE prefixes.",
+              "createdAt": "2024-08-23T21:13:31Z",
+              "updatedAt": "2024-08-23T21:15:25Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6GmPLB",
+          "commit": {
+            "abbreviatedOid": "e71ba85"
+          },
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "Like the direction of this and it makes a bunch of things much easier to do. ",
+          "createdAt": "2024-08-23T22:08:56Z",
+          "updatedAt": "2024-08-23T22:47:14Z",
+          "comments": [
+            {
+              "originalPosition": 8,
+              "body": "Tiny nit but I don't love this syntax for this. It would be hard for someone reading this out of the blue to figure this out. But agree with the encoding , just wish there was less confusing syntax to do this.",
+              "createdAt": "2024-08-23T22:08:56Z",
+              "updatedAt": "2024-08-23T22:47:14Z"
+            },
+            {
+              "originalPosition": 74,
+              "body": "I think we should go with if you have token for a more general space, it covers all the more specific spaces. Anything else just get too slow to do all the ACL checks.  So if you have a token for a/b/* is covers a/b/c \r\n",
+              "createdAt": "2024-08-23T22:41:46Z",
+              "updatedAt": "2024-08-23T22:47:14Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6GmX_Y",
+          "commit": {
+            "abbreviatedOid": "e71ba85"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-23T23:12:25Z",
+          "updatedAt": "2024-08-23T23:12:46Z",
+          "comments": [
+            {
+              "originalPosition": 74,
+              "body": "Are we ok for now but just including an AUTH blob in the request and punting the details?  Or do we need something specific here?",
+              "createdAt": "2024-08-23T23:12:25Z",
+              "updatedAt": "2024-08-23T23:12:46Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6GmedI",
+          "commit": {
+            "abbreviatedOid": "e2c12d3"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-23T23:27:06Z",
+          "updatedAt": "2024-08-23T23:27:06Z",
+          "comments": [
+            {
+              "originalPosition": 132,
+              "body": "This is honestly one of the things I never understood about ANNOUNCE.  When and how does one decide to send you a blind ANNOUNCE message?  If you want all the ANNOUNCE messages you could now use SUBSCRIBE_NAMESPACE with no prefix, correct?",
+              "createdAt": "2024-08-23T23:27:06Z",
+              "updatedAt": "2024-08-23T23:27:06Z"
+            }
+          ]
         }
       ]
     },
@@ -65522,13 +66494,13 @@
       "labels": [],
       "body": "This PR adds an extensible header to Objects, as well as updating the SETUP parameters to allow negotiation of required extension header parameters. Extensible headers have types which are IANA registered. A new Extensible header is defined and reserved with type 0x0, allowing name/value data to be passed in a manner compatible with HTTP headers.  A new example is added showing serialization of an Object with an extensible header. \r\n\r\nFixes: #433 ",
       "createdAt": "2024-08-06T13:38:35Z",
-      "updatedAt": "2024-08-08T08:55:49Z",
+      "updatedAt": "2024-08-23T21:29:10Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
-      "baseRefOid": "bac470e2aa4bf90e7ff57da29b5ba34e5dd47642",
+      "baseRefOid": "636b5dc056cbd6d3b7df6bffcabb7aa336ecda7f",
       "headRepository": "wilaw/moq-transport",
       "headRefName": "patch-1",
-      "headRefOid": "8ccf41ca51eb38a7d34ae8e8d4169cb0ebd93e65",
+      "headRefOid": "358c5d75d93b28c63a955fc2eda17bfdcb839e5e",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -65869,9 +66841,9 @@
           "comments": [
             {
               "originalPosition": 49,
-              "body": "If a relay supports an extension, it can parse it.  We know that from setup message that if a relay supports an extension or not, isn't it.\r\n\r\n",
+              "body": "If a relay supports an extension and needs it for some thing, it can parse it. If not, it forwards it as-is. ",
               "createdAt": "2024-08-07T21:30:05Z",
-              "updatedAt": "2024-08-07T21:30:06Z"
+              "updatedAt": "2024-08-23T21:11:39Z"
             }
           ]
         },
@@ -65912,6 +66884,144 @@
               "body": "@mengelbart  - good point. We either \r\n1. redefine section 6.1 to indicate that no duplicate parameters are allowed except for Required-Extension, which may be duplicated. \r\n2. Or we change the serialization of the VALUE of the REQUIRED-EXTENSION parameter. Since each extension type is a varint, and the length of the parameter is specified, the parser can just keep reading varints until it reaches the length. In this way, multiple extension types can be communicated in a single REQUIRED-EXTENSION parameter and we can retain the existing requirement that parameters MUST NOT be duplicated. \r\n\r\nPreference?",
               "createdAt": "2024-08-08T08:55:49Z",
               "updatedAt": "2024-08-08T08:55:49Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6GY_Ba",
+          "commit": {
+            "abbreviatedOid": "8ccf41c"
+          },
+          "author": "wilaw",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-22T14:29:07Z",
+          "updatedAt": "2024-08-22T14:29:07Z",
+          "comments": [
+            {
+              "originalPosition": 22,
+              "body": "I have updated the coanonical fields definitions to inlcude both fields, as shown below. \r\n\r\n> * Object Extension Count: The number of Object Extensions present. A value of 0\r\n>   indicates that no Object Extension Headers are present.\r\n>   \r\n> * Object Extensions : an optional concatenation of Object Extension Headers. See\r\n>   {{object-extensions}} below.",
+              "createdAt": "2024-08-22T14:29:07Z",
+              "updatedAt": "2024-08-22T14:29:07Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6GZD3C",
+          "commit": {
+            "abbreviatedOid": "8ccf41c"
+          },
+          "author": "wilaw",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-22T14:36:16Z",
+          "updatedAt": "2024-08-22T14:36:16Z",
+          "comments": [
+            {
+              "originalPosition": 35,
+              "body": "Given that we have no means, as Alan has pointed out, of propagating header requirements beyond the immediate hop, it means that if any relay wants to use the extension header then all relays must forward them and not modify them. I have therefore modified  the language to read that \r\n\r\n> Extension headers MUST be forwarded and MUST NOT be modified by relays.\r\n",
+              "createdAt": "2024-08-22T14:36:16Z",
+              "updatedAt": "2024-08-22T14:36:16Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6GZFmc",
+          "commit": {
+            "abbreviatedOid": "8ccf41c"
+          },
+          "author": "wilaw",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-22T14:38:28Z",
+          "updatedAt": "2024-08-22T14:38:29Z",
+          "comments": [
+            {
+              "originalPosition": 9,
+              "body": "I went with option 2. Now there is only a single Required Extension parameter key. It's value can hold a concatenation of multiple Extension Header numerical types",
+              "createdAt": "2024-08-22T14:38:28Z",
+              "updatedAt": "2024-08-22T14:38:29Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6GjxB8",
+          "commit": {
+            "abbreviatedOid": "8b5c167"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "One comment about the negotiation approach, and I also am unsure of how to best use this, given it's negotiated hop-by-hop.",
+          "createdAt": "2024-08-23T15:27:28Z",
+          "updatedAt": "2024-08-23T15:31:17Z",
+          "comments": [
+            {
+              "originalPosition": 6,
+              "body": "This is a potentially painful way to negotiate extensions.  What about making it REQUESTED-EXTENSION and then the server responds with the ones it supports of the requested set?  At that point, if the client wants to close the connection because the server doesn't support a required extension, then it can.",
+              "createdAt": "2024-08-23T15:27:28Z",
+              "updatedAt": "2024-08-23T15:31:18Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6GmAhe",
+          "commit": {
+            "abbreviatedOid": "358c5d7"
+          },
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "CHANGES_REQUESTED",
+          "body": "I basically like this but I think some parts that need some discution and some parts I think would be better as separate draft. ",
+          "createdAt": "2024-08-23T21:11:17Z",
+          "updatedAt": "2024-08-23T21:21:54Z",
+          "comments": [
+            {
+              "originalPosition": 4,
+              "body": "I don't think it makes sense to negotiate object extensions with the relay. This would be like negotiating HTTP header extensions with a socks proxy. Other types of extensions we need too negotiate with server but not these.   I think we can just remove this part of the PR. ",
+              "createdAt": "2024-08-23T21:11:17Z",
+              "updatedAt": "2024-08-23T21:21:54Z"
+            },
+            {
+              "originalPosition": 23,
+              "body": "I'd like to talk about ideas to bit pack the extension indictors to save space but conceptually good with this. ",
+              "createdAt": "2024-08-23T21:15:07Z",
+              "updatedAt": "2024-08-23T21:21:54Z"
+            },
+            {
+              "originalPosition": 54,
+              "body": "I think we need to make sure that small numbers are reserved for thing where space is issue, medium size numbers are for things that are standards, and large numbers are totally first come first serve and super easy to get and use any way you want. ",
+              "createdAt": "2024-08-23T21:17:27Z",
+              "updatedAt": "2024-08-23T21:21:54Z"
+            },
+            {
+              "originalPosition": 58,
+              "body": "I think this whole extension should be moved to a separate draft that helps illustrate how to define an extension and show that we got things defined in a way where a separate draft can define an extension. \r\n\r\nI'm not a huge fan of it, I would rather that it was easy to get a number code point for \"fluffy-idea-of-perfectp-trace-id\" rather than put strings in the protocol that would better in an IANA table but I agree with a low friction way of getting customer extensions. ",
+              "createdAt": "2024-08-23T21:21:00Z",
+              "updatedAt": "2024-08-23T21:21:54Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6GmFtm",
+          "commit": {
+            "abbreviatedOid": "358c5d7"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-23T21:29:09Z",
+          "updatedAt": "2024-08-23T21:29:10Z",
+          "comments": [
+            {
+              "originalPosition": 10,
+              "body": "I don't think closing the connection is right here. If a relay don't need to understand the extension, it just forwards it .",
+              "createdAt": "2024-08-23T21:29:10Z",
+              "updatedAt": "2024-08-23T21:29:10Z"
             }
           ]
         }
@@ -66117,24 +67227,26 @@
       "id": "PR_kwDOG2Ho4M54v00T",
       "title": "Removing TODO around MOQ Streaming Format registration",
       "url": "https://github.com/moq-wg/moq-transport/pull/507",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "wilaw",
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
       "labels": [],
       "body": "Fixes #506 ",
       "createdAt": "2024-08-19T14:56:53Z",
-      "updatedAt": "2024-08-20T00:42:17Z",
+      "updatedAt": "2024-08-23T15:09:54Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "e336866faa3b8af70890f49685706318b7e5af9a",
       "headRepository": "wilaw/moq-transport",
       "headRefName": "patch-2",
       "headRefOid": "1027e65e229db555696647b74d56a9a9880caed5",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "closedAt": "2024-08-23T15:09:54Z",
+      "mergedAt": "2024-08-23T15:09:54Z",
+      "mergedBy": "ianswett",
+      "mergeCommit": {
+        "oid": "636b5dc056cbd6d3b7df6bffcabb7aa336ecda7f"
+      },
       "comments": [],
       "reviews": [
         {
@@ -66161,6 +67273,19 @@
           "body": "",
           "createdAt": "2024-08-20T00:42:17Z",
           "updatedAt": "2024-08-20T00:42:17Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6GjnWn",
+          "commit": {
+            "abbreviatedOid": "1027e65"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2024-08-23T15:09:47Z",
+          "updatedAt": "2024-08-23T15:09:47Z",
           "comments": []
         }
       ]
