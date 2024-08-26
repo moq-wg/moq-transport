@@ -1528,14 +1528,11 @@ are beyond the end of a group or track.
          does not exist at any publisher and it will not be published in
          the future. This SHOULD be cached.
 
-* 0x2 := Indicates Group does not exist. Indicates that objects with
-         this GroupID do not exist at any publisher and they will not be
-         published in the future. This SHOULD be cached.
-
 * 0x3 := Indicates end of Group. ObjectId is one greater that the
          largest object produced in the group identified by the
          GroupID. This is sent right after the last object in the
-         group. This SHOULD be cached.
+         group. If the ObjectID is 0, it indicates there are no Objects
+         in this Group. This SHOULD be cached.
 
 * 0x4 := Indicates end of Track and Group. GroupID is one greater than
          the largest group produced in this track and the ObjectId is
