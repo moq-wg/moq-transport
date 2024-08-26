@@ -1037,7 +1037,7 @@ svg :is([fill="white"], [fill^="#fff"]) {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Curley, et al.</td>
-<td class="center">Expires 24 February 2025</td>
+<td class="center">Expires 27 February 2025</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1050,12 +1050,12 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dd class="internet-draft">draft-ietf-moq-transport-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2024-08-23" class="published">23 August 2024</time>
+<time datetime="2024-08-26" class="published">26 August 2024</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2025-02-24">24 February 2025</time></dd>
+<dd class="expires"><time datetime="2025-02-27">27 February 2025</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1127,7 +1127,7 @@ networks and is designed for high scale and low latency distribution.<a href="#s
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 24 February 2025.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 27 February 2025.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1780,7 +1780,7 @@ specific to the underlying transport protocol usage <a href="#session" class="au
 <p id="section-3.1-1">This document defines a protocol that can be used interchangeably both
 over a QUIC connection directly <span>[<a href="#QUIC" class="cite xref">QUIC</a>]</span>, and over WebTransport
 <span>[<a href="#WebTransport" class="cite xref">WebTransport</a>]</span>.  Both provide streams and datagrams with similar
-semantics (see <span>[<a href="#I-D.ietf-webtrans-overview" class="cite xref">I-D.ietf-webtrans-overview</a>], <a href="https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-overview-07#section-4" class="relref">Section 4</a></span>); thus, the
+semantics (see <span>[<a href="#I-D.ietf-webtrans-overview" class="cite xref">I-D.ietf-webtrans-overview</a>], <a href="https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-overview-08#section-4" class="relref">Section 4</a></span>); thus, the
 main difference lies in how the servers are identified and how the
 connection is established.  When using QUIC, datagrams <span class="bcp14">MUST</span> be
 supported via the [QUIC-DATAGRAM] extension, which is already a
@@ -1796,7 +1796,7 @@ another protocol when QUIC or WebTransport aren't available.<a href="#section-3.
 <p id="section-3.1.1-1">A MOQT server that is accessible via WebTransport can be identified
 using an HTTPS URI (<span>[<a href="#RFC9110" class="cite xref">RFC9110</a>], <a href="https://rfc-editor.org/rfc/rfc9110#section-4.2.2" class="relref">Section 4.2.2</a></span>).  A MOQT session can be
 established by sending an extended CONNECT request to the host and the
-path indicated by the URI, as described in <span>[<a href="#WebTransport" class="cite xref">WebTransport</a>], <a href="https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-http3-09#section-3" class="relref">Section 3</a></span>.<a href="#section-3.1.1-1" class="pilcrow">¶</a></p>
+path indicated by the URI, as described in <span>[<a href="#WebTransport" class="cite xref">WebTransport</a>], <a href="https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-http3-10#section-3" class="relref">Section 3</a></span>.<a href="#section-3.1.1-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="quic">
@@ -1893,7 +1893,7 @@ effect on outstanding subscriptions.<a href="#section-3.4-1" class="pilcrow">¶<
 <p id="section-3.5-1">The transport session can be terminated at any point.  When native QUIC
 is used, the session is closed using the CONNECTION_CLOSE frame
 (<span>[<a href="#QUIC" class="cite xref">QUIC</a>], <a href="https://rfc-editor.org/rfc/rfc9000#section-19.19" class="relref">Section 19.19</a></span>).  When WebTransport is used, the session is
-closed using the CLOSE_WEBTRANSPORT_SESSION capsule (<span>[<a href="#WebTransport" class="cite xref">WebTransport</a>], <a href="https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-http3-09#section-5" class="relref">Section 5</a></span>).<a href="#section-3.5-1" class="pilcrow">¶</a></p>
+closed using the CLOSE_WEBTRANSPORT_SESSION capsule (<span>[<a href="#WebTransport" class="cite xref">WebTransport</a>], <a href="https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-http3-10#section-5" class="relref">Section 5</a></span>).<a href="#section-3.5-1" class="pilcrow">¶</a></p>
 <p id="section-3.5-2">The application <span class="bcp14">MAY</span> use any error message and <span class="bcp14">SHOULD</span> use a relevant
 code, as defined below:<a href="#section-3.5-2" class="pilcrow">¶</a></p>
 <table class="center" id="table-1">
@@ -3314,22 +3314,18 @@ are beyond the end of a group or track.<a href="#section-7.1.1.1-1" class="pilcr
        the future. This <span class="bcp14">SHOULD</span> be cached.<a href="#section-7.1.1.1-3.2.1" class="pilcrow">¶</a></p>
 </li>
               <li class="normal" id="section-7.1.1.1-3.3">
-                <p id="section-7.1.1.1-3.3.1">0x2 := Indicates Group does not exist. Indicates that objects with
-       this GroupID do not exist at any publisher and they will not be
-       published in the future. This <span class="bcp14">SHOULD</span> be cached.<a href="#section-7.1.1.1-3.3.1" class="pilcrow">¶</a></p>
-</li>
-              <li class="normal" id="section-7.1.1.1-3.4">
-                <p id="section-7.1.1.1-3.4.1">0x3 := Indicates end of Group. ObjectId is one greater that the
+                <p id="section-7.1.1.1-3.3.1">0x3 := Indicates end of Group. ObjectId is one greater that the
        largest object produced in the group identified by the
        GroupID. This is sent right after the last object in the
-       group. This <span class="bcp14">SHOULD</span> be cached.<a href="#section-7.1.1.1-3.4.1" class="pilcrow">¶</a></p>
+       group. If the ObjectID is 0, it indicates there are no Objects
+       in this Group. This <span class="bcp14">SHOULD</span> be cached.<a href="#section-7.1.1.1-3.3.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-7.1.1.1-3.5">
-                <p id="section-7.1.1.1-3.5.1">0x4 := Indicates end of Track and Group. GroupID is one greater than
+              <li class="normal" id="section-7.1.1.1-3.4">
+                <p id="section-7.1.1.1-3.4.1">0x4 := Indicates end of Track and Group. GroupID is one greater than
        the largest group produced in this track and the ObjectId is
        one greater than the largest object produced in that
        group. This is sent right after the last object in the
-       track. This <span class="bcp14">SHOULD</span> be cached.<a href="#section-7.1.1.1-3.5.1" class="pilcrow">¶</a></p>
+       track. This <span class="bcp14">SHOULD</span> be cached.<a href="#section-7.1.1.1-3.4.1" class="pilcrow">¶</a></p>
 </li>
             </ul>
 <p id="section-7.1.1.1-4">Any other value <span class="bcp14">SHOULD</span> be treated as a protocol error and terminate the
@@ -3754,7 +3750,7 @@ reaching a resource limit.<a href="#section-8.1-4" class="pilcrow">¶</a></p>
 <dd class="break"></dd>
 <dt id="WebTransport">[WebTransport]</dt>
       <dd>
-<span class="refAuthor">Frindell, A.</span>, <span class="refAuthor">Kinnear, E.</span>, and <span class="refAuthor">V. Vasiliev</span>, <span class="refTitle">"WebTransport over HTTP/3"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-webtrans-http3-09</span>, <time datetime="2024-03-04" class="refDate">4 March 2024</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-http3-09">https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-http3-09</a>&gt;</span>. </dd>
+<span class="refAuthor">Frindell, A.</span>, <span class="refAuthor">Kinnear, E.</span>, and <span class="refAuthor">V. Vasiliev</span>, <span class="refTitle">"WebTransport over HTTP/3"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-webtrans-http3-10</span>, <time datetime="2024-08-25" class="refDate">25 August 2024</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-http3-10">https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-http3-10</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 </dl>
 </section>
@@ -3767,7 +3763,7 @@ reaching a resource limit.<a href="#section-8.1-4" class="pilcrow">¶</a></p>
 <dl class="references">
 <dt id="I-D.ietf-webtrans-overview">[I-D.ietf-webtrans-overview]</dt>
         <dd>
-<span class="refAuthor">Vasiliev, V.</span>, <span class="refTitle">"The WebTransport Protocol Framework"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-webtrans-overview-07</span>, <time datetime="2024-03-04" class="refDate">4 March 2024</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-overview-07">https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-overview-07</a>&gt;</span>. </dd>
+<span class="refAuthor">Vasiliev, V.</span>, <span class="refTitle">"The WebTransport Protocol Framework"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-webtrans-overview-08</span>, <time datetime="2024-08-25" class="refDate">25 August 2024</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-overview-08">https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-overview-08</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="RFC9000">[RFC9000]</dt>
       <dd>

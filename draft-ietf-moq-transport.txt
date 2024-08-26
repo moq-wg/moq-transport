@@ -5,13 +5,13 @@
 Media Over QUIC                                                L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 24 February 2025                                           Meta
+Expires: 27 February 2025                                           Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                          23 August 2024
+                                                          26 August 2024
 
 
                        Media over QUIC Transport
@@ -59,7 +59,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 24 February 2025.
+   This Internet-Draft will expire on 27 February 2025.
 
 Copyright Notice
 
@@ -1601,14 +1601,11 @@ Table of Contents
       object does not exist at any publisher and it will not be
       published in the future.  This SHOULD be cached.
 
-   *  0x2 := Indicates Group does not exist.  Indicates that objects
-      with this GroupID do not exist at any publisher and they will not
-      be published in the future.  This SHOULD be cached.
-
    *  0x3 := Indicates end of Group.  ObjectId is one greater that the
       largest object produced in the group identified by the GroupID.
-      This is sent right after the last object in the group.  This
-      SHOULD be cached.
+      This is sent right after the last object in the group.  If the
+      ObjectID is 0, it indicates there are no Objects in this Group.
+      This SHOULD be cached.
 
    *  0x4 := Indicates end of Track and Group.  GroupID is one greater
       than the largest group produced in this track and the ObjectId is
@@ -1941,17 +1938,18 @@ Normative References
    [WebTransport]
               Frindell, A., Kinnear, E., and V. Vasiliev, "WebTransport
               over HTTP/3", Work in Progress, Internet-Draft, draft-
-              ietf-webtrans-http3-09, 4 March 2024,
+              ietf-webtrans-http3-10, 25 August 2024,
               <https://datatracker.ietf.org/doc/html/draft-ietf-
-              webtrans-http3-09>.
+              webtrans-http3-10>.
 
 Informative References
 
    [I-D.ietf-webtrans-overview]
               Vasiliev, V., "The WebTransport Protocol Framework", Work
               in Progress, Internet-Draft, draft-ietf-webtrans-overview-
-              07, 4 March 2024, <https://datatracker.ietf.org/doc/html/
-              draft-ietf-webtrans-overview-07>.
+              08, 25 August 2024,
+              <https://datatracker.ietf.org/doc/html/draft-ietf-
+              webtrans-overview-08>.
 
    [RFC9000]  Iyengar, J., Ed. and M. Thomson, Ed., "QUIC: A UDP-Based
               Multiplexed and Secure Transport", RFC 9000,
