@@ -124,9 +124,10 @@ Table of Contents
      6.11. SUBSCRIBE_OK
      6.12. SUBSCRIBE_ERROR
      6.13. SUBSCRIBE_DONE
-     6.14. ANNOUNCE
-     6.15. UNANNOUNCE
-     6.16. TRACK_STATUS
+     6.14. MAX_SUBSCRIBE_ID
+     6.15. ANNOUNCE
+     6.16. UNANNOUNCE
+     6.17. TRACK_STATUS
    7.  Data Streams
      7.1.  Object Headers
        7.1.1.  Canonical Object Fields
@@ -533,6 +534,8 @@ Table of Contents
                    +------+---------------------------+
                    |  0x5 | Parameter Length Mismatch |
                    +------+---------------------------+
+                   |  0x6 | Too Many Subscribes       |
+                   +------+---------------------------+
                    | 0x10 | GOAWAY Timeout            |
                    +------+---------------------------+
 
@@ -550,6 +553,10 @@ Table of Contents
 
    *  Duplicate Track Alias: The endpoint attempted to use a Track Alias
       that was already in use.
+
+   *  Too Many Subscribes: The session was closed because the subscriber
+      used a Subscribe ID equal or larger than the current Maximum
+      Subscribe ID.
 
    *  GOAWAY Timeout: The session was closed because the client took too
       long to close the session in response to a GOAWAY (Section 6.3)
@@ -828,13 +835,13 @@ Table of Contents
               +------+-------------------------------------+
               |  0x5 | SUBSCRIBE_ERROR (Section 6.12)      |
               +------+-------------------------------------+
-              |  0x6 | ANNOUNCE (Section 6.14)             |
+              |  0x6 | ANNOUNCE (Section 6.15)             |
               +------+-------------------------------------+
               |  0x7 | ANNOUNCE_OK (Section 6.7)           |
               +------+-------------------------------------+
               |  0x8 | ANNOUNCE_ERROR (Section 6.8)        |
               +------+-------------------------------------+
-              |  0x9 | UNANNOUNCE (Section 6.15)           |
+              |  0x9 | UNANNOUNCE (Section 6.16)           |
               +------+-------------------------------------+
               |  0xA | UNSUBSCRIBE (Section 6.6)           |
               +------+-------------------------------------+
@@ -844,7 +851,7 @@ Table of Contents
               +------+-------------------------------------+
               |  0xD | TRACK_STATUS_REQUEST (Section 6.10) |
               +------+-------------------------------------+
-              |  0xE | TRACK_STATUS (Section 6.16)         |
+              |  0xE | TRACK_STATUS (Section 6.17)         |
               +------+-------------------------------------+
               | 0x10 | GOAWAY (Section 6.3)                |
               +------+-------------------------------------+
@@ -906,7 +913,7 @@ Table of Contents
    separate namespace, it is impossible for these parameters to appear
    in Setup messages.
 
-6.1.1.1.  AUTHORIZATION INFO Parameter
+6.1.1.1.  AUTHORIZATION INFO
 
    AUTHORIZATION INFO parameter (key 0x02) identifies a track's
    authorization information in a SUBSCRIBE or ANNOUNCE message.  This
@@ -1010,7 +1017,7 @@ Table of Contents
 
 6.2.2.  Setup Parameters
 
-6.2.2.1.  ROLE parameter
+6.2.2.1.  ROLE
 
    The ROLE parameter (key 0x00) allows each endpoint to independently
    specify what functionality they support for the session.  It has
@@ -1032,7 +1039,7 @@ Table of Contents
    ROLE parameter is missing or is not one of the three above-specified
    values.
 
-6.2.2.2.  PATH parameter
+6.2.2.2.  PATH
 
    The PATH parameter (key 0x01) allows the client to specify the path
    of the MoQ URI when using native QUIC ([QUIC]).  It MUST NOT be used
@@ -1044,6 +1051,13 @@ Table of Contents
    client MUST set the PATH parameter to the path-abempty portion of the
    URI; if query is present, the client MUST concatenate ?, followed by
    the query portion of the URI to the parameter.
+
+6.2.2.3.  MAX_SUBSCRIBE_ID
+
+   The MAX_SUBSCRIBE_ID parameter (key 0x02) communicates an initial
+   value for the Maximum Subscribe ID to the receiving subscriber.  The
+   default value is 0, so if not specified, the peer MUST NOT create
+   subscriptions.
 
 6.3.  GOAWAY
 
@@ -1120,13 +1134,10 @@ Table of Contents
 
                       Figure 5: MOQT SUBSCRIBE Message
 
-   *  Subscribe ID: The subscription identifier that is unique within
-      the session.  Subscribe ID is a monotonically increasing variable
-      length integer which MUST not be reused within a session.
-      Subscribe ID is used by subscribers and the publishers to identify
-      a given subscription.  Subscribers specify the Subscribe ID and it
-      is included in the corresponding SUBSCRIBE_OK or SUBSCRIBE_ERROR
-      messages.
+   *  Subscribe ID: The subscriber specified identifier used to manage a
+      subscription.  Subscribe ID is a variable length integer that MUST
+      be unique and monotonically increasing within a session and MUST
+      be less than the session's Maximum Subscribe ID.
 
    *  Track Alias: A session specific identifier for the track.
       Messages that reference a track, such as OBJECT (Section 7.1),
@@ -1433,7 +1444,29 @@ Table of Contents
    *  Final Object: The largest Object ID sent by the publisher in an
       OBJECT message in the Final Group for this track.
 
-6.14.  ANNOUNCE
+6.14.  MAX_SUBSCRIBE_ID
+
+   A publisher sends a MAX_SUBSCRIBE_ID message to increase the number
+   of subscriptions a subscriber can create within a session.
+
+   The Maximum Subscribe Id MUST only increase within a session, and
+   receipt of a MAX_SUBSCRIBE_ID message with an equal or smaller
+   Subscribe ID value is a 'Protocol Violation'.
+
+   MAX_SUBSCRIBE_ID
+   {
+     Subscribe ID (i),
+   }
+
+                  Figure 15: MOQT MAX_SUBSCRIBE_ID Message
+
+   *  Subscribe ID: The new Maximum Subscribe ID for the session.  If a
+      Subscribe ID equal or larger than this is received in any message,
+      including SUBSCRIBE, the publisher MUST close the session with an
+      error of 'Too Many Subscribes'.  More on Subscribe ID in
+      Section 6.4.
+
+6.15.  ANNOUNCE
 
    The publisher sends the ANNOUNCE control message to advertise where
    the receiver can route SUBSCRIBEs for tracks within the announced
@@ -1446,14 +1479,14 @@ Table of Contents
      Parameters (..) ...,
    }
 
-                      Figure 15: MOQT ANNOUNCE Message
+                      Figure 16: MOQT ANNOUNCE Message
 
    *  Track Namespace: Identifies a track's namespace as defined in
       (Section 2.3.1)
 
    *  Parameters: The parameters are defined in Section 6.1.1.
 
-6.15.  UNANNOUNCE
+6.16.  UNANNOUNCE
 
    The publisher sends the UNANNOUNCE control message to indicate its
    intent to stop serving new subscriptions for tracks within the
@@ -1463,12 +1496,12 @@ Table of Contents
      Track Namespace (b),
    }
 
-                     Figure 16: MOQT UNANNOUNCE Message
+                     Figure 17: MOQT UNANNOUNCE Message
 
    *  Track Namespace: Identifies a track's namespace as defined in
       (Section 2.3.1).
 
-6.16.  TRACK_STATUS
+6.17.  TRACK_STATUS
 
    A publisher sends a 'TRACK_STATUS' message on the control stream in
    response to a TRACK_STATUS_REQUEST message.
@@ -1481,7 +1514,7 @@ Table of Contents
      Last Object ID (i),
    }
 
-                    Figure 17: MOQT TRACK_STATUS Message
+                    Figure 18: MOQT TRACK_STATUS Message
 
    The 'Status Code' field provides additional information about the
    status of the track.  It MUST hold one of the following values.  Any
@@ -1650,7 +1683,7 @@ Table of Contents
      Object Payload (..),
    }
 
-                   Figure 18: MOQT OBJECT_STREAM Message
+                   Figure 19: MOQT OBJECT_STREAM Message
 
    *  Subscribe ID: Subscription Identifier as defined in Section 6.4.
 
@@ -1686,7 +1719,7 @@ Table of Contents
      Object Payload (..),
    }
 
-                  Figure 19: MOQT OBJECT_DATAGRAM Message
+                  Figure 20: MOQT OBJECT_DATAGRAM Message
 
 7.4.  Multi-Object Streams
 
@@ -1714,7 +1747,7 @@ Table of Contents
      Publisher Priority (8),
    }
 
-                Figure 20: MOQT STREAM_HEADER_TRACK Message
+                Figure 21: MOQT STREAM_HEADER_TRACK Message
 
    All Objects received on a stream opened with STREAM_HEADER_TRACK have
    an Object Forwarding Preference = Track.
@@ -1733,7 +1766,7 @@ Table of Contents
      Object Payload (..),
    }
 
-                 Figure 21: MOQT Track Stream Object Fields
+                 Figure 22: MOQT Track Stream Object Fields
 
    A publisher MUST NOT send an Object on a stream if its Group ID is
    less than a previously sent Group ID on that stream, or if its Object
@@ -1755,7 +1788,7 @@ Table of Contents
      Publisher Priority (8),
    }
 
-                Figure 22: MOQT STREAM_HEADER_GROUP Message
+                Figure 23: MOQT STREAM_HEADER_GROUP Message
 
    All Objects received on a stream opened with STREAM_HEADER_GROUP have
    an Object Forwarding Preference = Group.
@@ -1775,7 +1808,7 @@ Table of Contents
      Object Payload (..),
    }
 
-                 Figure 23: MOQT Group Stream Object Fields
+                 Figure 24: MOQT Group Stream Object Fields
 
    A publisher MUST NOT send an Object on a stream if its Object ID is
    less than a previously sent Object ID within a given group in that
