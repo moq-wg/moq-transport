@@ -984,6 +984,14 @@ client MUST set the PATH parameter to the `path-abempty` portion of the
 URI; if `query` is present, the client MUST concatenate `?`, followed by
 the `query` portion of the URI to the parameter.
 
+#### REQUIRED-EXTENSION parameter {#required-extensions}
+
+The REQUIRED-EXTENSION parameter (key 0x02) allows the client to specify
+multiple Extension Header types {{object-extensions}} which are required for
+operation. The value is a concatenation of varints, each describing a
+32-bit extension header type. This parameter is optional. If the server does
+not support a requested REQUIRED-EXTENSION, then it MUST close the connection.
+
 ## GOAWAY {#message-goaway}
 The server sends a `GOAWAY` message to initiate session migration
 ({{session-migration}}) with an optional URI.
@@ -1511,6 +1519,12 @@ MUST be sent according to its `Object Forwarding Preference`, described below.
 * Object Status: As enumeration used to indicate missing
 objects or mark the end of a group or track. See {{object-status}} below.
 
+* Object Extension Count: The number of Object Extensions present. A value of 0
+  indicates that no Object Extension Headers are present.
+
+* Object Extensions : an optional concatenation of Object Extension Headers. See
+  {{object-extensions}} below.
+
 * Object Payload: An opaque payload intended for an End Subscriber and SHOULD
 NOT be processed by a relay. Only present when 'Object Status' is Normal (0x0).
 
@@ -1554,6 +1568,62 @@ are sent on a new stream. This is to avoid the status message being lost
 in cases such as a relay dropping a group and reseting the stream the
 group is being sent on.
 
+#### Object Extension {#object-extensions}
+An Object Extension is a concatenation of optional Extension Headers. These
+headers are visible to relays. Extension headers MUST be forwarded and
+MUST NOT be modified by relays. The purpose of Extension Headers is to
+allow the transmission of application-specific data as well as future
+evolution of the transport protocol. Object Extensions are serialized as
+defined below:
+
+~~~
+Object Extension {
+  Extension Header (..) ...
+}
+
+Extension Header {
+  Header Type (i),
+  Header Length (i),
+  Header Value (..)
+}
+~~~
+{: #object-extension-format title="Object Extension Header Format"}
+
+* Header type: an unsigned 32-bit integer, registered in the IANA table
+  'MOQ Extension Headers'. See {{iana}}.
+
+##### Extension Header type 0 {#extension-header-zero}
+
+This specification defines a utility extension header. The value of this header
+is itself a name-value pair.
+
+
+| Type |                         Value                        |
+| ---- | ---------------------------------------------------- |
+| 0x0  | Header Value  - see {{extension-header-zero-format}} |
+
+
+~~~
+Header Value {
+  Name Length (i),
+  Name Value (..)
+  Payload (..)
+}
+~~~
+{: #extension-header-zero-format title="Extension header 0 value format"}
+
+* Name Length: the size of the name value in bytes.
+* Name Value: a string encoded using ISO-8859-1. This name is application-defined
+  and is not IANA registered.
+* Payload: the contents of the header. The combined size of the name and payload
+  contents MUST NOT exceed 10240 bytes.
+
+### Object Message Formats
+
+Every Track has a single 'Object Forwarding Preference' and the Original
+Publisher MUST NOT mix different forwarding preferences within a single track.
+If a subscriber receives different forwarding preferences for a track, it
+SHOULD close the session with an error of 'Protocol Violation'.
 
 ## Object Stream
 
@@ -1574,6 +1644,8 @@ OBJECT_STREAM Message {
   Group ID (i),
   Object ID (i),
   Publisher Priority (8),
+  Extension Count (i),
+  [Extension headers (...)],
   Object Payload Length (i),
   [Object Status (i)],
   Object Payload (..),
@@ -1610,6 +1682,8 @@ OBJECT_DATAGRAM Message {
   Group ID (i),
   Object ID (i),
   Publisher Priority (8),
+  Extension Count (i),
+  [Extension headers (...)],
   Object Payload Length (i),
   [Object Status (i)],
   Object Payload (..),
@@ -1768,6 +1842,38 @@ OBJECT_STREAM {
 }
 ~~~
 
+Sending a group on one stream, with the first object containing an
+Extension Header.
+
+~~~
+Stream = 2
+
+STREAM_HEADER_GROUP {
+  Subscribe ID = 2
+  Track Alias = 2
+  Group ID = 0
+  Publisher Priority = 0
+}
+{
+  Object ID = 0
+  Extension Count  = 1
+    { Type = 0
+      Length = 21
+        { Name length = 15
+          Name value = "example-traceID"
+          Payload = "123456"
+        }
+    }
+  Object Payload Length = 4
+  Payload = "abcd"
+}
+{
+  Object ID = 1
+  Object Payload Length = 4
+  Payload = "efgh"
+}
+
+~~~
 
 
 # Security Considerations {#security}
@@ -1803,6 +1909,7 @@ TODO: fill out currently missing registries:
 * Subscribe Error codes
 * Announce Error codes
 * Message types
+* MOQ Extension headers
 
 TODO: register the URI scheme and the ALPN
 
