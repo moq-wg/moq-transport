@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2024-08-25T01:25:20.281237+00:00",
+  "timestamp": "2024-08-27T01:20:30.625335+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -11204,7 +11204,7 @@
       "id": "I_kwDOG2Ho4M5zZE6r",
       "title": "Multiple subscriptions could cause resource exhaustion",
       "url": "https://github.com/moq-wg/moq-transport/issues/272",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "ianswett",
       "authorAssociation": "COLLABORATOR",
       "assignees": [
@@ -11217,8 +11217,8 @@
       ],
       "body": "Currently, there's no way to limit the number of simultaneous subscriptions.  QUIC stream limits cannot effectively be used to limit the number of subscriptions, so I'd suggest MoQ have a limit.\r\n\r\nThe simplest idea would be to have a limit specified as a parameter in the server's SETUP message.\r\n\r\nAs a related question, even with limits, what happens if a client subscribes to a number of streams that it doesn't have the bandwidth to support?  ie: 10 4k video streams and they're on a slow link?  Possibly the subscriptions could fail with an error code indicating that the server didn't have enough bandwidth to request them and/or serve them to the client?",
       "createdAt": "2023-10-10T18:23:44Z",
-      "updatedAt": "2024-08-05T18:35:53Z",
-      "closedAt": null,
+      "updatedAt": "2024-08-26T18:27:47Z",
+      "closedAt": "2024-08-26T18:27:46Z",
       "comments": [
         {
           "author": "kixelated",
@@ -17724,9 +17724,24 @@
       ],
       "body": "7.1.1.1 currently says:\r\n\r\n> 0x4 := Indicates end of Track and Group. GroupID is one greater than the largest group produced in this track and the ObjectId is one greater than the largest object produced in that group. This is sent right after the last object in the track. This SHOULD be cached.\r\n\r\nThis is confusing. I *think* this means that if the last real object in a track is (10,3), then we'll send an end of Track and Group object with sequence (11, 4)?\r\n\r\nI can imagine use cases where the publisher ends the group, and then finds out the track is ending. So would it send EndOfGroup(10,4) and EndOfTrackAndGroup(11, 5)?\r\n\r\nMaybe we could instead separate EndOfGroup and EndOfTrack and make EOT's sequence {last_group + 1, 0}?",
       "createdAt": "2024-08-14T17:54:03Z",
-      "updatedAt": "2024-08-14T17:54:09Z",
+      "updatedAt": "2024-08-26T14:41:10Z",
       "closedAt": null,
-      "comments": []
+      "comments": [
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Good question, the status quo is odd.\r\n\r\nI think one should send EndOfTrackAndGroup(10, 4), but you have a good example with a group ending and then the track.\r\n\r\nThis is somewhat related to @fluffy ideas about having different bits indicate EndOfGroup and EndOfTrack instead of an entirely separate Object.",
+          "createdAt": "2024-08-25T02:10:55Z",
+          "updatedAt": "2024-08-25T02:10:55Z"
+        },
+        {
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "> Good question, the status quo is odd.\r\n> \r\n> I think one should send EndOfTrackAndGroup(10, 4), but you have a good example with a group ending and then the track.\r\n> \r\n> This is somewhat related to @fluffy ideas about having different bits indicate EndOfGroup and EndOfTrack instead of an entirely separate Object.\r\n\r\nGroup ID has to be one greater, so it'd be (11, 4)?",
+          "createdAt": "2024-08-26T14:41:09Z",
+          "updatedAt": "2024-08-26T14:41:09Z"
+        }
+      ]
     },
     {
       "number": 506,
@@ -64000,24 +64015,26 @@
       "id": "PR_kwDOG2Ho4M52iB64",
       "title": "Add MAX_SUBSCRIBE_ID to limit number of subscriptions",
       "url": "https://github.com/moq-wg/moq-transport/pull/491",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "ianswett",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [],
       "body": "Fixes #272\r\n\r\nSome diffs are due to me reflowing text to fit the line limits, so please ignore those.\r\n\r\nOnce we have this and a limit on announce IDs, it seems likely that we'll be able to get rid of 'Role', but for now it can stay.",
       "createdAt": "2024-07-26T02:58:25Z",
-      "updatedAt": "2024-08-23T22:52:34Z",
+      "updatedAt": "2024-08-26T18:27:46Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
-      "baseRefOid": "bac470e2aa4bf90e7ff57da29b5ba34e5dd47642",
+      "baseRefOid": "65aa85927f2a195135103ebe437c3acccf4e99b4",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "ianswett-max-subscribe-id",
-      "headRefOid": "6e825f8bae837c24abb996329cbfed9c42fcf758",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "headRefOid": "67e1c7067a94ed0108d46cbba0f4f5bc268dc43a",
+      "closedAt": "2024-08-26T18:27:46Z",
+      "mergedAt": "2024-08-26T18:27:45Z",
+      "mergedBy": "ianswett",
+      "mergeCommit": {
+        "oid": "62ea1885aaa75e46d0e71dc16a8a70ae12c28f42"
+      },
       "comments": [
         {
           "author": "suhasHere",
@@ -64025,6 +64042,13 @@
           "body": "Thanks @ianswett  . this looks like a good improvement. I have few clarification questions and bit of extra work for you to add some informative text, if my comment seems ok to you.",
           "createdAt": "2024-08-08T16:53:40Z",
           "updatedAt": "2024-08-08T16:53:40Z"
+        },
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> This seems like a really complicated way to limit the subscribes. I understand how it mirror streams but that had pretty different constrains. Why don't we just have an subscribe error of \"too many subscriptions\"?\r\n\r\nUnfortunately, that makes it much more difficult for the server to tell abusive clients from valid ones, as we discovered with the recent HTTP/2 rapid reset attacks.  In the end we did develop heuristics, but they're imperfect and in the process we broke a bunch of applications in an effort to defend against DDoS attacks.  In contrast, QUIC had a system like this and experienced no issues and we didn't need to develop any new heuristics.",
+          "createdAt": "2024-08-26T15:16:54Z",
+          "updatedAt": "2024-08-26T15:16:54Z"
         }
       ],
       "reviews": [
@@ -64192,6 +64216,59 @@
           "createdAt": "2024-08-23T22:52:34Z",
           "updatedAt": "2024-08-23T22:52:34Z",
           "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6GwyAD",
+          "commit": {
+            "abbreviatedOid": "67e1c70"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-26T15:07:45Z",
+          "updatedAt": "2024-08-26T15:07:45Z",
+          "comments": [
+            {
+              "originalPosition": 14,
+              "body": "Aggregating subscribers exist in HTTP proxies as well, and those deal with stream limits on both upstream and downstream fine, so I'd suggest we revisit if it turns out to be a problem people experience.",
+              "createdAt": "2024-08-26T15:07:45Z",
+              "updatedAt": "2024-08-26T15:07:45Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6Gwzb5",
+          "commit": {
+            "abbreviatedOid": "67e1c70"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-26T15:09:56Z",
+          "updatedAt": "2024-08-26T15:09:57Z",
+          "comments": [
+            {
+              "originalPosition": 50,
+              "body": "Yes.  I added it because we have the equivalent in QUIC.  ",
+              "createdAt": "2024-08-26T15:09:56Z",
+              "updatedAt": "2024-08-26T15:09:57Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6GyL3X",
+          "commit": {
+            "abbreviatedOid": "67e1c70"
+          },
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "Discussed open issues in the 7 August 2024 virtual, not recorded here. Remaining issue (just do a SUBSCRIBE_ERROR?) went to the list and chairs declared rough consensus, although at least 2 participants would prefer not to have this.",
+          "createdAt": "2024-08-26T18:11:20Z",
+          "updatedAt": "2024-08-26T18:11:20Z",
+          "comments": []
         }
       ]
     },
@@ -64262,13 +64339,13 @@
       "labels": [],
       "body": "I have foregone any premature optimization of the encodings here.\r\n\r\nAsking @janaiyengar to take a first look.",
       "createdAt": "2024-07-26T23:09:07Z",
-      "updatedAt": "2024-08-24T03:14:58Z",
+      "updatedAt": "2024-08-26T21:57:05Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
-      "baseRefOid": "636b5dc056cbd6d3b7df6bffcabb7aa336ecda7f",
+      "baseRefOid": "62ea1885aaa75e46d0e71dc16a8a70ae12c28f42",
       "headRepository": "martinduke/moq-transport",
       "headRefName": "peeps",
-      "headRefOid": "338941500bee6f543eeaf97194557a815b9f2382",
+      "headRefOid": "03ec980379bb875c3c1b1a912768ddcf31bd5983",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -64364,6 +64441,13 @@
           "body": "Why have Peep ID be a tiebreaker if we also have priority? Just let the streams have the same priority!",
           "createdAt": "2024-08-23T16:21:48Z",
           "updatedAt": "2024-08-23T16:21:48Z"
+        },
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> For bikesheading on the name, I make these two proposals:\r\n> \r\n> 1. \"Stream\" - this correlates directly with the mapping to QUIC. Simple to comprehend and explain.\r\n> 2. \"Block\" - this denotes contiguity and avoids overloaded use of the term \"stream\".\r\n\r\nBlock and Stream work for me.\r\n\r\nI was going to say that I prefer \"QUIC Stream\", but given this might be over WebTransport, technically it'd be a WebTransport stream, so defining the term \"Stream\" at the top of the document should make that clear.",
+          "createdAt": "2024-08-25T12:47:03Z",
+          "updatedAt": "2024-08-25T12:47:03Z"
         }
       ],
       "reviews": [
@@ -65671,6 +65755,146 @@
               "updatedAt": "2024-08-24T03:14:58Z"
             }
           ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6Gppm2",
+          "commit": {
+            "abbreviatedOid": "3389415"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-25T01:34:18Z",
+          "updatedAt": "2024-08-25T01:34:18Z",
+          "comments": [
+            {
+              "originalPosition": 124,
+              "body": "I'm ok with that, but I think I'd rather do it in a separate PR.\r\n\r\nAlso, I realize that I'm not sure what the difference is between \"Group does not exist\" and \"End of Group\" with am Object ID of 0?  A related qustion is what the Object ID should be for \"Group does not exist\"?  I'm starting to think \"Group does not exist\" and it's the only one where Object ID has a meaningless value.",
+              "createdAt": "2024-08-25T01:34:18Z",
+              "updatedAt": "2024-08-25T01:34:18Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6Gpqt7",
+          "commit": {
+            "abbreviatedOid": "3389415"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-25T01:53:36Z",
+          "updatedAt": "2024-08-25T01:53:36Z",
+          "comments": [
+            {
+              "originalPosition": 124,
+              "body": "https://github.com/moq-wg/moq-transport/pull/509",
+              "createdAt": "2024-08-25T01:53:36Z",
+              "updatedAt": "2024-08-25T01:53:36Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6GqUnE",
+          "commit": {
+            "abbreviatedOid": "3389415"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-25T12:52:27Z",
+          "updatedAt": "2024-08-25T12:52:27Z",
+          "comments": [
+            {
+              "originalPosition": 124,
+              "body": "Reflecting on whether we need this, I think a stream FIN means the Peep is closed.  Otherwise someone could split a multi-object Peep into single Object streams, which is definitely not the intent and maybe could be used as an attack (thinking segment smack, etc)?\r\n\r\nSession migration is important, but in that case I think streams should be reset or the session just suddenly goes away to indicate there is more data that couldn't be sent.  This is a reminder that writing up session migration could be really helpful for understanding how streams and MoQ interact.\r\n\r\nBut happy to bikeshed this issue afterwards.\r\n",
+              "createdAt": "2024-08-25T12:52:27Z",
+              "updatedAt": "2024-08-25T12:52:27Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6Gvbq0",
+          "commit": {
+            "abbreviatedOid": "3389415"
+          },
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-26T12:39:09Z",
+          "updatedAt": "2024-08-26T12:39:10Z",
+          "comments": [
+            {
+              "originalPosition": 124,
+              "body": "I'm getting back to the session migration stuff soon ...",
+              "createdAt": "2024-08-26T12:39:09Z",
+              "updatedAt": "2024-08-26T12:39:10Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6GyH-z",
+          "commit": {
+            "abbreviatedOid": "88d079c"
+          },
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-26T18:02:42Z",
+          "updatedAt": "2024-08-26T18:02:43Z",
+          "comments": [
+            {
+              "originalPosition": 71,
+              "body": "Offline: Alan is fine with peep ID = priority, meaning that two Peeps can't have the same priority. Text is updated, closing this comment.",
+              "createdAt": "2024-08-26T18:02:42Z",
+              "updatedAt": "2024-08-26T18:02:43Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6GyITL",
+          "commit": {
+            "abbreviatedOid": "88d079c"
+          },
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-26T18:03:28Z",
+          "updatedAt": "2024-08-26T18:03:28Z",
+          "comments": [
+            {
+              "originalPosition": 85,
+              "body": "Text now has Peep ID = tiebreaker, @afrind is OK with it. Closing this comment, though Cullen has complaints downthread. Further discussion there.",
+              "createdAt": "2024-08-26T18:03:28Z",
+              "updatedAt": "2024-08-26T18:03:28Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6GyJK-",
+          "commit": {
+            "abbreviatedOid": "3389415"
+          },
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-26T18:05:40Z",
+          "updatedAt": "2024-08-26T18:05:41Z",
+          "comments": [
+            {
+              "originalPosition": 52,
+              "body": "This only works for the first hop for the publisher; relays will only be able to use the priority expressed on the wire, which is Peep-level.\r\n\r\nThat said, I'm happy to rewrite this to talk about what's on the wire and avoid any metaphysical discussion of object priority or telling MoQT what API to present here.",
+              "createdAt": "2024-08-26T18:05:41Z",
+              "updatedAt": "2024-08-26T18:05:41Z"
+            }
+          ]
         }
       ]
     },
@@ -65805,7 +66029,7 @@
       "labels": [],
       "body": "This message suite allows subscribers to express interest in ANNOUNCE/UNANNOUNCE for set of namespaces that match a prefix.  To accomplish safe prefix matching, Track Namesapce is redefined from a single byte array to a N-Tuple of byte arrays.\r\n\r\nFixes: #484",
       "createdAt": "2024-08-05T21:31:01Z",
-      "updatedAt": "2024-08-24T03:44:38Z",
+      "updatedAt": "2024-08-26T20:51:56Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "e336866faa3b8af70890f49685706318b7e5af9a",
@@ -65858,6 +66082,13 @@
           "body": "just 2 cents, #508  addresses important design aspects which i feel would be good to consider bringing in this PR as it applies not just to announces but subscribes in general. It would be good to evaulate this PR in the context of #508 ",
           "createdAt": "2024-08-24T03:44:37Z",
           "updatedAt": "2024-08-24T03:44:37Z"
+        },
+        {
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "Looking at #508 later after lands seems fine to me ",
+          "createdAt": "2024-08-26T12:59:31Z",
+          "updatedAt": "2024-08-26T12:59:31Z"
         }
       ],
       "reviews": [
@@ -66364,6 +66595,78 @@
               "body": "This is honestly one of the things I never understood about ANNOUNCE.  When and how does one decide to send you a blind ANNOUNCE message?  If you want all the ANNOUNCE messages you could now use SUBSCRIBE_NAMESPACE with no prefix, correct?",
               "createdAt": "2024-08-23T23:27:06Z",
               "updatedAt": "2024-08-23T23:27:06Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6GvhsB",
+          "commit": {
+            "abbreviatedOid": "764dcae"
+          },
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-26T12:51:06Z",
+          "updatedAt": "2024-08-26T12:51:06Z",
+          "comments": [
+            {
+              "originalPosition": 74,
+              "body": "I think we should just leave all auth out of this PR for now and deal with it when we fix auth across the whole protocol. ",
+              "createdAt": "2024-08-26T12:51:06Z",
+              "updatedAt": "2024-08-26T12:51:06Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6Gw1Lr",
+          "commit": {
+            "abbreviatedOid": "e71ba85"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-26T15:13:09Z",
+          "updatedAt": "2024-08-26T15:13:10Z",
+          "comments": [
+            {
+              "originalPosition": 8,
+              "body": "I agree that this is non-obvious.  Should we burn some characters and make it \"x (tup)\" or \"x (tuple)\"?",
+              "createdAt": "2024-08-26T15:13:09Z",
+              "updatedAt": "2024-08-26T15:13:10Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6GzUV-",
+          "commit": {
+            "abbreviatedOid": "e71ba85"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-26T20:41:06Z",
+          "updatedAt": "2024-08-26T20:51:56Z",
+          "comments": [
+            {
+              "originalPosition": 8,
+              "body": "I'll try it with x (tuple) and see what folks think",
+              "createdAt": "2024-08-26T20:41:06Z",
+              "updatedAt": "2024-08-26T20:51:56Z"
+            },
+            {
+              "originalPosition": 74,
+              "body": "That sounds good.  I'm keeping the update here that indicates this track parameter can be used for SUBSCRIBE_NAMESPACE, which will be a good placeholder when we come to the auth conversation.",
+              "createdAt": "2024-08-26T20:42:32Z",
+              "updatedAt": "2024-08-26T20:51:56Z"
+            },
+            {
+              "originalPosition": 132,
+              "body": "> If you want all the ANNOUNCE messages you could now use SUBSCRIBE_NAMESPACE with no prefix, correct?\r\n\r\nCorrect.\r\n\r\n> When and how does one decide to send you a blind ANNOUNCE message?\r\n\r\nThe only place where moqt requires ANNOUNCE is when the publisher is connected to a generic relay.  There are other uses but I think they will be described in higher level protocols?",
+              "createdAt": "2024-08-26T20:49:13Z",
+              "updatedAt": "2024-08-26T20:51:56Z"
             }
           ]
         }
@@ -67286,6 +67589,122 @@
           "body": "",
           "createdAt": "2024-08-23T15:09:47Z",
           "updatedAt": "2024-08-23T15:09:47Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 509,
+      "id": "PR_kwDOG2Ho4M55V9wn",
+      "title": "Remove unnecessary \"Missing Group\" status",
+      "url": "https://github.com/moq-wg/moq-transport/pull/509",
+      "state": "MERGED",
+      "author": "ianswett",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "As I observed in this comment: https://github.com/moq-wg/moq-transport/pull/494/files#r1730192507, the missing group status seems equivalent to \"End of Group\" with ObjectId of 0.  Additionally, there is no obvious value for ObjectId in Objects with a status of \"Group Missing\".",
+      "createdAt": "2024-08-25T01:49:42Z",
+      "updatedAt": "2024-08-26T15:02:35Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "636b5dc056cbd6d3b7df6bffcabb7aa336ecda7f",
+      "headRepository": "moq-wg/moq-transport",
+      "headRefName": "ianswett-remove-missing-group",
+      "headRefOid": "46b6e0050dccaf5e33925495c67d4c468e9fc9f7",
+      "closedAt": "2024-08-26T15:02:35Z",
+      "mergedAt": "2024-08-26T15:02:35Z",
+      "mergedBy": "ianswett",
+      "mergeCommit": {
+        "oid": "65aa85927f2a195135103ebe437c3acccf4e99b4"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M6GrBYH",
+          "commit": {
+            "abbreviatedOid": "46b6e00"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2024-08-26T00:17:18Z",
+          "updatedAt": "2024-08-26T00:17:18Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6GvbOv",
+          "commit": {
+            "abbreviatedOid": "46b6e00"
+          },
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "makes sense to me ",
+          "createdAt": "2024-08-26T12:38:13Z",
+          "updatedAt": "2024-08-26T12:38:13Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 510,
+      "id": "PR_kwDOG2Ho4M55WCGD",
+      "title": "Simplify SUBSCRIBE",
+      "url": "https://github.com/moq-wg/moq-transport/pull/510",
+      "state": "OPEN",
+      "author": "ianswett",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "This is another effort at the SUBSCRIBE vs FETCH concept.\r\n\r\nI've reduced the number of modes for SUBSCRIBE to 3, and only one of them subscribes to Objects in the future.\r\n\r\nI removed Latest Group because the other two modes operate on the latest Object and I wasn't sure how practical it is to expect every relay to cache all of the latest group.  And if they don't, implementations get complex.\r\n\r\nThis is an opinionated approach, but it has quite a bit of flexibility now that the new priority design has landed.  In particular, it gives the subscriber lots of control over what order Objects on either side of the live head are delivered.\r\n\r\n\r\nFixes #368 \r\nCould be extended to fix #350",
+      "createdAt": "2024-08-25T02:48:39Z",
+      "updatedAt": "2024-08-26T13:16:15Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "636b5dc056cbd6d3b7df6bffcabb7aa336ecda7f",
+      "headRepository": "moq-wg/moq-transport",
+      "headRefName": "ianswett-simplify-subscribe",
+      "headRefOid": "3b66713d76ba918af81a722499ea76ea41f6ccab",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [
+        {
+          "author": "wilaw",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "This PR does not simplify subscription for non-real-time live stream clients (i.e live sports). These players need a variable buffer before start-up. To achieve this, they need to request several groups behind latest and then all future groups. The suggestion in the PR is for these clients to \"it can send a SUBSCRIBE for the Latest Object followed by a SUBSCRIBE of type AbsoluteStart or AbsoluteRange.\". The trouble with this is that it complicates the player's handling of the received data. It must first make a request for Latest Object. This will give it the latest and future objects and data will begin to flow immediately after it makes this request. However the player cannot place this data in a decode buffer. It must store it in a temporary buffer and hold it. Based the info it receives in the SUBSCRIBE_OK, it can then make a second request for the absolute range preceding this latest object. That data it can place it its decode buffer and begin decoding and it must then continuously copy data from the first receive buffer in to the decode buffer. This is unnecessarily messy, especially as the recommended workflow. \r\n\r\nA cleaner and simpler approach would be for the player to be able to make a single SUBSCRIBE request and be able to pipe that response directly in to its decode buffer. This can be achieve by either modifying the proposed AbsoluteStart filter so that it doesn't stop at the Latest Object, or adding a new filter type which is \"AbsoluteStart and carry on\" (bikeshead away). So the player wanting to start behind live would first make a TRACK_STATUS_REQUEST, which would give it the latest Group and Object. With this information it could calculate where it wanted to start behind live and then make a SUBSCRIBE request with the \"AbsoluteStart and carry on\" filter. It could pipe the response of this request directly in to its decode buffer and begin playback. \r\n",
+          "createdAt": "2024-08-26T09:45:00Z",
+          "updatedAt": "2024-08-26T09:45:00Z"
+        }
+      ],
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M6GvfuJ",
+          "commit": {
+            "abbreviatedOid": "3b66713"
+          },
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "CHANGES_REQUESTED",
+          "body": "So most of this looks good but I ams strongly against removing Latest Group. \r\n\r\nThe alternative introduces too much unnecessary join time latency for the main case of people joining a conference call. Keep this as is does not complicate the protocol, We have spent extensive WG time getting to this consensus. I think we should direct are energy to more important things than redoing all the arguments about this. ",
+          "createdAt": "2024-08-26T12:47:24Z",
+          "updatedAt": "2024-08-26T12:47:24Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6GvvGw",
+          "commit": {
+            "abbreviatedOid": "3b66713"
+          },
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "state": "CHANGES_REQUESTED",
+          "body": "The LatestGroup mode is the reason why the concept of Groups even exists at all, and I don't see how the protocol can function without it. You could remove the other modes but absolutely not LatestGroup.",
+          "createdAt": "2024-08-26T13:16:15Z",
+          "updatedAt": "2024-08-26T13:16:15Z",
           "comments": []
         }
       ]
