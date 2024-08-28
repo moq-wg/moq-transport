@@ -329,6 +329,11 @@ scheduling of sending data on active streams.
 
 Every object within a Group belongs to exactly one Peep.
 
+Objects from two peeps cannot be sent on the same QUIC stream. Objects from the
+same Peep MUST NOT be sent on different QUIC streams, unless one of the streams
+was reset prematurely, or upstream conditions have forced objects from a Peep
+to be sent out of Object ID order.
+
 Original publishers assign each Peep a Peep ID, and do so as they see fit.  The
 scope of a Peep ID is a Group, so Peeps from different Groups MAY share a Peep
 ID without implying any relationship between them. In general, publishers assign
@@ -600,8 +605,11 @@ The subscriber indicates the priority of a subscription via the
 Subscriber Priority field and the original publisher indicates priority
 in every stream or datagram header.  As such, the subscriber's priority is a
 property of the subscription and the original publisher's priority is a
-property of the Track and the Peeps it contains. In both cases, a lower
+property of the Track and the Objects it contains. In both cases, a lower
 value indicates a higher priority, with 0 being the highest priority.
+
+When Objects are contained in Peeps, all Objects in the Peep have the same
+priority.
 
 The Subscriber Priority is considered first when selecting a subscription
 to send data on within a given session. When two or more subscriptions
@@ -1611,7 +1619,8 @@ are beyond the end of a group or track.
          largest object produced in the group identified by the
          GroupID. This is sent right after the last object in the
          group. If the ObjectID is 0, it indicates there are no Objects
-         in this Group. This SHOULD be cached.
+         in this Group. This SHOULD be cached. A publisher MAY use an end of
+         Group object to signal the end of all open Peeps in a Group.
 
 * 0x4 := Indicates end of Track and Group. GroupID is one greater than
          the largest group produced in this track and the ObjectId is
