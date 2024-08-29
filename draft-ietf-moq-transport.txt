@@ -5,13 +5,13 @@
 Media Over QUIC                                                L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 27 February 2025                                           Meta
+Expires: 2 March 2025                                               Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                          26 August 2024
+                                                          29 August 2024
 
 
                        Media over QUIC Transport
@@ -59,7 +59,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 27 February 2025.
+   This Internet-Draft will expire on 2 March 2025.
 
 Copyright Notice
 
@@ -87,10 +87,11 @@ Table of Contents
      1.3.  Notational Conventions
    2.  Object Model
      2.1.  Objects
-     2.2.  Groups
-     2.3.  Track
-       2.3.1.  Track Naming and Scopes
-       2.3.2.  Connection URL
+     2.2.  Peeps
+     2.3.  Groups
+     2.4.  Track
+       2.4.1.  Track Naming and Scopes
+       2.4.2.  Connection URL
    3.  Sessions
      3.1.  Session establishment
        3.1.1.  WebTransport
@@ -131,12 +132,11 @@ Table of Contents
    7.  Data Streams
      7.1.  Object Headers
        7.1.1.  Canonical Object Fields
-     7.2.  Object Stream
-     7.3.  Object Datagram
-     7.4.  Multi-Object Streams
-       7.4.1.  Stream Header Track
-       7.4.2.  Stream Header Group
-     7.5.  Examples
+     7.2.  Object Datagram Message
+     7.3.  Streams
+       7.3.1.  Stream Header Track
+       7.3.2.  Stream Header Peep
+     7.4.  Examples
    8.  Security Considerations
      8.1.  Resource Exhaustion
    9.  IANA Considerations
@@ -273,7 +273,7 @@ Table of Contents
       networks.
 
    Group:  A temporal sequence of objects.  A group represents a join
-      point in a track.  See (Section 2.2).
+      point in a track.  See (Section 2.3).
 
    Object:  An object is an addressable unit whose payload is a sequence
       of bytes.  Objects form the base element in the MOQT model.  See
@@ -281,7 +281,7 @@ Table of Contents
 
    Track:  An encoded bitstream.  Tracks contain a sequential series of
       one or more groups and are the subscribable entity with MOQT.  See
-      (Section 2.3).
+      (Section 2.4).
 
 1.3.  Notational Conventions
 
@@ -332,7 +332,7 @@ Table of Contents
    The basic data element of MOQT is an object.  An object is an
    addressable unit whose payload is a sequence of bytes.  All objects
    belong to a group, indicating ordering and potential dependencies.
-   Section 2.2 An object is uniquely identified by its track namespace,
+   Section 2.3 An object is uniquely identified by its track namespace,
    track name, group ID, and object ID, and must be an identical
    sequence of bytes regardless of how or where it is retrieved.  An
    Object can become unavailable, but it's contents MUST NOT change over
@@ -347,24 +347,73 @@ Table of Contents
    encryption, or authentication.  A relay MUST NOT combine, split, or
    otherwise modify object payloads.
 
-2.2.  Groups
+2.2.  Peeps
+
+   A peep is a sequence of one or more objects from the same group
+   (Section 2.3) in ascending order by Object ID.  Objects in a peep
+   have a dependency and priority relationship consistent with sharing a
+   QUIC stream.  In some cases, a Group will be most effectively
+   delivered using more than one QUIC stream.
+
+   When a Track's forwarding preference (see Section 7.1.1) is "Track"
+   or "Datagram", Objects are not sent in Peeps, no Peep IDs are
+   assigned, and the description in the remainder of this section does
+   not apply.
+
+   QUIC streams offer in-order reliable delivery and the ability to
+   cancel sending and retransmission of data.  Furthermore, many
+   implementations offer the ability to control the relative priority of
+   streams, which allows control over the scheduling of sending data on
+   active streams.
+
+   Every object within a Group belongs to exactly one Peep.
+
+   Objects from two peeps cannot be sent on the same QUIC stream.
+   Objects from the same Peep MUST NOT be sent on different QUIC
+   streams, unless one of the streams was reset prematurely, or upstream
+   conditions have forced objects from a Peep to be sent out of Object
+   ID order.
+
+   Original publishers assign each Peep a Peep ID, and do so as they see
+   fit.  The scope of a Peep ID is a Group, so Peeps from different
+   Groups MAY share a Peep ID without implying any relationship between
+   them.  In general, publishers assign objects to peeps in order to
+   leverage the features of QUIC streams as described above.
+
+   An example strategy for using QUIC stream properties follows.  If
+   object B is dependent on object A, then delivery of B can follow A,
+   i.e. A and B can be usefully delivered over a single QUIC stream.
+   Furthermore, in this example:
+
+   *  If an object is dependent on all previous objects in a Peep, it is
+      added to that Peep.
+
+   *  If an object is not dependent on all of the objects in a Peep, it
+      goes in a different Peep.
+
+   *  There are often many ways to compose Peeps that meet these
+      criteria.  Where possible, choose the composition that results in
+      the fewest Peeps in a group to minimize the number of QUIC streams
+      used.
+
+2.3.  Groups
 
    A group is a collection of objects and is a sub-unit of a track
-   (Section 2.3).  Objects within a group SHOULD NOT depend on objects
+   (Section 2.4).  Objects within a group SHOULD NOT depend on objects
    in other groups.  A group behaves as a join point for subscriptions.
    A new subscriber might not want to receive the entire track, and may
    instead opt to receive only the latest group(s).  The publisher then
    selectively transmits objects based on their group membership.
 
-2.3.  Track
+2.4.  Track
 
-   A track is a sequence of groups (Section 2.2).  It is the entity
+   A track is a sequence of groups (Section 2.3).  It is the entity
    against which a subscriber issues a subscription request.  A
    subscriber can request to receive individual tracks starting at a
    group boundary, including any new objects pushed by the publisher
    while the track is active.
 
-2.3.1.  Track Naming and Scopes
+2.4.1.  Track Naming and Scopes
 
    In MOQT, every track has a track name and a track namespace
    associated with it.  A track name identifies an individual track
@@ -395,7 +444,7 @@ Table of Contents
    specify the canonicalization into the bytes in the Track Namespace or
    Track Name such that exact comparison works.
 
-2.3.2.  Connection URL
+2.4.2.  Connection URL
 
    Each track MAY have one or more associated connection URLs specifying
    network hosts through which a track may be accessed.  The syntax of
@@ -611,6 +660,9 @@ Table of Contents
    Objects it contains.  In both cases, a lower value indicates a higher
    priority, with 0 being the highest priority.
 
+   When Objects are contained in Peeps, all Objects in the Peep have the
+   same priority.
+
    The Subscriber Priority is considered first when selecting a
    subscription to send data on within a given session.  When two or
    more subscriptions have equal subscriber priority, the original
@@ -638,9 +690,12 @@ Table of Contents
 
    Within the same Group, and the same priority level, Objects with a
    lower Object Id are always sent before objects with a higher Object
-   Id, regardless of the specified Group Order.  If the priority varies
-   within a Group, higher priority Objects are sent before lower
-   priority Objects.
+   Id, regardless of the specified Group Order.  If the group contains
+   more than one Peep and the priority varies between these Peeps,
+   higher priority Peeps are sent before lower priority Peeps.  If the
+   specified priority of two Peeps in a Group are equal, the lower Peep
+   ID has priority.  Within a Peep, Objects MUST bs sent in increasing
+   Object ID order.
 
    The Group Order cannot be changed via a SUBSCRIBE_UPDATE message, and
    instead an UNSUBSCRIBE and SUBSCRIBE can be used.
@@ -758,7 +813,7 @@ Table of Contents
 5.2.  Publisher Interactions
 
    Publishing through the relay starts with publisher sending ANNOUNCE
-   control message with a Track Namespace (Section 2.3).
+   control message with a Track Namespace (Section 2.4).
 
    Relays MUST ensure that publishers are authorized by:
 
@@ -1147,10 +1202,10 @@ Table of Contents
       with a Duplicate Track Alias error (Section 3.5).
 
    *  Track Namespace: Identifies the namespace of the track as defined
-      in (Section 2.3.1).
+      in (Section 2.4.1).
 
    *  Track Name: Identifies the track name as defined in
-      (Section 2.3.1).
+      (Section 2.4.1).
 
    *  Subscriber Priority: Specifies the priority of a subscription
       relative to other subscriptions in the same session.  Lower
@@ -1318,7 +1373,7 @@ Table of Contents
                   Figure 10: MOQT ANNOUNCE_CANCEL Message
 
    *  Track Namespace: Identifies a track's namespace as defined in
-      (Section 2.3.1).
+      (Section 2.4.1).
 
 6.10.  TRACK_STATUS_REQUEST
 
@@ -1482,7 +1537,7 @@ Table of Contents
                       Figure 16: MOQT ANNOUNCE Message
 
    *  Track Namespace: Identifies a track's namespace as defined in
-      (Section 2.3.1)
+      (Section 2.4.1)
 
    *  Parameters: The parameters are defined in Section 6.1.1.
 
@@ -1499,7 +1554,7 @@ Table of Contents
                      Figure 17: MOQT UNANNOUNCE Message
 
    *  Track Namespace: Identifies a track's namespace as defined in
-      (Section 2.3.1).
+      (Section 2.4.1).
 
 6.17.  TRACK_STATUS
 
@@ -1565,13 +1620,11 @@ Table of Contents
               +======+=====================================+
               |   ID | Stream Type                         |
               +======+=====================================+
-              |  0x0 | OBJECT_STREAM (Section 7.2)         |
+              |  0x1 | OBJECT_DATAGRAM (Section 7.2)       |
               +------+-------------------------------------+
-              |  0x1 | OBJECT_DATAGRAM (Section 7.3)       |
+              | 0x50 | STREAM_HEADER_TRACK (Section 7.3.1) |
               +------+-------------------------------------+
-              | 0x50 | STREAM_HEADER_TRACK (Section 7.4.1) |
-              +------+-------------------------------------+
-              | 0x51 | STREAM_HEADER_GROUP (Section 7.4.2) |
+              | 0x52 | STREAM_HEADER_PEEP (Section 7.3.2)  |
               +------+-------------------------------------+
 
                                  Table 5
@@ -1598,7 +1651,7 @@ Table of Contents
    *  Track Namespace and Track Name: The track this object belongs to.
 
    *  Group ID: The object is a member of the indicated group ID
-      Section 2.2 within the track.
+      Section 2.3 within the track.
 
    *  Object ID: The order of the object within the group.  The IDs
       starts at 0, increasing sequentially for each object within the
@@ -1608,9 +1661,13 @@ Table of Contents
       priority for the Object Section 4.
 
    *  Object Forwarding Preference: An enumeration indicating how a
-      publisher sends an object.  The preferences are Track, Group,
-      Object and Datagram.  An Object MUST be sent according to its
-      Object Forwarding Preference, described below.
+      publisher sends an object.  The preferences are Track, Peep, and
+      Datagram.  An Object MUST be sent according to its Object
+      Forwarding Preference, described below.
+
+   *  Peep ID: The object is a member of the indicated peep ID
+      (Section 2.2) within the group.  This field is omitted if the
+      Object Forwarding Preference is Track or Datagram.
 
    *  Object Status: As enumeration used to indicate missing objects or
       mark the end of a group or track.  See Section 7.1.1.1 below.
@@ -1638,13 +1695,17 @@ Table of Contents
       largest object produced in the group identified by the GroupID.
       This is sent right after the last object in the group.  If the
       ObjectID is 0, it indicates there are no Objects in this Group.
-      This SHOULD be cached.
+      This SHOULD be cached.  A publisher MAY use an end of Group object
+      to signal the end of all open Peeps in a Group.
 
    *  0x4 := Indicates end of Track and Group.  GroupID is one greater
       than the largest group produced in this track and the ObjectId is
       one greater than the largest object produced in that group.  This
       is sent right after the last object in the track.  This SHOULD be
       cached.
+
+   *  0x5 := Indicates end of Peep.  Object ID is one greater than the
+      largest normal object ID in the Peep.
 
    Any other value SHOULD be treated as a protocol error and terminate
    the session with a Protocol Violation (Section 3.5).  Any object with
@@ -1653,51 +1714,7 @@ Table of Contents
    Though some status information could be inferred from QUIC stream
    state, that information is not reliable and cacheable.
 
-   In most cases, messages with a non zero status code are sent on the
-   same stream that an object with that GroupID would have been sent on.
-   The exception to this is when that stream has been reset; in that
-   case they are sent on a new stream.  This is to avoid the status
-   message being lost in cases such as a relay dropping a group and
-   reseting the stream the group is being sent on.
-
-7.2.  Object Stream
-
-   An OBJECT_STREAM message carries a single object on a stream.  An
-   OBJECT_STREAM message MUST be the first and only message on a
-   unidirectional stream.
-
-   An Object received in an OBJECT_STREAM message has an Object
-   Forwarding Preference = Object.
-
-   To send an Object with Object Forwarding Preference = Object, open a
-   stream, serialize object fields below, and terminate the stream.
-
-   OBJECT_STREAM Message {
-     Subscribe ID (i),
-     Track Alias (i),
-     Group ID (i),
-     Object ID (i),
-     Publisher Priority (8),
-     Object Payload Length (i),
-     [Object Status (i)],
-     Object Payload (..),
-   }
-
-                   Figure 19: MOQT OBJECT_STREAM Message
-
-   *  Subscribe ID: Subscription Identifier as defined in Section 6.4.
-
-   *  Track Alias: Identifies the Track Namespace and Track Name as
-      defined in Section 6.4.
-
-   If the Track Namespace and Track Name identified by the Track Alias
-   are different from those specified in the subscription identified by
-   Subscribe ID, the subscriber MUST close the session with a Protocol
-   Violation.
-
-   *  Other fields: As described in Section 7.1.1.
-
-7.3.  Object Datagram
+7.2.  Object Datagram Message
 
    An OBJECT_DATAGRAM message carries a single object in a datagram.
 
@@ -1719,22 +1736,21 @@ Table of Contents
      Object Payload (..),
    }
 
-                  Figure 20: MOQT OBJECT_DATAGRAM Message
+                  Figure 19: MOQT OBJECT_DATAGRAM Message
 
-7.4.  Multi-Object Streams
+7.3.  Streams
 
-   When multiple objects are sent on a stream, the stream begins with a
-   stream header message and is followed by one or more sets of
-   serialized object fields.  If a stream ends gracefully in the middle
-   of a serialized Object, terminate the session with a Protocol
-   Violation.
+   When objects are sent on streams, the stream begins with a stream
+   header message and is followed by one or more sets of serialized
+   object fields.  If a stream ends gracefully in the middle of a
+   serialized Object, terminate the session with a Protocol Violation.
 
-   A publisher SHOULD NOT open more than one multi-object stream at a
-   time with the same stream header message type and fields.
+   A publisher SHOULD NOT open more than one stream at a time with the
+   same stream header message type and fields.
 
    TODO: figure out how a relay closes these streams
 
-7.4.1.  Stream Header Track
+7.3.1.  Stream Header Track
 
    When a stream begins with STREAM_HEADER_TRACK, all objects on the
    stream belong to the track requested in the Subscribe message
@@ -1747,7 +1763,7 @@ Table of Contents
      Publisher Priority (8),
    }
 
-                Figure 21: MOQT STREAM_HEADER_TRACK Message
+                Figure 20: MOQT STREAM_HEADER_TRACK Message
 
    All Objects received on a stream opened with STREAM_HEADER_TRACK have
    an Object Forwarding Preference = Track.
@@ -1766,36 +1782,36 @@ Table of Contents
      Object Payload (..),
    }
 
-                 Figure 22: MOQT Track Stream Object Fields
+                 Figure 21: MOQT Track Stream Object Fields
 
    A publisher MUST NOT send an Object on a stream if its Group ID is
    less than a previously sent Group ID on that stream, or if its Object
-   ID is less than or equal to a previously sent Object ID within a
-   given group on that stream.
+   ID is less than or equal to a previously sent Object ID with the same
+   Group ID.
 
-7.4.2.  Stream Header Group
+7.3.2.  Stream Header Peep
 
-   When a stream begins with STREAM_HEADER_GROUP, all objects on the
+   When a stream begins with STREAM_HEADER_PEEP, all objects on the
    stream belong to the track requested in the Subscribe message
-   identified by Subscribe ID and the group indicated by Group ID.  All
-   objects on the stream have the Publisher Priority specified in the
-   stream header.
+   identified by Subscribe ID and the peep indicated by 'Group ID' and
+   Peep ID.
 
-   STREAM_HEADER_GROUP Message {
+   STREAM_HEADER_PEEP Message {
      Subscribe ID (i),
      Track Alias (i),
      Group ID (i),
+     Peep ID (i),
      Publisher Priority (8),
    }
 
-                Figure 23: MOQT STREAM_HEADER_GROUP Message
+                 Figure 22: MOQT STREAM_HEADER_PEEP Message
 
-   All Objects received on a stream opened with STREAM_HEADER_GROUP have
-   an Object Forwarding Preference = Group.
+   All Objects received on a stream opened with STREAM_HEADER_PEEP have
+   an Object Forwarding Preference = Peep.
 
-   To send an Object with Object Forwarding Preference = Group, find the
-   open stream that is associated with the subscription and Group ID, or
-   open a new one and send the STREAM_HEADER_GROUP if needed, then
+   To send an Object with Object Forwarding Preference = Peep, find the
+   open stream that is associated with the subscription, Group ID and
+   Peep ID, or open a new one and send the STREAM_HEADER_PEEP.  Then
    serialize the following fields.
 
    The Object Status field is only sent if the Object Payload Length is
@@ -1808,13 +1824,13 @@ Table of Contents
      Object Payload (..),
    }
 
-                 Figure 24: MOQT Group Stream Object Fields
+                 Figure 23: MOQT Group Stream Object Fields
 
    A publisher MUST NOT send an Object on a stream if its Object ID is
    less than a previously sent Object ID within a given group in that
    stream.
 
-7.5.  Examples
+7.4.  Examples
 
    Sending a track on one stream:
 
@@ -1836,15 +1852,15 @@ Table of Contents
      Payload = "efgh"
    }
 
-   Sending a group on one stream, with a unordered object in the group
-   appearing on its own stream.
+   Sending a peep on one stream:
 
    Stream = 2
 
-   STREAM_HEADER_GROUP {
+   STREAM_HEADER_PEEP {
      Subscribe ID = 2
      Track Alias = 2
      Group ID = 0
+     Peep ID = 0
      Publisher Priority = 0
    }
    {
@@ -1856,17 +1872,6 @@ Table of Contents
      Object ID = 1
      Object Payload Length = 4
      Payload = "efgh"
-   }
-
-   Stream = 6
-
-   OBJECT_STREAM {
-     Subscribe ID = 3
-     Track Alias = 3
-     Group ID = 0
-     Object ID = 1
-     Publisher Priority = 0
-     Payload = "moqrocks"
    }
 
 8.  Security Considerations
