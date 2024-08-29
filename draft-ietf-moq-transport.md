@@ -1667,10 +1667,19 @@ OBJECT_DATAGRAM Message {
 
 ## Streams
 
-When objects are sent on streams, the stream begins with a stream
-header message and is followed by one or more sets of serialized object fields.
+When objects are sent on streams, the stream begins with a stream header peep
+message and is followed by one or more sets of serialized object fields.
 If a stream ends gracefully in the middle of a serialized Object, terminate the
 session with a Protocol Violation.
+
+Multiple Peeps MAY be sent on a single stream if a session does not have
+enough available streams or if the amount of data already available to send is
+large, and so the backpressure provided by a stream's flow control is valuable.
+This can happen when a subscriber requests a range of Objects that have already
+been published and the publisher can send Objects faster than the subscriber
+can receive them, due to bandwidth, flow control, or other resource limits.
+Either the Group ID or the Peep ID MUST increase with subsequent peeps sent on
+a stream.
 
 A publisher SHOULD NOT open more than one stream at a time with the same stream
 header message type and fields.
@@ -1678,44 +1687,6 @@ header message type and fields.
 
 TODO: figure out how a relay closes these streams
 
-### Stream Header Track
-
-When a stream begins with `STREAM_HEADER_TRACK`, all objects on the stream
-belong to the track requested in the Subscribe message identified by `Subscribe
-ID`.  All objects on the stream have the `Publisher Priority` specified in the
-stream header.
-
-~~~
-STREAM_HEADER_TRACK Message {
-  Subscribe ID (i)
-  Track Alias (i),
-  Publisher Priority (8),
-}
-~~~
-{: #stream-header-track-format title="MOQT STREAM_HEADER_TRACK Message"}
-
-All Objects received on a stream opened with STREAM_HEADER_TRACK have an `Object
-Forwarding Preference` = `Track`.
-
-To send an Object with `Object Forwarding Preference` = `Track`, find the open
-stream that is associated with the subscription, or open a new one and send the
-`STREAM_HEADER_TRACK` if needed, then serialize the following object fields.
-The Object Status field is only sent if the Object Payload Length is zero.
-
-~~~
-{
-  Group ID (i),
-  Object ID (i),
-  Object Payload Length (i),
-  [Object Status (i)],
-  Object Payload (..),
-}
-~~~
-{: #object-track-format title="MOQT Track Stream Object Fields"}
-
-A publisher MUST NOT send an Object on a stream if its Group ID is less than a
-previously sent Group ID on that stream, or if its Object ID is less than or
-equal to a previously sent Object ID with the same Group ID.
 
 ### Stream Header Peep
 
