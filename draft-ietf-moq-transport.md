@@ -915,7 +915,9 @@ The DELIVERY TIMEOUT parameter (key 0x03) MAY appear in a SUBSCRIBE,
 SUBSCRIBE_OK, or a SUBSCRIBE_UDPATE message.  It is the duration in milliseconds
 the relay SHOULD continue to attempt forwarding Objects after they have been
 received.  The start time for the timeout is based on when the beginning of the
-Object is received, and does not depend upon the forwarding preference.
+Object is received, and does not depend upon the forwarding preference. There is
+no explicit signal that an Object was not sent because the delivery timeout
+was exceeded.
 
 If both the subscriber and publisher specify the parameter, they use the min of the
 two values for the subscription.  The publisher SHOULD always specify the value
