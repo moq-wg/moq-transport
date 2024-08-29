@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2024-08-27T01:20:30.625335+00:00",
+  "timestamp": "2024-08-29T01:21:37.049239+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -17794,6 +17794,37 @@
           "body": "> Having complete names from the name root to the tree node you want to point to is usually a Good Thing (experience with DNS searchpaths).\r\n\r\n+1",
           "createdAt": "2024-08-24T05:10:42Z",
           "updatedAt": "2024-08-24T05:10:42Z"
+        }
+      ]
+    },
+    {
+      "number": 511,
+      "id": "I_kwDOG2Ho4M6UYUxE",
+      "title": "Remove MAX_SUBSCRIBE_ID parameter",
+      "url": "https://github.com/moq-wg/moq-transport/issues/511",
+      "state": "OPEN",
+      "author": "vasilvv",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "It is 100% redundant, since one can just send a MAX_SUBSCRIBE_ID control message immediately after the SETUP.",
+      "createdAt": "2024-08-27T13:38:17Z",
+      "updatedAt": "2024-08-28T19:09:33Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I have no strong opinion on this, what do others think?\r\n\r\nQUIC has a transport param for max streams, WebTransport does not as two different examples.  Both appear to work well.",
+          "createdAt": "2024-08-28T18:01:06Z",
+          "updatedAt": "2024-08-28T18:01:06Z"
+        },
+        {
+          "author": "vasilvv",
+          "authorAssociation": "COLLABORATOR",
+          "body": "QUIC needs it to be a transport param in the ClientHello, because otherwise it would have to wait one RTT to send client's MAX_STREAMS.",
+          "createdAt": "2024-08-28T19:09:32Z",
+          "updatedAt": "2024-08-28T19:09:32Z"
         }
       ]
     }
@@ -64339,13 +64370,13 @@
       "labels": [],
       "body": "I have foregone any premature optimization of the encodings here.\r\n\r\nAsking @janaiyengar to take a first look.",
       "createdAt": "2024-07-26T23:09:07Z",
-      "updatedAt": "2024-08-26T21:57:05Z",
+      "updatedAt": "2024-08-28T17:54:00Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "62ea1885aaa75e46d0e71dc16a8a70ae12c28f42",
       "headRepository": "martinduke/moq-transport",
       "headRefName": "peeps",
-      "headRefOid": "03ec980379bb875c3c1b1a912768ddcf31bd5983",
+      "headRefOid": "4c13bd1e00469a037d1fca6d2387fb235947bf74",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -64448,6 +64479,13 @@
           "body": "> For bikesheading on the name, I make these two proposals:\r\n> \r\n> 1. \"Stream\" - this correlates directly with the mapping to QUIC. Simple to comprehend and explain.\r\n> 2. \"Block\" - this denotes contiguity and avoids overloaded use of the term \"stream\".\r\n\r\nBlock and Stream work for me.\r\n\r\nI was going to say that I prefer \"QUIC Stream\", but given this might be over WebTransport, technically it'd be a WebTransport stream, so defining the term \"Stream\" at the top of the document should make that clear.",
           "createdAt": "2024-08-25T12:47:03Z",
           "updatedAt": "2024-08-25T12:47:03Z"
+        },
+        {
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "body": "One more name suggestion : SubGroup",
+          "createdAt": "2024-08-27T22:14:58Z",
+          "updatedAt": "2024-08-27T22:14:58Z"
         }
       ],
       "reviews": [
@@ -65895,6 +65933,199 @@
               "updatedAt": "2024-08-26T18:05:41Z"
             }
           ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6G-dkS",
+          "commit": {
+            "abbreviatedOid": "03ec980"
+          },
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-27T21:40:10Z",
+          "updatedAt": "2024-08-27T21:40:10Z",
+          "comments": [
+            {
+              "originalPosition": 4,
+              "body": "Cullen's use case: the relay might have received packets out of order, possibly because it's non-MoQT upstream. In this case, the only choices are drop it, send out of order in the stream, or open new stream. third choice is best.",
+              "createdAt": "2024-08-27T21:40:10Z",
+              "updatedAt": "2024-08-27T21:40:10Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6G-fN5",
+          "commit": {
+            "abbreviatedOid": "03ec980"
+          },
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-27T21:45:46Z",
+          "updatedAt": "2024-08-27T21:45:47Z",
+          "comments": [
+            {
+              "originalPosition": 4,
+              "body": "QuicStreamIndicator as name ?",
+              "createdAt": "2024-08-27T21:45:47Z",
+              "updatedAt": "2024-08-27T21:45:47Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6G-iVl",
+          "commit": {
+            "abbreviatedOid": "03ec980"
+          },
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-27T21:57:13Z",
+          "updatedAt": "2024-08-27T21:57:14Z",
+          "comments": [
+            {
+              "originalPosition": 66,
+              "body": "Cullen makes the point that the current algorithm works, if one views objects as the thing that holds priority. Within the group, the most important objects (peeps) will go first.",
+              "createdAt": "2024-08-27T21:57:13Z",
+              "updatedAt": "2024-08-27T21:57:14Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6G-mBI",
+          "commit": {
+            "abbreviatedOid": "03ec980"
+          },
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-27T22:09:57Z",
+          "updatedAt": "2024-08-27T22:09:57Z",
+          "comments": [
+            {
+              "originalPosition": 124,
+              "body": "Martin convinced me this was fine and I was confused. And the more I thought about, we don't get many gains by closing the streams before the end of group so I would be fine with this as is and also fine with we just use end of group. ",
+              "createdAt": "2024-08-27T22:09:57Z",
+              "updatedAt": "2024-08-27T22:09:57Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6G-6ZV",
+          "commit": {
+            "abbreviatedOid": "03ec980"
+          },
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-27T23:29:36Z",
+          "updatedAt": "2024-08-27T23:29:36Z",
+          "comments": [
+            {
+              "originalPosition": 4,
+              "body": "took the normative text (ish), closing although the naming bikeshed continues.",
+              "createdAt": "2024-08-27T23:29:36Z",
+              "updatedAt": "2024-08-27T23:29:36Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6G-6lu",
+          "commit": {
+            "abbreviatedOid": "03ec980"
+          },
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-27T23:30:40Z",
+          "updatedAt": "2024-08-27T23:30:41Z",
+          "comments": [
+            {
+              "originalPosition": 21,
+              "body": "@ianswett I don't understand how this allows Object ID to decrease, unless you mean that a higher object ID from one Peep could come before a lower one in a different peep. But that's a feature not a bug.",
+              "createdAt": "2024-08-27T23:30:40Z",
+              "updatedAt": "2024-08-27T23:30:54Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6HHKfh",
+          "commit": {
+            "abbreviatedOid": "03ec980"
+          },
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-28T16:49:04Z",
+          "updatedAt": "2024-08-28T16:49:04Z",
+          "comments": [
+            {
+              "originalPosition": 124,
+              "body": "Talking offline to @fluffy, he is now fine with the end of Peep object, though we agreed that the publisher MAY use an end of Group object to implicitly close all open Peeps.",
+              "createdAt": "2024-08-28T16:49:04Z",
+              "updatedAt": "2024-08-28T16:49:04Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6HHL1o",
+          "commit": {
+            "abbreviatedOid": "3389415"
+          },
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-28T16:52:02Z",
+          "updatedAt": "2024-08-28T16:52:02Z",
+          "comments": [
+            {
+              "originalPosition": 66,
+              "body": "@afrind makes the point that it's hard to implement this because you'd have to change stream priorities mid-stream as the object IDs change, which QUIC APIs are generally bad it.\r\n\r\nI'm not deeply concerned either way, as priorities are somewhat advisories. I'd just like these two to come to some agreement.",
+              "createdAt": "2024-08-28T16:52:02Z",
+              "updatedAt": "2024-08-28T16:52:02Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6HHnv-",
+          "commit": {
+            "abbreviatedOid": "4c13bd1"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-28T17:51:55Z",
+          "updatedAt": "2024-08-28T17:51:56Z",
+          "comments": [
+            {
+              "originalPosition": 21,
+              "body": "Sorry, I think my comments were confusing, please disregard them for now.",
+              "createdAt": "2024-08-28T17:51:56Z",
+              "updatedAt": "2024-08-28T17:51:56Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6HHorv",
+          "commit": {
+            "abbreviatedOid": "4c13bd1"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2024-08-28T17:54:00Z",
+          "updatedAt": "2024-08-28T17:54:00Z",
+          "comments": []
         }
       ]
     },
@@ -67660,7 +67891,7 @@
       "labels": [],
       "body": "This is another effort at the SUBSCRIBE vs FETCH concept.\r\n\r\nI've reduced the number of modes for SUBSCRIBE to 3, and only one of them subscribes to Objects in the future.\r\n\r\nI removed Latest Group because the other two modes operate on the latest Object and I wasn't sure how practical it is to expect every relay to cache all of the latest group.  And if they don't, implementations get complex.\r\n\r\nThis is an opinionated approach, but it has quite a bit of flexibility now that the new priority design has landed.  In particular, it gives the subscriber lots of control over what order Objects on either side of the live head are delivered.\r\n\r\n\r\nFixes #368 \r\nCould be extended to fix #350",
       "createdAt": "2024-08-25T02:48:39Z",
-      "updatedAt": "2024-08-26T13:16:15Z",
+      "updatedAt": "2024-08-27T13:52:15Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "636b5dc056cbd6d3b7df6bffcabb7aa336ecda7f",
@@ -67678,6 +67909,13 @@
           "body": "This PR does not simplify subscription for non-real-time live stream clients (i.e live sports). These players need a variable buffer before start-up. To achieve this, they need to request several groups behind latest and then all future groups. The suggestion in the PR is for these clients to \"it can send a SUBSCRIBE for the Latest Object followed by a SUBSCRIBE of type AbsoluteStart or AbsoluteRange.\". The trouble with this is that it complicates the player's handling of the received data. It must first make a request for Latest Object. This will give it the latest and future objects and data will begin to flow immediately after it makes this request. However the player cannot place this data in a decode buffer. It must store it in a temporary buffer and hold it. Based the info it receives in the SUBSCRIBE_OK, it can then make a second request for the absolute range preceding this latest object. That data it can place it its decode buffer and begin decoding and it must then continuously copy data from the first receive buffer in to the decode buffer. This is unnecessarily messy, especially as the recommended workflow. \r\n\r\nA cleaner and simpler approach would be for the player to be able to make a single SUBSCRIBE request and be able to pipe that response directly in to its decode buffer. This can be achieve by either modifying the proposed AbsoluteStart filter so that it doesn't stop at the Latest Object, or adding a new filter type which is \"AbsoluteStart and carry on\" (bikeshead away). So the player wanting to start behind live would first make a TRACK_STATUS_REQUEST, which would give it the latest Group and Object. With this information it could calculate where it wanted to start behind live and then make a SUBSCRIBE request with the \"AbsoluteStart and carry on\" filter. It could pipe the response of this request directly in to its decode buffer and begin playback. \r\n",
           "createdAt": "2024-08-26T09:45:00Z",
           "updatedAt": "2024-08-26T09:45:00Z"
+        },
+        {
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Agree with @kixelated \r\n\r\nMy proposal would be:\r\n \r\n1. Keep LatestGroup and LatestObject in subscribe with the restriction that only one of each can be issued. Remove other filter types.\r\n2. Remove AbsoluteStart altogether.\r\n3. Define new Fetch API with just the AbsoluteRange. \r\n\r\nApplications using Fetch and unaware of the group information can use TrackStatusRequest to find the range of groups to request for. They can optionally specify a control parameter for flow rate vs the network rate for delivery. Fetch api also will attempt fill holes by requesting upstream as needed, Also specifying group delivery order might still be useful.\r\n\r\nThis will allow players to use appropriate buffer for starting from history and at the right time ( when they know they have right amount of data in buffer to move onto live data, for example) shall issue Subscribe to continue from the live edge. \r\n\r\n",
+          "createdAt": "2024-08-27T13:37:10Z",
+          "updatedAt": "2024-08-27T13:52:15Z"
         }
       ],
       "reviews": [
