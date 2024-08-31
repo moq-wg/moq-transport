@@ -1670,15 +1670,15 @@ message and is followed by one or more sets of serialized object fields.
 If a stream ends gracefully in the middle of a serialized Object, terminate the
 session with a Protocol Violation.
 
-Multiple Peeps MAY be sent on a single stream if a session does not have
-enough available streams or if the amount of data already available to send is
-large, and so the backpressure provided by a stream's flow control is valuable.
-This can happen when a subscriber requests a range of Objects that have already
-been published and the publisher can send Objects faster than the subscriber
-can receive them, due to bandwidth, flow control, or other resource limits.
-For a given Group ID, the Peep ID MUST increase with subsequent peeps sent on
-a stream.  The Group ID within a stream MUST be in the Group Order requested by
-the subscriber.
+Multiple Peeps from a single subscription MAY be sent on the same stream if a
+session does not have enough available streams or if the amount of data already
+available to send is large, and so the backpressure provided by a stream's flow
+control is valuable. This can happen when a subscriber requests a range of
+Objects that have already been published and the publisher can send Objects
+faster than the subscriber can receive them, due to bandwidth, flow control,
+or other resource limits. For a given Group ID, the Peep ID MUST increase with
+subsequent peeps sent on a stream.  The Group ID within a stream MUST be in the
+Group Order requested by the subscriber.
 
 A publisher SHOULD NOT open more than one stream at a time with the same stream
 header message type and fields.
