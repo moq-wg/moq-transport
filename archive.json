@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2024-08-29T01:21:37.049239+00:00",
+  "timestamp": "2024-09-01T01:41:03.234364+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -13421,7 +13421,7 @@
       ],
       "body": "Current prose should be updated to indicate that \r\n1. ObjectID and GroupID are integers. The Object header implicitly defines this, but it should be stated explicitly.\r\n2. ObjectID MUST only increment by 1\r\n3. The GroupID MUST always increase. \r\n4. The GroupID may start at any value >= 0\r\n5. The GroupID can increase by any value >= 1. ",
       "createdAt": "2024-02-07T17:28:23Z",
-      "updatedAt": "2024-08-14T17:03:27Z",
+      "updatedAt": "2024-08-29T21:08:10Z",
       "closedAt": null,
       "comments": [
         {
@@ -13472,6 +13472,20 @@
           "body": "Now that there's an object status code of 0x1 to signal gaps, object ID MUST start at 0 and increment by 1.",
           "createdAt": "2024-08-14T17:03:26Z",
           "updatedAt": "2024-08-14T17:03:26Z"
+        },
+        {
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "The more I think about, I'm not seeing why the moq layer needs any restrictions on any of these. Yes, an applications like warp on top might define how they are used but behavior of things at the moq level does not seem to require constraints on any of this. I guess I am trying to understand what problem we are trying to solve ?",
+          "createdAt": "2024-08-29T20:24:42Z",
+          "updatedAt": "2024-08-29T20:24:42Z"
+        },
+        {
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "It makes it quite a bit easier to implement. If I'm doing stream-per-group, I know that object ID 0 starts a group and a stream.",
+          "createdAt": "2024-08-29T21:08:09Z",
+          "updatedAt": "2024-08-29T21:08:09Z"
         }
       ]
     },
@@ -17142,7 +17156,7 @@
       ],
       "body": "When we originally added track-per-stream, I was skeptical of it being useful, as it's basically equivalent to sending media over TCP, which is a poor fit for latency-sensitive applications (and something that people already can do equally well using other widely-adopted protocols).\r\n\r\nNow that we have some further experience with this, the drawbacks of supporting track-per-stream become more apparent:\r\n1. There's a non-trivial amount of code required to support each individual stream mapping.\r\n2. There's a non-trivial amount of design effort and specification text required to support each individual stream mapping.\r\n3. Due to its nature, track-per-stream has its unique design challenges that other mappings don't have (if anything goes wrong, the entire subscription has to be thrown out, making things like timeouts hard to define).\r\n\r\nIn the narrow use cases where stream-per-track is actually useful, the application can use stream-per-group, and reassemble things itself.  Thus, I'm strongly in favor of removing it, at least as a publisher-selected stream mapping (we can discuss what FETCH does when we get back to that).",
       "createdAt": "2024-07-05T17:48:04Z",
-      "updatedAt": "2024-08-05T16:16:19Z",
+      "updatedAt": "2024-08-30T13:46:16Z",
       "closedAt": null,
       "comments": [
         {
@@ -17172,6 +17186,20 @@
           "body": "One point from @TimEvens \r\n\r\n> \r\n> A **track** is an overlay that can be depicted as a line from publisher to each subscriber. QUIC streams are per-hop and are **NOT** end-to-end via relay(s) in MOQT. The stream used or number of streams used to deliver data via the track overlay should not suffer from a single hop that has a problem. A more robust infrastructure would have mitigation and recovery per-hop to limit the amount of churn experienced by the unaffected.\r\n> \r\n\r\nBut in effect, they are end to end, because Forwarding Preference is a track property. If there is any stream-constrained hop in the path, everyone has to use stream-per-track to mitigate the problem. But this decision is made at the original publisher with no a-priori knowledge of any such constraints.\r\n\r\n\r\n",
           "createdAt": "2024-08-05T16:16:18Z",
           "updatedAt": "2024-08-05T16:16:18Z"
+        },
+        {
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "I asked around more for use cases and did not get any that could not easily be done with HTTP. I really don't care if we get rid of these or keep stream per track . ",
+          "createdAt": "2024-08-29T20:03:37Z",
+          "updatedAt": "2024-08-29T20:03:37Z"
+        },
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "The only compelling uses for sending on a single stream I've heard are conserving streams and creating flow control backpressure when a large amount of data is available to send all at once.\r\n\r\nNow that we have peeps and they have defined properties, I believe a publisher could decide to put multiple on a stream for a single subscription, particularly for fetch type use cases, so I wrote #516 ",
+          "createdAt": "2024-08-30T13:46:15Z",
+          "updatedAt": "2024-08-30T13:46:15Z"
         }
       ]
     },
@@ -17684,7 +17712,7 @@
       "labels": [],
       "body": "The text we landed for [draft-05](https://www.ietf.org/archive/id/draft-ietf-moq-transport-05.html) to define priorities (https://github.com/moq-wg/moq-transport/pull/470) indicates that we should use a 8 bits (`x (L)` where `L` is `8`) to convey subscriber priority and similarly a byte to convey publisher priority.\r\n\r\n> `Subscriber Priority (8),`\r\n( https://www.ietf.org/archive/id/draft-ietf-moq-transport-05.html#section-6.4.2-2 )\r\n\r\n> Publisher Priority: An 8 bit integer indicating the publisher's priority for the Object\r\n ( https://www.ietf.org/archive/id/draft-ietf-moq-transport-05.html#section-6.11.1 )\r\n\r\nThe text also indicates that lower values have higher priority which I read as meaning 1 (`0000 0001`) should be sent before 10 (`0000 1010`), ~~but we don't seem to explicitly indicate anywhere whether we expect these values to be interpreted as signed or unsigned integers.~~\r\n\r\n~~Should `1000 0101` be sent before or after `0000 0101`?~~ (After)\r\n\r\n~~Is `1000 0101` -5 (i8) or 133 (u8)?~~ `1000 0101` is 133 (u8)\r\n\r\nEdit: We should probably recommend that implementations use a mid-range value like `127` as a default to allow for prioritizing both above and below it. (The MoQT spec doesn't need to **define** a default since these values are currently always explicit on the wire, but I think it would be helpful to provide guidance here.)",
       "createdAt": "2024-08-09T19:37:53Z",
-      "updatedAt": "2024-08-23T14:28:25Z",
+      "updatedAt": "2024-08-29T20:21:28Z",
       "closedAt": null,
       "comments": [
         {
@@ -17707,6 +17735,13 @@
           "body": "I'm fine with some editorial text here if that's how we want to resolve it? (PRs welcome @englishm )\r\n\r\nI'm also ok with it being signed, since it it nice for 0 to be a 'default' value, but we don't use signed integers anywhere else in MoQ, so I'm a bit concerned that using them in exactly one spot could be confusing or error prone?",
           "createdAt": "2024-08-23T14:28:24Z",
           "updatedAt": "2024-08-23T14:28:24Z"
+        },
+        {
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "In some cases, things would work better if we allocated some ranges of priorities to specific DSCP like \"less than best effort\" or \"best effort\". That would end up making the actually numbers here have absolute meaning too instead of just relative meaning. ",
+          "createdAt": "2024-08-29T20:21:27Z",
+          "updatedAt": "2024-08-29T20:21:27Z"
         }
       ]
     },
@@ -17809,7 +17844,7 @@
       "labels": [],
       "body": "It is 100% redundant, since one can just send a MAX_SUBSCRIBE_ID control message immediately after the SETUP.",
       "createdAt": "2024-08-27T13:38:17Z",
-      "updatedAt": "2024-08-28T19:09:33Z",
+      "updatedAt": "2024-08-29T22:19:19Z",
       "closedAt": null,
       "comments": [
         {
@@ -17825,8 +17860,89 @@
           "body": "QUIC needs it to be a transport param in the ClientHello, because otherwise it would have to wait one RTT to send client's MAX_STREAMS.",
           "createdAt": "2024-08-28T19:09:32Z",
           "updatedAt": "2024-08-28T19:09:32Z"
+        },
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "That brings up the question of how 0-RTT works with MoQ.  If the client is the subscriber and one was using MoQ over raw QUIC, it could remember the values from the previous MoQ session similar to how we remember SETTINGs in HTTP/3 if we wanted to?\r\n\r\nThat would allow a complete 0-RTT SUBSCRIBE, if we want that.  We can also think about this more later when we're trying to optimize the handshake latency.",
+          "createdAt": "2024-08-29T22:19:19Z",
+          "updatedAt": "2024-08-29T22:19:19Z"
         }
       ]
+    },
+    {
+      "number": 512,
+      "id": "I_kwDOG2Ho4M6UuskQ",
+      "title": "Decide whether the current Object ID, Priority, and Peep ID priority text is what we want",
+      "url": "https://github.com/moq-wg/moq-transport/issues/512",
+      "state": "OPEN",
+      "author": "ianswett",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [
+        "Needs Discussion"
+      ],
+      "body": "There were at least two approaches discussed in #494 and previously at the Aug 21st interim we discussed whether Peep Id should be used as the priority field, and possibly be only 8 bits.\r\n\r\n",
+      "createdAt": "2024-08-29T18:31:29Z",
+      "updatedAt": "2024-08-29T18:31:29Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 513,
+      "id": "I_kwDOG2Ho4M6Uvh7i",
+      "title": "Auth Cookies Not Specified",
+      "url": "https://github.com/moq-wg/moq-transport/issues/513",
+      "state": "OPEN",
+      "author": "fluffy",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "This is a placeholder that we need to sort out how Auth and auth tokens work in MoQ. \r\n\r\nRequirements:\r\n\r\n1. Can control what users can connect to a relay. \r\n2. Can control if a user can publish to a given namespace.\r\n3. Can control if a user can subscribe to a given namespace. \r\n4. Can update auth for long lived track that is longer than token lifetime\r\n5. Design that allows for relay to validate tokens locally \r\n6. As much as possible, reuse approaches used for existing systems \r\n\r\nWhat am I missing on requirements  ",
+      "createdAt": "2024-08-29T20:10:00Z",
+      "updatedAt": "2024-08-30T09:57:12Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "wilaw",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "For point [6], we might consider support for CTA 5007 - Common Access Token (CAT), a standard (soon) published by the CTA. This is a CBOR token for compactness,  with many claim fields as well a boolean operations for composite claims. It is likely to become a popular standard for OTT content, so harmonizing MoQT with that side of the industry brings some efficiency gains. \r\n\r\n\r\nFor additional requirements, support both symmetric and asymmetric ciphers. ",
+          "createdAt": "2024-08-30T09:57:11Z",
+          "updatedAt": "2024-08-30T09:57:11Z"
+        }
+      ]
+    },
+    {
+      "number": 514,
+      "id": "I_kwDOG2Ho4M6Uvizv",
+      "title": "DOS Considerations",
+      "url": "https://github.com/moq-wg/moq-transport/issues/514",
+      "state": "OPEN",
+      "author": "fluffy",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "The draft needs to be systematically hardened against DOS attacks and also verify that it can not be used to amplify DOS attacks against others\r\n\r\n",
+      "createdAt": "2024-08-29T20:12:02Z",
+      "updatedAt": "2024-08-29T20:12:02Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 515,
+      "id": "I_kwDOG2Ho4M6UvjOK",
+      "title": "Privacy Considerations",
+      "url": "https://github.com/moq-wg/moq-transport/issues/515",
+      "state": "OPEN",
+      "author": "fluffy",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "\r\nWe need to systematically look across the privacy considerations of the draft \r\n\r\n",
+      "createdAt": "2024-08-29T20:12:57Z",
+      "updatedAt": "2024-08-29T20:12:57Z",
+      "closedAt": null,
+      "comments": []
     }
   ],
   "pulls": [
@@ -23830,7 +23946,7 @@
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "c7feeb4777b1dd696e3eac6037eea3e5f84b9954",
-      "headRepository": "suhasHere/warp-draft",
+      "headRepository": null,
       "headRefName": "dm-relays-interim",
       "headRefOid": "20371d110e3e50cac5d6bc9a2da975c7564968a6",
       "closedAt": "2023-05-05T16:57:20Z",
@@ -25274,7 +25390,7 @@
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "c7feeb4777b1dd696e3eac6037eea3e5f84b9954",
-      "headRepository": "suhasHere/warp-draft",
+      "headRepository": null,
       "headRefName": "control-channel",
       "headRefOid": "7bb5ee97309d6dbd98818d02c833981686476305",
       "closedAt": "2023-05-05T19:47:47Z",
@@ -26102,7 +26218,7 @@
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "c7feeb4777b1dd696e3eac6037eea3e5f84b9954",
-      "headRepository": "suhasHere/warp-draft",
+      "headRepository": null,
       "headRefName": "pub_authz",
       "headRefOid": "e34a3b938e6b8182b02abe321d20fafb58077355",
       "closedAt": "2023-05-05T16:57:55Z",
@@ -26497,7 +26613,7 @@
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "c7feeb4777b1dd696e3eac6037eea3e5f84b9954",
-      "headRepository": "suhasHere/warp-draft",
+      "headRepository": null,
       "headRefName": "objects",
       "headRefOid": "b200599e180be30c9c0dae814717f0d5e7ecaa88",
       "closedAt": "2023-03-13T23:08:44Z",
@@ -64363,24 +64479,26 @@
       "id": "PR_kwDOG2Ho4M52oDZM",
       "title": "Peeps First Attempt",
       "url": "https://github.com/moq-wg/moq-transport/pull/494",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "martinduke",
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
       "labels": [],
       "body": "I have foregone any premature optimization of the encodings here.\r\n\r\nAsking @janaiyengar to take a first look.",
       "createdAt": "2024-07-26T23:09:07Z",
-      "updatedAt": "2024-08-28T17:54:00Z",
+      "updatedAt": "2024-08-29T14:29:33Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "62ea1885aaa75e46d0e71dc16a8a70ae12c28f42",
       "headRepository": "martinduke/moq-transport",
       "headRefName": "peeps",
       "headRefOid": "4c13bd1e00469a037d1fca6d2387fb235947bf74",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "closedAt": "2024-08-29T14:29:33Z",
+      "mergedAt": "2024-08-29T14:29:33Z",
+      "mergedBy": "ianswett",
+      "mergeCommit": {
+        "oid": "fbcc33d5691f24ce869ac2aa4d9b1b29ef342eef"
+      },
       "comments": [
         {
           "author": "vasilvv",
@@ -64486,6 +64604,13 @@
           "body": "One more name suggestion : SubGroup",
           "createdAt": "2024-08-27T22:14:58Z",
           "updatedAt": "2024-08-27T22:14:58Z"
+        },
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Merging with the understanding that we'll continue to discuss how prioritization should work.",
+          "createdAt": "2024-08-29T14:29:29Z",
+          "updatedAt": "2024-08-29T14:29:29Z"
         }
       ],
       "reviews": [
@@ -66134,7 +66259,7 @@
       "id": "PR_kwDOG2Ho4M53Abkg",
       "title": "Editorial follow-up on Delivery Timeout",
       "url": "https://github.com/moq-wg/moq-transport/pull/495",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "ianswett",
       "authorAssociation": "COLLABORATOR",
       "assignees": [
@@ -66145,30 +66270,32 @@
       ],
       "body": "Alan's suggestion",
       "createdAt": "2024-07-31T14:54:08Z",
-      "updatedAt": "2024-08-23T22:53:58Z",
+      "updatedAt": "2024-08-29T18:42:46Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
-      "baseRefOid": "636b5dc056cbd6d3b7df6bffcabb7aa336ecda7f",
+      "baseRefOid": "fbcc33d5691f24ce869ac2aa4d9b1b29ef342eef",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "ianswett-no-explicit-signal",
-      "headRefOid": "a3c53bfc85bceae9ff6c29265eb7e970f9c7f621",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "headRefOid": "091399887d3bdf069dc941467091bb6ba7d87ff1",
+      "closedAt": "2024-08-29T18:42:46Z",
+      "mergedAt": "2024-08-29T18:42:46Z",
+      "mergedBy": "ianswett",
+      "mergeCommit": {
+        "oid": "854b26a943663cd393d23b6f8ce23b3547145792"
+      },
       "comments": [],
       "reviews": [
         {
           "id": "PRR_kwDOG2Ho4M6GmVrx",
           "commit": {
-            "abbreviatedOid": "a3c53bf"
+            "abbreviatedOid": "0913998"
           },
           "author": "fluffy",
           "authorAssociation": "CONTRIBUTOR",
           "state": "APPROVED",
           "body": "",
           "createdAt": "2024-08-23T22:53:58Z",
-          "updatedAt": "2024-08-23T22:53:58Z",
+          "updatedAt": "2024-08-29T18:37:23Z",
           "comments": []
         }
       ]
@@ -66258,15 +66385,15 @@
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [],
-      "body": "This message suite allows subscribers to express interest in ANNOUNCE/UNANNOUNCE for set of namespaces that match a prefix.  To accomplish safe prefix matching, Track Namesapce is redefined from a single byte array to a N-Tuple of byte arrays.\r\n\r\nFixes: #484",
+      "body": "This message suite allows subscribers to express interest in ANNOUNCE/UNANNOUNCE for set of namespaces that match a prefix.  To accomplish safe prefix matching, Track Namesapce is redefined from a single byte array to a N-Tuple of byte arrays.\r\n\r\nFixes #484\r\nCloses #253",
       "createdAt": "2024-08-05T21:31:01Z",
-      "updatedAt": "2024-08-26T20:51:56Z",
+      "updatedAt": "2024-08-31T19:37:46Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
-      "baseRefOid": "e336866faa3b8af70890f49685706318b7e5af9a",
+      "baseRefOid": "854b26a943663cd393d23b6f8ce23b3547145792",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "subscribe-namespace",
-      "headRefOid": "e71ba85d32c24a31ed738c3fde75d5bb4dc0fde9",
+      "headRefOid": "426c3c947d7ae16eb51adc4ad01ce15581b8e0a5",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -66320,6 +66447,13 @@
           "body": "Looking at #508 later after lands seems fine to me ",
           "createdAt": "2024-08-26T12:59:31Z",
           "updatedAt": "2024-08-26T12:59:31Z"
+        },
+        {
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "I hope we can get agenda time to talk about this one at the next call. This add critical functionally to moq that I would really like to have included even if we still needed time and implementation experience to get all the details sorted. ",
+          "createdAt": "2024-08-29T20:00:50Z",
+          "updatedAt": "2024-08-29T20:00:50Z"
         }
       ],
       "reviews": [
@@ -66766,14 +66900,14 @@
         {
           "id": "PRR_kwDOG2Ho4M6GmPLB",
           "commit": {
-            "abbreviatedOid": "e71ba85"
+            "abbreviatedOid": "426c3c9"
           },
           "author": "fluffy",
           "authorAssociation": "CONTRIBUTOR",
           "state": "APPROVED",
           "body": "Like the direction of this and it makes a bunch of things much easier to do. ",
           "createdAt": "2024-08-23T22:08:56Z",
-          "updatedAt": "2024-08-23T22:47:14Z",
+          "updatedAt": "2024-08-29T19:06:08Z",
           "comments": [
             {
               "originalPosition": 8,
@@ -66898,6 +67032,66 @@
               "body": "> If you want all the ANNOUNCE messages you could now use SUBSCRIBE_NAMESPACE with no prefix, correct?\r\n\r\nCorrect.\r\n\r\n> When and how does one decide to send you a blind ANNOUNCE message?\r\n\r\nThe only place where moqt requires ANNOUNCE is when the publisher is connected to a generic relay.  There are other uses but I think they will be described in higher level protocols?",
               "createdAt": "2024-08-26T20:49:13Z",
               "updatedAt": "2024-08-26T20:51:56Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6HTlFk",
+          "commit": {
+            "abbreviatedOid": "426c3c9"
+          },
+          "author": "fluffy",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-29T19:56:27Z",
+          "updatedAt": "2024-08-29T19:56:27Z",
+          "comments": [
+            {
+              "originalPosition": 8,
+              "body": "yah, I like that x(tuple) proposal. ( and of course I don't care deeply if we keep it like it is, either way works for me ) ",
+              "createdAt": "2024-08-29T19:56:27Z",
+              "updatedAt": "2024-08-29T19:56:27Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6HUoFd",
+          "commit": {
+            "abbreviatedOid": "426c3c9"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-29T22:14:07Z",
+          "updatedAt": "2024-08-29T22:14:07Z",
+          "comments": [
+            {
+              "originalPosition": 132,
+              "body": "Given this design, I think saying you can't have two overlapping SUBSCRIBE_NAMESPACEs works and I can't see any case it causes problems.",
+              "createdAt": "2024-08-29T22:14:07Z",
+              "updatedAt": "2024-08-29T22:14:07Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6HcmPp",
+          "commit": {
+            "abbreviatedOid": "426c3c9"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-08-30T13:50:37Z",
+          "updatedAt": "2024-08-30T13:50:37Z",
+          "comments": [
+            {
+              "originalPosition": 127,
+              "body": "I like it, but I'd like to move forward with this first, because it unlocks some other follow-on changes.",
+              "createdAt": "2024-08-30T13:50:37Z",
+              "updatedAt": "2024-08-30T13:50:37Z"
             }
           ]
         }
@@ -67946,6 +68140,54 @@
           "comments": []
         }
       ]
+    },
+    {
+      "number": 516,
+      "id": "PR_kwDOG2Ho4M555Y51",
+      "title": "Remove track per stream",
+      "url": "https://github.com/moq-wg/moq-transport/pull/516",
+      "state": "OPEN",
+      "author": "ianswett",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "And allow implementations to send multiple Peeps sequentially on a single stream if they want.\r\n\r\nFixes #480\r\nMay fix #490\r\nMay fix #476",
+      "createdAt": "2024-08-29T22:34:01Z",
+      "updatedAt": "2024-08-31T19:52:27Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "854b26a943663cd393d23b6f8ce23b3547145792",
+      "headRepository": "moq-wg/moq-transport",
+      "headRefName": "ianswett-no-track-stream",
+      "headRefOid": "27e4b3df9f19b85275a039a8f9bf9a4c8a688dce",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [
+        {
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "body": "IMO multiple peeps per stream is even worse than a stream per track. You inherit all of the problems (priorities, head-of-line blocking, inability to reset) but now it's implicit rather than explicit.\r\n\r\nEven worse, the text doesn't require that peeps share the same track/subscription.\r\n\r\nI don't think MAX_STREAMS is an issue worth degrading the protocol. Make implementations raise the limit rather than impose unnecessary HoLB.\r\n\r\nSo IMO just delete a track per stream and offer no replacement. Make a stream for each group, and if you're blocked by MAX_STREAMS before MAX_DATA then the limit needs to be raised. ",
+          "createdAt": "2024-08-30T14:50:00Z",
+          "updatedAt": "2024-08-30T14:50:00Z"
+        },
+        {
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I think we just landed a PR saying a PEEP == Stream. I am bit confused on the wording of multiple peeps per stream. \r\n\r\nI am not saying we definitely need Stream per Track or not. However I tend to disagree that it makes implementation complicated.",
+          "createdAt": "2024-08-30T17:16:33Z",
+          "updatedAt": "2024-08-30T17:32:44Z"
+        },
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> IMO multiple peeps per stream is even worse than a stream per track. You inherit all of the problems (priorities, head-of-line blocking, inability to reset) but now it's implicit rather than explicit.\r\n\r\nThe intent is that you'd only use this when it's beneficial.\r\n\r\n> \r\n> Even worse, the text doesn't require that peeps share the same track/subscription.\r\n\r\nI clarified that, but the intent was always that they're Peeps from the same subscription.\r\n> \r\n> I don't think MAX_STREAMS is an issue worth degrading the protocol. Make implementations raise the limit rather than impose unnecessary HoLB.\r\n\r\nI'm a lot less concerned about MAX_STREAMS and more concerned about memory usage and buffering when a subscriber requests a large amount of Data/Objects from the past (aka Fetch) and there is a real need for backpressure/flow control of some sort.  Inventing a new mechanism in MoQ to do that is complex, but caching HTTP proxies deal with this today quite well for large requests. \r\n\r\n> \r\n> So IMO just delete a track per stream and offer no replacement. Make a stream for each group, and if you're blocked by MAX_STREAMS before MAX_DATA then the limit needs to be raised.\r\n\r\nI'm fine with just deleting track per stream as well, and we can limit this PR to only that if people prefer.\r\n",
+          "createdAt": "2024-08-31T19:52:26Z",
+          "updatedAt": "2024-08-31T19:52:26Z"
+        }
+      ],
+      "reviews": []
     }
   ]
 }
