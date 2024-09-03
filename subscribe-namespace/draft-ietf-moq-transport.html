@@ -3100,10 +3100,10 @@ SUBSCRIBE_NAMESPACE_ERROR.  If the SUBSCRIBE_NAMESPACE is successful,
 the publisher will forward any matching ANNOUNCE messages to the subscriber
 that it has not yet sent.  If the set of matching ANNOUNCE messages changes, the
 publisher sends the corresponding ANNOUNCE or UNANNOUNCE message.<a href="#section-6.11-4" class="pilcrow">¶</a></p>
-<p id="section-6.11-5">A subscriber cannot have overlapping namespace subscriptions outstanding at the
-same time.  If a publisher receives a SUBSCRIBE_NAMESPACE with a Track Namespace
-Prefix that is a prefix of an earlier SUBSCRIBE_NAMESPACE request or vice versa,
-it <span class="bcp14">MUST</span> respond with SUBSCRIBE_ERROR, with error code
+<p id="section-6.11-5">A subscriber cannot make overlapping namespace subscriptions on a single
+session.  Within a session, if a publisher receives a SUBSCRIBE_NAMESPACE with a
+Track Namespace Prefix that is a prefix of an earlier SUBSCRIBE_NAMESPACE or
+vice versa, it <span class="bcp14">MUST</span> respond with SUBSCRIBE_NAMESPACE_ERROR, with error code
 SUBSCRIBE_NAMESPACE_OVERLAP.<a href="#section-6.11-5" class="pilcrow">¶</a></p>
 <p id="section-6.11-6">The publisher <span class="bcp14">MUST</span> ensure the subscriber is authorized to perform this
 namespace subscription.<a href="#section-6.11-6" class="pilcrow">¶</a></p>
