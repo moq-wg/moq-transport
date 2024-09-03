@@ -1368,10 +1368,10 @@ the publisher will forward any matching ANNOUNCE messages to the subscriber
 that it has not yet sent.  If the set of matching ANNOUNCE messages changes, the
 publisher sends the corresponding ANNOUNCE or UNANNOUNCE message.
 
-A subscriber cannot have overlapping namespace subscriptions outstanding at the
-same time.  If a publisher receives a SUBSCRIBE_NAMESPACE with a Track Namespace
-Prefix that is a prefix of an earlier SUBSCRIBE_NAMESPACE request or vice versa,
-it MUST respond with SUBSCRIBE_ERROR, with error code
+A subscriber cannot make overlapping namespace subscriptions on a single
+session.  Within a session, if a publisher receives a SUBSCRIBE_NAMESPACE with a
+Track Namespace Prefix that is a prefix of an earlier SUBSCRIBE_NAMESPACE or
+vice versa, it MUST respond with SUBSCRIBE_NAMESPACE_ERROR, with error code
 SUBSCRIBE_NAMESPACE_OVERLAP.
 
 The publisher MUST ensure the subscriber is authorized to perform this
