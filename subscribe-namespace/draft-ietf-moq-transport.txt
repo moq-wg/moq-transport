@@ -5,13 +5,13 @@
 Media Over QUIC                                                L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 2 March 2025                                               Meta
+Expires: 7 March 2025                                               Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                          29 August 2024
+                                                        3 September 2024
 
 
                        Media over QUIC Transport
@@ -59,7 +59,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 2 March 2025.
+   This Internet-Draft will expire on 7 March 2025.
 
 Copyright Notice
 
@@ -323,10 +323,10 @@ Table of Contents
       other value is a protocol error and SHOULD terminate the session
       with a Protocol Violation (Section 3.5).
 
-   x (t):  Indicates that x is a tuple, consisting of a variable length
-      integer encoded as described in ([RFC9000], Section 16), followed
-      by that many variable length tuple fields, each of which are
-      encoded as (b) above.
+   x (tuple):  Indicates that x is a tuple, consisting of a variable
+      length integer encoded as described in ([RFC9000], Section 16),
+      followed by that many variable length tuple fields, each of which
+      are encoded as (b) above.
 
    To reduce unnecessary use of bandwidth, variable length integers
    SHOULD be encoded using the least number of bytes possible to
@@ -429,8 +429,8 @@ Table of Contents
    associated with it.  A track name identifies an individual track
    within the namespace.
 
-   Track namespace is an N-tuple of bytes where N can be between 1 and
-   32.  The structured nature of Track Namespace allows relays and
+   Track namespace is an ordered N-tuple of bytes where N can be between
+   1 and 32.  The structured nature of Track Namespace allows relays and
    applications to manipulate prefixes of a namespace.  Track name is a
    sequence of bytes.
 
@@ -1203,7 +1203,7 @@ Table of Contents
    SUBSCRIBE Message {
      Subscribe ID (i),
      Track Alias (i),
-     Track Namespace (t),
+     Track Namespace (tuple),
      Track Name (b),
      Subscriber Priority (8),
      Group Order (8),
@@ -1355,7 +1355,7 @@ Table of Contents
 
    ANNOUNCE_OK
    {
-     Track Namespace (t),
+     Track Namespace (tuple),
    }
 
                      Figure 8: MOQT ANNOUNCE_OK Message
@@ -1370,7 +1370,7 @@ Table of Contents
 
    ANNOUNCE_ERROR
    {
-     Track Namespace (t),
+     Track Namespace (tuple),
      Error Code (i),
      Reason Phrase (b),
    }
@@ -1396,7 +1396,7 @@ Table of Contents
    'Protocol Violation'.
 
    ANNOUNCE_CANCEL Message {
-     Track Namespace (t),
+     Track Namespace (tuple),
    }
 
                   Figure 10: MOQT ANNOUNCE_CANCEL Message
@@ -1414,7 +1414,7 @@ Table of Contents
    TRACK_STATUS_REQUEST.
 
    TRACK_STATUS_REQUEST Message {
-     Track Namespace (t),
+     Track Namespace (tuple),
      Track Name (b),
    }
 
@@ -1427,20 +1427,20 @@ Table of Contents
    well as future updates to the set.
 
    SUBSCRIBE_NAMESPACE Message {
-     Track Namespace Prefix (t),
+     Track Namespace Prefix (tuple),
      Number of Parameters (i),
      Parameters (..) ...,
    }
 
                 Figure 12: MOQT SUBSCRIBE_NAMESPACE Message
 
-   *  Track Namespace Prefix: An N-Tuple of byte fields which are
-      matched against track namespaces known to the publisher.  For
+   *  Track Namespace Prefix: An ordered N-Tuple of byte fields which
+      are matched against track namespaces known to the publisher.  For
       example, if the publisher is a relay that has received ANNOUNCE
-      messages for namespaces ("example.com", "meeting", "123",
-      "participant=100") and ("example.com", "meeting", "123",
+      messages for namespaces ("example.com", "meeting=123",
+      "participant=100") and ("example.com", "meeting=123",
       "participant=200"), a SUBSCRIBE_NAMESPACE for ("example.com",
-      "meeting", "123") would match both.
+      "meeting=123") would match both.
 
    *  Parameters: The parameters are defined in Section 6.1.1.
 
@@ -1450,6 +1450,12 @@ Table of Contents
    subscriber that it has not yet sent.  If the set of matching ANNOUNCE
    messages changes, the publisher sends the corresponding ANNOUNCE or
    UNANNOUNCE message.
+
+   A subscriber cannot have overlapping namespace subscriptions
+   outstanding at the same time.  If a publisher receives a
+   SUBSCRIBE_NAMESPACE with a Track Namespace Prefix that is a prefix of
+   an earlier SUBSCRIBE_NAMESPACE request or vice versa, it MUST respond
+   with SUBSCRIBE_ERROR, with error code SUBSCRIBE_NAMESPACE_OVERLAP.
 
    The publisher MUST ensure the subscriber is authorized to perform
    this namespace subscription.
@@ -1468,7 +1474,7 @@ Table of Contents
    The format of UNSUBSCRIBE_NAMESPACE is as follows:
 
    UNSUBSCRIBE_NAMESPACE Message {
-     Track Namespace Prefix (t)
+     Track Namespace Prefix (tuple)
    }
 
                     Figure 13: MOQT UNSUBSCRIBE Message
@@ -1613,7 +1619,7 @@ Table of Contents
    to publish tracks under this namespace.
 
    ANNOUNCE Message {
-     Track Namespace (t),
+     Track Namespace (tuple),
      Number of Parameters (i),
      Parameters (..) ...,
    }
@@ -1632,7 +1638,7 @@ Table of Contents
    provided Track Namespace.
 
    UNANNOUNCE Message {
-     Track Namespace (t),
+     Track Namespace (tuple),
    }
 
                      Figure 19: MOQT UNANNOUNCE Message
@@ -1646,7 +1652,7 @@ Table of Contents
    response to a TRACK_STATUS_REQUEST message.
 
    TRACK_STATUS Message {
-     Track Namespace (t),
+     Track Namespace (tuple),
      Track Name (b),
      Status Code (i),
      Last Group ID (i),
@@ -1700,7 +1706,7 @@ Table of Contents
 
    SUBSCRIBE_NAMESPACE_OK
    {
-     Track Namespace Prefix (t),
+     Track Namespace Prefix (tuple),
    }
 
                Figure 21: MOQT SUBSCRIBE_NAMESPACE_OK Message
@@ -1714,7 +1720,7 @@ Table of Contents
 
    SUBSCRIBE_NAMESPACE_ERROR
    {
-     Track Namespace Prefix (t),
+     Track Namespace Prefix (tuple),
      Error Code (i),
      Reason Phrase (b),
    }
@@ -2027,6 +2033,8 @@ Table of Contents
    *  Subscribe parameters
 
    *  Subscribe Error codes
+
+   *  Subscribe Namespace Error codes
 
    *  Announce Error codes
 
