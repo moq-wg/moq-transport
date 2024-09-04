@@ -617,9 +617,9 @@ A schedulable object in MoQT is either:
    to be sent.
 1. An object that belongs to a track with delivery preference Datagram.
 
-Since a single peep can contain at most one schedulable object, it can be
-useful to conceptualize this process as scheduling peeps themselves instead
-of individaul objects on them.
+Since a single peep or datagram has a single publisher priority, it can be
+useful to conceptualize this process as scheduling peeps or datagrams
+instead of individual objects on them.
 
 A _priority number_ is an unsigned integer with a value between 0 and 255.
 A lower priority number indicates higher priority; the highest priority is 0.
