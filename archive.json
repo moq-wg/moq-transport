@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2024-09-03T01:21:15.733890+00:00",
+  "timestamp": "2024-09-05T01:22:40.901832+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -10490,7 +10490,7 @@
       "id": "I_kwDOG2Ho4M5yNPNK",
       "title": "Wildcard SUBSCRIBE",
       "url": "https://github.com/moq-wg/moq-transport/issues/253",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "afrind",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
@@ -10499,8 +10499,8 @@
       ],
       "body": "SUBSCRIBE today requires a full track name, and specifies exactly one track.  Do we need a subscription mechanism that matches more than one track, including tracks that may not exist currently, but may come into existence in the future?",
       "createdAt": "2023-09-27T18:03:48Z",
-      "updatedAt": "2024-08-14T16:09:23Z",
-      "closedAt": null,
+      "updatedAt": "2024-09-04T15:11:37Z",
+      "closedAt": "2024-09-04T15:11:37Z",
       "comments": [
         {
           "author": "kixelated",
@@ -12037,13 +12037,16 @@
       "state": "OPEN",
       "author": "vasilvv",
       "authorAssociation": "COLLABORATOR",
-      "assignees": [],
+      "assignees": [
+        "vasilvv"
+      ],
       "labels": [
+        "Needs PR",
         "Object Model"
       ],
       "body": "How big can a group be? I know we (probably) won't be able to set a fixed limit, but I feel like we need to answer this in order to know what kind of design assumptions to make.\r\n\r\nIs a single group expected to be small enough to fit in the cache?  Will the protocol work if a media track is just a single group that is being appended to for hours if not days?  I was thinking about stream mapping and the resource-use-at-relays problem earlier today, and realized we might not currently have a conclusive answer for those.",
       "createdAt": "2023-10-30T06:33:27Z",
-      "updatedAt": "2024-08-19T11:21:09Z",
+      "updatedAt": "2024-09-03T23:23:02Z",
       "closedAt": null,
       "comments": [
         {
@@ -13421,7 +13424,7 @@
       ],
       "body": "Current prose should be updated to indicate that \r\n1. ObjectID and GroupID are integers. The Object header implicitly defines this, but it should be stated explicitly.\r\n2. ObjectID MUST only increment by 1\r\n3. The GroupID MUST always increase. \r\n4. The GroupID may start at any value >= 0\r\n5. The GroupID can increase by any value >= 1. ",
       "createdAt": "2024-02-07T17:28:23Z",
-      "updatedAt": "2024-08-29T21:08:10Z",
+      "updatedAt": "2024-09-05T00:38:46Z",
       "closedAt": null,
       "comments": [
         {
@@ -13486,6 +13489,55 @@
           "body": "It makes it quite a bit easier to implement. If I'm doing stream-per-group, I know that object ID 0 starts a group and a stream.",
           "createdAt": "2024-08-29T21:08:09Z",
           "updatedAt": "2024-08-29T21:08:09Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Individual Comment:\r\n\r\nThese bullets seem like editorial clarifications that are implicit:\r\n\r\n> ObjectID and GroupID are integers. The Object header implicitly defines this, but it should be stated explicitly.\r\n\r\nWe've already agreed, at least implicitly, that group IDs and object IDs are numeric and comparing them numerically has meaning to a relay.  References to cases where they are compared this way exist throughout the draft (eg SUBSCRIBE, object streams, etc).  We should make this explicit.\r\n\r\n> The GroupID may start at any value >= 0\r\n\r\nThis is already true by definition (it's a varint) so this is just a clarification, and seems fine.\r\n\r\nLet's go ahead and make a PR that addresses these?\r\n\r\n\r\n> ObjectID MUST only increment by 1\r\n\r\nThere's a use case listed here which is implicit gap detection, but with the introduction of peeps it no longer works.  If I have a peep with objects 0, 2, 4, I cannot assume that 1 and 3 are dropped -- they might just be in another peep.  A status of \"your object is in another peep\" seems like overkill.  If an application wants the unitary increase restriction, it may need to go into a streaming format spec rather than moqt?\r\n\r\n\r\n> The GroupID MUST always increase.\r\n\r\nWhat are you trying to accomplish here?  \r\n\r\n> The GroupID can increase by any value >= 1.\r\n\r\nThis seems like there is no restriction at all (which would be a clarification).  Does anyone want to advocate for group ID unitary increases?",
+          "createdAt": "2024-09-03T23:16:39Z",
+          "updatedAt": "2024-09-03T23:16:39Z"
+        },
+        {
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> There's a use case listed here which is implicit gap detection, but with the introduction of peeps it no longer works. If I have a peep with objects 0, 2, 4, I cannot assume that 1 and 3 are dropped -- they might just be in another peep. A status of \"your object is in another peep\" seems like overkill. If an application wants the unitary increase restriction, it may need to go into a streaming format spec rather than moqt?\r\n\r\n[Suhas] +1 . I really want to avoid over burdening relays to understand gaps and use that to do something . Given that they don't have access to catalog and only end applications know the distribution , I want to be careful on adding expectations to the relays and prefer leaving it to the streaming format . \r\n\r\n\r\n\r\n> Individual Comment:\r\n> \r\n> These bullets seem like editorial clarifications that are implicit:\r\n> \r\n> > ObjectID and GroupID are integers. The Object header implicitly defines this, but it should be stated explicitly.\r\n> \r\n> We've already agreed, at least implicitly, that group IDs and object IDs are numeric and comparing them numerically has meaning to a relay. References to cases where they are compared this way exist throughout the draft (eg SUBSCRIBE, object streams, etc). We should make this explicit.\r\n\r\n\r\n[Suhas] These should be comparable for the relays to make filtering choices. \r\n\r\n> \r\n> > The GroupID may start at any value >= 0\r\n> \r\n> This is already true by definition (it's a varint) so this is just a clarification, and seems fine.\r\n> \r\n> Let's go ahead and make a PR that addresses these?\r\n\r\n> \r\n> > ObjectID MUST only increment by 1\r\n> \r\n> There's a use case listed here which is implicit gap detection, but with the introduction of peeps it no longer works. If I have a peep with objects 0, 2, 4, I cannot assume that 1 and 3 are dropped -- they might just be in another peep. A status of \"your object is in another peep\" seems like overkill. If an application wants the unitary increase restriction, it may need to go into a streaming format spec rather than moqt?\r\n> \r\n> > The GroupID MUST always increase.\r\n> \r\n> What are you trying to accomplish here?\r\n> \r\n> > The GroupID can increase by any value >= 1.\r\n> \r\n> This seems like there is no restriction at all (which would be a clarification). Does anyone want to advocate for group ID unitary increases?\r\n\r\n[Suhas] There are several use-cases where unitary increase is not always the best way  for the applications. Yes if a application want to enforce a unitary increasing groupId, it will generate the groupIDs as such . I don;t think the pub/sub layer needs to enforce it,\r\n\r\n\r\nWe need to follow a simple rule \" **Don't burn application logic and semantics into the relays \"**. Video applications of tomorrow will be different from ones than today ( due to encoder advancements, ml , for example),  all of these will be different from chat which is different from telemetry and which is different from a 3D game state and so on. ",
+          "createdAt": "2024-09-04T03:41:33Z",
+          "updatedAt": "2024-09-04T04:57:06Z"
+        },
+        {
+          "author": "wilaw",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "> Does anyone want to advocate for group ID unitary increases?\r\n\r\nYes - for simplified debugging.  While I acknowledge Suhas's comment that future applications may be different form the ones of today and that applications can enforce numbering constraints, the networks over which MOQT is distributed are going to be complex, along with the caches that store the objects and logic for routing them. Having a predictable numbering scheme simplifies the task for the humans who much build, manage, debug and maintain these distribution networks. I would instead ask a different quesiton - which future apps couldn't be built around a unitary increasing Group ID? ",
+          "createdAt": "2024-09-04T10:29:21Z",
+          "updatedAt": "2024-09-04T10:29:21Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "@wilaw Now I'm confused - you filed this issue asking for:\r\n\r\n> The GroupID can increase by any value >= 1.\r\n\r\nAnd in your last comment, you are advocating for \"The GroupID can only increase by 1\".  Which one is it?\r\n\r\nTo answer your last question, \r\n\r\n> which future apps couldn't be built around a unitary increasing Group ID?\r\n\r\nThe moq logging and moq metrics drafts use a unix timestamp as a group ID (eg: https://datatracker.ietf.org/doc/draft-jennings-moq-metrics/).  This makes it possible to simply subscribe at a point in time.  If moqt requires sequential group IDs, then those drafts would need a different solution (eg: a timeline track).",
+          "createdAt": "2024-09-04T18:36:18Z",
+          "updatedAt": "2024-09-04T18:36:18Z"
+        },
+        {
+          "author": "wilaw",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "> And in your last comment, you are advocating for \"The GroupID can only increase by 1\". Which one is it?\r\n\r\n@afrind  - I filed this issue acting as a scribe for our group discussion during our interim in Denever in Feb. It reflects the group consensus at the time. My personal opinion, expressed via https://github.com/moq-wg/moq-transport/issues/358#issuecomment-2328504741 , is that group ID should be a unitary increase, for the reason stated. \r\n\r\nRegarding the use-case of the metrics drafts using the groupID to express a timestamp. I feel the timestamp is an application-level value that should not be using a transport-level ID for conveyance. There should be a clean decoupling between application data (which is stored inside the object payload) and the transport identifiers (groupID and objectID). The transport IDs should be designed to make the carriage, debugging and maintenance of the transport as efficient as possible. There are several other ways to handle random-temporal-access with metrics (such as templates, or a timeline track as mentioned). It seems undesirable to burden all implementations of moqt with the complexity of sparse groupIDs for the convenience of one application, especially when there are other reasonable means for that application to achieve its goals. ",
+          "createdAt": "2024-09-04T19:47:12Z",
+          "updatedAt": "2024-09-04T19:47:12Z"
+        },
+        {
+          "author": "gwendalsimon",
+          "authorAssociation": "NONE",
+          "body": "The main motivation for unitary increment of GroupID is cache management. If GroupID increments by random numbers, then a relay cannot use what it has in cache. Indeed, it has no clue whether the data it has stored is the continuous series of groups or some gaps due to discontinuous subscriptions. \r\nExample: \r\nA Relay receives a subscription for live stream and caches consecutive non-unitary groups ID 12-14-17-39. Then this client unsubscribes.\r\nThe same relay receives another subscription for the same live stream and caches consecutive groups ID 43-48-72.\r\nThe same relay receives a subscription Absolute Range 14-48. When looking at its cache, it can only see random numbers in there. By default, it will forward the full subscription message to the publisher. The cache is useless.\r\n\r\nI understand that there exist some use cases in which it is strongly believed that non-unitary groupID is the best setting. OK. So, as a CDN developer, let me suggest another option: Include a Boolean flag in the track, which states whether the track contains unitary incrementing GroupID or not. If not, then the relay would not cache the data.",
+          "createdAt": "2024-09-04T20:29:21Z",
+          "updatedAt": "2024-09-04T20:30:24Z"
+        },
+        {
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> The same relay receives a subscription Absolute Range 14-48. When looking at its cache, it can only see random numbers in there. By default, it will forward the full subscription message to the publisher. The cache is useless.\r\n\r\nLeaving the group numbering scheme aside.  When the relay receives range14-48, it will return 14, 17, 39, 43, 48.   The end subscriber is aware of group distribution and for it the group numbers are not random and If it sees there is a gap that shouldn't have existed, it can always ask for the same and caches will get the data populated accordingly. There is also a way to have few groups marked as never existed  and that can also be used to ask upstream or not.  ",
+          "createdAt": "2024-09-05T00:38:45Z",
+          "updatedAt": "2024-09-05T00:38:45Z"
         }
       ]
     },
@@ -17156,7 +17208,7 @@
       ],
       "body": "When we originally added track-per-stream, I was skeptical of it being useful, as it's basically equivalent to sending media over TCP, which is a poor fit for latency-sensitive applications (and something that people already can do equally well using other widely-adopted protocols).\r\n\r\nNow that we have some further experience with this, the drawbacks of supporting track-per-stream become more apparent:\r\n1. There's a non-trivial amount of code required to support each individual stream mapping.\r\n2. There's a non-trivial amount of design effort and specification text required to support each individual stream mapping.\r\n3. Due to its nature, track-per-stream has its unique design challenges that other mappings don't have (if anything goes wrong, the entire subscription has to be thrown out, making things like timeouts hard to define).\r\n\r\nIn the narrow use cases where stream-per-track is actually useful, the application can use stream-per-group, and reassemble things itself.  Thus, I'm strongly in favor of removing it, at least as a publisher-selected stream mapping (we can discuss what FETCH does when we get back to that).",
       "createdAt": "2024-07-05T17:48:04Z",
-      "updatedAt": "2024-08-30T13:46:16Z",
+      "updatedAt": "2024-09-04T22:41:06Z",
       "closedAt": null,
       "comments": [
         {
@@ -17200,6 +17252,55 @@
           "body": "The only compelling uses for sending on a single stream I've heard are conserving streams and creating flow control backpressure when a large amount of data is available to send all at once.\r\n\r\nNow that we have peeps and they have defined properties, I believe a publisher could decide to put multiple on a stream for a single subscription, particularly for fetch type use cases, so I wrote #516 ",
           "createdAt": "2024-08-30T13:46:15Z",
           "updatedAt": "2024-08-30T13:46:15Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Individual Comment:\r\n\r\n> The only compelling uses for sending on a single stream I've heard are conserving streams and creating flow control backpressure when a large amount of data is available to send all at once.\r\n\r\nI'm still in favor of having some kind of flow-control backpressure in moq, but I don't think putting everything on a single stream in order to re-use QUIC's mechanism directly is a great way to accomplish that goal.\r\n\r\nChair Comment:\r\n\r\nThe strongest argument to have stream-per-track seems to be \"it's not that hard\".  Proponents of stream-per-track should articulate how stream-per-group with a single group, or \"something like HTTP GET\" are not going to meet their requirements.  We can put a call out on the list if needed, and remove this until a true use case emerges.",
+          "createdAt": "2024-09-03T20:50:00Z",
+          "updatedAt": "2024-09-03T20:50:00Z"
+        },
+        {
+          "author": "TimEvens",
+          "authorAssociation": "NONE",
+          "body": "@ianswett, not sure you would consider the below \"compelling\" or not... \r\n\r\nIt's **important** to call out that HoL **IS A FEATURE** for use-cases that require this behavior. This mimics TCP flow and use-cases that need it, such as all transactional use-cases. For example; ledgers, state sync, replication, IP overlays (e.g., VPN), etc. \r\n\r\nTCP and QUIC streams provide a guarantee that data will be transmitted in FIFO order of what the publisher sends, regardless if the publisher actually ordered them correctly by group or object ID. The FIFO order received can be replicated (e.g., relayed) to subscribers in that exact order as received with a high guarantee of same FIFO order without gaps or having to reorder.  \r\n\r\nThis cannot be said for `per-object` or `per-group` considering both of them use multiple streams and more than one stream can be inflight (e.g., group ID 10 was written and is complete but is stuck in HoL and blocked, but the application continues to start group ID 11 because there is no ACK that group 10 end object was consumed by the relay/server.   In this case, it's probable that group 11 is received and processed before the end of group 10.  Per-object suffers from this as well, but it is worse in that several objects could be inflight. For example; objects 10, 12, 13, and 15 are dealing with retrans, while objects 11 and 14 were received before the others.  \r\n\r\nThe relay and applications could of course buffer and reorder, but there are performance impacts to implement that.  It also complicates it because unless #358 adds a **MUST** for object and group IDs to increment unitary (serial increment by 1 from the previous), the relay/server/receiving subscriber would have no idea of what the next group or object ID would be. Therefore gap detection of **group** or **object** IDs is not feasible in the current state of MOQT.  All that can be detected is that there is a delta between them, but that may or may not be normal.  In this case the relay/server/subscriber does not does not know that something will arrive late that would fill in the delta.  If #358 is added, then it would be possible to detect the gap and to buffer/wait for the gap to be filled, but then that's reinventing HoL blocking that QUIC stream (`per-track`) provided. \r\n\r\nIt's also **important** to call out that groups within `per-track` are useful and would likely be used by transactional use-cases, such as state sync protocols and others.\r\n\r\nAn example use case, but not at all limited to this use-case,  that would require `per-track` is:\r\n\r\n#### User Story\r\n\r\nI'm a developer of a [BGP](https://datatracker.ietf.org/doc/html/rfc4271) route controller and I need to maintain routing information bases (RIBs) of thousands of routers. I use [BGP monitoring protocol](https://datatracker.ietf.org/doc/html/rfc7854) using [BMP Local RIB](https://datatracker.ietf.org/doc/html/rfc9069) to get the live local router RIB. BMP conveys raw BGP encoded messages, which gets parsed and converted to JSON by the BMP collector that is globally distributed.  BMP (and BGP) doesn't provide a method to handle partial sync updates to fill in the gaps of the RIB. In other words, unless you are part of the initial RIB dump on start of state session (e.g. TCP connection start) and every update sent after that, the receiver would have no way of knowing the full RIB.   \r\n\r\nI am looking to use MoQ in each of my BMP collectors to send the JSON data to one of many route controllers  I want to update my global edge of BMP collectors to use MoQ pub/sub so that I can fan out multiple route controllers, but I **MUST** have complete FIFO order of messages as the value of the previous to the current **MUST** be tracked/logged in order to establish network layer reachability information (NLRI) state for the given point of time (includes live). Point-in-Time states are a very important use-case that I must support in the route collector so that operators, and now AI, can detect and mitigate problems. BMP does not convey partial diff updates and it doesn't provide a method to rebuild the RIB without having to do a full state sync dump, which is intrusive for the router to perform just to sync one downstream route controller.  \r\n\r\nFor example, the initial RIB can be very large with over several million NLRIs conveyed (e.g. internet routes and VPN routes for all customers). This is referred to the RIB dump (aka initial state full sync). I plan to use a group by itself to represent the RIB dump.  I then plan to use following groups to represent change, where the first object of each group provides a summary diff of changes from the previous. The RIB collector as a subscriber can then maintain incrementally by group first object diffs or by first object diffs with live updates.   The process for a fast sync of a RIB collector is to subscribe starting at the RIB dump and then process only the group diffs and not each individual update in those groups.  When it's caught up, it will then process live incremental state change objects for the current group.  For this to work, the FIFO order of messages are required, which is how it works today with TCP.  A previous group and/or object cannot be received out of order, such as arrive late. \r\n\r\n---\r\n\r\nThe above is just one example of a real world use-case... many others do exist but it gets long to draft them all here. Regardless, it should be pretty obvious that `per-object` would never work for this use-case.  Although, one might believe the solution to the above use-case is to use a single group, but that won't work as the user/developer needs the ability to segment data in to groups yet have all the benefits of TCP HoL FIFO sending and receiving.   In other words, the user is asking for the same over behavior as TCP but with the ability to use groups and objects are outlined in MOQT.  `per-track` offers this. \r\n\r\n\r\n\r\n\r\n\r\n\r\n",
+          "createdAt": "2024-09-04T20:31:56Z",
+          "updatedAt": "2024-09-04T20:31:56Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Individual Comment: \r\n\r\n@TimEvens I buy that stream-per-group with 1 group robs the application of a surface that it might have wanted to use.  I think we need to weigh this against having only a single mechanism to use streams in moq (per peep).  An application that wants to enforce in-order delivery can also do this on top of a multi-stream delivery in moqt.  I see your point that a relay cannot so this without a unitary increase constraint for group and object IDs, but I'm not sure how critical that is?  Maybe it's better to let the data flow to the end consumer and be reassembled there.",
+          "createdAt": "2024-09-04T20:54:36Z",
+          "updatedAt": "2024-09-04T20:54:36Z"
+        },
+        {
+          "author": "TimEvens",
+          "authorAssociation": "NONE",
+          "body": "@afrind , \r\n\r\n> An application that wants to enforce in-order delivery can also do this on top of a multi-stream delivery in moqt.\r\n\r\nI don't see how that's possible unless the application buffers and reorders, which requires the application to know how to detect gaps and what is missing.  This puts a lot more burden on the application that was solved with `per-track` (and TCP) inherently.\r\n\r\n> Maybe it's better to let the data flow to the end consumer and be reassembled there.\r\n\r\nThis puts a lot more burden on the application that was solved with `per-track` (and TCP) without having to do anything extra. Seems to me that removing `per-track` weakens the usefulness of MoQT and puts more coding/development requirements on the application to have to detect/buffer/reorder when it could have used a simple QUIC stream for transmission that did that already. ",
+          "createdAt": "2024-09-04T21:28:32Z",
+          "updatedAt": "2024-09-04T21:28:32Z"
+        },
+        {
+          "author": "TimEvens",
+          "authorAssociation": "NONE",
+          "body": "@vasilvv, \r\n\r\n> Due to its nature, track-per-stream has its unique design challenges that other mappings don't have (if anything goes wrong, the entire subscription has to be thrown out, making things like timeouts hard to define).\r\n\r\nThis is a fault of MoQT to suggest that because one stream goes wrong the subscription needs to be thrown out.  As I mentioned previously, but I didn't see any responses to, suggests that at least for per-track and the control stream, which is a long lived stream just like per-track, we should use simple recovery of that track/subscription. We already support this.  If the stream goes bad, control or per-track, small amount of code can rectify it with zero loss by creating a new stream and resending the object that was inflight that was incomplete. \r\n",
+          "createdAt": "2024-09-04T21:45:41Z",
+          "updatedAt": "2024-09-04T21:48:44Z"
+        },
+        {
+          "author": "TimEvens",
+          "authorAssociation": "NONE",
+          "body": "In consideration of https://github.com/moq-wg/moq-transport/pull/494... I read the text for peeps as allowing a single \"peep\" (which is another way of saying peep ID==quic stream) to contain multiple groups and objects as they did with per-track. If this is correct, then per-track wouldn't be needed.  Instead, I believe peeps needs more documentation on uses that describe some of the per-group, per-group split over streams, and per-track equivalency.  \r\n",
+          "createdAt": "2024-09-04T22:39:07Z",
+          "updatedAt": "2024-09-04T22:39:07Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "A peep cannot span more than one group.\r\n\r\n> A peep is a sequence of one or more objects from the same group",
+          "createdAt": "2024-09-04T22:41:06Z",
+          "updatedAt": "2024-09-04T22:41:06Z"
         }
       ]
     },
@@ -17316,7 +17417,7 @@
       "id": "I_kwDOG2Ho4M6PQWYv",
       "title": "Discovery of publishers via a relay instead of catalog",
       "url": "https://github.com/moq-wg/moq-transport/issues/484",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "afrind",
       "authorAssociation": "COLLABORATOR",
       "assignees": [
@@ -17327,8 +17428,8 @@
       ],
       "body": "This is a redux of #228, now that I've heard from multiple other wg participants they are now interested in such a mechanism.\r\n\r\nConsider using moq for a chat or other application where a relay has many publishers for the same application.  In order for subscribes to be routed to the correct publishing endpoints, each publisher/participant needs to announce a unique namespace (this is how moq-chat operates, see https://afrind.github.io/draft-frindell-moq-chat/draft-frindell-moq-chat.html#section-4.4).\r\n\r\nThis creates an issue: how do participants learn about the namespaces/tracks other clients have ANNOUNCED to the relay within the same chat room? I originally filed #228 thinking there should be a mechanism by which a client can declare their interest in new announcements and become a catalog-less means of track discovery. Based on wg feedback at the time, I updated moq-chat to use a different discovery mechanism involving a simple catalog.\r\n\r\nHere's an alternate proposal:\r\n\r\n```\r\nSUBSCRIBE_NAMESPACE {\r\n   Track Namespace Prefix (b),\r\n   Auth Info (b)\r\n }\r\n```\r\n\r\nThis would inform the relay to forward any ANNOUNCE with a prefix match, if authorized.\r\n\r\nSo in moq-chat, each new participant would do this:\r\n\r\n```\r\nANNOUNCE(namespace=\"moq-chat/id/participant/<name>\")\r\nSUBSCRIBE_NAMESPACE(prefix=\"moq-chat/id/participant/\")\r\n```\r\n\r\nAnd a relay would reply with:\r\n\r\n```\r\nANNOUNCE_OK\r\nSUBSCRIBE_NAMESPACE_OK\r\n# existing announcements matching namespace prefix\r\nANNOUNCE(namespace=\"moq-chat/id/participant/<member1>\") \r\nANNOUNCE(namespace=\"moq-chat/id/participant/<member2>\")\r\nANNOUNCE(namespace=\"moq-chat/id/participant/<member3>\")\r\n...\r\n```\r\n\r\nIt would also forward any new ANNOUNCEs or ANNOUNCE_CANCELs matching the prefix to the participant.\r\n\r\nThe new participant then issues standard SUBSCRIBE to each existing chat member\r\n```\r\nSUBSCRIBE(namespace=\"moq-chat/id/participant/<member1>\", name=\"chat\") \r\nSUBSCRIBE(namespace=\"moq-chat/id/participant/<member2>\", name=\"chat\") \r\n...\r\n```\r\n\r\nThis would remove the need for a catalog in some multi-publisher applications (eg: key distribution https://suhashere.github.io/moq-e2ee-mls/draft-jennings-moq-e2ee-mls.html), but also keep the scope of ANNOUNCE the same as it is today.",
       "createdAt": "2024-07-11T15:05:21Z",
-      "updatedAt": "2024-08-05T22:24:11Z",
-      "closedAt": null,
+      "updatedAt": "2024-09-04T15:11:37Z",
+      "closedAt": "2024-09-04T15:11:37Z",
       "comments": [
         {
           "author": "kixelated",
@@ -17900,7 +18001,7 @@
       "labels": [],
       "body": "This is a placeholder that we need to sort out how Auth and auth tokens work in MoQ. \r\n\r\nRequirements:\r\n\r\n1. Can control what users can connect to a relay. \r\n2. Can control if a user can publish to a given namespace.\r\n3. Can control if a user can subscribe to a given namespace. \r\n4. Can update auth for long lived track that is longer than token lifetime\r\n5. Design that allows for relay to validate tokens locally \r\n6. As much as possible, reuse approaches used for existing systems \r\n\r\nWhat am I missing on requirements  ",
       "createdAt": "2024-08-29T20:10:00Z",
-      "updatedAt": "2024-08-30T09:57:12Z",
+      "updatedAt": "2024-09-03T13:32:57Z",
       "closedAt": null,
       "comments": [
         {
@@ -17909,6 +18010,13 @@
           "body": "For point [6], we might consider support for CTA 5007 - Common Access Token (CAT), a standard (soon) published by the CTA. This is a CBOR token for compactness,  with many claim fields as well a boolean operations for composite claims. It is likely to become a popular standard for OTT content, so harmonizing MoQT with that side of the industry brings some efficiency gains. \r\n\r\n\r\nFor additional requirements, support both symmetric and asymmetric ciphers. ",
           "createdAt": "2024-08-30T09:57:11Z",
           "updatedAt": "2024-08-30T09:57:11Z"
+        },
+        {
+          "author": "gwendalsimon",
+          "authorAssociation": "NONE",
+          "body": "> 1. Can control what users can connect to a relay.\r\n> 2. Can control if a user can publish to a given namespace.\r\n> 3. Can control if a user can subscribe to a given namespace.\r\n\r\nIt can be made even more specific to track name level. For example no access to UHD video track for some users. Or watch the video but no access to some associated chatrooms or premium metadata tracks.\r\n\r\n> 4. Can update auth for long lived track that is longer than token lifetime\r\n> 5. Design that allows for relay to validate tokens locally\r\n\r\nRelay may also generate tokens locally. It is especially useful for token renewal (or update).\r\n\r\n> 6. As much as possible, reuse approaches used for existing systems\r\n\r\n+1 on Common Access Token (CAT).\r\n\r\n> What am I missing on requirements\r\n\r\nNote sure if it would require a separate Issue, but the question of watermark can also be raised. Today's OTT watermarking solutions are based on some WM tokens, which are some forms of auth tokens.",
+          "createdAt": "2024-09-03T13:32:25Z",
+          "updatedAt": "2024-09-03T13:32:57Z"
         }
       ]
     },
@@ -17924,9 +18032,17 @@
       "labels": [],
       "body": "The draft needs to be systematically hardened against DOS attacks and also verify that it can not be used to amplify DOS attacks against others\r\n\r\n",
       "createdAt": "2024-08-29T20:12:02Z",
-      "updatedAt": "2024-08-29T20:12:02Z",
+      "updatedAt": "2024-09-03T23:21:05Z",
       "closedAt": null,
-      "comments": []
+      "comments": [
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "We also need to look closely at control-message DoS attacks that have become a common target in other protocols.",
+          "createdAt": "2024-09-03T23:21:03Z",
+          "updatedAt": "2024-09-03T23:21:03Z"
+        }
+      ]
     },
     {
       "number": 515,
@@ -17943,6 +18059,58 @@
       "updatedAt": "2024-08-29T20:12:57Z",
       "closedAt": null,
       "comments": []
+    },
+    {
+      "number": 517,
+      "id": "I_kwDOG2Ho4M6VM2se",
+      "title": "Change in publisher priority is underdefined",
+      "url": "https://github.com/moq-wg/moq-transport/issues/517",
+      "state": "OPEN",
+      "author": "vasilvv",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "The current text says \"When two or more subscriptions have equal subscriber priority, the original publisher priority is considered next and can change within the track, so subscriptions are prioritized based on the highest priority data available to send.\"\r\n\r\nThere are two issues here.  The first is that \"data available to send\" is not well-defined for a protocol running over QUIC, in the sense that it's unclear as to when the data should be deemed \"unavailable\" (does it become unavailable after we put it into the QUIC buffer? after we send it? after it gets acked?).  The second is that doing this requires extra bookkeeping to keep track of the current publisher priority per subscription (@martinduke implemented this in our MoQT prototype, and it was definitely quite a bit of complexity and overheard that seems unnecessary, to me at least).\r\n\r\n(As an aside, I am not quite sure as to where the \"publisher priority of a track is the max priority for all objects in the track\" came from; I remember myself arguing for \"publisher priority of a _stream_ is the max priority for all objects in the track\" at the interim, but that point was moot since we don't actually allow specifying different priorities on a single stream in the current wire format anyways.)\r\n\r\nI can see at least two ways we can simplify this:\r\n1. Make the publisher priority of a track to be equal to the priority of the latest (=highest sequence number) object in the track.\r\n2. Make it so that the publisher priority of a peep/datagram is just what is in its header, and does not retroactively change priorities of other peeps and datagrams on that track.  This effectively makes publisher priority have the same expressive power as peep priority, so we may want to merge those if we decide to go this way.",
+      "createdAt": "2024-09-03T15:28:24Z",
+      "updatedAt": "2024-09-04T15:35:01Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I think option 1 doesn't accomplish what people want in some cases.  For example, if you have a high priority peep and a low priority peep for a group, the intent is to deliver the high priority peep first.  However, the low priority peep might have the highest Object Id.  Also, couldn't this cause the priority of a track and hence the related streams to be constantly changing as new Objects arrive?\r\n\r\nOption 2 seems sensible to me and I believe has much more consistent behavior.",
+          "createdAt": "2024-09-03T15:48:59Z",
+          "updatedAt": "2024-09-03T15:48:59Z"
+        },
+        {
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "Under the status quo, the priority of a track can constantly change as new objects arrive.\r\n\r\nA third option would be just to completely separate the concept of track-level and object-level publisher priority. A publisher can assign completely different values to each (and send the former in the SUBSCRIBE_OK)",
+          "createdAt": "2024-09-03T15:54:38Z",
+          "updatedAt": "2024-09-03T15:54:38Z"
+        },
+        {
+          "author": "vasilvv",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Yeah, I think that option 2 makes more sense.\r\n\r\nLet's take a real use case, let's say we have high priority for active speaker, and low priority for other audio tracks.  Let's examine how it behaves when a speaker transitions from active to inactive (high -> low priority) under diferent approaches.\r\n\r\nCurrent approach: the speaker's audio will remain at high priority for as long as there is any higher priority data in the buffer.  This risks unnecessarily sending low-priority audio as high-priority.\r\n\r\nOption 1: the speaker's audio will get to low priority as soon as the first low priority object is encountered.  This risks unnecessarily sending high-priority audio as low-priority, causing it to be \"truncated\" at the end.\r\n\r\nOption 2: the speaker's audio when active will he always treated as high-priority, and when inactive, as low-priority.  That sounds like the desired outcome here.",
+          "createdAt": "2024-09-04T14:52:06Z",
+          "updatedAt": "2024-09-04T14:52:06Z"
+        },
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "This is related to #512 ",
+          "createdAt": "2024-09-04T15:15:07Z",
+          "updatedAt": "2024-09-04T15:15:07Z"
+        },
+        {
+          "author": "vasilvv",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Re option 2 -- I remembered that there is group ordering in between publisher priority, and the individual peeps, so merging them does not quite work.\r\n\r\nSo we get `(subscriber priority) -> (publisher priority) -> (group ID) -> (peep priority) -> (object ID)`",
+          "createdAt": "2024-09-04T15:35:00Z",
+          "updatedAt": "2024-09-04T15:35:00Z"
+        }
+      ]
     }
   ],
   "pulls": [
@@ -64486,7 +64654,7 @@
       "labels": [],
       "body": "I have foregone any premature optimization of the encodings here.\r\n\r\nAsking @janaiyengar to take a first look.",
       "createdAt": "2024-07-26T23:09:07Z",
-      "updatedAt": "2024-08-29T14:29:33Z",
+      "updatedAt": "2024-09-03T23:22:03Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "62ea1885aaa75e46d0e71dc16a8a70ae12c28f42",
@@ -66380,24 +66548,26 @@
       "id": "PR_kwDOG2Ho4M53f6Zw",
       "title": "SUBSCRIBE_NAMESPACE",
       "url": "https://github.com/moq-wg/moq-transport/pull/498",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "afrind",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [],
       "body": "This message suite allows subscribers to express interest in ANNOUNCE/UNANNOUNCE for set of namespaces that match a prefix.  To accomplish safe prefix matching, Track Namesapce is redefined from a single byte array to a N-Tuple of byte arrays.\r\n\r\nFixes #484\r\nCloses #253",
       "createdAt": "2024-08-05T21:31:01Z",
-      "updatedAt": "2024-08-31T19:37:46Z",
+      "updatedAt": "2024-09-04T15:11:36Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "854b26a943663cd393d23b6f8ce23b3547145792",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "subscribe-namespace",
-      "headRefOid": "426c3c947d7ae16eb51adc4ad01ce15581b8e0a5",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "headRefOid": "fdd6331518bf1507b97da07f68e03895435bce3d",
+      "closedAt": "2024-09-04T15:11:36Z",
+      "mergedAt": "2024-09-04T15:11:36Z",
+      "mergedBy": "ianswett",
+      "mergeCommit": {
+        "oid": "73d71a6bb95bf0ef5c0ec6bff090b777645b116e"
+      },
       "comments": [
         {
           "author": "wilaw",
@@ -67094,6 +67264,99 @@
               "updatedAt": "2024-08-30T13:50:37Z"
             }
           ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6HznBn",
+          "commit": {
+            "abbreviatedOid": "f036551"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "I believe all comments have been addressed, except \"should we make this a special track instead\".",
+          "createdAt": "2024-09-03T20:40:13Z",
+          "updatedAt": "2024-09-03T20:40:52Z",
+          "comments": [
+            {
+              "originalPosition": 132,
+              "body": "I added a section below stating overlap is an error",
+              "createdAt": "2024-09-03T20:40:13Z",
+              "updatedAt": "2024-09-03T20:40:52Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6HzygD",
+          "commit": {
+            "abbreviatedOid": "f036551"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-09-03T21:05:38Z",
+          "updatedAt": "2024-09-03T21:05:38Z",
+          "comments": [
+            {
+              "originalPosition": 105,
+              "body": "I am not sure if this should be treated as an error. A relay can receive 2 different namespaces from 2 different subscribers that overlap. ",
+              "createdAt": "2024-09-03T21:05:38Z",
+              "updatedAt": "2024-09-03T21:05:38Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6H0CSc",
+          "commit": {
+            "abbreviatedOid": "f036551"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-09-03T21:48:57Z",
+          "updatedAt": "2024-09-03T21:48:57Z",
+          "comments": [
+            {
+              "originalPosition": 105,
+              "body": "I intended that it's an error for the same subscriber to make overlapping subscribes in the same session.  A relay should be fine to receive overlapping subscribes from different sessions.  This PR doesn't define any normative behavior for forwarding SUBSCRIBE_NAMESPACE, but this clause would enforce coalescing overlaps on a single session (via UNSUBSCRIBE_NAMESPACE).",
+              "createdAt": "2024-09-03T21:48:57Z",
+              "updatedAt": "2024-09-03T21:48:57Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6H7XwA",
+          "commit": {
+            "abbreviatedOid": "fdd6331"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-09-04T14:58:05Z",
+          "updatedAt": "2024-09-04T14:58:06Z",
+          "comments": [
+            {
+              "originalPosition": 19,
+              "body": "```suggestion\r\nmatch on prefixes of a namespace. Track name is a sequence of bytes.\r\n```\r\nOr maybe there are other types of manipulation?",
+              "createdAt": "2024-09-04T14:58:05Z",
+              "updatedAt": "2024-09-04T14:58:30Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6H7cSI",
+          "commit": {
+            "abbreviatedOid": "fdd6331"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2024-09-04T15:05:01Z",
+          "updatedAt": "2024-09-04T15:05:01Z",
+          "comments": []
         }
       ]
     },
@@ -68153,7 +68416,7 @@
       "labels": [],
       "body": "And allow implementations to send multiple Peeps sequentially on a single stream if they want.\r\n\r\nFixes #480\r\nMay fix #490\r\nMay fix #476",
       "createdAt": "2024-08-29T22:34:01Z",
-      "updatedAt": "2024-08-31T19:52:27Z",
+      "updatedAt": "2024-09-03T16:45:20Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "854b26a943663cd393d23b6f8ce23b3547145792",
@@ -68185,9 +68448,192 @@
           "body": "> IMO multiple peeps per stream is even worse than a stream per track. You inherit all of the problems (priorities, head-of-line blocking, inability to reset) but now it's implicit rather than explicit.\r\n\r\nThe intent is that you'd only use this when it's beneficial.\r\n\r\n> \r\n> Even worse, the text doesn't require that peeps share the same track/subscription.\r\n\r\nI clarified that, but the intent was always that they're Peeps from the same subscription.\r\n> \r\n> I don't think MAX_STREAMS is an issue worth degrading the protocol. Make implementations raise the limit rather than impose unnecessary HoLB.\r\n\r\nI'm a lot less concerned about MAX_STREAMS and more concerned about memory usage and buffering when a subscriber requests a large amount of Data/Objects from the past (aka Fetch) and there is a real need for backpressure/flow control of some sort.  Inventing a new mechanism in MoQ to do that is complex, but caching HTTP proxies deal with this today quite well for large requests. \r\n\r\n> \r\n> So IMO just delete a track per stream and offer no replacement. Make a stream for each group, and if you're blocked by MAX_STREAMS before MAX_DATA then the limit needs to be raised.\r\n\r\nI'm fine with just deleting track per stream as well, and we can limit this PR to only that if people prefer.\r\n",
           "createdAt": "2024-08-31T19:52:26Z",
           "updatedAt": "2024-08-31T19:52:26Z"
+        },
+        {
+          "author": "vasilvv",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I'm not sure falling back from multi-stream to single-stream is a good idea: there is no good reason for the server to have large per-stream buffers but small total limit on streams, so I think the preferred approach here would be to buffer outgoing peeps until the credits appears.\r\n\r\nOtherwise this looks good, though you might need to remove Track as a forwarding preference from other places in the spec.",
+          "createdAt": "2024-09-03T13:34:38Z",
+          "updatedAt": "2024-09-03T13:34:38Z"
+        },
+        {
+          "author": "vasilvv",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Another problem is that if we ever assign semantics to closing a peep via a FIN, or require resetting a stream upon certain events (e.g. timeouts), \"multiple peeps in a single stream\" completely breaks that.",
+          "createdAt": "2024-09-03T15:08:36Z",
+          "updatedAt": "2024-09-03T15:08:36Z"
+        },
+        {
+          "author": "kixelated",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I definitely don't want a relay converting N streams into 1 stream by coalescing peeps, introducing HoLB in the process. The reverse is probably fine but it's still extremely situational; the broadcaster is trying to send more concurrent peeps than the QUIC connection allows?\r\n\r\nBut in general this just seems extremely fishy. We're worried about too many streams so we invent our own stream within a stream abstraction. Use fewer peeps or raise MAX_STREAMS.\r\n",
+          "createdAt": "2024-09-03T16:45:19Z",
+          "updatedAt": "2024-09-03T16:45:19Z"
         }
       ],
-      "reviews": []
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M6HwvLr",
+          "commit": {
+            "abbreviatedOid": "27e4b3d"
+          },
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-09-03T14:53:35Z",
+          "updatedAt": "2024-09-03T14:53:35Z",
+          "comments": [
+            {
+              "originalPosition": 20,
+              "body": "This conflicts with the current definition of Peeps.",
+              "createdAt": "2024-09-03T14:53:35Z",
+              "updatedAt": "2024-09-03T14:53:35Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 518,
+      "id": "PR_kwDOG2Ho4M56b5uC",
+      "title": "Rewrite the Priority section to improve clarity",
+      "url": "https://github.com/moq-wg/moq-transport/pull/518",
+      "state": "OPEN",
+      "author": "vasilvv",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "This change provides a step-by-step algorithm for how to pick the next object to send, and which priorities take precedence over another, all in one place.\r\n\r\nThis PR may or may not change the normative behavior of priorities depending on one's interpretation of the current text (which, as we learned in today's call, appears to vary between people).\r\n\r\nFixes #517",
+      "createdAt": "2024-09-04T19:16:02Z",
+      "updatedAt": "2024-09-04T23:35:24Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "73d71a6bb95bf0ef5c0ec6bff090b777645b116e",
+      "headRepository": "vasilvv/warp-draft",
+      "headRefName": "priority-cleanup",
+      "headRefOid": "e40027d17f76bbd06902157c6277af68390347cf",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [
+        {
+          "author": "vasilvv",
+          "authorAssociation": "COLLABORATOR",
+          "body": "@fluffy You've expressed interest in seeing a step-by-step algorithm for sending things to be explicitly spelled out before.  Does the text in this PR match your expectations of how this should look like?",
+          "createdAt": "2024-09-04T19:16:54Z",
+          "updatedAt": "2024-09-04T19:16:54Z"
+        }
+      ],
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M6H9j7w",
+          "commit": {
+            "abbreviatedOid": "885030d"
+          },
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "LGTM",
+          "createdAt": "2024-09-04T19:23:44Z",
+          "updatedAt": "2024-09-04T19:26:48Z",
+          "comments": [
+            {
+              "originalPosition": 11,
+              "body": "Nit: fix numbering here",
+              "createdAt": "2024-09-04T19:23:44Z",
+              "updatedAt": "2024-09-04T19:26:48Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6H9i3H",
+          "commit": {
+            "abbreviatedOid": "885030d"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "Individual Comment",
+          "createdAt": "2024-09-04T19:21:04Z",
+          "updatedAt": "2024-09-04T19:29:11Z",
+          "comments": [
+            {
+              "originalPosition": 45,
+              "body": "This implies that publisher priority trumps subscriber group order.  That was not how I read the previous algorithm.  Higher publisher priority would *select a subscription* to send from, then you go through to group order.  This is how we got min.\r\n\r\nI like the property that says group order is ascending or descending *only*, and priority doesn't influence group order.  Trying to use the object priority as both intra and inter track is weird.",
+              "createdAt": "2024-09-04T19:21:04Z",
+              "updatedAt": "2024-09-04T19:29:11Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6H-Zbg",
+          "commit": {
+            "abbreviatedOid": "885030d"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "Some nits, but I think this is very close.",
+          "createdAt": "2024-09-04T20:51:59Z",
+          "updatedAt": "2024-09-04T20:57:26Z",
+          "comments": [
+            {
+              "originalPosition": 17,
+              "body": "```suggestion\r\nA _priority_ is an unsigned integer with a value between 0 and 255.\r\n```\r\n\r\nnit: Can we just call it priority?",
+              "createdAt": "2024-09-04T20:51:59Z",
+              "updatedAt": "2024-09-04T20:57:26Z"
+            },
+            {
+              "originalPosition": 15,
+              "body": "```suggestion\r\nSince a single peep or datagram has a single publisher priority, it can be\r\nuseful to conceptualize this process as scheduling peeps or datagrams\r\ninstead of individual objects on them.\r\n```",
+              "createdAt": "2024-09-04T20:55:06Z",
+              "updatedAt": "2024-09-04T20:57:26Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6H_cGR",
+          "commit": {
+            "abbreviatedOid": "885030d"
+          },
+          "author": "vasilvv",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-09-04T23:06:29Z",
+          "updatedAt": "2024-09-04T23:06:29Z",
+          "comments": [
+            {
+              "originalPosition": 45,
+              "body": "> Trying to use the object priority as both intra and inter track is weird.\r\n\r\nI agree that it might feel a little bit weird, but if priority is applied before group order, this makes sense, since this should be more expressive than just having two of those.\r\n\r\nAs to publisher priority vs group order, I feel like for the use cases that I can think of, the group order should always apply _after_ the publisher priority.  E.g. for the active vs non-active speaker case, you'd always want to prioritize the more-useful audio over less-useful regardless of stream position; or for SVC, you'd probably rather have all of the base layer frames than have the newest group in the best quality and a missing group right before it.\r\n\r\n(Of course, even if that is not true, you can choose the opposite behavior by setting publisher priority as the same for all track, and then using peep IDs to prioritize those within the group.)",
+              "createdAt": "2024-09-04T23:06:29Z",
+              "updatedAt": "2024-09-04T23:06:29Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6H_hw5",
+          "commit": {
+            "abbreviatedOid": "885030d"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-09-04T23:35:24Z",
+          "updatedAt": "2024-09-04T23:35:24Z",
+          "comments": [
+            {
+              "originalPosition": 45,
+              "body": "The problem that I see if that the publisher gets the final say on group order here -- if the subscriber asks for one track with pri=0 and order=asc, but the publisher sets the peep priorities for each group in descending order, the data will be delivered dsc.  I'd find it more consistent and easier to think about if we separate publisher track priority from peep/object priority (Martin's Option 3).  Then it's `sub pri -> pub pri -> group order -> peep/obj pri -> peep ID`.\r\n\r\nIn any case, this PR doesn't feel like a clarification so much as a change to the algorithm.",
+              "createdAt": "2024-09-04T23:35:24Z",
+              "updatedAt": "2024-09-04T23:35:48Z"
+            }
+          ]
+        }
+      ]
     }
   ]
 }
