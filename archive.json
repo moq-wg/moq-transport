@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2024-09-05T01:22:40.901832+00:00",
+  "timestamp": "2024-09-08T01:35:01.184696+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -13424,7 +13424,7 @@
       ],
       "body": "Current prose should be updated to indicate that \r\n1. ObjectID and GroupID are integers. The Object header implicitly defines this, but it should be stated explicitly.\r\n2. ObjectID MUST only increment by 1\r\n3. The GroupID MUST always increase. \r\n4. The GroupID may start at any value >= 0\r\n5. The GroupID can increase by any value >= 1. ",
       "createdAt": "2024-02-07T17:28:23Z",
-      "updatedAt": "2024-09-05T00:38:46Z",
+      "updatedAt": "2024-09-05T16:14:22Z",
       "closedAt": null,
       "comments": [
         {
@@ -13538,6 +13538,48 @@
           "body": "> The same relay receives a subscription Absolute Range 14-48. When looking at its cache, it can only see random numbers in there. By default, it will forward the full subscription message to the publisher. The cache is useless.\r\n\r\nLeaving the group numbering scheme aside.  When the relay receives range14-48, it will return 14, 17, 39, 43, 48.   The end subscriber is aware of group distribution and for it the group numbers are not random and If it sees there is a gap that shouldn't have existed, it can always ask for the same and caches will get the data populated accordingly. There is also a way to have few groups marked as never existed  and that can also be used to ask upstream or not.  ",
           "createdAt": "2024-09-05T00:38:45Z",
           "updatedAt": "2024-09-05T00:38:45Z"
+        },
+        {
+          "author": "vitaly-castLabs",
+          "authorAssociation": "NONE",
+          "body": "I bet 99.9% of implementation will assume and only support/test it with unitary increase, adding logic to handle gaps will make it a lot more messy and bug-prone",
+          "createdAt": "2024-09-05T03:29:58Z",
+          "updatedAt": "2024-09-05T03:29:58Z"
+        },
+        {
+          "author": "wilaw",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "> Leaving the group numbering scheme aside. When the relay receives range14-48, it will return 14, 17, 39, 43, 48.\r\n\r\nBut it won't. A server can't only return what was cached by prior requests. There may be no prior requests, or maybe only 17 was requested, or the cache is volatile and objects got evicted. Knowing nothing about the structure of the range, the server has no choice but to make one or more upstream requests. It can make an upstream request for 14-18 (which will result in duplicate objects being sent), or it has to make requests for 15-16, 18-38, 40-42, 44-48. \r\n\r\nAs another illustrative example, consider a publisher which only uses odd group IDs. If a server had previously served the content (resulting in 1,3,5 ...2001) in its cache), a second subscription for 1 - 2001 would result in the server having to make 1,000 forward requests (2, 4, 6 .. 2000) to try to fill in the gaps. That is not practical. ",
+          "createdAt": "2024-09-05T06:29:29Z",
+          "updatedAt": "2024-09-05T06:48:12Z"
+        },
+        {
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> There may be no prior requests, or maybe only 17 was requested, or the cache is volatile and objects got evicted.\r\n\r\nthis is true regardless of group numbering scheme.  ",
+          "createdAt": "2024-09-05T13:48:42Z",
+          "updatedAt": "2024-09-05T13:48:42Z"
+        },
+        {
+          "author": "gwendalsimon",
+          "authorAssociation": "NONE",
+          "body": "> > There may be no prior requests, or maybe only 17 was requested, or the cache is volatile and objects got evicted.\r\n> \r\n> this is true regardless of group numbering scheme.\r\n\r\nIf a relay sees that its cache contains groups 13-14-15-16-17-18-19-20, it knows for sure that it can serve directly the subscription Absolute Range 13-20 without assistance from the publisher.\r\nIf its cache contains 13-14-17-18-19, it knows for sure that it misses groupIDs 15 and 16, so is does subscribe Absolute Range 15-16 to the publisher.\r\nIn the case of non-unitary groupID increment, the cache is useless, the relay forwards the full subscription, it causes more traffic in the network and more requests at the publisher. \r\n\r\n> I bet 99.9% of implementation will assume and only support/test it with unitary increase, adding logic to handle gaps will make it a lot more messy and bug-prone\r\n\r\nIndeed. The \"non-unitary groupID increment\" will become a corner case for lawyers in the future provider-CDN MoQ agreements. CDN will have to state that they can deliver MoQ streams... unless the groupID increment is not sequential.",
+          "createdAt": "2024-09-05T14:14:17Z",
+          "updatedAt": "2024-09-05T15:56:50Z"
+        },
+        {
+          "author": "vasilvv",
+          "authorAssociation": "COLLABORATOR",
+          "body": "The caching point is part of the reason sequential numbering makes things easier.  But also, the data structures for continuous sequential numbers are much nicer in terms of CPU performance.",
+          "createdAt": "2024-09-05T15:43:16Z",
+          "updatedAt": "2024-09-05T15:43:16Z"
+        },
+        {
+          "author": "vasilvv",
+          "authorAssociation": "COLLABORATOR",
+          "body": "An alternative approach here (one that I still need to think a bit more about) is that we could just decouple group IDs and object IDs: let's say all objects have a unique sequential object ID within the track, and group IDs are just numbers that tell us where one can join (an index rather than an identifier).  I've been annoyed by the \"2D\" nature of MoQ sequence numbers before when coding, so that would solve that too.",
+          "createdAt": "2024-09-05T16:14:21Z",
+          "updatedAt": "2024-09-05T16:14:21Z"
         }
       ]
     },
@@ -13604,9 +13646,17 @@
       ],
       "body": "At interim, to support make before break use-cases, we need to clarify relay behavior when a new announce arrives for existing published. \r\n",
       "createdAt": "2024-02-07T22:13:29Z",
-      "updatedAt": "2024-02-20T00:04:31Z",
+      "updatedAt": "2024-09-06T20:42:21Z",
       "closedAt": null,
-      "comments": []
+      "comments": [
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "This came up during discussion of #508.  \n\nThe current draft is ambiguous whether multiple distinct publishers (not reconnect) can announce the same namespace to a relay.  If that is allowed, should SUBSCRIBE messages be sent to all publishers that have announced that namespace?  What happens if multiple SUBSCRIBE_OKs come back?  Do we need normative text describing how a relay handles all these situations, or is it implementation specific?\n\nSome possible error conditions:\n\n1. Two publishers publisher the same track/group/object with different content\n2. One publisher skips an object (perhaps due to a delivery timeout) but another publisher sends it\n3. ?\n",
+          "createdAt": "2024-09-06T20:42:21Z",
+          "updatedAt": "2024-09-06T20:42:21Z"
+        }
+      ]
     },
     {
       "number": 363,
@@ -67485,7 +67535,7 @@
       "labels": [],
       "body": "This PR adds an extensible header to Objects, as well as updating the SETUP parameters to allow negotiation of required extension header parameters. Extensible headers have types which are IANA registered. A new Extensible header is defined and reserved with type 0x0, allowing name/value data to be passed in a manner compatible with HTTP headers.  A new example is added showing serialization of an Object with an extensible header. \r\n\r\nFixes: #433 ",
       "createdAt": "2024-08-06T13:38:35Z",
-      "updatedAt": "2024-08-23T21:29:10Z",
+      "updatedAt": "2024-09-06T08:10:10Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "636b5dc056cbd6d3b7df6bffcabb7aa336ecda7f",
@@ -68015,6 +68065,19 @@
               "updatedAt": "2024-08-23T21:29:10Z"
             }
           ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6IN2bs",
+          "commit": {
+            "abbreviatedOid": "358c5d7"
+          },
+          "author": "RichLogan",
+          "authorAssociation": "NONE",
+          "state": "COMMENTED",
+          "body": "Should we also update the structures shown in the `Multi-Object Groups` section to show extension count + extensions in the track and group forwarding preference structures? \r\n\r\n**Track**:\r\n\r\nhttps://github.com/moq-wg/moq-transport/blob/358c5d75d93b28c63a955fc2eda17bfdcb839e5e/draft-ietf-moq-transport.md?plain=1#L1735-L1741\r\n\r\n**Group**:\r\n\r\nhttps://github.com/moq-wg/moq-transport/blob/358c5d75d93b28c63a955fc2eda17bfdcb839e5e/draft-ietf-moq-transport.md?plain=1#L1777-L1782",
+          "createdAt": "2024-09-06T08:10:10Z",
+          "updatedAt": "2024-09-06T08:10:10Z",
+          "comments": []
         }
       ]
     },
