@@ -1669,9 +1669,9 @@ variable-length integer indicating the type of the stream in question.
 |------:|:----------------------------------------------------|
 | 0x1   | OBJECT_DATAGRAM ({{object-datagram}})               |
 |-------|-----------------------------------------------------|
-| 0x50  | STREAM_HEADER_TRACK ({{stream-header-track}})       |
+| 0x2   | STREAM_HEADER_TRACK ({{stream-header-track}})       |
 |-------|-----------------------------------------------------|
-| 0x52  | STREAM_HEADER_PEEP  ({{stream-header-peep}})        |
+| 0x4   | STREAM_HEADER_PEEP  ({{stream-header-peep}})        |
 |-------|-----------------------------------------------------|
 
 An endpoint that receives an unknown stream type MUST close the session.
