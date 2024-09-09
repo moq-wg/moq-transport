@@ -1316,12 +1316,19 @@ receiving an ANNOUNCE_CANCEL, it SHOULD close the session as a
 ~~~
 ANNOUNCE_CANCEL Message {
   Track Namespace (tuple),
+  Error Code (i),
+  Reason Phrase (b),
 }
 ~~~
 {: #moq-transport-announce-cancel-format title="MOQT ANNOUNCE_CANCEL Message"}
 
 * Track Namespace: Identifies a track's namespace as defined in
 ({{track-name}}).
+
+* Error Code: Identifies an integer error code for canceling the announcement.
+
+* Reason Phrase: Provides the reason for announcement cancelation.
+
 
 ## TRACK_STATUS_REQUEST {#message-track-status-req}
 
@@ -1954,6 +1961,7 @@ TODO: fill out currently missing registries:
 * Subscribe Error codes
 * Subscribe Namespace Error codes
 * Announce Error codes
+* Announce Cancel Reason codes
 * Message types
 
 TODO: register the URI scheme and the ALPN
