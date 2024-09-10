@@ -984,13 +984,20 @@ client MUST set the PATH parameter to the `path-abempty` portion of the
 URI; if `query` is present, the client MUST concatenate `?`, followed by
 the `query` portion of the URI to the parameter.
 
-#### REQUIRED-EXTENSION parameter {#required-extensions}
+#### REQUESTED-EXTENSION parameter {#requested-extensions}
 
-The REQUIRED-EXTENSION parameter (key 0x02) allows the client to specify
-multiple Extension Header types {{object-extensions}} which are required for
-operation. The value is a concatenation of varints, each describing a
-32-bit extension header type. This parameter is optional. If the server does
-not support a requested REQUIRED-EXTENSION, then it MUST close the connection.
+The REQUESTED-EXTENSION parameter (key 0x02) allows the client to request
+the server to acknowledge support for  multiple Extension Header types
+{{object-extensions}} which are required for operation. The value is a
+concatenation of varints, each describing a 32-bit extension header type.
+This parameter is optional. If this parameter is present in the
+CLIENT_SETUP message, then the server MUST respond with a
+REQUESTED-EXTENSION parameter in its SERVER_SETUP message. This parameter
+MUST list the subset of those extensions previously requested by the client
+which the server supports. If the server does not support any of the
+requested extensions, then it MUST respond with a parameter value length of 0.
+The client can then choose to continue or disconnect the session, at its
+discretion.
 
 ## GOAWAY {#message-goaway}
 The server sends a `GOAWAY` message to initiate session migration
