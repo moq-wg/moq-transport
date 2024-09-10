@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2024-09-08T01:35:01.184696+00:00",
+  "timestamp": "2024-09-10T01:23:44.729571+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -5634,7 +5634,7 @@
       ],
       "body": "We need to work to get the number of bytes sent for a use case like clubhouse to relatively efficient. ( I am thinking something similar to RTP ) \r\n\r\n",
       "createdAt": "2023-04-07T21:29:02Z",
-      "updatedAt": "2024-08-05T19:37:01Z",
+      "updatedAt": "2024-09-09T05:26:35Z",
       "closedAt": null,
       "comments": [
         {
@@ -5664,6 +5664,13 @@
           "body": "@suhasHere can you measure this in your implementation and report back",
           "createdAt": "2024-08-05T19:37:00Z",
           "updatedAt": "2024-08-05T19:37:00Z"
+        },
+        {
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "body": "@afrind  Yes . I might need some time to get the data reported. but happy to instrument the media flows.",
+          "createdAt": "2024-09-09T05:26:34Z",
+          "updatedAt": "2024-09-09T05:26:34Z"
         }
       ]
     },
@@ -18159,6 +18166,30 @@
           "body": "Re option 2 -- I remembered that there is group ordering in between publisher priority, and the individual peeps, so merging them does not quite work.\r\n\r\nSo we get `(subscriber priority) -> (publisher priority) -> (group ID) -> (peep priority) -> (object ID)`",
           "createdAt": "2024-09-04T15:35:00Z",
           "updatedAt": "2024-09-04T15:35:00Z"
+        }
+      ]
+    },
+    {
+      "number": 519,
+      "id": "I_kwDOG2Ho4M6VvGoA",
+      "title": "Do tracks need their own publisher priority?",
+      "url": "https://github.com/moq-wg/moq-transport/issues/519",
+      "state": "OPEN",
+      "author": "ianswett",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "In #517 and #512 we discuss details about how priority should work.\r\n\r\nIn https://github.com/moq-wg/moq-transport/pull/518/files#r1744303191 @afrind suggested that there be an explicit publisher priority.\r\n\r\nDo we need one?  It might make things simpler, despite adding another attribute to prioritization, because we could only consider subscriber and publisher priority when picking which track to prioritize, and then within a track, we can use group order and peep/object priority to decide what data to send.\r\n\r\n@vasilvv may have thoughts as well?",
+      "createdAt": "2024-09-08T01:51:51Z",
+      "updatedAt": "2024-09-09T23:32:27Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "vasilvv",
+          "authorAssociation": "COLLABORATOR",
+          "body": "The only reason I can imagine having a publisher priority attached to the subscription and not individual things on it is if we wanted to let publishers update it, including changing priority of previous objects.  That is logistically complicated, and I don't think it's the desired behavior in any use cases I can think of.",
+          "createdAt": "2024-09-09T23:32:26Z",
+          "updatedAt": "2024-09-09T23:32:26Z"
         }
       ]
     }
@@ -68479,13 +68510,13 @@
       "labels": [],
       "body": "And allow implementations to send multiple Peeps sequentially on a single stream if they want.\r\n\r\nFixes #480\r\nMay fix #490\r\nMay fix #476",
       "createdAt": "2024-08-29T22:34:01Z",
-      "updatedAt": "2024-09-03T16:45:20Z",
+      "updatedAt": "2024-09-09T01:30:46Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
-      "baseRefOid": "854b26a943663cd393d23b6f8ce23b3547145792",
+      "baseRefOid": "73d71a6bb95bf0ef5c0ec6bff090b777645b116e",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "ianswett-no-track-stream",
-      "headRefOid": "27e4b3df9f19b85275a039a8f9bf9a4c8a688dce",
+      "headRefOid": "cc08723edf14c1a34d21f611d82e8e4387444028",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -68532,6 +68563,13 @@
           "body": "I definitely don't want a relay converting N streams into 1 stream by coalescing peeps, introducing HoLB in the process. The reverse is probably fine but it's still extremely situational; the broadcaster is trying to send more concurrent peeps than the QUIC connection allows?\r\n\r\nBut in general this just seems extremely fishy. We're worried about too many streams so we invent our own stream within a stream abstraction. Use fewer peeps or raise MAX_STREAMS.\r\n",
           "createdAt": "2024-09-03T16:45:19Z",
           "updatedAt": "2024-09-03T16:45:19Z"
+        },
+        {
+          "author": "suhasHere",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I am proposing to hold off merging this PR until fetch discussions are complete. Since the issues are related to flow control/range requests and  not specific to  forwarding mode preference. \r\nHaving said that I am not in favor or against the stream-per-track mode, but hoping we come to a decision once we have spent some time figuring out range requests in general.",
+          "createdAt": "2024-09-09T01:30:45Z",
+          "updatedAt": "2024-09-09T01:30:45Z"
         }
       ],
       "reviews": [
@@ -68569,7 +68607,7 @@
       "labels": [],
       "body": "This change provides a step-by-step algorithm for how to pick the next object to send, and which priorities take precedence over another, all in one place.\r\n\r\nThis PR may or may not change the normative behavior of priorities depending on one's interpretation of the current text (which, as we learned in today's call, appears to vary between people).\r\n\r\nFixes #517",
       "createdAt": "2024-09-04T19:16:02Z",
-      "updatedAt": "2024-09-04T23:35:24Z",
+      "updatedAt": "2024-09-08T01:52:52Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "73d71a6bb95bf0ef5c0ec6bff090b777645b116e",
@@ -68695,6 +68733,188 @@
               "updatedAt": "2024-09-04T23:35:48Z"
             }
           ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6IZsTQ",
+          "commit": {
+            "abbreviatedOid": "e40027d"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-09-08T01:47:05Z",
+          "updatedAt": "2024-09-08T01:47:05Z",
+          "comments": [
+            {
+              "originalPosition": 45,
+              "body": "Adding an explicit track priority is completely reasonable, though it'd be good to understand what cases it was necessary?  For SVC, I'm quite sure you'd want the peep priority to be more important than group order.\r\n\r\nWe only have 256 priority values, so your example won't last that long for most use cases.  Also, your example is somewhat adversarial, so I'm not sure how realistic it is?",
+              "createdAt": "2024-09-08T01:47:05Z",
+              "updatedAt": "2024-09-08T01:47:05Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6IZsZW",
+          "commit": {
+            "abbreviatedOid": "e40027d"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-09-08T01:52:52Z",
+          "updatedAt": "2024-09-08T01:52:52Z",
+          "comments": [
+            {
+              "originalPosition": 45,
+              "body": "I created https://github.com/moq-wg/moq-transport/issues/519 to discuss the question of whether publishers should specify a priority in addition to the subscriber priority.",
+              "createdAt": "2024-09-08T01:52:52Z",
+              "updatedAt": "2024-09-08T01:52:52Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 520,
+      "id": "PR_kwDOG2Ho4M56y59H",
+      "title": "Header Length for improving parsing",
+      "url": "https://github.com/moq-wg/moq-transport/pull/520",
+      "state": "OPEN",
+      "author": "suhasHere",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Addresses #474 ",
+      "createdAt": "2024-09-09T05:02:26Z",
+      "updatedAt": "2024-09-09T23:22:54Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "73d71a6bb95bf0ef5c0ec6bff090b777645b116e",
+      "headRepository": "moq-wg/moq-transport",
+      "headRefName": "trail-parsing",
+      "headRefOid": "b5ad15c1f4320271cd515b20e55275efe573256a",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [
+        {
+          "author": "vasilvv",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I think this is good for control messages, but I'd mildly prefer to keep the data stream headers without length, since those are sensitive to the framing overhead.",
+          "createdAt": "2024-09-09T23:22:53Z",
+          "updatedAt": "2024-09-09T23:22:53Z"
+        }
+      ],
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M6IimI_",
+          "commit": {
+            "abbreviatedOid": "b5ad15c"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "Individual Review: \r\n\r\nWe also need to specify what happens when:\r\n\r\n1) the section ends before the section length\r\n2) the section extends beyond the section length (eg: the varint length would extend past the section length).\r\n\r\nProbably ought to make both a protocol violation and tear the whole session down?",
+          "createdAt": "2024-09-09T19:24:03Z",
+          "updatedAt": "2024-09-09T19:27:57Z",
+          "comments": [
+            {
+              "originalPosition": 24,
+              "body": "This one isn't strictly necessary because it's a datagram -- you have to have the whole message so there is no need for trial parsing.",
+              "createdAt": "2024-09-09T19:24:03Z",
+              "updatedAt": "2024-09-09T19:27:57Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 521,
+      "id": "PR_kwDOG2Ho4M56y8do",
+      "title": "update message types to fit in 1 byte for data streams",
+      "url": "https://github.com/moq-wg/moq-transport/pull/521",
+      "state": "OPEN",
+      "author": "suhasHere",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Address issue #464 ",
+      "createdAt": "2024-09-09T05:11:30Z",
+      "updatedAt": "2024-09-09T19:23:13Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "73d71a6bb95bf0ef5c0ec6bff090b777645b116e",
+      "headRepository": "moq-wg/moq-transport",
+      "headRefName": "issue-464",
+      "headRefOid": "1cf93312094b973dcaf0ccf76c1f15094a093686",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M6IilZO",
+          "commit": {
+            "abbreviatedOid": "1cf9331"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "Individual Review",
+          "createdAt": "2024-09-09T19:22:08Z",
+          "updatedAt": "2024-09-09T19:23:13Z",
+          "comments": [
+            {
+              "originalPosition": 8,
+              "body": "What if we made STREAM_HEADER_PEEP also 0x1?  That way you cannot send OBJECT_DATAGRAM on a stream and vice versa.\r\n\r\nFor that matter, maybe we should make these two different tables, one for streams and one for datagrams. I'm OK if we want to land this now too.",
+              "createdAt": "2024-09-09T19:22:09Z",
+              "updatedAt": "2024-09-09T19:23:13Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 522,
+      "id": "PR_kwDOG2Ho4M56y_2s",
+      "title": "Error code for announce cancel",
+      "url": "https://github.com/moq-wg/moq-transport/pull/522",
+      "state": "OPEN",
+      "author": "suhasHere",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "fixes #412 ",
+      "createdAt": "2024-09-09T05:25:10Z",
+      "updatedAt": "2024-09-09T19:20:55Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "73d71a6bb95bf0ef5c0ec6bff090b777645b116e",
+      "headRepository": "moq-wg/moq-transport",
+      "headRefName": "issue-412",
+      "headRefOid": "66479144517d0a7e89896630335a2754b56b2a36",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M6Iik5k",
+          "commit": {
+            "abbreviatedOid": "6647914"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "lgtm",
+          "createdAt": "2024-09-09T19:20:55Z",
+          "updatedAt": "2024-09-09T19:20:55Z",
+          "comments": []
         }
       ]
     }
