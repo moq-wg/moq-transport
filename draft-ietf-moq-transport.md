@@ -989,7 +989,7 @@ the `query` portion of the URI to the parameter.
 The REQUESTED-EXTENSION parameter (key 0x02) allows the client to request
 the server to acknowledge support for  multiple Extension Header types
 {{object-extensions}} which are required for operation. The value is a
-concatenation of varints, each describing a 32-bit extension header type.
+concatenation of varints, each describing an integer extension header type.
 This parameter is optional. If this parameter is present in the
 CLIENT_SETUP message, then the server MUST respond with a
 REQUESTED-EXTENSION parameter in its SERVER_SETUP message. This parameter
@@ -1599,8 +1599,8 @@ Extension Header {
 ~~~
 {: #object-extension-format title="Object Extension Header Format"}
 
-* Header type: an unsigned 32-bit integer, registered in the IANA table
-  'MOQ Extension Headers'. See {{iana}}.
+* Header type: an unsigned integer, encoded as a varint and registered in the
+  IANA table 'MOQ Extension Headers'. See {{iana}}.
 
 ##### Extension Header type 0 {#extension-header-zero}
 
@@ -1919,7 +1919,10 @@ TODO: fill out currently missing registries:
 * Subscribe Error codes
 * Announce Error codes
 * Message types
-* MOQ Extension headers
+* MOQ Extension headers - we wish to reserve extension types 0-127 for
+  standards utilization where space is a premium, 128 - 16383 for
+  standards utilization where space is less of a concern, and 16384 and
+  above for first-come-first-served non-standardization usage.
 
 TODO: register the URI scheme and the ALPN
 
