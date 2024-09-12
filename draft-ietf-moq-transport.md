@@ -710,7 +710,16 @@ subscribers for each track. Each new OBJECT belonging to the
 track within the subscription range is forwarded to each active
 subscriber, dependent on the congestion response. A subscription
 remains active until the publisher of the track terminates the
-track with a SUBSCRIBE_DONE (see {{message-subscribe-done}}).
+track with a SUBSCRIBE_DONE (see {{message-subscribe-done}}). A
+caching relay saves objects to its cache identified by the object's
+fulltrackname, group ID and object ID. Relays MUST be
+ready to process objects for the same fulltrackname from
+multiple publishers and the objects received are forwarded
+to active matching subscribers. If multiple objects are received
+with the same fulltrackname, group ID and object ID - a caching
+Relays MUST drop the received objects as duplicate if there exists
+already an object with the matching fulltrackame, group ID and
+object ID, in its cache.
 
 Objects MUST NOT be sent for unsuccessful subscriptions, and if a subscriber
 receives a SUBSCRIBE_ERROR after receiving objects, it MUST close the session
@@ -768,19 +777,30 @@ Relays MUST ensure that publishers are authorized by:
 
 - Verifying that the publisher is authorized to publish the content
   associated with the set of tracks whose Track Namespace matches the
-  announced namespace. Specifics of where the authorization happens,
-  either at the relays or forwarded for further processing, depends on
-  the way the relay is managed and is application specific (typically
-  based on prior business agreement).
+  announced namespace. Specifics of where the authorization and 
+  identification of the publisher  happens either at the relays or 
+  forwarded for further processing, depends on the way the relay is 
+  managed and is application specific (typically based on prior business 
+  agreement).
 
 Relays respond with an ANNOUNCE_OK or ANNOUNCE_ERROR control message
 providing the result of announcement. The entity receiving the
 ANNOUNCE MUST send only a single response to a given ANNOUNCE of
-either ANNOUNCE_OK or ANNOUNCE_ERROR.  When a publisher wants to stop
+either ANNOUNCE_OK or ANNOUNCE_ERROR.
+
+A Relay can receive announcements from multiple publishers for the same 
+tracknamespace and it MUST respond with appropriate response to each of the 
+publishers, in the same way as it would responds when processing ANNOUNCE 
+from a single publisher for a given tracknamespace. 
+
+
+When a publisher wants to stop
 new subscriptions for an announced namespace it sends an UNANNOUNCE.
 A subscriber indicates it will no longer route subscriptions for a
 namespace it previously responded ANNOUNCE_OK to by sending an
-ANNOUNCE_CANCEL.
+ANNOUNCE_CANCEL. Relays MUST be ready to handle ANNOUNCE messages from
+multiple publishers for the same tracknamespace and it does so by
+
 
 A relay manages sessions from multiple publishers and subscribers,
 connecting them based on the track namespace. This MUST use an exact
@@ -1543,7 +1563,7 @@ ANNOUNCE Message {
 }
 ~~~
 {: #moq-transport-announce-format title="MOQT ANNOUNCE Message"}
-
+ 
 * Track Namespace: Identifies a track's namespace as defined in
 ({{track-name}})
 
