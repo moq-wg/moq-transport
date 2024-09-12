@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2024-09-10T01:23:44.729571+00:00",
+  "timestamp": "2024-09-12T01:23:01.130237+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -67566,13 +67566,13 @@
       "labels": [],
       "body": "This PR adds an extensible header to Objects, as well as updating the SETUP parameters to allow negotiation of required extension header parameters. Extensible headers have types which are IANA registered. A new Extensible header is defined and reserved with type 0x0, allowing name/value data to be passed in a manner compatible with HTTP headers.  A new example is added showing serialization of an Object with an extensible header. \r\n\r\nFixes: #433 ",
       "createdAt": "2024-08-06T13:38:35Z",
-      "updatedAt": "2024-09-06T08:10:10Z",
+      "updatedAt": "2024-09-10T13:50:06Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "636b5dc056cbd6d3b7df6bffcabb7aa336ecda7f",
       "headRepository": "wilaw/moq-transport",
       "headRefName": "patch-1",
-      "headRefOid": "358c5d75d93b28c63a955fc2eda17bfdcb839e5e",
+      "headRefOid": "3759564cffa9a066349de4d018aba601f9c117d3",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -68109,6 +68109,106 @@
           "createdAt": "2024-09-06T08:10:10Z",
           "updatedAt": "2024-09-06T08:10:10Z",
           "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6IoyMZ",
+          "commit": {
+            "abbreviatedOid": "8b5c167"
+          },
+          "author": "wilaw",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-09-10T12:57:06Z",
+          "updatedAt": "2024-09-10T12:57:06Z",
+          "comments": [
+            {
+              "originalPosition": 6,
+              "body": "@ianswett  - I have modified the PR with this [commit ](https://github.com/moq-wg/moq-transport/pull/502/commits/ab407f75b8954c445f6dd1efef919631f93b58d2) to modify the extension negotiation and to rename the parameter to REQUESTED_EXTENSION\r\n\r\n> The REQUESTED-EXTENSION parameter (key 0x02) allows the client to request\r\n> the server to acknowledge support for  multiple Extension Header types\r\n> {{object-extensions}} which are required for operation. The value is a\r\n> concatenation of varints, each describing a 32-bit extension header type.\r\n> This parameter is optional. If this parameter is present in the\r\n> CLIENT_SETUP message, then the server MUST respond with a\r\n> REQUESTED-EXTENSION parameter in its SERVER_SETUP message. This parameter\r\n> MUST list the subset of those extensions previously requested by the client\r\n> which the server supports. If the server does not support any of the\r\n> requested extensions, then it MUST respond with a parameter value length of 0.\r\n> The client can then choose to continue or disconnect the session, at its\r\n> discretion. ",
+              "createdAt": "2024-09-10T12:57:06Z",
+              "updatedAt": "2024-09-10T12:57:06Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6Ipcjw",
+          "commit": {
+            "abbreviatedOid": "358c5d7"
+          },
+          "author": "wilaw",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-09-10T13:40:21Z",
+          "updatedAt": "2024-09-10T13:40:21Z",
+          "comments": [
+            {
+              "originalPosition": 10,
+              "body": "This has now changed. It is now a REQUESTED-EXTENSION parameter list from client to server with a response from the server. The client may then choose whether it wants to continue or disconnect. ",
+              "createdAt": "2024-09-10T13:40:21Z",
+              "updatedAt": "2024-09-10T13:40:21Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6IpdAo",
+          "commit": {
+            "abbreviatedOid": "358c5d7"
+          },
+          "author": "wilaw",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-09-10T13:40:59Z",
+          "updatedAt": "2024-09-10T13:41:00Z",
+          "comments": [
+            {
+              "originalPosition": 10,
+              "body": "Additionally, all relays MUST forward and not modify all extensions. ",
+              "createdAt": "2024-09-10T13:41:00Z",
+              "updatedAt": "2024-09-10T13:41:00Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6IpiT5",
+          "commit": {
+            "abbreviatedOid": "358c5d7"
+          },
+          "author": "wilaw",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-09-10T13:47:36Z",
+          "updatedAt": "2024-09-10T13:47:36Z",
+          "comments": [
+            {
+              "originalPosition": 4,
+              "body": "This negotiation has now changed slightly. The clients uses the revised REQUESTED-EXTENSION parameter to indicate which extensions it would like and the server responds with the sub-set of those that it does support. The client may then chose to continue or disconnect. \r\n\r\nSince we have separate rules that relays MUST always forward all headers and MUST NOT modify them, any negotiation is practically only going to happen at the final hop. I agree that its utility is limited. I would like to remove it, but first I want agreement from those who wanted it in there in the first place. ",
+              "createdAt": "2024-09-10T13:47:36Z",
+              "updatedAt": "2024-09-10T13:47:36Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6IpkMu",
+          "commit": {
+            "abbreviatedOid": "358c5d7"
+          },
+          "author": "wilaw",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-09-10T13:50:06Z",
+          "updatedAt": "2024-09-10T13:50:06Z",
+          "comments": [
+            {
+              "originalPosition": 54,
+              "body": "With this [commit](https://github.com/moq-wg/moq-transport/pull/502/commits/3759564cffa9a066349de4d018aba601f9c117d3) I have added guidance language for the IANA registration of the extension header types. \r\n\r\n>  MOQ Extension headers - we wish to reserve extension types 0-127 for\r\n>   standards utilization where space is a premium, 128 - 16383 for\r\n>   standards utilization where space is less of a concern, and 16384 and\r\n>   above for first-come-first-served non-standardization usage.\r\n\r\nThese ranges correspond to 1-bye, 2 bytes and 3 bytes and beyond with varint encoding. ",
+              "createdAt": "2024-09-10T13:50:06Z",
+              "updatedAt": "2024-09-10T13:50:07Z"
+            }
+          ]
         }
       ]
     },
@@ -68788,7 +68888,7 @@
       "labels": [],
       "body": "Addresses #474 ",
       "createdAt": "2024-09-09T05:02:26Z",
-      "updatedAt": "2024-09-09T23:22:54Z",
+      "updatedAt": "2024-09-10T05:11:11Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "73d71a6bb95bf0ef5c0ec6bff090b777645b116e",
@@ -68806,6 +68906,13 @@
           "body": "I think this is good for control messages, but I'd mildly prefer to keep the data stream headers without length, since those are sensitive to the framing overhead.",
           "createdAt": "2024-09-09T23:22:53Z",
           "updatedAt": "2024-09-09T23:22:53Z"
+        },
+        {
+          "author": "TimEvens",
+          "authorAssociation": "NONE",
+          "body": "> I think this is good for control messages, but I'd mildly prefer to keep the data stream headers without length, since those are sensitive to the framing overhead.\n\nSuppose it depends how often streams are changing. Adding object header length does add overhead, but it should be one byte in most uses. ",
+          "createdAt": "2024-09-10T05:11:10Z",
+          "updatedAt": "2024-09-10T05:11:10Z"
         }
       ],
       "reviews": [
@@ -68828,6 +68935,58 @@
               "updatedAt": "2024-09-09T19:27:57Z"
             }
           ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6IkZKH",
+          "commit": {
+            "abbreviatedOid": "b5ad15c"
+          },
+          "author": "TimEvens",
+          "authorAssociation": "NONE",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-09-10T02:21:17Z",
+          "updatedAt": "2024-09-10T02:21:17Z",
+          "comments": [
+            {
+              "originalPosition": 24,
+              "body": "+1",
+              "createdAt": "2024-09-10T02:21:17Z",
+              "updatedAt": "2024-09-10T02:21:17Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6IkfEL",
+          "commit": {
+            "abbreviatedOid": "b5ad15c"
+          },
+          "author": "TimEvens",
+          "authorAssociation": "NONE",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-09-10T02:53:02Z",
+          "updatedAt": "2024-09-10T05:02:32Z",
+          "comments": [
+            {
+              "originalPosition": 91,
+              "body": "I would normally consider payload length var int as a header. It seems a bit weird that a separate var int isn't considered a header. ",
+              "createdAt": "2024-09-10T02:53:03Z",
+              "updatedAt": "2024-09-10T05:02:32Z"
+            },
+            {
+              "originalPosition": 19,
+              "body": "Does it include the size of the header length itself?",
+              "createdAt": "2024-09-10T04:58:28Z",
+              "updatedAt": "2024-09-10T05:02:32Z"
+            },
+            {
+              "originalPosition": 34,
+              "body": "May not need to call out each header as including ...",
+              "createdAt": "2024-09-10T04:59:39Z",
+              "updatedAt": "2024-09-10T05:02:32Z"
+            }
+          ]
         }
       ]
     },
@@ -68843,7 +69002,7 @@
       "labels": [],
       "body": "Address issue #464 ",
       "createdAt": "2024-09-09T05:11:30Z",
-      "updatedAt": "2024-09-09T19:23:13Z",
+      "updatedAt": "2024-09-10T05:16:47Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "73d71a6bb95bf0ef5c0ec6bff090b777645b116e",
@@ -68873,6 +69032,26 @@
               "body": "What if we made STREAM_HEADER_PEEP also 0x1?  That way you cannot send OBJECT_DATAGRAM on a stream and vice versa.\r\n\r\nFor that matter, maybe we should make these two different tables, one for streams and one for datagrams. I'm OK if we want to land this now too.",
               "createdAt": "2024-09-09T19:22:09Z",
               "updatedAt": "2024-09-09T19:23:13Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M6Ik7T3",
+          "commit": {
+            "abbreviatedOid": "1cf9331"
+          },
+          "author": "TimEvens",
+          "authorAssociation": "NONE",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2024-09-10T05:16:47Z",
+          "updatedAt": "2024-09-10T05:16:47Z",
+          "comments": [
+            {
+              "originalPosition": 8,
+              "body": "I think this can be further reduced considering the following;\n\n1. Control message types can only be present on the first bidir stream\n2. All unidir streams are peep or per track data streams\n3. Datagram only has object data\n\n",
+              "createdAt": "2024-09-10T05:16:47Z",
+              "updatedAt": "2024-09-10T05:17:09Z"
             }
           ]
         }
@@ -68914,6 +69093,46 @@
           "body": "lgtm",
           "createdAt": "2024-09-09T19:20:55Z",
           "updatedAt": "2024-09-09T19:20:55Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 523,
+      "id": "PR_kwDOG2Ho4M57JuOa",
+      "title": "Fix a typo",
+      "url": "https://github.com/moq-wg/moq-transport/pull/523",
+      "state": "OPEN",
+      "author": "mladedav",
+      "authorAssociation": "NONE",
+      "assignees": [],
+      "labels": [],
+      "body": "",
+      "createdAt": "2024-09-11T11:58:27Z",
+      "updatedAt": "2024-09-11T16:55:57Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "73d71a6bb95bf0ef5c0ec6bff090b777645b116e",
+      "headRepository": "mladedav/moq-transport",
+      "headRefName": "patch-1",
+      "headRefOid": "3b955341adad6b4e0afaab105338239bc0dd70ea",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M6I9_1r",
+          "commit": {
+            "abbreviatedOid": "3b95534"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2024-09-11T16:55:57Z",
+          "updatedAt": "2024-09-11T16:55:57Z",
           "comments": []
         }
       ]
