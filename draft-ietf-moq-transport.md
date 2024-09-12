@@ -777,10 +777,10 @@ Relays MUST ensure that publishers are authorized by:
 
 - Verifying that the publisher is authorized to publish the content
   associated with the set of tracks whose Track Namespace matches the
-  announced namespace. Specifics of where the authorization and 
-  identification of the publisher  happens either at the relays or 
-  forwarded for further processing, depends on the way the relay is 
-  managed and is application specific (typically based on prior business 
+  announced namespace. Specifics of where the authorization and
+  identification of the publisher  happens either at the relays or
+  forwarded for further processing, depends on the way the relay is
+  managed and is application specific (typically based on prior business
   agreement).
 
 Relays respond with an ANNOUNCE_OK or ANNOUNCE_ERROR control message
@@ -788,10 +788,10 @@ providing the result of announcement. The entity receiving the
 ANNOUNCE MUST send only a single response to a given ANNOUNCE of
 either ANNOUNCE_OK or ANNOUNCE_ERROR.
 
-A Relay can receive announcements from multiple publishers for the same 
-tracknamespace and it MUST respond with appropriate response to each of the 
-publishers, in the same way as it would responds when processing ANNOUNCE 
-from a single publisher for a given tracknamespace. 
+A Relay can receive announcements from multiple publishers for the same
+tracknamespace and it MUST respond with appropriate response to each of the
+publishers, in the same way as it would responds when processing ANNOUNCE
+from a single publisher for a given tracknamespace.
 
 
 When a publisher wants to stop
@@ -1563,7 +1563,7 @@ ANNOUNCE Message {
 }
 ~~~
 {: #moq-transport-announce-format title="MOQT ANNOUNCE Message"}
- 
+
 * Track Namespace: Identifies a track's namespace as defined in
 ({{track-name}})
 
