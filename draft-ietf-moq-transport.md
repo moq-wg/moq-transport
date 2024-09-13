@@ -778,7 +778,7 @@ When a subscriber receives the GOAWAY message, it starts of the process
 of connecting to the new relay and sending the SUBSCRIBE requests for
 all it's active subscriptions to the new relay. The new relay will send a
 response to the subscribes and once this has happened, the subscription
-to the old relay can be stopped with and UNSUBSCRIBE.
+to the old relay can be stopped with an UNSUBSCRIBE.
 
 
 ## Publisher Interactions
@@ -812,8 +812,7 @@ When a publisher wants to stop
 new subscriptions for an announced namespace it sends an UNANNOUNCE.
 A subscriber indicates it will no longer route subscriptions for a
 namespace it previously responded ANNOUNCE_OK to by sending an
-ANNOUNCE_CANCEL. Relays MUST be ready to handle ANNOUNCE messages from
-multiple publishers for the same tracknamespace and it does so by
+ANNOUNCE_CANCEL.
 
 A relay manages sessions from multiple publishers and subscribers,
 connecting them based on the track namespace. This MUST use an exact
@@ -821,14 +820,14 @@ match on track namespace unless otherwise negotiated by the application.
 For example, a SUBSCRIBE namespace=foobar message will be forwarded to
 the session that sent ANNOUNCE namespace=foobar.
 
-When a relay receives an incoming subscribe for a given namespace, for
+When a relay receives an incoming SUBSCRIBE for a given namespace, for
 each publisher that has announced that namespace, the relay MUST send a
-subscribe to that publisher unless it already has an active subscription
-to that publisher for the full track name in the incoming subscribe.
+SUBSCRIBE to that publisher unless it already has an active subscription
+to that publisher for the full track name in the incoming SUBSCRIBE.
 
-When a relay receives an incoming annouce for a given namespace, for
+When a relay receives an incoming ANNOUCE for a given namespace, for
 each active subscription that matches that namespace, it MUST send a
-subscribe to that publisher that send the annouce.
+SUBSCRIBE to that publisher that send the ANNOUCE.
 
 OBJECT message headers carry a short hop-by-hop `Track Alias` that maps to
 the Full Track Name (see {{message-subscribe-ok}}). Relays use the
@@ -840,16 +839,18 @@ and delivery timeout.
 ### Graceful Publisher Network Switchover
 
 This section describes non normative behavior that a publisher MAY
-choose to implement to allow for a better users experience when switching
-from WiFi to Cellular networks or visa versa.
+choose to implement to allow for a better users experience when
+switching from WiFi to Cellular networks or visa versa.
 
-As the publisher detects the WiFi signal is starting to get weaker, it
-sends a new an new ANNOUCE on the cellular network to the relay
-network. The relay will forward the matching subscribes and the client
-can start publishing on both the WiFi and cellular. The relay will drop
-any duplicate objects received on both. The subscribes downstream from
-the relay do no see anything as changed and keep receiving the objects
-on the same subscription.
+If the publisher detects it is likely to need to switch over, for
+example by seeing the WiFi signal is starting to get weaker, it sends a
+new an new ANNOUCE over the cellular network to the relay network. The
+relay will forward the matching subscribes and the client can start
+publishing on both the WiFi and cellular. Once the subscriptions have
+over to the new network, the publisher can stop publishing object on the
+old network. The relay will drop any duplicate objects received on
+both. the subscribes downstream from the relay do no see anything as
+changed, and keep receiving the objects on the same subscription.
 
 ### Graceful Publisher Relay Switchover
 
@@ -858,14 +859,12 @@ choose to implement to allow for a better users experience when a relay
 sends them a GOAWAY.
 
 When a publisher receives the GOAWAY, it starts of the process of
-connecting to the new relay and sending the announces but does not stop
-publishing data to the old relay. The new relay will send the subscribes
-and the publisher and at this point the publisher can start sending any
-new data to new relay instead of the old relay. Once data is going to
-the new relay, the announcement and connection to the old relay can be
-stopped.
-
-
+connecting to the new relay and sending the announces, but it does not
+stop publishing data to the old relay. The new relay will send the
+subscribes and the publisher and at this point the publisher can start
+sending any new data to new relay instead of the old relay. Once data is
+going to the new relay, the announcement and connection to the old relay
+can be stopped.
 
 ## Relay Object Handling
 
