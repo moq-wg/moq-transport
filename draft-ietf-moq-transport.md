@@ -768,10 +768,25 @@ SUBSCRIBE_DONE, as defined below:
 | 0x6  | Expired                   |
 |------|---------------------------|
 
+### Graceful Publisher Relay Switchover
+
+This section describes non normative behavior that a subscriber MAY
+choose to implement to allow for a better users experience when a relay
+sends them a GOAWAY.
+
+When a subscriber receives the GOAWAY message, it starts of the process
+of connecting to the new relay and sending the SUBSCRIBE requests for
+all it's active subscriptions to the new relay. The new relay will send a
+response to the subscribes and once this has happened, the subscription
+to the old relay can be stopped with and UNSUBSCRIBE.
+
+
 ## Publisher Interactions
 
 Publishing through the relay starts with publisher sending ANNOUNCE
 control message with a `Track Namespace` ({{model-track}}).
+The annouce allows the relays to know which publisher to forward a
+SUBSCRIBE to.
 
 Relays MUST ensure that publishers are authorized by:
 
@@ -793,7 +808,6 @@ tracknamespace and it MUST respond with appropriate response to each of the
 publishers, in the same way as it would responds when processing ANNOUNCE
 from a single publisher for a given tracknamespace.
 
-
 When a publisher wants to stop
 new subscriptions for an announced namespace it sends an UNANNOUNCE.
 A subscriber indicates it will no longer route subscriptions for a
@@ -801,12 +815,20 @@ namespace it previously responded ANNOUNCE_OK to by sending an
 ANNOUNCE_CANCEL. Relays MUST be ready to handle ANNOUNCE messages from
 multiple publishers for the same tracknamespace and it does so by
 
-
 A relay manages sessions from multiple publishers and subscribers,
 connecting them based on the track namespace. This MUST use an exact
 match on track namespace unless otherwise negotiated by the application.
 For example, a SUBSCRIBE namespace=foobar message will be forwarded to
 the session that sent ANNOUNCE namespace=foobar.
+
+When a relay receives an incoming subscribe for a given namespace, for
+each publisher that has announced that namespace, the relay MUST send a
+subscribe to that publisher unless it already has an active subscription
+to that publisher for the full track name in the incoming subscribe.
+
+When a relay receives an incoming annouce for a given namespace, for
+each active subscription that matches that namespace, it MUST send a
+subscribe to that publisher that send the annouce.
 
 OBJECT message headers carry a short hop-by-hop `Track Alias` that maps to
 the Full Track Name (see {{message-subscribe-ok}}). Relays use the
@@ -814,6 +836,36 @@ the Full Track Name (see {{message-subscribe-ok}}). Relays use the
 the active subscribers for that track. Relays MUST forward OBJECT messages to
 matching subscribers in accordance to each subscription's priority, group order,
 and delivery timeout.
+
+### Graceful Publisher Network Switchover
+
+This section describes non normative behavior that a publisher MAY
+choose to implement to allow for a better users experience when switching
+from WiFi to Cellular networks or visa versa.
+
+As the publisher detects the WiFi signal is starting to get weaker, it
+sends a new an new ANNOUCE on the cellular network to the relay
+network. The relay will forward the matching subscribes and the client
+can start publishing on both the WiFi and cellular. The relay will drop
+any duplicate objects received on both. The subscribes downstream from
+the relay do no see anything as changed and keep receiving the objects
+on the same subscription.
+
+### Graceful Publisher Relay Switchover
+
+This section describes non normative behavior that a publisher MAY
+choose to implement to allow for a better users experience when a relay
+sends them a GOAWAY.
+
+When a publisher receives the GOAWAY, it starts of the process of
+connecting to the new relay and sending the announces but does not stop
+publishing data to the old relay. The new relay will send the subscribes
+and the publisher and at this point the publisher can start sending any
+new data to new relay instead of the old relay. Once data is going to
+the new relay, the announcement and connection to the old relay can be
+stopped.
+
+
 
 ## Relay Object Handling
 
