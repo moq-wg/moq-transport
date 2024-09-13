@@ -196,7 +196,7 @@ End Subscriber:
 
 Relay:
 
-: An entitly that is both a Publisher and a Subscriber, but not the Original
+: An entity that is both a Publisher and a Subscriber, but not the Original
 Publisher or End Subscriber.
 
 Upstream:
@@ -650,7 +650,7 @@ higher Object Id, regardless of the specified Group Order. If the group
 contains more than one Peep and the priority varies between these Peeps,
 higher priority Peeps are sent before lower priority Peeps. If the specified
 priority of two Peeps in a Group are equal, the lower Peep ID has priority.
-Within a Peep, Objects MUST bs sent in increasing Object ID order.
+Within a Peep, Objects MUST be sent in increasing Object ID order.
 
 The Group Order cannot be changed via a SUBSCRIBE_UPDATE message, and
 instead an UNSUBSCRIBE and SUBSCRIBE can be used.
@@ -818,7 +818,7 @@ limits.  See section 2.2 in {{QUIC}}.
 # Control Messages {#message}
 
 MOQT uses a single bidirectional stream to exchange control messages, as
-defined in {{session-init}}.  Every signle message on the control stream is
+defined in {{session-init}}.  Every single message on the control stream is
 formatted as follows:
 
 ~~~
@@ -1380,7 +1380,7 @@ namespace subscription.
 SUBSCRIBE_NAMESPACE is not required for a publisher to send ANNOUNCE and
 UNANNOUNCE messages to a subscriber.  It is useful in applications or relays
 where subscribers are only interested in or authorized to access a subset of
-available annoucements.
+available announcements.
 
 ## UNSUBSCRIBE_NAMESPACE {#message-unsub-ns}
 
