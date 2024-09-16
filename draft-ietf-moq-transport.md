@@ -842,15 +842,16 @@ This section describes non normative behavior that a publisher MAY
 choose to implement to allow for a better users experience when
 switching from WiFi to Cellular networks or visa versa.
 
-If the publisher detects it is likely to need to switch over, for
-example by seeing the WiFi signal is starting to get weaker, it sends a
-new an new ANNOUCE over the cellular network to the relay network. The
-relay will forward the matching subscribes and the client can start
-publishing on both the WiFi and cellular. Once the subscriptions have
-over to the new network, the publisher can stop publishing object on the
-old network. The relay will drop any duplicate objects received on
-both. the subscribes downstream from the relay do no see anything as
-changed, and keep receiving the objects on the same subscription.
+If the original publisher detects it is likely to need to switch networks,
+for example because the WiFi signal is getting weaker, and it does not
+have QUIC connection migration available, it establishes a new session
+over the new interface and sends an ANNOUCE. The relay will forward
+matching subscribes and the publisher can publishing on both sessions.
+Once the subscriptions have migrated over to session on the new network,
+the publisher can stop publishing objects on the old network. The relay
+will drop duplicate objects received on both subscriptions.
+Ideally, the subscriptions downstream from the relay do no observe this
+change, and keep receiving the objects on the same subscription.
 
 ### Graceful Publisher Relay Switchover
 
