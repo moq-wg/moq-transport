@@ -1744,17 +1744,17 @@ Table of Contents
    a variable-length integer indicating the type of the stream in
    question.
 
-              +======+=====================================+
-              |   ID | Stream Type                         |
-              +======+=====================================+
-              |  0x1 | OBJECT_DATAGRAM (Section 7.2)       |
-              +------+-------------------------------------+
-              | 0x50 | STREAM_HEADER_TRACK (Section 7.3.1) |
-              +------+-------------------------------------+
-              | 0x52 | STREAM_HEADER_PEEP (Section 7.3.2)  |
-              +------+-------------------------------------+
+               +=====+=====================================+
+               |  ID | Stream Type                         |
+               +=====+=====================================+
+               | 0x1 | OBJECT_DATAGRAM (Section 7.2)       |
+               +-----+-------------------------------------+
+               | 0x2 | STREAM_HEADER_TRACK (Section 7.3.1) |
+               +-----+-------------------------------------+
+               | 0x4 | STREAM_HEADER_PEEP (Section 7.3.2)  |
+               +-----+-------------------------------------+
 
-                                 Table 5
+                                  Table 5
 
    An endpoint that receives an unknown stream type MUST close the
    session.
