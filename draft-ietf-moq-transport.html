@@ -3020,6 +3020,8 @@ receiving an ANNOUNCE_CANCEL, it <span class="bcp14">SHOULD</span> close the ses
 <pre>
 ANNOUNCE_CANCEL Message {
   Track Namespace (tuple),
+  Error Code (i),
+  Reason Phrase (b),
 }
 </pre>
 </div>
@@ -3031,6 +3033,12 @@ ANNOUNCE_CANCEL Message {
 <li class="normal" id="section-6.9-4.1">
             <p id="section-6.9-4.1.1">Track Namespace: Identifies a track's namespace as defined in
 (<a href="#track-name" class="auto internal xref">Section 2.4.1</a>).<a href="#section-6.9-4.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-6.9-4.2">
+            <p id="section-6.9-4.2.1">Error Code: Identifies an integer error code for canceling the announcement.<a href="#section-6.9-4.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-6.9-4.3">
+            <p id="section-6.9-4.3.1">Reason Phrase: Provides the reason for announcement cancelation.<a href="#section-6.9-4.3.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
@@ -3909,7 +3917,10 @@ reaching a resource limit.<a href="#section-8.1-4" class="pilcrow">¶</a></p>
           <p id="section-9-2.6.1">Announce Error codes<a href="#section-9-2.6.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="section-9-2.7">
-          <p id="section-9-2.7.1">Message types<a href="#section-9-2.7.1" class="pilcrow">¶</a></p>
+          <p id="section-9-2.7.1">Announce Cancel Reason codes<a href="#section-9-2.7.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-9-2.8">
+          <p id="section-9-2.8.1">Message types<a href="#section-9-2.8.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
 <p id="section-9-3">TODO: register the URI scheme and the ALPN<a href="#section-9-3" class="pilcrow">¶</a></p>

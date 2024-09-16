@@ -1397,12 +1397,19 @@ Table of Contents
 
    ANNOUNCE_CANCEL Message {
      Track Namespace (tuple),
+     Error Code (i),
+     Reason Phrase (b),
    }
 
                   Figure 10: MOQT ANNOUNCE_CANCEL Message
 
    *  Track Namespace: Identifies a track's namespace as defined in
       (Section 2.4.1).
+
+   *  Error Code: Identifies an integer error code for canceling the
+      announcement.
+
+   *  Reason Phrase: Provides the reason for announcement cancelation.
 
 6.10.  TRACK_STATUS_REQUEST
 
@@ -2038,6 +2045,8 @@ Table of Contents
    *  Subscribe Namespace Error codes
 
    *  Announce Error codes
+
+   *  Announce Cancel Reason codes
 
    *  Message types
 
