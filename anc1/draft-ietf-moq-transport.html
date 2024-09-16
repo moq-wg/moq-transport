@@ -2376,9 +2376,8 @@ change, and keep receiving the objects on the same subscription.<a href="#sectio
           <h4 id="name-graceful-publisher-relay-swi">
 <a href="#section-5.2.2" class="section-number selfRef">5.2.2. </a><a href="#name-graceful-publisher-relay-swi" class="section-name selfRef">Graceful Publisher Relay Switchover</a>
           </h4>
-<p id="section-5.2.2-1">This section describes non normative behavior that a publisher <span class="bcp14">MAY</span>
-choose to implement to allow for a better users experience when a relay
-sends them a GOAWAY.<a href="#section-5.2.2-1" class="pilcrow">¶</a></p>
+<p id="section-5.2.2-1">This section describes behavior that a publisher <span class="bcp14">MAY</span> choose to implement
+to allow for a better user experience when a relay sends them a GOAWAY.<a href="#section-5.2.2-1" class="pilcrow">¶</a></p>
 <p id="section-5.2.2-2">When a publisher receives a GOAWAY, it starts the process of
 connecting to a new relay and sends announces, but it does not immediately
 stop publishing objects to the old relay. The new relay will send
