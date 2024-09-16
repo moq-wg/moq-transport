@@ -770,9 +770,8 @@ SUBSCRIBE_DONE, as defined below:
 
 ### Graceful Publisher Relay Switchover
 
-This section describes non normative behavior that a subscriber MAY
-choose to implement to allow for a better users experience when a relay
-sends them a GOAWAY.
+This section describes behavior a subscriber MAY implement
+to allow for a better user experience when a relay sends a GOAWAY.
 
 When a subscriber receives the GOAWAY message, it starts of the process
 of connecting to a new relay and sending the SUBSCRIBE requests for
