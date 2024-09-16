@@ -305,7 +305,7 @@ belong to a group, indicating ordering and potential
 dependencies. {{model-group}}  An object is uniquely identified by
 its track namespace, track name, group ID, and object ID, and must be an
 identical sequence of bytes regardless of how or where it is retrieved.
-An Object can become unavailable, but it's contents MUST NOT change over
+An Object can become unavailable, but its contents MUST NOT change over
 time.
 
 Objects are comprised of two parts: metadata and a payload.  The metadata is
