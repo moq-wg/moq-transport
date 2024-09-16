@@ -854,9 +854,8 @@ change, and keep receiving the objects on the same subscription.
 
 ### Graceful Publisher Relay Switchover
 
-This section describes non normative behavior that a publisher MAY
-choose to implement to allow for a better users experience when a relay
-sends them a GOAWAY.
+This section describes behavior that a publisher MAY choose to implement
+to allow for a better user experience when a relay sends them a GOAWAY.
 
 When a publisher receives a GOAWAY, it starts the process of
 connecting to a new relay and sends announces, but it does not immediately
