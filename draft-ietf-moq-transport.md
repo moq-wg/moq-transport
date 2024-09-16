@@ -839,7 +839,7 @@ and delivery timeout.
 
 This section describes behavior that a publisher MAY
 choose to implement to allow for a better users experience when
-switching from WiFi to Cellular networks or visa versa.
+switching between networks, such as WiFi to Cellular or vice versa.
 
 If the original publisher detects it is likely to need to switch networks,
 for example because the WiFi signal is getting weaker, and it does not
