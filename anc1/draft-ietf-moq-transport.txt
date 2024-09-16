@@ -931,13 +931,13 @@ Table of Contents
    choose to implement to allow for a better users experience when a
    relay sends them a GOAWAY.
 
-   When a publisher receives the GOAWAY, it starts of the process of
-   connecting to the new relay and sending the announces, but it does
-   not stop publishing data to the old relay.  The new relay will send
-   the subscribes and the publisher and at this point the publisher can
-   start sending any new data to new relay instead of the old relay.
-   Once data is going to the new relay, the announcement and connection
-   to the old relay can be stopped.
+   When a publisher receives a GOAWAY, it starts the process of
+   connecting to a new relay and sends announces, but it does not
+   immediately stop publishing objects to the old relay.  The new relay
+   will send subscribes and the publisher can start sending new objects
+   to the new relay instead of the old relay.  Once objects are going to
+   the new relay, the announcement and subscription to the old relay can
+   be stopped.
 
 5.3.  Relay Object Handling
 
