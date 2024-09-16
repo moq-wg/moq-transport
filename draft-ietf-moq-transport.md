@@ -837,7 +837,7 @@ and delivery timeout.
 
 ### Graceful Publisher Network Switchover
 
-This section describes non normative behavior that a publisher MAY
+This section describes behavior that a publisher MAY
 choose to implement to allow for a better users experience when
 switching from WiFi to Cellular networks or visa versa.
 
