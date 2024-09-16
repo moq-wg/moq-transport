@@ -2288,9 +2288,8 @@ SUBSCRIBE_DONE, as defined below:<a href="#section-5.1-9" class="pilcrow">¶</a>
           <h4 id="name-graceful-publisher-relay-sw">
 <a href="#section-5.1.1" class="section-number selfRef">5.1.1. </a><a href="#name-graceful-publisher-relay-sw" class="section-name selfRef">Graceful Publisher Relay Switchover</a>
           </h4>
-<p id="section-5.1.1-1">This section describes non normative behavior that a subscriber <span class="bcp14">MAY</span>
-choose to implement to allow for a better users experience when a relay
-sends them a GOAWAY.<a href="#section-5.1.1-1" class="pilcrow">¶</a></p>
+<p id="section-5.1.1-1">This section describes behavior a subscriber <span class="bcp14">MAY</span> implement
+to allow for a better user experience when a relay sends a GOAWAY.<a href="#section-5.1.1-1" class="pilcrow">¶</a></p>
 <p id="section-5.1.1-2">When a subscriber receives the GOAWAY message, it starts of the process
 of connecting to a new relay and sending the SUBSCRIBE requests for
 all it's active subscriptions to the new relay. The new relay will send a
