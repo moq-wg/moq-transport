@@ -778,7 +778,7 @@ to allow for a better user experience when a relay sends a GOAWAY.
 When a subscriber receives the GOAWAY message, it starts of the process
 of connecting to a new relay and sending the SUBSCRIBE requests for
 all active subscriptions to the new relay. The new relay will send a
-response to the subscribes and once this has happened, the subscription
+response to the subscribes and if they are successful, the subscriptions
 to the old relay can be stopped with an UNSUBSCRIBE.
 
 
