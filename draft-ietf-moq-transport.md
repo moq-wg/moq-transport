@@ -1062,7 +1062,7 @@ client MUST set the PATH parameter to the `path-abempty` portion of the
 URI; if `query` is present, the client MUST concatenate `?`, followed by
 the `query` portion of the URI to the parameter.
 
-#### MAX_SUBSCRIBE_ID {#message-max-subscribe-id}
+#### MAX_SUBSCRIBE_ID {#max-subscribe-id}
 
 The MAX_SUBSCRIBE_ID parameter (key 0x02) communicates an initial value for
 the Maximum Subscribe ID to the receiving subscriber. The default value is 0,
