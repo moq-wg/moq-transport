@@ -2342,7 +2342,7 @@ For example, a SUBSCRIBE namespace=foobar message will be forwarded to
 the session that sent ANNOUNCE namespace=foobar.<a href="#section-5.2-7" class="pilcrow">¶</a></p>
 <p id="section-5.2-8">When a relay receives an incoming SUBSCRIBE for a given namespace
 that would cause it to send an upstream subscription, for
-each publisher that has announced that namespace, the relay <span class="bcp14">MUST</span> send a
+each publisher that has announced that namespace, the relay <span class="bcp14">SHOULD</span> send a
 SUBSCRIBE to that publisher unless it already has an active subscription
 to that publisher for the Full Track Name in the incoming SUBSCRIBE.<a href="#section-5.2-8" class="pilcrow">¶</a></p>
 <p id="section-5.2-9">When a relay receives an incoming ANNOUCE for a given namespace, for
