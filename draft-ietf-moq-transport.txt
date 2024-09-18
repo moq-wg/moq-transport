@@ -793,17 +793,23 @@ Table of Contents
    The application SHOULD use a relevant error code in SUBSCRIBE_ERROR,
    as defined below:
 
-                       +======+===================+
-                       | Code | Reason            |
-                       +======+===================+
-                       |  0x0 | Internal Error    |
-                       +------+-------------------+
-                       |  0x1 | Invalid Range     |
-                       +------+-------------------+
-                       |  0x2 | Retry Track Alias |
-                       +------+-------------------+
+                      +======+======================+
+                      | Code | Reason               |
+                      +======+======================+
+                      |  0x0 | Internal Error       |
+                      +------+----------------------+
+                      |  0x1 | Invalid Range        |
+                      +------+----------------------+
+                      |  0x2 | Retry Track Alias    |
+                      +------+----------------------+
+                      |  0x3 | Track Does Not Exist |
+                      +------+----------------------+
+                      |  0x4 | Unauthorized         |
+                      +------+----------------------+
+                      |  0x5 | Timeout              |
+                      +------+----------------------+
 
-                                 Table 2
+                                  Table 2
 
    The application SHOULD use a relevant status code in SUBSCRIBE_DONE,
    as defined below:
