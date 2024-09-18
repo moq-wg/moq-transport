@@ -737,6 +737,12 @@ as defined below:
 |------|---------------------------|
 | 0x2  | Retry Track Alias         |
 |------|---------------------------|
+| 0x3  | Track Does Not Exist      |
+|------|---------------------------|
+| 0x4  | Unauthorized              |
+|------|---------------------------|
+| 0x5  | Timeout                   |
+|------|---------------------------|
 
 The application SHOULD use a relevant status code in
 SUBSCRIBE_DONE, as defined below:
