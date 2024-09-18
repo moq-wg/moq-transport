@@ -2339,10 +2339,11 @@ connecting them based on the track namespace. This <span class="bcp14">MUST</spa
 match on track namespace unless otherwise negotiated by the application.
 For example, a SUBSCRIBE namespace=foobar message will be forwarded to
 the session that sent ANNOUNCE namespace=foobar.<a href="#section-5.2-7" class="pilcrow">¶</a></p>
-<p id="section-5.2-8">When a relay receives an incoming SUBSCRIBE for a given namespace, for
+<p id="section-5.2-8">When a relay receives an incoming SUBSCRIBE for a given namespace
+that would cause it to send an upstream subscription, for
 each publisher that has announced that namespace, the relay <span class="bcp14">MUST</span> send a
 SUBSCRIBE to that publisher unless it already has an active subscription
-to that publisher for the full track name in the incoming SUBSCRIBE.<a href="#section-5.2-8" class="pilcrow">¶</a></p>
+to that publisher for the Full Track Name in the incoming SUBSCRIBE.<a href="#section-5.2-8" class="pilcrow">¶</a></p>
 <p id="section-5.2-9">When a relay receives an incoming ANNOUCE for a given namespace, for
 each active subscription that matches that namespace, it <span class="bcp14">SHOULD</span> send a
 SUBSCRIBE to that publisher that send the ANNOUNCE.<a href="#section-5.2-9" class="pilcrow">¶</a></p>
