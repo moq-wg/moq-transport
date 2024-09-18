@@ -712,7 +712,7 @@ subscriber, dependent on the congestion response. A subscription
 remains active until the publisher of the track terminates the
 subscription with a SUBSCRIBE_DONE (see {{message-subscribe-done}}). A
 caching relay saves objects to its cache identified by the object's
-fulltrackname, group ID and object ID. Relays MUST be
+Full Track Name, group ID and object ID. Relays MUST be
 able to process objects for the same Full Track Name from
 multiple publishers and forward objects
 to active matching subscriptions. If multiple objects are received
