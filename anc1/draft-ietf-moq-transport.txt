@@ -852,7 +852,7 @@ Table of Contents
 5.2.  Publisher Interactions
 
    Publishing through the relay starts with publisher sending ANNOUNCE
-   control message with a Track Namespace (Section 2.4).  The annouce
+   control message with a Track Namespace (Section 2.4).  The announce
    allows the relays to know which publisher to forward a SUBSCRIBE to.
 
    Relays MUST ensure that publishers are authorized by:
