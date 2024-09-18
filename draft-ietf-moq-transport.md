@@ -805,8 +805,8 @@ ANNOUNCE MUST send only a single response to a given ANNOUNCE of
 either ANNOUNCE_OK or ANNOUNCE_ERROR.
 
 A Relay can receive announcements from multiple publishers for the same
-Track Namespace and it MUST respond with the appropriate response to each of the
-publishers, in the same way as it would respond when processing ANNOUNCE
+Track Namespace and it SHOULD respond with the same response to each of the
+publishers, as though it was responding to an ANNOUNCE
 from a single publisher for a given tracknamespace.
 
 When a publisher wants to stop
