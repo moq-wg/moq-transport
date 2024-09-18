@@ -786,7 +786,7 @@ to the old relay can be stopped with an UNSUBSCRIBE.
 
 Publishing through the relay starts with publisher sending ANNOUNCE
 control message with a `Track Namespace` ({{model-track}}).
-The announce allows the relays to know which publisher to forward a
+The announce enables the relay to know which publisher to forward a
 SUBSCRIBE to.
 
 Relays MUST ensure that publishers are authorized by:
