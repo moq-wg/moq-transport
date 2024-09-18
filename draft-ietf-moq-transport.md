@@ -785,7 +785,7 @@ to the old relay can be stopped with an UNSUBSCRIBE.
 
 Publishing through the relay starts with publisher sending ANNOUNCE
 control message with a `Track Namespace` ({{model-track}}).
-The annouce allows the relays to know which publisher to forward a
+The announce allows the relays to know which publisher to forward a
 SUBSCRIBE to.
 
 Relays MUST ensure that publishers are authorized by:
@@ -827,7 +827,7 @@ to that publisher for the full track name in the incoming SUBSCRIBE.
 
 When a relay receives an incoming ANNOUCE for a given namespace, for
 each active subscription that matches that namespace, it SHOULD send a
-SUBSCRIBE to that publisher that send the ANNOUCE.
+SUBSCRIBE to that publisher that send the ANNOUNCE.
 
 OBJECT message headers carry a short hop-by-hop `Track Alias` that maps to
 the Full Track Name (see {{message-subscribe-ok}}). Relays use the
