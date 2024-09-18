@@ -5,13 +5,13 @@
 Media Over QUIC                                                L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 20 March 2025                                              Meta
+Expires: 22 March 2025                                              Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                       16 September 2024
+                                                       18 September 2024
 
 
                        Media over QUIC Transport
@@ -59,7 +59,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 20 March 2025.
+   This Internet-Draft will expire on 22 March 2025.
 
 Copyright Notice
 
@@ -793,17 +793,23 @@ Table of Contents
    The application SHOULD use a relevant error code in SUBSCRIBE_ERROR,
    as defined below:
 
-                       +======+===================+
-                       | Code | Reason            |
-                       +======+===================+
-                       |  0x0 | Internal Error    |
-                       +------+-------------------+
-                       |  0x1 | Invalid Range     |
-                       +------+-------------------+
-                       |  0x2 | Retry Track Alias |
-                       +------+-------------------+
+                      +======+======================+
+                      | Code | Reason               |
+                      +======+======================+
+                      |  0x0 | Internal Error       |
+                      +------+----------------------+
+                      |  0x1 | Invalid Range        |
+                      +------+----------------------+
+                      |  0x2 | Retry Track Alias    |
+                      +------+----------------------+
+                      |  0x3 | Track Does Not Exist |
+                      +------+----------------------+
+                      |  0x4 | Unauthorized         |
+                      +------+----------------------+
+                      |  0x5 | Timeout              |
+                      +------+----------------------+
 
-                                 Table 2
+                                  Table 2
 
    The application SHOULD use a relevant status code in SUBSCRIBE_DONE,
    as defined below:
@@ -935,6 +941,8 @@ Table of Contents
             | 0x13 | SUBSCRIBE_NAMESPACE_ERROR (Section 6.21 |
             +------+-----------------------------------------+
             | 0x14 | UNSUBSCRIBE_NAMESPACE (Section 6.12)    |
+            +------+-----------------------------------------+
+            | 0x15 | MAX_SUBSCRIBE_ID (Section 6.16)         |
             +------+-----------------------------------------+
             | 0x40 | CLIENT_SETUP (Section 6.2)              |
             +------+-----------------------------------------+
