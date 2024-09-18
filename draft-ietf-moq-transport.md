@@ -716,10 +716,8 @@ fulltrackname, group ID and object ID. Relays MUST be
 ready to process objects for the same fulltrackname from
 multiple publishers and the objects received are forwarded
 to active matching subscribers. If multiple objects are received
-with the same fulltrackname, group ID and object ID - a caching
-Relays MUST drop the received objects as duplicate if there exists
-already an object with the matching fulltrackame, group ID and
-object ID, in its cache.
+with the same Full Track Name, group ID and object ID,
+Relays MUST ignore subsequently received Objects.
 
 Objects MUST NOT be sent for unsuccessful subscriptions, and if a subscriber
 receives a SUBSCRIBE_ERROR after receiving objects, it MUST close the session
