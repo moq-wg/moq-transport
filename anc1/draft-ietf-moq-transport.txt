@@ -854,7 +854,7 @@ Table of Contents
 
    Publishing through the relay starts with publisher sending ANNOUNCE
    control message with a Track Namespace (Section 2.4).  The announce
-   allows the relays to know which publisher to forward a SUBSCRIBE to.
+   enables the relay to know which publisher to forward a SUBSCRIBE to.
 
    Relays MUST ensure that publishers are authorized by:
 
