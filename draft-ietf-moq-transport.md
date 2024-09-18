@@ -820,10 +820,11 @@ match on track namespace unless otherwise negotiated by the application.
 For example, a SUBSCRIBE namespace=foobar message will be forwarded to
 the session that sent ANNOUNCE namespace=foobar.
 
-When a relay receives an incoming SUBSCRIBE for a given namespace, for
+When a relay receives an incoming SUBSCRIBE for a given namespace
+that would cause it to send an upstream subscription, for
 each publisher that has announced that namespace, the relay MUST send a
 SUBSCRIBE to that publisher unless it already has an active subscription
-to that publisher for the full track name in the incoming SUBSCRIBE.
+to that publisher for the Full Track Name in the incoming SUBSCRIBE.
 
 When a relay receives an incoming ANNOUCE for a given namespace, for
 each active subscription that matches that namespace, it SHOULD send a
