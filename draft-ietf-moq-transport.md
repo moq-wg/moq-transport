@@ -775,7 +775,7 @@ SUBSCRIBE_DONE, as defined below:
 This section describes behavior a subscriber MAY implement
 to allow for a better user experience when a relay sends a GOAWAY.
 
-When a subscriber receives the GOAWAY message, it starts of the process
+When a subscriber receives the GOAWAY message, it starts the process
 of connecting to a new relay and sending the SUBSCRIBE requests for
 all active subscriptions to the new relay. The new relay will send a
 response to the subscribes and if they are successful, the subscriptions
