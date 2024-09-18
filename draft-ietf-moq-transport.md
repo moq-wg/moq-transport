@@ -1679,15 +1679,15 @@ A publisher sends Objects matching a subscription on Data Streams.
 All unidirectional MOQT streams, as well as all datagrams, start with a
 variable-length integer indicating the type of the stream in question.
 
-|-------|-----------------------------------------------------|
-| ID    | Stream Type                                         |
-|------:|:----------------------------------------------------|
-| 0x1   | OBJECT_DATAGRAM ({{object-datagram}})               |
-|-------|-----------------------------------------------------|
-| 0x2   | STREAM_HEADER_TRACK ({{stream-header-track}})       |
-|-------|-----------------------------------------------------|
-| 0x4   | STREAM_HEADER_SUBGROUP  ({{stream-header-subgroup}})        |
-|-------|-----------------------------------------------------|
+|-------|-------------------------------------------------------|
+| ID    | Stream Type                                           |
+|------:|:------------------------------------------------------|
+| 0x1   | OBJECT_DATAGRAM ({{object-datagram}})                 |
+|-------|-------------------------------------------------------|
+| 0x2   | STREAM_HEADER_TRACK ({{stream-header-track}})         |
+|-------|-------------------------------------------------------|
+| 0x4   | STREAM_HEADER_SUBGROUP  ({{stream-header-subgroup}})  |
+|-------|-------------------------------------------------------|
 
 An endpoint that receives an unknown stream type MUST close the session.
 
