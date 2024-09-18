@@ -825,7 +825,7 @@ SUBSCRIBE to that publisher unless it already has an active subscription
 to that publisher for the full track name in the incoming SUBSCRIBE.
 
 When a relay receives an incoming ANNOUCE for a given namespace, for
-each active subscription that matches that namespace, it MUST send a
+each active subscription that matches that namespace, it SHOULD send a
 SUBSCRIBE to that publisher that send the ANNOUCE.
 
 OBJECT message headers carry a short hop-by-hop `Track Alias` that maps to
