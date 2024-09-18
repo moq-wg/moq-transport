@@ -713,9 +713,9 @@ remains active until the publisher of the track terminates the
 subscription with a SUBSCRIBE_DONE (see {{message-subscribe-done}}). A
 caching relay saves objects to its cache identified by the object's
 fulltrackname, group ID and object ID. Relays MUST be
-ready to process objects for the same fulltrackname from
-multiple publishers and the objects received are forwarded
-to active matching subscribers. If multiple objects are received
+able to process objects for the same Full Track Name from
+multiple publishers and forward objects
+to active matching subscriptions. If multiple objects are received
 with the same Full Track Name, group ID and object ID,
 Relays MUST ignore subsequently received Objects.
 
