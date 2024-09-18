@@ -1868,9 +1868,10 @@ All Objects received on a stream opened with `STREAM_HEADER_PEEP` have an
 
 To send an Object with `Object Forwarding Preference` = `Peep`, find the open
 stream that is associated with the subscription, `Group ID` and `Peep ID`,
-or open a new one and send the `STREAM_HEADER_PEEP`. Then serialize the following
-fields.
+or open a new one and send the `STREAM_HEADER_PEEP`. Then serialize the
+following fields.
 
+The Object Status field is only sent if the Object Payload Length is zero.
 ~~~
 {
   Object ID (i),
