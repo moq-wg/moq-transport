@@ -2200,9 +2200,9 @@ remains active until the publisher of the track terminates the
 subscription with a SUBSCRIBE_DONE (see <a href="#message-subscribe-done" class="auto internal xref">Section 6.15</a>). A
 caching relay saves objects to its cache identified by the object's
 fulltrackname, group ID and object ID. Relays <span class="bcp14">MUST</span> be
-ready to process objects for the same fulltrackname from
-multiple publishers and the objects received are forwarded
-to active matching subscribers. If multiple objects are received
+able to process objects for the same Full Track Name from
+multiple publishers and forward objects
+to active matching subscriptions. If multiple objects are received
 with the same Full Track Name, group ID and object ID,
 Relays <span class="bcp14">MUST</span> ignore subsequently received Objects.<a href="#section-5.1-3" class="pilcrow">¶</a></p>
 <p id="section-5.1-4">Objects <span class="bcp14">MUST NOT</span> be sent for unsuccessful subscriptions, and if a subscriber
