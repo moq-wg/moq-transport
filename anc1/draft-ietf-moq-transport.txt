@@ -896,8 +896,8 @@ Table of Contents
    incoming SUBSCRIBE.
 
    When a relay receives an incoming ANNOUCE for a given namespace, for
-   each active subscription that matches that namespace, it SHOULD send
-   a SUBSCRIBE to that publisher that send the ANNOUNCE.
+   each active upstream subscription that matches that namespace, it
+   SHOULD send a SUBSCRIBE to that publisher that send the ANNOUNCE.
 
    OBJECT message headers carry a short hop-by-hop Track Alias that maps
    to the Full Track Name (see Section 6.13).  Relays use the Track
