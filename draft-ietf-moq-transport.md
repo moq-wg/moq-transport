@@ -823,7 +823,7 @@ the session that sent ANNOUNCE namespace=foobar.
 
 When a relay receives an incoming SUBSCRIBE for a given namespace
 that would cause it to send an upstream subscription, for
-each publisher that has announced that namespace, the relay MUST send a
+each publisher that has announced that namespace, the relay SHOULD send a
 SUBSCRIBE to that publisher unless it already has an active subscription
 to that publisher for the Full Track Name in the incoming SUBSCRIBE.
 
