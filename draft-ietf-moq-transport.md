@@ -316,16 +316,16 @@ payload. This includes the underlying encoding, compression, any end-to-end
 encryption, or authentication. A relay MUST NOT combine, split, or otherwise
 modify object payloads.
 
-## Peeps {#model-peep}
+## Subgroups {#model-subgroup}
 
-A peep is a sequence of one or more objects from the same group
-({{model-group}}) in ascending order by Object ID. Objects in a peep
+A subgroup is a sequence of one or more objects from the same group
+({{model-group}}) in ascending order by Object ID. Objects in a subgroup
 have a dependency and priority relationship consistent with sharing a QUIC
 stream. In some cases, a Group will be most effectively delivered using more
 than one QUIC stream.
 
 When a Track's forwarding preference (see {{object-fields}}) is "Track" or
-"Datagram", Objects are not sent in Peeps, no Peep IDs are assigned, and the
+"Datagram", Objects are not sent in Subgroups, no Subgroup IDs are assigned, and the
 description in the remainder of this section does not apply.
 
 QUIC streams offer in-order reliable delivery and the ability to cancel sending
@@ -333,31 +333,31 @@ and retransmission of data. Furthermore, many implementations offer the ability
 to control the relative priority of streams, which allows control over the
 scheduling of sending data on active streams.
 
-Every object within a Group belongs to exactly one Peep.
+Every object within a Group belongs to exactly one Subgroup.
 
-Objects from two peeps cannot be sent on the same QUIC stream. Objects from the
-same Peep MUST NOT be sent on different QUIC streams, unless one of the streams
-was reset prematurely, or upstream conditions have forced objects from a Peep
+Objects from two subgroups cannot be sent on the same QUIC stream. Objects from the
+same Subgroup MUST NOT be sent on different QUIC streams, unless one of the streams
+was reset prematurely, or upstream conditions have forced objects from a Subgroup
 to be sent out of Object ID order.
 
-Original publishers assign each Peep a Peep ID, and do so as they see fit.  The
-scope of a Peep ID is a Group, so Peeps from different Groups MAY share a Peep
+Original publishers assign each Subgroup a Subgroup ID, and do so as they see fit.  The
+scope of a Subgroup ID is a Group, so Subgroups from different Groups MAY share a Subgroup
 ID without implying any relationship between them. In general, publishers assign
-objects to peeps in order to leverage the features of QUIC streams as described
+objects to subgroups in order to leverage the features of QUIC streams as described
 above.
 
 An example strategy for using QUIC stream properties follows. If object B is
 dependent on object A, then delivery of B can follow A, i.e. A and B can be
 usefully delivered over a single QUIC stream. Furthermore, in this example:
 
-- If an object is dependent on all previous objects in a Peep, it is added to
-that Peep.
+- If an object is dependent on all previous objects in a Subgroup, it is added to
+that Subgroup.
 
-- If an object is not dependent on all of the objects in a Peep, it goes in
-a different Peep.
+- If an object is not dependent on all of the objects in a Subgroup, it goes in
+a different Subgroup.
 
-- There are often many ways to compose Peeps that meet these criteria. Where
-possible, choose the composition that results in the fewest Peeps in a group
+- There are often many ways to compose Subgroups that meet these criteria. Where
+possible, choose the composition that results in the fewest Subgroups in a group
 to minimize the number of QUIC streams used.
 
 
@@ -619,7 +619,7 @@ property of the subscription and the original publisher's priority is a
 property of the Track and the Objects it contains. In both cases, a lower
 value indicates a higher priority, with 0 being the highest priority.
 
-When Objects are contained in Peeps, all Objects in the Peep have the same
+When Objects are contained in Subgroups, all Objects in the Subgroup have the same
 priority.
 
 The Subscriber Priority is considered first when selecting a subscription
@@ -647,10 +647,10 @@ the corresponding SUBSCRIBE_OK.
 Within the same Group, and the same priority level,
 Objects with a lower Object Id are always sent before objects with a
 higher Object Id, regardless of the specified Group Order. If the group
-contains more than one Peep and the priority varies between these Peeps,
-higher priority Peeps are sent before lower priority Peeps. If the specified
-priority of two Peeps in a Group are equal, the lower Peep ID has priority.
-Within a Peep, Objects MUST be sent in increasing Object ID order.
+contains more than one Subgroup and the priority varies between these Subgroups,
+higher priority Subgroups are sent before lower priority Subgroups. If the specified
+priority of two Subgroups in a Group are equal, the lower Subgroup ID has priority.
+Within a Subgroup, Objects MUST be sent in increasing Object ID order.
 
 The Group Order cannot be changed via a SUBSCRIBE_UPDATE message, and
 instead an UNSUBSCRIBE and SUBSCRIBE can be used.
@@ -1682,15 +1682,15 @@ A publisher sends Objects matching a subscription on Data Streams.
 All unidirectional MOQT streams, as well as all datagrams, start with a
 variable-length integer indicating the type of the stream in question.
 
-|-------|-----------------------------------------------------|
-| ID    | Stream Type                                         |
-|------:|:----------------------------------------------------|
-| 0x1   | OBJECT_DATAGRAM ({{object-datagram}})               |
-|-------|-----------------------------------------------------|
-| 0x2   | STREAM_HEADER_TRACK ({{stream-header-track}})       |
-|-------|-----------------------------------------------------|
-| 0x4   | STREAM_HEADER_PEEP  ({{stream-header-peep}})        |
-|-------|-----------------------------------------------------|
+|-------|-------------------------------------------------------|
+| ID    | Stream Type                                           |
+|------:|:------------------------------------------------------|
+| 0x1   | OBJECT_DATAGRAM ({{object-datagram}})                 |
+|-------|-------------------------------------------------------|
+| 0x2   | STREAM_HEADER_TRACK ({{stream-header-track}})         |
+|-------|-------------------------------------------------------|
+| 0x4   | STREAM_HEADER_SUBGROUP  ({{stream-header-subgroup}})  |
+|-------|-------------------------------------------------------|
 
 An endpoint that receives an unknown stream type MUST close the session.
 
@@ -1722,10 +1722,10 @@ group.
 the Object {{priorities}}.
 
 * Object Forwarding Preference: An enumeration indicating how a publisher sends
-an object. The preferences are Track, Peep, and Datagram.  An Object
+an object. The preferences are Track, Subgroup, and Datagram.  An Object
 MUST be sent according to its `Object Forwarding Preference`, described below.
 
-* Peep ID: The object is a member of the indicated peep ID ({{model-peep}})
+* Subgroup ID: The object is a member of the indicated subgroup ID ({{model-subgroup}})
 within the group. This field is omitted if the Object Forwarding Preference is
 Track or Datagram.
 
@@ -1754,7 +1754,7 @@ are beyond the end of a group or track.
          GroupID. This is sent right after the last object in the
          group. If the ObjectID is 0, it indicates there are no Objects
          in this Group. This SHOULD be cached. A publisher MAY use an end of
-         Group object to signal the end of all open Peeps in a Group.
+         Group object to signal the end of all open Subgroups in a Group.
 
 * 0x4 := Indicates end of Track and Group. GroupID is one greater than
          the largest group produced in this track and the ObjectId is
@@ -1762,8 +1762,8 @@ are beyond the end of a group or track.
          group. This is sent right after the last object in the
          track. This SHOULD be cached.
 
-* 0x5 := Indicates end of Peep. Object ID is one greater than the largest
-         normal object ID in the Peep.
+* 0x5 := Indicates end of Subgroup. Object ID is one greater than the largest
+         normal object ID in the Subgroup.
 
 Any other value SHOULD be treated as a protocol error and terminate the
 session with a Protocol Violation ({{session-termination}}).
@@ -1849,29 +1849,29 @@ A publisher MUST NOT send an Object on a stream if its Group ID is less than a
 previously sent Group ID on that stream, or if its Object ID is less than or
 equal to a previously sent Object ID with the same Group ID.
 
-### Stream Header Peep
+### Stream Header Subgroup
 
-When a stream begins with `STREAM_HEADER_PEEP`, all objects on the stream
+When a stream begins with `STREAM_HEADER_SUBGROUP`, all objects on the stream
 belong to the track requested in the Subscribe message identified by `Subscribe
-ID` and the peep indicated by 'Group ID' and `Peep ID`.
+ID` and the subgroup indicated by 'Group ID' and `Subgroup ID`.
 
 ~~~
-STREAM_HEADER_PEEP Message {
+STREAM_HEADER_SUBGROUP Message {
   Subscribe ID (i),
   Track Alias (i),
   Group ID (i),
-  Peep ID (i),
+  Subgroup ID (i),
   Publisher Priority (8),
 }
 ~~~
-{: #stream-header-peep-format title="MOQT STREAM_HEADER_PEEP Message"}
+{: #stream-header-subgroup-format title="MOQT STREAM_HEADER_SUBGROUP Message"}
 
-All Objects received on a stream opened with `STREAM_HEADER_PEEP` have an
-`Object Forwarding Preference` = `Peep`.
+All Objects received on a stream opened with `STREAM_HEADER_SUBGROUP` have an
+`Object Forwarding Preference` = `Subgroup`.
 
-To send an Object with `Object Forwarding Preference` = `Peep`, find the open
-stream that is associated with the subscription, `Group ID` and `Peep ID`,
-or open a new one and send the `STREAM_HEADER_PEEP`. Then serialize the
+To send an Object with `Object Forwarding Preference` = `Subgroup`, find the open
+stream that is associated with the subscription, `Group ID` and `Subgroup ID`,
+or open a new one and send the `STREAM_HEADER_SUBGROUP`. Then serialize the
 following fields.
 
 The Object Status field is only sent if the Object Payload Length is zero.
@@ -1912,16 +1912,16 @@ STREAM_HEADER_TRACK {
 }
 ~~~
 
-Sending a peep on one stream:
+Sending a subgroup on one stream:
 
 ~~~
 Stream = 2
 
-STREAM_HEADER_PEEP {
+STREAM_HEADER_SUBGROUP {
   Subscribe ID = 2
   Track Alias = 2
   Group ID = 0
-  Peep ID = 0
+  Subgroup ID = 0
   Publisher Priority = 0
 }
 {
