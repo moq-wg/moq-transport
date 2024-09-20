@@ -1251,9 +1251,22 @@ networks and is designed for high scale and low latency distribution.<a href="#s
 <ul class="compact toc ulBare ulEmpty">
 <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.1">
                 <p id="section-toc.1-1.5.2.1.1"><a href="#section-5.1" class="auto internal xref">5.1</a>.  <a href="#name-subscriber-interactions" class="internal xref">Subscriber Interactions</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.1.2.1">
+                    <p id="section-toc.1-1.5.2.1.2.1.1"><a href="#section-5.1.1" class="auto internal xref">5.1.1</a>.  <a href="#name-graceful-publisher-relay-sw" class="internal xref">Graceful Publisher Relay Switchover</a></p>
+</li>
+                </ul>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.2">
                 <p id="section-toc.1-1.5.2.2.1"><a href="#section-5.2" class="auto internal xref">5.2</a>.  <a href="#name-publisher-interactions" class="internal xref">Publisher Interactions</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.2.2.1">
+                    <p id="section-toc.1-1.5.2.2.2.1.1"><a href="#section-5.2.1" class="auto internal xref">5.2.1</a>.  <a href="#name-graceful-publisher-network-" class="internal xref">Graceful Publisher Network Switchover</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.2.2.2">
+                    <p id="section-toc.1-1.5.2.2.2.2.1"><a href="#section-5.2.2" class="auto internal xref">5.2.2</a>.  <a href="#name-graceful-publisher-relay-swi" class="internal xref">Graceful Publisher Relay Switchover</a></p>
+</li>
+                </ul>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.3">
                 <p id="section-toc.1-1.5.2.3.1"><a href="#section-5.3" class="auto internal xref">5.3</a>.  <a href="#name-relay-object-handling" class="internal xref">Relay Object Handling</a></p>
@@ -2168,13 +2181,13 @@ interest. Relays <span class="bcp14">MUST</span> ensure subscribers are authoriz
 content associated with the track. The authorization
 information can be part of subscription request itself or part of the
 encompassing session. The specifics of how a relay authorizes a user are
-outside the scope of this specification.<a href="#section-5.1-1" class="pilcrow">¶</a></p>
-<p id="section-5.1-2">The subscriber making the subscribe request is notified of the result of
-the subscription, via SUBSCRIBE_OK (<a href="#message-subscribe-ok" class="auto internal xref">Section 6.13</a>) or the
-SUBSCRIBE_ERROR <a href="#message-subscribe-error" class="auto internal xref">Section 6.14</a> control message.
-The entity receiving the SUBSCRIBE <span class="bcp14">MUST</span> send only a single response to
-a given SUBSCRIBE of either SUBSCRIBE_OK or SUBSCRIBE_ERROR.
-If a relay does not already have a subscription for the track,
+outside the scope of this specification. The subscriber is notified
+of the result of the subscription via a
+SUBSCRIBE_OK (<a href="#message-subscribe-ok" class="auto internal xref">Section 6.13</a>) or SUBSCRIBE_ERROR
+<a href="#message-subscribe-error" class="auto internal xref">Section 6.14</a> control message. The entity receiving the
+SUBSCRIBE <span class="bcp14">MUST</span> send only a single response to a given SUBSCRIBE of
+either SUBSCRIBE_OK or SUBSCRIBE_ERROR.<a href="#section-5.1-1" class="pilcrow">¶</a></p>
+<p id="section-5.1-2">If a relay does not already have a subscription for the track,
 or if the subscription does not cover all the requested Objects, it
 will need to make an upstream subscription.  The relay <span class="bcp14">SHOULD NOT</span>
 return a SUBCRIBE_OK until at least one SUBSCRIBE_OK has been
@@ -2184,19 +2197,27 @@ subscribers for each track. Each new OBJECT belonging to the
 track within the subscription range is forwarded to each active
 subscriber, dependent on the congestion response. A subscription
 remains active until the publisher of the track terminates the
-track with a SUBSCRIBE_DONE (see <a href="#message-subscribe-done" class="auto internal xref">Section 6.15</a>).<a href="#section-5.1-3" class="pilcrow">¶</a></p>
-<p id="section-5.1-4">Objects <span class="bcp14">MUST NOT</span> be sent for unsuccessful subscriptions, and if a subscriber
+subscription with a SUBSCRIBE_DONE (see <a href="#message-subscribe-done" class="auto internal xref">Section 6.15</a>).<a href="#section-5.1-3" class="pilcrow">¶</a></p>
+<p id="section-5.1-4">A caching relay saves Objects to its cache identified by the Object's
+Full Track Name, Group ID and Object ID. Relays <span class="bcp14">MUST</span> be able to
+process objects for the same Full Track Name from multiple
+publishers and forward objects to active matching subscriptions.
+If multiple objects are received with the same Full Track Name,
+Group ID and Object ID, Relays <span class="bcp14">MAY</span> ignore subsequently received Objects
+or <span class="bcp14">MAY</span> use them to update the cache. Implementations that update the
+cache need to be protect against cache poisoning.<a href="#section-5.1-4" class="pilcrow">¶</a></p>
+<p id="section-5.1-5">Objects <span class="bcp14">MUST NOT</span> be sent for unsuccessful subscriptions, and if a subscriber
 receives a SUBSCRIBE_ERROR after receiving objects, it <span class="bcp14">MUST</span> close the session
-with a 'Protocol Violation'.<a href="#section-5.1-4" class="pilcrow">¶</a></p>
-<p id="section-5.1-5">A relay <span class="bcp14">MUST</span> not reorder or drop objects received on a multi-object stream when
-forwarding to subscribers, unless it has application specific information.<a href="#section-5.1-5" class="pilcrow">¶</a></p>
-<p id="section-5.1-6">Relays <span class="bcp14">MAY</span> aggregate authorized subscriptions for a given track when
+with a 'Protocol Violation'.<a href="#section-5.1-5" class="pilcrow">¶</a></p>
+<p id="section-5.1-6">A relay <span class="bcp14">MUST</span> not reorder or drop objects received on a multi-object stream when
+forwarding to subscribers, unless it has application specific information.<a href="#section-5.1-6" class="pilcrow">¶</a></p>
+<p id="section-5.1-7">Relays <span class="bcp14">MAY</span> aggregate authorized subscriptions for a given track when
 multiple subscribers request the same track. Subscription aggregation
 allows relays to make only a single upstream subscription for the
 track. The published content received from the upstream subscription
-request is cached and shared among the pending subscribers.<a href="#section-5.1-6" class="pilcrow">¶</a></p>
-<p id="section-5.1-7">The application <span class="bcp14">SHOULD</span> use a relevant error code in SUBSCRIBE_ERROR,
-as defined below:<a href="#section-5.1-7" class="pilcrow">¶</a></p>
+request is cached and shared among the pending subscribers.<a href="#section-5.1-7" class="pilcrow">¶</a></p>
+<p id="section-5.1-8">The application <span class="bcp14">SHOULD</span> use a relevant error code in SUBSCRIBE_ERROR,
+as defined below:<a href="#section-5.1-8" class="pilcrow">¶</a></p>
 <table class="center" id="table-2">
           <caption><a href="#table-2" class="selfRef">Table 2</a></caption>
 <thead>
@@ -2232,8 +2253,8 @@ as defined below:<a href="#section-5.1-7" class="pilcrow">¶</a></p>
             </tr>
           </tbody>
         </table>
-<p id="section-5.1-9">The application <span class="bcp14">SHOULD</span> use a relevant status code in
-SUBSCRIBE_DONE, as defined below:<a href="#section-5.1-9" class="pilcrow">¶</a></p>
+<p id="section-5.1-10">The application <span class="bcp14">SHOULD</span> use a relevant status code in
+SUBSCRIBE_DONE, as defined below:<a href="#section-5.1-10" class="pilcrow">¶</a></p>
 <table class="center" id="table-3">
           <caption><a href="#table-3" class="selfRef">Table 3</a></caption>
 <thead>
@@ -2273,6 +2294,20 @@ SUBSCRIBE_DONE, as defined below:<a href="#section-5.1-9" class="pilcrow">¶</a>
             </tr>
           </tbody>
         </table>
+<div id="graceful-publisher-relay-switchover">
+<section id="section-5.1.1">
+          <h4 id="name-graceful-publisher-relay-sw">
+<a href="#section-5.1.1" class="section-number selfRef">5.1.1. </a><a href="#name-graceful-publisher-relay-sw" class="section-name selfRef">Graceful Publisher Relay Switchover</a>
+          </h4>
+<p id="section-5.1.1-1">This section describes behavior a subscriber <span class="bcp14">MAY</span> implement
+to allow for a better user experience when a relay sends a GOAWAY.<a href="#section-5.1.1-1" class="pilcrow">¶</a></p>
+<p id="section-5.1.1-2">When a subscriber receives the GOAWAY message, it starts the process
+of connecting to a new relay and sending the SUBSCRIBE requests for
+all active subscriptions to the new relay. The new relay will send a
+response to the subscribes and if they are successful, the subscriptions
+to the old relay can be stopped with an UNSUBSCRIBE.<a href="#section-5.1.1-2" class="pilcrow">¶</a></p>
+</section>
+</div>
 </section>
 </div>
 <div id="publisher-interactions">
@@ -2281,37 +2316,86 @@ SUBSCRIBE_DONE, as defined below:<a href="#section-5.1-9" class="pilcrow">¶</a>
 <a href="#section-5.2" class="section-number selfRef">5.2. </a><a href="#name-publisher-interactions" class="section-name selfRef">Publisher Interactions</a>
         </h3>
 <p id="section-5.2-1">Publishing through the relay starts with publisher sending ANNOUNCE
-control message with a <code>Track Namespace</code> (<a href="#model-track" class="auto internal xref">Section 2.4</a>).<a href="#section-5.2-1" class="pilcrow">¶</a></p>
+control message with a <code>Track Namespace</code> (<a href="#model-track" class="auto internal xref">Section 2.4</a>).
+The announce enables the relay to know which publisher to forward a
+SUBSCRIBE to.<a href="#section-5.2-1" class="pilcrow">¶</a></p>
 <p id="section-5.2-2">Relays <span class="bcp14">MUST</span> ensure that publishers are authorized by:<a href="#section-5.2-2" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-5.2-3.1">
             <p id="section-5.2-3.1.1">Verifying that the publisher is authorized to publish the content
 associated with the set of tracks whose Track Namespace matches the
-announced namespace. Specifics of where the authorization happens,
-either at the relays or forwarded for further processing, depends on
-the way the relay is managed and is application specific (typically
-based on prior business agreement).<a href="#section-5.2-3.1.1" class="pilcrow">¶</a></p>
+announced namespace. Where the authorization and identification of
+the publisher occurs depends on the way the relay is managed and
+is application specific.<a href="#section-5.2-3.1.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-5.2-4">Relays respond with an ANNOUNCE_OK or ANNOUNCE_ERROR control message
 providing the result of announcement. The entity receiving the
 ANNOUNCE <span class="bcp14">MUST</span> send only a single response to a given ANNOUNCE of
-either ANNOUNCE_OK or ANNOUNCE_ERROR.  When a publisher wants to stop
+either ANNOUNCE_OK or ANNOUNCE_ERROR.<a href="#section-5.2-4" class="pilcrow">¶</a></p>
+<p id="section-5.2-5">A Relay can receive announcements from multiple publishers for the same
+Track Namespace and it <span class="bcp14">SHOULD</span> respond with the same response to each of the
+publishers, as though it was responding to an ANNOUNCE
+from a single publisher for a given tracknamespace.<a href="#section-5.2-5" class="pilcrow">¶</a></p>
+<p id="section-5.2-6">When a publisher wants to stop
 new subscriptions for an announced namespace it sends an UNANNOUNCE.
 A subscriber indicates it will no longer route subscriptions for a
 namespace it previously responded ANNOUNCE_OK to by sending an
-ANNOUNCE_CANCEL.<a href="#section-5.2-4" class="pilcrow">¶</a></p>
-<p id="section-5.2-5">A relay manages sessions from multiple publishers and subscribers,
+ANNOUNCE_CANCEL.<a href="#section-5.2-6" class="pilcrow">¶</a></p>
+<p id="section-5.2-7">A relay manages sessions from multiple publishers and subscribers,
 connecting them based on the track namespace. This <span class="bcp14">MUST</span> use an exact
 match on track namespace unless otherwise negotiated by the application.
 For example, a SUBSCRIBE namespace=foobar message will be forwarded to
-the session that sent ANNOUNCE namespace=foobar.<a href="#section-5.2-5" class="pilcrow">¶</a></p>
-<p id="section-5.2-6">OBJECT message headers carry a short hop-by-hop <code>Track Alias</code> that maps to
+the session that sent ANNOUNCE namespace=foobar.<a href="#section-5.2-7" class="pilcrow">¶</a></p>
+<p id="section-5.2-8">When a relay receives an incoming SUBSCRIBE request that triggers an
+upstream subscription, it <span class="bcp14">SHOULD</span> send a SUBSCRIBE request to each
+publisher that has announced the subscription's namespace, unless it
+already has an active subscription for the Objects requested by the
+incoming SUBSCRIBE request from all available publishers.<a href="#section-5.2-8" class="pilcrow">¶</a></p>
+<p id="section-5.2-9">When a relay receives an incoming ANNOUCE for a given namespace, for
+each active upstream subscription that matches that namespace, it <span class="bcp14">SHOULD</span> send a
+SUBSCRIBE to that publisher that send the ANNOUNCE.<a href="#section-5.2-9" class="pilcrow">¶</a></p>
+<p id="section-5.2-10">OBJECT message headers carry a short hop-by-hop <code>Track Alias</code> that maps to
 the Full Track Name (see <a href="#message-subscribe-ok" class="auto internal xref">Section 6.13</a>). Relays use the
 <code>Track Alias</code> of an incoming OBJECT message to identify its track and find
 the active subscribers for that track. Relays <span class="bcp14">MUST</span> forward OBJECT messages to
 matching subscribers in accordance to each subscription's priority, group order,
-and delivery timeout.<a href="#section-5.2-6" class="pilcrow">¶</a></p>
+and delivery timeout.<a href="#section-5.2-10" class="pilcrow">¶</a></p>
+<div id="graceful-publisher-network-switchover">
+<section id="section-5.2.1">
+          <h4 id="name-graceful-publisher-network-">
+<a href="#section-5.2.1" class="section-number selfRef">5.2.1. </a><a href="#name-graceful-publisher-network-" class="section-name selfRef">Graceful Publisher Network Switchover</a>
+          </h4>
+<p id="section-5.2.1-1">This section describes behavior that a publisher <span class="bcp14">MAY</span>
+choose to implement to allow for a better users experience when
+switching between networks, such as WiFi to Cellular or vice versa.<a href="#section-5.2.1-1" class="pilcrow">¶</a></p>
+<p id="section-5.2.1-2">If the original publisher detects it is likely to need to switch networks,
+for example because the WiFi signal is getting weaker, and it does not
+have QUIC connection migration available, it establishes a new session
+over the new interface and sends an ANNOUCE. The relay will forward
+matching subscribes and the publisher publishes objects on both sessions.
+Once the subscriptions have migrated over to session on the new network,
+the publisher can stop publishing objects on the old network. The relay
+will drop duplicate objects received on both subscriptions.
+Ideally, the subscriptions downstream from the relay do no observe this
+change, and keep receiving the objects on the same subscription.<a href="#section-5.2.1-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="graceful-publisher-relay-switchover-1">
+<section id="section-5.2.2">
+          <h4 id="name-graceful-publisher-relay-swi">
+<a href="#section-5.2.2" class="section-number selfRef">5.2.2. </a><a href="#name-graceful-publisher-relay-swi" class="section-name selfRef">Graceful Publisher Relay Switchover</a>
+          </h4>
+<p id="section-5.2.2-1">This section describes behavior that a publisher <span class="bcp14">MAY</span> choose to implement
+to allow for a better user experience when a relay sends them a GOAWAY.<a href="#section-5.2.2-1" class="pilcrow">¶</a></p>
+<p id="section-5.2.2-2">When a publisher receives a GOAWAY, it starts the process of
+connecting to a new relay and sends announces, but it does not immediately
+stop publishing objects to the old relay. The new relay will send
+subscribes and the publisher can start sending new objects to the new relay
+instead of the old relay. Once objects are going to the new relay,
+the announcement and subscription to the old relay can be stopped.<a href="#section-5.2.2-2" class="pilcrow">¶</a></p>
+</section>
+</div>
 </section>
 </div>
 <div id="relay-object-handling">
