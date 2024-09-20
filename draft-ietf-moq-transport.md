@@ -692,13 +692,13 @@ interest. Relays MUST ensure subscribers are authorized to access the
 content associated with the track. The authorization
 information can be part of subscription request itself or part of the
 encompassing session. The specifics of how a relay authorizes a user are
-outside the scope of this specification.
+outside the scope of this specification. The subscriber is notified
+of the result of the subscription via a
+SUBSCRIBE_OK ({{message-subscribe-ok}}) or SUBSCRIBE_ERROR
+{{message-subscribe-error}} control message. The entity receiving the
+SUBSCRIBE MUST send only a single response to a given SUBSCRIBE of
+either SUBSCRIBE_OK or SUBSCRIBE_ERROR.
 
-The subscriber making the subscribe request is notified of the result of
-the subscription, via SUBSCRIBE_OK ({{message-subscribe-ok}}) or the
-SUBSCRIBE_ERROR {{message-subscribe-error}} control message.
-The entity receiving the SUBSCRIBE MUST send only a single response to
-a given SUBSCRIBE of either SUBSCRIBE_OK or SUBSCRIBE_ERROR.
 If a relay does not already have a subscription for the track,
 or if the subscription does not cover all the requested Objects, it
 will need to make an upstream subscription.  The relay SHOULD NOT
@@ -710,10 +710,10 @@ subscribers for each track. Each new OBJECT belonging to the
 track within the subscription range is forwarded to each active
 subscriber, dependent on the congestion response. A subscription
 remains active until the publisher of the track terminates the
-subscription with a SUBSCRIBE_DONE (see {{message-subscribe-done}})
-or all the downstream subscriptions are ended. A
-caching relay saves objects to its cache identified by the object's
-Full Track Name, group ID and object ID. Relays MUST be
+subscription with a SUBSCRIBE_DONE (see {{message-subscribe-done}}).
+
+A caching relay saves Objects to its cache identified by the Object's
+Full Track Name, Group ID and Object ID. Relays MUST be
 able to process objects for the same Full Track Name from
 multiple publishers and forward objects
 to active matching subscriptions. If multiple objects are received
