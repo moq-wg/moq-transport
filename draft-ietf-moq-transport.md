@@ -692,13 +692,13 @@ interest. Relays MUST ensure subscribers are authorized to access the
 content associated with the track. The authorization
 information can be part of subscription request itself or part of the
 encompassing session. The specifics of how a relay authorizes a user are
-outside the scope of this specification.
+outside the scope of this specification. The subscriber is notified
+of the result of the subscription via a
+SUBSCRIBE_OK ({{message-subscribe-ok}}) or SUBSCRIBE_ERROR
+{{message-subscribe-error}} control message. The entity receiving the
+SUBSCRIBE MUST send only a single response to a given SUBSCRIBE of
+either SUBSCRIBE_OK or SUBSCRIBE_ERROR.
 
-The subscriber making the subscribe request is notified of the result of
-the subscription, via SUBSCRIBE_OK ({{message-subscribe-ok}}) or the
-SUBSCRIBE_ERROR {{message-subscribe-error}} control message.
-The entity receiving the SUBSCRIBE MUST send only a single response to
-a given SUBSCRIBE of either SUBSCRIBE_OK or SUBSCRIBE_ERROR.
 If a relay does not already have a subscription for the track,
 or if the subscription does not cover all the requested Objects, it
 will need to make an upstream subscription.  The relay SHOULD NOT
@@ -710,7 +710,16 @@ subscribers for each track. Each new OBJECT belonging to the
 track within the subscription range is forwarded to each active
 subscriber, dependent on the congestion response. A subscription
 remains active until the publisher of the track terminates the
-track with a SUBSCRIBE_DONE (see {{message-subscribe-done}}).
+subscription with a SUBSCRIBE_DONE (see {{message-subscribe-done}}).
+
+A caching relay saves Objects to its cache identified by the Object's
+Full Track Name, Group ID and Object ID. Relays MUST be able to
+process objects for the same Full Track Name from multiple
+publishers and forward objects to active matching subscriptions.
+If multiple objects are received with the same Full Track Name,
+Group ID and Object ID, Relays MAY ignore subsequently received Objects
+or MAY use them to update the cache. Implementations that update the
+cache need to be protect against cache poisoning.
 
 Objects MUST NOT be sent for unsuccessful subscriptions, and if a subscriber
 receives a SUBSCRIBE_ERROR after receiving objects, it MUST close the session
@@ -765,24 +774,44 @@ SUBSCRIBE_DONE, as defined below:
 | 0x6  | Expired                   |
 |------|---------------------------|
 
+### Graceful Publisher Relay Switchover
+
+This section describes behavior a subscriber MAY implement
+to allow for a better user experience when a relay sends a GOAWAY.
+
+When a subscriber receives the GOAWAY message, it starts the process
+of connecting to a new relay and sending the SUBSCRIBE requests for
+all active subscriptions to the new relay. The new relay will send a
+response to the subscribes and if they are successful, the subscriptions
+to the old relay can be stopped with an UNSUBSCRIBE.
+
+
 ## Publisher Interactions
 
 Publishing through the relay starts with publisher sending ANNOUNCE
 control message with a `Track Namespace` ({{model-track}}).
+The announce enables the relay to know which publisher to forward a
+SUBSCRIBE to.
 
 Relays MUST ensure that publishers are authorized by:
 
 - Verifying that the publisher is authorized to publish the content
   associated with the set of tracks whose Track Namespace matches the
-  announced namespace. Specifics of where the authorization happens,
-  either at the relays or forwarded for further processing, depends on
-  the way the relay is managed and is application specific (typically
-  based on prior business agreement).
+  announced namespace. Where the authorization and identification of
+  the publisher occurs depends on the way the relay is managed and
+  is application specific.
 
 Relays respond with an ANNOUNCE_OK or ANNOUNCE_ERROR control message
 providing the result of announcement. The entity receiving the
 ANNOUNCE MUST send only a single response to a given ANNOUNCE of
-either ANNOUNCE_OK or ANNOUNCE_ERROR.  When a publisher wants to stop
+either ANNOUNCE_OK or ANNOUNCE_ERROR.
+
+A Relay can receive announcements from multiple publishers for the same
+Track Namespace and it SHOULD respond with the same response to each of the
+publishers, as though it was responding to an ANNOUNCE
+from a single publisher for a given tracknamespace.
+
+When a publisher wants to stop
 new subscriptions for an announced namespace it sends an UNANNOUNCE.
 A subscriber indicates it will no longer route subscriptions for a
 namespace it previously responded ANNOUNCE_OK to by sending an
@@ -794,12 +823,51 @@ match on track namespace unless otherwise negotiated by the application.
 For example, a SUBSCRIBE namespace=foobar message will be forwarded to
 the session that sent ANNOUNCE namespace=foobar.
 
+When a relay receives an incoming SUBSCRIBE request that triggers an
+upstream subscription, it SHOULD send a SUBSCRIBE request to each
+publisher that has announced the subscription's namespace, unless it
+already has an active subscription for the Objects requested by the
+incoming SUBSCRIBE request from all available publishers.
+
+When a relay receives an incoming ANNOUCE for a given namespace, for
+each active upstream subscription that matches that namespace, it SHOULD send a
+SUBSCRIBE to that publisher that send the ANNOUNCE.
+
 OBJECT message headers carry a short hop-by-hop `Track Alias` that maps to
 the Full Track Name (see {{message-subscribe-ok}}). Relays use the
 `Track Alias` of an incoming OBJECT message to identify its track and find
 the active subscribers for that track. Relays MUST forward OBJECT messages to
 matching subscribers in accordance to each subscription's priority, group order,
 and delivery timeout.
+
+### Graceful Publisher Network Switchover
+
+This section describes behavior that a publisher MAY
+choose to implement to allow for a better users experience when
+switching between networks, such as WiFi to Cellular or vice versa.
+
+If the original publisher detects it is likely to need to switch networks,
+for example because the WiFi signal is getting weaker, and it does not
+have QUIC connection migration available, it establishes a new session
+over the new interface and sends an ANNOUCE. The relay will forward
+matching subscribes and the publisher publishes objects on both sessions.
+Once the subscriptions have migrated over to session on the new network,
+the publisher can stop publishing objects on the old network. The relay
+will drop duplicate objects received on both subscriptions.
+Ideally, the subscriptions downstream from the relay do no observe this
+change, and keep receiving the objects on the same subscription.
+
+### Graceful Publisher Relay Switchover
+
+This section describes behavior that a publisher MAY choose to implement
+to allow for a better user experience when a relay sends them a GOAWAY.
+
+When a publisher receives a GOAWAY, it starts the process of
+connecting to a new relay and sends announces, but it does not immediately
+stop publishing objects to the old relay. The new relay will send
+subscribes and the publisher can start sending new objects to the new relay
+instead of the old relay. Once objects are going to the new relay,
+the announcement and subscription to the old relay can be stopped.
 
 ## Relay Object Handling
 
