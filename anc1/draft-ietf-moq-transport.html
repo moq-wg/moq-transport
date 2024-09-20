@@ -2435,7 +2435,7 @@ formatted as follows:<a href="#section-6-1" class="pilcrow">¶</a></p>
 <pre>
 MOQT Control Message {
   Message Type (i),
-  Message Payload (..),
+  Message Payload (b),
 }
 </pre>
 </div>
@@ -2539,7 +2539,10 @@ MOQT Control Message {
           </tr>
         </tbody>
       </table>
-<p id="section-6-4">An endpoint that receives an unknown message type <span class="bcp14">MUST</span> close the session.<a href="#section-6-4" class="pilcrow">¶</a></p>
+<p id="section-6-4">An endpoint that receives an unknown message type <span class="bcp14">MUST</span> close the session.
+Control messages have a length to make parsing easier, but no control
+messages are intended to be ignored. If the length does not match the
+length of the message content, the receiver <span class="bcp14">MUST</span> close the session.<a href="#section-6-4" class="pilcrow">¶</a></p>
 <div id="params">
 <section id="section-6.1">
         <h3 id="name-parameters">
@@ -3765,7 +3768,7 @@ that information is not reliable and cacheable.<a href="#section-7.1.1.1-5" clas
 <p id="section-7.2-1">An <code>OBJECT_DATAGRAM</code> message carries a single object in a datagram.<a href="#section-7.2-1" class="pilcrow">¶</a></p>
 <p id="section-7.2-2">An Object received in an <code>OBJECT_DATAGRAM</code> message has an <code>Object
 Forwarding Preference</code> = <code>Datagram</code>. To send an Object with <code>Object
-Forwarding Preference</code> = <code>Datagram</code>, determine the length of the fields and
+Forwarding Preference</code> = <code>Datagram</code>, determine the length of the header and
 payload and send the Object as datagram. In certain scenarios where the object
 size can be larger than maximum datagram size for the session, the Object
 will be dropped.<a href="#section-7.2-2" class="pilcrow">¶</a></p>
