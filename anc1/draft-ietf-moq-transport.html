@@ -1037,7 +1037,7 @@ svg :is([fill="white"], [fill^="#fff"]) {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Curley, et al.</td>
-<td class="center">Expires 23 March 2025</td>
+<td class="center">Expires 24 March 2025</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1050,12 +1050,12 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dd class="internet-draft">draft-ietf-moq-transport-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2024-09-19" class="published">19 September 2024</time>
+<time datetime="2024-09-20" class="published">20 September 2024</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2025-03-23">23 March 2025</time></dd>
+<dd class="expires"><time datetime="2025-03-24">24 March 2025</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1127,7 +1127,7 @@ networks and is designed for high scale and low latency distribution.<a href="#s
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 23 March 2025.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 24 March 2025.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -2181,13 +2181,13 @@ interest. Relays <span class="bcp14">MUST</span> ensure subscribers are authoriz
 content associated with the track. The authorization
 information can be part of subscription request itself or part of the
 encompassing session. The specifics of how a relay authorizes a user are
-outside the scope of this specification.<a href="#section-5.1-1" class="pilcrow">¶</a></p>
-<p id="section-5.1-2">The subscriber making the subscribe request is notified of the result of
-the subscription, via SUBSCRIBE_OK (<a href="#message-subscribe-ok" class="auto internal xref">Section 6.13</a>) or the
-SUBSCRIBE_ERROR <a href="#message-subscribe-error" class="auto internal xref">Section 6.14</a> control message.
-The entity receiving the SUBSCRIBE <span class="bcp14">MUST</span> send only a single response to
-a given SUBSCRIBE of either SUBSCRIBE_OK or SUBSCRIBE_ERROR.
-If a relay does not already have a subscription for the track,
+outside the scope of this specification. The subscriber is notified
+of the result of the subscription via a
+SUBSCRIBE_OK (<a href="#message-subscribe-ok" class="auto internal xref">Section 6.13</a>) or SUBSCRIBE_ERROR
+<a href="#message-subscribe-error" class="auto internal xref">Section 6.14</a> control message. The entity receiving the
+SUBSCRIBE <span class="bcp14">MUST</span> send only a single response to a given SUBSCRIBE of
+either SUBSCRIBE_OK or SUBSCRIBE_ERROR.<a href="#section-5.1-1" class="pilcrow">¶</a></p>
+<p id="section-5.1-2">If a relay does not already have a subscription for the track,
 or if the subscription does not cover all the requested Objects, it
 will need to make an upstream subscription.  The relay <span class="bcp14">SHOULD NOT</span>
 return a SUBCRIBE_OK until at least one SUBSCRIBE_OK has been
@@ -2197,10 +2197,9 @@ subscribers for each track. Each new OBJECT belonging to the
 track within the subscription range is forwarded to each active
 subscriber, dependent on the congestion response. A subscription
 remains active until the publisher of the track terminates the
-subscription with a SUBSCRIBE_DONE (see <a href="#message-subscribe-done" class="auto internal xref">Section 6.15</a>)
-or all the downstream subscriptions are ended. A
-caching relay saves objects to its cache identified by the object's
-Full Track Name, group ID and object ID. Relays <span class="bcp14">MUST</span> be
+subscription with a SUBSCRIBE_DONE (see <a href="#message-subscribe-done" class="auto internal xref">Section 6.15</a>).<a href="#section-5.1-3" class="pilcrow">¶</a></p>
+<p id="section-5.1-4">A caching relay saves Objects to its cache identified by the Object's
+Full Track Name, Group ID and Object ID. Relays <span class="bcp14">MUST</span> be
 able to process objects for the same Full Track Name from
 multiple publishers and forward objects
 to active matching subscriptions. If multiple objects are received
@@ -2208,19 +2207,19 @@ with the same Full Track Name, group ID and object ID,
 Relays <span class="bcp14">MAY</span> ignore subsequently received Objects
 or <span class="bcp14">MAY</span> use them to update the cache.
 Implementations that update the cache need to be protect against cache
-poisoning.<a href="#section-5.1-3" class="pilcrow">¶</a></p>
-<p id="section-5.1-4">Objects <span class="bcp14">MUST NOT</span> be sent for unsuccessful subscriptions, and if a subscriber
+poisoning.<a href="#section-5.1-4" class="pilcrow">¶</a></p>
+<p id="section-5.1-5">Objects <span class="bcp14">MUST NOT</span> be sent for unsuccessful subscriptions, and if a subscriber
 receives a SUBSCRIBE_ERROR after receiving objects, it <span class="bcp14">MUST</span> close the session
-with a 'Protocol Violation'.<a href="#section-5.1-4" class="pilcrow">¶</a></p>
-<p id="section-5.1-5">A relay <span class="bcp14">MUST</span> not reorder or drop objects received on a multi-object stream when
-forwarding to subscribers, unless it has application specific information.<a href="#section-5.1-5" class="pilcrow">¶</a></p>
-<p id="section-5.1-6">Relays <span class="bcp14">MAY</span> aggregate authorized subscriptions for a given track when
+with a 'Protocol Violation'.<a href="#section-5.1-5" class="pilcrow">¶</a></p>
+<p id="section-5.1-6">A relay <span class="bcp14">MUST</span> not reorder or drop objects received on a multi-object stream when
+forwarding to subscribers, unless it has application specific information.<a href="#section-5.1-6" class="pilcrow">¶</a></p>
+<p id="section-5.1-7">Relays <span class="bcp14">MAY</span> aggregate authorized subscriptions for a given track when
 multiple subscribers request the same track. Subscription aggregation
 allows relays to make only a single upstream subscription for the
 track. The published content received from the upstream subscription
-request is cached and shared among the pending subscribers.<a href="#section-5.1-6" class="pilcrow">¶</a></p>
-<p id="section-5.1-7">The application <span class="bcp14">SHOULD</span> use a relevant error code in SUBSCRIBE_ERROR,
-as defined below:<a href="#section-5.1-7" class="pilcrow">¶</a></p>
+request is cached and shared among the pending subscribers.<a href="#section-5.1-7" class="pilcrow">¶</a></p>
+<p id="section-5.1-8">The application <span class="bcp14">SHOULD</span> use a relevant error code in SUBSCRIBE_ERROR,
+as defined below:<a href="#section-5.1-8" class="pilcrow">¶</a></p>
 <table class="center" id="table-2">
           <caption><a href="#table-2" class="selfRef">Table 2</a></caption>
 <thead>
@@ -2256,8 +2255,8 @@ as defined below:<a href="#section-5.1-7" class="pilcrow">¶</a></p>
             </tr>
           </tbody>
         </table>
-<p id="section-5.1-9">The application <span class="bcp14">SHOULD</span> use a relevant status code in
-SUBSCRIBE_DONE, as defined below:<a href="#section-5.1-9" class="pilcrow">¶</a></p>
+<p id="section-5.1-10">The application <span class="bcp14">SHOULD</span> use a relevant status code in
+SUBSCRIBE_DONE, as defined below:<a href="#section-5.1-10" class="pilcrow">¶</a></p>
 <table class="center" id="table-3">
           <caption><a href="#table-3" class="selfRef">Table 3</a></caption>
 <thead>
