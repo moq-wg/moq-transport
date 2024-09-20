@@ -2199,15 +2199,13 @@ subscriber, dependent on the congestion response. A subscription
 remains active until the publisher of the track terminates the
 subscription with a SUBSCRIBE_DONE (see <a href="#message-subscribe-done" class="auto internal xref">Section 6.15</a>).<a href="#section-5.1-3" class="pilcrow">¶</a></p>
 <p id="section-5.1-4">A caching relay saves Objects to its cache identified by the Object's
-Full Track Name, Group ID and Object ID. Relays <span class="bcp14">MUST</span> be
-able to process objects for the same Full Track Name from
-multiple publishers and forward objects
-to active matching subscriptions. If multiple objects are received
-with the same Full Track Name, group ID and object ID,
-Relays <span class="bcp14">MAY</span> ignore subsequently received Objects
-or <span class="bcp14">MAY</span> use them to update the cache.
-Implementations that update the cache need to be protect against cache
-poisoning.<a href="#section-5.1-4" class="pilcrow">¶</a></p>
+Full Track Name, Group ID and Object ID. Relays <span class="bcp14">MUST</span> be able to
+process objects for the same Full Track Name from multiple
+publishers and forward objects to active matching subscriptions.
+If multiple objects are received with the same Full Track Name,
+Group ID and Object ID, Relays <span class="bcp14">MAY</span> ignore subsequently received Objects
+or <span class="bcp14">MAY</span> use them to update the cache. Implementations that update the
+cache need to be protect against cache poisoning.<a href="#section-5.1-4" class="pilcrow">¶</a></p>
 <p id="section-5.1-5">Objects <span class="bcp14">MUST NOT</span> be sent for unsuccessful subscriptions, and if a subscriber
 receives a SUBSCRIBE_ERROR after receiving objects, it <span class="bcp14">MUST</span> close the session
 with a 'Protocol Violation'.<a href="#section-5.1-5" class="pilcrow">¶</a></p>

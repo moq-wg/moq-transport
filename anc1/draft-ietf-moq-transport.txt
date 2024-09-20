@@ -782,8 +782,8 @@ Table of Contents
    Full Track Name, Group ID and Object ID.  Relays MUST be able to
    process objects for the same Full Track Name from multiple publishers
    and forward objects to active matching subscriptions.  If multiple
-   objects are received with the same Full Track Name, group ID and
-   object ID, Relays MAY ignore subsequently received Objects or MAY use
+   objects are received with the same Full Track Name, Group ID and
+   Object ID, Relays MAY ignore subsequently received Objects or MAY use
    them to update the cache.  Implementations that update the cache need
    to be protect against cache poisoning.
 
