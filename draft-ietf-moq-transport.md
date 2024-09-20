@@ -1875,6 +1875,7 @@ or open a new one and send the `STREAM_HEADER_SUBGROUP`. Then serialize the
 following fields.
 
 The Object Status field is only sent if the Object Payload Length is zero.
+
 ~~~
 {
   Object ID (i),
