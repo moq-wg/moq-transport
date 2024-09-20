@@ -797,11 +797,9 @@ Relays MUST ensure that publishers are authorized by:
 
 - Verifying that the publisher is authorized to publish the content
   associated with the set of tracks whose Track Namespace matches the
-  announced namespace. Specifics of where the authorization and
-  identification of the publisher  happens either at the relays or
-  forwarded for further processing, depends on the way the relay is
-  managed and is application specific (typically based on prior business
-  agreement).
+  announced namespace. Where the authorization and identification of
+  the publisher occurs depends on the way the relay is managed and
+  is application specific.
 
 Relays respond with an ANNOUNCE_OK or ANNOUNCE_ERROR control message
 providing the result of announcement. The entity receiving the
