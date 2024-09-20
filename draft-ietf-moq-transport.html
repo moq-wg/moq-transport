@@ -1964,8 +1964,9 @@ Violation'.<a href="#section-3.3-1" class="pilcrow">¶</a></p>
 sent on unidirectional streams.  Because there are no other uses of
 bidirectional streams, a peer <span class="bcp14">MAY</span> currently close the session as a
 'Protocol Violation' if it receives a second bidirectional stream.<a href="#section-3.3-2" class="pilcrow">¶</a></p>
-<p id="section-3.3-3">The control stream <span class="bcp14">MUST NOT</span> be abruptly closed at the underlying transport
-layer.  Doing so results in the session being closed as a 'Protocol Violation'.<a href="#section-3.3-3" class="pilcrow">¶</a></p>
+<p id="section-3.3-3">The control stream <span class="bcp14">MUST NOT</span> be closed at the underlying transport layer while the
+session is active.  Doing so results in the session being closed as a
+'Protocol Violation'.<a href="#section-3.3-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="stream-cancellation">
