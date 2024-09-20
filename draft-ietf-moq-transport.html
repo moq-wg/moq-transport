@@ -1037,7 +1037,7 @@ svg :is([fill="white"], [fill^="#fff"]) {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Curley, et al.</td>
-<td class="center">Expires 23 March 2025</td>
+<td class="center">Expires 24 March 2025</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1050,12 +1050,12 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dd class="internet-draft">draft-ietf-moq-transport-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2024-09-19" class="published">19 September 2024</time>
+<time datetime="2024-09-20" class="published">20 September 2024</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2025-03-23">23 March 2025</time></dd>
+<dd class="expires"><time datetime="2025-03-24">24 March 2025</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1127,7 +1127,7 @@ networks and is designed for high scale and low latency distribution.<a href="#s
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 23 March 2025.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 24 March 2025.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -2351,7 +2351,7 @@ formatted as follows:<a href="#section-6-1" class="pilcrow">¶</a></p>
 <pre>
 MOQT Control Message {
   Message Type (i),
-  Message Payload (..),
+  Message Payload (b),
 }
 </pre>
 </div>
@@ -2455,7 +2455,10 @@ MOQT Control Message {
           </tr>
         </tbody>
       </table>
-<p id="section-6-4">An endpoint that receives an unknown message type <span class="bcp14">MUST</span> close the session.<a href="#section-6-4" class="pilcrow">¶</a></p>
+<p id="section-6-4">An endpoint that receives an unknown message type <span class="bcp14">MUST</span> close the session.
+Control messages have a length to make parsing easier, but no control
+messages are intended to be ignored. If the length does not match the
+length of the message content, the receiver <span class="bcp14">MUST</span> close the session.<a href="#section-6-4" class="pilcrow">¶</a></p>
 <div id="params">
 <section id="section-6.1">
         <h3 id="name-parameters">
@@ -3681,7 +3684,7 @@ that information is not reliable and cacheable.<a href="#section-7.1.1.1-5" clas
 <p id="section-7.2-1">An <code>OBJECT_DATAGRAM</code> message carries a single object in a datagram.<a href="#section-7.2-1" class="pilcrow">¶</a></p>
 <p id="section-7.2-2">An Object received in an <code>OBJECT_DATAGRAM</code> message has an <code>Object
 Forwarding Preference</code> = <code>Datagram</code>. To send an Object with <code>Object
-Forwarding Preference</code> = <code>Datagram</code>, determine the length of the fields and
+Forwarding Preference</code> = <code>Datagram</code>, determine the length of the header and
 payload and send the Object as datagram. In certain scenarios where the object
 size can be larger than maximum datagram size for the session, the Object
 will be dropped.<a href="#section-7.2-2" class="pilcrow">¶</a></p>

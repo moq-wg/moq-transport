@@ -5,13 +5,13 @@
 Media Over QUIC                                                L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 23 March 2025                                              Meta
+Expires: 24 March 2025                                              Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                       19 September 2024
+                                                       20 September 2024
 
 
                        Media over QUIC Transport
@@ -59,7 +59,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 23 March 2025.
+   This Internet-Draft will expire on 24 March 2025.
 
 Copyright Notice
 
@@ -899,7 +899,7 @@ Table of Contents
 
    MOQT Control Message {
      Message Type (i),
-     Message Payload (..),
+     Message Payload (b),
    }
 
                            Figure 1: MOQT Message
@@ -953,7 +953,10 @@ Table of Contents
                                  Table 4
 
    An endpoint that receives an unknown message type MUST close the
-   session.
+   session.  Control messages have a length to make parsing easier, but
+   no control messages are intended to be ignored.  If the length does
+   not match the length of the message content, the receiver MUST close
+   the session.
 
 6.1.  Parameters
 
@@ -1863,7 +1866,7 @@ Table of Contents
 
    An Object received in an OBJECT_DATAGRAM message has an Object
    Forwarding Preference = Datagram.  To send an Object with Object
-   Forwarding Preference = Datagram, determine the length of the fields
+   Forwarding Preference = Datagram, determine the length of the header
    and payload and send the Object as datagram.  In certain scenarios
    where the object size can be larger than maximum datagram size for
    the session, the Object will be dropped.
