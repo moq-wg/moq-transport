@@ -898,7 +898,7 @@ formatted as follows:
 ~~~
 MOQT Control Message {
   Message Type (i),
-  Message Payload (..),
+  Message Payload (b),
 }
 ~~~
 {: #moq-transport-message-format title="MOQT Message"}
@@ -950,6 +950,9 @@ MOQT Control Message {
 |-------|-----------------------------------------------------|
 
 An endpoint that receives an unknown message type MUST close the session.
+Control messages have a length to make parsing easier, but no control
+messages are intended to be ignored. If the length does not match the
+length of the message content, the receiver MUST close the session.
 
 ## Parameters {#params}
 
@@ -1843,7 +1846,7 @@ An `OBJECT_DATAGRAM` message carries a single object in a datagram.
 
 An Object received in an `OBJECT_DATAGRAM` message has an `Object
 Forwarding Preference` = `Datagram`. To send an Object with `Object
-Forwarding Preference` = `Datagram`, determine the length of the fields and
+Forwarding Preference` = `Datagram`, determine the length of the header and
 payload and send the Object as datagram. In certain scenarios where the object
 size can be larger than maximum datagram size for the session, the Object
 will be dropped.
