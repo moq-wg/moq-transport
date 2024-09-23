@@ -894,7 +894,8 @@ formatted as follows:
 ~~~
 MOQT Control Message {
   Message Type (i),
-  Message Payload (b),
+  Message Length (i),
+  Message Payload (..),
 }
 ~~~
 {: #moq-transport-message-format title="MOQT Message"}
@@ -1055,6 +1056,7 @@ The wire format of the Setup messages are as follows:
 
 ~~~
 CLIENT_SETUP Message Payload {
+  Length (i),
   Number of Supported Versions (i),
   Supported Version (i) ...,
   Number of Parameters (i) ...,
@@ -1062,6 +1064,7 @@ CLIENT_SETUP Message Payload {
 }
 
 SERVER_SETUP Message Payload {
+  Length (i),
   Selected Version (i),
   Number of Parameters (i) ...,
   Setup Parameters (..) ...,
@@ -1153,7 +1156,9 @@ receives multiple GOAWAY messages.
 
 ~~~
 GOAWAY Message {
-  New Session URI (b)
+  Length (i),
+  New Session URI Length (i),
+  New Session URI (..),
 }
 ~~~
 {: #moq-transport-goaway-format title="MOQT GOAWAY Message"}
@@ -1200,10 +1205,12 @@ The format of SUBSCRIBE is as follows:
 
 ~~~
 SUBSCRIBE Message {
+  Length (i),
   Subscribe ID (i),
   Track Alias (i),
   Track Namespace (tuple),
-  Track Name (b),
+  Track Name Length (i),
+  Track Name (..),
   Subscriber Priority (8),
   Group Order (8),
   Filter Type (i),
@@ -1290,6 +1297,7 @@ The format of SUBSCRIBE_UPDATE is as follows:
 
 ~~~
 SUBSCRIBE_UPDATE Message {
+  Length (i),
   Subscribe ID (i),
   StartGroup (i),
   StartObject (i),
@@ -1333,6 +1341,7 @@ The format of `UNSUBSCRIBE` is as follows:
 
 ~~~
 UNSUBSCRIBE Message {
+  Length (i),
   Subscribe ID (i)
 }
 ~~~
@@ -1348,6 +1357,7 @@ successful authorization and acceptance of an ANNOUNCE message.
 ~~~
 ANNOUNCE_OK
 {
+  Length (i),
   Track Namespace (tuple),
 }
 ~~~
@@ -1364,9 +1374,11 @@ failed authorization.
 ~~~
 ANNOUNCE_ERROR
 {
+  Length (i),
   Track Namespace (tuple),
   Error Code (i),
-  Reason Phrase (b),
+  Reason Phrase Length (i),
+  Reason Phrase (..),
 }
 ~~~
 {: #moq-transport-announce-error format title="MOQT ANNOUNCE_ERROR Message"}
@@ -1390,9 +1402,11 @@ receiving an ANNOUNCE_CANCEL, it SHOULD close the session as a
 
 ~~~
 ANNOUNCE_CANCEL Message {
+  Length (i),
   Track Namespace (tuple),
   Error Code (i),
-  Reason Phrase (b),
+  Reason Phrase Length (i),
+  Reason Phrase Length (..),
 }
 ~~~
 {: #moq-transport-announce-cancel-format title="MOQT ANNOUNCE_CANCEL Message"}
@@ -1414,8 +1428,10 @@ A TRACK_STATUS message MUST be sent in response to each TRACK_STATUS_REQUEST.
 
 ~~~
 TRACK_STATUS_REQUEST Message {
+  Length (i),
   Track Namespace (tuple),
-  Track Name (b),
+  Track Name Length (i),
+  Track Name (..),
 }
 ~~~
 {: #moq-track-status-request-format title="MOQT TRACK_STATUS_REQUEST Message"}
@@ -1428,6 +1444,7 @@ the set.
 
 ~~~
 SUBSCRIBE_NAMESPACE Message {
+  Length (i),
   Track Namespace Prefix (tuple),
   Number of Parameters (i),
   Parameters (..) ...,
@@ -1474,6 +1491,7 @@ The format of `UNSUBSCRIBE_NAMESPACE` is as follows:
 
 ~~~
 UNSUBSCRIBE_NAMESPACE Message {
+  Length (i),
   Track Namespace Prefix (tuple)
 }
 ~~~
@@ -1489,6 +1507,7 @@ subscriptions.
 ~~~
 SUBSCRIBE_OK
 {
+  Length (i),
   Subscribe ID (i),
   Expires (i),
   Group Order (8),
@@ -1533,9 +1552,11 @@ failed SUBSCRIBE.
 ~~~
 SUBSCRIBE_ERROR
 {
+  Length (i),
   Subscribe ID (i),
   Error Code (i),
-  Reason Phrase (b),
+  Reason Phrase Length (i),
+  Reason Phrase (..),
   Track Alias (i),
 }
 ~~~
@@ -1563,9 +1584,11 @@ The format of `SUBSCRIBE_DONE` is as follows:
 
 ~~~
 SUBSCRIBE_DONE Message {
+  Length (i),
   Subscribe ID (i),
   Status Code (i),
-  Reason Phrase (b),
+  Reason Phrase Length (i),
+  Reason Phrase (..),
   ContentExists (8),
   [Final Group (i)],
   [Final Object (i)],
@@ -1602,6 +1625,7 @@ value is a 'Protocol Violation'.
 ~~~
 MAX_SUBSCRIBE_ID
 {
+  Length (i),
   Subscribe ID (i),
 }
 ~~~
@@ -1622,6 +1646,7 @@ publish tracks under this namespace.
 
 ~~~
 ANNOUNCE Message {
+  Length (i),
   Track Namespace (tuple),
   Number of Parameters (i),
   Parameters (..) ...,
@@ -1643,6 +1668,7 @@ within the provided Track Namespace.
 
 ~~~
 UNANNOUNCE Message {
+  Length (i),
   Track Namespace (tuple),
 }
 ~~~
@@ -1659,8 +1685,10 @@ to a TRACK_STATUS_REQUEST message.
 
 ~~~
 TRACK_STATUS Message {
+  Length (i),
   Track Namespace (tuple),
-  Track Name (b),
+  Track Name Length(i),
+  Track Name (..),
   Status Code (i),
   Last Group ID (i),
   Last Object ID (i),
@@ -1712,6 +1740,7 @@ namespace subscriptions.
 ~~~
 SUBSCRIBE_NAMESPACE_OK
 {
+  Length (i),
   Track Namespace Prefix (tuple),
 }
 ~~~
@@ -1727,9 +1756,11 @@ failed SUBSCRIBE_NAMESPACE.
 ~~~
 SUBSCRIBE_NAMESPACE_ERROR
 {
+  Length (i),
   Track Namespace Prefix (tuple),
   Error Code (i),
-  Reason Phrase (b),
+  Reason Phrase Length (i),
+  Reason Phrase (..),
 }
 ~~~
 {: #moq-transport-sub-ns-error format title="MOQT SUBSCRIBE_NAMESPACE_ERROR Message"}
