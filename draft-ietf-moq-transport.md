@@ -309,12 +309,12 @@ An Object can become unavailable, but its contents MUST NOT change over
 time.
 
 Objects are comprised of two parts: metadata and a payload.  The metadata is
-never encrypted and is always visible to relays. The payload portion may be
-encrypted, in which case it is only visible to the Original Publisher and End
-Subscribers. The application is solely responsible for the content of the object
-payload. This includes the underlying encoding, compression, any end-to-end
-encryption, or authentication. A relay MUST NOT combine, split, or otherwise
-modify object payloads.
+never encrypted and is always visible to relays (see {{relays-moq}}). The
+payload portion may be encrypted, in which case it is only visible to the
+Original Publisher and End Subscribers. The application is solely responsible
+for the content of the object payload. This includes the underlying encoding,
+compression, any end-to-end encryption, or authentication. A relay MUST NOT
+combine, split, or otherwise modify object payloads.
 
 ## Subgroups {#model-subgroup}
 
@@ -682,6 +682,9 @@ architecture. Relays can be used to form an overlay delivery network,
 similar in functionality to Content Delivery Networks
 (CDNs). Additionally, relays serve as policy enforcement points by
 validating subscribe and publish requests at the edge of a network.
+
+Relays are MoQ endpoints, which means they terminate the underlying QUIC
+connections in order to have visibility of MoQ Object metadata.
 
 Relays can cache Objects, but are not required to.
 
