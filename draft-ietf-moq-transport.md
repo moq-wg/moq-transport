@@ -1055,7 +1055,8 @@ setup parameters. TODO: describe GREASE for those.
 The wire format of the Setup messages are as follows:
 
 ~~~
-CLIENT_SETUP Message Payload {
+CLIENT_SETUP Message {
+  Type (i) = 0x40,
   Length (i),
   Number of Supported Versions (i),
   Supported Version (i) ...,
@@ -1063,7 +1064,8 @@ CLIENT_SETUP Message Payload {
   Setup Parameters (..) ...,
 }
 
-SERVER_SETUP Message Payload {
+SERVER_SETUP Message {
+  Type (i) = 0x41,
   Length (i),
   Selected Version (i),
   Number of Parameters (i) ...,
@@ -1156,6 +1158,7 @@ receives multiple GOAWAY messages.
 
 ~~~
 GOAWAY Message {
+  Type (i) = 0x10,
   Length (i),
   New Session URI Length (i),
   New Session URI (..),
@@ -1205,6 +1208,7 @@ The format of SUBSCRIBE is as follows:
 
 ~~~
 SUBSCRIBE Message {
+  Type (i) = 0x3,
   Length (i),
   Subscribe ID (i),
   Track Alias (i),
@@ -1297,6 +1301,7 @@ The format of SUBSCRIBE_UPDATE is as follows:
 
 ~~~
 SUBSCRIBE_UPDATE Message {
+  Type (i) = 0x2,
   Length (i),
   Subscribe ID (i),
   StartGroup (i),
@@ -1341,6 +1346,7 @@ The format of `UNSUBSCRIBE` is as follows:
 
 ~~~
 UNSUBSCRIBE Message {
+  Type (i) = 0xA,
   Length (i),
   Subscribe ID (i)
 }
@@ -1355,8 +1361,9 @@ The subscriber sends an ANNOUNCE_OK control message to acknowledge the
 successful authorization and acceptance of an ANNOUNCE message.
 
 ~~~
-ANNOUNCE_OK
+ANNOUNCE_OK Message
 {
+  Type (i) = 0x7,
   Length (i),
   Track Namespace (tuple),
 }
@@ -1372,8 +1379,9 @@ The subscriber sends an ANNOUNCE_ERROR control message for tracks that
 failed authorization.
 
 ~~~
-ANNOUNCE_ERROR
+ANNOUNCE_ERROR Message
 {
+  Type (i) = 0x8,
   Length (i),
   Track Namespace (tuple),
   Error Code (i),
@@ -1402,6 +1410,7 @@ receiving an ANNOUNCE_CANCEL, it SHOULD close the session as a
 
 ~~~
 ANNOUNCE_CANCEL Message {
+  Type (i) = 0xC,
   Length (i),
   Track Namespace (tuple),
   Error Code (i),
@@ -1428,6 +1437,7 @@ A TRACK_STATUS message MUST be sent in response to each TRACK_STATUS_REQUEST.
 
 ~~~
 TRACK_STATUS_REQUEST Message {
+  Type (i) = 0xD,
   Length (i),
   Track Namespace (tuple),
   Track Name Length (i),
@@ -1444,6 +1454,7 @@ the set.
 
 ~~~
 SUBSCRIBE_NAMESPACE Message {
+  Type (i) = 0x11,
   Length (i),
   Track Namespace Prefix (tuple),
   Number of Parameters (i),
@@ -1491,6 +1502,7 @@ The format of `UNSUBSCRIBE_NAMESPACE` is as follows:
 
 ~~~
 UNSUBSCRIBE_NAMESPACE Message {
+  Type (i) = 0x14,
   Length (i),
   Track Namespace Prefix (tuple)
 }
@@ -1507,6 +1519,7 @@ subscriptions.
 ~~~
 SUBSCRIBE_OK
 {
+  Type (i) = 0x4,
   Length (i),
   Subscribe ID (i),
   Expires (i),
@@ -1552,6 +1565,7 @@ failed SUBSCRIBE.
 ~~~
 SUBSCRIBE_ERROR
 {
+  Type (i) = 0x5,
   Length (i),
   Subscribe ID (i),
   Error Code (i),
@@ -1584,6 +1598,7 @@ The format of `SUBSCRIBE_DONE` is as follows:
 
 ~~~
 SUBSCRIBE_DONE Message {
+  Type (i) = 0xB,
   Length (i),
   Subscribe ID (i),
   Status Code (i),
@@ -1625,6 +1640,7 @@ value is a 'Protocol Violation'.
 ~~~
 MAX_SUBSCRIBE_ID
 {
+  Type (i) = 0x15,
   Length (i),
   Subscribe ID (i),
 }
@@ -1646,6 +1662,7 @@ publish tracks under this namespace.
 
 ~~~
 ANNOUNCE Message {
+  Type (i) = 0x6,
   Length (i),
   Track Namespace (tuple),
   Number of Parameters (i),
@@ -1668,6 +1685,7 @@ within the provided Track Namespace.
 
 ~~~
 UNANNOUNCE Message {
+  Type (i) = 0x9,
   Length (i),
   Track Namespace (tuple),
 }
@@ -1685,6 +1703,7 @@ to a TRACK_STATUS_REQUEST message.
 
 ~~~
 TRACK_STATUS Message {
+  Type (i) = 0xE,
   Length (i),
   Track Namespace (tuple),
   Track Name Length(i),
@@ -1740,6 +1759,7 @@ namespace subscriptions.
 ~~~
 SUBSCRIBE_NAMESPACE_OK
 {
+  Type (i) = 0x12,
   Length (i),
   Track Namespace Prefix (tuple),
 }
@@ -1756,6 +1776,7 @@ failed SUBSCRIBE_NAMESPACE.
 ~~~
 SUBSCRIBE_NAMESPACE_ERROR
 {
+  Type (i) = 0x13,
   Length (i),
   Track Namespace Prefix (tuple),
   Error Code (i),
