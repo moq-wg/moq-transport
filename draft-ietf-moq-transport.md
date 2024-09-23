@@ -272,14 +272,6 @@ x (b):
   described in ({{?RFC9000, Section 16}}), followed by that many bytes
   of binary data
 
-x (f):
-
-: Indicates that x is a flag and is encoded as a single byte with the
-  value 0 or 1. A value of 0 indicates the flag is false or off, while a
-  value of 1 indicates the flag is true or on. Any other value is a
-  protocol error and SHOULD terminate the session with a Protocol
-  Violation ({{session-termination}}).
-
 x (tuple):
 
 : Indicates that x is a tuple, consisting of a variable length integer encoded
@@ -1497,7 +1489,7 @@ SUBSCRIBE_OK
   Subscribe ID (i),
   Expires (i),
   Group Order (8),
-  ContentExists (f),
+  ContentExists (8),
   [Largest Group ID (i)],
   [Largest Object ID (i)],
   Number of Parameters (i),
@@ -1519,7 +1511,7 @@ Values of 0x0 and those larger than 0x2 are a protocol error.
 
 * ContentExists: 1 if an object has been published on this track, 0 if not.
 If 0, then the Largest Group ID and Largest Object ID fields will not be
-present.
+present. Any other value is a protocol error.
 
 * Largest Group ID: The largest Group ID available for this track. This field
 is only present if ContentExists has a value of 1.
@@ -1570,7 +1562,7 @@ SUBSCRIBE_DONE Message {
   Subscribe ID (i),
   Status Code (i),
   Reason Phrase (b),
-  ContentExists (f),
+  ContentExists (8),
   [Final Group (i)],
   [Final Object (i)],
 }
@@ -1584,7 +1576,8 @@ SUBSCRIBE_DONE Message {
 * Reason Phrase: Provides the reason for subscription error.
 
 * ContentExists: 1 if an object has been published for this subscription, 0 if
-not. If 0, then the Final Group and Final Object fields will not be present.
+not. If 0, then the Final Group and Final Object fields will not be present. Any
+other value is a protocol error.
 
 * Final Group: The largest Group ID sent by the publisher in an OBJECT
 message in this track.
