@@ -168,11 +168,11 @@ remains opaque and private.
 
 Client:
 
-: The party initiating a MoQ transport session.
+: The party initiating a Transport Session.
 
 Server:
 
-: The party accepting an incoming transport session.
+: The party accepting an incoming Transport Session.
 
 Endpoint:
 
@@ -207,7 +207,7 @@ Downstream:
 
 : In the direction of the End Subscriber(s)
 
-Transport session:
+Transport Session:
 
 : A raw QUIC connection or a WebTransport session.
 
@@ -526,7 +526,7 @@ effect on outstanding subscriptions.
 
 ## Termination  {#session-termination}
 
-The transport session can be terminated at any point.  When native QUIC
+The Transport Session can be terminated at any point.  When native QUIC
 is used, the session is closed using the CONNECTION\_CLOSE frame
 ({{QUIC, Section 19.19}}).  When WebTransport is used, the session is
 closed using the CLOSE\_WEBTRANSPORT\_SESSION capsule ({{WebTransport,
@@ -683,8 +683,8 @@ similar in functionality to Content Delivery Networks
 (CDNs). Additionally, relays serve as policy enforcement points by
 validating subscribe and publish requests at the edge of a network.
 
-Relays are MoQ endpoints, which means they terminate the underlying QUIC
-connections in order to have visibility of MoQ Object metadata.
+Relays are endpoints, which means they terminate Transport Sessions in order to
+have visibility of MoQ Object metadata.
 
 Relays can cache Objects, but are not required to.
 
