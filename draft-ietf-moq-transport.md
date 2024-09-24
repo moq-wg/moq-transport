@@ -504,18 +504,18 @@ the peers exchange Setup messages ({{message-setup}}).  All messages defined in
 this draft except OBJECT and OBJECT_WITH_LENGTH are sent on the control stream
 after the Setup message. Control messages MUST NOT be sent on any other stream,
 and a peer receiving a control message on a different stream closes the session
-as a 'Protocol Violation'. Objects MUST NOT be sent on the control stream, and a
-peer receiving an Object on the control stream closes the session as a 'Protocol
-Violation'.
+as a SESSION_PROTOCOL_VIOLATION. Objects MUST NOT be sent on the control stream,
+and a peer receiving an Object on the control stream closes the session as a
+SESSION_PROTOCOL_VIOLATION.
 
 This draft only specifies a single use of bidirectional streams. Objects are
 sent on unidirectional streams.  Because there are no other uses of
 bidirectional streams, a peer MAY currently close the session as a
-'Protocol Violation' if it receives a second bidirectional stream.
+SESSION_PROTOCOL_VIOLATION if it receives a second bidirectional stream.
 
 The control stream MUST NOT be closed at the underlying transport layer while the
 session is active.  Doing so results in the session being closed as a
-'Protocol Violation'.
+SESSION_PROTOCOL_VIOLATION.
 
 ## Stream Cancellation
 
@@ -535,45 +535,42 @@ Section 5}}).
 The application MAY use any error message and SHOULD use a relevant
 code, as defined below:
 
-|------|---------------------------|
-| Code | Reason                    |
-|-----:|:--------------------------|
-| 0x0  | No Error                  |
-|------|---------------------------|
-| 0x1  | Internal Error            |
-|------|---------------------------|
-| 0x2  | Unauthorized              |
-|------|---------------------------|
-| 0x3  | Protocol Violation        |
-|------|---------------------------|
-| 0x4  | Duplicate Track Alias     |
-|------|---------------------------|
-| 0x5  | Parameter Length Mismatch |
-|------|---------------------------|
-| 0x6  | Too Many Subscribes       |
-|------|---------------------------|
-| 0x10 | GOAWAY Timeout            |
-|------|---------------------------|
+SESSION_NO_ERROR (0x0):
 
-* No Error: The session is being terminated without an error.
+: The session is being terminated without an error.
 
-* Internal Error: An implementation specific error occurred.
+SESSION_INTERNAL_ERROR (0x1):
 
-* Unauthorized: The endpoint breached an agreement, which MAY have been
- pre-negotiated by the application.
+: An implementation specific error occurred.
 
-* Protocol Violation: The remote endpoint performed an action that was
-  disallowed by the specification.
+SESSION_UNAUTHORIZED (0x2):
 
-* Duplicate Track Alias: The endpoint attempted to use a Track Alias
-  that was already in use.
+: The endpoint breached an agreement, which MAY have been pre-negotiated by the
+  application.
 
-* Too Many Subscribes: The session was closed because the subscriber used
-  a Subscribe ID equal or larger than the current Maximum Subscribe ID.
+SESSION_PROTOCOL_VIOLATION (0x3):
 
-* GOAWAY Timeout: The session was closed because the client took too long to
-  close the session in response to a GOAWAY ({{message-goaway}}) message.
-  See session migration ({{session-migration}}).
+: The remote endpoint performed an action that was disallowed by the
+  specification.
+
+SESSION_DUPLICATE_TRACK_ALIAS (0x4):
+
+: The endpoint attempted to use a Track Alias that was already in use.
+
+SESSION_PARAMETER_LENGTH_MISMATCH (0x5):
+
+: The endpoint sent a parameter type that did not match the expected length.
+
+SESSION_TOO_MANY_SUBSCRIBES (0x6):
+
+: The session was closed because the subscriber used a Subscribe ID equal or
+  larger than the current Maximum Subscribe ID.
+
+SESSION_GOAWAY_TIMEOUT (0x10):
+
+: The session was closed because the client took too long to close the session
+  in response to a GOAWAY ({{message-goaway}}) message. See session migration
+  ({{session-migration}}).
 
 ## Migration {#session-migration}
 
@@ -585,8 +582,8 @@ MoqTransport avoids this via the GOAWAY message ({{message-goaway}}).
 The server sends a GOAWAY message, signaling that the client should establish a
 new session and migrate any active subscriptions. The GOAWAY message may contain
 a new URI for the new session, otherwise the current URI is reused. The server
-SHOULD terminate the session with 'GOAWAY Timeout' after a sufficient timeout if
-there are still open subscriptions on a connection.
+SHOULD terminate the session with SESSION_GOAWAY_TIMEOUT after a sufficient
+timeout if there are still open subscriptions on a connection.
 
 The GOAWAY message does not immediately impact subscription state. A subscriber
 SHOULD individually UNSUBSCRIBE for each existing subscription, while a
@@ -600,7 +597,7 @@ Ideally this is transparent to the application using MOQT, which involves
 establishing a new session in the background and migrating active subscriptions
 and announcements. The client can choose to delay closing the session if it
 expects more OBJECTs to be delivered. The server closes the session with a
-'GOAWAY Timeout' if the client doesn't close the session quickly enough.
+SESSION_GOAWAY_TIMEOUT if the client doesn't close the session quickly enough.
 
 
 # Priorities {#priorities}
@@ -724,7 +721,7 @@ cache need to be protect against cache poisoning.
 
 Objects MUST NOT be sent for unsuccessful subscriptions, and if a subscriber
 receives a SUBSCRIBE_ERROR after receiving objects, it MUST close the session
-with a 'Protocol Violation'.
+with a SESSION_PROTOCOL_VIOLATION.
 
 A relay MUST not reorder or drop objects received on a multi-object stream when
 forwarding to subscribers, unless it has application specific information.
@@ -738,42 +735,62 @@ request is cached and shared among the pending subscribers.
 The application SHOULD use a relevant error code in SUBSCRIBE_ERROR,
 as defined below:
 
-|------|---------------------------|
-| Code | Reason                    |
-|-----:|:--------------------------|
-| 0x0  | Internal Error            |
-|------|---------------------------|
-| 0x1  | Invalid Range             |
-|------|---------------------------|
-| 0x2  | Retry Track Alias         |
-|------|---------------------------|
-| 0x3  | Track Does Not Exist      |
-|------|---------------------------|
-| 0x4  | Unauthorized              |
-|------|---------------------------|
-| 0x5  | Timeout                   |
-|------|---------------------------|
+SUBSCRIBE_ERROR_INTERNAL_ERROR (0x0):
+
+: An implementation specific error occurred.
+
+SUBSCRIBE_ERROR_INVALID_RANGE (0x1):
+
+: The requested start or end of the subscription could not be satisfied.
+
+SUBSCRIBE_ERROR_RETRY_TRACK_ALIAS (0x2):
+
+: TBD
+
+SUBSCRIBE_ERROR_TRACK_DOES_NOT_EXIST (0x3):
+
+: TBD
+
+SUBSCRIBE_ERROR_UNAUTHORIZED (0x4):
+
+: TBD
+
+SUBSCRIBE_ERROR_TIMEOUT (0x5):
+
+: TBD
+
 
 The application SHOULD use a relevant status code in
 SUBSCRIBE_DONE, as defined below:
 
-|------|---------------------------|
-| Code | Reason                    |
-|-----:|:--------------------------|
-| 0x0  | Unsubscribed              |
-|------|---------------------------|
-| 0x1  | Internal Error            |
-|------|---------------------------|
-| 0x2  | Unauthorized              |
-|------|---------------------------|
-| 0x3  | Track Ended               |
-|------|---------------------------|
-| 0x4  | Subscription Ended        |
-|------|---------------------------|
-| 0x5  | Going Away                |
-|------|---------------------------|
-| 0x6  | Expired                   |
-|------|---------------------------|
+SUBSCRIBE_STATUS_UNSUBSCRIBED (0x0):
+
+: TBD
+
+SUBSCRIBE_STATUS_INTERNAL_ERROR (0x1):
+
+: An implementation specific error occurred.
+
+SUBSCRIBE_STATUS_UNAUTHORIZED (0x2):
+
+: TBD
+
+SUBSCRIBE_STATUS_TRACK_ENDED (0x3):
+
+: TBD
+
+SUBSCRIBE_STATUS_SUBSCRIPTION_ENDED (0x4):
+
+: TBD
+
+SUBSCRIBE_STATUS_GOING_AWAY (0x5):
+
+: TBD
+
+SUBSCRIBE_STATUS_EXPIRED (0x6):
+
+: TBD
+
 
 ### Graceful Publisher Relay Switchover
 
@@ -962,7 +979,7 @@ elements. They contain a type, length, and value.
 
 Senders MUST NOT repeat the same parameter type in a message. Receivers
 SHOULD check that there are no duplicate parameters and close the session
-as a 'Protocol Violation' if found.
+as a SESSION_PROTOCOL_VIOLATION if found.
 
 Receivers ignore unrecognized parameters.
 
@@ -992,7 +1009,7 @@ of the Parameter Value field in bytes.
 Each parameter description will indicate the data type in the Parameter Value
 field. If a receiver understands a parameter type, and the parameter length
 implied by that type does not match the Parameter Length field, the receiver
-MUST terminate the session with error code 'Parameter Length Mismatch'.
+MUST terminate the session with error code SESSION_PARAMETER_LENGTH_MISMATCH.
 
 ### Version Specific Parameters {#version-specific-params}
 
@@ -1151,10 +1168,10 @@ so if not specified, the peer MUST NOT create subscriptions.
 The server sends a `GOAWAY` message to initiate session migration
 ({{session-migration}}) with an optional URI.
 
-The server MUST terminate the session with a Protocol Violation
+The server MUST terminate the session with a SESSION_PROTOCOL_VIOLATION
 ({{session-termination}}) if it receives a GOAWAY message. The client MUST
-terminate the session with a Protocol Violation ({{session-termination}}) if it
-receives multiple GOAWAY messages.
+terminate the session with a SESSION_PROTOCOL_VIOLATION
+({{session-termination}}) if it receives multiple GOAWAY messages.
 
 ~~~
 GOAWAY Message {
@@ -1231,7 +1248,7 @@ than the session's Maximum Subscribe ID.
 Messages that reference a track, such as OBJECT ({{message-object}}),
 reference this Track Alias instead of the Track Name and Track Namespace to
 reduce overhead. If the Track Alias is already being used for a different
-track, the publisher MUST close the session with a Duplicate Track Alias
+track, the publisher MUST close the session with a SESSION_DUPLICATE_TRACK_ALIAS
 error ({{session-termination}}).
 
 * Track Namespace: Identifies the namespace of the track as defined in
@@ -1270,8 +1287,8 @@ allowing the subscriber to determine the start group/object when not explicitly
 specified and the publisher SHOULD start delivering objects.
 
 If a publisher cannot satisfy the requested start or end for the subscription it
-MAY send a SUBSCRIBE_ERROR with code 'Invalid Range'. A publisher MUST NOT send
-objects from outside the requested start and end.
+MAY send a SUBSCRIBE_ERROR with code SUBSCRIBE_ERROR_INVALID_RANGE. A publisher
+MUST NOT send objects from outside the requested start and end.
 
 ## SUBSCRIBE_UPDATE {#message-subscribe-update-req}
 
@@ -1283,7 +1300,7 @@ subscription can be made. The start Object MUST NOT decrease and when it increas
 there is no guarantee that a publisher will not have already sent Objects before
 the new start Object.  The end Object MUST NOT increase and when it decreases,
 there is no guarantee that a publisher will not have already sent Objects after
-the new end Object. A publisher SHOULD close the Session as a 'Protocol Violation'
+the new end Object. A publisher SHOULD close the Session as a SESSION_PROTOCOL_VIOLATION
 if the SUBSCRIBE_UPDATE violates either rule or if the subscriber specifies a
 Subscribe ID that does not exist within the Session.
 
@@ -1391,7 +1408,7 @@ within the provided Track Namespace.
 
 If a publisher receives new subscriptions for that namespace after
 receiving an ANNOUNCE_CANCEL, it SHOULD close the session as a
-'Protocol Violation'.
+SESSION_PROTOCOL_VIOLATION.
 
 ~~~
 ANNOUNCE_CANCEL Message {
@@ -1551,10 +1568,10 @@ SUBSCRIBE_ERROR
 
 * Reason Phrase: Provides the reason for subscription error.
 
-* Track Alias: When Error Code is 'Retry Track Alias', the subscriber SHOULD re-issue the
-  SUBSCRIBE with this Track Alias instead. If this Track Alias is already in use,
-  the subscriber MUST close the connection with a Duplicate Track Alias error
-  ({{session-termination}}).
+* Track Alias: When Error Code is SUBSCRIBE_ERROR_RETRY_TRACK_ALIAS, the
+  subscriber SHOULD re-issue the SUBSCRIBE with this Track Alias instead. If
+  this Track Alias is already in use, the subscriber MUST close the connection
+  with a Duplicate Track Alias error ({{session-termination}}).
 
 
 ## SUBSCRIBE_DONE {#message-subscribe-done}
@@ -1599,7 +1616,7 @@ subscriptions a subscriber can create within a session.
 
 The Maximum Subscribe Id MUST only increase within a session, and
 receipt of a MAX_SUBSCRIBE_ID message with an equal or smaller Subscribe ID
-value is a 'Protocol Violation'.
+value is a SESSION_PROTOCOL_VIOLATION.
 
 ~~~
 MAX_SUBSCRIBE_ID
@@ -1611,7 +1628,7 @@ MAX_SUBSCRIBE_ID
 
 * Subscribe ID: The new Maximum Subscribe ID for the session. If a Subscribe ID
 equal or larger than this is received in any message, including SUBSCRIBE,
-the publisher MUST close the session with an error of 'Too Many Subscribes'.
+the publisher MUST close the session with an error of SESSION_TOO_MANY_SUBSCRIBES.
 More on Subscribe ID in {{message-subscribe-req}}.
 
 
@@ -1766,7 +1783,7 @@ An endpoint that receives an unknown stream type MUST close the session.
 Every Track has a single 'Object Forwarding Preference' and the Original
 Publisher MUST NOT mix different forwarding preferences within a single track.
 If a subscriber receives different forwarding preferences for a track, it
-SHOULD close the session with an error of 'Protocol Violation'.
+SHOULD close the session with an error of SESSION_PROTOCOL_VIOLATION.
 
 ## Object Headers {#message-object}
 
@@ -1835,7 +1852,7 @@ are beyond the end of a group or track.
          normal object ID in the Subgroup.
 
 Any other value SHOULD be treated as a protocol error and terminate the
-session with a Protocol Violation ({{session-termination}}).
+session with a SESSION_PROTOCOL_VIOLATION ({{session-termination}}).
 Any object with a status code other than zero MUST have an empty payload.
 
 Though some status information could be inferred from QUIC stream state,
@@ -1871,7 +1888,7 @@ OBJECT_DATAGRAM Message {
 When objects are sent on streams, the stream begins with a stream
 header message and is followed by one or more sets of serialized object fields.
 If a stream ends gracefully in the middle of a serialized Object, terminate the
-session with a Protocol Violation.
+session with a SESSION_PROTOCOL_VIOLATION.
 
 A publisher SHOULD NOT open more than one stream at a time with the same stream
 header message type and fields.
