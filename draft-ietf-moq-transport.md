@@ -168,11 +168,11 @@ remains opaque and private.
 
 Client:
 
-: The party initiating a MoQ transport session.
+: The party initiating a Transport Session.
 
 Server:
 
-: The party accepting an incoming transport session.
+: The party accepting an incoming Transport Session.
 
 Endpoint:
 
@@ -207,7 +207,7 @@ Downstream:
 
 : In the direction of the End Subscriber(s)
 
-Transport session:
+Transport Session:
 
 : A raw QUIC connection or a WebTransport session.
 
@@ -309,12 +309,12 @@ An Object can become unavailable, but its contents MUST NOT change over
 time.
 
 Objects are comprised of two parts: metadata and a payload.  The metadata is
-never encrypted and is always visible to relays. The payload portion may be
-encrypted, in which case it is only visible to the Original Publisher and End
-Subscribers. The application is solely responsible for the content of the object
-payload. This includes the underlying encoding, compression, any end-to-end
-encryption, or authentication. A relay MUST NOT combine, split, or otherwise
-modify object payloads.
+never encrypted and is always visible to relays (see {{relays-moq}}). The
+payload portion may be encrypted, in which case it is only visible to the
+Original Publisher and End Subscribers. The application is solely responsible
+for the content of the object payload. This includes the underlying encoding,
+compression, any end-to-end encryption, or authentication. A relay MUST NOT
+combine, split, or otherwise modify object payloads.
 
 ## Subgroups {#model-subgroup}
 
@@ -526,7 +526,7 @@ effect on outstanding subscriptions.
 
 ## Termination  {#session-termination}
 
-The transport session can be terminated at any point.  When native QUIC
+The Transport Session can be terminated at any point.  When native QUIC
 is used, the session is closed using the CONNECTION\_CLOSE frame
 ({{QUIC, Section 19.19}}).  When WebTransport is used, the session is
 closed using the CLOSE\_WEBTRANSPORT\_SESSION capsule ({{WebTransport,
@@ -682,6 +682,9 @@ architecture. Relays can be used to form an overlay delivery network,
 similar in functionality to Content Delivery Networks
 (CDNs). Additionally, relays serve as policy enforcement points by
 validating subscribe and publish requests at the edge of a network.
+
+Relays are endpoints, which means they terminate Transport Sessions in order to
+have visibility of MoQ Object metadata.
 
 Relays can cache Objects, but are not required to.
 
