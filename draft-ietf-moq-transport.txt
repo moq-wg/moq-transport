@@ -5,13 +5,13 @@
 Media Over QUIC                                                L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 24 March 2025                                              Meta
+Expires: 29 March 2025                                              Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                       20 September 2024
+                                                       25 September 2024
 
 
                        Media over QUIC Transport
@@ -59,7 +59,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 24 March 2025.
+   This Internet-Draft will expire on 29 March 2025.
 
 Copyright Notice
 
@@ -252,9 +252,9 @@ Table of Contents
    BCP 14 [RFC2119] [RFC8174] when, and only when, they appear in all
    capitals, as shown here.
 
-   Client:  The party initiating a MoQ transport session.
+   Client:  The party initiating a Transport Session.
 
-   Server:  The party accepting an incoming transport session.
+   Server:  The party accepting an incoming Transport Session.
 
    Endpoint:  A Client or Server.
 
@@ -275,7 +275,7 @@ Table of Contents
 
    Downstream:  In the direction of the End Subscriber(s)
 
-   Transport session:  A raw QUIC connection or a WebTransport session.
+   Transport Session:  A raw QUIC connection or a WebTransport session.
 
    Congestion:  Packet loss and queuing caused by degraded or overloaded
       networks.
@@ -352,13 +352,13 @@ Table of Contents
    time.
 
    Objects are comprised of two parts: metadata and a payload.  The
-   metadata is never encrypted and is always visible to relays.  The
-   payload portion may be encrypted, in which case it is only visible to
-   the Original Publisher and End Subscribers.  The application is
-   solely responsible for the content of the object payload.  This
-   includes the underlying encoding, compression, any end-to-end
-   encryption, or authentication.  A relay MUST NOT combine, split, or
-   otherwise modify object payloads.
+   metadata is never encrypted and is always visible to relays (see
+   Section 5).  The payload portion may be encrypted, in which case it
+   is only visible to the Original Publisher and End Subscribers.  The
+   application is solely responsible for the content of the object
+   payload.  This includes the underlying encoding, compression, any
+   end-to-end encryption, or authentication.  A relay MUST NOT combine,
+   split, or otherwise modify object payloads.
 
 2.2.  Subgroups
 
@@ -581,7 +581,7 @@ Table of Contents
 
 3.5.  Termination
 
-   The transport session can be terminated at any point.  When native
+   The Transport Session can be terminated at any point.  When native
    QUIC is used, the session is closed using the CONNECTION_CLOSE frame
    ([QUIC], Section 19.19).  When WebTransport is used, the session is
    closed using the CLOSE_WEBTRANSPORT_SESSION capsule ([WebTransport],
@@ -748,6 +748,9 @@ Table of Contents
    network, similar in functionality to Content Delivery Networks
    (CDNs).  Additionally, relays serve as policy enforcement points by
    validating subscribe and publish requests at the edge of a network.
+
+   Relays are endpoints, which means they terminate Transport Sessions
+   in order to have visibility of MoQ Object metadata.
 
    Relays can cache Objects, but are not required to.
 
