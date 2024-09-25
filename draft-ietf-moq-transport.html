@@ -1682,20 +1682,11 @@ described in (<span>[<a href="#RFC9000" class="cite xref">RFC9000</a>], <a href=
 of binary data<a href="#section-1.3-5.2.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-1.3-5.3">x (f):</dt>
+<dt id="section-1.3-5.3">x (tuple):</dt>
           <dd style="margin-left: 1.5em" id="section-1.3-5.4">
-            <p id="section-1.3-5.4.1">Indicates that x is a flag and is encoded as a single byte with the
-value 0 or 1. A value of 0 indicates the flag is false or off, while a
-value of 1 indicates the flag is true or on. Any other value is a
-protocol error and <span class="bcp14">SHOULD</span> terminate the session with a Protocol
-Violation (<a href="#session-termination" class="auto internal xref">Section 3.5</a>).<a href="#section-1.3-5.4.1" class="pilcrow">¶</a></p>
-</dd>
-          <dd class="break"></dd>
-<dt id="section-1.3-5.5">x (tuple):</dt>
-          <dd style="margin-left: 1.5em" id="section-1.3-5.6">
-            <p id="section-1.3-5.6.1">Indicates that x is a tuple, consisting of a variable length integer encoded
+            <p id="section-1.3-5.4.1">Indicates that x is a tuple, consisting of a variable length integer encoded
 as described in (<span>[<a href="#RFC9000" class="cite xref">RFC9000</a>], <a href="https://rfc-editor.org/rfc/rfc9000#section-16" class="relref">Section 16</a></span>), followed by that many variable
-length tuple fields, each of which are encoded as (b) above.<a href="#section-1.3-5.6.1" class="pilcrow">¶</a></p>
+length tuple fields, each of which are encoded as (b) above.<a href="#section-1.3-5.4.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
 </dl>
@@ -3272,7 +3263,7 @@ SUBSCRIBE_OK
   Subscribe ID (i),
   Expires (i),
   Group Order (8),
-  ContentExists (f),
+  ContentExists (8),
   [Largest Group ID (i)],
   [Largest Object ID (i)],
   Number of Parameters (i),
@@ -3302,7 +3293,8 @@ Values of 0x0 and those larger than 0x2 are a protocol error.<a href="#section-6
           <li class="normal" id="section-6.13-3.4">
             <p id="section-6.13-3.4.1">ContentExists: 1 if an object has been published on this track, 0 if not.
 If 0, then the Largest Group ID and Largest Object ID fields will not be
-present.<a href="#section-6.13-3.4.1" class="pilcrow">¶</a></p>
+present. Any other value is a protocol error and <span class="bcp14">MUST</span> terminate the
+session with a Protocol Violation (<a href="#session-termination" class="auto internal xref">Section 3.5</a>).<a href="#section-6.13-3.4.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-6.13-3.5">
             <p id="section-6.13-3.5.1">Largest Group ID: The largest Group ID available for this track. This field
@@ -3378,7 +3370,7 @@ SUBSCRIBE_DONE Message {
   Subscribe ID (i),
   Status Code (i),
   Reason Phrase (b),
-  ContentExists (f),
+  ContentExists (8),
   [Final Group (i)],
   [Final Object (i)],
 }
@@ -3400,7 +3392,9 @@ SUBSCRIBE_DONE Message {
 </li>
           <li class="normal" id="section-6.15-4.4">
             <p id="section-6.15-4.4.1">ContentExists: 1 if an object has been published for this subscription, 0 if
-not. If 0, then the Final Group and Final Object fields will not be present.<a href="#section-6.15-4.4.1" class="pilcrow">¶</a></p>
+not. If 0, then the Final Group and Final Object fields will not be present.
+Any other value is a protocol error and <span class="bcp14">MUST</span> terminate the session with a
+Protocol Violation (<a href="#session-termination" class="auto internal xref">Section 3.5</a>).<a href="#section-6.15-4.4.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-6.15-4.5">
             <p id="section-6.15-4.5.1">Final Group: The largest Group ID sent by the publisher in an OBJECT
