@@ -168,11 +168,11 @@ remains opaque and private.
 
 Client:
 
-: The party initiating a MoQ transport session.
+: The party initiating a Transport Session.
 
 Server:
 
-: The party accepting an incoming transport session.
+: The party accepting an incoming Transport Session.
 
 Endpoint:
 
@@ -207,7 +207,7 @@ Downstream:
 
 : In the direction of the End Subscriber(s)
 
-Transport session:
+Transport Session:
 
 : A raw QUIC connection or a WebTransport session.
 
@@ -272,14 +272,6 @@ x (b):
   described in ({{?RFC9000, Section 16}}), followed by that many bytes
   of binary data
 
-x (f):
-
-: Indicates that x is a flag and is encoded as a single byte with the
-  value 0 or 1. A value of 0 indicates the flag is false or off, while a
-  value of 1 indicates the flag is true or on. Any other value is a
-  protocol error and SHOULD terminate the session with a Protocol
-  Violation ({{session-termination}}).
-
 x (tuple):
 
 : Indicates that x is a tuple, consisting of a variable length integer encoded
@@ -309,12 +301,12 @@ An Object can become unavailable, but its contents MUST NOT change over
 time.
 
 Objects are comprised of two parts: metadata and a payload.  The metadata is
-never encrypted and is always visible to relays. The payload portion may be
-encrypted, in which case it is only visible to the Original Publisher and End
-Subscribers. The application is solely responsible for the content of the object
-payload. This includes the underlying encoding, compression, any end-to-end
-encryption, or authentication. A relay MUST NOT combine, split, or otherwise
-modify object payloads.
+never encrypted and is always visible to relays (see {{relays-moq}}). The
+payload portion may be encrypted, in which case it is only visible to the
+Original Publisher and End Subscribers. The application is solely responsible
+for the content of the object payload. This includes the underlying encoding,
+compression, any end-to-end encryption, or authentication. A relay MUST NOT
+combine, split, or otherwise modify object payloads.
 
 ## Subgroups {#model-subgroup}
 
@@ -526,7 +518,7 @@ effect on outstanding subscriptions.
 
 ## Termination  {#session-termination}
 
-The transport session can be terminated at any point.  When native QUIC
+The Transport Session can be terminated at any point.  When native QUIC
 is used, the session is closed using the CONNECTION\_CLOSE frame
 ({{QUIC, Section 19.19}}).  When WebTransport is used, the session is
 closed using the CLOSE\_WEBTRANSPORT\_SESSION capsule ({{WebTransport,
@@ -679,6 +671,9 @@ architecture. Relays can be used to form an overlay delivery network,
 similar in functionality to Content Delivery Networks
 (CDNs). Additionally, relays serve as policy enforcement points by
 validating subscribe and publish requests at the edge of a network.
+
+Relays are endpoints, which means they terminate Transport Sessions in order to
+have visibility of MoQ Object metadata.
 
 Relays can cache Objects, but are not required to.
 
@@ -1514,7 +1509,7 @@ SUBSCRIBE_OK
   Subscribe ID (i),
   Expires (i),
   Group Order (8),
-  ContentExists (f),
+  ContentExists (8),
   [Largest Group ID (i)],
   [Largest Object ID (i)],
   Number of Parameters (i),
@@ -1536,7 +1531,8 @@ Values of 0x0 and those larger than 0x2 are a protocol error.
 
 * ContentExists: 1 if an object has been published on this track, 0 if not.
 If 0, then the Largest Group ID and Largest Object ID fields will not be
-present.
+present. Any other value is a protocol error and MUST terminate the
+session with a Protocol Violation ({{session-termination}}).
 
 * Largest Group ID: The largest Group ID available for this track. This field
 is only present if ContentExists has a value of 1.
@@ -1587,7 +1583,7 @@ SUBSCRIBE_DONE Message {
   Subscribe ID (i),
   Status Code (i),
   Reason Phrase (b),
-  ContentExists (f),
+  ContentExists (8),
   [Final Group (i)],
   [Final Object (i)],
 }
@@ -1602,6 +1598,8 @@ SUBSCRIBE_DONE Message {
 
 * ContentExists: 1 if an object has been published for this subscription, 0 if
 not. If 0, then the Final Group and Final Object fields will not be present.
+Any other value is a protocol error and MUST terminate the session with a
+Protocol Violation ({{session-termination}}).
 
 * Final Group: The largest Group ID sent by the publisher in an OBJECT
 message in this track.
