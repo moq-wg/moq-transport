@@ -5,13 +5,13 @@
 Media Over QUIC                                                L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 29 March 2025                                              Meta
+Expires: 30 March 2025                                              Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                       25 September 2024
+                                                       26 September 2024
 
 
                        Media over QUIC Transport
@@ -59,7 +59,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 29 March 2025.
+   This Internet-Draft will expire on 30 March 2025.
 
 Copyright Notice
 
@@ -966,7 +966,8 @@ Table of Contents
 
    MOQT Control Message {
      Message Type (i),
-     Message Payload (b),
+     Message Length (i),
+     Message Payload (..),
    }
 
                            Figure 1: MOQT Message
@@ -1137,14 +1138,18 @@ Table of Contents
 
    The wire format of the Setup messages are as follows:
 
-   CLIENT_SETUP Message Payload {
+   CLIENT_SETUP Message {
+     Type (i) = 0x40,
+     Length (i),
      Number of Supported Versions (i),
      Supported Version (i) ...,
      Number of Parameters (i) ...,
      Setup Parameters (..) ...,
    }
 
-   SERVER_SETUP Message Payload {
+   SERVER_SETUP Message {
+     Type (i) = 0x41,
+     Length (i),
      Selected Version (i),
      Number of Parameters (i) ...,
      Setup Parameters (..) ...,
@@ -1233,7 +1238,10 @@ Table of Contents
    receives multiple GOAWAY messages.
 
    GOAWAY Message {
-     New Session URI (b)
+     Type (i) = 0x10,
+     Length (i),
+     New Session URI Length (i),
+     New Session URI (..),
    }
 
                        Figure 4: MOQT GOAWAY Message
@@ -1280,10 +1288,13 @@ Table of Contents
    The format of SUBSCRIBE is as follows:
 
    SUBSCRIBE Message {
+     Type (i) = 0x3,
+     Length (i),
      Subscribe ID (i),
      Track Alias (i),
      Track Namespace (tuple),
-     Track Name (b),
+     Track Name Length (i),
+     Track Name (..),
      Subscriber Priority (8),
      Group Order (8),
      Filter Type (i),
@@ -1378,6 +1389,8 @@ Table of Contents
    The format of SUBSCRIBE_UPDATE is as follows:
 
    SUBSCRIBE_UPDATE Message {
+     Type (i) = 0x2,
+     Length (i),
      Subscribe ID (i),
      StartGroup (i),
      StartObject (i),
@@ -1420,6 +1433,8 @@ Table of Contents
    The format of UNSUBSCRIBE is as follows:
 
    UNSUBSCRIBE Message {
+     Type (i) = 0xA,
+     Length (i),
      Subscribe ID (i)
    }
 
@@ -1432,8 +1447,10 @@ Table of Contents
    The subscriber sends an ANNOUNCE_OK control message to acknowledge
    the successful authorization and acceptance of an ANNOUNCE message.
 
-   ANNOUNCE_OK
+   ANNOUNCE_OK Message
    {
+     Type (i) = 0x7,
+     Length (i),
      Track Namespace (tuple),
    }
 
@@ -1447,11 +1464,14 @@ Table of Contents
    The subscriber sends an ANNOUNCE_ERROR control message for tracks
    that failed authorization.
 
-   ANNOUNCE_ERROR
+   ANNOUNCE_ERROR Message
    {
+     Type (i) = 0x8,
+     Length (i),
      Track Namespace (tuple),
      Error Code (i),
-     Reason Phrase (b),
+     Reason Phrase Length (i),
+     Reason Phrase (..),
    }
 
                    Figure 9: MOQT ANNOUNCE_ERROR Message
@@ -1475,9 +1495,12 @@ Table of Contents
    'Protocol Violation'.
 
    ANNOUNCE_CANCEL Message {
+     Type (i) = 0xC,
+     Length (i),
      Track Namespace (tuple),
      Error Code (i),
-     Reason Phrase (b),
+     Reason Phrase Length (i),
+     Reason Phrase Length (..),
    }
 
                   Figure 10: MOQT ANNOUNCE_CANCEL Message
@@ -1500,8 +1523,11 @@ Table of Contents
    TRACK_STATUS_REQUEST.
 
    TRACK_STATUS_REQUEST Message {
+     Type (i) = 0xD,
+     Length (i),
      Track Namespace (tuple),
-     Track Name (b),
+     Track Name Length (i),
+     Track Name (..),
    }
 
                 Figure 11: MOQT TRACK_STATUS_REQUEST Message
@@ -1513,6 +1539,8 @@ Table of Contents
    well as future updates to the set.
 
    SUBSCRIBE_NAMESPACE Message {
+     Type (i) = 0x11,
+     Length (i),
      Track Namespace Prefix (tuple),
      Number of Parameters (i),
      Parameters (..) ...,
@@ -1561,6 +1589,8 @@ Table of Contents
    The format of UNSUBSCRIBE_NAMESPACE is as follows:
 
    UNSUBSCRIBE_NAMESPACE Message {
+     Type (i) = 0x14,
+     Length (i),
      Track Namespace Prefix (tuple)
    }
 
@@ -1575,6 +1605,8 @@ Table of Contents
 
    SUBSCRIBE_OK
    {
+     Type (i) = 0x4,
+     Length (i),
      Subscribe ID (i),
      Expires (i),
      Group Order (8),
@@ -1621,9 +1653,12 @@ Table of Contents
 
    SUBSCRIBE_ERROR
    {
+     Type (i) = 0x5,
+     Length (i),
      Subscribe ID (i),
      Error Code (i),
-     Reason Phrase (b),
+     Reason Phrase Length (i),
+     Reason Phrase (..),
      Track Alias (i),
    }
 
@@ -1651,9 +1686,12 @@ Table of Contents
    The format of SUBSCRIBE_DONE is as follows:
 
    SUBSCRIBE_DONE Message {
+     Type (i) = 0xB,
+     Length (i),
      Subscribe ID (i),
      Status Code (i),
-     Reason Phrase (b),
+     Reason Phrase Length (i),
+     Reason Phrase (..),
      ContentExists (8),
      [Final Group (i)],
      [Final Object (i)],
@@ -1691,6 +1729,8 @@ Table of Contents
 
    MAX_SUBSCRIBE_ID
    {
+     Type (i) = 0x15,
+     Length (i),
      Subscribe ID (i),
    }
 
@@ -1710,6 +1750,8 @@ Table of Contents
    to publish tracks under this namespace.
 
    ANNOUNCE Message {
+     Type (i) = 0x6,
+     Length (i),
      Track Namespace (tuple),
      Number of Parameters (i),
      Parameters (..) ...,
@@ -1729,6 +1771,8 @@ Table of Contents
    provided Track Namespace.
 
    UNANNOUNCE Message {
+     Type (i) = 0x9,
+     Length (i),
      Track Namespace (tuple),
    }
 
@@ -1743,8 +1787,11 @@ Table of Contents
    response to a TRACK_STATUS_REQUEST message.
 
    TRACK_STATUS Message {
+     Type (i) = 0xE,
+     Length (i),
      Track Namespace (tuple),
-     Track Name (b),
+     Track Name Length(i),
+     Track Name (..),
      Status Code (i),
      Last Group ID (i),
      Last Object ID (i),
@@ -1797,6 +1844,8 @@ Table of Contents
 
    SUBSCRIBE_NAMESPACE_OK
    {
+     Type (i) = 0x12,
+     Length (i),
      Track Namespace Prefix (tuple),
    }
 
@@ -1811,9 +1860,12 @@ Table of Contents
 
    SUBSCRIBE_NAMESPACE_ERROR
    {
+     Type (i) = 0x13,
+     Length (i),
      Track Namespace Prefix (tuple),
      Error Code (i),
-     Reason Phrase (b),
+     Reason Phrase Length (i),
+     Reason Phrase (..),
    }
 
              Figure 22: MOQT SUBSCRIBE_NAMESPACE_ERROR Message

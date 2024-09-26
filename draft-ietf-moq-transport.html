@@ -1037,7 +1037,7 @@ svg :is([fill="white"], [fill^="#fff"]) {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Curley, et al.</td>
-<td class="center">Expires 29 March 2025</td>
+<td class="center">Expires 30 March 2025</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1050,12 +1050,12 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dd class="internet-draft">draft-ietf-moq-transport-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2024-09-25" class="published">25 September 2024</time>
+<time datetime="2024-09-26" class="published">26 September 2024</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2025-03-29">29 March 2025</time></dd>
+<dd class="expires"><time datetime="2025-03-30">30 March 2025</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1127,7 +1127,7 @@ networks and is designed for high scale and low latency distribution.<a href="#s
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 29 March 2025.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 30 March 2025.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -2429,7 +2429,8 @@ formatted as follows:<a href="#section-6-1" class="pilcrow">¶</a></p>
 <pre>
 MOQT Control Message {
   Message Type (i),
-  Message Payload (b),
+  Message Length (i),
+  Message Payload (..),
 }
 </pre>
 </div>
@@ -2660,14 +2661,18 @@ setup parameters. TODO: describe GREASE for those.<a href="#section-6.2-1" class
 <figure id="figure-3">
           <div class="alignLeft art-text artwork" id="section-6.2-3.1">
 <pre>
-CLIENT_SETUP Message Payload {
+CLIENT_SETUP Message {
+  Type (i) = 0x40,
+  Length (i),
   Number of Supported Versions (i),
   Supported Version (i) ...,
   Number of Parameters (i) ...,
   Setup Parameters (..) ...,
 }
 
-SERVER_SETUP Message Payload {
+SERVER_SETUP Message {
+  Type (i) = 0x41,
+  Length (i),
   Selected Version (i),
   Number of Parameters (i) ...,
   Setup Parameters (..) ...,
@@ -2788,7 +2793,10 @@ receives multiple GOAWAY messages.<a href="#section-6.3-2" class="pilcrow">¶</a
           <div class="alignLeft art-text artwork" id="section-6.3-3.1">
 <pre>
 GOAWAY Message {
-  New Session URI (b)
+  Type (i) = 0x10,
+  Length (i),
+  New Session URI Length (i),
+  New Session URI (..),
 }
 </pre>
 </div>
@@ -2846,10 +2854,13 @@ object than StartGroup and StartObject.<a href="#section-6.4.1-6" class="pilcrow
             <div class="alignLeft art-text artwork" id="section-6.4.2-3.1">
 <pre>
 SUBSCRIBE Message {
+  Type (i) = 0x3,
+  Length (i),
   Subscribe ID (i),
   Track Alias (i),
   Track Namespace (tuple),
-  Track Name (b),
+  Track Name Length (i),
+  Track Name (..),
   Subscriber Priority (8),
   Group Order (8),
   Filter Type (i),
@@ -2958,6 +2969,8 @@ same or a later object than StartGroup and StartObject.<a href="#section-6.5-2" 
           <div class="alignLeft art-text artwork" id="section-6.5-4.1">
 <pre>
 SUBSCRIBE_UPDATE Message {
+  Type (i) = 0x2,
+  Length (i),
   Subscribe ID (i),
   StartGroup (i),
   StartObject (i),
@@ -3019,6 +3032,8 @@ the final Object.<a href="#section-6.6-1" class="pilcrow">¶</a></p>
           <div class="alignLeft art-text artwork" id="section-6.6-3.1">
 <pre>
 UNSUBSCRIBE Message {
+  Type (i) = 0xA,
+  Length (i),
   Subscribe ID (i)
 }
 </pre>
@@ -3045,8 +3060,10 @@ successful authorization and acceptance of an ANNOUNCE message.<a href="#section
 <figure id="figure-8">
           <div class="alignLeft art-text artwork" id="section-6.7-2.1">
 <pre>
-ANNOUNCE_OK
+ANNOUNCE_OK Message
 {
+  Type (i) = 0x7,
+  Length (i),
   Track Namespace (tuple),
 }
 </pre>
@@ -3074,11 +3091,14 @@ failed authorization.<a href="#section-6.8-1" class="pilcrow">¶</a></p>
 <figure id="figure-9">
           <div class="alignLeft art-text artwork" id="section-6.8-2.1">
 <pre>
-ANNOUNCE_ERROR
+ANNOUNCE_ERROR Message
 {
+  Type (i) = 0x8,
+  Length (i),
   Track Namespace (tuple),
   Error Code (i),
-  Reason Phrase (b),
+  Reason Phrase Length (i),
+  Reason Phrase (..),
 }
 </pre>
 </div>
@@ -3116,9 +3136,12 @@ receiving an ANNOUNCE_CANCEL, it <span class="bcp14">SHOULD</span> close the ses
           <div class="alignLeft art-text artwork" id="section-6.9-3.1">
 <pre>
 ANNOUNCE_CANCEL Message {
+  Type (i) = 0xC,
+  Length (i),
   Track Namespace (tuple),
   Error Code (i),
-  Reason Phrase (b),
+  Reason Phrase Length (i),
+  Reason Phrase Length (..),
 }
 </pre>
 </div>
@@ -3153,8 +3176,11 @@ stream to obtain information about the current status of a given track.<a href="
           <div class="alignLeft art-text artwork" id="section-6.10-3.1">
 <pre>
 TRACK_STATUS_REQUEST Message {
+  Type (i) = 0xD,
+  Length (i),
   Track Namespace (tuple),
-  Track Name (b),
+  Track Name Length (i),
+  Track Name (..),
 }
 </pre>
 </div>
@@ -3177,6 +3203,8 @@ the set.<a href="#section-6.11-1" class="pilcrow">¶</a></p>
           <div class="alignLeft art-text artwork" id="section-6.11-2.1">
 <pre>
 SUBSCRIBE_NAMESPACE Message {
+  Type (i) = 0x11,
+  Length (i),
   Track Namespace Prefix (tuple),
   Number of Parameters (i),
   Parameters (..) ...,
@@ -3232,6 +3260,8 @@ track namespace prefix.<a href="#section-6.12-1" class="pilcrow">¶</a></p>
           <div class="alignLeft art-text artwork" id="section-6.12-3.1">
 <pre>
 UNSUBSCRIBE_NAMESPACE Message {
+  Type (i) = 0x14,
+  Length (i),
   Track Namespace Prefix (tuple)
 }
 </pre>
@@ -3260,6 +3290,8 @@ subscriptions.<a href="#section-6.13-1" class="pilcrow">¶</a></p>
 <pre>
 SUBSCRIBE_OK
 {
+  Type (i) = 0x4,
+  Length (i),
   Subscribe ID (i),
   Expires (i),
   Group Order (8),
@@ -3323,9 +3355,12 @@ failed SUBSCRIBE.<a href="#section-6.14-1" class="pilcrow">¶</a></p>
 <pre>
 SUBSCRIBE_ERROR
 {
+  Type (i) = 0x5,
+  Length (i),
   Subscribe ID (i),
   Error Code (i),
-  Reason Phrase (b),
+  Reason Phrase Length (i),
+  Reason Phrase (..),
   Track Alias (i),
 }
 </pre>
@@ -3367,9 +3402,12 @@ and whether it was an error.<a href="#section-6.15-1" class="pilcrow">¶</a></p>
           <div class="alignLeft art-text artwork" id="section-6.15-3.1">
 <pre>
 SUBSCRIBE_DONE Message {
+  Type (i) = 0xB,
+  Length (i),
   Subscribe ID (i),
   Status Code (i),
-  Reason Phrase (b),
+  Reason Phrase Length (i),
+  Reason Phrase (..),
   ContentExists (8),
   [Final Group (i)],
   [Final Object (i)],
@@ -3423,6 +3461,8 @@ value is a 'Protocol Violation'.<a href="#section-6.16-2" class="pilcrow">¶</a>
 <pre>
 MAX_SUBSCRIBE_ID
 {
+  Type (i) = 0x15,
+  Length (i),
   Subscribe ID (i),
 }
 </pre>
@@ -3455,6 +3495,8 @@ publish tracks under this namespace.<a href="#section-6.17-1" class="pilcrow">¶
           <div class="alignLeft art-text artwork" id="section-6.17-2.1">
 <pre>
 ANNOUNCE Message {
+  Type (i) = 0x6,
+  Length (i),
   Track Namespace (tuple),
   Number of Parameters (i),
   Parameters (..) ...,
@@ -3489,6 +3531,8 @@ within the provided Track Namespace.<a href="#section-6.18-1" class="pilcrow">¶
           <div class="alignLeft art-text artwork" id="section-6.18-2.1">
 <pre>
 UNANNOUNCE Message {
+  Type (i) = 0x9,
+  Length (i),
   Track Namespace (tuple),
 }
 </pre>
@@ -3517,8 +3561,11 @@ to a TRACK_STATUS_REQUEST message.<a href="#section-6.19-1" class="pilcrow">¶</
           <div class="alignLeft art-text artwork" id="section-6.19-2.1">
 <pre>
 TRACK_STATUS Message {
+  Type (i) = 0xE,
+  Length (i),
   Track Namespace (tuple),
-  Track Name (b),
+  Track Name Length(i),
+  Track Name (..),
   Status Code (i),
   Last Group ID (i),
   Last Object ID (i),
@@ -3569,6 +3616,8 @@ namespace subscriptions.<a href="#section-6.20-1" class="pilcrow">¶</a></p>
 <pre>
 SUBSCRIBE_NAMESPACE_OK
 {
+  Type (i) = 0x12,
+  Length (i),
   Track Namespace Prefix (tuple),
 }
 </pre>
@@ -3597,9 +3646,12 @@ failed SUBSCRIBE_NAMESPACE.<a href="#section-6.21-1" class="pilcrow">¶</a></p>
 <pre>
 SUBSCRIBE_NAMESPACE_ERROR
 {
+  Type (i) = 0x13,
+  Length (i),
   Track Namespace Prefix (tuple),
   Error Code (i),
-  Reason Phrase (b),
+  Reason Phrase Length (i),
+  Reason Phrase (..),
 }
 </pre>
 </div>
