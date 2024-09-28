@@ -628,7 +628,7 @@ be able to send some data.
 
 The subscriber's priority can be changed via a SUBSCRIBE_UPDATE message.
 This updates the priority of all unsent data within the subscription,
-though the details of the reprioitization are implementation-specific.
+though the details of the reprioritization are implementation-specific.
 
 Subscriptions have a Group Order of either 'Ascending' or 'Descending',
 which indicates whether the lowest or highest Group Id SHOULD be sent first
