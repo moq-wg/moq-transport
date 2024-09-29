@@ -5,13 +5,13 @@
 Media Over QUIC                                                L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 30 March 2025                                              Meta
+Expires: 2 April 2025                                               Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                       26 September 2024
+                                                       29 September 2024
 
 
                        Media over QUIC Transport
@@ -59,7 +59,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 30 March 2025.
+   This Internet-Draft will expire on 2 April 2025.
 
 Copyright Notice
 
@@ -693,7 +693,7 @@ Table of Contents
 
    The subscriber's priority can be changed via a SUBSCRIBE_UPDATE
    message.  This updates the priority of all unsent data within the
-   subscription, though the details of the reprioitization are
+   subscription, though the details of the reprioritization are
    implementation-specific.
 
    Subscriptions have a Group Order of either 'Ascending' or
