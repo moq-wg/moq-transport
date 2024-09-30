@@ -223,7 +223,7 @@ Group:
 Object:
 
 : An object is an addressable unit whose payload is a sequence of
-  bytes. Objects form the base element in the MOQT model. See
+  bytes. Objects form the base element in the MOQT data model. See
   ({{model-object}}).
 
 Track:
@@ -284,10 +284,11 @@ be encoded using the least number of bytes possible to represent the
 required value.
 
 
-# Object Model {#model}
+# Object Data Model {#model}
 
-MOQT has a hierarchical object model for data, comprised of objects,
-groups and tracks.
+MOQT has a hierarchical data model, comprised of tracks which contain
+groups and the groups contain objects. Inside of a group, the objects
+may be organized into subgroups.
 
 ## Objects {#model-object}
 
