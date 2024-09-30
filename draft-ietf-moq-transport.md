@@ -292,17 +292,17 @@ may be organized into subgroups.
 
 To give an example of how an applications might uses this data model,
 consider the` example of application sending a high and low resolution
-video using a a codec with temporal scalability. Each resolution would
-be sent as a separate track to allow the subscriber to pick the
-appropriate resolution given the display environment and bandwidth
-network available. Each "group of pictures" in the video would be sent
-as a group as the first frame of the "group of pictures" is needed to
-decode the later ones. This allows the client to join at the logical
-points where they can get the information to decode the stream.  The
-temporal layers would be sent as separate sub groups to allow the
-priority mechanism to favour the base layer if there was not enough
-bandwidth for the enhancement layer. Each frame of video on a given
-layer would be sent as the payload in a single object.
+video using a codec with temporal scalability. Each resolution would be
+sent as a separate track to allow the subscriber to pick the appropriate
+resolution given the display environment and bandwidth network
+available. Each "group of pictures" in the video would be sent as a
+group as the first frame of the "group of pictures" is needed to decode
+the later ones. This allows the client to join at the logical points
+where they can get the information to decode the stream.  The temporal
+layers would be sent as separate sub groups to allow the priority
+mechanism to favour the base layer if there was not enough bandwidth for
+the enhancement layer. Each frame of video on a given layer would be
+sent as a single object.
 
 ## Objects {#model-object}
 
