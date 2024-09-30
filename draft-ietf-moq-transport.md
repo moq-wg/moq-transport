@@ -678,7 +678,7 @@ validating subscribe and publish requests at the edge of a network.
 Relays are endpoints, which means they terminate Transport Sessions in order to
 have visibility of MoQ Object metadata.
 
-Relays can cache Objects, but are not required to.
+Relays MAY cache Objects, but are not required to.
 
 ## Subscriber Interactions
 
