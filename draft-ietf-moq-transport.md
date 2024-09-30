@@ -627,7 +627,7 @@ implementation-dependent, but the expectation is that all subscriptions will
 be able to send some data.
 
 The subscriber's priority can be changed via a SUBSCRIBE_UPDATE message.
-This updates the priority of all unsent data within the subscription,
+This updates the priority of future data within the subscription,
 though the details of the reprioritization are implementation-specific.
 
 Subscriptions have a Group Order of either 'Ascending' or 'Descending',
