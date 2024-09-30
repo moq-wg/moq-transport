@@ -287,7 +287,7 @@ required value.
 # Object Data Model {#model}
 
 MOQT has a hierarchical data model, comprised of tracks which contain
-groups and the groups contain objects. Inside of a group, the objects
+groups, and groups that contain objects. Inside of a group, the objects
 may be organized into subgroups.
 
 To give an example of how an applications might uses this data model,
