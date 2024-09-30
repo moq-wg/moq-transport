@@ -643,7 +643,8 @@ higher Object Id, regardless of the specified Group Order. If the group
 contains more than one Subgroup and the priority varies between these Subgroups,
 higher priority Subgroups are sent before lower priority Subgroups. If the specified
 priority of two Subgroups in a Group are equal, the lower Subgroup ID has priority.
-Within a Subgroup, Objects MUST be sent in increasing Object ID order.
+Within a Subgroup, Objects with a lower Object Id are always sent before
+objects with a higher Object Id.
 
 The Group Order cannot be changed via a SUBSCRIBE_UPDATE message, and
 instead an UNSUBSCRIBE and SUBSCRIBE can be used.
