@@ -438,18 +438,18 @@ using an HTTPS URI ({{!RFC9110, Section 4.2.2}}).  A MOQT session can be
 established by sending an extended CONNECT request to the host and the
 path indicated by the URI, as described in {{WebTransport, Section 3}}.
 
-### QUIC
+### QUICs
 
 A MOQT server that is accessible via native QUIC can be identified by a
-URI with a "moq" scheme.  The "moq" URI scheme is defined as follows,
+URI with a "moqt" scheme.  The "moqt" URI scheme is defined as follows,
 using definitions from {{!RFC3986}}:
 
 ~~~~~~~~~~~~~~~
-moq-URI = "moqt" "://" authority path-abempty [ "?" query ]
+moqt-URI = "moqt" "://" authority path-abempty [ "?" query ]
 ~~~~~~~~~~~~~~~
 
 The `authority` portion MUST NOT contain a non-empty `host` portion.
-The `moq` URI scheme supports the `/.well-known/` path prefix defined in
+The `moqt` URI scheme supports the `/.well-known/` path prefix defined in
 {{!RFC8615}}.
 
 This protocol does not specify any semantics on the `path-abempty` and
@@ -1135,7 +1135,7 @@ the server, or when WebTransport is used.  If the peer receives a PATH
 parameter from the server, or when WebTransport is used, it MUST close
 the connection. It follows the URI formatting rules {{!RFC3986}}.
 
-When connecting to a server using a URI with the "moq" scheme, the
+When connecting to a server using a URI with the "moqt" scheme, the
 client MUST set the PATH parameter to the `path-abempty` portion of the
 URI; if `query` is present, the client MUST concatenate `?`, followed by
 the `query` portion of the URI to the parameter.
