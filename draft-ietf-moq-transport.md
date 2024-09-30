@@ -372,7 +372,11 @@ to minimize the number of QUIC streams used.
 
 A group is a collection of objects and is a sub-unit of a track
 ({{model-track}}).  Objects within a group SHOULD NOT depend on objects
-in other groups.  A group behaves as a join point for subscriptions.
+in other groups.
+The concepts of "depends" is defined by the application using MoQT but
+implies that data in one group is independently useful without receiving
+data for other groups in the track.
+A group behaves as a join point for subscriptions.
 A new subscriber might not want to receive the entire track, and may
 instead opt to receive only the latest group(s).  The publisher then
 selectively transmits objects based on their group membership.
