@@ -5,13 +5,13 @@
 Media Over QUIC                                                L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 3 April 2025                                               Meta
+Expires: 4 April 2025                                               Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                       30 September 2024
+                                                          1 October 2024
 
 
                        Media over QUIC Transport
@@ -59,7 +59,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 3 April 2025.
+   This Internet-Draft will expire on 4 April 2025.
 
 Copyright Notice
 
@@ -1951,6 +1951,14 @@ Table of Contents
    received because they were never produced, are no longer available,
    or because they are beyond the end of a group or track.
 
+   Video end subscribers can use the end of group status to know when
+   the last frame of a group has been received so that the video player
+   knows to move on to playing the first frame of the next group.
+   Relays can use the end of subgroup status to know when they can close
+   the downstream quic streams being used to send data for that
+   subgroup.  End subscribers can use the end of track to update user
+   interfaces to indicate that is the end of the track.
+
    Status can have following values:
 
    *  0x0 := Normal object.  The payload is array of bytes and can be
@@ -2017,19 +2025,14 @@ Table of Contents
    A publisher SHOULD NOT open more than one stream at a time with the
    same stream header message type and fields.
 
-   Stream SHOULD be closed shortly after it is likely no more data will
-   be send on them.  Indications of this include:
+   Stream SHOULD be closed (using a QUIC CONNECTION_CLOSE frame) shortly
+   after it is likely that no more data will be send on that stream.
+   Indications of this include:
 
-   *  Receiving an object status of "end of subgroup" indicates streams
-      for that subgroup could be closed.
+   *  Receiving an object with a status of "end of subgroup" indicates
+      that the stream for that subgroup can be closed,
 
-   *  Receiving an object status with "end of group" indicates all
-      streams for that group and its subgroup can be closed.
-
-   *  Receiving an object status with "end of track" indicates all
-      streams for this track, its groups, and sub groups, can be closed.
-
-   *  no data being sent for an extended period of time
+   *  no data being sent for an extended period of time.
 
 7.3.1.  Stream Header Track
 
