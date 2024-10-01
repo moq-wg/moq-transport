@@ -1860,6 +1860,14 @@ The Object Status informs subscribers what objects will not be received
 because they were never produced, are no longer available, or because they
 are beyond the end of a group or track.
 
+Video end subscribers can use the end of group status to know when the
+last frame of a group has been received so that the video player knows
+to move on to playing the first frame of the next group. Relays can use
+the end of subgroup status to know when they can close the downstream
+quic streams being used to send data for that subgroup. End subscribers
+can use the end of track to update user interfaces to indicate that is
+the end of the track.
+
 `Status` can have following values:
 
 * 0x0 := Normal object. The payload is array of bytes and can be empty.
