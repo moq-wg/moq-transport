@@ -1926,19 +1926,14 @@ session with a Protocol Violation.
 A publisher SHOULD NOT open more than one stream at a time with the same stream
 header message type and fields.
 
-Stream SHOULD be closed shortly after it is likely no more data will be
-send on them. Indications of this include:
+Stream SHOULD be closed (using a QUIC CONNECTION_CLOSE frame) shortly
+after it is likely that no more data will be send on that
+stream. Indications of this include:
 
-* Receiving an object status of "end of subgroup" indicates streams for
-  that subgroup could be closed.
+* Receiving an object with a status of "end of subgroup" indicates that
+  the stream for that subgroup can be closed,
 
-* Receiving an object status with "end of group" indicates all streams
-  for that group and its subgroup can be closed.
-
-* Receiving an object status with "end of track" indicates all streams
-  for this track, its groups, and sub groups, can be closed.
-
-* no data being sent for an extended period of time
+* no data being sent for an extended period of time.
 
 
 ### Stream Header Track
