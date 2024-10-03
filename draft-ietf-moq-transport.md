@@ -941,6 +941,10 @@ MOQT Control Message {
 |-------|-----------------------------------------------------|
 | 0x15  | MAX_SUBSCRIBE_ID ({{message-max-subscribe-id}})     |
 |-------|-----------------------------------------------------|
+| 0x16  | FETCH ({{message-fetch}})                           |
+|-------|-----------------------------------------------------|
+| 0x17  | FETCH_ERROR ({{message-fetch-error}})               |
+|-------|-----------------------------------------------------|
 | 0x40  | CLIENT_SETUP ({{message-setup}})                    |
 |-------|-----------------------------------------------------|
 | 0x41  | SERVER_SETUP ({{message-setup}})                    |
@@ -1794,6 +1798,85 @@ failure.
 * Reason Phrase: Provides the reason for the namespace subscription error.
 
 
+## Fetch {#message-fetch}
+
+Subscribers issue fetch requests for prior objects while the subscriptions are 
+made for the live edge. A subscriber issues a FETCH request to a publisher to 
+request objects from a closed range of groups within a track. Publisher responds 
+to a FETCH request with either a FETCH_ERROR message or data corresponding to 
+the range requested, over a unidirectional created for the request.
+The object forwarding preference will not apply to fetches.
+
+The format of FETCH is as follows:
+
+~~~
+FETCH Message {
+  Type (i) = 0x16,
+  Length (i),
+  Fetch ID(i),
+  Track Namespace (b),
+  Track Name (b),
+  Fetch Priority (8),
+  StartGroup (i),
+  StartObject (i),
+  EndGroup (i),
+  EndObject (i)
+}
+~~~
+{: #moq-transport-fetch-format title="MOQT FETCH Message"}
+
+* Fetch ID: The Fetch ID identifies a given fetch request. Fetch ID is a 
+variable length integer that MUST be unique and monotonically increasing within 
+a session. Fetch ID is used to correlate the response to a fetch request
+in the data stream.
+
+* Track Namespace: Identifies the namespace of the track as defined in
+({{track-name}}).
+
+* Track Name: Identifies the track name as defined in ({{track-name}}).
+
+* Priority: Specifies the priority of a fetch request relative to
+other subscriptions or fetches in the same session. Lower numbers get higher 
+priority. See {{priorities}}. It is typical of certain implementations to 
+treat fetches to have lower priority than subscriptions to the live data.
+
+* StartGroup: The start Group ID of the requested range.
+
+* StartObject: The start Object ID of the request range.
+
+* EndGroup: The end Group ID of the requested range.
+
+* EndObject: The end Object ID.
+
+
+Fetch specifies a closed subscription starting at StartObject in StartGroup and 
+ending at EndObject in EndGroup. The start and end of the range are inclusive. 
+EndGroup and EndObject MUST specify the same or a later object than StartGroup and 
+StartObject. If StartGroup/EndGroup is greater than the latest group at the 
+publisher, the publisher MUST return FETCH_ERROR. Otherwise the publisher 
+responds with objects from the requested range over a new unidirectional stream.
+
+## FETCH_ERROR {#message-fetch-error}
+
+A publisher sends a FETCH_ERROR control message in response to a
+failed FETCH;
+
+~~~
+FETCH_ERROR
+{
+  Type (i) = 0x13,
+  Length (i),
+  Fetch ID (i),
+  Error Code (i),
+  [Latest Group ID(i)],
+  [Latest Object ID(i)]
+}
+~~~
+{: #moq-transport-sub-ns-error format title="MOQT FETCH_ERROR Message"}
+
+* FETCH_ID: As defined in {{message-subscribe-ns}}.
+
+
 # Data Streams {#data-streams}
 
 A publisher sends Objects matching a subscription on Data Streams.
@@ -1809,6 +1892,8 @@ variable-length integer indicating the type of the stream in question.
 | 0x2   | STREAM_HEADER_TRACK ({{stream-header-track}})         |
 |-------|-------------------------------------------------------|
 | 0x4   | STREAM_HEADER_SUBGROUP  ({{stream-header-subgroup}})  |
+|-------|-------------------------------------------------------|
+| 0x5   | FETCH_HEADER  ({{fetch-header}})                      |
 |-------|-------------------------------------------------------|
 
 An endpoint that receives an unknown stream type MUST close the session.
@@ -2007,6 +2092,41 @@ The Object Status field is only sent if the Object Payload Length is zero.
 
 A publisher MUST NOT send an Object on a stream if its Object ID is less than a
 previously sent Object ID within a given group in that stream.
+
+
+### Fetch Header
+
+When a stream begins with `FETCH_HEADER`, all objects on the stream
+belong to the track requested in the Fetch message identified by `Fetch
+ID`. `Number of Objects` identifies the total count of objects that 
+satisies the fetch request.
+
+~~~
+FETCH_HEADER Message {
+  Fetch ID (i)
+  Track Alias (i),
+  Fetch Priority (8),
+  Number of Objects (i),
+}
+~~~
+{: #fetch-header-format title="MOQT FETCH_HEADER Message"}
+
+
+Publisher when responding to a FETCH request shall find the stream that is 
+associated with the fetch request, or open a new one and send the 
+`FETCH_HEADER` and then serialize the following object fields. The Object Status 
+field is only sent if the Object Payload Length is zero.
+
+~~~
+{
+  Group ID (i),
+  Object ID (i),
+  Object Payload Length (i),
+  [Object Status (i)],
+  Object Payload (..),
+}
+~~~
+{: #object-track-format title="MOQT Track Stream Object Fields"}
 
 ## Examples
 
