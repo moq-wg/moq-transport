@@ -325,7 +325,7 @@ combine, split, or otherwise modify object payloads.
 ## Subgroups {#model-subgroup}
 
 A subgroup is a sequence of one or more objects from the same group
-({{model-group}}). Objects in a subgroup
+({{model-group}}) in ascending order by Object ID. Objects in a subgroup
 have a dependency and priority relationship consistent with sharing a QUIC
 stream. In some cases, a Group will be most effectively delivered using more
 than one QUIC stream.
