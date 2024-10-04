@@ -1185,7 +1185,7 @@ networks and is designed for high scale and low latency distribution.<a href="#s
             </ul>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.2">
-            <p id="section-toc.1-1.2.1"><a href="#section-2" class="auto internal xref">2</a>.  <a href="#name-object-model" class="internal xref">Object Model</a></p>
+            <p id="section-toc.1-1.2.1"><a href="#section-2" class="auto internal xref">2</a>.  <a href="#name-object-data-model" class="internal xref">Object Data Model</a></p>
 <ul class="compact toc ulBare ulEmpty">
 <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.2.2.1">
                 <p id="section-toc.1-1.2.2.1.1"><a href="#section-2.1" class="auto internal xref">2.1</a>.  <a href="#name-objects" class="internal xref">Objects</a></p>
@@ -1623,7 +1623,7 @@ track. See (<a href="#model-group" class="auto internal xref">Section 2.3</a>).<
 <dt id="section-1.2-2.27">Object:</dt>
           <dd style="margin-left: 1.5em" id="section-1.2-2.28">
             <p id="section-1.2-2.28.1">An object is an addressable unit whose payload is a sequence of
-bytes. Objects form the base element in the MOQT model. See
+bytes. Objects form the base element in the MOQT data model. See
 (<a href="#model-object" class="auto internal xref">Section 2.1</a>).<a href="#section-1.2-2.28.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
@@ -1702,11 +1702,24 @@ required value.<a href="#section-1.3-6" class="pilcrow">¶</a></p>
 </div>
 <div id="model">
 <section id="section-2">
-      <h2 id="name-object-model">
-<a href="#section-2" class="section-number selfRef">2. </a><a href="#name-object-model" class="section-name selfRef">Object Model</a>
+      <h2 id="name-object-data-model">
+<a href="#section-2" class="section-number selfRef">2. </a><a href="#name-object-data-model" class="section-name selfRef">Object Data Model</a>
       </h2>
-<p id="section-2-1">MOQT has a hierarchical object model for data, comprised of objects,
-groups and tracks.<a href="#section-2-1" class="pilcrow">¶</a></p>
+<p id="section-2-1">MOQT has a hierarchical data model, comprised of tracks which contain
+groups, and groups that contain objects. Inside of a group, the objects
+can be organized into subgroups.<a href="#section-2-1" class="pilcrow">¶</a></p>
+<p id="section-2-2">To give an example of how an application might use this data model,
+consider an application sending high and low resolution video using a
+codec with temporal scalability. Each resolution is sent as a separate
+track to allow the subscriber to pick the appropriate resolution given
+the display environment and available bandwidth. Each "group of pictures"
+in a video is sent as a group because the first frame is needed to
+decode later frames. This allows the client to join at the logical points
+where they can get the information to start decoding the stream.
+The temporal layers are sent as separate sub groups to allow the
+priority mechanism to favour the base layer when there is not enough
+bandwidth to send both the base and enhancement layers. Each frame of
+video on a given layer is sent as a single object.<a href="#section-2-2" class="pilcrow">¶</a></p>
 <div id="model-object">
 <section id="section-2.1">
         <h3 id="name-objects">
@@ -1781,12 +1794,12 @@ to minimize the number of QUIC streams used.<a href="#section-2.2-8.3.1" class="
         <h3 id="name-groups">
 <a href="#section-2.3" class="section-number selfRef">2.3. </a><a href="#name-groups" class="section-name selfRef">Groups</a>
         </h3>
-<p id="section-2.3-1">A group is a collection of objects and is a sub-unit of a track
-(<a href="#model-track" class="auto internal xref">Section 2.4</a>).  Objects within a group <span class="bcp14">SHOULD NOT</span> depend on objects
-in other groups.  A group behaves as a join point for subscriptions.
-A new subscriber might not want to receive the entire track, and may
-instead opt to receive only the latest group(s).  The publisher then
-selectively transmits objects based on their group membership.<a href="#section-2.3-1" class="pilcrow">¶</a></p>
+<p id="section-2.3-1">A group is a collection of objects and is a sub-unit of a track (<a href="#model-track" class="auto internal xref">Section 2.4</a>).
+Groups <span class="bcp14">SHOULD</span> be indendepently useful, so objects within a group <span class="bcp14">SHOULD NOT</span> depend
+on objects in other groups. A group provides a join point for subscriptions, so a
+subscriber that does not want to receive the entire track can opt to receive only
+the latest group(s).  The publisher then selectively transmits objects based on
+their group membership.<a href="#section-2.3-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="model-track">
