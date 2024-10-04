@@ -288,7 +288,7 @@ required value.
 
 MOQT has a hierarchical data model, comprised of tracks which contain
 groups, and groups that contain objects. Inside of a group, the objects
-may be organized into subgroups.
+can be organized into subgroups.
 
 To give an example of how an applications might uses this data model,
 consider the` example of application sending a high and low resolution
