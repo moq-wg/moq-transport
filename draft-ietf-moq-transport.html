@@ -2089,8 +2089,8 @@ there are still open subscriptions on a connection.<a href="#section-3.6-2" clas
 <p id="section-3.6-3">The GOAWAY message does not immediately impact subscription state. A subscriber
 <span class="bcp14">SHOULD</span> individually UNSUBSCRIBE for each existing subscription, while a
 publisher <span class="bcp14">MAY</span> reject new SUBSCRIBEs while in the draining state. When the server
-is a subscriber, it <span class="bcp14">SHOULD</span> send a GOAWAY message prior to any UNSUBSCRIBE
-messages.<a href="#section-3.6-3" class="pilcrow">¶</a></p>
+is a subscriber, it <span class="bcp14">SHOULD</span> send a GOAWAY message to downstream subscribers
+prior to any UNSUBSCRIBE messages to upstream publishers.<a href="#section-3.6-3" class="pilcrow">¶</a></p>
 <p id="section-3.6-4">After the client receives a GOAWAY, it's <span class="bcp14">RECOMMENDED</span> that the client waits until
 there are no more active subscriptions before closing the session with NO_ERROR.
 Ideally this is transparent to the application using MOQT, which involves
