@@ -371,10 +371,10 @@ Table of Contents
 2.2.  Subgroups
 
    A subgroup is a sequence of one or more objects from the same group
-   (Section 2.3).  Objects in a subgroup have a dependency and priority
-   relationship consistent with sharing a QUIC stream.  In some cases, a
-   Group will be most effectively delivered using more than one QUIC
-   stream.
+   (Section 2.3) in ascending order by Object ID.  Objects in a subgroup
+   have a dependency and priority relationship consistent with sharing a
+   QUIC stream.  In some cases, a Group will be most effectively
+   delivered using more than one QUIC stream.
 
    When a Track's forwarding preference (see Section 7.1.1) is "Track"
    or "Datagram", Objects are not sent in Subgroups, no Subgroup IDs are
