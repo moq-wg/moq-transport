@@ -225,7 +225,7 @@ Group:
 Object:
 
 : An object is an addressable unit whose payload is a sequence of
-  bytes. Objects form the base element in the MOQT model. See
+  bytes. Objects form the base element in the MOQT data model. See
   ({{model-object}}).
 
 Track:
@@ -286,10 +286,24 @@ be encoded using the least number of bytes possible to represent the
 required value.
 
 
-# Object Model {#model}
+# Object Data Model {#model}
 
-MOQT has a hierarchical object model for data, comprised of objects,
-groups and tracks.
+MOQT has a hierarchical data model, comprised of tracks which contain
+groups, and groups that contain objects. Inside of a group, the objects
+can be organized into subgroups.
+
+To give an example of how an application might use this data model,
+consider an application sending high and low resolution video using a
+codec with temporal scalability. Each resolution is sent as a separate
+track to allow the subscriber to pick the appropriate resolution given
+the display environment and available bandwidth. Each "group of pictures"
+in a video is sent as a group because the first frame is needed to
+decode later frames. This allows the client to join at the logical points
+where they can get the information to start decoding the stream.
+The temporal layers are sent as separate sub groups to allow the
+priority mechanism to favour the base layer when there is not enough
+bandwidth to send both the base and enhancement layers. Each frame of
+video on a given layer is sent as a single object.
 
 ## Objects {#model-object}
 
@@ -357,12 +371,12 @@ to minimize the number of QUIC streams used.
 
 ## Groups {#model-group}
 
-A group is a collection of objects and is a sub-unit of a track
-({{model-track}}).  Objects within a group SHOULD NOT depend on objects
-in other groups.  A group behaves as a join point for subscriptions.
-A new subscriber might not want to receive the entire track, and may
-instead opt to receive only the latest group(s).  The publisher then
-selectively transmits objects based on their group membership.
+A group is a collection of objects and is a sub-unit of a track ({{model-track}}).
+Groups SHOULD be indendepently useful, so objects within a group SHOULD NOT depend
+on objects in other groups. A group provides a join point for subscriptions, so a
+subscriber that does not want to receive the entire track can opt to receive only
+the latest group(s).  The publisher then selectively transmits objects based on
+their group membership.
 
 ## Track {#model-track}
 
