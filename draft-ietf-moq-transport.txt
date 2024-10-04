@@ -179,7 +179,9 @@ Table of Contents
 
    *  Section 5 covers behavior at the relay entities.
 
-   *  Section 6 covers how messages are encoded on the wire.
+   *  Section 6 covers how control messages are encoded on the wire.
+
+   *  Section 7} covers how data messages are encoded on the wire.
 
 1.1.  Motivation
 
