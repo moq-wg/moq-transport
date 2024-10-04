@@ -1792,14 +1792,10 @@ to minimize the number of QUIC streams used.<a href="#section-2.2-8.3.1" class="
 <a href="#section-2.3" class="section-number selfRef">2.3. </a><a href="#name-groups" class="section-name selfRef">Groups</a>
         </h3>
 <p id="section-2.3-1">A group is a collection of objects and is a sub-unit of a track
-(<a href="#model-track" class="auto internal xref">Section 2.4</a>).  Objects within a group <span class="bcp14">SHOULD NOT</span> depend on objects
-in other groups.
-The concepts of "depends" is defined by the application using MoQT but
-implies that data in one group is independently useful without receiving
-data for other groups in the track.
-A group behaves as a join point for subscriptions.
-A new subscriber might not want to receive the entire track, and may
-instead opt to receive only the latest group(s).  The publisher then
+(<a href="#model-track" class="auto internal xref">Section 2.4</a>).  Groups <span class="bcp14">SHOULD</span> be indendepently useful, so objects within a
+group <span class="bcp14">SHOULD NOT</span> depend on objects in other groups. A group behaves as a join
+point for subscriptions. A new subscriber might not want to receive the entire track,
+and can instead opt to receive only the latest group(s).  The publisher then
 selectively transmits objects based on their group membership.<a href="#section-2.3-1" class="pilcrow">¶</a></p>
 </section>
 </div>
