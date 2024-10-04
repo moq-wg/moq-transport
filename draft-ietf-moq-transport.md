@@ -300,8 +300,8 @@ decode later frames. This allows the client to join at the logical points
 where they can get the information to start decoding the stream.
 The temporal layers are sent as separate sub groups to allow the
 priority mechanism to favour the base layer when there is not enough
-bandwidth for the enhancement layer. Each frame of video on a given layer
-is sent as a single object.
+bandwidth to send both the base and enhancement layers. Each frame of
+video on a given layer is sent as a single object.
 
 ## Objects {#model-object}
 
