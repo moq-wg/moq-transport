@@ -1705,19 +1705,18 @@ required value.<a href="#section-1.3-6" class="pilcrow">¶</a></p>
 <p id="section-2-1">MOQT has a hierarchical data model, comprised of tracks which contain
 groups, and groups that contain objects. Inside of a group, the objects
 can be organized into subgroups.<a href="#section-2-1" class="pilcrow">¶</a></p>
-<p id="section-2-2">To give an example of how an applications might uses this data model,
-consider the` example of application sending a high and low resolution
-video using a codec with temporal scalability. Each resolution would be
-sent as a separate track to allow the subscriber to pick the appropriate
-resolution given the display environment and bandwidth network
-available. Each "group of pictures" in the video would be sent as a
-group as the first frame of the "group of pictures" is needed to decode
-the later ones. This allows the client to join at the logical points
-where they can get the information to decode the stream.  The temporal
-layers would be sent as separate sub groups to allow the priority
-mechanism to favour the base layer if there was not enough bandwidth for
-the enhancement layer. Each frame of video on a given layer would be
-sent as a single object.<a href="#section-2-2" class="pilcrow">¶</a></p>
+<p id="section-2-2">To give an example of how an application might use this data model,
+consider an application sending high and low resolution video using a
+codec with temporal scalability. Each resolution is sent as a separate
+track to allow the subscriber to pick the appropriate resolution given
+the display environment and available bandwidth. Each "group of pictures"
+in a video is sent as a group because the first frame is needed to
+decode later frames. This allows the client to join at the logical points
+where they can get the information to start decoding the stream.
+The temporal layers are sent as separate sub groups to allow the
+priority mechanism to favour the base layer when there is not enough
+bandwidth for the enhancement layer. Each frame of video on a given layer
+is sent as a single object.<a href="#section-2-2" class="pilcrow">¶</a></p>
 <div id="model-object">
 <section id="section-2.1">
         <h3 id="name-objects">
