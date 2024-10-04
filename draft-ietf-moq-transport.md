@@ -97,7 +97,9 @@ discovery and subscription.
 
 * {{relays-moq}} covers behavior at the relay entities.
 
-* {{message}} covers how messages are encoded on the wire.
+* {{message}} covers how control messages are encoded on the wire.
+
+* {{data-streams}}} covers how data messages are encoded on the wire.
 
 
 ## Motivation
