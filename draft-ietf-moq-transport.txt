@@ -746,7 +746,7 @@ Table of Contents
    Relays are endpoints, which means they terminate Transport Sessions
    in order to have visibility of MoQ Object metadata.
 
-   Relays can cache Objects, but are not required to.
+   Relays MAY cache Objects, but are not required to.
 
 5.1.  Subscriber Interactions
 
