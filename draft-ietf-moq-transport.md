@@ -327,7 +327,7 @@ combine, split, or otherwise modify object payloads.
 A subgroup is a sequence of one or more objects from the same group
 ({{model-group}}). Objects in a subgroup
 have a dependency and priority relationship consistent with sharing a QUIC
-stream. In some cases, a subgroup will be most effectively delivered using more
+stream. In some cases, a Group will be most effectively delivered using more
 than one QUIC stream.
 
 When a Track's forwarding preference (see {{object-fields}}) is "Track" or
