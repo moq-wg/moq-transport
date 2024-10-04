@@ -599,8 +599,8 @@ there are still open subscriptions on a connection.
 The GOAWAY message does not immediately impact subscription state. A subscriber
 SHOULD individually UNSUBSCRIBE for each existing subscription, while a
 publisher MAY reject new SUBSCRIBEs while in the draining state. When the server
-is a subscriber, it SHOULD send a GOAWAY message to downstream subscribers prior to any UNSUBSCRIBE
-messages to upstream publishers.
+is a subscriber, it SHOULD send a GOAWAY message to downstream subscribers
+prior to any UNSUBSCRIBE messages to upstream publishers.
 
 After the client receives a GOAWAY, it's RECOMMENDED that the client waits until
 there are no more active subscriptions before closing the session with NO_ERROR.
