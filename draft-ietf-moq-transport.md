@@ -369,12 +369,12 @@ to minimize the number of QUIC streams used.
 
 ## Groups {#model-group}
 
-A group is a collection of objects and is a sub-unit of a track
-({{model-track}}).  Groups SHOULD be indendepently useful, so objects within a
-group SHOULD NOT depend on objects in other groups. A group behaves as a join
-point for subscriptions. A new subscriber might not want to receive the entire track,
-and can instead opt to receive only the latest group(s).  The publisher then
-selectively transmits objects based on their group membership.
+A group is a collection of objects and is a sub-unit of a track ({{model-track}}).
+Groups SHOULD be indendepently useful, so objects within a group SHOULD NOT depend
+on objects in other groups. A group provides a join point for subscriptions, so a
+subscriber that does not want to receive the entire track can opt to receive only
+the latest group(s).  The publisher then selectively transmits objects based on
+their group membership.
 
 ## Track {#model-track}
 
