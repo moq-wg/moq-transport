@@ -721,7 +721,7 @@ Objects MUST NOT be sent for unsuccessful subscriptions, and if a subscriber
 receives a SUBSCRIBE_ERROR after receiving objects, it MUST close the session
 with a 'Protocol Violation'.
 
-A relay MUST not reorder or drop objects received on a multi-object stream when
+A relay MUST NOT reorder or drop objects received on a multi-object stream when
 forwarding to subscribers, unless it has application specific information.
 
 Relays MAY aggregate authorized subscriptions for a given track when
