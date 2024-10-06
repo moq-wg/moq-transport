@@ -438,7 +438,7 @@ using an HTTPS URI ({{!RFC9110, Section 4.2.2}}).  A MOQT session can be
 established by sending an extended CONNECT request to the host and the
 path indicated by the URI, as described in {{WebTransport, Section 3}}.
 
-### QUICs
+### QUIC
 
 A MOQT server that is accessible via native QUIC can be identified by a
 URI with a "moqt" scheme.  The "moqt" URI scheme is defined as follows,
