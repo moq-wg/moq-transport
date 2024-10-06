@@ -5,13 +5,13 @@
 Media Over QUIC                                                L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 3 April 2025                                               Meta
+Expires: 9 April 2025                                               Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                       30 September 2024
+                                                          6 October 2024
 
 
                        Media over QUIC Transport
@@ -59,7 +59,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 3 April 2025.
+   This Internet-Draft will expire on 9 April 2025.
 
 Copyright Notice
 
@@ -96,7 +96,7 @@ Table of Contents
    3.  Sessions
      3.1.  Session establishment
        3.1.1.  WebTransport
-       3.1.2.  QUICs
+       3.1.2.  QUIC
      3.2.  Version and Extension Negotiation
      3.3.  Session initialization
      3.4.  Stream Cancellation
@@ -492,7 +492,7 @@ Table of Contents
    the path indicated by the URI, as described in [WebTransport],
    Section 3.
 
-3.1.2.  QUICs
+3.1.2.  QUIC
 
    A MOQT server that is accessible via native QUIC can be identified by
    a URI with a "moqt" scheme.  The "moqt" URI scheme is defined as
