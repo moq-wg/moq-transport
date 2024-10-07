@@ -3558,6 +3558,7 @@ FETCH_OK
   Length (i),
   Fetch ID (i),
   Group Order (8),
+  End Of Track (8),
   Largest Group ID (i),
   Largest Object ID (i),
   Number of Parameters (i),
@@ -3579,15 +3580,20 @@ Ascending (0x1) or Descending (0x2) order by group. See <a href="#priorities" cl
 Values of 0x0 and those larger than 0x2 are a protocol error.<a href="#section-6.17-3.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-6.17-3.3">
-            <p id="section-6.17-3.3.1">Largest Group ID: The largest Group ID available for this track. This field
-is only present if ContentExists has a value of 1.<a href="#section-6.17-3.3.1" class="pilcrow">¶</a></p>
+            <p id="section-6.17-3.3.1">End Of Track: 1 if all objects have been published on this track, so
+the Largest Group ID and Object Id indicate the last Object in the track,
+0 if not.<a href="#section-6.17-3.3.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-6.17-3.4">
-            <p id="section-6.17-3.4.1">Largest Object ID: The largest Object ID available within the largest Group ID
-for this track. This field is only present if ContentExists has a value of 1.<a href="#section-6.17-3.4.1" class="pilcrow">¶</a></p>
+            <p id="section-6.17-3.4.1">Largest Group ID: The largest Group ID available for this track. This field
+is only present if ContentExists has a value of 1.<a href="#section-6.17-3.4.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-6.17-3.5">
-            <p id="section-6.17-3.5.1">Subscribe Parameters: The parameters are defined in <a href="#version-specific-params" class="auto internal xref">Section 6.1.1</a>.<a href="#section-6.17-3.5.1" class="pilcrow">¶</a></p>
+            <p id="section-6.17-3.5.1">Largest Object ID: The largest Object ID available within the largest Group ID
+for this track. This field is only present if ContentExists has a value of 1.<a href="#section-6.17-3.5.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-6.17-3.6">
+            <p id="section-6.17-3.6.1">Subscribe Parameters: The parameters are defined in <a href="#version-specific-params" class="auto internal xref">Section 6.1.1</a>.<a href="#section-6.17-3.6.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
