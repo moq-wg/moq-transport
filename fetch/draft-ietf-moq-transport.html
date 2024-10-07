@@ -3074,7 +3074,7 @@ UNSUBSCRIBE Message {
 <p id="section-6.7-1">A subscriber issues a FETCH to a publisher to request a range of already published
 objects within a track. The publisher responding to a FETCH is responsible for
 retrieving all available Objects, and if there are gaps between Objects, it
-indicates these Objects are not avaiable. A fetch <span class="bcp14">MUST NOT</span> omit sending objects
+indicates these Objects are not avaiable. As a result a fetch does not omit objects
 due to congestion, like a subscription can.<a href="#section-6.7-1" class="pilcrow">¶</a></p>
 <p id="section-6.7-2">A publisher responds to a FETCH request with either a FETCH_OK or a FETCH_ERROR
 message.  If it responds with FETCH_OK, the publisher creates a new unidirectional
