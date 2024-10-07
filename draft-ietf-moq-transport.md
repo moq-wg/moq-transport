@@ -1268,7 +1268,6 @@ used. Values larger than 0x2 are a protocol error.
 
 * Filter Type: Identifies the type of filter, which also indicates whether
 the StartGroup/StartObject and EndGroup/EndObject fields will be present.
-See ({{sub-filter}}).
 
 * StartGroup: The start Group ID. Only present for "AbsoluteStart" and
 "AbsoluteRange" filter types.
@@ -1477,7 +1476,7 @@ FETCH_CANCEL Message {
   Fetch ID (i)
 }
 ~~~
-{: #moq-transport-unsubscribe-format title="MOQT FETCH_CANCEL Message"}
+{: #moq-transport-fetch-cancel title="MOQT FETCH_CANCEL Message"}
 
 * Fetch ID: Subscription Identifier as defined in {{message-fetch}}.
 
@@ -1732,7 +1731,7 @@ FETCH_OK
   Subscribe Parameters (..) ...
 }
 ~~~
-{: #moq-transport-subscribe-ok format title="MOQT FETCH_OK Message"}
+{: #moq-transport-fetch-ok format title="MOQT FETCH_OK Message"}
 
 * Fetch ID: Fetch Identifier as defined in {{message-fetch}}.
 
@@ -1764,7 +1763,7 @@ FETCH_ERROR
   Reason Phrase (..),
 }
 ~~~
-{: #moq-transport-subscribe-error format title="MOQT FETCH_ERROR Message"}
+{: #moq-transport-fetch-error format title="MOQT FETCH_ERROR Message"}
 
 * Fetch ID: Subscription Identifier as defined in {{message-subscribe-req}}.
 
