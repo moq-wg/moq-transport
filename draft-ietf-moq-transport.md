@@ -1201,12 +1201,12 @@ GOAWAY Message {
 
 ## SUBSCRIBE {#message-subscribe-req}
 
-### Filter Types {#sub-filter}
+A subscription causes the publisher to send newly published objects for a track
+and can start at either the latest Group or latest Object. A subscriber MUST NOT
+make multiple active subscriptions for a track within a single session and
+publishers SHOULD treat this as a protocol violation.
 
-The subscriber specifies a filter on the subscription to allow
-the publisher to identify which objects need to be delivered.
-
-There are 2 types of filters:
+There are 2 types of subscriptions:
 
 Latest Group (0x1) : Specifies an open-ended subscription with objects
 from the beginning of the current group.  If no content has been delivered yet,
@@ -1216,10 +1216,8 @@ Latest Object (0x2): Specifies an open-ended subscription beginning from
 the current object of the current group.  If no content has been delivered yet,
 the subscription starts with the first published or received group.
 
-A filter type other than the above MUST be treated as error.
+A subscribe type other than the above MUST be treated as error.
 
-
-### SUBSCRIBE Format
 A subscriber issues a SUBSCRIBE to a publisher to request a track.
 
 The format of SUBSCRIBE is as follows:
@@ -1419,7 +1417,7 @@ FETCH Message {
 ~~~
 {: #moq-transport-fetch-format title="MOQT FETCH Message"}
 
-* Fetch ID: The Fetch ID identifies a given fetch request. Fetch ID is a 
+* Fetch ID: The Fetch ID identifies a given fetch request. Fetch ID is a
 variable length integer that MUST be unique and monotonically increasing
 within  a session.
 
@@ -1429,7 +1427,7 @@ within  a session.
 * Track Name: Identifies the track name as defined in ({{track-name}}).
 
 * Priority: Specifies the priority of a fetch request relative to
-other subscriptions or fetches in the same session. Lower numbers get higher 
+other subscriptions or fetches in the same session. Lower numbers get higher
 priority. See {{priorities}}.
 
 * Group Order: Allows the subscriber to request Objects be delivered in
@@ -1481,7 +1479,7 @@ FETCH_CANCEL Message {
 ~~~
 {: #moq-transport-unsubscribe-format title="MOQT FETCH_CANCEL Message"}
 
-* Fetch ID: Subscription Identifier as defined in {{message-fetch-req}}.
+* Fetch ID: Subscription Identifier as defined in {{message-fetch}}.
 
 
 ## ANNOUNCE_OK {#message-announce-ok}
@@ -2095,7 +2093,6 @@ will be dropped.
 
 ~~~
 OBJECT_DATAGRAM Message {
-  Subscribe ID (i),
   Track Alias (i),
   Group ID (i),
   Object ID (i),
@@ -2129,7 +2126,6 @@ stream header.
 
 ~~~
 STREAM_HEADER_TRACK Message {
-  Subscribe ID (i)
   Track Alias (i),
   Publisher Priority (8),
 }
@@ -2167,7 +2163,6 @@ ID` and the subgroup indicated by 'Group ID' and `Subgroup ID`.
 
 ~~~
 STREAM_HEADER_SUBGROUP Message {
-  Subscribe ID (i),
   Track Alias (i),
   Group ID (i),
   Subgroup ID (i),
@@ -2238,7 +2233,6 @@ Sending a track on one stream:
 
 ~~~
 STREAM_HEADER_TRACK {
-  Subscribe ID = 1
   Track Alias = 1
   Publisher Priority = 0
 }
@@ -2262,7 +2256,6 @@ Sending a subgroup on one stream:
 Stream = 2
 
 STREAM_HEADER_SUBGROUP {
-  Subscribe ID = 2
   Track Alias = 2
   Group ID = 0
   Subgroup ID = 0
