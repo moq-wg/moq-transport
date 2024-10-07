@@ -1800,11 +1800,14 @@ failure.
 
 ## Fetch {#message-fetch}
 
-Subscribers issue fetch requests for prior objects while the subscriptions are 
-made for the live edge. A subscriber issues a FETCH request to a publisher to 
-request objects from a closed range of groups within a track. Publisher responds 
-to a FETCH request with either a FETCH_ERROR message or data corresponding to 
-the range requested, over a unidirectional created for the request.
+A subscriber issues a FETCH to a publisher to request a range of
+objects within a track.  Any Objects that are not yet published
+will not be retrieved in the FETCH.
+
+A publisher responds to a FETCH request with either a FETCH_OK or
+a FETCH_ERROR message.  If it responds with FETCH_OK, the publisher creates a new
+unidirectional stream that is used to send the Objects.
+
 The object forwarding preference will not apply to fetches.
 
 The format of FETCH is as follows:
@@ -2094,28 +2097,25 @@ A publisher MUST NOT send an Object on a stream if its Object ID is less than a
 previously sent Object ID within a given group in that stream.
 
 
-### Fetch Header
+### Fetch Header {#fetch-header}
 
-When a stream begins with `FETCH_HEADER`, all objects on the stream
-belong to the track requested in the Fetch message identified by `Fetch
-ID`. `Number of Objects` identifies the total count of objects that 
-satisies the fetch request.
+When a stream begins with `FETCH_HEADER`, all objects on the stream belong to the
+track requested in the Fetch message identified by `Fetch ID`.
 
 ~~~
 FETCH_HEADER Message {
-  Fetch ID (i)
-  Track Alias (i),
-  Fetch Priority (8),
-  Number of Objects (i),
+  Fetch ID (i),
+  Publisher Priority (8),
 }
 ~~~
 {: #fetch-header-format title="MOQT FETCH_HEADER Message"}
 
 
-Publisher when responding to a FETCH request shall find the stream that is 
-associated with the fetch request, or open a new one and send the 
-`FETCH_HEADER` and then serialize the following object fields. The Object Status 
-field is only sent if the Object Payload Length is zero.
+When a publisher sends objects in response to a FETCH request, it finds the
+stream that is associated with the fetch request, or opens a new one and sends
+the `FETCH_HEADER`, and then serializes the following object fields.
+
+The Object Status field is only sent if the Object Payload Length is zero.
 
 ~~~
 {
@@ -2126,7 +2126,8 @@ field is only sent if the Object Payload Length is zero.
   Object Payload (..),
 }
 ~~~
-{: #object-track-format title="MOQT Track Stream Object Fields"}
+{: #object-fetch-format title="MOQT Fetch Object Fields"}
+
 
 ## Examples
 
