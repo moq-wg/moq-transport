@@ -1725,6 +1725,7 @@ FETCH_OK
   Length (i),
   Fetch ID (i),
   Group Order (8),
+  End Of Track (8),
   Largest Group ID (i),
   Largest Object ID (i),
   Number of Parameters (i),
@@ -1738,6 +1739,10 @@ FETCH_OK
 * Group Order: Indicates the fetch will be delivered in
 Ascending (0x1) or Descending (0x2) order by group. See {{priorities}}.
 Values of 0x0 and those larger than 0x2 are a protocol error.
+
+* End Of Track: 1 if all objects have been published on this track, so
+the Largest Group ID and Object Id indicate the last Object in the track,
+0 if not.
 
 * Largest Group ID: The largest Group ID available for this track. This field
 is only present if ContentExists has a value of 1.
