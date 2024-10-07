@@ -1701,6 +1701,64 @@ SUBSCRIBE_ERROR
   ({{session-termination}}).
 
 
+## FETCH_OK {#message-fetch-ok}
+
+A publisher sends a FETCH control message for successful fetches.
+
+~~~
+FETCH_OK
+{
+  Type (i) = 0x18,
+  Length (i),
+  Fetch ID (i),
+  Group Order (8),
+  Largest Group ID (i),
+  Largest Object ID (i),
+  Number of Parameters (i),
+  Subscribe Parameters (..) ...
+}
+~~~
+{: #moq-transport-subscribe-ok format title="MOQT FETCH_OK Message"}
+
+* Fetch ID: Fetch Identifier as defined in {{message-fetch}}.
+
+* Group Order: Indicates the fetch will be delivered in
+Ascending (0x1) or Descending (0x2) order by group. See {{priorities}}.
+Values of 0x0 and those larger than 0x2 are a protocol error.
+
+* Largest Group ID: The largest Group ID available for this track. This field
+is only present if ContentExists has a value of 1.
+
+* Largest Object ID: The largest Object ID available within the largest Group ID
+for this track. This field is only present if ContentExists has a value of 1.
+
+* Subscribe Parameters: The parameters are defined in {{version-specific-params}}.
+
+## FETCH_ERROR {#message-fetch-error}
+
+A publisher sends a FETCH_ERROR control message in response to a
+failed FETCH.
+
+~~~
+FETCH_ERROR
+{
+  Type (i) = 0x19,
+  Length (i),
+  Fetch ID (i),
+  Error Code (i),
+  Reason Phrase Length (i),
+  Reason Phrase (..),
+}
+~~~
+{: #moq-transport-subscribe-error format title="MOQT FETCH_ERROR Message"}
+
+* Fetch ID: Subscription Identifier as defined in {{message-subscribe-req}}.
+
+* Error Code: Identifies an integer error code for fetch failure.
+
+* Reason Phrase: Provides the reason for fetch error.
+
+
 ## SUBSCRIBE_DONE {#message-subscribe-done}
 
 A publisher sends a `SUBSCRIBE_DONE` message to indicate it is done publishing
@@ -1880,27 +1938,6 @@ SUBSCRIBE_NAMESPACE_OK
 {: #moq-transport-sub-ns-ok format title="MOQT SUBSCRIBE_NAMESPACE_OK Message"}
 
 * Track Namespace Prefix: As defined in {{message-subscribe-ns}}.
-
-
-## FETCH_ERROR {#message-fetch-error}
-
-A publisher sends a FETCH_ERROR control message in response to a
-failed FETCH;
-
-~~~
-FETCH_ERROR
-{
-  Type (i) = 0x19,
-  Length (i),
-  Fetch ID (i),
-  Error Code (i),
-  [Latest Group ID(i)],
-  [Latest Object ID(i)]
-}
-~~~
-{: #moq-transport-sub-ns-error format title="MOQT FETCH_ERROR Message"}
-
-* Fetch ID: As defined in {{message-fetch-ns}}.
 
 
 ## SUBSCRIBE_NAMESPACE_ERROR {#message-sub-ns-error}
