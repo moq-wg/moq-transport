@@ -605,6 +605,8 @@ Given the critical nature of control messages and their relatively
 small size, the control stream SHOULD be prioritized higher than all
 subscribed Objects.
 
+TODO: Rewrite this section for Fetch without it being too awkward.
+
 The subscriber indicates the priority of a subscription via the
 Subscriber Priority field and the original publisher indicates priority
 in every stream or datagram header.  As such, the subscriber's priority is a
@@ -943,7 +945,11 @@ MOQT Control Message {
 |-------|-----------------------------------------------------|
 | 0x16  | FETCH ({{message-fetch}})                           |
 |-------|-----------------------------------------------------|
-| 0x17  | FETCH_ERROR ({{message-fetch-error}})               |
+| 0x17  | FETCH_CANCEL ({{message-fetch-cancel}})               |
+|-------|-----------------------------------------------------|
+| 0x18  | FETCH_OK ({{message-fetch-ok}})                           |
+|-------|-----------------------------------------------------|
+| 0x19  | FETCH_ERROR ({{message-fetch-error}})               |
 |-------|-----------------------------------------------------|
 | 0x40  | CLIENT_SETUP ({{message-setup}})                    |
 |-------|-----------------------------------------------------|
@@ -1184,7 +1190,7 @@ GOAWAY Message {
 The subscriber specifies a filter on the subscription to allow
 the publisher to identify which objects need to be delivered.
 
-There are 4 types of filters:
+There are 2 types of filters:
 
 Latest Group (0x1) : Specifies an open-ended subscription with objects
 from the beginning of the current group.  If no content has been delivered yet,
@@ -1193,14 +1199,6 @@ the subscription starts with the first published or received group.
 Latest Object (0x2): Specifies an open-ended subscription beginning from
 the current object of the current group.  If no content has been delivered yet,
 the subscription starts with the first published or received group.
-
-AbsoluteStart (0x3):  Specifies an open-ended subscription beginning
-from the object identified in the StartGroup and StartObject fields.
-
-AbsoluteRange (0x4):  Specifies a closed subscription starting at StartObject
-in StartGroup and ending at EndObject in EndGroup.  The start and end of the
-range are inclusive.  EndGroup and EndObject MUST specify the same or a later
-object than StartGroup and StartObject.
 
 A filter type other than the above MUST be treated as error.
 
@@ -1222,10 +1220,6 @@ SUBSCRIBE Message {
   Subscriber Priority (8),
   Group Order (8),
   Filter Type (i),
-  [StartGroup (i),
-   StartObject (i)],
-  [EndGroup (i),
-   EndObject (i)],
   Number of Parameters (i),
   Subscribe Parameters (..) ...
 }
@@ -1358,6 +1352,121 @@ UNSUBSCRIBE Message {
 {: #moq-transport-unsubscribe-format title="MOQT UNSUBSCRIBE Message"}
 
 * Subscribe ID: Subscription Identifier as defined in {{message-subscribe-req}}.
+
+
+## FETCH {#message-fetch}
+
+A subscriber issues a FETCH to a publisher to request a range of already published
+objects within a track. The publisher responding to a FETCH is responsible for
+retrieving all available Objects, and if there are gaps between Objects, it
+indicates these Objects are not avaiable. A fetch MUST NOT omit sending objects
+due to congestion, like a subscription can.
+
+A publisher responds to a FETCH request with either a FETCH_OK or a FETCH_ERROR
+message.  If it responds with FETCH_OK, the publisher creates a new unidirectional
+stream that is used to send the Objects.
+
+The Object Forwarding Preference does not apply to fetches.
+
+There are 2 types of fetches:
+
+AbsoluteStart (0x3):  Specifies an open-ended fetch beginning
+from the object identified in the StartGroup and StartObject fields.
+
+AbsoluteRange (0x4):  Specifies a closed fetch starting at StartObject
+in StartGroup and ending at EndObject in EndGroup.  The start and end of the
+range are inclusive.  EndGroup and EndObject MUST specify the same or a later
+object than StartGroup and StartObject.
+
+A 'Fetch Type' other than the above MUST be treated as error.
+
+The format of FETCH is as follows:
+
+~~~
+FETCH Message {
+  Type (i) = 0x16,
+  Length (i),
+  Subscribe ID (i),
+  Track Namespace (tuple),
+  Track Name Length (i),
+  Track Name (..),
+  Subscriber Priority (8),
+  Group Order (8),
+  Fetch Type (i),
+  StartGroup (i),
+  StartObject (i),
+  [EndGroup (i),
+   EndObject (i)],
+  Number of Parameters (i),
+  Parameters (..) ...
+}
+~~~
+{: #moq-transport-fetch-format title="MOQT FETCH Message"}
+
+* Fetch ID: The Fetch ID identifies a given fetch request. Fetch ID is a 
+variable length integer that MUST be unique and monotonically increasing
+within  a session.
+
+* Track Namespace: Identifies the namespace of the track as defined in
+({{track-name}}).
+
+* Track Name: Identifies the track name as defined in ({{track-name}}).
+
+* Priority: Specifies the priority of a fetch request relative to
+other subscriptions or fetches in the same session. Lower numbers get higher 
+priority. See {{priorities}}.
+
+* Group Order: Allows the subscriber to request Objects be delivered in
+Ascending (0x1) or Descending (0x2) order by group. See {{priorities}}.
+A value of 0x0 indicates the original publisher's Group Order SHOULD be
+used. Values larger than 0x2 are a protocol error.
+
+* Filter Type: Identifies the type of filter, which also indicates whether
+the StartGroup/StartObject fields will be present.
+
+* StartGroup: The start Group ID.
+
+* StartObject: The start Object ID.
+
+* EndGroup: The end Group ID. Only present for the "AbsoluteRange" filter type.
+
+* EndObject: The end Object ID, plus 1. A value of 0 means the entire group is
+requested. Only present for the "AbsoluteRange" filter type.
+
+* Parameters: The parameters are defined in {{version-specific-params}}.
+
+
+Any Objects that are not yet published will not be retrieved by a FETCH.
+The latest available Object is indicated in the FETCH_OK, and is the last
+Object a fetch will return if the 'Fetch Type is AbsoluteStart or if the
+type is AbsoluteRange and the EndGroup and EndObject have not yet been
+published.
+
+If StartGroup/StartObject is greater than the latest published Object group,
+the publisher MUST return FETCH_ERROR with error code 'No Objects'. A publisher
+MUST send fetched objects in ascending order and MUST NOT send objects from
+outside the requested start and end.
+
+
+## FETCH_CANCEL {#message-fetch-cancel}
+
+A subscriber issues a `FETCH_CANCEL` message to a publisher indicating it is no
+longer interested in receiving Objects for the fetch specified by 'Fetch ID'.
+The publisher SHOULD close the unidirectional stream as soon as possible.
+
+The format of `FETCH_CANCEL` is as follows:
+
+~~~
+FETCH_CANCEL Message {
+  Type (i) = 0x17,
+  Length (i),
+  Fetch ID (i)
+}
+~~~
+{: #moq-transport-unsubscribe-format title="MOQT FETCH_CANCEL Message"}
+
+* Fetch ID: Subscription Identifier as defined in {{message-fetch-req}}.
+
 
 ## ANNOUNCE_OK {#message-announce-ok}
 
@@ -1772,6 +1881,28 @@ SUBSCRIBE_NAMESPACE_OK
 
 * Track Namespace Prefix: As defined in {{message-subscribe-ns}}.
 
+
+## FETCH_ERROR {#message-fetch-error}
+
+A publisher sends a FETCH_ERROR control message in response to a
+failed FETCH;
+
+~~~
+FETCH_ERROR
+{
+  Type (i) = 0x19,
+  Length (i),
+  Fetch ID (i),
+  Error Code (i),
+  [Latest Group ID(i)],
+  [Latest Object ID(i)]
+}
+~~~
+{: #moq-transport-sub-ns-error format title="MOQT FETCH_ERROR Message"}
+
+* Fetch ID: As defined in {{message-fetch-ns}}.
+
+
 ## SUBSCRIBE_NAMESPACE_ERROR {#message-sub-ns-error}
 
 A publisher sends a SUBSCRIBE_NAMESPACE_ERROR control message in response to a
@@ -1797,87 +1928,6 @@ failure.
 
 * Reason Phrase: Provides the reason for the namespace subscription error.
 
-
-## Fetch {#message-fetch}
-
-A subscriber issues a FETCH to a publisher to request a range of
-objects within a track.  Any Objects that are not yet published
-will not be retrieved in the FETCH.
-
-A publisher responds to a FETCH request with either a FETCH_OK or
-a FETCH_ERROR message.  If it responds with FETCH_OK, the publisher creates a new
-unidirectional stream that is used to send the Objects.
-
-The object forwarding preference will not apply to fetches.
-
-The format of FETCH is as follows:
-
-~~~
-FETCH Message {
-  Type (i) = 0x16,
-  Length (i),
-  Fetch ID(i),
-  Track Namespace (b),
-  Track Name (b),
-  Fetch Priority (8),
-  StartGroup (i),
-  StartObject (i),
-  EndGroup (i),
-  EndObject (i)
-}
-~~~
-{: #moq-transport-fetch-format title="MOQT FETCH Message"}
-
-* Fetch ID: The Fetch ID identifies a given fetch request. Fetch ID is a 
-variable length integer that MUST be unique and monotonically increasing within 
-a session. Fetch ID is used to correlate the response to a fetch request
-in the data stream.
-
-* Track Namespace: Identifies the namespace of the track as defined in
-({{track-name}}).
-
-* Track Name: Identifies the track name as defined in ({{track-name}}).
-
-* Priority: Specifies the priority of a fetch request relative to
-other subscriptions or fetches in the same session. Lower numbers get higher 
-priority. See {{priorities}}. It is typical of certain implementations to 
-treat fetches to have lower priority than subscriptions to the live data.
-
-* StartGroup: The start Group ID of the requested range.
-
-* StartObject: The start Object ID of the request range.
-
-* EndGroup: The end Group ID of the requested range.
-
-* EndObject: The end Object ID.
-
-
-Fetch specifies a closed subscription starting at StartObject in StartGroup and 
-ending at EndObject in EndGroup. The start and end of the range are inclusive. 
-EndGroup and EndObject MUST specify the same or a later object than StartGroup and 
-StartObject. If StartGroup/EndGroup is greater than the latest group at the 
-publisher, the publisher MUST return FETCH_ERROR. Otherwise the publisher 
-responds with objects from the requested range over a new unidirectional stream.
-
-## FETCH_ERROR {#message-fetch-error}
-
-A publisher sends a FETCH_ERROR control message in response to a
-failed FETCH;
-
-~~~
-FETCH_ERROR
-{
-  Type (i) = 0x13,
-  Length (i),
-  Fetch ID (i),
-  Error Code (i),
-  [Latest Group ID(i)],
-  [Latest Object ID(i)]
-}
-~~~
-{: #moq-transport-sub-ns-error format title="MOQT FETCH_ERROR Message"}
-
-* FETCH_ID: As defined in {{message-subscribe-ns}}.
 
 
 # Data Streams {#data-streams}
