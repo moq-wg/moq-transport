@@ -3167,9 +3167,10 @@ Object a fetch will return if the 'Fetch Type is AbsoluteStart or if the
 type is AbsoluteRange and the EndGroup and EndObject have not yet been
 published.<a href="#section-6.7-11" class="pilcrow">¶</a></p>
 <p id="section-6.7-12">If StartGroup/StartObject is greater than the latest published Object group,
-the publisher <span class="bcp14">MUST</span> return FETCH_ERROR with error code 'No Objects'. A publisher
-<span class="bcp14">MUST</span> send fetched objects in ascending order and <span class="bcp14">MUST NOT</span> send objects from
-outside the requested start and end.<a href="#section-6.7-12" class="pilcrow">¶</a></p>
+the publisher <span class="bcp14">MUST</span> return FETCH_ERROR with error code 'No Objects'.<a href="#section-6.7-12" class="pilcrow">¶</a></p>
+<p id="section-6.7-13">A publisher <span class="bcp14">MUST</span> send fetched groups in group order, either ascending or
+descending. Within each group, objects are sent in Object ID order;
+subgroup ID is not used for ordering.<a href="#section-6.7-13" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="message-fetch-cancel">
