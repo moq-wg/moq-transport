@@ -1372,8 +1372,8 @@ UNSUBSCRIBE Message {
 A subscriber issues a FETCH to a publisher to request a range of already published
 objects within a track. The publisher responding to a FETCH is responsible for
 retrieving all available Objects, and if there are gaps between Objects, it
-indicates these Objects are not avaiable. As a result a fetch does not omit objects
-due to congestion, like a subscription can.
+indicates these Objects are not available. As a result a fetch does not omit objects
+due to congestion.
 
 A publisher responds to a FETCH request with either a FETCH_OK or a FETCH_ERROR
 message.  If it responds with FETCH_OK, the publisher creates a new unidirectional
