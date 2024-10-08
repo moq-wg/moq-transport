@@ -1456,10 +1456,11 @@ type is AbsoluteRange and the EndGroup and EndObject have not yet been
 published.
 
 If StartGroup/StartObject is greater than the latest published Object group,
-the publisher MUST return FETCH_ERROR with error code 'No Objects'. A publisher
-MUST send fetched objects in ascending order and MUST NOT send objects from
-outside the requested start and end.
+the publisher MUST return FETCH_ERROR with error code 'No Objects'.
 
+A publisher MUST send fetched groups in group order, either ascending or
+descending. Within each group, objects are sent in Object ID order;
+subgroup ID is not used for ordering.
 
 ## FETCH_CANCEL {#message-fetch-cancel}
 
