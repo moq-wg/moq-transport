@@ -5,13 +5,13 @@
 Media Over QUIC                                                L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 10 April 2025                                              Meta
+Expires: 11 April 2025                                              Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                          7 October 2024
+                                                          8 October 2024
 
 
                        Media over QUIC Transport
@@ -59,7 +59,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 10 April 2025.
+   This Internet-Draft will expire on 11 April 2025.
 
 Copyright Notice
 
@@ -1466,8 +1466,8 @@ Table of Contents
    already published objects within a track.  The publisher responding
    to a FETCH is responsible for retrieving all available Objects, and
    if there are gaps between Objects, it indicates these Objects are not
-   avaiable.  As a result a fetch does not omit objects due to
-   congestion, like a subscription can.
+   available.  As a result a fetch does not omit objects due to
+   congestion.
 
    A publisher responds to a FETCH request with either a FETCH_OK or a
    FETCH_ERROR message.  If it responds with FETCH_OK, the publisher
