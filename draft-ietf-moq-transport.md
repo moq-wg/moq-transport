@@ -852,6 +852,32 @@ the active subscribers for that track. Relays MUST forward OBJECT messages to
 matching subscribers in accordance to each subscription's priority, group order,
 and delivery timeout.
 
+Limited bandwidth upstream of the relay may result in gaps in the
+sequences of ObjectID values that the relay receives. For example with
+temporal scalable video, if the even and odd objects in a group are in
+separate subgroups with different priorities, then the relay may miss
+many of the objects with an ObjectID that is odd. The upstream publisher
+could also drop objects that had timed out resulting in gaps in the
+ObjectID sequence. Any real time system, which by definition has
+constraints on how late the data can be delivered if it is delivered,
+when running on the limited bandwidth internet is not going to be able
+to guarantee delivery. There are also cases where a publish lost a
+connection to an upstream relay and the then reconnect, where the
+objects can be delivered out of order to the downstream relay. A relay
+can not assume that it will see the first object in a group. Due to
+order of clients joining as well as time outs, a relay may end up only
+seeing the some of the objects in a group. It is possible for a client
+doing scalable video to publish the base layer over cellular, and the
+enhancement layers over WiFi. This could result in some relays getting
+the objects for both layers but other relays might only see one of the
+layer. Object being delivered over unreliable datagrams can also create
+gaps and out of order receiving. What can be assumed is that the objects
+received on a single QUIC stream are in order but may have gaps.  Theses
+reason can also impact whole groups and the relay can not assume that it
+will receive all Groups or that it will see all the earlier Groups in
+the Track.
+
+
 ### Graceful Publisher Network Switchover
 
 This section describes behavior that a publisher MAY
