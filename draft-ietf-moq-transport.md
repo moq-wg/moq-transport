@@ -853,28 +853,28 @@ matching subscribers in accordance to each subscription's priority, group order,
 and delivery timeout.
 
 Limited bandwidth upstream of the relay may result in gaps in the
-sequences of ObjectID values that the relay receives. For example with
-temporal scalable video, if the even and odd objects in a group are in
-separate subgroups with different priorities, then the relay may miss
-many of the objects with an ObjectID that is odd. The upstream publisher
-could also drop objects that had timed out resulting in gaps in the
-ObjectID sequence. Any real time system, which by definition has
+sequences of ObjectID values that the relay receives. For example if
+the even and odd objects in a group are in separate subgroups with different
+priorities, identifying different 2 temporal layers in scalable video codecs,
+then the relay may miss many of the objects with an ObjectID that is odd.
+The upstream publisher could also drop objects or groups that had timed out
+resulting  in gaps. Any real time system, which by definition has
 constraints on how late the data can be delivered if it is delivered,
 when running on the limited bandwidth internet is not going to be able
-to guarantee delivery. There are also cases where a publish lost a
-connection to an upstream relay and the then reconnect, where the
+to guarantee delivery. There are also cases where a publisher lost its
+connection to an upstream relay and then reconnects, in which case
 objects can be delivered out of order to the downstream relay. A relay
-can not assume that it will see the first object in a group. Due to
-order of clients joining as well as time outs, a relay may end up only
+cannot assume that it will see the first object in a group. Due to
+order of clients joining as well as timeouts, a relay may end up only
 seeing the some of the objects in a group. It is possible for a client
 doing scalable video to publish the base layer over cellular, and the
 enhancement layers over WiFi. This could result in some relays getting
 the objects for both layers but other relays might only see one of the
 layer. Object being delivered over unreliable datagrams can also create
-gaps and out of order receiving. What can be assumed is that the objects
-received on a single QUIC stream are in order but may have gaps.  Theses
-reason can also impact whole groups and the relay can not assume that it
-will receive all Groups or that it will see all the earlier Groups in
+gaps and out of order reception. What can be assumed is that the objects
+received on a single QUIC stream are in order but may have gaps.  These
+reasons can also impact whole groups and the relay cannot assume that it
+will receive all groups or that it will see all the earlier groups in
 the Track.
 
 
