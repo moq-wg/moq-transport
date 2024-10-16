@@ -1244,6 +1244,10 @@ SUBSCRIBE Message {
   Subscriber Priority (8),
   Group Order (8),
   Filter Type (i),
+  [StartGroup (i),
+   StartObject (i)],
+  [EndGroup (i),
+   EndObject (i)],
   Number of Parameters (i),
   Subscribe Parameters (..) ...
 }
