@@ -1718,7 +1718,7 @@ SUBSCRIBE_ERROR
 
 ## FETCH_OK {#message-fetch-ok}
 
-A publisher sends a FETCH control message for successful fetches.
+A publisher sends a FETCH_OK control message for successful fetches.
 
 ~~~
 FETCH_OK
