@@ -5,13 +5,13 @@
 Media Over QUIC                                                L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 7 April 2025                                               Meta
+Expires: 19 April 2025                                              Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                          4 October 2024
+                                                         16 October 2024
 
 
                        Media over QUIC Transport
@@ -59,7 +59,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 7 April 2025.
+   This Internet-Draft will expire on 19 April 2025.
 
 Copyright Notice
 
@@ -126,8 +126,8 @@ Table of Contents
      6.8.  ANNOUNCE_ERROR
      6.9.  ANNOUNCE_CANCEL
      6.10. TRACK_STATUS_REQUEST
-     6.11. SUBSCRIBE_ANNOUNCEMENTS
-     6.12. UNSUBSCRIBE_ANNOUNCEMENTS
+     6.11. SUBSCRIBE_ANNOUNCES
+     6.12. UNSUBSCRIBE_ANNOUNCES
      6.13. SUBSCRIBE_OK
      6.14. SUBSCRIBE_ERROR
      6.15. SUBSCRIBE_DONE
@@ -135,8 +135,8 @@ Table of Contents
      6.17. ANNOUNCE
      6.18. UNANNOUNCE
      6.19. TRACK_STATUS
-     6.20. SUBSCRIBE_ANNOUNCEMENTS_OK
-     6.21. SUBSCRIBE_ANNOUNCEMENTS_ERROR
+     6.20. SUBSCRIBE_ANNOUNCES_OK
+     6.21. SUBSCRIBE_ANNOUNCES_ERROR
    7.  Data Streams
      7.1.  Object Headers
        7.1.1.  Canonical Object Fields
@@ -991,51 +991,51 @@ Table of Contents
 
                            Figure 1: MOQT Message
 
-          +======+=============================================+
-          |   ID | Messages                                    |
-          +======+=============================================+
-          |  0x2 | SUBSCRIBE_UPDATE (Section 6.5)              |
-          +------+---------------------------------------------+
-          |  0x3 | SUBSCRIBE (Section 6.4)                     |
-          +------+---------------------------------------------+
-          |  0x4 | SUBSCRIBE_OK (Section 6.13)                 |
-          +------+---------------------------------------------+
-          |  0x5 | SUBSCRIBE_ERROR (Section 6.14)              |
-          +------+---------------------------------------------+
-          |  0x6 | ANNOUNCE (Section 6.17)                     |
-          +------+---------------------------------------------+
-          |  0x7 | ANNOUNCE_OK (Section 6.7)                   |
-          +------+---------------------------------------------+
-          |  0x8 | ANNOUNCE_ERROR (Section 6.8)                |
-          +------+---------------------------------------------+
-          |  0x9 | UNANNOUNCE (Section 6.18)                   |
-          +------+---------------------------------------------+
-          |  0xA | UNSUBSCRIBE (Section 6.6)                   |
-          +------+---------------------------------------------+
-          |  0xB | SUBSCRIBE_DONE (Section 6.15)               |
-          +------+---------------------------------------------+
-          |  0xC | ANNOUNCE_CANCEL (Section 6.9)               |
-          +------+---------------------------------------------+
-          |  0xD | TRACK_STATUS_REQUEST (Section 6.10)         |
-          +------+---------------------------------------------+
-          |  0xE | TRACK_STATUS (Section 6.19)                 |
-          +------+---------------------------------------------+
-          | 0x10 | GOAWAY (Section 6.3)                        |
-          +------+---------------------------------------------+
-          | 0x11 | SUBSCRIBE_ANNOUNCEMENTS (Section 6.11)      |
-          +------+---------------------------------------------+
-          | 0x12 | SUBSCRIBE_ANNOUNCEMENTS_OK (Section 6.20)   |
-          +------+---------------------------------------------+
-          | 0x13 | SUBSCRIBE_ANNOUNCEMENTS_ERROR (Section 6.21 |
-          +------+---------------------------------------------+
-          | 0x14 | UNSUBSCRIBE_ANNOUNCEMENTS (Section 6.12)    |
-          +------+---------------------------------------------+
-          | 0x15 | MAX_SUBSCRIBE_ID (Section 6.16)             |
-          +------+---------------------------------------------+
-          | 0x40 | CLIENT_SETUP (Section 6.2)                  |
-          +------+---------------------------------------------+
-          | 0x41 | SERVER_SETUP (Section 6.2)                  |
-          +------+---------------------------------------------+
+            +======+=========================================+
+            |   ID | Messages                                |
+            +======+=========================================+
+            |  0x2 | SUBSCRIBE_UPDATE (Section 6.5)          |
+            +------+-----------------------------------------+
+            |  0x3 | SUBSCRIBE (Section 6.4)                 |
+            +------+-----------------------------------------+
+            |  0x4 | SUBSCRIBE_OK (Section 6.13)             |
+            +------+-----------------------------------------+
+            |  0x5 | SUBSCRIBE_ERROR (Section 6.14)          |
+            +------+-----------------------------------------+
+            |  0x6 | ANNOUNCE (Section 6.17)                 |
+            +------+-----------------------------------------+
+            |  0x7 | ANNOUNCE_OK (Section 6.7)               |
+            +------+-----------------------------------------+
+            |  0x8 | ANNOUNCE_ERROR (Section 6.8)            |
+            +------+-----------------------------------------+
+            |  0x9 | UNANNOUNCE (Section 6.18)               |
+            +------+-----------------------------------------+
+            |  0xA | UNSUBSCRIBE (Section 6.6)               |
+            +------+-----------------------------------------+
+            |  0xB | SUBSCRIBE_DONE (Section 6.15)           |
+            +------+-----------------------------------------+
+            |  0xC | ANNOUNCE_CANCEL (Section 6.9)           |
+            +------+-----------------------------------------+
+            |  0xD | TRACK_STATUS_REQUEST (Section 6.10)     |
+            +------+-----------------------------------------+
+            |  0xE | TRACK_STATUS (Section 6.19)             |
+            +------+-----------------------------------------+
+            | 0x10 | GOAWAY (Section 6.3)                    |
+            +------+-----------------------------------------+
+            | 0x11 | SUBSCRIBE_ANNOUNCES (Section 6.11)      |
+            +------+-----------------------------------------+
+            | 0x12 | SUBSCRIBE_ANNOUNCES_OK (Section 6.20)   |
+            +------+-----------------------------------------+
+            | 0x13 | SUBSCRIBE_ANNOUNCES_ERROR (Section 6.21 |
+            +------+-----------------------------------------+
+            | 0x14 | UNSUBSCRIBE_ANNOUNCES (Section 6.12)    |
+            +------+-----------------------------------------+
+            | 0x15 | MAX_SUBSCRIBE_ID (Section 6.16)         |
+            +------+-----------------------------------------+
+            | 0x40 | CLIENT_SETUP (Section 6.2)              |
+            +------+-----------------------------------------+
+            | 0x41 | SERVER_SETUP (Section 6.2)              |
+            +------+-----------------------------------------+
 
                                  Table 4
 
@@ -1096,7 +1096,7 @@ Table of Contents
 6.1.1.1.  AUTHORIZATION INFO
 
    AUTHORIZATION INFO parameter (key 0x02) identifies a track's
-   authorization information in a SUBSCRIBE, SUBSCRIBE_ANNOUNCEMENTS or
+   authorization information in a SUBSCRIBE, SUBSCRIBE_ANNOUNCES or
    ANNOUNCE message.  This parameter is populated for cases where the
    authorization is required at the track level.  The value is an ASCII
    string.
@@ -1551,13 +1551,13 @@ Table of Contents
 
                 Figure 11: MOQT TRACK_STATUS_REQUEST Message
 
-6.11.  SUBSCRIBE_ANNOUNCEMENTS
+6.11.  SUBSCRIBE_ANNOUNCES
 
-   The subscriber sends the SUBSCRIBE_ANNOUNCEMENTS control message to a
+   The subscriber sends the SUBSCRIBE_ANNOUNCES control message to a
    publisher to request the current set of matching announcements, as
    well as future updates to the set.
 
-   SUBSCRIBE_ANNOUNCEMENTS Message {
+   SUBSCRIBE_ANNOUNCES Message {
      Type (i) = 0x11,
      Length (i),
      Track Namespace Prefix (tuple),
@@ -1565,49 +1565,49 @@ Table of Contents
      Parameters (..) ...,
    }
 
-              Figure 12: MOQT SUBSCRIBE_ANNOUNCEMENTS Message
+                Figure 12: MOQT SUBSCRIBE_ANNOUNCES Message
 
    *  Track Namespace Prefix: An ordered N-Tuple of byte fields which
       are matched against track namespaces known to the publisher.  For
       example, if the publisher is a relay that has received ANNOUNCE
       messages for namespaces ("example.com", "meeting=123",
       "participant=100") and ("example.com", "meeting=123",
-      "participant=200"), a SUBSCRIBE_ANNOUNCEMENTS for ("example.com",
+      "participant=200"), a SUBSCRIBE_ANNOUNCES for ("example.com",
       "meeting=123") would match both.
 
    *  Parameters: The parameters are defined in Section 6.1.1.
 
-   The publisher will respond with SUBSCRIBE_ANNOUNCEMENTS_OK or
-   SUBSCRIBE_ANNOUNCEMENTS_ERROR.  If the SUBSCRIBE_ANNOUNCEMENTS is
-   successful, the publisher will forward any matching ANNOUNCE messages
-   to the subscriber that it has not yet sent.  If the set of matching
-   ANNOUNCE messages changes, the publisher sends the corresponding
-   ANNOUNCE or UNANNOUNCE message.
+   The publisher will respond with SUBSCRIBE_ANNOUNCES_OK or
+   SUBSCRIBE_ANNOUNCES_ERROR.  If the SUBSCRIBE_ANNOUNCES is successful,
+   the publisher will forward any matching ANNOUNCE messages to the
+   subscriber that it has not yet sent.  If the set of matching ANNOUNCE
+   messages changes, the publisher sends the corresponding ANNOUNCE or
+   UNANNOUNCE message.
 
    A subscriber cannot make overlapping namespace subscriptions on a
    single session.  Within a session, if a publisher receives a
-   SUBSCRIBE_ANNOUNCEMENTS with a Track Namespace Prefix that is a
-   prefix of an earlier SUBSCRIBE_ANNOUNCEMENTS or vice versa, it MUST
-   respond with SUBSCRIBE_ANNOUNCEMENTS_ERROR, with error code
-   SUBSCRIBE_ANNOUNCEMENTS_OVERLAP.
+   SUBSCRIBE_ANNOUNCES with a Track Namespace Prefix that is a prefix of
+   an earlier SUBSCRIBE_ANNOUNCES or vice versa, it MUST respond with
+   SUBSCRIBE_ANNOUNCES_ERROR, with error code
+   SUBSCRIBE_ANNOUNCES_OVERLAP.
 
    The publisher MUST ensure the subscriber is authorized to perform
    this namespace subscription.
 
-   SUBSCRIBE_ANNOUNCEMENTS is not required for a publisher to send
-   ANNOUNCE and UNANNOUNCE messages to a subscriber.  It is useful in
+   SUBSCRIBE_ANNOUNCES is not required for a publisher to send ANNOUNCE
+   and UNANNOUNCE messages to a subscriber.  It is useful in
    applications or relays where subscribers are only interested in or
    authorized to access a subset of available announcements.
 
-6.12.  UNSUBSCRIBE_ANNOUNCEMENTS
+6.12.  UNSUBSCRIBE_ANNOUNCES
 
-   A subscriber issues a UNSUBSCRIBE_ANNOUNCEMENTS message to a
-   publisher indicating it is no longer interested in ANNOUNCE and
-   UNANNOUNCE messages for the specified track namespace prefix.
+   A subscriber issues a UNSUBSCRIBE_ANNOUNCES message to a publisher
+   indicating it is no longer interested in ANNOUNCE and UNANNOUNCE
+   messages for the specified track namespace prefix.
 
-   The format of UNSUBSCRIBE_ANNOUNCEMENTS is as follows:
+   The format of UNSUBSCRIBE_ANNOUNCES is as follows:
 
-   UNSUBSCRIBE_ANNOUNCEMENTS Message {
+   UNSUBSCRIBE_ANNOUNCES Message {
      Type (i) = 0x14,
      Length (i),
      Track Namespace Prefix (tuple)
@@ -1856,28 +1856,28 @@ Table of Contents
    information from the latest arriving message, as they are delivered
    in order on a single stream.
 
-6.20.  SUBSCRIBE_ANNOUNCEMENTS_OK
+6.20.  SUBSCRIBE_ANNOUNCES_OK
 
-   A publisher sends a SUBSCRIBE_ANNOUNCEMENTS_OK control message for
+   A publisher sends a SUBSCRIBE_ANNOUNCES_OK control message for
    successful namespace subscriptions.
 
-   SUBSCRIBE_ANNOUNCEMENTS_OK
+   SUBSCRIBE_ANNOUNCES_OK
    {
      Type (i) = 0x12,
      Length (i),
      Track Namespace Prefix (tuple),
    }
 
-             Figure 21: MOQT SUBSCRIBE_ANNOUNCEMENTS_OK Message
+               Figure 21: MOQT SUBSCRIBE_ANNOUNCES_OK Message
 
    *  Track Namespace Prefix: As defined in Section 6.11.
 
-6.21.  SUBSCRIBE_ANNOUNCEMENTS_ERROR
+6.21.  SUBSCRIBE_ANNOUNCES_ERROR
 
-   A publisher sends a SUBSCRIBE_ANNOUNCEMENTS_ERROR control message in
-   response to a failed SUBSCRIBE_ANNOUNCEMENTS.
+   A publisher sends a SUBSCRIBE_ANNOUNCES_ERROR control message in
+   response to a failed SUBSCRIBE_ANNOUNCES.
 
-   SUBSCRIBE_ANNOUNCEMENTS_ERROR
+   SUBSCRIBE_ANNOUNCES_ERROR
    {
      Type (i) = 0x13,
      Length (i),
@@ -1887,7 +1887,7 @@ Table of Contents
      Reason Phrase (..),
    }
 
-           Figure 22: MOQT SUBSCRIBE_ANNOUNCEMENTS_ERROR Message
+             Figure 22: MOQT SUBSCRIBE_ANNOUNCES_ERROR Message
 
    *  Track Namespace Prefix: As defined in Section 6.11.
 
