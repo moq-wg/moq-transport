@@ -23,7 +23,7 @@ networks and is designed for high scale and low latency distribution.
 <meta content="draft-ietf-moq-transport-latest" name="ietf.draft">
 <!-- Generator version information:
   xml2rfc 3.23.2
-    Python 3.12.6
+    Python 3.12.7
     ConfigArgParse 1.7
     google-i18n-address 3.1.1
     intervaltree 3.1.0
@@ -1037,7 +1037,7 @@ svg :is([fill="white"], [fill^="#fff"]) {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Curley, et al.</td>
-<td class="center">Expires 11 April 2025</td>
+<td class="center">Expires 19 April 2025</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1050,12 +1050,12 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dd class="internet-draft">draft-ietf-moq-transport-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2024-10-08" class="published">8 October 2024</time>
+<time datetime="2024-10-16" class="published">16 October 2024</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2025-04-11">11 April 2025</time></dd>
+<dd class="expires"><time datetime="2025-04-19">19 April 2025</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1127,7 +1127,7 @@ networks and is designed for high scale and low latency distribution.<a href="#s
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 11 April 2025.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 19 April 2025.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -2859,23 +2859,30 @@ compatibility.<a href="#section-6.3-4.1.1" class="pilcrow">¶</a></p>
         <h3 id="name-subscribe">
 <a href="#section-6.4" class="section-number selfRef">6.4. </a><a href="#name-subscribe" class="section-name selfRef">SUBSCRIBE</a>
         </h3>
-<p id="section-6.4-1">A subscription causes the publisher to send newly published objects for a track
-and can start at either the latest Group or latest Object. A subscriber <span class="bcp14">MUST NOT</span>
-make multiple active subscriptions for a track within a single session and
-publishers <span class="bcp14">SHOULD</span> treat this as a protocol violation.<a href="#section-6.4-1" class="pilcrow">¶</a></p>
-<p id="section-6.4-2">There are 2 types of subscriptions:<a href="#section-6.4-2" class="pilcrow">¶</a></p>
-<p id="section-6.4-3">Latest Group (0x1) : Specifies an open-ended subscription with objects
+<p id="section-6.4-1">A subscription causes the publisher to send newly published objects for a track.
+A subscriber <span class="bcp14">MUST NOT</span> make multiple active subscriptions for a track within a
+single session and publishers <span class="bcp14">SHOULD</span> treat this as a protocol violation.<a href="#section-6.4-1" class="pilcrow">¶</a></p>
+<p id="section-6.4-2"><strong>Filter Types</strong><a href="#section-6.4-2" class="pilcrow">¶</a></p>
+<p id="section-6.4-3">The subscriber specifies a filter on the subscription to allow
+the publisher to identify which objects need to be delivered.<a href="#section-6.4-3" class="pilcrow">¶</a></p>
+<p id="section-6.4-4">There are 4 types of filters:<a href="#section-6.4-4" class="pilcrow">¶</a></p>
+<p id="section-6.4-5">Latest Group (0x1) : Specifies an open-ended subscription with objects
 from the beginning of the current group.  If no content has been delivered yet,
-the subscription starts with the first published or received group.<a href="#section-6.4-3" class="pilcrow">¶</a></p>
-<p id="section-6.4-4">Latest Object (0x2): Specifies an open-ended subscription beginning from
+the subscription starts with the first published or received group.<a href="#section-6.4-5" class="pilcrow">¶</a></p>
+<p id="section-6.4-6">Latest Object (0x2): Specifies an open-ended subscription beginning from
 the current object of the current group.  If no content has been delivered yet,
-the subscription starts with the first published or received group.<a href="#section-6.4-4" class="pilcrow">¶</a></p>
-<p id="section-6.4-5">A subscribe type other than the above <span class="bcp14">MUST</span> be treated as error.<a href="#section-6.4-5" class="pilcrow">¶</a></p>
-<p id="section-6.4-6">A subscriber issues a SUBSCRIBE to a publisher to request a track.<a href="#section-6.4-6" class="pilcrow">¶</a></p>
-<p id="section-6.4-7">The format of SUBSCRIBE is as follows:<a href="#section-6.4-7" class="pilcrow">¶</a></p>
+the subscription starts with the first published or received group.<a href="#section-6.4-6" class="pilcrow">¶</a></p>
+<p id="section-6.4-7">AbsoluteStart (0x3):  Specifies an open-ended subscription beginning
+from the object identified in the StartGroup and StartObject fields.<a href="#section-6.4-7" class="pilcrow">¶</a></p>
+<p id="section-6.4-8">AbsoluteRange (0x4):  Specifies a closed subscription starting at StartObject
+in StartGroup and ending at EndObject in EndGroup.  The start and end of the
+range are inclusive.  EndGroup and EndObject <span class="bcp14">MUST</span> specify the same or a later
+object than StartGroup and StartObject.<a href="#section-6.4-8" class="pilcrow">¶</a></p>
+<p id="section-6.4-9">A filter type other than the above <span class="bcp14">MUST</span> be treated as error.<a href="#section-6.4-9" class="pilcrow">¶</a></p>
+<p id="section-6.4-10">The format of SUBSCRIBE is as follows:<a href="#section-6.4-10" class="pilcrow">¶</a></p>
 <span id="name-moqt-subscribe-message"></span><div id="moq-transport-subscribe-format">
 <figure id="figure-5">
-          <div class="alignLeft art-text artwork" id="section-6.4-8.1">
+          <div class="alignLeft art-text artwork" id="section-6.4-11.1">
 <pre>
 SUBSCRIBE Message {
   Type (i) = 0x3,
@@ -2898,67 +2905,67 @@ SUBSCRIBE Message {
           </figcaption></figure>
 </div>
 <ul class="normal">
-<li class="normal" id="section-6.4-9.1">
-            <p id="section-6.4-9.1.1">Subscribe ID: The subscriber specified identifier used to manage a
+<li class="normal" id="section-6.4-12.1">
+            <p id="section-6.4-12.1.1">Subscribe ID: The subscriber specified identifier used to manage a
 subscription. <code>Subscribe ID</code> is a variable length integer that <span class="bcp14">MUST</span> be
 unique and monotonically increasing within a session and <span class="bcp14">MUST</span> be less
-than the session's Maximum Subscribe ID.<a href="#section-6.4-9.1.1" class="pilcrow">¶</a></p>
+than the session's Maximum Subscribe ID.<a href="#section-6.4-12.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-6.4-9.2">
-            <p id="section-6.4-9.2.1">Track Alias: A session specific identifier for the track.
+          <li class="normal" id="section-6.4-12.2">
+            <p id="section-6.4-12.2.1">Track Alias: A session specific identifier for the track.
 Messages that reference a track, such as OBJECT (<a href="#message-object" class="auto internal xref">Section 7.1</a>),
 reference this Track Alias instead of the Track Name and Track Namespace to
 reduce overhead. If the Track Alias is already being used for a different
 track, the publisher <span class="bcp14">MUST</span> close the session with a Duplicate Track Alias
-error (<a href="#session-termination" class="auto internal xref">Section 3.5</a>).<a href="#section-6.4-9.2.1" class="pilcrow">¶</a></p>
+error (<a href="#session-termination" class="auto internal xref">Section 3.5</a>).<a href="#section-6.4-12.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-6.4-9.3">
-            <p id="section-6.4-9.3.1">Track Namespace: Identifies the namespace of the track as defined in
-(<a href="#track-name" class="auto internal xref">Section 2.4.1</a>).<a href="#section-6.4-9.3.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-6.4-12.3">
+            <p id="section-6.4-12.3.1">Track Namespace: Identifies the namespace of the track as defined in
+(<a href="#track-name" class="auto internal xref">Section 2.4.1</a>).<a href="#section-6.4-12.3.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-6.4-9.4">
-            <p id="section-6.4-9.4.1">Track Name: Identifies the track name as defined in (<a href="#track-name" class="auto internal xref">Section 2.4.1</a>).<a href="#section-6.4-9.4.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-6.4-12.4">
+            <p id="section-6.4-12.4.1">Track Name: Identifies the track name as defined in (<a href="#track-name" class="auto internal xref">Section 2.4.1</a>).<a href="#section-6.4-12.4.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-6.4-9.5">
-            <p id="section-6.4-9.5.1">Subscriber Priority: Specifies the priority of a subscription relative to
+          <li class="normal" id="section-6.4-12.5">
+            <p id="section-6.4-12.5.1">Subscriber Priority: Specifies the priority of a subscription relative to
 other subscriptions in the same session. Lower numbers get higher priority.
-See <a href="#priorities" class="auto internal xref">Section 4</a>.<a href="#section-6.4-9.5.1" class="pilcrow">¶</a></p>
+See <a href="#priorities" class="auto internal xref">Section 4</a>.<a href="#section-6.4-12.5.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-6.4-9.6">
-            <p id="section-6.4-9.6.1">Group Order: Allows the subscriber to request Objects be delivered in
+          <li class="normal" id="section-6.4-12.6">
+            <p id="section-6.4-12.6.1">Group Order: Allows the subscriber to request Objects be delivered in
 Ascending (0x1) or Descending (0x2) order by group. See <a href="#priorities" class="auto internal xref">Section 4</a>.
 A value of 0x0 indicates the original publisher's Group Order <span class="bcp14">SHOULD</span> be
-used. Values larger than 0x2 are a protocol error.<a href="#section-6.4-9.6.1" class="pilcrow">¶</a></p>
+used. Values larger than 0x2 are a protocol error.<a href="#section-6.4-12.6.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-6.4-9.7">
-            <p id="section-6.4-9.7.1">Filter Type: Identifies the type of filter, which also indicates whether
-the StartGroup/StartObject and EndGroup/EndObject fields will be present.<a href="#section-6.4-9.7.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-6.4-12.7">
+            <p id="section-6.4-12.7.1">Filter Type: Identifies the type of filter, which also indicates whether
+the StartGroup/StartObject and EndGroup/EndObject fields will be present.<a href="#section-6.4-12.7.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-6.4-9.8">
-            <p id="section-6.4-9.8.1">StartGroup: The start Group ID. Only present for "AbsoluteStart" and
-"AbsoluteRange" filter types.<a href="#section-6.4-9.8.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-6.4-12.8">
+            <p id="section-6.4-12.8.1">StartGroup: The start Group ID. Only present for "AbsoluteStart" and
+"AbsoluteRange" filter types.<a href="#section-6.4-12.8.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-6.4-9.9">
-            <p id="section-6.4-9.9.1">StartObject: The start Object ID. Only present for "AbsoluteStart" and
-"AbsoluteRange" filter types.<a href="#section-6.4-9.9.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-6.4-12.9">
+            <p id="section-6.4-12.9.1">StartObject: The start Object ID. Only present for "AbsoluteStart" and
+"AbsoluteRange" filter types.<a href="#section-6.4-12.9.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-6.4-9.10">
-            <p id="section-6.4-9.10.1">EndGroup: The end Group ID. Only present for the "AbsoluteRange" filter type.<a href="#section-6.4-9.10.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-6.4-12.10">
+            <p id="section-6.4-12.10.1">EndGroup: The end Group ID. Only present for the "AbsoluteRange" filter type.<a href="#section-6.4-12.10.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-6.4-9.11">
-            <p id="section-6.4-9.11.1">EndObject: The end Object ID, plus 1. A value of 0 means the entire group is
-requested. Only present for the "AbsoluteRange" filter type.<a href="#section-6.4-9.11.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-6.4-12.11">
+            <p id="section-6.4-12.11.1">EndObject: The end Object ID, plus 1. A value of 0 means the entire group is
+requested. Only present for the "AbsoluteRange" filter type.<a href="#section-6.4-12.11.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-6.4-9.12">
-            <p id="section-6.4-9.12.1">Subscribe Parameters: The parameters are defined in <a href="#version-specific-params" class="auto internal xref">Section 6.1.1</a>.<a href="#section-6.4-9.12.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-6.4-12.12">
+            <p id="section-6.4-12.12.1">Subscribe Parameters: The parameters are defined in <a href="#version-specific-params" class="auto internal xref">Section 6.1.1</a>.<a href="#section-6.4-12.12.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
-<p id="section-6.4-10">On successful subscription, the publisher <span class="bcp14">MUST</span> reply with a SUBSCRIBE_OK,
+<p id="section-6.4-13">On successful subscription, the publisher <span class="bcp14">MUST</span> reply with a SUBSCRIBE_OK,
 allowing the subscriber to determine the start group/object when not explicitly
-specified and the publisher <span class="bcp14">SHOULD</span> start delivering objects.<a href="#section-6.4-10" class="pilcrow">¶</a></p>
-<p id="section-6.4-11">If a publisher cannot satisfy the requested start or end for the subscription it
-<span class="bcp14">MAY</span> send a SUBSCRIBE_ERROR with code 'Invalid Range'. A publisher <span class="bcp14">MUST NOT</span> send
-objects from outside the requested start and end.<a href="#section-6.4-11" class="pilcrow">¶</a></p>
+specified and the publisher <span class="bcp14">SHOULD</span> start delivering objects.<a href="#section-6.4-13" class="pilcrow">¶</a></p>
+<p id="section-6.4-14">If a publisher cannot satisfy the requested start or end or if the end has
+already been published it <span class="bcp14">SHOULD</span> send a SUBSCRIBE_ERROR with code 'Invalid Range'.
+A publisher <span class="bcp14">MUST NOT</span> send objects from outside the requested start and end.<a href="#section-6.4-14" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="message-subscribe-update-req">
@@ -3080,18 +3087,13 @@ due to congestion.<a href="#section-6.7-1" class="pilcrow">¶</a></p>
 message.  If it responds with FETCH_OK, the publisher creates a new unidirectional
 stream that is used to send the Objects.<a href="#section-6.7-2" class="pilcrow">¶</a></p>
 <p id="section-6.7-3">The Object Forwarding Preference does not apply to fetches.<a href="#section-6.7-3" class="pilcrow">¶</a></p>
-<p id="section-6.7-4">There are 2 types of fetches:<a href="#section-6.7-4" class="pilcrow">¶</a></p>
-<p id="section-6.7-5">AbsoluteStart (0x3):  Specifies an open-ended fetch beginning
-from the object identified in the StartGroup and StartObject fields.<a href="#section-6.7-5" class="pilcrow">¶</a></p>
-<p id="section-6.7-6">AbsoluteRange (0x4):  Specifies a closed fetch starting at StartObject
-in StartGroup and ending at EndObject in EndGroup.  The start and end of the
-range are inclusive.  EndGroup and EndObject <span class="bcp14">MUST</span> specify the same or a later
-object than StartGroup and StartObject.<a href="#section-6.7-6" class="pilcrow">¶</a></p>
-<p id="section-6.7-7">A 'Fetch Type' other than the above <span class="bcp14">MUST</span> be treated as error.<a href="#section-6.7-7" class="pilcrow">¶</a></p>
-<p id="section-6.7-8">The format of FETCH is as follows:<a href="#section-6.7-8" class="pilcrow">¶</a></p>
+<p id="section-6.7-4">Fetch specifies an inclusive range of Objects starting at StartObject
+in StartGroup and ending at EndObject in EndGroup. EndGroup and EndObject <span class="bcp14">MUST</span>
+specify the same or a later object than StartGroup and StartObject.<a href="#section-6.7-4" class="pilcrow">¶</a></p>
+<p id="section-6.7-5">The format of FETCH is as follows:<a href="#section-6.7-5" class="pilcrow">¶</a></p>
 <span id="name-moqt-fetch-message"></span><div id="moq-transport-fetch-format">
 <figure id="figure-8">
-          <div class="alignLeft art-text artwork" id="section-6.7-9.1">
+          <div class="alignLeft art-text artwork" id="section-6.7-6.1">
 <pre>
 FETCH Message {
   Type (i) = 0x16,
@@ -3102,7 +3104,6 @@ FETCH Message {
   Track Name (..),
   Subscriber Priority (8),
   Group Order (8),
-  Fetch Type (i),
   StartGroup (i),
   StartObject (i),
   [EndGroup (i),
@@ -3117,60 +3118,56 @@ FETCH Message {
           </figcaption></figure>
 </div>
 <ul class="normal">
-<li class="normal" id="section-6.7-10.1">
-            <p id="section-6.7-10.1.1">Fetch ID: The Fetch ID identifies a given fetch request. Fetch ID is a
-variable length integer that <span class="bcp14">MUST</span> be unique and monotonically increasing
-within  a session.<a href="#section-6.7-10.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-6.7-7.1">
+            <p id="section-6.7-7.1.1">Subscribe ID: The Subscribe ID identifies a given fetch request. Subscribe ID
+is a variable length integer that <span class="bcp14">MUST</span> be unique and monotonically increasing
+within  a session.<a href="#section-6.7-7.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-6.7-10.2">
-            <p id="section-6.7-10.2.1">Track Namespace: Identifies the namespace of the track as defined in
-(<a href="#track-name" class="auto internal xref">Section 2.4.1</a>).<a href="#section-6.7-10.2.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-6.7-7.2">
+            <p id="section-6.7-7.2.1">Track Namespace: Identifies the namespace of the track as defined in
+(<a href="#track-name" class="auto internal xref">Section 2.4.1</a>).<a href="#section-6.7-7.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-6.7-10.3">
-            <p id="section-6.7-10.3.1">Track Name: Identifies the track name as defined in (<a href="#track-name" class="auto internal xref">Section 2.4.1</a>).<a href="#section-6.7-10.3.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-6.7-7.3">
+            <p id="section-6.7-7.3.1">Track Name: Identifies the track name as defined in (<a href="#track-name" class="auto internal xref">Section 2.4.1</a>).<a href="#section-6.7-7.3.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-6.7-10.4">
-            <p id="section-6.7-10.4.1">Priority: Specifies the priority of a fetch request relative to
+          <li class="normal" id="section-6.7-7.4">
+            <p id="section-6.7-7.4.1">Priority: Specifies the priority of a fetch request relative to
 other subscriptions or fetches in the same session. Lower numbers get higher
-priority. See <a href="#priorities" class="auto internal xref">Section 4</a>.<a href="#section-6.7-10.4.1" class="pilcrow">¶</a></p>
+priority. See <a href="#priorities" class="auto internal xref">Section 4</a>.<a href="#section-6.7-7.4.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-6.7-10.5">
-            <p id="section-6.7-10.5.1">Group Order: Allows the subscriber to request Objects be delivered in
+          <li class="normal" id="section-6.7-7.5">
+            <p id="section-6.7-7.5.1">Group Order: Allows the subscriber to request Objects be delivered in
 Ascending (0x1) or Descending (0x2) order by group. See <a href="#priorities" class="auto internal xref">Section 4</a>.
 A value of 0x0 indicates the original publisher's Group Order <span class="bcp14">SHOULD</span> be
-used. Values larger than 0x2 are a protocol error.<a href="#section-6.7-10.5.1" class="pilcrow">¶</a></p>
+used. Values larger than 0x2 are a protocol error.<a href="#section-6.7-7.5.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-6.7-10.6">
-            <p id="section-6.7-10.6.1">Filter Type: Identifies the type of filter, which also indicates whether
-the StartGroup/StartObject fields will be present.<a href="#section-6.7-10.6.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-6.7-7.6">
+            <p id="section-6.7-7.6.1">StartGroup: The start Group ID.<a href="#section-6.7-7.6.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-6.7-10.7">
-            <p id="section-6.7-10.7.1">StartGroup: The start Group ID.<a href="#section-6.7-10.7.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-6.7-7.7">
+            <p id="section-6.7-7.7.1">StartObject: The start Object ID.<a href="#section-6.7-7.7.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-6.7-10.8">
-            <p id="section-6.7-10.8.1">StartObject: The start Object ID.<a href="#section-6.7-10.8.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-6.7-7.8">
+            <p id="section-6.7-7.8.1">EndGroup: The end Group ID.<a href="#section-6.7-7.8.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-6.7-10.9">
-            <p id="section-6.7-10.9.1">EndGroup: The end Group ID. Only present for the "AbsoluteRange" filter type.<a href="#section-6.7-10.9.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-6.7-7.9">
+            <p id="section-6.7-7.9.1">EndObject: The end Object ID, plus 1. A value of 0 means the entire group is
+requested.<a href="#section-6.7-7.9.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-6.7-10.10">
-            <p id="section-6.7-10.10.1">EndObject: The end Object ID, plus 1. A value of 0 means the entire group is
-requested. Only present for the "AbsoluteRange" filter type.<a href="#section-6.7-10.10.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="section-6.7-10.11">
-            <p id="section-6.7-10.11.1">Parameters: The parameters are defined in <a href="#version-specific-params" class="auto internal xref">Section 6.1.1</a>.<a href="#section-6.7-10.11.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-6.7-7.10">
+            <p id="section-6.7-7.10.1">Parameters: The parameters are defined in <a href="#version-specific-params" class="auto internal xref">Section 6.1.1</a>.<a href="#section-6.7-7.10.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
-<p id="section-6.7-11">Any Objects that are not yet published will not be retrieved by a FETCH.
+<p id="section-6.7-8">Any Objects that are not yet published will not be retrieved by a FETCH.
 The latest available Object is indicated in the FETCH_OK, and is the last
 Object a fetch will return if the 'Fetch Type is AbsoluteStart or if the
 type is AbsoluteRange and the EndGroup and EndObject have not yet been
-published.<a href="#section-6.7-11" class="pilcrow">¶</a></p>
-<p id="section-6.7-12">If StartGroup/StartObject is greater than the latest published Object group,
-the publisher <span class="bcp14">MUST</span> return FETCH_ERROR with error code 'No Objects'.<a href="#section-6.7-12" class="pilcrow">¶</a></p>
-<p id="section-6.7-13">A publisher <span class="bcp14">MUST</span> send fetched groups in group order, either ascending or
+published.<a href="#section-6.7-8" class="pilcrow">¶</a></p>
+<p id="section-6.7-9">If StartGroup/StartObject is greater than the latest published Object group,
+the publisher <span class="bcp14">MUST</span> return FETCH_ERROR with error code 'No Objects'.<a href="#section-6.7-9" class="pilcrow">¶</a></p>
+<p id="section-6.7-10">A publisher <span class="bcp14">MUST</span> send fetched groups in group order, either ascending or
 descending. Within each group, objects are sent in Object ID order;
-subgroup ID is not used for ordering.<a href="#section-6.7-13" class="pilcrow">¶</a></p>
+subgroup ID is not used for ordering.<a href="#section-6.7-10" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="message-fetch-cancel">
@@ -3179,7 +3176,7 @@ subgroup ID is not used for ordering.<a href="#section-6.7-13" class="pilcrow">�
 <a href="#section-6.8" class="section-number selfRef">6.8. </a><a href="#name-fetch_cancel" class="section-name selfRef">FETCH_CANCEL</a>
         </h3>
 <p id="section-6.8-1">A subscriber issues a <code>FETCH_CANCEL</code> message to a publisher indicating it is no
-longer interested in receiving Objects for the fetch specified by 'Fetch ID'.
+longer interested in receiving Objects for the fetch specified by 'Subscribe ID'.
 The publisher <span class="bcp14">SHOULD</span> close the unidirectional stream as soon as possible.<a href="#section-6.8-1" class="pilcrow">¶</a></p>
 <p id="section-6.8-2">The format of <code>FETCH_CANCEL</code> is as follows:<a href="#section-6.8-2" class="pilcrow">¶</a></p>
 <span id="name-moqt-fetch_cancel-message"></span><div id="moq-transport-fetch-cancel">
@@ -3189,7 +3186,7 @@ The publisher <span class="bcp14">SHOULD</span> close the unidirectional stream 
 FETCH_CANCEL Message {
   Type (i) = 0x17,
   Length (i),
-  Fetch ID (i)
+  Subscribe ID (i)
 }
 </pre>
 </div>
@@ -3199,7 +3196,7 @@ FETCH_CANCEL Message {
 </div>
 <ul class="normal">
 <li class="normal" id="section-6.8-4.1">
-            <p id="section-6.8-4.1.1">Fetch ID: Subscription Identifier as defined in <a href="#message-fetch" class="auto internal xref">Section 6.7</a>.<a href="#section-6.8-4.1.1" class="pilcrow">¶</a></p>
+            <p id="section-6.8-4.1.1">Subscribe ID: Subscription Identifier as defined in <a href="#message-fetch" class="auto internal xref">Section 6.7</a>.<a href="#section-6.8-4.1.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
@@ -3557,7 +3554,7 @@ FETCH_OK
 {
   Type (i) = 0x18,
   Length (i),
-  Fetch ID (i),
+  Subscribe ID (i),
   Group Order (8),
   End Of Track (8),
   Largest Group ID (i),
@@ -3573,7 +3570,7 @@ FETCH_OK
 </div>
 <ul class="normal">
 <li class="normal" id="section-6.17-3.1">
-            <p id="section-6.17-3.1.1">Fetch ID: Fetch Identifier as defined in <a href="#message-fetch" class="auto internal xref">Section 6.7</a>.<a href="#section-6.17-3.1.1" class="pilcrow">¶</a></p>
+            <p id="section-6.17-3.1.1">Subscribe ID: Fetch Identifier as defined in <a href="#message-fetch" class="auto internal xref">Section 6.7</a>.<a href="#section-6.17-3.1.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-6.17-3.2">
             <p id="section-6.17-3.2.1">Group Order: Indicates the fetch will be delivered in
@@ -3614,7 +3611,7 @@ FETCH_ERROR
 {
   Type (i) = 0x19,
   Length (i),
-  Fetch ID (i),
+  Subscribe ID (i),
   Error Code (i),
   Reason Phrase Length (i),
   Reason Phrase (..),
@@ -3627,7 +3624,7 @@ FETCH_ERROR
 </div>
 <ul class="normal">
 <li class="normal" id="section-6.18-3.1">
-            <p id="section-6.18-3.1.1">Fetch ID: Subscription Identifier as defined in <a href="#message-subscribe-req" class="auto internal xref">Section 6.4</a>.<a href="#section-6.18-3.1.1" class="pilcrow">¶</a></p>
+            <p id="section-6.18-3.1.1">Subscribe ID: Subscription Identifier as defined in <a href="#message-subscribe-req" class="auto internal xref">Section 6.4</a>.<a href="#section-6.18-3.1.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-6.18-3.2">
             <p id="section-6.18-3.2.1">Error Code: Identifies an integer error code for fetch failure.<a href="#section-6.18-3.2.1" class="pilcrow">¶</a></p>
@@ -4216,13 +4213,13 @@ previously sent Object ID within a given group in that stream.<a href="#section-
 <a href="#section-7.3.3" class="section-number selfRef">7.3.3. </a><a href="#name-fetch-header" class="section-name selfRef">Fetch Header</a>
           </h4>
 <p id="section-7.3.3-1">When a stream begins with <code>FETCH_HEADER</code>, all objects on the stream belong to the
-track requested in the Fetch message identified by <code>Fetch ID</code>.<a href="#section-7.3.3-1" class="pilcrow">¶</a></p>
+track requested in the Fetch message identified by <code>Subscribe ID</code>.<a href="#section-7.3.3-1" class="pilcrow">¶</a></p>
 <span id="name-moqt-fetch_header-message"></span><div id="fetch-header-format">
 <figure id="figure-32">
             <div class="alignLeft art-text artwork" id="section-7.3.3-2.1">
 <pre>
 FETCH_HEADER Message {
-  Fetch ID (i),
+  Subscribe ID (i),
   Publisher Priority (8),
 }
 </pre>
