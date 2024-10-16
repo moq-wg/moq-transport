@@ -3079,10 +3079,9 @@ UNSUBSCRIBE Message {
 <a href="#section-6.7" class="section-number selfRef">6.7. </a><a href="#name-fetch" class="section-name selfRef">FETCH</a>
         </h3>
 <p id="section-6.7-1">A subscriber issues a FETCH to a publisher to request a range of already published
-objects within a track. The publisher responding to a FETCH is responsible for
-retrieving all available Objects, and if there are gaps between Objects, it
-indicates these Objects are not available. As a result a fetch does not omit objects
-due to congestion.<a href="#section-6.7-1" class="pilcrow">¶</a></p>
+objects within a track. The publisher responding to a FETCH is responsible for retrieving
+all available Objects. If there are gaps between Objects, the publisher omits them from the
+fetch response. All omitted objects have status Object Not Available.<a href="#section-6.7-1" class="pilcrow">¶</a></p>
 <p id="section-6.7-2">A publisher responds to a FETCH request with either a FETCH_OK or a FETCH_ERROR
 message.  If it responds with FETCH_OK, the publisher creates a new unidirectional
 stream that is used to send the Objects.<a href="#section-6.7-2" class="pilcrow">¶</a></p>
