@@ -1817,7 +1817,7 @@ Table of Contents
 
 6.17.  FETCH_OK
 
-   A publisher sends a FETCH control message for successful fetches.
+   A publisher sends a FETCH_OK control message for successful fetches.
 
    FETCH_OK
    {
