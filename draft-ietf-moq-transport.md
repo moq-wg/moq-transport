@@ -1248,7 +1248,7 @@ SUBSCRIBE Message {
   Filter Type (i),
   [StartGroup (i),
    StartObject (i)],
-  Group (i),
+  [EndGroup (i),
    EndObject (i)],
   Number of Parameters (i),
   Subscribe Parameters (..) ...
