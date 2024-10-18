@@ -1986,6 +1986,63 @@ The Object Status field is only sent if the Object Payload Length is zero.
 A publisher MUST NOT send an Object on a stream if its Object ID is less than a
 previously sent Object ID within a given group in that stream.
 
+### Closing Subgroup Streams
+
+Subscribers will often need to know if they have received all objects in a
+Subgroup, particularly if they serve as a relay or cache. QUIC and Webtransport
+streams provide signals that can be used for this purpose. Closing Subgroups
+promptly frees system resources and often unlocks flow control credit to open
+more streams.
+
+If a sender has delivered all objects in a Subgroup, except any objects that
+fall before the beginning of a subscription, it MUST close the stream
+with a FIN.
+
+If a sender closes the stream before verifying it has delivered all such
+objects when it , it MUST use a RESET_STREAM or RESET_STREAM_AT
+{{!I-D.draft-ietf-quic-reliable-stream-reset}} frame. This includes early
+termination of subscription due to an UNSUBSCRIBE message, a sender's
+decision to abandon the subscription before the Group is complete, or a
+SUBSCRIBE_UPDATE moving the end of the subscription to before the current
+Group.
+
+If a sender does not deliver any objects from a Subgroup of a subscribed Group,
+it MAY send a STREAM_HEADER_SUBGROUP on a new data stream, with no objects, and
+then send RESET_STREAM_AT with a reliable_size equivalent to the length of the
+stream header. This would explicitly tell the receiver that there are unsent
+Subgroups in the Group.
+
+Since SUBSCRIBEs always end on a group boundary [TODO: Update SUBSCRIBE to
+express this], an ending subscription can always cleanly close all its
+subgroups. A sender that terminates a stream early for any other reason (e.g.,
+to handoff to a different sender MUST use RESET_STREAM or RESET_STREAM_AT.
+Senders SHOULD terminate a stream on Group boundaries to avoid doing so.
+
+An Original Publisher MAY create EndOfSubgroup objects to provide further
+indication that streams are OK to close.
+
+[TODO: Do we still need EndOfSubgroup objects?]
+
+An MoQT implementation that processes a stream FIN is assured it has received
+all objects in a subgroup from the start of the subscription. If a relay, it
+can forward stream FINs to its own subscribers once those objects have been
+sent. A relay MAY use EndOfGroup, EndOfSubgroup, GroupDoesNotExist, and
+EndOfTrack objects to close streams even if the FIN has not arrived, as further
+objects on the stream would be a protocol violation.
+
+Processing a RESET_STREAM or RESET_STREAM_AT means that there might be other
+objects in the Subgroup beyond the last one received. A relay might immediately
+reset the corresponding downstream stream, or it might attempt to recover the
+missing Objects in an effort to send FIN, presumably with some timeout. It also
+might send RESET_STREAM_AT with reliable_size set to the last object it has, so
+as to reliably deliver the objects it has while signaling that other objects
+exist.
+
+A relay MAY also use EndOfGroup messages in a Subgroup stream to close streams
+for other Subgroups in that Group, if it has received all Object IDs between the
+highest Object ID in the subject Subgroup and the EndOfGroup object. This may be
+complex to implement.
+
 ## Examples
 
 Sending a track on one stream:
