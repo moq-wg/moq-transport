@@ -2178,7 +2178,6 @@ track requested in the Fetch message identified by `Subscribe ID`.
 ~~~
 FETCH_HEADER Message {
   Subscribe ID (i),
-  Publisher Priority (8),
 }
 ~~~
 {: #fetch-header-format title="MOQT FETCH_HEADER Message"}
