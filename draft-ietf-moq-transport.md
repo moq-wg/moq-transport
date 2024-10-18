@@ -2182,7 +2182,8 @@ FETCH_HEADER Message {
 
 When a publisher sends objects in response to a FETCH request, it finds the
 stream that is associated with the fetch request, or opens a new one and sends
-the `FETCH_HEADER`, and then serializes the following object fields.
+the `FETCH_HEADER`, and then serializes the following object fields. Each object
+sent on a fetch stream after the header has the following format:
 
 The Object Status field is only sent if the Object Payload Length is zero.
 
