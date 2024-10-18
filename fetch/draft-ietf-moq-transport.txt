@@ -2272,7 +2272,6 @@ Table of Contents
 
    FETCH_HEADER Message {
      Subscribe ID (i),
-     Publisher Priority (8),
    }
 
                     Figure 30: MOQT FETCH_HEADER Message
