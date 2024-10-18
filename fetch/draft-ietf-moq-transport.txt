@@ -689,7 +689,9 @@ Table of Contents
    small size, the control stream SHOULD be prioritized higher than all
    subscribed Objects.
 
-   TODO: Rewrite this section for Fetch without it being too awkward.
+   Both SUBSCRIBE and FETCH messages indicate a subscriber priority and
+   group order, so the following text applies equally to both types of
+   subscriptions.
 
    The subscriber indicates the priority of a subscription via the
    Subscriber Priority field and the original publisher indicates
@@ -1332,7 +1334,7 @@ Table of Contents
      Filter Type (i),
      [StartGroup (i),
       StartObject (i)],
-     [EndGroup (i),
+     Group (i),
       EndObject (i)],
      Number of Parameters (i),
      Subscribe Parameters (..) ...
@@ -1507,8 +1509,8 @@ Table of Contents
      Group Order (8),
      StartGroup (i),
      StartObject (i),
-     [EndGroup (i),
-      EndObject (i)],
+     EndGroup (i),
+     EndObject (i),
      Number of Parameters (i),
      Parameters (..) ...
    }
@@ -1525,9 +1527,9 @@ Table of Contents
    *  Track Name: Identifies the track name as defined in
       (Section 2.4.1).
 
-   *  Priority: Specifies the priority of a fetch request relative to
-      other subscriptions or fetches in the same session.  Lower numbers
-      get higher priority.  See Section 4.
+   *  Subscriber Priority: Specifies the priority of a fetch request
+      relative to other subscriptions or fetches in the same session.
+      Lower numbers get higher priority.  See Section 4.
 
    *  Group Order: Allows the subscriber to request Objects be delivered
       in Ascending (0x1) or Descending (0x2) order by group.  See
@@ -1546,11 +1548,10 @@ Table of Contents
 
    *  Parameters: The parameters are defined in Section 6.1.1.
 
-   Any Objects that are not yet published will not be retrieved by a
-   FETCH.  The latest available Object is indicated in the FETCH_OK, and
-   is the last Object a fetch will return if the 'Fetch Type is
-   AbsoluteStart or if the type is AbsoluteRange and the EndGroup and
-   EndObject have not yet been published.
+   Objects that are not yet published will not be retrieved by a FETCH.
+   The latest available Object is indicated in the FETCH_OK, and is the
+   last Object a fetch will return if the EndGroup and EndObject have
+   not yet been published.
 
    If StartGroup/StartObject is greater than the latest published Object
    group, the publisher MUST return FETCH_ERROR with error code 'No
@@ -1816,7 +1817,10 @@ Table of Contents
 
 6.17.  FETCH_OK
 
-   A publisher sends a FETCH_OK control message for successful fetches.
+   A publisher sends a FETCH_OK control message in response to
+   successful fetches.  A publisher MAY send Objects in response to a
+   FETCH before the FETCH_OK message is sent, but the FETCH_OK MUST NOT
+   be sent until the latest group and object are known.
 
    FETCH_OK
    {
@@ -2279,7 +2283,9 @@ Table of Contents
 
    {
      Group ID (i),
+     Subgroup ID (i),
      Object ID (i),
+     Publisher Priority (8),
      Object Payload Length (i),
      [Object Status (i)],
      Object Payload (..),

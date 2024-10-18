@@ -2117,7 +2117,9 @@ congestion.<a href="#section-4-1" class="pilcrow">¶</a></p>
 <p id="section-4-2">Given the critical nature of control messages and their relatively
 small size, the control stream <span class="bcp14">SHOULD</span> be prioritized higher than all
 subscribed Objects.<a href="#section-4-2" class="pilcrow">¶</a></p>
-<p id="section-4-3">TODO: Rewrite this section for Fetch without it being too awkward.<a href="#section-4-3" class="pilcrow">¶</a></p>
+<p id="section-4-3">Both SUBSCRIBE and FETCH messages indicate a subscriber priority and
+group order, so the following text applies equally to both types of
+subscriptions.<a href="#section-4-3" class="pilcrow">¶</a></p>
 <p id="section-4-4">The subscriber indicates the priority of a subscription via the
 Subscriber Priority field and the original publisher indicates priority
 in every stream or datagram header.  As such, the subscriber's priority is a
@@ -2894,7 +2896,7 @@ SUBSCRIBE Message {
   Filter Type (i),
   [StartGroup (i),
    StartObject (i)],
-  [EndGroup (i),
+  Group (i),
    EndObject (i)],
   Number of Parameters (i),
   Subscribe Parameters (..) ...
@@ -3106,8 +3108,8 @@ FETCH Message {
   Group Order (8),
   StartGroup (i),
   StartObject (i),
-  [EndGroup (i),
-   EndObject (i)],
+  EndGroup (i),
+  EndObject (i),
   Number of Parameters (i),
   Parameters (..) ...
 }
@@ -3131,7 +3133,7 @@ within  a session.<a href="#section-6.7-7.1.1" class="pilcrow">¶</a></p>
             <p id="section-6.7-7.3.1">Track Name: Identifies the track name as defined in (<a href="#track-name" class="auto internal xref">Section 2.4.1</a>).<a href="#section-6.7-7.3.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-6.7-7.4">
-            <p id="section-6.7-7.4.1">Priority: Specifies the priority of a fetch request relative to
+            <p id="section-6.7-7.4.1">Subscriber Priority: Specifies the priority of a fetch request relative to
 other subscriptions or fetches in the same session. Lower numbers get higher
 priority. See <a href="#priorities" class="auto internal xref">Section 4</a>.<a href="#section-6.7-7.4.1" class="pilcrow">¶</a></p>
 </li>
@@ -3158,10 +3160,9 @@ requested.<a href="#section-6.7-7.9.1" class="pilcrow">¶</a></p>
             <p id="section-6.7-7.10.1">Parameters: The parameters are defined in <a href="#version-specific-params" class="auto internal xref">Section 6.1.1</a>.<a href="#section-6.7-7.10.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
-<p id="section-6.7-8">Any Objects that are not yet published will not be retrieved by a FETCH.
+<p id="section-6.7-8">Objects that are not yet published will not be retrieved by a FETCH.
 The latest available Object is indicated in the FETCH_OK, and is the last
-Object a fetch will return if the 'Fetch Type is AbsoluteStart or if the
-type is AbsoluteRange and the EndGroup and EndObject have not yet been
+Object a fetch will return if the EndGroup and EndObject have not yet been
 published.<a href="#section-6.7-8" class="pilcrow">¶</a></p>
 <p id="section-6.7-9">If StartGroup/StartObject is greater than the latest published Object group,
 the publisher <span class="bcp14">MUST</span> return FETCH_ERROR with error code 'No Objects'.<a href="#section-6.7-9" class="pilcrow">¶</a></p>
@@ -3545,7 +3546,9 @@ the subscriber <span class="bcp14">MUST</span> close the connection with a Dupli
         <h3 id="name-fetch_ok">
 <a href="#section-6.17" class="section-number selfRef">6.17. </a><a href="#name-fetch_ok" class="section-name selfRef">FETCH_OK</a>
         </h3>
-<p id="section-6.17-1">A publisher sends a FETCH_OK control message for successful fetches.<a href="#section-6.17-1" class="pilcrow">¶</a></p>
+<p id="section-6.17-1">A publisher sends a FETCH_OK control message in response to successful fetches.
+A publisher <span class="bcp14">MAY</span> send Objects in response to a FETCH before the FETCH_OK message is sent,
+but the FETCH_OK <span class="bcp14">MUST NOT</span> be sent until the latest group and object are known.<a href="#section-6.17-1" class="pilcrow">¶</a></p>
 <span id="name-moqt-fetch_ok-message"></span><div id="moq-transport-fetch-ok">
 <figure id="figure-18">
           <div class="alignLeft art-text artwork" id="section-6.17-2.1">
@@ -4183,7 +4186,9 @@ the <code>FETCH_HEADER</code>, and then serializes the following object fields.<
 <pre>
 {
   Group ID (i),
+  Subgroup ID (i),
   Object ID (i),
+  Publisher Priority (8),
   Object Payload Length (i),
   [Object Status (i)],
   Object Payload (..),
