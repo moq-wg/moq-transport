@@ -4178,7 +4178,8 @@ FETCH_HEADER Message {
 </div>
 <p id="section-7.3.2-3">When a publisher sends objects in response to a FETCH request, it finds the
 stream that is associated with the fetch request, or opens a new one and sends
-the <code>FETCH_HEADER</code>, and then serializes the following object fields.<a href="#section-7.3.2-3" class="pilcrow">¶</a></p>
+the <code>FETCH_HEADER</code>, and then serializes the following object fields. Each object
+sent on a fetch stream after the header has the following format:<a href="#section-7.3.2-3" class="pilcrow">¶</a></p>
 <p id="section-7.3.2-4">The Object Status field is only sent if the Object Payload Length is zero.<a href="#section-7.3.2-4" class="pilcrow">¶</a></p>
 <span id="name-moqt-fetch-object-fields"></span><div id="object-fetch-format">
 <figure id="figure-31">
