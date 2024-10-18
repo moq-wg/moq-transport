@@ -621,7 +621,9 @@ Given the critical nature of control messages and their relatively
 small size, the control stream SHOULD be prioritized higher than all
 subscribed Objects.
 
-TODO: Rewrite this section for Fetch without it being too awkward.
+Both SUBSCRIBE and FETCH messages indicate a subscriber priority and
+group order, so the following text applies equally to both types of
+subscriptions.
 
 The subscriber indicates the priority of a subscription via the
 Subscriber Priority field and the original publisher indicates priority
@@ -1246,7 +1248,7 @@ SUBSCRIBE Message {
   Filter Type (i),
   [StartGroup (i),
    StartObject (i)],
-  [EndGroup (i),
+  Group (i),
    EndObject (i)],
   Number of Parameters (i),
   Subscribe Parameters (..) ...
@@ -1412,8 +1414,8 @@ FETCH Message {
   Group Order (8),
   StartGroup (i),
   StartObject (i),
-  [EndGroup (i),
-   EndObject (i)],
+  EndGroup (i),
+  EndObject (i),
   Number of Parameters (i),
   Parameters (..) ...
 }
@@ -1429,7 +1431,7 @@ within  a session.
 
 * Track Name: Identifies the track name as defined in ({{track-name}}).
 
-* Priority: Specifies the priority of a fetch request relative to
+* Subscriber Priority: Specifies the priority of a fetch request relative to
 other subscriptions or fetches in the same session. Lower numbers get higher
 priority. See {{priorities}}.
 
@@ -1450,10 +1452,9 @@ requested.
 * Parameters: The parameters are defined in {{version-specific-params}}.
 
 
-Any Objects that are not yet published will not be retrieved by a FETCH.
+Objects that are not yet published will not be retrieved by a FETCH.
 The latest available Object is indicated in the FETCH_OK, and is the last
-Object a fetch will return if the 'Fetch Type is AbsoluteStart or if the
-type is AbsoluteRange and the EndGroup and EndObject have not yet been
+Object a fetch will return if the EndGroup and EndObject have not yet been
 published.
 
 If StartGroup/StartObject is greater than the latest published Object group,
@@ -1718,7 +1719,9 @@ SUBSCRIBE_ERROR
 
 ## FETCH_OK {#message-fetch-ok}
 
-A publisher sends a FETCH_OK control message for successful fetches.
+A publisher sends a FETCH_OK control message in response to successful fetches.
+A publisher MAY send Objects in response to a FETCH before the FETCH_OK message is sent,
+but the FETCH_OK MUST NOT be sent until the latest group and object are known.
 
 ~~~
 FETCH_OK
@@ -2186,7 +2189,9 @@ The Object Status field is only sent if the Object Payload Length is zero.
 ~~~
 {
   Group ID (i),
+  Subgroup ID (i),
   Object ID (i),
+  Publisher Priority (8),
   Object Payload Length (i),
   [Object Status (i)],
   Object Payload (..),
