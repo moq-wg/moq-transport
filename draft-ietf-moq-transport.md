@@ -1457,6 +1457,10 @@ The latest available Object is indicated in the FETCH_OK, and is the last
 Object a fetch will return if the EndGroup and EndObject have not yet been
 published.
 
+A publisher MUST send fetched groups in the determined group order, either
+ascending or descending. Within each group, objects are sent in Object ID order;
+subgroup ID is not used for ordering.
+
 If StartGroup/StartObject is greater than the latest published Object group,
 the publisher MUST return FETCH_ERROR with error code 'No Objects'.
 
