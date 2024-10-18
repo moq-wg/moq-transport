@@ -949,13 +949,13 @@ MOQT Control Message {
 |-------|-----------------------------------------------------|
 | 0x10  | GOAWAY ({{message-goaway}})                         |
 |-------|-----------------------------------------------------|
-| 0x11  | SUBSCRIBE_NAMESPACE ({{message-subscribe-ns}})      |
+| 0x11  | SUBSCRIBE_ANNOUNCES ({{message-subscribe-ns}})      |
 |-------|-----------------------------------------------------|
-| 0x12  | SUBSCRIBE_NAMESPACE_OK ({{message-sub-ns-ok}})      |
+| 0x12  | SUBSCRIBE_ANNOUNCES_OK ({{message-sub-ann-ok}})     |
 |-------|-----------------------------------------------------|
-| 0x13  | SUBSCRIBE_NAMESPACE_ERROR ({{message-sub-ns-error}} |
+| 0x13  | SUBSCRIBE_ANNOUNCES_ERROR ({{message-sub-ann-error}}|
 |-------|-----------------------------------------------------|
-| 0x14  | UNSUBSCRIBE_NAMESPACE ({{message-unsub-ns}})        |
+| 0x14  | UNSUBSCRIBE_ANNOUNCES ({{message-unsub-ann}})       |
 |-------|-----------------------------------------------------|
 | 0x15  | MAX_SUBSCRIBE_ID ({{message-max-subscribe-id}})     |
 |-------|-----------------------------------------------------|
@@ -1026,7 +1026,7 @@ these parameters to appear in Setup messages.
 #### AUTHORIZATION INFO {#authorization-info}
 
 AUTHORIZATION INFO parameter (key 0x02) identifies a track's authorization
-information in a SUBSCRIBE, SUBSCRIBE_NAMESPACE or ANNOUNCE message. This
+information in a SUBSCRIBE, SUBSCRIBE_ANNOUNCES or ANNOUNCE message. This
 parameter is populated for cases where the authorization is required at the
 track level. The value is an ASCII string.
 
@@ -1574,14 +1574,14 @@ TRACK_STATUS_REQUEST Message {
 ~~~
 {: #moq-track-status-request-format title="MOQT TRACK_STATUS_REQUEST Message"}
 
-## SUBSCRIBE_NAMESPACE {#message-subscribe-ns}
+## SUBSCRIBE_ANNOUNCES {#message-subscribe-ns}
 
-The subscriber sends the SUBSCRIBE_NAMESPACE control message to a publisher to
-request the current set of matching announcements, as well as future updates to
-the set.
+The subscriber sends the SUBSCRIBE_ANNOUNCES control message to a publisher
+to request the current set of matching announcements, as well as future updates
+to the set.
 
 ~~~
-SUBSCRIBE_NAMESPACE Message {
+SUBSCRIBE_ANNOUNCES Message {
   Type (i) = 0x11,
   Length (i),
   Track Namespace Prefix (tuple),
@@ -1589,53 +1589,53 @@ SUBSCRIBE_NAMESPACE Message {
   Parameters (..) ...,
 }
 ~~~
-{: #moq-transport-subscribe-ns-format title="MOQT SUBSCRIBE_NAMESPACE Message"}
+{: #moq-transport-subscribe-ns-format title="MOQT SUBSCRIBE_ANNOUNCES Message"}
 
 * Track Namespace Prefix: An ordered N-Tuple of byte fields which are matched
 against track namespaces known to the publisher.  For example, if the publisher
 is a relay that has received ANNOUNCE messages for namespaces ("example.com",
 "meeting=123", "participant=100") and ("example.com", "meeting=123",
-"participant=200"), a SUBSCRIBE_NAMESPACE for ("example.com", "meeting=123")
+"participant=200"), a SUBSCRIBE_ANNOUNCES for ("example.com", "meeting=123")
 would match both.
 
 * Parameters: The parameters are defined in {{version-specific-params}}.
 
-The publisher will respond with SUBSCRIBE_NAMESPACE_OK or
-SUBSCRIBE_NAMESPACE_ERROR.  If the SUBSCRIBE_NAMESPACE is successful,
+The publisher will respond with SUBSCRIBE_ANNOUNCES_OK or
+SUBSCRIBE_ANNOUNCES_ERROR.  If the SUBSCRIBE_ANNOUNCES is successful,
 the publisher will forward any matching ANNOUNCE messages to the subscriber
 that it has not yet sent.  If the set of matching ANNOUNCE messages changes, the
 publisher sends the corresponding ANNOUNCE or UNANNOUNCE message.
 
 A subscriber cannot make overlapping namespace subscriptions on a single
-session.  Within a session, if a publisher receives a SUBSCRIBE_NAMESPACE with a
-Track Namespace Prefix that is a prefix of an earlier SUBSCRIBE_NAMESPACE or
-vice versa, it MUST respond with SUBSCRIBE_NAMESPACE_ERROR, with error code
-SUBSCRIBE_NAMESPACE_OVERLAP.
+session.  Within a session, if a publisher receives a SUBSCRIBE_ANNOUNCES
+with a Track Namespace Prefix that is a prefix of an earlier
+SUBSCRIBE_ANNOUNCES or vice versa, it MUST respond with
+SUBSCRIBE_ANNOUNCES_ERROR, with error code SUBSCRIBE_ANNOUNCES_OVERLAP.
 
 The publisher MUST ensure the subscriber is authorized to perform this
 namespace subscription.
 
-SUBSCRIBE_NAMESPACE is not required for a publisher to send ANNOUNCE and
+SUBSCRIBE_ANNOUNCES is not required for a publisher to send ANNOUNCE and
 UNANNOUNCE messages to a subscriber.  It is useful in applications or relays
 where subscribers are only interested in or authorized to access a subset of
 available announcements.
 
-## UNSUBSCRIBE_NAMESPACE {#message-unsub-ns}
+## UNSUBSCRIBE_ANNOUNCES {#message-unsub-ann}
 
-A subscriber issues a `UNSUBSCRIBE_NAMESPACE` message to a publisher indicating
-it is no longer interested in ANNOUNCE and UNANNOUNCE messages for the specified
-track namespace prefix.
+A subscriber issues a `UNSUBSCRIBE_ANNOUNCES` message to a publisher
+indicating it is no longer interested in ANNOUNCE and UNANNOUNCE messages for
+the specified track namespace prefix.
 
-The format of `UNSUBSCRIBE_NAMESPACE` is as follows:
+The format of `UNSUBSCRIBE_ANNOUNCES` is as follows:
 
 ~~~
-UNSUBSCRIBE_NAMESPACE Message {
+UNSUBSCRIBE_ANNOUNCES Message {
   Type (i) = 0x14,
   Length (i),
   Track Namespace Prefix (tuple)
 }
 ~~~
-{: #moq-transport-unsub-ns-format title="MOQT UNSUBSCRIBE Message"}
+{: #moq-transport-unsub-ann-format title="MOQT UNSUBSCRIBE Message"}
 
 * Track Namespace Prefix: As defined in {{message-subscribe-ns}}.
 
@@ -1942,31 +1942,31 @@ The receiver of multiple TRACK_STATUS messages for a track uses the information
 from the latest arriving message, as they are delivered in order on a single
 stream.
 
-## SUBSCRIBE_NAMESPACE_OK {#message-sub-ns-ok}
+## SUBSCRIBE_ANNOUNCES_OK {#message-sub-ann-ok}
 
-A publisher sends a SUBSCRIBE_NAMESPACE_OK control message for successful
+A publisher sends a SUBSCRIBE_ANNOUNCES_OK control message for successful
 namespace subscriptions.
 
 ~~~
-SUBSCRIBE_NAMESPACE_OK
+SUBSCRIBE_ANNOUNCES_OK
 {
   Type (i) = 0x12,
   Length (i),
   Track Namespace Prefix (tuple),
 }
 ~~~
-{: #moq-transport-sub-ns-ok format title="MOQT SUBSCRIBE_NAMESPACE_OK Message"}
+{: #moq-transport-sub-ann-ok format title="MOQT SUBSCRIBE_ANNOUNCES_OK
+Message"}
 
 * Track Namespace Prefix: As defined in {{message-subscribe-ns}}.
 
+## SUBSCRIBE_ANNOUNCES_ERROR {#message-sub-ann-error}
 
-## SUBSCRIBE_NAMESPACE_ERROR {#message-sub-ns-error}
-
-A publisher sends a SUBSCRIBE_NAMESPACE_ERROR control message in response to a
-failed SUBSCRIBE_NAMESPACE.
+A publisher sends a SUBSCRIBE_ANNOUNCES_ERROR control message in response to
+a failed SUBSCRIBE_ANNOUNCES.
 
 ~~~
-SUBSCRIBE_NAMESPACE_ERROR
+SUBSCRIBE_ANNOUNCES_ERROR
 {
   Type (i) = 0x13,
   Length (i),
@@ -1976,7 +1976,8 @@ SUBSCRIBE_NAMESPACE_ERROR
   Reason Phrase (..),
 }
 ~~~
-{: #moq-transport-sub-ns-error format title="MOQT SUBSCRIBE_NAMESPACE_ERROR Message"}
+{: #moq-transport-sub-ann-error format
+title="MOQT SUBSCRIBE_ANNOUNCES_ERROR Message"}
 
 * Track Namespace Prefix: As defined in {{message-subscribe-ns}}.
 
@@ -1998,8 +1999,6 @@ variable-length integer indicating the type of the stream in question.
 | ID    | Stream Type                                           |
 |------:|:------------------------------------------------------|
 | 0x1   | OBJECT_DATAGRAM ({{object-datagram}})                 |
-|-------|-------------------------------------------------------|
-| 0x2   | STREAM_HEADER_TRACK ({{stream-header-track}})         |
 |-------|-------------------------------------------------------|
 | 0x4   | STREAM_HEADER_SUBGROUP  ({{stream-header-subgroup}})  |
 |-------|-------------------------------------------------------|
@@ -2112,8 +2111,8 @@ OBJECT_DATAGRAM Message {
 
 ## Streams
 
-When objects are sent on streams, the stream begins with a stream
-header message and is followed by one or more sets of serialized object fields.
+When objects are sent on streams, the stream begins with a stream header
+message and is followed by one or more sets of serialized object fields.
 If a stream ends gracefully in the middle of a serialized Object, terminate the
 session with a Protocol Violation.
 
@@ -2123,43 +2122,6 @@ header message type and fields.
 
 TODO: figure out how a relay closes these streams
 
-### Stream Header Track
-
-When a stream begins with `STREAM_HEADER_TRACK`, all objects on the stream
-belong to the track requested in the Subscribe message identified by `Subscribe
-ID`.  All objects on the stream have the `Publisher Priority` specified in the
-stream header.
-
-~~~
-STREAM_HEADER_TRACK Message {
-  Track Alias (i),
-  Publisher Priority (8),
-}
-~~~
-{: #stream-header-track-format title="MOQT STREAM_HEADER_TRACK Message"}
-
-All Objects received on a stream opened with STREAM_HEADER_TRACK have an `Object
-Forwarding Preference` = `Track`.
-
-To send an Object with `Object Forwarding Preference` = `Track`, find the open
-stream that is associated with the subscription, or open a new one and send the
-`STREAM_HEADER_TRACK` if needed, then serialize the following object fields.
-The Object Status field is only sent if the Object Payload Length is zero.
-
-~~~
-{
-  Group ID (i),
-  Object ID (i),
-  Object Payload Length (i),
-  [Object Status (i)],
-  Object Payload (..),
-}
-~~~
-{: #object-track-format title="MOQT Track Stream Object Fields"}
-
-A publisher MUST NOT send an Object on a stream if its Group ID is less than a
-previously sent Group ID on that stream, or if its Object ID is less than or
-equal to a previously sent Object ID with the same Group ID.
 
 ### Stream Header Subgroup
 
