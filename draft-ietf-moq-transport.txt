@@ -5,13 +5,13 @@
 Media Over QUIC                                                L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 19 April 2025                                              Meta
+Expires: 21 April 2025                                              Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                         16 October 2024
+                                                         18 October 2024
 
 
                        Media over QUIC Transport
@@ -59,7 +59,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 19 April 2025.
+   This Internet-Draft will expire on 21 April 2025.
 
 Copyright Notice
 
@@ -142,8 +142,7 @@ Table of Contents
        7.1.1.  Canonical Object Fields
      7.2.  Object Datagram Message
      7.3.  Streams
-       7.3.1.  Stream Header Track
-       7.3.2.  Stream Header Subgroup
+       7.3.1.  Stream Header Subgroup
      7.4.  Examples
    8.  Security Considerations
      8.1.  Resource Exhaustion
@@ -1910,9 +1909,7 @@ Table of Contents
              +=====+========================================+
              | 0x1 | OBJECT_DATAGRAM (Section 7.2)          |
              +-----+----------------------------------------+
-             | 0x2 | STREAM_HEADER_TRACK (Section 7.3.1)    |
-             +-----+----------------------------------------+
-             | 0x4 | STREAM_HEADER_SUBGROUP (Section 7.3.2) |
+             | 0x4 | STREAM_HEADER_SUBGROUP (Section 7.3.1) |
              +-----+----------------------------------------+
 
                                  Table 5
@@ -2038,46 +2035,7 @@ Table of Contents
 
    TODO: figure out how a relay closes these streams
 
-7.3.1.  Stream Header Track
-
-   When a stream begins with STREAM_HEADER_TRACK, all objects on the
-   stream belong to the track requested in the Subscribe message
-   identified by Subscribe ID.  All objects on the stream have the
-   Publisher Priority specified in the stream header.
-
-   STREAM_HEADER_TRACK Message {
-     Subscribe ID (i)
-     Track Alias (i),
-     Publisher Priority (8),
-   }
-
-                Figure 24: MOQT STREAM_HEADER_TRACK Message
-
-   All Objects received on a stream opened with STREAM_HEADER_TRACK have
-   an Object Forwarding Preference = Track.
-
-   To send an Object with Object Forwarding Preference = Track, find the
-   open stream that is associated with the subscription, or open a new
-   one and send the STREAM_HEADER_TRACK if needed, then serialize the
-   following object fields.  The Object Status field is only sent if the
-   Object Payload Length is zero.
-
-   {
-     Group ID (i),
-     Object ID (i),
-     Object Payload Length (i),
-     [Object Status (i)],
-     Object Payload (..),
-   }
-
-                 Figure 25: MOQT Track Stream Object Fields
-
-   A publisher MUST NOT send an Object on a stream if its Group ID is
-   less than a previously sent Group ID on that stream, or if its Object
-   ID is less than or equal to a previously sent Object ID with the same
-   Group ID.
-
-7.3.2.  Stream Header Subgroup
+7.3.1.  Stream Header Subgroup
 
    When a stream begins with STREAM_HEADER_SUBGROUP, all objects on the
    stream belong to the track requested in the Subscribe message
@@ -2092,7 +2050,7 @@ Table of Contents
      Publisher Priority (8),
    }
 
-               Figure 26: MOQT STREAM_HEADER_SUBGROUP Message
+               Figure 24: MOQT STREAM_HEADER_SUBGROUP Message
 
    All Objects received on a stream opened with STREAM_HEADER_SUBGROUP
    have an Object Forwarding Preference = Subgroup.
@@ -2112,7 +2070,7 @@ Table of Contents
      Object Payload (..),
    }
 
-                 Figure 27: MOQT Group Stream Object Fields
+                 Figure 25: MOQT Group Stream Object Fields
 
    A publisher MUST NOT send an Object on a stream if its Object ID is
    less than a previously sent Object ID within a given group in that
