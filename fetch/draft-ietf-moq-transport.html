@@ -3164,11 +3164,14 @@ requested.<a href="#section-6.7-7.9.1" class="pilcrow">¶</a></p>
 The latest available Object is indicated in the FETCH_OK, and is the last
 Object a fetch will return if the EndGroup and EndObject have not yet been
 published.<a href="#section-6.7-8" class="pilcrow">¶</a></p>
-<p id="section-6.7-9">If StartGroup/StartObject is greater than the latest published Object group,
-the publisher <span class="bcp14">MUST</span> return FETCH_ERROR with error code 'No Objects'.<a href="#section-6.7-9" class="pilcrow">¶</a></p>
-<p id="section-6.7-10">A publisher <span class="bcp14">MUST</span> send fetched groups in group order, either ascending or
+<p id="section-6.7-9">A publisher <span class="bcp14">MUST</span> send fetched groups in the determined group order, either
+ascending or descending. Within each group, objects are sent in Object ID order;
+subgroup ID is not used for ordering.<a href="#section-6.7-9" class="pilcrow">¶</a></p>
+<p id="section-6.7-10">If StartGroup/StartObject is greater than the latest published Object group,
+the publisher <span class="bcp14">MUST</span> return FETCH_ERROR with error code 'No Objects'.<a href="#section-6.7-10" class="pilcrow">¶</a></p>
+<p id="section-6.7-11">A publisher <span class="bcp14">MUST</span> send fetched groups in group order, either ascending or
 descending. Within each group, objects are sent in Object ID order;
-subgroup ID is not used for ordering.<a href="#section-6.7-10" class="pilcrow">¶</a></p>
+subgroup ID is not used for ordering.<a href="#section-6.7-11" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="message-fetch-cancel">
