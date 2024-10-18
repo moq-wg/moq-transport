@@ -2043,6 +2043,9 @@ for other Subgroups in that Group, if it has received all Object IDs between the
 highest Object ID in the subject Subgroup and the EndOfGroup object. This may be
 complex to implement.
 
+A receiver MAY send a QUIC STOP_SENDING frame on a subgroup stream if the Group
+is no longer of interest to it.
+
 ## Examples
 
 Sending a track on one stream:
