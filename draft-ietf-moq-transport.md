@@ -1392,7 +1392,9 @@ fetch response. All omitted objects have status Object Not Available.
 
 A publisher responds to a FETCH request with either a FETCH_OK or a FETCH_ERROR
 message.  If it responds with FETCH_OK, the publisher creates a new unidirectional
-stream that is used to send the Objects.
+stream that is used to send the Objects.  A relay MAY start sending objects immediately
+in response to a FETCH, even if sending the FETCH_OK takes longer because it requires
+going upstream to populate the latest object.
 
 The Object Forwarding Preference does not apply to fetches.
 
