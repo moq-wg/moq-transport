@@ -1226,10 +1226,9 @@ the current object of the current group.  If no content has been delivered yet,
 the subscription starts with the first published or received group.
 
 AbsoluteStart (0x3):  Specifies an open-ended subscription beginning
-from the Object identified in the StartGroup and StartObject fields and ending
-at the Latest Object, exclusive.  If no Objects have been published after
-StartGroup and StartObject, the subscription is immediately closed with a
-SUBSCRIBE_ERROR.
+from the object identified in the StartGroup and StartObject fields. If the
+StartGroup is prior to the current group, the publisher SHOULD reply with a
+SUBSCRIBE_ERROR with code 'Invalid Range'.
 
 AbsoluteRange (0x4):  Specifies a closed subscription starting at StartObject
 in StartGroup and ending at EndObject in EndGroup.  The start and end of the
@@ -1241,9 +1240,9 @@ A filter type other than the above MUST be treated as error.
 
 If a subscriber wants to subscribe to Objects both before and after
 the Latest Object, it can send a SUBSCRIBE for the Latest Object
-followed by a SUBSCRIBE of type AbsoluteStart or AbsoluteRange.
-Depending upon the application, one might want to send both SUBSCRIBEs
-at the same time or wait for the first to return before sending the second.
+followed by a FETCH. Depending upon the application, one might want to send
+both messages at the same time or wait for the first to return before sending
+the second.
 
 The format of SUBSCRIBE is as follows:
 
