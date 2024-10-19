@@ -1207,7 +1207,7 @@ A subscription causes the publisher to send newly published objects for a track.
 A subscriber MUST NOT make multiple active subscriptions for a track within a
 single session and publishers SHOULD treat this as a protocol violation.
 The only objects prior to the current object that can be requested are those
-in the current group, via the 'Latest Group' filter.
+in the current group.
 
 **Filter Types**
 
