@@ -1214,7 +1214,6 @@ in the current group, via the 'Latest Group' filter.
 The subscriber specifies a filter on the subscription to allow
 the publisher to identify which objects need to be delivered.
 
-
 There are 4 types of filters:
 
 Latest Group (0x1) : Specifies an open-ended subscription with objects
