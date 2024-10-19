@@ -1233,8 +1233,9 @@ SUBSCRIBE_ERROR with code 'Invalid Range'.
 AbsoluteRange (0x4):  Specifies a closed subscription starting at StartObject
 in StartGroup and ending at EndObject in EndGroup.  The start and end of the
 range are inclusive.  EndGroup and EndObject MUST specify the same or a later
-object than StartGroup and StartObject. If the end has already been published,
-the publisher SHOULD reply with a SUBSCRIBE_ERROR with code 'Invalid Range'.
+object than StartGroup and StartObject. If the StartGroup is prior
+to the current group, the publisher SHOULD reply with a
+SUBSCRIBE_ERROR with code 'Invalid Range'.
 
 A filter type other than the above MUST be treated as error.
 
