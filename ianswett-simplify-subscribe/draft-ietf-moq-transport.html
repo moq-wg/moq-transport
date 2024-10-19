@@ -2880,8 +2880,9 @@ SUBSCRIBE_ERROR with code 'Invalid Range'.<a href="#section-6.4-7" class="pilcro
 <p id="section-6.4-8">AbsoluteRange (0x4):  Specifies a closed subscription starting at StartObject
 in StartGroup and ending at EndObject in EndGroup.  The start and end of the
 range are inclusive.  EndGroup and EndObject <span class="bcp14">MUST</span> specify the same or a later
-object than StartGroup and StartObject. If the end has already been published,
-the publisher <span class="bcp14">SHOULD</span> reply with a SUBSCRIBE_ERROR with code 'Invalid Range'.<a href="#section-6.4-8" class="pilcrow">¶</a></p>
+object than StartGroup and StartObject. If the StartGroup is prior
+to the current group, the publisher <span class="bcp14">SHOULD</span> reply with a
+SUBSCRIBE_ERROR with code 'Invalid Range'.<a href="#section-6.4-8" class="pilcrow">¶</a></p>
 <p id="section-6.4-9">A filter type other than the above <span class="bcp14">MUST</span> be treated as error.<a href="#section-6.4-9" class="pilcrow">¶</a></p>
 <p id="section-6.4-10">If a subscriber wants to subscribe to Objects both before and after
 the Latest Object, it can send a SUBSCRIBE for the Latest Object
