@@ -2874,10 +2874,9 @@ the subscription starts with the first published or received group.<a href="#sec
 the current object of the current group.  If no content has been delivered yet,
 the subscription starts with the first published or received group.<a href="#section-6.4-6" class="pilcrow">¶</a></p>
 <p id="section-6.4-7">AbsoluteStart (0x3):  Specifies an open-ended subscription beginning
-from the Object identified in the StartGroup and StartObject fields and ending
-at the Latest Object, exclusive.  If no Objects have been published after
-StartGroup and StartObject, the subscription is immediately closed with a
-SUBSCRIBE_ERROR.<a href="#section-6.4-7" class="pilcrow">¶</a></p>
+from the object identified in the StartGroup and StartObject fields. If the
+StartGroup is prior to the current group, the publisher <span class="bcp14">SHOULD</span> reply with a
+SUBSCRIBE_ERROR with code 'Invalid Range'.<a href="#section-6.4-7" class="pilcrow">¶</a></p>
 <p id="section-6.4-8">AbsoluteRange (0x4):  Specifies a closed subscription starting at StartObject
 in StartGroup and ending at EndObject in EndGroup.  The start and end of the
 range are inclusive.  EndGroup and EndObject <span class="bcp14">MUST</span> specify the same or a later
@@ -2886,9 +2885,9 @@ the publisher <span class="bcp14">SHOULD</span> reply with a SUBSCRIBE_ERROR wit
 <p id="section-6.4-9">A filter type other than the above <span class="bcp14">MUST</span> be treated as error.<a href="#section-6.4-9" class="pilcrow">¶</a></p>
 <p id="section-6.4-10">If a subscriber wants to subscribe to Objects both before and after
 the Latest Object, it can send a SUBSCRIBE for the Latest Object
-followed by a SUBSCRIBE of type AbsoluteStart or AbsoluteRange.
-Depending upon the application, one might want to send both SUBSCRIBEs
-at the same time or wait for the first to return before sending the second.<a href="#section-6.4-10" class="pilcrow">¶</a></p>
+followed by a FETCH. Depending upon the application, one might want to send
+both messages at the same time or wait for the first to return before sending
+the second.<a href="#section-6.4-10" class="pilcrow">¶</a></p>
 <p id="section-6.4-11">The format of SUBSCRIBE is as follows:<a href="#section-6.4-11" class="pilcrow">¶</a></p>
 <span id="name-moqt-subscribe-message"></span><div id="moq-transport-subscribe-format">
 <figure id="figure-5">
