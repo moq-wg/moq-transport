@@ -3087,7 +3087,9 @@ all available Objects. If there are gaps between Objects, the publisher omits th
 fetch response. All omitted objects have status Object Not Available.<a href="#section-6.7-1" class="pilcrow">¶</a></p>
 <p id="section-6.7-2">A publisher responds to a FETCH request with either a FETCH_OK or a FETCH_ERROR
 message.  If it responds with FETCH_OK, the publisher creates a new unidirectional
-stream that is used to send the Objects.<a href="#section-6.7-2" class="pilcrow">¶</a></p>
+stream that is used to send the Objects.  A relay <span class="bcp14">MAY</span> start sending objects immediately
+in response to a FETCH, even if sending the FETCH_OK takes longer because it requires
+going upstream to populate the latest object.<a href="#section-6.7-2" class="pilcrow">¶</a></p>
 <p id="section-6.7-3">The Object Forwarding Preference does not apply to fetches.<a href="#section-6.7-3" class="pilcrow">¶</a></p>
 <p id="section-6.7-4">Fetch specifies an inclusive range of Objects starting at StartObject
 in StartGroup and ending at EndObject in EndGroup. EndGroup and EndObject <span class="bcp14">MUST</span>
