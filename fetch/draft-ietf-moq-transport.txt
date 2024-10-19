@@ -5,13 +5,13 @@
 Media Over QUIC                                                L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 21 April 2025                                              Meta
+Expires: 22 April 2025                                              Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                         18 October 2024
+                                                         19 October 2024
 
 
                        Media over QUIC Transport
@@ -59,7 +59,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 21 April 2025.
+   This Internet-Draft will expire on 22 April 2025.
 
 Copyright Notice
 
@@ -2276,14 +2276,8 @@ Table of Contents
 
                     Figure 30: MOQT FETCH_HEADER Message
 
-   When a publisher sends objects in response to a FETCH request, it
-   finds the stream that is associated with the fetch request, or opens
-   a new one and sends the FETCH_HEADER, and then serializes the
-   following object fields.  Each object sent on a fetch stream after
-   the header has the following format:
-
-   The Object Status field is only sent if the Object Payload Length is
-   zero.
+   Each object sent on a fetch stream after the FETCH_HEADER has the
+   following format:
 
    {
      Group ID (i),
@@ -2296,6 +2290,9 @@ Table of Contents
    }
 
                     Figure 31: MOQT Fetch Object Fields
+
+   The Object Status field is only sent if the Object Payload Length is
+   zero.
 
 7.4.  Examples
 
