@@ -621,6 +621,10 @@ Given the critical nature of control messages and their relatively
 small size, the control stream SHOULD be prioritized higher than all
 subscribed Objects.
 
+Both SUBSCRIBE and FETCH messages indicate a subscriber priority and
+group order, so the following text applies equally to both types of
+subscriptions.
+
 The subscriber indicates the priority of a subscription via the
 Subscriber Priority field and the original publisher indicates priority
 in every stream or datagram header.  As such, the subscriber's priority is a
@@ -957,6 +961,14 @@ MOQT Control Message {
 |-------|-----------------------------------------------------|
 | 0x15  | MAX_SUBSCRIBE_ID ({{message-max-subscribe-id}})     |
 |-------|-----------------------------------------------------|
+| 0x16  | FETCH ({{message-fetch}})                           |
+|-------|-----------------------------------------------------|
+| 0x17  | FETCH_CANCEL ({{message-fetch-cancel}})               |
+|-------|-----------------------------------------------------|
+| 0x18  | FETCH_OK ({{message-fetch-ok}})                           |
+|-------|-----------------------------------------------------|
+| 0x19  | FETCH_ERROR ({{message-fetch-error}})               |
+|-------|-----------------------------------------------------|
 | 0x40  | CLIENT_SETUP ({{message-setup}})                    |
 |-------|-----------------------------------------------------|
 | 0x41  | SERVER_SETUP ({{message-setup}})                    |
@@ -1191,7 +1203,11 @@ GOAWAY Message {
 
 ## SUBSCRIBE {#message-subscribe-req}
 
-### Filter Types {#sub-filter}
+A subscription causes the publisher to send newly published objects for a track.
+A subscriber MUST NOT make multiple active subscriptions for a track within a
+single session and publishers SHOULD treat this as a protocol violation.
+
+**Filter Types**
 
 The subscriber specifies a filter on the subscription to allow
 the publisher to identify which objects need to be delivered.
@@ -1215,10 +1231,6 @@ range are inclusive.  EndGroup and EndObject MUST specify the same or a later
 object than StartGroup and StartObject.
 
 A filter type other than the above MUST be treated as error.
-
-
-### SUBSCRIBE Format
-A subscriber issues a SUBSCRIBE to a publisher to request a track.
 
 The format of SUBSCRIBE is as follows:
 
@@ -1272,7 +1284,6 @@ used. Values larger than 0x2 are a protocol error.
 
 * Filter Type: Identifies the type of filter, which also indicates whether
 the StartGroup/StartObject and EndGroup/EndObject fields will be present.
-See ({{sub-filter}}).
 
 * StartGroup: The start Group ID. Only present for "AbsoluteStart" and
 "AbsoluteRange" filter types.
@@ -1291,9 +1302,9 @@ On successful subscription, the publisher MUST reply with a SUBSCRIBE_OK,
 allowing the subscriber to determine the start group/object when not explicitly
 specified and the publisher SHOULD start delivering objects.
 
-If a publisher cannot satisfy the requested start or end for the subscription it
-MAY send a SUBSCRIBE_ERROR with code 'Invalid Range'. A publisher MUST NOT send
-objects from outside the requested start and end.
+If a publisher cannot satisfy the requested start or end or if the end has
+already been published it SHOULD send a SUBSCRIBE_ERROR with code 'Invalid Range'.
+A publisher MUST NOT send objects from outside the requested start and end.
 
 ## SUBSCRIBE_UPDATE {#message-subscribe-update-req}
 
@@ -1370,6 +1381,114 @@ UNSUBSCRIBE Message {
 {: #moq-transport-unsubscribe-format title="MOQT UNSUBSCRIBE Message"}
 
 * Subscribe ID: Subscription Identifier as defined in {{message-subscribe-req}}.
+
+
+## FETCH {#message-fetch}
+
+A subscriber issues a FETCH to a publisher to request a range of already published
+objects within a track. The publisher responding to a FETCH is responsible for retrieving
+all available Objects. If there are gaps between Objects, the publisher omits them from the
+fetch response. All omitted objects have status Object Not Available.
+
+A publisher responds to a FETCH request with either a FETCH_OK or a FETCH_ERROR
+message.  If it responds with FETCH_OK, the publisher creates a new unidirectional
+stream that is used to send the Objects.  A relay MAY start sending objects immediately
+in response to a FETCH, even if sending the FETCH_OK takes longer because it requires
+going upstream to populate the latest object.
+
+The Object Forwarding Preference does not apply to fetches.
+
+Fetch specifies an inclusive range of Objects starting at StartObject
+in StartGroup and ending at EndObject in EndGroup. EndGroup and EndObject MUST
+specify the same or a later object than StartGroup and StartObject.
+
+The format of FETCH is as follows:
+
+~~~
+FETCH Message {
+  Type (i) = 0x16,
+  Length (i),
+  Subscribe ID (i),
+  Track Namespace (tuple),
+  Track Name Length (i),
+  Track Name (..),
+  Subscriber Priority (8),
+  Group Order (8),
+  StartGroup (i),
+  StartObject (i),
+  EndGroup (i),
+  EndObject (i),
+  Number of Parameters (i),
+  Parameters (..) ...
+}
+~~~
+{: #moq-transport-fetch-format title="MOQT FETCH Message"}
+
+* Subscribe ID: The Subscribe ID identifies a given fetch request. Subscribe ID
+is a variable length integer that MUST be unique and monotonically increasing
+within  a session.
+
+* Track Namespace: Identifies the namespace of the track as defined in
+({{track-name}}).
+
+* Track Name: Identifies the track name as defined in ({{track-name}}).
+
+* Subscriber Priority: Specifies the priority of a fetch request relative to
+other subscriptions or fetches in the same session. Lower numbers get higher
+priority. See {{priorities}}.
+
+* Group Order: Allows the subscriber to request Objects be delivered in
+Ascending (0x1) or Descending (0x2) order by group. See {{priorities}}.
+A value of 0x0 indicates the original publisher's Group Order SHOULD be
+used. Values larger than 0x2 are a protocol error.
+
+* StartGroup: The start Group ID.
+
+* StartObject: The start Object ID.
+
+* EndGroup: The end Group ID.
+
+* EndObject: The end Object ID, plus 1. A value of 0 means the entire group is
+requested.
+
+* Parameters: The parameters are defined in {{version-specific-params}}.
+
+
+Objects that are not yet published will not be retrieved by a FETCH.
+The latest available Object is indicated in the FETCH_OK, and is the last
+Object a fetch will return if the EndGroup and EndObject have not yet been
+published.
+
+A publisher MUST send fetched groups in the determined group order, either
+ascending or descending. Within each group, objects are sent in Object ID order;
+subgroup ID is not used for ordering.
+
+If StartGroup/StartObject is greater than the latest published Object group,
+the publisher MUST return FETCH_ERROR with error code 'No Objects'.
+
+A publisher MUST send fetched groups in group order, either ascending or
+descending. Within each group, objects are sent in Object ID order;
+subgroup ID is not used for ordering.
+
+## FETCH_CANCEL {#message-fetch-cancel}
+
+A subscriber issues a `FETCH_CANCEL` message to a publisher indicating it is no
+longer interested in receiving Objects for the fetch specified by 'Subscribe ID'.
+The publisher SHOULD close the unidirectional stream as soon as possible.
+
+The format of `FETCH_CANCEL` is as follows:
+
+~~~
+FETCH_CANCEL Message {
+  Type (i) = 0x17,
+  Length (i),
+  Subscribe ID (i)
+}
+~~~
+{: #moq-transport-fetch-cancel title="MOQT FETCH_CANCEL Message"}
+
+* Subscribe ID: Subscription Identifier as defined in {{message-fetch}}.
+
 
 ## ANNOUNCE_OK {#message-announce-ok}
 
@@ -1604,6 +1723,71 @@ SUBSCRIBE_ERROR
   ({{session-termination}}).
 
 
+## FETCH_OK {#message-fetch-ok}
+
+A publisher sends a FETCH_OK control message in response to successful fetches.
+A publisher MAY send Objects in response to a FETCH before the FETCH_OK message is sent,
+but the FETCH_OK MUST NOT be sent until the latest group and object are known.
+
+~~~
+FETCH_OK
+{
+  Type (i) = 0x18,
+  Length (i),
+  Subscribe ID (i),
+  Group Order (8),
+  End Of Track (8),
+  Largest Group ID (i),
+  Largest Object ID (i),
+  Number of Parameters (i),
+  Subscribe Parameters (..) ...
+}
+~~~
+{: #moq-transport-fetch-ok format title="MOQT FETCH_OK Message"}
+
+* Subscribe ID: Fetch Identifier as defined in {{message-fetch}}.
+
+* Group Order: Indicates the fetch will be delivered in
+Ascending (0x1) or Descending (0x2) order by group. See {{priorities}}.
+Values of 0x0 and those larger than 0x2 are a protocol error.
+
+* End Of Track: 1 if all objects have been published on this track, so
+the Largest Group ID and Object Id indicate the last Object in the track,
+0 if not.
+
+* Largest Group ID: The largest Group ID available for this track. This field
+is only present if ContentExists has a value of 1.
+
+* Largest Object ID: The largest Object ID available within the largest Group ID
+for this track. This field is only present if ContentExists has a value of 1.
+
+* Subscribe Parameters: The parameters are defined in {{version-specific-params}}.
+
+## FETCH_ERROR {#message-fetch-error}
+
+A publisher sends a FETCH_ERROR control message in response to a
+failed FETCH.
+
+~~~
+FETCH_ERROR
+{
+  Type (i) = 0x19,
+  Length (i),
+  Subscribe ID (i),
+  Error Code (i),
+  Reason Phrase Length (i),
+  Reason Phrase (..),
+}
+~~~
+{: #moq-transport-fetch-error format title="MOQT FETCH_ERROR Message"}
+
+* Subscribe ID: Subscription Identifier as defined in {{message-subscribe-req}}.
+
+* Error Code: Identifies an integer error code for fetch failure.
+
+* Reason Phrase: Provides the reason for fetch error.
+
+
 ## SUBSCRIBE_DONE {#message-subscribe-done}
 
 A publisher sends a `SUBSCRIBE_DONE` message to indicate it is done publishing
@@ -1812,6 +1996,7 @@ failure.
 * Reason Phrase: Provides the reason for the namespace subscription error.
 
 
+
 # Data Streams {#data-streams}
 
 A publisher sends Objects matching a subscription on Data Streams.
@@ -1825,6 +2010,8 @@ variable-length integer indicating the type of the stream in question.
 | 0x1   | OBJECT_DATAGRAM ({{object-datagram}})                 |
 |-------|-------------------------------------------------------|
 | 0x4   | STREAM_HEADER_SUBGROUP  ({{stream-header-subgroup}})  |
+|-------|-------------------------------------------------------|
+| 0x5   | FETCH_HEADER  ({{fetch-header}})                      |
 |-------|-------------------------------------------------------|
 
 An endpoint that receives an unknown stream type MUST close the session.
@@ -1920,7 +2107,6 @@ will be dropped.
 
 ~~~
 OBJECT_DATAGRAM Message {
-  Subscribe ID (i),
   Track Alias (i),
   Group ID (i),
   Object ID (i),
@@ -1954,7 +2140,6 @@ ID` and the subgroup indicated by 'Group ID' and `Subgroup ID`.
 
 ~~~
 STREAM_HEADER_SUBGROUP Message {
-  Subscribe ID (i),
   Track Alias (i),
   Group ID (i),
   Subgroup ID (i),
@@ -1986,13 +2171,44 @@ The Object Status field is only sent if the Object Payload Length is zero.
 A publisher MUST NOT send an Object on a stream if its Object ID is less than a
 previously sent Object ID within a given group in that stream.
 
+
+### Fetch Header {#fetch-header}
+
+When a stream begins with `FETCH_HEADER`, all objects on the stream belong to the
+track requested in the Fetch message identified by `Subscribe ID`.
+
+~~~
+FETCH_HEADER Message {
+  Subscribe ID (i),
+}
+~~~
+{: #fetch-header-format title="MOQT FETCH_HEADER Message"}
+
+
+Each object sent on a fetch stream after the FETCH_HEADER has the following format:
+
+~~~
+{
+  Group ID (i),
+  Subgroup ID (i),
+  Object ID (i),
+  Publisher Priority (8),
+  Object Payload Length (i),
+  [Object Status (i)],
+  Object Payload (..),
+}
+~~~
+{: #object-fetch-format title="MOQT Fetch Object Fields"}
+
+The Object Status field is only sent if the Object Payload Length is zero.
+
+
 ## Examples
 
 Sending a track on one stream:
 
 ~~~
 STREAM_HEADER_TRACK {
-  Subscribe ID = 1
   Track Alias = 1
   Publisher Priority = 0
 }
@@ -2016,7 +2232,6 @@ Sending a subgroup on one stream:
 Stream = 2
 
 STREAM_HEADER_SUBGROUP {
-  Subscribe ID = 2
   Track Alias = 2
   Group ID = 0
   Subgroup ID = 0
