@@ -1226,7 +1226,7 @@ the subscription starts with the first published or received group.
 
 AbsoluteStart (0x3):  Specifies an open-ended subscription beginning
 from the object identified in the StartGroup and StartObject fields. If the
-StartGroup is prior to the current group, the publisher SHOULD reply with a
+StartGroup is prior to the current group, the publisher MUST reply with a
 SUBSCRIBE_ERROR with code 'Invalid Range'.
 
 AbsoluteRange (0x4):  Specifies a closed subscription starting at StartObject
