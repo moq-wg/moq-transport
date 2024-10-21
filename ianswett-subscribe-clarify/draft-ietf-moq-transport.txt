@@ -5,13 +5,13 @@
 Media Over QUIC                                                L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 22 April 2025                                              Meta
+Expires: 24 April 2025                                              Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                         19 October 2024
+                                                         21 October 2024
 
 
                        Media over QUIC Transport
@@ -59,7 +59,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 22 April 2025.
+   This Internet-Draft will expire on 24 April 2025.
 
 Copyright Notice
 
@@ -1312,7 +1312,7 @@ Table of Contents
 
    AbsoluteStart (0x3): Specifies an open-ended subscription beginning
    from the object identified in the StartGroup and StartObject fields.
-   If the StartGroup is prior to the current group, the publisher SHOULD
+   If the StartGroup is prior to the current group, the publisher MUST
    reply with a SUBSCRIBE_ERROR with code 'Invalid Range'.
 
    AbsoluteRange (0x4): Specifies a closed subscription starting at
