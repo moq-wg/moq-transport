@@ -2196,12 +2196,12 @@ fall before the beginning of a subscription, it MUST close the stream
 with a FIN.
 
 If a sender closes the stream before verifying it has delivered all such
-objects when it , it MUST use a RESET_STREAM or RESET_STREAM_AT
-{{!I-D.draft-ietf-quic-reliable-stream-reset}} frame. This includes early
-termination of subscription due to an UNSUBSCRIBE message, a sender's
-decision to abandon the subscription before the Group is complete, or a
-SUBSCRIBE_UPDATE moving the end of the subscription to before the current
-Group.
+objects, it MUST use a RESET_STREAM or RESET_STREAM_AT
+{{!I-D.draft-ietf-quic-reliable-stream-reset}} frame. This includes an open
+Group exceeding its Delivery Timeout, early termination of subscription due to
+an UNSUBSCRIBE message, a sender's decision to abandon the subscription before
+the Group is complete, or a SUBSCRIBE_UPDATE moving the end of the subscription
+to before the current Group.
 
 If a sender does not deliver any objects from a Subgroup of a subscribed Group,
 it MAY send a STREAM_HEADER_SUBGROUP on a new data stream, with no objects, and
