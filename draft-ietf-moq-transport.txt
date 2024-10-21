@@ -5,13 +5,13 @@
 Media Over QUIC                                                L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 22 April 2025                                              Meta
+Expires: 24 April 2025                                              Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                         19 October 2024
+                                                         21 October 2024
 
 
                        Media over QUIC Transport
@@ -59,7 +59,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 22 April 2025.
+   This Internet-Draft will expire on 24 April 2025.
 
 Copyright Notice
 
@@ -1289,7 +1289,9 @@ Table of Contents
    A subscription causes the publisher to send newly published objects
    for a track.  A subscriber MUST NOT make multiple active
    subscriptions for a track within a single session and publishers
-   SHOULD treat this as a protocol violation.
+   SHOULD treat this as a protocol violation.  The only objects prior to
+   the current object that can be requested are those in the current
+   group.
 
    *Filter Types*
 
@@ -1310,14 +1312,24 @@ Table of Contents
 
    AbsoluteStart (0x3): Specifies an open-ended subscription beginning
    from the object identified in the StartGroup and StartObject fields.
+   If the StartGroup is prior to the current group, the publisher MUST
+   reply with a SUBSCRIBE_ERROR with code 'Invalid Range'.
 
    AbsoluteRange (0x4): Specifies a closed subscription starting at
    StartObject in StartGroup and ending at EndObject in EndGroup.  The
    start and end of the range are inclusive.  EndGroup and EndObject
    MUST specify the same or a later object than StartGroup and
-   StartObject.
+   StartObject.  If the StartGroup is prior to the current group, the
+   publisher MUST reply with a SUBSCRIBE_ERROR with code 'Invalid
+   Range'.
 
    A filter type other than the above MUST be treated as error.
+
+   If a subscriber wants to subscribe to Objects both before and after
+   the Latest Object, it can send a SUBSCRIBE for the Latest Object
+   followed by a FETCH.  Depending upon the application, one might want
+   to send both messages at the same time or wait for the first to
+   return before sending the second.
 
    The format of SUBSCRIBE is as follows:
 
