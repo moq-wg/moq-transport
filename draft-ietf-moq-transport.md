@@ -2191,17 +2191,24 @@ streams provide signals that can be used for this purpose. Closing Subgroups
 promptly frees system resources and often unlocks flow control credit to open
 more streams.
 
-If a sender has delivered all objects in a Subgroup, except any objects that
-fall before the beginning of a subscription, it MUST close the stream
-with a FIN.
+If a sender has delivered all objects in a Subgroup to the QUIC stream, except
+any objects that fall before the beginning of a subscription, it MUST close the
+stream with a FIN.
 
-If a sender closes the stream before verifying it has delivered all such
-objects, it MUST use a RESET_STREAM or RESET_STREAM_AT
+If a sender closes the stream before delivering all such objects to the QUIC
+stream, it MUST use a RESET_STREAM or RESET_STREAM_AT
 {{!I-D.draft-ietf-quic-reliable-stream-reset}} frame. This includes an open
-Group exceeding its Delivery Timeout, early termination of subscription due to
+Subgroup exceeding its Delivery Timeout, early termination of subscription due to
 an UNSUBSCRIBE message, a sender's decision to abandon the subscription before
-the Group is complete, or a SUBSCRIBE_UPDATE moving the end of the subscription
+the Subgroup is complete, or a SUBSCRIBE_UPDATE moving the end of the subscription
 to before the current Group.
+
+A sender might deliver all objects in a Subgroup to the QUIC stream, including a
+FIN, and then reset the stream because any retransmissions are unnecessary due
+to any of the reset conditions above being met. In this case, the receiving
+application would receive the FIN if and only if all objects were, in fact,
+delivered. The application can therefore ignore a RESET_STREAM if it receives
+FIN.
 
 If a sender does not deliver any objects from a Subgroup of a subscribed Group,
 it MAY send a STREAM_HEADER_SUBGROUP on a new data stream, with no objects, and
