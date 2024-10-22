@@ -2199,13 +2199,13 @@ If a sender closes the stream before delivering all such objects to the QUIC
 stream, it MUST use a RESET_STREAM or RESET_STREAM_AT
 {{!I-D.draft-ietf-quic-reliable-stream-reset}} frame. This includes an open
 Subgroup exceeding its Delivery Timeout, early termination of subscription due to
-an UNSUBSCRIBE message, a sender's decision to abandon the subscription, or a SUBSCRIBE_UPDATE moving the end of the subscription
-to before the current Group.
+an UNSUBSCRIBE message, a sender's decision to abandon the subscription, or a
+SUBSCRIBE_UPDATE moving the end of the subscription to before the current Group.
 
 A sender might send all objects in a Subgroup and the FIN on a QUIC stream,
-and then reset the stream. In this case, the receiving application would receive 
-the FIN if and only if all objects were sent. If the application receives all data on
-the stream and the FIN, it can ignore any RESET_STREAM it receives.
+and then reset the stream. In this case, the receiving application would receive
+the FIN if and only if all objects were received. If the application receives
+all data on the stream and the FIN, it can ignore any RESET_STREAM it receives.
 
 If a sender will not deliver any objects from a Subgroup, it MAY send
 a STREAM_HEADER_SUBGROUP on a new stream, with no objects, and
@@ -2230,10 +2230,10 @@ sent. A relay MAY use EndOfGroup, EndOfSubgroup, GroupDoesNotExist, and
 EndOfTrack objects to close streams even if the FIN has not arrived, as further
 objects on the stream would be a protocol violation.
 
-Similarly, a relay MAY also use EndOfGroup messages in a Subgroup stream to
-close streams for other Subgroups in that Group, if it has received all Object
-IDs between the highest Object ID in the subject Subgroup and the EndOfGroup
-object. This might be complex to implement.
+Similarly, an EndOfGroup message indicates the total number of Objects in the
+Group, so if all Objects in the Group have been received, a FIN can be sent on
+any stream where the entire subgroup has been sent. This might be complex to
+implement.
 
 Processing a RESET_STREAM or RESET_STREAM_AT means that there might be other
 objects in the Subgroup beyond the last one received. A relay might immediately
