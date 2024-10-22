@@ -1231,10 +1231,9 @@ SUBSCRIBE_ERROR with code 'Invalid Range'.
 
 AbsoluteRange (0x4):  Specifies a closed subscription starting at StartObject
 in StartGroup and ending at EndObject in EndGroup.  The start and end of the
-range are inclusive.  EndGroup and EndObject MUST specify the same or a later
-object than StartGroup and StartObject. If the StartGroup is prior
-to the current group, the publisher MUST reply with a
-SUBSCRIBE_ERROR with code 'Invalid Range'.
+range are inclusive.  EndGroup MUST specify the same or a later group than
+StartGroup. If the StartGroup is prior to the current group, the publisher MUST
+reply with a SUBSCRIBE_ERROR with code 'Invalid Range'.
 
 A filter type other than the above MUST be treated as error.
 
@@ -1260,8 +1259,7 @@ SUBSCRIBE Message {
   Filter Type (i),
   [StartGroup (i),
    StartObject (i)],
-  [EndGroup (i),
-   EndObject (i)],
+  [EndGroup (i)],
   Number of Parameters (i),
   Subscribe Parameters (..) ...
 }
@@ -1303,10 +1301,8 @@ the StartGroup/StartObject and EndGroup/EndObject fields will be present.
 * StartObject: The start Object ID. Only present for "AbsoluteStart" and
 "AbsoluteRange" filter types.
 
-* EndGroup: The end Group ID. Only present for the "AbsoluteRange" filter type.
-
-* EndObject: The end Object ID, plus 1. A value of 0 means the entire group is
-requested. Only present for the "AbsoluteRange" filter type.
+* EndGroup: The end Group ID, inclusive. Only present for the "AbsoluteRange"
+filter type.
 
 * Subscribe Parameters: The parameters are defined in {{version-specific-params}}.
 
@@ -1346,7 +1342,6 @@ SUBSCRIBE_UPDATE Message {
   StartGroup (i),
   StartObject (i),
   EndGroup (i),
-  EndObject (i),
   Subscriber Priority (8),
   Number of Parameters (i),
   Subscribe Parameters (..) ...
@@ -1363,9 +1358,6 @@ This MUST match an existing Subscribe ID.
 
 * EndGroup: The end Group ID, plus 1. A value of 0 means the subscription is
 open-ended.
-
-* EndObject: The end Object ID, plus 1. A value of 0 means the entire group is
-requested.
 
 * Subscriber Priority: Specifies the priority of a subscription relative to
 other subscriptions in the same session. Lower numbers get higher priority.
