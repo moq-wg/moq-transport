@@ -2192,7 +2192,7 @@ promptly frees system resources and often unlocks flow control credit to open
 more streams.
 
 If a sender has delivered all objects in a Subgroup to the QUIC stream, except
-any objects that fall before the beginning of a subscription, it MUST close the
+any objects before the beginning of a subscription, it MUST close the
 stream with a FIN.
 
 If a sender closes the stream before delivering all such objects to the QUIC
