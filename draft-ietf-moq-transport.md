@@ -2234,6 +2234,11 @@ sent. A relay MAY use EndOfGroup, EndOfSubgroup, GroupDoesNotExist, and
 EndOfTrack objects to close streams even if the FIN has not arrived, as further
 objects on the stream would be a protocol violation.
 
+Similarly, a relay MAY also use EndOfGroup messages in a Subgroup stream to
+close streams for other Subgroups in that Group, if it has received all Object
+IDs between the highest Object ID in the subject Subgroup and the EndOfGroup
+object. This might be complex to implement.
+
 Processing a RESET_STREAM or RESET_STREAM_AT means that there might be other
 objects in the Subgroup beyond the last one received. A relay might immediately
 reset the corresponding downstream stream, or it might attempt to recover the
@@ -2242,13 +2247,15 @@ might send RESET_STREAM_AT with reliable_size set to the last object it has, so
 as to reliably deliver the objects it has while signaling that other objects
 exist.
 
-A relay MAY also use EndOfGroup messages in a Subgroup stream to close streams
-for other Subgroups in that Group, if it has received all Object IDs between the
-highest Object ID in the subject Subgroup and the EndOfGroup object. This may be
-complex to implement.
-
 A receiver MAY send a QUIC STOP_SENDING frame for a subgroup stream if the Group
-or subgroup is no longer of interest to it.
+or Subgroup is no longer of interest to it. The sender SHOULD respond with
+RESET_STREAM or RESET_STREAM_AT. If RESET_STREAM_AT, note that the receiver has
+indicated no interest in the objects, so setting a reliable_size beyond the
+stream header is of questionable utility.
+
+RESET_STREAM and STOP_SENDING on SUBSCRIBE data streams have no impact on other
+Subgroups in the Group or the subscription at large, although in practice all
+Subgroups in a Group will sometimes be canceled at once.
 
 ### Fetch Header {#fetch-header}
 
