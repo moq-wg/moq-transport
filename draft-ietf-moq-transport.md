@@ -2241,7 +2241,7 @@ reset the corresponding downstream stream, or it might attempt to recover the
 missing Objects in an effort send all the objects in the subgroups and the FIN. It also
 might send RESET_STREAM_AT with reliable_size set to the last object it has, so
 as to reliably deliver the objects it has while signaling that other objects
-exist.
+might exist.
 
 A receiver MAY send a QUIC STOP_SENDING frame for a subgroup stream if the Group
 or Subgroup is no longer of interest to it. The sender SHOULD respond with
