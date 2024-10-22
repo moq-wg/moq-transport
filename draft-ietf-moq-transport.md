@@ -2202,12 +2202,10 @@ Subgroup exceeding its Delivery Timeout, early termination of subscription due t
 an UNSUBSCRIBE message, a sender's decision to abandon the subscription, or a SUBSCRIBE_UPDATE moving the end of the subscription
 to before the current Group.
 
-A sender might deliver all objects in a Subgroup to the QUIC stream, including a
-FIN, and then reset the stream because any retransmissions are unnecessary due
-to any of the reset conditions above being met. In this case, the receiving
-application would receive the FIN if and only if all objects were, in fact,
-delivered. The application can therefore ignore a RESET_STREAM if it receives
-FIN.
+A sender might send all objects in a Subgroup and the FIN on a QUIC stream,
+and then reset the stream. In this case, the receiving application would receive 
+the FIN if and only if all objects were sent. If the application receives all data on
+the stream and the FIN, it can ignore any RESET_STREAM it receives.
 
 If a sender does not deliver any objects from a Subgroup of a subscribed Group,
 it MAY send a STREAM_HEADER_SUBGROUP on a new data stream, with no objects, and
