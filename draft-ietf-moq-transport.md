@@ -2230,7 +2230,7 @@ sent. A relay MAY treat receipt of EndOfGroup, EndOfSubgroup, GroupDoesNotExist,
 EndOfTrack objects as a signal to close corresponding streams even if the FIN has not arrived, as further
 objects on the stream would be a protocol violation.
 
-Similarly, an EndOfGroup message indicates the total number of Objects in the
+Similarly, an EndOfGroup message indicates the total maximum Object ID in the
 Group, so if all Objects in the Group have been received, a FIN can be sent on
 any stream where the entire subgroup has been sent. This might be complex to
 implement.
