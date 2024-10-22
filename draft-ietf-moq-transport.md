@@ -2207,11 +2207,10 @@ and then reset the stream. In this case, the receiving application would receive
 the FIN if and only if all objects were sent. If the application receives all data on
 the stream and the FIN, it can ignore any RESET_STREAM it receives.
 
-If a sender does not deliver any objects from a Subgroup of a subscribed Group,
-it MAY send a STREAM_HEADER_SUBGROUP on a new data stream, with no objects, and
-then send RESET_STREAM_AT with a reliable_size equivalent to the length of the
-stream header. This would explicitly tell the receiver that there are unsent
-Subgroups in the Group.
+If a sender will not deliver any objects from a Subgroup, it MAY send
+a STREAM_HEADER_SUBGROUP on a new stream, with no objects, and
+then send RESET_STREAM_AT with a reliable_size equal to the length of the
+stream header. This explicitly tells the receiver there is an unsent Subgroup.
 
 Since SUBSCRIBEs always end on a group boundary [TODO: Update SUBSCRIBE to
 express this], an ending subscription can always cleanly close all its
