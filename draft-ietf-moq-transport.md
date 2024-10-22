@@ -2238,7 +2238,7 @@ implement.
 Processing a RESET_STREAM or RESET_STREAM_AT means that there might be other
 objects in the Subgroup beyond the last one received. A relay might immediately
 reset the corresponding downstream stream, or it might attempt to recover the
-missing Objects in an effort to send FIN, presumably with some timeout. It also
+missing Objects in an effort send all the objects in the subgroups and the FIN. It also
 might send RESET_STREAM_AT with reliable_size set to the last object it has, so
 as to reliably deliver the objects it has while signaling that other objects
 exist.
