@@ -2204,23 +2204,18 @@ a STREAM_HEADER_SUBGROUP on a new stream, with no objects, and
 then send RESET_STREAM_AT with a reliable_size equal to the length of the
 stream header. This explicitly tells the receiver there is an unsent Subgroup.
 
-Since SUBSCRIBEs always end on a group boundary [TODO: Update SUBSCRIBE to
-express this], an ending subscription can always cleanly close all its
-subgroups. A sender that terminates a stream early for any other reason (e.g.,
-to handoff to a different sender) MUST use RESET_STREAM or RESET_STREAM_AT.
-Senders SHOULD terminate a stream on Group boundaries to avoid doing so.
-
-An Original Publisher MAY create EndOfSubgroup objects to provide further
-indication that streams are OK to close.
-
-[TODO: Do we still need EndOfSubgroup objects?]
+Since SUBSCRIBEs always end on a group boundary, an ending subscription can
+always cleanly close all its subgroups. A sender that terminates a stream
+early for any other reason (e.g., to handoff to a different sender) MUST
+use RESET_STREAM or RESET_STREAM_AT. Senders SHOULD terminate a stream on
+Group boundaries to avoid doing so.
 
 An MoQT implementation that processes a stream FIN is assured it has received
 all objects in a subgroup from the start of the subscription. If a relay, it
 can forward stream FINs to its own subscribers once those objects have been
 sent. A relay MAY treat receipt of EndOfGroup, EndOfSubgroup, GroupDoesNotExist, or
-EndOfTrack objects as a signal to close corresponding streams even if the FIN has not arrived, as further
-objects on the stream would be a protocol violation.
+EndOfTrack objects as a signal to close corresponding streams even if the FIN
+has not arrived, as further objects on the stream would be a protocol violation.
 
 Similarly, an EndOfGroup message indicates the total maximum Object ID in the
 Group, so if all Objects in the Group have been received, a FIN can be sent on
