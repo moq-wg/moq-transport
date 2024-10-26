@@ -2192,7 +2192,8 @@ stream, it MUST use a RESET_STREAM or RESET_STREAM_AT
 {{!I-D.draft-ietf-quic-reliable-stream-reset}} frame. This includes an open
 Subgroup exceeding its Delivery Timeout, early termination of subscription due to
 an UNSUBSCRIBE message, a publisher's decision to end the subscription early, or a
-SUBSCRIBE_UPDATE moving the end of the subscription to before the current Group.
+SUBSCRIBE_UPDATE moving the end of the subscription to before the current Group
+or the start after the current Group.
 
 A sender might send all objects in a Subgroup and the FIN on a QUIC stream,
 and then reset the stream. In this case, the receiving application would receive
