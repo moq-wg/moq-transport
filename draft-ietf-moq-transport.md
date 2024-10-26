@@ -2237,8 +2237,8 @@ indicated no interest in the objects, so setting a reliable_size beyond the
 stream header is of questionable utility.
 
 RESET_STREAM and STOP_SENDING on SUBSCRIBE data streams have no impact on other
-Subgroups in the Group or the subscription at large, although in practice all
-Subgroups in a Group will sometimes be canceled at once.
+Subgroups in the Group or the subscription, although applications might cancel all
+Subgroups in a Group at once.
 
 ### Fetch Header {#fetch-header}
 
