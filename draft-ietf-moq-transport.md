@@ -2230,10 +2230,10 @@ might send RESET_STREAM_AT with reliable_size set to the last object it has, so
 as to reliably deliver the objects it has while signaling that other objects
 might exist.
 
-A receiver MAY send a QUIC STOP_SENDING frame for a subgroup stream if the Group
-or Subgroup is no longer of interest to it. The sender SHOULD respond with
-RESET_STREAM or RESET_STREAM_AT. If RESET_STREAM_AT, note that the receiver has
-indicated no interest in the objects, so setting a reliable_size beyond the
+A subscriber MAY send a QUIC STOP_SENDING frame for a subgroup stream if the Group
+or Subgroup is no longer of interest to it. The publisher SHOULD respond with
+RESET_STREAM or RESET_STREAM_AT. If RESET_STREAM_AT is sent, note that the receiver
+has indicated no interest in the objects, so setting a reliable_size beyond the
 stream header is of questionable utility.
 
 RESET_STREAM and STOP_SENDING on SUBSCRIBE data streams have no impact on other
