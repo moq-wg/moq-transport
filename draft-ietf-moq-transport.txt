@@ -5,13 +5,13 @@
 Media Over QUIC                                                L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 24 April 2025                                              Meta
+Expires: 29 April 2025                                              Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                         21 October 2024
+                                                         26 October 2024
 
 
                        Media over QUIC Transport
@@ -59,7 +59,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 24 April 2025.
+   This Internet-Draft will expire on 29 April 2025.
 
 Copyright Notice
 
@@ -1317,11 +1317,10 @@ Table of Contents
 
    AbsoluteRange (0x4): Specifies a closed subscription starting at
    StartObject in StartGroup and ending at EndObject in EndGroup.  The
-   start and end of the range are inclusive.  EndGroup and EndObject
-   MUST specify the same or a later object than StartGroup and
-   StartObject.  If the StartGroup is prior to the current group, the
-   publisher MUST reply with a SUBSCRIBE_ERROR with code 'Invalid
-   Range'.
+   start and end of the range are inclusive.  EndGroup MUST specify the
+   same or a later group than StartGroup.  If the StartGroup is prior to
+   the current group, the publisher MUST reply with a SUBSCRIBE_ERROR
+   with code 'Invalid Range'.
 
    A filter type other than the above MUST be treated as error.
 
@@ -1346,8 +1345,7 @@ Table of Contents
      Filter Type (i),
      [StartGroup (i),
       StartObject (i)],
-     [EndGroup (i),
-      EndObject (i)],
+     [EndGroup (i)],
      Number of Parameters (i),
      Subscribe Parameters (..) ...
    }
@@ -1392,12 +1390,8 @@ Table of Contents
    *  StartObject: The start Object ID.  Only present for
       "AbsoluteStart" and "AbsoluteRange" filter types.
 
-   *  EndGroup: The end Group ID.  Only present for the "AbsoluteRange"
-      filter type.
-
-   *  EndObject: The end Object ID, plus 1.  A value of 0 means the
-      entire group is requested.  Only present for the "AbsoluteRange"
-      filter type.
+   *  EndGroup: The end Group ID, inclusive.  Only present for the
+      "AbsoluteRange" filter type.
 
    *  Subscribe Parameters: The parameters are defined in Section 6.1.1.
 
@@ -1441,7 +1435,6 @@ Table of Contents
      StartGroup (i),
      StartObject (i),
      EndGroup (i),
-     EndObject (i),
      Subscriber Priority (8),
      Number of Parameters (i),
      Subscribe Parameters (..) ...
@@ -1458,9 +1451,6 @@ Table of Contents
 
    *  EndGroup: The end Group ID, plus 1.  A value of 0 means the
       subscription is open-ended.
-
-   *  EndObject: The end Object ID, plus 1.  A value of 0 means the
-      entire group is requested.
 
    *  Subscriber Priority: Specifies the priority of a subscription
       relative to other subscriptions in the same session.  Lower
@@ -2457,9 +2447,9 @@ Normative References
    [WebTransport]
               Frindell, A., Kinnear, E., and V. Vasiliev, "WebTransport
               over HTTP/3", Work in Progress, Internet-Draft, draft-
-              ietf-webtrans-http3-10, 25 August 2024,
+              ietf-webtrans-http3-11, 21 October 2024,
               <https://datatracker.ietf.org/doc/html/draft-ietf-
-              webtrans-http3-10>.
+              webtrans-http3-11>.
 
 Informative References
 
