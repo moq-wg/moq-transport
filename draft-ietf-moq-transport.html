@@ -1037,7 +1037,7 @@ svg :is([fill="white"], [fill^="#fff"]) {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Curley, et al.</td>
-<td class="center">Expires 29 April 2025</td>
+<td class="center">Expires 30 April 2025</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1050,12 +1050,12 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dd class="internet-draft">draft-ietf-moq-transport-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2024-10-26" class="published">26 October 2024</time>
+<time datetime="2024-10-27" class="published">27 October 2024</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2025-04-29">29 April 2025</time></dd>
+<dd class="expires"><time datetime="2025-04-30">30 April 2025</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1127,7 +1127,7 @@ networks and is designed for high scale and low latency distribution.<a href="#s
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 29 April 2025.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 30 April 2025.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1387,7 +1387,10 @@ networks and is designed for high scale and low latency distribution.<a href="#s
                     <p id="section-toc.1-1.7.2.3.2.1.1"><a href="#section-7.3.1" class="auto internal xref">7.3.1</a>.  <a href="#name-stream-header-subgroup" class="internal xref">Stream Header Subgroup</a></p>
 </li>
                   <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.3.2.2">
-                    <p id="section-toc.1-1.7.2.3.2.2.1"><a href="#section-7.3.2" class="auto internal xref">7.3.2</a>.  <a href="#name-fetch-header" class="internal xref">Fetch Header</a></p>
+                    <p id="section-toc.1-1.7.2.3.2.2.1"><a href="#section-7.3.2" class="auto internal xref">7.3.2</a>.  <a href="#name-closing-subgroup-streams" class="internal xref">Closing Subgroup Streams</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.3.2.3">
+                    <p id="section-toc.1-1.7.2.3.2.3.1"><a href="#section-7.3.3" class="auto internal xref">7.3.3</a>.  <a href="#name-fetch-header" class="internal xref">Fetch Header</a></p>
 </li>
                 </ul>
 </li>
@@ -3958,7 +3961,7 @@ variable-length integer indicating the type of the stream in question.<a href="#
           </tr>
           <tr>
             <td class="text-right" rowspan="1" colspan="1">0x5</td>
-            <td class="text-left" rowspan="1" colspan="1">FETCH_HEADER  (<a href="#fetch-header" class="auto internal xref">Section 7.3.2</a>)</td>
+            <td class="text-left" rowspan="1" colspan="1">FETCH_HEADER  (<a href="#fetch-header" class="auto internal xref">Section 7.3.3</a>)</td>
           </tr>
         </tbody>
       </table>
@@ -4161,16 +4164,76 @@ following fields.<a href="#section-7.3.1-4" class="pilcrow">¶</a></p>
 previously sent Object ID within a given group in that stream.<a href="#section-7.3.1-7" class="pilcrow">¶</a></p>
 </section>
 </div>
-<div id="fetch-header">
+<div id="closing-subgroup-streams">
 <section id="section-7.3.2">
-          <h4 id="name-fetch-header">
-<a href="#section-7.3.2" class="section-number selfRef">7.3.2. </a><a href="#name-fetch-header" class="section-name selfRef">Fetch Header</a>
+          <h4 id="name-closing-subgroup-streams">
+<a href="#section-7.3.2" class="section-number selfRef">7.3.2. </a><a href="#name-closing-subgroup-streams" class="section-name selfRef">Closing Subgroup Streams</a>
           </h4>
-<p id="section-7.3.2-1">When a stream begins with <code>FETCH_HEADER</code>, all objects on the stream belong to the
-track requested in the Fetch message identified by <code>Subscribe ID</code>.<a href="#section-7.3.2-1" class="pilcrow">¶</a></p>
+<p id="section-7.3.2-1">Subscribers will often need to know if they have received all objects in a
+Subgroup, particularly if they serve as a relay or cache. QUIC and Webtransport
+streams provide signals that can be used for this purpose. Closing Subgroups
+promptly frees system resources and often unlocks flow control credit to open
+more streams.<a href="#section-7.3.2-1" class="pilcrow">¶</a></p>
+<p id="section-7.3.2-2">If a sender has delivered all objects in a Subgroup to the QUIC stream, except
+any objects before the beginning of a subscription, it <span class="bcp14">MUST</span> close the
+stream with a FIN.<a href="#section-7.3.2-2" class="pilcrow">¶</a></p>
+<p id="section-7.3.2-3">If a sender closes the stream before delivering all such objects to the QUIC
+stream, it <span class="bcp14">MUST</span> use a RESET_STREAM or RESET_STREAM_AT
+<span>[<a href="#I-D.draft-ietf-quic-reliable-stream-reset" class="cite xref">I-D.draft-ietf-quic-reliable-stream-reset</a>]</span> frame. This includes an open
+Subgroup exceeding its Delivery Timeout, early termination of subscription due to
+an UNSUBSCRIBE message, a publisher's decision to end the subscription early, or a
+SUBSCRIBE_UPDATE moving the end of the subscription to before the current Group
+or the start after the current Group.<a href="#section-7.3.2-3" class="pilcrow">¶</a></p>
+<p id="section-7.3.2-4">A sender might send all objects in a Subgroup and the FIN on a QUIC stream,
+and then reset the stream. In this case, the receiving application would receive
+the FIN if and only if all objects were received. If the application receives
+all data on the stream and the FIN, it can ignore any RESET_STREAM it receives.<a href="#section-7.3.2-4" class="pilcrow">¶</a></p>
+<p id="section-7.3.2-5">If a sender will not deliver any objects from a Subgroup, it <span class="bcp14">MAY</span> send
+a STREAM_HEADER_SUBGROUP on a new stream, with no objects, and
+then send RESET_STREAM_AT with a reliable_size equal to the length of the
+stream header. This explicitly tells the receiver there is an unsent Subgroup.<a href="#section-7.3.2-5" class="pilcrow">¶</a></p>
+<p id="section-7.3.2-6">Since SUBSCRIBEs always end on a group boundary, an ending subscription can
+always cleanly close all its subgroups. A sender that terminates a stream
+early for any other reason (e.g., to handoff to a different sender) <span class="bcp14">MUST</span>
+use RESET_STREAM or RESET_STREAM_AT. Senders <span class="bcp14">SHOULD</span> terminate a stream on
+Group boundaries to avoid doing so.<a href="#section-7.3.2-6" class="pilcrow">¶</a></p>
+<p id="section-7.3.2-7">An MoQT implementation that processes a stream FIN is assured it has received
+all objects in a subgroup from the start of the subscription. If a relay, it
+can forward stream FINs to its own subscribers once those objects have been
+sent. A relay <span class="bcp14">MAY</span> treat receipt of EndOfGroup, EndOfSubgroup, GroupDoesNotExist, or
+EndOfTrack objects as a signal to close corresponding streams even if the FIN
+has not arrived, as further objects on the stream would be a protocol violation.<a href="#section-7.3.2-7" class="pilcrow">¶</a></p>
+<p id="section-7.3.2-8">Similarly, an EndOfGroup message indicates the maximum Object ID in the
+Group, so if all Objects in the Group have been received, a FIN can be sent on
+any stream where the entire subgroup has been sent. This might be complex to
+implement.<a href="#section-7.3.2-8" class="pilcrow">¶</a></p>
+<p id="section-7.3.2-9">Processing a RESET_STREAM or RESET_STREAM_AT means that there might be other
+objects in the Subgroup beyond the last one received. A relay might immediately
+reset the corresponding downstream stream, or it might attempt to recover the
+missing Objects in an effort send all the objects in the subgroups and the FIN. It also
+might send RESET_STREAM_AT with reliable_size set to the last object it has, so
+as to reliably deliver the objects it has while signaling that other objects
+might exist.<a href="#section-7.3.2-9" class="pilcrow">¶</a></p>
+<p id="section-7.3.2-10">A subscriber <span class="bcp14">MAY</span> send a QUIC STOP_SENDING frame for a subgroup stream if the Group
+or Subgroup is no longer of interest to it. The publisher <span class="bcp14">SHOULD</span> respond with
+RESET_STREAM or RESET_STREAM_AT. If RESET_STREAM_AT is sent, note that the receiver
+has indicated no interest in the objects, so setting a reliable_size beyond the
+stream header is of questionable utility.<a href="#section-7.3.2-10" class="pilcrow">¶</a></p>
+<p id="section-7.3.2-11">RESET_STREAM and STOP_SENDING on SUBSCRIBE data streams have no impact on other
+Subgroups in the Group or the subscription, although applications might cancel all
+Subgroups in a Group at once.<a href="#section-7.3.2-11" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="fetch-header">
+<section id="section-7.3.3">
+          <h4 id="name-fetch-header">
+<a href="#section-7.3.3" class="section-number selfRef">7.3.3. </a><a href="#name-fetch-header" class="section-name selfRef">Fetch Header</a>
+          </h4>
+<p id="section-7.3.3-1">When a stream begins with <code>FETCH_HEADER</code>, all objects on the stream belong to the
+track requested in the Fetch message identified by <code>Subscribe ID</code>.<a href="#section-7.3.3-1" class="pilcrow">¶</a></p>
 <span id="name-moqt-fetch_header-message"></span><div id="fetch-header-format">
 <figure id="figure-30">
-            <div class="alignLeft art-text artwork" id="section-7.3.2-2.1">
+            <div class="alignLeft art-text artwork" id="section-7.3.3-2.1">
 <pre>
 FETCH_HEADER Message {
   Subscribe ID (i),
@@ -4181,10 +4244,10 @@ FETCH_HEADER Message {
 <a href="#name-moqt-fetch_header-message" class="selfRef">MOQT FETCH_HEADER Message</a>
             </figcaption></figure>
 </div>
-<p id="section-7.3.2-3">Each object sent on a fetch stream after the FETCH_HEADER has the following format:<a href="#section-7.3.2-3" class="pilcrow">¶</a></p>
+<p id="section-7.3.3-3">Each object sent on a fetch stream after the FETCH_HEADER has the following format:<a href="#section-7.3.3-3" class="pilcrow">¶</a></p>
 <span id="name-moqt-fetch-object-fields"></span><div id="object-fetch-format">
 <figure id="figure-31">
-            <div class="alignLeft art-text artwork" id="section-7.3.2-4.1">
+            <div class="alignLeft art-text artwork" id="section-7.3.3-4.1">
 <pre>
 {
   Group ID (i),
@@ -4201,7 +4264,7 @@ FETCH_HEADER Message {
 <a href="#name-moqt-fetch-object-fields" class="selfRef">MOQT Fetch Object Fields</a>
             </figcaption></figure>
 </div>
-<p id="section-7.3.2-5">The Object Status field is only sent if the Object Payload Length is zero.<a href="#section-7.3.2-5" class="pilcrow">¶</a></p>
+<p id="section-7.3.3-5">The Object Status field is only sent if the Object Payload Length is zero.<a href="#section-7.3.3-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -4371,6 +4434,10 @@ reaching a resource limit.<a href="#section-8.1-4" class="pilcrow">¶</a></p>
 <a href="#name-normative-references" class="section-name selfRef">Normative References</a>
         </h3>
 <dl class="references">
+<dt id="I-D.draft-ietf-quic-reliable-stream-reset">[I-D.draft-ietf-quic-reliable-stream-reset]</dt>
+        <dd>
+<span class="refAuthor">Seemann, M.</span> and <span class="refAuthor">K. Oku</span>, <span class="refTitle">"QUIC Stream Resets with Partial Delivery"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-quic-reliable-stream-reset-06</span>, <time datetime="2024-02-28" class="refDate">28 February 2024</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-quic-reliable-stream-reset-06">https://datatracker.ietf.org/doc/html/draft-ietf-quic-reliable-stream-reset-06</a>&gt;</span>. </dd>
+<dd class="break"></dd>
 <dt id="QUIC">[QUIC]</dt>
         <dd>
 <span class="refAuthor">Iyengar, J., Ed.</span> and <span class="refAuthor">M. Thomson, Ed.</span>, <span class="refTitle">"QUIC: A UDP-Based Multiplexed and Secure Transport"</span>, <span class="seriesInfo">RFC 9000</span>, <span class="seriesInfo">DOI 10.17487/RFC9000</span>, <time datetime="2021-05" class="refDate">May 2021</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9000">https://www.rfc-editor.org/rfc/rfc9000</a>&gt;</span>. </dd>
