@@ -4196,7 +4196,7 @@ Group boundaries to avoid doing so.<a href="#section-7.3.2-6" class="pilcrow">¶
 <p id="section-7.3.2-7">An MoQT implementation that processes a stream FIN is assured it has received
 all objects in a subgroup from the start of the subscription. If a relay, it
 can forward stream FINs to its own subscribers once those objects have been
-sent. A relay <span class="bcp14">MAY</span> treat receipt of EndOfGroup, EndOfSubgroup, GroupDoesNotExist, or
+sent. A relay <span class="bcp14">MAY</span> treat receipt of EndOfGroup, GroupDoesNotExist, or
 EndOfTrack objects as a signal to close corresponding streams even if the FIN
 has not arrived, as further objects on the stream would be a protocol violation.<a href="#section-7.3.2-7" class="pilcrow">¶</a></p>
 <p id="section-7.3.2-8">Similarly, an EndOfGroup message indicates the maximum Object ID in the
