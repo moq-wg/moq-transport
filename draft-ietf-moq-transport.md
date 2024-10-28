@@ -1874,10 +1874,8 @@ SUBSCRIBES_BLOCKED
 ~~~
 {: #moq-transport-subscribes-blocked format title="MOQT SUBSCRIBES_BLOCKED Message"}
 
-* Maximum Subscribe ID: The new Maximum Subscribe ID for the session. If a
-Subscribe ID equal or larger than this is received in any message, including
-SUBSCRIBE, the publisher MUST close the session with an error of
-'Too Many Subscribes'. More on Subscribe ID in {{message-subscribe-req}}.
+* Maximum Subscribe ID: The Maximum Subscribe ID for the session on which the subscriber
+is blocked. More on Subscribe ID in {{message-subscribe-req}}.
 
 
 ## ANNOUNCE {#message-announce}
