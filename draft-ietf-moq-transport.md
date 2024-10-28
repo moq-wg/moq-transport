@@ -1872,7 +1872,7 @@ SUBSCRIBES_BLOCKED
   Maximum Subscribe ID (i),
 }
 ~~~
-{: #moq-transport-max-subscribe-id format title="MOQT SUBSCRIBES_BLOCKED Message"}
+{: #moq-transport-subscribes-blocked format title="MOQT SUBSCRIBES_BLOCKED Message"}
 
 * Maximum Subscribe ID: The new Maximum Subscribe ID for the session. If a
 Subscribe ID equal or larger than this is received in any message, including
