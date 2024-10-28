@@ -961,11 +961,13 @@ MOQT Control Message {
 |-------|-----------------------------------------------------|
 | 0x15  | MAX_SUBSCRIBE_ID ({{message-max-subscribe-id}})     |
 |-------|-----------------------------------------------------|
+| 0x1A  | SUBSCRIBES_BLOCKED ({{message-subscribes-blocked}}) |
+|-------|-----------------------------------------------------|
 | 0x16  | FETCH ({{message-fetch}})                           |
 |-------|-----------------------------------------------------|
-| 0x17  | FETCH_CANCEL ({{message-fetch-cancel}})               |
+| 0x17  | FETCH_CANCEL ({{message-fetch-cancel}})             |
 |-------|-----------------------------------------------------|
-| 0x18  | FETCH_OK ({{message-fetch-ok}})                           |
+| 0x18  | FETCH_OK ({{message-fetch-ok}})                     |
 |-------|-----------------------------------------------------|
 | 0x19  | FETCH_ERROR ({{message-fetch-error}})               |
 |-------|-----------------------------------------------------|
@@ -1173,7 +1175,6 @@ the `query` portion of the URI to the parameter.
 The MAX_SUBSCRIBE_ID parameter (key 0x02) communicates an initial value for
 the Maximum Subscribe ID to the receiving subscriber. The default value is 0,
 so if not specified, the peer MUST NOT create subscriptions.
-
 
 ## GOAWAY {#message-goaway}
 The server sends a `GOAWAY` message to initiate session migration
@@ -1855,6 +1856,28 @@ MAX_SUBSCRIBE_ID
 equal or larger than this is received in any message, including SUBSCRIBE,
 the publisher MUST close the session with an error of 'Too Many Subscribes'.
 More on Subscribe ID in {{message-subscribe-req}}.
+
+## SUBSCRIBES_BLOCKED {#message-subscribes-blocked}
+
+The SUBSCRIBES_BLOCKED message is sent when a subscriber would like to begin
+a new subscription, but cannot because the Subscribe ID would exceed the
+Maximum Subscribe ID value sent by the peer.  The subscriber SHOULD send only
+one SUBSCRIBES_BLOCKED for a given Maximum Subscribe ID.
+
+~~~
+SUBSCRIBES_BLOCKED
+{
+  Type (i) = 0x1A,
+  Length (i),
+  Maximum Subscribe ID (i),
+}
+~~~
+{: #moq-transport-max-subscribe-id format title="MOQT SUBSCRIBES_BLOCKED Message"}
+
+* Maximum Subscribe ID: The new Maximum Subscribe ID for the session. If a
+Subscribe ID equal or larger than this is received in any message, including
+SUBSCRIBE, the publisher MUST close the session with an error of
+'Too Many Subscribes'. More on Subscribe ID in {{message-subscribe-req}}.
 
 
 ## ANNOUNCE {#message-announce}
