@@ -5,13 +5,13 @@
 Media Over QUIC                                                L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 1 May 2025                                                 Meta
+Expires: 3 May 2025                                                 Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                         28 October 2024
+                                                         30 October 2024
 
 
                        Media over QUIC Transport
@@ -59,7 +59,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 1 May 2025.
+   This Internet-Draft will expire on 3 May 2025.
 
 Copyright Notice
 
@@ -516,13 +516,13 @@ Table of Contents
 3.1.2.  QUIC
 
    A MOQT server that is accessible via native QUIC can be identified by
-   a URI with a "moq" scheme.  The "moq" URI scheme is defined as
+   a URI with a "moqt" scheme.  The "moqt" URI scheme is defined as
    follows, using definitions from [RFC3986]:
 
-   moq-URI = "moqt" "://" authority path-abempty [ "?" query ]
+   moqt-URI = "moqt" "://" authority path-abempty [ "?" query ]
 
    The authority portion MUST NOT contain a non-empty host portion.  The
-   moq URI scheme supports the /.well-known/ path prefix defined in
+   moqt URI scheme supports the /.well-known/ path prefix defined in
    [RFC8615].
 
    This protocol does not specify any semantics on the path-abempty and
@@ -1227,7 +1227,7 @@ Table of Contents
    PATH parameter from the server, or when WebTransport is used, it MUST
    close the connection.  It follows the URI formatting rules [RFC3986].
 
-   When connecting to a server using a URI with the "moq" scheme, the
+   When connecting to a server using a URI with the "moqt" scheme, the
    client MUST set the PATH parameter to the path-abempty portion of the
    URI; if query is present, the client MUST concatenate ?, followed by
    the query portion of the URI to the parameter.
