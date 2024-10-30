@@ -99,7 +99,7 @@ discovery and subscription.
 
 * {{message}} covers how control messages are encoded on the wire.
 
-* {{data-streams}}} covers how data messages are encoded on the wire.
+* {{data-streams}} covers how data messages are encoded on the wire.
 
 
 ## Motivation
