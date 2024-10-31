@@ -2139,8 +2139,8 @@ TODO: figure out how a relay closes these streams
 ### Stream Header Subgroup
 
 When a stream begins with `STREAM_HEADER_SUBGROUP`, all objects on the stream
-belong to the track requested in the Subscribe message identified by `Subscribe
-ID` and the subgroup indicated by 'Group ID' and `Subgroup ID`.
+belong to the track requested in the Subscribe message identified by `Track Alias`
+and the subgroup indicated by 'Group ID' and `Subgroup ID`.
 
 ~~~
 STREAM_HEADER_SUBGROUP Message {
