@@ -637,7 +637,10 @@ _Subscriber Priority_ is a priority number associated with an individual
 subscription.  It is specified in the SUBSCRIBE message, and can be updated via
 SUBSCRIBE_UPDATE message.  The subscriber priority of an individual schedulable
 object is the subscriber priority of the subscription that caused that object
-to be sent.
+to be sent. When subscriber priority is changed, a best effort SHOULD be made
+to change the apply that to all objects that have not been sent, but it is
+implementation dependent what happens to objects that have already been
+received and possibly scheduled.
 
 _Publisher Priority_ is a priority number associated with an indiviaul
 schedulable object.  It is specified in the header of the respective peep or
