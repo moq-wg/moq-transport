@@ -847,7 +847,7 @@ incoming SUBSCRIBE request from all available publishers.
 
 When a relay receives an incoming ANNOUCE for a given namespace, for
 each active upstream subscription that matches that namespace, it SHOULD send a
-SUBSCRIBE to that publisher that send the ANNOUNCE.
+SUBSCRIBE to the publisher that sent the ANNOUNCE.
 
 OBJECT message headers carry a short hop-by-hop `Track Alias` that maps to
 the Full Track Name (see {{message-subscribe-ok}}). Relays use the
