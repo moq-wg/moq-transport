@@ -630,7 +630,7 @@ Since a single peep or datagram has a single publisher priority, it can be
 useful to conceptualize this process as scheduling peeps or datagrams
 instead of individual objects on them.
 
-A _priority_ is an unsigned integer with a value between 0 and 255.
+A _priority number_ is an unsigned integer with a value between 0 and 255.
 A lower priority number indicates higher priority; the highest priority is 0.
 
 _Subscriber Priority_ is a priority number associated with an individual
