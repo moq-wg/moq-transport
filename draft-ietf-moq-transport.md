@@ -623,7 +623,7 @@ MoQT maintains priorities between different _schedulable objects_.
 A schedulable object in MoQT is either:
 
 1. An object that belongs to a peep where that object would be the next object
-   to be sent.
+   to be sent in that peep.
 1. An object that belongs to a track with delivery preference Datagram.
 
 Since a single peep or datagram has a single publisher priority, it can be
