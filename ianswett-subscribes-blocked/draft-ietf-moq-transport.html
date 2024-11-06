@@ -18,17 +18,17 @@ media to publish data and have it consumed via subscription by a
 multiplicity of endpoints. It supports intermediate content distribution
 networks and is designed for high scale and low latency distribution. 
     " name="description">
-<meta content="xml2rfc 3.23.2" name="generator">
+<meta content="xml2rfc 3.24.0" name="generator">
 <meta content="media over quic" name="keyword">
 <meta content="draft-ietf-moq-transport-latest" name="ietf.draft">
 <!-- Generator version information:
-  xml2rfc 3.23.2
+  xml2rfc 3.24.0
     Python 3.12.7
     ConfigArgParse 1.7
     google-i18n-address 3.1.1
     intervaltree 3.1.0
     Jinja2 3.1.4
-    lxml 4.9.4
+    lxml 5.3.0
     platformdirs 4.3.6
     pycountry 22.3.5
     PyYAML 6.0.1
@@ -1086,11 +1086,11 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <thead><tr>
 <td class="left">Internet-Draft</td>
 <td class="center">moq-transport</td>
-<td class="right">October 2024</td>
+<td class="right">November 2024</td>
 </tr></thead>
 <tfoot><tr>
 <td class="left">Curley, et al.</td>
-<td class="center">Expires 2 May 2025</td>
+<td class="center">Expires 10 May 2025</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1103,12 +1103,12 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dd class="internet-draft">draft-ietf-moq-transport-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2024-10-29" class="published">29 October 2024</time>
+<time datetime="2024-11-06" class="published">6 November 2024</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2025-05-02">2 May 2025</time></dd>
+<dd class="expires"><time datetime="2025-05-10">10 May 2025</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1180,7 +1180,7 @@ networks and is designed for high scale and low latency distribution.<a href="#s
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 2 May 2025.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 10 May 2025.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1969,15 +1969,15 @@ path indicated by the URI, as described in <span>[<a href="#WebTransport" class=
 <a href="#section-3.1.2" class="section-number selfRef">3.1.2. </a><a href="#name-quic" class="section-name selfRef">QUIC</a>
           </h4>
 <p id="section-3.1.2-1">A MOQT server that is accessible via native QUIC can be identified by a
-URI with a "moq" scheme.  The "moq" URI scheme is defined as follows,
+URI with a "moqt" scheme.  The "moqt" URI scheme is defined as follows,
 using definitions from <span>[<a href="#RFC3986" class="cite xref">RFC3986</a>]</span>:<a href="#section-3.1.2-1" class="pilcrow">¶</a></p>
 <div class="alignLeft art-text artwork" id="section-3.1.2-2">
 <pre>
-moq-URI = "moqt" "://" authority path-abempty [ "?" query ]
+moqt-URI = "moqt" "://" authority path-abempty [ "?" query ]
 </pre><a href="#section-3.1.2-2" class="pilcrow">¶</a>
 </div>
 <p id="section-3.1.2-3">The <code>authority</code> portion <span class="bcp14">MUST NOT</span> contain a non-empty <code>host</code> portion.
-The <code>moq</code> URI scheme supports the <code>/.well-known/</code> path prefix defined in
+The <code>moqt</code> URI scheme supports the <code>/.well-known/</code> path prefix defined in
 <span>[<a href="#RFC8615" class="cite xref">RFC8615</a>]</span>.<a href="#section-3.1.2-3" class="pilcrow">¶</a></p>
 <p id="section-3.1.2-4">This protocol does not specify any semantics on the <code>path-abempty</code> and
 <code>query</code> portions of the URI.  The contents of those are left up to the
@@ -1986,7 +1986,7 @@ application.<a href="#section-3.1.2-4" class="pilcrow">¶</a></p>
 given URI by setting up a QUIC connection to the host and port
 identified by the <code>authority</code> section of the URI.  The <code>path-abempty</code>
 and <code>query</code> portions of the URI are communicated to the server using the
-PATH parameter (<a href="#path" class="auto internal xref">Section 6.2.2.2</a>) which is sent in the CLIENT_SETUP message at the
+PATH parameter (<a href="#path" class="auto internal xref">Section 6.2.2.1</a>) which is sent in the CLIENT_SETUP message at the
 start of the session.  The ALPN value <span>[<a href="#RFC7301" class="cite xref">RFC7301</a>]</span> used by the protocol
 is <code>moq-00</code>.<a href="#section-3.1.2-5" class="pilcrow">¶</a></p>
 </section>
@@ -2430,7 +2430,7 @@ already has an active subscription for the Objects requested by the
 incoming SUBSCRIBE request from all available publishers.<a href="#section-5.2-8" class="pilcrow">¶</a></p>
 <p id="section-5.2-9">When a relay receives an incoming ANNOUCE for a given namespace, for
 each active upstream subscription that matches that namespace, it <span class="bcp14">SHOULD</span> send a
-SUBSCRIBE to that publisher that send the ANNOUNCE.<a href="#section-5.2-9" class="pilcrow">¶</a></p>
+SUBSCRIBE to the publisher that sent the ANNOUNCE.<a href="#section-5.2-9" class="pilcrow">¶</a></p>
 <p id="section-5.2-10">OBJECT message headers carry a short hop-by-hop <code>Track Alias</code> that maps to
 the Full Track Name (see <a href="#message-subscribe-ok" class="auto internal xref">Section 6.15</a>). Relays use the
 <code>Track Alias</code> of an incoming OBJECT message to identify its track and find
@@ -2814,65 +2814,30 @@ identified as 0xff00000D.<a href="#section-6.2.1-4" class="pilcrow">¶</a></p>
           <h4 id="name-setup-parameters">
 <a href="#section-6.2.2" class="section-number selfRef">6.2.2. </a><a href="#name-setup-parameters" class="section-name selfRef">Setup Parameters</a>
           </h4>
-<div id="role">
-<section id="section-6.2.2.1">
-            <h5 id="name-role">
-<a href="#section-6.2.2.1" class="section-number selfRef">6.2.2.1. </a><a href="#name-role" class="section-name selfRef">ROLE</a>
-            </h5>
-<p id="section-6.2.2.1-1">The ROLE parameter (key 0x00) allows each endpoint to independently specify what
-functionality they support for the session. It has three possible values,
-which are of type varint:<a href="#section-6.2.2.1-1" class="pilcrow">¶</a></p>
-<span class="break"></span><dl class="dlParallel" id="section-6.2.2.1-2">
-              <dt id="section-6.2.2.1-2.1">0x01: Publisher</dt>
-              <dd style="margin-left: 1.5em" id="section-6.2.2.1-2.2">
-                <p id="section-6.2.2.1-2.2.1">The endpoint can process subscriptions and send objects, but not subscribe.
-The endpoint <span class="bcp14">MUST NOT</span> send a SUBSCRIBE message and an ANNOUNCE <span class="bcp14">MUST NOT</span> be
-sent to it.<a href="#section-6.2.2.1-2.2.1" class="pilcrow">¶</a></p>
-</dd>
-              <dd class="break"></dd>
-<dt id="section-6.2.2.1-2.3">0x02: Subscriber</dt>
-              <dd style="margin-left: 1.5em" id="section-6.2.2.1-2.4">
-                <p id="section-6.2.2.1-2.4.1">The endpoint can send subscriptions and receive objects, but not publish.
-The endpoint <span class="bcp14">MUST NOT</span> send an ANNOUNCE message and a SUBSCRIBE <span class="bcp14">MUST NOT</span> be
-sent to it.<a href="#section-6.2.2.1-2.4.1" class="pilcrow">¶</a></p>
-</dd>
-              <dd class="break"></dd>
-<dt id="section-6.2.2.1-2.5">0x03: PubSub</dt>
-              <dd style="margin-left: 1.5em" id="section-6.2.2.1-2.6">
-                <p id="section-6.2.2.1-2.6.1">The endpoint can act as a publisher or subscriber, and can send or process
-any message type.<a href="#section-6.2.2.1-2.6.1" class="pilcrow">¶</a></p>
-</dd>
-            <dd class="break"></dd>
-</dl>
-<p id="section-6.2.2.1-3">Both endpoints <span class="bcp14">MUST</span> send a ROLE parameter with one of the three values
-specified above. Both endpoints <span class="bcp14">MUST</span> close the session if the ROLE
-parameter is missing or is not one of the three above-specified values.<a href="#section-6.2.2.1-3" class="pilcrow">¶</a></p>
-</section>
-</div>
 <div id="path">
-<section id="section-6.2.2.2">
+<section id="section-6.2.2.1">
             <h5 id="name-path">
-<a href="#section-6.2.2.2" class="section-number selfRef">6.2.2.2. </a><a href="#name-path" class="section-name selfRef">PATH</a>
+<a href="#section-6.2.2.1" class="section-number selfRef">6.2.2.1. </a><a href="#name-path" class="section-name selfRef">PATH</a>
             </h5>
-<p id="section-6.2.2.2-1">The PATH parameter (key 0x01) allows the client to specify the path of
+<p id="section-6.2.2.1-1">The PATH parameter (key 0x01) allows the client to specify the path of
 the MoQ URI when using native QUIC (<span>[<a href="#QUIC" class="cite xref">QUIC</a>]</span>).  It <span class="bcp14">MUST NOT</span> be used by
 the server, or when WebTransport is used.  If the peer receives a PATH
 parameter from the server, or when WebTransport is used, it <span class="bcp14">MUST</span> close
-the connection. It follows the URI formatting rules <span>[<a href="#RFC3986" class="cite xref">RFC3986</a>]</span>.<a href="#section-6.2.2.2-1" class="pilcrow">¶</a></p>
-<p id="section-6.2.2.2-2">When connecting to a server using a URI with the "moq" scheme, the
+the connection. It follows the URI formatting rules <span>[<a href="#RFC3986" class="cite xref">RFC3986</a>]</span>.<a href="#section-6.2.2.1-1" class="pilcrow">¶</a></p>
+<p id="section-6.2.2.1-2">When connecting to a server using a URI with the "moqt" scheme, the
 client <span class="bcp14">MUST</span> set the PATH parameter to the <code>path-abempty</code> portion of the
 URI; if <code>query</code> is present, the client <span class="bcp14">MUST</span> concatenate <code>?</code>, followed by
-the <code>query</code> portion of the URI to the parameter.<a href="#section-6.2.2.2-2" class="pilcrow">¶</a></p>
+the <code>query</code> portion of the URI to the parameter.<a href="#section-6.2.2.1-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="max-subscribe-id">
-<section id="section-6.2.2.3">
+<section id="section-6.2.2.2">
             <h5 id="name-max_subscribe_id">
-<a href="#section-6.2.2.3" class="section-number selfRef">6.2.2.3. </a><a href="#name-max_subscribe_id" class="section-name selfRef">MAX_SUBSCRIBE_ID</a>
+<a href="#section-6.2.2.2" class="section-number selfRef">6.2.2.2. </a><a href="#name-max_subscribe_id" class="section-name selfRef">MAX_SUBSCRIBE_ID</a>
             </h5>
-<p id="section-6.2.2.3-1">The MAX_SUBSCRIBE_ID parameter (key 0x02) communicates an initial value for
+<p id="section-6.2.2.2-1">The MAX_SUBSCRIBE_ID parameter (key 0x02) communicates an initial value for
 the Maximum Subscribe ID to the receiving subscriber. The default value is 0,
-so if not specified, the peer <span class="bcp14">MUST NOT</span> create subscriptions.<a href="#section-6.2.2.3-1" class="pilcrow">¶</a></p>
+so if not specified, the peer <span class="bcp14">MUST NOT</span> create subscriptions.<a href="#section-6.2.2.2-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -4212,8 +4177,8 @@ header message type and fields.<a href="#section-7.3-2" class="pilcrow">¶</a></
 <a href="#section-7.3.1" class="section-number selfRef">7.3.1. </a><a href="#name-stream-header-subgroup" class="section-name selfRef">Stream Header Subgroup</a>
           </h4>
 <p id="section-7.3.1-1">When a stream begins with <code>STREAM_HEADER_SUBGROUP</code>, all objects on the stream
-belong to the track requested in the Subscribe message identified by <code>Subscribe
-ID</code> and the subgroup indicated by 'Group ID' and <code>Subgroup ID</code>.<a href="#section-7.3.1-1" class="pilcrow">¶</a></p>
+belong to the track requested in the Subscribe message identified by <code>Track Alias</code>
+and the subgroup indicated by 'Group ID' and <code>Subgroup ID</code>.<a href="#section-7.3.1-1" class="pilcrow">¶</a></p>
 <span id="name-moqt-stream_header_subgroup"></span><div id="stream-header-subgroup-format">
 <figure id="figure-29">
             <div class="alignLeft art-text artwork" id="section-7.3.1-2.1">
