@@ -457,15 +457,15 @@ path indicated by the URI, as described in {{WebTransport, Section 3}}.
 ### QUIC
 
 A MOQT server that is accessible via native QUIC can be identified by a
-URI with a "moq" scheme.  The "moq" URI scheme is defined as follows,
+URI with a "moqt" scheme.  The "moqt" URI scheme is defined as follows,
 using definitions from {{!RFC3986}}:
 
 ~~~~~~~~~~~~~~~
-moq-URI = "moqt" "://" authority path-abempty [ "?" query ]
+moqt-URI = "moqt" "://" authority path-abempty [ "?" query ]
 ~~~~~~~~~~~~~~~
 
 The `authority` portion MUST NOT contain a non-empty `host` portion.
-The `moq` URI scheme supports the `/.well-known/` path prefix defined in
+The `moqt` URI scheme supports the `/.well-known/` path prefix defined in
 {{!RFC8615}}.
 
 This protocol does not specify any semantics on the `path-abempty` and
@@ -847,7 +847,7 @@ incoming SUBSCRIBE request from all available publishers.
 
 When a relay receives an incoming ANNOUCE for a given namespace, for
 each active upstream subscription that matches that namespace, it SHOULD send a
-SUBSCRIBE to that publisher that send the ANNOUNCE.
+SUBSCRIBE to the publisher that sent the ANNOUNCE.
 
 OBJECT message headers carry a short hop-by-hop `Track Alias` that maps to
 the Full Track Name (see {{message-subscribe-ok}}). Relays use the
@@ -1130,33 +1130,6 @@ identified as 0xff00000D.
 
 ### Setup Parameters {#setup-params}
 
-#### ROLE {#role}
-
-The ROLE parameter (key 0x00) allows each endpoint to independently specify what
-functionality they support for the session. It has three possible values,
-which are of type varint:
-
-0x01: Publisher
-
-: The endpoint can process subscriptions and send objects, but not subscribe.
-  The endpoint MUST NOT send a SUBSCRIBE message and an ANNOUNCE MUST NOT be
-  sent to it.
-
-0x02: Subscriber
-
-: The endpoint can send subscriptions and receive objects, but not publish.
-  The endpoint MUST NOT send an ANNOUNCE message and a SUBSCRIBE MUST NOT be
-  sent to it.
-
-0x03: PubSub
-
-: The endpoint can act as a publisher or subscriber, and can send or process
-  any message type.
-
-Both endpoints MUST send a ROLE parameter with one of the three values
-specified above. Both endpoints MUST close the session if the ROLE
-parameter is missing or is not one of the three above-specified values.
-
 #### PATH {#path}
 
 The PATH parameter (key 0x01) allows the client to specify the path of
@@ -1165,7 +1138,7 @@ the server, or when WebTransport is used.  If the peer receives a PATH
 parameter from the server, or when WebTransport is used, it MUST close
 the connection. It follows the URI formatting rules {{!RFC3986}}.
 
-When connecting to a server using a URI with the "moq" scheme, the
+When connecting to a server using a URI with the "moqt" scheme, the
 client MUST set the PATH parameter to the `path-abempty` portion of the
 URI; if `query` is present, the client MUST concatenate `?`, followed by
 the `query` portion of the URI to the parameter.
@@ -2160,8 +2133,8 @@ TODO: figure out how a relay closes these streams
 ### Stream Header Subgroup
 
 When a stream begins with `STREAM_HEADER_SUBGROUP`, all objects on the stream
-belong to the track requested in the Subscribe message identified by `Subscribe
-ID` and the subgroup indicated by 'Group ID' and `Subgroup ID`.
+belong to the track requested in the Subscribe message identified by `Track Alias`
+and the subgroup indicated by 'Group ID' and `Subgroup ID`.
 
 ~~~
 STREAM_HEADER_SUBGROUP Message {
