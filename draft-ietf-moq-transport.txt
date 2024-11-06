@@ -5,13 +5,13 @@
 Media Over QUIC                                                L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 9 May 2025                                                 Meta
+Expires: 10 May 2025                                                Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                         5 November 2024
+                                                         6 November 2024
 
 
                        Media over QUIC Transport
@@ -59,7 +59,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 9 May 2025.
+   This Internet-Draft will expire on 10 May 2025.
 
 Copyright Notice
 
@@ -2234,7 +2234,7 @@ Table of Contents
 
    When a stream begins with STREAM_HEADER_SUBGROUP, all objects on the
    stream belong to the track requested in the Subscribe message
-   identified by Subscribe ID and the subgroup indicated by 'Group ID'
+   identified by Track Alias and the subgroup indicated by 'Group ID'
    and Subgroup ID.
 
    STREAM_HEADER_SUBGROUP Message {
