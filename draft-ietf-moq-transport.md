@@ -1837,6 +1837,10 @@ a new subscription, but cannot because the Subscribe ID would exceed the
 Maximum Subscribe ID value sent by the peer.  The subscriber SHOULD send only
 one SUBSCRIBES_BLOCKED for a given Maximum Subscribe ID.
 
+A publisher MAY send a MAX_SUBSCRIBE_ID upon receipt of SUBSCRIBES_BLOCKED,
+but it MUST NOT rely on SUBSCRIBES_BLOCKED to trigger sending a
+MAX_SUBSCRIBE_ID, because sending SUBSCRIBES_BLOCKED is not required.
+
 ~~~
 SUBSCRIBES_BLOCKED
 {
