@@ -5,13 +5,13 @@
 Media Over QUIC                                                L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 10 May 2025                                                Meta
+Expires: 11 May 2025                                                Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                         6 November 2024
+                                                         7 November 2024
 
 
                        Media over QUIC Transport
@@ -59,7 +59,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 10 May 2025.
+   This Internet-Draft will expire on 11 May 2025.
 
 Copyright Notice
 
@@ -1942,6 +1942,11 @@ Table of Contents
    would exceed the Maximum Subscribe ID value sent by the peer.  The
    subscriber SHOULD send only one SUBSCRIBES_BLOCKED for a given
    Maximum Subscribe ID.
+
+   A publisher MAY send a MAX_SUBSCRIBE_ID upon receipt of
+   SUBSCRIBES_BLOCKED, but it MUST NOT rely on SUBSCRIBES_BLOCKED to
+   trigger sending a MAX_SUBSCRIBE_ID, because sending
+   SUBSCRIBES_BLOCKED is not required.
 
    SUBSCRIBES_BLOCKED
    {
