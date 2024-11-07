@@ -725,7 +725,7 @@ For successful subscriptions, the publisher maintains a list of
 subscribers for each track. Each new OBJECT belonging to the
 track within the subscription range is forwarded to each active
 subscriber, dependent on the congestion response. A subscription
-remains active until the publisher of the track terminates the
+remains active until soon after the publisher of the track terminates the
 subscription with a SUBSCRIBE_DONE (see {{message-subscribe-done}}).
 
 A caching relay saves Objects to its cache identified by the Object's
@@ -1343,8 +1343,7 @@ See {{priorities}}.
 A subscriber issues a `UNSUBSCRIBE` message to a publisher indicating it is no
 longer interested in receiving media for the specified track and Objects
 should stop being sent as soon as possible.  The publisher sends a
-SUBSCRIBE_DONE to acknowledge the unsubscribe was successful and indicate
-the final Object.
+SUBSCRIBE_DONE to acknowledge the unsubscribe was successful.
 
 The format of `UNSUBSCRIBE` is as follows:
 
@@ -1767,9 +1766,25 @@ FETCH_ERROR
 
 ## SUBSCRIBE_DONE {#message-subscribe-done}
 
-A publisher sends a `SUBSCRIBE_DONE` message to indicate it is done publishing
-Objects for that subscription.  The Status Code indicates why the subscription ended,
-and whether it was an error.
+A publisher sends a `SUBSCRIBE_DONE` message to indicate it will not open any
+additional streams for a subscription. When all streams for the subscription are
+fully closed, each endpoint can destroy its subscription state.
+
+Note that some objects in the subscribed groups might not have been delivered,
+because a stream was reset, or never opened in the first place, due to the
+delivery timeout.
+
+A sender MUST NOT send SUBSCRIBE_DONE until it has closed all streams it will
+ever open for a subscription. After sending SUBSCRIBE_DONE, MoQT can immediately
+destroy subscription state. The QUIC implementation might still be resolving the
+closing of the stream on the wire.
+
+A receiver that receives SUBSCRIBE_DONE SHOULD set a timer of at least 2 seconds
+in case some unopened streams are still inbound due to prioritization or packet
+loss. Once the timer has expired, the receiver destroys subscription state once
+all open streams for the subscription have closed. A receiver MAY destroy
+subscription state earlier, at the cost of potentially not delivering some late
+objects to the application.
 
 The format of `SUBSCRIBE_DONE` is as follows:
 
@@ -1781,9 +1796,6 @@ SUBSCRIBE_DONE Message {
   Status Code (i),
   Reason Phrase Length (i),
   Reason Phrase (..),
-  ContentExists (8),
-  [Final Group (i)],
-  [Final Object (i)],
 }
 ~~~
 {: #moq-transport-subscribe-fin-format title="MOQT SUBSCRIBE_DONE Message"}
@@ -1793,17 +1805,6 @@ SUBSCRIBE_DONE Message {
 * Status Code: An integer status code indicating why the subscription ended.
 
 * Reason Phrase: Provides the reason for subscription error.
-
-* ContentExists: 1 if an object has been published for this subscription, 0 if
-not. If 0, then the Final Group and Final Object fields will not be present.
-Any other value is a protocol error and MUST terminate the session with a
-Protocol Violation ({{session-termination}}).
-
-* Final Group: The largest Group ID sent by the publisher in an OBJECT
-message in this track.
-
-* Final Object: The largest Object ID sent by the publisher in an OBJECT
-message in the `Final Group` for this track.
 
 ## MAX_SUBSCRIBE_ID {#message-max-subscribe-id}
 
