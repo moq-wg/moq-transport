@@ -1770,13 +1770,13 @@ A publisher sends a `SUBSCRIBE_DONE` message to indicate it will not open any
 additional streams for a subscription. When all streams for the subscription are
 fully closed, each endpoint can destroy its subscription state.
 
-Note that some objects in the subscribed groups might not have been delivered,
+Note that some objects in the subscribed groups might never be delivered,
 because a stream was reset, or never opened in the first place, due to the
 delivery timeout.
 
 A sender MUST NOT send SUBSCRIBE_DONE until it has closed all streams it will
 ever open for a subscription. After sending SUBSCRIBE_DONE, MoQT can immediately
-destroy subscription state. The QUIC implementation might still be resolving the
+destroy subscription state. The QUIC layer might still be resolving the
 closing of the stream on the wire.
 
 A receiver that receives SUBSCRIBE_DONE SHOULD set a timer of at least 2 seconds
