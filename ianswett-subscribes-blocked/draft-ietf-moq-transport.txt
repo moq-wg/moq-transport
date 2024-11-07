@@ -2192,9 +2192,6 @@ Table of Contents
       is sent right after the last object in the track.  This SHOULD be
       cached.
 
-   *  0x5 := Indicates end of Subgroup.  Object ID is one greater than
-      the largest normal object ID in the Subgroup.
-
    Any other value SHOULD be treated as a protocol error and terminate
    the session with a Protocol Violation (Section 3.5).  Any object with
    a status code other than zero MUST have an empty payload.
@@ -2321,10 +2318,10 @@ Table of Contents
    received all objects in a subgroup from the start of the
    subscription.  If a relay, it can forward stream FINs to its own
    subscribers once those objects have been sent.  A relay MAY treat
-   receipt of EndOfGroup, EndOfSubgroup, GroupDoesNotExist, or
-   EndOfTrack objects as a signal to close corresponding streams even if
-   the FIN has not arrived, as further objects on the stream would be a
-   protocol violation.
+   receipt of EndOfGroup, GroupDoesNotExist, or EndOfTrack objects as a
+   signal to close corresponding streams even if the FIN has not
+   arrived, as further objects on the stream would be a protocol
+   violation.
 
    Similarly, an EndOfGroup message indicates the maximum Object ID in
    the Group, so if all Objects in the Group have been received, a FIN
