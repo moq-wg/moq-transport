@@ -1767,24 +1767,25 @@ FETCH_ERROR
 ## SUBSCRIBE_DONE {#message-subscribe-done}
 
 A publisher sends a `SUBSCRIBE_DONE` message to indicate it will not open any
-additional streams for a subscription. When all streams for the subscription are
-fully closed, each endpoint can destroy its subscription state.
+additional streams or send any more datagrams for a subscription. When all
+streams for the subscription are fully closed, each endpoint can destroy its
+subscription state.
 
 Note that some objects in the subscribed groups might never be delivered,
 because a stream was reset, or never opened in the first place, due to the
 delivery timeout.
 
 A sender MUST NOT send SUBSCRIBE_DONE until it has closed all streams it will
-ever open for a subscription. After sending SUBSCRIBE_DONE, MoQT can immediately
-destroy subscription state. The QUIC layer might still be resolving the
-closing of the stream on the wire.
+ever open, and has no pending datagrams, for a subscription. After sending
+SUBSCRIBE_DONE, the sender  can immediately destroy subscription state, although
+stream state may persist until delivery completes.
 
 A receiver that receives SUBSCRIBE_DONE SHOULD set a timer of at least 2 seconds
-in case some unopened streams are still inbound due to prioritization or packet
-loss. Once the timer has expired, the receiver destroys subscription state once
-all open streams for the subscription have closed. A receiver MAY destroy
-subscription state earlier, at the cost of potentially not delivering some late
-objects to the application.
+in case some datagrams or unopened streams are still inbound due to
+prioritization or packet loss. Once the timer has expired, the receiver destroys
+subscription state once all open streams for the subscription have closed. Ai
+receiver MAY destroy subscription state earlier, at the cost of potentially not
+delivering some late objects to the application.
 
 The format of `SUBSCRIBE_DONE` is as follows:
 
