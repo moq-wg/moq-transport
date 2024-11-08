@@ -5,13 +5,13 @@
 Media Over QUIC                                                L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 11 May 2025                                                Meta
+Expires: 12 May 2025                                                Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                         7 November 2024
+                                                         8 November 2024
 
 
                        Media over QUIC Transport
@@ -59,7 +59,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 11 May 2025.
+   This Internet-Draft will expire on 12 May 2025.
 
 Copyright Notice
 
@@ -1870,26 +1870,27 @@ Table of Contents
 6.19.  SUBSCRIBE_DONE
 
    A publisher sends a SUBSCRIBE_DONE message to indicate it will not
-   open any additional streams for a subscription.  When all streams for
-   the subscription are fully closed, each endpoint can destroy its
-   subscription state.
+   open any additional streams or send any more datagrams for a
+   subscription.  When all streams for the subscription are fully
+   closed, each endpoint can destroy its subscription state.
 
    Note that some objects in the subscribed groups might never be
    delivered, because a stream was reset, or never opened in the first
    place, due to the delivery timeout.
 
    A sender MUST NOT send SUBSCRIBE_DONE until it has closed all streams
-   it will ever open for a subscription.  After sending SUBSCRIBE_DONE,
-   MoQT can immediately destroy subscription state.  The QUIC layer
-   might still be resolving the closing of the stream on the wire.
+   it will ever open, and has no pending datagrams, for a subscription.
+   After sending SUBSCRIBE_DONE, the sender can immediately destroy
+   subscription state, although stream state may persist until delivery
+   completes.
 
    A receiver that receives SUBSCRIBE_DONE SHOULD set a timer of at
-   least 2 seconds in case some unopened streams are still inbound due
-   to prioritization or packet loss.  Once the timer has expired, the
-   receiver destroys subscription state once all open streams for the
-   subscription have closed.  A receiver MAY destroy subscription state
-   earlier, at the cost of potentially not delivering some late objects
-   to the application.
+   least 2 seconds in case some datagrams or unopened streams are still
+   inbound due to prioritization or packet loss.  Once the timer has
+   expired, the receiver destroys subscription state once all open
+   streams for the subscription have closed.  Ai receiver MAY destroy
+   subscription state earlier, at the cost of potentially not delivering
+   some late objects to the application.
 
    The format of SUBSCRIBE_DONE is as follows:
 
