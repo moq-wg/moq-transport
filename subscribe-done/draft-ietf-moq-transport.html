@@ -3732,7 +3732,7 @@ because a stream was reset, or never opened in the first place, due to the
 delivery timeout.<a href="#section-6.19-2" class="pilcrow">¶</a></p>
 <p id="section-6.19-3">A sender <span class="bcp14">MUST NOT</span> send SUBSCRIBE_DONE until it has closed all streams it will
 ever open, and has no pending datagrams, for a subscription. After sending
-SUBSCRIBE_DONE, the sender  can immediately destroy subscription state, although
+SUBSCRIBE_DONE, the sender can immediately destroy subscription state, although
 stream state may persist until delivery completes.<a href="#section-6.19-3" class="pilcrow">¶</a></p>
 <p id="section-6.19-4">A receiver that receives SUBSCRIBE_DONE <span class="bcp14">SHOULD</span> set a timer of at least 2 seconds
 in case some datagrams or unopened streams are still inbound due to
