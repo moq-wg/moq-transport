@@ -1791,7 +1791,7 @@ delivery timeout.
 
 A sender MUST NOT send SUBSCRIBE_DONE until it has closed all streams it will
 ever open, and has no pending datagrams, for a subscription. After sending
-SUBSCRIBE_DONE, the sender  can immediately destroy subscription state, although
+SUBSCRIBE_DONE, the sender can immediately destroy subscription state, although
 stream state may persist until delivery completes.
 
 A receiver that receives SUBSCRIBE_DONE SHOULD set a timer of at least 2 seconds
