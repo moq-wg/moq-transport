@@ -1797,8 +1797,8 @@ stream state may persist until delivery completes.
 A subscriber that receives SUBSCRIBE_DONE SHOULD set a timer of at least 2 seconds
 in case some datagrams or unopened streams are still inbound due to
 prioritization or packet loss. Once the timer has expired, the receiver destroys
-subscription state once all open streams for the subscription have closed. Ai
-receiver MAY destroy subscription state earlier, at the cost of potentially not
+subscription state once all open streams for the subscription have closed. A
+subscriber MAY discard subscription state earlier, at the cost of potentially not
 delivering some late objects to the application.
 
 The format of `SUBSCRIBE_DONE` is as follows:
