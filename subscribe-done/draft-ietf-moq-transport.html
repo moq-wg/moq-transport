@@ -3737,8 +3737,8 @@ stream state may persist until delivery completes.<a href="#section-6.19-3" clas
 <p id="section-6.19-4">A subscriber that receives SUBSCRIBE_DONE <span class="bcp14">SHOULD</span> set a timer of at least 2 seconds
 in case some datagrams or unopened streams are still inbound due to
 prioritization or packet loss. Once the timer has expired, the receiver destroys
-subscription state once all open streams for the subscription have closed. Ai
-receiver <span class="bcp14">MAY</span> destroy subscription state earlier, at the cost of potentially not
+subscription state once all open streams for the subscription have closed. A
+subscriber <span class="bcp14">MAY</span> discard subscription state earlier, at the cost of potentially not
 delivering some late objects to the application.<a href="#section-6.19-4" class="pilcrow">¶</a></p>
 <p id="section-6.19-5">The format of <code>SUBSCRIBE_DONE</code> is as follows:<a href="#section-6.19-5" class="pilcrow">¶</a></p>
 <span id="name-moqt-subscribe_done-message"></span><div id="moq-transport-subscribe-fin-format">
