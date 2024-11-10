@@ -1090,7 +1090,7 @@ svg :is([fill="white"], [fill^="#fff"]) {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Curley, et al.</td>
-<td class="center">Expires 12 May 2025</td>
+<td class="center">Expires 14 May 2025</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1103,12 +1103,12 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dd class="internet-draft">draft-ietf-moq-transport-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2024-11-08" class="published">8 November 2024</time>
+<time datetime="2024-11-10" class="published">10 November 2024</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2025-05-12">12 May 2025</time></dd>
+<dd class="expires"><time datetime="2025-05-14">14 May 2025</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1180,7 +1180,7 @@ networks and is designed for high scale and low latency distribution.<a href="#s
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 12 May 2025.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 14 May 2025.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1298,6 +1298,17 @@ networks and is designed for high scale and low latency distribution.<a href="#s
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4">
             <p id="section-toc.1-1.4.1"><a href="#section-4" class="auto internal xref">4</a>.  <a href="#name-priorities" class="internal xref">Priorities</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.1">
+                <p id="section-toc.1-1.4.2.1.1"><a href="#section-4.1" class="auto internal xref">4.1</a>.  <a href="#name-definitions" class="internal xref">Definitions</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.2">
+                <p id="section-toc.1-1.4.2.2.1"><a href="#section-4.2" class="auto internal xref">4.2</a>.  <a href="#name-scheduling-algorithm" class="internal xref">Scheduling Algorithm</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.3">
+                <p id="section-toc.1-1.4.2.3.1"><a href="#section-4.3" class="auto internal xref">4.3</a>.  <a href="#name-considerations-for-setting-" class="internal xref">Considerations for Setting Priorities</a></p>
+</li>
+            </ul>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5">
             <p id="section-toc.1-1.5.1"><a href="#section-5" class="auto internal xref">5</a>.  <a href="#name-relays-2" class="internal xref">Relays</a></p>
@@ -2170,56 +2181,97 @@ expects more OBJECTs to be delivered. The server closes the session with a
 <p id="section-4-1">MoQ priorities allow a subscriber and original publisher to influence
 the transmission order of Objects within a session in the presence of
 congestion.<a href="#section-4-1" class="pilcrow">¶</a></p>
-<p id="section-4-2">Given the critical nature of control messages and their relatively
+<div id="definitions">
+<section id="section-4.1">
+        <h3 id="name-definitions">
+<a href="#section-4.1" class="section-number selfRef">4.1. </a><a href="#name-definitions" class="section-name selfRef">Definitions</a>
+        </h3>
+<p id="section-4.1-1">MoQT maintains priorities between different <em>schedulable objects</em>.
+A schedulable object in MoQT is either:<a href="#section-4.1-1" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="normal type-1" id="section-4.1-2">
+<li id="section-4.1-2.1">
+            <p id="section-4.1-2.1.1">An object that belongs to a peep where that object would be the next object
+to be sent in that peep.<a href="#section-4.1-2.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li id="section-4.1-2.2">
+            <p id="section-4.1-2.2.1">An object that belongs to a track with delivery preference Datagram.<a href="#section-4.1-2.2.1" class="pilcrow">¶</a></p>
+</li>
+        </ol>
+<p id="section-4.1-3">Since a single peep or datagram has a single publisher priority, it can be
+useful to conceptualize this process as scheduling peeps or datagrams
+instead of individual objects on them.<a href="#section-4.1-3" class="pilcrow">¶</a></p>
+<p id="section-4.1-4">A <em>priority number</em> is an unsigned integer with a value between 0 and 255.
+A lower priority number indicates higher priority; the highest priority is 0.<a href="#section-4.1-4" class="pilcrow">¶</a></p>
+<p id="section-4.1-5"><em>Subscriber Priority</em> is a priority number associated with an individual
+subscription.  It is specified in the SUBSCRIBE message, and can be updated via
+SUBSCRIBE_UPDATE message.  The subscriber priority of an individual schedulable
+object is the subscriber priority of the subscription that caused that object
+to be sent. When subscriber priority is changed, a best effort <span class="bcp14">SHOULD</span> be made
+to change the apply that to all objects that have not been sent, but it is
+implementation dependent what happens to objects that have already been
+received and possibly scheduled.<a href="#section-4.1-5" class="pilcrow">¶</a></p>
+<p id="section-4.1-6"><em>Publisher Priority</em> is a priority number associated with an indiviaul
+schedulable object.  It is specified in the header of the respective peep or
+datagram, and is the same for all objects in a single peep.<a href="#section-4.1-6" class="pilcrow">¶</a></p>
+<p id="section-4.1-7"><em>Group Order</em> is a property of an invidual subscription.  It can be either
+'Ascending' (groups with lower group ID are sent first), or 'Descending'
+(groups with higher group ID are sent first).  The publisher communicates its
+group order in the SUBSCRIBE_OK message; the subscriber can override it in its
+SUBSCRIBE message.  The group order of an existing subscription cannot be
+changed.<a href="#section-4.1-7" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="scheduling-algorithm">
+<section id="section-4.2">
+        <h3 id="name-scheduling-algorithm">
+<a href="#section-4.2" class="section-number selfRef">4.2. </a><a href="#name-scheduling-algorithm" class="section-name selfRef">Scheduling Algorithm</a>
+        </h3>
+<p id="section-4.2-1">When an MoQT publisher has multiple schedulable objects it can choose between,
+the objects <span class="bcp14">SHOULD</span> be selected as follows:<a href="#section-4.2-1" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="normal type-1" id="section-4.2-2">
+<li id="section-4.2-2.1">
+            <p id="section-4.2-2.1.1">If two objects have a different subscriber priority associated with them,
+the one with <strong>the highest subscriber priority</strong> is sent first.<a href="#section-4.2-2.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li id="section-4.2-2.2">
+            <p id="section-4.2-2.2.1">If two objects have the same subscriber priority, but a different publisher
+priority, the one with <strong>the highest publisher priority</strong> is sent first.<a href="#section-4.2-2.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li id="section-4.2-2.3">
+            <p id="section-4.2-2.3.1">If two objects have the same subscriber and publisher priority, but belong
+to two different groups of the same track received through the same
+subscription, <strong>the group order</strong> of the associated subscription is used to
+decide the one that is sent first.<a href="#section-4.2-2.3.1" class="pilcrow">¶</a></p>
+</li>
+          <li id="section-4.2-2.4">
+            <p id="section-4.2-2.4.1">If two objects belong to the same group of the same track received through
+the same subscription, the one with <strong>the lowest Peep ID</strong> (for tracks with
+delivery preference Peep), or <strong>the lowest Object ID</strong> (for tracks with
+delivery preference Datagram) is sent first.<a href="#section-4.2-2.4.1" class="pilcrow">¶</a></p>
+</li>
+        </ol>
+<p id="section-4.2-3">This algorithm does not provide a well-defined ordering for objects that belong
+to different subscriptions, but have the same subscriber and publisher
+priority.  The ordering in those cases is implementation-defined, though the
+expectation is that all subscriptions will be able to send some data.<a href="#section-4.2-3" class="pilcrow">¶</a></p>
+<p id="section-4.2-4">Given the critical nature of control messages and their relatively
 small size, the control stream <span class="bcp14">SHOULD</span> be prioritized higher than all
-subscribed Objects.<a href="#section-4-2" class="pilcrow">¶</a></p>
-<p id="section-4-3">Both SUBSCRIBE and FETCH messages indicate a subscriber priority and
-group order, so the following text applies equally to both types of
-subscriptions.<a href="#section-4-3" class="pilcrow">¶</a></p>
-<p id="section-4-4">The subscriber indicates the priority of a subscription via the
-Subscriber Priority field and the original publisher indicates priority
-in every stream or datagram header.  As such, the subscriber's priority is a
-property of the subscription and the original publisher's priority is a
-property of the Track and the Objects it contains. In both cases, a lower
-value indicates a higher priority, with 0 being the highest priority.<a href="#section-4-4" class="pilcrow">¶</a></p>
-<p id="section-4-5">When Objects are contained in Subgroups, all Objects in the Subgroup have the same
-priority.<a href="#section-4-5" class="pilcrow">¶</a></p>
-<p id="section-4-6">The Subscriber Priority is considered first when selecting a subscription
-to send data on within a given session. When two or more subscriptions
-have equal subscriber priority, the original publisher priority is considered
-next and can change within the track, so subscriptions are prioritized based
-on the highest priority data available to send. For example, if the subscription
-had data at priority 6 and priority 10 to send, the subscription priority would
-be 6. When both the subscriber and original publisher priorities for a
-subscription are equal, how much data to send from each subscription is
-implementation-dependent, but the expectation is that all subscriptions will
-be able to send some data.<a href="#section-4-6" class="pilcrow">¶</a></p>
-<p id="section-4-7">The subscriber's priority can be changed via a SUBSCRIBE_UPDATE message.
-This updates the priority of all unsent data within the subscription,
-though the details of the reprioritization are implementation-specific.<a href="#section-4-7" class="pilcrow">¶</a></p>
-<p id="section-4-8">Subscriptions have a Group Order of either 'Ascending' or 'Descending',
-which indicates whether the lowest or highest Group Id <span class="bcp14">SHOULD</span> be sent first
-when multiple Groups are available to send.  A subscriber can specify either
-'Ascending' or 'Descending' in the SUBSCRIBE message or they can specify they
-want to use the Original Publisher's Group Order, which is indicated in
-the corresponding SUBSCRIBE_OK.<a href="#section-4-8" class="pilcrow">¶</a></p>
-<p id="section-4-9">Within the same Group, and the same priority level,
-Objects with a lower Object Id are always sent before objects with a
-higher Object Id, regardless of the specified Group Order. If the group
-contains more than one Subgroup and the priority varies between these Subgroups,
-higher priority Subgroups are sent before lower priority Subgroups. If the specified
-priority of two Subgroups in a Group are equal, the lower Subgroup ID has priority.
-Within a Subgroup, Objects <span class="bcp14">MUST</span> be sent in increasing Object ID order.<a href="#section-4-9" class="pilcrow">¶</a></p>
-<p id="section-4-10">The Group Order cannot be changed via a SUBSCRIBE_UPDATE message, and
-instead an UNSUBSCRIBE and SUBSCRIBE can be used.<a href="#section-4-10" class="pilcrow">¶</a></p>
-<p id="section-4-11">Relays <span class="bcp14">SHOULD</span> respect the subscriber and original publisher's priorities.
+subscribed Objects.<a href="#section-4.2-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="considerations-for-setting-priorities">
+<section id="section-4.3">
+        <h3 id="name-considerations-for-setting-">
+<a href="#section-4.3" class="section-number selfRef">4.3. </a><a href="#name-considerations-for-setting-" class="section-name selfRef">Considerations for Setting Priorities</a>
+        </h3>
+<p id="section-4.3-1">Relays <span class="bcp14">SHOULD</span> respect the subscriber and original publisher's priorities.
 Relays <span class="bcp14">SHOULD NOT</span> directly use Subscriber Priority or Group Order
 from incoming subscriptions for upstream subscriptions. Relays use of
 Subscriber Priority for upstream subscriptions can be based on
 factors specific to it, such as the popularity of the
 content or policy, or relays can specify the same value for all
-upstream subscriptions.<a href="#section-4-11" class="pilcrow">¶</a></p>
-<p id="section-4-12">MoQ Sessions can span multiple namespaces, and priorities might not
+upstream subscriptions.<a href="#section-4.3-1" class="pilcrow">¶</a></p>
+<p id="section-4.3-2">MoQ Sessions can span multiple namespaces, and priorities might not
 be coordinated across namespaces.  The subscriber's priority is
 considered first, so there is a mechanism for a subscriber to fix
 incompatibilities between different namespaces prioritization schemes.
@@ -2227,7 +2279,9 @@ Additionally, it is anticipated that when multiple namespaces
 are present within a session, the namespaces could be coordinating,
 possibly part of the same application.  In cases when pooling among
 namespaces is expected to cause issues, multiple MoQ sessions, either
-within a single connection or on multiple connections can be used.<a href="#section-4-12" class="pilcrow">¶</a></p>
+within a single connection or on multiple connections can be used.<a href="#section-4.3-2" class="pilcrow">¶</a></p>
+</section>
+</div>
 </section>
 </div>
 <div id="relays-moq">
@@ -4066,10 +4120,6 @@ are beyond the end of a group or track.<a href="#section-7.1.1.1-1" class="pilcr
        group. This is sent right after the last object in the
        track. This <span class="bcp14">SHOULD</span> be cached.<a href="#section-7.1.1.1-3.4.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-7.1.1.1-3.5">
-                <p id="section-7.1.1.1-3.5.1">0x5 := Indicates end of Subgroup. Object ID is one greater than the largest
-       normal object ID in the Subgroup.<a href="#section-7.1.1.1-3.5.1" class="pilcrow">¶</a></p>
-</li>
             </ul>
 <p id="section-7.1.1.1-4">Any other value <span class="bcp14">SHOULD</span> be treated as a protocol error and terminate the
 session with a Protocol Violation (<a href="#session-termination" class="auto internal xref">Section 3.5</a>).
@@ -4214,7 +4264,7 @@ Group boundaries to avoid doing so.<a href="#section-7.3.2-6" class="pilcrow">¶
 <p id="section-7.3.2-7">An MoQT implementation that processes a stream FIN is assured it has received
 all objects in a subgroup from the start of the subscription. If a relay, it
 can forward stream FINs to its own subscribers once those objects have been
-sent. A relay <span class="bcp14">MAY</span> treat receipt of EndOfGroup, EndOfSubgroup, GroupDoesNotExist, or
+sent. A relay <span class="bcp14">MAY</span> treat receipt of EndOfGroup, GroupDoesNotExist, or
 EndOfTrack objects as a signal to close corresponding streams even if the FIN
 has not arrived, as further objects on the stream would be a protocol violation.<a href="#section-7.3.2-7" class="pilcrow">¶</a></p>
 <p id="section-7.3.2-8">Similarly, an EndOfGroup message indicates the maximum Object ID in the
