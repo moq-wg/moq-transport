@@ -5,13 +5,13 @@
 Media Over QUIC                                                L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 11 May 2025                                                Meta
+Expires: 14 May 2025                                                Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                         7 November 2024
+                                                        10 November 2024
 
 
                        Media over QUIC Transport
@@ -59,7 +59,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 11 May 2025.
+   This Internet-Draft will expire on 14 May 2025.
 
 Copyright Notice
 
@@ -103,6 +103,9 @@ Table of Contents
      3.5.  Termination
      3.6.  Migration
    4.  Priorities
+     4.1.  Definitions
+     4.2.  Scheduling Algorithm
+     4.3.  Considerations for Setting Priorities
    5.  Relays
      5.1.  Subscriber Interactions
        5.1.1.  Graceful Publisher Relay Switchover
@@ -687,61 +690,83 @@ Table of Contents
    the transmission order of Objects within a session in the presence of
    congestion.
 
+4.1.  Definitions
+
+   MoQT maintains priorities between different _schedulable objects_. A
+   schedulable object in MoQT is either:
+
+   1.  An object that belongs to a peep where that object would be the
+       next object to be sent in that peep.
+
+   2.  An object that belongs to a track with delivery preference
+       Datagram.
+
+   Since a single peep or datagram has a single publisher priority, it
+   can be useful to conceptualize this process as scheduling peeps or
+   datagrams instead of individual objects on them.
+
+   A _priority number_ is an unsigned integer with a value between 0 and
+   255.  A lower priority number indicates higher priority; the highest
+   priority is 0.
+
+   _Subscriber Priority_ is a priority number associated with an
+   individual subscription.  It is specified in the SUBSCRIBE message,
+   and can be updated via SUBSCRIBE_UPDATE message.  The subscriber
+   priority of an individual schedulable object is the subscriber
+   priority of the subscription that caused that object to be sent.
+   When subscriber priority is changed, a best effort SHOULD be made to
+   change the apply that to all objects that have not been sent, but it
+   is implementation dependent what happens to objects that have already
+   been received and possibly scheduled.
+
+   _Publisher Priority_ is a priority number associated with an
+   indiviaul schedulable object.  It is specified in the header of the
+   respective peep or datagram, and is the same for all objects in a
+   single peep.
+
+   _Group Order_ is a property of an invidual subscription.  It can be
+   either 'Ascending' (groups with lower group ID are sent first), or
+   'Descending' (groups with higher group ID are sent first).  The
+   publisher communicates its group order in the SUBSCRIBE_OK message;
+   the subscriber can override it in its SUBSCRIBE message.  The group
+   order of an existing subscription cannot be changed.
+
+4.2.  Scheduling Algorithm
+
+   When an MoQT publisher has multiple schedulable objects it can choose
+   between, the objects SHOULD be selected as follows:
+
+   1.  If two objects have a different subscriber priority associated
+       with them, the one with *the highest subscriber priority* is sent
+       first.
+
+   2.  If two objects have the same subscriber priority, but a different
+       publisher priority, the one with *the highest publisher priority*
+       is sent first.
+
+   3.  If two objects have the same subscriber and publisher priority,
+       but belong to two different groups of the same track received
+       through the same subscription, *the group order* of the
+       associated subscription is used to decide the one that is sent
+       first.
+
+   4.  If two objects belong to the same group of the same track
+       received through the same subscription, the one with *the lowest
+       Peep ID* (for tracks with delivery preference Peep), or *the
+       lowest Object ID* (for tracks with delivery preference Datagram)
+       is sent first.
+
+   This algorithm does not provide a well-defined ordering for objects
+   that belong to different subscriptions, but have the same subscriber
+   and publisher priority.  The ordering in those cases is
+   implementation-defined, though the expectation is that all
+   subscriptions will be able to send some data.
+
    Given the critical nature of control messages and their relatively
    small size, the control stream SHOULD be prioritized higher than all
    subscribed Objects.
 
-   Both SUBSCRIBE and FETCH messages indicate a subscriber priority and
-   group order, so the following text applies equally to both types of
-   subscriptions.
-
-   The subscriber indicates the priority of a subscription via the
-   Subscriber Priority field and the original publisher indicates
-   priority in every stream or datagram header.  As such, the
-   subscriber's priority is a property of the subscription and the
-   original publisher's priority is a property of the Track and the
-   Objects it contains.  In both cases, a lower value indicates a higher
-   priority, with 0 being the highest priority.
-
-   When Objects are contained in Subgroups, all Objects in the Subgroup
-   have the same priority.
-
-   The Subscriber Priority is considered first when selecting a
-   subscription to send data on within a given session.  When two or
-   more subscriptions have equal subscriber priority, the original
-   publisher priority is considered next and can change within the
-   track, so subscriptions are prioritized based on the highest priority
-   data available to send.  For example, if the subscription had data at
-   priority 6 and priority 10 to send, the subscription priority would
-   be 6.  When both the subscriber and original publisher priorities for
-   a subscription are equal, how much data to send from each
-   subscription is implementation-dependent, but the expectation is that
-   all subscriptions will be able to send some data.
-
-   The subscriber's priority can be changed via a SUBSCRIBE_UPDATE
-   message.  This updates the priority of all unsent data within the
-   subscription, though the details of the reprioritization are
-   implementation-specific.
-
-   Subscriptions have a Group Order of either 'Ascending' or
-   'Descending', which indicates whether the lowest or highest Group Id
-   SHOULD be sent first when multiple Groups are available to send.  A
-   subscriber can specify either 'Ascending' or 'Descending' in the
-   SUBSCRIBE message or they can specify they want to use the Original
-   Publisher's Group Order, which is indicated in the corresponding
-   SUBSCRIBE_OK.
-
-   Within the same Group, and the same priority level, Objects with a
-   lower Object Id are always sent before objects with a higher Object
-   Id, regardless of the specified Group Order.  If the group contains
-   more than one Subgroup and the priority varies between these
-   Subgroups, higher priority Subgroups are sent before lower priority
-   Subgroups.  If the specified priority of two Subgroups in a Group are
-   equal, the lower Subgroup ID has priority.  Within a Subgroup,
-   Objects MUST be sent in increasing Object ID order.
-
-   The Group Order cannot be changed via a SUBSCRIBE_UPDATE message, and
-   instead an UNSUBSCRIBE and SUBSCRIBE can be used.
+4.3.  Considerations for Setting Priorities
 
    Relays SHOULD respect the subscriber and original publisher's
    priorities.  Relays SHOULD NOT directly use Subscriber Priority or
