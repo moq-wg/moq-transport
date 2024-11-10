@@ -1794,7 +1794,7 @@ ever open, and has no pending datagrams, for a subscription. After sending
 SUBSCRIBE_DONE, the sender can immediately destroy subscription state, although
 stream state may persist until delivery completes.
 
-A receiver that receives SUBSCRIBE_DONE SHOULD set a timer of at least 2 seconds
+A subscriber that receives SUBSCRIBE_DONE SHOULD set a timer of at least 2 seconds
 in case some datagrams or unopened streams are still inbound due to
 prioritization or packet loss. Once the timer has expired, the receiver destroys
 subscription state once all open streams for the subscription have closed. Ai
