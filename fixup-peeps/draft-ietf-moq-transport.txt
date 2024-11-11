@@ -701,8 +701,8 @@ Table of Contents
        Datagram.
 
    Since a single subgroup or datagram has a single publisher priority,
-   it can be useful to conceptualize this process as scheduling subgroup
-   or datagrams instead of individual objects on them.
+   it can be useful to conceptualize this process as scheduling
+   subgroups or datagrams instead of individual objects on them.
 
    A _priority number_ is an unsigned integer with a value between 0 and
    255.  A lower priority number indicates higher priority; the highest
