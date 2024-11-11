@@ -627,7 +627,7 @@ A schedulable object in MoQT is either:
 1. An object that belongs to a track with delivery preference Datagram.
 
 Since a single subgroup or datagram has a single publisher priority, it can be
-useful to conceptualize this process as scheduling subgroup or datagrams
+useful to conceptualize this process as scheduling subgroups or datagrams
 instead of individual objects on them.
 
 A _priority number_ is an unsigned integer with a value between 0 and 255.
