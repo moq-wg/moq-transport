@@ -622,12 +622,12 @@ congestion.
 MoQT maintains priorities between different _schedulable objects_.
 A schedulable object in MoQT is either:
 
-1. An object that belongs to a peep where that object would be the next object
-   to be sent in that peep.
+1. An object that belongs to a subgroup where that object would be the next
+   object to be sent in that subgroup.
 1. An object that belongs to a track with delivery preference Datagram.
 
-Since a single peep or datagram has a single publisher priority, it can be
-useful to conceptualize this process as scheduling peeps or datagrams
+Since a single subgroup or datagram has a single publisher priority, it can be
+useful to conceptualize this process as scheduling subgroup or datagrams
 instead of individual objects on them.
 
 A _priority number_ is an unsigned integer with a value between 0 and 255.
@@ -642,9 +642,9 @@ to change the apply that to all objects that have not been sent, but it is
 implementation dependent what happens to objects that have already been
 received and possibly scheduled.
 
-_Publisher Priority_ is a priority number associated with an indiviaul
-schedulable object.  It is specified in the header of the respective peep or
-datagram, and is the same for all objects in a single peep.
+_Publisher Priority_ is a priority number associated with an individual
+schedulable object.  It is specified in the header of the respective subgroup or
+datagram, and is the same for all objects in a single subgroup.
 
 _Group Order_ is a property of an invidual subscription.  It can be either
 'Ascending' (groups with lower group ID are sent first), or 'Descending'
@@ -667,9 +667,9 @@ the objects SHOULD be selected as follows:
    subscription, **the group order** of the associated subscription is used to
    decide the one that is sent first.
 1. If two objects belong to the same group of the same track received through
-   the same subscription, the one with **the lowest Peep ID** (for tracks with
-   delivery preference Peep), or **the lowest Object ID** (for tracks with
-   delivery preference Datagram) is sent first.
+   the same subscription, the one with **the lowest Subgroup ID** (for tracks
+   with delivery preference Subgroup), or **the lowest Object ID** (for tracks
+   with delivery preference Datagram) is sent first.
 
 This algorithm does not provide a well-defined ordering for objects that belong
 to different subscriptions, but have the same subscriber and publisher
