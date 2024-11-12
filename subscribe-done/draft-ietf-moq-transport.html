@@ -3723,26 +3723,27 @@ FETCH_ERROR
         <h3 id="name-subscribe_done">
 <a href="#section-6.19" class="section-number selfRef">6.19. </a><a href="#name-subscribe_done" class="section-name selfRef">SUBSCRIBE_DONE</a>
         </h3>
-<p id="section-6.19-1">A publisher sends a <code>SUBSCRIBE_DONE</code> message when it is not going to send
-additional objects for a subscription. Because SUBSCRIBE_DONE is sent on the
-control stream, it is likely to arrive at the receiver before late-arriving
-objects, and often even late-opening streams. However, the receiver uses it
-as an indication that it should receive any late-opening streams in a relatively
-short time. When all streams for the subscription are fully closed, each
-endpoint can destroy its subscription state.<a href="#section-6.19-1" class="pilcrow">¶</a></p>
-<p id="section-6.19-2">Note that some objects in the subscribed track might never be delivered,
-because a stream was reset, or never opened in the first place, due to the
-delivery timeout.<a href="#section-6.19-2" class="pilcrow">¶</a></p>
-<p id="section-6.19-3">A sender <span class="bcp14">MUST NOT</span> send SUBSCRIBE_DONE until it has closed all streams it will
-ever open, and has no pending datagrams, for a subscription. After sending
-SUBSCRIBE_DONE, the sender can immediately destroy subscription state, although
-stream state may persist until delivery completes.<a href="#section-6.19-3" class="pilcrow">¶</a></p>
-<p id="section-6.19-4">A subscriber that receives SUBSCRIBE_DONE <span class="bcp14">SHOULD</span> set a timer of at least 2 seconds
-in case some datagrams or unopened streams are still inbound due to
-prioritization or packet loss. Once the timer has expired, the receiver destroys
-subscription state once all open streams for the subscription have closed. A
-subscriber <span class="bcp14">MAY</span> discard subscription state earlier, at the cost of potentially not
-delivering some late objects to the application.<a href="#section-6.19-4" class="pilcrow">¶</a></p>
+<p id="section-6.19-1">A publisher sends a <code>SUBSCRIBE_DONE</code> message to indicate it has finished sending
+objects for a subscription, it is destroying its subscription state, and the
+subscriber is free to do the same.<a href="#section-6.19-1" class="pilcrow">¶</a></p>
+<p id="section-6.19-2">A sender <span class="bcp14">MUST NOT</span> send SUBSCRIBE_DONE until all the following conditions are met:<a href="#section-6.19-2" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="normal type-1" id="section-6.19-3">
+<li id="section-6.19-3.1">
+            <p id="section-6.19-3.1.1">All DATAGRAMs sent for the subscription have reached their expiration time.<a href="#section-6.19-3.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li id="section-6.19-3.2">
+            <p id="section-6.19-3.2.1">All data streams have either been reset, or the stream API has provided a
+notification that the FIN has been ACKed.<a href="#section-6.19-3.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li id="section-6.19-3.3">
+            <p id="section-6.19-3.3.1">Any data streams closed with RESET_STREAM_AT have received notification from
+the stream API that the reliable size has been acknowledged.<a href="#section-6.19-3.3.1" class="pilcrow">¶</a></p>
+</li>
+        </ol>
+<p id="section-6.19-4">A subscriber that receives SUBSCRIBE_DONE <span class="bcp14">SHOULD</span> immediately destroy any
+subscription state. It <span class="bcp14">MAY</span> retain that state for a short interval if it wishes
+to process objects that may arrive on streams that have been reset by the
+sender.<a href="#section-6.19-4" class="pilcrow">¶</a></p>
 <p id="section-6.19-5">The format of <code>SUBSCRIBE_DONE</code> is as follows:<a href="#section-6.19-5" class="pilcrow">¶</a></p>
 <span id="name-moqt-subscribe_done-message"></span><div id="moq-transport-subscribe-fin-format">
 <figure id="figure-20">
@@ -4251,44 +4252,47 @@ Subgroup exceeding its Delivery Timeout, early termination of subscription due t
 an UNSUBSCRIBE message, a publisher's decision to end the subscription early, or a
 SUBSCRIBE_UPDATE moving the end of the subscription to before the current Group
 or the start after the current Group.<a href="#section-7.3.2-3" class="pilcrow">¶</a></p>
-<p id="section-7.3.2-4">A sender might send all objects in a Subgroup and the FIN on a QUIC stream,
+<p id="section-7.3.2-4">A sender <span class="bcp14">MUST NOT</span> send RESET_STREAM_AT frames unless its stream API provides a
+means of signaling when the reliable size has been acknowledged, in order to
+provide a trigger to send SUBSCRIBE_DONE (see <a href="#message-subscribe-done" class="auto internal xref">Section 6.19</a>).<a href="#section-7.3.2-4" class="pilcrow">¶</a></p>
+<p id="section-7.3.2-5">A sender might send all objects in a Subgroup and the FIN on a QUIC stream,
 and then reset the stream. In this case, the receiving application would receive
 the FIN if and only if all objects were received. If the application receives
-all data on the stream and the FIN, it can ignore any RESET_STREAM it receives.<a href="#section-7.3.2-4" class="pilcrow">¶</a></p>
-<p id="section-7.3.2-5">If a sender will not deliver any objects from a Subgroup, it <span class="bcp14">MAY</span> send
+all data on the stream and the FIN, it can ignore any RESET_STREAM it receives.<a href="#section-7.3.2-5" class="pilcrow">¶</a></p>
+<p id="section-7.3.2-6">If a sender will not deliver any objects from a Subgroup, it <span class="bcp14">MAY</span> send
 a STREAM_HEADER_SUBGROUP on a new stream, with no objects, and
 then send RESET_STREAM_AT with a reliable_size equal to the length of the
-stream header. This explicitly tells the receiver there is an unsent Subgroup.<a href="#section-7.3.2-5" class="pilcrow">¶</a></p>
-<p id="section-7.3.2-6">Since SUBSCRIBEs always end on a group boundary, an ending subscription can
+stream header. This explicitly tells the receiver there is an unsent Subgroup.<a href="#section-7.3.2-6" class="pilcrow">¶</a></p>
+<p id="section-7.3.2-7">Since SUBSCRIBEs always end on a group boundary, an ending subscription can
 always cleanly close all its subgroups. A sender that terminates a stream
 early for any other reason (e.g., to handoff to a different sender) <span class="bcp14">MUST</span>
 use RESET_STREAM or RESET_STREAM_AT. Senders <span class="bcp14">SHOULD</span> terminate a stream on
-Group boundaries to avoid doing so.<a href="#section-7.3.2-6" class="pilcrow">¶</a></p>
-<p id="section-7.3.2-7">An MoQT implementation that processes a stream FIN is assured it has received
+Group boundaries to avoid doing so.<a href="#section-7.3.2-7" class="pilcrow">¶</a></p>
+<p id="section-7.3.2-8">An MoQT implementation that processes a stream FIN is assured it has received
 all objects in a subgroup from the start of the subscription. If a relay, it
 can forward stream FINs to its own subscribers once those objects have been
 sent. A relay <span class="bcp14">MAY</span> treat receipt of EndOfGroup, GroupDoesNotExist, or
 EndOfTrack objects as a signal to close corresponding streams even if the FIN
-has not arrived, as further objects on the stream would be a protocol violation.<a href="#section-7.3.2-7" class="pilcrow">¶</a></p>
-<p id="section-7.3.2-8">Similarly, an EndOfGroup message indicates the maximum Object ID in the
+has not arrived, as further objects on the stream would be a protocol violation.<a href="#section-7.3.2-8" class="pilcrow">¶</a></p>
+<p id="section-7.3.2-9">Similarly, an EndOfGroup message indicates the maximum Object ID in the
 Group, so if all Objects in the Group have been received, a FIN can be sent on
 any stream where the entire subgroup has been sent. This might be complex to
-implement.<a href="#section-7.3.2-8" class="pilcrow">¶</a></p>
-<p id="section-7.3.2-9">Processing a RESET_STREAM or RESET_STREAM_AT means that there might be other
+implement.<a href="#section-7.3.2-9" class="pilcrow">¶</a></p>
+<p id="section-7.3.2-10">Processing a RESET_STREAM or RESET_STREAM_AT means that there might be other
 objects in the Subgroup beyond the last one received. A relay might immediately
 reset the corresponding downstream stream, or it might attempt to recover the
 missing Objects in an effort send all the objects in the subgroups and the FIN. It also
 might send RESET_STREAM_AT with reliable_size set to the last object it has, so
 as to reliably deliver the objects it has while signaling that other objects
-might exist.<a href="#section-7.3.2-9" class="pilcrow">¶</a></p>
-<p id="section-7.3.2-10">A subscriber <span class="bcp14">MAY</span> send a QUIC STOP_SENDING frame for a subgroup stream if the Group
+might exist.<a href="#section-7.3.2-10" class="pilcrow">¶</a></p>
+<p id="section-7.3.2-11">A subscriber <span class="bcp14">MAY</span> send a QUIC STOP_SENDING frame for a subgroup stream if the Group
 or Subgroup is no longer of interest to it. The publisher <span class="bcp14">SHOULD</span> respond with
 RESET_STREAM or RESET_STREAM_AT. If RESET_STREAM_AT is sent, note that the receiver
 has indicated no interest in the objects, so setting a reliable_size beyond the
-stream header is of questionable utility.<a href="#section-7.3.2-10" class="pilcrow">¶</a></p>
-<p id="section-7.3.2-11">RESET_STREAM and STOP_SENDING on SUBSCRIBE data streams have no impact on other
+stream header is of questionable utility.<a href="#section-7.3.2-11" class="pilcrow">¶</a></p>
+<p id="section-7.3.2-12">RESET_STREAM and STOP_SENDING on SUBSCRIBE data streams have no impact on other
 Subgroups in the Group or the subscription, although applications might cancel all
-Subgroups in a Group at once.<a href="#section-7.3.2-11" class="pilcrow">¶</a></p>
+Subgroups in a Group at once.<a href="#section-7.3.2-12" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="fetch-header">

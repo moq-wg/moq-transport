@@ -1894,32 +1894,27 @@ Table of Contents
 
 6.19.  SUBSCRIBE_DONE
 
-   A publisher sends a SUBSCRIBE_DONE message when it is not going to
-   send additional objects for a subscription.  Because SUBSCRIBE_DONE
-   is sent on the control stream, it is likely to arrive at the receiver
-   before late-arriving objects, and often even late-opening streams.
-   However, the receiver uses it as an indication that it should receive
-   any late-opening streams in a relatively short time.  When all
-   streams for the subscription are fully closed, each endpoint can
-   destroy its subscription state.
+   A publisher sends a SUBSCRIBE_DONE message to indicate it has
+   finished sending objects for a subscription, it is destroying its
+   subscription state, and the subscriber is free to do the same.
 
-   Note that some objects in the subscribed track might never be
-   delivered, because a stream was reset, or never opened in the first
-   place, due to the delivery timeout.
+   A sender MUST NOT send SUBSCRIBE_DONE until all the following
+   conditions are met:
 
-   A sender MUST NOT send SUBSCRIBE_DONE until it has closed all streams
-   it will ever open, and has no pending datagrams, for a subscription.
-   After sending SUBSCRIBE_DONE, the sender can immediately destroy
-   subscription state, although stream state may persist until delivery
-   completes.
+   1.  All DATAGRAMs sent for the subscription have reached their
+       expiration time.
 
-   A subscriber that receives SUBSCRIBE_DONE SHOULD set a timer of at
-   least 2 seconds in case some datagrams or unopened streams are still
-   inbound due to prioritization or packet loss.  Once the timer has
-   expired, the receiver destroys subscription state once all open
-   streams for the subscription have closed.  A subscriber MAY discard
-   subscription state earlier, at the cost of potentially not delivering
-   some late objects to the application.
+   2.  All data streams have either been reset, or the stream API has
+       provided a notification that the FIN has been ACKed.
+
+   3.  Any data streams closed with RESET_STREAM_AT have received
+       notification from the stream API that the reliable size has been
+       acknowledged.
+
+   A subscriber that receives SUBSCRIBE_DONE SHOULD immediately destroy
+   any subscription state.  It MAY retain that state for a short
+   interval if it wishes to process objects that may arrive on streams
+   that have been reset by the sender.
 
    The format of SUBSCRIBE_DONE is as follows:
 
@@ -2298,6 +2293,11 @@ Table of Contents
    end the subscription early, or a SUBSCRIBE_UPDATE moving the end of
    the subscription to before the current Group or the start after the
    current Group.
+
+   A sender MUST NOT send RESET_STREAM_AT frames unless its stream API
+   provides a means of signaling when the reliable size has been
+   acknowledged, in order to provide a trigger to send SUBSCRIBE_DONE
+   (see Section 6.19).
 
    A sender might send all objects in a Subgroup and the FIN on a QUIC
    stream, and then reset the stream.  In this case, the receiving
