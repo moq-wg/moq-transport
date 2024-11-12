@@ -5,13 +5,13 @@
 Media Over QUIC                                                L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 14 May 2025                                                Meta
+Expires: 16 May 2025                                                Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                        10 November 2024
+                                                        12 November 2024
 
 
                        Media over QUIC Transport
@@ -59,7 +59,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 14 May 2025.
+   This Internet-Draft will expire on 16 May 2025.
 
 Copyright Notice
 
@@ -694,15 +694,15 @@ Table of Contents
    MoQT maintains priorities between different _schedulable objects_. A
    schedulable object in MoQT is either:
 
-   1.  An object that belongs to a peep where that object would be the
-       next object to be sent in that peep.
+   1.  An object that belongs to a subgroup where that object would be
+       the next object to be sent in that subgroup.
 
    2.  An object that belongs to a track with delivery preference
        Datagram.
 
-   Since a single peep or datagram has a single publisher priority, it
-   can be useful to conceptualize this process as scheduling peeps or
-   datagrams instead of individual objects on them.
+   Since a single subgroup or datagram has a single publisher priority,
+   it can be useful to conceptualize this process as scheduling
+   subgroups or datagrams instead of individual objects on them.
 
    A _priority number_ is an unsigned integer with a value between 0 and
    255.  A lower priority number indicates higher priority; the highest
@@ -719,9 +719,9 @@ Table of Contents
    been received and possibly scheduled.
 
    _Publisher Priority_ is a priority number associated with an
-   indiviaul schedulable object.  It is specified in the header of the
-   respective peep or datagram, and is the same for all objects in a
-   single peep.
+   individual schedulable object.  It is specified in the header of the
+   respective subgroup or datagram, and is the same for all objects in a
+   single subgroup.
 
    _Group Order_ is a property of an invidual subscription.  It can be
    either 'Ascending' (groups with lower group ID are sent first), or
@@ -751,9 +751,9 @@ Table of Contents
 
    4.  If two objects belong to the same group of the same track
        received through the same subscription, the one with *the lowest
-       Peep ID* (for tracks with delivery preference Peep), or *the
-       lowest Object ID* (for tracks with delivery preference Datagram)
-       is sent first.
+       Subgroup ID* (for tracks with delivery preference Subgroup), or
+       *the lowest Object ID* (for tracks with delivery preference
+       Datagram) is sent first.
 
    This algorithm does not provide a well-defined ordering for objects
    that belong to different subscriptions, but have the same subscriber
