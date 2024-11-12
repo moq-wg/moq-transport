@@ -5,13 +5,13 @@
 Media Over QUIC                                                L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 14 May 2025                                                Meta
+Expires: 16 May 2025                                                Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                        10 November 2024
+                                                        12 November 2024
 
 
                        Media over QUIC Transport
@@ -59,7 +59,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 14 May 2025.
+   This Internet-Draft will expire on 16 May 2025.
 
 Copyright Notice
 
@@ -1894,12 +1894,16 @@ Table of Contents
 
 6.19.  SUBSCRIBE_DONE
 
-   A publisher sends a SUBSCRIBE_DONE message to indicate it will not
-   open any additional streams or send any more datagrams for a
-   subscription.  When all streams for the subscription are fully
-   closed, each endpoint can destroy its subscription state.
+   A publisher sends a SUBSCRIBE_DONE message when it is not going to
+   send additional objects for a subscription.  Because SUBSCRIBE_DONE
+   is sent on the control stream, it is likely to arrive at the receiver
+   before late-arriving objects, and often even late-opening streams.
+   However, the receiver uses it as an indication that it should receive
+   any late-opening streams in a relatively short time.  When all
+   streams for the subscription are fully closed, each endpoint can
+   destroy its subscription state.
 
-   Note that some objects in the subscribed groups might never be
+   Note that some objects in the subscribed track might never be
    delivered, because a stream was reset, or never opened in the first
    place, due to the delivery timeout.
 
