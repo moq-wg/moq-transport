@@ -1911,10 +1911,11 @@ Table of Contents
        notification from the stream API that the reliable size has been
        acknowledged.
 
-   A subscriber that receives SUBSCRIBE_DONE SHOULD immediately destroy
-   any subscription state.  It MAY retain that state for a short
-   interval if it wishes to process objects that may arrive on streams
-   that have been reset by the sender.
+   A subscriber that receives SUBSCRIBE_DONE SHOULD destroy any
+   subscription state immediately after it has read all data on streams
+   or datagrams related to that subscription.  It MAY retain that state
+   for a short interval if it wishes to process objects that may arrive
+   on streams that have been reset by the sender.
 
    The format of SUBSCRIBE_DONE is as follows:
 

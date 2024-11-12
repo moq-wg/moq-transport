@@ -3740,10 +3740,10 @@ notification that the FIN has been ACKed.<a href="#section-6.19-3.2.1" class="pi
 the stream API that the reliable size has been acknowledged.<a href="#section-6.19-3.3.1" class="pilcrow">¶</a></p>
 </li>
         </ol>
-<p id="section-6.19-4">A subscriber that receives SUBSCRIBE_DONE <span class="bcp14">SHOULD</span> immediately destroy any
-subscription state. It <span class="bcp14">MAY</span> retain that state for a short interval if it wishes
-to process objects that may arrive on streams that have been reset by the
-sender.<a href="#section-6.19-4" class="pilcrow">¶</a></p>
+<p id="section-6.19-4">A subscriber that receives SUBSCRIBE_DONE <span class="bcp14">SHOULD</span> destroy any subscription state
+immediately after it has read all data on streams or datagrams related to that
+subscription. It <span class="bcp14">MAY</span> retain that state for a short interval if it wishes to
+process objects that may arrive on streams that have been reset by the sender.<a href="#section-6.19-4" class="pilcrow">¶</a></p>
 <p id="section-6.19-5">The format of <code>SUBSCRIBE_DONE</code> is as follows:<a href="#section-6.19-5" class="pilcrow">¶</a></p>
 <span id="name-moqt-subscribe_done-message"></span><div id="moq-transport-subscribe-fin-format">
 <figure id="figure-20">
