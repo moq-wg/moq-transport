@@ -1780,12 +1780,15 @@ FETCH_ERROR
 
 ## SUBSCRIBE_DONE {#message-subscribe-done}
 
-A publisher sends a `SUBSCRIBE_DONE` message to indicate it will not open any
-additional streams or send any more datagrams for a subscription. When all
-streams for the subscription are fully closed, each endpoint can destroy its
-subscription state.
+A publisher sends a `SUBSCRIBE_DONE` message when it is not going to send
+additional objects for a subscription. Because SUBSCRIBE_DONE is sent on the
+control stream, it is likely to arrive at the receiver before late-arriving
+objects, and often even late-opening streams. However, the receiver uses it
+as an indication that it should receive any late-opening streams in a relatively
+short time. When all streams for the subscription are fully closed, each
+endpoint can destroy its subscription state.
 
-Note that some objects in the subscribed groups might never be delivered,
+Note that some objects in the subscribed track might never be delivered,
 because a stream was reset, or never opened in the first place, due to the
 delivery timeout.
 
