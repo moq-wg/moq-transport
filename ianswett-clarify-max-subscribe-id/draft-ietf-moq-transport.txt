@@ -5,13 +5,13 @@
 Media Over QUIC                                                L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 14 May 2025                                                Meta
+Expires: 16 May 2025                                                Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                        10 November 2024
+                                                        12 November 2024
 
 
                        Media over QUIC Transport
@@ -59,7 +59,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 14 May 2025.
+   This Internet-Draft will expire on 16 May 2025.
 
 Copyright Notice
 
@@ -1952,10 +1952,9 @@ Table of Contents
                   Figure 21: MOQT MAX_SUBSCRIBE_ID Message
 
    *  Subscribe ID: The new Maximum Subscribe ID for the session.  If a
-      Subscribe ID equal or larger than this is received by the
-      publisher that sent the MAX_SUBSCRIBE_ID, the publisher MUST close
-      the session with an error of 'Too Many Subscribes'.  More on
-      Subscribe ID in Section 6.4.
+      Subscribe ID Section 6.4 equal or larger than this is received by
+      the publisher that sent the MAX_SUBSCRIBE_ID, the publisher MUST
+      close the session with an error of 'Too Many Subscribes'.
 
 6.21.  ANNOUNCE
 
