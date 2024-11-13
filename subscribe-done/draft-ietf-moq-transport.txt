@@ -5,13 +5,13 @@
 Media Over QUIC                                                L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 16 May 2025                                                Meta
+Expires: 17 May 2025                                                Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                        12 November 2024
+                                                        13 November 2024
 
 
                        Media over QUIC Transport
@@ -59,7 +59,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 16 May 2025.
+   This Internet-Draft will expire on 17 May 2025.
 
 Copyright Notice
 
@@ -1895,8 +1895,8 @@ Table of Contents
 6.19.  SUBSCRIBE_DONE
 
    A publisher sends a SUBSCRIBE_DONE message to indicate it has
-   finished sending objects for a subscription, it is destroying its
-   subscription state, and the subscriber is free to do the same.
+   finished sending objects for a subscription, is discarding its
+   subscription state, and the subscriber can discard its state as well.
 
    A sender MUST NOT send SUBSCRIBE_DONE until all the following
    conditions are met:
