@@ -3812,9 +3812,9 @@ MAX_SUBSCRIBE_ID
 <ul class="normal">
 <li class="normal" id="section-6.20-4.1">
             <p id="section-6.20-4.1.1">Subscribe ID: The new Maximum Subscribe ID for the session. If a Subscribe ID
-equal or larger than this is received in any message, including SUBSCRIBE,
-the publisher <span class="bcp14">MUST</span> close the session with an error of 'Too Many Subscribes'.
-More on Subscribe ID in <a href="#message-subscribe-req" class="auto internal xref">Section 6.4</a>.<a href="#section-6.20-4.1.1" class="pilcrow">¶</a></p>
+<a href="#message-subscribe-req" class="auto internal xref">Section 6.4</a> equal or larger than this is received by the publisher
+that sent the MAX_SUBSCRIBE_ID, the publisher <span class="bcp14">MUST</span> close the session with an
+error of 'Too Many Subscribes'.<a href="#section-6.20-4.1.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
