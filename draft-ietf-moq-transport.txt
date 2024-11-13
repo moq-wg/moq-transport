@@ -5,13 +5,13 @@
 Media Over QUIC                                                L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 16 May 2025                                                Meta
+Expires: 17 May 2025                                                Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                        12 November 2024
+                                                        13 November 2024
 
 
                        Media over QUIC Transport
@@ -59,7 +59,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 16 May 2025.
+   This Internet-Draft will expire on 17 May 2025.
 
 Copyright Notice
 
@@ -137,11 +137,12 @@ Table of Contents
      6.18. FETCH_ERROR
      6.19. SUBSCRIBE_DONE
      6.20. MAX_SUBSCRIBE_ID
-     6.21. ANNOUNCE
-     6.22. UNANNOUNCE
-     6.23. TRACK_STATUS
-     6.24. SUBSCRIBE_ANNOUNCES_OK
-     6.25. SUBSCRIBE_ANNOUNCES_ERROR
+     6.21. SUBSCRIBES_BLOCKED
+     6.22. ANNOUNCE
+     6.23. UNANNOUNCE
+     6.24. TRACK_STATUS
+     6.25. SUBSCRIBE_ANNOUNCES_OK
+     6.26. SUBSCRIBE_ANNOUNCES_ERROR
    7.  Data Streams
      7.1.  Object Headers
        7.1.1.  Canonical Object Fields
@@ -1034,13 +1035,13 @@ Table of Contents
             +------+-----------------------------------------+
             |  0x5 | SUBSCRIBE_ERROR (Section 6.16)          |
             +------+-----------------------------------------+
-            |  0x6 | ANNOUNCE (Section 6.21)                 |
+            |  0x6 | ANNOUNCE (Section 6.22)                 |
             +------+-----------------------------------------+
             |  0x7 | ANNOUNCE_OK (Section 6.9)               |
             +------+-----------------------------------------+
             |  0x8 | ANNOUNCE_ERROR (Section 6.10)           |
             +------+-----------------------------------------+
-            |  0x9 | UNANNOUNCE (Section 6.22)               |
+            |  0x9 | UNANNOUNCE (Section 6.23)               |
             +------+-----------------------------------------+
             |  0xA | UNSUBSCRIBE (Section 6.6)               |
             +------+-----------------------------------------+
@@ -1050,19 +1051,21 @@ Table of Contents
             +------+-----------------------------------------+
             |  0xD | TRACK_STATUS_REQUEST (Section 6.12)     |
             +------+-----------------------------------------+
-            |  0xE | TRACK_STATUS (Section 6.23)             |
+            |  0xE | TRACK_STATUS (Section 6.24)             |
             +------+-----------------------------------------+
             | 0x10 | GOAWAY (Section 6.3)                    |
             +------+-----------------------------------------+
             | 0x11 | SUBSCRIBE_ANNOUNCES (Section 6.13)      |
             +------+-----------------------------------------+
-            | 0x12 | SUBSCRIBE_ANNOUNCES_OK (Section 6.24)   |
+            | 0x12 | SUBSCRIBE_ANNOUNCES_OK (Section 6.25)   |
             +------+-----------------------------------------+
-            | 0x13 | SUBSCRIBE_ANNOUNCES_ERROR (Section 6.25 |
+            | 0x13 | SUBSCRIBE_ANNOUNCES_ERROR (Section 6.26 |
             +------+-----------------------------------------+
             | 0x14 | UNSUBSCRIBE_ANNOUNCES (Section 6.14)    |
             +------+-----------------------------------------+
             | 0x15 | MAX_SUBSCRIBE_ID (Section 6.20)         |
+            +------+-----------------------------------------+
+            | 0x1A | SUBSCRIBES_BLOCKED (Section 6.21)       |
             +------+-----------------------------------------+
             | 0x16 | FETCH (Section 6.7)                     |
             +------+-----------------------------------------+
@@ -1957,7 +1960,33 @@ Table of Contents
       error of 'Too Many Subscribes'.  More on Subscribe ID in
       Section 6.4.
 
-6.21.  ANNOUNCE
+6.21.  SUBSCRIBES_BLOCKED
+
+   The SUBSCRIBES_BLOCKED message is sent when a subscriber would like
+   to begin a new subscription, but cannot because the Subscribe ID
+   would exceed the Maximum Subscribe ID value sent by the peer.  The
+   subscriber SHOULD send only one SUBSCRIBES_BLOCKED for a given
+   Maximum Subscribe ID.
+
+   A publisher MAY send a MAX_SUBSCRIBE_ID upon receipt of
+   SUBSCRIBES_BLOCKED, but it MUST NOT rely on SUBSCRIBES_BLOCKED to
+   trigger sending a MAX_SUBSCRIBE_ID, because sending
+   SUBSCRIBES_BLOCKED is not required.
+
+   SUBSCRIBES_BLOCKED
+   {
+     Type (i) = 0x1A,
+     Length (i),
+     Maximum Subscribe ID (i),
+   }
+
+                 Figure 22: MOQT SUBSCRIBES_BLOCKED Message
+
+   *  Maximum Subscribe ID: The Maximum Subscribe ID for the session on
+      which the subscriber is blocked.  More on Subscribe ID in
+      Section 6.4.
+
+6.22.  ANNOUNCE
 
    The publisher sends the ANNOUNCE control message to advertise where
    the receiver can route SUBSCRIBEs for tracks within the announced
@@ -1972,14 +2001,14 @@ Table of Contents
      Parameters (..) ...,
    }
 
-                      Figure 22: MOQT ANNOUNCE Message
+                      Figure 23: MOQT ANNOUNCE Message
 
    *  Track Namespace: Identifies a track's namespace as defined in
       (Section 2.4.1)
 
    *  Parameters: The parameters are defined in Section 6.1.1.
 
-6.22.  UNANNOUNCE
+6.23.  UNANNOUNCE
 
    The publisher sends the UNANNOUNCE control message to indicate its
    intent to stop serving new subscriptions for tracks within the
@@ -1991,12 +2020,12 @@ Table of Contents
      Track Namespace (tuple),
    }
 
-                     Figure 23: MOQT UNANNOUNCE Message
+                     Figure 24: MOQT UNANNOUNCE Message
 
    *  Track Namespace: Identifies a track's namespace as defined in
       (Section 2.4.1).
 
-6.23.  TRACK_STATUS
+6.24.  TRACK_STATUS
 
    A publisher sends a 'TRACK_STATUS' message on the control stream in
    response to a TRACK_STATUS_REQUEST message.
@@ -2012,7 +2041,7 @@ Table of Contents
      Last Object ID (i),
    }
 
-                    Figure 24: MOQT TRACK_STATUS Message
+                    Figure 25: MOQT TRACK_STATUS Message
 
    The 'Status Code' field provides additional information about the
    status of the track.  It MUST hold one of the following values.  Any
@@ -2052,7 +2081,7 @@ Table of Contents
    information from the latest arriving message, as they are delivered
    in order on a single stream.
 
-6.24.  SUBSCRIBE_ANNOUNCES_OK
+6.25.  SUBSCRIBE_ANNOUNCES_OK
 
    A publisher sends a SUBSCRIBE_ANNOUNCES_OK control message for
    successful namespace subscriptions.
@@ -2064,11 +2093,11 @@ Table of Contents
      Track Namespace Prefix (tuple),
    }
 
-               Figure 25: MOQT SUBSCRIBE_ANNOUNCES_OK Message
+               Figure 26: MOQT SUBSCRIBE_ANNOUNCES_OK Message
 
    *  Track Namespace Prefix: As defined in Section 6.13.
 
-6.25.  SUBSCRIBE_ANNOUNCES_ERROR
+6.26.  SUBSCRIBE_ANNOUNCES_ERROR
 
    A publisher sends a SUBSCRIBE_ANNOUNCES_ERROR control message in
    response to a failed SUBSCRIBE_ANNOUNCES.
@@ -2083,7 +2112,7 @@ Table of Contents
      Reason Phrase (..),
    }
 
-             Figure 26: MOQT SUBSCRIBE_ANNOUNCES_ERROR Message
+             Figure 27: MOQT SUBSCRIBE_ANNOUNCES_ERROR Message
 
    *  Track Namespace Prefix: As defined in Section 6.13.
 
@@ -2216,7 +2245,7 @@ Table of Contents
      Object Payload (..),
    }
 
-                  Figure 27: MOQT OBJECT_DATAGRAM Message
+                  Figure 28: MOQT OBJECT_DATAGRAM Message
 
 7.3.  Streams
 
@@ -2244,7 +2273,7 @@ Table of Contents
      Publisher Priority (8),
    }
 
-               Figure 28: MOQT STREAM_HEADER_SUBGROUP Message
+               Figure 29: MOQT STREAM_HEADER_SUBGROUP Message
 
    All Objects received on a stream opened with STREAM_HEADER_SUBGROUP
    have an Object Forwarding Preference = Subgroup.
@@ -2264,7 +2293,7 @@ Table of Contents
      Object Payload (..),
    }
 
-                 Figure 29: MOQT Group Stream Object Fields
+                 Figure 30: MOQT Group Stream Object Fields
 
    A publisher MUST NOT send an Object on a stream if its Object ID is
    less than a previously sent Object ID within a given group in that
@@ -2354,7 +2383,7 @@ Table of Contents
      Subscribe ID (i),
    }
 
-                    Figure 30: MOQT FETCH_HEADER Message
+                    Figure 31: MOQT FETCH_HEADER Message
 
    Each object sent on a fetch stream after the FETCH_HEADER has the
    following format:
@@ -2369,7 +2398,7 @@ Table of Contents
      Object Payload (..),
    }
 
-                    Figure 31: MOQT Fetch Object Fields
+                    Figure 32: MOQT Fetch Object Fields
 
    The Object Status field is only sent if the Object Payload Length is
    zero.
