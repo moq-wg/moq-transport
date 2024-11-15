@@ -596,7 +596,7 @@ code, as defined below:
   stream. If an endpoint times out waiting for a new object header on an
   open subgroup stream, it MAY send a STOP_SENDING on that stream, terminate
   the subscription, or close the session with an error.
-  
+
 ## Migration {#session-migration}
 
 MoqTransport requires a long-lived and stateful session. However, a service
