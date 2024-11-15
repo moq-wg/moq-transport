@@ -2280,6 +2280,9 @@ Each object sent on a fetch stream after the FETCH_HEADER has the following form
 
 The Object Status field is only sent if the Object Payload Length is zero.
 
+The Subgroup ID of an object with a Forwarding Preference of "Datagram"
+(see {{object-fields}}) is zero.
+
 ## Examples
 
 Sending a track on one stream:
