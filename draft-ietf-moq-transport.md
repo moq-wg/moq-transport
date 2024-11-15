@@ -600,7 +600,11 @@ code, as defined below:
   stream. If an endpoint times out waiting for a new object header on an
   open subgroup stream, it MAY send a STOP_SENDING on that stream, terminate
   the subscription, or close the session with an error.
+<<<<<<< HEAD
 
+=======
+  
+>>>>>>> 297094f (Add session errors for control and data timeout)
 ## Migration {#session-migration}
 
 MOQT requires a long-lived and stateful session. However, a service
