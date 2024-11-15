@@ -803,6 +803,8 @@ SUBSCRIBE_DONE, as defined below:
 |------|---------------------------|
 | 0x6  | Expired                   |
 |------|---------------------------|
+| 0x7  | Too Far Behind            |
+|------|---------------------------|
 
 ### Graceful Publisher Relay Switchover
 
