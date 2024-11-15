@@ -376,7 +376,7 @@ Groups SHOULD be indendepently useful, so objects within a group SHOULD NOT depe
 on objects in other groups. A group provides a join point for subscriptions, so a
 subscriber that does not want to receive the entire track can opt to receive only
 the latest group(s).  The publisher then selectively transmits objects based on
-their group membership.
+their group membership.  Groups can contain any number of objects.
 
 ## Track {#model-track}
 
