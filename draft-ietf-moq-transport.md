@@ -1067,8 +1067,14 @@ If an earlier Object arrives later than subsequent Objects, relays can consider
 the receipt time as that of the next later Object, with the assumption that the
 Object's data was reordered.
 
-If neither the subscriber or publisher specify DELIVERY TIMEOUT, Objects are
-delivered as indicated by their Group Order and Priority.
+If neither the subscriber or publisher specify DELIVERY TIMEOUT, all Objects
+in the track matching the subscription filter are delivered as indicated by
+their Group Order and Priority.  If a subscriber exceeds the publisher's
+resource limits by failing to consume objects at a sufficient rate, the
+publisher MAY terminate the subscription with Too Far Behind. 
+
+If an object in a subgroup exceeds the delivery timeout, the publisher MUST
+reset the underlying transport stream (see {{closing-subgroup-streams}}).
 
 When sent by a subscriber, this parameter is intended to be specific to a
 subscription, so it SHOULD NOT be forwarded upstream by a relay that intends
