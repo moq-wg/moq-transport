@@ -1783,8 +1783,8 @@ FETCH_ERROR
 ## SUBSCRIBE_DONE {#message-subscribe-done}
 
 A publisher sends a `SUBSCRIBE_DONE` message to indicate it is done publishing
-Objects for that subscription.  The Status Code indicates why the subscription ended,
-and whether it was an error.
+Objects for that subscription.  The Status Code indicates why the subscription
+ended, and whether it was an error.
 
 The format of `SUBSCRIBE_DONE` is as follows:
 
@@ -1794,11 +1794,9 @@ SUBSCRIBE_DONE Message {
   Length (i),
   Subscribe ID (i),
   Status Code (i),
+  Stream Count (i),
   Reason Phrase Length (i),
   Reason Phrase (..),
-  ContentExists (8),
-  [Final Group (i)],
-  [Final Object (i)],
 }
 ~~~
 {: #moq-transport-subscribe-fin-format title="MOQT SUBSCRIBE_DONE Message"}
@@ -1806,6 +1804,10 @@ SUBSCRIBE_DONE Message {
 * Subscribe ID: Subscription identifier as defined in {{message-subscribe-req}}.
 
 * Status Code: An integer status code indicating why the subscription ended.
+
+* Stream Count: An integer indicating the number of data streams the publisher
+opened for this subscription.  The subscriber can remove all subscription state
+once the same number of streams have been processed.
 
 * Reason Phrase: Provides the reason for subscription error.
 
@@ -2197,17 +2199,22 @@ any objects before the beginning of a subscription, it MUST close the
 stream with a FIN.
 
 If a sender closes the stream before delivering all such objects to the QUIC
-stream, it MUST use a RESET_STREAM or RESET_STREAM_AT
+stream, it MUST use a RESET_STREAM_AT
 {{!I-D.draft-ietf-quic-reliable-stream-reset}} frame. This includes an open
-Subgroup exceeding its Delivery Timeout, early termination of subscription due to
-an UNSUBSCRIBE message, a publisher's decision to end the subscription early, or a
-SUBSCRIBE_UPDATE moving the end of the subscription to before the current Group
-or the start after the current Group.
+Subgroup exceeding its Delivery Timeout, early termination of subscription due
+to an UNSUBSCRIBE message, a publisher's decision to end the subscription early,
+or a SUBSCRIBE_UPDATE moving the end of the subscription to before the current
+Group or the start after the current Group.  The reliable_size supplied to
+RESET_STREAM_AT MUST encompass the stream header so the receiver can accurately
+account for reset data streams when handling SUBSCRIBE_DONE (see
+{{message-subscribe-done}}).  Publishers MUST NOT reset data streams using
+RESET_STREAM.
 
 A sender might send all objects in a Subgroup and the FIN on a QUIC stream,
 and then reset the stream. In this case, the receiving application would receive
 the FIN if and only if all objects were received. If the application receives
-all data on the stream and the FIN, it can ignore any RESET_STREAM it receives.
+all data on the stream and the FIN, it can ignore any RESET_STREAM_AT it
+receives.
 
 If a sender will not deliver any objects from a Subgroup, it MAY send
 a STREAM_HEADER_SUBGROUP on a new stream, with no objects, and
@@ -2215,10 +2222,10 @@ then send RESET_STREAM_AT with a reliable_size equal to the length of the
 stream header. This explicitly tells the receiver there is an unsent Subgroup.
 
 Since SUBSCRIBEs always end on a group boundary, an ending subscription can
-always cleanly close all its subgroups. A sender that terminates a stream
-early for any other reason (e.g., to handoff to a different sender) MUST
-use RESET_STREAM or RESET_STREAM_AT. Senders SHOULD terminate a stream on
-Group boundaries to avoid doing so.
+always cleanly close all its subgroups. A sender that terminates a stream early
+for any other reason (e.g., to handoff to a different sender) MUST use
+RESET_STREAM_AT. Senders SHOULD terminate a stream on Group boundaries to avoid
+doing so.
 
 An MoQT implementation that processes a stream FIN is assured it has received
 all objects in a subgroup from the start of the subscription. If a relay, it
@@ -2232,23 +2239,23 @@ Group, so if all Objects in the Group have been received, a FIN can be sent on
 any stream where the entire subgroup has been sent. This might be complex to
 implement.
 
-Processing a RESET_STREAM or RESET_STREAM_AT means that there might be other
-objects in the Subgroup beyond the last one received. A relay might immediately
-reset the corresponding downstream stream, or it might attempt to recover the
-missing Objects in an effort send all the objects in the subgroups and the FIN. It also
+Processing a RESET_STREAM_AT means that there might be other objects in the
+Subgroup beyond the last one received. A relay might immediately reset the
+corresponding downstream stream, or it might attempt to recover the missing
+Objects in an effort send all the objects in the subgroups and the FIN. It also
 might send RESET_STREAM_AT with reliable_size set to the last object it has, so
 as to reliably deliver the objects it has while signaling that other objects
 might exist.
 
-A subscriber MAY send a QUIC STOP_SENDING frame for a subgroup stream if the Group
-or Subgroup is no longer of interest to it. The publisher SHOULD respond with
-RESET_STREAM or RESET_STREAM_AT. If RESET_STREAM_AT is sent, note that the receiver
-has indicated no interest in the objects, so setting a reliable_size beyond the
-stream header is of questionable utility.
+A subscriber MAY send a QUIC STOP_SENDING frame for a subgroup stream if the
+Group or Subgroup is no longer of interest to it. The publisher SHOULD respond
+with RESET_STREAM_AT. Note that the receiver has indicated no interest in the
+objects, so setting a reliable_size beyond the stream header is of questionable
+utility.
 
 RESET_STREAM and STOP_SENDING on SUBSCRIBE data streams have no impact on other
-Subgroups in the Group or the subscription, although applications might cancel all
-Subgroups in a Group at once.
+Subgroups in the Group or the subscription, although applications might cancel
+all Subgroups in a Group at once.
 
 ### Fetch Header {#fetch-header}
 
