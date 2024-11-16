@@ -5,13 +5,13 @@
 Media Over QUIC                                                L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 19 May 2025                                                Meta
+Expires: 20 May 2025                                                Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                        15 November 2024
+                                                        16 November 2024
 
 
                        Media over QUIC Transport
@@ -59,7 +59,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 19 May 2025.
+   This Internet-Draft will expire on 20 May 2025.
 
 Copyright Notice
 
@@ -1188,7 +1188,7 @@ Table of Contents
 6.2.  CLIENT_SETUP and SERVER_SETUP
 
    The CLIENT_SETUP and SERVER_SETUP messages are the first messages
-   exchanged by the client and the server; they allows the endpoints to
+   exchanged by the client and the server; they allow the endpoints to
    establish the mutually supported version and agree on the initial
    configuration before any objects are exchanged.  It is a sequence of
    key-value pairs called Setup parameters; the semantics and format of
