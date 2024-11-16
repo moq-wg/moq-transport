@@ -2175,7 +2175,7 @@ following fields.
 
 The Object Status field is only sent if the Object Payload Length is zero.
 
-If an endpoint receives an STREAM_HEADER_SUBGROUP with a Track Alias that does
+If an endpoint receives a STREAM_HEADER_SUBGROUP with a Track Alias that does
 not correspond to an active or recently closed subscription, it closes the
 session with a protocol violation.
 
@@ -2272,7 +2272,7 @@ FETCH_HEADER Message {
 ~~~
 {: #fetch-header-format title="MOQT FETCH_HEADER Message"}
 
-If an endpoint receives a FETCH stream that references a subscription ID that does
+If an endpoint receives a FETCH_HEADER that references a subscription ID that does
 not refer to an active or recently closed FETCH, it closes the connection with a
 Protocol Violation.
 
