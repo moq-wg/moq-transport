@@ -5,13 +5,13 @@
 Media Over QUIC                                                L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 19 May 2025                                                Meta
+Expires: 20 May 2025                                                Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                        15 November 2024
+                                                        16 November 2024
 
 
                        Media over QUIC Transport
@@ -59,7 +59,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 19 May 2025.
+   This Internet-Draft will expire on 20 May 2025.
 
 Copyright Notice
 
@@ -2289,7 +2289,7 @@ Table of Contents
    The Object Status field is only sent if the Object Payload Length is
    zero.
 
-   If an endpoint receives an STREAM_HEADER_SUBGROUP with a Track Alias
+   If an endpoint receives a STREAM_HEADER_SUBGROUP with a Track Alias
    that does not correspond to an active or recently closed
    subscription, it closes the session with a protocol violation.
 
@@ -2392,7 +2392,7 @@ Table of Contents
 
                     Figure 31: MOQT FETCH_HEADER Message
 
-   If an endpoint receives a FETCH stream that references a subscription
+   If an endpoint receives a FETCH_HEADER that references a subscription
    ID that does not refer to an active or recently closed FETCH, it
    closes the connection with a Protocol Violation.
 
