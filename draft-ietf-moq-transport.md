@@ -2025,6 +2025,8 @@ variable-length integer indicating the type of the stream in question.
 |------:|:------------------------------------------------------|
 | 0x1   | OBJECT_DATAGRAM ({{object-datagram}})                 |
 |-------|-------------------------------------------------------|
+| 0x2   | OBJECT_DATAGRAM_STATUS ({{object-datagram}})          |
+|-------|-------------------------------------------------------|
 | 0x4   | STREAM_HEADER_SUBGROUP  ({{stream-header-subgroup}})  |
 |-------|-------------------------------------------------------|
 | 0x5   | FETCH_HEADER  ({{fetch-header}})                      |
@@ -2124,12 +2126,29 @@ OBJECT_DATAGRAM Message {
   Group ID (i),
   Object ID (i),
   Publisher Priority (8),
-  Object Payload Length (i),
-  [Object Status (i)],
   Object Payload (..),
 }
 ~~~
 {: #object-datagram-format title="MOQT OBJECT_DATAGRAM Message"}
+
+There is no explicit length field.  The entirety of the transport datagram
+following Publisher Priority contains the Object Payload.
+
+## Object Datagram Status Message {#object-datagram-status}
+
+An `OBJECT_DATAGRAM_STATUS` message is similar to OBEJCT_DATAGRAM except it
+conveys an Object Status and has no payload.
+
+~~~
+OBJECT_DATAGRAM_STATUS Message {
+  Track Alias (i),
+  Group ID (i),
+  Object ID (i),
+  Publisher Priority (8),
+  Object Status (i),
+}
+~~~
+{: #object-datagram-status-format title="MOQT OBJECT_DATAGRAM_STATUS Message"}
 
 ## Streams
 
