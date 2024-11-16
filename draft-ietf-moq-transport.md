@@ -590,9 +590,9 @@ provider needs the ability to shutdown/restart a server without waiting for all
 sessions to drain naturally, as that can take days for long-form media.
 MOQT avoids this via the GOAWAY message ({{message-goaway}}).
 
-The server sends a GOAWAY message, signaling that the client to establish a
-new session and migrate any active subscriptions. The GOAWAY message
-optionally contains a new URI for the new session, otherwise the current URI is
+The server sends a GOAWAY message, signaling the client to establish a new
+session and migrate any active subscriptions. The GOAWAY message optionally
+contains a new URI for the new session, otherwise the current URI is
 reused. The server SHOULD terminate the session with 'GOAWAY Timeout' after a
 sufficient timeout if there are still open subscriptions or fetches on a
 connection.
@@ -1192,7 +1192,7 @@ GOAWAY Message {
   session if provided. If the URI is zero bytes long, the client can reuse the
   current URI is reused instead. The new session URI SHOULD use the same scheme
   as the current URL to ensure compatibility.
-  
+
   If a server receives a GOAWAY with a non-zero New Session URI Length it MUST
   terminate the session with a Protocol Violation.
 
