@@ -1169,10 +1169,10 @@ the session soon.  Servers can use GOAWAY to initiate session migration
 
 The GOAWAY message does not impact subscription state. A subscriber
 SHOULD individually UNSUBSCRIBE for each existing subscription, while a
-publisher MAY reject new requests while in the draining state. 
+publisher MAY reject new requests while in the draining state.
 
 Upon receiving a GOAWAY, an endpoint SHOULD NOT initiate new requests to
-the peer including SUBSCRIBE, FETCH, ANNOUNCE and SUBSCRIBE_ANNOUNCES.
+the peer including SUBSCRIBE, FETCH, ANNOUNCE and SUBSCRIBE_ANNOUNCE.
 
 The endpoint MUST terminate the session with a Protocol Violation
 ({{session-termination}}) if it receives multiple GOAWAY messages.
