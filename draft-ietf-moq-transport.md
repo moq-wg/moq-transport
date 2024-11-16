@@ -1087,7 +1087,7 @@ handles a subscription that includes those Objects re-requests them.
 ## CLIENT_SETUP and SERVER_SETUP {#message-setup}
 
 The `CLIENT_SETUP` and `SERVER_SETUP` messages are the first messages exchanged
-by the client and the server; they allows the endpoints to establish the mutually
+by the client and the server; they allow the endpoints to establish the mutually
 supported version and agree on the initial configuration before any objects are
 exchanged. It is a sequence of key-value pairs called Setup parameters; the
 semantics and format of which can vary based on whether the client or server is
