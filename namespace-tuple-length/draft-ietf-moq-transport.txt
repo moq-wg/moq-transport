@@ -5,13 +5,13 @@
 Media Over QUIC                                                L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 20 May 2025                                                Meta
+Expires: 22 May 2025                                                Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                        16 November 2024
+                                                        18 November 2024
 
 
                        Media over QUIC Transport
@@ -59,7 +59,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 20 May 2025.
+   This Internet-Draft will expire on 22 May 2025.
 
 Copyright Notice
 
@@ -1710,8 +1710,9 @@ Table of Contents
       messages for namespaces ("example.com", "meeting=123",
       "participant=100") and ("example.com", "meeting=123",
       "participant=200"), a SUBSCRIBE_ANNOUNCES for ("example.com",
-      "meeting=123") would match both.  The Track Namespace Prefix tuple
-      MUST have size greater than 0 and less than or equal to 32.
+      "meeting=123") would match both.  If an endpoint receives a Track
+      Namespace Prefix tuple with N less than 1 or more than 32, it MUST
+      close the session with a Protocol Violation.
 
    *  Parameters: The parameters are defined in Section 6.1.1.
 
