@@ -116,7 +116,7 @@ be fixed and only subject to encoding and transmission delays. Unfortunately,
 networks have variable throughput, primarily due to congestion. Attempting to
 deliver content encoded at a higher bitrate than the network can support causes
 queuing along the path from producer to consumer. The speed at which a protocol
-can detect and respond to queuing determines the overall latency. TCP-based
+can detect and respond to congestion determines the overall latency. TCP-based
 protocols are simple but are slow to detect congestion and suffer from
 head-of-line blocking. Protocols utilizing UDP directly can avoid queuing, but
 the application is then responsible for the complexity of fragmentation,
@@ -135,8 +135,8 @@ exercising options for flexible loss recovery.
 ### Convergence
 
 Some live media architectures today have separate protocols for ingest and
-distribution, for example RTMP and HTTP based HLS or DASH. This protocol switch
-in the distribution chain necessitates intermediary origins which re-package the
+distribution, for example RTMP and HTTP based HLS or DASH. Switching protocols
+necessitates intermediary origins which re-package the
 media content. While specialization can have its benefits, there are efficiency
 gains to be had in not having to re-package content. A goal of MOQT is to
 develop a single protocol which can be used for transmission from contribution
