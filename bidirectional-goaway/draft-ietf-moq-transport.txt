@@ -5,13 +5,13 @@
 Media Over QUIC                                                L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 20 May 2025                                                Meta
+Expires: 23 May 2025                                                Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                        16 November 2024
+                                                        19 November 2024
 
 
                        Media over QUIC Transport
@@ -59,7 +59,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 20 May 2025.
+   This Internet-Draft will expire on 23 May 2025.
 
 Copyright Notice
 
@@ -657,8 +657,8 @@ Table of Contents
    MOQT requires a long-lived and stateful session.  However, a service
    provider needs the ability to shutdown/restart a server without
    waiting for all sessions to drain naturally, as that can take days
-   for long-form media.  MOQT avoids this via the GOAWAY message
-   (Section 6.3).
+   for long-form media.  MOQT enables proactively draining sessions via
+   the GOAWAY message (Section 6.3).
 
    The server sends a GOAWAY message, signaling the client to establish
    a new session and migrate any active subscriptions.  The GOAWAY
