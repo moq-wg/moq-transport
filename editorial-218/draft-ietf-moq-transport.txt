@@ -5,13 +5,13 @@
 Media Over QUIC                                                L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 20 May 2025                                                Meta
+Expires: 23 May 2025                                                Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                        16 November 2024
+                                                        19 November 2024
 
 
                        Media over QUIC Transport
@@ -59,7 +59,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 20 May 2025.
+   This Internet-Draft will expire on 23 May 2025.
 
 Copyright Notice
 
@@ -205,8 +205,8 @@ Table of Contents
    throughput, primarily due to congestion.  Attempting to deliver
    content encoded at a higher bitrate than the network can support
    causes queuing along the path from producer to consumer.  The speed
-   at which a protocol can detect and respond to queuing determines the
-   overall latency.  TCP-based protocols are simple but are slow to
+   at which a protocol can detect and respond to congestion determines
+   the overall latency.  TCP-based protocols are simple but are slow to
    detect congestion and suffer from head-of-line blocking.  Protocols
    utilizing UDP directly can avoid queuing, but the application is then
    responsible for the complexity of fragmentation, congestion control,
@@ -226,15 +226,14 @@ Table of Contents
 
    Some live media architectures today have separate protocols for
    ingest and distribution, for example RTMP and HTTP based HLS or DASH.
-   This protocol switch in the distribution chain necessitates
-   intermediary origins which re-package the media content.  While
-   specialization can have its benefits, there are efficiency gains to
-   be had in not having to re-package content.  A goal of MOQT is to
-   develop a single protocol which can be used for transmission from
-   contribution to distribution.  A related goal is the ability to
-   support existing encoding and packaging schemas, both for backwards
-   compatibility and for interoperability with the established content
-   preparation ecosystem.
+   Switching protocols necessitates intermediary origins which re-
+   package the media content.  While specialization can have its
+   benefits, there are efficiency gains to be had in not having to re-
+   package content.  A goal of MOQT is to develop a single protocol
+   which can be used for transmission from contribution to distribution.
+   A related goal is the ability to support existing encoding and
+   packaging schemas, both for backwards compatibility and for
+   interoperability with the established content preparation ecosystem.
 
 1.1.4.  Relays
 
