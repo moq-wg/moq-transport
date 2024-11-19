@@ -5,13 +5,13 @@
 Media Over QUIC                                                L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 22 May 2025                                                Meta
+Expires: 23 May 2025                                                Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                        18 November 2024
+                                                        19 November 2024
 
 
                        Media over QUIC Transport
@@ -59,7 +59,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 22 May 2025.
+   This Internet-Draft will expire on 23 May 2025.
 
 Copyright Notice
 
@@ -456,7 +456,7 @@ Table of Contents
    1 and 32.  The structured nature of Track Namespace allows relays and
    applications to manipulate prefixes of a namespace.  Track name is a
    sequence of bytes.  If an endpoint receives a Track Namespace tuple
-   with N less than 1 or more than 32, it MUST close the session with a
+   with an N of 0 or more than 32, it MUST close the session with a
    Protocol Violation.
 
    In this specification, both the Track Namespace tuple fields and the
@@ -1711,7 +1711,7 @@ Table of Contents
       "participant=100") and ("example.com", "meeting=123",
       "participant=200"), a SUBSCRIBE_ANNOUNCES for ("example.com",
       "meeting=123") would match both.  If an endpoint receives a Track
-      Namespace Prefix tuple with N less than 1 or more than 32, it MUST
+      Namespace Prefix tuple with an N of 0 or more than 32, it MUST
       close the session with a Protocol Violation.
 
    *  Parameters: The parameters are defined in Section 6.1.1.
