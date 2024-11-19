@@ -1811,17 +1811,6 @@ once the same number of streams have been processed.
 
 * Reason Phrase: Provides the reason for subscription error.
 
-* ContentExists: 1 if an object has been published for this subscription, 0 if
-not. If 0, then the Final Group and Final Object fields will not be present.
-Any other value is a protocol error and MUST terminate the session with a
-Protocol Violation ({{session-termination}}).
-
-* Final Group: The largest Group ID sent by the publisher in an OBJECT
-message in this track.
-
-* Final Object: The largest Object ID sent by the publisher in an OBJECT
-message in the `Final Group` for this track.
-
 ## MAX_SUBSCRIBE_ID {#message-max-subscribe-id}
 
 A publisher sends a MAX_SUBSCRIBE_ID message to increase the number of
