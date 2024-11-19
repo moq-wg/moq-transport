@@ -588,7 +588,7 @@ code, as defined below:
 MOQT requires a long-lived and stateful session. However, a service
 provider needs the ability to shutdown/restart a server without waiting for all
 sessions to drain naturally, as that can take days for long-form media.
-MOQT avoids this via the GOAWAY message ({{message-goaway}}).
+MOQT enables proactively draining sessions via the GOAWAY message ({{message-goaway}}).
 
 The server sends a GOAWAY message, signaling the client to establish a new
 session and migrate any active subscriptions. The GOAWAY message optionally
