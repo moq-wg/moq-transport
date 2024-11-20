@@ -1785,24 +1785,33 @@ additional objects for a subscription. Because SUBSCRIBE_DONE is sent on the
 control stream, it is likely to arrive at the receiver before late-arriving
 objects, and often even late-opening streams. However, the receiver uses it
 as an indication that it should receive any late-opening streams in a relatively
-short time. When all streams for the subscription are fully closed, each
-endpoint can destroy its subscription state.
+short time.
 
 Note that some objects in the subscribed track might never be delivered,
 because a stream was reset, or never opened in the first place, due to the
 delivery timeout.
 
 A sender MUST NOT send SUBSCRIBE_DONE until it has closed all streams it will
-ever open, and has no pending datagrams, for a subscription. After sending
-SUBSCRIBE_DONE, the sender can immediately destroy subscription state, although
-stream state may persist until delivery completes.
+ever open, and has no further datagrams to send, for a subscription. After
+sending SUBSCRIBE_DONE, the sender can immediately destroy subscription state,
+although stream state can persist until delivery completes. The sender might
+persist subscription state to enforce the delivery timeout by resetting streams
+on which it has already sent FIN, only deleting it when all such streams have
+received ACK of the FIN.
 
-A subscriber that receives SUBSCRIBE_DONE SHOULD set a timer of at least 2 seconds
-in case some datagrams or unopened streams are still inbound due to
-prioritization or packet loss. Once the timer has expired, the receiver destroys
-subscription state once all open streams for the subscription have closed. A
-subscriber MAY discard subscription state earlier, at the cost of potentially not
-delivering some late objects to the application.
+A sender MUST NOT destroy subscription state until it sends SUBSCRIBE_DONE,
+though it can choose to stop sending objects (and thus send SUBSCRIBE_DONE) for
+any reason.
+
+A subscriber that receives SUBSCRIBE_DONE SHOULD set a timer of at least its
+delivery timeout in case some objects are still inbound due to prioritization
+or packet loss. The subscriber MAY dispense with a timer if it sent UNSUBSCRIBE
+or is otherwise no longer interested in objects from the track. Once the timer
+has expired, the receiver destroys subscription state once all open streams for
+the subscription have closed. A subscriber MAY discard subscription state
+earlier, at the cost of potentially not delivering some late objects to the
+application. The subscriber SHOULD send STOP_SENDING on all streams related to
+the subscription when it deletes subscription state.
 
 The format of `SUBSCRIBE_DONE` is as follows:
 
