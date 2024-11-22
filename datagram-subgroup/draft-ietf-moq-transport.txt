@@ -5,13 +5,13 @@
 Media Over QUIC                                                L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 19 May 2025                                                Meta
+Expires: 26 May 2025                                                Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                        15 November 2024
+                                                        22 November 2024
 
 
                        Media over QUIC Transport
@@ -59,7 +59,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 19 May 2025.
+   This Internet-Draft will expire on 26 May 2025.
 
 Copyright Notice
 
@@ -2402,8 +2402,8 @@ Table of Contents
    The Object Status field is only sent if the Object Payload Length is
    zero.
 
-   The Subgroup ID of an object with a Forwarding Preference of
-   "Datagram" (see Section 7.1.1) is zero.
+   The Subgroup ID field of an object with a Forwarding Preference of
+   "Datagram" (see Section 7.1.1) is set to the Object ID.
 
 7.4.  Examples
 
