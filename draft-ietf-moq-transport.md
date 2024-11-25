@@ -2500,7 +2500,7 @@ reaching a resource limit.
 ## Timeouts
 
 Implementations are advised to use timeouts to prevent resource
-exhaustion attacks by a peer that does not send expected data withing
+exhaustion attacks by a peer that does not send expected data within
 an expected time.  Each implementation is expected to set its own limits.
 
 # IANA Considerations {#iana}
