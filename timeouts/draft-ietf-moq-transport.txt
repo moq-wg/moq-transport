@@ -5,13 +5,13 @@
 Media Over QUIC                                                L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 19 May 2025                                                Meta
+Expires: 29 May 2025                                                Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                        15 November 2024
+                                                        25 November 2024
 
 
                        Media over QUIC Transport
@@ -59,7 +59,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 19 May 2025.
+   This Internet-Draft will expire on 29 May 2025.
 
 Copyright Notice
 
@@ -2485,7 +2485,7 @@ Table of Contents
 8.2.  Timeouts
 
    Implementations are advised to use timeouts to prevent resource
-   exhaustion attacks by a peer that does not send expected data withing
+   exhaustion attacks by a peer that does not send expected data within
    an expected time.  Each implementation is expected to set its own
    limits.
 
