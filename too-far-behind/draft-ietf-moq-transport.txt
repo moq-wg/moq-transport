@@ -5,13 +5,13 @@
 Media Over QUIC                                                L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 20 May 2025                                                Meta
+Expires: 29 May 2025                                                Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                        16 November 2024
+                                                        25 November 2024
 
 
                        Media over QUIC Transport
@@ -59,7 +59,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 20 May 2025.
+   This Internet-Draft will expire on 29 May 2025.
 
 Copyright Notice
 
@@ -1170,7 +1170,7 @@ Table of Contents
    as indicated by their Group Order and Priority.  If a subscriber
    exceeds the publisher's resource limits by failing to consume objects
    at a sufficient rate, the publisher MAY terminate the subscription
-   with Too Far Behind.
+   with error 'Too Far Behind'.
 
    If an object in a subgroup exceeds the delivery timeout, the
    publisher MUST reset the underlying transport stream (see
