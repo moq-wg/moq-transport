@@ -564,6 +564,8 @@ code, as defined below:
 |------|---------------------------|
 | 0x6  | Too Many Subscribes       |
 |------|---------------------------|
+| 0x7  | Invalid Subscribe ID      |
+|------|---------------------------|
 | 0x10 | GOAWAY Timeout            |
 |------|---------------------------|
 | 0x11 | Control Message Timeout   |
@@ -587,7 +589,10 @@ code, as defined below:
 * Too Many Subscribes: The session was closed because the subscriber used
   a Subscribe ID equal or larger than the current Maximum Subscribe ID.
 
-* GOAWAY Timeout: The session was closed because the peer took too long to
+* Invalid Subscribe ID: The session was closed because the subscriber sent
+  a Joining Fetch with a Subscribe ID that does not exist.
+
+* GOAWAY Timeout: The session was closed because the client took too long to
   close the session in response to a GOAWAY ({{message-goaway}}) message.
   See session migration ({{session-migration}}).
 
@@ -1415,6 +1420,20 @@ objects within a track. The publisher responding to a FETCH is responsible for r
 all available Objects. If there are gaps between Objects, the publisher omits them from the
 fetch response. All omitted objects have status Object Not Available.
 
+**Fetch Types**
+
+There are two types of Fetch messages:
+
+Standalone Fetch (0x1) : A Fetch of Objects performed independently of any Subscribe.
+
+Joining Fetch (0x2) : A Fetch joined together with a Subscribe. A Joining Fetch
+shares the same Subscribe ID as an already-sent Subscribe. A publisher receiving a Joining
+Fetch should use properties of the associated Subscribe to determine the Track Namespace,
+Track, StartGroup, StartObject, EndGroup, and EndObject for the Joining Fetch such that it is
+contiguous with the associated Subscribe and begins Previous Group Count prior.
+
+A Fetch Type other than the above MUST be treated as an error.
+
 A publisher responds to a FETCH request with either a FETCH_OK or a FETCH_ERROR
 message.  If it responds with FETCH_OK, the publisher creates a new unidirectional
 stream that is used to send the Objects.  A relay MAY start sending objects immediately
@@ -1434,33 +1453,47 @@ FETCH Message {
   Type (i) = 0x16,
   Length (i),
   Subscribe ID (i),
-  Track Namespace (tuple),
-  Track Name Length (i),
-  Track Name (..),
   Subscriber Priority (8),
-  Group Order (8),
-  StartGroup (i),
-  StartObject (i),
-  EndGroup (i),
-  EndObject (i),
+  Fetch Type (i),
+  [Track Namespace (tuple),
+   Track Name Length (i),
+   Track Name (..),
+   Group Order (8),
+   StartGroup (i),
+   StartObject (i),
+   EndGroup (i),
+   EndObject (i),]
+  [Previous Group Count (i),]
   Number of Parameters (i),
   Parameters (..) ...
 }
 ~~~
 {: #moq-transport-fetch-format title="MOQT FETCH Message"}
 
+Fields common to all Fetch Types:
+
 * Subscribe ID: The Subscribe ID identifies a given fetch request. Subscribe ID
 is a variable length integer that MUST be unique and monotonically increasing
-within  a session.
+within  a session. For a Standalone Fetch a new Subscribe ID MUST be used. For
+a Joining Fetch, the Subscribe ID MUST correspond to a Subscribe which has already
+been sent. If a publisher receives a Joining Fetch with a Subscribe ID that does
+not correspond to an existing Subscribe, it MUST close the session with an
+Invalid Subscribe ID error.
+
+* Subscriber Priority: Specifies the priority of a fetch request relative to
+other subscriptions or fetches in the same session. Lower numbers get higher
+priority. See {{priorities}}.
+
+* Fetch Type: Identifies the type of Fetch, whether joining or standalone.
+
+* Parameters: The parameters are defined in {{version-specific-params}}.
+
+Fields present only for Standalone Fetch (0x1):
 
 * Track Namespace: Identifies the namespace of the track as defined in
 ({{track-name}}).
 
 * Track Name: Identifies the track name as defined in ({{track-name}}).
-
-* Subscriber Priority: Specifies the priority of a fetch request relative to
-other subscriptions or fetches in the same session. Lower numbers get higher
-priority. See {{priorities}}.
 
 * Group Order: Allows the subscriber to request Objects be delivered in
 Ascending (0x1) or Descending (0x2) order by group. See {{priorities}}.
@@ -1476,8 +1509,9 @@ used. Values larger than 0x2 are a protocol error.
 * EndObject: The end Object ID, plus 1. A value of 0 means the entire group is
 requested.
 
-* Parameters: The parameters are defined in {{version-specific-params}}.
+Field present only for Joining Fetch (0x2):
 
+* Previous Group Count: The number of groups to Fetch prior to the StartGroup of the corresponding Subscribe
 
 Objects that are not yet published will not be retrieved by a FETCH.
 The latest available Object is indicated in the FETCH_OK, and is the last
@@ -1494,6 +1528,23 @@ the publisher MUST return FETCH_ERROR with error code 'No Objects'.
 A publisher MUST send fetched groups in group order, either ascending or
 descending. Within each group, objects are sent in Object ID order;
 subgroup ID is not used for ordering.
+
+A publisher which receives a Fetch message with a Fetch Type of 0x2 should treat it as a Fetch
+with the following fields dynamically determined from the corresponding Subscribe:
+
+* Track Namespace: Same as in the corresponding Subscribe
+
+* Track Name: Same as in the corresponding SUBSCRIBE
+
+* StartGroup: LatestGroup as determined for the SUBSCRIBE minus PreviousGroups from the JOIN
+
+* StartObject: Always 0
+
+* EndGroup: StartGroup of the corresponding SUBSCRIBE minus 1 (double check minus 1)
+
+* EndObject: StartObject of the corresponding SUBSCRIBE minus 1 (double check minus 1)
+
+A Joining Fetch MUST be sent in ascending group order.
 
 ## FETCH_CANCEL {#message-fetch-cancel}
 
