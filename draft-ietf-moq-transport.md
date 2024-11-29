@@ -1592,14 +1592,19 @@ Object Extension {
 
 Extension Header {
   Header Type (i),
-  Header Length (i),
-  Header Value (..)
+  [Header Value (i)]
+  [Header Length (i),
+   Header Value (..)]
 }
 ~~~
 {: #object-extension-format title="Object Extension Header Format"}
 
-* Header type: an unsigned integer, encoded as a varint and registered in the
-  IANA table 'MOQ Extension Headers'. See {{iana}}.
+* Header type: an unsigned integer, encoded as a varint, identifying the type
+  of extension and also the subsequent serialization. Header types in the range
+  0x00 - 0x20 inclusive are followed by a single varint encoded value. Header
+  types 0x21 and above are followed by a varint encoded length and then the
+  header value. Header types are registered in the IANA table 'MOQ Extension
+  Headers'. See {{iana}}.
 
 ### Object Message Formats
 
