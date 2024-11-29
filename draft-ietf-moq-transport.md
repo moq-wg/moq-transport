@@ -1582,9 +1582,8 @@ group is being sent on.
 An Object Extension is a concatenation of optional Extension Headers. These
 headers are visible to relays. Extension headers MUST be forwarded and
 MUST NOT be modified by relays. The purpose of Extension Headers is to
-allow the transmission of application-specific data as well as future
-evolution of the transport protocol. Object Extensions are serialized as
-defined below:
+facilitate the future evolution of the transport protocol. Object
+Extensions are serialized as defined below:
 
 ~~~
 Object Extension {
@@ -1601,32 +1600,6 @@ Extension Header {
 
 * Header type: an unsigned integer, encoded as a varint and registered in the
   IANA table 'MOQ Extension Headers'. See {{iana}}.
-
-##### Extension Header type 0 {#extension-header-zero}
-
-This specification defines a utility extension header. The value of this header
-is itself a name-value pair.
-
-
-| Type |                         Value                        |
-| ---- | ---------------------------------------------------- |
-| 0x0  | Header Value  - see {{extension-header-zero-format}} |
-
-
-~~~
-Header Value {
-  Name Length (i),
-  Name Value (..)
-  Payload (..)
-}
-~~~
-{: #extension-header-zero-format title="Extension header 0 value format"}
-
-* Name Length: the size of the name value in bytes.
-* Name Value: a string encoded using ISO-8859-1. This name is application-defined
-  and is not IANA registered.
-* Payload: the contents of the header. The combined size of the name and payload
-  contents MUST NOT exceed 10240 bytes.
 
 ### Object Message Formats
 
