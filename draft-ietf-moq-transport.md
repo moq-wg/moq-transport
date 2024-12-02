@@ -2203,8 +2203,7 @@ to subscription state until a timeout expires.
 A sender might send all objects in a Subgroup and the FIN on a QUIC stream,
 and then reset the stream. In this case, the receiving application would receive
 the FIN if and only if all objects were received. If the application receives
-all data on the stream and the FIN, it can ignore any RESET_STREAM it
-receives.
+all data on the stream and the FIN, it can ignore any RESET_STREAM it receives.
 
 If a sender will not deliver any objects from a Subgroup, it MAY send
 a STREAM_HEADER_SUBGROUP on a new stream, with no objects, and
