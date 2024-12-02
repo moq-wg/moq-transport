@@ -395,6 +395,8 @@ namespace.
 Track namespace is an ordered N-tuple of bytes where N can be between 1 and 32.
 The structured nature of Track Namespace allows relays and applications to
 manipulate prefixes of a namespace. Track name is a sequence of bytes.
+If an endpoint receives a Track Namespace tuple with an N of 0 or more
+than 32, it MUST close the session with a Protocol Violation.
 
 In this specification, both the Track Namespace tuple fields and the Track Name
 are not constrained to a specific encoding. They carry a sequence of bytes and
@@ -1603,7 +1605,9 @@ against track namespaces known to the publisher.  For example, if the publisher
 is a relay that has received ANNOUNCE messages for namespaces ("example.com",
 "meeting=123", "participant=100") and ("example.com", "meeting=123",
 "participant=200"), a SUBSCRIBE_ANNOUNCES for ("example.com", "meeting=123")
-would match both.
+would match both.  If an endpoint receives a Track Namespace Prefix tuple with
+an N of 0 or more than 32, it MUST close the session with a Protocol
+Violation.
 
 * Parameters: The parameters are defined in {{version-specific-params}}.
 
