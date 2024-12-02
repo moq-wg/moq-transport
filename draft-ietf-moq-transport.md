@@ -324,6 +324,8 @@ for the content of the object payload. This includes the underlying encoding,
 compression, any end-to-end encryption, or authentication. A relay MUST NOT
 combine, split, or otherwise modify object payloads.
 
+Objects within a group are ordered numerically by their Object ID.
+
 ## Subgroups {#model-subgroup}
 
 A subgroup is a sequence of one or more objects from the same group
@@ -377,6 +379,8 @@ on objects in other groups. A group provides a join point for subscriptions, so 
 subscriber that does not want to receive the entire track can opt to receive only
 the latest group(s).  The publisher then selectively transmits objects based on
 their group membership.
+
+Groups are ordered numerically by their Group ID.
 
 ## Track {#model-track}
 
