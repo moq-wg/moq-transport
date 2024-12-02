@@ -2390,6 +2390,10 @@ SUBSCRIBE_DONE, as defined below:<a href="#section-5.1-10" class="pilcrow">¶</a
               <td class="text-right" rowspan="1" colspan="1">0x6</td>
               <td class="text-left" rowspan="1" colspan="1">Expired</td>
             </tr>
+            <tr>
+              <td class="text-right" rowspan="1" colspan="1">0x7</td>
+              <td class="text-left" rowspan="1" colspan="1">Too Far Behind</td>
+            </tr>
           </tbody>
         </table>
 <div id="graceful-publisher-relay-switchover">
@@ -2740,14 +2744,19 @@ received from an upstream subscription when there is one, and nothing otherwise.
 If an earlier Object arrives later than subsequent Objects, relays can consider
 the receipt time as that of the next later Object, with the assumption that the
 Object's data was reordered.<a href="#section-6.1.1.2-2" class="pilcrow">¶</a></p>
-<p id="section-6.1.1.2-3">If neither the subscriber or publisher specify DELIVERY TIMEOUT, Objects are
-delivered as indicated by their Group Order and Priority.<a href="#section-6.1.1.2-3" class="pilcrow">¶</a></p>
-<p id="section-6.1.1.2-4">When sent by a subscriber, this parameter is intended to be specific to a
+<p id="section-6.1.1.2-3">If neither the subscriber or publisher specify DELIVERY TIMEOUT, all Objects
+in the track matching the subscription filter are delivered as indicated by
+their Group Order and Priority.  If a subscriber exceeds the publisher's
+resource limits by failing to consume objects at a sufficient rate, the
+publisher <span class="bcp14">MAY</span> terminate the subscription with error 'Too Far Behind'.<a href="#section-6.1.1.2-3" class="pilcrow">¶</a></p>
+<p id="section-6.1.1.2-4">If an object in a subgroup exceeds the delivery timeout, the publisher <span class="bcp14">MUST</span>
+reset the underlying transport stream (see <a href="#closing-subgroup-streams" class="auto internal xref">Section 7.3.2</a>).<a href="#section-6.1.1.2-4" class="pilcrow">¶</a></p>
+<p id="section-6.1.1.2-5">When sent by a subscriber, this parameter is intended to be specific to a
 subscription, so it <span class="bcp14">SHOULD NOT</span> be forwarded upstream by a relay that intends
-to serve multiple subscriptions for the same track.<a href="#section-6.1.1.2-4" class="pilcrow">¶</a></p>
-<p id="section-6.1.1.2-5">Publishers <span class="bcp14">SHOULD</span> consider whether the entire Object is likely to be delivered
+to serve multiple subscriptions for the same track.<a href="#section-6.1.1.2-5" class="pilcrow">¶</a></p>
+<p id="section-6.1.1.2-6">Publishers <span class="bcp14">SHOULD</span> consider whether the entire Object is likely to be delivered
 before sending any data for that Object, taking into account priorities,
-congestion control, and any other relevant information.<a href="#section-6.1.1.2-5" class="pilcrow">¶</a></p>
+congestion control, and any other relevant information.<a href="#section-6.1.1.2-6" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="max-cache-duration">
