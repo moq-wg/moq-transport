@@ -2415,6 +2415,9 @@ Table of Contents
    The Object Status field is only sent if the Object Payload Length is
    zero.
 
+   The Subgroup ID field of an object with a Forwarding Preference of
+   "Datagram" (see Section 7.1.1) is set to the Object ID.
+
 7.4.  Examples
 
    Sending a track on one stream:
