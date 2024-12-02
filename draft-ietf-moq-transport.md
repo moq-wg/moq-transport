@@ -700,6 +700,9 @@ possibly part of the same application.  In cases when pooling among
 namespaces is expected to cause issues, multiple MoQ sessions, either
 within a single connection or on multiple connections can be used.
 
+Implementations that have a default priority SHOULD set it to a value in
+the middle of the range (eg: 128) to allow non-default priorities to be
+set either higher or lower.
 
 # Relays {#relays-moq}
 
