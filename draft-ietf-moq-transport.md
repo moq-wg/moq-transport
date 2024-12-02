@@ -1052,20 +1052,20 @@ these parameters to appear in Setup messages.
 
 #### AUTHORIZATION INFO {#authorization-info}
 
-AUTHORIZATION INFO parameter (key 0x02) identifies a track's authorization
-information in a SUBSCRIBE, SUBSCRIBE_ANNOUNCES or ANNOUNCE message. This
-parameter is populated for cases where the authorization is required at the
-track level. The value is an ASCII string.
+AUTHORIZATION INFO parameter (Parameter Type 0x02) identifies a track's
+authorization information in a SUBSCRIBE, SUBSCRIBE_ANNOUNCES or ANNOUNCE
+message. This parameter is populated for cases where the authorization is
+required at the track level. The value is an ASCII string.
 
 #### DELIVERY TIMEOUT Parameter {#delivery-timeout}
 
-The DELIVERY TIMEOUT parameter (key 0x03) MAY appear in a SUBSCRIBE,
-SUBSCRIBE_OK, or a SUBSCRIBE_UDPATE message.  It is the duration in milliseconds
-the relay SHOULD continue to attempt forwarding Objects after they have been
-received.  The start time for the timeout is based on when the beginning of the
-Object is received, and does not depend upon the forwarding preference. There is
-no explicit signal that an Object was not sent because the delivery timeout
-was exceeded.
+The DELIVERY TIMEOUT parameter (Parameter Type 0x03) MAY appear in a
+SUBSCRIBE, SUBSCRIBE_OK, or a SUBSCRIBE_UDPATE message.  It is the duration in
+milliseconds the relay SHOULD continue to attempt forwarding Objects after
+they have been received.  The start time for the timeout is based on when the
+beginning of the Object is received, and does not depend upon the forwarding
+preference. There is no explicit signal that an Object was not sent because
+the delivery timeout was exceeded.
 
 If both the subscriber and publisher specify the parameter, they use the min of the
 two values for the subscription.  The publisher SHOULD always specify the value
@@ -1093,13 +1093,13 @@ congestion control, and any other relevant information.
 
 #### MAX CACHE DURATION Parameter {#max-cache-duration}
 
-MAX_CACHE_DURATION (key 0x04): An integer expressing a number of milliseconds. If
-present, the relay MUST NOT start forwarding any individual Object received
-through this subscription after the specified number of milliseconds has elapsed
-since the beginning of the Object was received.  This means Objects earlier
-in a multi-object stream will expire earlier than Objects later in the stream.
-Once Objects have expired, their state becomes unknown, and a relay that
-handles a subscription that includes those Objects re-requests them.
+MAX_CACHE_DURATION (Parameter Type 0x04): An integer expressing a number of
+milliseconds. If present, the relay MUST NOT start forwarding any individual
+Object received through this subscription after the specified number of
+milliseconds has elapsed since the beginning of the Object was received.  This
+means Objects earlier in a multi-object stream will expire earlier than Objects
+later in the stream. Once Objects have expired, their state becomes unknown, and
+a relay that handles a subscription that includes those Objects re-requests them.
 
 ## CLIENT_SETUP and SERVER_SETUP {#message-setup}
 
@@ -1161,8 +1161,8 @@ identified as 0xff00000D.
 
 #### PATH {#path}
 
-The PATH parameter (key 0x01) allows the client to specify the path of
-the MoQ URI when using native QUIC ({{QUIC}}).  It MUST NOT be used by
+The PATH parameter (Parameter Type 0x01) allows the client to specify the path
+of the MoQ URI when using native QUIC ({{QUIC}}).  It MUST NOT be used by
 the server, or when WebTransport is used.  If the peer receives a PATH
 parameter from the server, or when WebTransport is used, it MUST close
 the connection. It follows the URI formatting rules {{!RFC3986}}.
@@ -1174,9 +1174,7 @@ the `query` portion of the URI to the parameter.
 
 #### MAX_SUBSCRIBE_ID {#max-subscribe-id}
 
-The MAX_SUBSCRIBE_ID parameter (key 0x02) communicates an initial value for
-the Maximum Subscribe ID to the receiving subscriber. The default value is 0,
-so if not specified, the peer MUST NOT create subscriptions.
+The MAX_SUBSCRIBE_ID parameter (Parameter Type 0x02) communicates an initial value for the Maximum Subscribe ID to the receiving subscriber. The default value is 0, so if not specified, the peer MUST NOT create subscriptions.
 
 ## GOAWAY {#message-goaway}
 
