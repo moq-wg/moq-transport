@@ -579,28 +579,26 @@ code, as defined below:
 * Too Many Subscribes: The session was closed because the subscriber used
   a Subscribe ID equal or larger than the current Maximum Subscribe ID.
 
-* GOAWAY Timeout: The session was closed because the client took too long to
+* GOAWAY Timeout: The session was closed because the peer took too long to
   close the session in response to a GOAWAY ({{message-goaway}}) message.
   See session migration ({{session-migration}}).
 
 ## Migration {#session-migration}
 
-MoqTransport requires a long-lived and stateful session. However, a service
+MOQT requires a long-lived and stateful session. However, a service
 provider needs the ability to shutdown/restart a server without waiting for all
 sessions to drain naturally, as that can take days for long-form media.
-MoqTransport avoids this via the GOAWAY message ({{message-goaway}}).
+MOQT enables proactively draining sessions via the GOAWAY message ({{message-goaway}}).
 
-The server sends a GOAWAY message, signaling that the client should establish a
-new session and migrate any active subscriptions. The GOAWAY message may contain
-a new URI for the new session, otherwise the current URI is reused. The server
-SHOULD terminate the session with 'GOAWAY Timeout' after a sufficient timeout if
-there are still open subscriptions on a connection.
+The server sends a GOAWAY message, signaling the client to establish a new
+session and migrate any active subscriptions. The GOAWAY message optionally
+contains a new URI for the new session, otherwise the current URI is
+reused. The server SHOULD terminate the session with 'GOAWAY Timeout' after a
+sufficient timeout if there are still open subscriptions or fetches on a
+connection.
 
-The GOAWAY message does not immediately impact subscription state. A subscriber
-SHOULD individually UNSUBSCRIBE for each existing subscription, while a
-publisher MAY reject new SUBSCRIBEs while in the draining state. When the server
-is a subscriber, it SHOULD send a GOAWAY message to downstream subscribers
-prior to any UNSUBSCRIBE messages to upstream publishers.
+When the server is a subscriber, it SHOULD send a GOAWAY message to downstream
+subscribers prior to any UNSUBSCRIBE messages to upstream publishers.
 
 After the client receives a GOAWAY, it's RECOMMENDED that the client waits until
 there are no more active subscriptions before closing the session with NO_ERROR.
@@ -1164,13 +1162,20 @@ the Maximum Subscribe ID to the receiving subscriber. The default value is 0,
 so if not specified, the peer MUST NOT create subscriptions.
 
 ## GOAWAY {#message-goaway}
-The server sends a `GOAWAY` message to initiate session migration
+
+An endpoint sends a `GOAWAY` message to inform the peer it intends to close
+the session soon.  Servers can use GOAWAY to initiate session migration
 ({{session-migration}}) with an optional URI.
 
-The server MUST terminate the session with a Protocol Violation
-({{session-termination}}) if it receives a GOAWAY message. The client MUST
-terminate the session with a Protocol Violation ({{session-termination}}) if it
-receives multiple GOAWAY messages.
+The GOAWAY message does not impact subscription state. A subscriber
+SHOULD individually UNSUBSCRIBE for each existing subscription, while a
+publisher MAY reject new requests while in the draining state.
+
+Upon receiving a GOAWAY, an endpoint SHOULD NOT initiate new requests to
+the peer including SUBSCRIBE, FETCH, ANNOUNCE and SUBSCRIBE_ANNOUNCE.
+
+The endpoint MUST terminate the session with a Protocol Violation
+({{session-termination}}) if it receives multiple GOAWAY messages.
 
 ~~~
 GOAWAY Message {
@@ -1182,11 +1187,14 @@ GOAWAY Message {
 ~~~
 {: #moq-transport-goaway-format title="MOQT GOAWAY Message"}
 
-* New Session URI: The client MUST use this URI for the new session if provided.
-  If the URI is zero bytes long, the current URI is reused instead. The new
-  session URI SHOULD use the same scheme as the current URL to ensure
-  compatibility.
+* New Session URI: When received by a client, indicates where the client can
+  connect to continue this session.  The client MUST use this URI for the new
+  session if provided. If the URI is zero bytes long, the client can reuse the
+  current URI is reused instead. The new session URI SHOULD use the same scheme
+  as the current URL to ensure compatibility.
 
+  If a server receives a GOAWAY with a non-zero New Session URI Length it MUST
+  terminate the session with a Protocol Violation.
 
 
 ## SUBSCRIBE {#message-subscribe-req}
