@@ -2218,7 +2218,6 @@ session with a protocol violation.
 A publisher MUST NOT send an Object on a stream if its Object ID is less than a
 previously sent Object ID within a given group in that stream.
 
-
 ### Closing Subgroup Streams
 
 Subscribers will often need to know if they have received all objects in a
