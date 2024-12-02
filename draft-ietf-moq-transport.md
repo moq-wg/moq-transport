@@ -1808,8 +1808,8 @@ FETCH_ERROR
 ## SUBSCRIBE_DONE {#message-subscribe-done}
 
 A publisher sends a `SUBSCRIBE_DONE` message to indicate it is done publishing
-Objects for that subscription.  The Status Code indicates why the subscription ended,
-and whether it was an error.
+Objects for that subscription.  The Status Code indicates why the subscription
+ended, and whether it was an error.
 
 The format of `SUBSCRIBE_DONE` is as follows:
 
@@ -1819,11 +1819,9 @@ SUBSCRIBE_DONE Message {
   Length (i),
   Subscribe ID (i),
   Status Code (i),
+  Stream Count (i),
   Reason Phrase Length (i),
   Reason Phrase (..),
-  ContentExists (8),
-  [Final Group (i)],
-  [Final Object (i)],
 }
 ~~~
 {: #moq-transport-subscribe-fin-format title="MOQT SUBSCRIBE_DONE Message"}
@@ -1832,18 +1830,11 @@ SUBSCRIBE_DONE Message {
 
 * Status Code: An integer status code indicating why the subscription ended.
 
+* Stream Count: An integer indicating the number of data streams the publisher
+opened for this subscription.  The subscriber can remove all subscription state
+once the same number of streams have been processed.
+
 * Reason Phrase: Provides the reason for subscription error.
-
-* ContentExists: 1 if an object has been published for this subscription, 0 if
-not. If 0, then the Final Group and Final Object fields will not be present.
-Any other value is a protocol error and MUST terminate the session with a
-Protocol Violation ({{session-termination}}).
-
-* Final Group: The largest Group ID sent by the publisher in an OBJECT
-message in this track.
-
-* Final Object: The largest Object ID sent by the publisher in an OBJECT
-message in the `Final Group` for this track.
 
 ## MAX_SUBSCRIBE_ID {#message-max-subscribe-id}
 
@@ -2227,7 +2218,12 @@ stream, it MUST use a RESET_STREAM or RESET_STREAM_AT
 Subgroup exceeding its Delivery Timeout, early termination of subscription due to
 an UNSUBSCRIBE message, a publisher's decision to end the subscription early, or a
 SUBSCRIBE_UPDATE moving the end of the subscription to before the current Group
-or the start after the current Group.
+or the start after the current Group.  When RESET_STREAM_AT is used, the
+reliable_size SHOULD encompass the stream header so the receiver can accurately
+account for reset data streams when handling SUBSCRIBE_DONE (see
+{{message-subscribe-done}}).  Publishers that reset data streams without using
+RESET_STREAM_AT with an appropriate reliable_size can cause consumers to hold on
+to subscription state until a timeout expires.
 
 A sender might send all objects in a Subgroup and the FIN on a QUIC stream,
 and then reset the stream. In this case, the receiving application would receive
