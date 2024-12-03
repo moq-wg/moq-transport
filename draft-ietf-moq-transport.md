@@ -2121,9 +2121,7 @@ are beyond the end of a group or track.
 
 * 0x4 := Indicates end of Track and Group. GroupID is one greater than
          the largest group produced in this track and the ObjectId is
-         one greater than the largest object produced in that
-         group. This is sent right after the last object in the
-         track. This SHOULD be cached.
+         zero. 
 
 Any other value SHOULD be treated as a protocol error and terminate the
 session with a Protocol Violation ({{session-termination}}).
