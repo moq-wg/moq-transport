@@ -1578,18 +1578,13 @@ are sent on a new stream. This is to avoid the status message being lost
 in cases such as a relay dropping a group and reseting the stream the
 group is being sent on.
 
-#### Object Extension {#object-extensions}
-An Object Extension is a concatenation of optional Extension Headers. These
-headers are visible to relays. Extension headers MUST be forwarded and
-MUST NOT be modified by relays. The purpose of Extension Headers is to
-facilitate the future evolution of the transport protocol. Object
-Extensions are serialized as defined below:
+#### Object Extension Header {#object-extensions}
+Object Extension Headers are visible to relays. Extension Headers MUST be
+forwarded and MUST NOT be modified by relays. The purpose of Extension
+Headers is to facilitate the future evolution of the transport protocol.
+Object Extension Headers are serialized as defined below:
 
 ~~~
-Object Extension {
-  Extension Header (..) ...
-}
-
 Extension Header {
   Header Type (i),
   [Header Value (i)]
