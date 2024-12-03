@@ -2123,7 +2123,7 @@ are beyond the end of a group or track.
          the largest group produced in this track and the ObjectId is
          zero. An object with this status that has a Group ID less than or
          equal to any other Group ID, or an Object ID other than zero, is
-         a protocol error, and the receiver MUST terminate the session. 
+         a protocol error, and the receiver MUST terminate the session.
 
 Any other value SHOULD be treated as a protocol error and terminate the
 session with a Protocol Violation ({{session-termination}}).
