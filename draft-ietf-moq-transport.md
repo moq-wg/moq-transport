@@ -1715,6 +1715,8 @@ The Object Status field is only sent if the Object Payload Length is zero.
 {
   Group ID (i),
   Object ID (i),
+  Extension Count (i),
+  [Extension headers (...)],
   Object Payload Length (i),
   [Object Status (i)],
   Object Payload (..),
@@ -1756,6 +1758,8 @@ The Object Status field is only sent if the Object Payload Length is zero.
 ~~~
 {
   Object ID (i),
+  Extension Count (i),
+  [Extension headers (...)],
   Object Payload Length (i),
   [Object Status (i)],
   Object Payload (..),
