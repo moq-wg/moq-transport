@@ -1053,9 +1053,9 @@ these parameters to appear in Setup messages.
 #### AUTHORIZATION INFO {#authorization-info}
 
 AUTHORIZATION INFO parameter (Parameter Type 0x02) identifies a track's
-authorization information in a SUBSCRIBE, SUBSCRIBE_ANNOUNCES or ANNOUNCE
-message. This parameter is populated for cases where the authorization is
-required at the track level. The value is an ASCII string.
+authorization information in a SUBSCRIBE, SUBSCRIBE_ANNOUNCES, ANNOUNCE
+or FETCH message. This parameter is populated for cases where the authorization
+is required at the track level. The value is an ASCII string.
 
 #### DELIVERY TIMEOUT Parameter {#delivery-timeout}
 
