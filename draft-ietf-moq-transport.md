@@ -1534,7 +1534,7 @@ with the following fields dynamically determined from the corresponding Subscrib
 
 * Track Namespace: Same as in the corresponding Subscribe
 
-* Track Name: Same as in the corresponding SUBSCRIBE
+* Track Name: Same as in the corresponding Subscribe
 
 * StartGroup: LatestGroup as determined for the SUBSCRIBE minus PreviousGroups from the JOIN
 
