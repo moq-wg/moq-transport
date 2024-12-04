@@ -592,7 +592,7 @@ code, as defined below:
 * Invalid Subscribe ID: The session was closed because the subscriber sent
   a Joining Fetch with a Subscribe ID that does not exist.
 
-* GOAWAY Timeout: The session was closed because the client took too long to
+* GOAWAY Timeout: The session was closed because the peer took too long to
   close the session in response to a GOAWAY ({{message-goaway}}) message.
   See session migration ({{session-migration}}).
 
