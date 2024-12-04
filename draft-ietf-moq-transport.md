@@ -1542,7 +1542,7 @@ with the following fields dynamically determined from the corresponding Subscrib
 
 * EndGroup: StartGroup of the corresponding Subscribe minus 1 (double check minus 1)
 
-* EndObject: StartObject of the corresponding SUBSCRIBE minus 1 (double check minus 1)
+* EndObject: StartObject of the corresponding Subscribe minus 1 (double check minus 1)
 
 A Joining Fetch MUST be sent in ascending group order.
 
