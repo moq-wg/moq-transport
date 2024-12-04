@@ -2119,11 +2119,11 @@ are beyond the end of a group or track.
          in this Group. This SHOULD be cached. A publisher MAY use an end of
          Group object to signal the end of all open Subgroups in a Group.
 
-* 0x4 := Indicates end of Track and Group. GroupID is one greater than
-         the largest group produced in this track and the ObjectId is
-         zero. An object with this status that has a Group ID less than or
-         equal to any other Group ID, or an Object ID other than zero, is
-         a protocol error, and the receiver MUST terminate the session.
+* 0x4 := Indicates end of Track. GroupID is one greater than the largest group
+         produced in this track and the ObjectId is zero. An object with this
+         status that has a Group ID less than or equal to any other Group ID, or
+         an Object ID other than zero, is a protocol error, and the receiver
+         MUST terminate the session.
 
 Any other value SHOULD be treated as a protocol error and terminate the
 session with a Protocol Violation ({{session-termination}}).
