@@ -1474,7 +1474,7 @@ Fields common to all Fetch Types:
 
 * Subscribe ID: The Subscribe ID identifies a given fetch request. Subscribe ID
 is a variable length integer that MUST be unique and monotonically increasing
-within  a session. For a Standalone Fetch a new Subscribe ID MUST be used. For
+within a session. For a Standalone Fetch a new Subscribe ID MUST be used. For
 a Joining Fetch, the Subscribe ID MUST correspond to a Subscribe which has already
 been sent. If a publisher receives a Joining Fetch with a Subscribe ID that does
 not correspond to an existing Subscribe, it MUST close the session with an
