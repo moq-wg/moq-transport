@@ -650,13 +650,6 @@ _Publisher Priority_ is a priority number associated with an individual
 schedulable object.  It is specified in the header of the respective subgroup or
 datagram, and is the same for all objects in a single subgroup.
 
-_Group Order_ is a property of an invidual subscription.  It can be either
-'Ascending' (groups with lower group ID are sent first), or 'Descending'
-(groups with higher group ID are sent first).  The publisher communicates its
-group order in the SUBSCRIBE_OK message; the subscriber can override it in its
-SUBSCRIBE message.  The group order of an existing subscription cannot be
-changed.
-
 ## Scheduling Algorithm
 
 When an MoQT publisher has multiple schedulable objects it can choose between,
@@ -668,8 +661,7 @@ the objects SHOULD be selected as follows:
    priority, the one with **the highest publisher priority** is sent first.
 1. If two objects have the same subscriber and publisher priority, but belong
    to two different groups of the same track received through the same
-   subscription, **the group order** of the associated subscription is used to
-   decide the one that is sent first.
+   subscription, the one with **the lowest Group ID** is sent first.
 1. If two objects belong to the same group of the same track received through
    the same subscription, the one with **the lowest Subgroup ID** (for tracks
    with delivery preference Subgroup), or **the lowest Object ID** (for tracks
@@ -1266,7 +1258,6 @@ SUBSCRIBE Message {
   Track Name Length (i),
   Track Name (..),
   Subscriber Priority (8),
-  Group Order (8),
   Filter Type (i),
   [StartGroup (i),
    StartObject (i)],
@@ -1297,11 +1288,6 @@ error ({{session-termination}}).
 * Subscriber Priority: Specifies the priority of a subscription relative to
 other subscriptions in the same session. Lower numbers get higher priority.
 See {{priorities}}.
-
-* Group Order: Allows the subscriber to request Objects be delivered in
-Ascending (0x1) or Descending (0x2) order by group. See {{priorities}}.
-A value of 0x0 indicates the original publisher's Group Order SHOULD be
-used. Values larger than 0x2 are a protocol error.
 
 * Filter Type: Identifies the type of filter, which also indicates whether
 the StartGroup/StartObject and EndGroup/EndObject fields will be present.
@@ -1675,7 +1661,6 @@ SUBSCRIBE_OK
   Length (i),
   Subscribe ID (i),
   Expires (i),
-  Group Order (8),
   ContentExists (8),
   [Largest Group ID (i)],
   [Largest Object ID (i)],
@@ -1691,10 +1676,6 @@ SUBSCRIBE_OK
 longer valid. A value of 0 indicates that the subscription does not expire
 or expires at an unknown time.  Expires is advisory and a subscription can
 end prior to the expiry time or last longer.
-
-* Group Order: Indicates the subscription will be delivered in
-Ascending (0x1) or Descending (0x2) order by group. See {{priorities}}.
-Values of 0x0 and those larger than 0x2 are a protocol error.
 
 * ContentExists: 1 if an object has been published on this track, 0 if not.
 If 0, then the Largest Group ID and Largest Object ID fields will not be
