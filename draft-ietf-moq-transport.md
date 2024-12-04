@@ -1536,7 +1536,7 @@ with the following fields dynamically determined from the corresponding Subscrib
 
 * Track Name: Same as in the corresponding Subscribe
 
-* StartGroup: LatestGroup as determined for the SUBSCRIBE minus PreviousGroups from the JOIN
+* StartGroup: LatestGroup as determined for the Subscribe minus Previous Groupe Count from the Joining Fetch
 
 * StartObject: Always 0
 
