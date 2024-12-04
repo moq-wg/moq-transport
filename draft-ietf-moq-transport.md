@@ -1540,7 +1540,7 @@ with the following fields dynamically determined from the corresponding Subscrib
 
 * StartObject: Always 0
 
-* EndGroup: StartGroup of the corresponding SUBSCRIBE minus 1 (double check minus 1)
+* EndGroup: StartGroup of the corresponding Subscribe minus 1 (double check minus 1)
 
 * EndObject: StartObject of the corresponding SUBSCRIBE minus 1 (double check minus 1)
 
