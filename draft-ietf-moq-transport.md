@@ -2157,8 +2157,8 @@ that information is not reliable and cacheable.
 
 
 #### Object Extension Header {#object-extensions}
-Object Extension Headers are visible to relays. Extension Headers MUST be
-forwarded and MUST NOT be modified by relays. The purpose of Extension
+Object Extension Headers are visible to relays. Extension Headers SHOULD be
+forwarded and SHOULD NOT be modified by relays. The purpose of Extension
 Headers is to facilitate the future evolution of the transport protocol.
 Object Extension Headers are serialized as defined below:
 
