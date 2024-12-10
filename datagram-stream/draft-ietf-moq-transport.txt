@@ -5,13 +5,13 @@
 Media Over QUIC                                                L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 6 June 2025                                                Meta
+Expires: 13 June 2025                                               Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                         3 December 2024
+                                                        10 December 2024
 
 
                        Media over QUIC Transport
@@ -59,7 +59,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 6 June 2025.
+   This Internet-Draft will expire on 13 June 2025.
 
 Copyright Notice
 
@@ -2158,7 +2158,7 @@ Table of Contents
 
    A publisher sends Objects matching a subscription on Data Streams.
 
-   All unidirectional MOQT streams, start with a variable-length integer
+   All unidirectional MOQT streams start with a variable-length integer
    indicating the type of the stream in question.
 
              +=====+========================================+
