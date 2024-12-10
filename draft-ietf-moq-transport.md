@@ -2042,7 +2042,7 @@ failure.
 
 A publisher sends Objects matching a subscription on Data Streams.
 
-All unidirectional MOQT streams, start with a variable-length integer indicating
+All unidirectional MOQT streams start with a variable-length integer indicating
 the type of the stream in question.
 
 |-------|-------------------------------------------------------|
