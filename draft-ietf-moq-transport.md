@@ -84,7 +84,7 @@ supports wide range of use-cases with different resiliency and latency
 (live, interactive) needs without compromising the scalability and cost
 effectiveness associated with content delivery networks.
 
-MOQT is a generic protocol is designed to work in concert with multiple
+MOQT is a generic protocol designed to work in concert with multiple
 MoQ Streaming Formats. These MoQ Streaming Formats define how content is
 encoded, packaged, and mapped to MOQT objects, along with policies for
 discovery and subscription.
@@ -105,51 +105,44 @@ discovery and subscription.
 ## Motivation
 
 The development of MOQT is driven by goals in a number of areas -
-specifically latency, the robustness of QUIC, workflow efficiency and
-relay support.
+specifically latency, the robust feature set of QUIC and relay
+support.
 
 ### Latency
 
-HTTP Adaptive Streaming (HAS) has been successful at achieving scale
-although often at the cost of latency. Latency is necessary to correct
-for variable network throughput. Ideally live content is consumed at the
-same bitrate it is produced. End-to-end latency would be fixed and only
-subject to encoding and transmission delays. Unfortunately, networks
-have variable throughput, primarily due to congestion. Attempting to
-deliver content encoded at a higher bitrate than the network can support
-causes queuing along the path from producer to consumer. The speed at
-which a protocol can detect and respond to queuing determines the
-overall latency. TCP-based protocols are simple but are slow to detect
-congestion and suffer from head-of-line blocking. Protocols utilizing
-UDP directly can avoid queuing, but the application is then responsible
-for the complexity of fragmentation, congestion control, retransmissions,
-receiver feedback, reassembly, and more. One goal of MOQT is to achieve
-the best of both these worlds: leverage the features of QUIC to create a
-simple yet flexible low latency protocol that can rapidly detect and
-respond to congestion.
+Latency is necessary to correct for variable network throughput. Ideally live
+content is consumed at the same bitrate it is produced. End-to-end latency would
+be fixed and only subject to encoding and transmission delays. Unfortunately,
+networks have variable throughput, primarily due to congestion. Attempting to
+deliver content encoded at a higher bitrate than the network can support causes
+queuing along the path from producer to consumer. The speed at which a protocol
+can detect and respond to congestion determines the overall latency. TCP-based
+protocols are simple but are slow to detect congestion and suffer from
+head-of-line blocking. Protocols utilizing UDP directly can avoid queuing, but
+the application is then responsible for the complexity of fragmentation,
+congestion control, retransmissions, receiver feedback, reassembly, and
+more. One goal of MOQT is to achieve the best of both these worlds: leverage the
+features of QUIC to create a simple yet flexible low latency protocol that can
+rapidly detect and respond to congestion.
 
 ### Leveraging QUIC
 
 The parallel nature of QUIC streams can provide improvements in the face
 of loss. A goal of MOQT is to design a streaming protocol to leverage
 the transmission benefits afforded by parallel QUIC streams as well
-exercising options for flexible loss recovery. Applying {{QUIC}} to HAS
-via HTTP/3 has not yet yielded generalized improvements in
-throughput. One reason for this is that sending segments down a single
-QUIC stream still allows head-of-line blocking to occur.
+exercising options for flexible loss recovery.
 
-### Universal
+### Convergence
 
-Internet delivered media today has protocols optimized for ingest and
-separate protocols optimized for distribution. This protocol switch in
-the distribution chain necessitates intermediary origins which
-re-package the media content. While specialization can have its
-benefits, there are gains in efficiency to be had in not having to
-re-package content. A goal of MOQT is to develop a single protocol which
-can be used for transmission from contribution to distribution. A
-related goal is the ability to support existing encoding and packaging
-schemas, both for backwards compatibility and for interoperability with
-the established content preparation ecosystem.
+Some live media architectures today have separate protocols for ingest and
+distribution, for example RTMP and HTTP based HLS or DASH. Switching protocols
+necessitates intermediary origins which re-package the
+media content. While specialization can have its benefits, there are efficiency
+gains to be had in not having to re-package content. A goal of MOQT is to
+develop a single protocol which can be used for transmission from contribution
+to distribution. A related goal is the ability to support existing encoding and
+packaging schemas, both for backwards compatibility and for interoperability
+with the established content preparation ecosystem.
 
 ### Relays
 
@@ -179,6 +172,10 @@ Server:
 Endpoint:
 
 : A Client or Server.
+
+Peer:
+
+: The other endpoint than the one being described
 
 Publisher:
 
@@ -319,10 +316,13 @@ time.
 Objects are comprised of two parts: metadata and a payload.  The metadata is
 never encrypted and is always visible to relays (see {{relays-moq}}). The
 payload portion may be encrypted, in which case it is only visible to the
-Original Publisher and End Subscribers. The application is solely responsible
-for the content of the object payload. This includes the underlying encoding,
-compression, any end-to-end encryption, or authentication. A relay MUST NOT
-combine, split, or otherwise modify object payloads.
+Original Publisher and End Subscribers. The Original Publisher is solely
+responsible for the content of the object payload. This includes the
+underlying encoding, compression, any end-to-end encryption, or
+authentication. A relay MUST NOT combine, split, or otherwise modify object
+payloads.
+
+Objects within a group are ordered numerically by their Object ID.
 
 ## Subgroups {#model-subgroup}
 
@@ -376,7 +376,9 @@ Groups SHOULD be indendepently useful, so objects within a group SHOULD NOT depe
 on objects in other groups. A group provides a join point for subscriptions, so a
 subscriber that does not want to receive the entire track can opt to receive only
 the latest group(s).  The publisher then selectively transmits objects based on
-their group membership.
+their group membership.  Groups can contain any number of objects.
+
+Groups are ordered numerically by their Group ID.
 
 ## Track {#model-track}
 
@@ -395,6 +397,8 @@ namespace.
 Track namespace is an ordered N-tuple of bytes where N can be between 1 and 32.
 The structured nature of Track Namespace allows relays and applications to
 manipulate prefixes of a namespace. Track name is a sequence of bytes.
+If an endpoint receives a Track Namespace tuple with an N of 0 or more
+than 32, it MUST close the session with a Protocol Violation.
 
 In this specification, both the Track Namespace tuple fields and the Track Name
 are not constrained to a specific encoding. They carry a sequence of bytes and
@@ -464,7 +468,7 @@ using definitions from {{!RFC3986}}:
 moqt-URI = "moqt" "://" authority path-abempty [ "?" query ]
 ~~~~~~~~~~~~~~~
 
-The `authority` portion MUST NOT contain a non-empty `host` portion.
+The `authority` portion MUST NOT contain an empty `host` portion.
 The `moqt` URI scheme supports the `/.well-known/` path prefix defined in
 {{!RFC8615}}.
 
@@ -508,13 +512,13 @@ separate Setup parameters for that information in each version.
 ## Session initialization {#session-init}
 
 The first stream opened is a client-initiated bidirectional control stream where
-the peers exchange Setup messages ({{message-setup}}).  All messages defined in
-this draft except OBJECT and OBJECT_WITH_LENGTH are sent on the control stream
-after the Setup message. Control messages MUST NOT be sent on any other stream,
-and a peer receiving a control message on a different stream closes the session
-as a 'Protocol Violation'. Objects MUST NOT be sent on the control stream, and a
-peer receiving an Object on the control stream closes the session as a 'Protocol
-Violation'.
+the endpoints exchange Setup messages ({{message-setup}}).  All messages defined
+in this draft except OBJECT and OBJECT_WITH_LENGTH are sent on the control
+stream after the Setup message. Control messages MUST NOT be sent on any other
+stream, and a peer receiving a control message on a different stream closes the
+session as a 'Protocol Violation'. Objects MUST NOT be sent on the control
+stream, and a peer receiving an Object on the control stream closes the session
+as a 'Protocol Violation'.
 
 This draft only specifies a single use of bidirectional streams. Objects are
 sent on unidirectional streams.  Because there are no other uses of
@@ -579,28 +583,26 @@ code, as defined below:
 * Too Many Subscribes: The session was closed because the subscriber used
   a Subscribe ID equal or larger than the current Maximum Subscribe ID.
 
-* GOAWAY Timeout: The session was closed because the client took too long to
+* GOAWAY Timeout: The session was closed because the peer took too long to
   close the session in response to a GOAWAY ({{message-goaway}}) message.
   See session migration ({{session-migration}}).
 
 ## Migration {#session-migration}
 
-MoqTransport requires a long-lived and stateful session. However, a service
+MOQT requires a long-lived and stateful session. However, a service
 provider needs the ability to shutdown/restart a server without waiting for all
 sessions to drain naturally, as that can take days for long-form media.
-MoqTransport avoids this via the GOAWAY message ({{message-goaway}}).
+MOQT enables proactively draining sessions via the GOAWAY message ({{message-goaway}}).
 
-The server sends a GOAWAY message, signaling that the client should establish a
-new session and migrate any active subscriptions. The GOAWAY message may contain
-a new URI for the new session, otherwise the current URI is reused. The server
-SHOULD terminate the session with 'GOAWAY Timeout' after a sufficient timeout if
-there are still open subscriptions on a connection.
+The server sends a GOAWAY message, signaling the client to establish a new
+session and migrate any active subscriptions. The GOAWAY message optionally
+contains a new URI for the new session, otherwise the current URI is
+reused. The server SHOULD terminate the session with 'GOAWAY Timeout' after a
+sufficient timeout if there are still open subscriptions or fetches on a
+connection.
 
-The GOAWAY message does not immediately impact subscription state. A subscriber
-SHOULD individually UNSUBSCRIBE for each existing subscription, while a
-publisher MAY reject new SUBSCRIBEs while in the draining state. When the server
-is a subscriber, it SHOULD send a GOAWAY message to downstream subscribers
-prior to any UNSUBSCRIBE messages to upstream publishers.
+When the server is a subscriber, it SHOULD send a GOAWAY message to downstream
+subscribers prior to any UNSUBSCRIBE messages to upstream publishers.
 
 After the client receives a GOAWAY, it's RECOMMENDED that the client waits until
 there are no more active subscriptions before closing the session with NO_ERROR.
@@ -622,12 +624,12 @@ congestion.
 MoQT maintains priorities between different _schedulable objects_.
 A schedulable object in MoQT is either:
 
-1. An object that belongs to a peep where that object would be the next object
-   to be sent in that peep.
+1. An object that belongs to a subgroup where that object would be the next
+   object to be sent in that subgroup.
 1. An object that belongs to a track with delivery preference Datagram.
 
-Since a single peep or datagram has a single publisher priority, it can be
-useful to conceptualize this process as scheduling peeps or datagrams
+Since a single subgroup or datagram has a single publisher priority, it can be
+useful to conceptualize this process as scheduling subgroups or datagrams
 instead of individual objects on them.
 
 A _priority number_ is an unsigned integer with a value between 0 and 255.
@@ -642,9 +644,9 @@ to change the apply that to all objects that have not been sent, but it is
 implementation dependent what happens to objects that have already been
 received and possibly scheduled.
 
-_Publisher Priority_ is a priority number associated with an indiviaul
-schedulable object.  It is specified in the header of the respective peep or
-datagram, and is the same for all objects in a single peep.
+_Publisher Priority_ is a priority number associated with an individual
+schedulable object.  It is specified in the header of the respective subgroup or
+datagram, and is the same for all objects in a single subgroup.
 
 _Group Order_ is a property of an invidual subscription.  It can be either
 'Ascending' (groups with lower group ID are sent first), or 'Descending'
@@ -667,9 +669,9 @@ the objects SHOULD be selected as follows:
    subscription, **the group order** of the associated subscription is used to
    decide the one that is sent first.
 1. If two objects belong to the same group of the same track received through
-   the same subscription, the one with **the lowest Peep ID** (for tracks with
-   delivery preference Peep), or **the lowest Object ID** (for tracks with
-   delivery preference Datagram) is sent first.
+   the same subscription, the one with **the lowest Subgroup ID** (for tracks
+   with delivery preference Subgroup), or **the lowest Object ID** (for tracks
+   with delivery preference Datagram) is sent first.
 
 This algorithm does not provide a well-defined ordering for objects that belong
 to different subscriptions, but have the same subscriber and publisher
@@ -700,6 +702,9 @@ possibly part of the same application.  In cases when pooling among
 namespaces is expected to cause issues, multiple MoQ sessions, either
 within a single connection or on multiple connections can be used.
 
+Implementations that have a default priority SHOULD set it to a value in
+the middle of the range (eg: 128) to allow non-default priorities to be
+set either higher or lower.
 
 # Relays {#relays-moq}
 
@@ -802,6 +807,8 @@ SUBSCRIBE_DONE, as defined below:
 | 0x5  | Going Away                |
 |------|---------------------------|
 | 0x6  | Expired                   |
+|------|---------------------------|
+| 0x7  | Too Far Behind            |
 |------|---------------------------|
 
 ### Graceful Publisher Relay Switchover
@@ -912,10 +919,10 @@ prioritize sending Objects based on {{priorities}}.
 A publisher SHOULD begin sending incomplete objects when available to
 avoid incurring additional latency.
 
-A relay that reads from a stream and writes to stream in order will
+A relay that reads from one stream and writes to another in order can
 introduce head-of-line blocking.  Packet loss will cause stream data to
-be buffered in the library, awaiting in order delivery, which will
-increase latency over additional hops.  To mitigate this, a relay SHOULD
+be buffered in the library, awaiting in-order delivery, which could
+increase latency over additional hops.  To mitigate this, a relay MAY
 read and write stream data out of order subject to flow control
 limits.  See section 2.2 in {{QUIC}}.
 
@@ -975,11 +982,13 @@ MOQT Control Message {
 |-------|-----------------------------------------------------|
 | 0x15  | MAX_SUBSCRIBE_ID ({{message-max-subscribe-id}})     |
 |-------|-----------------------------------------------------|
+| 0x1A  | SUBSCRIBES_BLOCKED ({{message-subscribes-blocked}}) |
+|-------|-----------------------------------------------------|
 | 0x16  | FETCH ({{message-fetch}})                           |
 |-------|-----------------------------------------------------|
-| 0x17  | FETCH_CANCEL ({{message-fetch-cancel}})               |
+| 0x17  | FETCH_CANCEL ({{message-fetch-cancel}})             |
 |-------|-----------------------------------------------------|
-| 0x18  | FETCH_OK ({{message-fetch-ok}})                           |
+| 0x18  | FETCH_OK ({{message-fetch-ok}})                     |
 |-------|-----------------------------------------------------|
 | 0x19  | FETCH_ERROR ({{message-fetch-error}})               |
 |-------|-----------------------------------------------------|
@@ -1041,20 +1050,20 @@ these parameters to appear in Setup messages.
 
 #### AUTHORIZATION INFO {#authorization-info}
 
-AUTHORIZATION INFO parameter (key 0x02) identifies a track's authorization
-information in a SUBSCRIBE, SUBSCRIBE_ANNOUNCES or ANNOUNCE message. This
-parameter is populated for cases where the authorization is required at the
-track level. The value is an ASCII string.
+AUTHORIZATION INFO parameter (Parameter Type 0x02) identifies a track's
+authorization information in a SUBSCRIBE, SUBSCRIBE_ANNOUNCES or ANNOUNCE
+message. This parameter is populated for cases where the authorization is
+required at the track level. The value is an ASCII string.
 
 #### DELIVERY TIMEOUT Parameter {#delivery-timeout}
 
-The DELIVERY TIMEOUT parameter (key 0x03) MAY appear in a SUBSCRIBE,
-SUBSCRIBE_OK, or a SUBSCRIBE_UDPATE message.  It is the duration in milliseconds
-the relay SHOULD continue to attempt forwarding Objects after they have been
-received.  The start time for the timeout is based on when the beginning of the
-Object is received, and does not depend upon the forwarding preference. There is
-no explicit signal that an Object was not sent because the delivery timeout
-was exceeded.
+The DELIVERY TIMEOUT parameter (Parameter Type 0x03) MAY appear in a
+SUBSCRIBE, SUBSCRIBE_OK, or a SUBSCRIBE_UDPATE message.  It is the duration in
+milliseconds the relay SHOULD continue to attempt forwarding Objects after
+they have been received.  The start time for the timeout is based on when the
+beginning of the Object is received, and does not depend upon the forwarding
+preference. There is no explicit signal that an Object was not sent because
+the delivery timeout was exceeded.
 
 If both the subscriber and publisher specify the parameter, they use the min of the
 two values for the subscription.  The publisher SHOULD always specify the value
@@ -1063,8 +1072,14 @@ If an earlier Object arrives later than subsequent Objects, relays can consider
 the receipt time as that of the next later Object, with the assumption that the
 Object's data was reordered.
 
-If neither the subscriber or publisher specify DELIVERY TIMEOUT, Objects are
-delivered as indicated by their Group Order and Priority.
+If neither the subscriber or publisher specify DELIVERY TIMEOUT, all Objects
+in the track matching the subscription filter are delivered as indicated by
+their Group Order and Priority.  If a subscriber exceeds the publisher's
+resource limits by failing to consume objects at a sufficient rate, the
+publisher MAY terminate the subscription with error 'Too Far Behind'.
+
+If an object in a subgroup exceeds the delivery timeout, the publisher MUST
+reset the underlying transport stream (see {{closing-subgroup-streams}}).
 
 When sent by a subscriber, this parameter is intended to be specific to a
 subscription, so it SHOULD NOT be forwarded upstream by a relay that intends
@@ -1076,22 +1091,22 @@ congestion control, and any other relevant information.
 
 #### MAX CACHE DURATION Parameter {#max-cache-duration}
 
-MAX_CACHE_DURATION (key 0x04): An integer expressing a number of milliseconds. If
-present, the relay MUST NOT start forwarding any individual Object received
-through this subscription after the specified number of milliseconds has elapsed
-since the beginning of the Object was received.  This means Objects earlier
-in a multi-object stream will expire earlier than Objects later in the stream.
-Once Objects have expired, their state becomes unknown, and a relay that
-handles a subscription that includes those Objects re-requests them.
+MAX_CACHE_DURATION (Parameter Type 0x04): An integer expressing a number of
+milliseconds. If present, the relay MUST NOT start forwarding any individual
+Object received through this subscription after the specified number of
+milliseconds has elapsed since the beginning of the Object was received.  This
+means Objects earlier in a multi-object stream will expire earlier than Objects
+later in the stream. Once Objects have expired, their state becomes unknown, and
+a relay that handles a subscription that includes those Objects re-requests them.
 
 ## CLIENT_SETUP and SERVER_SETUP {#message-setup}
 
 The `CLIENT_SETUP` and `SERVER_SETUP` messages are the first messages exchanged
-by the client and the server; they allows the peers to establish the mutually
+by the client and the server; they allow the endpoints to establish the mutually
 supported version and agree on the initial configuration before any objects are
 exchanged. It is a sequence of key-value pairs called Setup parameters; the
 semantics and format of which can vary based on whether the client or server is
-sending.  To ensure future extensibility of MOQT, the peers MUST ignore unknown
+sending.  To ensure future extensibility of MOQT, endpoints MUST ignore unknown
 setup parameters. TODO: describe GREASE for those.
 
 The wire format of the Setup messages are as follows:
@@ -1144,8 +1159,8 @@ identified as 0xff00000D.
 
 #### PATH {#path}
 
-The PATH parameter (key 0x01) allows the client to specify the path of
-the MoQ URI when using native QUIC ({{QUIC}}).  It MUST NOT be used by
+The PATH parameter (Parameter Type 0x01) allows the client to specify the path
+of the MoQ URI when using native QUIC ({{QUIC}}).  It MUST NOT be used by
 the server, or when WebTransport is used.  If the peer receives a PATH
 parameter from the server, or when WebTransport is used, it MUST close
 the connection. It follows the URI formatting rules {{!RFC3986}}.
@@ -1157,19 +1172,23 @@ the `query` portion of the URI to the parameter.
 
 #### MAX_SUBSCRIBE_ID {#max-subscribe-id}
 
-The MAX_SUBSCRIBE_ID parameter (key 0x02) communicates an initial value for
-the Maximum Subscribe ID to the receiving subscriber. The default value is 0,
-so if not specified, the peer MUST NOT create subscriptions.
-
+The MAX_SUBSCRIBE_ID parameter (Parameter Type 0x02) communicates an initial value for the Maximum Subscribe ID to the receiving subscriber. The default value is 0, so if not specified, the peer MUST NOT create subscriptions.
 
 ## GOAWAY {#message-goaway}
-The server sends a `GOAWAY` message to initiate session migration
+
+An endpoint sends a `GOAWAY` message to inform the peer it intends to close
+the session soon.  Servers can use GOAWAY to initiate session migration
 ({{session-migration}}) with an optional URI.
 
-The server MUST terminate the session with a Protocol Violation
-({{session-termination}}) if it receives a GOAWAY message. The client MUST
-terminate the session with a Protocol Violation ({{session-termination}}) if it
-receives multiple GOAWAY messages.
+The GOAWAY message does not impact subscription state. A subscriber
+SHOULD individually UNSUBSCRIBE for each existing subscription, while a
+publisher MAY reject new requests while in the draining state.
+
+Upon receiving a GOAWAY, an endpoint SHOULD NOT initiate new requests to
+the peer including SUBSCRIBE, FETCH, ANNOUNCE and SUBSCRIBE_ANNOUNCE.
+
+The endpoint MUST terminate the session with a Protocol Violation
+({{session-termination}}) if it receives multiple GOAWAY messages.
 
 ~~~
 GOAWAY Message {
@@ -1181,11 +1200,14 @@ GOAWAY Message {
 ~~~
 {: #moq-transport-goaway-format title="MOQT GOAWAY Message"}
 
-* New Session URI: The client MUST use this URI for the new session if provided.
-  If the URI is zero bytes long, the current URI is reused instead. The new
-  session URI SHOULD use the same scheme as the current URL to ensure
-  compatibility.
+* New Session URI: When received by a client, indicates where the client can
+  connect to continue this session.  The client MUST use this URI for the new
+  session if provided. If the URI is zero bytes long, the client can reuse the
+  current URI is reused instead. The new session URI SHOULD use the same scheme
+  as the current URL to ensure compatibility.
 
+  If a server receives a GOAWAY with a non-zero New Session URI Length it MUST
+  terminate the session with a Protocol Violation.
 
 
 ## SUBSCRIBE {#message-subscribe-req}
@@ -1593,7 +1615,9 @@ against track namespaces known to the publisher.  For example, if the publisher
 is a relay that has received ANNOUNCE messages for namespaces ("example.com",
 "meeting=123", "participant=100") and ("example.com", "meeting=123",
 "participant=200"), a SUBSCRIBE_ANNOUNCES for ("example.com", "meeting=123")
-would match both.
+would match both.  If an endpoint receives a Track Namespace Prefix tuple with
+an N of 0 or more than 32, it MUST close the session with a Protocol
+Violation.
 
 * Parameters: The parameters are defined in {{version-specific-params}}.
 
@@ -1853,9 +1877,33 @@ MAX_SUBSCRIBE_ID
 {: #moq-transport-max-subscribe-id format title="MOQT MAX_SUBSCRIBE_ID Message"}
 
 * Subscribe ID: The new Maximum Subscribe ID for the session. If a Subscribe ID
-equal or larger than this is received in any message, including SUBSCRIBE,
-the publisher MUST close the session with an error of 'Too Many Subscribes'.
-More on Subscribe ID in {{message-subscribe-req}}.
+{{message-subscribe-req}} equal or larger than this is received by the publisher
+that sent the MAX_SUBSCRIBE_ID, the publisher MUST close the session with an
+error of 'Too Many Subscribes'.
+
+## SUBSCRIBES_BLOCKED {#message-subscribes-blocked}
+
+The SUBSCRIBES_BLOCKED message is sent when a subscriber would like to begin
+a new subscription, but cannot because the Subscribe ID would exceed the
+Maximum Subscribe ID value sent by the peer.  The subscriber SHOULD send only
+one SUBSCRIBES_BLOCKED for a given Maximum Subscribe ID.
+
+A publisher MAY send a MAX_SUBSCRIBE_ID upon receipt of SUBSCRIBES_BLOCKED,
+but it MUST NOT rely on SUBSCRIBES_BLOCKED to trigger sending a
+MAX_SUBSCRIBE_ID, because sending SUBSCRIBES_BLOCKED is not required.
+
+~~~
+SUBSCRIBES_BLOCKED
+{
+  Type (i) = 0x1A,
+  Length (i),
+  Maximum Subscribe ID (i),
+}
+~~~
+{: #moq-transport-subscribes-blocked format title="MOQT SUBSCRIBES_BLOCKED Message"}
+
+* Maximum Subscribe ID: The Maximum Subscribe ID for the session on which the subscriber
+is blocked. More on Subscribe ID in {{message-subscribe-req}}.
 
 
 ## ANNOUNCE {#message-announce}
@@ -2268,6 +2316,9 @@ Each object sent on a fetch stream after the FETCH_HEADER has the following form
 {: #object-fetch-format title="MOQT Fetch Object Fields"}
 
 The Object Status field is only sent if the Object Payload Length is zero.
+
+The Subgroup ID field of an object with a Forwarding Preference of "Datagram"
+(see {{object-fields}}) is set to the Object ID.
 
 ## Examples
 
