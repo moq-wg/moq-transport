@@ -1804,8 +1804,9 @@ FETCH_ERROR
 
 ## SUBSCRIBE_DONE {#message-subscribe-done}
 
-A publisher sends a `SUBSCRIBE_DONE` message when it is not going to send
-additional objects for a subscription. Because SUBSCRIBE_DONE is sent on the
+A publisher sends a `SUBSCRIBE_DONE` message to indicate it is done publishing
+Objects for that subscription.  The Status Code indicates why the subscription
+ended, and whether it was an error. Because SUBSCRIBE_DONE is sent on the
 control stream, it is likely to arrive at the receiver before late-arriving
 objects, and often even late-opening streams. However, the receiver uses it
 as an indication that it should receive any late-opening streams in a relatively
@@ -1845,6 +1846,7 @@ SUBSCRIBE_DONE Message {
   Length (i),
   Subscribe ID (i),
   Status Code (i),
+  Stream Count (i),
   Reason Phrase Length (i),
   Reason Phrase (..),
 }
@@ -1854,6 +1856,10 @@ SUBSCRIBE_DONE Message {
 * Subscribe ID: Subscription identifier as defined in {{message-subscribe-req}}.
 
 * Status Code: An integer status code indicating why the subscription ended.
+
+* Stream Count: An integer indicating the number of data streams the publisher
+opened for this subscription.  The subscriber can remove all subscription state
+once the same number of streams have been processed.
 
 * Reason Phrase: Provides the reason for subscription error.
 
@@ -2247,7 +2253,12 @@ stream, it MUST use a RESET_STREAM or RESET_STREAM_AT
 Subgroup exceeding its Delivery Timeout, early termination of subscription due to
 an UNSUBSCRIBE message, a publisher's decision to end the subscription early, or a
 SUBSCRIBE_UPDATE moving the end of the subscription to before the current Group
-or the start after the current Group.
+or the start after the current Group.  When RESET_STREAM_AT is used, the
+reliable_size SHOULD include the stream header so the receiver can identify the
+corresponding subscription and accurately account for reset data streams when
+handling SUBSCRIBE_DONE (see {{message-subscribe-done}}).  Publishers that reset
+data streams without using RESET_STREAM_AT with an appropriate reliable_size can
+cause subscribers to hold on to subscription state until a timeout expires.
 
 A sender might send all objects in a Subgroup and the FIN on a QUIC stream,
 and then reset the stream. In this case, the receiving application would receive
