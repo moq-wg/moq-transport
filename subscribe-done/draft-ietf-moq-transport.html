@@ -2724,9 +2724,9 @@ these parameters to appear in Setup messages.<a href="#section-6.1.1-1" class="p
 <a href="#section-6.1.1.1" class="section-number selfRef">6.1.1.1. </a><a href="#name-authorization-info" class="section-name selfRef">AUTHORIZATION INFO</a>
             </h5>
 <p id="section-6.1.1.1-1">AUTHORIZATION INFO parameter (Parameter Type 0x02) identifies a track's
-authorization information in a SUBSCRIBE, SUBSCRIBE_ANNOUNCES or ANNOUNCE
-message. This parameter is populated for cases where the authorization is
-required at the track level. The value is an ASCII string.<a href="#section-6.1.1.1-1" class="pilcrow">¶</a></p>
+authorization information in a SUBSCRIBE, SUBSCRIBE_ANNOUNCES, ANNOUNCE
+or FETCH message. This parameter is populated for cases where the authorization
+is required at the track level. The value is an ASCII string.<a href="#section-6.1.1.1-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="delivery-timeout">
@@ -4050,10 +4050,31 @@ failure.<a href="#section-6.26-3.2.1" class="pilcrow">¶</a></p>
 <a href="#section-7" class="section-number selfRef">7. </a><a href="#name-data-streams" class="section-name selfRef">Data Streams</a>
       </h2>
 <p id="section-7-1">A publisher sends Objects matching a subscription on Data Streams.<a href="#section-7-1" class="pilcrow">¶</a></p>
-<p id="section-7-2">All unidirectional MOQT streams, as well as all datagrams, start with a
-variable-length integer indicating the type of the stream in question.<a href="#section-7-2" class="pilcrow">¶</a></p>
+<p id="section-7-2">All unidirectional MOQT streams start with a variable-length integer indicating
+the type of the stream in question.<a href="#section-7-2" class="pilcrow">¶</a></p>
 <table class="center" id="table-5">
         <caption><a href="#table-5" class="selfRef">Table 5</a></caption>
+<thead>
+          <tr>
+            <th class="text-right" rowspan="1" colspan="1">ID</th>
+            <th class="text-left" rowspan="1" colspan="1">Stream Type</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="text-right" rowspan="1" colspan="1">0x4</td>
+            <td class="text-left" rowspan="1" colspan="1">STREAM_HEADER_SUBGROUP  (<a href="#stream-header-subgroup" class="auto internal xref">Section 7.3.1</a>)</td>
+          </tr>
+          <tr>
+            <td class="text-right" rowspan="1" colspan="1">0x5</td>
+            <td class="text-left" rowspan="1" colspan="1">FETCH_HEADER  (<a href="#fetch-header" class="auto internal xref">Section 7.3.3</a>)</td>
+          </tr>
+        </tbody>
+      </table>
+<p id="section-7-4">All MOQT datagrams start with a variable-length integer indicating the type of
+the datagram.<a href="#section-7-4" class="pilcrow">¶</a></p>
+<table class="center" id="table-6">
+        <caption><a href="#table-6" class="selfRef">Table 6</a></caption>
 <thead>
           <tr>
             <th class="text-right" rowspan="1" colspan="1">ID</th>
@@ -4065,21 +4086,14 @@ variable-length integer indicating the type of the stream in question.<a href="#
             <td class="text-right" rowspan="1" colspan="1">0x1</td>
             <td class="text-left" rowspan="1" colspan="1">OBJECT_DATAGRAM (<a href="#object-datagram" class="auto internal xref">Section 7.2</a>)</td>
           </tr>
-          <tr>
-            <td class="text-right" rowspan="1" colspan="1">0x4</td>
-            <td class="text-left" rowspan="1" colspan="1">STREAM_HEADER_SUBGROUP  (<a href="#stream-header-subgroup" class="auto internal xref">Section 7.3.1</a>)</td>
-          </tr>
-          <tr>
-            <td class="text-right" rowspan="1" colspan="1">0x5</td>
-            <td class="text-left" rowspan="1" colspan="1">FETCH_HEADER  (<a href="#fetch-header" class="auto internal xref">Section 7.3.3</a>)</td>
-          </tr>
         </tbody>
       </table>
-<p id="section-7-4">An endpoint that receives an unknown stream type <span class="bcp14">MUST</span> close the session.<a href="#section-7-4" class="pilcrow">¶</a></p>
-<p id="section-7-5">Every Track has a single 'Object Forwarding Preference' and the Original
+<p id="section-7-6">An endpoint that receives an unknown stream or datagram type <span class="bcp14">MUST</span> close the
+session.<a href="#section-7-6" class="pilcrow">¶</a></p>
+<p id="section-7-7">Every Track has a single 'Object Forwarding Preference' and the Original
 Publisher <span class="bcp14">MUST NOT</span> mix different forwarding preferences within a single track.
 If a subscriber receives different forwarding preferences for a track, it
-<span class="bcp14">SHOULD</span> close the session with an error of 'Protocol Violation'.<a href="#section-7-5" class="pilcrow">¶</a></p>
+<span class="bcp14">SHOULD</span> close the session with an error of 'Protocol Violation'.<a href="#section-7-7" class="pilcrow">¶</a></p>
 <div id="message-object">
 <section id="section-7.1">
         <h3 id="name-object-headers">
