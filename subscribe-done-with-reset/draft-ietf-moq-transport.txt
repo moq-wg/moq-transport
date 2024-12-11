@@ -2385,7 +2385,7 @@ Table of Contents
    corresponding subscription and accurately account for reset data
    streams when handling SUBSCRIBE_DONE (see Section 6.19).  Publishers
    that reset data streams without using RESET_STREAM_AT with an
-   appropriate reliable_size can cause consumers to hold on to
+   appropriate reliable_size can cause subscribers to hold on to
    subscription state until a timeout expires.
 
    A sender might send all objects in a Subgroup and the FIN on a QUIC

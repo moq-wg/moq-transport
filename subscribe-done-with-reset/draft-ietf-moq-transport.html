@@ -4315,7 +4315,7 @@ reliable_size <span class="bcp14">SHOULD</span> include the stream header so the
 corresponding subscription and accurately account for reset data streams when
 handling SUBSCRIBE_DONE (see <a href="#message-subscribe-done" class="auto internal xref">Section 6.19</a>).  Publishers that reset
 data streams without using RESET_STREAM_AT with an appropriate reliable_size can
-cause consumers to hold on to subscription state until a timeout expires.<a href="#section-7.3.2-3" class="pilcrow">¶</a></p>
+cause subscribers to hold on to subscription state until a timeout expires.<a href="#section-7.3.2-3" class="pilcrow">¶</a></p>
 <p id="section-7.3.2-4">A sender might send all objects in a Subgroup and the FIN on a QUIC stream,
 and then reset the stream. In this case, the receiving application would receive
 the FIN if and only if all objects were received. If the application receives
