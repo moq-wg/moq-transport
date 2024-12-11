@@ -5,13 +5,13 @@
 Media Over QUIC                                                L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 7 June 2025                                                Meta
+Expires: 14 June 2025                                               Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                         4 December 2024
+                                                        11 December 2024
 
 
                        Media over QUIC Transport
@@ -59,7 +59,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 7 June 2025.
+   This Internet-Draft will expire on 14 June 2025.
 
 Copyright Notice
 
@@ -2247,7 +2247,8 @@ Table of Contents
       largest group produced in this track and the ObjectId is zero.  An
       object with this status that has a Group ID less than or equal to
       any other Group ID, or an Object ID other than zero, is a protocol
-      error, and the receiver MUST terminate the session.
+      error, and the receiver MUST terminate the session.  This SHOULD
+      be cached.
 
    Any other value SHOULD be treated as a protocol error and terminate
    the session with a Protocol Violation (Section 3.5).  Any object with
