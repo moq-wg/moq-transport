@@ -3718,8 +3718,9 @@ FETCH_ERROR
         <h3 id="name-subscribe_done">
 <a href="#section-6.19" class="section-number selfRef">6.19. </a><a href="#name-subscribe_done" class="section-name selfRef">SUBSCRIBE_DONE</a>
         </h3>
-<p id="section-6.19-1">A publisher sends a <code>SUBSCRIBE_DONE</code> message when it is not going to send
-additional objects for a subscription. Because SUBSCRIBE_DONE is sent on the
+<p id="section-6.19-1">A publisher sends a <code>SUBSCRIBE_DONE</code> message to indicate it is done publishing
+Objects for that subscription.  The Status Code indicates why the subscription
+ended, and whether it was an error. Because SUBSCRIBE_DONE is sent on the
 control stream, it is likely to arrive at the receiver before late-arriving
 objects, and often even late-opening streams. However, the receiver uses it
 as an indication that it should receive any late-opening streams in a relatively
@@ -3756,6 +3757,7 @@ SUBSCRIBE_DONE Message {
   Length (i),
   Subscribe ID (i),
   Status Code (i),
+  Stream Count (i),
   Reason Phrase Length (i),
   Reason Phrase (..),
 }
@@ -3773,7 +3775,12 @@ SUBSCRIBE_DONE Message {
             <p id="section-6.19-8.2.1">Status Code: An integer status code indicating why the subscription ended.<a href="#section-6.19-8.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-6.19-8.3">
-            <p id="section-6.19-8.3.1">Reason Phrase: Provides the reason for subscription error.<a href="#section-6.19-8.3.1" class="pilcrow">¶</a></p>
+            <p id="section-6.19-8.3.1">Stream Count: An integer indicating the number of data streams the publisher
+opened for this subscription.  The subscriber can remove all subscription state
+once the same number of streams have been processed.<a href="#section-6.19-8.3.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-6.19-8.4">
+            <p id="section-6.19-8.4.1">Reason Phrase: Provides the reason for subscription error.<a href="#section-6.19-8.4.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
@@ -4303,7 +4310,12 @@ stream, it <span class="bcp14">MUST</span> use a RESET_STREAM or RESET_STREAM_AT
 Subgroup exceeding its Delivery Timeout, early termination of subscription due to
 an UNSUBSCRIBE message, a publisher's decision to end the subscription early, or a
 SUBSCRIBE_UPDATE moving the end of the subscription to before the current Group
-or the start after the current Group.<a href="#section-7.3.2-3" class="pilcrow">¶</a></p>
+or the start after the current Group.  When RESET_STREAM_AT is used, the
+reliable_size <span class="bcp14">SHOULD</span> include the stream header so the receiver can identify the
+corresponding subscription and accurately account for reset data streams when
+handling SUBSCRIBE_DONE (see <a href="#message-subscribe-done" class="auto internal xref">Section 6.19</a>).  Publishers that reset
+data streams without using RESET_STREAM_AT with an appropriate reliable_size can
+cause subscribers to hold on to subscription state until a timeout expires.<a href="#section-7.3.2-3" class="pilcrow">¶</a></p>
 <p id="section-7.3.2-4">A sender might send all objects in a Subgroup and the FIN on a QUIC stream,
 and then reset the stream. In this case, the receiving application would receive
 the FIN if and only if all objects were received. If the application receives
