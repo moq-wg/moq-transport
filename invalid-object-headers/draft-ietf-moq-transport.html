@@ -2297,7 +2297,7 @@ received for the track, to ensure the Group Order is correct.<a href="#section-5
 subscribers for each track. Each new OBJECT belonging to the
 track within the subscription range is forwarded to each active
 subscriber, dependent on the congestion response. A subscription
-remains active until the publisher of the track terminates the
+remains active until soon after the publisher of the track terminates the
 subscription with a SUBSCRIBE_DONE (see <a href="#message-subscribe-done" class="auto internal xref">Section 6.19</a>).<a href="#section-5.1-3" class="pilcrow">¶</a></p>
 <p id="section-5.1-4">A caching relay saves Objects to its cache identified by the Object's
 Full Track Name, Group ID and Object ID. Relays <span class="bcp14">MUST</span> be able to
@@ -2724,9 +2724,9 @@ these parameters to appear in Setup messages.<a href="#section-6.1.1-1" class="p
 <a href="#section-6.1.1.1" class="section-number selfRef">6.1.1.1. </a><a href="#name-authorization-info" class="section-name selfRef">AUTHORIZATION INFO</a>
             </h5>
 <p id="section-6.1.1.1-1">AUTHORIZATION INFO parameter (Parameter Type 0x02) identifies a track's
-authorization information in a SUBSCRIBE, SUBSCRIBE_ANNOUNCES or ANNOUNCE
-message. This parameter is populated for cases where the authorization is
-required at the track level. The value is an ASCII string.<a href="#section-6.1.1.1-1" class="pilcrow">¶</a></p>
+authorization information in a SUBSCRIBE, SUBSCRIBE_ANNOUNCES, ANNOUNCE
+or FETCH message. This parameter is populated for cases where the authorization
+is required at the track level. The value is an ASCII string.<a href="#section-6.1.1.1-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="delivery-timeout">
@@ -3120,8 +3120,7 @@ See <a href="#priorities" class="auto internal xref">Section 4</a>.<a href="#sec
 <p id="section-6.6-1">A subscriber issues a <code>UNSUBSCRIBE</code> message to a publisher indicating it is no
 longer interested in receiving media for the specified track and Objects
 should stop being sent as soon as possible.  The publisher sends a
-SUBSCRIBE_DONE to acknowledge the unsubscribe was successful and indicate
-the final Object.<a href="#section-6.6-1" class="pilcrow">¶</a></p>
+SUBSCRIBE_DONE to acknowledge the unsubscribe was successful.<a href="#section-6.6-1" class="pilcrow">¶</a></p>
 <p id="section-6.6-2">The format of <code>UNSUBSCRIBE</code> is as follows:<a href="#section-6.6-2" class="pilcrow">¶</a></p>
 <span id="name-moqt-unsubscribe-message"></span><div id="moq-transport-unsubscribe-format">
 <figure id="figure-7">
@@ -3720,23 +3719,47 @@ FETCH_ERROR
 <a href="#section-6.19" class="section-number selfRef">6.19. </a><a href="#name-subscribe_done" class="section-name selfRef">SUBSCRIBE_DONE</a>
         </h3>
 <p id="section-6.19-1">A publisher sends a <code>SUBSCRIBE_DONE</code> message to indicate it is done publishing
-Objects for that subscription.  The Status Code indicates why the subscription ended,
-and whether it was an error.<a href="#section-6.19-1" class="pilcrow">¶</a></p>
-<p id="section-6.19-2">The format of <code>SUBSCRIBE_DONE</code> is as follows:<a href="#section-6.19-2" class="pilcrow">¶</a></p>
+Objects for that subscription.  The Status Code indicates why the subscription
+ended, and whether it was an error. Because SUBSCRIBE_DONE is sent on the
+control stream, it is likely to arrive at the receiver before late-arriving
+objects, and often even late-opening streams. However, the receiver uses it
+as an indication that it should receive any late-opening streams in a relatively
+short time.<a href="#section-6.19-1" class="pilcrow">¶</a></p>
+<p id="section-6.19-2">Note that some objects in the subscribed track might never be delivered,
+because a stream was reset, or never opened in the first place, due to the
+delivery timeout.<a href="#section-6.19-2" class="pilcrow">¶</a></p>
+<p id="section-6.19-3">A sender <span class="bcp14">MUST NOT</span> send SUBSCRIBE_DONE until it has closed all streams it will
+ever open, and has no further datagrams to send, for a subscription. After
+sending SUBSCRIBE_DONE, the sender can immediately destroy subscription state,
+although stream state can persist until delivery completes. The sender might
+persist subscription state to enforce the delivery timeout by resetting streams
+on which it has already sent FIN, only deleting it when all such streams have
+received ACK of the FIN.<a href="#section-6.19-3" class="pilcrow">¶</a></p>
+<p id="section-6.19-4">A sender <span class="bcp14">MUST NOT</span> destroy subscription state until it sends SUBSCRIBE_DONE,
+though it can choose to stop sending objects (and thus send SUBSCRIBE_DONE) for
+any reason.<a href="#section-6.19-4" class="pilcrow">¶</a></p>
+<p id="section-6.19-5">A subscriber that receives SUBSCRIBE_DONE <span class="bcp14">SHOULD</span> set a timer of at least its
+delivery timeout in case some objects are still inbound due to prioritization
+or packet loss. The subscriber <span class="bcp14">MAY</span> dispense with a timer if it sent UNSUBSCRIBE
+or is otherwise no longer interested in objects from the track. Once the timer
+has expired, the receiver destroys subscription state once all open streams for
+the subscription have closed. A subscriber <span class="bcp14">MAY</span> discard subscription state
+earlier, at the cost of potentially not delivering some late objects to the
+application. The subscriber <span class="bcp14">SHOULD</span> send STOP_SENDING on all streams related to
+the subscription when it deletes subscription state.<a href="#section-6.19-5" class="pilcrow">¶</a></p>
+<p id="section-6.19-6">The format of <code>SUBSCRIBE_DONE</code> is as follows:<a href="#section-6.19-6" class="pilcrow">¶</a></p>
 <span id="name-moqt-subscribe_done-message"></span><div id="moq-transport-subscribe-fin-format">
 <figure id="figure-20">
-          <div class="alignLeft art-text artwork" id="section-6.19-3.1">
+          <div class="alignLeft art-text artwork" id="section-6.19-7.1">
 <pre>
 SUBSCRIBE_DONE Message {
   Type (i) = 0xB,
   Length (i),
   Subscribe ID (i),
   Status Code (i),
+  Stream Count (i),
   Reason Phrase Length (i),
   Reason Phrase (..),
-  ContentExists (8),
-  [Final Group (i)],
-  [Final Object (i)],
 }
 </pre>
 </div>
@@ -3745,28 +3768,19 @@ SUBSCRIBE_DONE Message {
           </figcaption></figure>
 </div>
 <ul class="normal">
-<li class="normal" id="section-6.19-4.1">
-            <p id="section-6.19-4.1.1">Subscribe ID: Subscription identifier as defined in <a href="#message-subscribe-req" class="auto internal xref">Section 6.4</a>.<a href="#section-6.19-4.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-6.19-8.1">
+            <p id="section-6.19-8.1.1">Subscribe ID: Subscription identifier as defined in <a href="#message-subscribe-req" class="auto internal xref">Section 6.4</a>.<a href="#section-6.19-8.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-6.19-4.2">
-            <p id="section-6.19-4.2.1">Status Code: An integer status code indicating why the subscription ended.<a href="#section-6.19-4.2.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-6.19-8.2">
+            <p id="section-6.19-8.2.1">Status Code: An integer status code indicating why the subscription ended.<a href="#section-6.19-8.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-6.19-4.3">
-            <p id="section-6.19-4.3.1">Reason Phrase: Provides the reason for subscription error.<a href="#section-6.19-4.3.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-6.19-8.3">
+            <p id="section-6.19-8.3.1">Stream Count: An integer indicating the number of data streams the publisher
+opened for this subscription.  The subscriber can remove all subscription state
+once the same number of streams have been processed.<a href="#section-6.19-8.3.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-6.19-4.4">
-            <p id="section-6.19-4.4.1">ContentExists: 1 if an object has been published for this subscription, 0 if
-not. If 0, then the Final Group and Final Object fields will not be present.
-Any other value is a protocol error and <span class="bcp14">MUST</span> terminate the session with a
-Protocol Violation (<a href="#session-termination" class="auto internal xref">Section 3.5</a>).<a href="#section-6.19-4.4.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="section-6.19-4.5">
-            <p id="section-6.19-4.5.1">Final Group: The largest Group ID sent by the publisher in an OBJECT
-message in this track.<a href="#section-6.19-4.5.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="section-6.19-4.6">
-            <p id="section-6.19-4.6.1">Final Object: The largest Object ID sent by the publisher in an OBJECT
-message in the <code>Final Group</code> for this track.<a href="#section-6.19-4.6.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-6.19-8.4">
+            <p id="section-6.19-8.4.1">Reason Phrase: Provides the reason for subscription error.<a href="#section-6.19-8.4.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
@@ -4043,10 +4057,31 @@ failure.<a href="#section-6.26-3.2.1" class="pilcrow">¶</a></p>
 <a href="#section-7" class="section-number selfRef">7. </a><a href="#name-data-streams" class="section-name selfRef">Data Streams</a>
       </h2>
 <p id="section-7-1">A publisher sends Objects matching a subscription on Data Streams.<a href="#section-7-1" class="pilcrow">¶</a></p>
-<p id="section-7-2">All unidirectional MOQT streams, as well as all datagrams, start with a
-variable-length integer indicating the type of the stream in question.<a href="#section-7-2" class="pilcrow">¶</a></p>
+<p id="section-7-2">All unidirectional MOQT streams start with a variable-length integer indicating
+the type of the stream in question.<a href="#section-7-2" class="pilcrow">¶</a></p>
 <table class="center" id="table-5">
         <caption><a href="#table-5" class="selfRef">Table 5</a></caption>
+<thead>
+          <tr>
+            <th class="text-right" rowspan="1" colspan="1">ID</th>
+            <th class="text-left" rowspan="1" colspan="1">Stream Type</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="text-right" rowspan="1" colspan="1">0x4</td>
+            <td class="text-left" rowspan="1" colspan="1">STREAM_HEADER_SUBGROUP  (<a href="#stream-header-subgroup" class="auto internal xref">Section 7.3.1</a>)</td>
+          </tr>
+          <tr>
+            <td class="text-right" rowspan="1" colspan="1">0x5</td>
+            <td class="text-left" rowspan="1" colspan="1">FETCH_HEADER  (<a href="#fetch-header" class="auto internal xref">Section 7.3.3</a>)</td>
+          </tr>
+        </tbody>
+      </table>
+<p id="section-7-4">All MOQT datagrams start with a variable-length integer indicating the type of
+the datagram.<a href="#section-7-4" class="pilcrow">¶</a></p>
+<table class="center" id="table-6">
+        <caption><a href="#table-6" class="selfRef">Table 6</a></caption>
 <thead>
           <tr>
             <th class="text-right" rowspan="1" colspan="1">ID</th>
@@ -4058,21 +4093,14 @@ variable-length integer indicating the type of the stream in question.<a href="#
             <td class="text-right" rowspan="1" colspan="1">0x1</td>
             <td class="text-left" rowspan="1" colspan="1">OBJECT_DATAGRAM (<a href="#object-datagram" class="auto internal xref">Section 7.2</a>)</td>
           </tr>
-          <tr>
-            <td class="text-right" rowspan="1" colspan="1">0x4</td>
-            <td class="text-left" rowspan="1" colspan="1">STREAM_HEADER_SUBGROUP  (<a href="#stream-header-subgroup" class="auto internal xref">Section 7.3.1</a>)</td>
-          </tr>
-          <tr>
-            <td class="text-right" rowspan="1" colspan="1">0x5</td>
-            <td class="text-left" rowspan="1" colspan="1">FETCH_HEADER  (<a href="#fetch-header" class="auto internal xref">Section 7.3.3</a>)</td>
-          </tr>
         </tbody>
       </table>
-<p id="section-7-4">An endpoint that receives an unknown stream type <span class="bcp14">MUST</span> close the session.<a href="#section-7-4" class="pilcrow">¶</a></p>
-<p id="section-7-5">Every Track has a single 'Object Forwarding Preference' and the Original
+<p id="section-7-6">An endpoint that receives an unknown stream or datagram type <span class="bcp14">MUST</span> close the
+session.<a href="#section-7-6" class="pilcrow">¶</a></p>
+<p id="section-7-7">Every Track has a single 'Object Forwarding Preference' and the Original
 Publisher <span class="bcp14">MUST NOT</span> mix different forwarding preferences within a single track.
 If a subscriber receives different forwarding preferences for a track, it
-<span class="bcp14">SHOULD</span> close the session with an error of 'Protocol Violation'.<a href="#section-7-5" class="pilcrow">¶</a></p>
+<span class="bcp14">SHOULD</span> close the session with an error of 'Protocol Violation'.<a href="#section-7-7" class="pilcrow">¶</a></p>
 <div id="message-object">
 <section id="section-7.1">
         <h3 id="name-object-headers">
@@ -4288,7 +4316,12 @@ stream, it <span class="bcp14">MUST</span> use a RESET_STREAM or RESET_STREAM_AT
 Subgroup exceeding its Delivery Timeout, early termination of subscription due to
 an UNSUBSCRIBE message, a publisher's decision to end the subscription early, or a
 SUBSCRIBE_UPDATE moving the end of the subscription to before the current Group
-or the start after the current Group.<a href="#section-7.3.2-3" class="pilcrow">¶</a></p>
+or the start after the current Group.  When RESET_STREAM_AT is used, the
+reliable_size <span class="bcp14">SHOULD</span> include the stream header so the receiver can identify the
+corresponding subscription and accurately account for reset data streams when
+handling SUBSCRIBE_DONE (see <a href="#message-subscribe-done" class="auto internal xref">Section 6.19</a>).  Publishers that reset
+data streams without using RESET_STREAM_AT with an appropriate reliable_size can
+cause subscribers to hold on to subscription state until a timeout expires.<a href="#section-7.3.2-3" class="pilcrow">¶</a></p>
 <p id="section-7.3.2-4">A sender might send all objects in a Subgroup and the FIN on a QUIC stream,
 and then reset the stream. In this case, the receiving application would receive
 the FIN if and only if all objects were received. If the application receives
