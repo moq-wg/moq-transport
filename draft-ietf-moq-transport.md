@@ -744,7 +744,7 @@ For successful subscriptions, the publisher maintains a list of
 subscribers for each track. Each new OBJECT belonging to the
 track within the subscription range is forwarded to each active
 subscriber, dependent on the congestion response. A subscription
-remains active until the publisher of the track terminates the
+remains active until soon after the publisher of the track terminates the
 subscription with a SUBSCRIBE_DONE (see {{message-subscribe-done}}).
 
 A caching relay saves Objects to its cache identified by the Object's
@@ -1379,8 +1379,7 @@ See {{priorities}}.
 A subscriber issues a `UNSUBSCRIBE` message to a publisher indicating it is no
 longer interested in receiving media for the specified track and Objects
 should stop being sent as soon as possible.  The publisher sends a
-SUBSCRIBE_DONE to acknowledge the unsubscribe was successful and indicate
-the final Object.
+SUBSCRIBE_DONE to acknowledge the unsubscribe was successful.
 
 The format of `UNSUBSCRIBE` is as follows:
 
@@ -1805,9 +1804,38 @@ FETCH_ERROR
 
 ## SUBSCRIBE_DONE {#message-subscribe-done}
 
-A publisher sends a `SUBSCRIBE_DONE` message to indicate it is done publishing
-Objects for that subscription.  The Status Code indicates why the subscription ended,
-and whether it was an error.
+A publisher sends a `SUBSCRIBE_DONE` message when it is not going to send
+additional objects for a subscription. Because SUBSCRIBE_DONE is sent on the
+control stream, it is likely to arrive at the receiver before late-arriving
+objects, and often even late-opening streams. However, the receiver uses it
+as an indication that it should receive any late-opening streams in a relatively
+short time.
+
+Note that some objects in the subscribed track might never be delivered,
+because a stream was reset, or never opened in the first place, due to the
+delivery timeout.
+
+A sender MUST NOT send SUBSCRIBE_DONE until it has closed all streams it will
+ever open, and has no further datagrams to send, for a subscription. After
+sending SUBSCRIBE_DONE, the sender can immediately destroy subscription state,
+although stream state can persist until delivery completes. The sender might
+persist subscription state to enforce the delivery timeout by resetting streams
+on which it has already sent FIN, only deleting it when all such streams have
+received ACK of the FIN.
+
+A sender MUST NOT destroy subscription state until it sends SUBSCRIBE_DONE,
+though it can choose to stop sending objects (and thus send SUBSCRIBE_DONE) for
+any reason.
+
+A subscriber that receives SUBSCRIBE_DONE SHOULD set a timer of at least its
+delivery timeout in case some objects are still inbound due to prioritization
+or packet loss. The subscriber MAY dispense with a timer if it sent UNSUBSCRIBE
+or is otherwise no longer interested in objects from the track. Once the timer
+has expired, the receiver destroys subscription state once all open streams for
+the subscription have closed. A subscriber MAY discard subscription state
+earlier, at the cost of potentially not delivering some late objects to the
+application. The subscriber SHOULD send STOP_SENDING on all streams related to
+the subscription when it deletes subscription state.
 
 The format of `SUBSCRIBE_DONE` is as follows:
 
@@ -1819,9 +1847,6 @@ SUBSCRIBE_DONE Message {
   Status Code (i),
   Reason Phrase Length (i),
   Reason Phrase (..),
-  ContentExists (8),
-  [Final Group (i)],
-  [Final Object (i)],
 }
 ~~~
 {: #moq-transport-subscribe-fin-format title="MOQT SUBSCRIBE_DONE Message"}
@@ -1831,17 +1856,6 @@ SUBSCRIBE_DONE Message {
 * Status Code: An integer status code indicating why the subscription ended.
 
 * Reason Phrase: Provides the reason for subscription error.
-
-* ContentExists: 1 if an object has been published for this subscription, 0 if
-not. If 0, then the Final Group and Final Object fields will not be present.
-Any other value is a protocol error and MUST terminate the session with a
-Protocol Violation ({{session-termination}}).
-
-* Final Group: The largest Group ID sent by the publisher in an OBJECT
-message in this track.
-
-* Final Object: The largest Object ID sent by the publisher in an OBJECT
-message in the `Final Group` for this track.
 
 ## MAX_SUBSCRIBE_ID {#message-max-subscribe-id}
 
