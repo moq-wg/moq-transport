@@ -147,11 +147,12 @@ Table of Contents
      7.1.  Object Headers
        7.1.1.  Canonical Object Fields
      7.2.  Object Datagram Message
-     7.3.  Streams
-       7.3.1.  Stream Header Subgroup
-       7.3.2.  Closing Subgroup Streams
-       7.3.3.  Fetch Header
-     7.4.  Examples
+     7.3.  Object Datagram Status Message
+     7.4.  Streams
+       7.4.1.  Stream Header Subgroup
+       7.4.2.  Closing Subgroup Streams
+       7.4.3.  Fetch Header
+     7.5.  Examples
    8.  Security Considerations
      8.1.  Resource Exhaustion
    9.  IANA Considerations
@@ -1179,7 +1180,7 @@ Table of Contents
 
    If an object in a subgroup exceeds the delivery timeout, the
    publisher MUST reset the underlying transport stream (see
-   Section 7.3.2).
+   Section 7.4.2).
 
    When sent by a subscriber, this parameter is intended to be specific
    to a subscription, so it SHOULD NOT be forwarded upstream by a relay
@@ -2184,11 +2185,11 @@ Table of Contents
    indicating the type of the stream in question.
 
              +=====+========================================+
-             |  ID | Stream Type                            |
+             |  ID | Type                                   |
              +=====+========================================+
-             | 0x4 | STREAM_HEADER_SUBGROUP (Section 7.3.1) |
+             | 0x4 | STREAM_HEADER_SUBGROUP (Section 7.4.1) |
              +-----+----------------------------------------+
-             | 0x5 | FETCH_HEADER (Section 7.3.3)           |
+             | 0x5 | FETCH_HEADER (Section 7.4.3)           |
              +-----+----------------------------------------+
 
                                  Table 5
@@ -2196,13 +2197,15 @@ Table of Contents
    All MOQT datagrams start with a variable-length integer indicating
    the type of the datagram.
 
-                  +=====+===============================+
-                  |  ID | Stream Type                   |
-                  +=====+===============================+
-                  | 0x1 | OBJECT_DATAGRAM (Section 7.2) |
-                  +-----+-------------------------------+
+              +=====+======================================+
+              |  ID | Type                                 |
+              +=====+======================================+
+              | 0x1 | OBJECT_DATAGRAM (Section 7.2)        |
+              +-----+--------------------------------------+
+              | 0x2 | OBJECT_DATAGRAM_STATUS (Section 7.2) |
+              +-----+--------------------------------------+
 
-                                  Table 6
+                                 Table 6
 
    An endpoint that receives an unknown stream or datagram type MUST
    close the session.
@@ -2302,14 +2305,30 @@ Table of Contents
      Group ID (i),
      Object ID (i),
      Publisher Priority (8),
-     Object Payload Length (i),
-     [Object Status (i)],
      Object Payload (..),
    }
 
                   Figure 28: MOQT OBJECT_DATAGRAM Message
 
-7.3.  Streams
+   There is no explicit length field.  The entirety of the transport
+   datagram following Publisher Priority contains the Object Payload.
+
+7.3.  Object Datagram Status Message
+
+   An OBJECT_DATAGRAM_STATUS message is similar to OBEJCT_DATAGRAM
+   except it conveys an Object Status and has no payload.
+
+   OBJECT_DATAGRAM_STATUS Message {
+     Track Alias (i),
+     Group ID (i),
+     Object ID (i),
+     Publisher Priority (8),
+     Object Status (i),
+   }
+
+               Figure 29: MOQT OBJECT_DATAGRAM_STATUS Message
+
+7.4.  Streams
 
    When objects are sent on streams, the stream begins with a stream
    header message and is followed by one or more sets of serialized
@@ -2321,7 +2340,7 @@ Table of Contents
 
    TODO: figure out how a relay closes these streams
 
-7.3.1.  Stream Header Subgroup
+7.4.1.  Stream Header Subgroup
 
    When a stream begins with STREAM_HEADER_SUBGROUP, all objects on the
    stream belong to the track requested in the Subscribe message
@@ -2335,7 +2354,7 @@ Table of Contents
      Publisher Priority (8),
    }
 
-               Figure 29: MOQT STREAM_HEADER_SUBGROUP Message
+               Figure 30: MOQT STREAM_HEADER_SUBGROUP Message
 
    All Objects received on a stream opened with STREAM_HEADER_SUBGROUP
    have an Object Forwarding Preference = Subgroup.
@@ -2355,13 +2374,13 @@ Table of Contents
      Object Payload (..),
    }
 
-                 Figure 30: MOQT Group Stream Object Fields
+                 Figure 31: MOQT Group Stream Object Fields
 
    A publisher MUST NOT send an Object on a stream if its Object ID is
    less than a previously sent Object ID within a given group in that
    stream.
 
-7.3.2.  Closing Subgroup Streams
+7.4.2.  Closing Subgroup Streams
 
    Subscribers will often need to know if they have received all objects
    in a Subgroup, particularly if they serve as a relay or cache.  QUIC
@@ -2441,7 +2460,7 @@ Table of Contents
    impact on other Subgroups in the Group or the subscription, although
    applications might cancel all Subgroups in a Group at once.
 
-7.3.3.  Fetch Header
+7.4.3.  Fetch Header
 
    When a stream begins with FETCH_HEADER, all objects on the stream
    belong to the track requested in the Fetch message identified by
@@ -2451,7 +2470,7 @@ Table of Contents
      Subscribe ID (i),
    }
 
-                    Figure 31: MOQT FETCH_HEADER Message
+                    Figure 32: MOQT FETCH_HEADER Message
 
    Each object sent on a fetch stream after the FETCH_HEADER has the
    following format:
@@ -2466,7 +2485,7 @@ Table of Contents
      Object Payload (..),
    }
 
-                    Figure 32: MOQT Fetch Object Fields
+                    Figure 33: MOQT Fetch Object Fields
 
    The Object Status field is only sent if the Object Payload Length is
    zero.
@@ -2474,7 +2493,7 @@ Table of Contents
    The Subgroup ID field of an object with a Forwarding Preference of
    "Datagram" (see Section 7.1.1) is set to the Object ID.
 
-7.4.  Examples
+7.5.  Examples
 
    Sending a track on one stream:
 
