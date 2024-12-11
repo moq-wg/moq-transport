@@ -18,11 +18,11 @@ media to publish data and have it consumed via subscription by a
 multiplicity of endpoints. It supports intermediate content distribution
 networks and is designed for high scale and low latency distribution. 
     " name="description">
-<meta content="xml2rfc 3.24.0" name="generator">
+<meta content="xml2rfc 3.25.0" name="generator">
 <meta content="media over quic" name="keyword">
 <meta content="draft-ietf-moq-transport-latest" name="ietf.draft">
 <!-- Generator version information:
-  xml2rfc 3.24.0
+  xml2rfc 3.25.0
     Python 3.12.7
     ConfigArgParse 1.7
     google-i18n-address 3.1.1
@@ -287,6 +287,12 @@ body {
 }
 
 /* headings */
+section {
+  clear: both;
+}
+.section-number {
+  padding-right: 0.5em;
+}
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-title);
   font-weight: 680;
@@ -318,6 +324,7 @@ h4, h5, h6 {
 /* general structure */
 .author {
   padding-bottom: 0.3em;
+  vertical-align: top;
 }
 #abstract+p {
   font-size: 18px;
@@ -395,25 +402,26 @@ svg[font-family~="monospace" i], svg [font-family~="monospace" i] {
 ol, ul {
   padding: 0;
   margin: 0 0 0.5em 2em;
-}
-:is(ol, ul) :is(ol, ul) {
-  margin-left: 1em;
+  & :is(ol, ul) {
+    margin-left: 1em;
+  }
 }
 li {
   margin: 0 0 0.25em 0;
 }
-.ulCompact li {
-  margin: 0;
-}
 ul.empty, .ulEmpty {
   list-style-type: none;
-}
-ul.empty li, .ulEmpty li {
-  margin-top: 0.5em;
+  & li {
+    margin-top: 0.5em;
+  }
 }
 :is(ul, ol).compact, .ulCompact, .olCompact {
-  line-height: 1;
   margin: 0 0 0 2em;
+  & li {
+    margin: 0;
+    & :first-child { margin-top: 0; }
+    & :last-child { margin-bottom: 0; }
+  }
 }
 
 /* definition lists */
@@ -421,38 +429,39 @@ dl {
   clear: left;
   --indent: 3ch;
   /* --indent: attr(indent ch); not supported in any browser, but we can dream */
-}
-dl.olPercent {
-  --indent: 5ch;
+  &.olPercent {
+    --indent: 5ch;
+    & > dt {
+      min-width: calc(var(--indent) - 2ch);
+    }
+  }
+  &.olPercent > dt {
+    float: none;
+  }
+
+  dl > dd > & {
+    margin-top: 0.5em;
+    margin-bottom: 0;
+  }
 }
 dl > dt {
   float: left;
   margin-right: 2ch;
   min-width: 8ch;
 }
-dl.dlNewline > dt {
-  float: none;
-}
 dl > dd {
   margin-bottom: .8em;
   margin-left: var(--indent) !important; /* stupid element overrides */
   min-height: 2ex;
 }
-dl.olPercent > dt {
-  min-width: calc(var(--indent) - 2ch);
-}
 :is(dl.compact, .dlCompact) > dd {
   margin-bottom: 0;
-}
-:is(dl.compact, .dlCompact) > dd > :is(:first-child, .break:first-child + *) {
-  margin-top: 0;
-}
-:is(dl.compact, .dlCompact) > dd > :is(:last-child) {
-  margin-bottom: 0;
-}
-dl > dd > dl {
-  margin-top: 0.5em;
-  margin-bottom: 0;
+  & > :is(:first-child, .break:first-child + *) {
+    margin-top: 0;
+  }
+  & > :is(:last-child) {
+    margin-bottom: 0;
+  }
 }
 :is(dd, span).break {
   display: none;
@@ -516,6 +525,7 @@ figcaption, caption {
   font-style: italic;
   margin: 0.5em 1.5em;
   text-align: left;
+  caption-side: bottom;
 }
 @media screen {
   /* Auto-collapse boilerplate. */
@@ -533,7 +543,11 @@ figcaption, caption {
   }
   pre, svg {
     display: inline-block;
-    overflow-x: auto;
+    /* In the horizontal direction, sometimes people make over-sized figures.
+       Scrollbars for those is therefore necessary: auto adds them as necessary..
+       In the vertical direction, the line-height can combine with the font
+       asender/descender height to produce scrollbars: hidden avoids that. */
+    overflow: auto hidden;
   }
   pre {
     max-width: 100%;
@@ -570,6 +584,7 @@ cite {
 
 /* tables */
 table {
+  width: auto;
   max-width: 100%;
   margin: 0 0 1em;
   border-collapse: collapse;
@@ -584,6 +599,16 @@ table.center {
 table.left {
   margin-right: auto;
 }
+table .text-left {
+  text-align: left;
+}
+table .text-center {
+  text-align: center;
+}
+table .text-right {
+  text-align: right;
+}
+
 thead, tbody {
   border: 1px solid var(--line-color);
 }
@@ -614,9 +639,11 @@ a.pilcrow {
   margin-left: 3px;
   opacity: 0.2;
   user-select: none;
+  &[href] {
+    color: var(--pilcrow-weak);
+    &:hover { text-decoration: none; }
+  }
 }
-a.pilcrow[href] { color: var(--pilcrow-weak); }
-a.pilcrow[href]:hover { text-decoration: none; }
 @media not print {
   :hover > a.pilcrow {
     opacity: 1;
@@ -656,26 +683,28 @@ sub, sup {
   font-size: var(--small-font-size);
   line-height: 18px;
   --identifier-width: 15ch;
-}
-#identifiers dt {
-  width: var(--identifier-width);
-  min-width: var(--identifier-width);
-  clear: left;
-  float: left;
-  text-align: right;
-  margin-right: 1ch;
-}
-#identifiers dd {
-  margin: 0;
-  margin-left: calc(1em + var(--identifier-width)) !important;
-  min-width: 5em;
-}
-#identifiers .authors .author {
-  display: inline-block;
-  margin-right: 1.5em;
-}
-#identifiers .authors .org {
-  font-style: italic;
+  & dt {
+    width: var(--identifier-width);
+    min-width: var(--identifier-width);
+    clear: left;
+    float: left;
+    text-align: right;
+    margin-right: 1ch;
+  }
+  & dd {
+    margin: 0;
+    margin-left: calc(1em + var(--identifier-width)) !important;
+    min-width: 5em;
+  }
+  & .authors {
+    & .author {
+      display: inline-block;
+      margin-right: 1.5em;
+    }
+    & .org {
+      font-style: italic;
+    }
+  }
 }
 
 /* The prepared/rendered info at the very bottom of the page */
@@ -686,9 +715,6 @@ sub, sup {
   margin-top: 2em;
 }
 .docInfo .prepared {
-  float: left;
-}
-.docInfo .prepared {
   float: right;
 }
 
@@ -696,53 +722,48 @@ sub, sup {
 #toc {
   padding: 0.75em 0 2em 0;
   margin-bottom: 1em;
-}
-@media screen {
-  #toc nav {
-    font-family: var(--font-title);
-    font-weight: 360;
+
+  & nav {
+    & ul {
+      margin: 0 0.5em 0 0;
+      padding: 0;
+      list-style: none;
+    }
+    & li {
+      line-height: 1.3em;
+      margin: 2px 0;
+      padding-left: 1.2em;
+      text-indent: -1.2em;
+    }
+  }
+  & a.xref {
+    white-space: normal;
   }
 }
-#toc nav ul {
-  margin: 0 0.5em 0 0;
-  padding: 0;
-  list-style: none;
-}
-#toc nav li {
-  line-height: 1.3em;
-  margin: 2px 0;
-  padding-left: 1.2em;
-  text-indent: -1.2em;
-}
-#toc a.xref {
-  white-space: normal;
-}
-/* references */
-.references dt {
-  text-align: right;
-  font-weight: bold;
-  min-width: 10ch;
-  margin-right: 1.5ch;
-}
-.references dt:target::before {
-  content: "⇒";
-  width: 15px;
-  margin: 0 10px 0 -25px;
-}
-.references dd {
-  margin-left: 12ch !important;
-  overflow: auto;
+
+.references {
+  & > dt {
+    text-align: right;
+    font-weight: bold;
+    min-width: 10ch;
+    margin-right: 1.5ch;
+    &:target::before {
+      content: "⇒";
+      margin: 0 10px 0 -25px;
+    }
+  }
+  & > dd {
+    margin-left: 12ch !important;
+    overflow: visible;
+    & .refInstance {
+      margin-bottom: 0.8em;
+    }
+    & .ascii {
+      margin-bottom: 0.25em;
+    }
+  }
 }
 
-.refInstance {
-  margin-bottom: 1.25em;
-}
-
-.references .ascii {
-  margin-bottom: 0.25em;
-}
-
-/* index */
 #rfc\.index\.index + ul {
   margin-left: 0;
 }
@@ -750,21 +771,33 @@ sub, sup {
 /* authors */
 address.vcard {
   font-style: normal;
-  margin: 1em 0;
+  max-width: 20em;
+  margin: 1em auto 1em 0;
+
+  & .nameRole {
+    font-weight: 700;
+    margin-left: 0;
+  }
+  & .label {
+    margin: 0.5em 0;
+  }
+  & .type {
+    display: none;
+  }
+  & .alternative-contact {
+    margin: 0.5em 0 0.25em 0;
+  }
+  & .non-ascii {
+    margin: 0 0 0 2em;
+  }
+  & div.left {
+    text-align: left;
+  }
+  & div.right {
+    text-align: right;
+  }
 }
-address.vcard .nameRole {
-  font-weight: 700;
-  margin-left: 0;
-}
-address.vcard .label {
-  margin: 0.5em 0;
-}
-address.vcard .type {
-  display: none;
-}
-.alternative-contact {
-  margin: 1.5em 0 1em;
-}
+
 hr.addr {
   border-top: 1px dashed;
   margin: 0;
@@ -786,6 +819,7 @@ hr.addr {
   }
 }
 
+/* Comments */
 .rfcEditorRemove p:first-of-type {
   font-style: italic;
 }
@@ -796,7 +830,31 @@ hr.addr {
 .crefSource {
   font-style: italic;
 }
-/* alternative layout for smaller screens */
+
+@media screen {
+  #toc nav {
+    font-family: var(--font-title);
+    font-weight: 360;
+    & > ul { margin-bottom: 2em; }
+    & ul {
+      margin: 0 0 0 4px;
+      & :is(p, li) {
+        margin: 2px 0;
+      }
+    }
+  }
+  #toc a.toplink {
+    float: right;
+  }
+}
+@media not screen {
+  #toc a.toplink {
+    display: none;
+  }
+}
+
+
+/* TOC layout for smaller screens */
 @media screen and (max-width: 929px) {
   #toc {
     position: fixed;
@@ -807,9 +865,6 @@ hr.addr {
     margin: 0;
     border-bottom: 1px solid #ccc;
     opacity: 0.6;
-  }
-  #toc.active {
-      opacity: 1;
   }
   #toc h2 {
     margin: 0;
@@ -822,17 +877,17 @@ hr.addr {
     background-color: #444;
     color: white;
     cursor: pointer;
-  }
-  #toc h2::before { /* css hamburger */
-    float: right;
-    position: relative;
-    width: 1em;
-    height: 1px;
-    left: -164px;
-    margin: 8px 0 0 0;
-    background: white none repeat scroll 0 0;
-    box-shadow: 0 4px 0 0 white, 0 8px 0 0 white;
-    content: "";
+    &::before { /* css hamburger */
+      float: right;
+      position: relative;
+      width: 1em;
+      height: 1px;
+      left: -164px;
+      margin: 8px 0 0 0;
+      background: white none repeat scroll 0 0;
+      box-shadow: 0 4px 0 0 white, 0 8px 0 0 white;
+      content: "";
+    }
   }
   #toc nav {
     display: none;
@@ -843,14 +898,13 @@ hr.addr {
     height: calc(100vh - 48px);
     border-left: 1px solid #ddd;
   }
-  #toc.active nav {
-    display: block;
+  #toc.active {
+    opacity: 1;
+    & nav { display: block; }
   }
   /* Make the collapsed ToC header render white on gray also when it's a link */
   #toc h2 a,
-  #toc h2 a:link,
-  #toc h2 a:focus,
-  #toc h2 a:hover,
+  #toc h2 a:is(:link, :focus, :hover),
   #toc a.toplink,
   #toc a.toplink:hover {
     color: white;
@@ -858,11 +912,11 @@ hr.addr {
     text-decoration: none;
   }
   #toc a.toplink {
-    margin-top: 2px;
+    margin: 2px 0.5em 0;
   }
 }
 
-/* alternative layout for wide screens */
+/* TOC layout for wide screens */
 @media screen and (min-width: 930px) {
   body {
     padding-right: 360px;
@@ -891,20 +945,12 @@ hr.addr {
     overscroll-behavior: contain;
     scrollbar-width: thin;
   }
-  #toc nav > ul  {
-    margin-bottom: 2em;
-  }
-  #toc ul {
-    margin: 0 0 0 4px;
-    font-size: var(--small-font-size);
-  }
-  #toc ul :is(p, li) {
-    margin: 2px 0;
-    line-height: 22px;
-  }
   img { /* future proofing */
     max-width: 100%;
     height: auto;
+  }
+  #toc a.toplink {
+    margin: 8px 0.5em 0;
   }
 }
 
@@ -947,9 +993,6 @@ hr.addr {
   td {
     border-top: 1px solid #ddd;
   }
-  .toplink {
-    display: none;
-  }
 }
 
 @page :first {
@@ -972,82 +1015,6 @@ hr.addr {
   size: A4;
   margin-bottom: 45mm;
   padding-top: 20px;
-}
-
-/* Changes introduced to fix issues found during implementation */
-
-/* Separate body from document info even without intervening H1 */
-section {
-  clear: both;
-}
-
-/* Top align author divs, to avoid names without organization dropping level with org names */
-.author {
-  vertical-align: top;
-}
-
-/* Style section numbers with more space between number and title */
-.section-number {
-  padding-right: 0.5em;
-}
-
-/* Add styling for a link in the ToC that points to the top of the document */
-a.toplink {
-  float: right;
-  margin: 8px 0.5em 0;
-}
-
-/* Provide styling for table cell text alignment */
-table .text-left {
-  text-align: left;
-}
-table .text-center {
-  text-align: center;
-}
-table .text-right {
-  text-align: right;
-}
-
-/* Make the alternative author contact information look less like just another
-   author, and group it closer with the primary author contact information */
-.alternative-contact {
-  margin: 0.5em 0 0.25em 0;
-}
-address .non-ascii {
-  margin: 0 0 0 2em;
-}
-
-/* With it being possible to set tables with alignment
-  left, center, and right, { width: 100%; } does not make sense */
-table {
-  width: auto;
-}
-
-/* Avoid reference text that sits in a block with very wide left margin,
-   because of a long floating dt label.*/
-.references dd {
-  overflow: visible;
-}
-
-/* Control caption placement */
-caption {
-  caption-side: bottom;
-}
-
-/* Limit the width of the author address vcard, so names in right-to-left
-   script don't end up on the other side of the page. */
-
-address.vcard {
-  max-width: 20em;
-  margin-right: auto;
-}
-
-/* For address alignment dependent on LTR or RTL scripts */
-address div.left {
-  text-align: left;
-}
-address div.right {
-  text-align: right;
 }
 
 /* Dark mode. */
@@ -1086,11 +1053,11 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <thead><tr>
 <td class="left">Internet-Draft</td>
 <td class="center">moq-transport</td>
-<td class="right">November 2024</td>
+<td class="right">December 2024</td>
 </tr></thead>
 <tfoot><tr>
 <td class="left">Curley, et al.</td>
-<td class="center">Expires 20 May 2025</td>
+<td class="center">Expires 14 June 2025</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1103,12 +1070,12 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dd class="internet-draft">draft-ietf-moq-transport-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2024-11-16" class="published">16 November 2024</time>
+<time datetime="2024-12-11" class="published">11 December 2024</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2025-05-20">20 May 2025</time></dd>
+<dd class="expires"><time datetime="2025-06-14">14 June 2025</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1180,7 +1147,7 @@ networks and is designed for high scale and low latency distribution.<a href="#s
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 20 May 2025.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 14 June 2025.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1222,7 +1189,7 @@ networks and is designed for high scale and low latency distribution.<a href="#s
                     <p id="section-toc.1-1.1.2.1.2.2.1" class="keepWithNext"><a href="#section-1.1.2" class="auto internal xref">1.1.2</a>.  <a href="#name-leveraging-quic" class="internal xref">Leveraging QUIC</a></p>
 </li>
                   <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.1.2.1.2.3">
-                    <p id="section-toc.1-1.1.2.1.2.3.1" class="keepWithNext"><a href="#section-1.1.3" class="auto internal xref">1.1.3</a>.  <a href="#name-universal" class="internal xref">Universal</a></p>
+                    <p id="section-toc.1-1.1.2.1.2.3.1" class="keepWithNext"><a href="#section-1.1.3" class="auto internal xref">1.1.3</a>.  <a href="#name-convergence" class="internal xref">Convergence</a></p>
 </li>
                   <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.1.2.1.2.4">
                     <p id="section-toc.1-1.1.2.1.2.4.1"><a href="#section-1.1.4" class="auto internal xref">1.1.4</a>.  <a href="#name-relays" class="internal xref">Relays</a></p>
@@ -1514,7 +1481,7 @@ response to subscription requests from a multiplicity of endpoints. MOQT
 supports wide range of use-cases with different resiliency and latency
 (live, interactive) needs without compromising the scalability and cost
 effectiveness associated with content delivery networks.<a href="#section-1-1" class="pilcrow">¶</a></p>
-<p id="section-1-2">MOQT is a generic protocol is designed to work in concert with multiple
+<p id="section-1-2">MOQT is a generic protocol designed to work in concert with multiple
 MoQ Streaming Formats. These MoQ Streaming Formats define how content is
 encoded, packaged, and mapped to MOQT objects, along with policies for
 discovery and subscription.<a href="#section-1-2" class="pilcrow">¶</a></p>
@@ -1544,30 +1511,27 @@ discovery and subscription.<a href="#section-1-2" class="pilcrow">¶</a></p>
 <a href="#section-1.1" class="section-number selfRef">1.1. </a><a href="#name-motivation" class="section-name selfRef">Motivation</a>
         </h3>
 <p id="section-1.1-1">The development of MOQT is driven by goals in a number of areas -
-specifically latency, the robustness of QUIC, workflow efficiency and
-relay support.<a href="#section-1.1-1" class="pilcrow">¶</a></p>
+specifically latency, the robust feature set of QUIC and relay
+support.<a href="#section-1.1-1" class="pilcrow">¶</a></p>
 <div id="latency">
 <section id="section-1.1.1">
           <h4 id="name-latency">
 <a href="#section-1.1.1" class="section-number selfRef">1.1.1. </a><a href="#name-latency" class="section-name selfRef">Latency</a>
           </h4>
-<p id="section-1.1.1-1">HTTP Adaptive Streaming (HAS) has been successful at achieving scale
-although often at the cost of latency. Latency is necessary to correct
-for variable network throughput. Ideally live content is consumed at the
-same bitrate it is produced. End-to-end latency would be fixed and only
-subject to encoding and transmission delays. Unfortunately, networks
-have variable throughput, primarily due to congestion. Attempting to
-deliver content encoded at a higher bitrate than the network can support
-causes queuing along the path from producer to consumer. The speed at
-which a protocol can detect and respond to queuing determines the
-overall latency. TCP-based protocols are simple but are slow to detect
-congestion and suffer from head-of-line blocking. Protocols utilizing
-UDP directly can avoid queuing, but the application is then responsible
-for the complexity of fragmentation, congestion control, retransmissions,
-receiver feedback, reassembly, and more. One goal of MOQT is to achieve
-the best of both these worlds: leverage the features of QUIC to create a
-simple yet flexible low latency protocol that can rapidly detect and
-respond to congestion.<a href="#section-1.1.1-1" class="pilcrow">¶</a></p>
+<p id="section-1.1.1-1">Latency is necessary to correct for variable network throughput. Ideally live
+content is consumed at the same bitrate it is produced. End-to-end latency would
+be fixed and only subject to encoding and transmission delays. Unfortunately,
+networks have variable throughput, primarily due to congestion. Attempting to
+deliver content encoded at a higher bitrate than the network can support causes
+queuing along the path from producer to consumer. The speed at which a protocol
+can detect and respond to congestion determines the overall latency. TCP-based
+protocols are simple but are slow to detect congestion and suffer from
+head-of-line blocking. Protocols utilizing UDP directly can avoid queuing, but
+the application is then responsible for the complexity of fragmentation,
+congestion control, retransmissions, receiver feedback, reassembly, and
+more. One goal of MOQT is to achieve the best of both these worlds: leverage the
+features of QUIC to create a simple yet flexible low latency protocol that can
+rapidly detect and respond to congestion.<a href="#section-1.1.1-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="leveraging-quic">
@@ -1578,27 +1542,23 @@ respond to congestion.<a href="#section-1.1.1-1" class="pilcrow">¶</a></p>
 <p id="section-1.1.2-1">The parallel nature of QUIC streams can provide improvements in the face
 of loss. A goal of MOQT is to design a streaming protocol to leverage
 the transmission benefits afforded by parallel QUIC streams as well
-exercising options for flexible loss recovery. Applying <span>[<a href="#QUIC" class="cite xref">QUIC</a>]</span> to HAS
-via HTTP/3 has not yet yielded generalized improvements in
-throughput. One reason for this is that sending segments down a single
-QUIC stream still allows head-of-line blocking to occur.<a href="#section-1.1.2-1" class="pilcrow">¶</a></p>
+exercising options for flexible loss recovery.<a href="#section-1.1.2-1" class="pilcrow">¶</a></p>
 </section>
 </div>
-<div id="universal">
+<div id="convergence">
 <section id="section-1.1.3">
-          <h4 id="name-universal">
-<a href="#section-1.1.3" class="section-number selfRef">1.1.3. </a><a href="#name-universal" class="section-name selfRef">Universal</a>
+          <h4 id="name-convergence">
+<a href="#section-1.1.3" class="section-number selfRef">1.1.3. </a><a href="#name-convergence" class="section-name selfRef">Convergence</a>
           </h4>
-<p id="section-1.1.3-1">Internet delivered media today has protocols optimized for ingest and
-separate protocols optimized for distribution. This protocol switch in
-the distribution chain necessitates intermediary origins which
-re-package the media content. While specialization can have its
-benefits, there are gains in efficiency to be had in not having to
-re-package content. A goal of MOQT is to develop a single protocol which
-can be used for transmission from contribution to distribution. A
-related goal is the ability to support existing encoding and packaging
-schemas, both for backwards compatibility and for interoperability with
-the established content preparation ecosystem.<a href="#section-1.1.3-1" class="pilcrow">¶</a></p>
+<p id="section-1.1.3-1">Some live media architectures today have separate protocols for ingest and
+distribution, for example RTMP and HTTP based HLS or DASH. Switching protocols
+necessitates intermediary origins which re-package the
+media content. While specialization can have its benefits, there are efficiency
+gains to be had in not having to re-package content. A goal of MOQT is to
+develop a single protocol which can be used for transmission from contribution
+to distribution. A related goal is the ability to support existing encoding and
+packaging schemas, both for backwards compatibility and for interoperability
+with the established content preparation ecosystem.<a href="#section-1.1.3-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="relays">
@@ -1645,70 +1605,75 @@ appear in all capitals, as shown here.<a href="#section-1.2-1" class="pilcrow">�
             <p id="section-1.2-2.6.1">A Client or Server.<a href="#section-1.2-2.6.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-1.2-2.7">Publisher:</dt>
+<dt id="section-1.2-2.7">Peer:</dt>
           <dd style="margin-left: 1.5em" id="section-1.2-2.8">
-            <p id="section-1.2-2.8.1">An endpoint that handles subscriptions by sending requested Objects from the requested track.<a href="#section-1.2-2.8.1" class="pilcrow">¶</a></p>
+            <p id="section-1.2-2.8.1">The other endpoint than the one being described<a href="#section-1.2-2.8.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-1.2-2.9">Subscriber:</dt>
+<dt id="section-1.2-2.9">Publisher:</dt>
           <dd style="margin-left: 1.5em" id="section-1.2-2.10">
-            <p id="section-1.2-2.10.1">An endpoint that subscribes to and receives tracks.<a href="#section-1.2-2.10.1" class="pilcrow">¶</a></p>
+            <p id="section-1.2-2.10.1">An endpoint that handles subscriptions by sending requested Objects from the requested track.<a href="#section-1.2-2.10.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-1.2-2.11">Original Publisher:</dt>
+<dt id="section-1.2-2.11">Subscriber:</dt>
           <dd style="margin-left: 1.5em" id="section-1.2-2.12">
-            <p id="section-1.2-2.12.1">The initial publisher of a given track.<a href="#section-1.2-2.12.1" class="pilcrow">¶</a></p>
+            <p id="section-1.2-2.12.1">An endpoint that subscribes to and receives tracks.<a href="#section-1.2-2.12.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-1.2-2.13">End Subscriber:</dt>
+<dt id="section-1.2-2.13">Original Publisher:</dt>
           <dd style="margin-left: 1.5em" id="section-1.2-2.14">
-            <p id="section-1.2-2.14.1">A subscriber that initiates a subscription and does not send the data on to other subscribers.<a href="#section-1.2-2.14.1" class="pilcrow">¶</a></p>
+            <p id="section-1.2-2.14.1">The initial publisher of a given track.<a href="#section-1.2-2.14.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-1.2-2.15">Relay:</dt>
+<dt id="section-1.2-2.15">End Subscriber:</dt>
           <dd style="margin-left: 1.5em" id="section-1.2-2.16">
-            <p id="section-1.2-2.16.1">An entity that is both a Publisher and a Subscriber, but not the Original
-Publisher or End Subscriber.<a href="#section-1.2-2.16.1" class="pilcrow">¶</a></p>
+            <p id="section-1.2-2.16.1">A subscriber that initiates a subscription and does not send the data on to other subscribers.<a href="#section-1.2-2.16.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-1.2-2.17">Upstream:</dt>
+<dt id="section-1.2-2.17">Relay:</dt>
           <dd style="margin-left: 1.5em" id="section-1.2-2.18">
-            <p id="section-1.2-2.18.1">In the direction of the Original Publisher<a href="#section-1.2-2.18.1" class="pilcrow">¶</a></p>
+            <p id="section-1.2-2.18.1">An entity that is both a Publisher and a Subscriber, but not the Original
+Publisher or End Subscriber.<a href="#section-1.2-2.18.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-1.2-2.19">Downstream:</dt>
+<dt id="section-1.2-2.19">Upstream:</dt>
           <dd style="margin-left: 1.5em" id="section-1.2-2.20">
-            <p id="section-1.2-2.20.1">In the direction of the End Subscriber(s)<a href="#section-1.2-2.20.1" class="pilcrow">¶</a></p>
+            <p id="section-1.2-2.20.1">In the direction of the Original Publisher<a href="#section-1.2-2.20.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-1.2-2.21">Transport Session:</dt>
+<dt id="section-1.2-2.21">Downstream:</dt>
           <dd style="margin-left: 1.5em" id="section-1.2-2.22">
-            <p id="section-1.2-2.22.1">A raw QUIC connection or a WebTransport session.<a href="#section-1.2-2.22.1" class="pilcrow">¶</a></p>
+            <p id="section-1.2-2.22.1">In the direction of the End Subscriber(s)<a href="#section-1.2-2.22.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-1.2-2.23">Congestion:</dt>
+<dt id="section-1.2-2.23">Transport Session:</dt>
           <dd style="margin-left: 1.5em" id="section-1.2-2.24">
-            <p id="section-1.2-2.24.1">Packet loss and queuing caused by degraded or overloaded networks.<a href="#section-1.2-2.24.1" class="pilcrow">¶</a></p>
+            <p id="section-1.2-2.24.1">A raw QUIC connection or a WebTransport session.<a href="#section-1.2-2.24.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-1.2-2.25">Group:</dt>
+<dt id="section-1.2-2.25">Congestion:</dt>
           <dd style="margin-left: 1.5em" id="section-1.2-2.26">
-            <p id="section-1.2-2.26.1">A temporal sequence of objects. A group represents a join point in a
-track. See (<a href="#model-group" class="auto internal xref">Section 2.3</a>).<a href="#section-1.2-2.26.1" class="pilcrow">¶</a></p>
+            <p id="section-1.2-2.26.1">Packet loss and queuing caused by degraded or overloaded networks.<a href="#section-1.2-2.26.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-1.2-2.27">Object:</dt>
+<dt id="section-1.2-2.27">Group:</dt>
           <dd style="margin-left: 1.5em" id="section-1.2-2.28">
-            <p id="section-1.2-2.28.1">An object is an addressable unit whose payload is a sequence of
-bytes. Objects form the base element in the MOQT data model. See
-(<a href="#model-object" class="auto internal xref">Section 2.1</a>).<a href="#section-1.2-2.28.1" class="pilcrow">¶</a></p>
+            <p id="section-1.2-2.28.1">A temporal sequence of objects. A group represents a join point in a
+track. See (<a href="#model-group" class="auto internal xref">Section 2.3</a>).<a href="#section-1.2-2.28.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-1.2-2.29">Track:</dt>
+<dt id="section-1.2-2.29">Object:</dt>
           <dd style="margin-left: 1.5em" id="section-1.2-2.30">
-            <p id="section-1.2-2.30.1">An encoded bitstream. Tracks contain a sequential series of one or
+            <p id="section-1.2-2.30.1">An object is an addressable unit whose payload is a sequence of
+bytes. Objects form the base element in the MOQT data model. See
+(<a href="#model-object" class="auto internal xref">Section 2.1</a>).<a href="#section-1.2-2.30.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-1.2-2.31">Track:</dt>
+          <dd style="margin-left: 1.5em" id="section-1.2-2.32">
+            <p id="section-1.2-2.32.1">An encoded bitstream. Tracks contain a sequential series of one or
 more groups and are the subscribable entity with MOQT.
-See (<a href="#model-track" class="auto internal xref">Section 2.4</a>).<a href="#section-1.2-2.30.1" class="pilcrow">¶</a></p>
+See (<a href="#model-track" class="auto internal xref">Section 2.4</a>).<a href="#section-1.2-2.32.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
 </dl>
@@ -1813,10 +1778,12 @@ time.<a href="#section-2.1-1" class="pilcrow">¶</a></p>
 <p id="section-2.1-2">Objects are comprised of two parts: metadata and a payload.  The metadata is
 never encrypted and is always visible to relays (see <a href="#relays-moq" class="auto internal xref">Section 5</a>). The
 payload portion may be encrypted, in which case it is only visible to the
-Original Publisher and End Subscribers. The application is solely responsible
-for the content of the object payload. This includes the underlying encoding,
-compression, any end-to-end encryption, or authentication. A relay <span class="bcp14">MUST NOT</span>
-combine, split, or otherwise modify object payloads.<a href="#section-2.1-2" class="pilcrow">¶</a></p>
+Original Publisher and End Subscribers. The Original Publisher is solely
+responsible for the content of the object payload. This includes the
+underlying encoding, compression, any end-to-end encryption, or
+authentication. A relay <span class="bcp14">MUST NOT</span> combine, split, or otherwise modify object
+payloads.<a href="#section-2.1-2" class="pilcrow">¶</a></p>
+<p id="section-2.1-3">Objects within a group are ordered numerically by their Object ID.<a href="#section-2.1-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="model-subgroup">
@@ -1876,7 +1843,8 @@ Groups <span class="bcp14">SHOULD</span> be indendepently useful, so objects wit
 on objects in other groups. A group provides a join point for subscriptions, so a
 subscriber that does not want to receive the entire track can opt to receive only
 the latest group(s).  The publisher then selectively transmits objects based on
-their group membership.<a href="#section-2.3-1" class="pilcrow">¶</a></p>
+their group membership.  Groups can contain any number of objects.<a href="#section-2.3-1" class="pilcrow">¶</a></p>
+<p id="section-2.3-2">Groups are ordered numerically by their Group ID.<a href="#section-2.3-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="model-track">
@@ -1899,7 +1867,9 @@ with it.  A track name identifies an individual track within the
 namespace.<a href="#section-2.4.1-1" class="pilcrow">¶</a></p>
 <p id="section-2.4.1-2">Track namespace is an ordered N-tuple of bytes where N can be between 1 and 32.
 The structured nature of Track Namespace allows relays and applications to
-manipulate prefixes of a namespace. Track name is a sequence of bytes.<a href="#section-2.4.1-2" class="pilcrow">¶</a></p>
+manipulate prefixes of a namespace. Track name is a sequence of bytes.
+If an endpoint receives a Track Namespace tuple with an N of 0 or more
+than 32, it <span class="bcp14">MUST</span> close the session with a Protocol Violation.<a href="#section-2.4.1-2" class="pilcrow">¶</a></p>
 <p id="section-2.4.1-3">In this specification, both the Track Namespace tuple fields and the Track Name
 are not constrained to a specific encoding. They carry a sequence of bytes and
 comparison between two Track Namespace tuple fields or Track Names is done by
@@ -1990,7 +1960,7 @@ using definitions from <span>[<a href="#RFC3986" class="cite xref">RFC3986</a>]<
 moqt-URI = "moqt" "://" authority path-abempty [ "?" query ]
 </pre><a href="#section-3.1.2-2" class="pilcrow">¶</a>
 </div>
-<p id="section-3.1.2-3">The <code>authority</code> portion <span class="bcp14">MUST NOT</span> contain a non-empty <code>host</code> portion.
+<p id="section-3.1.2-3">The <code>authority</code> portion <span class="bcp14">MUST NOT</span> contain an empty <code>host</code> portion.
 The <code>moqt</code> URI scheme supports the <code>/.well-known/</code> path prefix defined in
 <span>[<a href="#RFC8615" class="cite xref">RFC8615</a>]</span>.<a href="#section-3.1.2-3" class="pilcrow">¶</a></p>
 <p id="section-3.1.2-4">This protocol does not specify any semantics on the <code>path-abempty</code> and
@@ -2037,13 +2007,13 @@ separate Setup parameters for that information in each version.<a href="#section
 <a href="#section-3.3" class="section-number selfRef">3.3. </a><a href="#name-session-initialization" class="section-name selfRef">Session initialization</a>
         </h3>
 <p id="section-3.3-1">The first stream opened is a client-initiated bidirectional control stream where
-the peers exchange Setup messages (<a href="#message-setup" class="auto internal xref">Section 6.2</a>).  All messages defined in
-this draft except OBJECT and OBJECT_WITH_LENGTH are sent on the control stream
-after the Setup message. Control messages <span class="bcp14">MUST NOT</span> be sent on any other stream,
-and a peer receiving a control message on a different stream closes the session
-as a 'Protocol Violation'. Objects <span class="bcp14">MUST NOT</span> be sent on the control stream, and a
-peer receiving an Object on the control stream closes the session as a 'Protocol
-Violation'.<a href="#section-3.3-1" class="pilcrow">¶</a></p>
+the endpoints exchange Setup messages (<a href="#message-setup" class="auto internal xref">Section 6.2</a>).  All messages defined
+in this draft except OBJECT and OBJECT_WITH_LENGTH are sent on the control
+stream after the Setup message. Control messages <span class="bcp14">MUST NOT</span> be sent on any other
+stream, and a peer receiving a control message on a different stream closes the
+session as a 'Protocol Violation'. Objects <span class="bcp14">MUST NOT</span> be sent on the control
+stream, and a peer receiving an Object on the control stream closes the session
+as a 'Protocol Violation'.<a href="#section-3.3-1" class="pilcrow">¶</a></p>
 <p id="section-3.3-2">This draft only specifies a single use of bidirectional streams. Objects are
 sent on unidirectional streams.  Because there are no other uses of
 bidirectional streams, a peer <span class="bcp14">MAY</span> currently close the session as a
@@ -2142,7 +2112,7 @@ that was already in use.<a href="#section-3.5-4.5.1" class="pilcrow">¶</a></p>
 a Subscribe ID equal or larger than the current Maximum Subscribe ID.<a href="#section-3.5-4.6.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-3.5-4.7">
-            <p id="section-3.5-4.7.1">GOAWAY Timeout: The session was closed because the client took too long to
+            <p id="section-3.5-4.7.1">GOAWAY Timeout: The session was closed because the peer took too long to
 close the session in response to a GOAWAY (<a href="#message-goaway" class="auto internal xref">Section 6.3</a>) message.
 See session migration (<a href="#session-migration" class="auto internal xref">Section 3.6</a>).<a href="#section-3.5-4.7.1" class="pilcrow">¶</a></p>
 </li>
@@ -2154,20 +2124,18 @@ See session migration (<a href="#session-migration" class="auto internal xref">S
         <h3 id="name-migration">
 <a href="#section-3.6" class="section-number selfRef">3.6. </a><a href="#name-migration" class="section-name selfRef">Migration</a>
         </h3>
-<p id="section-3.6-1">MoqTransport requires a long-lived and stateful session. However, a service
+<p id="section-3.6-1">MOQT requires a long-lived and stateful session. However, a service
 provider needs the ability to shutdown/restart a server without waiting for all
 sessions to drain naturally, as that can take days for long-form media.
-MoqTransport avoids this via the GOAWAY message (<a href="#message-goaway" class="auto internal xref">Section 6.3</a>).<a href="#section-3.6-1" class="pilcrow">¶</a></p>
-<p id="section-3.6-2">The server sends a GOAWAY message, signaling that the client should establish a
-new session and migrate any active subscriptions. The GOAWAY message may contain
-a new URI for the new session, otherwise the current URI is reused. The server
-<span class="bcp14">SHOULD</span> terminate the session with 'GOAWAY Timeout' after a sufficient timeout if
-there are still open subscriptions on a connection.<a href="#section-3.6-2" class="pilcrow">¶</a></p>
-<p id="section-3.6-3">The GOAWAY message does not immediately impact subscription state. A subscriber
-<span class="bcp14">SHOULD</span> individually UNSUBSCRIBE for each existing subscription, while a
-publisher <span class="bcp14">MAY</span> reject new SUBSCRIBEs while in the draining state. When the server
-is a subscriber, it <span class="bcp14">SHOULD</span> send a GOAWAY message to downstream subscribers
-prior to any UNSUBSCRIBE messages to upstream publishers.<a href="#section-3.6-3" class="pilcrow">¶</a></p>
+MOQT enables proactively draining sessions via the GOAWAY message (<a href="#message-goaway" class="auto internal xref">Section 6.3</a>).<a href="#section-3.6-1" class="pilcrow">¶</a></p>
+<p id="section-3.6-2">The server sends a GOAWAY message, signaling the client to establish a new
+session and migrate any active subscriptions. The GOAWAY message optionally
+contains a new URI for the new session, otherwise the current URI is
+reused. The server <span class="bcp14">SHOULD</span> terminate the session with 'GOAWAY Timeout' after a
+sufficient timeout if there are still open subscriptions or fetches on a
+connection.<a href="#section-3.6-2" class="pilcrow">¶</a></p>
+<p id="section-3.6-3">When the server is a subscriber, it <span class="bcp14">SHOULD</span> send a GOAWAY message to downstream
+subscribers prior to any UNSUBSCRIBE messages to upstream publishers.<a href="#section-3.6-3" class="pilcrow">¶</a></p>
 <p id="section-3.6-4">After the client receives a GOAWAY, it's <span class="bcp14">RECOMMENDED</span> that the client waits until
 there are no more active subscriptions before closing the session with NO_ERROR.
 Ideally this is transparent to the application using MOQT, which involves
@@ -2286,6 +2254,9 @@ are present within a session, the namespaces could be coordinating,
 possibly part of the same application.  In cases when pooling among
 namespaces is expected to cause issues, multiple MoQ sessions, either
 within a single connection or on multiple connections can be used.<a href="#section-4.3-2" class="pilcrow">¶</a></p>
+<p id="section-4.3-3">Implementations that have a default priority <span class="bcp14">SHOULD</span> set it to a value in
+the middle of the range (eg: 128) to allow non-default priorities to be
+set either higher or lower.<a href="#section-4.3-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -2329,7 +2300,7 @@ received for the track, to ensure the Group Order is correct.<a href="#section-5
 subscribers for each track. Each new OBJECT belonging to the
 track within the subscription range is forwarded to each active
 subscriber, dependent on the congestion response. A subscription
-remains active until the publisher of the track terminates the
+remains active until soon after the publisher of the track terminates the
 subscription with a SUBSCRIBE_DONE (see <a href="#message-subscribe-done" class="auto internal xref">Section 6.19</a>).<a href="#section-5.1-3" class="pilcrow">¶</a></p>
 <p id="section-5.1-4">A caching relay saves Objects to its cache identified by the Object's
 Full Track Name, Group ID and Object ID. Relays <span class="bcp14">MUST</span> be able to
@@ -2424,6 +2395,10 @@ SUBSCRIBE_DONE, as defined below:<a href="#section-5.1-10" class="pilcrow">¶</a
             <tr>
               <td class="text-right" rowspan="1" colspan="1">0x6</td>
               <td class="text-left" rowspan="1" colspan="1">Expired</td>
+            </tr>
+            <tr>
+              <td class="text-right" rowspan="1" colspan="1">0x7</td>
+              <td class="text-left" rowspan="1" colspan="1">Too Far Behind</td>
             </tr>
           </tbody>
         </table>
@@ -2544,10 +2519,10 @@ combine, split, or otherwise modify object payloads.  A relay <span class="bcp14
 prioritize sending Objects based on <a href="#priorities" class="auto internal xref">Section 4</a>.<a href="#section-5.3-2" class="pilcrow">¶</a></p>
 <p id="section-5.3-3">A publisher <span class="bcp14">SHOULD</span> begin sending incomplete objects when available to
 avoid incurring additional latency.<a href="#section-5.3-3" class="pilcrow">¶</a></p>
-<p id="section-5.3-4">A relay that reads from a stream and writes to stream in order will
+<p id="section-5.3-4">A relay that reads from one stream and writes to another in order can
 introduce head-of-line blocking.  Packet loss will cause stream data to
-be buffered in the library, awaiting in order delivery, which will
-increase latency over additional hops.  To mitigate this, a relay <span class="bcp14">SHOULD</span>
+be buffered in the library, awaiting in-order delivery, which could
+increase latency over additional hops.  To mitigate this, a relay <span class="bcp14">MAY</span>
 read and write stream data out of order subject to flow control
 limits.  See section 2.2 in <span>[<a href="#QUIC" class="cite xref">QUIC</a>]</span>.<a href="#section-5.3-4" class="pilcrow">¶</a></p>
 </section>
@@ -2751,10 +2726,10 @@ these parameters to appear in Setup messages.<a href="#section-6.1.1-1" class="p
             <h5 id="name-authorization-info">
 <a href="#section-6.1.1.1" class="section-number selfRef">6.1.1.1. </a><a href="#name-authorization-info" class="section-name selfRef">AUTHORIZATION INFO</a>
             </h5>
-<p id="section-6.1.1.1-1">AUTHORIZATION INFO parameter (key 0x02) identifies a track's authorization
-information in a SUBSCRIBE, SUBSCRIBE_ANNOUNCES or ANNOUNCE message. This
-parameter is populated for cases where the authorization is required at the
-track level. The value is an ASCII string.<a href="#section-6.1.1.1-1" class="pilcrow">¶</a></p>
+<p id="section-6.1.1.1-1">AUTHORIZATION INFO parameter (Parameter Type 0x02) identifies a track's
+authorization information in a SUBSCRIBE, SUBSCRIBE_ANNOUNCES, ANNOUNCE
+or FETCH message. This parameter is populated for cases where the authorization
+is required at the track level. The value is an ASCII string.<a href="#section-6.1.1.1-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="delivery-timeout">
@@ -2762,27 +2737,32 @@ track level. The value is an ASCII string.<a href="#section-6.1.1.1-1" class="pi
             <h5 id="name-delivery-timeout-parameter">
 <a href="#section-6.1.1.2" class="section-number selfRef">6.1.1.2. </a><a href="#name-delivery-timeout-parameter" class="section-name selfRef">DELIVERY TIMEOUT Parameter</a>
             </h5>
-<p id="section-6.1.1.2-1">The DELIVERY TIMEOUT parameter (key 0x03) <span class="bcp14">MAY</span> appear in a SUBSCRIBE,
-SUBSCRIBE_OK, or a SUBSCRIBE_UDPATE message.  It is the duration in milliseconds
-the relay <span class="bcp14">SHOULD</span> continue to attempt forwarding Objects after they have been
-received.  The start time for the timeout is based on when the beginning of the
-Object is received, and does not depend upon the forwarding preference. There is
-no explicit signal that an Object was not sent because the delivery timeout
-was exceeded.<a href="#section-6.1.1.2-1" class="pilcrow">¶</a></p>
+<p id="section-6.1.1.2-1">The DELIVERY TIMEOUT parameter (Parameter Type 0x03) <span class="bcp14">MAY</span> appear in a
+SUBSCRIBE, SUBSCRIBE_OK, or a SUBSCRIBE_UDPATE message.  It is the duration in
+milliseconds the relay <span class="bcp14">SHOULD</span> continue to attempt forwarding Objects after
+they have been received.  The start time for the timeout is based on when the
+beginning of the Object is received, and does not depend upon the forwarding
+preference. There is no explicit signal that an Object was not sent because
+the delivery timeout was exceeded.<a href="#section-6.1.1.2-1" class="pilcrow">¶</a></p>
 <p id="section-6.1.1.2-2">If both the subscriber and publisher specify the parameter, they use the min of the
 two values for the subscription.  The publisher <span class="bcp14">SHOULD</span> always specify the value
 received from an upstream subscription when there is one, and nothing otherwise.
 If an earlier Object arrives later than subsequent Objects, relays can consider
 the receipt time as that of the next later Object, with the assumption that the
 Object's data was reordered.<a href="#section-6.1.1.2-2" class="pilcrow">¶</a></p>
-<p id="section-6.1.1.2-3">If neither the subscriber or publisher specify DELIVERY TIMEOUT, Objects are
-delivered as indicated by their Group Order and Priority.<a href="#section-6.1.1.2-3" class="pilcrow">¶</a></p>
-<p id="section-6.1.1.2-4">When sent by a subscriber, this parameter is intended to be specific to a
+<p id="section-6.1.1.2-3">If neither the subscriber or publisher specify DELIVERY TIMEOUT, all Objects
+in the track matching the subscription filter are delivered as indicated by
+their Group Order and Priority.  If a subscriber exceeds the publisher's
+resource limits by failing to consume objects at a sufficient rate, the
+publisher <span class="bcp14">MAY</span> terminate the subscription with error 'Too Far Behind'.<a href="#section-6.1.1.2-3" class="pilcrow">¶</a></p>
+<p id="section-6.1.1.2-4">If an object in a subgroup exceeds the delivery timeout, the publisher <span class="bcp14">MUST</span>
+reset the underlying transport stream (see <a href="#closing-subgroup-streams" class="auto internal xref">Section 7.4.2</a>).<a href="#section-6.1.1.2-4" class="pilcrow">¶</a></p>
+<p id="section-6.1.1.2-5">When sent by a subscriber, this parameter is intended to be specific to a
 subscription, so it <span class="bcp14">SHOULD NOT</span> be forwarded upstream by a relay that intends
-to serve multiple subscriptions for the same track.<a href="#section-6.1.1.2-4" class="pilcrow">¶</a></p>
-<p id="section-6.1.1.2-5">Publishers <span class="bcp14">SHOULD</span> consider whether the entire Object is likely to be delivered
+to serve multiple subscriptions for the same track.<a href="#section-6.1.1.2-5" class="pilcrow">¶</a></p>
+<p id="section-6.1.1.2-6">Publishers <span class="bcp14">SHOULD</span> consider whether the entire Object is likely to be delivered
 before sending any data for that Object, taking into account priorities,
-congestion control, and any other relevant information.<a href="#section-6.1.1.2-5" class="pilcrow">¶</a></p>
+congestion control, and any other relevant information.<a href="#section-6.1.1.2-6" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="max-cache-duration">
@@ -2790,13 +2770,13 @@ congestion control, and any other relevant information.<a href="#section-6.1.1.2
             <h5 id="name-max-cache-duration-paramete">
 <a href="#section-6.1.1.3" class="section-number selfRef">6.1.1.3. </a><a href="#name-max-cache-duration-paramete" class="section-name selfRef">MAX CACHE DURATION Parameter</a>
             </h5>
-<p id="section-6.1.1.3-1">MAX_CACHE_DURATION (key 0x04): An integer expressing a number of milliseconds. If
-present, the relay <span class="bcp14">MUST NOT</span> start forwarding any individual Object received
-through this subscription after the specified number of milliseconds has elapsed
-since the beginning of the Object was received.  This means Objects earlier
-in a multi-object stream will expire earlier than Objects later in the stream.
-Once Objects have expired, their state becomes unknown, and a relay that
-handles a subscription that includes those Objects re-requests them.<a href="#section-6.1.1.3-1" class="pilcrow">¶</a></p>
+<p id="section-6.1.1.3-1">MAX_CACHE_DURATION (Parameter Type 0x04): An integer expressing a number of
+milliseconds. If present, the relay <span class="bcp14">MUST NOT</span> start forwarding any individual
+Object received through this subscription after the specified number of
+milliseconds has elapsed since the beginning of the Object was received.  This
+means Objects earlier in a multi-object stream will expire earlier than Objects
+later in the stream. Once Objects have expired, their state becomes unknown, and
+a relay that handles a subscription that includes those Objects re-requests them.<a href="#section-6.1.1.3-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -2809,11 +2789,11 @@ handles a subscription that includes those Objects re-requests them.<a href="#se
 <a href="#section-6.2" class="section-number selfRef">6.2. </a><a href="#name-client_setup-and-server_set" class="section-name selfRef">CLIENT_SETUP and SERVER_SETUP</a>
         </h3>
 <p id="section-6.2-1">The <code>CLIENT_SETUP</code> and <code>SERVER_SETUP</code> messages are the first messages exchanged
-by the client and the server; they allows the peers to establish the mutually
+by the client and the server; they allow the endpoints to establish the mutually
 supported version and agree on the initial configuration before any objects are
 exchanged. It is a sequence of key-value pairs called Setup parameters; the
 semantics and format of which can vary based on whether the client or server is
-sending.  To ensure future extensibility of MOQT, the peers <span class="bcp14">MUST</span> ignore unknown
+sending.  To ensure future extensibility of MOQT, endpoints <span class="bcp14">MUST</span> ignore unknown
 setup parameters. TODO: describe GREASE for those.<a href="#section-6.2-1" class="pilcrow">¶</a></p>
 <p id="section-6.2-2">The wire format of the Setup messages are as follows:<a href="#section-6.2-2" class="pilcrow">¶</a></p>
 <span id="name-moqt-setup-messages"></span><div id="moq-transport-setup-format">
@@ -2876,8 +2856,8 @@ identified as 0xff00000D.<a href="#section-6.2.1-4" class="pilcrow">¶</a></p>
             <h5 id="name-path">
 <a href="#section-6.2.2.1" class="section-number selfRef">6.2.2.1. </a><a href="#name-path" class="section-name selfRef">PATH</a>
             </h5>
-<p id="section-6.2.2.1-1">The PATH parameter (key 0x01) allows the client to specify the path of
-the MoQ URI when using native QUIC (<span>[<a href="#QUIC" class="cite xref">QUIC</a>]</span>).  It <span class="bcp14">MUST NOT</span> be used by
+<p id="section-6.2.2.1-1">The PATH parameter (Parameter Type 0x01) allows the client to specify the path
+of the MoQ URI when using native QUIC (<span>[<a href="#QUIC" class="cite xref">QUIC</a>]</span>).  It <span class="bcp14">MUST NOT</span> be used by
 the server, or when WebTransport is used.  If the peer receives a PATH
 parameter from the server, or when WebTransport is used, it <span class="bcp14">MUST</span> close
 the connection. It follows the URI formatting rules <span>[<a href="#RFC3986" class="cite xref">RFC3986</a>]</span>.<a href="#section-6.2.2.1-1" class="pilcrow">¶</a></p>
@@ -2892,9 +2872,7 @@ the <code>query</code> portion of the URI to the parameter.<a href="#section-6.2
             <h5 id="name-max_subscribe_id">
 <a href="#section-6.2.2.2" class="section-number selfRef">6.2.2.2. </a><a href="#name-max_subscribe_id" class="section-name selfRef">MAX_SUBSCRIBE_ID</a>
             </h5>
-<p id="section-6.2.2.2-1">The MAX_SUBSCRIBE_ID parameter (key 0x02) communicates an initial value for
-the Maximum Subscribe ID to the receiving subscriber. The default value is 0,
-so if not specified, the peer <span class="bcp14">MUST NOT</span> create subscriptions.<a href="#section-6.2.2.2-1" class="pilcrow">¶</a></p>
+<p id="section-6.2.2.2-1">The MAX_SUBSCRIBE_ID parameter (Parameter Type 0x02) communicates an initial value for the Maximum Subscribe ID to the receiving subscriber. The default value is 0, so if not specified, the peer <span class="bcp14">MUST NOT</span> create subscriptions.<a href="#section-6.2.2.2-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -2906,15 +2884,19 @@ so if not specified, the peer <span class="bcp14">MUST NOT</span> create subscri
         <h3 id="name-goaway">
 <a href="#section-6.3" class="section-number selfRef">6.3. </a><a href="#name-goaway" class="section-name selfRef">GOAWAY</a>
         </h3>
-<p id="section-6.3-1">The server sends a <code>GOAWAY</code> message to initiate session migration
+<p id="section-6.3-1">An endpoint sends a <code>GOAWAY</code> message to inform the peer it intends to close
+the session soon.  Servers can use GOAWAY to initiate session migration
 (<a href="#session-migration" class="auto internal xref">Section 3.6</a>) with an optional URI.<a href="#section-6.3-1" class="pilcrow">¶</a></p>
-<p id="section-6.3-2">The server <span class="bcp14">MUST</span> terminate the session with a Protocol Violation
-(<a href="#session-termination" class="auto internal xref">Section 3.5</a>) if it receives a GOAWAY message. The client <span class="bcp14">MUST</span>
-terminate the session with a Protocol Violation (<a href="#session-termination" class="auto internal xref">Section 3.5</a>) if it
-receives multiple GOAWAY messages.<a href="#section-6.3-2" class="pilcrow">¶</a></p>
+<p id="section-6.3-2">The GOAWAY message does not impact subscription state. A subscriber
+<span class="bcp14">SHOULD</span> individually UNSUBSCRIBE for each existing subscription, while a
+publisher <span class="bcp14">MAY</span> reject new requests while in the draining state.<a href="#section-6.3-2" class="pilcrow">¶</a></p>
+<p id="section-6.3-3">Upon receiving a GOAWAY, an endpoint <span class="bcp14">SHOULD NOT</span> initiate new requests to
+the peer including SUBSCRIBE, FETCH, ANNOUNCE and SUBSCRIBE_ANNOUNCE.<a href="#section-6.3-3" class="pilcrow">¶</a></p>
+<p id="section-6.3-4">The endpoint <span class="bcp14">MUST</span> terminate the session with a Protocol Violation
+(<a href="#session-termination" class="auto internal xref">Section 3.5</a>) if it receives multiple GOAWAY messages.<a href="#section-6.3-4" class="pilcrow">¶</a></p>
 <span id="name-moqt-goaway-message"></span><div id="moq-transport-goaway-format">
 <figure id="figure-4">
-          <div class="alignLeft art-text artwork" id="section-6.3-3.1">
+          <div class="alignLeft art-text artwork" id="section-6.3-5.1">
 <pre>
 GOAWAY Message {
   Type (i) = 0x10,
@@ -2929,11 +2911,15 @@ GOAWAY Message {
           </figcaption></figure>
 </div>
 <ul class="normal">
-<li class="normal" id="section-6.3-4.1">
-            <p id="section-6.3-4.1.1">New Session URI: The client <span class="bcp14">MUST</span> use this URI for the new session if provided.
-If the URI is zero bytes long, the current URI is reused instead. The new
-session URI <span class="bcp14">SHOULD</span> use the same scheme as the current URL to ensure
-compatibility.<a href="#section-6.3-4.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-6.3-6.1">
+            <p id="section-6.3-6.1.1">New Session URI: When received by a client, indicates where the client can
+connect to continue this session.  The client <span class="bcp14">MUST</span> use this URI for the new
+session if provided. If the URI is zero bytes long, the client can reuse the
+current URI is reused instead. The new session URI <span class="bcp14">SHOULD</span> use the same scheme
+as the current URL to ensure compatibility.<a href="#section-6.3-6.1.1" class="pilcrow">¶</a></p>
+<p id="section-6.3-6.1.2">
+If a server receives a GOAWAY with a non-zero New Session URI Length it <span class="bcp14">MUST</span>
+terminate the session with a Protocol Violation.<a href="#section-6.3-6.1.2" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
@@ -3137,8 +3123,7 @@ See <a href="#priorities" class="auto internal xref">Section 4</a>.<a href="#sec
 <p id="section-6.6-1">A subscriber issues a <code>UNSUBSCRIBE</code> message to a publisher indicating it is no
 longer interested in receiving media for the specified track and Objects
 should stop being sent as soon as possible.  The publisher sends a
-SUBSCRIBE_DONE to acknowledge the unsubscribe was successful and indicate
-the final Object.<a href="#section-6.6-1" class="pilcrow">¶</a></p>
+SUBSCRIBE_DONE to acknowledge the unsubscribe was successful.<a href="#section-6.6-1" class="pilcrow">¶</a></p>
 <p id="section-6.6-2">The format of <code>UNSUBSCRIBE</code> is as follows:<a href="#section-6.6-2" class="pilcrow">¶</a></p>
 <span id="name-moqt-unsubscribe-message"></span><div id="moq-transport-unsubscribe-format">
 <figure id="figure-7">
@@ -3466,7 +3451,9 @@ against track namespaces known to the publisher.  For example, if the publisher
 is a relay that has received ANNOUNCE messages for namespaces ("example.com",
 "meeting=123", "participant=100") and ("example.com", "meeting=123",
 "participant=200"), a SUBSCRIBE_ANNOUNCES for ("example.com", "meeting=123")
-would match both.<a href="#section-6.13-3.1.1" class="pilcrow">¶</a></p>
+would match both.  If an endpoint receives a Track Namespace Prefix tuple with
+an N of 0 or more than 32, it <span class="bcp14">MUST</span> close the session with a Protocol
+Violation.<a href="#section-6.13-3.1.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-6.13-3.2">
             <p id="section-6.13-3.2.1">Parameters: The parameters are defined in <a href="#version-specific-params" class="auto internal xref">Section 6.1.1</a>.<a href="#section-6.13-3.2.1" class="pilcrow">¶</a></p>
@@ -3735,23 +3722,47 @@ FETCH_ERROR
 <a href="#section-6.19" class="section-number selfRef">6.19. </a><a href="#name-subscribe_done" class="section-name selfRef">SUBSCRIBE_DONE</a>
         </h3>
 <p id="section-6.19-1">A publisher sends a <code>SUBSCRIBE_DONE</code> message to indicate it is done publishing
-Objects for that subscription.  The Status Code indicates why the subscription ended,
-and whether it was an error.<a href="#section-6.19-1" class="pilcrow">¶</a></p>
-<p id="section-6.19-2">The format of <code>SUBSCRIBE_DONE</code> is as follows:<a href="#section-6.19-2" class="pilcrow">¶</a></p>
+Objects for that subscription.  The Status Code indicates why the subscription
+ended, and whether it was an error. Because SUBSCRIBE_DONE is sent on the
+control stream, it is likely to arrive at the receiver before late-arriving
+objects, and often even late-opening streams. However, the receiver uses it
+as an indication that it should receive any late-opening streams in a relatively
+short time.<a href="#section-6.19-1" class="pilcrow">¶</a></p>
+<p id="section-6.19-2">Note that some objects in the subscribed track might never be delivered,
+because a stream was reset, or never opened in the first place, due to the
+delivery timeout.<a href="#section-6.19-2" class="pilcrow">¶</a></p>
+<p id="section-6.19-3">A sender <span class="bcp14">MUST NOT</span> send SUBSCRIBE_DONE until it has closed all streams it will
+ever open, and has no further datagrams to send, for a subscription. After
+sending SUBSCRIBE_DONE, the sender can immediately destroy subscription state,
+although stream state can persist until delivery completes. The sender might
+persist subscription state to enforce the delivery timeout by resetting streams
+on which it has already sent FIN, only deleting it when all such streams have
+received ACK of the FIN.<a href="#section-6.19-3" class="pilcrow">¶</a></p>
+<p id="section-6.19-4">A sender <span class="bcp14">MUST NOT</span> destroy subscription state until it sends SUBSCRIBE_DONE,
+though it can choose to stop sending objects (and thus send SUBSCRIBE_DONE) for
+any reason.<a href="#section-6.19-4" class="pilcrow">¶</a></p>
+<p id="section-6.19-5">A subscriber that receives SUBSCRIBE_DONE <span class="bcp14">SHOULD</span> set a timer of at least its
+delivery timeout in case some objects are still inbound due to prioritization
+or packet loss. The subscriber <span class="bcp14">MAY</span> dispense with a timer if it sent UNSUBSCRIBE
+or is otherwise no longer interested in objects from the track. Once the timer
+has expired, the receiver destroys subscription state once all open streams for
+the subscription have closed. A subscriber <span class="bcp14">MAY</span> discard subscription state
+earlier, at the cost of potentially not delivering some late objects to the
+application. The subscriber <span class="bcp14">SHOULD</span> send STOP_SENDING on all streams related to
+the subscription when it deletes subscription state.<a href="#section-6.19-5" class="pilcrow">¶</a></p>
+<p id="section-6.19-6">The format of <code>SUBSCRIBE_DONE</code> is as follows:<a href="#section-6.19-6" class="pilcrow">¶</a></p>
 <span id="name-moqt-subscribe_done-message"></span><div id="moq-transport-subscribe-fin-format">
 <figure id="figure-20">
-          <div class="alignLeft art-text artwork" id="section-6.19-3.1">
+          <div class="alignLeft art-text artwork" id="section-6.19-7.1">
 <pre>
 SUBSCRIBE_DONE Message {
   Type (i) = 0xB,
   Length (i),
   Subscribe ID (i),
   Status Code (i),
+  Stream Count (i),
   Reason Phrase Length (i),
   Reason Phrase (..),
-  ContentExists (8),
-  [Final Group (i)],
-  [Final Object (i)],
 }
 </pre>
 </div>
@@ -3760,28 +3771,19 @@ SUBSCRIBE_DONE Message {
           </figcaption></figure>
 </div>
 <ul class="normal">
-<li class="normal" id="section-6.19-4.1">
-            <p id="section-6.19-4.1.1">Subscribe ID: Subscription identifier as defined in <a href="#message-subscribe-req" class="auto internal xref">Section 6.4</a>.<a href="#section-6.19-4.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-6.19-8.1">
+            <p id="section-6.19-8.1.1">Subscribe ID: Subscription identifier as defined in <a href="#message-subscribe-req" class="auto internal xref">Section 6.4</a>.<a href="#section-6.19-8.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-6.19-4.2">
-            <p id="section-6.19-4.2.1">Status Code: An integer status code indicating why the subscription ended.<a href="#section-6.19-4.2.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-6.19-8.2">
+            <p id="section-6.19-8.2.1">Status Code: An integer status code indicating why the subscription ended.<a href="#section-6.19-8.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-6.19-4.3">
-            <p id="section-6.19-4.3.1">Reason Phrase: Provides the reason for subscription error.<a href="#section-6.19-4.3.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-6.19-8.3">
+            <p id="section-6.19-8.3.1">Stream Count: An integer indicating the number of data streams the publisher
+opened for this subscription.  The subscriber can remove all subscription state
+once the same number of streams have been processed.<a href="#section-6.19-8.3.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-6.19-4.4">
-            <p id="section-6.19-4.4.1">ContentExists: 1 if an object has been published for this subscription, 0 if
-not. If 0, then the Final Group and Final Object fields will not be present.
-Any other value is a protocol error and <span class="bcp14">MUST</span> terminate the session with a
-Protocol Violation (<a href="#session-termination" class="auto internal xref">Section 3.5</a>).<a href="#section-6.19-4.4.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="section-6.19-4.5">
-            <p id="section-6.19-4.5.1">Final Group: The largest Group ID sent by the publisher in an OBJECT
-message in this track.<a href="#section-6.19-4.5.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="section-6.19-4.6">
-            <p id="section-6.19-4.6.1">Final Object: The largest Object ID sent by the publisher in an OBJECT
-message in the <code>Final Group</code> for this track.<a href="#section-6.19-4.6.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-6.19-8.4">
+            <p id="section-6.19-8.4.1">Reason Phrase: Provides the reason for subscription error.<a href="#section-6.19-8.4.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
@@ -4058,14 +4060,35 @@ failure.<a href="#section-6.26-3.2.1" class="pilcrow">¶</a></p>
 <a href="#section-7" class="section-number selfRef">7. </a><a href="#name-data-streams" class="section-name selfRef">Data Streams</a>
       </h2>
 <p id="section-7-1">A publisher sends Objects matching a subscription on Data Streams.<a href="#section-7-1" class="pilcrow">¶</a></p>
-<p id="section-7-2">All unidirectional MOQT streams, as well as all datagrams, start with a
-variable-length integer indicating the type of the stream in question.<a href="#section-7-2" class="pilcrow">¶</a></p>
+<p id="section-7-2">All unidirectional MOQT streams start with a variable-length integer indicating
+the type of the stream in question.<a href="#section-7-2" class="pilcrow">¶</a></p>
 <table class="center" id="table-5">
         <caption><a href="#table-5" class="selfRef">Table 5</a></caption>
 <thead>
           <tr>
             <th class="text-right" rowspan="1" colspan="1">ID</th>
-            <th class="text-left" rowspan="1" colspan="1">Stream Type</th>
+            <th class="text-left" rowspan="1" colspan="1">Type</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="text-right" rowspan="1" colspan="1">0x4</td>
+            <td class="text-left" rowspan="1" colspan="1">STREAM_HEADER_SUBGROUP  (<a href="#stream-header-subgroup" class="auto internal xref">Section 7.4.1</a>)</td>
+          </tr>
+          <tr>
+            <td class="text-right" rowspan="1" colspan="1">0x5</td>
+            <td class="text-left" rowspan="1" colspan="1">FETCH_HEADER  (<a href="#fetch-header" class="auto internal xref">Section 7.4.3</a>)</td>
+          </tr>
+        </tbody>
+      </table>
+<p id="section-7-4">All MOQT datagrams start with a variable-length integer indicating the type of
+the datagram.<a href="#section-7-4" class="pilcrow">¶</a></p>
+<table class="center" id="table-6">
+        <caption><a href="#table-6" class="selfRef">Table 6</a></caption>
+<thead>
+          <tr>
+            <th class="text-right" rowspan="1" colspan="1">ID</th>
+            <th class="text-left" rowspan="1" colspan="1">Type</th>
           </tr>
         </thead>
         <tbody>
@@ -4077,21 +4100,14 @@ variable-length integer indicating the type of the stream in question.<a href="#
             <td class="text-right" rowspan="1" colspan="1">0x2</td>
             <td class="text-left" rowspan="1" colspan="1">OBJECT_DATAGRAM_STATUS (<a href="#object-datagram" class="auto internal xref">Section 7.2</a>)</td>
           </tr>
-          <tr>
-            <td class="text-right" rowspan="1" colspan="1">0x4</td>
-            <td class="text-left" rowspan="1" colspan="1">STREAM_HEADER_SUBGROUP  (<a href="#stream-header-subgroup" class="auto internal xref">Section 7.4.1</a>)</td>
-          </tr>
-          <tr>
-            <td class="text-right" rowspan="1" colspan="1">0x5</td>
-            <td class="text-left" rowspan="1" colspan="1">FETCH_HEADER  (<a href="#fetch-header" class="auto internal xref">Section 7.4.3</a>)</td>
-          </tr>
         </tbody>
       </table>
-<p id="section-7-4">An endpoint that receives an unknown stream type <span class="bcp14">MUST</span> close the session.<a href="#section-7-4" class="pilcrow">¶</a></p>
-<p id="section-7-5">Every Track has a single 'Object Forwarding Preference' and the Original
+<p id="section-7-6">An endpoint that receives an unknown stream or datagram type <span class="bcp14">MUST</span> close the
+session.<a href="#section-7-6" class="pilcrow">¶</a></p>
+<p id="section-7-7">Every Track has a single 'Object Forwarding Preference' and the Original
 Publisher <span class="bcp14">MUST NOT</span> mix different forwarding preferences within a single track.
 If a subscriber receives different forwarding preferences for a track, it
-<span class="bcp14">SHOULD</span> close the session with an error of 'Protocol Violation'.<a href="#section-7-5" class="pilcrow">¶</a></p>
+<span class="bcp14">SHOULD</span> close the session with an error of 'Protocol Violation'.<a href="#section-7-7" class="pilcrow">¶</a></p>
 <div id="message-object">
 <section id="section-7.1">
         <h3 id="name-object-headers">
@@ -4327,7 +4343,12 @@ stream, it <span class="bcp14">MUST</span> use a RESET_STREAM or RESET_STREAM_AT
 Subgroup exceeding its Delivery Timeout, early termination of subscription due to
 an UNSUBSCRIBE message, a publisher's decision to end the subscription early, or a
 SUBSCRIBE_UPDATE moving the end of the subscription to before the current Group
-or the start after the current Group.<a href="#section-7.4.2-3" class="pilcrow">¶</a></p>
+or the start after the current Group.  When RESET_STREAM_AT is used, the
+reliable_size <span class="bcp14">SHOULD</span> include the stream header so the receiver can identify the
+corresponding subscription and accurately account for reset data streams when
+handling SUBSCRIBE_DONE (see <a href="#message-subscribe-done" class="auto internal xref">Section 6.19</a>).  Publishers that reset
+data streams without using RESET_STREAM_AT with an appropriate reliable_size can
+cause subscribers to hold on to subscription state until a timeout expires.<a href="#section-7.4.2-3" class="pilcrow">¶</a></p>
 <p id="section-7.4.2-4">A sender might send all objects in a Subgroup and the FIN on a QUIC stream,
 and then reset the stream. In this case, the receiving application would receive
 the FIN if and only if all objects were received. If the application receives
@@ -4409,6 +4430,8 @@ FETCH_HEADER Message {
             </figcaption></figure>
 </div>
 <p id="section-7.4.3-5">The Object Status field is only sent if the Object Payload Length is zero.<a href="#section-7.4.3-5" class="pilcrow">¶</a></p>
+<p id="section-7.4.3-6">The Subgroup ID field of an object with a Forwarding Preference of "Datagram"
+(see <a href="#object-fields" class="auto internal xref">Section 7.1.1</a>) is set to the Object ID.<a href="#section-7.4.3-6" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
