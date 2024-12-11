@@ -2040,20 +2040,28 @@ failure.
 
 A publisher sends Objects matching a subscription on Data Streams.
 
-All unidirectional MOQT streams, as well as all datagrams, start with a
-variable-length integer indicating the type of the stream in question.
+All unidirectional MOQT streams start with a variable-length integer indicating
+the type of the stream in question.
+
+|-------|-------------------------------------------------------|
+| ID    | Stream Type                                           |
+|------:|:------------------------------------------------------|
+| 0x4   | STREAM_HEADER_SUBGROUP  ({{stream-header-subgroup}})  |
+|-------|-------------------------------------------------------|
+| 0x5   | FETCH_HEADER  ({{fetch-header}})                      |
+|-------|-------------------------------------------------------|
+
+All MOQT datagrams start with a variable-length integer indicating the type of
+the datagram.
 
 |-------|-------------------------------------------------------|
 | ID    | Stream Type                                           |
 |------:|:------------------------------------------------------|
 | 0x1   | OBJECT_DATAGRAM ({{object-datagram}})                 |
 |-------|-------------------------------------------------------|
-| 0x4   | STREAM_HEADER_SUBGROUP  ({{stream-header-subgroup}})  |
-|-------|-------------------------------------------------------|
-| 0x5   | FETCH_HEADER  ({{fetch-header}})                      |
-|-------|-------------------------------------------------------|
 
-An endpoint that receives an unknown stream type MUST close the session.
+An endpoint that receives an unknown stream or datagram type MUST close the
+session.
 
 Every Track has a single 'Object Forwarding Preference' and the Original
 Publisher MUST NOT mix different forwarding preferences within a single track.
