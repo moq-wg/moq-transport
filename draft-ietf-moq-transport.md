@@ -84,7 +84,7 @@ supports wide range of use-cases with different resiliency and latency
 (live, interactive) needs without compromising the scalability and cost
 effectiveness associated with content delivery networks.
 
-MOQT is a generic protocol is designed to work in concert with multiple
+MOQT is a generic protocol designed to work in concert with multiple
 MoQ Streaming Formats. These MoQ Streaming Formats define how content is
 encoded, packaged, and mapped to MOQT objects, along with policies for
 discovery and subscription.
@@ -105,51 +105,44 @@ discovery and subscription.
 ## Motivation
 
 The development of MOQT is driven by goals in a number of areas -
-specifically latency, the robustness of QUIC, workflow efficiency and
-relay support.
+specifically latency, the robust feature set of QUIC and relay
+support.
 
 ### Latency
 
-HTTP Adaptive Streaming (HAS) has been successful at achieving scale
-although often at the cost of latency. Latency is necessary to correct
-for variable network throughput. Ideally live content is consumed at the
-same bitrate it is produced. End-to-end latency would be fixed and only
-subject to encoding and transmission delays. Unfortunately, networks
-have variable throughput, primarily due to congestion. Attempting to
-deliver content encoded at a higher bitrate than the network can support
-causes queuing along the path from producer to consumer. The speed at
-which a protocol can detect and respond to queuing determines the
-overall latency. TCP-based protocols are simple but are slow to detect
-congestion and suffer from head-of-line blocking. Protocols utilizing
-UDP directly can avoid queuing, but the application is then responsible
-for the complexity of fragmentation, congestion control, retransmissions,
-receiver feedback, reassembly, and more. One goal of MOQT is to achieve
-the best of both these worlds: leverage the features of QUIC to create a
-simple yet flexible low latency protocol that can rapidly detect and
-respond to congestion.
+Latency is necessary to correct for variable network throughput. Ideally live
+content is consumed at the same bitrate it is produced. End-to-end latency would
+be fixed and only subject to encoding and transmission delays. Unfortunately,
+networks have variable throughput, primarily due to congestion. Attempting to
+deliver content encoded at a higher bitrate than the network can support causes
+queuing along the path from producer to consumer. The speed at which a protocol
+can detect and respond to congestion determines the overall latency. TCP-based
+protocols are simple but are slow to detect congestion and suffer from
+head-of-line blocking. Protocols utilizing UDP directly can avoid queuing, but
+the application is then responsible for the complexity of fragmentation,
+congestion control, retransmissions, receiver feedback, reassembly, and
+more. One goal of MOQT is to achieve the best of both these worlds: leverage the
+features of QUIC to create a simple yet flexible low latency protocol that can
+rapidly detect and respond to congestion.
 
 ### Leveraging QUIC
 
 The parallel nature of QUIC streams can provide improvements in the face
 of loss. A goal of MOQT is to design a streaming protocol to leverage
 the transmission benefits afforded by parallel QUIC streams as well
-exercising options for flexible loss recovery. Applying {{QUIC}} to HAS
-via HTTP/3 has not yet yielded generalized improvements in
-throughput. One reason for this is that sending segments down a single
-QUIC stream still allows head-of-line blocking to occur.
+exercising options for flexible loss recovery.
 
-### Universal
+### Convergence
 
-Internet delivered media today has protocols optimized for ingest and
-separate protocols optimized for distribution. This protocol switch in
-the distribution chain necessitates intermediary origins which
-re-package the media content. While specialization can have its
-benefits, there are gains in efficiency to be had in not having to
-re-package content. A goal of MOQT is to develop a single protocol which
-can be used for transmission from contribution to distribution. A
-related goal is the ability to support existing encoding and packaging
-schemas, both for backwards compatibility and for interoperability with
-the established content preparation ecosystem.
+Some live media architectures today have separate protocols for ingest and
+distribution, for example RTMP and HTTP based HLS or DASH. Switching protocols
+necessitates intermediary origins which re-package the
+media content. While specialization can have its benefits, there are efficiency
+gains to be had in not having to re-package content. A goal of MOQT is to
+develop a single protocol which can be used for transmission from contribution
+to distribution. A related goal is the ability to support existing encoding and
+packaging schemas, both for backwards compatibility and for interoperability
+with the established content preparation ecosystem.
 
 ### Relays
 
@@ -179,6 +172,10 @@ Server:
 Endpoint:
 
 : A Client or Server.
+
+Peer:
+
+: The other endpoint than the one being described
 
 Publisher:
 
@@ -319,10 +316,11 @@ time.
 Objects are comprised of two parts: metadata and a payload.  The metadata is
 never encrypted and is always visible to relays (see {{relays-moq}}). The
 payload portion may be encrypted, in which case it is only visible to the
-Original Publisher and End Subscribers. The application is solely responsible
-for the content of the object payload. This includes the underlying encoding,
-compression, any end-to-end encryption, or authentication. A relay MUST NOT
-combine, split, or otherwise modify object payloads.
+Original Publisher and End Subscribers. The Original Publisher is solely
+responsible for the content of the object payload. This includes the
+underlying encoding, compression, any end-to-end encryption, or
+authentication. A relay MUST NOT combine, split, or otherwise modify object
+payloads.
 
 Objects within a group are ordered numerically by their Object ID.
 
@@ -470,7 +468,7 @@ using definitions from {{!RFC3986}}:
 moqt-URI = "moqt" "://" authority path-abempty [ "?" query ]
 ~~~~~~~~~~~~~~~
 
-The `authority` portion MUST NOT contain a non-empty `host` portion.
+The `authority` portion MUST NOT contain an empty `host` portion.
 The `moqt` URI scheme supports the `/.well-known/` path prefix defined in
 {{!RFC8615}}.
 
@@ -514,13 +512,13 @@ separate Setup parameters for that information in each version.
 ## Session initialization {#session-init}
 
 The first stream opened is a client-initiated bidirectional control stream where
-the peers exchange Setup messages ({{message-setup}}).  All messages defined in
-this draft except OBJECT and OBJECT_WITH_LENGTH are sent on the control stream
-after the Setup message. Control messages MUST NOT be sent on any other stream,
-and a peer receiving a control message on a different stream closes the session
-as a 'Protocol Violation'. Objects MUST NOT be sent on the control stream, and a
-peer receiving an Object on the control stream closes the session as a 'Protocol
-Violation'.
+the endpoints exchange Setup messages ({{message-setup}}).  All messages defined
+in this draft except OBJECT and OBJECT_WITH_LENGTH are sent on the control
+stream after the Setup message. Control messages MUST NOT be sent on any other
+stream, and a peer receiving a control message on a different stream closes the
+session as a 'Protocol Violation'. Objects MUST NOT be sent on the control
+stream, and a peer receiving an Object on the control stream closes the session
+as a 'Protocol Violation'.
 
 This draft only specifies a single use of bidirectional streams. Objects are
 sent on unidirectional streams.  Because there are no other uses of
@@ -935,10 +933,10 @@ prioritize sending Objects based on {{priorities}}.
 A publisher SHOULD begin sending incomplete objects when available to
 avoid incurring additional latency.
 
-A relay that reads from a stream and writes to stream in order will
+A relay that reads from one stream and writes to another in order can
 introduce head-of-line blocking.  Packet loss will cause stream data to
-be buffered in the library, awaiting in order delivery, which will
-increase latency over additional hops.  To mitigate this, a relay SHOULD
+be buffered in the library, awaiting in-order delivery, which could
+increase latency over additional hops.  To mitigate this, a relay MAY
 read and write stream data out of order subject to flow control
 limits.  See section 2.2 in {{QUIC}}.
 
@@ -1067,9 +1065,9 @@ these parameters to appear in Setup messages.
 #### AUTHORIZATION INFO {#authorization-info}
 
 AUTHORIZATION INFO parameter (Parameter Type 0x02) identifies a track's
-authorization information in a SUBSCRIBE, SUBSCRIBE_ANNOUNCES or ANNOUNCE
-message. This parameter is populated for cases where the authorization is
-required at the track level. The value is an ASCII string.
+authorization information in a SUBSCRIBE, SUBSCRIBE_ANNOUNCES, ANNOUNCE
+or FETCH message. This parameter is populated for cases where the authorization
+is required at the track level. The value is an ASCII string.
 
 #### DELIVERY TIMEOUT Parameter {#delivery-timeout}
 
@@ -1118,11 +1116,11 @@ a relay that handles a subscription that includes those Objects re-requests them
 ## CLIENT_SETUP and SERVER_SETUP {#message-setup}
 
 The `CLIENT_SETUP` and `SERVER_SETUP` messages are the first messages exchanged
-by the client and the server; they allows the peers to establish the mutually
+by the client and the server; they allow the endpoints to establish the mutually
 supported version and agree on the initial configuration before any objects are
 exchanged. It is a sequence of key-value pairs called Setup parameters; the
 semantics and format of which can vary based on whether the client or server is
-sending.  To ensure future extensibility of MOQT, the peers MUST ignore unknown
+sending.  To ensure future extensibility of MOQT, endpoints MUST ignore unknown
 setup parameters. TODO: describe GREASE for those.
 
 The wire format of the Setup messages are as follows:
@@ -2056,20 +2054,28 @@ failure.
 
 A publisher sends Objects matching a subscription on Data Streams.
 
-All unidirectional MOQT streams, as well as all datagrams, start with a
-variable-length integer indicating the type of the stream in question.
+All unidirectional MOQT streams start with a variable-length integer indicating
+the type of the stream in question.
+
+|-------|-------------------------------------------------------|
+| ID    | Stream Type                                           |
+|------:|:------------------------------------------------------|
+| 0x4   | STREAM_HEADER_SUBGROUP  ({{stream-header-subgroup}})  |
+|-------|-------------------------------------------------------|
+| 0x5   | FETCH_HEADER  ({{fetch-header}})                      |
+|-------|-------------------------------------------------------|
+
+All MOQT datagrams start with a variable-length integer indicating the type of
+the datagram.
 
 |-------|-------------------------------------------------------|
 | ID    | Stream Type                                           |
 |------:|:------------------------------------------------------|
 | 0x1   | OBJECT_DATAGRAM ({{object-datagram}})                 |
 |-------|-------------------------------------------------------|
-| 0x4   | STREAM_HEADER_SUBGROUP  ({{stream-header-subgroup}})  |
-|-------|-------------------------------------------------------|
-| 0x5   | FETCH_HEADER  ({{fetch-header}})                      |
-|-------|-------------------------------------------------------|
 
-An endpoint that receives an unknown stream type MUST close the session.
+An endpoint that receives an unknown stream or datagram type MUST close the
+session.
 
 Every Track has a single 'Object Forwarding Preference' and the Original
 Publisher MUST NOT mix different forwarding preferences within a single track.
