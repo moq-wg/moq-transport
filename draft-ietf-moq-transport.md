@@ -1051,9 +1051,9 @@ these parameters to appear in Setup messages.
 #### AUTHORIZATION INFO {#authorization-info}
 
 AUTHORIZATION INFO parameter (Parameter Type 0x02) identifies a track's
-authorization information in a SUBSCRIBE, SUBSCRIBE_ANNOUNCES or ANNOUNCE
-message. This parameter is populated for cases where the authorization is
-required at the track level. The value is an ASCII string.
+authorization information in a SUBSCRIBE, SUBSCRIBE_ANNOUNCES, ANNOUNCE
+or FETCH message. This parameter is populated for cases where the authorization
+is required at the track level. The value is an ASCII string.
 
 #### DELIVERY TIMEOUT Parameter {#delivery-timeout}
 
@@ -2054,20 +2054,28 @@ failure.
 
 A publisher sends Objects matching a subscription on Data Streams.
 
-All unidirectional MOQT streams, as well as all datagrams, start with a
-variable-length integer indicating the type of the stream in question.
+All unidirectional MOQT streams start with a variable-length integer indicating
+the type of the stream in question.
+
+|-------|-------------------------------------------------------|
+| ID    | Stream Type                                           |
+|------:|:------------------------------------------------------|
+| 0x4   | STREAM_HEADER_SUBGROUP  ({{stream-header-subgroup}})  |
+|-------|-------------------------------------------------------|
+| 0x5   | FETCH_HEADER  ({{fetch-header}})                      |
+|-------|-------------------------------------------------------|
+
+All MOQT datagrams start with a variable-length integer indicating the type of
+the datagram.
 
 |-------|-------------------------------------------------------|
 | ID    | Stream Type                                           |
 |------:|:------------------------------------------------------|
 | 0x1   | OBJECT_DATAGRAM ({{object-datagram}})                 |
 |-------|-------------------------------------------------------|
-| 0x4   | STREAM_HEADER_SUBGROUP  ({{stream-header-subgroup}})  |
-|-------|-------------------------------------------------------|
-| 0x5   | FETCH_HEADER  ({{fetch-header}})                      |
-|-------|-------------------------------------------------------|
 
-An endpoint that receives an unknown stream type MUST close the session.
+An endpoint that receives an unknown stream or datagram type MUST close the
+session.
 
 Every Track has a single 'Object Forwarding Preference' and the Original
 Publisher MUST NOT mix different forwarding preferences within a single track.
