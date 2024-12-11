@@ -2297,7 +2297,7 @@ received for the track, to ensure the Group Order is correct.<a href="#section-5
 subscribers for each track. Each new OBJECT belonging to the
 track within the subscription range is forwarded to each active
 subscriber, dependent on the congestion response. A subscription
-remains active until the publisher of the track terminates the
+remains active until soon after the publisher of the track terminates the
 subscription with a SUBSCRIBE_DONE (see <a href="#message-subscribe-done" class="auto internal xref">Section 6.19</a>).<a href="#section-5.1-3" class="pilcrow">¶</a></p>
 <p id="section-5.1-4">A caching relay saves Objects to its cache identified by the Object's
 Full Track Name, Group ID and Object ID. Relays <span class="bcp14">MUST</span> be able to
@@ -3120,8 +3120,7 @@ See <a href="#priorities" class="auto internal xref">Section 4</a>.<a href="#sec
 <p id="section-6.6-1">A subscriber issues a <code>UNSUBSCRIBE</code> message to a publisher indicating it is no
 longer interested in receiving media for the specified track and Objects
 should stop being sent as soon as possible.  The publisher sends a
-SUBSCRIBE_DONE to acknowledge the unsubscribe was successful and indicate
-the final Object.<a href="#section-6.6-1" class="pilcrow">¶</a></p>
+SUBSCRIBE_DONE to acknowledge the unsubscribe was successful.<a href="#section-6.6-1" class="pilcrow">¶</a></p>
 <p id="section-6.6-2">The format of <code>UNSUBSCRIBE</code> is as follows:<a href="#section-6.6-2" class="pilcrow">¶</a></p>
 <span id="name-moqt-unsubscribe-message"></span><div id="moq-transport-unsubscribe-format">
 <figure id="figure-7">
@@ -3719,13 +3718,38 @@ FETCH_ERROR
         <h3 id="name-subscribe_done">
 <a href="#section-6.19" class="section-number selfRef">6.19. </a><a href="#name-subscribe_done" class="section-name selfRef">SUBSCRIBE_DONE</a>
         </h3>
-<p id="section-6.19-1">A publisher sends a <code>SUBSCRIBE_DONE</code> message to indicate it is done publishing
-Objects for that subscription.  The Status Code indicates why the subscription ended,
-and whether it was an error.<a href="#section-6.19-1" class="pilcrow">¶</a></p>
-<p id="section-6.19-2">The format of <code>SUBSCRIBE_DONE</code> is as follows:<a href="#section-6.19-2" class="pilcrow">¶</a></p>
+<p id="section-6.19-1">A publisher sends a <code>SUBSCRIBE_DONE</code> message when it is not going to send
+additional objects for a subscription. Because SUBSCRIBE_DONE is sent on the
+control stream, it is likely to arrive at the receiver before late-arriving
+objects, and often even late-opening streams. However, the receiver uses it
+as an indication that it should receive any late-opening streams in a relatively
+short time.<a href="#section-6.19-1" class="pilcrow">¶</a></p>
+<p id="section-6.19-2">Note that some objects in the subscribed track might never be delivered,
+because a stream was reset, or never opened in the first place, due to the
+delivery timeout.<a href="#section-6.19-2" class="pilcrow">¶</a></p>
+<p id="section-6.19-3">A sender <span class="bcp14">MUST NOT</span> send SUBSCRIBE_DONE until it has closed all streams it will
+ever open, and has no further datagrams to send, for a subscription. After
+sending SUBSCRIBE_DONE, the sender can immediately destroy subscription state,
+although stream state can persist until delivery completes. The sender might
+persist subscription state to enforce the delivery timeout by resetting streams
+on which it has already sent FIN, only deleting it when all such streams have
+received ACK of the FIN.<a href="#section-6.19-3" class="pilcrow">¶</a></p>
+<p id="section-6.19-4">A sender <span class="bcp14">MUST NOT</span> destroy subscription state until it sends SUBSCRIBE_DONE,
+though it can choose to stop sending objects (and thus send SUBSCRIBE_DONE) for
+any reason.<a href="#section-6.19-4" class="pilcrow">¶</a></p>
+<p id="section-6.19-5">A subscriber that receives SUBSCRIBE_DONE <span class="bcp14">SHOULD</span> set a timer of at least its
+delivery timeout in case some objects are still inbound due to prioritization
+or packet loss. The subscriber <span class="bcp14">MAY</span> dispense with a timer if it sent UNSUBSCRIBE
+or is otherwise no longer interested in objects from the track. Once the timer
+has expired, the receiver destroys subscription state once all open streams for
+the subscription have closed. A subscriber <span class="bcp14">MAY</span> discard subscription state
+earlier, at the cost of potentially not delivering some late objects to the
+application. The subscriber <span class="bcp14">SHOULD</span> send STOP_SENDING on all streams related to
+the subscription when it deletes subscription state.<a href="#section-6.19-5" class="pilcrow">¶</a></p>
+<p id="section-6.19-6">The format of <code>SUBSCRIBE_DONE</code> is as follows:<a href="#section-6.19-6" class="pilcrow">¶</a></p>
 <span id="name-moqt-subscribe_done-message"></span><div id="moq-transport-subscribe-fin-format">
 <figure id="figure-20">
-          <div class="alignLeft art-text artwork" id="section-6.19-3.1">
+          <div class="alignLeft art-text artwork" id="section-6.19-7.1">
 <pre>
 SUBSCRIBE_DONE Message {
   Type (i) = 0xB,
@@ -3734,9 +3758,6 @@ SUBSCRIBE_DONE Message {
   Status Code (i),
   Reason Phrase Length (i),
   Reason Phrase (..),
-  ContentExists (8),
-  [Final Group (i)],
-  [Final Object (i)],
 }
 </pre>
 </div>
@@ -3745,28 +3766,14 @@ SUBSCRIBE_DONE Message {
           </figcaption></figure>
 </div>
 <ul class="normal">
-<li class="normal" id="section-6.19-4.1">
-            <p id="section-6.19-4.1.1">Subscribe ID: Subscription identifier as defined in <a href="#message-subscribe-req" class="auto internal xref">Section 6.4</a>.<a href="#section-6.19-4.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-6.19-8.1">
+            <p id="section-6.19-8.1.1">Subscribe ID: Subscription identifier as defined in <a href="#message-subscribe-req" class="auto internal xref">Section 6.4</a>.<a href="#section-6.19-8.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-6.19-4.2">
-            <p id="section-6.19-4.2.1">Status Code: An integer status code indicating why the subscription ended.<a href="#section-6.19-4.2.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-6.19-8.2">
+            <p id="section-6.19-8.2.1">Status Code: An integer status code indicating why the subscription ended.<a href="#section-6.19-8.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-6.19-4.3">
-            <p id="section-6.19-4.3.1">Reason Phrase: Provides the reason for subscription error.<a href="#section-6.19-4.3.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="section-6.19-4.4">
-            <p id="section-6.19-4.4.1">ContentExists: 1 if an object has been published for this subscription, 0 if
-not. If 0, then the Final Group and Final Object fields will not be present.
-Any other value is a protocol error and <span class="bcp14">MUST</span> terminate the session with a
-Protocol Violation (<a href="#session-termination" class="auto internal xref">Section 3.5</a>).<a href="#section-6.19-4.4.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="section-6.19-4.5">
-            <p id="section-6.19-4.5.1">Final Group: The largest Group ID sent by the publisher in an OBJECT
-message in this track.<a href="#section-6.19-4.5.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="section-6.19-4.6">
-            <p id="section-6.19-4.6.1">Final Object: The largest Object ID sent by the publisher in an OBJECT
-message in the <code>Final Group</code> for this track.<a href="#section-6.19-4.6.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-6.19-8.3">
+            <p id="section-6.19-8.3.1">Reason Phrase: Provides the reason for subscription error.<a href="#section-6.19-8.3.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
