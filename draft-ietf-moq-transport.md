@@ -626,6 +626,132 @@ and announcements. The client can choose to delay closing the session if it
 expects more OBJECTs to be delivered. The server closes the session with a
 'GOAWAY Timeout' if the client doesn't close the session quickly enough.
 
+# Track Discovery and Retrieval (#track-discovery}
+
+Discovery of MoQT servers is always done out-of-band. Track discovery is done in
+the context of an established MoQT session. The session client might be a
+subscriber, publisher, or both.
+
+Given sufficient out of band information, it is valid for a subscriber
+to send a SUBSCRIBE or FETCH message to a publisher (including a relay) without
+any previous MoQT messages besides SETUP. However, SUBSCRIBE_NAMESPACES and
+ANNOUNCE messages provide an in-band means of discovery of subscribers and
+publishers.
+
+The syntax of these messages is described in {{messages}}.
+
+## SUBSCRIBE_ANNOUNCES
+
+If the subscriber is aware of a namespace of interest, it can send
+SUBSCRIBE_ANNOUNCES to publishers/relays it has discovered. This message
+increases the likelihood that publishers will send relevant ANNOUNCE messages
+for that namespace.
+
+An UNSUBSCRIBE_NAMESPACES negates the effect of a SUBSCRIBE_NAMESPACES. It does
+not prohibit the receiver from sending further ANNOUNCE messages. The receiver
+of a SUBSCRIBE_NAMESPACES_OK or SUBSCRIBE_NAMESPACES_ERROR should forward the
+result to the application, so that it can make decisions about further
+publishers to contact. A publisher MUST send exactly one SUBSCRIBE_NAMESPACES_OK
+or SUBSCRIBE_NAMESPACES_ERROR. The subscriber SHOULD close the session with a
+protocol error if it detects receiving more than one.
+
+## ANNOUNCE
+
+A publisher MAY send ANNOUNCE messages to any subscriber. It SHOULD send them
+if it has received a SUBSCRIBE_ANNOUNCES for that namespace, or a superset of
+that namespace. An ANNOUNCE increases the likelihood of a subsequent successful
+SUBSCRIBE or FETCH.
+
+An UNANNOUNCE message negates the meaning of an ANNOUNCE, although it is not a
+protocol error for the subscriber to send a SUBSCRIBE or FETCH message anyway.
+A subscriber can send ANNOUNCE_CANCEL, meaning it is no longer interested in a
+namespace, which also negates the ANNOUNCE: the publisher need not send
+UNANNOUNCE. A publisher and subscriber might seek alternate subscribers and
+publishers, respectively, for potential SUBSCRIBE and FETCH interactions.
+
+The receiver of an ANNOUNCE_OK or ANNOUNCE_ERROR SHOULD report this to the
+application to inform the search for additional subscribers for a namespace,
+or abandoning the attempt to publish a track. This might be especially useful
+in upload or chat applications. A subscriber MUST send exactly one ANNOUNCE_OK
+or ANNOUNCE_ERROR. The publisher SHOULD close the session with a protocol error
+if it detects receiving more than one.
+
+## SUBSCRIBE/FETCH
+
+A subscriber MAY send a SUBSCRIBE or FETCH for a track to any publisher. If has
+received an ANNOUNCE with a namespace that includes that track, it SHOULD only
+request it from the senders of those ANNOUNCE messages.
+
+The central interaction with a publisher is to send SUBSCRIBE and/or FETCH for
+a particular track in a namespace. The subscriber expects to receive a
+SUBSCRIBE_OK/FETCH_OK and objects from the track.
+
+A subscriber keeps SUBSCRIBE state until it sends UNSUBSCRIBE, or after receipt
+of a SUBSCRIBE_DONE.  Note that SUBSCRIBE_DONE does not usually indicate that
+state can immediately be destroyed, see {{message-subscribe-done}}.
+
+A subscriber keeps FETCH state until it sends FETCH_CANCEL, or a FIN or
+RESET_STREAM for the FETCH data stream. If the data stream is already open, it
+MAY send STOP_SENDING for the data stream, but MUST send FETCH_CANCEL.
+
+The Publisher can destroy subscription or fetch state as soon as it has received
+UNSUBSCRIBE or FETCH_CANCEL, respectively. It MUST reset any open streams for
+that operation.
+
+The publisher can immediate delete SUBSCRIBE state after sending
+SUBSCRIBE_DONE, but MUST NOT send it until it has closed all related streams. It
+can destroy all FETCH state after closing the data stream.
+
+A SUBSCRIBE_ERROR or FETCH_ERROR indicates no objects will be delivered, and
+both endpoints can immediately destroy relevant state. Objects MUST NOT be sent
+for requests that end with an error.
+
+A publisher MUST send exactly one SUBSCRIBE_OK or SUBSCRIBE_ERROR in response to
+a SUBSCRIBE. It MUST send exactly one FETCH_OK or FETCH_ERROR in response to a
+FETCH. The subscriber SHOULD close the session with a protocol error if it
+detects receiving more than one.
+
+The application SHOULD use a relevant error code in SUBSCRIBE_ERROR or
+FETCH_ERROR, as defined below:
+
+|------|---------------------------|
+| Code | Reason                    |
+|-----:|:--------------------------|
+| 0x0  | Internal Error            |
+|------|---------------------------|
+| 0x1  | Invalid Range             |
+|------|---------------------------|
+| 0x2  | Retry Track Alias         |
+|------|---------------------------|
+| 0x3  | Track Does Not Exist      |
+|------|---------------------------|
+| 0x4  | Unauthorized              |
+|------|---------------------------|
+| 0x5  | Timeout                   |
+|------|---------------------------|
+
+The application SHOULD use a relevant status code in
+SUBSCRIBE_DONE or a FETCH RESET_STREAM, as defined below:
+
+|------|---------------------------|
+| Code | Reason                    |
+|-----:|:--------------------------|
+| 0x0  | Unsubscribed              |
+|------|---------------------------|
+| 0x1  | Internal Error            |
+|------|---------------------------|
+| 0x2  | Unauthorized              |
+|------|---------------------------|
+| 0x3  | Track Ended               |
+|------|---------------------------|
+| 0x4  | Subscription Ended        |
+|------|---------------------------|
+| 0x5  | Going Away                |
+|------|---------------------------|
+| 0x6  | Expired                   |
+|------|---------------------------|
+| 0x7  | Too Far Behind            |
+|------|---------------------------|
 
 # Priorities {#priorities}
 
@@ -739,13 +865,8 @@ Subscribers interact with the Relays by sending a SUBSCRIBE or FETCH
 control message for the tracks of interest. Relays MUST ensure subscribers are
 authorized to access the content associated with the track. The authorization
 information can be part of subscription request itself or part of the
-encompassing session. The specifics of how a relay authorizes a user are
-outside the scope of this specification. The subscriber is notified
-of the result of the subscription via a
-SUBSCRIBE_OK ({{message-subscribe-ok}}) or SUBSCRIBE_ERROR
-{{message-subscribe-error}} control message. The entity receiving the
-SUBSCRIBE MUST send only a single response to a given SUBSCRIBE of
-either SUBSCRIBE_OK or SUBSCRIBE_ERROR.
+encompassing session. The specifics of how a relay authorizes a user are outside
+the scope of this specification.
 
 The relay will have to send an upstream SUBSCRIBE and/or FETCH if it does not
 have all the objects in the FETCH, or is not currently subscribed to the full
@@ -756,9 +877,7 @@ one from upstream.
 For successful subscriptions, the publisher maintains a list of
 subscribers for each track. Each new OBJECT belonging to the
 track within the subscription range is forwarded to each active
-subscriber, dependent on the congestion response. A subscription
-remains active until soon after the publisher of the track terminates the
-subscription with a SUBSCRIBE_DONE (see {{message-subscribe-done}}).
+subscriber, dependent on the congestion response.
 
 A caching relay saves Objects to its cache identified by the Object's
 Full Track Name, Group ID and Object ID. Relays MUST be able to
@@ -769,17 +888,14 @@ Group ID and Object ID, Relays MAY ignore subsequently received Objects
 or MAY use them to update the cache. Implementations that update the
 cache need to protect against cache poisoning.
 
-Caching can also reduce the number of upstream FETCH requests.
-
-Objects MUST NOT be sent for unsuccessful subscriptions, and if a subscriber
-receives a SUBSCRIBE_ERROR after receiving objects, it MUST close the session
-with a 'Protocol Violation'.
+Caching can reduce the number of upstream FETCH requests.
 
 A relay MUST NOT reorder or drop objects received on a multi-object stream when
 forwarding to subscribers, unless it has application specific information.
 
-Relays MAY aggregate authorized subscriptions for a given track when
-multiple subscribers request the same track. Subscription aggregation
+Relays SHOULD aggregate authorized subscriptions for a given track when
+multiple subscribers request the same track, using SUBSCRIBE_UPDATE when new
+subscriptions change the aggregate properties. Subscription aggregation
 allows relays to make only a single upstream subscription for the
 track. The published content received from the upstream subscription
 request is cached and shared among the pending subscribers.
@@ -801,18 +917,13 @@ to the old relay can be stopped with an UNSUBSCRIBE.
 Publishing through the relay starts with publisher sending ANNOUNCE
 control message with a `Track Namespace` ({{model-track}}).
 The ANNOUNCE enables the relay to know which publisher to forward a
-SUBSCRIBE to if the track belongs to the namespace in the ANNOUNCE.
+SUBSCRIBE to.
 
-Relays MUST verify that publishers are authorized to publish
-the content associated with the set of
+Relays MUST ensure that publishers are authorized by verifying that the
+publisher is authorized to publish the content associated with the set of
 tracks whose Track Namespace matches the announced namespace. Where the
 authorization and identification of the publisher occurs depends on the way the
 relay is managed and is application specific.
-
-Relays respond with an ANNOUNCE_OK or ANNOUNCE_ERROR control message
-providing the result of announcement. The entity receiving the
-ANNOUNCE MUST send only a single response to a given ANNOUNCE of
-either ANNOUNCE_OK or ANNOUNCE_ERROR.
 
 A Relay can receive announcements from multiple publishers for the same
 Track Namespace and it SHOULD respond with the same response to each of the
@@ -826,10 +937,7 @@ namespace it previously responded ANNOUNCE_OK to by sending an
 ANNOUNCE_CANCEL.
 
 A relay manages sessions from multiple publishers and subscribers,
-connecting them based on the track namespace. This MUST use an exact
-match on track namespace unless otherwise negotiated by the application.
-For example, a SUBSCRIBE namespace=foobar message will be forwarded to
-the session that sent ANNOUNCE namespace=foobar.
+connecting them based on the track namespace.
 
 When a relay receives an incoming SUBSCRIBE request that triggers an
 upstream subscription, it SHOULD send a SUBSCRIBE request to each
@@ -1349,8 +1457,7 @@ See {{priorities}}.
 
 A subscriber issues a `UNSUBSCRIBE` message to a publisher indicating it is no
 longer interested in receiving media for the specified track and Objects
-should stop being sent as soon as possible.  The publisher sends a
-SUBSCRIBE_DONE to acknowledge the unsubscribe was successful.
+should stop being sent as soon as possible.
 
 The format of `UNSUBSCRIBE` is as follows:
 
@@ -1538,10 +1645,6 @@ below:
 The subscriber sends an `ANNOUNCE_CANCEL` control message to
 indicate it will stop sending new subscriptions for tracks
 within the provided Track Namespace.
-
-If a publisher receives new subscriptions for that namespace after
-receiving an ANNOUNCE_CANCEL, it SHOULD close the session as a
-'Protocol Violation'.
 
 ~~~
 ANNOUNCE_CANCEL Message {
