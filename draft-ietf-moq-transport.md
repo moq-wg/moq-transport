@@ -657,10 +657,13 @@ protocol error if it detects receiving more than one.
 
 ## ANNOUNCE
 
-A publisher MAY send ANNOUNCE messages to any subscriber. It SHOULD send them
-if it has received a SUBSCRIBE_ANNOUNCES for that namespace, or a superset of
-that namespace. An ANNOUNCE increases the likelihood of a subsequent successful
-SUBSCRIBE or FETCH.
+A publisher MAY send ANNOUNCE messages to any subscriber. An ANNOUNCE increases
+the likelihood of a subsequent successful SUBSCRIBE or FETCH. It SHOULD send
+an ANNOUNCE if it has received a SUBSCRIBE_ANNOUNCES for that namespace, or a
+superset of that namespace. However, a publisher SHOULD NOT send an ANNOUNCE
+advertising a namespace equal to, or a subset of, a namespace for which the
+receiver sent an earlier ANNOUNCE (i.e. an ANNOUNCE ought not to be echoed back
+to its sender).
 
 An UNANNOUNCE message negates the meaning of an ANNOUNCE, although it is not a
 protocol error for the subscriber to send a SUBSCRIBE or FETCH message anyway.
@@ -710,48 +713,6 @@ A publisher MUST send exactly one SUBSCRIBE_OK or SUBSCRIBE_ERROR in response to
 a SUBSCRIBE. It MUST send exactly one FETCH_OK or FETCH_ERROR in response to a
 FETCH. The subscriber SHOULD close the session with a protocol error if it
 detects receiving more than one.
-
-The application SHOULD use a relevant error code in SUBSCRIBE_ERROR or
-FETCH_ERROR, as defined below:
-
-|------|---------------------------|
-| Code | Reason                    |
-|-----:|:--------------------------|
-| 0x0  | Internal Error            |
-|------|---------------------------|
-| 0x1  | Invalid Range             |
-|------|---------------------------|
-| 0x2  | Retry Track Alias         |
-|------|---------------------------|
-| 0x3  | Track Does Not Exist      |
-|------|---------------------------|
-| 0x4  | Unauthorized              |
-|------|---------------------------|
-| 0x5  | Timeout                   |
-|------|---------------------------|
-
-The application SHOULD use a relevant status code in
-SUBSCRIBE_DONE or a FETCH RESET_STREAM, as defined below:
-
-|------|---------------------------|
-| Code | Reason                    |
-|-----:|:--------------------------|
-| 0x0  | Unsubscribed              |
-|------|---------------------------|
-| 0x1  | Internal Error            |
-|------|---------------------------|
-| 0x2  | Unauthorized              |
-|------|---------------------------|
-| 0x3  | Track Ended               |
-|------|---------------------------|
-| 0x4  | Subscription Ended        |
-|------|---------------------------|
-| 0x5  | Going Away                |
-|------|---------------------------|
-| 0x6  | Expired                   |
-|------|---------------------------|
-| 0x7  | Too Far Behind            |
-|------|---------------------------|
 
 # Priorities {#priorities}
 
@@ -1623,6 +1584,23 @@ message for which this response is provided.
 
 * Reason Phrase: Provides the reason for announcement error.
 
+The application SHOULD use a relevant error code in an ANNOUNCE_ERROR, as
+defined below.
+
+|------|---------------------------|
+| Code | Reason                    |
+|-----:|:--------------------------|
+| 0x0  | Internal Error            |
+|------|---------------------------|
+| 0x1  | Uninterested              |
+|------|---------------------------|
+| 0x2  | Unauthorized              |
+|------|---------------------------|
+| 0x3  | Timeout                   |
+|------|---------------------------|
+| 0x4  | Announce Not Supported    |
+|------|---------------------------|
+
 ## ANNOUNCE_CANCEL {#message-announce-cancel}
 
 The subscriber sends an `ANNOUNCE_CANCEL` control message to
@@ -1810,6 +1788,23 @@ SUBSCRIBE_ERROR
   the subscriber MUST close the connection with a Duplicate Track Alias error
   ({{session-termination}}).
 
+The application SHOULD use a relevant error code in SUBSCRIBE_ERROR, as defined below:
+
+|------|---------------------------|
+| Code | Reason                    |
+|-----:|:--------------------------|
+| 0x0  | Internal Error            |
+|------|---------------------------|
+| 0x1  | Invalid Range             |
+|------|---------------------------|
+| 0x2  | Retry Track Alias         |
+|------|---------------------------|
+| 0x3  | Track Does Not Exist      |
+|------|---------------------------|
+| 0x4  | Unauthorized              |
+|------|---------------------------|
+| 0x5  | Timeout                   |
+|------|---------------------------|
 
 ## FETCH_OK {#message-fetch-ok}
 
@@ -1875,6 +1870,22 @@ FETCH_ERROR
 
 * Reason Phrase: Provides the reason for fetch error.
 
+The application SHOULD use a relevant error code in FETCH_ERROR, as defined below:
+
+|------|---------------------------|
+| Code | Reason                    |
+|-----:|:--------------------------|
+| 0x0  | Internal Error            |
+|------|---------------------------|
+| 0x1  | Invalid Range             |
+|------|---------------------------|
+| 0x3  | Track Does Not Exist      |
+|------|---------------------------|
+| 0x4  | Unauthorized              |
+|------|---------------------------|
+| 0x5  | Timeout                   |
+|------|---------------------------|
+
 
 ## SUBSCRIBE_DONE {#message-subscribe-done}
 
@@ -1936,6 +1947,29 @@ opened for this subscription.  The subscriber can remove all subscription state
 once the same number of streams have been processed.
 
 * Reason Phrase: Provides the reason for subscription error.
+
+The application SHOULD use a relevant status code in SUBSCRIBE_DONE, as defined
+ below:
+
+|------|---------------------------|
+| Code | Reason                    |
+|-----:|:--------------------------|
+| 0x0  | Unsubscribed              |
+|------|---------------------------|
+| 0x1  | Internal Error            |
+|------|---------------------------|
+| 0x2  | Unauthorized              |
+|------|---------------------------|
+| 0x3  | Track Ended               |
+|------|---------------------------|
+| 0x4  | Subscription Ended        |
+|------|---------------------------|
+| 0x5  | Going Away                |
+|------|---------------------------|
+| 0x6  | Expired                   |
+|------|---------------------------|
+| 0x7  | Too Far Behind            |
+|------|---------------------------|
 
 ## MAX_SUBSCRIBE_ID {#message-max-subscribe-id}
 
@@ -2127,6 +2161,23 @@ title="MOQT SUBSCRIBE_ANNOUNCES_ERROR Message"}
 failure.
 
 * Reason Phrase: Provides the reason for the namespace subscription error.
+
+The application SHOULD use a relevant error code in a
+SUBSCRIBE_NAMESPACES_ERROR, as defined below.
+
+|------|--------------------------------|
+| Code | Reason                         |
+|-----:|:-------------------------------|
+| 0x0  | Internal Error                 |
+|------|--------------------------------|
+| 0x1  | Message Not Supported          |
+|------|--------------------------------|
+| 0x2  | Will Never Announce Namespace  |
+|------|--------------------------------|
+| 0x3  | Unauthorized                   |
+|------|------------------------------- |
+| 0x4  | Timeout                        |
+|------|--------------------------------|
 
 
 
