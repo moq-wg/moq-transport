@@ -657,10 +657,13 @@ protocol error if it detects receiving more than one.
 
 ## ANNOUNCE
 
-A publisher MAY send ANNOUNCE messages to any subscriber. It SHOULD send them
-if it has received a SUBSCRIBE_ANNOUNCES for that namespace, or a superset of
-that namespace. An ANNOUNCE increases the likelihood of a subsequent successful
-SUBSCRIBE or FETCH.
+A publisher MAY send ANNOUNCE messages to any subscriber. An ANNOUNCE increases
+the likelihood of a subsequent successful SUBSCRIBE or FETCH. It SHOULD send
+an ANNOUNCE if it has received a SUBSCRIBE_ANNOUNCES for that namespace, or a
+superset of that namespace. However, a publisher SHOULD NOT send an ANNOUNCE
+advertising a namespace equal to, or a subset of, a namespace for which the
+receiver sent an earlier ANNOUNCE (i.e. an ANNOUNCE ought not to be echoed back
+to its sender).
 
 An UNANNOUNCE message negates the meaning of an ANNOUNCE, although it is not a
 protocol error for the subscriber to send a SUBSCRIBE or FETCH message anyway.
@@ -710,48 +713,6 @@ A publisher MUST send exactly one SUBSCRIBE_OK or SUBSCRIBE_ERROR in response to
 a SUBSCRIBE. It MUST send exactly one FETCH_OK or FETCH_ERROR in response to a
 FETCH. The subscriber SHOULD close the session with a protocol error if it
 detects receiving more than one.
-
-The application SHOULD use a relevant error code in SUBSCRIBE_ERROR or
-FETCH_ERROR, as defined below:
-
-|------|---------------------------|
-| Code | Reason                    |
-|-----:|:--------------------------|
-| 0x0  | Internal Error            |
-|------|---------------------------|
-| 0x1  | Invalid Range             |
-|------|---------------------------|
-| 0x2  | Retry Track Alias         |
-|------|---------------------------|
-| 0x3  | Track Does Not Exist      |
-|------|---------------------------|
-| 0x4  | Unauthorized              |
-|------|---------------------------|
-| 0x5  | Timeout                   |
-|------|---------------------------|
-
-The application SHOULD use a relevant status code in
-SUBSCRIBE_DONE or a FETCH RESET_STREAM, as defined below:
-
-|------|---------------------------|
-| Code | Reason                    |
-|-----:|:--------------------------|
-| 0x0  | Unsubscribed              |
-|------|---------------------------|
-| 0x1  | Internal Error            |
-|------|---------------------------|
-| 0x2  | Unauthorized              |
-|------|---------------------------|
-| 0x3  | Track Ended               |
-|------|---------------------------|
-| 0x4  | Subscription Ended        |
-|------|---------------------------|
-| 0x5  | Going Away                |
-|------|---------------------------|
-| 0x6  | Expired                   |
-|------|---------------------------|
-| 0x7  | Too Far Behind            |
-|------|---------------------------|
 
 # Priorities {#priorities}
 
