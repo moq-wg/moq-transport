@@ -2121,7 +2121,7 @@ are beyond the end of a group or track.
 
 * 0x4 := Indicates end of Track and Group. GroupID is the largest group produced
          in this track and the ObjectId is one greater than the largest object
-         produced in this track. An object with this status that has a Group ID
+         produced in that group. An object with this status that has a Group ID
          less than any other Group ID, or an Object ID less than or equal to the
          largest in the group, is a protocol error, and the receiver MUST
          terminate the session. This SHOULD be cached.
