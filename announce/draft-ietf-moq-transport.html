@@ -2202,27 +2202,24 @@ close the session with a protocol error if it detects receiving more than one.<a
 the likelihood of a subsequent successful SUBSCRIBE or FETCH.<a href="#section-4.2-1" class="pilcrow">¶</a></p>
 <p id="section-4.2-2">If a publisher is authoritative for a given namespace, or has received an
 ANNOUNCE for that namespace from an upstream publisher, it <span class="bcp14">MUST</span> send an ANNOUNCE
-to any subscriber that has subscribed to ANNOUNCE for that namespace or a
-superset of that namespace.<a href="#section-4.2-2" class="pilcrow">¶</a></p>
-<p id="section-4.2-3">If a subscriber is subscribed to ANNOUNCE for a subset of that namespace, the
-publisher <span class="bcp14">MUST</span> send an ANNOUNCE for the specific subset.<a href="#section-4.2-3" class="pilcrow">¶</a></p>
-<p id="section-4.2-4">A publisher <span class="bcp14">MAY</span> send the ANNOUNCE to subscribers that have not subscribed to
-ANNOUNCE for the namespace, or a subset or superset thereof.<a href="#section-4.2-4" class="pilcrow">¶</a></p>
-<p id="section-4.2-5">However, a publisher <span class="bcp14">SHOULD NOT</span> send an ANNOUNCE advertising a namespace equal
+to any subscriber that has subscribed to ANNOUNCE for that namespace, a
+superset of that namespace, or a subset of that namespace. A publisher <span class="bcp14">MAY</span> send
+the ANNOUNCE to any other subscriber.<a href="#section-4.2-2" class="pilcrow">¶</a></p>
+<p id="section-4.2-3">However, a publisher <span class="bcp14">SHOULD NOT</span> send an ANNOUNCE advertising a namespace equal
 to, or a subset of, a namespace for which the subscriber sent an earlier ANNOUNCE
-(i.e. an ANNOUNCE ought not to be echoed back to its sender).<a href="#section-4.2-5" class="pilcrow">¶</a></p>
-<p id="section-4.2-6">An UNANNOUNCE message negates the meaning of an ANNOUNCE, although it is not a
+(i.e. an ANNOUNCE ought not to be echoed back to its sender).<a href="#section-4.2-3" class="pilcrow">¶</a></p>
+<p id="section-4.2-4">An UNANNOUNCE message negates the meaning of an ANNOUNCE, although it is not a
 protocol error for the subscriber to send a SUBSCRIBE or FETCH message anyway.
 A subscriber can send ANNOUNCE_CANCEL, meaning it is no longer interested in a
 namespace, which also negates the ANNOUNCE: the publisher need not send
 UNANNOUNCE. A publisher and subscriber might seek alternate subscribers and
-publishers, respectively, for potential SUBSCRIBE and FETCH interactions.<a href="#section-4.2-6" class="pilcrow">¶</a></p>
-<p id="section-4.2-7">The receiver of an ANNOUNCE_OK or ANNOUNCE_ERROR <span class="bcp14">SHOULD</span> report this to the
+publishers, respectively, for potential SUBSCRIBE and FETCH interactions.<a href="#section-4.2-4" class="pilcrow">¶</a></p>
+<p id="section-4.2-5">The receiver of an ANNOUNCE_OK or ANNOUNCE_ERROR <span class="bcp14">SHOULD</span> report this to the
 application to inform the search for additional subscribers for a namespace,
 or abandoning the attempt to publish a track. This might be especially useful
 in upload or chat applications. A subscriber <span class="bcp14">MUST</span> send exactly one ANNOUNCE_OK
 or ANNOUNCE_ERROR in response to an ANNOUNCE. The publisher <span class="bcp14">SHOULD</span> close the
-session with a protocol error if it detects receiving more than one.<a href="#section-4.2-7" class="pilcrow">¶</a></p>
+session with a protocol error if it detects receiving more than one.<a href="#section-4.2-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="subscribefetch">
@@ -2245,7 +2242,7 @@ RESET_STREAM for the FETCH data stream. If the data stream is already open, it
 <p id="section-4.3-5">The Publisher can destroy subscription or fetch state as soon as it has received
 UNSUBSCRIBE or FETCH_CANCEL, respectively. It <span class="bcp14">MUST</span> reset any open streams
 associated with the SUBSCRIBE or FETCH.<a href="#section-4.3-5" class="pilcrow">¶</a></p>
-<p id="section-4.3-6">The publisher can immediate delete SUBSCRIBE state after sending
+<p id="section-4.3-6">The publisher can immediately delete SUBSCRIBE state after sending
 SUBSCRIBE_DONE, but <span class="bcp14">MUST NOT</span> send it until it has closed all related streams. It
 can destroy all FETCH state after closing the data stream.<a href="#section-4.3-6" class="pilcrow">¶</a></p>
 <p id="section-4.3-7">A SUBSCRIBE_ERROR or FETCH_ERROR indicates no objects will be delivered, and

@@ -730,15 +730,9 @@ Table of Contents
    If a publisher is authoritative for a given namespace, or has
    received an ANNOUNCE for that namespace from an upstream publisher,
    it MUST send an ANNOUNCE to any subscriber that has subscribed to
-   ANNOUNCE for that namespace or a superset of that namespace.
-
-   If a subscriber is subscribed to ANNOUNCE for a subset of that
-   namespace, the publisher MUST send an ANNOUNCE for the specific
-   subset.
-
-   A publisher MAY send the ANNOUNCE to subscribers that have not
-   subscribed to ANNOUNCE for the namespace, or a subset or superset
-   thereof.
+   ANNOUNCE for that namespace, a superset of that namespace, or a
+   subset of that namespace.  A publisher MAY send the ANNOUNCE to any
+   other subscriber.
 
    However, a publisher SHOULD NOT send an ANNOUNCE advertising a
    namespace equal to, or a subset of, a namespace for which the
@@ -786,7 +780,7 @@ Table of Contents
    has received UNSUBSCRIBE or FETCH_CANCEL, respectively.  It MUST
    reset any open streams associated with the SUBSCRIBE or FETCH.
 
-   The publisher can immediate delete SUBSCRIBE state after sending
+   The publisher can immediately delete SUBSCRIBE state after sending
    SUBSCRIBE_DONE, but MUST NOT send it until it has closed all related
    streams.  It can destroy all FETCH state after closing the data
    stream.
