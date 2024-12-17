@@ -648,22 +648,32 @@ increases the likelihood that publishers will send relevant ANNOUNCE messages
 for that namespace.
 
 An UNSUBSCRIBE_NAMESPACES negates the effect of a SUBSCRIBE_NAMESPACES. It does
-not prohibit the receiver from sending further ANNOUNCE messages. The receiver
-of a SUBSCRIBE_NAMESPACES_OK or SUBSCRIBE_NAMESPACES_ERROR should forward the
-result to the application, so that it can make decisions about further
-publishers to contact. A publisher MUST send exactly one SUBSCRIBE_NAMESPACES_OK
-or SUBSCRIBE_NAMESPACES_ERROR. The subscriber SHOULD close the session with a
-protocol error if it detects receiving more than one.
+not prohibit the receiver (publisher) from sending further ANNOUNCE messages.
+The receiver of a SUBSCRIBE_NAMESPACES_OK or SUBSCRIBE_NAMESPACES_ERROR should
+forward the result to the application, so that it can make decisions about
+further publishers to contact. A publisher MUST send exactly one
+SUBSCRIBE_NAMESPACES_OK or SUBSCRIBE_NAMESPACES_ERROR. The subscriber SHOULD
+close the session with a protocol error if it detects receiving more than one.
 
 ## ANNOUNCE
 
 A publisher MAY send ANNOUNCE messages to any subscriber. An ANNOUNCE increases
-the likelihood of a subsequent successful SUBSCRIBE or FETCH. It SHOULD send
-an ANNOUNCE if it has received a SUBSCRIBE_ANNOUNCES for that namespace, or a
-superset of that namespace. However, a publisher SHOULD NOT send an ANNOUNCE
-advertising a namespace equal to, or a subset of, a namespace for which the
-receiver sent an earlier ANNOUNCE (i.e. an ANNOUNCE ought not to be echoed back
-to its sender).
+the likelihood of a subsequent successful SUBSCRIBE or FETCH.
+
+If a publisher is authoritative for a given namespace, or has received an
+ANNOUNCE for that namespace from an upstream publisher, it MUST send an ANNOUNCE
+to any subscriber that has subscribed to ANNOUNCE for that namespace or a
+superset of that namespace.
+
+If a subscriber is subscribed to ANNOUNCE for a subset of that namespace, the
+publisher MUST send an ANNOUNCE for the specific subset.
+
+A publisher MAY send the ANNOUNCE to subscribers that have not subscribed to
+ANNOUNCE for the namespace, or a subset or superset thereof.
+
+However, a publisher SHOULD NOT send an ANNOUNCE advertising a namespace equal
+to, or a subset of, a namespace for which the subscriber sent an earlier ANNOUNCE
+(i.e. an ANNOUNCE ought not to be echoed back to its sender).
 
 An UNANNOUNCE message negates the meaning of an ANNOUNCE, although it is not a
 protocol error for the subscriber to send a SUBSCRIBE or FETCH message anyway.
@@ -676,14 +686,14 @@ The receiver of an ANNOUNCE_OK or ANNOUNCE_ERROR SHOULD report this to the
 application to inform the search for additional subscribers for a namespace,
 or abandoning the attempt to publish a track. This might be especially useful
 in upload or chat applications. A subscriber MUST send exactly one ANNOUNCE_OK
-or ANNOUNCE_ERROR. The publisher SHOULD close the session with a protocol error
-if it detects receiving more than one.
+or ANNOUNCE_ERROR in response to an ANNOUNCE. The publisher SHOULD close the
+session with a protocol error if it detects receiving more than one.
 
 ## SUBSCRIBE/FETCH
 
-A subscriber MAY send a SUBSCRIBE or FETCH for a track to any publisher. If has
-received an ANNOUNCE with a namespace that includes that track, it SHOULD only
-request it from the senders of those ANNOUNCE messages.
+A subscriber MAY send a SUBSCRIBE or FETCH for a track to any publisher. If it
+has received an ANNOUNCE with a namespace that includes that track, it SHOULD
+only request it from the senders of those ANNOUNCE messages.
 
 The central interaction with a publisher is to send SUBSCRIBE and/or FETCH for
 a particular track in a namespace. The subscriber expects to receive a
@@ -698,8 +708,8 @@ RESET_STREAM for the FETCH data stream. If the data stream is already open, it
 MAY send STOP_SENDING for the data stream, but MUST send FETCH_CANCEL.
 
 The Publisher can destroy subscription or fetch state as soon as it has received
-UNSUBSCRIBE or FETCH_CANCEL, respectively. It MUST reset any open streams for
-that operation.
+UNSUBSCRIBE or FETCH_CANCEL, respectively. It MUST reset any open streams
+associated with the SUBSCRIBE or FETCH.
 
 The publisher can immediate delete SUBSCRIBE state after sending
 SUBSCRIBE_DONE, but MUST NOT send it until it has closed all related streams. It
