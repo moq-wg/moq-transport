@@ -1536,7 +1536,8 @@ The following values are used:
   * For Subscribes with Filter Type LatestObject or LatestGroup, this is equal to Largest Group ID.
   * For Subscribes with Filter Type AbsoluteStart or AbsoluteRange, this is equal to the StartGroup field of the Subscribe message
 * Resolved Subscribe Start Object:
-  * For Subscribes with Filter Type LatestObject or LatestObject, this is equal to Largest Object ID.
+  * For Subscribes with Filter Type LatestObject, this is equal to Largest Object ID.
+  * For Subscribes with Filter Type LatestGroup, this is 0
   * For Subscribes with Filter Type AbsoluteStart or AbsoluteRange, this is equal to the StartObject field of the Subscribe message
 * Preceding Group Offset: A field in the Joining Fetch message indicating the relative offset from the start of the Subscribe
 
