@@ -23,15 +23,15 @@ networks and is designed for high scale and low latency distribution.
 <meta content="draft-ietf-moq-transport-latest" name="ietf.draft">
 <!-- Generator version information:
   xml2rfc 3.25.0
-    Python 3.12.7
+    Python 3.12.8
     ConfigArgParse 1.7
     google-i18n-address 3.1.1
     intervaltree 3.1.0
     Jinja2 3.1.4
     lxml 5.3.0
     platformdirs 4.3.6
-    pycountry 22.3.5
-    PyYAML 6.0.1
+    pycountry 24.6.1
+    PyYAML 6.0.2
     requests 2.32.3
     setuptools 70.3.0
     wcwidth 0.2.13
@@ -1057,7 +1057,7 @@ svg :is([fill="white"], [fill^="#fff"]) {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Curley, et al.</td>
-<td class="center">Expires 20 June 2025</td>
+<td class="center">Expires 21 June 2025</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1070,12 +1070,12 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dd class="internet-draft">draft-ietf-moq-transport-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2024-12-17" class="published">17 December 2024</time>
+<time datetime="2024-12-18" class="published">18 December 2024</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2025-06-20">20 June 2025</time></dd>
+<dd class="expires"><time datetime="2025-06-21">21 June 2025</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1147,7 +1147,7 @@ networks and is designed for high scale and low latency distribution.<a href="#s
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 20 June 2025.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 21 June 2025.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -2198,28 +2198,31 @@ close the session with a protocol error if it detects receiving more than one.<a
         <h3 id="name-announce">
 <a href="#section-4.2" class="section-number selfRef">4.2. </a><a href="#name-announce" class="section-name selfRef">ANNOUNCE</a>
         </h3>
-<p id="section-4.2-1">A publisher <span class="bcp14">MAY</span> send ANNOUNCE messages to any subscriber. An ANNOUNCE increases
-the likelihood of a subsequent successful SUBSCRIBE or FETCH.<a href="#section-4.2-1" class="pilcrow">¶</a></p>
-<p id="section-4.2-2">If a publisher is authoritative for a given namespace, or has received an
-ANNOUNCE for that namespace from an upstream publisher, it <span class="bcp14">MUST</span> send an ANNOUNCE
-to any subscriber that has subscribed to ANNOUNCE for that namespace, a
-superset of that namespace, or a subset of that namespace. A publisher <span class="bcp14">MAY</span> send
-the ANNOUNCE to any other subscriber.<a href="#section-4.2-2" class="pilcrow">¶</a></p>
-<p id="section-4.2-3">However, a publisher <span class="bcp14">SHOULD NOT</span> send an ANNOUNCE advertising a namespace equal
-to, or a subset of, a namespace for which the subscriber sent an earlier ANNOUNCE
+<p id="section-4.2-1">A publisher <span class="bcp14">MAY</span> send ANNOUNCE messages to any subscriber. An ANNOUNCE indicates
+to the subscriber where to route a SUBSCRIBE or FETCH for that namespace. A
+subscriber <span class="bcp14">MAY</span> send SUBSCRIBE or FETCH for a namespace without having received
+an ANNOUNCE for it.<a href="#section-4.2-1" class="pilcrow">¶</a></p>
+<p id="section-4.2-2">If a publisher is authoritative for a given namespace, or is a relay that has
+received an ANNOUNCE for that namespace from an upstream publisher, it <span class="bcp14">MUST</span> send
+an ANNOUNCE to any subscriber that has subscribed to ANNOUNCE for that
+namespace, a superset of that namespace, or a subset of that namespace. A
+publisher <span class="bcp14">MAY</span> send the ANNOUNCE to any other subscriber.<a href="#section-4.2-2" class="pilcrow">¶</a></p>
+<p id="section-4.2-3">However, a publisher <span class="bcp14">SHOULD NOT</span> send an ANNOUNCE advertising a namespace that
+exactly matches a namespace for which the subscriber sent an earlier ANNOUNCE
 (i.e. an ANNOUNCE ought not to be echoed back to its sender).<a href="#section-4.2-3" class="pilcrow">¶</a></p>
 <p id="section-4.2-4">An UNANNOUNCE message negates the meaning of an ANNOUNCE, although it is not a
-protocol error for the subscriber to send a SUBSCRIBE or FETCH message anyway.
-A subscriber can send ANNOUNCE_CANCEL, meaning it is no longer interested in a
+protocol error for the subscriber to send a SUBSCRIBE or FETCH message after
+receiving an UNANNOUNCE.<a href="#section-4.2-4" class="pilcrow">¶</a></p>
+<p id="section-4.2-5">A subscriber can send ANNOUNCE_CANCEL, meaning it is no longer interested in a
 namespace, which also negates the ANNOUNCE: the publisher need not send
 UNANNOUNCE. A publisher and subscriber might seek alternate subscribers and
-publishers, respectively, for potential SUBSCRIBE and FETCH interactions.<a href="#section-4.2-4" class="pilcrow">¶</a></p>
-<p id="section-4.2-5">The receiver of an ANNOUNCE_OK or ANNOUNCE_ERROR <span class="bcp14">SHOULD</span> report this to the
+publishers, respectively, for potential SUBSCRIBE and FETCH interactions.<a href="#section-4.2-5" class="pilcrow">¶</a></p>
+<p id="section-4.2-6">The receiver of an ANNOUNCE_OK or ANNOUNCE_ERROR <span class="bcp14">SHOULD</span> report this to the
 application to inform the search for additional subscribers for a namespace,
 or abandoning the attempt to publish a track. This might be especially useful
 in upload or chat applications. A subscriber <span class="bcp14">MUST</span> send exactly one ANNOUNCE_OK
 or ANNOUNCE_ERROR in response to an ANNOUNCE. The publisher <span class="bcp14">SHOULD</span> close the
-session with a protocol error if it detects receiving more than one.<a href="#section-4.2-5" class="pilcrow">¶</a></p>
+session with a protocol error if it detects receiving more than one.<a href="#section-4.2-6" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="subscribefetch">
@@ -2234,14 +2237,17 @@ only request it from the senders of those ANNOUNCE messages.<a href="#section-4.
 a particular track in a namespace. The subscriber expects to receive a
 SUBSCRIBE_OK/FETCH_OK and objects from the track.<a href="#section-4.3-2" class="pilcrow">¶</a></p>
 <p id="section-4.3-3">A subscriber keeps SUBSCRIBE state until it sends UNSUBSCRIBE, or after receipt
-of a SUBSCRIBE_DONE.  Note that SUBSCRIBE_DONE does not usually indicate that
-state can immediately be destroyed, see <a href="#message-subscribe-done" class="auto internal xref">Section 7.19</a>.<a href="#section-4.3-3" class="pilcrow">¶</a></p>
-<p id="section-4.3-4">A subscriber keeps FETCH state until it sends FETCH_CANCEL, or a FIN or
-RESET_STREAM for the FETCH data stream. If the data stream is already open, it
-<span class="bcp14">MAY</span> send STOP_SENDING for the data stream, but <span class="bcp14">MUST</span> send FETCH_CANCEL.<a href="#section-4.3-4" class="pilcrow">¶</a></p>
+of a SUBSCRIBE_DONE or SUBSCRIBE_ERROR. Note that SUBSCRIBE_DONE does not
+usually indicate that state can immediately be destroyed, see
+<a href="#message-subscribe-done" class="auto internal xref">Section 7.19</a>.<a href="#section-4.3-3" class="pilcrow">¶</a></p>
+<p id="section-4.3-4">A subscriber keeps FETCH state until it sends FETCH_CANCEL; receives
+FETCH_ERROR; or receives a FIN or RESET_STREAM for the FETCH data stream. If the
+data stream is already open, it <span class="bcp14">MAY</span> send STOP_SENDING for the data stream along
+with FETCH_CANCEL, but <span class="bcp14">MUST</span> send FETCH_CANCEL.<a href="#section-4.3-4" class="pilcrow">¶</a></p>
 <p id="section-4.3-5">The Publisher can destroy subscription or fetch state as soon as it has received
 UNSUBSCRIBE or FETCH_CANCEL, respectively. It <span class="bcp14">MUST</span> reset any open streams
-associated with the SUBSCRIBE or FETCH.<a href="#section-4.3-5" class="pilcrow">¶</a></p>
+associated with the SUBSCRIBE or FETCH. It can also destroy state after closing
+on the FETCH data stream.<a href="#section-4.3-5" class="pilcrow">¶</a></p>
 <p id="section-4.3-6">The publisher can immediately delete SUBSCRIBE state after sending
 SUBSCRIBE_DONE, but <span class="bcp14">MUST NOT</span> send it until it has closed all related streams. It
 can destroy all FETCH state after closing the data stream.<a href="#section-4.3-6" class="pilcrow">¶</a></p>
@@ -2443,7 +2449,8 @@ to the old relay can be stopped with an UNSUBSCRIBE.<a href="#section-6.1.1-2" c
 <p id="section-6.2-1">Publishing through the relay starts with publisher sending ANNOUNCE
 control message with a <code>Track Namespace</code> (<a href="#model-track" class="auto internal xref">Section 2.4</a>).
 The ANNOUNCE enables the relay to know which publisher to forward a
-SUBSCRIBE to.<a href="#section-6.2-1" class="pilcrow">¶</a></p>
+SUBSCRIBE to, if the track name belongs to the namespace indicated in
+the ANNOUNCE.<a href="#section-6.2-1" class="pilcrow">¶</a></p>
 <p id="section-6.2-2">Relays <span class="bcp14">MUST</span> ensure that publishers are authorized by verifying that the
 publisher is authorized to publish the content associated with the set of
 tracks whose Track Namespace matches the announced namespace. Where the
@@ -3126,8 +3133,8 @@ See <a href="#priorities" class="auto internal xref">Section 5</a>.<a href="#sec
 <a href="#section-7.6" class="section-number selfRef">7.6. </a><a href="#name-unsubscribe" class="section-name selfRef">UNSUBSCRIBE</a>
         </h3>
 <p id="section-7.6-1">A subscriber issues a <code>UNSUBSCRIBE</code> message to a publisher indicating it is no
-longer interested in receiving media for the specified track and Objects
-should stop being sent as soon as possible.<a href="#section-7.6-1" class="pilcrow">¶</a></p>
+longer interested in receiving media for the specified track and requests that
+objects stop being sent as soon as possible.<a href="#section-7.6-1" class="pilcrow">¶</a></p>
 <p id="section-7.6-2">The format of <code>UNSUBSCRIBE</code> is as follows:<a href="#section-7.6-2" class="pilcrow">¶</a></p>
 <span id="name-moqt-unsubscribe-message"></span><div id="moq-transport-unsubscribe-format">
 <figure id="figure-7">
@@ -3351,8 +3358,7 @@ message for which this response is provided.<a href="#section-7.10-3.1.1" class=
             <p id="section-7.10-3.3.1">Reason Phrase: Provides the reason for announcement error.<a href="#section-7.10-3.3.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
-<p id="section-7.10-4">The application <span class="bcp14">SHOULD</span> use a relevant error code in an ANNOUNCE_ERROR, as
-defined below.<a href="#section-7.10-4" class="pilcrow">¶</a></p>
+<p id="section-7.10-4">The following error codes are defined:<a href="#section-7.10-4" class="pilcrow">¶</a></p>
 <table class="center" id="table-3">
           <caption><a href="#table-3" class="selfRef">Table 3</a></caption>
 <thead>
@@ -3651,7 +3657,7 @@ the subscriber <span class="bcp14">MUST</span> close the connection with a Dupli
 (<a href="#session-termination" class="auto internal xref">Section 3.5</a>).<a href="#section-7.16-3.4.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
-<p id="section-7.16-4">The application <span class="bcp14">SHOULD</span> use a relevant error code in SUBSCRIBE_ERROR, as defined below:<a href="#section-7.16-4" class="pilcrow">¶</a></p>
+<p id="section-7.16-4">The following error codes are defined:<a href="#section-7.16-4" class="pilcrow">¶</a></p>
 <table class="center" id="table-4">
           <caption><a href="#table-4" class="selfRef">Table 4</a></caption>
 <thead>
@@ -3784,7 +3790,7 @@ FETCH_ERROR
             <p id="section-7.18-3.3.1">Reason Phrase: Provides the reason for fetch error.<a href="#section-7.18-3.3.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
-<p id="section-7.18-4">The application <span class="bcp14">SHOULD</span> use a relevant error code in FETCH_ERROR, as defined below:<a href="#section-7.18-4" class="pilcrow">¶</a></p>
+<p id="section-7.18-4">The following error codes are defined:<a href="#section-7.18-4" class="pilcrow">¶</a></p>
 <table class="center" id="table-5">
           <caption><a href="#table-5" class="selfRef">Table 5</a></caption>
 <thead>
