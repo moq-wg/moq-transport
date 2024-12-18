@@ -564,8 +564,6 @@ code, as defined below:
 |------|---------------------------|
 | 0x6  | Too Many Subscribes       |
 |------|---------------------------|
-| 0x7  | Invalid Subscribe ID      |
-|------|---------------------------|
 | 0x10 | GOAWAY Timeout            |
 |------|---------------------------|
 | 0x11 | Control Message Timeout   |
@@ -588,9 +586,6 @@ code, as defined below:
 
 * Too Many Subscribes: The session was closed because the subscriber used
   a Subscribe ID equal or larger than the current Maximum Subscribe ID.
-
-* Invalid Subscribe ID: The session was closed because the subscriber sent
-  a Joining Fetch with a Subscribe ID that does not exist.
 
 * GOAWAY Timeout: The session was closed because the peer took too long to
   close the session in response to a GOAWAY ({{message-goaway}}) message.
@@ -1477,8 +1472,7 @@ is a variable length integer that MUST be unique and monotonically increasing
 within a session. For a Standalone Fetch a new Subscribe ID MUST be used. For
 a Joining Fetch, the Subscribe ID MUST correspond to a Subscribe which has already
 been sent. If a publisher receives a Joining Fetch with a Subscribe ID that does
-not correspond to an existing Subscribe, it MUST close the session with an
-Invalid Subscribe ID error.
+not correspond to an existing Subscribe, it MUST respond with a Fetch Error.
 
 * Subscriber Priority: Specifies the priority of a fetch request relative to
 other subscriptions or fetches in the same session. Lower numbers get higher
