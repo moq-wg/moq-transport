@@ -1537,11 +1537,13 @@ from to the corresponding Subscribe message (hereafter "the Subscribe").
 
 The following values are used:
 
-* Filter Type: The type of filter specified in the Subscribe
-* Subscribe Start Group: The Start Group specified in the Subscribe (if AbsoluteStart or AbsoluteRange)
-* Subscribe Start Object: The Start Object specified in the Subscribe (if AbsoluteStart or AbsoluteRange)
-* Largest Group ID: The largest Group ID available for the track (if ContentExists is 1)
-* Largest Object ID: The largest Object ID within the largest Group ID (if ContentExists is 1)
+* ContentExists: whether we have any objects and therefore a Largest Group ID and Largest Object ID for the track
+* Resolved Subscribe Start Group:
+  * For Subscribes with Filter Type LatestObject or LatestGroup, this is equal to Largest Group ID.
+  * For Subscribes with Filter Type AbsoluteStart or AbsoluteRange, this is equal to the StartGroup field of the Subscribe message
+* Resolved Subscribe Start Object:
+  * For Subscribes with Filter Type LatestObject or LatestObject, this is equal to Largest Object ID.
+  * For Subscribes with Filter Type AbsoluteStart or AbsoluteRange, this is equal to the StartObject field of the Subscribe message
 * Previous Group Count: A field in the Joining Fetch message indicating how many prior groups to include
 
 Using that information and the following algorithm, these values are computed:
@@ -1557,19 +1559,19 @@ The publisher receiving a Joining Fetch computes the fetch range as follows:
 If ContentExists is not 1 and Largest Group ID and Largest Object ID are not available, a relay SHOULD
 forward the Fetch with the 0x2 Fetch Type upstream.
 
-1. For Subscribes with a Filter Type of AbsoluteStart or AbsoluteRange:
-* Fetch Start Group: max(Largest Group ID, Subscribe Start Group) - Previous Group Count
+* Fetch Start Group: Resolved Subscribe Start Group - Previous Group Count
 * Fetch Start Object: 0
-* Fetch End Group: the maximum of Largest Group ID and Subscribe Start Group
-* Fetch End Object:
-  * Largest Object ID if Largest Group > Subscribe Start Group
-  * Subscribe Start Object otherwise
 
-2. For Subscribes with a Filter Type of LatestObject or LatestGroup:
-* Fetch Start Group: Largest Group ID - Previous Group Count
-* Fetch Start Object: 0
-* Fetch End Group: Largest Group ID
-* Fetch End Object: Largest Object ID
+If Resolved Subscribe Start Object is 0:
+* Fetch End Group: Resolved Subscribe Start Group - 1
+* Fetch End Object: 0 (all objects in the group)
+
+Else, if Resolved Subscribe Start Object is 1 or more:
+* Fetch End Group: Resolved Subscribe Start Group
+* Fetch End Object: Resolved Subscribe Start Object
+
+If Fetch End Group < Fetch Start Group no Fetch will be generated.
+(TODO: How can we signal this?)
 
 A Joining Fetch MUST be sent in ascending group order.
 
