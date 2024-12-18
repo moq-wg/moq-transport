@@ -1529,20 +1529,47 @@ A publisher MUST send fetched groups in group order, either ascending or
 descending. Within each group, objects are sent in Object ID order;
 subgroup ID is not used for ordering.
 
-A publisher which receives a Fetch message with a Fetch Type of 0x2 should treat it as a Fetch
-with the following fields dynamically determined from the corresponding Subscribe:
+### Calculating the Range of a Joining Fetch
 
-* Track Namespace: Same as in the corresponding Subscribe
+A publisher which receives a Fetch message with a Fetch Type of 0x2 must treat it as a Fetch
+with a range dynamically determined by the Previous Group Count (PGC) field and values derived
+from to the corresponding Subscribe message (hereafter "the Subscribe").
 
-* Track Name: Same as in the corresponding Subscribe
+The following values are used:
 
-* StartGroup: LatestGroup as determined for the Subscribe minus Previous Group Count from the Joining Fetch
+* Filter Type: The type of filter specified in the Subscribe
+* Subscribe Start Group: The Start Group specified in the Subscribe (if AbsoluteStart or AbsoluteRange)
+* Subscribe Start Object: The Start Object specified in the Subscribe (if AbsoluteStart or AbsoluteRange)
+* Largest Group ID: The largest Group ID available for the track (if ContentExists is 1)
+* Largest Object ID: The largest Object ID within the largest Group ID (if ContentExists is 1)
+* Previous Group Count: A field in the Joining Fetch message indicating how many prior groups to include
 
-* StartObject: Always 0
+Using that information and the following algorithm, these values are computed:
 
-* EndGroup: StartGroup of the corresponding Subscribe minus 1 (double check minus 1)
+* Fetch Start Group: The StartGroup for the Fetch
+* Fetch Start Object: The StartObject for the Fetch (always 0)
+* Fetch End Group: The EndGroup for the Fetch
+* Fetch End Object: The EndObject for the Fetch (represented as 1 more than the end Object ID
+  or a value of 0 indicating that the entire group is requested)
 
-* EndObject: StartObject of the corresponding Subscribe minus 1 (double check minus 1)
+The publisher receiving a Joining Fetch computes the fetch range as follows:
+
+If ContentExists is not 1 and Largest Group ID and Largest Object ID are not available, a relay SHOULD
+forward the Fetch with the 0x2 Fetch Type upstream.
+
+1. For Subscribes with a Filter Type of AbsoluteStart or AbsoluteRange:
+* Fetch Start Group: max(Largest Group ID, Subscribe Start Group) - Previous Group Count
+* Fetch Start Object: 0
+* Fetch End Group: the maximum of Largest Group ID and Subscribe Start Group
+* Fetch End Object:
+  * Largest Object ID if Largest Group > Subscribe Start Group
+  * Subscribe Start Object otherwise
+
+2. For Subscribes with a Filter Type of LatestObject or LatestGroup:
+* Fetch Start Group: Largest Group ID - Previous Group Count
+* Fetch Start Object: 0
+* Fetch End Group: Largest Group ID
+* Fetch End Object: Largest Object ID
 
 A Joining Fetch MUST be sent in ascending group order.
 
