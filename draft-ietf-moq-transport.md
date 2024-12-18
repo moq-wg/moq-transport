@@ -1430,7 +1430,7 @@ Joining Fetch (0x2) : A Fetch joined together with a Subscribe. A Joining Fetch
 shares the same Subscribe ID as an already-sent Subscribe. A publisher receiving a Joining
 Fetch should use properties of the associated Subscribe to determine the Track Namespace,
 Track, StartGroup, StartObject, EndGroup, and EndObject for the Joining Fetch such that it is
-contiguous with the associated Subscribe and begins Previous Group Count prior.
+contiguous with the associated Subscribe and begins Preceding Group Offset prior.
 
 A Fetch Type other than the above MUST be treated as an error.
 
@@ -1463,7 +1463,7 @@ FETCH Message {
    StartObject (i),
    EndGroup (i),
    EndObject (i),]
-  [Previous Group Count (i),]
+  [Preceding Group Offset (i),]
   Number of Parameters (i),
   Parameters (..) ...
 }
@@ -1511,7 +1511,7 @@ requested.
 
 Field present only for Joining Fetch (0x2):
 
-* Previous Group Count: The number of groups to Fetch prior to the StartGroup of the corresponding Subscribe
+* Preceding Group Offset: The group offset for the Fetch prior and relative to the StartGroup of the corresponding Subscribe
 
 Objects that are not yet published will not be retrieved by a FETCH.
 The latest available Object is indicated in the FETCH_OK, and is the last
@@ -1532,7 +1532,7 @@ subgroup ID is not used for ordering.
 ### Calculating the Range of a Joining Fetch
 
 A publisher which receives a Fetch message with a Fetch Type of 0x2 must treat it as a Fetch
-with a range dynamically determined by the Previous Group Count (PGC) field and values derived
+with a range dynamically determined by the Preceding Group Offset (PGO) field and values derived
 from to the corresponding Subscribe message (hereafter "the Subscribe").
 
 The following values are used:
@@ -1544,7 +1544,7 @@ The following values are used:
 * Resolved Subscribe Start Object:
   * For Subscribes with Filter Type LatestObject or LatestObject, this is equal to Largest Object ID.
   * For Subscribes with Filter Type AbsoluteStart or AbsoluteRange, this is equal to the StartObject field of the Subscribe message
-* Previous Group Count: A field in the Joining Fetch message indicating how many prior groups to include
+* Preceding Group Offset: A field in the Joining Fetch message indicating the relative offset from the start of the Subscribe
 
 Using that information and the following algorithm, these values are computed:
 
@@ -1559,7 +1559,7 @@ The publisher receiving a Joining Fetch computes the fetch range as follows:
 If ContentExists is not 1 and Largest Group ID and Largest Object ID are not available, a relay SHOULD
 forward the Fetch with the 0x2 Fetch Type upstream.
 
-* Fetch Start Group: Resolved Subscribe Start Group - Previous Group Count
+* Fetch Start Group: Resolved Subscribe Start Group - Preceding Group Offset
 * Fetch Start Object: 0
 
 If Resolved Subscribe Start Object is 0:
