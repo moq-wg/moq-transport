@@ -1531,7 +1531,6 @@ from to the corresponding Subscribe message (hereafter "the Subscribe").
 
 The following values are used:
 
-* ContentExists: whether we have any objects and therefore a Largest Group ID and Largest Object ID for the track
 * Resolved Subscribe Start Group:
   * For Subscribes with Filter Type LatestObject or LatestGroup, this is equal to Largest Group ID.
   * For Subscribes with Filter Type AbsoluteStart or AbsoluteRange, this is equal to the StartGroup field of the Subscribe message
@@ -1540,6 +1539,10 @@ The following values are used:
   * For Subscribes with Filter Type LatestGroup, this is 0
   * For Subscribes with Filter Type AbsoluteStart or AbsoluteRange, this is equal to the StartObject field of the Subscribe message
 * Preceding Group Offset: A field in the Joining Fetch message indicating the relative offset from the start of the Subscribe
+
+Note: If a relay does not yet have LatestGroup and LatestObject for a given track, it may choose to either forward both the Subscribe and
+the Joining Fetch upstream or to watch until the Joining Fetch can be resolved locally. However it is handled, the Resolved Subscribe Start values
+for a Joining Fetch MUST correspond to the Subscribe within the same session so the Fetch and Subscribe can be contiguous and non-overlapping.
 
 Using that information and the following algorithm, these values are computed:
 
@@ -1550,9 +1553,6 @@ Using that information and the following algorithm, these values are computed:
   or a value of 0 indicating that the entire group is requested)
 
 The publisher receiving a Joining Fetch computes the fetch range as follows:
-
-If ContentExists is not 1 and Largest Group ID and Largest Object ID are not available, a relay SHOULD
-forward the Fetch with the 0x2 Fetch Type upstream.
 
 * Fetch Start Group: Resolved Subscribe Start Group - Preceding Group Offset
 * Fetch Start Object: 0
