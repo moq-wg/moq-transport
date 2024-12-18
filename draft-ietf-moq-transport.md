@@ -1565,8 +1565,7 @@ Else, if Resolved Subscribe Start Object is 1 or more:
 * Fetch End Group: Resolved Subscribe Start Group
 * Fetch End Object: Resolved Subscribe Start Object
 
-If Fetch End Group < Fetch Start Group no Fetch will be generated.
-(TODO: How can we signal this?)
+If Fetch End Group < Fetch Start Group respond with a Fetch Error.
 
 A Joining Fetch MUST be sent in ascending group order.
 
