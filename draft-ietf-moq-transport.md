@@ -657,21 +657,25 @@ close the session with a protocol error if it detects receiving more than one.
 
 ## ANNOUNCE
 
-A publisher MAY send ANNOUNCE messages to any subscriber. An ANNOUNCE increases
-the likelihood of a subsequent successful SUBSCRIBE or FETCH.
+A publisher MAY send ANNOUNCE messages to any subscriber. An ANNOUNCE indicates
+to the subscriber where to route a SUBSCRIBE or FETCH for that namespace. A
+subscriber MAY send SUBSCRIBE or FETCH for a namespace without having received
+an ANNOUNCE for it.
 
-If a publisher is authoritative for a given namespace, or has received an
-ANNOUNCE for that namespace from an upstream publisher, it MUST send an ANNOUNCE
-to any subscriber that has subscribed to ANNOUNCE for that namespace, a
-superset of that namespace, or a subset of that namespace. A publisher MAY send
-the ANNOUNCE to any other subscriber.
+If a publisher is authoritative for a given namespace, or is a relay that has
+received an ANNOUNCE for that namespace from an upstream publisher, it MUST send
+an ANNOUNCE to any subscriber that has subscribed to ANNOUNCE for that
+namespace, a superset of that namespace, or a subset of that namespace. A
+publisher MAY send the ANNOUNCE to any other subscriber.
 
-However, a publisher SHOULD NOT send an ANNOUNCE advertising a namespace equal
-to, or a subset of, a namespace for which the subscriber sent an earlier ANNOUNCE
+However, a publisher SHOULD NOT send an ANNOUNCE advertising a namespace that
+exactly matches a namespace for which the subscriber sent an earlier ANNOUNCE
 (i.e. an ANNOUNCE ought not to be echoed back to its sender).
 
 An UNANNOUNCE message negates the meaning of an ANNOUNCE, although it is not a
-protocol error for the subscriber to send a SUBSCRIBE or FETCH message anyway.
+protocol error for the subscriber to send a SUBSCRIBE or FETCH message after
+receiving an UNANNOUNCE.
+
 A subscriber can send ANNOUNCE_CANCEL, meaning it is no longer interested in a
 namespace, which also negates the ANNOUNCE: the publisher need not send
 UNANNOUNCE. A publisher and subscriber might seek alternate subscribers and
@@ -695,16 +699,19 @@ a particular track in a namespace. The subscriber expects to receive a
 SUBSCRIBE_OK/FETCH_OK and objects from the track.
 
 A subscriber keeps SUBSCRIBE state until it sends UNSUBSCRIBE, or after receipt
-of a SUBSCRIBE_DONE.  Note that SUBSCRIBE_DONE does not usually indicate that
-state can immediately be destroyed, see {{message-subscribe-done}}.
+of a SUBSCRIBE_DONE or SUBSCRIBE_ERROR. Note that SUBSCRIBE_DONE does not
+usually indicate that state can immediately be destroyed, see
+{{message-subscribe-done}}.
 
-A subscriber keeps FETCH state until it sends FETCH_CANCEL, or a FIN or
-RESET_STREAM for the FETCH data stream. If the data stream is already open, it
-MAY send STOP_SENDING for the data stream, but MUST send FETCH_CANCEL.
+A subscriber keeps FETCH state until it sends FETCH_CANCEL; receives
+FETCH_ERROR; or receives a FIN or RESET_STREAM for the FETCH data stream. If the
+data stream is already open, it MAY send STOP_SENDING for the data stream along
+with FETCH_CANCEL, but MUST send FETCH_CANCEL.
 
 The Publisher can destroy subscription or fetch state as soon as it has received
 UNSUBSCRIBE or FETCH_CANCEL, respectively. It MUST reset any open streams
-associated with the SUBSCRIBE or FETCH.
+associated with the SUBSCRIBE or FETCH. It can also destroy state after closing
+on the FETCH data stream.
 
 The publisher can immediately delete SUBSCRIBE state after sending
 SUBSCRIBE_DONE, but MUST NOT send it until it has closed all related streams. It
@@ -883,7 +890,8 @@ to the old relay can be stopped with an UNSUBSCRIBE.
 Publishing through the relay starts with publisher sending ANNOUNCE
 control message with a `Track Namespace` ({{model-track}}).
 The ANNOUNCE enables the relay to know which publisher to forward a
-SUBSCRIBE to.
+SUBSCRIBE to, if the track name belongs to the namespace indicated in
+the ANNOUNCE.
 
 Relays MUST ensure that publishers are authorized by verifying that the
 publisher is authorized to publish the content associated with the set of
@@ -1422,8 +1430,8 @@ See {{priorities}}.
 ## UNSUBSCRIBE {#message-unsubscribe}
 
 A subscriber issues a `UNSUBSCRIBE` message to a publisher indicating it is no
-longer interested in receiving media for the specified track and Objects
-should stop being sent as soon as possible.
+longer interested in receiving media for the specified track and requests that
+objects stop being sent as soon as possible.
 
 The format of `UNSUBSCRIBE` is as follows:
 
