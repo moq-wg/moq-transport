@@ -1402,6 +1402,20 @@ objects within a track. The publisher responding to a FETCH is responsible for r
 all available Objects. If there are gaps between Objects, the publisher omits them from the
 fetch response. All omitted objects have status Object Not Available.
 
+**Fetch Types**
+
+There are two types of Fetch messages:
+
+Standalone Fetch (0x1) : A Fetch of Objects performed independently of any Subscribe.
+
+Joining Fetch (0x2) : A Fetch joined together with a Subscribe. A Joining Fetch
+shares the same Subscribe ID as an already-sent Subscribe. A publisher receiving a Joining
+Fetch should use properties of the associated Subscribe to determine the Track Namespace,
+Track, StartGroup, StartObject, EndGroup, and EndObject for the Joining Fetch such that it is
+contiguous with the associated Subscribe and begins Preceding Group Offset prior.
+
+A Fetch Type other than the above MUST be treated as an error.
+
 A publisher responds to a FETCH request with either a FETCH_OK or a FETCH_ERROR
 message.  If it responds with FETCH_OK, the publisher creates a new unidirectional
 stream that is used to send the Objects.  A relay MAY start sending objects immediately
@@ -1421,33 +1435,46 @@ FETCH Message {
   Type (i) = 0x16,
   Length (i),
   Subscribe ID (i),
-  Track Namespace (tuple),
-  Track Name Length (i),
-  Track Name (..),
   Subscriber Priority (8),
-  Group Order (8),
-  StartGroup (i),
-  StartObject (i),
-  EndGroup (i),
-  EndObject (i),
+  Fetch Type (i),
+  [Track Namespace (tuple),
+   Track Name Length (i),
+   Track Name (..),
+   Group Order (8),
+   StartGroup (i),
+   StartObject (i),
+   EndGroup (i),
+   EndObject (i),]
+  [Preceding Group Offset (i),]
   Number of Parameters (i),
   Parameters (..) ...
 }
 ~~~
 {: #moq-transport-fetch-format title="MOQT FETCH Message"}
 
+Fields common to all Fetch Types:
+
 * Subscribe ID: The Subscribe ID identifies a given fetch request. Subscribe ID
 is a variable length integer that MUST be unique and monotonically increasing
-within  a session.
+within a session. For a Standalone Fetch a new Subscribe ID MUST be used. For
+a Joining Fetch, the Subscribe ID MUST correspond to a Subscribe which has already
+been sent. If a publisher receives a Joining Fetch with a Subscribe ID that does
+not correspond to an existing Subscribe, it MUST respond with a Fetch Error.
+
+* Subscriber Priority: Specifies the priority of a fetch request relative to
+other subscriptions or fetches in the same session. Lower numbers get higher
+priority. See {{priorities}}.
+
+* Fetch Type: Identifies the type of Fetch, whether joining or standalone.
+
+* Parameters: The parameters are defined in {{version-specific-params}}.
+
+Fields present only for Standalone Fetch (0x1):
 
 * Track Namespace: Identifies the namespace of the track as defined in
 ({{track-name}}).
 
 * Track Name: Identifies the track name as defined in ({{track-name}}).
-
-* Subscriber Priority: Specifies the priority of a fetch request relative to
-other subscriptions or fetches in the same session. Lower numbers get higher
-priority. See {{priorities}}.
 
 * Group Order: Allows the subscriber to request Objects be delivered in
 Ascending (0x1) or Descending (0x2) order by group. See {{priorities}}.
@@ -1463,8 +1490,9 @@ used. Values larger than 0x2 are a protocol error.
 * EndObject: The end Object ID, plus 1. A value of 0 means the entire group is
 requested.
 
-* Parameters: The parameters are defined in {{version-specific-params}}.
+Field present only for Joining Fetch (0x2):
 
+* Preceding Group Offset: The group offset for the Fetch prior and relative to the StartGroup of the corresponding Subscribe
 
 Objects that are not yet published will not be retrieved by a FETCH.
 The latest available Object is indicated in the FETCH_OK, and is the last
@@ -1481,6 +1509,52 @@ the publisher MUST return FETCH_ERROR with error code 'No Objects'.
 A publisher MUST send fetched groups in group order, either ascending or
 descending. Within each group, objects are sent in Object ID order;
 subgroup ID is not used for ordering.
+
+### Calculating the Range of a Joining Fetch
+
+A publisher which receives a Fetch message with a Fetch Type of 0x2 must treat it as a Fetch
+with a range dynamically determined by the Preceding Group Offset (PGO) field and values derived
+from to the corresponding Subscribe message (hereafter "the Subscribe").
+
+The following values are used:
+
+* Resolved Subscribe Start Group:
+  * For Subscribes with Filter Type LatestObject or LatestGroup, this is equal to Largest Group ID.
+  * For Subscribes with Filter Type AbsoluteStart or AbsoluteRange, this is equal to the StartGroup field of the Subscribe message
+* Resolved Subscribe Start Object:
+  * For Subscribes with Filter Type LatestObject, this is equal to Largest Object ID.
+  * For Subscribes with Filter Type LatestGroup, this is 0
+  * For Subscribes with Filter Type AbsoluteStart or AbsoluteRange, this is equal to the StartObject field of the Subscribe message
+* Preceding Group Offset: A field in the Joining Fetch message indicating the relative offset from the start of the Subscribe
+
+Note: If a relay does not yet have LatestGroup and LatestObject for a given track, it may choose to either forward both the Subscribe and
+the Joining Fetch upstream or to watch until the Joining Fetch can be resolved locally. However it is handled, the Resolved Subscribe Start values
+for a Joining Fetch MUST correspond to the Subscribe within the same session so the Fetch and Subscribe can be contiguous and non-overlapping.
+
+Using that information and the following algorithm, these values are computed:
+
+* Fetch Start Group: The StartGroup for the Fetch
+* Fetch Start Object: The StartObject for the Fetch (always 0)
+* Fetch End Group: The EndGroup for the Fetch
+* Fetch End Object: The EndObject for the Fetch (represented as 1 more than the end Object ID
+  or a value of 0 indicating that the entire group is requested)
+
+The publisher receiving a Joining Fetch computes the fetch range as follows:
+
+* Fetch Start Group: Resolved Subscribe Start Group - Preceding Group Offset
+* Fetch Start Object: 0
+
+If Resolved Subscribe Start Object is 0:
+* Fetch End Group: Resolved Subscribe Start Group - 1
+* Fetch End Object: 0 (all objects in the group)
+
+Else, if Resolved Subscribe Start Object is 1 or more:
+* Fetch End Group: Resolved Subscribe Start Group
+* Fetch End Object: Resolved Subscribe Start Object
+
+If Fetch End Group < Fetch Start Group respond with a Fetch Error.
+
+A Joining Fetch MUST be sent in ascending group order.
 
 ## FETCH_CANCEL {#message-fetch-cancel}
 
