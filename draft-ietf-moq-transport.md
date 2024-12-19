@@ -1541,7 +1541,7 @@ The following values are used:
 * Preceding Group Offset: A field in the Joining Fetch message indicating the relative offset from the start of the Subscribe
 
 Note: If a relay does not yet have LatestGroup and LatestObject for a given track, it may choose to either forward both the Subscribe and
-the Joining Fetch upstream or to watch until the Joining Fetch can be resolved locally. However it is handled, the Resolved Subscribe Start values
+the Joining Fetch upstream or to wait until the Joining Fetch can be resolved locally. In either case, the Resolved Subscribe Start values
 for a Joining Fetch MUST correspond to the Subscribe within the same session so the Fetch and Subscribe can be contiguous and non-overlapping.
 
 Using that information and the following algorithm, these values are computed:
