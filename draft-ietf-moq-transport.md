@@ -1540,7 +1540,7 @@ The following values are used:
   * For Subscribes with Filter Type AbsoluteStart or AbsoluteRange, this is equal to the StartObject field of the Subscribe message
 * Preceding Group Offset: A field in the Joining Fetch message indicating the relative offset from the start of the Subscribe
 
-Note: If a relay does not yet have LatestGroup and LatestObject for a given track, it may choose to either forward both the Subscribe and
+Note: If a relay does not yet have LatestGroup and LatestObject for a given track, it can choose to either forward both the Subscribe and
 the Joining Fetch upstream or to wait until the Joining Fetch can be resolved locally. In either case, the Resolved Subscribe Start values
 for a Joining Fetch MUST correspond to the Subscribe within the same session so the Fetch and Subscribe can be contiguous and non-overlapping.
 
