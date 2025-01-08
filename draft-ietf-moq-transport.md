@@ -768,6 +768,8 @@ Group ID and Object ID, Relays MAY ignore subsequently received Objects
 or MAY use them to update the cache. Implementations that update the
 cache need to protect against cache poisoning.
 
+Caching can also reduce the number of upstream FETCH requests.
+
 Objects MUST NOT be sent for unsuccessful subscriptions, and if a subscriber
 receives a SUBSCRIBE_ERROR after receiving objects, it MUST close the session
 with a 'Protocol Violation'.
