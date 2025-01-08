@@ -2308,18 +2308,19 @@ If multiple objects are received with the same Full Track Name,
 Group ID and Object ID, Relays <span class="bcp14">MAY</span> ignore subsequently received Objects
 or <span class="bcp14">MAY</span> use them to update the cache. Implementations that update the
 cache need to protect against cache poisoning.<a href="#section-5.1-4" class="pilcrow">¶</a></p>
-<p id="section-5.1-5">Objects <span class="bcp14">MUST NOT</span> be sent for unsuccessful subscriptions, and if a subscriber
+<p id="section-5.1-5">Caching can also reduce the number of upstream FETCH requests.<a href="#section-5.1-5" class="pilcrow">¶</a></p>
+<p id="section-5.1-6">Objects <span class="bcp14">MUST NOT</span> be sent for unsuccessful subscriptions, and if a subscriber
 receives a SUBSCRIBE_ERROR after receiving objects, it <span class="bcp14">MUST</span> close the session
-with a 'Protocol Violation'.<a href="#section-5.1-5" class="pilcrow">¶</a></p>
-<p id="section-5.1-6">A relay <span class="bcp14">MUST NOT</span> reorder or drop objects received on a multi-object stream when
-forwarding to subscribers, unless it has application specific information.<a href="#section-5.1-6" class="pilcrow">¶</a></p>
-<p id="section-5.1-7">Relays <span class="bcp14">MAY</span> aggregate authorized subscriptions for a given track when
+with a 'Protocol Violation'.<a href="#section-5.1-6" class="pilcrow">¶</a></p>
+<p id="section-5.1-7">A relay <span class="bcp14">MUST NOT</span> reorder or drop objects received on a multi-object stream when
+forwarding to subscribers, unless it has application specific information.<a href="#section-5.1-7" class="pilcrow">¶</a></p>
+<p id="section-5.1-8">Relays <span class="bcp14">MAY</span> aggregate authorized subscriptions for a given track when
 multiple subscribers request the same track. Subscription aggregation
 allows relays to make only a single upstream subscription for the
 track. The published content received from the upstream subscription
-request is cached and shared among the pending subscribers.<a href="#section-5.1-7" class="pilcrow">¶</a></p>
-<p id="section-5.1-8">The application <span class="bcp14">SHOULD</span> use a relevant error code in SUBSCRIBE_ERROR,
-as defined below:<a href="#section-5.1-8" class="pilcrow">¶</a></p>
+request is cached and shared among the pending subscribers.<a href="#section-5.1-8" class="pilcrow">¶</a></p>
+<p id="section-5.1-9">The application <span class="bcp14">SHOULD</span> use a relevant error code in SUBSCRIBE_ERROR,
+as defined below:<a href="#section-5.1-9" class="pilcrow">¶</a></p>
 <table class="center" id="table-2">
           <caption><a href="#table-2" class="selfRef">Table 2</a></caption>
 <thead>
@@ -2355,8 +2356,8 @@ as defined below:<a href="#section-5.1-8" class="pilcrow">¶</a></p>
             </tr>
           </tbody>
         </table>
-<p id="section-5.1-10">The application <span class="bcp14">SHOULD</span> use a relevant status code in
-SUBSCRIBE_DONE, as defined below:<a href="#section-5.1-10" class="pilcrow">¶</a></p>
+<p id="section-5.1-11">The application <span class="bcp14">SHOULD</span> use a relevant status code in
+SUBSCRIBE_DONE, as defined below:<a href="#section-5.1-11" class="pilcrow">¶</a></p>
 <table class="center" id="table-3">
           <caption><a href="#table-3" class="selfRef">Table 3</a></caption>
 <thead>
