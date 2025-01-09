@@ -735,7 +735,7 @@ either SUBSCRIBE_OK or SUBSCRIBE_ERROR.
 
 The relay will have to send an upstream SUBSCRIBE and/or FETCH if it does not
 have all the objects in the FETCH, or is not currently subscribed to the full
-requested range. In this case, it SHOULD withhold sending its own SUBSCRIBE_OK 
+requested range. In this case, it SHOULD withhold sending its own SUBSCRIBE_OK
 until receiving one from upstream. It MUST withhold FETCH_OK until receiving
 one from upstream.
 
