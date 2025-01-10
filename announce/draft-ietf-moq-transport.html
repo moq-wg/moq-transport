@@ -2420,9 +2420,8 @@ or <span class="bcp14">MAY</span> use them to update the cache. Implementations 
 cache need to be protect against cache poisoning.<a href="#section-6.1-4" class="pilcrow">¶</a></p>
 <p id="section-6.1-5">A relay <span class="bcp14">MUST NOT</span> reorder or drop objects received on a multi-object stream when
 forwarding to subscribers, unless it has application specific information.<a href="#section-6.1-5" class="pilcrow">¶</a></p>
-<p id="section-6.1-6">Relays <span class="bcp14">SHOULD</span> aggregate authorized subscriptions for a given track when
-multiple subscribers request the same track, using SUBSCRIBE_UPDATE when new
-subscriptions change the aggregate properties. Subscription aggregation
+<p id="section-6.1-6">Relays <span class="bcp14">MAY</span> aggregate authorized subscriptions for a given track when
+multiple subscribers request the same track. Subscription aggregation
 allows relays to make only a single upstream subscription for the
 track. The published content received from the upstream subscription
 request is cached and shared among the pending subscribers.<a href="#section-6.1-6" class="pilcrow">¶</a></p>
