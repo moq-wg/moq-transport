@@ -888,20 +888,21 @@ to the old relay can be stopped with an UNSUBSCRIBE.
 
 Publishing through the relay starts with publisher sending ANNOUNCE
 control message with a `Track Namespace` ({{model-track}}).
-The ANNOUNCE enables the relay to know which publisher to forward a
-SUBSCRIBE to, if the track name belongs to the namespace indicated in
-the ANNOUNCE.
+The announce enables the relay to know which publisher to forward a
+SUBSCRIBE to.
 
-Relays MUST ensure that publishers are authorized by verifying that the
-publisher is authorized to publish the content associated with the set of
-tracks whose Track Namespace matches the announced namespace. Where the
-authorization and identification of the publisher occurs depends on the way the
-relay is managed and is application specific.
+Relays MUST ensure that publishers are authorized by:
+
+- Verifying that the publisher is authorized to publish the content
+  associated with the set of tracks whose Track Namespace matches the
+  announced namespace. Where the authorization and identification of
+  the publisher occurs depends on the way the relay is managed and
+  is application specific.
 
 A Relay can receive announcements from multiple publishers for the same
 Track Namespace and it SHOULD respond with the same response to each of the
 publishers, as though it was responding to an ANNOUNCE
-from a single publisher for a given track namespace.
+from a single publisher for a given tracknamespace.
 
 When a publisher wants to stop
 new subscriptions for an announced namespace it sends an UNANNOUNCE.
@@ -918,7 +919,7 @@ publisher that has announced the subscription's namespace, unless it
 already has an active subscription for the Objects requested by the
 incoming SUBSCRIBE request from all available publishers.
 
-When a relay receives an incoming ANNOUNCE for a given namespace, for
+When a relay receives an incoming ANNOUCE for a given namespace, for
 each active upstream subscription that matches that namespace, it SHOULD send a
 SUBSCRIBE to the publisher that sent the ANNOUNCE.
 
