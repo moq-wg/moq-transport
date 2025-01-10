@@ -5,13 +5,13 @@
 Media Over QUIC                                                L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 21 June 2025                                               Meta
+Expires: 14 July 2025                                               Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                        18 December 2024
+                                                         10 January 2025
 
 
                        Media over QUIC Transport
@@ -59,11 +59,11 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 21 June 2025.
+   This Internet-Draft will expire on 14 July 2025.
 
 Copyright Notice
 
-   Copyright (c) 2024 IETF Trust and the persons identified as the
+   Copyright (c) 2025 IETF Trust and the persons identified as the
    document authors.  All rights reserved.
 
    This document is subject to BCP 78 and the IETF Trust's Legal
@@ -921,19 +921,19 @@ Table of Contents
 
 6.1.  Subscriber Interactions
 
-   Subscribers interact with the Relays by sending a SUBSCRIBE or FETCH
-   control message for the tracks of interest.  Relays MUST ensure
-   subscribers are authorized to access the content associated with the
-   track.  The authorization information can be part of subscription
-   request itself or part of the encompassing session.  The specifics of
-   how a relay authorizes a user are outside the scope of this
-   specification.
+   Subscribers interact with the Relays by sending a SUBSCRIBE
+   (Section 7.4) control message for the tracks of interest.  Relays
+   MUST ensure subscribers are authorized to access the content
+   associated with the track.  The authorization information can be part
+   of subscription request itself or part of the encompassing session.
+   The specifics of how a relay authorizes a user are outside the scope
+   of this specification.
 
-   The relay will have to send an upstream SUBSCRIBE and/or FETCH if it
-   does not have all the objects in the FETCH, or is not currently
-   subscribed to the full requested range.  In this case, it MUST
-   withhold sending its own SUBSCRIBE_OK or FETCH_OK until receiving one
-   from upstream.
+   If a relay does not already have a subscription for the track, or if
+   the subscription does not cover all the requested Objects, it will
+   need to make an upstream subscription.  The relay SHOULD NOT return a
+   SUBCRIBE_OK until at least one SUBSCRIBE_OK has been received for the
+   track, to ensure the Group Order is correct.
 
    For successful subscriptions, the publisher maintains a list of
    subscribers for each track.  Each new OBJECT belonging to the track
@@ -947,9 +947,7 @@ Table of Contents
    objects are received with the same Full Track Name, Group ID and
    Object ID, Relays MAY ignore subsequently received Objects or MAY use
    them to update the cache.  Implementations that update the cache need
-   to protect against cache poisoning.
-
-   Caching can reduce the number of upstream FETCH requests.
+   to be protect against cache poisoning.
 
    A relay MUST NOT reorder or drop objects received on a multi-object
    stream when forwarding to subscribers, unless it has application
