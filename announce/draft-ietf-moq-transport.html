@@ -2491,7 +2491,10 @@ A subscriber indicates it will no longer route subscriptions for a
 namespace it previously responded ANNOUNCE_OK to by sending an
 ANNOUNCE_CANCEL.<a href="#section-6.2-4" class="pilcrow">¶</a></p>
 <p id="section-6.2-5">A relay manages sessions from multiple publishers and subscribers,
-connecting them based on the track namespace.<a href="#section-6.2-5" class="pilcrow">¶</a></p>
+connecting them based on the track namespace. This <span class="bcp14">MUST</span> use an exact
+match on track namespace unless otherwise negotiated by the application.
+For example, a SUBSCRIBE namespace=foobar message will be forwarded to
+the session that sent ANNOUNCE namespace=foobar.<a href="#section-6.2-5" class="pilcrow">¶</a></p>
 <p id="section-6.2-6">When a relay receives an incoming SUBSCRIBE request that triggers an
 upstream subscription, it <span class="bcp14">SHOULD</span> send a SUBSCRIBE request to each
 publisher that has announced the subscription's namespace, unless it
