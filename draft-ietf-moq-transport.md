@@ -735,10 +735,9 @@ Relays MAY cache Objects, but are not required to.
 
 ## Subscriber Interactions
 
-Subscribers interact with the Relays by sending a SUBSCRIBE
-({{message-subscribe-req}}) control message for the tracks of
-interest. Relays MUST ensure subscribers are authorized to access the
-content associated with the track. The authorization
+Subscribers interact with the Relays by sending a SUBSCRIBE or FETCH
+control message for the tracks of interest. Relays MUST ensure subscribers are
+authorized to access the content associated with the track. The authorization
 information can be part of subscription request itself or part of the
 encompassing session. The specifics of how a relay authorizes a user are
 outside the scope of this specification. The subscriber is notified
@@ -748,11 +747,11 @@ SUBSCRIBE_OK ({{message-subscribe-ok}}) or SUBSCRIBE_ERROR
 SUBSCRIBE MUST send only a single response to a given SUBSCRIBE of
 either SUBSCRIBE_OK or SUBSCRIBE_ERROR.
 
-If a relay does not already have a subscription for the track,
-or if the subscription does not cover all the requested Objects, it
-will need to make an upstream subscription.  The relay SHOULD NOT
-return a SUBCRIBE_OK until at least one SUBSCRIBE_OK has been
-received for the track, to ensure the Group Order is correct.
+The relay will have to send an upstream SUBSCRIBE and/or FETCH if it does not
+have all the objects in the FETCH, or is not currently subscribed to the full
+requested range. In this case, it SHOULD withhold sending its own SUBSCRIBE_OK
+until receiving one from upstream. It MUST withhold FETCH_OK until receiving
+one from upstream.
 
 For successful subscriptions, the publisher maintains a list of
 subscribers for each track. Each new OBJECT belonging to the
@@ -768,7 +767,9 @@ publishers and forward objects to active matching subscriptions.
 If multiple objects are received with the same Full Track Name,
 Group ID and Object ID, Relays MAY ignore subsequently received Objects
 or MAY use them to update the cache. Implementations that update the
-cache need to be protect against cache poisoning.
+cache need to protect against cache poisoning.
+
+Caching can also reduce the number of upstream FETCH requests.
 
 Objects MUST NOT be sent for unsuccessful subscriptions, and if a subscriber
 receives a SUBSCRIBE_ERROR after receiving objects, it MUST close the session
