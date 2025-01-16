@@ -939,13 +939,13 @@ Table of Contents
 
 6.1.  Subscriber Interactions
 
-   Subscribers interact with the Relays by sending a SUBSCRIBE
-   (Section 7.4) control message for the tracks of interest.  Relays
-   MUST ensure subscribers are authorized to access the content
-   associated with the track.  The authorization information can be part
-   of subscription request itself or part of the encompassing session.
-   The specifics of how a relay authorizes a user are outside the scope
-   of this specification.
+   Subscribers subscribe to tracks by sending a SUBSCRIBE (Section 7.4)
+   control message for each track of interest.  Relays MUST ensure
+   subscribers are authorized to access the content associated with the
+   track.  The authorization information can be part of subscription
+   request itself or part of the encompassing session.  The specifics of
+   how a relay authorizes a user are outside the scope of this
+   specification.
 
    The relay will have to send an upstream SUBSCRIBE and/or FETCH if it
    does not have all the objects in the FETCH, or is not currently
