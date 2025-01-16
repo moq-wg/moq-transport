@@ -2448,50 +2448,45 @@ to the old relay can be stopped with an UNSUBSCRIBE.<a href="#section-5.1.1-2" c
         </h3>
 <p id="section-5.2-1">Publishing through the relay starts with publisher sending ANNOUNCE
 control message with a <code>Track Namespace</code> (<a href="#model-track" class="auto internal xref">Section 2.4</a>).
-The announce enables the relay to know which publisher to forward a
-SUBSCRIBE to.<a href="#section-5.2-1" class="pilcrow">¶</a></p>
-<p id="section-5.2-2">Relays <span class="bcp14">MUST</span> ensure that publishers are authorized by:<a href="#section-5.2-2" class="pilcrow">¶</a></p>
-<ul class="normal">
-<li class="normal" id="section-5.2-3.1">
-            <p id="section-5.2-3.1.1">Verifying that the publisher is authorized to publish the content
-associated with the set of tracks whose Track Namespace matches the
-announced namespace. Where the authorization and identification of
-the publisher occurs depends on the way the relay is managed and
-is application specific.<a href="#section-5.2-3.1.1" class="pilcrow">¶</a></p>
-</li>
-        </ul>
-<p id="section-5.2-4">Relays respond with an ANNOUNCE_OK or ANNOUNCE_ERROR control message
+The ANNOUNCE enables the relay to know which publisher to forward a
+SUBSCRIBE to if the track belongs to the namespace in the ANNOUNCE.<a href="#section-5.2-1" class="pilcrow">¶</a></p>
+<p id="section-5.2-2">Relays <span class="bcp14">MUST</span> verify that publishers are authorized to publish
+the content associated with the set of
+tracks whose Track Namespace matches the announced namespace. Where the
+authorization and identification of the publisher occurs depends on the way the
+relay is managed and is application specific.<a href="#section-5.2-2" class="pilcrow">¶</a></p>
+<p id="section-5.2-3">Relays respond with an ANNOUNCE_OK or ANNOUNCE_ERROR control message
 providing the result of announcement. The entity receiving the
 ANNOUNCE <span class="bcp14">MUST</span> send only a single response to a given ANNOUNCE of
-either ANNOUNCE_OK or ANNOUNCE_ERROR.<a href="#section-5.2-4" class="pilcrow">¶</a></p>
-<p id="section-5.2-5">A Relay can receive announcements from multiple publishers for the same
+either ANNOUNCE_OK or ANNOUNCE_ERROR.<a href="#section-5.2-3" class="pilcrow">¶</a></p>
+<p id="section-5.2-4">A Relay can receive announcements from multiple publishers for the same
 Track Namespace and it <span class="bcp14">SHOULD</span> respond with the same response to each of the
 publishers, as though it was responding to an ANNOUNCE
-from a single publisher for a given tracknamespace.<a href="#section-5.2-5" class="pilcrow">¶</a></p>
-<p id="section-5.2-6">When a publisher wants to stop
+from a single publisher for a given track namespace.<a href="#section-5.2-4" class="pilcrow">¶</a></p>
+<p id="section-5.2-5">When a publisher wants to stop
 new subscriptions for an announced namespace it sends an UNANNOUNCE.
 A subscriber indicates it will no longer route subscriptions for a
 namespace it previously responded ANNOUNCE_OK to by sending an
-ANNOUNCE_CANCEL.<a href="#section-5.2-6" class="pilcrow">¶</a></p>
-<p id="section-5.2-7">A relay manages sessions from multiple publishers and subscribers,
+ANNOUNCE_CANCEL.<a href="#section-5.2-5" class="pilcrow">¶</a></p>
+<p id="section-5.2-6">A relay manages sessions from multiple publishers and subscribers,
 connecting them based on the track namespace. This <span class="bcp14">MUST</span> use an exact
 match on track namespace unless otherwise negotiated by the application.
 For example, a SUBSCRIBE namespace=foobar message will be forwarded to
-the session that sent ANNOUNCE namespace=foobar.<a href="#section-5.2-7" class="pilcrow">¶</a></p>
-<p id="section-5.2-8">When a relay receives an incoming SUBSCRIBE request that triggers an
+the session that sent ANNOUNCE namespace=foobar.<a href="#section-5.2-6" class="pilcrow">¶</a></p>
+<p id="section-5.2-7">When a relay receives an incoming SUBSCRIBE request that triggers an
 upstream subscription, it <span class="bcp14">SHOULD</span> send a SUBSCRIBE request to each
 publisher that has announced the subscription's namespace, unless it
 already has an active subscription for the Objects requested by the
-incoming SUBSCRIBE request from all available publishers.<a href="#section-5.2-8" class="pilcrow">¶</a></p>
-<p id="section-5.2-9">When a relay receives an incoming ANNOUCE for a given namespace, for
+incoming SUBSCRIBE request from all available publishers.<a href="#section-5.2-7" class="pilcrow">¶</a></p>
+<p id="section-5.2-8">When a relay receives an incoming ANNOUNCE for a given namespace, for
 each active upstream subscription that matches that namespace, it <span class="bcp14">SHOULD</span> send a
-SUBSCRIBE to the publisher that sent the ANNOUNCE.<a href="#section-5.2-9" class="pilcrow">¶</a></p>
-<p id="section-5.2-10">OBJECT message headers carry a short hop-by-hop <code>Track Alias</code> that maps to
+SUBSCRIBE to the publisher that sent the ANNOUNCE.<a href="#section-5.2-8" class="pilcrow">¶</a></p>
+<p id="section-5.2-9">OBJECT message headers carry a short hop-by-hop <code>Track Alias</code> that maps to
 the Full Track Name (see <a href="#message-subscribe-ok" class="auto internal xref">Section 6.15</a>). Relays use the
 <code>Track Alias</code> of an incoming OBJECT message to identify its track and find
 the active subscribers for that track. Relays <span class="bcp14">MUST</span> forward OBJECT messages to
 matching subscribers in accordance to each subscription's priority, group order,
-and delivery timeout.<a href="#section-5.2-10" class="pilcrow">¶</a></p>
+and delivery timeout.<a href="#section-5.2-9" class="pilcrow">¶</a></p>
 <div id="graceful-publisher-network-switchover">
 <section id="section-5.2.1">
           <h4 id="name-graceful-publisher-network-">
