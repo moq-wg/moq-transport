@@ -720,7 +720,7 @@ with FETCH_CANCEL, but MUST send FETCH_CANCEL.
 The Publisher can destroy subscription or fetch state as soon as it has received
 UNSUBSCRIBE or FETCH_CANCEL, respectively. It MUST reset any open streams
 associated with the SUBSCRIBE or FETCH. It can also destroy state after closing
-on the FETCH data stream.
+the FETCH data stream.
 
 The publisher can immediately delete SUBSCRIBE state after sending
 SUBSCRIBE_DONE, but MUST NOT send it until it has closed all related streams. It
