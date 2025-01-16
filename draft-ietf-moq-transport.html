@@ -1057,7 +1057,7 @@ svg :is([fill="white"], [fill^="#fff"]) {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Curley, et al.</td>
-<td class="center">Expires 12 July 2025</td>
+<td class="center">Expires 20 July 2025</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1070,12 +1070,12 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dd class="internet-draft">draft-ietf-moq-transport-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2025-01-08" class="published">8 January 2025</time>
+<time datetime="2025-01-16" class="published">16 January 2025</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2025-07-12">12 July 2025</time></dd>
+<dd class="expires"><time datetime="2025-07-20">20 July 2025</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1147,7 +1147,7 @@ networks and is designed for high scale and low latency distribution.<a href="#s
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 12 July 2025.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 20 July 2025.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1441,6 +1441,9 @@ networks and is designed for high scale and low latency distribution.<a href="#s
 <ul class="compact toc ulBare ulEmpty">
 <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.1">
                 <p id="section-toc.1-1.8.2.1.1"><a href="#section-8.1" class="auto internal xref">8.1</a>.  <a href="#name-resource-exhaustion" class="internal xref">Resource Exhaustion</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.2">
+                <p id="section-toc.1-1.8.2.2.1"><a href="#section-8.2" class="auto internal xref">8.2</a>.  <a href="#name-timeouts" class="internal xref">Timeouts</a></p>
 </li>
             </ul>
 </li>
@@ -2086,6 +2089,14 @@ code, as defined below:<a href="#section-3.5-2" class="pilcrow">¶</a></p>
               <td class="text-right" rowspan="1" colspan="1">0x10</td>
               <td class="text-left" rowspan="1" colspan="1">GOAWAY Timeout</td>
             </tr>
+            <tr>
+              <td class="text-right" rowspan="1" colspan="1">0x11</td>
+              <td class="text-left" rowspan="1" colspan="1">Control Message Timeout</td>
+            </tr>
+            <tr>
+              <td class="text-right" rowspan="1" colspan="1">0x12</td>
+              <td class="text-left" rowspan="1" colspan="1">Data Stream Timeout</td>
+            </tr>
           </tbody>
         </table>
 <ul class="normal">
@@ -2115,6 +2126,18 @@ a Subscribe ID equal or larger than the current Maximum Subscribe ID.<a href="#s
             <p id="section-3.5-4.7.1">GOAWAY Timeout: The session was closed because the peer took too long to
 close the session in response to a GOAWAY (<a href="#message-goaway" class="auto internal xref">Section 6.3</a>) message.
 See session migration (<a href="#session-migration" class="auto internal xref">Section 3.6</a>).<a href="#section-3.5-4.7.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-3.5-4.8">
+            <p id="section-3.5-4.8.1">Control Message Timeout: The session was closed because the peer took too
+long to respond to a control message.<a href="#section-3.5-4.8.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-3.5-4.9">
+            <p id="section-3.5-4.9.1">Data Stream Timeout: The session was closed because the peer took too
+long to send data expected on an open Data Stream <a href="#data-streams" class="auto internal xref">Section 7</a>.  This
+includes fields of a stream header or an object header within a data
+stream. If an endpoint times out waiting for a new object header on an
+open subgroup stream, it <span class="bcp14">MAY</span> send a STOP_SENDING on that stream, terminate
+the subscription, or close the session with an error.<a href="#section-3.5-4.9.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
@@ -2279,10 +2302,9 @@ have visibility of MoQ Object metadata.<a href="#section-5-2" class="pilcrow">¶
         <h3 id="name-subscriber-interactions">
 <a href="#section-5.1" class="section-number selfRef">5.1. </a><a href="#name-subscriber-interactions" class="section-name selfRef">Subscriber Interactions</a>
         </h3>
-<p id="section-5.1-1">Subscribers interact with the Relays by sending a SUBSCRIBE
-(<a href="#message-subscribe-req" class="auto internal xref">Section 6.4</a>) control message for the tracks of
-interest. Relays <span class="bcp14">MUST</span> ensure subscribers are authorized to access the
-content associated with the track. The authorization
+<p id="section-5.1-1">Subscribers interact with the Relays by sending a SUBSCRIBE or FETCH
+control message for the tracks of interest. Relays <span class="bcp14">MUST</span> ensure subscribers are
+authorized to access the content associated with the track. The authorization
 information can be part of subscription request itself or part of the
 encompassing session. The specifics of how a relay authorizes a user are
 outside the scope of this specification. The subscriber is notified
@@ -2291,11 +2313,11 @@ SUBSCRIBE_OK (<a href="#message-subscribe-ok" class="auto internal xref">Section
 <a href="#message-subscribe-error" class="auto internal xref">Section 6.16</a> control message. The entity receiving the
 SUBSCRIBE <span class="bcp14">MUST</span> send only a single response to a given SUBSCRIBE of
 either SUBSCRIBE_OK or SUBSCRIBE_ERROR.<a href="#section-5.1-1" class="pilcrow">¶</a></p>
-<p id="section-5.1-2">If a relay does not already have a subscription for the track,
-or if the subscription does not cover all the requested Objects, it
-will need to make an upstream subscription.  The relay <span class="bcp14">SHOULD NOT</span>
-return a SUBCRIBE_OK until at least one SUBSCRIBE_OK has been
-received for the track, to ensure the Group Order is correct.<a href="#section-5.1-2" class="pilcrow">¶</a></p>
+<p id="section-5.1-2">The relay will have to send an upstream SUBSCRIBE and/or FETCH if it does not
+have all the objects in the FETCH, or is not currently subscribed to the full
+requested range. In this case, it <span class="bcp14">SHOULD</span> withhold sending its own SUBSCRIBE_OK
+until receiving one from upstream. It <span class="bcp14">MUST</span> withhold FETCH_OK until receiving
+one from upstream.<a href="#section-5.1-2" class="pilcrow">¶</a></p>
 <p id="section-5.1-3">For successful subscriptions, the publisher maintains a list of
 subscribers for each track. Each new OBJECT belonging to the
 track within the subscription range is forwarded to each active
@@ -2309,19 +2331,20 @@ publishers and forward objects to active matching subscriptions.
 If multiple objects are received with the same Full Track Name,
 Group ID and Object ID, Relays <span class="bcp14">MAY</span> ignore subsequently received Objects
 or <span class="bcp14">MAY</span> use them to update the cache. Implementations that update the
-cache need to be protect against cache poisoning.<a href="#section-5.1-4" class="pilcrow">¶</a></p>
-<p id="section-5.1-5">Objects <span class="bcp14">MUST NOT</span> be sent for unsuccessful subscriptions, and if a subscriber
+cache need to protect against cache poisoning.<a href="#section-5.1-4" class="pilcrow">¶</a></p>
+<p id="section-5.1-5">Caching can also reduce the number of upstream FETCH requests.<a href="#section-5.1-5" class="pilcrow">¶</a></p>
+<p id="section-5.1-6">Objects <span class="bcp14">MUST NOT</span> be sent for unsuccessful subscriptions, and if a subscriber
 receives a SUBSCRIBE_ERROR after receiving objects, it <span class="bcp14">MUST</span> close the session
-with a 'Protocol Violation'.<a href="#section-5.1-5" class="pilcrow">¶</a></p>
-<p id="section-5.1-6">A relay <span class="bcp14">MUST NOT</span> reorder or drop objects received on a multi-object stream when
-forwarding to subscribers, unless it has application specific information.<a href="#section-5.1-6" class="pilcrow">¶</a></p>
-<p id="section-5.1-7">Relays <span class="bcp14">MAY</span> aggregate authorized subscriptions for a given track when
+with a 'Protocol Violation'.<a href="#section-5.1-6" class="pilcrow">¶</a></p>
+<p id="section-5.1-7">A relay <span class="bcp14">MUST NOT</span> reorder or drop objects received on a multi-object stream when
+forwarding to subscribers, unless it has application specific information.<a href="#section-5.1-7" class="pilcrow">¶</a></p>
+<p id="section-5.1-8">Relays <span class="bcp14">MAY</span> aggregate authorized subscriptions for a given track when
 multiple subscribers request the same track. Subscription aggregation
 allows relays to make only a single upstream subscription for the
 track. The published content received from the upstream subscription
-request is cached and shared among the pending subscribers.<a href="#section-5.1-7" class="pilcrow">¶</a></p>
-<p id="section-5.1-8">The application <span class="bcp14">SHOULD</span> use a relevant error code in SUBSCRIBE_ERROR,
-as defined below:<a href="#section-5.1-8" class="pilcrow">¶</a></p>
+request is cached and shared among the pending subscribers.<a href="#section-5.1-8" class="pilcrow">¶</a></p>
+<p id="section-5.1-9">The application <span class="bcp14">SHOULD</span> use a relevant error code in SUBSCRIBE_ERROR,
+as defined below:<a href="#section-5.1-9" class="pilcrow">¶</a></p>
 <table class="center" id="table-2">
           <caption><a href="#table-2" class="selfRef">Table 2</a></caption>
 <thead>
@@ -2357,8 +2380,8 @@ as defined below:<a href="#section-5.1-8" class="pilcrow">¶</a></p>
             </tr>
           </tbody>
         </table>
-<p id="section-5.1-10">The application <span class="bcp14">SHOULD</span> use a relevant status code in
-SUBSCRIBE_DONE, as defined below:<a href="#section-5.1-10" class="pilcrow">¶</a></p>
+<p id="section-5.1-11">The application <span class="bcp14">SHOULD</span> use a relevant status code in
+SUBSCRIBE_DONE, as defined below:<a href="#section-5.1-11" class="pilcrow">¶</a></p>
 <table class="center" id="table-3">
           <caption><a href="#table-3" class="selfRef">Table 3</a></caption>
 <thead>
@@ -4520,6 +4543,16 @@ flight.<a href="#section-8.1-3" class="pilcrow">¶</a></p>
 might be starved indefinitely during congestion.  The publisher and
 subscriber <span class="bcp14">MUST</span> cancel a stream, preferably the lowest priority, after
 reaching a resource limit.<a href="#section-8.1-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="timeouts">
+<section id="section-8.2">
+        <h3 id="name-timeouts">
+<a href="#section-8.2" class="section-number selfRef">8.2. </a><a href="#name-timeouts" class="section-name selfRef">Timeouts</a>
+        </h3>
+<p id="section-8.2-1">Implementations are advised to use timeouts to prevent resource
+exhaustion attacks by a peer that does not send expected data within
+an expected time.  Each implementation is expected to set its own limits.<a href="#section-8.2-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>

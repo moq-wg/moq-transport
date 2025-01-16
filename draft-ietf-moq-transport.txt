@@ -5,13 +5,13 @@
 Media Over QUIC                                                L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 12 July 2025                                               Meta
+Expires: 20 July 2025                                               Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                          8 January 2025
+                                                         16 January 2025
 
 
                        Media over QUIC Transport
@@ -59,7 +59,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 12 July 2025.
+   This Internet-Draft will expire on 20 July 2025.
 
 Copyright Notice
 
@@ -155,6 +155,7 @@ Table of Contents
      7.5.  Examples
    8.  Security Considerations
      8.1.  Resource Exhaustion
+     8.2.  Timeouts
    9.  IANA Considerations
    Contributors
    References
@@ -633,6 +634,10 @@ Table of Contents
                    +------+---------------------------+
                    | 0x10 | GOAWAY Timeout            |
                    +------+---------------------------+
+                   | 0x11 | Control Message Timeout   |
+                   +------+---------------------------+
+                   | 0x12 | Data Stream Timeout       |
+                   +------+---------------------------+
 
                                  Table 1
 
@@ -656,6 +661,17 @@ Table of Contents
    *  GOAWAY Timeout: The session was closed because the peer took too
       long to close the session in response to a GOAWAY (Section 6.3)
       message.  See session migration (Section 3.6).
+
+   *  Control Message Timeout: The session was closed because the peer
+      took too long to respond to a control message.
+
+   *  Data Stream Timeout: The session was closed because the peer took
+      too long to send data expected on an open Data Stream Section 7.
+      This includes fields of a stream header or an object header within
+      a data stream.  If an endpoint times out waiting for a new object
+      header on an open subgroup stream, it MAY send a STOP_SENDING on
+      that stream, terminate the subscription, or close the session with
+      an error.
 
 3.6.  Migration
 
@@ -808,23 +824,24 @@ Table of Contents
 
 5.1.  Subscriber Interactions
 
-   Subscribers interact with the Relays by sending a SUBSCRIBE
-   (Section 6.4) control message for the tracks of interest.  Relays
-   MUST ensure subscribers are authorized to access the content
-   associated with the track.  The authorization information can be part
-   of subscription request itself or part of the encompassing session.
-   The specifics of how a relay authorizes a user are outside the scope
-   of this specification.  The subscriber is notified of the result of
-   the subscription via a SUBSCRIBE_OK (Section 6.15) or SUBSCRIBE_ERROR
+   Subscribers interact with the Relays by sending a SUBSCRIBE or FETCH
+   control message for the tracks of interest.  Relays MUST ensure
+   subscribers are authorized to access the content associated with the
+   track.  The authorization information can be part of subscription
+   request itself or part of the encompassing session.  The specifics of
+   how a relay authorizes a user are outside the scope of this
+   specification.  The subscriber is notified of the result of the
+   subscription via a SUBSCRIBE_OK (Section 6.15) or SUBSCRIBE_ERROR
    Section 6.16 control message.  The entity receiving the SUBSCRIBE
    MUST send only a single response to a given SUBSCRIBE of either
    SUBSCRIBE_OK or SUBSCRIBE_ERROR.
 
-   If a relay does not already have a subscription for the track, or if
-   the subscription does not cover all the requested Objects, it will
-   need to make an upstream subscription.  The relay SHOULD NOT return a
-   SUBCRIBE_OK until at least one SUBSCRIBE_OK has been received for the
-   track, to ensure the Group Order is correct.
+   The relay will have to send an upstream SUBSCRIBE and/or FETCH if it
+   does not have all the objects in the FETCH, or is not currently
+   subscribed to the full requested range.  In this case, it SHOULD
+   withhold sending its own SUBSCRIBE_OK until receiving one from
+   upstream.  It MUST withhold FETCH_OK until receiving one from
+   upstream.
 
    For successful subscriptions, the publisher maintains a list of
    subscribers for each track.  Each new OBJECT belonging to the track
@@ -840,7 +857,9 @@ Table of Contents
    objects are received with the same Full Track Name, Group ID and
    Object ID, Relays MAY ignore subsequently received Objects or MAY use
    them to update the cache.  Implementations that update the cache need
-   to be protect against cache poisoning.
+   to protect against cache poisoning.
+
+   Caching can also reduce the number of upstream FETCH requests.
 
    Objects MUST NOT be sent for unsuccessful subscriptions, and if a
    subscriber receives a SUBSCRIBE_ERROR after receiving objects, it
@@ -2565,6 +2584,13 @@ Table of Contents
    Streams might be starved indefinitely during congestion.  The
    publisher and subscriber MUST cancel a stream, preferably the lowest
    priority, after reaching a resource limit.
+
+8.2.  Timeouts
+
+   Implementations are advised to use timeouts to prevent resource
+   exhaustion attacks by a peer that does not send expected data within
+   an expected time.  Each implementation is expected to set its own
+   limits.
 
 9.  IANA Considerations
 
