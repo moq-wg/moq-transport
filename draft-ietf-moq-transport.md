@@ -831,8 +831,8 @@ The ANNOUNCE enables the relay to know which publisher to forward a
 SUBSCRIBE to, if the track name belongs to the namespace indicated in
 the ANNOUNCE.
 
-Relays MUST ensure that publishers are authorized by verifying that the
-publisher is authorized to publish the content associated with the set of
+Relays MUST verify that publishers are authorized to publish
+the content associated with the set of
 tracks whose Track Namespace matches the announced namespace. Where the
 authorization and identification of the publisher occurs depends on the way the
 relay is managed and is application specific.
