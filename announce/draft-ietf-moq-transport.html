@@ -2277,7 +2277,7 @@ with FETCH_CANCEL, but <span class="bcp14">MUST</span> send FETCH_CANCEL.<a href
 <p id="section-4.3-6">The Publisher can destroy subscription or fetch state as soon as it has received
 UNSUBSCRIBE or FETCH_CANCEL, respectively. It <span class="bcp14">MUST</span> reset any open streams
 associated with the SUBSCRIBE or FETCH. It can also destroy state after closing
-on the FETCH data stream.<a href="#section-4.3-6" class="pilcrow">¶</a></p>
+the FETCH data stream.<a href="#section-4.3-6" class="pilcrow">¶</a></p>
 <p id="section-4.3-7">The publisher can immediately delete SUBSCRIBE state after sending
 SUBSCRIBE_DONE, but <span class="bcp14">MUST NOT</span> send it until it has closed all related streams. It
 can destroy all FETCH state after closing the data stream.<a href="#section-4.3-7" class="pilcrow">¶</a></p>
