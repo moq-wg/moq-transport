@@ -779,8 +779,8 @@ Table of Contents
 4.3.  SUBSCRIBE/FETCH
 
    The central interaction with a publisher is to send SUBSCRIBE and/or
-   FETCH for a particular track in a namespace.  The subscriber expects
-   to receive a SUBSCRIBE_OK/FETCH_OK and objects from the track.
+   FETCH for a particular track.  The subscriber expects to receive a
+   SUBSCRIBE_OK/FETCH_OK and objects from the track.
 
    A subscriber MAY send a SUBSCRIBE or FETCH for a track to any
    publisher.  If it has received an ANNOUNCE with a namespace that
