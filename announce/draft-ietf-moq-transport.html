@@ -1057,7 +1057,7 @@ svg :is([fill="white"], [fill^="#fff"]) {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Curley, et al.</td>
-<td class="center">Expires 14 July 2025</td>
+<td class="center">Expires 20 July 2025</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1070,12 +1070,12 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dd class="internet-draft">draft-ietf-moq-transport-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2025-01-10" class="published">10 January 2025</time>
+<time datetime="2025-01-16" class="published">16 January 2025</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2025-07-14">14 July 2025</time></dd>
+<dd class="expires"><time datetime="2025-07-20">20 July 2025</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1147,7 +1147,7 @@ networks and is designed for high scale and low latency distribution.<a href="#s
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 14 July 2025.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 20 July 2025.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1455,6 +1455,9 @@ networks and is designed for high scale and low latency distribution.<a href="#s
 <ul class="compact toc ulBare ulEmpty">
 <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.1">
                 <p id="section-toc.1-1.9.2.1.1"><a href="#section-9.1" class="auto internal xref">9.1</a>.  <a href="#name-resource-exhaustion" class="internal xref">Resource Exhaustion</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.2">
+                <p id="section-toc.1-1.9.2.2.1"><a href="#section-9.2" class="auto internal xref">9.2</a>.  <a href="#name-timeouts" class="internal xref">Timeouts</a></p>
 </li>
             </ul>
 </li>
@@ -2100,6 +2103,14 @@ code, as defined below:<a href="#section-3.5-2" class="pilcrow">¶</a></p>
               <td class="text-right" rowspan="1" colspan="1">0x10</td>
               <td class="text-left" rowspan="1" colspan="1">GOAWAY Timeout</td>
             </tr>
+            <tr>
+              <td class="text-right" rowspan="1" colspan="1">0x11</td>
+              <td class="text-left" rowspan="1" colspan="1">Control Message Timeout</td>
+            </tr>
+            <tr>
+              <td class="text-right" rowspan="1" colspan="1">0x12</td>
+              <td class="text-left" rowspan="1" colspan="1">Data Stream Timeout</td>
+            </tr>
           </tbody>
         </table>
 <ul class="normal">
@@ -2129,6 +2140,18 @@ a Subscribe ID equal or larger than the current Maximum Subscribe ID.<a href="#s
             <p id="section-3.5-4.7.1">GOAWAY Timeout: The session was closed because the peer took too long to
 close the session in response to a GOAWAY (<a href="#message-goaway" class="auto internal xref">Section 7.3</a>) message.
 See session migration (<a href="#session-migration" class="auto internal xref">Section 3.6</a>).<a href="#section-3.5-4.7.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-3.5-4.8">
+            <p id="section-3.5-4.8.1">Control Message Timeout: The session was closed because the peer took too
+long to respond to a control message.<a href="#section-3.5-4.8.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-3.5-4.9">
+            <p id="section-3.5-4.9.1">Data Stream Timeout: The session was closed because the peer took too
+long to send data expected on an open Data Stream <a href="#data-streams" class="auto internal xref">Section 8</a>.  This
+includes fields of a stream header or an object header within a data
+stream. If an endpoint times out waiting for a new object header on an
+open subgroup stream, it <span class="bcp14">MAY</span> send a STOP_SENDING on that stream, terminate
+the subscription, or close the session with an error.<a href="#section-3.5-4.9.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
@@ -2166,12 +2189,11 @@ expects more OBJECTs to be delivered. The server closes the session with a
       <h2 id="name-track-discovery-and-retriev">
 <a href="#section-4" class="section-number selfRef">4. </a><a href="#name-track-discovery-and-retriev" class="section-name selfRef">Track Discovery and Retrieval (#track-discovery}</a>
       </h2>
-<p id="section-4-1">Discovery of MoQT servers is always done out-of-band. Track discovery is done in
-the context of an established MoQT session. The session client might be a
-subscriber, publisher, or both.<a href="#section-4-1" class="pilcrow">¶</a></p>
+<p id="section-4-1">Discovery of MoQT servers is always done out-of-band. Track discovery can be
+done in the context of an established MoQT session.<a href="#section-4-1" class="pilcrow">¶</a></p>
 <p id="section-4-2">Given sufficient out of band information, it is valid for a subscriber
 to send a SUBSCRIBE or FETCH message to a publisher (including a relay) without
-any previous MoQT messages besides SETUP. However, SUBSCRIBE_NAMESPACES and
+any previous MoQT messages besides SETUP. However, SUBSCRIBE_ANNOUNCES and
 ANNOUNCE messages provide an in-band means of discovery of subscribers and
 publishers.<a href="#section-4-2" class="pilcrow">¶</a></p>
 <p id="section-4-3">The syntax of these messages is described in <a href="#message" class="auto internal xref">Section 7</a>.<a href="#section-4-3" class="pilcrow">¶</a></p>
@@ -2181,16 +2203,16 @@ publishers.<a href="#section-4-2" class="pilcrow">¶</a></p>
 <a href="#section-4.1" class="section-number selfRef">4.1. </a><a href="#name-subscribe_announces" class="section-name selfRef">SUBSCRIBE_ANNOUNCES</a>
         </h3>
 <p id="section-4.1-1">If the subscriber is aware of a namespace of interest, it can send
-SUBSCRIBE_ANNOUNCES to publishers/relays it has discovered. This message
-increases the likelihood that publishers will send relevant ANNOUNCE messages
-for that namespace.<a href="#section-4.1-1" class="pilcrow">¶</a></p>
-<p id="section-4.1-2">An UNSUBSCRIBE_NAMESPACES negates the effect of a SUBSCRIBE_NAMESPACES. It does
+SUBSCRIBE_ANNOUNCES to publishers/relays it has discovered. The recipient of
+this message will send any relevant ANNOUNCE messages for that namespace.<a href="#section-4.1-1" class="pilcrow">¶</a></p>
+<p id="section-4.1-2">A publisher <span class="bcp14">MUST</span> send exactly one SUBSCRIBE_NAMESPACES_OK or
+SUBSCRIBE_NAMESPACES_ERROR. The subscriber <span class="bcp14">SHOULD</span> close the session with a
+protocol error if it detects receiving more than one.<a href="#section-4.1-2" class="pilcrow">¶</a></p>
+<p id="section-4.1-3">An UNSUBSCRIBE_NAMESPACES withdraws a previous SUBSCRIBE_NAMESPACES. It does
 not prohibit the receiver (publisher) from sending further ANNOUNCE messages.
 The receiver of a SUBSCRIBE_NAMESPACES_OK or SUBSCRIBE_NAMESPACES_ERROR should
 forward the result to the application, so that it can make decisions about
-further publishers to contact. A publisher <span class="bcp14">MUST</span> send exactly one
-SUBSCRIBE_NAMESPACES_OK or SUBSCRIBE_NAMESPACES_ERROR. The subscriber <span class="bcp14">SHOULD</span>
-close the session with a protocol error if it detects receiving more than one.<a href="#section-4.1-2" class="pilcrow">¶</a></p>
+further publishers to contact.<a href="#section-4.1-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="announce">
@@ -2203,26 +2225,27 @@ to the subscriber where to route a SUBSCRIBE or FETCH for that namespace. A
 subscriber <span class="bcp14">MAY</span> send SUBSCRIBE or FETCH for a namespace without having received
 an ANNOUNCE for it.<a href="#section-4.2-1" class="pilcrow">¶</a></p>
 <p id="section-4.2-2">If a publisher is authoritative for a given namespace, or is a relay that has
-received an ANNOUNCE for that namespace from an upstream publisher, it <span class="bcp14">MUST</span> send
-an ANNOUNCE to any subscriber that has subscribed to ANNOUNCE for that
-namespace, a superset of that namespace, or a subset of that namespace. A
+received an authorized ANNOUNCE for that namespace from an upstream publisher,
+it <span class="bcp14">MUST</span> send an ANNOUNCE to any subscriber that has subscribed to ANNOUNCE for
+that namespace, a superset of that namespace, or a subset of that namespace. A
 publisher <span class="bcp14">MAY</span> send the ANNOUNCE to any other subscriber.<a href="#section-4.2-2" class="pilcrow">¶</a></p>
-<p id="section-4.2-3">However, a publisher <span class="bcp14">SHOULD NOT</span> send an ANNOUNCE advertising a namespace that
+<p id="section-4.2-3">A publisher <span class="bcp14">SHOULD NOT</span>, however, send an ANNOUNCE advertising a namespace that
 exactly matches a namespace for which the subscriber sent an earlier ANNOUNCE
 (i.e. an ANNOUNCE ought not to be echoed back to its sender).<a href="#section-4.2-3" class="pilcrow">¶</a></p>
-<p id="section-4.2-4">An UNANNOUNCE message negates the meaning of an ANNOUNCE, although it is not a
-protocol error for the subscriber to send a SUBSCRIBE or FETCH message after
-receiving an UNANNOUNCE.<a href="#section-4.2-4" class="pilcrow">¶</a></p>
-<p id="section-4.2-5">A subscriber can send ANNOUNCE_CANCEL, meaning it is no longer interested in a
-namespace, which also negates the ANNOUNCE: the publisher need not send
-UNANNOUNCE. A publisher and subscriber might seek alternate subscribers and
-publishers, respectively, for potential SUBSCRIBE and FETCH interactions.<a href="#section-4.2-5" class="pilcrow">¶</a></p>
-<p id="section-4.2-6">The receiver of an ANNOUNCE_OK or ANNOUNCE_ERROR <span class="bcp14">SHOULD</span> report this to the
+<p id="section-4.2-4">The receiver of an ANNOUNCE_OK or ANNOUNCE_ERROR <span class="bcp14">SHOULD</span> report this to the
 application to inform the search for additional subscribers for a namespace,
-or abandoning the attempt to publish a track. This might be especially useful
-in upload or chat applications. A subscriber <span class="bcp14">MUST</span> send exactly one ANNOUNCE_OK
-or ANNOUNCE_ERROR in response to an ANNOUNCE. The publisher <span class="bcp14">SHOULD</span> close the
-session with a protocol error if it detects receiving more than one.<a href="#section-4.2-6" class="pilcrow">¶</a></p>
+or abandoning the attempt to publish under this namespace. This might be
+especially useful in upload or chat applications. A subscriber <span class="bcp14">MUST</span> send exactly
+one ANNOUNCE_OK or ANNOUNCE_ERROR in response to an ANNOUNCE. The publisher
+<span class="bcp14">SHOULD</span> close the session with a protocol error if it detects receiving more than
+one.<a href="#section-4.2-4" class="pilcrow">¶</a></p>
+<p id="section-4.2-5">An UNANNOUNCE message withdraws a previous of an ANNOUNCE, although it is not a
+protocol error for the subscriber to send a SUBSCRIBE or FETCH message after
+receiving an UNANNOUNCE.<a href="#section-4.2-5" class="pilcrow">¶</a></p>
+<p id="section-4.2-6">A subscriber can send ANNOUNCE_CANCEL to revoke acceptance of an ANNOUNCE, for
+example due to expiration of authorization credentials. The message enables the
+publisher to ANNOUNCE again with refreshed authorization, or discard associated
+state. After receiving an ANNOUNCE_CANCEL, the publisher does not send UNANNOUNCE.<a href="#section-4.2-6" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="subscribefetch">
@@ -2230,34 +2253,34 @@ session with a protocol error if it detects receiving more than one.<a href="#se
         <h3 id="name-subscribe-fetch">
 <a href="#section-4.3" class="section-number selfRef">4.3. </a><a href="#name-subscribe-fetch" class="section-name selfRef">SUBSCRIBE/FETCH</a>
         </h3>
-<p id="section-4.3-1">A subscriber <span class="bcp14">MAY</span> send a SUBSCRIBE or FETCH for a track to any publisher. If it
-has received an ANNOUNCE with a namespace that includes that track, it <span class="bcp14">SHOULD</span>
-only request it from the senders of those ANNOUNCE messages.<a href="#section-4.3-1" class="pilcrow">¶</a></p>
-<p id="section-4.3-2">The central interaction with a publisher is to send SUBSCRIBE and/or FETCH for
+<p id="section-4.3-1">The central interaction with a publisher is to send SUBSCRIBE and/or FETCH for
 a particular track in a namespace. The subscriber expects to receive a
-SUBSCRIBE_OK/FETCH_OK and objects from the track.<a href="#section-4.3-2" class="pilcrow">¶</a></p>
-<p id="section-4.3-3">A subscriber keeps SUBSCRIBE state until it sends UNSUBSCRIBE, or after receipt
-of a SUBSCRIBE_DONE or SUBSCRIBE_ERROR. Note that SUBSCRIBE_DONE does not
-usually indicate that state can immediately be destroyed, see
-<a href="#message-subscribe-done" class="auto internal xref">Section 7.19</a>.<a href="#section-4.3-3" class="pilcrow">¶</a></p>
-<p id="section-4.3-4">A subscriber keeps FETCH state until it sends FETCH_CANCEL; receives
-FETCH_ERROR; or receives a FIN or RESET_STREAM for the FETCH data stream. If the
-data stream is already open, it <span class="bcp14">MAY</span> send STOP_SENDING for the data stream along
-with FETCH_CANCEL, but <span class="bcp14">MUST</span> send FETCH_CANCEL.<a href="#section-4.3-4" class="pilcrow">¶</a></p>
-<p id="section-4.3-5">The Publisher can destroy subscription or fetch state as soon as it has received
-UNSUBSCRIBE or FETCH_CANCEL, respectively. It <span class="bcp14">MUST</span> reset any open streams
-associated with the SUBSCRIBE or FETCH. It can also destroy state after closing
-on the FETCH data stream.<a href="#section-4.3-5" class="pilcrow">¶</a></p>
-<p id="section-4.3-6">The publisher can immediately delete SUBSCRIBE state after sending
-SUBSCRIBE_DONE, but <span class="bcp14">MUST NOT</span> send it until it has closed all related streams. It
-can destroy all FETCH state after closing the data stream.<a href="#section-4.3-6" class="pilcrow">¶</a></p>
-<p id="section-4.3-7">A SUBSCRIBE_ERROR or FETCH_ERROR indicates no objects will be delivered, and
-both endpoints can immediately destroy relevant state. Objects <span class="bcp14">MUST NOT</span> be sent
-for requests that end with an error.<a href="#section-4.3-7" class="pilcrow">¶</a></p>
-<p id="section-4.3-8">A publisher <span class="bcp14">MUST</span> send exactly one SUBSCRIBE_OK or SUBSCRIBE_ERROR in response to
+SUBSCRIBE_OK/FETCH_OK and objects from the track.<a href="#section-4.3-1" class="pilcrow">¶</a></p>
+<p id="section-4.3-2">A subscriber <span class="bcp14">MAY</span> send a SUBSCRIBE or FETCH for a track to any publisher. If it
+has received an ANNOUNCE with a namespace that includes that track, it <span class="bcp14">SHOULD</span>
+only request it from the senders of those ANNOUNCE messages.<a href="#section-4.3-2" class="pilcrow">¶</a></p>
+<p id="section-4.3-3">A publisher <span class="bcp14">MUST</span> send exactly one SUBSCRIBE_OK or SUBSCRIBE_ERROR in response to
 a SUBSCRIBE. It <span class="bcp14">MUST</span> send exactly one FETCH_OK or FETCH_ERROR in response to a
 FETCH. The subscriber <span class="bcp14">SHOULD</span> close the session with a protocol error if it
-detects receiving more than one.<a href="#section-4.3-8" class="pilcrow">¶</a></p>
+detects receiving more than one.<a href="#section-4.3-3" class="pilcrow">¶</a></p>
+<p id="section-4.3-4">A subscriber keeps SUBSCRIBE state until it sends UNSUBSCRIBE, or after receipt
+of a SUBSCRIBE_DONE or SUBSCRIBE_ERROR. Note that SUBSCRIBE_DONE does not
+usually indicate that state can immediately be destroyed, see
+<a href="#message-subscribe-done" class="auto internal xref">Section 7.19</a>.<a href="#section-4.3-4" class="pilcrow">¶</a></p>
+<p id="section-4.3-5">A subscriber keeps FETCH state until it sends FETCH_CANCEL; receives
+FETCH_ERROR; or receives a FIN or RESET_STREAM for the FETCH data stream. If the
+data stream is already open, it <span class="bcp14">MAY</span> send STOP_SENDING for the data stream along
+with FETCH_CANCEL, but <span class="bcp14">MUST</span> send FETCH_CANCEL.<a href="#section-4.3-5" class="pilcrow">¶</a></p>
+<p id="section-4.3-6">The Publisher can destroy subscription or fetch state as soon as it has received
+UNSUBSCRIBE or FETCH_CANCEL, respectively. It <span class="bcp14">MUST</span> reset any open streams
+associated with the SUBSCRIBE or FETCH. It can also destroy state after closing
+on the FETCH data stream.<a href="#section-4.3-6" class="pilcrow">¶</a></p>
+<p id="section-4.3-7">The publisher can immediately delete SUBSCRIBE state after sending
+SUBSCRIBE_DONE, but <span class="bcp14">MUST NOT</span> send it until it has closed all related streams. It
+can destroy all FETCH state after closing the data stream.<a href="#section-4.3-7" class="pilcrow">¶</a></p>
+<p id="section-4.3-8">A SUBSCRIBE_ERROR or FETCH_ERROR indicates no objects will be delivered, and
+both endpoints can immediately destroy relevant state. Objects <span class="bcp14">MUST NOT</span> be sent
+for requests that end with an error.<a href="#section-4.3-8" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -2401,11 +2424,11 @@ content associated with the track. The authorization
 information can be part of subscription request itself or part of the
 encompassing session. The specifics of how a relay authorizes a user are outside
 the scope of this specification.<a href="#section-6.1-1" class="pilcrow">¶</a></p>
-<p id="section-6.1-2">If a relay does not already have a subscription for the track,
-or if the subscription does not cover all the requested Objects, it
-will need to make an upstream subscription.  The relay <span class="bcp14">SHOULD NOT</span>
-return a SUBCRIBE_OK until at least one SUBSCRIBE_OK has been
-received for the track, to ensure the Group Order is correct.<a href="#section-6.1-2" class="pilcrow">¶</a></p>
+<p id="section-6.1-2">The relay will have to send an upstream SUBSCRIBE and/or FETCH if it does not
+have all the objects in the FETCH, or is not currently subscribed to the full
+requested range. In this case, it <span class="bcp14">SHOULD</span> withhold sending its own SUBSCRIBE_OK
+until receiving one from upstream. It <span class="bcp14">MUST</span> withhold FETCH_OK until receiving
+one from upstream.<a href="#section-6.1-2" class="pilcrow">¶</a></p>
 <p id="section-6.1-3">For successful subscriptions, the publisher maintains a list of
 subscribers for each track. Each new OBJECT belonging to the
 track within the subscription range is forwarded to each active
@@ -2417,11 +2440,12 @@ publishers and forward objects to active matching subscriptions.
 If multiple objects are received with the same Full Track Name,
 Group ID and Object ID, Relays <span class="bcp14">MAY</span> ignore subsequently received Objects
 or <span class="bcp14">MAY</span> use them to update the cache. Implementations that update the
-cache need to be protect against cache poisoning.<a href="#section-6.1-4" class="pilcrow">¶</a></p>
+cache need to protect against cache poisoning.<a href="#section-6.1-4" class="pilcrow">¶</a></p>
 <p id="section-6.1-5">A relay <span class="bcp14">MUST NOT</span> reorder or drop objects received on a multi-object stream when
 forwarding to subscribers, unless it has application specific information.<a href="#section-6.1-5" class="pilcrow">¶</a></p>
-<p id="section-6.1-6">Relays <span class="bcp14">MAY</span> aggregate authorized subscriptions for a given track when
-multiple subscribers request the same track. Subscription aggregation
+<p id="section-6.1-6">Relays <span class="bcp14">SHOULD</span> aggregate authorized subscriptions for a given track when
+multiple subscribers request the same track, using SUBSCRIBE_UPDATE when new
+subscriptions change the aggregate properties. Subscription aggregation
 allows relays to make only a single upstream subscription for the
 track. The published content received from the upstream subscription
 request is cached and shared among the pending subscribers.<a href="#section-6.1-6" class="pilcrow">¶</a></p>
@@ -2448,46 +2472,38 @@ to the old relay can be stopped with an UNSUBSCRIBE.<a href="#section-6.1.1-2" c
         </h3>
 <p id="section-6.2-1">Publishing through the relay starts with publisher sending ANNOUNCE
 control message with a <code>Track Namespace</code> (<a href="#model-track" class="auto internal xref">Section 2.4</a>).
-The announce enables the relay to know which publisher to forward a
+The ANNOUNCE enables the relay to know which publisher to forward a
 SUBSCRIBE to.<a href="#section-6.2-1" class="pilcrow">¶</a></p>
-<p id="section-6.2-2">Relays <span class="bcp14">MUST</span> ensure that publishers are authorized by:<a href="#section-6.2-2" class="pilcrow">¶</a></p>
-<ul class="normal">
-<li class="normal" id="section-6.2-3.1">
-            <p id="section-6.2-3.1.1">Verifying that the publisher is authorized to publish the content
-associated with the set of tracks whose Track Namespace matches the
-announced namespace. Where the authorization and identification of
-the publisher occurs depends on the way the relay is managed and
-is application specific.<a href="#section-6.2-3.1.1" class="pilcrow">¶</a></p>
-</li>
-        </ul>
-<p id="section-6.2-4">A Relay can receive announcements from multiple publishers for the same
+<p id="section-6.2-2">Relays <span class="bcp14">MUST</span> ensure that publishers are authorized by verifying that the
+publisher is authorized to publish the content associated with the set of
+tracks whose Track Namespace matches the announced namespace. Where the
+authorization and identification of the publisher occurs depends on the way the
+relay is managed and is application specific.<a href="#section-6.2-2" class="pilcrow">¶</a></p>
+<p id="section-6.2-3">A Relay can receive announcements from multiple publishers for the same
 Track Namespace and it <span class="bcp14">SHOULD</span> respond with the same response to each of the
 publishers, as though it was responding to an ANNOUNCE
-from a single publisher for a given tracknamespace.<a href="#section-6.2-4" class="pilcrow">¶</a></p>
-<p id="section-6.2-5">When a publisher wants to stop
+from a single publisher for a given track namespace.<a href="#section-6.2-3" class="pilcrow">¶</a></p>
+<p id="section-6.2-4">When a publisher wants to stop
 new subscriptions for an announced namespace it sends an UNANNOUNCE.
 A subscriber indicates it will no longer route subscriptions for a
 namespace it previously responded ANNOUNCE_OK to by sending an
-ANNOUNCE_CANCEL.<a href="#section-6.2-5" class="pilcrow">¶</a></p>
-<p id="section-6.2-6">A relay manages sessions from multiple publishers and subscribers,
-connecting them based on the track namespace. This <span class="bcp14">MUST</span> use an exact
-match on track namespace unless otherwise negotiated by the application.
-For example, a SUBSCRIBE namespace=foobar message will be forwarded to
-the session that sent ANNOUNCE namespace=foobar.<a href="#section-6.2-6" class="pilcrow">¶</a></p>
-<p id="section-6.2-7">When a relay receives an incoming SUBSCRIBE request that triggers an
+ANNOUNCE_CANCEL.<a href="#section-6.2-4" class="pilcrow">¶</a></p>
+<p id="section-6.2-5">A relay manages sessions from multiple publishers and subscribers,
+connecting them based on the track namespace.<a href="#section-6.2-5" class="pilcrow">¶</a></p>
+<p id="section-6.2-6">When a relay receives an incoming SUBSCRIBE request that triggers an
 upstream subscription, it <span class="bcp14">SHOULD</span> send a SUBSCRIBE request to each
 publisher that has announced the subscription's namespace, unless it
 already has an active subscription for the Objects requested by the
-incoming SUBSCRIBE request from all available publishers.<a href="#section-6.2-7" class="pilcrow">¶</a></p>
-<p id="section-6.2-8">When a relay receives an incoming ANNOUCE for a given namespace, for
+incoming SUBSCRIBE request from all available publishers.<a href="#section-6.2-6" class="pilcrow">¶</a></p>
+<p id="section-6.2-7">When a relay receives an incoming ANNOUNCE for a given namespace, for
 each active upstream subscription that matches that namespace, it <span class="bcp14">SHOULD</span> send a
-SUBSCRIBE to the publisher that sent the ANNOUNCE.<a href="#section-6.2-8" class="pilcrow">¶</a></p>
-<p id="section-6.2-9">OBJECT message headers carry a short hop-by-hop <code>Track Alias</code> that maps to
+SUBSCRIBE to the publisher that sent the ANNOUNCE.<a href="#section-6.2-7" class="pilcrow">¶</a></p>
+<p id="section-6.2-8">OBJECT message headers carry a short hop-by-hop <code>Track Alias</code> that maps to
 the Full Track Name (see <a href="#message-subscribe-ok" class="auto internal xref">Section 7.15</a>). Relays use the
 <code>Track Alias</code> of an incoming OBJECT message to identify its track and find
 the active subscribers for that track. Relays <span class="bcp14">MUST</span> forward OBJECT messages to
 matching subscribers in accordance to each subscription's priority, group order,
-and delivery timeout.<a href="#section-6.2-9" class="pilcrow">¶</a></p>
+and delivery timeout.<a href="#section-6.2-8" class="pilcrow">¶</a></p>
 <div id="graceful-publisher-network-switchover">
 <section id="section-6.2.1">
           <h4 id="name-graceful-publisher-network-">
@@ -3140,8 +3156,8 @@ See <a href="#priorities" class="auto internal xref">Section 5</a>.<a href="#sec
 <a href="#section-7.6" class="section-number selfRef">7.6. </a><a href="#name-unsubscribe" class="section-name selfRef">UNSUBSCRIBE</a>
         </h3>
 <p id="section-7.6-1">A subscriber issues a <code>UNSUBSCRIBE</code> message to a publisher indicating it is no
-longer interested in receiving media for the specified track and requests that
-objects stop being sent as soon as possible.<a href="#section-7.6-1" class="pilcrow">¶</a></p>
+longer interested in receiving media for the specified track and Objects
+should stop being sent as soon as possible.<a href="#section-7.6-1" class="pilcrow">¶</a></p>
 <p id="section-7.6-2">The format of <code>UNSUBSCRIBE</code> is as follows:<a href="#section-7.6-2" class="pilcrow">¶</a></p>
 <span id="name-moqt-unsubscribe-message"></span><div id="moq-transport-unsubscribe-format">
 <figure id="figure-7">
@@ -4377,11 +4393,19 @@ are beyond the end of a group or track.<a href="#section-8.1.1.1-1" class="pilcr
        Group object to signal the end of all open Subgroups in a Group.<a href="#section-8.1.1.1-3.3.1" class="pilcrow">¶</a></p>
 </li>
               <li class="normal" id="section-8.1.1.1-3.4">
-                <p id="section-8.1.1.1-3.4.1">0x4 := Indicates end of Track and Group. GroupID is one greater than
-       the largest group produced in this track and the ObjectId is
-       one greater than the largest object produced in that
-       group. This is sent right after the last object in the
-       track. This <span class="bcp14">SHOULD</span> be cached.<a href="#section-8.1.1.1-3.4.1" class="pilcrow">¶</a></p>
+                <p id="section-8.1.1.1-3.4.1">0x4 := Indicates end of Track and Group. GroupID is the largest group produced
+       in this track and the ObjectId is one greater than the largest object
+       produced in that group. An object with this status that has a Group ID
+       less than any other Group ID, or an Object ID less than or equal to the
+       largest in the group, is a protocol error, and the receiver <span class="bcp14">MUST</span>
+       terminate the session. This <span class="bcp14">SHOULD</span> be cached.<a href="#section-8.1.1.1-3.4.1" class="pilcrow">¶</a></p>
+</li>
+              <li class="normal" id="section-8.1.1.1-3.5">
+                <p id="section-8.1.1.1-3.5.1">0x5 := Indicates end of Track. GroupID is one greater than the largest group
+       produced in this track and the ObjectId is zero. An object with this
+       status that has a Group ID less than or equal to any other Group ID, or
+       an Object ID other than zero, is a protocol error, and the receiver
+       <span class="bcp14">MUST</span> terminate the session. This <span class="bcp14">SHOULD</span> be cached.<a href="#section-8.1.1.1-3.5.1" class="pilcrow">¶</a></p>
 </li>
             </ul>
 <p id="section-8.1.1.1-4">Any other value <span class="bcp14">SHOULD</span> be treated as a protocol error and terminate the
@@ -4705,6 +4729,16 @@ flight.<a href="#section-9.1-3" class="pilcrow">¶</a></p>
 might be starved indefinitely during congestion.  The publisher and
 subscriber <span class="bcp14">MUST</span> cancel a stream, preferably the lowest priority, after
 reaching a resource limit.<a href="#section-9.1-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="timeouts">
+<section id="section-9.2">
+        <h3 id="name-timeouts">
+<a href="#section-9.2" class="section-number selfRef">9.2. </a><a href="#name-timeouts" class="section-name selfRef">Timeouts</a>
+        </h3>
+<p id="section-9.2-1">Implementations are advised to use timeouts to prevent resource
+exhaustion attacks by a peer that does not send expected data within
+an expected time.  Each implementation is expected to set its own limits.<a href="#section-9.2-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>

@@ -5,13 +5,13 @@
 Media Over QUIC                                                L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 14 July 2025                                               Meta
+Expires: 20 July 2025                                               Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                         10 January 2025
+                                                         16 January 2025
 
 
                        Media over QUIC Transport
@@ -59,7 +59,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 14 July 2025.
+   This Internet-Draft will expire on 20 July 2025.
 
 Copyright Notice
 
@@ -159,6 +159,7 @@ Table of Contents
      8.5.  Examples
    9.  Security Considerations
      9.1.  Resource Exhaustion
+     9.2.  Timeouts
    10. IANA Considerations
    Contributors
    References
@@ -637,6 +638,10 @@ Table of Contents
                    +------+---------------------------+
                    | 0x10 | GOAWAY Timeout            |
                    +------+---------------------------+
+                   | 0x11 | Control Message Timeout   |
+                   +------+---------------------------+
+                   | 0x12 | Data Stream Timeout       |
+                   +------+---------------------------+
 
                                  Table 1
 
@@ -660,6 +665,17 @@ Table of Contents
    *  GOAWAY Timeout: The session was closed because the peer took too
       long to close the session in response to a GOAWAY (Section 7.3)
       message.  See session migration (Section 3.6).
+
+   *  Control Message Timeout: The session was closed because the peer
+      took too long to respond to a control message.
+
+   *  Data Stream Timeout: The session was closed because the peer took
+      too long to send data expected on an open Data Stream Section 8.
+      This includes fields of a stream header or an object header within
+      a data stream.  If an endpoint times out waiting for a new object
+      header on an open subgroup stream, it MAY send a STOP_SENDING on
+      that stream, terminate the subscription, or close the session with
+      an error.
 
 3.6.  Migration
 
@@ -693,33 +709,33 @@ Table of Contents
 4.  Track Discovery and Retrieval (#track-discovery}
 
    Discovery of MoQT servers is always done out-of-band.  Track
-   discovery is done in the context of an established MoQT session.  The
-   session client might be a subscriber, publisher, or both.
+   discovery can be done in the context of an established MoQT session.
 
    Given sufficient out of band information, it is valid for a
    subscriber to send a SUBSCRIBE or FETCH message to a publisher
    (including a relay) without any previous MoQT messages besides SETUP.
-   However, SUBSCRIBE_NAMESPACES and ANNOUNCE messages provide an in-
-   band means of discovery of subscribers and publishers.
+   However, SUBSCRIBE_ANNOUNCES and ANNOUNCE messages provide an in-band
+   means of discovery of subscribers and publishers.
 
    The syntax of these messages is described in Section 7.
 
 4.1.  SUBSCRIBE_ANNOUNCES
 
    If the subscriber is aware of a namespace of interest, it can send
-   SUBSCRIBE_ANNOUNCES to publishers/relays it has discovered.  This
-   message increases the likelihood that publishers will send relevant
-   ANNOUNCE messages for that namespace.
+   SUBSCRIBE_ANNOUNCES to publishers/relays it has discovered.  The
+   recipient of this message will send any relevant ANNOUNCE messages
+   for that namespace.
 
-   An UNSUBSCRIBE_NAMESPACES negates the effect of a
-   SUBSCRIBE_NAMESPACES.  It does not prohibit the receiver (publisher)
-   from sending further ANNOUNCE messages.  The receiver of a
-   SUBSCRIBE_NAMESPACES_OK or SUBSCRIBE_NAMESPACES_ERROR should forward
-   the result to the application, so that it can make decisions about
-   further publishers to contact.  A publisher MUST send exactly one
-   SUBSCRIBE_NAMESPACES_OK or SUBSCRIBE_NAMESPACES_ERROR.  The
-   subscriber SHOULD close the session with a protocol error if it
-   detects receiving more than one.
+   A publisher MUST send exactly one SUBSCRIBE_NAMESPACES_OK or
+   SUBSCRIBE_NAMESPACES_ERROR.  The subscriber SHOULD close the session
+   with a protocol error if it detects receiving more than one.
+
+   An UNSUBSCRIBE_NAMESPACES withdraws a previous SUBSCRIBE_NAMESPACES.
+   It does not prohibit the receiver (publisher) from sending further
+   ANNOUNCE messages.  The receiver of a SUBSCRIBE_NAMESPACES_OK or
+   SUBSCRIBE_NAMESPACES_ERROR should forward the result to the
+   application, so that it can make decisions about further publishers
+   to contact.
 
 4.2.  ANNOUNCE
 
@@ -729,45 +745,51 @@ Table of Contents
    for a namespace without having received an ANNOUNCE for it.
 
    If a publisher is authoritative for a given namespace, or is a relay
-   that has received an ANNOUNCE for that namespace from an upstream
-   publisher, it MUST send an ANNOUNCE to any subscriber that has
-   subscribed to ANNOUNCE for that namespace, a superset of that
+   that has received an authorized ANNOUNCE for that namespace from an
+   upstream publisher, it MUST send an ANNOUNCE to any subscriber that
+   has subscribed to ANNOUNCE for that namespace, a superset of that
    namespace, or a subset of that namespace.  A publisher MAY send the
    ANNOUNCE to any other subscriber.
 
-   However, a publisher SHOULD NOT send an ANNOUNCE advertising a
+   A publisher SHOULD NOT, however, send an ANNOUNCE advertising a
    namespace that exactly matches a namespace for which the subscriber
    sent an earlier ANNOUNCE (i.e. an ANNOUNCE ought not to be echoed
    back to its sender).
 
-   An UNANNOUNCE message negates the meaning of an ANNOUNCE, although it
-   is not a protocol error for the subscriber to send a SUBSCRIBE or
-   FETCH message after receiving an UNANNOUNCE.
-
-   A subscriber can send ANNOUNCE_CANCEL, meaning it is no longer
-   interested in a namespace, which also negates the ANNOUNCE: the
-   publisher need not send UNANNOUNCE.  A publisher and subscriber might
-   seek alternate subscribers and publishers, respectively, for
-   potential SUBSCRIBE and FETCH interactions.
-
    The receiver of an ANNOUNCE_OK or ANNOUNCE_ERROR SHOULD report this
    to the application to inform the search for additional subscribers
-   for a namespace, or abandoning the attempt to publish a track.  This
-   might be especially useful in upload or chat applications.  A
-   subscriber MUST send exactly one ANNOUNCE_OK or ANNOUNCE_ERROR in
-   response to an ANNOUNCE.  The publisher SHOULD close the session with
-   a protocol error if it detects receiving more than one.
+   for a namespace, or abandoning the attempt to publish under this
+   namespace.  This might be especially useful in upload or chat
+   applications.  A subscriber MUST send exactly one ANNOUNCE_OK or
+   ANNOUNCE_ERROR in response to an ANNOUNCE.  The publisher SHOULD
+   close the session with a protocol error if it detects receiving more
+   than one.
+
+   An UNANNOUNCE message withdraws a previous of an ANNOUNCE, although
+   it is not a protocol error for the subscriber to send a SUBSCRIBE or
+   FETCH message after receiving an UNANNOUNCE.
+
+   A subscriber can send ANNOUNCE_CANCEL to revoke acceptance of an
+   ANNOUNCE, for example due to expiration of authorization credentials.
+   The message enables the publisher to ANNOUNCE again with refreshed
+   authorization, or discard associated state.  After receiving an
+   ANNOUNCE_CANCEL, the publisher does not send UNANNOUNCE.
 
 4.3.  SUBSCRIBE/FETCH
+
+   The central interaction with a publisher is to send SUBSCRIBE and/or
+   FETCH for a particular track in a namespace.  The subscriber expects
+   to receive a SUBSCRIBE_OK/FETCH_OK and objects from the track.
 
    A subscriber MAY send a SUBSCRIBE or FETCH for a track to any
    publisher.  If it has received an ANNOUNCE with a namespace that
    includes that track, it SHOULD only request it from the senders of
    those ANNOUNCE messages.
 
-   The central interaction with a publisher is to send SUBSCRIBE and/or
-   FETCH for a particular track in a namespace.  The subscriber expects
-   to receive a SUBSCRIBE_OK/FETCH_OK and objects from the track.
+   A publisher MUST send exactly one SUBSCRIBE_OK or SUBSCRIBE_ERROR in
+   response to a SUBSCRIBE.  It MUST send exactly one FETCH_OK or
+   FETCH_ERROR in response to a FETCH.  The subscriber SHOULD close the
+   session with a protocol error if it detects receiving more than one.
 
    A subscriber keeps SUBSCRIBE state until it sends UNSUBSCRIBE, or
    after receipt of a SUBSCRIBE_DONE or SUBSCRIBE_ERROR.  Note that
@@ -793,11 +815,6 @@ Table of Contents
    A SUBSCRIBE_ERROR or FETCH_ERROR indicates no objects will be
    delivered, and both endpoints can immediately destroy relevant state.
    Objects MUST NOT be sent for requests that end with an error.
-
-   A publisher MUST send exactly one SUBSCRIBE_OK or SUBSCRIBE_ERROR in
-   response to a SUBSCRIBE.  It MUST send exactly one FETCH_OK or
-   FETCH_ERROR in response to a FETCH.  The subscriber SHOULD close the
-   session with a protocol error if it detects receiving more than one.
 
 5.  Priorities
 
@@ -929,11 +946,12 @@ Table of Contents
    The specifics of how a relay authorizes a user are outside the scope
    of this specification.
 
-   If a relay does not already have a subscription for the track, or if
-   the subscription does not cover all the requested Objects, it will
-   need to make an upstream subscription.  The relay SHOULD NOT return a
-   SUBCRIBE_OK until at least one SUBSCRIBE_OK has been received for the
-   track, to ensure the Group Order is correct.
+   The relay will have to send an upstream SUBSCRIBE and/or FETCH if it
+   does not have all the objects in the FETCH, or is not currently
+   subscribed to the full requested range.  In this case, it SHOULD
+   withhold sending its own SUBSCRIBE_OK until receiving one from
+   upstream.  It MUST withhold FETCH_OK until receiving one from
+   upstream.
 
    For successful subscriptions, the publisher maintains a list of
    subscribers for each track.  Each new OBJECT belonging to the track
@@ -947,18 +965,19 @@ Table of Contents
    objects are received with the same Full Track Name, Group ID and
    Object ID, Relays MAY ignore subsequently received Objects or MAY use
    them to update the cache.  Implementations that update the cache need
-   to be protect against cache poisoning.
+   to protect against cache poisoning.
 
    A relay MUST NOT reorder or drop objects received on a multi-object
    stream when forwarding to subscribers, unless it has application
    specific information.
 
-   Relays MAY aggregate authorized subscriptions for a given track when
-   multiple subscribers request the same track.  Subscription
-   aggregation allows relays to make only a single upstream subscription
-   for the track.  The published content received from the upstream
-   subscription request is cached and shared among the pending
-   subscribers.
+   Relays SHOULD aggregate authorized subscriptions for a given track
+   when multiple subscribers request the same track, using
+   SUBSCRIBE_UPDATE when new subscriptions change the aggregate
+   properties.  Subscription aggregation allows relays to make only a
+   single upstream subscription for the track.  The published content
+   received from the upstream subscription request is cached and shared
+   among the pending subscribers.
 
 6.1.1.  Graceful Publisher Relay Switchover
 
@@ -974,21 +993,20 @@ Table of Contents
 6.2.  Publisher Interactions
 
    Publishing through the relay starts with publisher sending ANNOUNCE
-   control message with a Track Namespace (Section 2.4).  The announce
+   control message with a Track Namespace (Section 2.4).  The ANNOUNCE
    enables the relay to know which publisher to forward a SUBSCRIBE to.
 
-   Relays MUST ensure that publishers are authorized by:
-
-   *  Verifying that the publisher is authorized to publish the content
-      associated with the set of tracks whose Track Namespace matches
-      the announced namespace.  Where the authorization and
-      identification of the publisher occurs depends on the way the
-      relay is managed and is application specific.
+   Relays MUST ensure that publishers are authorized by verifying that
+   the publisher is authorized to publish the content associated with
+   the set of tracks whose Track Namespace matches the announced
+   namespace.  Where the authorization and identification of the
+   publisher occurs depends on the way the relay is managed and is
+   application specific.
 
    A Relay can receive announcements from multiple publishers for the
    same Track Namespace and it SHOULD respond with the same response to
    each of the publishers, as though it was responding to an ANNOUNCE
-   from a single publisher for a given tracknamespace.
+   from a single publisher for a given track namespace.
 
    When a publisher wants to stop new subscriptions for an announced
    namespace it sends an UNANNOUNCE.  A subscriber indicates it will no
@@ -996,10 +1014,7 @@ Table of Contents
    ANNOUNCE_OK to by sending an ANNOUNCE_CANCEL.
 
    A relay manages sessions from multiple publishers and subscribers,
-   connecting them based on the track namespace.  This MUST use an exact
-   match on track namespace unless otherwise negotiated by the
-   application.  For example, a SUBSCRIBE namespace=foobar message will
-   be forwarded to the session that sent ANNOUNCE namespace=foobar.
+   connecting them based on the track namespace.
 
    When a relay receives an incoming SUBSCRIBE request that triggers an
    upstream subscription, it SHOULD send a SUBSCRIBE request to each
@@ -1007,7 +1022,7 @@ Table of Contents
    already has an active subscription for the Objects requested by the
    incoming SUBSCRIBE request from all available publishers.
 
-   When a relay receives an incoming ANNOUCE for a given namespace, for
+   When a relay receives an incoming ANNOUNCE for a given namespace, for
    each active upstream subscription that matches that namespace, it
    SHOULD send a SUBSCRIBE to the publisher that sent the ANNOUNCE.
 
@@ -1550,7 +1565,7 @@ Table of Contents
 
    A subscriber issues a UNSUBSCRIBE message to a publisher indicating
    it is no longer interested in receiving media for the specified track
-   and requests that objects stop being sent as soon as possible.
+   and Objects should stop being sent as soon as possible.
 
    The format of UNSUBSCRIBE is as follows:
 
@@ -2422,11 +2437,20 @@ Table of Contents
       This SHOULD be cached.  A publisher MAY use an end of Group object
       to signal the end of all open Subgroups in a Group.
 
-   *  0x4 := Indicates end of Track and Group.  GroupID is one greater
-      than the largest group produced in this track and the ObjectId is
-      one greater than the largest object produced in that group.  This
-      is sent right after the last object in the track.  This SHOULD be
-      cached.
+   *  0x4 := Indicates end of Track and Group.  GroupID is the largest
+      group produced in this track and the ObjectId is one greater than
+      the largest object produced in that group.  An object with this
+      status that has a Group ID less than any other Group ID, or an
+      Object ID less than or equal to the largest in the group, is a
+      protocol error, and the receiver MUST terminate the session.  This
+      SHOULD be cached.
+
+   *  0x5 := Indicates end of Track.  GroupID is one greater than the
+      largest group produced in this track and the ObjectId is zero.  An
+      object with this status that has a Group ID less than or equal to
+      any other Group ID, or an Object ID other than zero, is a protocol
+      error, and the receiver MUST terminate the session.  This SHOULD
+      be cached.
 
    Any other value SHOULD be treated as a protocol error and terminate
    the session with a Protocol Violation (Section 3.5).  Any object with
@@ -2702,6 +2726,13 @@ Table of Contents
    Streams might be starved indefinitely during congestion.  The
    publisher and subscriber MUST cancel a stream, preferably the lowest
    priority, after reaching a resource limit.
+
+9.2.  Timeouts
+
+   Implementations are advised to use timeouts to prevent resource
+   exhaustion attacks by a peer that does not send expected data within
+   an expected time.  Each implementation is expected to set its own
+   limits.
 
 10.  IANA Considerations
 
