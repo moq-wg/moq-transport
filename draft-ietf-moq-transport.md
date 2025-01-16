@@ -567,6 +567,10 @@ code, as defined below:
 |------|---------------------------|
 | 0x10 | GOAWAY Timeout            |
 |------|---------------------------|
+| 0x11 | Control Message Timeout   |
+|------|---------------------------|
+| 0x12 | Data Stream Timeout       |
+|------|---------------------------|
 
 * No Error: The session is being terminated without an error.
 
@@ -587,6 +591,16 @@ code, as defined below:
 * GOAWAY Timeout: The session was closed because the peer took too long to
   close the session in response to a GOAWAY ({{message-goaway}}) message.
   See session migration ({{session-migration}}).
+
+* Control Message Timeout: The session was closed because the peer took too
+  long to respond to a control message.
+
+* Data Stream Timeout: The session was closed because the peer took too
+  long to send data expected on an open Data Stream {{data-streams}}.  This
+  includes fields of a stream header or an object header within a data
+  stream. If an endpoint times out waiting for a new object header on an
+  open subgroup stream, it MAY send a STOP_SENDING on that stream, terminate
+  the subscription, or close the session with an error.
 
 ## Migration {#session-migration}
 
@@ -2436,6 +2450,12 @@ might be starved indefinitely during congestion.  The publisher and
 subscriber MUST cancel a stream, preferably the lowest priority, after
 reaching a resource limit.
 
+
+## Timeouts
+
+Implementations are advised to use timeouts to prevent resource
+exhaustion attacks by a peer that does not send expected data within
+an expected time.  Each implementation is expected to set its own limits.
 
 # IANA Considerations {#iana}
 
