@@ -643,7 +643,8 @@ The syntax of these messages is described in {{message}}.
 
 If the subscriber is aware of a namespace of interest, it can send
 SUBSCRIBE_ANNOUNCES to publishers/relays it has discovered. The recipient of
-this message will send any relevant ANNOUNCE messages for that namespace.
+this message will send any relevant ANNOUNCE messages for that namespace, or
+subset of that namespace.
 
 A publisher MUST send exactly one SUBSCRIBE_NAMESPACES_OK or
 SUBSCRIBE_NAMESPACES_ERROR. The subscriber SHOULD close the session with a
@@ -665,8 +666,8 @@ an ANNOUNCE for it.
 If a publisher is authoritative for a given namespace, or is a relay that has
 received an authorized ANNOUNCE for that namespace from an upstream publisher,
 it MUST send an ANNOUNCE to any subscriber that has subscribed to ANNOUNCE for
-that namespace, a superset of that namespace, or a subset of that namespace. A
-publisher MAY send the ANNOUNCE to any other subscriber.
+that namespace, or a subset of that namespace. A publisher MAY send the ANNOUNCE
+to any other subscriber.
 
 A publisher SHOULD NOT, however, send an ANNOUNCE advertising a namespace that
 exactly matches a namespace for which the subscriber sent an earlier ANNOUNCE
@@ -680,7 +681,7 @@ one ANNOUNCE_OK or ANNOUNCE_ERROR in response to an ANNOUNCE. The publisher
 SHOULD close the session with a protocol error if it detects receiving more than
 one.
 
-An UNANNOUNCE message withdraws a previous of an ANNOUNCE, although it is not a
+An UNANNOUNCE message withdraws a previous ANNOUNCE, although it is not a
 protocol error for the subscriber to send a SUBSCRIBE or FETCH message after
 receiving an UNANNOUNCE.
 
@@ -696,8 +697,9 @@ a particular track in a namespace. The subscriber expects to receive a
 SUBSCRIBE_OK/FETCH_OK and objects from the track.
 
 A subscriber MAY send a SUBSCRIBE or FETCH for a track to any publisher. If it
-has received an ANNOUNCE with a namespace that includes that track, it SHOULD
-only request it from the senders of those ANNOUNCE messages.
+has received an ANNOUNCE with a namespace that exactly matches the namespace for
+that track, it SHOULD only request it from the senders of those ANNOUNCE
+messages.
 
 A publisher MUST send exactly one SUBSCRIBE_OK or SUBSCRIBE_ERROR in response to
 a SUBSCRIBE. It MUST send exactly one FETCH_OK or FETCH_ERROR in response to a
