@@ -790,15 +790,15 @@ Table of Contents
    A publisher MUST send exactly one SUBSCRIBE_OK or SUBSCRIBE_ERROR in
    response to a SUBSCRIBE.  It MUST send exactly one FETCH_OK or
    FETCH_ERROR in response to a FETCH.  The subscriber SHOULD close the
-   session with a protocol error if it detects receiving more than one.
+   session with a protocol error if it receives more than one.
 
    A subscriber keeps SUBSCRIBE state until it sends UNSUBSCRIBE, or
    after receipt of a SUBSCRIBE_DONE or SUBSCRIBE_ERROR.  Note that
    SUBSCRIBE_DONE does not usually indicate that state can immediately
    be destroyed, see Section 7.19.
 
-   A subscriber keeps FETCH state until it sends FETCH_CANCEL; receives
-   FETCH_ERROR; or receives a FIN or RESET_STREAM for the FETCH data
+   A subscriber keeps FETCH state until it sends FETCH_CANCEL, receives
+   FETCH_ERROR, or receives a FIN or RESET_STREAM for the FETCH data
    stream.  If the data stream is already open, it MAY send STOP_SENDING
    for the data stream along with FETCH_CANCEL, but MUST send
    FETCH_CANCEL.
