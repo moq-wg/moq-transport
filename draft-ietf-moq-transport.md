@@ -1442,7 +1442,7 @@ if the SUBSCRIBE_UPDATE violates either rule or if the subscriber specifies a
 Subscribe ID that does not exist within the Session.
 
 Unlike a new subscription, SUBSCRIBE_UPDATE can not cause an Object to be
-delivered multiple times.  Like SUBSCRIBE, EndGroup and EndObject MUST specify the
+delivered multiple times.  Like SUBSCRIBE, EndGroup MUST specify the
 same or a later object than StartGroup and StartObject.
 
 The format of SUBSCRIBE_UPDATE is as follows:
