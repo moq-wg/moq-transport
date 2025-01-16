@@ -2477,8 +2477,8 @@ to the old relay can be stopped with an UNSUBSCRIBE.<a href="#section-6.1.1-2" c
 control message with a <code>Track Namespace</code> (<a href="#model-track" class="auto internal xref">Section 2.4</a>).
 The ANNOUNCE enables the relay to know which publisher to forward a
 SUBSCRIBE to.<a href="#section-6.2-1" class="pilcrow">¶</a></p>
-<p id="section-6.2-2">Relays <span class="bcp14">MUST</span> ensure that publishers are authorized by verifying that the
-publisher is authorized to publish the content associated with the set of
+<p id="section-6.2-2">Relays <span class="bcp14">MUST</span> verify that publishers are authorized to publish
+the content associated with the set of
 tracks whose Track Namespace matches the announced namespace. Where the
 authorization and identification of the publisher occurs depends on the way the
 relay is managed and is application specific.<a href="#section-6.2-2" class="pilcrow">¶</a></p>
