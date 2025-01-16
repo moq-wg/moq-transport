@@ -16,9 +16,11 @@ jobs:
   build:
     name: "Archive Issues and Pull Requests"
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
     - name: "Checkout"
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
 
     # Note: No caching for this build!
 
@@ -37,6 +39,6 @@ jobs:
         token: ${{ github.token }}
 
     - name: "Save Archive"
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         path: archive.json
