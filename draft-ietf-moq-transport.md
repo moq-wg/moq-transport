@@ -679,8 +679,7 @@ application to inform the search for additional subscribers for a namespace,
 or abandoning the attempt to publish under this namespace. This might be
 especially useful in upload or chat applications. A subscriber MUST send exactly
 one ANNOUNCE_OK or ANNOUNCE_ERROR in response to an ANNOUNCE. The publisher
-SHOULD close the session with a protocol error if it detects receiving more than
-one.
+SHOULD close the session with a protocol error if it receives more than one.
 
 An UNANNOUNCE message withdraws a previous ANNOUNCE, although it is not a
 protocol error for the subscriber to send a SUBSCRIBE or FETCH message after
