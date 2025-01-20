@@ -736,10 +736,9 @@ Relays MAY cache Objects, but are not required to.
 
 ## Subscriber Interactions
 
-Subscribers interact with the Relays by sending a SUBSCRIBE
-({{message-subscribe-req}}) control message for the tracks of
-interest. Relays MUST ensure subscribers are authorized to access the
-content associated with the track. The authorization
+Subscribers interact with the Relays by sending a SUBSCRIBE or FETCH
+control message for the tracks of interest. Relays MUST ensure subscribers are
+authorized to access the content associated with the track. The authorization
 information can be part of subscription request itself or part of the
 encompassing session. The specifics of how a relay authorizes a user are
 outside the scope of this specification. The subscriber is notified
@@ -749,11 +748,11 @@ SUBSCRIBE_OK ({{message-subscribe-ok}}) or SUBSCRIBE_ERROR
 SUBSCRIBE MUST send only a single response to a given SUBSCRIBE of
 either SUBSCRIBE_OK or SUBSCRIBE_ERROR.
 
-If a relay does not already have a subscription for the track,
-or if the subscription does not cover all the requested Objects, it
-will need to make an upstream subscription.  The relay SHOULD NOT
-return a SUBCRIBE_OK until at least one SUBSCRIBE_OK has been
-received for the track, to ensure the Group Order is correct.
+The relay will have to send an upstream SUBSCRIBE and/or FETCH if it does not
+have all the objects in the FETCH, or is not currently subscribed to the full
+requested range. In this case, it SHOULD withhold sending its own SUBSCRIBE_OK
+until receiving one from upstream. It MUST withhold FETCH_OK until receiving
+one from upstream.
 
 For successful subscriptions, the publisher maintains a list of
 subscribers for each track. Each new OBJECT belonging to the
@@ -769,7 +768,9 @@ publishers and forward objects to active matching subscriptions.
 If multiple objects are received with the same Full Track Name,
 Group ID and Object ID, Relays MAY ignore subsequently received Objects
 or MAY use them to update the cache. Implementations that update the
-cache need to be protect against cache poisoning.
+cache need to protect against cache poisoning.
+
+Caching can also reduce the number of upstream FETCH requests.
 
 Objects MUST NOT be sent for unsuccessful subscriptions, and if a subscriber
 receives a SUBSCRIBE_ERROR after receiving objects, it MUST close the session
@@ -842,16 +843,14 @@ to the old relay can be stopped with an UNSUBSCRIBE.
 
 Publishing through the relay starts with publisher sending ANNOUNCE
 control message with a `Track Namespace` ({{model-track}}).
-The announce enables the relay to know which publisher to forward a
-SUBSCRIBE to.
+The ANNOUNCE enables the relay to know which publisher to forward a
+SUBSCRIBE to if the track belongs to the namespace in the ANNOUNCE.
 
-Relays MUST ensure that publishers are authorized by:
-
-- Verifying that the publisher is authorized to publish the content
-  associated with the set of tracks whose Track Namespace matches the
-  announced namespace. Where the authorization and identification of
-  the publisher occurs depends on the way the relay is managed and
-  is application specific.
+Relays MUST verify that publishers are authorized to publish
+the content associated with the set of
+tracks whose Track Namespace matches the announced namespace. Where the
+authorization and identification of the publisher occurs depends on the way the
+relay is managed and is application specific.
 
 Relays respond with an ANNOUNCE_OK or ANNOUNCE_ERROR control message
 providing the result of announcement. The entity receiving the
@@ -861,7 +860,7 @@ either ANNOUNCE_OK or ANNOUNCE_ERROR.
 A Relay can receive announcements from multiple publishers for the same
 Track Namespace and it SHOULD respond with the same response to each of the
 publishers, as though it was responding to an ANNOUNCE
-from a single publisher for a given tracknamespace.
+from a single publisher for a given track namespace.
 
 When a publisher wants to stop
 new subscriptions for an announced namespace it sends an UNANNOUNCE.
@@ -881,7 +880,7 @@ publisher that has announced the subscription's namespace, unless it
 already has an active subscription for the Objects requested by the
 incoming SUBSCRIBE request from all available publishers.
 
-When a relay receives an incoming ANNOUCE for a given namespace, for
+When a relay receives an incoming ANNOUNCE for a given namespace, for
 each active upstream subscription that matches that namespace, it SHOULD send a
 SUBSCRIBE to the publisher that sent the ANNOUNCE.
 
