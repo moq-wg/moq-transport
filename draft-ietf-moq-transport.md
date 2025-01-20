@@ -1782,11 +1782,10 @@ Values of 0x0 and those larger than 0x2 are a protocol error.
 the Largest Group ID and Object Id indicate the last Object in the track,
 0 if not.
 
-* Largest Group ID: The largest Group ID available for this track. This field
-is only present if ContentExists has a value of 1.
+* Largest Group ID: The largest Group ID available for this track.
 
 * Largest Object ID: The largest Object ID available within the largest Group ID
-for this track. This field is only present if ContentExists has a value of 1.
+for this track.
 
 * Subscribe Parameters: The parameters are defined in {{version-specific-params}}.
 
