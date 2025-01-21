@@ -837,7 +837,7 @@ Relays MAY cache Objects, but are not required to.
 
 ## Subscriber Interactions
 
-Subscribers subscribe to tracks by sending  a SUBSCRIBE
+Subscribers subscribe to tracks by sending a SUBSCRIBE
 ({{message-subscribe-req}}) control message for each track of
 interest. Relays MUST ensure subscribers are authorized to access the
 content associated with the track. The authorization
