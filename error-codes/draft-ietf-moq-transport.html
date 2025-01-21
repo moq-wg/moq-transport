@@ -3282,19 +3282,19 @@ below:<a href="#section-6.10-4" class="pilcrow">¶</a></p>
             </tr>
             <tr>
               <td class="text-right" rowspan="1" colspan="1">0x1</td>
-              <td class="text-left" rowspan="1" colspan="1">Uninterested</td>
-            </tr>
-            <tr>
-              <td class="text-right" rowspan="1" colspan="1">0x2</td>
               <td class="text-left" rowspan="1" colspan="1">Unauthorized</td>
             </tr>
             <tr>
-              <td class="text-right" rowspan="1" colspan="1">0x3</td>
+              <td class="text-right" rowspan="1" colspan="1">0x2</td>
               <td class="text-left" rowspan="1" colspan="1">Timeout</td>
             </tr>
             <tr>
+              <td class="text-right" rowspan="1" colspan="1">0x3</td>
+              <td class="text-left" rowspan="1" colspan="1">Not Supported</td>
+            </tr>
+            <tr>
               <td class="text-right" rowspan="1" colspan="1">0x4</td>
-              <td class="text-left" rowspan="1" colspan="1">Announce Not Supported</td>
+              <td class="text-left" rowspan="1" colspan="1">Uninterested</td>
             </tr>
           </tbody>
         </table>
@@ -3585,23 +3585,27 @@ as defined below:<a href="#section-6.16-4" class="pilcrow">¶</a></p>
             </tr>
             <tr>
               <td class="text-right" rowspan="1" colspan="1">0x1</td>
-              <td class="text-left" rowspan="1" colspan="1">Invalid Range</td>
-            </tr>
-            <tr>
-              <td class="text-right" rowspan="1" colspan="1">0x2</td>
-              <td class="text-left" rowspan="1" colspan="1">Retry Track Alias</td>
-            </tr>
-            <tr>
-              <td class="text-right" rowspan="1" colspan="1">0x3</td>
-              <td class="text-left" rowspan="1" colspan="1">Track Does Not Exist</td>
-            </tr>
-            <tr>
-              <td class="text-right" rowspan="1" colspan="1">0x4</td>
               <td class="text-left" rowspan="1" colspan="1">Unauthorized</td>
             </tr>
             <tr>
-              <td class="text-right" rowspan="1" colspan="1">0x5</td>
+              <td class="text-right" rowspan="1" colspan="1">0x2</td>
               <td class="text-left" rowspan="1" colspan="1">Timeout</td>
+            </tr>
+            <tr>
+              <td class="text-right" rowspan="1" colspan="1">0x3</td>
+              <td class="text-left" rowspan="1" colspan="1">Not Supported</td>
+            </tr>
+            <tr>
+              <td class="text-right" rowspan="1" colspan="1">0x4</td>
+              <td class="text-left" rowspan="1" colspan="1">Track Does Not Exist</td>
+            </tr>
+            <tr>
+              <td class="text-right" rowspan="1" colspan="1">0x5</td>
+              <td class="text-left" rowspan="1" colspan="1">Invalid Range</td>
+            </tr>
+            <tr>
+              <td class="text-right" rowspan="1" colspan="1">0x6</td>
+              <td class="text-left" rowspan="1" colspan="1">Retry Track Alias</td>
             </tr>
           </tbody>
         </table>
@@ -3719,19 +3723,23 @@ as defined below:<a href="#section-6.18-4" class="pilcrow">¶</a></p>
             </tr>
             <tr>
               <td class="text-right" rowspan="1" colspan="1">0x1</td>
-              <td class="text-left" rowspan="1" colspan="1">Invalid Range</td>
-            </tr>
-            <tr>
-              <td class="text-right" rowspan="1" colspan="1">0x3</td>
-              <td class="text-left" rowspan="1" colspan="1">Track Does Not Exist</td>
-            </tr>
-            <tr>
-              <td class="text-right" rowspan="1" colspan="1">0x4</td>
               <td class="text-left" rowspan="1" colspan="1">Unauthorized</td>
             </tr>
             <tr>
-              <td class="text-right" rowspan="1" colspan="1">0x5</td>
+              <td class="text-right" rowspan="1" colspan="1">0x2</td>
               <td class="text-left" rowspan="1" colspan="1">Timeout</td>
+            </tr>
+            <tr>
+              <td class="text-right" rowspan="1" colspan="1">0x3</td>
+              <td class="text-left" rowspan="1" colspan="1">Not Supported</td>
+            </tr>
+            <tr>
+              <td class="text-right" rowspan="1" colspan="1">0x4</td>
+              <td class="text-left" rowspan="1" colspan="1">Track Does Not Exist</td>
+            </tr>
+            <tr>
+              <td class="text-right" rowspan="1" colspan="1">0x5</td>
+              <td class="text-left" rowspan="1" colspan="1">Invalid Range</td>
             </tr>
           </tbody>
         </table>
@@ -3820,34 +3828,30 @@ SUBSCRIBE_DONE, as defined below:<a href="#section-6.19-9" class="pilcrow">¶</a
           <tbody>
             <tr>
               <td class="text-right" rowspan="1" colspan="1">0x0</td>
-              <td class="text-left" rowspan="1" colspan="1">Unsubscribed</td>
-            </tr>
-            <tr>
-              <td class="text-right" rowspan="1" colspan="1">0x1</td>
               <td class="text-left" rowspan="1" colspan="1">Internal Error</td>
             </tr>
             <tr>
-              <td class="text-right" rowspan="1" colspan="1">0x2</td>
+              <td class="text-right" rowspan="1" colspan="1">0x1</td>
               <td class="text-left" rowspan="1" colspan="1">Unauthorized</td>
             </tr>
             <tr>
-              <td class="text-right" rowspan="1" colspan="1">0x3</td>
+              <td class="text-right" rowspan="1" colspan="1">0x2</td>
               <td class="text-left" rowspan="1" colspan="1">Track Ended</td>
             </tr>
             <tr>
-              <td class="text-right" rowspan="1" colspan="1">0x4</td>
+              <td class="text-right" rowspan="1" colspan="1">0x3</td>
               <td class="text-left" rowspan="1" colspan="1">Subscription Ended</td>
             </tr>
             <tr>
-              <td class="text-right" rowspan="1" colspan="1">0x5</td>
+              <td class="text-right" rowspan="1" colspan="1">0x4</td>
               <td class="text-left" rowspan="1" colspan="1">Going Away</td>
             </tr>
             <tr>
-              <td class="text-right" rowspan="1" colspan="1">0x6</td>
+              <td class="text-right" rowspan="1" colspan="1">0x5</td>
               <td class="text-left" rowspan="1" colspan="1">Expired</td>
             </tr>
             <tr>
-              <td class="text-right" rowspan="1" colspan="1">0x7</td>
+              <td class="text-right" rowspan="1" colspan="1">0x6</td>
               <td class="text-left" rowspan="1" colspan="1">Too Far Behind</td>
             </tr>
           </tbody>
@@ -4133,23 +4137,23 @@ as defined below:<a href="#section-6.26-4" class="pilcrow">¶</a></p>
             </tr>
             <tr>
               <td class="text-right" rowspan="1" colspan="1">0x1</td>
-              <td class="text-left" rowspan="1" colspan="1">Invalid Range</td>
-            </tr>
-            <tr>
-              <td class="text-right" rowspan="1" colspan="1">0x2</td>
-              <td class="text-left" rowspan="1" colspan="1">Will Never Announce Namespace</td>
-            </tr>
-            <tr>
-              <td class="text-right" rowspan="1" colspan="1">0x3</td>
-              <td class="text-left" rowspan="1" colspan="1">Track Does Not Exist</td>
-            </tr>
-            <tr>
-              <td class="text-right" rowspan="1" colspan="1">0x4</td>
               <td class="text-left" rowspan="1" colspan="1">Unauthorized</td>
             </tr>
             <tr>
-              <td class="text-right" rowspan="1" colspan="1">0x5</td>
+              <td class="text-right" rowspan="1" colspan="1">0x2</td>
               <td class="text-left" rowspan="1" colspan="1">Timeout</td>
+            </tr>
+            <tr>
+              <td class="text-right" rowspan="1" colspan="1">0x3</td>
+              <td class="text-left" rowspan="1" colspan="1">Not Supported</td>
+            </tr>
+            <tr>
+              <td class="text-right" rowspan="1" colspan="1">0x4</td>
+              <td class="text-left" rowspan="1" colspan="1">Namespace Does Not Exist</td>
+            </tr>
+            <tr>
+              <td class="text-right" rowspan="1" colspan="1">0x5</td>
+              <td class="text-left" rowspan="1" colspan="1">Invalid Range</td>
             </tr>
           </tbody>
         </table>
