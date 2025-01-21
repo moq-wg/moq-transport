@@ -1511,13 +1511,13 @@ below:
 |-----:|:--------------------------|
 | 0x0  | Internal Error            |
 |------|---------------------------|
-| 0x1  | Uninterested              |
+| 0x1  | Unauthorized              |
 |------|---------------------------|
-| 0x2  | Unauthorized              |
+| 0x2  | Timeout                   |
 |------|---------------------------|
-| 0x3  | Timeout                   |
+| 0x3  | Not Supported             |
 |------|---------------------------|
-| 0x4  | Announce Not Supported    |
+| 0x4  | Uninterested              |
 |------|---------------------------|
 
 ## ANNOUNCE_CANCEL {#message-announce-cancel}
@@ -1719,17 +1719,18 @@ as defined below:
 |-----:|:--------------------------|
 | 0x0  | Internal Error            |
 |------|---------------------------|
-| 0x1  | Invalid Range             |
+| 0x1  | Unauthorized              |
 |------|---------------------------|
-| 0x2  | Retry Track Alias         |
+| 0x2  | Timeout                   |
 |------|---------------------------|
-| 0x3  | Track Does Not Exist      |
+| 0x3  | Not Supported             |
 |------|---------------------------|
-| 0x4  | Unauthorized              |
+| 0x4  | Track Does Not Exist      |
 |------|---------------------------|
-| 0x5  | Timeout                   |
+| 0x5  | Invalid Range             |
 |------|---------------------------|
-
+| 0x6  | Retry Track Alias         |
+|------|---------------------------|
 
 ## FETCH_OK {#message-fetch-ok}
 
@@ -1803,15 +1804,16 @@ as defined below:
 |-----:|:--------------------------|
 | 0x0  | Internal Error            |
 |------|---------------------------|
-| 0x1  | Invalid Range             |
+| 0x1  | Unauthorized              |
 |------|---------------------------|
-| 0x3  | Track Does Not Exist      |
+| 0x2  | Timeout                   |
 |------|---------------------------|
-| 0x4  | Unauthorized              |
+| 0x3  | Not Supported             |
 |------|---------------------------|
-| 0x5  | Timeout                   |
+| 0x4  | Track Does Not Exist      |
 |------|---------------------------|
-
+| 0x5  | Invalid Range             |
+|------|---------------------------|
 
 ## SUBSCRIBE_DONE {#message-subscribe-done}
 
@@ -1880,21 +1882,19 @@ SUBSCRIBE_DONE, as defined below:
 |------|---------------------------|
 | Code | Reason                    |
 |-----:|:--------------------------|
-| 0x0  | Unsubscribed              |
+| 0x0  | Internal Error            |
 |------|---------------------------|
-| 0x1  | Internal Error            |
+| 0x1  | Unauthorized              |
 |------|---------------------------|
-| 0x2  | Unauthorized              |
+| 0x2  | Track Ended               |
 |------|---------------------------|
-| 0x3  | Track Ended               |
+| 0x3  | Subscription Ended        |
 |------|---------------------------|
-| 0x4  | Subscription Ended        |
+| 0x4  | Going Away                |
 |------|---------------------------|
-| 0x5  | Going Away                |
+| 0x5  | Expired                   |
 |------|---------------------------|
-| 0x6  | Expired                   |
-|------|---------------------------|
-| 0x7  | Too Far Behind            |
+| 0x6  | Too Far Behind            |
 |------|---------------------------|
 
 ## MAX_SUBSCRIBE_ID {#message-max-subscribe-id}
@@ -2091,23 +2091,21 @@ failure.
 The application SHOULD use a relevant error code in SUBSCRIBE_ANNOUNCES_ERROR,
 as defined below:
 
-|------|--------------------------------|
-| Code | Reason                         |
-|-----:|:-------------------------------|
-| 0x0  | Internal Error                 |
-|------|--------------------------------|
-| 0x1  | Invalid Range                  |
-|------|--------------------------------|
-| 0x2  | Will Never Announce Namespace  |
-|------|--------------------------------|
-| 0x3  | Track Does Not Exist           |
-|------|--------------------------------|
-| 0x4  | Unauthorized                   |
-|------|--------------------------------|
-| 0x5  | Timeout                        |
-|------|--------------------------------|
-
-
+|------|---------------------------|
+| Code | Reason                    |
+|-----:|:--------------------------|
+| 0x0  | Internal Error            |
+|------|---------------------------|
+| 0x1  | Unauthorized              |
+|------|---------------------------|
+| 0x2  | Timeout                   |
+|------|---------------------------|
+| 0x3  | Not Supported             |
+|------|---------------------------|
+| 0x4  | Namespace Does Not Exist  |
+|------|---------------------------|
+| 0x5  | Invalid Range             |
+|------|---------------------------|
 
 # Data Streams {#data-streams}
 
