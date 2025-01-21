@@ -874,6 +874,48 @@ allows relays to make only a single upstream subscription for the
 track. The published content received from the upstream subscription
 request is cached and shared among the pending subscribers.
 
+The application SHOULD use a relevant error code in SUBSCRIBE_ERROR,
+as defined below:
+
+|------|---------------------------|
+| Code | Reason                    |
+|-----:|:--------------------------|
+| 0x0  | Internal Error            |
+|------|---------------------------|
+| 0x1  | Invalid Range             |
+|------|---------------------------|
+| 0x2  | Retry Track Alias         |
+|------|---------------------------|
+| 0x3  | Track Does Not Exist      |
+|------|---------------------------|
+| 0x4  | Unauthorized              |
+|------|---------------------------|
+| 0x5  | Timeout                   |
+|------|---------------------------|
+
+The application SHOULD use a relevant status code in
+SUBSCRIBE_DONE, as defined below:
+
+|------|---------------------------|
+| Code | Reason                    |
+|-----:|:--------------------------|
+| 0x0  | Unsubscribed              |
+|------|---------------------------|
+| 0x1  | Internal Error            |
+|------|---------------------------|
+| 0x2  | Unauthorized              |
+|------|---------------------------|
+| 0x3  | Track Ended               |
+|------|---------------------------|
+| 0x4  | Subscription Ended        |
+|------|---------------------------|
+| 0x5  | Going Away                |
+|------|---------------------------|
+| 0x6  | Expired                   |
+|------|---------------------------|
+| 0x7  | Too Far Behind            |
+|------|---------------------------|
+
 ### Graceful Publisher Relay Switchover
 
 This section describes behavior a subscriber MAY implement
@@ -1600,22 +1642,6 @@ message for which this response is provided.
 
 * Reason Phrase: Provides the reason for announcement error.
 
-The following error codes are defined:
-
-|------|---------------------------|
-| Code | Reason                    |
-|-----:|:--------------------------|
-| 0x0  | Internal Error            |
-|------|---------------------------|
-| 0x1  | Uninterested              |
-|------|---------------------------|
-| 0x2  | Unauthorized              |
-|------|---------------------------|
-| 0x3  | Timeout                   |
-|------|---------------------------|
-| 0x4  | Announce Not Supported    |
-|------|---------------------------|
-
 ## ANNOUNCE_CANCEL {#message-announce-cancel}
 
 The subscriber sends an `ANNOUNCE_CANCEL` control message to
@@ -1803,24 +1829,6 @@ SUBSCRIBE_ERROR
   the subscriber MUST close the connection with a Duplicate Track Alias error
   ({{session-termination}}).
 
-The following error codes are defined:
-
-|------|---------------------------|
-| Code | Reason                    |
-|-----:|:--------------------------|
-| 0x0  | Internal Error            |
-|------|---------------------------|
-| 0x1  | Invalid Range             |
-|------|---------------------------|
-| 0x2  | Retry Track Alias         |
-|------|---------------------------|
-| 0x3  | Track Does Not Exist      |
-|------|---------------------------|
-| 0x4  | Unauthorized              |
-|------|---------------------------|
-| 0x5  | Timeout                   |
-|------|---------------------------|
-
 ## FETCH_OK {#message-fetch-ok}
 
 A publisher sends a FETCH_OK control message in response to successful fetches.
@@ -1885,23 +1893,6 @@ FETCH_ERROR
 
 * Reason Phrase: Provides the reason for fetch error.
 
-The following error codes are defined:
-
-|------|---------------------------|
-| Code | Reason                    |
-|-----:|:--------------------------|
-| 0x0  | Internal Error            |
-|------|---------------------------|
-| 0x1  | Invalid Range             |
-|------|---------------------------|
-| 0x3  | Track Does Not Exist      |
-|------|---------------------------|
-| 0x4  | Unauthorized              |
-|------|---------------------------|
-| 0x5  | Timeout                   |
-|------|---------------------------|
-
-
 ## SUBSCRIBE_DONE {#message-subscribe-done}
 
 A publisher sends a `SUBSCRIBE_DONE` message to indicate it is done publishing
@@ -1962,29 +1953,6 @@ opened for this subscription.  The subscriber can remove all subscription state
 once the same number of streams have been processed.
 
 * Reason Phrase: Provides the reason for subscription error.
-
-The application SHOULD use a relevant status code in SUBSCRIBE_DONE, as defined
- below:
-
-|------|---------------------------|
-| Code | Reason                    |
-|-----:|:--------------------------|
-| 0x0  | Unsubscribed              |
-|------|---------------------------|
-| 0x1  | Internal Error            |
-|------|---------------------------|
-| 0x2  | Unauthorized              |
-|------|---------------------------|
-| 0x3  | Track Ended               |
-|------|---------------------------|
-| 0x4  | Subscription Ended        |
-|------|---------------------------|
-| 0x5  | Going Away                |
-|------|---------------------------|
-| 0x6  | Expired                   |
-|------|---------------------------|
-| 0x7  | Too Far Behind            |
-|------|---------------------------|
 
 ## MAX_SUBSCRIBE_ID {#message-max-subscribe-id}
 
@@ -2176,25 +2144,6 @@ title="MOQT SUBSCRIBE_ANNOUNCES_ERROR Message"}
 failure.
 
 * Reason Phrase: Provides the reason for the namespace subscription error.
-
-The application SHOULD use a relevant error code in a
-SUBSCRIBE_NAMESPACES_ERROR, as defined below.
-
-|------|--------------------------------|
-| Code | Reason                         |
-|-----:|:-------------------------------|
-| 0x0  | Internal Error                 |
-|------|--------------------------------|
-| 0x1  | Message Not Supported          |
-|------|--------------------------------|
-| 0x2  | Will Never Announce Namespace  |
-|------|--------------------------------|
-| 0x3  | Unauthorized                   |
-|------|------------------------------- |
-| 0x4  | Timeout                        |
-|------|--------------------------------|
-
-
 
 # Data Streams {#data-streams}
 
