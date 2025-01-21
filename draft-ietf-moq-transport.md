@@ -1503,7 +1503,8 @@ message for which this response is provided.
 
 * Reason Phrase: Provides the reason for announcement error.
 
-The following error codes are defined:
+The application SHOULD use a relevant error code in ANNOUNCE_ERROR, as defined
+below:
 
 |------|---------------------------|
 | Code | Reason                    |
