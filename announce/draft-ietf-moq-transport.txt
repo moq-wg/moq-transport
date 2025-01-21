@@ -5,13 +5,13 @@
 Media Over QUIC                                                L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 21 July 2025                                               Meta
+Expires: 25 July 2025                                               Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                         17 January 2025
+                                                         21 January 2025
 
 
                        Media over QUIC Transport
@@ -59,7 +59,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 21 July 2025.
+   This Internet-Draft will expire on 25 July 2025.
 
 Copyright Notice
 
@@ -971,12 +971,58 @@ Table of Contents
    stream when forwarding to subscribers, unless it has application
    specific information.
 
-   Relays SHOULD aggregate authorized subscriptions for a given track
-   when multiple subscribers request the same track.  Subscription
+   Relays MAY aggregate authorized subscriptions for a given track when
+   multiple subscribers request the same track.  Subscription
    aggregation allows relays to make only a single upstream subscription
    for the track.  The published content received from the upstream
    subscription request is cached and shared among the pending
    subscribers.
+
+   The application SHOULD use a relevant error code in SUBSCRIBE_ERROR,
+   as defined below:
+
+                      +======+======================+
+                      | Code | Reason               |
+                      +======+======================+
+                      |  0x0 | Internal Error       |
+                      +------+----------------------+
+                      |  0x1 | Invalid Range        |
+                      +------+----------------------+
+                      |  0x2 | Retry Track Alias    |
+                      +------+----------------------+
+                      |  0x3 | Track Does Not Exist |
+                      +------+----------------------+
+                      |  0x4 | Unauthorized         |
+                      +------+----------------------+
+                      |  0x5 | Timeout              |
+                      +------+----------------------+
+
+                                  Table 2
+
+   The application SHOULD use a relevant status code in SUBSCRIBE_DONE,
+   as defined below:
+
+                       +======+====================+
+                       | Code | Reason             |
+                       +======+====================+
+                       |  0x0 | Unsubscribed       |
+                       +------+--------------------+
+                       |  0x1 | Internal Error     |
+                       +------+--------------------+
+                       |  0x2 | Unauthorized       |
+                       +------+--------------------+
+                       |  0x3 | Track Ended        |
+                       +------+--------------------+
+                       |  0x4 | Subscription Ended |
+                       +------+--------------------+
+                       |  0x5 | Going Away         |
+                       +------+--------------------+
+                       |  0x6 | Expired            |
+                       +------+--------------------+
+                       |  0x7 | Too Far Behind     |
+                       +------+--------------------+
+
+                                  Table 3
 
 6.1.1.  Graceful Publisher Relay Switchover
 
@@ -1156,7 +1202,7 @@ Table of Contents
             | 0x41 | SERVER_SETUP (Section 7.2)              |
             +------+-----------------------------------------+
 
-                                 Table 2
+                                 Table 4
 
    An endpoint that receives an unknown message type MUST close the
    session.  Control messages have a length to make parsing easier, but
@@ -1733,24 +1779,6 @@ Table of Contents
 
    *  Reason Phrase: Provides the reason for announcement error.
 
-   The following error codes are defined:
-
-                     +======+========================+
-                     | Code | Reason                 |
-                     +======+========================+
-                     |  0x0 | Internal Error         |
-                     +------+------------------------+
-                     |  0x1 | Uninterested           |
-                     +------+------------------------+
-                     |  0x2 | Unauthorized           |
-                     +------+------------------------+
-                     |  0x3 | Timeout                |
-                     +------+------------------------+
-                     |  0x4 | Announce Not Supported |
-                     +------+------------------------+
-
-                                  Table 3
-
 7.11.  ANNOUNCE_CANCEL
 
    The subscriber sends an ANNOUNCE_CANCEL control message to indicate
@@ -1942,26 +1970,6 @@ Table of Contents
       MUST close the connection with a Duplicate Track Alias error
       (Section 3.5).
 
-   The following error codes are defined:
-
-                      +======+======================+
-                      | Code | Reason               |
-                      +======+======================+
-                      |  0x0 | Internal Error       |
-                      +------+----------------------+
-                      |  0x1 | Invalid Range        |
-                      +------+----------------------+
-                      |  0x2 | Retry Track Alias    |
-                      +------+----------------------+
-                      |  0x3 | Track Does Not Exist |
-                      +------+----------------------+
-                      |  0x4 | Unauthorized         |
-                      +------+----------------------+
-                      |  0x5 | Timeout              |
-                      +------+----------------------+
-
-                                  Table 4
-
 7.17.  FETCH_OK
 
    A publisher sends a FETCH_OK control message in response to
@@ -2025,24 +2033,6 @@ Table of Contents
    *  Error Code: Identifies an integer error code for fetch failure.
 
    *  Reason Phrase: Provides the reason for fetch error.
-
-   The following error codes are defined:
-
-                      +======+======================+
-                      | Code | Reason               |
-                      +======+======================+
-                      |  0x0 | Internal Error       |
-                      +------+----------------------+
-                      |  0x1 | Invalid Range        |
-                      +------+----------------------+
-                      |  0x3 | Track Does Not Exist |
-                      +------+----------------------+
-                      |  0x4 | Unauthorized         |
-                      +------+----------------------+
-                      |  0x5 | Timeout              |
-                      +------+----------------------+
-
-                                  Table 5
 
 7.19.  SUBSCRIBE_DONE
 
@@ -2109,31 +2099,6 @@ Table of Contents
       processed.
 
    *  Reason Phrase: Provides the reason for subscription error.
-
-   The application SHOULD use a relevant status code in SUBSCRIBE_DONE,
-   as defined below:
-
-                       +======+====================+
-                       | Code | Reason             |
-                       +======+====================+
-                       |  0x0 | Unsubscribed       |
-                       +------+--------------------+
-                       |  0x1 | Internal Error     |
-                       +------+--------------------+
-                       |  0x2 | Unauthorized       |
-                       +------+--------------------+
-                       |  0x3 | Track Ended        |
-                       +------+--------------------+
-                       |  0x4 | Subscription Ended |
-                       +------+--------------------+
-                       |  0x5 | Going Away         |
-                       +------+--------------------+
-                       |  0x6 | Expired            |
-                       +------+--------------------+
-                       |  0x7 | Too Far Behind     |
-                       +------+--------------------+
-
-                                  Table 6
 
 7.20.  MAX_SUBSCRIBE_ID
 
@@ -2320,25 +2285,6 @@ Table of Contents
    *  Reason Phrase: Provides the reason for the namespace subscription
       error.
 
-   The application SHOULD use a relevant error code in a
-   SUBSCRIBE_NAMESPACES_ERROR, as defined below.
-
-                 +======+===============================+
-                 | Code | Reason                        |
-                 +======+===============================+
-                 |  0x0 | Internal Error                |
-                 +------+-------------------------------+
-                 |  0x1 | Message Not Supported         |
-                 +------+-------------------------------+
-                 |  0x2 | Will Never Announce Namespace |
-                 +------+-------------------------------+
-                 |  0x3 | Unauthorized                  |
-                 +------+-------------------------------+
-                 |  0x4 | Timeout                       |
-                 +------+-------------------------------+
-
-                                 Table 7
-
 8.  Data Streams
 
    A publisher sends Objects matching a subscription on Data Streams.
@@ -2354,7 +2300,7 @@ Table of Contents
              | 0x5 | FETCH_HEADER (Section 8.4.3)           |
              +-----+----------------------------------------+
 
-                                 Table 8
+                                 Table 5
 
    All MOQT datagrams start with a variable-length integer indicating
    the type of the datagram.
@@ -2367,7 +2313,7 @@ Table of Contents
               | 0x2 | OBJECT_DATAGRAM_STATUS (Section 8.2) |
               +-----+--------------------------------------+
 
-                                 Table 9
+                                 Table 6
 
    An endpoint that receives an unknown stream or datagram type MUST
    close the session.
