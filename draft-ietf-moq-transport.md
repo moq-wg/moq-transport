@@ -2104,8 +2104,6 @@ as defined below:
 |------|---------------------------|
 | 0x4  | Namespace Does Not Exist  |
 |------|---------------------------|
-| 0x5  | Invalid Range             |
-|------|---------------------------|
 
 # Data Streams {#data-streams}
 
