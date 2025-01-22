@@ -1427,6 +1427,9 @@ Fetch should use properties of the associated Subscribe to determine the Track N
 Track, StartGroup, StartObject, EndGroup, and EndObject for the Joining Fetch such that it is
 contiguous with the associated Subscribe and begins Preceding Group Offset prior.
 
+A Subscriber can use a Joining Fetch to, for example, fill a playback buffer with a certain
+number of groups prior to the live edge of a track.
+
 A Fetch Type other than the above MUST be treated as an error.
 
 A publisher responds to a FETCH request with either a FETCH_OK or a FETCH_ERROR
