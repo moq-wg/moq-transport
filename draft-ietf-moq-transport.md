@@ -1522,10 +1522,6 @@ subgroup ID is not used for ordering.
 If StartGroup/StartObject is greater than the latest published Object group,
 the publisher MUST return FETCH_ERROR with error code 'No Objects'.
 
-A publisher MUST send fetched groups in group order, either ascending or
-descending. Within each group, objects are sent in Object ID order;
-subgroup ID is not used for ordering.
-
 ### Calculating the Range of a Joining Fetch
 
 A publisher which receives a Fetch message with a Fetch Type of 0x2 must treat it as a Fetch
