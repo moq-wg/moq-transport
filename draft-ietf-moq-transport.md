@@ -1452,11 +1452,11 @@ FETCH Message {
   Length (i),
   Subscribe ID (i),
   Subscriber Priority (8),
+  Group Order (8),
   Fetch Type (i),
   [Track Namespace (tuple),
    Track Name Length (i),
    Track Name (..),
-   Group Order (8),
    StartGroup (i),
    StartObject (i),
    EndGroup (i),
@@ -1481,6 +1481,11 @@ not correspond to an existing Subscribe, it MUST respond with a Fetch Error.
 other subscriptions or fetches in the same session. Lower numbers get higher
 priority. See {{priorities}}.
 
+* Group Order: Allows the subscriber to request Objects be delivered in
+Ascending (0x1) or Descending (0x2) order by group. See {{priorities}}.
+A value of 0x0 indicates the original publisher's Group Order SHOULD be
+used. Values larger than 0x2 are a protocol error.
+
 * Fetch Type: Identifies the type of Fetch, whether joining or standalone.
 
 * Parameters: The parameters are defined in {{version-specific-params}}.
@@ -1491,11 +1496,6 @@ Fields present only for Standalone Fetch (0x1):
 ({{track-name}}).
 
 * Track Name: Identifies the track name as defined in ({{track-name}}).
-
-* Group Order: Allows the subscriber to request Objects be delivered in
-Ascending (0x1) or Descending (0x2) order by group. See {{priorities}}.
-A value of 0x0 indicates the original publisher's Group Order SHOULD be
-used. Values larger than 0x2 are a protocol error.
 
 * StartGroup: The start Group ID.
 
@@ -1564,8 +1564,6 @@ Else, if Resolved Subscribe Start Object is 1 or more:
 * Fetch End Object: Resolved Subscribe Start Object
 
 If Fetch End Group < Fetch Start Group respond with a Fetch Error.
-
-A Joining Fetch MUST be sent in ascending group order.
 
 ## FETCH_CANCEL {#message-fetch-cancel}
 
