@@ -1546,7 +1546,7 @@ The following values are used:
 The Resolved Subscribe Start values for a Joining Fetch MUST correspond to the referenced Subscribe within the same session so that the Objects delivered across the Fetch and Subscribe are contiguous and non-overlapping.
 If a relay answers the referenced Subscribe with a `SUBSCRIBE_OK` that has ContentExists set to 0, it MUST respond to the Joining Fetch with a `FETCH_ERROR`.
 
-Using that information and the following algorithm, these values are computed:
+Using the above information and the following algorithm, these values are computed:
 
 * Fetch Start Group: The StartGroup for the Fetch
 * Fetch Start Object: The StartObject for the Fetch (always 0)
