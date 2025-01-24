@@ -1542,28 +1542,20 @@ The following values are used:
 The Resolved Subscribe Start values for a Joining Fetch MUST correspond to the referenced Subscribe within the same session so that the ranges of Objects covered by the Fetch and Subscribe are contiguous and non-overlapping.
 If a relay answers the referenced Subscribe with a `SUBSCRIBE_OK` that has ContentExists set to 0, it MUST respond to the Joining Fetch with a `FETCH_ERROR`.
 
-Using the above information and the following algorithm, these values are computed:
-
-* Fetch Start Group: The StartGroup for the Fetch
-* Fetch Start Object: The StartObject for the Fetch (always 0)
-* Fetch End Group: The EndGroup for the Fetch
-* Fetch End Object: The EndObject for the Fetch (represented as 1 more than the end Object ID
-  or a value of 0 indicating that the entire group is requested)
-
 The publisher receiving a Joining Fetch computes the fetch range as follows:
 
-* Fetch Start Group: Resolved Subscribe Start Group - Preceding Group Offset
-* Fetch Start Object: 0
+* Fetch StartGroup: Resolved Subscribe Start Group - Preceding Group Offset
+* Fetch StartObject: 0
 
 If Resolved Subscribe Start Object is 0:
-* Fetch End Group: Resolved Subscribe Start Group - 1
-* Fetch End Object: 0 (all objects in the group)
+* Fetch EndGroup: Resolved Subscribe Start Group - 1
+* Fetch EndObject: 0 (all objects in the group)
 
 Else, if Resolved Subscribe Start Object is 1 or more:
-* Fetch End Group: Resolved Subscribe Start Group
-* Fetch End Object: Resolved Subscribe Start Object
+* Fetch EndGroup: Resolved Subscribe Start Group
+* Fetch EndObject: Resolved Subscribe Start Object
 
-If Fetch End Group < Fetch Start Group respond with a Fetch Error.
+If Fetch EndGroup < Fetch StartGroup respond with a `FETCH_ERROR`.
 
 ## FETCH_CANCEL {#message-fetch-cancel}
 
