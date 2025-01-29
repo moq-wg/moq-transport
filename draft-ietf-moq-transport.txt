@@ -388,25 +388,26 @@ Table of Contents
    A subgroup is a sequence of one or more objects from the same group
    (Section 2.3) in ascending order by Object ID.  Objects in a subgroup
    have a dependency and priority relationship consistent with sharing a
-   QUIC stream.  In some cases, a Group will be most effectively
-   delivered using more than one QUIC stream.
+   stream and are sent on a single stream whenever possible.  A Group is
+   delivered using at least as many streams as there are Subgroups,
+   typically with a one-to-one mapping between Subgroups and streams.
 
    When a Track's forwarding preference (see Section 8.1.1) is "Track"
    or "Datagram", Objects are not sent in Subgroups, no Subgroup IDs are
    assigned, and the description in the remainder of this section does
    not apply.
 
-   QUIC streams offer in-order reliable delivery and the ability to
-   cancel sending and retransmission of data.  Furthermore, many
+   Streams offer in-order reliable delivery and the ability to cancel
+   sending and retransmission of data.  Furthermore, many
    implementations offer the ability to control the relative priority of
    streams, which allows control over the scheduling of sending data on
    active streams.
 
    Every object within a Group belongs to exactly one Subgroup.
 
-   Objects from two subgroups cannot be sent on the same QUIC stream.
-   Objects from the same Subgroup MUST NOT be sent on different QUIC
-   streams, unless one of the streams was reset prematurely, or upstream
+   Objects from two subgroups cannot be sent on the same stream.
+   Objects from the same Subgroup MUST NOT be sent on different streams,
+   unless one of the streams was reset prematurely, or upstream
    conditions have forced objects from a Subgroup to be sent out of
    Object ID order.
 
@@ -414,13 +415,13 @@ Table of Contents
    they see fit.  The scope of a Subgroup ID is a Group, so Subgroups
    from different Groups MAY share a Subgroup ID without implying any
    relationship between them.  In general, publishers assign objects to
-   subgroups in order to leverage the features of QUIC streams as
-   described above.
+   subgroups in order to leverage the features of streams as described
+   above.
 
-   An example strategy for using QUIC stream properties follows.  If
-   object B is dependent on object A, then delivery of B can follow A,
-   i.e. A and B can be usefully delivered over a single QUIC stream.
-   Furthermore, in this example:
+   An example strategy for using stream properties follows.  If object B
+   is dependent on object A, then delivery of B can follow A, i.e. A and
+   B can be usefully delivered over a single stream.  Furthermore, in
+   this example:
 
    *  If an object is dependent on all previous objects in a Subgroup,
       it is added to that Subgroup.
@@ -430,8 +431,8 @@ Table of Contents
 
    *  There are often many ways to compose Subgroups that meet these
       criteria.  Where possible, choose the composition that results in
-      the fewest Subgroups in a group to minimize the number of QUIC
-      streams used.
+      the fewest Subgroups in a group to minimize the number of streams
+      used.
 
 2.3.  Groups
 
