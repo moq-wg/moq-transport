@@ -1503,7 +1503,7 @@ UNSUBSCRIBE Message {
 A subscriber issues a FETCH to a publisher to request a range of already published
 objects within a track. The publisher responding to a FETCH is responsible for retrieving
 all available Objects. If there are gaps between Objects, the publisher omits them from the
-fetch response. All omitted objects have status Object Not Available.
+fetch response. All omitted objects have status Object Does Not Exist.
 
 A publisher responds to a FETCH request with either a FETCH_OK or a FETCH_ERROR
 message.  If it responds with FETCH_OK, the publisher creates a new unidirectional
