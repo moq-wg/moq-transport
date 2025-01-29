@@ -2132,6 +2132,13 @@ Table of Contents
       the publisher that sent the MAX_SUBSCRIBE_ID, the publisher MUST
       close the session with an error of 'Too Many Subscribes'.
 
+   MAX_SUBSCRIBE_ID is similar to MAX_STREAMS in ([RFC9000],
+   Section 4.6), and similar considerations apply when deciding how
+   often to send MAX_SUBSCRIBE_ID.  For example, implementations might
+   choose to increase MAX_SUBSCRIBE_ID as subscriptions close to keep
+   the number of subscriptions available to subscribers roughly
+   consistent.
+
 7.21.  SUBSCRIBES_BLOCKED
 
    The SUBSCRIBES_BLOCKED message is sent when a subscriber would like

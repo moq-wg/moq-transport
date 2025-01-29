@@ -2998,7 +2998,9 @@ the <code>query</code> portion of the URI to the parameter.<a href="#section-7.2
             <h5 id="name-max_subscribe_id">
 <a href="#section-7.2.2.2" class="section-number selfRef">7.2.2.2. </a><a href="#name-max_subscribe_id" class="section-name selfRef">MAX_SUBSCRIBE_ID</a>
             </h5>
-<p id="section-7.2.2.2-1">The MAX_SUBSCRIBE_ID parameter (Parameter Type 0x02) communicates an initial value for the Maximum Subscribe ID to the receiving subscriber. The default value is 0, so if not specified, the peer <span class="bcp14">MUST NOT</span> create subscriptions.<a href="#section-7.2.2.2-1" class="pilcrow">¶</a></p>
+<p id="section-7.2.2.2-1">The MAX_SUBSCRIBE_ID parameter (Parameter Type 0x02) communicates an initial
+value for the Maximum Subscribe ID to the receiving subscriber. The default value
+is 0, so if not specified, the peer <span class="bcp14">MUST NOT</span> create subscriptions.<a href="#section-7.2.2.2-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -3944,6 +3946,11 @@ that sent the MAX_SUBSCRIBE_ID, the publisher <span class="bcp14">MUST</span> cl
 error of 'Too Many Subscribes'.<a href="#section-7.20-4.1.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
+<p id="section-7.20-5">MAX_SUBSCRIBE_ID is similar to MAX_STREAMS in (<span>[<a href="#RFC9000" class="cite xref">RFC9000</a>], <a href="https://rfc-editor.org/rfc/rfc9000#section-4.6" class="relref">Section 4.6</a></span>),
+and similar considerations apply when deciding how often to send MAX_SUBSCRIBE_ID.
+For example, implementations might choose to increase MAX_SUBSCRIBE_ID as
+subscriptions close to keep the number of subscriptions available to subscribers
+roughly consistent.<a href="#section-7.20-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="message-subscribes-blocked">
