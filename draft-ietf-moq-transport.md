@@ -328,35 +328,36 @@ Objects within a group are ordered numerically by their Object ID.
 
 A subgroup is a sequence of one or more objects from the same group
 ({{model-group}}) in ascending order by Object ID. Objects in a subgroup
-have a dependency and priority relationship consistent with sharing a QUIC
-stream. In some cases, a Group will be most effectively delivered using more
-than one QUIC stream.
+have a dependency and priority relationship consistent with sharing a
+stream and are sent on a single stream whenever possible. A Group is delivered
+using at least as many streams as there are Subgroups,
+typically with a one-to-one mapping between Subgroups and streams.
 
 When a Track's forwarding preference (see {{object-fields}}) is "Track" or
 "Datagram", Objects are not sent in Subgroups, no Subgroup IDs are assigned, and the
 description in the remainder of this section does not apply.
 
-QUIC streams offer in-order reliable delivery and the ability to cancel sending
+Streams offer in-order reliable delivery and the ability to cancel sending
 and retransmission of data. Furthermore, many implementations offer the ability
 to control the relative priority of streams, which allows control over the
 scheduling of sending data on active streams.
 
 Every object within a Group belongs to exactly one Subgroup.
 
-Objects from two subgroups cannot be sent on the same QUIC stream. Objects from the
-same Subgroup MUST NOT be sent on different QUIC streams, unless one of the streams
+Objects from two subgroups cannot be sent on the same stream. Objects from the
+same Subgroup MUST NOT be sent on different streams, unless one of the streams
 was reset prematurely, or upstream conditions have forced objects from a Subgroup
 to be sent out of Object ID order.
 
 Original publishers assign each Subgroup a Subgroup ID, and do so as they see fit.  The
 scope of a Subgroup ID is a Group, so Subgroups from different Groups MAY share a Subgroup
 ID without implying any relationship between them. In general, publishers assign
-objects to subgroups in order to leverage the features of QUIC streams as described
+objects to subgroups in order to leverage the features of streams as described
 above.
 
-An example strategy for using QUIC stream properties follows. If object B is
+An example strategy for using stream properties follows. If object B is
 dependent on object A, then delivery of B can follow A, i.e. A and B can be
-usefully delivered over a single QUIC stream. Furthermore, in this example:
+usefully delivered over a single stream. Furthermore, in this example:
 
 - If an object is dependent on all previous objects in a Subgroup, it is added to
 that Subgroup.
@@ -366,7 +367,7 @@ a different Subgroup.
 
 - There are often many ways to compose Subgroups that meet these criteria. Where
 possible, choose the composition that results in the fewest Subgroups in a group
-to minimize the number of QUIC streams used.
+to minimize the number of streams used.
 
 
 ## Groups {#model-group}
@@ -626,6 +627,114 @@ and announcements. The client can choose to delay closing the session if it
 expects more OBJECTs to be delivered. The server closes the session with a
 'GOAWAY Timeout' if the client doesn't close the session quickly enough.
 
+# Track Discovery and Retrieval (#track-discovery}
+
+Discovery of MoQT servers is always done out-of-band. Namespace discovery can be
+done in the context of an established MoQT session.
+
+Given sufficient out of band information, it is valid for a subscriber
+to send a SUBSCRIBE or FETCH message to a publisher (including a relay) without
+any previous MoQT messages besides SETUP. However, SUBSCRIBE_ANNOUNCES and
+ANNOUNCE messages provide an in-band means of discovery of subscribers and
+publishers for a namespace.
+
+The syntax of these messages is described in {{message}}.
+
+## SUBSCRIBE_ANNOUNCES
+
+If the subscriber is aware of a namespace of interest, it can send
+SUBSCRIBE_ANNOUNCES to publishers/relays it has established a session with. The
+recipient of this message will send any relevant ANNOUNCE messages for that
+namespace, or subset of that namespace.
+
+A publisher MUST send exactly one SUBSCRIBE_ANNOUNCES_OK or
+SUBSCRIBE_ANNOUNCES_ERROR in response to a SUBSCRIBE_ANNOUNCES. The subscriber
+SHOULD close the session with a protocol error if it detects receiving more than
+one.
+
+The receiver of a SUBSCRIBE_NAMESPACES_OK or SUBSCRIBE_NAMESPACES_ERROR ought to
+forward the result to the application, so that it can make decisions about
+further publishers to contact.
+
+An UNSUBSCRIBE_NAMESPACES withdraws a previous SUBSCRIBE_NAMESPACES. It does
+not prohibit the receiver (publisher) from sending further ANNOUNCE messages.
+
+## ANNOUNCE
+
+A publisher MAY send ANNOUNCE messages to any subscriber. An ANNOUNCE indicates
+to the subscriber where to route a SUBSCRIBE or FETCH for that namespace. A
+subscriber MAY send SUBSCRIBE or FETCH for a namespace without having received
+an ANNOUNCE for it.
+
+If a publisher is authoritative for a given namespace, or is a relay that has
+received an authorized ANNOUNCE for that namespace from an upstream publisher,
+it MUST send an ANNOUNCE to any subscriber that has subscribed to ANNOUNCE for
+that namespace, or a subset of that namespace. A publisher MAY send the ANNOUNCE
+to any other subscriber.
+
+An endpoint SHOULD NOT, however, send an ANNOUNCE advertising a namespace that
+exactly matches a namespace for which the peer sent an earlier ANNOUNCE
+(i.e. an ANNOUNCE ought not to be echoed back to its sender).
+
+The receiver of an ANNOUNCE_OK or ANNOUNCE_ERROR SHOULD report this to the
+application to inform the search for additional subscribers for a namespace,
+or abandoning the attempt to publish under this namespace. This might be
+especially useful in upload or chat applications. A subscriber MUST send exactly
+one ANNOUNCE_OK or ANNOUNCE_ERROR in response to an ANNOUNCE. The publisher
+SHOULD close the session with a protocol error if it receives more than one.
+
+An UNANNOUNCE message withdraws a previous ANNOUNCE, although it is not a
+protocol error for the subscriber to send a SUBSCRIBE or FETCH message after
+receiving an UNANNOUNCE.
+
+A subscriber can send ANNOUNCE_CANCEL to revoke acceptance of an ANNOUNCE, for
+example due to expiration of authorization credentials. The message enables the
+publisher to ANNOUNCE again with refreshed authorization, or discard associated
+state. After receiving an ANNOUNCE_CANCEL, the publisher does not send UNANNOUNCE.
+
+While ANNOUNCE does provide hints on where to route a SUBSCRIBE or FETCH, it is
+not a full-fledged routing protocol and does not protect against loops and other
+phenomena. In particular, ANNOUNCE SHOULD NOT be used to find paths through
+richly connected networks of relays.
+
+## SUBSCRIBE/FETCH
+
+The central interaction with a publisher is to send SUBSCRIBE and/or FETCH for
+a particular track. The subscriber expects to receive a
+SUBSCRIBE_OK/FETCH_OK and objects from the track.
+
+A subscriber MAY send a SUBSCRIBE or FETCH for a track to any publisher. If it
+has accepted an ANNOUNCE with a namespace that exactly matches the namespace for
+that track, it SHOULD only request it from the senders of those ANNOUNCE
+messages.
+
+A publisher MUST send exactly one SUBSCRIBE_OK or SUBSCRIBE_ERROR in response to
+a SUBSCRIBE. It MUST send exactly one FETCH_OK or FETCH_ERROR in response to a
+FETCH. The subscriber SHOULD close the session with a protocol error if it
+receives more than one.
+
+A subscriber keeps SUBSCRIBE state until it sends UNSUBSCRIBE, or after receipt
+of a SUBSCRIBE_DONE or SUBSCRIBE_ERROR. Note that SUBSCRIBE_DONE does not
+usually indicate that state can immediately be destroyed, see
+{{message-subscribe-done}}.
+
+A subscriber keeps FETCH state until it sends FETCH_CANCEL, receives
+FETCH_ERROR, or receives a FIN or RESET_STREAM for the FETCH data stream. If the
+data stream is already open, it MAY send STOP_SENDING for the data stream along
+with FETCH_CANCEL, but MUST send FETCH_CANCEL.
+
+The Publisher can destroy subscription or fetch state as soon as it has received
+UNSUBSCRIBE or FETCH_CANCEL, respectively. It MUST reset any open streams
+associated with the SUBSCRIBE or FETCH. It can also destroy state after closing
+the FETCH data stream.
+
+The publisher can immediately delete SUBSCRIBE state after sending
+SUBSCRIBE_DONE, but MUST NOT send it until it has closed all related streams. It
+can destroy all FETCH state after closing the data stream.
+
+A SUBSCRIBE_ERROR or FETCH_ERROR indicates no objects will be delivered, and
+both endpoints can immediately destroy relevant state. Objects MUST NOT be sent
+for requests that end with an error.
 
 # Priorities {#priorities}
 
@@ -735,17 +844,13 @@ Relays MAY cache Objects, but are not required to.
 
 ## Subscriber Interactions
 
-Subscribers interact with the Relays by sending a SUBSCRIBE or FETCH
-control message for the tracks of interest. Relays MUST ensure subscribers are
-authorized to access the content associated with the track. The authorization
+Subscribers subscribe to tracks by sending a SUBSCRIBE
+({{message-subscribe-req}}) control message for each track of
+interest. Relays MUST ensure subscribers are authorized to access the
+content associated with the track. The authorization
 information can be part of subscription request itself or part of the
-encompassing session. The specifics of how a relay authorizes a user are
-outside the scope of this specification. The subscriber is notified
-of the result of the subscription via a
-SUBSCRIBE_OK ({{message-subscribe-ok}}) or SUBSCRIBE_ERROR
-{{message-subscribe-error}} control message. The entity receiving the
-SUBSCRIBE MUST send only a single response to a given SUBSCRIBE of
-either SUBSCRIBE_OK or SUBSCRIBE_ERROR.
+encompassing session. The specifics of how a relay authorizes a user are outside
+the scope of this specification.
 
 The relay will have to send an upstream SUBSCRIBE and/or FETCH if it does not
 have all the objects in the FETCH, or is not currently subscribed to the full
@@ -756,9 +861,7 @@ one from upstream.
 For successful subscriptions, the publisher maintains a list of
 subscribers for each track. Each new OBJECT belonging to the
 track within the subscription range is forwarded to each active
-subscriber, dependent on the congestion response. A subscription
-remains active until soon after the publisher of the track terminates the
-subscription with a SUBSCRIBE_DONE (see {{message-subscribe-done}}).
+subscriber, dependent on the congestion response.
 
 A caching relay saves Objects to its cache identified by the Object's
 Full Track Name, Group ID and Object ID. Relays MUST be able to
@@ -768,12 +871,6 @@ If multiple objects are received with the same Full Track Name,
 Group ID and Object ID, Relays MAY ignore subsequently received Objects
 or MAY use them to update the cache. Implementations that update the
 cache need to protect against cache poisoning.
-
-Caching can also reduce the number of upstream FETCH requests.
-
-Objects MUST NOT be sent for unsuccessful subscriptions, and if a subscriber
-receives a SUBSCRIBE_ERROR after receiving objects, it MUST close the session
-with a 'Protocol Violation'.
 
 A relay MUST NOT reorder or drop objects received on a multi-object stream when
 forwarding to subscribers, unless it has application specific information.
@@ -843,18 +940,13 @@ to the old relay can be stopped with an UNSUBSCRIBE.
 Publishing through the relay starts with publisher sending ANNOUNCE
 control message with a `Track Namespace` ({{model-track}}).
 The ANNOUNCE enables the relay to know which publisher to forward a
-SUBSCRIBE to if the track belongs to the namespace in the ANNOUNCE.
+SUBSCRIBE to.
 
 Relays MUST verify that publishers are authorized to publish
 the content associated with the set of
 tracks whose Track Namespace matches the announced namespace. Where the
 authorization and identification of the publisher occurs depends on the way the
 relay is managed and is application specific.
-
-Relays respond with an ANNOUNCE_OK or ANNOUNCE_ERROR control message
-providing the result of announcement. The entity receiving the
-ANNOUNCE MUST send only a single response to a given ANNOUNCE of
-either ANNOUNCE_OK or ANNOUNCE_ERROR.
 
 A Relay can receive announcements from multiple publishers for the same
 Track Namespace and it SHOULD respond with the same response to each of the
@@ -1185,7 +1277,9 @@ the `query` portion of the URI to the parameter.
 
 #### MAX_SUBSCRIBE_ID {#max-subscribe-id}
 
-The MAX_SUBSCRIBE_ID parameter (Parameter Type 0x02) communicates an initial value for the Maximum Subscribe ID to the receiving subscriber. The default value is 0, so if not specified, the peer MUST NOT create subscriptions.
+The MAX_SUBSCRIBE_ID parameter (Parameter Type 0x02) communicates an initial
+value for the Maximum Subscribe ID to the receiving subscriber. The default value
+is 0, so if not specified, the peer MUST NOT create subscriptions.
 
 ## GOAWAY {#message-goaway}
 
@@ -1356,8 +1450,9 @@ expected that it will always succeed and the worst outcome is that it is not
 processed promptly and some extra objects from the existing subscription are
 delivered.
 
-SUBSCRIBE_UPDATE does not cause an Object to be delivered multiple times.
-Like SUBSCRIBE, EndGroup MUST specify the same or a later group than StartGroup.
+Unlike a new subscription, SUBSCRIBE_UPDATE can not cause an Object to be
+delivered multiple times.  Like SUBSCRIBE, EndGroup MUST specify the
+same or a later object than StartGroup and StartObject.
 
 The format of SUBSCRIBE_UPDATE is as follows:
 
@@ -1395,9 +1490,8 @@ See {{priorities}}.
 ## UNSUBSCRIBE {#message-unsubscribe}
 
 A subscriber issues a `UNSUBSCRIBE` message to a publisher indicating it is no
-longer interested in receiving media for the specified track and Objects
-should stop being sent as soon as possible.  The publisher sends a
-SUBSCRIBE_DONE to acknowledge the unsubscribe was successful.
+longer interested in receiving media for the specified track and requesting that
+the publisher stop sending Objects as soon as possible.
 
 The format of `UNSUBSCRIBE` is as follows:
 
@@ -1418,7 +1512,7 @@ UNSUBSCRIBE Message {
 A subscriber issues a FETCH to a publisher to request a range of already published
 objects within a track. The publisher responding to a FETCH is responsible for retrieving
 all available Objects. If there are gaps between Objects, the publisher omits them from the
-fetch response. All omitted objects have status Object Not Available.
+fetch response. All omitted objects have status Object Does Not Exist.
 
 A publisher responds to a FETCH request with either a FETCH_OK or a FETCH_ERROR
 message.  If it responds with FETCH_OK, the publisher creates a new unidirectional
@@ -1568,10 +1662,6 @@ message for which this response is provided.
 The subscriber sends an `ANNOUNCE_CANCEL` control message to
 indicate it will stop sending new subscriptions for tracks
 within the provided Track Namespace.
-
-If a publisher receives new subscriptions for that namespace after
-receiving an ANNOUNCE_CANCEL, it SHOULD close the session as a
-'Protocol Violation'.
 
 ~~~
 ANNOUNCE_CANCEL Message {
@@ -1754,7 +1844,6 @@ SUBSCRIBE_ERROR
   the subscriber MUST close the connection with a Duplicate Track Alias error
   ({{session-termination}}).
 
-
 ## FETCH_OK {#message-fetch-ok}
 
 A publisher sends a FETCH_OK control message in response to successful fetches.
@@ -1818,7 +1907,6 @@ FETCH_ERROR
 * Error Code: Identifies an integer error code for fetch failure.
 
 * Reason Phrase: Provides the reason for fetch error.
-
 
 ## SUBSCRIBE_DONE {#message-subscribe-done}
 
@@ -1904,6 +1992,12 @@ MAX_SUBSCRIBE_ID
 {{message-subscribe-req}} equal or larger than this is received by the publisher
 that sent the MAX_SUBSCRIBE_ID, the publisher MUST close the session with an
 error of 'Too Many Subscribes'.
+
+MAX_SUBSCRIBE_ID is similar to MAX_STREAMS in ({{?RFC9000, Section 4.6}}),
+and similar considerations apply when deciding how often to send MAX_SUBSCRIBE_ID.
+For example, implementations might choose to increase MAX_SUBSCRIBE_ID as
+subscriptions close to keep the number of subscriptions available to subscribers
+roughly consistent.
 
 ## SUBSCRIBES_BLOCKED {#message-subscribes-blocked}
 
@@ -2071,8 +2165,6 @@ title="MOQT SUBSCRIBE_ANNOUNCES_ERROR Message"}
 failure.
 
 * Reason Phrase: Provides the reason for the namespace subscription error.
-
-
 
 # Data Streams {#data-streams}
 
