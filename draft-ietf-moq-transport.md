@@ -628,7 +628,7 @@ expects more OBJECTs to be delivered. The server closes the session with a
 
 # Track Discovery and Retrieval (#track-discovery}
 
-Discovery of MoQT servers is always done out-of-band. Namespace discovery can be
+Discovery of MoQT servers is always done out-of-band. Track discovery can be
 done in the context of an established MoQT session.
 
 Given sufficient out of band information, it is valid for a subscriber
