@@ -1438,7 +1438,7 @@ because an attempt to widen a subscription could fail. If Objects before the
 start or after the end of the current subscription are needed, a fetch might
 be able to retrieve objects before the start. The start Object MUST NOT
 decrease and when it increases, there is no guarantee that a publisher will
-not have already sent Objects before the new start Object.  The end Object
+not have already sent Objects before the new start Object.  The end Group
 MUST NOT increase and when it decreases, there is no guarantee that a publisher
 will not have already sent Objects after the new end Object. A publisher SHOULD
 close the Session as a 'Protocol Violation' if the SUBSCRIBE_UPDATE violates
