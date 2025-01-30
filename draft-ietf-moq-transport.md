@@ -635,7 +635,7 @@ Given sufficient out of band information, it is valid for a subscriber
 to send a SUBSCRIBE or FETCH message to a publisher (including a relay) without
 any previous MoQT messages besides SETUP. However, SUBSCRIBE_ANNOUNCES and
 ANNOUNCE messages provide an in-band means of discovery of subscribers and
-publishers, respectively.
+publishers.
 
 The syntax of these messages is described in {{message}}.
 
@@ -654,6 +654,7 @@ not prohibit the receiver (publisher) from sending further ANNOUNCE messages.
 The receiver of a SUBSCRIBE_NAMESPACES_OK or SUBSCRIBE_NAMESPACES_ERROR should
 forward the result to the application, so that it can make decisions about
 further publishers to contact.
+
 
 ## ANNOUNCE
 
