@@ -653,7 +653,7 @@ more than one.
 
 An UNSUBSCRIBE_NAMESPACES withdraws a previous SUBSCRIBE_NAMESPACES. It does
 not prohibit the receiver (publisher) from sending further ANNOUNCE messages.
-The receiver of a SUBSCRIBE_NAMESPACES_OK or SUBSCRIBE_NAMESPACES_ERROR ought to
+The receiver of a SUBSCRIBE_NAMESPACES_OK or SUBSCRIBE_NAMESPACES_ERROR should
 forward the result to the application, so that it can make decisions about
 further publishers to contact.
 
