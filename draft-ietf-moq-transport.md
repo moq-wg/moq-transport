@@ -1500,10 +1500,11 @@ UNSUBSCRIBE Message {
 
 ## FETCH {#message-fetch}
 
-A subscriber issues a FETCH to a publisher to request a range of already published
-objects within a track. The publisher responding to a FETCH is responsible for retrieving
-all available Objects. If there are gaps between Objects, the publisher omits them from the
-fetch response. All omitted objects have status Object Not Available.
+A subscriber issues a FETCH to a publisher to request a range of already
+published objects within a track. The publisher responding to a FETCH is
+responsible for retrieving all available Objects. If there are gaps between Objects,
+the publisher omits them from the fetch response. All omitted objects have status
+Object Not Available.
 
 **Fetch Types**
 
@@ -1512,13 +1513,14 @@ There are two types of Fetch messages:
 Standalone Fetch (0x1) : A Fetch of Objects performed independently of any Subscribe.
 
 Joining Fetch (0x2) : A Fetch joined together with a Subscribe. A Joining Fetch
-shares the same Subscribe ID as an already-sent Subscribe. A publisher receiving a Joining
-Fetch should use properties of the associated Subscribe to determine the Track Namespace,
-Track, StartGroup, StartObject, EndGroup, and EndObject for the Joining Fetch such that it is
-contiguous with the associated Subscribe and begins Preceding Group Offset prior.
+shares the same Subscribe ID as an already-sent Subscribe. A publisher receiving a
+Joining Fetch should use properties of the associated Subscribe to determine the
+Track Namespace, Track, StartGroup, StartObject, EndGroup, and EndObject for the
+Joining Fetch such that it is contiguous with the associated Subscribe and begins
+Preceding Group Offset prior.
 
-A Subscriber can use a Joining Fetch to, for example, fill a playback buffer with a certain
-number of groups prior to the live edge of a track.
+A Subscriber can use a Joining Fetch to, for example, fill a playback buffer with a
+certain number of groups prior to the live edge of a track.
 
 A Fetch Type other than the above MUST be treated as an error.
 
