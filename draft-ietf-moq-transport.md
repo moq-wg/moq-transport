@@ -1277,9 +1277,7 @@ the `query` portion of the URI to the parameter.
 
 #### MAX_SUBSCRIBE_ID {#max-subscribe-id}
 
-The MAX_SUBSCRIBE_ID parameter (Parameter Type 0x02) communicates an initial
-value for the Maximum Subscribe ID to the receiving subscriber. The default value
-is 0, so if not specified, the peer MUST NOT create subscriptions.
+The MAX_SUBSCRIBE_ID parameter (Parameter Type 0x02) communicates an initial value for the Maximum Subscribe ID to the receiving subscriber. The default value is 0, so if not specified, the peer MUST NOT create subscriptions.
 
 ## GOAWAY {#message-goaway}
 
@@ -2064,12 +2062,6 @@ MAX_SUBSCRIBE_ID
 {{message-subscribe-req}} equal or larger than this is received by the publisher
 that sent the MAX_SUBSCRIBE_ID, the publisher MUST close the session with an
 error of 'Too Many Subscribes'.
-
-MAX_SUBSCRIBE_ID is similar to MAX_STREAMS in ({{?RFC9000, Section 4.6}}),
-and similar considerations apply when deciding how often to send MAX_SUBSCRIBE_ID.
-For example, implementations might choose to increase MAX_SUBSCRIBE_ID as
-subscriptions close to keep the number of subscriptions available to subscribers
-roughly consistent.
 
 ## SUBSCRIBES_BLOCKED {#message-subscribes-blocked}
 
