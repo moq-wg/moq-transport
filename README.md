@@ -1,8 +1,8 @@
 # Media over QUIC Transport
 
-This is the working area for the IETF [MOQ Working Group](https://datatracker.ietf.org/group/moq/documents/) Internet-Draft, "Media over QUIC Transport".
+This is the working area for the IETF [MOQ Working Group](https://datatracker.ietf.org/wg/moq/documents/) Internet-Draft, "Media over QUIC Transport".
 
-* [Editor's Copy](https://moq-wg.github.io/moq-transport/#go.draft-ietf-moq-transport.html)
+* [Editor's Copy](https://moq-wg.github.io/moq-transport/draft-ietf-moq-transport.html)
 * [Datatracker Page](https://datatracker.ietf.org/doc/draft-ietf-moq-transport)
 * [Working Group Draft](https://datatracker.ietf.org/doc/html/draft-ietf-moq-transport)
 * [Compare Editor's Copy to Working Group Draft](https://moq-wg.github.io/moq-transport/#go.draft-ietf-moq-transport.diff)
