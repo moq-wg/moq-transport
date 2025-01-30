@@ -631,19 +631,11 @@ expects more OBJECTs to be delivered. The server closes the session with a
 Discovery of MoQT servers is always done out-of-band. Namespace discovery can be
 done in the context of an established MoQT session.
 
-Throughout this section, "publishers" refer to endpoints that can deliver
-objects in response to SUBSCRIBE or FETCH messages for a particular track, and
-"subscribers" refer to endpoints that might send SUBSCRIBE or FETCH messages for
-a track. An endpoint can be both a publisher and subscriber in a session, for
-different tracks. If a relay, it can be a publisher for a track in one session
-and a subscriber for it in another session. But an endpoint cannot be publisher
-and subscriber for the same track in the same session.
-
 Given sufficient out of band information, it is valid for a subscriber
 to send a SUBSCRIBE or FETCH message to a publisher (including a relay) without
 any previous MoQT messages besides SETUP. However, SUBSCRIBE_ANNOUNCES and
 ANNOUNCE messages provide an in-band means of discovery of subscribers and
-publishers for a namespace.
+publishers, respectively.
 
 The syntax of these messages is described in {{message}}.
 
