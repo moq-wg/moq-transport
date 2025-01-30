@@ -865,8 +865,9 @@ cache need to be protect against cache poisoning.
 A relay MUST NOT reorder or drop objects received on a multi-object stream when
 forwarding to subscribers, unless it has application specific information.
 
-Relays MAY aggregate authorized subscriptions for a given track when
-multiple subscribers request the same track. Subscription aggregation
+Relays SHOULD aggregate authorized subscriptions for a given track when
+multiple subscribers request the same track, using SUBSCRIBE_UPDATE when new
+subscriptions change the aggregate properties. Subscription aggregation
 allows relays to make only a single upstream subscription for the
 track. The published content received from the upstream subscription
 request is cached and shared among the pending subscribers.
