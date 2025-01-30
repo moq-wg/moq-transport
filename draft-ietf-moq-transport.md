@@ -1600,7 +1600,9 @@ requested.
 
 Field present only for Joining Fetch (0x2):
 
-* Preceding Group Offset: The group offset for the Fetch prior and relative to the StartGroup of the corresponding Subscribe
+* Preceding Group Offset: The group offset for the Fetch prior and relative
+to the StartGroup of the corresponding Subscribe. A value of 0 indicates
+the current Group.
 
 Objects that are not yet published will not be retrieved by a FETCH.
 The latest available Object is indicated in the FETCH_OK, and is the last
@@ -1616,23 +1618,32 @@ the publisher MUST return FETCH_ERROR with error code 'No Objects'.
 
 ### Calculating the Range of a Joining Fetch
 
-A publisher which receives a Fetch message with a Fetch Type of 0x2 must treat it as a Fetch
-with a range dynamically determined by the Preceding Group Offset (PGO) field and values derived
-from to the corresponding Subscribe message (hereafter "the Subscribe").
+A publisher which receives a Fetch message with a Fetch Type of 0x2 treats it
+as a Fetch with a range dynamically determined by the Preceding Group Offset (PGO)
+field and field values derived from the corresponding SUBSCRIBE message
+(hereafter "the Subscribe").
 
 The following values are used:
 
 * Resolved Subscribe Start Group:
-  * For Subscribes with Filter Type Latest Object or Latest Group, this is equal to Largest Group ID.
-  * For Subscribes with Filter Type AbsoluteStart or AbsoluteRange, this is equal to the StartGroup field of the Subscribe message
+  * For Subscribes with Filter Type Latest Object or Latest Group,
+    this is equal to Largest Group ID.
+  * For Subscribes with Filter Type AbsoluteStart or AbsoluteRange,
+    this is equal to the StartGroup field of the Subscribe message
 * Resolved Subscribe Start Object:
   * For Subscribes with Filter Type Latest Object, this is equal to Largest Object ID.
   * For Subscribes with Filter Type Latest Group, this is 0
-  * For Subscribes with Filter Type AbsoluteStart or AbsoluteRange, this is equal to the StartObject field of the Subscribe message
-* Preceding Group Offset: A field in the Joining Fetch message indicating the relative offset from the start of the Subscribe
+  * For Subscribes with Filter Type AbsoluteStart or AbsoluteRange,
+    this is equal to the StartObject field of the Subscribe message
+* Preceding Group Offset: A field in the Joining Fetch message indicating the
+  relative offset from the start of the Subscribe
 
-The Resolved Subscribe Start values for a Joining Fetch MUST correspond to the referenced Subscribe within the same session so that the ranges of Objects covered by the Fetch and Subscribe are contiguous and non-overlapping.
-If a relay answers the referenced Subscribe with a `SUBSCRIBE_OK` that has ContentExists set to 0, it MUST respond to the Joining Fetch with a `FETCH_ERROR`.
+The Resolved Subscribe Start values for a Joining Fetch MUST correspond to the
+referenced Subscribe within the same session so that the ranges of Objects covered
+by the Fetch and Subscribe are contiguous and non-overlapping.
+If no Objects have been published for the track, so the SUBSCRIBE_OK has a
+ContentExists value of 0, the publisher MUST respond to the Joining Fetch with a
+FETCH_ERROR.
 
 The publisher receiving a Joining Fetch computes the fetch range as follows:
 
@@ -1647,7 +1658,8 @@ Else, if Resolved Subscribe Start Object is 1 or more:
 * Fetch EndGroup: Resolved Subscribe Start Group
 * Fetch EndObject: Resolved Subscribe Start Object
 
-If Fetch EndGroup < Fetch StartGroup respond with a `FETCH_ERROR`.
+If Fetch EndGroup < Fetch StartGroup, there are no Objects to retrieve,
+so respond with a `FETCH_ERROR`.
 
 ## FETCH_CANCEL {#message-fetch-cancel}
 
