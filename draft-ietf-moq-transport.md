@@ -1621,7 +1621,7 @@ the publisher MUST return FETCH_ERROR with error code 'No Objects'.
 ### Calculating the Range of a Joining Fetch
 
 A publisher which receives a Fetch message with a Fetch Type of 0x2 treats it
-as a Fetch with a range dynamically determined by the Preceding Group Offset (PGO)
+as a Fetch with a range dynamically determined by the Preceding Group Offset
 field and field values derived from the corresponding SUBSCRIBE message
 (hereafter "the Subscribe").
 
