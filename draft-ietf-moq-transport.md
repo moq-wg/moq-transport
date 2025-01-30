@@ -329,9 +329,9 @@ Objects within a group are ordered numerically by their Object ID.
 A subgroup is a sequence of one or more objects from the same group
 ({{model-group}}) in ascending order by Object ID. Objects in a subgroup
 have a dependency and priority relationship consistent with sharing a transport
-stream and are sent on a single stream whenever possible. A Group is delivered
-using at least as many transport streams as there are Subgroups,
-typically with a one-to-one mapping between Subgroups and streams.
+stream. A Group will be delivered using at least as many transport streams as
+there are Subgroups, typically with a one-to-one mapping between Subgroups
+and streams.
 
 When a Track's forwarding preference (see {{object-fields}}) is "Track" or
 "Datagram", Objects are not sent in Subgroups, no Subgroup IDs are assigned, and the
