@@ -650,21 +650,20 @@ The syntax of these messages is described in {{message}}.
 ## SUBSCRIBE_ANNOUNCES
 
 If the subscriber is aware of a namespace of interest, it can send
-SUBSCRIBE_ANNOUNCES to publishers/relays it has established a session with. The
-recipient of this message will send any relevant ANNOUNCE messages for that
-namespace, or subset of that namespace.
+SUBSCRIBE_ANNOUNCES to publishers/relays it has discovered. The recipient of
+this message will send any relevant ANNOUNCE messages for that namespace, or
+subset of that namespace.
 
 A publisher MUST send exactly one SUBSCRIBE_ANNOUNCES_OK or
-SUBSCRIBE_ANNOUNCES_ERROR in response to a SUBSCRIBE_ANNOUNCES. The subscriber
-SHOULD close the session with a protocol error if it detects receiving more than
-one.
-
-The receiver of a SUBSCRIBE_NAMESPACES_OK or SUBSCRIBE_NAMESPACES_ERROR ought to
-forward the result to the application, so that it can make decisions about
-further publishers to contact.
+SUBSCRIBE_ANNOUNCES_ERROR  in response to a SUBSCRIBE_ANNOUNCES.
+The subscriber SHOULD close the session with a protocol error if it detects
+receiving more than one.
 
 An UNSUBSCRIBE_NAMESPACES withdraws a previous SUBSCRIBE_NAMESPACES. It does
 not prohibit the receiver (publisher) from sending further ANNOUNCE messages.
+The receiver of a SUBSCRIBE_NAMESPACES_OK or SUBSCRIBE_NAMESPACES_ERROR ought to
+forward the result to the application, so that it can make decisions about
+further publishers to contact.
 
 ## ANNOUNCE
 
@@ -679,8 +678,8 @@ it MUST send an ANNOUNCE to any subscriber that has subscribed to ANNOUNCE for
 that namespace, or a subset of that namespace. A publisher MAY send the ANNOUNCE
 to any other subscriber.
 
-An endpoint SHOULD NOT, however, send an ANNOUNCE advertising a namespace that
-exactly matches a namespace for which the peer sent an earlier ANNOUNCE
+A publisher SHOULD NOT, however, send an ANNOUNCE advertising a namespace that
+exactly matches a namespace for which the subscriber sent an earlier ANNOUNCE
 (i.e. an ANNOUNCE ought not to be echoed back to its sender).
 
 The receiver of an ANNOUNCE_OK or ANNOUNCE_ERROR SHOULD report this to the
@@ -698,11 +697,6 @@ A subscriber can send ANNOUNCE_CANCEL to revoke acceptance of an ANNOUNCE, for
 example due to expiration of authorization credentials. The message enables the
 publisher to ANNOUNCE again with refreshed authorization, or discard associated
 state. After receiving an ANNOUNCE_CANCEL, the publisher does not send UNANNOUNCE.
-
-While ANNOUNCE does provide hints on where to route a SUBSCRIBE or FETCH, it is
-not a full-fledged routing protocol and does not protect against loops and other
-phenomena. In particular, ANNOUNCE SHOULD NOT be used to find paths through
-richly connected networks of relays.
 
 ## SUBSCRIBE/FETCH
 
