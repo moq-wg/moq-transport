@@ -705,7 +705,7 @@ messages.
 A publisher MUST send exactly one SUBSCRIBE_OK or SUBSCRIBE_ERROR in response to
 a SUBSCRIBE. It MUST send exactly one FETCH_OK or FETCH_ERROR in response to a
 FETCH. The subscriber SHOULD close the session with a protocol error if it
-receives more than one.
+detects receiving more than one.
 
 A subscriber keeps SUBSCRIBE state until it sends UNSUBSCRIBE, or after receipt
 of a SUBSCRIBE_DONE or SUBSCRIBE_ERROR. Note that SUBSCRIBE_DONE does not
