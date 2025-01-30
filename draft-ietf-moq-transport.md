@@ -712,8 +712,8 @@ of a SUBSCRIBE_DONE or SUBSCRIBE_ERROR. Note that SUBSCRIBE_DONE does not
 usually indicate that state can immediately be destroyed, see
 {{message-subscribe-done}}.
 
-A subscriber keeps FETCH state until it sends FETCH_CANCEL, receives
-FETCH_ERROR, or receives a FIN or RESET_STREAM for the FETCH data stream. If the
+A subscriber keeps FETCH state until it sends FETCH_CANCEL; receives
+FETCH_ERROR; or receives a FIN or RESET_STREAM for the FETCH data stream. If the
 data stream is already open, it MAY send STOP_SENDING for the data stream along
 with FETCH_CANCEL, but MUST send FETCH_CANCEL.
 
