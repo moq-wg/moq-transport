@@ -3075,12 +3075,12 @@ the subscription starts with the first published or received group.<a href="#sec
 <p id="section-7.4-7">AbsoluteStart (0x3):  Specifies an open-ended subscription beginning
 from the object identified in the StartGroup and StartObject fields. If the
 StartGroup is prior to the current group, the subscription starts at the
-beginning of the current object.<a href="#section-7.4-7" class="pilcrow">¶</a></p>
+beginning of the current object like the 'Latest Object' filter.<a href="#section-7.4-7" class="pilcrow">¶</a></p>
 <p id="section-7.4-8">AbsoluteRange (0x4):  Specifies a closed subscription starting at StartObject
 in StartGroup and ending at EndObject in EndGroup.  The start and end of the
 range are inclusive.  EndGroup <span class="bcp14">MUST</span> specify the same or a later group than
 StartGroup. If the StartGroup is prior to the current group, the subscription
-starts at the beginning of the current object.<a href="#section-7.4-8" class="pilcrow">¶</a></p>
+starts at the beginning of the current object like the 'Latest Object' filter.<a href="#section-7.4-8" class="pilcrow">¶</a></p>
 <p id="section-7.4-9">A filter type other than the above <span class="bcp14">MUST</span> be treated as error.<a href="#section-7.4-9" class="pilcrow">¶</a></p>
 <p id="section-7.4-10">If a subscriber wants to subscribe to Objects both before and after
 the Latest Object, it can send a SUBSCRIBE for the Latest Object
