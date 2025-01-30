@@ -698,7 +698,7 @@ a particular track. The subscriber expects to receive a
 SUBSCRIBE_OK/FETCH_OK and objects from the track.
 
 A subscriber MAY send a SUBSCRIBE or FETCH for a track to any publisher. If it
-has accepted an ANNOUNCE with a namespace that exactly matches the namespace for
+has received an ANNOUNCE with a namespace that exactly matches the namespace for
 that track, it SHOULD only request it from the senders of those ANNOUNCE
 messages.
 
