@@ -1322,8 +1322,13 @@ GOAWAY Message {
 A subscription causes the publisher to send newly published objects for a track.
 A subscriber MUST NOT make multiple active subscriptions for a track within a
 single session and publishers SHOULD treat this as a protocol violation.
-The only objects prior to the current object that can be requested are those
-in the current group.
+
+If a subscription has multiple Objects to deliver, either because the subscription
+begins prior to the current Object or because delivery of the subscription has
+been delayed because another subscription is higher priority, the publisher
+SHOULD send queued Objects on a single stream to allow the subscriber to
+use flow control to control the delivery rate.  This is particularly important
+at relays where the subscriber may not be the end subscriber.
 
 **Filter Types**
 
@@ -1332,9 +1337,11 @@ the publisher to identify which objects need to be delivered.
 
 There are 4 types of filters:
 
-Latest Group (0x1) : Specifies an open-ended subscription with objects
-from the beginning of the current group.  If no content has been delivered yet,
-the subscription starts with the first published or received group.
+Recent Group (0x1) : Specifies an open-ended subscription with objects
+from the beginning of a group relative to the current group. A value of 0
+indicates the current group and 1 indicates the prior group. If no content
+has been delivered yet, the subscription starts with the first published or
+received group.
 
 Latest Object (0x2): Specifies an open-ended subscription beginning from
 the current object of the current group.  If no content has been delivered yet,
