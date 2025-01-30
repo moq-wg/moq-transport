@@ -694,7 +694,7 @@ state. After receiving an ANNOUNCE_CANCEL, the publisher does not send UNANNOUNC
 ## SUBSCRIBE/FETCH
 
 The central interaction with a publisher is to send SUBSCRIBE and/or FETCH for
-a particular track. The subscriber expects to receive a
+a particular track in a namespace. The subscriber expects to receive a
 SUBSCRIBE_OK/FETCH_OK and objects from the track.
 
 A subscriber MAY send a SUBSCRIBE or FETCH for a track to any publisher. If it
