@@ -337,7 +337,7 @@ When a Track's forwarding preference (see {{object-fields}}) is "Track" or
 "Datagram", Objects are not sent in Subgroups, no Subgroup IDs are assigned, and the
 description in the remainder of this section does not apply.
 
-Streams offer in-order reliable delivery and the ability to cancel sending
+QUIC and WebTransport streams offer in-order reliable delivery and the ability to cancel sending
 and retransmission of data. Furthermore, many implementations offer the ability
 to control the relative priority of streams, which allows control over the
 scheduling of sending data on active streams.
