@@ -881,6 +881,48 @@ allows relays to make only a single upstream subscription for the
 track. The published content received from the upstream subscription
 request is cached and shared among the pending subscribers.
 
+The application SHOULD use a relevant error code in SUBSCRIBE_ERROR,
+as defined below:
+
+|------|---------------------------|
+| Code | Reason                    |
+|-----:|:--------------------------|
+| 0x0  | Internal Error            |
+|------|---------------------------|
+| 0x1  | Invalid Range             |
+|------|---------------------------|
+| 0x2  | Retry Track Alias         |
+|------|---------------------------|
+| 0x3  | Track Does Not Exist      |
+|------|---------------------------|
+| 0x4  | Unauthorized              |
+|------|---------------------------|
+| 0x5  | Timeout                   |
+|------|---------------------------|
+
+The application SHOULD use a relevant status code in
+SUBSCRIBE_DONE, as defined below:
+
+|------|---------------------------|
+| Code | Reason                    |
+|-----:|:--------------------------|
+| 0x0  | Unsubscribed              |
+|------|---------------------------|
+| 0x1  | Internal Error            |
+|------|---------------------------|
+| 0x2  | Unauthorized              |
+|------|---------------------------|
+| 0x3  | Track Ended               |
+|------|---------------------------|
+| 0x4  | Subscription Ended        |
+|------|---------------------------|
+| 0x5  | Going Away                |
+|------|---------------------------|
+| 0x6  | Expired                   |
+|------|---------------------------|
+| 0x7  | Too Far Behind            |
+|------|---------------------------|
+
 ### Graceful Publisher Relay Switchover
 
 This section describes behavior a subscriber MAY implement
