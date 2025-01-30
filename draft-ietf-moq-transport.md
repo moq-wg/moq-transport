@@ -834,10 +834,9 @@ Relays MAY cache Objects, but are not required to.
 
 ## Subscriber Interactions
 
-Subscribers interact with the Relays by sending a SUBSCRIBE
-({{message-subscribe-req}}) control message for the tracks of
-interest. Relays MUST ensure subscribers are authorized to access the
-content associated with the track. The authorization
+Subscribers interact with the Relays by sending a SUBSCRIBE or FETCH
+control message for the tracks of interest. Relays MUST ensure subscribers are
+authorized to access the content associated with the track. The authorization
 information can be part of subscription request itself or part of the
 encompassing session. The specifics of how a relay authorizes a user are outside
 the scope of this specification.
@@ -860,7 +859,9 @@ publishers and forward objects to active matching subscriptions.
 If multiple objects are received with the same Full Track Name,
 Group ID and Object ID, Relays MAY ignore subsequently received Objects
 or MAY use them to update the cache. Implementations that update the
-cache need to be protect against cache poisoning.
+cache need to protect against cache poisoning.
+
+Caching can reduce the number of upstream FETCH requests.
 
 A relay MUST NOT reorder or drop objects received on a multi-object stream when
 forwarding to subscribers, unless it has application specific information.
