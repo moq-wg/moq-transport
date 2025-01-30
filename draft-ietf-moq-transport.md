@@ -2102,7 +2102,7 @@ as defined below:
 |------|---------------------------|
 | 0x3  | Not Supported             |
 |------|---------------------------|
-| 0x4  | Namespace Does Not Exist  |
+| 0x4  | Namespace Prefix Unknown  |
 |------|---------------------------|
 
 # Data Streams {#data-streams}
