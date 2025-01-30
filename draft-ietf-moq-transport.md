@@ -646,10 +646,9 @@ SUBSCRIBE_ANNOUNCES to publishers/relays it has discovered. The recipient of
 this message will send any relevant ANNOUNCE messages for that namespace, or
 subset of that namespace.
 
-A publisher MUST send exactly one SUBSCRIBE_ANNOUNCES_OK or
-SUBSCRIBE_ANNOUNCES_ERROR  in response to a SUBSCRIBE_ANNOUNCES.
-The subscriber SHOULD close the session with a protocol error if it detects receiving
-more than one.
+A publisher MUST send exactly one SUBSCRIBE_NAMESPACES_OK or
+SUBSCRIBE_NAMESPACES_ERROR. The subscriber SHOULD close the session with a
+protocol error if it detects receiving more than one.
 
 An UNSUBSCRIBE_NAMESPACES withdraws a previous SUBSCRIBE_NAMESPACES. It does
 not prohibit the receiver (publisher) from sending further ANNOUNCE messages.
