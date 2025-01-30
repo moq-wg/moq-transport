@@ -5,13 +5,13 @@
 Media Over QUIC                                                L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 2 August 2025                                              Meta
+Expires: 3 August 2025                                              Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                         29 January 2025
+                                                         30 January 2025
 
 
                        Media over QUIC Transport
@@ -59,7 +59,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 2 August 2025.
+   This Internet-Draft will expire on 3 August 2025.
 
 Copyright Notice
 
@@ -1472,14 +1472,14 @@ Table of Contents
    AbsoluteStart (0x3): Specifies an open-ended subscription beginning
    from the object identified in the StartGroup and StartObject fields.
    If the StartGroup is prior to the current group, the subscription
-   starts at the beginning of the current group.
+   starts at the beginning of the current object.
 
    AbsoluteRange (0x4): Specifies a closed subscription starting at
    StartObject in StartGroup and ending at EndObject in EndGroup.  The
    start and end of the range are inclusive.  EndGroup MUST specify the
    same or a later group than StartGroup.  If the StartGroup is prior to
    the current group, the subscription starts at the beginning of the
-   current group.
+   current object.
 
    A filter type other than the above MUST be treated as error.
 
