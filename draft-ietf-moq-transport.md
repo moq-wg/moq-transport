@@ -911,10 +911,7 @@ namespace it previously responded ANNOUNCE_OK to by sending an
 ANNOUNCE_CANCEL.
 
 A relay manages sessions from multiple publishers and subscribers,
-connecting them based on the track namespace. This MUST use an exact
-match on track namespace unless otherwise negotiated by the application.
-For example, a SUBSCRIBE namespace=foobar message will be forwarded to
-the session that sent ANNOUNCE namespace=foobar.
+connecting them based on the track namespace.
 
 When a relay receives an incoming SUBSCRIBE request that triggers an
 upstream subscription, it SHOULD send a SUBSCRIBE request to each
