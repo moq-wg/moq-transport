@@ -648,8 +648,8 @@ subset of that namespace.
 
 A publisher MUST send exactly one SUBSCRIBE_ANNOUNCES_OK or
 SUBSCRIBE_ANNOUNCES_ERROR  in response to a SUBSCRIBE_ANNOUNCES.
-The subscriber SHOULD close the session with a protocol error if it detects
-receiving more than one.
+The subscriber SHOULD close the session with a protocol error if it detects receiving
+more than one.
 
 An UNSUBSCRIBE_NAMESPACES withdraws a previous SUBSCRIBE_NAMESPACES. It does
 not prohibit the receiver (publisher) from sending further ANNOUNCE messages.
