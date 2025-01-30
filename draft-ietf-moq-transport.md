@@ -628,12 +628,13 @@ expects more OBJECTs to be delivered. The server closes the session with a
 
 # Track Discovery and Retrieval (#track-discovery}
 
-Discovery of MoQT servers is always done out-of-band. Track discovery can be
-done in the context of an established MoQT session.
+Discovery of MoQT servers is always done out-of-band. Track discovery is done in
+the context of an established MoQT session. The session client might be a
+subscriber, publisher, or both.
 
 Given sufficient out of band information, it is valid for a subscriber
 to send a SUBSCRIBE or FETCH message to a publisher (including a relay) without
-any previous MoQT messages besides SETUP. However, SUBSCRIBE_ANNOUNCES and
+any previous MoQT messages besides SETUP. However, SUBSCRIBE_NAMESPACES and
 ANNOUNCE messages provide an in-band means of discovery of subscribers and
 publishers.
 
@@ -642,19 +643,17 @@ The syntax of these messages is described in {{message}}.
 ## SUBSCRIBE_ANNOUNCES
 
 If the subscriber is aware of a namespace of interest, it can send
-SUBSCRIBE_ANNOUNCES to publishers/relays it has discovered. The recipient of
-this message will send any relevant ANNOUNCE messages for that namespace.
+SUBSCRIBE_ANNOUNCES to publishers/relays it has discovered. This message
+increases the likelihood that publishers will send relevant ANNOUNCE messages
+for that namespace.
 
-A publisher MUST send exactly one SUBSCRIBE_NAMESPACES_OK or
-SUBSCRIBE_NAMESPACES_ERROR. The subscriber SHOULD close the session with a
-protocol error if it detects receiving more than one.
-
-An UNSUBSCRIBE_NAMESPACES withdraws a previous SUBSCRIBE_NAMESPACES. It does
+An UNSUBSCRIBE_NAMESPACES negates the effect of a SUBSCRIBE_NAMESPACES. It does
 not prohibit the receiver (publisher) from sending further ANNOUNCE messages.
 The receiver of a SUBSCRIBE_NAMESPACES_OK or SUBSCRIBE_NAMESPACES_ERROR should
 forward the result to the application, so that it can make decisions about
-further publishers to contact.
-
+further publishers to contact. A publisher MUST send exactly one
+SUBSCRIBE_NAMESPACES_OK or SUBSCRIBE_NAMESPACES_ERROR. The subscriber SHOULD
+close the session with a protocol error if it detects receiving more than one.
 
 ## ANNOUNCE
 
@@ -664,46 +663,40 @@ subscriber MAY send SUBSCRIBE or FETCH for a namespace without having received
 an ANNOUNCE for it.
 
 If a publisher is authoritative for a given namespace, or is a relay that has
-received an authorized ANNOUNCE for that namespace from an upstream publisher,
-it MUST send an ANNOUNCE to any subscriber that has subscribed to ANNOUNCE for
-that namespace, a superset of that namespace, or a subset of that namespace. A
+received an ANNOUNCE for that namespace from an upstream publisher, it MUST send
+an ANNOUNCE to any subscriber that has subscribed to ANNOUNCE for that
+namespace, a superset of that namespace, or a subset of that namespace. A
 publisher MAY send the ANNOUNCE to any other subscriber.
 
-A publisher SHOULD NOT, however, send an ANNOUNCE advertising a namespace that
+However, a publisher SHOULD NOT send an ANNOUNCE advertising a namespace that
 exactly matches a namespace for which the subscriber sent an earlier ANNOUNCE
 (i.e. an ANNOUNCE ought not to be echoed back to its sender).
 
-The receiver of an ANNOUNCE_OK or ANNOUNCE_ERROR SHOULD report this to the
-application to inform the search for additional subscribers for a namespace,
-or abandoning the attempt to publish under this namespace. This might be
-especially useful in upload or chat applications. A subscriber MUST send exactly
-one ANNOUNCE_OK or ANNOUNCE_ERROR in response to an ANNOUNCE. The publisher
-SHOULD close the session with a protocol error if it detects receiving more than
-one.
-
-An UNANNOUNCE message withdraws a previous of an ANNOUNCE, although it is not a
+An UNANNOUNCE message negates the meaning of an ANNOUNCE, although it is not a
 protocol error for the subscriber to send a SUBSCRIBE or FETCH message after
 receiving an UNANNOUNCE.
 
-A subscriber can send ANNOUNCE_CANCEL to revoke acceptance of an ANNOUNCE, for
-example due to expiration of authorization credentials. The message enables the
-publisher to ANNOUNCE again with refreshed authorization, or discard associated
-state. After receiving an ANNOUNCE_CANCEL, the publisher does not send UNANNOUNCE.
+A subscriber can send ANNOUNCE_CANCEL, meaning it is no longer interested in a
+namespace, which also negates the ANNOUNCE: the publisher need not send
+UNANNOUNCE. A publisher and subscriber might seek alternate subscribers and
+publishers, respectively, for potential SUBSCRIBE and FETCH interactions.
+
+The receiver of an ANNOUNCE_OK or ANNOUNCE_ERROR SHOULD report this to the
+application to inform the search for additional subscribers for a namespace,
+or abandoning the attempt to publish a track. This might be especially useful
+in upload or chat applications. A subscriber MUST send exactly one ANNOUNCE_OK
+or ANNOUNCE_ERROR in response to an ANNOUNCE. The publisher SHOULD close the
+session with a protocol error if it detects receiving more than one.
 
 ## SUBSCRIBE/FETCH
-
-The central interaction with a publisher is to send SUBSCRIBE and/or FETCH for
-a particular track in a namespace. The subscriber expects to receive a
-SUBSCRIBE_OK/FETCH_OK and objects from the track.
 
 A subscriber MAY send a SUBSCRIBE or FETCH for a track to any publisher. If it
 has received an ANNOUNCE with a namespace that includes that track, it SHOULD
 only request it from the senders of those ANNOUNCE messages.
 
-A publisher MUST send exactly one SUBSCRIBE_OK or SUBSCRIBE_ERROR in response to
-a SUBSCRIBE. It MUST send exactly one FETCH_OK or FETCH_ERROR in response to a
-FETCH. The subscriber SHOULD close the session with a protocol error if it
-detects receiving more than one.
+The central interaction with a publisher is to send SUBSCRIBE and/or FETCH for
+a particular track in a namespace. The subscriber expects to receive a
+SUBSCRIBE_OK/FETCH_OK and objects from the track.
 
 A subscriber keeps SUBSCRIBE state until it sends UNSUBSCRIBE, or after receipt
 of a SUBSCRIBE_DONE or SUBSCRIBE_ERROR. Note that SUBSCRIBE_DONE does not
@@ -727,6 +720,11 @@ can destroy all FETCH state after closing the data stream.
 A SUBSCRIBE_ERROR or FETCH_ERROR indicates no objects will be delivered, and
 both endpoints can immediately destroy relevant state. Objects MUST NOT be sent
 for requests that end with an error.
+
+A publisher MUST send exactly one SUBSCRIBE_OK or SUBSCRIBE_ERROR in response to
+a SUBSCRIBE. It MUST send exactly one FETCH_OK or FETCH_ERROR in response to a
+FETCH. The subscriber SHOULD close the session with a protocol error if it
+detects receiving more than one.
 
 # Priorities {#priorities}
 
