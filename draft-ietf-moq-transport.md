@@ -638,7 +638,7 @@ any previous MoQT messages besides SETUP. However, SUBSCRIBE_NAMESPACES and
 ANNOUNCE messages provide an in-band means of discovery of subscribers and
 publishers.
 
-The syntax of these messages is described in {{message}}.
+The syntax of these messages is described in {{messages}}.
 
 ## SUBSCRIBE_ANNOUNCES
 
