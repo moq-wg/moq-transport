@@ -5,13 +5,13 @@
 Media Over QUIC                                                L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 2 August 2025                                              Meta
+Expires: 4 August 2025                                              Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                         29 January 2025
+                                                         31 January 2025
 
 
                        Media over QUIC Transport
@@ -59,7 +59,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 2 August 2025.
+   This Internet-Draft will expire on 4 August 2025.
 
 Copyright Notice
 
@@ -388,25 +388,26 @@ Table of Contents
    A subgroup is a sequence of one or more objects from the same group
    (Section 2.3) in ascending order by Object ID.  Objects in a subgroup
    have a dependency and priority relationship consistent with sharing a
-   QUIC stream.  In some cases, a Group will be most effectively
-   delivered using more than one QUIC stream.
+   stream and are sent on a single stream whenever possible.  A Group is
+   delivered using at least as many streams as there are Subgroups,
+   typically with a one-to-one mapping between Subgroups and streams.
 
    When a Track's forwarding preference (see Section 8.1.1) is "Track"
    or "Datagram", Objects are not sent in Subgroups, no Subgroup IDs are
    assigned, and the description in the remainder of this section does
    not apply.
 
-   QUIC streams offer in-order reliable delivery and the ability to
-   cancel sending and retransmission of data.  Furthermore, many
+   Streams offer in-order reliable delivery and the ability to cancel
+   sending and retransmission of data.  Furthermore, many
    implementations offer the ability to control the relative priority of
    streams, which allows control over the scheduling of sending data on
    active streams.
 
    Every object within a Group belongs to exactly one Subgroup.
 
-   Objects from two subgroups cannot be sent on the same QUIC stream.
-   Objects from the same Subgroup MUST NOT be sent on different QUIC
-   streams, unless one of the streams was reset prematurely, or upstream
+   Objects from two subgroups cannot be sent on the same stream.
+   Objects from the same Subgroup MUST NOT be sent on different streams,
+   unless one of the streams was reset prematurely, or upstream
    conditions have forced objects from a Subgroup to be sent out of
    Object ID order.
 
@@ -414,13 +415,13 @@ Table of Contents
    they see fit.  The scope of a Subgroup ID is a Group, so Subgroups
    from different Groups MAY share a Subgroup ID without implying any
    relationship between them.  In general, publishers assign objects to
-   subgroups in order to leverage the features of QUIC streams as
-   described above.
+   subgroups in order to leverage the features of streams as described
+   above.
 
-   An example strategy for using QUIC stream properties follows.  If
-   object B is dependent on object A, then delivery of B can follow A,
-   i.e. A and B can be usefully delivered over a single QUIC stream.
-   Furthermore, in this example:
+   An example strategy for using stream properties follows.  If object B
+   is dependent on object A, then delivery of B can follow A, i.e. A and
+   B can be usefully delivered over a single stream.  Furthermore, in
+   this example:
 
    *  If an object is dependent on all previous objects in a Subgroup,
       it is added to that Subgroup.
@@ -430,8 +431,8 @@ Table of Contents
 
    *  There are often many ways to compose Subgroups that meet these
       criteria.  Where possible, choose the composition that results in
-      the fewest Subgroups in a group to minimize the number of QUIC
-      streams used.
+      the fewest Subgroups in a group to minimize the number of streams
+      used.
 
 2.3.  Groups
 
@@ -855,8 +856,8 @@ Table of Contents
    priority of an individual schedulable object is the subscriber
    priority of the subscription that caused that object to be sent.
    When subscriber priority is changed, a best effort SHOULD be made to
-   change the apply that to all objects that have not been sent, but it
-   is implementation dependent what happens to objects that have already
+   apply the change to all objects that have not been sent, but it is
+   implementation dependent what happens to objects that have already
    been received and possibly scheduled.
 
    _Publisher Priority_ is a priority number associated with an
@@ -1580,9 +1581,8 @@ Table of Contents
    that does not exist within the Session.
 
    Unlike a new subscription, SUBSCRIBE_UPDATE can not cause an Object
-   to be delivered multiple times.  Like SUBSCRIBE, EndGroup and
-   EndObject MUST specify the same or a later object than StartGroup and
-   StartObject.
+   to be delivered multiple times.  Like SUBSCRIBE, EndGroup MUST
+   specify the same or a later object than StartGroup and StartObject.
 
    The format of SUBSCRIBE_UPDATE is as follows:
 
@@ -1641,8 +1641,8 @@ Table of Contents
    already published objects within a track.  The publisher responding
    to a FETCH is responsible for retrieving all available Objects.  If
    there are gaps between Objects, the publisher omits them from the
-   fetch response.  All omitted objects have status Object Not
-   Available.
+   fetch response.  All omitted objects have status Object Does Not
+   Exist.
 
    A publisher responds to a FETCH request with either a FETCH_OK or a
    FETCH_ERROR message.  If it responds with FETCH_OK, the publisher
@@ -2131,6 +2131,13 @@ Table of Contents
       Subscribe ID Section 7.4 equal or larger than this is received by
       the publisher that sent the MAX_SUBSCRIBE_ID, the publisher MUST
       close the session with an error of 'Too Many Subscribes'.
+
+   MAX_SUBSCRIBE_ID is similar to MAX_STREAMS in ([RFC9000],
+   Section 4.6), and similar considerations apply when deciding how
+   often to send MAX_SUBSCRIBE_ID.  For example, implementations might
+   choose to increase MAX_SUBSCRIBE_ID as subscriptions close to keep
+   the number of subscriptions available to subscribers roughly
+   consistent.
 
 7.21.  SUBSCRIBES_BLOCKED
 
