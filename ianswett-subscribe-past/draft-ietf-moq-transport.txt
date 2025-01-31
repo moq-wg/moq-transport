@@ -5,13 +5,13 @@
 Media Over QUIC                                                L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 3 August 2025                                              Meta
+Expires: 4 August 2025                                              Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                         30 January 2025
+                                                         31 January 2025
 
 
                        Media over QUIC Transport
@@ -59,7 +59,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 3 August 2025.
+   This Internet-Draft will expire on 4 August 2025.
 
 Copyright Notice
 
@@ -856,8 +856,8 @@ Table of Contents
    priority of an individual schedulable object is the subscriber
    priority of the subscription that caused that object to be sent.
    When subscriber priority is changed, a best effort SHOULD be made to
-   change the apply that to all objects that have not been sent, but it
-   is implementation dependent what happens to objects that have already
+   apply the change to all objects that have not been sent, but it is
+   implementation dependent what happens to objects that have already
    been received and possibly scheduled.
 
    _Publisher Priority_ is a priority number associated with an
