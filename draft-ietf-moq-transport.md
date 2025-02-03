@@ -1530,6 +1530,9 @@ Preceding Group Offset prior.
 A Subscriber can use a Joining Fetch to, for example, fill a playback buffer with a
 certain number of groups prior to the live edge of a track.
 
+A Joining Fetch is only permitted when the associated Subscribe has the Filter
+Type Latest Object.
+
 A Fetch Type other than the above MUST be treated as an error.
 
 A publisher responds to a FETCH request with either a FETCH_OK or a FETCH_ERROR
@@ -1633,17 +1636,8 @@ field and field values derived from the corresponding SUBSCRIBE message
 
 The following values are used:
 
-* Resolved Subscribe Start Group:
-  * For Latest Object or Latest Group filter types, this is Largest Group ID.
-  * For AbsoluteStart or AbsoluteRange filter types, this is the StartGroup field
-    of the SUBSCRIBE message
-* Resolved Subscribe Start Object:
-  * For the Latest Object filter type, this is the Largest Object ID.
-  * For the Latest Group filter type, this is 0
-  * For AbsoluteStart or AbsoluteRange filter types, this is the StartObject field
-    of the SUBSCRIBE message
-* Preceding Group Offset: A field in the Joining Fetch message indicating the
-  relative offset from the start of the Subscribe
+* Resolved Subscribe Start Group: the Largest Group ID of the associated Subscribe.
+* Resolved Subscribe Start Object: the Largest Object ID of the associated Subscribe.
 
 The Resolved Subscribe Start values for a Joining Fetch MUST correspond to the
 referenced Subscribe within the same session so that the ranges of Objects covered
