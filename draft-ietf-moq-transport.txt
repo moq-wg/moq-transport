@@ -1567,18 +1567,24 @@ Table of Contents
 7.5.  SUBSCRIBE_UPDATE
 
    A subscriber issues a SUBSCRIBE_UPDATE to a publisher to request a
-   change to a prior subscription.  Subscriptions can only become more
-   narrower, not wider, because an attempt to widen a subscription could
-   fail.  If Objects before the start or after the end of the current
-   subscription are needed, a separate subscription can be made.  The
-   start Object MUST NOT decrease and when it increases, there is no
-   guarantee that a publisher will not have already sent Objects before
-   the new start Object.  The end Object MUST NOT increase and when it
-   decreases, there is no guarantee that a publisher will not have
-   already sent Objects after the new end Object.  A publisher SHOULD
-   close the Session as a 'Protocol Violation' if the SUBSCRIBE_UPDATE
-   violates either rule or if the subscriber specifies a Subscribe ID
-   that does not exist within the Session.
+   change to an existing subscription.  Subscriptions can only become
+   more narrow, not wider, because an attempt to widen a subscription
+   could fail.  If Objects before the start or after the end of the
+   current subscription are needed, a fetch might be able to retrieve
+   objects before the start.  The start Object MUST NOT decrease and
+   when it increases, there is no guarantee that a publisher will not
+   have already sent Objects before the new start Object.  The end Group
+   MUST NOT increase and when it decreases, there is no guarantee that a
+   publisher will not have already sent Objects after the new end
+   Object.  A publisher SHOULD close the Session as a 'Protocol
+   Violation' if the SUBSCRIBE_UPDATE violates either rule or if the
+   subscriber specifies a Subscribe ID that has not existed within the
+   Session.
+
+   There is no control message in response to a SUBSCRIBE_UPDATE,
+   because it is expected that it will always succeed and the worst
+   outcome is that it is not processed promptly and some extra objects
+   from the existing subscription are delivered.
 
    Unlike a new subscription, SUBSCRIBE_UPDATE can not cause an Object
    to be delivered multiple times.  Like SUBSCRIBE, EndGroup MUST
