@@ -1578,7 +1578,7 @@ Table of Contents
    publisher will not have already sent Objects after the new end
    Object.  A publisher SHOULD close the Session as a 'Protocol
    Violation' if the SUBSCRIBE_UPDATE violates either rule or if the
-   subscriber specifies a Subscribe ID that does not exist within the
+   subscriber specifies a Subscribe ID that has not existed within the
    Session.
 
    There is no control message in response to a SUBSCRIBE_UPDATE,
