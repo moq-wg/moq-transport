@@ -150,8 +150,8 @@ Table of Contents
    8.  Data Streams
      8.1.  Object Headers
        8.1.1.  Canonical Object Fields
-     8.2.  Object Datagram Message
-     8.3.  Object Datagram Status Message
+     8.2.  Object Datagram
+     8.3.  Object Datagram Status
      8.4.  Streams
        8.4.1.  Subgroup Header
        8.4.2.  Closing Subgroup Streams
@@ -2429,9 +2429,9 @@ Table of Contents
    Though some status information could be inferred from QUIC stream
    state, that information is not reliable and cacheable.
 
-8.2.  Object Datagram Message
+8.2.  Object Datagram
 
-   An OBJECT_DATAGRAM message carries a single object in a datagram.
+   An OBJECT_DATAGRAM carries a single object in a datagram.
 
    An Object received in an OBJECT_DATAGRAM message has an Object
    Forwarding Preference = Datagram.  To send an Object with Object
@@ -2440,7 +2440,7 @@ Table of Contents
    where the object size can be larger than maximum datagram size for
    the session, the Object will be dropped.
 
-   OBJECT_DATAGRAM Message {
+   OBJECT_DATAGRAM {
      Track Alias (i),
      Group ID (i),
      Object ID (i),
@@ -2448,17 +2448,17 @@ Table of Contents
      Object Payload (..),
    }
 
-                  Figure 28: MOQT OBJECT_DATAGRAM Message
+                      Figure 28: MOQT OBJECT_DATAGRAM
 
    There is no explicit length field.  The entirety of the transport
    datagram following Publisher Priority contains the Object Payload.
 
-8.3.  Object Datagram Status Message
+8.3.  Object Datagram Status
 
-   An OBJECT_DATAGRAM_STATUS message is similar to OBEJCT_DATAGRAM
-   except it conveys an Object Status and has no payload.
+   An OBJECT_DATAGRAM_STATUS is similar to OBEJCT_DATAGRAM except it
+   conveys an Object Status and has no payload.
 
-   OBJECT_DATAGRAM_STATUS Message {
+   OBJECT_DATAGRAM_STATUS {
      Track Alias (i),
      Group ID (i),
      Object ID (i),
@@ -2466,7 +2466,7 @@ Table of Contents
      Object Status (i),
    }
 
-               Figure 29: MOQT OBJECT_DATAGRAM_STATUS Message
+                   Figure 29: MOQT OBJECT_DATAGRAM_STATUS
 
 8.4.  Streams
 
