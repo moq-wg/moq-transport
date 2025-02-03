@@ -2314,16 +2314,16 @@ OBJECT_DATAGRAM_STATUS Message {
 
 ## Streams
 
-When objects are sent on streams, the stream begins with a Object Header
+When objects are sent on streams, the stream begins with a Subgroup Header
 message and is followed by one or more sets of serialized object fields.
 If a stream ends gracefully in the middle of a serialized Object, the session
 SHOULD be terminated with a Protocol Violation.
 
-A publisher SHOULD NOT open more than one stream at a time with the same Object
+A publisher SHOULD NOT open more than one stream at a time with the same Subgroup
 Header field values.
 
 
-### Object Header
+### Subgroup Header
 
 When a stream begins with `SUBGROUP_HEADER`, all Objects on the stream
 belong to the track requested in the Subscribe message identified by `Track Alias`
