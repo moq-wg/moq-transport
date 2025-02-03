@@ -2321,7 +2321,7 @@ OBJECT_DATAGRAM_STATUS Message {
 ## Streams
 
 When objects are sent on streams, the stream begins with a Subgroup Header
-message and is followed by one or more sets of serialized object fields.
+and is followed by one or more sets of serialized object fields.
 If a stream ends gracefully in the middle of a serialized Object, the session
 SHOULD be terminated with a Protocol Violation.
 
@@ -2336,14 +2336,14 @@ belong to the track requested in the Subscribe message identified by `Track Alia
 and the subgroup indicated by 'Group ID' and `Subgroup ID`.
 
 ~~~
-SUBGROUP_HEADER Message {
+SUBGROUP_HEADER {
   Track Alias (i),
   Group ID (i),
   Subgroup ID (i),
   Publisher Priority (8),
 }
 ~~~
-{: #object-header-format title="MOQT SUBGROUP_HEADER Message"}
+{: #object-header-format title="MOQT SUBGROUP_HEADER"}
 
 All Objects received on a stream opened with `SUBGROUP_HEADER` have an
 `Object Forwarding Preference` = `Subgroup`.
@@ -2445,11 +2445,11 @@ When a stream begins with `FETCH_HEADER`, all objects on the stream belong to th
 track requested in the Fetch message identified by `Subscribe ID`.
 
 ~~~
-FETCH_HEADER Message {
+FETCH_HEADER {
   Subscribe ID (i),
 }
 ~~~
-{: #fetch-header-format title="MOQT FETCH_HEADER Message"}
+{: #fetch-header-format title="MOQT FETCH_HEADER"}
 
 
 Each object sent on a fetch stream after the FETCH_HEADER has the following format:
