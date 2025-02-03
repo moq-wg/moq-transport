@@ -5,13 +5,13 @@
 Media Over QUIC                                                L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 3 August 2025                                              Meta
+Expires: 7 August 2025                                              Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                         30 January 2025
+                                                         3 February 2025
 
 
                        Media over QUIC Transport
@@ -59,7 +59,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 3 August 2025.
+   This Internet-Draft will expire on 7 August 2025.
 
 Copyright Notice
 
@@ -856,8 +856,8 @@ Table of Contents
    priority of an individual schedulable object is the subscriber
    priority of the subscription that caused that object to be sent.
    When subscriber priority is changed, a best effort SHOULD be made to
-   change the apply that to all objects that have not been sent, but it
-   is implementation dependent what happens to objects that have already
+   apply the change to all objects that have not been sent, but it is
+   implementation dependent what happens to objects that have already
    been received and possibly scheduled.
 
    _Publisher Priority_ is a priority number associated with an
@@ -2469,15 +2469,14 @@ Table of Contents
 
 8.4.  Streams
 
-   When objects are sent on streams, the stream begins with a stream
-   header message and is followed by one or more sets of serialized
-   object fields.  If a stream ends gracefully in the middle of a
-   serialized Object, terminate the session with a Protocol Violation.
+   When objects are sent on streams, the stream begins with a Stream
+   Header Subgroup message and is followed by one or more sets of
+   serialized object fields.  If a stream ends gracefully in the middle
+   of a serialized Object, the session SHOULD be terminated with a
+   Protocol Violation.
 
    A publisher SHOULD NOT open more than one stream at a time with the
-   same stream header message type and fields.
-
-   TODO: figure out how a relay closes these streams
+   same Stream Header Subgroup field values.
 
 8.4.1.  Stream Header Subgroup
 
@@ -2633,25 +2632,6 @@ Table of Contents
    "Datagram" (see Section 8.1.1) is set to the Object ID.
 
 8.5.  Examples
-
-   Sending a track on one stream:
-
-   STREAM_HEADER_TRACK {
-     Track Alias = 1
-     Publisher Priority = 0
-   }
-   {
-     Group ID = 0
-     Object ID = 0
-     Object Payload Length = 4
-     Payload = "abcd"
-   }
-   {
-     Group ID = 1
-     Object ID = 0
-     Object Payload Length = 4
-     Payload = "efgh"
-   }
 
    Sending a subgroup on one stream:
 
