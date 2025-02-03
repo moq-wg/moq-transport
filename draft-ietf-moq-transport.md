@@ -2170,7 +2170,7 @@ the type of the stream in question.
 |-------|-------------------------------------------------------|
 | ID    | Type                                                  |
 |------:|:------------------------------------------------------|
-| 0x4   | STREAM_HEADER_SUBGROUP  ({{stream-header-subgroup}})  |
+| 0x4   | SUBGROUP_HEADER  ({{subgroup-header}})  |
 |-------|-------------------------------------------------------|
 | 0x5   | FETCH_HEADER  ({{fetch-header}})                      |
 |-------|-------------------------------------------------------|
@@ -2314,37 +2314,37 @@ OBJECT_DATAGRAM_STATUS Message {
 
 ## Streams
 
-When objects are sent on streams, the stream begins with a Stream Header
-Subgroup message and is followed by one or more sets of serialized object fields.
+When objects are sent on streams, the stream begins with a Object Header
+message and is followed by one or more sets of serialized object fields.
 If a stream ends gracefully in the middle of a serialized Object, the session
 SHOULD be terminated with a Protocol Violation.
 
-A publisher SHOULD NOT open more than one stream at a time with the same Stream
-Header Subgroup field values.
+A publisher SHOULD NOT open more than one stream at a time with the same Object
+Header field values.
 
 
-### Stream Header Subgroup
+### Object Header
 
-When a stream begins with `STREAM_HEADER_SUBGROUP`, all objects on the stream
+When a stream begins with `SUBGROUP_HEADER`, all Objects on the stream
 belong to the track requested in the Subscribe message identified by `Track Alias`
 and the subgroup indicated by 'Group ID' and `Subgroup ID`.
 
 ~~~
-STREAM_HEADER_SUBGROUP Message {
+SUBGROUP_HEADER Message {
   Track Alias (i),
   Group ID (i),
   Subgroup ID (i),
   Publisher Priority (8),
 }
 ~~~
-{: #stream-header-subgroup-format title="MOQT STREAM_HEADER_SUBGROUP Message"}
+{: #object-header-format title="MOQT SUBGROUP_HEADER Message"}
 
-All Objects received on a stream opened with `STREAM_HEADER_SUBGROUP` have an
+All Objects received on a stream opened with `SUBGROUP_HEADER` have an
 `Object Forwarding Preference` = `Subgroup`.
 
 To send an Object with `Object Forwarding Preference` = `Subgroup`, find the open
 stream that is associated with the subscription, `Group ID` and `Subgroup ID`,
-or open a new one and send the `STREAM_HEADER_SUBGROUP`. Then serialize the
+or open a new one and send the `SUBGROUP_HEADER`. Then serialize the
 following fields.
 
 The Object Status field is only sent if the Object Payload Length is zero.
@@ -2357,7 +2357,7 @@ The Object Status field is only sent if the Object Payload Length is zero.
   Object Payload (..),
 }
 ~~~
-{: #object-group-format title="MOQT Group Stream Object Fields"}
+{: #object-subgroup-format title="MOQT Subgroup Fields"}
 
 A publisher MUST NOT send an Object on a stream if its Object ID is less than a
 previously sent Object ID within a given group in that stream.
@@ -2393,9 +2393,9 @@ the FIN if and only if all objects were received. If the application receives
 all data on the stream and the FIN, it can ignore any RESET_STREAM it receives.
 
 If a sender will not deliver any objects from a Subgroup, it MAY send
-a STREAM_HEADER_SUBGROUP on a new stream, with no objects, and
-then send RESET_STREAM_AT with a reliable_size equal to the length of the
-stream header. This explicitly tells the receiver there is an unsent Subgroup.
+a SUBGROUP_HEADER on a new stream, with no objects, and then send RESET_STREAM_AT
+with a reliable_size equal to the length of the stream header. This explicitly
+tells the receiver there is an unsent Subgroup.
 
 Since SUBSCRIBEs always end on a group boundary, an ending subscription can
 always cleanly close all its subgroups. A sender that terminates a stream
@@ -2473,7 +2473,7 @@ Sending a subgroup on one stream:
 ~~~
 Stream = 2
 
-STREAM_HEADER_SUBGROUP {
+SUBGROUP_HEADER {
   Track Alias = 2
   Group ID = 0
   Subgroup ID = 0
