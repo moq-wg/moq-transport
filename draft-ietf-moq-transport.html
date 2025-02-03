@@ -18,11 +18,11 @@ media to publish data and have it consumed via subscription by a
 multiplicity of endpoints. It supports intermediate content distribution
 networks and is designed for high scale and low latency distribution. 
     " name="description">
-<meta content="xml2rfc 3.25.0" name="generator">
+<meta content="xml2rfc 3.26.0" name="generator">
 <meta content="media over quic" name="keyword">
 <meta content="draft-ietf-moq-transport-latest" name="ietf.draft">
 <!-- Generator version information:
-  xml2rfc 3.25.0
+  xml2rfc 3.26.0
     Python 3.12.8
     ConfigArgParse 1.7
     google-i18n-address 3.1.1
@@ -3074,13 +3074,13 @@ the current object of the current group.  If no content has been delivered yet,
 the subscription starts with the first published or received group.<a href="#section-7.4-6" class="pilcrow">¶</a></p>
 <p id="section-7.4-7">AbsoluteStart (0x3):  Specifies an open-ended subscription beginning
 from the object identified in the StartGroup and StartObject fields. If the
-StartGroup is prior to the current group, the publisher <span class="bcp14">MUST</span> reply with a
-SUBSCRIBE_ERROR with code 'Invalid Range'.<a href="#section-7.4-7" class="pilcrow">¶</a></p>
+StartGroup is prior to the current group, the subscription starts at the
+beginning of the current object like the 'Latest Object' filter.<a href="#section-7.4-7" class="pilcrow">¶</a></p>
 <p id="section-7.4-8">AbsoluteRange (0x4):  Specifies a closed subscription starting at StartObject
 in StartGroup and ending at EndObject in EndGroup.  The start and end of the
 range are inclusive.  EndGroup <span class="bcp14">MUST</span> specify the same or a later group than
-StartGroup. If the StartGroup is prior to the current group, the publisher <span class="bcp14">MUST</span>
-reply with a SUBSCRIBE_ERROR with code 'Invalid Range'.<a href="#section-7.4-8" class="pilcrow">¶</a></p>
+StartGroup. If the StartGroup is prior to the current group, the subscription
+starts at the beginning of the current object like the 'Latest Object' filter.<a href="#section-7.4-8" class="pilcrow">¶</a></p>
 <p id="section-7.4-9">A filter type other than the above <span class="bcp14">MUST</span> be treated as error.<a href="#section-7.4-9" class="pilcrow">¶</a></p>
 <p id="section-7.4-10">If a subscriber wants to subscribe to Objects both before and after
 the Latest Object, it can send a SUBSCRIBE for the Latest Object
