@@ -2277,9 +2277,9 @@ Any object with a status code other than zero MUST have an empty payload.
 Though some status information could be inferred from QUIC stream state,
 that information is not reliable and cacheable.
 
-## Object Datagram Message {#object-datagram}
+## Object Datagram {#object-datagram}
 
-An `OBJECT_DATAGRAM` message carries a single object in a datagram.
+An `OBJECT_DATAGRAM` carries a single object in a datagram.
 
 An Object received in an `OBJECT_DATAGRAM` message has an `Object
 Forwarding Preference` = `Datagram`. To send an Object with `Object
@@ -2289,7 +2289,7 @@ size can be larger than maximum datagram size for the session, the Object
 will be dropped.
 
 ~~~
-OBJECT_DATAGRAM Message {
+OBJECT_DATAGRAM {
   Track Alias (i),
   Group ID (i),
   Object ID (i),
@@ -2297,18 +2297,18 @@ OBJECT_DATAGRAM Message {
   Object Payload (..),
 }
 ~~~
-{: #object-datagram-format title="MOQT OBJECT_DATAGRAM Message"}
+{: #object-datagram-format title="MOQT OBJECT_DATAGRAM"}
 
 There is no explicit length field.  The entirety of the transport datagram
 following Publisher Priority contains the Object Payload.
 
-## Object Datagram Status Message {#object-datagram-status}
+## Object Datagram Status {#object-datagram-status}
 
-An `OBJECT_DATAGRAM_STATUS` message is similar to OBEJCT_DATAGRAM except it
+An `OBJECT_DATAGRAM_STATUS` is similar to OBEJCT_DATAGRAM except it
 conveys an Object Status and has no payload.
 
 ~~~
-OBJECT_DATAGRAM_STATUS Message {
+OBJECT_DATAGRAM_STATUS {
   Track Alias (i),
   Group ID (i),
   Object ID (i),
@@ -2316,12 +2316,12 @@ OBJECT_DATAGRAM_STATUS Message {
   Object Status (i),
 }
 ~~~
-{: #object-datagram-status-format title="MOQT OBJECT_DATAGRAM_STATUS Message"}
+{: #object-datagram-status-format title="MOQT OBJECT_DATAGRAM_STATUS"}
 
 ## Streams
 
 When objects are sent on streams, the stream begins with a Subgroup Header
-message and is followed by one or more sets of serialized object fields.
+and is followed by one or more sets of serialized object fields.
 If a stream ends gracefully in the middle of a serialized Object, the session
 SHOULD be terminated with a Protocol Violation.
 
@@ -2336,14 +2336,14 @@ belong to the track requested in the Subscribe message identified by `Track Alia
 and the subgroup indicated by 'Group ID' and `Subgroup ID`.
 
 ~~~
-SUBGROUP_HEADER Message {
+SUBGROUP_HEADER {
   Track Alias (i),
   Group ID (i),
   Subgroup ID (i),
   Publisher Priority (8),
 }
 ~~~
-{: #object-header-format title="MOQT SUBGROUP_HEADER Message"}
+{: #object-header-format title="MOQT SUBGROUP_HEADER"}
 
 All Objects received on a stream opened with `SUBGROUP_HEADER` have an
 `Object Forwarding Preference` = `Subgroup`.
@@ -2445,11 +2445,11 @@ When a stream begins with `FETCH_HEADER`, all objects on the stream belong to th
 track requested in the Fetch message identified by `Subscribe ID`.
 
 ~~~
-FETCH_HEADER Message {
+FETCH_HEADER {
   Subscribe ID (i),
 }
 ~~~
-{: #fetch-header-format title="MOQT FETCH_HEADER Message"}
+{: #fetch-header-format title="MOQT FETCH_HEADER"}
 
 
 Each object sent on a fetch stream after the FETCH_HEADER has the following format:
