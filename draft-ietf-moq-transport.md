@@ -763,7 +763,7 @@ subscription.  It is specified in the SUBSCRIBE message, and can be updated via
 SUBSCRIBE_UPDATE message.  The subscriber priority of an individual schedulable
 object is the subscriber priority of the subscription that caused that object
 to be sent. When subscriber priority is changed, a best effort SHOULD be made
-to change the apply that to all objects that have not been sent, but it is
+to apply the change to all objects that have not been sent, but it is
 implementation dependent what happens to objects that have already been
 received and possibly scheduled.
 
@@ -2320,16 +2320,13 @@ OBJECT_DATAGRAM_STATUS Message {
 
 ## Streams
 
-When objects are sent on streams, the stream begins with a stream header
-message and is followed by one or more sets of serialized object fields.
-If a stream ends gracefully in the middle of a serialized Object, terminate the
-session with a Protocol Violation.
+When objects are sent on streams, the stream begins with a Stream Header
+Subgroup message and is followed by one or more sets of serialized object fields.
+If a stream ends gracefully in the middle of a serialized Object, the session
+SHOULD be terminated with a Protocol Violation.
 
-A publisher SHOULD NOT open more than one stream at a time with the same stream
-header message type and fields.
-
-
-TODO: figure out how a relay closes these streams
+A publisher SHOULD NOT open more than one stream at a time with the same Stream
+Header Subgroup field values.
 
 
 ### Stream Header Subgroup
@@ -2476,27 +2473,6 @@ The Subgroup ID field of an object with a Forwarding Preference of "Datagram"
 (see {{object-fields}}) is set to the Object ID.
 
 ## Examples
-
-Sending a track on one stream:
-
-~~~
-STREAM_HEADER_TRACK {
-  Track Alias = 1
-  Publisher Priority = 0
-}
-{
-  Group ID = 0
-  Object ID = 0
-  Object Payload Length = 4
-  Payload = "abcd"
-}
-{
-  Group ID = 1
-  Object ID = 0
-  Object Payload Length = 4
-  Payload = "efgh"
-}
-~~~
 
 Sending a subgroup on one stream:
 
