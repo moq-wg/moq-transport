@@ -1442,7 +1442,7 @@ not have already sent Objects before the new start Object.  The end Group
 MUST NOT increase and when it decreases, there is no guarantee that a publisher
 will not have already sent Objects after the new end Object. A publisher SHOULD
 close the Session as a 'Protocol Violation' if the SUBSCRIBE_UPDATE violates
-either rule or if the subscriber specifies a Subscribe ID that does not exist
+either rule or if the subscriber specifies a Subscribe ID that has not existed
 within the Session.
 
 There is no control message in response to a SUBSCRIBE_UPDATE, because it is
