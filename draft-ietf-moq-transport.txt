@@ -153,7 +153,7 @@ Table of Contents
      8.2.  Object Datagram Message
      8.3.  Object Datagram Status Message
      8.4.  Streams
-       8.4.1.  Stream Header Subgroup
+       8.4.1.  Subgroup Header
        8.4.2.  Closing Subgroup Streams
        8.4.3.  Fetch Header
      8.5.  Examples
@@ -2315,15 +2315,15 @@ Table of Contents
    All unidirectional MOQT streams start with a variable-length integer
    indicating the type of the stream in question.
 
-             +=====+========================================+
-             |  ID | Type                                   |
-             +=====+========================================+
-             | 0x4 | STREAM_HEADER_SUBGROUP (Section 8.4.1) |
-             +-----+----------------------------------------+
-             | 0x5 | FETCH_HEADER (Section 8.4.3)           |
-             +-----+----------------------------------------+
+                 +=====+=================================+
+                 |  ID | Type                            |
+                 +=====+=================================+
+                 | 0x4 | SUBGROUP_HEADER (Section 8.4.1) |
+                 +-----+---------------------------------+
+                 | 0x5 | FETCH_HEADER (Section 8.4.3)    |
+                 +-----+---------------------------------+
 
-                                 Table 5
+                                  Table 5
 
    All MOQT datagrams start with a variable-length integer indicating
    the type of the datagram.
@@ -2470,38 +2470,37 @@ Table of Contents
 
 8.4.  Streams
 
-   When objects are sent on streams, the stream begins with a Stream
-   Header Subgroup message and is followed by one or more sets of
-   serialized object fields.  If a stream ends gracefully in the middle
-   of a serialized Object, the session SHOULD be terminated with a
-   Protocol Violation.
+   When objects are sent on streams, the stream begins with a Subgroup
+   Header message and is followed by one or more sets of serialized
+   object fields.  If a stream ends gracefully in the middle of a
+   serialized Object, the session SHOULD be terminated with a Protocol
+   Violation.
 
    A publisher SHOULD NOT open more than one stream at a time with the
-   same Stream Header Subgroup field values.
+   same Subgroup Header field values.
 
-8.4.1.  Stream Header Subgroup
+8.4.1.  Subgroup Header
 
-   When a stream begins with STREAM_HEADER_SUBGROUP, all objects on the
-   stream belong to the track requested in the Subscribe message
-   identified by Track Alias and the subgroup indicated by 'Group ID'
-   and Subgroup ID.
+   When a stream begins with SUBGROUP_HEADER, all Objects on the stream
+   belong to the track requested in the Subscribe message identified by
+   Track Alias and the subgroup indicated by 'Group ID' and Subgroup ID.
 
-   STREAM_HEADER_SUBGROUP Message {
+   SUBGROUP_HEADER Message {
      Track Alias (i),
      Group ID (i),
      Subgroup ID (i),
      Publisher Priority (8),
    }
 
-               Figure 30: MOQT STREAM_HEADER_SUBGROUP Message
+                  Figure 30: MOQT SUBGROUP_HEADER Message
 
-   All Objects received on a stream opened with STREAM_HEADER_SUBGROUP
-   have an Object Forwarding Preference = Subgroup.
+   All Objects received on a stream opened with SUBGROUP_HEADER have an
+   Object Forwarding Preference = Subgroup.
 
    To send an Object with Object Forwarding Preference = Subgroup, find
    the open stream that is associated with the subscription, Group ID
-   and Subgroup ID, or open a new one and send the
-   STREAM_HEADER_SUBGROUP.  Then serialize the following fields.
+   and Subgroup ID, or open a new one and send the SUBGROUP_HEADER.
+   Then serialize the following fields.
 
    The Object Status field is only sent if the Object Payload Length is
    zero.
@@ -2513,7 +2512,7 @@ Table of Contents
      Object Payload (..),
    }
 
-                 Figure 31: MOQT Group Stream Object Fields
+                      Figure 31: MOQT Subgroup Fields
 
    A publisher MUST NOT send an Object on a stream if its Object ID is
    less than a previously sent Object ID within a given group in that
@@ -2553,8 +2552,8 @@ Table of Contents
    FIN, it can ignore any RESET_STREAM it receives.
 
    If a sender will not deliver any objects from a Subgroup, it MAY send
-   a STREAM_HEADER_SUBGROUP on a new stream, with no objects, and then
-   send RESET_STREAM_AT with a reliable_size equal to the length of the
+   a SUBGROUP_HEADER on a new stream, with no objects, and then send
+   RESET_STREAM_AT with a reliable_size equal to the length of the
    stream header.  This explicitly tells the receiver there is an unsent
    Subgroup.
 
@@ -2638,7 +2637,7 @@ Table of Contents
 
    Stream = 2
 
-   STREAM_HEADER_SUBGROUP {
+   SUBGROUP_HEADER {
      Track Alias = 2
      Group ID = 0
      Subgroup ID = 0
