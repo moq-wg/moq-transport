@@ -2277,9 +2277,9 @@ Any object with a status code other than zero MUST have an empty payload.
 Though some status information could be inferred from QUIC stream state,
 that information is not reliable and cacheable.
 
-## Object Datagram Message {#object-datagram}
+## Object Datagram {#object-datagram}
 
-An `OBJECT_DATAGRAM` message carries a single object in a datagram.
+An `OBJECT_DATAGRAM` carries a single object in a datagram.
 
 An Object received in an `OBJECT_DATAGRAM` message has an `Object
 Forwarding Preference` = `Datagram`. To send an Object with `Object
@@ -2289,7 +2289,7 @@ size can be larger than maximum datagram size for the session, the Object
 will be dropped.
 
 ~~~
-OBJECT_DATAGRAM Message {
+OBJECT_DATAGRAM {
   Track Alias (i),
   Group ID (i),
   Object ID (i),
@@ -2297,18 +2297,18 @@ OBJECT_DATAGRAM Message {
   Object Payload (..),
 }
 ~~~
-{: #object-datagram-format title="MOQT OBJECT_DATAGRAM Message"}
+{: #object-datagram-format title="MOQT OBJECT_DATAGRAM"}
 
 There is no explicit length field.  The entirety of the transport datagram
 following Publisher Priority contains the Object Payload.
 
-## Object Datagram Status Message {#object-datagram-status}
+## Object Datagram Status {#object-datagram-status}
 
-An `OBJECT_DATAGRAM_STATUS` message is similar to OBEJCT_DATAGRAM except it
+An `OBJECT_DATAGRAM_STATUS` is similar to OBEJCT_DATAGRAM except it
 conveys an Object Status and has no payload.
 
 ~~~
-OBJECT_DATAGRAM_STATUS Message {
+OBJECT_DATAGRAM_STATUS {
   Track Alias (i),
   Group ID (i),
   Object ID (i),
@@ -2316,7 +2316,7 @@ OBJECT_DATAGRAM_STATUS Message {
   Object Status (i),
 }
 ~~~
-{: #object-datagram-status-format title="MOQT OBJECT_DATAGRAM_STATUS Message"}
+{: #object-datagram-status-format title="MOQT OBJECT_DATAGRAM_STATUS"}
 
 ## Streams
 
