@@ -18,11 +18,11 @@ media to publish data and have it consumed via subscription by a
 multiplicity of endpoints. It supports intermediate content distribution
 networks and is designed for high scale and low latency distribution. 
     " name="description">
-<meta content="xml2rfc 3.25.0" name="generator">
+<meta content="xml2rfc 3.26.0" name="generator">
 <meta content="media over quic" name="keyword">
 <meta content="draft-ietf-moq-transport-latest" name="ietf.draft">
 <!-- Generator version information:
-  xml2rfc 3.25.0
+  xml2rfc 3.26.0
     Python 3.12.8
     ConfigArgParse 1.7
     google-i18n-address 3.1.1
@@ -3074,13 +3074,13 @@ the current object of the current group.  If no content has been delivered yet,
 the subscription starts with the first published or received group.<a href="#section-7.4-6" class="pilcrow">¶</a></p>
 <p id="section-7.4-7">AbsoluteStart (0x3):  Specifies an open-ended subscription beginning
 from the object identified in the StartGroup and StartObject fields. If the
-StartGroup is prior to the current group, the publisher <span class="bcp14">MUST</span> reply with a
-SUBSCRIBE_ERROR with code 'Invalid Range'.<a href="#section-7.4-7" class="pilcrow">¶</a></p>
+StartGroup is prior to the current group, the subscription starts at the
+beginning of the current object like the 'Latest Object' filter.<a href="#section-7.4-7" class="pilcrow">¶</a></p>
 <p id="section-7.4-8">AbsoluteRange (0x4):  Specifies a closed subscription starting at StartObject
 in StartGroup and ending at EndObject in EndGroup.  The start and end of the
 range are inclusive.  EndGroup <span class="bcp14">MUST</span> specify the same or a later group than
-StartGroup. If the StartGroup is prior to the current group, the publisher <span class="bcp14">MUST</span>
-reply with a SUBSCRIBE_ERROR with code 'Invalid Range'.<a href="#section-7.4-8" class="pilcrow">¶</a></p>
+StartGroup. If the StartGroup is prior to the current group, the subscription
+starts at the beginning of the current object like the 'Latest Object' filter.<a href="#section-7.4-8" class="pilcrow">¶</a></p>
 <p id="section-7.4-9">A filter type other than the above <span class="bcp14">MUST</span> be treated as error.<a href="#section-7.4-9" class="pilcrow">¶</a></p>
 <p id="section-7.4-10">If a subscriber wants to subscribe to Objects both before and after
 the Latest Object, it can send a SUBSCRIBE for the Latest Object
@@ -3182,23 +3182,28 @@ A publisher <span class="bcp14">MUST NOT</span> send objects from outside the re
 <a href="#section-7.5" class="section-number selfRef">7.5. </a><a href="#name-subscribe_update" class="section-name selfRef">SUBSCRIBE_UPDATE</a>
         </h3>
 <p id="section-7.5-1">A subscriber issues a SUBSCRIBE_UPDATE to a publisher to request a change to
-a prior subscription.  Subscriptions can only become more narrower, not wider,
-because an attempt to widen a subscription could fail.  If Objects before the
-start or after the end of the current subscription are needed, a separate
-subscription can be made. The start Object <span class="bcp14">MUST NOT</span> decrease and when it increases,
-there is no guarantee that a publisher will not have already sent Objects before
-the new start Object.  The end Object <span class="bcp14">MUST NOT</span> increase and when it decreases,
-there is no guarantee that a publisher will not have already sent Objects after
-the new end Object. A publisher <span class="bcp14">SHOULD</span> close the Session as a 'Protocol Violation'
-if the SUBSCRIBE_UPDATE violates either rule or if the subscriber specifies a
-Subscribe ID that does not exist within the Session.<a href="#section-7.5-1" class="pilcrow">¶</a></p>
-<p id="section-7.5-2">Unlike a new subscription, SUBSCRIBE_UPDATE can not cause an Object to be
+an existing subscription. Subscriptions can only become more narrow, not wider,
+because an attempt to widen a subscription could fail. If Objects before the
+start or after the end of the current subscription are needed, a fetch might
+be able to retrieve objects before the start. The start Object <span class="bcp14">MUST NOT</span>
+decrease and when it increases, there is no guarantee that a publisher will
+not have already sent Objects before the new start Object.  The end Group
+<span class="bcp14">MUST NOT</span> increase and when it decreases, there is no guarantee that a publisher
+will not have already sent Objects after the new end Object. A publisher <span class="bcp14">SHOULD</span>
+close the Session as a 'Protocol Violation' if the SUBSCRIBE_UPDATE violates
+either rule or if the subscriber specifies a Subscribe ID that has not existed
+within the Session.<a href="#section-7.5-1" class="pilcrow">¶</a></p>
+<p id="section-7.5-2">There is no control message in response to a SUBSCRIBE_UPDATE, because it is
+expected that it will always succeed and the worst outcome is that it is not
+processed promptly and some extra objects from the existing subscription are
+delivered.<a href="#section-7.5-2" class="pilcrow">¶</a></p>
+<p id="section-7.5-3">Unlike a new subscription, SUBSCRIBE_UPDATE can not cause an Object to be
 delivered multiple times.  Like SUBSCRIBE, EndGroup <span class="bcp14">MUST</span> specify the
-same or a later object than StartGroup and StartObject.<a href="#section-7.5-2" class="pilcrow">¶</a></p>
-<p id="section-7.5-3">The format of SUBSCRIBE_UPDATE is as follows:<a href="#section-7.5-3" class="pilcrow">¶</a></p>
+same or a later object than StartGroup and StartObject.<a href="#section-7.5-3" class="pilcrow">¶</a></p>
+<p id="section-7.5-4">The format of SUBSCRIBE_UPDATE is as follows:<a href="#section-7.5-4" class="pilcrow">¶</a></p>
 <span id="name-moqt-subscribe_update-messa"></span><div id="moq-transport-subscribe-update-format">
 <figure id="figure-6">
-          <div class="alignLeft art-text artwork" id="section-7.5-4.1">
+          <div class="alignLeft art-text artwork" id="section-7.5-5.1">
 <pre>
 SUBSCRIBE_UPDATE Message {
   Type (i) = 0x2,
@@ -3218,27 +3223,27 @@ SUBSCRIBE_UPDATE Message {
           </figcaption></figure>
 </div>
 <ul class="normal">
-<li class="normal" id="section-7.5-5.1">
-            <p id="section-7.5-5.1.1">Subscribe ID: The subscription identifier that is unique within the session.
-This <span class="bcp14">MUST</span> match an existing Subscribe ID.<a href="#section-7.5-5.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-7.5-6.1">
+            <p id="section-7.5-6.1.1">Subscribe ID: The subscription identifier that is unique within the session.
+This <span class="bcp14">MUST</span> match an existing Subscribe ID.<a href="#section-7.5-6.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-7.5-5.2">
-            <p id="section-7.5-5.2.1">StartGroup: The start Group ID.<a href="#section-7.5-5.2.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-7.5-6.2">
+            <p id="section-7.5-6.2.1">StartGroup: The start Group ID.<a href="#section-7.5-6.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-7.5-5.3">
-            <p id="section-7.5-5.3.1">StartObject: The start Object ID.<a href="#section-7.5-5.3.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-7.5-6.3">
+            <p id="section-7.5-6.3.1">StartObject: The start Object ID.<a href="#section-7.5-6.3.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-7.5-5.4">
-            <p id="section-7.5-5.4.1">EndGroup: The end Group ID, plus 1. A value of 0 means the subscription is
-open-ended.<a href="#section-7.5-5.4.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-7.5-6.4">
+            <p id="section-7.5-6.4.1">EndGroup: The end Group ID, plus 1. A value of 0 means the subscription is
+open-ended.<a href="#section-7.5-6.4.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-7.5-5.5">
-            <p id="section-7.5-5.5.1">Subscriber Priority: Specifies the priority of a subscription relative to
+          <li class="normal" id="section-7.5-6.5">
+            <p id="section-7.5-6.5.1">Subscriber Priority: Specifies the priority of a subscription relative to
 other subscriptions in the same session. Lower numbers get higher priority.
-See <a href="#priorities" class="auto internal xref">Section 5</a>.<a href="#section-7.5-5.5.1" class="pilcrow">¶</a></p>
+See <a href="#priorities" class="auto internal xref">Section 5</a>.<a href="#section-7.5-6.5.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-7.5-5.6">
-            <p id="section-7.5-5.6.1">Subscribe Parameters: The parameters are defined in <a href="#version-specific-params" class="auto internal xref">Section 7.1.1</a>.<a href="#section-7.5-5.6.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-7.5-6.6">
+            <p id="section-7.5-6.6.1">Subscribe Parameters: The parameters are defined in <a href="#version-specific-params" class="auto internal xref">Section 7.1.1</a>.<a href="#section-7.5-6.6.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
