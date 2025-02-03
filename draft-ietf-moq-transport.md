@@ -1183,9 +1183,9 @@ value is 0, so if not specified, the peer MUST NOT create subscriptions.
 The REQUESTED-EXTENSION parameter (key 0x03) allows the client to request
 the server to acknowledge support for  multiple Extension Header types
 {{object-extensions}} which are required for operation. The value is a
-concatenation of varints, each describing an integer extension header type.
+sequence of varints, each describing an integer extension header type.
 This parameter is optional. If this parameter is present in the
-CLIENT_SETUP message, then the server MUST respond with a
+CLIENT_SETUP message, and if the then the server MUST respond with a
 REQUESTED-EXTENSION parameter in its SERVER_SETUP message. This parameter
 MUST list the subset of those extensions previously requested by the client
 which the server supports. If the server does not support any of the
@@ -2407,8 +2407,8 @@ STREAM_HEADER_SUBGROUP {
 }
 ~~~
 
-Sending a group on one stream, with the first object containing an
-Extension Header.
+Sending a group on one stream, with the first object containing two
+Extension Headers.
 
 ~~~
 Stream = 2
@@ -2421,13 +2421,13 @@ STREAM_HEADER_GROUP {
 }
 {
   Object ID = 0
-  Extension Count  = 1
-    { Type = 0
+  Extension Count  = 2
+    { Type = 5
+      Value = 2186796243
+    },
+    { Type = 76
       Length = 21
-        { Name length = 15
-          Name value = "example-traceID"
-          Payload = "123456"
-        }
+      Value = "traceID:123456"
     }
   Object Payload Length = 4
   Payload = "abcd"
