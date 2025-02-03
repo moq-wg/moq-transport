@@ -1426,10 +1426,10 @@ networks and is designed for high scale and low latency distribution.<a href="#s
                 </ul>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.2">
-                <p id="section-toc.1-1.8.2.2.1"><a href="#section-8.2" class="auto internal xref">8.2</a>.  <a href="#name-object-datagram-message" class="internal xref">Object Datagram Message</a></p>
+                <p id="section-toc.1-1.8.2.2.1"><a href="#section-8.2" class="auto internal xref">8.2</a>.  <a href="#name-object-datagram" class="internal xref">Object Datagram</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.3">
-                <p id="section-toc.1-1.8.2.3.1"><a href="#section-8.3" class="auto internal xref">8.3</a>.  <a href="#name-object-datagram-status-mess" class="internal xref">Object Datagram Status Message</a></p>
+                <p id="section-toc.1-1.8.2.3.1"><a href="#section-8.3" class="auto internal xref">8.3</a>.  <a href="#name-object-datagram-status" class="internal xref">Object Datagram Status</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.4">
                 <p id="section-toc.1-1.8.2.4.1"><a href="#section-8.4" class="auto internal xref">8.4</a>.  <a href="#name-streams" class="internal xref">Streams</a></p>
@@ -4346,21 +4346,21 @@ that information is not reliable and cacheable.<a href="#section-8.1.1.1-5" clas
 </div>
 <div id="object-datagram">
 <section id="section-8.2">
-        <h3 id="name-object-datagram-message">
-<a href="#section-8.2" class="section-number selfRef">8.2. </a><a href="#name-object-datagram-message" class="section-name selfRef">Object Datagram Message</a>
+        <h3 id="name-object-datagram">
+<a href="#section-8.2" class="section-number selfRef">8.2. </a><a href="#name-object-datagram" class="section-name selfRef">Object Datagram</a>
         </h3>
-<p id="section-8.2-1">An <code>OBJECT_DATAGRAM</code> message carries a single object in a datagram.<a href="#section-8.2-1" class="pilcrow">¶</a></p>
+<p id="section-8.2-1">An <code>OBJECT_DATAGRAM</code> carries a single object in a datagram.<a href="#section-8.2-1" class="pilcrow">¶</a></p>
 <p id="section-8.2-2">An Object received in an <code>OBJECT_DATAGRAM</code> message has an <code>Object
 Forwarding Preference</code> = <code>Datagram</code>. To send an Object with <code>Object
 Forwarding Preference</code> = <code>Datagram</code>, determine the length of the header and
 payload and send the Object as datagram. In certain scenarios where the object
 size can be larger than maximum datagram size for the session, the Object
 will be dropped.<a href="#section-8.2-2" class="pilcrow">¶</a></p>
-<span id="name-moqt-object_datagram-messag"></span><div id="object-datagram-format">
+<span id="name-moqt-object_datagram"></span><div id="object-datagram-format">
 <figure id="figure-28">
           <div class="alignLeft art-text artwork" id="section-8.2-3.1">
 <pre>
-OBJECT_DATAGRAM Message {
+OBJECT_DATAGRAM {
   Track Alias (i),
   Group ID (i),
   Object ID (i),
@@ -4370,7 +4370,7 @@ OBJECT_DATAGRAM Message {
 </pre>
 </div>
 <figcaption><a href="#figure-28" class="selfRef">Figure 28</a>:
-<a href="#name-moqt-object_datagram-messag" class="selfRef">MOQT OBJECT_DATAGRAM Message</a>
+<a href="#name-moqt-object_datagram" class="selfRef">MOQT OBJECT_DATAGRAM</a>
           </figcaption></figure>
 </div>
 <p id="section-8.2-4">There is no explicit length field.  The entirety of the transport datagram
@@ -4379,16 +4379,16 @@ following Publisher Priority contains the Object Payload.<a href="#section-8.2-4
 </div>
 <div id="object-datagram-status">
 <section id="section-8.3">
-        <h3 id="name-object-datagram-status-mess">
-<a href="#section-8.3" class="section-number selfRef">8.3. </a><a href="#name-object-datagram-status-mess" class="section-name selfRef">Object Datagram Status Message</a>
+        <h3 id="name-object-datagram-status">
+<a href="#section-8.3" class="section-number selfRef">8.3. </a><a href="#name-object-datagram-status" class="section-name selfRef">Object Datagram Status</a>
         </h3>
-<p id="section-8.3-1">An <code>OBJECT_DATAGRAM_STATUS</code> message is similar to OBEJCT_DATAGRAM except it
+<p id="section-8.3-1">An <code>OBJECT_DATAGRAM_STATUS</code> is similar to OBEJCT_DATAGRAM except it
 conveys an Object Status and has no payload.<a href="#section-8.3-1" class="pilcrow">¶</a></p>
 <span id="name-moqt-object_datagram_status"></span><div id="object-datagram-status-format">
 <figure id="figure-29">
           <div class="alignLeft art-text artwork" id="section-8.3-2.1">
 <pre>
-OBJECT_DATAGRAM_STATUS Message {
+OBJECT_DATAGRAM_STATUS {
   Track Alias (i),
   Group ID (i),
   Object ID (i),
@@ -4398,7 +4398,7 @@ OBJECT_DATAGRAM_STATUS Message {
 </pre>
 </div>
 <figcaption><a href="#figure-29" class="selfRef">Figure 29</a>:
-<a href="#name-moqt-object_datagram_status" class="selfRef">MOQT OBJECT_DATAGRAM_STATUS Message</a>
+<a href="#name-moqt-object_datagram_status" class="selfRef">MOQT OBJECT_DATAGRAM_STATUS</a>
           </figcaption></figure>
 </div>
 </section>
@@ -4409,7 +4409,7 @@ OBJECT_DATAGRAM_STATUS Message {
 <a href="#section-8.4" class="section-number selfRef">8.4. </a><a href="#name-streams" class="section-name selfRef">Streams</a>
         </h3>
 <p id="section-8.4-1">When objects are sent on streams, the stream begins with a Subgroup Header
-message and is followed by one or more sets of serialized object fields.
+and is followed by one or more sets of serialized object fields.
 If a stream ends gracefully in the middle of a serialized Object, the session
 <span class="bcp14">SHOULD</span> be terminated with a Protocol Violation.<a href="#section-8.4-1" class="pilcrow">¶</a></p>
 <p id="section-8.4-2">A publisher <span class="bcp14">SHOULD NOT</span> open more than one stream at a time with the same Subgroup
@@ -4422,11 +4422,11 @@ Header field values.<a href="#section-8.4-2" class="pilcrow">¶</a></p>
 <p id="section-8.4.1-1">When a stream begins with <code>SUBGROUP_HEADER</code>, all Objects on the stream
 belong to the track requested in the Subscribe message identified by <code>Track Alias</code>
 and the subgroup indicated by 'Group ID' and <code>Subgroup ID</code>.<a href="#section-8.4.1-1" class="pilcrow">¶</a></p>
-<span id="name-moqt-subgroup_header-messag"></span><div id="object-header-format">
+<span id="name-moqt-subgroup_header"></span><div id="object-header-format">
 <figure id="figure-30">
             <div class="alignLeft art-text artwork" id="section-8.4.1-2.1">
 <pre>
-SUBGROUP_HEADER Message {
+SUBGROUP_HEADER {
   Track Alias (i),
   Group ID (i),
   Subgroup ID (i),
@@ -4435,7 +4435,7 @@ SUBGROUP_HEADER Message {
 </pre>
 </div>
 <figcaption><a href="#figure-30" class="selfRef">Figure 30</a>:
-<a href="#name-moqt-subgroup_header-messag" class="selfRef">MOQT SUBGROUP_HEADER Message</a>
+<a href="#name-moqt-subgroup_header" class="selfRef">MOQT SUBGROUP_HEADER</a>
             </figcaption></figure>
 </div>
 <p id="section-8.4.1-3">All Objects received on a stream opened with <code>SUBGROUP_HEADER</code> have an
@@ -4537,17 +4537,17 @@ Subgroups in a Group at once.<a href="#section-8.4.2-11" class="pilcrow">¶</a><
           </h4>
 <p id="section-8.4.3-1">When a stream begins with <code>FETCH_HEADER</code>, all objects on the stream belong to the
 track requested in the Fetch message identified by <code>Subscribe ID</code>.<a href="#section-8.4.3-1" class="pilcrow">¶</a></p>
-<span id="name-moqt-fetch_header-message"></span><div id="fetch-header-format">
+<span id="name-moqt-fetch_header"></span><div id="fetch-header-format">
 <figure id="figure-32">
             <div class="alignLeft art-text artwork" id="section-8.4.3-2.1">
 <pre>
-FETCH_HEADER Message {
+FETCH_HEADER {
   Subscribe ID (i),
 }
 </pre>
 </div>
 <figcaption><a href="#figure-32" class="selfRef">Figure 32</a>:
-<a href="#name-moqt-fetch_header-message" class="selfRef">MOQT FETCH_HEADER Message</a>
+<a href="#name-moqt-fetch_header" class="selfRef">MOQT FETCH_HEADER</a>
             </figcaption></figure>
 </div>
 <p id="section-8.4.3-3">Each object sent on a fetch stream after the FETCH_HEADER has the following format:<a href="#section-8.4.3-3" class="pilcrow">¶</a></p>
