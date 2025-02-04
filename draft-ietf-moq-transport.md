@@ -1661,9 +1661,6 @@ Else, if Resolved Subscribe Start Object is 1 or more:
 * Fetch EndGroup: Resolved Subscribe Start Group
 * Fetch EndObject: Resolved Subscribe Start Object
 
-If Fetch EndGroup < Fetch StartGroup, there are no Objects to retrieve,
-so respond with a `FETCH_ERROR`.
-
 ## FETCH_CANCEL {#message-fetch-cancel}
 
 A subscriber issues a `FETCH_CANCEL` message to a publisher indicating it is no
