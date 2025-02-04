@@ -1579,6 +1579,8 @@ within a session. For a Standalone Fetch a new Subscribe ID MUST be used. For
 a Joining Fetch, the Subscribe ID MUST correspond to a Subscribe which has already
 been sent. If a publisher receives a Joining Fetch with a Subscribe ID that does
 not correspond to an existing Subscribe, it MUST respond with a Fetch Error.
+Though they share an ID, cancelling or updating the subscription has no impact
+on the Fetch and vice versa.
 
 * Subscriber Priority: Specifies the priority of a fetch request relative to
 other subscriptions or fetches in the same session. Lower numbers get higher
