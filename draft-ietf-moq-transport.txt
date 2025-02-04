@@ -5,13 +5,13 @@
 Media Over QUIC                                                L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 7 August 2025                                              Meta
+Expires: 8 August 2025                                              Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                         3 February 2025
+                                                         4 February 2025
 
 
                        Media over QUIC Transport
@@ -59,7 +59,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 7 August 2025.
+   This Internet-Draft will expire on 8 August 2025.
 
 Copyright Notice
 
@@ -2019,11 +2019,9 @@ Table of Contents
       the track, 0 if not.
 
    *  Largest Group ID: The largest Group ID available for this track.
-      This field is only present if ContentExists has a value of 1.
 
    *  Largest Object ID: The largest Object ID available within the
-      largest Group ID for this track.  This field is only present if
-      ContentExists has a value of 1.
+      largest Group ID for this track.
 
    *  Subscribe Parameters: The parameters are defined in Section 7.1.1.
 
