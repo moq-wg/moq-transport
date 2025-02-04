@@ -2194,6 +2194,12 @@ the datagram.
 An endpoint that receives an unknown stream or datagram type MUST close the
 session.
 
+The publisher only sends Objects after receiving a SUBSCRIBE or FETCH.  The
+publisher MUST NOT send unsolicited objects.  If an endpoint receives an
+unsolicited, it SHOULD terminate the session with a protocol violation.  Objects
+that arrive after a subscription or fetch has been cancelled are not considered
+unsolicited.
+
 Every Track has a single 'Object Forwarding Preference' and the Original
 Publisher MUST NOT mix different forwarding preferences within a single track.
 If a subscriber receives different forwarding preferences for a track, it
@@ -2317,10 +2323,6 @@ OBJECT_DATAGRAM_STATUS {
 ~~~
 {: #object-datagram-status-format title="MOQT OBJECT_DATAGRAM_STATUS"}
 
-If an endpoint receives an OBJECT_DATAGRAM with a Track Alias that does not
-correspond to an active or recently closed subscription, it closes the session
-with a protocol violation.
-
 ## Streams
 
 When objects are sent on streams, the stream begins with a Subgroup Header
@@ -2358,11 +2360,6 @@ following fields.
 
 The Object Status field is only sent if the Object Payload Length is zero.
 
-If an endpoint receives an STREAM_HEADER_SUBGROUP with a Track Alias that does
-not correspond to an active or recently closed subscription, it closes the
-session with a protocol violation.
-
-
 ~~~
 {
   Object ID (i),
@@ -2375,7 +2372,6 @@ session with a protocol violation.
 
 A publisher MUST NOT send an Object on a stream if its Object ID is less than a
 previously sent Object ID within a given group in that stream.
-
 
 ### Closing Subgroup Streams
 
@@ -2460,9 +2456,6 @@ FETCH_HEADER {
 ~~~
 {: #fetch-header-format title="MOQT FETCH_HEADER"}
 
-If an endpoint receives a FETCH stream that references a subscription ID that does
-not refer to an active or recently closed FETCH, it closes the connection with a
-Protocol Violation.
 
 Each object sent on a fetch stream after the FETCH_HEADER has the following format:
 
