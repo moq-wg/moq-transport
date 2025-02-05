@@ -4239,9 +4239,9 @@ the datagram.<a href="#section-8-4" class="pilcrow">¶</a></p>
 session.<a href="#section-8-6" class="pilcrow">¶</a></p>
 <p id="section-8-7">The publisher only sends Objects after receiving a SUBSCRIBE or FETCH.  The
 publisher <span class="bcp14">MUST NOT</span> send unsolicited objects.  If an endpoint receives an
-unsolicited, it <span class="bcp14">SHOULD</span> terminate the session with a protocol violation.  Objects
-that arrive after a subscription or fetch has been cancelled are not considered
-unsolicited.<a href="#section-8-7" class="pilcrow">¶</a></p>
+unsolicited object, it <span class="bcp14">SHOULD</span> terminate the session with a protocol violation.
+Objects that arrive after a subscription or fetch has been cancelled are not
+considered unsolicited.<a href="#section-8-7" class="pilcrow">¶</a></p>
 <p id="section-8-8">Every Track has a single 'Object Forwarding Preference' and the Original
 Publisher <span class="bcp14">MUST NOT</span> mix different forwarding preferences within a single track.
 If a subscriber receives different forwarding preferences for a track, it
