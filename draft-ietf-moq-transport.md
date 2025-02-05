@@ -2196,9 +2196,9 @@ session.
 
 The publisher only sends Objects after receiving a SUBSCRIBE or FETCH.  The
 publisher MUST NOT send unsolicited objects.  If an endpoint receives an
-unsolicited, it SHOULD terminate the session with a protocol violation.  Objects
-that arrive after a subscription or fetch has been cancelled are not considered
-unsolicited.
+unsolicited object, it SHOULD terminate the session with a protocol violation.
+Objects that arrive after a subscription or fetch has been cancelled are not
+considered unsolicited.
 
 Every Track has a single 'Object Forwarding Preference' and the Original
 Publisher MUST NOT mix different forwarding preferences within a single track.
