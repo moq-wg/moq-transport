@@ -486,26 +486,16 @@ PATH parameter ({{path}}) which is sent in the CLIENT_SETUP message at the
 start of the session.  The ALPN value {{!RFC7301}} used by the protocol
 is `moq-00`.
 
-## Version and Extension Negotiation {#version-negotiation}
+## Version Negotiation {#version-negotiation}
 
-Endpoints use the exchange of Setup messages to negotiate the MOQT version and
-any extensions to use.
+Endpoints use the exchange of Setup messages to negotiate the MOQT version.
 
 The client indicates the MOQT versions it supports in the CLIENT_SETUP message
 (see {{message-setup}}). It also includes the union of all Setup Parameters
 {{setup-params}} required for a handshake by any of those versions.
 
-Within any MOQT version, clients request the use of extensions by adding Setup
-parameters corresponding to that extension. No extensions are defined in this
-document.
-
 The server replies with a SERVER_SETUP message that indicates the chosen
-version, includes all parameters required for a handshake in that version, and
-parameters for every extension requested by the client that it supports.
-
-New versions of MOQT MUST specify which existing extensions can be used with
-that version. New extensions MUST specify the existing versions with which they
-can be used.
+version, includes all parameters required for a handshake in that version.
 
 If a given parameter carries the same information in multiple versions,
 but might have different optimal values in those versions, there SHOULD be
@@ -2140,11 +2130,25 @@ Any object with a status code other than zero MUST have an empty payload.
 Though some status information could be inferred from QUIC stream state,
 that information is not reliable and cacheable.
 
-
 #### Object Extension Header {#object-extensions}
-Object Extension Headers are visible to relays. Extension Headers SHOULD be
-forwarded and SHOULD NOT be modified by relays. The purpose of Extension
-Headers is to facilitate the future evolution of the transport protocol.
+Object Extension Headers are visible to relays and allow the transmission of
+future metadata relevant to MOQT Object distribution. Extension Headers MUST NOT
+carry metadata bound to the Object payload. Such metadata should instead
+be serialized into the payload.
+
+Extension Headers are defined in external specifications and registered in an
+IANA table {{iana}}. These specifications define the type and value of the
+header, along with any rules concerning processing, modification, caching and
+forwarding. A relay which is coded to implement these rules is said to
+"support" the extension.
+
+If unsupported by the relay, Extension Headers MUST NOT be modified, MUST be
+cached as part of the Object and MUST be forwarded by relays
+
+If supported by the relay and subject to the processing rules specified in the
+definition of the extension, Extension Headers MAY be modified, MAY be cached
+and MAY be forwarded.
+
 Object Extension Headers are serialized as defined below:
 
 ~~~
@@ -2158,11 +2162,12 @@ Extension Header {
 {: #object-extension-format title="Object Extension Header Format"}
 
 * Header type: an unsigned integer, encoded as a varint, identifying the type
-  of extension and also the subsequent serialization. Header types in the range
-  0x00 - 0x20 inclusive are followed by a single varint encoded value. Header
-  types 0x21 and above are followed by a varint encoded length and then the
-  header value. Header types are registered in the IANA table 'MOQ Extension
-  Headers'. See {{iana}}.
+  of the extension and also the subsequent serialization.
+* Header values: even types are followed by a single varint encoded value. Odd
+  types are followed by a varint encoded length and then the header value.
+  Every integer multiple of 17 or 18 is a reserved greasing value. These types
+  MUST be treated as unsupported by a relay. Header types are registered in the
+  IANA table 'MOQ Extension Headers'. See {{iana}}.
 
 ## Object Datagram Message {#object-datagram}
 
@@ -2407,10 +2412,10 @@ STREAM_HEADER_GROUP {
 {
   Object ID = 0
   Extension Count  = 2
-    { Type = 5
+    { Type = 4
       Value = 2186796243
     },
-    { Type = 76
+    { Type = 77
       Length = 21
       Value = "traceID:123456"
     }
@@ -2464,7 +2469,9 @@ TODO: fill out currently missing registries:
 * MOQ Extension headers - we wish to reserve extension types 0-127 for
   standards utilization where space is a premium, 128 - 16383 for
   standards utilization where space is less of a concern, and 16384 and
-  above for first-come-first-served non-standardization usage.
+  above for first-come-first-served non-standardization usage. Additionally,
+  every integer multiple of 17 or 18 is a reserved greasing value and MUST
+  NOT be registered.
 
 TODO: register the URI scheme and the ALPN
 
