@@ -763,7 +763,7 @@ subscription.  It is specified in the SUBSCRIBE message, and can be updated via
 SUBSCRIBE_UPDATE message.  The subscriber priority of an individual schedulable
 object is the subscriber priority of the subscription that caused that object
 to be sent. When subscriber priority is changed, a best effort SHOULD be made
-to change the apply that to all objects that have not been sent, but it is
+to apply the change to all objects that have not been sent, but it is
 implementation dependent what happens to objects that have already been
 received and possibly scheduled.
 
@@ -1300,14 +1300,14 @@ the subscription starts with the first published or received group.
 
 AbsoluteStart (0x3):  Specifies an open-ended subscription beginning
 from the object identified in the StartGroup and StartObject fields. If the
-StartGroup is prior to the current group, the publisher MUST reply with a
-SUBSCRIBE_ERROR with code 'Invalid Range'.
+StartGroup is prior to the current group, the subscription starts at the
+beginning of the current object like the 'Latest Object' filter.
 
 AbsoluteRange (0x4):  Specifies a closed subscription starting at StartObject
 in StartGroup and ending at EndObject in EndGroup.  The start and end of the
 range are inclusive.  EndGroup MUST specify the same or a later group than
-StartGroup. If the StartGroup is prior to the current group, the publisher MUST
-reply with a SUBSCRIBE_ERROR with code 'Invalid Range'.
+StartGroup. If the StartGroup is prior to the current group, the subscription
+starts at the beginning of the current object like the 'Latest Object' filter.
 
 A filter type other than the above MUST be treated as error.
 
@@ -1391,16 +1391,22 @@ A publisher MUST NOT send objects from outside the requested start and end.
 ## SUBSCRIBE_UPDATE {#message-subscribe-update-req}
 
 A subscriber issues a SUBSCRIBE_UPDATE to a publisher to request a change to
-a prior subscription.  Subscriptions can only become more narrower, not wider,
-because an attempt to widen a subscription could fail.  If Objects before the
-start or after the end of the current subscription are needed, a separate
-subscription can be made. The start Object MUST NOT decrease and when it increases,
-there is no guarantee that a publisher will not have already sent Objects before
-the new start Object.  The end Object MUST NOT increase and when it decreases,
-there is no guarantee that a publisher will not have already sent Objects after
-the new end Object. A publisher SHOULD close the Session as a 'Protocol Violation'
-if the SUBSCRIBE_UPDATE violates either rule or if the subscriber specifies a
-Subscribe ID that does not exist within the Session.
+an existing subscription. Subscriptions can only become more narrow, not wider,
+because an attempt to widen a subscription could fail. If Objects before the
+start or after the end of the current subscription are needed, a fetch might
+be able to retrieve objects before the start. The start Object MUST NOT
+decrease and when it increases, there is no guarantee that a publisher will
+not have already sent Objects before the new start Object.  The end Group
+MUST NOT increase and when it decreases, there is no guarantee that a publisher
+will not have already sent Objects after the new end Object. A publisher SHOULD
+close the Session as a 'Protocol Violation' if the SUBSCRIBE_UPDATE violates
+either rule or if the subscriber specifies a Subscribe ID that has not existed
+within the Session.
+
+There is no control message in response to a SUBSCRIBE_UPDATE, because it is
+expected that it will always succeed and the worst outcome is that it is not
+processed promptly and some extra objects from the existing subscription are
+delivered.
 
 Unlike a new subscription, SUBSCRIBE_UPDATE can not cause an Object to be
 delivered multiple times.  Like SUBSCRIBE, EndGroup MUST specify the
@@ -1866,11 +1872,10 @@ Values of 0x0 and those larger than 0x2 are a protocol error.
 the Largest Group ID and Object Id indicate the last Object in the track,
 0 if not.
 
-* Largest Group ID: The largest Group ID available for this track. This field
-is only present if ContentExists has a value of 1.
+* Largest Group ID: The largest Group ID available for this track.
 
 * Largest Object ID: The largest Object ID available within the largest Group ID
-for this track. This field is only present if ContentExists has a value of 1.
+for this track.
 
 * Subscribe Parameters: The parameters are defined in {{version-specific-params}}.
 
@@ -2223,7 +2228,7 @@ the type of the stream in question.
 |-------|-------------------------------------------------------|
 | ID    | Type                                                  |
 |------:|:------------------------------------------------------|
-| 0x4   | STREAM_HEADER_SUBGROUP  ({{stream-header-subgroup}})  |
+| 0x4   | SUBGROUP_HEADER  ({{subgroup-header}})                |
 |-------|-------------------------------------------------------|
 | 0x5   | FETCH_HEADER  ({{fetch-header}})                      |
 |-------|-------------------------------------------------------|
@@ -2324,9 +2329,9 @@ Any object with a status code other than zero MUST have an empty payload.
 Though some status information could be inferred from QUIC stream state,
 that information is not reliable and cacheable.
 
-## Object Datagram Message {#object-datagram}
+## Object Datagram {#object-datagram}
 
-An `OBJECT_DATAGRAM` message carries a single object in a datagram.
+An `OBJECT_DATAGRAM` carries a single object in a datagram.
 
 An Object received in an `OBJECT_DATAGRAM` message has an `Object
 Forwarding Preference` = `Datagram`. To send an Object with `Object
@@ -2336,7 +2341,7 @@ size can be larger than maximum datagram size for the session, the Object
 will be dropped.
 
 ~~~
-OBJECT_DATAGRAM Message {
+OBJECT_DATAGRAM {
   Track Alias (i),
   Group ID (i),
   Object ID (i),
@@ -2344,18 +2349,18 @@ OBJECT_DATAGRAM Message {
   Object Payload (..),
 }
 ~~~
-{: #object-datagram-format title="MOQT OBJECT_DATAGRAM Message"}
+{: #object-datagram-format title="MOQT OBJECT_DATAGRAM"}
 
 There is no explicit length field.  The entirety of the transport datagram
 following Publisher Priority contains the Object Payload.
 
-## Object Datagram Status Message {#object-datagram-status}
+## Object Datagram Status {#object-datagram-status}
 
-An `OBJECT_DATAGRAM_STATUS` message is similar to OBEJCT_DATAGRAM except it
+An `OBJECT_DATAGRAM_STATUS` is similar to OBEJCT_DATAGRAM except it
 conveys an Object Status and has no payload.
 
 ~~~
-OBJECT_DATAGRAM_STATUS Message {
+OBJECT_DATAGRAM_STATUS {
   Track Alias (i),
   Group ID (i),
   Object ID (i),
@@ -2363,44 +2368,41 @@ OBJECT_DATAGRAM_STATUS Message {
   Object Status (i),
 }
 ~~~
-{: #object-datagram-status-format title="MOQT OBJECT_DATAGRAM_STATUS Message"}
+{: #object-datagram-status-format title="MOQT OBJECT_DATAGRAM_STATUS"}
 
 ## Streams
 
-When objects are sent on streams, the stream begins with a stream header
-message and is followed by one or more sets of serialized object fields.
-If a stream ends gracefully in the middle of a serialized Object, terminate the
-session with a Protocol Violation.
+When objects are sent on streams, the stream begins with a Subgroup Header
+and is followed by one or more sets of serialized object fields.
+If a stream ends gracefully in the middle of a serialized Object, the session
+SHOULD be terminated with a Protocol Violation.
 
-A publisher SHOULD NOT open more than one stream at a time with the same stream
-header message type and fields.
-
-
-TODO: figure out how a relay closes these streams
+A publisher SHOULD NOT open more than one stream at a time with the same Subgroup
+Header field values.
 
 
-### Stream Header Subgroup
+### Subgroup Header
 
-When a stream begins with `STREAM_HEADER_SUBGROUP`, all objects on the stream
+When a stream begins with `SUBGROUP_HEADER`, all Objects on the stream
 belong to the track requested in the Subscribe message identified by `Track Alias`
 and the subgroup indicated by 'Group ID' and `Subgroup ID`.
 
 ~~~
-STREAM_HEADER_SUBGROUP Message {
+SUBGROUP_HEADER {
   Track Alias (i),
   Group ID (i),
   Subgroup ID (i),
   Publisher Priority (8),
 }
 ~~~
-{: #stream-header-subgroup-format title="MOQT STREAM_HEADER_SUBGROUP Message"}
+{: #object-header-format title="MOQT SUBGROUP_HEADER"}
 
-All Objects received on a stream opened with `STREAM_HEADER_SUBGROUP` have an
+All Objects received on a stream opened with `SUBGROUP_HEADER` have an
 `Object Forwarding Preference` = `Subgroup`.
 
 To send an Object with `Object Forwarding Preference` = `Subgroup`, find the open
 stream that is associated with the subscription, `Group ID` and `Subgroup ID`,
-or open a new one and send the `STREAM_HEADER_SUBGROUP`. Then serialize the
+or open a new one and send the `SUBGROUP_HEADER`. Then serialize the
 following fields.
 
 The Object Status field is only sent if the Object Payload Length is zero.
@@ -2413,7 +2415,7 @@ The Object Status field is only sent if the Object Payload Length is zero.
   Object Payload (..),
 }
 ~~~
-{: #object-group-format title="MOQT Group Stream Object Fields"}
+{: #object-subgroup-format title="MOQT Subgroup Fields"}
 
 A publisher MUST NOT send an Object on a stream if its Object ID is less than a
 previously sent Object ID within a given group in that stream.
@@ -2449,9 +2451,9 @@ the FIN if and only if all objects were received. If the application receives
 all data on the stream and the FIN, it can ignore any RESET_STREAM it receives.
 
 If a sender will not deliver any objects from a Subgroup, it MAY send
-a STREAM_HEADER_SUBGROUP on a new stream, with no objects, and
-then send RESET_STREAM_AT with a reliable_size equal to the length of the
-stream header. This explicitly tells the receiver there is an unsent Subgroup.
+a SUBGROUP_HEADER on a new stream, with no objects, and then send RESET_STREAM_AT
+with a reliable_size equal to the length of the stream header. This explicitly
+tells the receiver there is an unsent Subgroup.
 
 Since SUBSCRIBEs always end on a group boundary, an ending subscription can
 always cleanly close all its subgroups. A sender that terminates a stream
@@ -2495,11 +2497,11 @@ When a stream begins with `FETCH_HEADER`, all objects on the stream belong to th
 track requested in the Fetch message identified by `Subscribe ID`.
 
 ~~~
-FETCH_HEADER Message {
+FETCH_HEADER {
   Subscribe ID (i),
 }
 ~~~
-{: #fetch-header-format title="MOQT FETCH_HEADER Message"}
+{: #fetch-header-format title="MOQT FETCH_HEADER"}
 
 
 Each object sent on a fetch stream after the FETCH_HEADER has the following format:
@@ -2524,33 +2526,12 @@ The Subgroup ID field of an object with a Forwarding Preference of "Datagram"
 
 ## Examples
 
-Sending a track on one stream:
-
-~~~
-STREAM_HEADER_TRACK {
-  Track Alias = 1
-  Publisher Priority = 0
-}
-{
-  Group ID = 0
-  Object ID = 0
-  Object Payload Length = 4
-  Payload = "abcd"
-}
-{
-  Group ID = 1
-  Object ID = 0
-  Object Payload Length = 4
-  Payload = "efgh"
-}
-~~~
-
 Sending a subgroup on one stream:
 
 ~~~
 Stream = 2
 
-STREAM_HEADER_SUBGROUP {
+SUBGROUP_HEADER {
   Track Alias = 2
   Group ID = 0
   Subgroup ID = 0
