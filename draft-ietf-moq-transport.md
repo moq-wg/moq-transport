@@ -1178,21 +1178,6 @@ The MAX_SUBSCRIBE_ID parameter (Parameter Type 0x02) communicates an initial
 value for the Maximum Subscribe ID to the receiving subscriber. The default
 value is 0, so if not specified, the peer MUST NOT create subscriptions.
 
-#### REQUESTED-EXTENSION parameter {#requested-extensions}
-
-The REQUESTED-EXTENSION parameter (key 0x03) allows the client to request
-the server to acknowledge support for  multiple Extension Header types
-{{object-extensions}} which are required for operation. The value is a
-sequence of varints, each describing an integer extension header type.
-This parameter is optional. If this parameter is present in the
-CLIENT_SETUP message, and if the then the server MUST respond with a
-REQUESTED-EXTENSION parameter in its SERVER_SETUP message. This parameter
-MUST list the subset of those extensions previously requested by the client
-which the server supports. If the server does not support any of the
-requested extensions, then it MUST respond with a parameter value length of 0.
-The client can then choose to continue or disconnect the session, at its
-discretion.
-
 ## GOAWAY {#message-goaway}
 
 An endpoint sends a `GOAWAY` message to inform the peer it intends to close
