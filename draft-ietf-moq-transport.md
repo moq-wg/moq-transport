@@ -1522,7 +1522,7 @@ Standalone Fetch (0x1) : A Fetch of Objects performed independently of any Subsc
 
 Joining Fetch (0x2) : A Fetch joined together with a Subscribe. A Joining Fetch
 shares the same Subscribe ID as an already-sent Subscribe. A publisher receiving a
-Joining Fetch should use properties of the associated Subscribe to determine the
+Joining Fetch uses properties of the associated Subscribe to determine the
 Track Namespace, Track, StartGroup, StartObject, EndGroup, and EndObject for the
 Joining Fetch such that it is contiguous with the associated Subscribe and begins
 Preceding Group Offset prior.
