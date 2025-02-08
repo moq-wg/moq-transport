@@ -2327,9 +2327,9 @@ that information is not reliable and cacheable.
 
 #### Object Extension Header {#object-extensions}
 Object Extension Headers are visible to relays and allow the transmission of
-future metadata relevant to MOQT Object distribution. Extension Headers MUST NOT
-carry metadata bound to the Object payload. Such metadata should instead
-be serialized into the payload.
+future metadata relevant to MOQT Object distribution. Any Object metadata not
+used by the transport SHOULD be serialized as part of the Object and not as
+an extension header.
 
 Extension Headers are defined in external specifications and registered in an
 IANA table {{iana}}. These specifications define the type and value of the
@@ -2338,11 +2338,11 @@ forwarding. A relay which is coded to implement these rules is said to
 "support" the extension.
 
 If unsupported by the relay, Extension Headers MUST NOT be modified, MUST be
-cached as part of the Object and MUST be forwarded by relays
+cached as part of the Object and MUST be forwarded by relays.
 
 If supported by the relay and subject to the processing rules specified in the
-definition of the extension, Extension Headers MAY be modified, MAY be cached
-and MAY be forwarded.
+definition of the extension, Extension Headers MAY be modified, added, removed,
+and/or cached by relays.
 
 Object Extension Headers are serialized as defined below:
 
@@ -2360,9 +2360,8 @@ Extension Header {
   of the extension and also the subsequent serialization.
 * Header values: even types are followed by a single varint encoded value. Odd
   types are followed by a varint encoded length and then the header value.
-  Every integer multiple of 17 or 18 is a reserved greasing value. These types
-  MUST be treated as unsupported by a relay. Header types are registered in the
-  IANA table 'MOQ Extension Headers'. See {{iana}}.
+  Header types are registered in the IANA table 'MOQ Extension Headers'.
+  See {{iana}}.
 
 ## Object Datagram {#object-datagram}
 
@@ -2670,11 +2669,9 @@ TODO: fill out currently missing registries:
 * MOQ Extension headers - we wish to reserve extension types 0-127 for
   standards utilization where space is a premium, 128 - 16383 for
   standards utilization where space is less of a concern, and 16384 and
-  above for first-come-first-served non-standardization usage. Additionally,
-  every integer multiple of 17 or 18 is a reserved greasing value and MUST
-  NOT be registered.
+  above for first-come-first-served non-standardization usage.
 
-TODO: register the URI scheme and the ALPN
+TODO: register the URI scheme and the ALPN and grease the Extension types
 
 # Contributors
 {:numbered="false"}
