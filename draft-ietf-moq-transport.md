@@ -2327,9 +2327,8 @@ that information is not reliable and cacheable.
 
 #### Object Extension Header {#object-extensions}
 Object Extension Headers are visible to relays and allow the transmission of
-future metadata relevant to MOQT Object distribution. Any Object metadata not
-used by the transport SHOULD be serialized as part of the Object and not as
-an extension header.
+future metadata relevant to MOQT Object distribution. Any Object metadata never accessed by the transport or relays SHOULD be serialized as part of the Object
+payload and not as an extension header.
 
 Extension Headers are defined in external specifications and registered in an
 IANA table {{iana}}. These specifications define the type and value of the
