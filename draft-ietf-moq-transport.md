@@ -485,16 +485,26 @@ PATH parameter ({{path}}) which is sent in the CLIENT_SETUP message at the
 start of the session.  The ALPN value {{!RFC7301}} used by the protocol
 is `moq-00`.
 
-## Version Negotiation {#version-negotiation}
+## Version Negotiation and Extension Negotiation {#version-negotiation}
 
-Endpoints use the exchange of Setup messages to negotiate the MOQT version.
+Endpoints use the exchange of Setup messages to negotiate the MOQT version and
+any extensions to use.
 
 The client indicates the MOQT versions it supports in the CLIENT_SETUP message
 (see {{message-setup}}). It also includes the union of all Setup Parameters
 {{setup-params}} required for a handshake by any of those versions.
 
+Within any MOQT version, clients request the use of extensions by adding Setup
+parameters corresponding to that extension. No extensions are defined in this
+document.
+
 The server replies with a SERVER_SETUP message that indicates the chosen
-version, includes all parameters required for a handshake in that version.
+version, includes all parameters required for a handshake in that version, and
+parameters for every extension requested by the client that it supports.
+
+New versions of MOQT MUST specify which existing extensions can be used with
+that version. New extensions MUST specify the existing versions with which they
+can be used.
 
 If a given parameter carries the same information in multiple versions,
 but might have different optimal values in those versions, there SHOULD be
