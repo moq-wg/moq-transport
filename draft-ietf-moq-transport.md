@@ -1614,7 +1614,7 @@ joined. If a publisher receives a Joining Fetch with a Subscribe ID that does
 not correspond to an existing Subscribe, it MUST respond with a Fetch Error.
 
 * Preceding Group Offset: The group offset for the Fetch prior and relative
-to the StartGroup of the corresponding Subscribe. A value of 0 indicates
+to the Current Group of the corresponding Subscribe. A value of 0 indicates
 the current Group.
 
 Objects that are not yet published will not be retrieved by a FETCH.
