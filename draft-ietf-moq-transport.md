@@ -1615,7 +1615,7 @@ not correspond to an existing Subscribe, it MUST respond with a Fetch Error.
 
 * Preceding Group Offset: The group offset for the Fetch prior and relative
 to the Current Group of the corresponding Subscribe. A value of 0 indicates
-the current Group.
+the Fetch starts at the beginning of the Current Group.
 
 Objects that are not yet published will not be retrieved by a FETCH.
 The latest available Object is indicated in the FETCH_OK, and is the last
