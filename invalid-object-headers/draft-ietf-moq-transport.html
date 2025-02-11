@@ -2455,88 +2455,6 @@ multiple subscribers request the same track. Subscription aggregation
 allows relays to make only a single upstream subscription for the
 track. The published content received from the upstream subscription
 request is cached and shared among the pending subscribers.<a href="#section-6.1-6" class="pilcrow">¶</a></p>
-<p id="section-6.1-7">The application <span class="bcp14">SHOULD</span> use a relevant error code in SUBSCRIBE_ERROR,
-as defined below:<a href="#section-6.1-7" class="pilcrow">¶</a></p>
-<table class="center" id="table-2">
-          <caption><a href="#table-2" class="selfRef">Table 2</a></caption>
-<thead>
-            <tr>
-              <th class="text-right" rowspan="1" colspan="1">Code</th>
-              <th class="text-left" rowspan="1" colspan="1">Reason</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td class="text-right" rowspan="1" colspan="1">0x0</td>
-              <td class="text-left" rowspan="1" colspan="1">Internal Error</td>
-            </tr>
-            <tr>
-              <td class="text-right" rowspan="1" colspan="1">0x1</td>
-              <td class="text-left" rowspan="1" colspan="1">Invalid Range</td>
-            </tr>
-            <tr>
-              <td class="text-right" rowspan="1" colspan="1">0x2</td>
-              <td class="text-left" rowspan="1" colspan="1">Retry Track Alias</td>
-            </tr>
-            <tr>
-              <td class="text-right" rowspan="1" colspan="1">0x3</td>
-              <td class="text-left" rowspan="1" colspan="1">Track Does Not Exist</td>
-            </tr>
-            <tr>
-              <td class="text-right" rowspan="1" colspan="1">0x4</td>
-              <td class="text-left" rowspan="1" colspan="1">Unauthorized</td>
-            </tr>
-            <tr>
-              <td class="text-right" rowspan="1" colspan="1">0x5</td>
-              <td class="text-left" rowspan="1" colspan="1">Timeout</td>
-            </tr>
-          </tbody>
-        </table>
-<p id="section-6.1-9">The application <span class="bcp14">SHOULD</span> use a relevant status code in
-SUBSCRIBE_DONE, as defined below:<a href="#section-6.1-9" class="pilcrow">¶</a></p>
-<table class="center" id="table-3">
-          <caption><a href="#table-3" class="selfRef">Table 3</a></caption>
-<thead>
-            <tr>
-              <th class="text-right" rowspan="1" colspan="1">Code</th>
-              <th class="text-left" rowspan="1" colspan="1">Reason</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td class="text-right" rowspan="1" colspan="1">0x0</td>
-              <td class="text-left" rowspan="1" colspan="1">Unsubscribed</td>
-            </tr>
-            <tr>
-              <td class="text-right" rowspan="1" colspan="1">0x1</td>
-              <td class="text-left" rowspan="1" colspan="1">Internal Error</td>
-            </tr>
-            <tr>
-              <td class="text-right" rowspan="1" colspan="1">0x2</td>
-              <td class="text-left" rowspan="1" colspan="1">Unauthorized</td>
-            </tr>
-            <tr>
-              <td class="text-right" rowspan="1" colspan="1">0x3</td>
-              <td class="text-left" rowspan="1" colspan="1">Track Ended</td>
-            </tr>
-            <tr>
-              <td class="text-right" rowspan="1" colspan="1">0x4</td>
-              <td class="text-left" rowspan="1" colspan="1">Subscription Ended</td>
-            </tr>
-            <tr>
-              <td class="text-right" rowspan="1" colspan="1">0x5</td>
-              <td class="text-left" rowspan="1" colspan="1">Going Away</td>
-            </tr>
-            <tr>
-              <td class="text-right" rowspan="1" colspan="1">0x6</td>
-              <td class="text-left" rowspan="1" colspan="1">Expired</td>
-            </tr>
-            <tr>
-              <td class="text-right" rowspan="1" colspan="1">0x7</td>
-              <td class="text-left" rowspan="1" colspan="1">Too Far Behind</td>
-            </tr>
-          </tbody>
-        </table>
 <div id="graceful-publisher-relay-switchover">
 <section id="section-6.1.1">
           <h4 id="name-graceful-publisher-relay-sw">
@@ -2678,8 +2596,8 @@ MOQT Control Message {
 <a href="#name-moqt-message" class="selfRef">MOQT Message</a>
         </figcaption></figure>
 </div>
-<table class="center" id="table-4">
-        <caption><a href="#table-4" class="selfRef">Table 4</a></caption>
+<table class="center" id="table-2">
+        <caption><a href="#table-2" class="selfRef">Table 2</a></caption>
 <thead>
           <tr>
             <th class="text-right" rowspan="1" colspan="1">ID</th>
@@ -3479,6 +3397,39 @@ message for which this response is provided.<a href="#section-7.10-3.1.1" class=
             <p id="section-7.10-3.3.1">Reason Phrase: Provides the reason for announcement error.<a href="#section-7.10-3.3.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
+<p id="section-7.10-4">The application <span class="bcp14">SHOULD</span> use a relevant error code in ANNOUNCE_ERROR, as defined
+below:<a href="#section-7.10-4" class="pilcrow">¶</a></p>
+<table class="center" id="table-3">
+          <caption><a href="#table-3" class="selfRef">Table 3</a></caption>
+<thead>
+            <tr>
+              <th class="text-right" rowspan="1" colspan="1">Code</th>
+              <th class="text-left" rowspan="1" colspan="1">Reason</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="text-right" rowspan="1" colspan="1">0x0</td>
+              <td class="text-left" rowspan="1" colspan="1">Internal Error</td>
+            </tr>
+            <tr>
+              <td class="text-right" rowspan="1" colspan="1">0x1</td>
+              <td class="text-left" rowspan="1" colspan="1">Unauthorized</td>
+            </tr>
+            <tr>
+              <td class="text-right" rowspan="1" colspan="1">0x2</td>
+              <td class="text-left" rowspan="1" colspan="1">Timeout</td>
+            </tr>
+            <tr>
+              <td class="text-right" rowspan="1" colspan="1">0x3</td>
+              <td class="text-left" rowspan="1" colspan="1">Not Supported</td>
+            </tr>
+            <tr>
+              <td class="text-right" rowspan="1" colspan="1">0x4</td>
+              <td class="text-left" rowspan="1" colspan="1">Uninterested</td>
+            </tr>
+          </tbody>
+        </table>
 </section>
 </div>
 <div id="message-announce-cancel">
@@ -3746,6 +3697,47 @@ the subscriber <span class="bcp14">MUST</span> close the connection with a Dupli
 (<a href="#session-termination" class="auto internal xref">Section 3.5</a>).<a href="#section-7.16-3.4.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
+<p id="section-7.16-4">The application <span class="bcp14">SHOULD</span> use a relevant error code in SUBSCRIBE_ERROR,
+as defined below:<a href="#section-7.16-4" class="pilcrow">¶</a></p>
+<table class="center" id="table-4">
+          <caption><a href="#table-4" class="selfRef">Table 4</a></caption>
+<thead>
+            <tr>
+              <th class="text-right" rowspan="1" colspan="1">Code</th>
+              <th class="text-left" rowspan="1" colspan="1">Reason</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="text-right" rowspan="1" colspan="1">0x0</td>
+              <td class="text-left" rowspan="1" colspan="1">Internal Error</td>
+            </tr>
+            <tr>
+              <td class="text-right" rowspan="1" colspan="1">0x1</td>
+              <td class="text-left" rowspan="1" colspan="1">Unauthorized</td>
+            </tr>
+            <tr>
+              <td class="text-right" rowspan="1" colspan="1">0x2</td>
+              <td class="text-left" rowspan="1" colspan="1">Timeout</td>
+            </tr>
+            <tr>
+              <td class="text-right" rowspan="1" colspan="1">0x3</td>
+              <td class="text-left" rowspan="1" colspan="1">Not Supported</td>
+            </tr>
+            <tr>
+              <td class="text-right" rowspan="1" colspan="1">0x4</td>
+              <td class="text-left" rowspan="1" colspan="1">Track Does Not Exist</td>
+            </tr>
+            <tr>
+              <td class="text-right" rowspan="1" colspan="1">0x5</td>
+              <td class="text-left" rowspan="1" colspan="1">Invalid Range</td>
+            </tr>
+            <tr>
+              <td class="text-right" rowspan="1" colspan="1">0x6</td>
+              <td class="text-left" rowspan="1" colspan="1">Retry Track Alias</td>
+            </tr>
+          </tbody>
+        </table>
 </section>
 </div>
 <div id="message-fetch-ok">
@@ -3842,6 +3834,43 @@ FETCH_ERROR
             <p id="section-7.18-3.3.1">Reason Phrase: Provides the reason for fetch error.<a href="#section-7.18-3.3.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
+<p id="section-7.18-4">The application <span class="bcp14">SHOULD</span> use a relevant error code in FETCH_ERROR,
+as defined below:<a href="#section-7.18-4" class="pilcrow">¶</a></p>
+<table class="center" id="table-5">
+          <caption><a href="#table-5" class="selfRef">Table 5</a></caption>
+<thead>
+            <tr>
+              <th class="text-right" rowspan="1" colspan="1">Code</th>
+              <th class="text-left" rowspan="1" colspan="1">Reason</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="text-right" rowspan="1" colspan="1">0x0</td>
+              <td class="text-left" rowspan="1" colspan="1">Internal Error</td>
+            </tr>
+            <tr>
+              <td class="text-right" rowspan="1" colspan="1">0x1</td>
+              <td class="text-left" rowspan="1" colspan="1">Unauthorized</td>
+            </tr>
+            <tr>
+              <td class="text-right" rowspan="1" colspan="1">0x2</td>
+              <td class="text-left" rowspan="1" colspan="1">Timeout</td>
+            </tr>
+            <tr>
+              <td class="text-right" rowspan="1" colspan="1">0x3</td>
+              <td class="text-left" rowspan="1" colspan="1">Not Supported</td>
+            </tr>
+            <tr>
+              <td class="text-right" rowspan="1" colspan="1">0x4</td>
+              <td class="text-left" rowspan="1" colspan="1">Track Does Not Exist</td>
+            </tr>
+            <tr>
+              <td class="text-right" rowspan="1" colspan="1">0x5</td>
+              <td class="text-left" rowspan="1" colspan="1">Invalid Range</td>
+            </tr>
+          </tbody>
+        </table>
 </section>
 </div>
 <div id="message-subscribe-done">
@@ -3914,6 +3943,47 @@ once the same number of streams have been processed.<a href="#section-7.19-8.3.1
             <p id="section-7.19-8.4.1">Reason Phrase: Provides the reason for subscription error.<a href="#section-7.19-8.4.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
+<p id="section-7.19-9">The application <span class="bcp14">SHOULD</span> use a relevant status code in
+SUBSCRIBE_DONE, as defined below:<a href="#section-7.19-9" class="pilcrow">¶</a></p>
+<table class="center" id="table-6">
+          <caption><a href="#table-6" class="selfRef">Table 6</a></caption>
+<thead>
+            <tr>
+              <th class="text-right" rowspan="1" colspan="1">Code</th>
+              <th class="text-left" rowspan="1" colspan="1">Reason</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="text-right" rowspan="1" colspan="1">0x0</td>
+              <td class="text-left" rowspan="1" colspan="1">Internal Error</td>
+            </tr>
+            <tr>
+              <td class="text-right" rowspan="1" colspan="1">0x1</td>
+              <td class="text-left" rowspan="1" colspan="1">Unauthorized</td>
+            </tr>
+            <tr>
+              <td class="text-right" rowspan="1" colspan="1">0x2</td>
+              <td class="text-left" rowspan="1" colspan="1">Track Ended</td>
+            </tr>
+            <tr>
+              <td class="text-right" rowspan="1" colspan="1">0x3</td>
+              <td class="text-left" rowspan="1" colspan="1">Subscription Ended</td>
+            </tr>
+            <tr>
+              <td class="text-right" rowspan="1" colspan="1">0x4</td>
+              <td class="text-left" rowspan="1" colspan="1">Going Away</td>
+            </tr>
+            <tr>
+              <td class="text-right" rowspan="1" colspan="1">0x5</td>
+              <td class="text-left" rowspan="1" colspan="1">Expired</td>
+            </tr>
+            <tr>
+              <td class="text-right" rowspan="1" colspan="1">0x6</td>
+              <td class="text-left" rowspan="1" colspan="1">Too Far Behind</td>
+            </tr>
+          </tbody>
+        </table>
 </section>
 </div>
 <div id="message-max-subscribe-id">
@@ -4183,6 +4253,39 @@ failure.<a href="#section-7.26-3.2.1" class="pilcrow">¶</a></p>
             <p id="section-7.26-3.3.1">Reason Phrase: Provides the reason for the namespace subscription error.<a href="#section-7.26-3.3.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
+<p id="section-7.26-4">The application <span class="bcp14">SHOULD</span> use a relevant error code in SUBSCRIBE_ANNOUNCES_ERROR,
+as defined below:<a href="#section-7.26-4" class="pilcrow">¶</a></p>
+<table class="center" id="table-7">
+          <caption><a href="#table-7" class="selfRef">Table 7</a></caption>
+<thead>
+            <tr>
+              <th class="text-right" rowspan="1" colspan="1">Code</th>
+              <th class="text-left" rowspan="1" colspan="1">Reason</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="text-right" rowspan="1" colspan="1">0x0</td>
+              <td class="text-left" rowspan="1" colspan="1">Internal Error</td>
+            </tr>
+            <tr>
+              <td class="text-right" rowspan="1" colspan="1">0x1</td>
+              <td class="text-left" rowspan="1" colspan="1">Unauthorized</td>
+            </tr>
+            <tr>
+              <td class="text-right" rowspan="1" colspan="1">0x2</td>
+              <td class="text-left" rowspan="1" colspan="1">Timeout</td>
+            </tr>
+            <tr>
+              <td class="text-right" rowspan="1" colspan="1">0x3</td>
+              <td class="text-left" rowspan="1" colspan="1">Not Supported</td>
+            </tr>
+            <tr>
+              <td class="text-right" rowspan="1" colspan="1">0x4</td>
+              <td class="text-left" rowspan="1" colspan="1">Namespace Prefix Unknown</td>
+            </tr>
+          </tbody>
+        </table>
 </section>
 </div>
 </section>
@@ -4195,8 +4298,8 @@ failure.<a href="#section-7.26-3.2.1" class="pilcrow">¶</a></p>
 <p id="section-8-1">A publisher sends Objects matching a subscription on Data Streams.<a href="#section-8-1" class="pilcrow">¶</a></p>
 <p id="section-8-2">All unidirectional MOQT streams start with a variable-length integer indicating
 the type of the stream in question.<a href="#section-8-2" class="pilcrow">¶</a></p>
-<table class="center" id="table-5">
-        <caption><a href="#table-5" class="selfRef">Table 5</a></caption>
+<table class="center" id="table-8">
+        <caption><a href="#table-8" class="selfRef">Table 8</a></caption>
 <thead>
           <tr>
             <th class="text-right" rowspan="1" colspan="1">ID</th>
@@ -4216,8 +4319,8 @@ the type of the stream in question.<a href="#section-8-2" class="pilcrow">¶</a>
       </table>
 <p id="section-8-4">All MOQT datagrams start with a variable-length integer indicating the type of
 the datagram.<a href="#section-8-4" class="pilcrow">¶</a></p>
-<table class="center" id="table-6">
-        <caption><a href="#table-6" class="selfRef">Table 6</a></caption>
+<table class="center" id="table-9">
+        <caption><a href="#table-9" class="selfRef">Table 9</a></caption>
 <thead>
           <tr>
             <th class="text-right" rowspan="1" colspan="1">ID</th>
