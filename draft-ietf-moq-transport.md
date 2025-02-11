@@ -1631,18 +1631,17 @@ the publisher MUST return FETCH_ERROR with error code 'No Objects'.
 
 ### Calculating the Range of a Joining Fetch
 
-A publisher which receives a Fetch message with a Fetch Type of 0x2 treats it
+A publisher that receives a Fetch of type Type 0x2 treats it
 as a Fetch with a range dynamically determined by the Preceding Group Offset
-field and field values derived from the corresponding SUBSCRIBE message
-(hereafter "the Subscribe").
+and field values derived from the corresponding subscription.
 
 The Largest Group ID and Largest Object ID values from the corresponding
 subscription are used to calculate the end of a Joining Fetch so the Objects
-retrieved by the Fetch and Subscribe are contiguous and non-overlapping.
-If no Objects have been published for the track, so the SUBSCRIBE_OK has a
+retrieved by the FETCH and SUBSCRIBE are contiguous and non-overlapping.
+If no Objects have been published for the track, and the SUBSCRIBE_OK has a
 ContentExists value of 0, the publisher responds with a FETCH_ERROR.
 
-The publisher receiving a Joining Fetch computes the fetch range as follows:
+The publisher receiving a Joining Fetch computes the range as follows:
 
 * Fetch StartGroup: Subscribe Largest Group - Preceding Group Offset
 * Fetch StartObject: 0
