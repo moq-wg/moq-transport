@@ -1520,12 +1520,12 @@ There are two types of Fetch messages:
 
 Standalone Fetch (0x1) : A Fetch of Objects performed independently of any Subscribe.
 
-Joining Fetch (0x2) : A Fetch joined together with a Subscribe. A Joining Fetch
-shares the same Subscribe ID as an already-sent Subscribe. A publisher receiving a
+Joining Fetch (0x2) : A Fetch joined together with a Subscribe by specifying
+the Subscribe ID of an active subscription. A publisher receiving a
 Joining Fetch uses properties of the associated Subscribe to determine the
-Track Namespace, Track, StartGroup, StartObject, EndGroup, and EndObject for the
-Joining Fetch such that it is contiguous with the associated Subscribe and begins
-Preceding Group Offset prior.
+Track Namespace, Track, StartGroup, StartObject, EndGroup, and EndObject such that
+it is contiguous with the associated Subscribe. The Joining Fetch begins the
+Preceding Group Offset prior to the associated subscription.
 
 A Subscriber can use a Joining Fetch to, for example, fill a playback buffer with a
 certain number of groups prior to the live edge of a track.
@@ -1533,7 +1533,7 @@ certain number of groups prior to the live edge of a track.
 A Joining Fetch is only permitted when the associated Subscribe has the Filter
 Type Latest Object.
 
-A Fetch Type other than the above MUST be treated as an error.
+A Fetch Type other than 0x1 or 0x2 MUST be treated as an error.
 
 A publisher responds to a FETCH request with either a FETCH_OK or a FETCH_ERROR
 message.  If it responds with FETCH_OK, the publisher creates a new unidirectional
@@ -1564,7 +1564,8 @@ FETCH Message {
    StartObject (i),
    EndGroup (i),
    EndObject (i),]
-  [Preceding Group Offset (i),]
+  [Joining Subscribe ID (i),
+   Preceding Group Offset (i),]
   Number of Parameters (i),
   Parameters (..) ...
 }
@@ -1575,12 +1576,7 @@ Fields common to all Fetch Types:
 
 * Subscribe ID: The Subscribe ID identifies a given fetch request. Subscribe ID
 is a variable length integer that MUST be unique and monotonically increasing
-within a session. For a Standalone Fetch a new Subscribe ID MUST be used. For
-a Joining Fetch, the Subscribe ID MUST correspond to a Subscribe which has already
-been sent. If a publisher receives a Joining Fetch with a Subscribe ID that does
-not correspond to an existing Subscribe, it MUST respond with a Fetch Error.
-Though they share an ID, cancelling or updating the subscription has no impact
-on the Fetch and vice versa.
+within a session.
 
 * Subscriber Priority: Specifies the priority of a fetch request relative to
 other subscriptions or fetches in the same session. Lower numbers get higher
@@ -1612,6 +1608,10 @@ Fields present only for Standalone Fetch (0x1):
 requested.
 
 Field present only for Joining Fetch (0x2):
+
+* Joining Subscribe ID: The Subscribe ID of the existing subscription to be
+joined. If a publisher receives a Joining Fetch with a Subscribe ID that does
+not correspond to an existing Subscribe, it MUST respond with a Fetch Error.
 
 * Preceding Group Offset: The group offset for the Fetch prior and relative
 to the StartGroup of the corresponding Subscribe. A value of 0 indicates
