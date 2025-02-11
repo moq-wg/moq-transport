@@ -5,13 +5,13 @@
 Media Over QUIC                                                L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 9 August 2025                                              Meta
+Expires: 15 August 2025                                             Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                         5 February 2025
+                                                        11 February 2025
 
 
                        Media over QUIC Transport
@@ -59,7 +59,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 9 August 2025.
+   This Internet-Draft will expire on 15 August 2025.
 
 Copyright Notice
 
@@ -2340,11 +2340,11 @@ Table of Contents
    close the session.
 
    The publisher only sends Objects after receiving a SUBSCRIBE or
-   FETCH.  The publisher MUST NOT send unsolicited objects.  If an
-   endpoint receives an unsolicited object, it SHOULD terminate the
-   session with a protocol violation.  Objects that arrive after a
-   subscription or fetch has been cancelled are not considered
-   unsolicited.
+   FETCH.  The publisher MUST NOT send Objects that are not requested.
+   If an endpoint receives an Object it never requested, it SHOULD
+   terminate the session with a protocol violation.  Objects can arrive
+   after a subscription or fetch has been cancelled, so the session MUST
+   NOT be teriminated in that case.
 
    Every Track has a single 'Object Forwarding Preference' and the
    Original Publisher MUST NOT mix different forwarding preferences
