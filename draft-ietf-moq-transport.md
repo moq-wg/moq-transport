@@ -1236,8 +1236,8 @@ the `query` portion of the URI to the parameter.
 #### MAX_SUBSCRIBE_ID {#max-subscribe-id}
 
 The MAX_SUBSCRIBE_ID parameter (Parameter Type 0x02) communicates an initial
-value for the Maximum Subscribe ID to the receiving subscriber. The default value
-is 0, so if not specified, the peer MUST NOT create subscriptions.
+value for the Maximum Subscribe ID to the receiving subscriber. The default
+value is 0, so if not specified, the peer MUST NOT create subscriptions.
 
 ## GOAWAY {#message-goaway}
 
@@ -2345,6 +2345,12 @@ Track or Datagram.
 * Object Status: As enumeration used to indicate missing
 objects or mark the end of a group or track. See {{object-status}} below.
 
+* Object Extension Count: The number of Object Extensions present. A value of 0
+  indicates that no Object Extension Headers are present.
+
+* Object Extensions : A sequence of Object Extension Headers. See
+  {{object-extensions}} below.
+
 * Object Payload: An opaque payload intended for an End Subscriber and SHOULD
 NOT be processed by a relay. Only present when 'Object Status' is Normal (0x0).
 
@@ -2389,6 +2395,44 @@ Any object with a status code other than zero MUST have an empty payload.
 Though some status information could be inferred from QUIC stream state,
 that information is not reliable and cacheable.
 
+#### Object Extension Header {#object-extensions}
+Object Extension Headers are visible to relays and allow the transmission of
+future metadata relevant to MOQT Object distribution. Any Object metadata never
+accessed by the transport or relays SHOULD be serialized as part of the Object
+payload and not as an extension header.
+
+Extension Headers are defined in external specifications and registered in an
+IANA table {{iana}}. These specifications define the type and value of the
+header, along with any rules concerning processing, modification, caching and
+forwarding. A relay which is coded to implement these rules is said to
+"support" the extension.
+
+If unsupported by the relay, Extension Headers MUST NOT be modified, MUST be
+cached as part of the Object and MUST be forwarded by relays.
+
+If supported by the relay and subject to the processing rules specified in the
+definition of the extension, Extension Headers MAY be modified, added, removed,
+and/or cached by relays.
+
+Object Extension Headers are serialized as defined below:
+
+~~~
+Extension Header {
+  Header Type (i),
+  [Header Value (i)]
+  [Header Length (i),
+   Header Value (..)]
+}
+~~~
+{: #object-extension-format title="Object Extension Header Format"}
+
+* Header type: an unsigned integer, encoded as a varint, identifying the type
+  of the extension and also the subsequent serialization.
+* Header values: even types are followed by a single varint encoded value. Odd
+  types are followed by a varint encoded length and then the header value.
+  Header types are registered in the IANA table 'MOQ Extension Headers'.
+  See {{iana}}.
+
 ## Object Datagram {#object-datagram}
 
 An `OBJECT_DATAGRAM` carries a single object in a datagram.
@@ -2406,6 +2450,10 @@ OBJECT_DATAGRAM {
   Group ID (i),
   Object ID (i),
   Publisher Priority (8),
+  Extension Count (i),
+  [Extension headers (...)],
+  Object Payload Length (i),
+  [Object Status (i)],
   Object Payload (..),
 }
 ~~~
@@ -2470,6 +2518,8 @@ The Object Status field is only sent if the Object Payload Length is zero.
 ~~~
 {
   Object ID (i),
+  Extension Count (i),
+  [Extension headers (...)],
   Object Payload Length (i),
   [Object Status (i)],
   Object Payload (..),
@@ -2572,6 +2622,8 @@ Each object sent on a fetch stream after the FETCH_HEADER has the following form
   Subgroup ID (i),
   Object ID (i),
   Publisher Priority (8),
+  Extension Count (i),
+  [Extension headers (...)],
   Object Payload Length (i),
   [Object Status (i)],
   Object Payload (..),
@@ -2609,6 +2661,38 @@ SUBGROUP_HEADER {
 }
 ~~~
 
+Sending a group on one stream, with the first object containing two
+Extension Headers.
+
+~~~
+Stream = 2
+
+STREAM_HEADER_GROUP {
+  Subscribe ID = 2
+  Track Alias = 2
+  Group ID = 0
+  Publisher Priority = 0
+}
+{
+  Object ID = 0
+  Extension Count  = 2
+    { Type = 4
+      Value = 2186796243
+    },
+    { Type = 77
+      Length = 21
+      Value = "traceID:123456"
+    }
+  Object Payload Length = 4
+  Payload = "abcd"
+}
+{
+  Object ID = 1
+  Object Payload Length = 4
+  Payload = "efgh"
+}
+
+~~~
 
 
 # Security Considerations {#security}
@@ -2652,8 +2736,12 @@ TODO: fill out currently missing registries:
 * Announce Error codes
 * Announce Cancel Reason codes
 * Message types
+* MOQ Extension headers - we wish to reserve extension types 0-63 for
+  standards utilization where space is a premium, 64 - 16383 for
+  standards utilization where space is less of a concern, and 16384 and
+  above for first-come-first-served non-standardization usage.
 
-TODO: register the URI scheme and the ALPN
+TODO: register the URI scheme and the ALPN and grease the Extension types
 
 # Contributors
 {:numbered="false"}
