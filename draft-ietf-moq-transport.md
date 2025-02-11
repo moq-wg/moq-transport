@@ -1597,7 +1597,8 @@ The Largest Group ID and Largest Object ID values from the corresponding
 subscription are used to calculate the end of a Joining Fetch so the Objects
 retrieved by the FETCH and SUBSCRIBE are contiguous and non-overlapping.
 If no Objects have been published for the track, and the SUBSCRIBE_OK has a
-ContentExists value of 0, the publisher responds with a FETCH_ERROR.
+ContentExists value of 0, the publisher responds with a FETCH_ERROR with
+error code 'No Objects'.
 
 The publisher receiving a Joining Fetch computes the range as follows:
 
@@ -1605,6 +1606,10 @@ The publisher receiving a Joining Fetch computes the range as follows:
 * Fetch StartObject: 0
 * Fetch EndGroup: Subscribe Largest Group
 * Fetch EndObject: Subscribe Largest Object
+
+A Fetch EndObject of 0 requests the entire group, but Fetch will not
+retrieve Objects that have not yet been published, so 1 is subtracted from
+the Fetch EndGroup if Fetch EndObject is 0.
 
 ## FETCH_CANCEL {#message-fetch-cancel}
 
