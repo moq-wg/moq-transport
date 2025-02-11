@@ -2675,8 +2675,8 @@ TODO: fill out currently missing registries:
 * Announce Error codes
 * Announce Cancel Reason codes
 * Message types
-* MOQ Extension headers - we wish to reserve extension types 0-127 for
-  standards utilization where space is a premium, 128 - 16383 for
+* MOQ Extension headers - we wish to reserve extension types 0-63 for
+  standards utilization where space is a premium, 64 - 16383 for
   standards utilization where space is less of a concern, and 16384 and
   above for first-come-first-served non-standardization usage.
 
