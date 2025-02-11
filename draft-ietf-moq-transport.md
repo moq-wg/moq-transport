@@ -2195,10 +2195,10 @@ An endpoint that receives an unknown stream or datagram type MUST close the
 session.
 
 The publisher only sends Objects after receiving a SUBSCRIBE or FETCH.  The
-publisher MUST NOT send unsolicited objects.  If an endpoint receives an
-unsolicited object, it SHOULD terminate the session with a protocol violation.
-Objects that arrive after a subscription or fetch has been cancelled are not
-considered unsolicited.
+publisher MUST NOT send Objects that are not requested.  If an endpoint receives
+an Object it never requested, it SHOULD terminate the session with a protocol
+violation. Objects can arrive after a subscription or fetch has been cancelled,
+so the session MUST NOT be teriminated in that case.
 
 Every Track has a single 'Object Forwarding Preference' and the Original
 Publisher MUST NOT mix different forwarding preferences within a single track.
