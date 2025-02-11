@@ -1636,30 +1636,18 @@ as a Fetch with a range dynamically determined by the Preceding Group Offset
 field and field values derived from the corresponding SUBSCRIBE message
 (hereafter "the Subscribe").
 
-The following values are used:
-
-* Resolved Subscribe Start Group: the Largest Group ID of the associated Subscribe.
-* Resolved Subscribe Start Object: the Largest Object ID of the associated Subscribe.
-
-The Resolved Subscribe Start values for a Joining Fetch MUST correspond to the
-referenced Subscribe within the same session so that the ranges of Objects covered
-by the Fetch and Subscribe are contiguous and non-overlapping.
+The Largest Group ID and Largest Object ID values from the corresponding
+subscription are used to calculate the end of a Joining Fetch so the Objects
+retrieved by the Fetch and Subscribe are contiguous and non-overlapping.
 If no Objects have been published for the track, so the SUBSCRIBE_OK has a
-ContentExists value of 0, the publisher MUST respond to the Joining Fetch with a
-FETCH_ERROR.
+ContentExists value of 0, the publisher responds with a FETCH_ERROR.
 
 The publisher receiving a Joining Fetch computes the fetch range as follows:
 
-* Fetch StartGroup: Resolved Subscribe Start Group - Preceding Group Offset
+* Fetch StartGroup: Subscribe Largest Group - Preceding Group Offset
 * Fetch StartObject: 0
-
-If Resolved Subscribe Start Object is 0:
-* Fetch EndGroup: Resolved Subscribe Start Group - 1
-* Fetch EndObject: 0 (all objects in the group)
-
-Else, if Resolved Subscribe Start Object is 1 or more:
-* Fetch EndGroup: Resolved Subscribe Start Group
-* Fetch EndObject: Resolved Subscribe Start Object
+* Fetch EndGroup: Subscribe Largest Group
+* Fetch EndObject: Subscribe Largest Object
 
 ## FETCH_CANCEL {#message-fetch-cancel}
 
