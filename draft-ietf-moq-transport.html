@@ -2917,8 +2917,8 @@ the <code>query</code> portion of the URI to the parameter.<a href="#section-7.2
 <a href="#section-7.2.2.2" class="section-number selfRef">7.2.2.2. </a><a href="#name-max_subscribe_id" class="section-name selfRef">MAX_SUBSCRIBE_ID</a>
             </h5>
 <p id="section-7.2.2.2-1">The MAX_SUBSCRIBE_ID parameter (Parameter Type 0x02) communicates an initial
-value for the Maximum Subscribe ID to the receiving subscriber. The default value
-is 0, so if not specified, the peer <span class="bcp14">MUST NOT</span> create subscriptions.<a href="#section-7.2.2.2-1" class="pilcrow">¶</a></p>
+value for the Maximum Subscribe ID to the receiving subscriber. The default
+value is 0, so if not specified, the peer <span class="bcp14">MUST NOT</span> create subscriptions.<a href="#section-7.2.2.2-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -4395,7 +4395,15 @@ Track or Datagram.<a href="#section-8.1.1-2.6.1" class="pilcrow">¶</a></p>
 objects or mark the end of a group or track. See <a href="#object-status" class="auto internal xref">Section 8.1.1.1</a> below.<a href="#section-8.1.1-2.7.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-8.1.1-2.8">
-              <p id="section-8.1.1-2.8.1">Object Payload: An opaque payload intended for an End Subscriber and <span class="bcp14">SHOULD NOT</span> be processed by a relay. Only present when 'Object Status' is Normal (0x0).<a href="#section-8.1.1-2.8.1" class="pilcrow">¶</a></p>
+              <p id="section-8.1.1-2.8.1">Object Extension Count: The number of Object Extensions present. A value of 0
+indicates that no Object Extension Headers are present.<a href="#section-8.1.1-2.8.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-8.1.1-2.9">
+              <p id="section-8.1.1-2.9.1">Object Extensions : A sequence of Object Extension Headers. See
+<a href="#object-extensions" class="auto internal xref">Section 8.1.1.2</a> below.<a href="#section-8.1.1-2.9.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-8.1.1-2.10">
+              <p id="section-8.1.1-2.10.1">Object Payload: An opaque payload intended for an End Subscriber and <span class="bcp14">SHOULD NOT</span> be processed by a relay. Only present when 'Object Status' is Normal (0x0).<a href="#section-8.1.1-2.10.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
 <div id="object-status">
@@ -4447,6 +4455,56 @@ Any object with a status code other than zero <span class="bcp14">MUST</span> ha
 that information is not reliable and cacheable.<a href="#section-8.1.1.1-5" class="pilcrow">¶</a></p>
 </section>
 </div>
+<div id="object-extensions">
+<section id="section-8.1.1.2">
+            <h5 id="name-object-extension-header">
+<a href="#section-8.1.1.2" class="section-number selfRef">8.1.1.2. </a><a href="#name-object-extension-header" class="section-name selfRef">Object Extension Header</a>
+            </h5>
+<p id="section-8.1.1.2-1">Object Extension Headers are visible to relays and allow the transmission of
+future metadata relevant to MOQT Object distribution. Any Object metadata never
+accessed by the transport or relays <span class="bcp14">SHOULD</span> be serialized as part of the Object
+payload and not as an extension header.<a href="#section-8.1.1.2-1" class="pilcrow">¶</a></p>
+<p id="section-8.1.1.2-2">Extension Headers are defined in external specifications and registered in an
+IANA table <a href="#iana" class="auto internal xref">Section 10</a>. These specifications define the type and value of the
+header, along with any rules concerning processing, modification, caching and
+forwarding. A relay which is coded to implement these rules is said to
+"support" the extension.<a href="#section-8.1.1.2-2" class="pilcrow">¶</a></p>
+<p id="section-8.1.1.2-3">If unsupported by the relay, Extension Headers <span class="bcp14">MUST NOT</span> be modified, <span class="bcp14">MUST</span> be
+cached as part of the Object and <span class="bcp14">MUST</span> be forwarded by relays.<a href="#section-8.1.1.2-3" class="pilcrow">¶</a></p>
+<p id="section-8.1.1.2-4">If supported by the relay and subject to the processing rules specified in the
+definition of the extension, Extension Headers <span class="bcp14">MAY</span> be modified, added, removed,
+and/or cached by relays.<a href="#section-8.1.1.2-4" class="pilcrow">¶</a></p>
+<p id="section-8.1.1.2-5">Object Extension Headers are serialized as defined below:<a href="#section-8.1.1.2-5" class="pilcrow">¶</a></p>
+<span id="name-object-extension-header-for"></span><div id="object-extension-format">
+<figure id="figure-28">
+              <div class="alignLeft art-text artwork" id="section-8.1.1.2-6.1">
+<pre>
+Extension Header {
+  Header Type (i),
+  [Header Value (i)]
+  [Header Length (i),
+   Header Value (..)]
+}
+</pre>
+</div>
+<figcaption><a href="#figure-28" class="selfRef">Figure 28</a>:
+<a href="#name-object-extension-header-for" class="selfRef">Object Extension Header Format</a>
+              </figcaption></figure>
+</div>
+<ul class="normal">
+<li class="normal" id="section-8.1.1.2-7.1">
+                <p id="section-8.1.1.2-7.1.1">Header type: an unsigned integer, encoded as a varint, identifying the type
+of the extension and also the subsequent serialization.<a href="#section-8.1.1.2-7.1.1" class="pilcrow">¶</a></p>
+</li>
+              <li class="normal" id="section-8.1.1.2-7.2">
+                <p id="section-8.1.1.2-7.2.1">Header values: even types are followed by a single varint encoded value. Odd
+types are followed by a varint encoded length and then the header value.
+Header types are registered in the IANA table 'MOQ Extension Headers'.
+See <a href="#iana" class="auto internal xref">Section 10</a>.<a href="#section-8.1.1.2-7.2.1" class="pilcrow">¶</a></p>
+</li>
+            </ul>
+</section>
+</div>
 </section>
 </div>
 </section>
@@ -4464,7 +4522,7 @@ payload and send the Object as datagram. In certain scenarios where the object
 size can be larger than maximum datagram size for the session, the Object
 will be dropped.<a href="#section-8.2-2" class="pilcrow">¶</a></p>
 <span id="name-moqt-object_datagram"></span><div id="object-datagram-format">
-<figure id="figure-28">
+<figure id="figure-29">
           <div class="alignLeft art-text artwork" id="section-8.2-3.1">
 <pre>
 OBJECT_DATAGRAM {
@@ -4472,11 +4530,15 @@ OBJECT_DATAGRAM {
   Group ID (i),
   Object ID (i),
   Publisher Priority (8),
+  Extension Count (i),
+  [Extension headers (...)],
+  Object Payload Length (i),
+  [Object Status (i)],
   Object Payload (..),
 }
 </pre>
 </div>
-<figcaption><a href="#figure-28" class="selfRef">Figure 28</a>:
+<figcaption><a href="#figure-29" class="selfRef">Figure 29</a>:
 <a href="#name-moqt-object_datagram" class="selfRef">MOQT OBJECT_DATAGRAM</a>
           </figcaption></figure>
 </div>
@@ -4492,7 +4554,7 @@ following Publisher Priority contains the Object Payload.<a href="#section-8.2-4
 <p id="section-8.3-1">An <code>OBJECT_DATAGRAM_STATUS</code> is similar to OBEJCT_DATAGRAM except it
 conveys an Object Status and has no payload.<a href="#section-8.3-1" class="pilcrow">¶</a></p>
 <span id="name-moqt-object_datagram_status"></span><div id="object-datagram-status-format">
-<figure id="figure-29">
+<figure id="figure-30">
           <div class="alignLeft art-text artwork" id="section-8.3-2.1">
 <pre>
 OBJECT_DATAGRAM_STATUS {
@@ -4504,7 +4566,7 @@ OBJECT_DATAGRAM_STATUS {
 }
 </pre>
 </div>
-<figcaption><a href="#figure-29" class="selfRef">Figure 29</a>:
+<figcaption><a href="#figure-30" class="selfRef">Figure 30</a>:
 <a href="#name-moqt-object_datagram_status" class="selfRef">MOQT OBJECT_DATAGRAM_STATUS</a>
           </figcaption></figure>
 </div>
@@ -4530,7 +4592,7 @@ Header field values.<a href="#section-8.4-2" class="pilcrow">¶</a></p>
 belong to the track requested in the Subscribe message identified by <code>Track Alias</code>
 and the subgroup indicated by 'Group ID' and <code>Subgroup ID</code>.<a href="#section-8.4.1-1" class="pilcrow">¶</a></p>
 <span id="name-moqt-subgroup_header"></span><div id="object-header-format">
-<figure id="figure-30">
+<figure id="figure-31">
             <div class="alignLeft art-text artwork" id="section-8.4.1-2.1">
 <pre>
 SUBGROUP_HEADER {
@@ -4541,7 +4603,7 @@ SUBGROUP_HEADER {
 }
 </pre>
 </div>
-<figcaption><a href="#figure-30" class="selfRef">Figure 30</a>:
+<figcaption><a href="#figure-31" class="selfRef">Figure 31</a>:
 <a href="#name-moqt-subgroup_header" class="selfRef">MOQT SUBGROUP_HEADER</a>
             </figcaption></figure>
 </div>
@@ -4553,18 +4615,20 @@ or open a new one and send the <code>SUBGROUP_HEADER</code>. Then serialize the
 following fields.<a href="#section-8.4.1-4" class="pilcrow">¶</a></p>
 <p id="section-8.4.1-5">The Object Status field is only sent if the Object Payload Length is zero.<a href="#section-8.4.1-5" class="pilcrow">¶</a></p>
 <span id="name-moqt-subgroup-fields"></span><div id="object-subgroup-format">
-<figure id="figure-31">
+<figure id="figure-32">
             <div class="alignLeft art-text artwork" id="section-8.4.1-6.1">
 <pre>
 {
   Object ID (i),
+  Extension Count (i),
+  [Extension headers (...)],
   Object Payload Length (i),
   [Object Status (i)],
   Object Payload (..),
 }
 </pre>
 </div>
-<figcaption><a href="#figure-31" class="selfRef">Figure 31</a>:
+<figcaption><a href="#figure-32" class="selfRef">Figure 32</a>:
 <a href="#name-moqt-subgroup-fields" class="selfRef">MOQT Subgroup Fields</a>
             </figcaption></figure>
 </div>
@@ -4645,7 +4709,7 @@ Subgroups in a Group at once.<a href="#section-8.4.2-11" class="pilcrow">¶</a><
 <p id="section-8.4.3-1">When a stream begins with <code>FETCH_HEADER</code>, all objects on the stream belong to the
 track requested in the Fetch message identified by <code>Subscribe ID</code>.<a href="#section-8.4.3-1" class="pilcrow">¶</a></p>
 <span id="name-moqt-fetch_header"></span><div id="fetch-header-format">
-<figure id="figure-32">
+<figure id="figure-33">
             <div class="alignLeft art-text artwork" id="section-8.4.3-2.1">
 <pre>
 FETCH_HEADER {
@@ -4653,13 +4717,13 @@ FETCH_HEADER {
 }
 </pre>
 </div>
-<figcaption><a href="#figure-32" class="selfRef">Figure 32</a>:
+<figcaption><a href="#figure-33" class="selfRef">Figure 33</a>:
 <a href="#name-moqt-fetch_header" class="selfRef">MOQT FETCH_HEADER</a>
             </figcaption></figure>
 </div>
 <p id="section-8.4.3-3">Each object sent on a fetch stream after the FETCH_HEADER has the following format:<a href="#section-8.4.3-3" class="pilcrow">¶</a></p>
 <span id="name-moqt-fetch-object-fields"></span><div id="object-fetch-format">
-<figure id="figure-33">
+<figure id="figure-34">
             <div class="alignLeft art-text artwork" id="section-8.4.3-4.1">
 <pre>
 {
@@ -4667,13 +4731,15 @@ FETCH_HEADER {
   Subgroup ID (i),
   Object ID (i),
   Publisher Priority (8),
+  Extension Count (i),
+  [Extension headers (...)],
   Object Payload Length (i),
   [Object Status (i)],
   Object Payload (..),
 }
 </pre>
 </div>
-<figcaption><a href="#figure-33" class="selfRef">Figure 33</a>:
+<figcaption><a href="#figure-34" class="selfRef">Figure 34</a>:
 <a href="#name-moqt-fetch-object-fields" class="selfRef">MOQT Fetch Object Fields</a>
             </figcaption></figure>
 </div>
@@ -4711,6 +4777,39 @@ SUBGROUP_HEADER {
   Payload = "efgh"
 }
 </pre><a href="#section-8.5-2" class="pilcrow">¶</a>
+</div>
+<p id="section-8.5-3">Sending a group on one stream, with the first object containing two
+Extension Headers.<a href="#section-8.5-3" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-8.5-4">
+<pre>
+Stream = 2
+
+STREAM_HEADER_GROUP {
+  Subscribe ID = 2
+  Track Alias = 2
+  Group ID = 0
+  Publisher Priority = 0
+}
+{
+  Object ID = 0
+  Extension Count  = 2
+    { Type = 4
+      Value = 2186796243
+    },
+    { Type = 77
+      Length = 21
+      Value = "traceID:123456"
+    }
+  Object Payload Length = 4
+  Payload = "abcd"
+}
+{
+  Object ID = 1
+  Object Payload Length = 4
+  Payload = "efgh"
+}
+
+</pre><a href="#section-8.5-4" class="pilcrow">¶</a>
 </div>
 </section>
 </div>
@@ -4784,8 +4883,14 @@ an expected time.  Each implementation is expected to set its own limits.<a href
         <li class="normal" id="section-10-2.8">
           <p id="section-10-2.8.1">Message types<a href="#section-10-2.8.1" class="pilcrow">¶</a></p>
 </li>
+        <li class="normal" id="section-10-2.9">
+          <p id="section-10-2.9.1">MOQ Extension headers - we wish to reserve extension types 0-63 for
+standards utilization where space is a premium, 64 - 16383 for
+standards utilization where space is less of a concern, and 16384 and
+above for first-come-first-served non-standardization usage.<a href="#section-10-2.9.1" class="pilcrow">¶</a></p>
+</li>
       </ul>
-<p id="section-10-3">TODO: register the URI scheme and the ALPN<a href="#section-10-3" class="pilcrow">¶</a></p>
+<p id="section-10-3">TODO: register the URI scheme and the ALPN and grease the Extension types<a href="#section-10-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="contributors">

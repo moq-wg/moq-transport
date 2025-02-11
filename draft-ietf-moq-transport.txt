@@ -2445,6 +2445,13 @@ Table of Contents
    *  Object Status: As enumeration used to indicate missing objects or
       mark the end of a group or track.  See Section 8.1.1.1 below.
 
+   *  Object Extension Count: The number of Object Extensions present.
+      A value of 0 indicates that no Object Extension Headers are
+      present.
+
+   *  Object Extensions : A sequence of Object Extension Headers.  See
+      Section 8.1.1.2 below.
+
    *  Object Payload: An opaque payload intended for an End Subscriber
       and SHOULD NOT be processed by a relay.  Only present when 'Object
       Status' is Normal (0x0).
@@ -2493,6 +2500,46 @@ Table of Contents
    Though some status information could be inferred from QUIC stream
    state, that information is not reliable and cacheable.
 
+8.1.1.2.  Object Extension Header
+
+   Object Extension Headers are visible to relays and allow the
+   transmission of future metadata relevant to MOQT Object distribution.
+   Any Object metadata never accessed by the transport or relays SHOULD
+   be serialized as part of the Object payload and not as an extension
+   header.
+
+   Extension Headers are defined in external specifications and
+   registered in an IANA table Section 10.  These specifications define
+   the type and value of the header, along with any rules concerning
+   processing, modification, caching and forwarding.  A relay which is
+   coded to implement these rules is said to "support" the extension.
+
+   If unsupported by the relay, Extension Headers MUST NOT be modified,
+   MUST be cached as part of the Object and MUST be forwarded by relays.
+
+   If supported by the relay and subject to the processing rules
+   specified in the definition of the extension, Extension Headers MAY
+   be modified, added, removed, and/or cached by relays.
+
+   Object Extension Headers are serialized as defined below:
+
+   Extension Header {
+     Header Type (i),
+     [Header Value (i)]
+     [Header Length (i),
+      Header Value (..)]
+   }
+
+                 Figure 28: Object Extension Header Format
+
+   *  Header type: an unsigned integer, encoded as a varint, identifying
+      the type of the extension and also the subsequent serialization.
+
+   *  Header values: even types are followed by a single varint encoded
+      value.  Odd types are followed by a varint encoded length and then
+      the header value.  Header types are registered in the IANA table
+      'MOQ Extension Headers'.  See Section 10.
+
 8.2.  Object Datagram
 
    An OBJECT_DATAGRAM carries a single object in a datagram.
@@ -2509,10 +2556,14 @@ Table of Contents
      Group ID (i),
      Object ID (i),
      Publisher Priority (8),
+     Extension Count (i),
+     [Extension headers (...)],
+     Object Payload Length (i),
+     [Object Status (i)],
      Object Payload (..),
    }
 
-                      Figure 28: MOQT OBJECT_DATAGRAM
+                      Figure 29: MOQT OBJECT_DATAGRAM
 
    There is no explicit length field.  The entirety of the transport
    datagram following Publisher Priority contains the Object Payload.
@@ -2530,7 +2581,7 @@ Table of Contents
      Object Status (i),
    }
 
-                   Figure 29: MOQT OBJECT_DATAGRAM_STATUS
+                   Figure 30: MOQT OBJECT_DATAGRAM_STATUS
 
 8.4.  Streams
 
@@ -2555,7 +2606,7 @@ Table of Contents
      Publisher Priority (8),
    }
 
-                      Figure 30: MOQT SUBGROUP_HEADER
+                      Figure 31: MOQT SUBGROUP_HEADER
 
    All Objects received on a stream opened with SUBGROUP_HEADER have an
    Object Forwarding Preference = Subgroup.
@@ -2570,12 +2621,14 @@ Table of Contents
 
    {
      Object ID (i),
+     Extension Count (i),
+     [Extension headers (...)],
      Object Payload Length (i),
      [Object Status (i)],
      Object Payload (..),
    }
 
-                      Figure 31: MOQT Subgroup Fields
+                      Figure 32: MOQT Subgroup Fields
 
    A publisher MUST NOT send an Object on a stream if its Object ID is
    less than a previously sent Object ID within a given group in that
@@ -2671,7 +2724,7 @@ Table of Contents
      Subscribe ID (i),
    }
 
-                        Figure 32: MOQT FETCH_HEADER
+                        Figure 33: MOQT FETCH_HEADER
 
    Each object sent on a fetch stream after the FETCH_HEADER has the
    following format:
@@ -2681,12 +2734,14 @@ Table of Contents
      Subgroup ID (i),
      Object ID (i),
      Publisher Priority (8),
+     Extension Count (i),
+     [Extension headers (...)],
      Object Payload Length (i),
      [Object Status (i)],
      Object Payload (..),
    }
 
-                    Figure 33: MOQT Fetch Object Fields
+                    Figure 34: MOQT Fetch Object Fields
 
    The Object Status field is only sent if the Object Payload Length is
    zero.
@@ -2708,6 +2763,36 @@ Table of Contents
    }
    {
      Object ID = 0
+     Object Payload Length = 4
+     Payload = "abcd"
+   }
+   {
+     Object ID = 1
+     Object Payload Length = 4
+     Payload = "efgh"
+   }
+
+   Sending a group on one stream, with the first object containing two
+   Extension Headers.
+
+   Stream = 2
+
+   STREAM_HEADER_GROUP {
+     Subscribe ID = 2
+     Track Alias = 2
+     Group ID = 0
+     Publisher Priority = 0
+   }
+   {
+     Object ID = 0
+     Extension Count  = 2
+       { Type = 4
+         Value = 2186796243
+       },
+       { Type = 77
+         Length = 21
+         Value = "traceID:123456"
+       }
      Object Payload Length = 4
      Payload = "abcd"
    }
@@ -2766,7 +2851,13 @@ Table of Contents
 
    *  Message types
 
-   TODO: register the URI scheme and the ALPN
+   *  MOQ Extension headers - we wish to reserve extension types 0-63
+      for standards utilization where space is a premium, 64 - 16383 for
+      standards utilization where space is less of a concern, and 16384
+      and above for first-come-first-served non-standardization usage.
+
+   TODO: register the URI scheme and the ALPN and grease the Extension
+   types
 
 Contributors
 
