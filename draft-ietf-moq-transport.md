@@ -485,7 +485,7 @@ PATH parameter ({{path}}) which is sent in the CLIENT_SETUP message at the
 start of the session.  The ALPN value {{!RFC7301}} used by the protocol
 is `moq-00`.
 
-## Version Negotiation and Extension Negotiation {#version-negotiation}
+## Version and Extension Negotiation {#version-negotiation}
 
 Endpoints use the exchange of Setup messages to negotiate the MOQT version and
 any extensions to use.
