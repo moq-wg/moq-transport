@@ -881,48 +881,6 @@ allows relays to make only a single upstream subscription for the
 track. The published content received from the upstream subscription
 request is cached and shared among the pending subscribers.
 
-The application SHOULD use a relevant error code in SUBSCRIBE_ERROR,
-as defined below:
-
-|------|---------------------------|
-| Code | Reason                    |
-|-----:|:--------------------------|
-| 0x0  | Internal Error            |
-|------|---------------------------|
-| 0x1  | Invalid Range             |
-|------|---------------------------|
-| 0x2  | Retry Track Alias         |
-|------|---------------------------|
-| 0x3  | Track Does Not Exist      |
-|------|---------------------------|
-| 0x4  | Unauthorized              |
-|------|---------------------------|
-| 0x5  | Timeout                   |
-|------|---------------------------|
-
-The application SHOULD use a relevant status code in
-SUBSCRIBE_DONE, as defined below:
-
-|------|---------------------------|
-| Code | Reason                    |
-|-----:|:--------------------------|
-| 0x0  | Unsubscribed              |
-|------|---------------------------|
-| 0x1  | Internal Error            |
-|------|---------------------------|
-| 0x2  | Unauthorized              |
-|------|---------------------------|
-| 0x3  | Track Ended               |
-|------|---------------------------|
-| 0x4  | Subscription Ended        |
-|------|---------------------------|
-| 0x5  | Going Away                |
-|------|---------------------------|
-| 0x6  | Expired                   |
-|------|---------------------------|
-| 0x7  | Too Far Behind            |
-|------|---------------------------|
-
 ### Graceful Publisher Relay Switchover
 
 This section describes behavior a subscriber MAY implement
@@ -1711,6 +1669,23 @@ message for which this response is provided.
 
 * Reason Phrase: Provides the reason for announcement error.
 
+The application SHOULD use a relevant error code in ANNOUNCE_ERROR, as defined
+below:
+
+|------|---------------------------|
+| Code | Reason                    |
+|-----:|:--------------------------|
+| 0x0  | Internal Error            |
+|------|---------------------------|
+| 0x1  | Unauthorized              |
+|------|---------------------------|
+| 0x2  | Timeout                   |
+|------|---------------------------|
+| 0x3  | Not Supported             |
+|------|---------------------------|
+| 0x4  | Uninterested              |
+|------|---------------------------|
+
 ## ANNOUNCE_CANCEL {#message-announce-cancel}
 
 The subscriber sends an `ANNOUNCE_CANCEL` control message to
@@ -1898,6 +1873,27 @@ SUBSCRIBE_ERROR
   the subscriber MUST close the connection with a Duplicate Track Alias error
   ({{session-termination}}).
 
+The application SHOULD use a relevant error code in SUBSCRIBE_ERROR,
+as defined below:
+
+|------|---------------------------|
+| Code | Reason                    |
+|-----:|:--------------------------|
+| 0x0  | Internal Error            |
+|------|---------------------------|
+| 0x1  | Unauthorized              |
+|------|---------------------------|
+| 0x2  | Timeout                   |
+|------|---------------------------|
+| 0x3  | Not Supported             |
+|------|---------------------------|
+| 0x4  | Track Does Not Exist      |
+|------|---------------------------|
+| 0x5  | Invalid Range             |
+|------|---------------------------|
+| 0x6  | Retry Track Alias         |
+|------|---------------------------|
+
 ## FETCH_OK {#message-fetch-ok}
 
 A publisher sends a FETCH_OK control message in response to successful fetches.
@@ -1930,11 +1926,10 @@ Values of 0x0 and those larger than 0x2 are a protocol error.
 the Largest Group ID and Object Id indicate the last Object in the track,
 0 if not.
 
-* Largest Group ID: The largest Group ID available for this track. This field
-is only present if ContentExists has a value of 1.
+* Largest Group ID: The largest Group ID available for this track.
 
 * Largest Object ID: The largest Object ID available within the largest Group ID
-for this track. This field is only present if ContentExists has a value of 1.
+for this track.
 
 * Subscribe Parameters: The parameters are defined in {{version-specific-params}}.
 
@@ -1961,6 +1956,25 @@ FETCH_ERROR
 * Error Code: Identifies an integer error code for fetch failure.
 
 * Reason Phrase: Provides the reason for fetch error.
+
+The application SHOULD use a relevant error code in FETCH_ERROR,
+as defined below:
+
+|------|---------------------------|
+| Code | Reason                    |
+|-----:|:--------------------------|
+| 0x0  | Internal Error            |
+|------|---------------------------|
+| 0x1  | Unauthorized              |
+|------|---------------------------|
+| 0x2  | Timeout                   |
+|------|---------------------------|
+| 0x3  | Not Supported             |
+|------|---------------------------|
+| 0x4  | Track Does Not Exist      |
+|------|---------------------------|
+| 0x5  | Invalid Range             |
+|------|---------------------------|
 
 ## SUBSCRIBE_DONE {#message-subscribe-done}
 
@@ -2022,6 +2036,27 @@ opened for this subscription.  The subscriber can remove all subscription state
 once the same number of streams have been processed.
 
 * Reason Phrase: Provides the reason for subscription error.
+
+The application SHOULD use a relevant status code in
+SUBSCRIBE_DONE, as defined below:
+
+|------|---------------------------|
+| Code | Reason                    |
+|-----:|:--------------------------|
+| 0x0  | Internal Error            |
+|------|---------------------------|
+| 0x1  | Unauthorized              |
+|------|---------------------------|
+| 0x2  | Track Ended               |
+|------|---------------------------|
+| 0x3  | Subscription Ended        |
+|------|---------------------------|
+| 0x4  | Going Away                |
+|------|---------------------------|
+| 0x5  | Expired                   |
+|------|---------------------------|
+| 0x6  | Too Far Behind            |
+|------|---------------------------|
 
 ## MAX_SUBSCRIBE_ID {#message-max-subscribe-id}
 
@@ -2220,6 +2255,23 @@ failure.
 
 * Reason Phrase: Provides the reason for the namespace subscription error.
 
+The application SHOULD use a relevant error code in SUBSCRIBE_ANNOUNCES_ERROR,
+as defined below:
+
+|------|---------------------------|
+| Code | Reason                    |
+|-----:|:--------------------------|
+| 0x0  | Internal Error            |
+|------|---------------------------|
+| 0x1  | Unauthorized              |
+|------|---------------------------|
+| 0x2  | Timeout                   |
+|------|---------------------------|
+| 0x3  | Not Supported             |
+|------|---------------------------|
+| 0x4  | Namespace Prefix Unknown  |
+|------|---------------------------|
+
 # Data Streams {#data-streams}
 
 A publisher sends Objects matching a subscription on Data Streams.
@@ -2230,7 +2282,7 @@ the type of the stream in question.
 |-------|-------------------------------------------------------|
 | ID    | Type                                                  |
 |------:|:------------------------------------------------------|
-| 0x4   | STREAM_HEADER_SUBGROUP  ({{stream-header-subgroup}})  |
+| 0x4   | SUBGROUP_HEADER  ({{subgroup-header}})                |
 |-------|-------------------------------------------------------|
 | 0x5   | FETCH_HEADER  ({{fetch-header}})                      |
 |-------|-------------------------------------------------------|
@@ -2248,6 +2300,12 @@ the datagram.
 
 An endpoint that receives an unknown stream or datagram type MUST close the
 session.
+
+The publisher only sends Objects after receiving a SUBSCRIBE or FETCH.  The
+publisher MUST NOT send Objects that are not requested.  If an endpoint receives
+an Object it never requested, it SHOULD terminate the session with a protocol
+violation. Objects can arrive after a subscription or fetch has been cancelled,
+so the session MUST NOT be teriminated in that case.
 
 Every Track has a single 'Object Forwarding Preference' and the Original
 Publisher MUST NOT mix different forwarding preferences within a single track.
@@ -2331,9 +2389,9 @@ Any object with a status code other than zero MUST have an empty payload.
 Though some status information could be inferred from QUIC stream state,
 that information is not reliable and cacheable.
 
-## Object Datagram Message {#object-datagram}
+## Object Datagram {#object-datagram}
 
-An `OBJECT_DATAGRAM` message carries a single object in a datagram.
+An `OBJECT_DATAGRAM` carries a single object in a datagram.
 
 An Object received in an `OBJECT_DATAGRAM` message has an `Object
 Forwarding Preference` = `Datagram`. To send an Object with `Object
@@ -2343,7 +2401,7 @@ size can be larger than maximum datagram size for the session, the Object
 will be dropped.
 
 ~~~
-OBJECT_DATAGRAM Message {
+OBJECT_DATAGRAM {
   Track Alias (i),
   Group ID (i),
   Object ID (i),
@@ -2351,18 +2409,18 @@ OBJECT_DATAGRAM Message {
   Object Payload (..),
 }
 ~~~
-{: #object-datagram-format title="MOQT OBJECT_DATAGRAM Message"}
+{: #object-datagram-format title="MOQT OBJECT_DATAGRAM"}
 
 There is no explicit length field.  The entirety of the transport datagram
 following Publisher Priority contains the Object Payload.
 
-## Object Datagram Status Message {#object-datagram-status}
+## Object Datagram Status {#object-datagram-status}
 
-An `OBJECT_DATAGRAM_STATUS` message is similar to OBEJCT_DATAGRAM except it
+An `OBJECT_DATAGRAM_STATUS` is similar to OBEJCT_DATAGRAM except it
 conveys an Object Status and has no payload.
 
 ~~~
-OBJECT_DATAGRAM_STATUS Message {
+OBJECT_DATAGRAM_STATUS {
   Track Alias (i),
   Group ID (i),
   Object ID (i),
@@ -2370,41 +2428,41 @@ OBJECT_DATAGRAM_STATUS Message {
   Object Status (i),
 }
 ~~~
-{: #object-datagram-status-format title="MOQT OBJECT_DATAGRAM_STATUS Message"}
+{: #object-datagram-status-format title="MOQT OBJECT_DATAGRAM_STATUS"}
 
 ## Streams
 
-When objects are sent on streams, the stream begins with a Stream Header
-Subgroup message and is followed by one or more sets of serialized object fields.
+When objects are sent on streams, the stream begins with a Subgroup Header
+and is followed by one or more sets of serialized object fields.
 If a stream ends gracefully in the middle of a serialized Object, the session
 SHOULD be terminated with a Protocol Violation.
 
-A publisher SHOULD NOT open more than one stream at a time with the same Stream
-Header Subgroup field values.
+A publisher SHOULD NOT open more than one stream at a time with the same Subgroup
+Header field values.
 
 
-### Stream Header Subgroup
+### Subgroup Header
 
-When a stream begins with `STREAM_HEADER_SUBGROUP`, all objects on the stream
+When a stream begins with `SUBGROUP_HEADER`, all Objects on the stream
 belong to the track requested in the Subscribe message identified by `Track Alias`
 and the subgroup indicated by 'Group ID' and `Subgroup ID`.
 
 ~~~
-STREAM_HEADER_SUBGROUP Message {
+SUBGROUP_HEADER {
   Track Alias (i),
   Group ID (i),
   Subgroup ID (i),
   Publisher Priority (8),
 }
 ~~~
-{: #stream-header-subgroup-format title="MOQT STREAM_HEADER_SUBGROUP Message"}
+{: #object-header-format title="MOQT SUBGROUP_HEADER"}
 
-All Objects received on a stream opened with `STREAM_HEADER_SUBGROUP` have an
+All Objects received on a stream opened with `SUBGROUP_HEADER` have an
 `Object Forwarding Preference` = `Subgroup`.
 
 To send an Object with `Object Forwarding Preference` = `Subgroup`, find the open
 stream that is associated with the subscription, `Group ID` and `Subgroup ID`,
-or open a new one and send the `STREAM_HEADER_SUBGROUP`. Then serialize the
+or open a new one and send the `SUBGROUP_HEADER`. Then serialize the
 following fields.
 
 The Object Status field is only sent if the Object Payload Length is zero.
@@ -2417,7 +2475,7 @@ The Object Status field is only sent if the Object Payload Length is zero.
   Object Payload (..),
 }
 ~~~
-{: #object-group-format title="MOQT Group Stream Object Fields"}
+{: #object-subgroup-format title="MOQT Subgroup Fields"}
 
 A publisher MUST NOT send an Object on a stream if its Object ID is less than a
 previously sent Object ID within a given group in that stream.
@@ -2453,9 +2511,9 @@ the FIN if and only if all objects were received. If the application receives
 all data on the stream and the FIN, it can ignore any RESET_STREAM it receives.
 
 If a sender will not deliver any objects from a Subgroup, it MAY send
-a STREAM_HEADER_SUBGROUP on a new stream, with no objects, and
-then send RESET_STREAM_AT with a reliable_size equal to the length of the
-stream header. This explicitly tells the receiver there is an unsent Subgroup.
+a SUBGROUP_HEADER on a new stream, with no objects, and then send RESET_STREAM_AT
+with a reliable_size equal to the length of the stream header. This explicitly
+tells the receiver there is an unsent Subgroup.
 
 Since SUBSCRIBEs always end on a group boundary, an ending subscription can
 always cleanly close all its subgroups. A sender that terminates a stream
@@ -2499,11 +2557,11 @@ When a stream begins with `FETCH_HEADER`, all objects on the stream belong to th
 track requested in the Fetch message identified by `Subscribe ID`.
 
 ~~~
-FETCH_HEADER Message {
+FETCH_HEADER {
   Subscribe ID (i),
 }
 ~~~
-{: #fetch-header-format title="MOQT FETCH_HEADER Message"}
+{: #fetch-header-format title="MOQT FETCH_HEADER"}
 
 
 Each object sent on a fetch stream after the FETCH_HEADER has the following format:
@@ -2533,7 +2591,7 @@ Sending a subgroup on one stream:
 ~~~
 Stream = 2
 
-STREAM_HEADER_SUBGROUP {
+SUBGROUP_HEADER {
   Track Alias = 2
   Group ID = 0
   Subgroup ID = 0
