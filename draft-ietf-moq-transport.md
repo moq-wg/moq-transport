@@ -265,12 +265,6 @@ x (L) ...:
 
 This document extends the RFC9000 syntax and with the additional field types:
 
-x (b):
-
-: Indicates that x consists of a variable length integer encoding as
-  described in ({{?RFC9000, Section 16}}), followed by that many bytes
-  of binary data
-
 x (tuple):
 
 : Indicates that x is a tuple, consisting of a variable length integer encoded
