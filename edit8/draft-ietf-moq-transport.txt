@@ -5,13 +5,13 @@
 Media Over QUIC                                                L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 28 August 2025                                             Meta
+Expires: 29 August 2025                                             Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                        24 February 2025
+                                                        25 February 2025
 
 
                        Media over QUIC Transport
@@ -59,7 +59,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 28 August 2025.
+   This Internet-Draft will expire on 29 August 2025.
 
 Copyright Notice
 
@@ -102,7 +102,7 @@ Table of Contents
      3.4.  Stream Cancellation
      3.5.  Termination
      3.6.  Migration
-   4.  Track Discovery and Retrieval (#track-discovery}
+   4.  Track Discovery and Retrieval
      4.1.  SUBSCRIBE_ANNOUNCES
      4.2.  ANNOUNCE
      4.3.  SUBSCRIBE/FETCH
@@ -393,10 +393,9 @@ Table of Contents
    delivered using at least as many streams as there are Subgroups,
    typically with a one-to-one mapping between Subgroups and streams.
 
-   When a Track's forwarding preference (see Section 8.1.1) is "Track"
-   or "Datagram", Objects are not sent in Subgroups, no Subgroup IDs are
-   assigned, and the description in the remainder of this section does
-   not apply.
+   When a Track's forwarding preference (see Section 8.1.1) is
+   "Datagram", Objects are not sent in Subgroups and the description in
+   the remainder of this section does not apply.
 
    Streams offer in-order reliable delivery and the ability to cancel
    sending and retransmission of data.  Furthermore, many
@@ -445,8 +444,6 @@ Table of Contents
    latest group(s).  The publisher then selectively transmits objects
    based on their group membership.  Groups can contain any number of
    objects.
-
-   Groups are ordered numerically by their Group ID.
 
 2.4.  Track
 
@@ -526,8 +523,8 @@ Table of Contents
    A MOQT server that is accessible via WebTransport can be identified
    using an HTTPS URI ([RFC9110], Section 4.2.2).  A MOQT session can be
    established by sending an extended CONNECT request to the host and
-   the path indicated by the URI, as described in [WebTransport],
-   Section 3.
+   the path indicated by the URI, as described in ([WebTransport],
+   Section 3).
 
 3.1.2.  QUIC
 
@@ -708,7 +705,7 @@ Table of Contents
    'GOAWAY Timeout' if the client doesn't close the session quickly
    enough.
 
-4.  Track Discovery and Retrieval (#track-discovery}
+4.  Track Discovery and Retrieval
 
    Discovery of MoQT servers is always done out-of-band.  Namespace
    discovery can be done in the context of an established MoQT session.
@@ -733,12 +730,11 @@ Table of Contents
    subscriber SHOULD close the session with a protocol error if it
    detects receiving more than one.
 
-   The receiver of a SUBSCRIBE_NAMESPACES_OK or
-   SUBSCRIBE_NAMESPACES_ERROR ought to forward the result to the
-   application, so that it can make decisions about further publishers
-   to contact.
+   The receiver of a SUBSCRIBE_ANNOUNCES_OK or SUBSCRIBE_ANNOUNCES_ERROR
+   ought to forward the result to the application, so that it can make
+   decisions about further publishers to contact.
 
-   An UNSUBSCRIBE_NAMESPACES withdraws a previous SUBSCRIBE_NAMESPACES.
+   An UNSUBSCRIBE_ANNOUNCES withdraws a previous SUBSCRIBE_ANNOUNCES.
    It does not prohibit the receiver (publisher) from sending further
    ANNOUNCE messages.
 
@@ -2504,8 +2500,8 @@ Table of Contents
       priority for the Object Section 5.
 
    *  Object Forwarding Preference: An enumeration indicating how a
-      publisher sends an object.  The preferences are Track, Subgroup,
-      and Datagram.  An Object MUST be sent according to its Object
+      publisher sends an object.  The preferences are Subgroup and
+      Datagram.  An Object MUST be sent according to its Object
       Forwarding Preference, described below.
 
    *  Subgroup ID: The object is a member of the indicated subgroup ID
