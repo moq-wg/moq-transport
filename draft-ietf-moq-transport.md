@@ -2350,8 +2350,8 @@ Track or Datagram.
 * Object Status: As enumeration used to indicate missing
 objects or mark the end of a group or track. See {{object-status}} below.
 
-* Object Extension Count: The number of Object Extensions present. A value of 0
-  indicates that no Object Extension Headers are present.
+* Object Extension Size: The total size of the Object Extension Headers block,
+  in bytes.
 
 * Object Extensions : A sequence of Object Extension Headers. See
   {{object-extensions}} below.
@@ -2455,7 +2455,7 @@ OBJECT_DATAGRAM {
   Group ID (i),
   Object ID (i),
   Publisher Priority (8),
-  Extension Count (i),
+  Extension Headers Size (i),
   [Extension headers (...)],
   Object Payload Length (i),
   [Object Status (i)],
@@ -2523,7 +2523,7 @@ The Object Status field is only sent if the Object Payload Length is zero.
 ~~~
 {
   Object ID (i),
-  Extension Count (i),
+  Extension Headers Size (i),
   [Extension headers (...)],
   Object Payload Length (i),
   [Object Status (i)],
@@ -2627,7 +2627,7 @@ Each object sent on a fetch stream after the FETCH_HEADER has the following form
   Subgroup ID (i),
   Object ID (i),
   Publisher Priority (8),
-  Extension Count (i),
+  Extension Headers Size (i),
   [Extension headers (...)],
   Object Payload Length (i),
   [Object Status (i)],
@@ -2680,7 +2680,7 @@ STREAM_HEADER_GROUP {
 }
 {
   Object ID = 0
-  Extension Count  = 2
+  Extension Headers Size = 33
     { Type = 4
       Value = 2186796243
     },
