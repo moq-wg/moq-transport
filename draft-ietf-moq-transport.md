@@ -327,8 +327,8 @@ stream and are sent on a single stream whenever possible. A Group is delivered
 using at least as many streams as there are Subgroups,
 typically with a one-to-one mapping between Subgroups and streams.
 
-When a Track's forwarding preference (see {{object-fields}}) is "Track" or
-"Datagram", Objects are not sent in Subgroups, no Subgroup IDs are assigned, and the
+When a Track's forwarding preference (see {{object-fields}}) is
+"Datagram", Objects are not sent in Subgroups and the
 description in the remainder of this section does not apply.
 
 Streams offer in-order reliable delivery and the ability to cancel sending
@@ -373,7 +373,6 @@ subscriber that does not want to receive the entire track can opt to receive onl
 the latest group(s).  The publisher then selectively transmits objects based on
 their group membership.  Groups can contain any number of objects.
 
-Groups are ordered numerically by their Group ID.
 
 ## Track {#model-track}
 
@@ -451,7 +450,8 @@ another protocol when QUIC or WebTransport aren't available.
 A MOQT server that is accessible via WebTransport can be identified
 using an HTTPS URI ({{!RFC9110, Section 4.2.2}}).  A MOQT session can be
 established by sending an extended CONNECT request to the host and the
-path indicated by the URI, as described in {{WebTransport, Section 3}}.
+path indicated by the URI, as described in
+({{WebTransport, Section 3}}).
 
 ### QUIC
 
@@ -621,7 +621,7 @@ and announcements. The client can choose to delay closing the session if it
 expects more OBJECTs to be delivered. The server closes the session with a
 'GOAWAY Timeout' if the client doesn't close the session quickly enough.
 
-# Track Discovery and Retrieval (#track-discovery}
+# Track Discovery and Retrieval {#track-discovery}
 
 Discovery of MoQT servers is always done out-of-band. Namespace discovery can be
 done in the context of an established MoQT session.
@@ -646,11 +646,11 @@ SUBSCRIBE_ANNOUNCES_ERROR in response to a SUBSCRIBE_ANNOUNCES. The subscriber
 SHOULD close the session with a protocol error if it detects receiving more than
 one.
 
-The receiver of a SUBSCRIBE_NAMESPACES_OK or SUBSCRIBE_NAMESPACES_ERROR ought to
+The receiver of a SUBSCRIBE_ANNOUNCES_OK or SUBSCRIBE_ANNOUNCES_ERROR ought to
 forward the result to the application, so that it can make decisions about
 further publishers to contact.
 
-An UNSUBSCRIBE_NAMESPACES withdraws a previous SUBSCRIBE_NAMESPACES. It does
+An UNSUBSCRIBE_ANNOUNCES withdraws a previous SUBSCRIBE_ANNOUNCES. It does
 not prohibit the receiver (publisher) from sending further ANNOUNCE messages.
 
 ## ANNOUNCE
@@ -2334,7 +2334,7 @@ group.
 the Object {{priorities}}.
 
 * Object Forwarding Preference: An enumeration indicating how a publisher sends
-an object. The preferences are Track, Subgroup, and Datagram.  An Object
+an object. The preferences are Subgroup and Datagram.  An Object
 MUST be sent according to its `Object Forwarding Preference`, described below.
 
 * Subgroup ID: The object is a member of the indicated subgroup ID ({{model-subgroup}})
