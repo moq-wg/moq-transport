@@ -879,7 +879,7 @@ even and odd frames on separate sub groups to do temporal scalability,
 the stream carrying one of those sub groups will see the objectID
 incrementing by more than one from one object in the stream to the next.
 Limited bandwidth upstream of the relay, combined with object delivery
-timeouts, may result in some of the objected never being delivered.
+timeouts, may result in some of the objects never being delivered.
 Object being delivered over unreliable datagrams can loose objects and
 have out of order reception.
 
