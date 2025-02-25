@@ -457,7 +457,8 @@ another protocol when QUIC or WebTransport aren't available.
 A MOQT server that is accessible via WebTransport can be identified
 using an HTTPS URI ({{!RFC9110, Section 4.2.2}}).  A MOQT session can be
 established by sending an extended CONNECT request to the host and the
-path indicated by the URI, as described in {{WebTransport, Section 3}}.
+path indicated by the URI, as described in
+({{WebTransport, Section 3}}).
 
 ### QUIC
 
