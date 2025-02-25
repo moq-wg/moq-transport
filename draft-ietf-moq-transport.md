@@ -628,7 +628,7 @@ and announcements. The client can choose to delay closing the session if it
 expects more OBJECTs to be delivered. The server closes the session with a
 'GOAWAY Timeout' if the client doesn't close the session quickly enough.
 
-# Track Discovery and Retrieval (#track-discovery}
+# Track Discovery and Retrieval {#track-discovery}
 
 Discovery of MoQT servers is always done out-of-band. Namespace discovery can be
 done in the context of an established MoQT session.
