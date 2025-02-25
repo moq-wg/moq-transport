@@ -379,7 +379,6 @@ subscriber that does not want to receive the entire track can opt to receive onl
 the latest group(s).  The publisher then selectively transmits objects based on
 their group membership.  Groups can contain any number of objects.
 
-Groups are ordered numerically by their Group ID.
 
 ## Track {#model-track}
 
