@@ -5,13 +5,13 @@
 Media Over QUIC                                                L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 28 August 2025                                             Meta
+Expires: 29 August 2025                                             Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                        24 February 2025
+                                                        25 February 2025
 
 
                        Media over QUIC Transport
@@ -59,7 +59,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 28 August 2025.
+   This Internet-Draft will expire on 29 August 2025.
 
 Copyright Notice
 
@@ -102,7 +102,7 @@ Table of Contents
      3.4.  Stream Cancellation
      3.5.  Termination
      3.6.  Migration
-   4.  Track Discovery and Retrieval (#track-discovery}
+   4.  Track Discovery and Retrieval
      4.1.  SUBSCRIBE_ANNOUNCES
      4.2.  ANNOUNCE
      4.3.  SUBSCRIBE/FETCH
@@ -708,7 +708,7 @@ Table of Contents
    'GOAWAY Timeout' if the client doesn't close the session quickly
    enough.
 
-4.  Track Discovery and Retrieval (#track-discovery}
+4.  Track Discovery and Retrieval
 
    Discovery of MoQT servers is always done out-of-band.  Namespace
    discovery can be done in the context of an established MoQT session.
