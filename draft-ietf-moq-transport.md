@@ -333,8 +333,8 @@ stream and are sent on a single stream whenever possible. A Group is delivered
 using at least as many streams as there are Subgroups,
 typically with a one-to-one mapping between Subgroups and streams.
 
-When a Track's forwarding preference (see {{object-fields}}) is "Track" or
-"Datagram", Objects are not sent in Subgroups, no Subgroup IDs are assigned, and the
+When a Track's forwarding preference (see {{object-fields}}) is
+"Datagram", Objects are not sent in Subgroups and the
 description in the remainder of this section does not apply.
 
 Streams offer in-order reliable delivery and the ability to cancel sending
@@ -2340,7 +2340,7 @@ group.
 the Object {{priorities}}.
 
 * Object Forwarding Preference: An enumeration indicating how a publisher sends
-an object. The preferences are Track, Subgroup, and Datagram.  An Object
+an object. The preferences are Subgroup and Datagram.  An Object
 MUST be sent according to its `Object Forwarding Preference`, described below.
 
 * Subgroup ID: The object is a member of the indicated subgroup ID ({{model-subgroup}})
