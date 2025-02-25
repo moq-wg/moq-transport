@@ -263,21 +263,6 @@ x (L) ...:
 : Indicates that x is repeated zero or more times and that each instance
   has a length of L
 
-This document extends the RFC9000 syntax and with the additional field types:
-
-x (b):
-
-: Indicates that x consists of a variable length integer encoding as
-  described in ({{?RFC9000, Section 16}}), followed by that many bytes
-  of binary data
-
-x (tuple):
-
-: Indicates that x is a tuple, consisting of a variable length integer encoded
-  as described in ({{?RFC9000, Section 16}}), followed by that many variable
-  length tuple fields, each of which are encoded as (b) above.
-
-
 To reduce unnecessary use of bandwidth, variable length integers SHOULD
 be encoded using the least number of bytes possible to represent the
 required value.
@@ -390,28 +375,71 @@ active.
 
 ### Track Naming and Scopes {#track-name}
 
-In MOQT, every track has a track name and a track namespace associated
-with it.  A track name identifies an individual track within the
-namespace.
+In MOQT, every track is associated with a track name and track namespace. A
+track name is a byte sequence that identifies an individual track within the
+track namespace. The Track Namespace is a list of byte sequence entries.
 
-Track namespace is an ordered N-tuple of bytes where N can be between 1 and 32.
-The structured nature of Track Namespace allows relays and applications to
-manipulate prefixes of a namespace. Track name is a sequence of bytes.
-If an endpoint receives a Track Namespace tuple with an N of 0 or more
-than 32, it MUST close the session with a Protocol Violation.
+~~~
+Track Namespace Entry {
+  Length (i),
+  Value (..),
+}
+~~~
+{: #moq-transport-track-namespace-entry-format title="Track Namespace Entry"}
 
-In this specification, both the Track Namespace tuple fields and the Track Name
-are not constrained to a specific encoding. They carry a sequence of bytes and
-comparison between two Track Namespace tuple fields or Track Names is done by
-exact comparison of the bytes. Specifications that use MoQ Transport may
-constrain the information in these fields, for example by restricting them to
-UTF-8. Any specification that does needs to specify the canonicalization into
-the bytes in the Track Namespace or Track Name such that exact comparison works.
+* Length: A variable-length integer specifying the length of Value in bytes.
+
+* Value: A byte sequence with no specific encoding.
+
+~~~
+Track Namespace {
+  Track Namespace Entry Count (i),
+  Track Namespace Entry (..) ...,
+}
+~~~
+{: #moq-transport-track-namespace-format title="Track Namespace Format"}
+
+* Track Namespace Entry Count: A variable-length integer specifying the number
+  of entries in the namespace. The minimum number of entries is 1, the maximum
+  is 32. Receiving any other value MUST be treated as an error and the recipient
+  MUST close the session with a Protocol Violation.
+
+* Track Namespace Entry: A namespace entry, as defined above.
+
+A Track Namespace Prefix is a list of byte sequence entries. It is used for
+matching different Track Namespaces based on a prefix. For example, if two are
+two Track Namespaces of ("example.com", "meeting=123", "participant=100") and
+("example.com", "meeting=123", "participant=200") the Track Namespace Prefix
+("example.com", "meeting=123")would match both.
+
+~~~
+Track Namespace Prefix {
+  Track Namespace Prefix Entry Count (i),
+  Track Namespace Entry (..) ...,
+}
+~~~
+{: #moq-transport-track-namespace-prefix-format title="Track Namespace Prefix Format"}
+
+* Track Namespace Prefix Entry Count: A variable-length integer specifying the
+  number of entries in the namespace prefix . The minimum number of entries is
+  1, the maximum is 32. Receiving any other value MUST be treated as an error
+  and the recipient MUST close the session with a Protocol Violation.
+
+* Track Namespace Entry: A namespace entry, as defined above.
+
+In this specification, there is no constraint on the specific encoding for Track
+Name, Track Namespace entries, or Track Namespace Prefix entries. Comparisons
+between two Track Names, two Track Namespace entries, two Track Namespace Prefix
+entries is done by exact comparison of bytes sequences. Specifications that
+use MoQ Transport may constrain the information in these fields, for example by
+restricting them to UTF-8. Any specification that does needs to specify the
+canonicalization into the bytes in the Track Namespace or Track Name such that
+exact comparison works.
 
 ### Scope {#track-scope}
 
 A MOQT scope is a set of servers (as identified by their connection
-URIs) for which the tuple of Track Name and Track Namespace are
+URIs) for which the combination of Track Name and Track Namespace are
 guaranteed to be unique and identify a specific track. It is up to
 the application using MOQT to define how broad or narrow the scope is.
 An application that deals with connections between devices
@@ -419,7 +447,7 @@ on a local network may limit the scope to a single connection; by
 contrast, an application that uses multiple CDNs to serve media may
 require the scope to include all of those CDNs.
 
-Because the tuple of Track Namespace and Track Name are unique within an
+Because the combination of Track Namespace and Track Name are unique within an
 MOQT scope, they can be used as a cache key.
 MOQT does not provide any in-band content negotiation methods similar to
 the ones defined by HTTP ({{?RFC9110, Section 10}}); if, at a given
@@ -1325,7 +1353,7 @@ SUBSCRIBE Message {
   Length (i),
   Subscribe ID (i),
   Track Alias (i),
-  Track Namespace (tuple),
+  Track Namespace (..),
   Track Name Length (i),
   Track Name (..),
   Subscriber Priority (8),
@@ -1515,7 +1543,7 @@ FETCH Message {
   Subscriber Priority (8),
   Group Order (8),
   Fetch Type (i),
-  [Track Namespace (tuple),
+  [Track Namespace (..),
    Track Name Length (i),
    Track Name (..),
    StartGroup (i),
@@ -1641,13 +1669,13 @@ ANNOUNCE_OK Message
 {
   Type (i) = 0x7,
   Length (i),
-  Track Namespace (tuple),
+  Track Namespace (..),
 }
 ~~~
 {: #moq-transport-announce-ok format title="MOQT ANNOUNCE_OK Message"}
 
-* Track Namespace: Identifies the track namespace in the ANNOUNCE
-message for which this response is provided.
+* Track Namespace: Identifies the track namespace ( as defined in
+{{track-name}})) in the ANNOUNCE message for which this response is provided.
 
 ## ANNOUNCE_ERROR {#message-announce-error}
 
@@ -1659,7 +1687,7 @@ ANNOUNCE_ERROR Message
 {
   Type (i) = 0x8,
   Length (i),
-  Track Namespace (tuple),
+  Track Namespace (..),
   Error Code (i),
   Reason Phrase Length (i),
   Reason Phrase (..),
@@ -1667,8 +1695,8 @@ ANNOUNCE_ERROR Message
 ~~~
 {: #moq-transport-announce-error format title="MOQT ANNOUNCE_ERROR Message"}
 
-* Track Namespace: Identifies the track namespace in the ANNOUNCE
-message for which this response is provided.
+* Track Namespace: Identifies the track namespace (as defined in
+{{track-name}})in the ANNOUNCE message for which this response is provided.
 
 * Error Code: Identifies an integer error code for announcement failure.
 
@@ -1701,7 +1729,7 @@ within the provided Track Namespace.
 ANNOUNCE_CANCEL Message {
   Type (i) = 0xC,
   Length (i),
-  Track Namespace (tuple),
+  Track Namespace (..),
   Error Code (i),
   Reason Phrase Length (i),
   Reason Phrase Length (..),
@@ -1728,12 +1756,15 @@ A TRACK_STATUS message MUST be sent in response to each TRACK_STATUS_REQUEST.
 TRACK_STATUS_REQUEST Message {
   Type (i) = 0xD,
   Length (i),
-  Track Namespace (tuple),
+  Track Namespace (..),
   Track Name Length (i),
   Track Name (..),
 }
 ~~~
 {: #moq-track-status-request-format title="MOQT TRACK_STATUS_REQUEST Message"}
+
+* Track Name and Track Namespace: identify track name and namespace as defined in
+({{track-name}})
 
 ## SUBSCRIBE_ANNOUNCES {#message-subscribe-ns}
 
@@ -1745,21 +1776,14 @@ to the set.
 SUBSCRIBE_ANNOUNCES Message {
   Type (i) = 0x11,
   Length (i),
-  Track Namespace Prefix (tuple),
+  Track Namespace Prefix (..),
   Number of Parameters (i),
   Parameters (..) ...,
 }
 ~~~
 {: #moq-transport-subscribe-ns-format title="MOQT SUBSCRIBE_ANNOUNCES Message"}
 
-* Track Namespace Prefix: An ordered N-Tuple of byte fields which are matched
-against track namespaces known to the publisher.  For example, if the publisher
-is a relay that has received ANNOUNCE messages for namespaces ("example.com",
-"meeting=123", "participant=100") and ("example.com", "meeting=123",
-"participant=200"), a SUBSCRIBE_ANNOUNCES for ("example.com", "meeting=123")
-would match both.  If an endpoint receives a Track Namespace Prefix tuple with
-an N of 0 or more than 32, it MUST close the session with a Protocol
-Violation.
+* Track Namespace Prefix: As defined in {{track-name}}.
 
 * Parameters: The parameters are defined in {{version-specific-params}}.
 
@@ -1795,12 +1819,12 @@ The format of `UNSUBSCRIBE_ANNOUNCES` is as follows:
 UNSUBSCRIBE_ANNOUNCES Message {
   Type (i) = 0x14,
   Length (i),
-  Track Namespace Prefix (tuple)
+  Track Namespace Prefix (..)
 }
 ~~~
 {: #moq-transport-unsub-ann-format title="MOQT UNSUBSCRIBE Message"}
 
-* Track Namespace Prefix: As defined in {{message-subscribe-ns}}.
+* Track Namespace Prefix: As defined in {{track-name}}.
 
 ## SUBSCRIBE_OK {#message-subscribe-ok}
 
@@ -2129,7 +2153,7 @@ publish tracks under this namespace.
 ANNOUNCE Message {
   Type (i) = 0x6,
   Length (i),
-  Track Namespace (tuple),
+  Track Namespace (..),
   Number of Parameters (i),
   Parameters (..) ...,
 }
@@ -2152,7 +2176,7 @@ within the provided Track Namespace.
 UNANNOUNCE Message {
   Type (i) = 0x9,
   Length (i),
-  Track Namespace (tuple),
+  Track Namespace (..),
 }
 ~~~
 {: #moq-transport-unannounce-format title="MOQT UNANNOUNCE Message"}
@@ -2170,7 +2194,7 @@ to a TRACK_STATUS_REQUEST message.
 TRACK_STATUS Message {
   Type (i) = 0xE,
   Length (i),
-  Track Namespace (tuple),
+  Track Namespace (..),
   Track Name Length(i),
   Track Name (..),
   Status Code (i),
@@ -2179,6 +2203,9 @@ TRACK_STATUS Message {
 }
 ~~~
 {: #moq-track-status-format title="MOQT TRACK_STATUS Message"}
+
+* Track Namespace: Identifies a track's namespace as defined in
+({{track-name}})
 
 The 'Status Code' field provides additional information about the status of the
 track. It MUST hold one of the following values. Any other value is a malformed
@@ -2226,13 +2253,13 @@ SUBSCRIBE_ANNOUNCES_OK
 {
   Type (i) = 0x12,
   Length (i),
-  Track Namespace Prefix (tuple),
+  Track Namespace Prefix (..),
 }
 ~~~
 {: #moq-transport-sub-ann-ok format title="MOQT SUBSCRIBE_ANNOUNCES_OK
 Message"}
 
-* Track Namespace Prefix: As defined in {{message-subscribe-ns}}.
+* Track Namespace Prefix: As defined in {{track-name}}.
 
 ## SUBSCRIBE_ANNOUNCES_ERROR {#message-sub-ann-error}
 
@@ -2244,7 +2271,7 @@ SUBSCRIBE_ANNOUNCES_ERROR
 {
   Type (i) = 0x13,
   Length (i),
-  Track Namespace Prefix (tuple),
+  Track Namespace Prefix (..),
   Error Code (i),
   Reason Phrase Length (i),
   Reason Phrase (..),
@@ -2253,7 +2280,7 @@ SUBSCRIBE_ANNOUNCES_ERROR
 {: #moq-transport-sub-ann-error format
 title="MOQT SUBSCRIBE_ANNOUNCES_ERROR Message"}
 
-* Track Namespace Prefix: As defined in {{message-subscribe-ns}}.
+* Track Namespace Prefix: As defined in {{track-name}}.
 
 * Error Code: Identifies an integer error code for the namespace subscription
 failure.
