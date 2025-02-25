@@ -730,12 +730,11 @@ Table of Contents
    subscriber SHOULD close the session with a protocol error if it
    detects receiving more than one.
 
-   The receiver of a SUBSCRIBE_NAMESPACES_OK or
-   SUBSCRIBE_NAMESPACES_ERROR ought to forward the result to the
-   application, so that it can make decisions about further publishers
-   to contact.
+   The receiver of a SUBSCRIBE_ANNOUNCES_OK or SUBSCRIBE_ANNOUNCES_ERROR
+   ought to forward the result to the application, so that it can make
+   decisions about further publishers to contact.
 
-   An UNSUBSCRIBE_NAMESPACES withdraws a previous SUBSCRIBE_NAMESPACES.
+   An UNSUBSCRIBE_ANNOUNCES withdraws a previous SUBSCRIBE_ANNOUNCES.
    It does not prohibit the receiver (publisher) from sending further
    ANNOUNCE messages.
 
