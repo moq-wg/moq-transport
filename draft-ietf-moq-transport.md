@@ -893,7 +893,7 @@ close but they will never get 1,5 then 3 on a stream.
 
 There are also cases where a publisher lost its connection to an
 upstream relay and then reconnects, in which case objects can be
-delivered on different streams to the downstream relay.  It is possible
+delivered on different streams to the other relay(s).  It is possible
 for a client doing scalable video to publish the base layer over
 cellular, and the enhancement layers over WiFi.  This could result in
 some relays getting the objects for both layers but other relays might
