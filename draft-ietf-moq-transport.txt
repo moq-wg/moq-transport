@@ -446,8 +446,6 @@ Table of Contents
    based on their group membership.  Groups can contain any number of
    objects.
 
-   Groups are ordered numerically by their Group ID.
-
 2.4.  Track
 
    A track is a sequence of groups (Section 2.3).  It is the entity
