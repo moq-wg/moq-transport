@@ -887,7 +887,7 @@ Subscribers (and relays) can assume that the objects received on a
 single QUIC stream are in the same order the original publisher intended
 in that sub group. For example, if the original publisher put objects
 with object ID 1,3,5,7 in the same subgroup, any receiver
-will get the object in the same order in the stream, if they are
+will get the objects in the same order in the stream, if they are
 received at all. So they might only get 1,3 and then have the stream
 close but they will never get 1,5 then 3 on a stream.
 
