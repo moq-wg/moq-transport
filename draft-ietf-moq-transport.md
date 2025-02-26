@@ -905,7 +905,7 @@ If there is no downstream congestion, groups are forwarded by a
 relay as soon as they are received. But as describe above, an 
 upstream failure might have group 3 arrive before group 2. The 
 rules in {{priorities}} are used to determine the order. If a 
-publisher chooses to send groups 30 then group 3, thoese rules 
+publisher chooses to send group 30 then group 3, those rules 
 will determine what happens. 
 
 Some applications might not use sequential group IDs or even 
