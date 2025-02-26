@@ -880,7 +880,7 @@ the stream carrying one of those sub groups will see the objectID
 incrementing by more than one from one object in the stream to the next.
 Limited bandwidth upstream of the relay, combined with object delivery
 timeouts, may result in some of the objects never being delivered.
-Object being delivered over unreliable datagrams can loose objects and
+Tracks being delivered over unreliable datagrams can lose objects and
 have out of order reception.
 
 Subscribers (and relays) can assume that the objects received on a
