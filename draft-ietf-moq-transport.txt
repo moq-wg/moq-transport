@@ -185,7 +185,7 @@ Table of Contents
    content is encoded, packaged, and mapped to MOQT objects, along with
    policies for discovery and subscription.
 
-   *  Section 2 describes the object model employed by MOQT.
+   *  Section 2 describes the data model employed by MOQT.
 
    *  Section 3 covers aspects of setting up a MOQT session.
 
