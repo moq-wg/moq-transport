@@ -112,7 +112,7 @@ Table of Contents
      5.3.  Considerations for Setting Priorities
    6.  Relays
      6.1.  Subscriber Interactions
-       6.1.1.  Graceful Publisher Relay Switchover
+       6.1.1.  Graceful Subscriber Relay Switchover
      6.2.  Publisher Interactions
        6.2.1.  Graceful Publisher Network Switchover
        6.2.2.  Graceful Publisher Relay Switchover
@@ -984,7 +984,7 @@ Table of Contents
    subscription request is cached and shared among the pending
    subscribers.
 
-6.1.1.  Graceful Publisher Relay Switchover
+6.1.1.  Graceful Subscriber Relay Switchover
 
    This section describes behavior a subscriber MAY implement to allow
    for a better user experience when a relay sends a GOAWAY.

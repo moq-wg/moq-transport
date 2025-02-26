@@ -1298,7 +1298,7 @@ networks and is designed for high scale and low latency distribution.<a href="#s
                 <p id="section-toc.1-1.6.2.1.1"><a href="#section-6.1" class="auto internal xref">6.1</a>.  <a href="#name-subscriber-interactions" class="internal xref">Subscriber Interactions</a></p>
 <ul class="compact toc ulBare ulEmpty">
 <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.1.2.1">
-                    <p id="section-toc.1-1.6.2.1.2.1.1"><a href="#section-6.1.1" class="auto internal xref">6.1.1</a>.  <a href="#name-graceful-publisher-relay-sw" class="internal xref">Graceful Publisher Relay Switchover</a></p>
+                    <p id="section-toc.1-1.6.2.1.2.1.1"><a href="#section-6.1.1" class="auto internal xref">6.1.1</a>.  <a href="#name-graceful-subscriber-relay-s" class="internal xref">Graceful Subscriber Relay Switchover</a></p>
 </li>
                 </ul>
 </li>
@@ -1309,7 +1309,7 @@ networks and is designed for high scale and low latency distribution.<a href="#s
                     <p id="section-toc.1-1.6.2.2.2.1.1"><a href="#section-6.2.1" class="auto internal xref">6.2.1</a>.  <a href="#name-graceful-publisher-network-" class="internal xref">Graceful Publisher Network Switchover</a></p>
 </li>
                   <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.2.2.2">
-                    <p id="section-toc.1-1.6.2.2.2.2.1"><a href="#section-6.2.2" class="auto internal xref">6.2.2</a>.  <a href="#name-graceful-publisher-relay-swi" class="internal xref">Graceful Publisher Relay Switchover</a></p>
+                    <p id="section-toc.1-1.6.2.2.2.2.1"><a href="#section-6.2.2" class="auto internal xref">6.2.2</a>.  <a href="#name-graceful-publisher-relay-sw" class="internal xref">Graceful Publisher Relay Switchover</a></p>
 </li>
                 </ul>
 </li>
@@ -2460,10 +2460,10 @@ multiple subscribers request the same track. Subscription aggregation
 allows relays to make only a single upstream subscription for the
 track. The published content received from the upstream subscription
 request is cached and shared among the pending subscribers.<a href="#section-6.1-6" class="pilcrow">¶</a></p>
-<div id="graceful-publisher-relay-switchover">
+<div id="graceful-subscriber-relay-switchover">
 <section id="section-6.1.1">
-          <h4 id="name-graceful-publisher-relay-sw">
-<a href="#section-6.1.1" class="section-number selfRef">6.1.1. </a><a href="#name-graceful-publisher-relay-sw" class="section-name selfRef">Graceful Publisher Relay Switchover</a>
+          <h4 id="name-graceful-subscriber-relay-s">
+<a href="#section-6.1.1" class="section-number selfRef">6.1.1. </a><a href="#name-graceful-subscriber-relay-s" class="section-name selfRef">Graceful Subscriber Relay Switchover</a>
           </h4>
 <p id="section-6.1.1-1">This section describes behavior a subscriber <span class="bcp14">MAY</span> implement
 to allow for a better user experience when a relay sends a GOAWAY.<a href="#section-6.1.1-1" class="pilcrow">¶</a></p>
@@ -2538,10 +2538,10 @@ Ideally, the subscriptions downstream from the relay do no observe this
 change, and keep receiving the objects on the same subscription.<a href="#section-6.2.1-2" class="pilcrow">¶</a></p>
 </section>
 </div>
-<div id="graceful-publisher-relay-switchover-1">
+<div id="graceful-publisher-relay-switchover">
 <section id="section-6.2.2">
-          <h4 id="name-graceful-publisher-relay-swi">
-<a href="#section-6.2.2" class="section-number selfRef">6.2.2. </a><a href="#name-graceful-publisher-relay-swi" class="section-name selfRef">Graceful Publisher Relay Switchover</a>
+          <h4 id="name-graceful-publisher-relay-sw">
+<a href="#section-6.2.2" class="section-number selfRef">6.2.2. </a><a href="#name-graceful-publisher-relay-sw" class="section-name selfRef">Graceful Publisher Relay Switchover</a>
           </h4>
 <p id="section-6.2.2-1">This section describes behavior that a publisher <span class="bcp14">MAY</span> choose to implement
 to allow for a better user experience when a relay sends them a GOAWAY.<a href="#section-6.2.2-1" class="pilcrow">¶</a></p>
