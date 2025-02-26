@@ -1835,7 +1835,7 @@ Ascending (0x1) or Descending (0x2) order by group. See {{priorities}}.
 Values of 0x0 and those larger than 0x2 are a protocol error.
 
 * StartGroup: The resolved start Group of the subscription filter.
-This SHOULD be the same as the largest Group ID.
+This SHOULD be the same as the largest observed Group ID.
 
 * StartObject: The resolved start Object of the subscription filter.
 This SHOULD be one more than the the largest Object ID available within the
