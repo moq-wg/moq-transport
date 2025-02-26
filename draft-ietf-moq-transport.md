@@ -901,6 +901,24 @@ only see one of the layer.  These reasons can also impact whole groups
 and the relay cannot assume that it will receive all groups or that it
 will see all the earlier groups in the Track.
 
+If there is no downstram congestion, group are forwarded by a 
+relay as soon as they are received. But as describe above, an 
+upstream failure might have group 3 arrive before group 2. The 
+rules in {{priorities}} are used to determine the order. If a 
+publisher chooses to send groups 30 then group 3, thoese rules 
+will determine what happens. 
+
+Some applications might not use sequential group IDs or even 
+temporally ordered group IDs. These applications are unlikely to 
+use group ranges in fetch or subscribe filters. If they do, FETCH 
+and SUBSCRIBE work exactly the same as specified. If a FETCH for 
+groups 3 to 10 was done, and it returned groups 2, 3, and 7, it 
+means that the other groups do not exist. This information can be 
+cached and cannot be changed. It would not be allowed for group 5 
+to be published in the future. Applications that choose to 
+use non-sequential group numbers need to operate in a way 
+consistent with this. 
+
 
 ### Graceful Publisher Network Switchover
 
