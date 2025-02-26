@@ -5,13 +5,13 @@
 Media Over QUIC                                                L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 29 August 2025                                             Meta
+Expires: 30 August 2025                                             Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                        25 February 2025
+                                                        26 February 2025
 
 
                        Media over QUIC Transport
@@ -59,7 +59,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 29 August 2025.
+   This Internet-Draft will expire on 30 August 2025.
 
 Copyright Notice
 
@@ -883,9 +883,9 @@ Table of Contents
        is sent first.
 
    3.  If two objects have the same subscriber and publisher priority,
-       but belong to two different groups of the same track received,
-       *the group order* of the associated subscription is used to
-       decide the one that is sent first.
+       but belong to two different groups of the same track, *the group
+       order* of the associated subscription is used to decide the one
+       that is sent first.
 
    4.  If two objects belong to the same group of the same track, the
        one with *the lowest Subgroup ID* (for tracks with delivery
@@ -3003,9 +3003,9 @@ Informative References
    [I-D.ietf-webtrans-overview]
               Vasiliev, V., "The WebTransport Protocol Framework", Work
               in Progress, Internet-Draft, draft-ietf-webtrans-overview-
-              08, 25 August 2024,
+              09, 25 February 2025,
               <https://datatracker.ietf.org/doc/html/draft-ietf-
-              webtrans-overview-08>.
+              webtrans-overview-09>.
 
    [RFC9000]  Iyengar, J., Ed. and M. Thomson, Ed., "QUIC: A UDP-Based
               Multiplexed and Secure Transport", RFC 9000,
