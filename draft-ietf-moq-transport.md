@@ -1838,7 +1838,7 @@ Values of 0x0 and those larger than 0x2 are a protocol error.
 This SHOULD be the same as the largest observed Group ID.
 
 * StartObject: The resolved start Object of the subscription filter.
-This SHOULD be one more than the the largest Object ID available within the
+This SHOULD be one more than the the largest Object ID observed within the
 largest Group ID for this track.
 
 * Subscribe Parameters: The parameters are defined in {{version-specific-params}}.
