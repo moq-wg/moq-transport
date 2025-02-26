@@ -1294,9 +1294,9 @@ Latest Group (0x1) : Specifies an open-ended subscription with objects
 from the beginning of the current group.  If no content has been delivered yet,
 the subscription starts with the first published or received group.
 
-Latest Object (0x2): Specifies an open-ended subscription beginning from
-the current object of the current group.  If no content has been delivered yet,
-the subscription starts with the first published or received group.
+Latest Object (0x2): Specifies an open-ended subscription, beginning
+with the next published Object.  If no content has been delivered
+yet, the subscription starts with the first published or received group.
 
 AbsoluteStart (0x3):  Specifies an open-ended subscription beginning
 from the object identified in the StartGroup and StartObject fields. If the
@@ -1815,9 +1815,8 @@ SUBSCRIBE_OK
   Subscribe ID (i),
   Expires (i),
   Group Order (8),
-  ContentExists (8),
-  [Largest Group ID (i)],
-  [Largest Object ID (i)],
+  [StartGroup (i),
+   StartObject (i)],
   Number of Parameters (i),
   Subscribe Parameters (..) ...
 }
@@ -1835,16 +1834,12 @@ end prior to the expiry time or last longer.
 Ascending (0x1) or Descending (0x2) order by group. See {{priorities}}.
 Values of 0x0 and those larger than 0x2 are a protocol error.
 
-* ContentExists: 1 if an object has been published on this track, 0 if not.
-If 0, then the Largest Group ID and Largest Object ID fields will not be
-present. Any other value is a protocol error and MUST terminate the
-session with a Protocol Violation ({{session-termination}}).
+* StartGroup: The resolved start Group of the subscription filter.
+This SHOULD be the same as the largest Group ID.
 
-* Largest Group ID: The largest Group ID available for this track. This field
-is only present if ContentExists has a value of 1.
-
-* Largest Object ID: The largest Object ID available within the largest Group ID
-for this track. This field is only present if ContentExists has a value of 1.
+* StartObject: The resolved start Object of the subscription filter.
+This SHOULD be one more than the the largest Object ID available within the
+largest Group ID for this track.
 
 * Subscribe Parameters: The parameters are defined in {{version-specific-params}}.
 
