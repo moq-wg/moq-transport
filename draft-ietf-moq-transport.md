@@ -89,7 +89,7 @@ MoQ Streaming Formats. These MoQ Streaming Formats define how content is
 encoded, packaged, and mapped to MOQT objects, along with policies for
 discovery and subscription.
 
-* {{model}} describes the object model employed by MOQT.
+* {{model}} describes the data model employed by MOQT.
 
 * {{session}} covers aspects of setting up a MOQT session.
 
