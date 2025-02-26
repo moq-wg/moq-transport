@@ -263,6 +263,8 @@ Table of Contents
    BCP 14 [RFC2119] [RFC8174] when, and only when, they appear in all
    capitals, as shown here.
 
+   The following terms are used with the first letter capitalized.
+
    Client:  The party initiating a Transport Session.
 
    Server:  The party accepting an incoming Transport Session.
