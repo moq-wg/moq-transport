@@ -788,7 +788,7 @@ the objects SHOULD be selected as follows:
 1. If two objects have the same subscriber priority, but a different publisher
    priority, the one with **the highest publisher priority** is sent first.
 1. If two objects have the same subscriber and publisher priority, but belong
-   to two different groups of the same track received,
+   to two different groups of the same track,
    **the group order** of the associated subscription is used to
    decide the one that is sent first.
 1. If two objects belong to the same group of the same track,
