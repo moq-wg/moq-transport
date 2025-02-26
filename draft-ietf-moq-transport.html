@@ -4463,8 +4463,8 @@ Track or Datagram.<a href="#section-8.1.1-2.6.1" class="pilcrow">¶</a></p>
 objects or mark the end of a group or track. See <a href="#object-status" class="auto internal xref">Section 8.1.1.1</a> below.<a href="#section-8.1.1-2.7.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-8.1.1-2.8">
-              <p id="section-8.1.1-2.8.1">Object Extension Count: The number of Object Extensions present. A value of 0
-indicates that no Object Extension Headers are present.<a href="#section-8.1.1-2.8.1" class="pilcrow">¶</a></p>
+              <p id="section-8.1.1-2.8.1">Object Extension Length: The total length of the Object Extension Headers
+block, in bytes.<a href="#section-8.1.1-2.8.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-8.1.1-2.9">
               <p id="section-8.1.1-2.9.1">Object Extensions : A sequence of Object Extension Headers. See
@@ -4598,7 +4598,7 @@ OBJECT_DATAGRAM {
   Group ID (i),
   Object ID (i),
   Publisher Priority (8),
-  Extension Count (i),
+  Extension Headers Length (i),
   [Extension headers (...)],
   Object Payload Length (i),
   [Object Status (i)],
@@ -4688,7 +4688,7 @@ following fields.<a href="#section-8.4.1-4" class="pilcrow">¶</a></p>
 <pre>
 {
   Object ID (i),
-  Extension Count (i),
+  Extension Headers Length (i),
   [Extension headers (...)],
   Object Payload Length (i),
   [Object Status (i)],
@@ -4799,7 +4799,7 @@ FETCH_HEADER {
   Subgroup ID (i),
   Object ID (i),
   Publisher Priority (8),
-  Extension Count (i),
+  Extension Headers Length (i),
   [Extension headers (...)],
   Object Payload Length (i),
   [Object Status (i)],
@@ -4860,7 +4860,7 @@ STREAM_HEADER_GROUP {
 }
 {
   Object ID = 0
-  Extension Count  = 2
+  Extension Headers Length = 33
     { Type = 4
       Value = 2186796243
     },
