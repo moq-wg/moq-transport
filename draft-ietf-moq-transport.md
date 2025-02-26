@@ -881,7 +881,7 @@ allows relays to make only a single upstream subscription for the
 track. The published content received from the upstream subscription
 request is cached and shared among the pending subscribers.
 
-### Graceful Publisher Relay Switchover
+### Graceful Subscriber Relay Switchover
 
 This section describes behavior a subscriber MAY implement
 to allow for a better user experience when a relay sends a GOAWAY.
