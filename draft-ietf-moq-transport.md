@@ -873,7 +873,7 @@ and delivery timeout.
 Any real time system, which by definition has constraints on how late
 the data can be delivered, when running on the limited bandwidth
 internet, is not going to be able to guarantee delivery of everything
-but what is guaranteed is the order or object inside a stream if they
+but what is guaranteed is the order of objects inside a stream if they
 are delivered at all. In the case where the original publisher put the
 even and odd frames on separate sub groups to do temporal scalability,
 the stream carrying one of those sub groups will see the objectID
