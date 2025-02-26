@@ -161,6 +161,8 @@ remains opaque and private.
 
 {::boilerplate bcp14-tagged}
 
+The following terms are used with the first letter capitalized.
+
 Client:
 
 : The party initiating a Transport Session.
