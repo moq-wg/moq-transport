@@ -379,6 +379,11 @@ subscriber that does not want to receive the entire track can opt to receive onl
 the latest group(s).  The publisher then selectively transmits objects based on
 their group membership.  Groups can contain any number of objects.
 
+Groups are assigned integer Group IDs. Within a track, the original publisher
+MUST produce Group IDs which increase with time. Note that Groups delivered over
+different Subgroups or Datagrams might be received by the subscriber out of numeric
+Group ID order.
+
 
 ## Track {#model-track}
 
