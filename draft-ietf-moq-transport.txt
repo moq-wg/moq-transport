@@ -5,13 +5,13 @@
 Media Over QUIC                                                L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 29 August 2025                                             Meta
+Expires: 30 August 2025                                             Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                        25 February 2025
+                                                        26 February 2025
 
 
                        Media over QUIC Transport
@@ -59,7 +59,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 29 August 2025.
+   This Internet-Draft will expire on 30 August 2025.
 
 Copyright Notice
 
@@ -1399,21 +1399,14 @@ Table of Contents
    A subscription causes the publisher to send newly published objects
    for a track.  A subscriber MUST NOT make multiple active
    subscriptions for a track within a single session and publishers
-   SHOULD treat this as a protocol violation.  The only objects prior to
-   the current object that can be requested are those in the current
-   group.
+   SHOULD treat this as a protocol violation.
 
    *Filter Types*
 
    The subscriber specifies a filter on the subscription to allow the
    publisher to identify which objects need to be delivered.
 
-   There are 4 types of filters:
-
-   Latest Group (0x1) : Specifies an open-ended subscription with
-   objects from the beginning of the current group.  If no content has
-   been delivered yet, the subscription starts with the first published
-   or received group.
+   There are 3 types of filters:
 
    Latest Object (0x2): Specifies an open-ended subscription beginning
    from the current object of the current group.  If no content has been
@@ -3005,9 +2998,9 @@ Informative References
    [I-D.ietf-webtrans-overview]
               Vasiliev, V., "The WebTransport Protocol Framework", Work
               in Progress, Internet-Draft, draft-ietf-webtrans-overview-
-              08, 25 August 2024,
+              09, 25 February 2025,
               <https://datatracker.ietf.org/doc/html/draft-ietf-
-              webtrans-overview-08>.
+              webtrans-overview-09>.
 
    [RFC9000]  Iyengar, J., Ed. and M. Thomson, Ed., "QUIC: A UDP-Based
               Multiplexed and Secure Transport", RFC 9000,
