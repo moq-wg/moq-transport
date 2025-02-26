@@ -1980,7 +1980,7 @@ Table of Contents
       error.
 
    *  StartGroup: The resolved start Group of the subscription filter.
-      This SHOULD be the same as the largest Group ID.
+      This SHOULD be the same as the largest observed Group ID.
 
    *  StartObject: The resolved start Object of the subscription filter.
       This SHOULD be one more than the the largest Object ID available
