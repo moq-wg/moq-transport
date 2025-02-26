@@ -901,7 +901,7 @@ only see one of the layer.  These reasons can also impact whole groups
 and the relay cannot assume that it will receive all groups or that it
 will see all the earlier groups in the Track.
 
-If there is no downstram congestion, group are forwarded by a 
+If there is no downstream congestion, groups are forwarded by a 
 relay as soon as they are received. But as describe above, an 
 upstream failure might have group 3 arrive before group 2. The 
 rules in {{priorities}} are used to determine the order. If a 
