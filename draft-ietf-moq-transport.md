@@ -1296,7 +1296,7 @@ the subscription starts with the first published or received group.
 
 Latest Object (0x2): Specifies an open-ended subscription, beginning
 with the next published Object.  If no content has been delivered
-yet, the subscription starts with the first published or received group.
+yet, the subscription starts with the first published Object.
 
 AbsoluteStart (0x3):  Specifies an open-ended subscription beginning
 from the object identified in the StartGroup and StartObject fields. If the
