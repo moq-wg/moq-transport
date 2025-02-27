@@ -5,13 +5,13 @@
 Media Over QUIC                                                L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 30 August 2025                                             Meta
+Expires: 31 August 2025                                             Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                        26 February 2025
+                                                        27 February 2025
 
 
                        Media over QUIC Transport
@@ -59,7 +59,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 30 August 2025.
+   This Internet-Draft will expire on 31 August 2025.
 
 Copyright Notice
 
@@ -2618,8 +2618,6 @@ Table of Contents
      Publisher Priority (8),
      Extension Headers Length (i),
      [Extension headers (...)],
-     Object Payload Length (i),
-     [Object Status (i)],
      Object Payload (..),
    }
 
@@ -2638,6 +2636,8 @@ Table of Contents
      Group ID (i),
      Object ID (i),
      Publisher Priority (8),
+     Extension Headers Length (i),
+     [Extension headers (...)],
      Object Status (i),
    }
 
