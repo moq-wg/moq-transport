@@ -2453,8 +2453,6 @@ OBJECT_DATAGRAM {
   Publisher Priority (8),
   Extension Headers Length (i),
   [Extension headers (...)],
-  Object Payload Length (i),
-  [Object Status (i)],
   Object Payload (..),
 }
 ~~~
@@ -2474,6 +2472,8 @@ OBJECT_DATAGRAM_STATUS {
   Group ID (i),
   Object ID (i),
   Publisher Priority (8),
+  Extension Headers Length (i),
+  [Extension headers (...)],
   Object Status (i),
 }
 ~~~
