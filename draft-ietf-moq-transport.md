@@ -2032,7 +2032,6 @@ SUBSCRIBE_DONE Message {
 
 * Status Code: An integer status code indicating why the subscription ended.
 
-
 * Stream Count: An integer indicating the number of data streams the publisher
 opened for this subscription.  This helps the subscriber know if it has received
 all of the data published in this subscription by comparing the number of
