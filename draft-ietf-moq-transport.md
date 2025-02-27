@@ -942,6 +942,66 @@ the active subscribers for that track. Relays MUST forward OBJECT messages to
 matching subscribers in accordance to each subscription's priority, group order,
 and delivery timeout.
 
+Any real time system, which by definition has constraints on how late
+the data can be delivered, when running on the limited bandwidth
+internet, is not going to be able to guarantee delivery of everything
+but what is guaranteed is the order of objects inside a stream if they
+are delivered at all. In the case where the original publisher put the
+even and odd frames on separate sub groups to do temporal scalability,
+the stream carrying one of those sub groups will see the objectID
+incrementing by more than one from one object in the stream to the next.
+Limited bandwidth upstream of the relay, combined with object delivery
+timeouts, may result in some of the objects never being delivered.
+Tracks being delivered over unreliable datagrams can lose objects and
+have out of order reception.
+
+
+Within a track, the original publisher
+SHOULD produce Group IDs which increase with time.  Applications 
+which do not produce Group IDs which increase with time  
+SHOULD NOT use range filters in FETCH or SUBSCRIBE. 
+
+
+
+
+Subscribers (and relays) can assume that the objects received on a
+single QUIC stream are in the same order the original publisher intended
+in that sub group. For example, if the original publisher put objects
+with object ID 1,3,5,7 in the same subgroup, any receiver
+will get the objects in the same order in the stream, if they are
+received at all. So they might only get 1,3 and then have the stream
+close but they will never get 1,5 then 3 on a stream.
+
+There are also cases where a publisher lost its connection to an
+upstream relay and then reconnects, in which case objects can be
+delivered on different streams to the other relay(s).  It is possible
+for a client doing scalable video to publish the base layer over
+cellular, and the enhancement layers over WiFi.  This could result in
+some relays getting the objects for both layers but other relays might
+only see one of the layer.  These reasons can also impact whole groups
+and the relay cannot assume that it will receive all groups or that it
+will see all the earlier groups in the Track.
+
+If there is no downstream congestion, groups are forwarded by a 
+relay as soon as they are received. But as describe above, an 
+upstream failure might have group 3 arrive before group 2. The 
+rules in {{priorities}} are used to determine the order. If a 
+publisher chooses to send group 30 then group 3, those rules 
+will determine what happens. 
+ 3, and 7, it 
+means that the other groups
+Some applications might not use sequential group IDs or even
+temporally ordered group IDs. These applications are unlikely to
+use group ranges in fetch or subscribe filters. If they do, FETCH
+and SUBSCRIBE work exactly the same as specified. If a FETCH for
+groups 3 to 10 was done, and it returned groups 2, do not exist. 
+This information can be 
+cached and cannot be changed. It would not be allowed for group 5 
+to be published in the future. Applications that choose to 
+use non-sequential group numbers need to operate in a way 
+consistent with this. 
+
+
 ### Graceful Publisher Network Switchover
 
 This section describes behavior that a publisher MAY
