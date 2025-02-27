@@ -229,9 +229,7 @@ Object:
 
 Track:
 
-: An encoded bitstream. Tracks contain a sequential series of one or
-  more groups and are the subscribable entity with MOQT.
-  See ({{model-track}}).
+: A track is a collection of one or more groups. See ({{model-track}}).
 
 
 ## Notational Conventions
