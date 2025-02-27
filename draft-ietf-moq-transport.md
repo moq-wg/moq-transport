@@ -883,6 +883,15 @@ timeouts, may result in some of the objects never being delivered.
 Tracks being delivered over unreliable datagrams can lose objects and
 have out of order reception.
 
+
+Within a track, the original publisher
+SHOULD produce Group IDs which increase with time.  Applications 
+which do not produce Group IDs which increase with time  
+SHOULD NOT use range filters in FETCH or SUBSCRIBE. 
+
+
+
+
 Subscribers (and relays) can assume that the objects received on a
 single QUIC stream are in the same order the original publisher intended
 in that sub group. For example, if the original publisher put objects
@@ -907,13 +916,14 @@ upstream failure might have group 3 arrive before group 2. The
 rules in {{priorities}} are used to determine the order. If a 
 publisher chooses to send group 30 then group 3, those rules 
 will determine what happens. 
-
-Some applications might not use sequential group IDs or even 
-temporally ordered group IDs. These applications are unlikely to 
-use group ranges in fetch or subscribe filters. If they do, FETCH 
-and SUBSCRIBE work exactly the same as specified. If a FETCH for 
-groups 3 to 10 was done, and it returned groups 2, 3, and 7, it 
-means that the other groups do not exist. This information can be 
+ 3, and 7, it 
+means that the other groups
+Some applications might not use sequential group IDs or even
+temporally ordered group IDs. These applications are unlikely to
+use group ranges in fetch or subscribe filters. If they do, FETCH
+and SUBSCRIBE work exactly the same as specified. If a FETCH for
+groups 3 to 10 was done, and it returned groups 2, do not exist. 
+This information can be 
 cached and cannot be changed. It would not be allowed for group 5 
 to be published in the future. Applications that choose to 
 use non-sequential group numbers need to operate in a way 
