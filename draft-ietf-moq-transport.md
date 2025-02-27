@@ -1710,7 +1710,7 @@ ANNOUNCE_CANCEL Message {
 
 * Error Code: Identifies an integer error code for canceling the announcement.
 ANNOUNCE_CANCEL uses the same error codes as ANNOUNCE_ERROR
-({{#message-announce-error}}).
+({{message-announce-error}}).
 
 * Reason Phrase: Provides the reason for announcement cancelation.
 
