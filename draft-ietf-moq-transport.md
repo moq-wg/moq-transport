@@ -2363,7 +2363,8 @@ are beyond the end of a group or track.
 
 `Status` can have following values:
 
-* 0x0 := Normal object. The payload is array of bytes and can be empty.
+* 0x0 := Normal object. This status is implicit for any non-zero length object.
+         Zero-length objects explicitly encode the Normal status.
 
 * 0x1 := Indicates Object does not exist. Indicates that this object
          does not exist at any publisher and it will not be published in
