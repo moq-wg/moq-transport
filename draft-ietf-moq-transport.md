@@ -2032,9 +2032,20 @@ SUBSCRIBE_DONE Message {
 
 * Status Code: An integer status code indicating why the subscription ended.
 
+
 * Stream Count: An integer indicating the number of data streams the publisher
-opened for this subscription.  The subscriber can remove all subscription state
-once the same number of streams have been processed.
+opened for this subscription.  This helps the subscriber know if it has received
+all of the data published in this subscription by comparing the number of
+streams received.  The subscriber can immediately remove all subscription state
+once the same number of streams have been processed.  If the track had
+Forwarding Preference = Datagram, the publisher MUST set Stream Count to 0.  If
+the publisher is unable to set Stream Count to the exact number of streams
+opened for the subscription, it MUST set Stream Count to 2^62 - 1. Subscribers
+SHOULD use a timeout or other mechanism to remove subscription state in case
+the publisher set an incorrect value, reset a stream before the SUBGROUP_HEADER,
+or set the maximum value.  If a subscriber receives more streams for a
+subscription than specified in Stream Count, it MAY close the session with a
+Protocol Violation.
 
 * Reason Phrase: Provides the reason for subscription error.
 
