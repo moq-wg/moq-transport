@@ -644,8 +644,8 @@ The syntax of these messages is described in {{message}}.
 
 If the subscriber is aware of a namespace of interest, it can send
 SUBSCRIBE_ANNOUNCES to publishers/relays it has established a session with. The
-recipient of this message will send any relevant ANNOUNCE messages for that
-namespace, or subset of that namespace.
+recipient of this message will send any relevant ANNOUNCE or UNANNOUNCE messages
+for that namespace, or subset of that namespace.
 
 A publisher MUST send exactly one SUBSCRIBE_ANNOUNCES_OK or
 SUBSCRIBE_ANNOUNCES_ERROR in response to a SUBSCRIBE_ANNOUNCES. The subscriber
@@ -1298,10 +1298,11 @@ StartGroup is prior to the current group, the subscription starts at the
 beginning of the current object like the 'Latest Object' filter.
 
 AbsoluteRange (0x4):  Specifies a closed subscription starting at StartObject
-in StartGroup and ending at EndObject in EndGroup.  The start and end of the
-range are inclusive.  EndGroup MUST specify the same or a later group than
-StartGroup. If the StartGroup is prior to the current group, the subscription
-starts at the beginning of the current object like the 'Latest Object' filter.
+in StartGroup and ending at the largest object in EndGroup.  The start and
+end of the range are inclusive.  EndGroup MUST specify the same or a later
+group than StartGroup. If the StartGroup is prior to the current group, the
+subscription starts at the beginning of the current object like the 'Latest
+Object' filter.
 
 A filter type other than the above MUST be treated as error.
 
@@ -1707,6 +1708,8 @@ ANNOUNCE_CANCEL Message {
 ({{track-name}}).
 
 * Error Code: Identifies an integer error code for canceling the announcement.
+ANNOUNCE_CANCEL uses the same error codes as ANNOUNCE_ERROR
+({{message-announce-error}}).
 
 * Reason Phrase: Provides the reason for announcement cancelation.
 
@@ -2451,8 +2454,6 @@ OBJECT_DATAGRAM {
   Publisher Priority (8),
   Extension Headers Length (i),
   [Extension headers (...)],
-  Object Payload Length (i),
-  [Object Status (i)],
   Object Payload (..),
 }
 ~~~
@@ -2472,6 +2473,8 @@ OBJECT_DATAGRAM_STATUS {
   Group ID (i),
   Object ID (i),
   Publisher Priority (8),
+  Extension Headers Length (i),
+  [Extension headers (...)],
   Object Status (i),
 }
 ~~~
@@ -2650,11 +2653,13 @@ SUBGROUP_HEADER {
 }
 {
   Object ID = 0
+  Extension Headers Length = 0
   Object Payload Length = 4
   Payload = "abcd"
 }
 {
   Object ID = 1
+  Extension Headers Length = 0
   Object Payload Length = 4
   Payload = "efgh"
 }
@@ -2687,6 +2692,7 @@ STREAM_HEADER_GROUP {
 }
 {
   Object ID = 1
+  Extension Headers Length = 0
   Object Payload Length = 4
   Payload = "efgh"
 }
