@@ -2655,11 +2655,13 @@ SUBGROUP_HEADER {
 }
 {
   Object ID = 0
+  Extension Headers Length = 0
   Object Payload Length = 4
   Payload = "abcd"
 }
 {
   Object ID = 1
+  Extension Headers Length = 0
   Object Payload Length = 4
   Payload = "efgh"
 }
@@ -2692,6 +2694,7 @@ STREAM_HEADER_GROUP {
 }
 {
   Object ID = 1
+  Extension Headers Length = 0
   Object Payload Length = 4
   Payload = "efgh"
 }
