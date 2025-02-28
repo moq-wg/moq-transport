@@ -89,7 +89,7 @@ MoQ Streaming Formats. These MoQ Streaming Formats define how content is
 encoded, packaged, and mapped to MOQT objects, along with policies for
 discovery and subscription.
 
-* {{model}} describes the object model employed by MOQT.
+* {{model}} describes the data model employed by MOQT.
 
 * {{session}} covers aspects of setting up a MOQT session.
 
@@ -160,6 +160,8 @@ remains opaque and private.
 ## Terms and Definitions
 
 {::boilerplate bcp14-tagged}
+
+The following terms are used with the first letter capitalized.
 
 Client:
 
@@ -788,11 +790,11 @@ the objects SHOULD be selected as follows:
 1. If two objects have the same subscriber priority, but a different publisher
    priority, the one with **the highest publisher priority** is sent first.
 1. If two objects have the same subscriber and publisher priority, but belong
-   to two different groups of the same track received through the same
-   subscription, **the group order** of the associated subscription is used to
+   to two different groups of the same track,
+   **the group order** of the associated subscription is used to
    decide the one that is sent first.
-1. If two objects belong to the same group of the same track received through
-   the same subscription, the one with **the lowest Subgroup ID** (for tracks
+1. If two objects belong to the same group of the same track,
+   the one with **the lowest Subgroup ID** (for tracks
    with delivery preference Subgroup), or **the lowest Object ID** (for tracks
    with delivery preference Datagram) is sent first.
 
@@ -881,7 +883,7 @@ allows relays to make only a single upstream subscription for the
 track. The published content received from the upstream subscription
 request is cached and shared among the pending subscribers.
 
-### Graceful Publisher Relay Switchover
+### Graceful Subscriber Relay Switchover
 
 This section describes behavior a subscriber MAY implement
 to allow for a better user experience when a relay sends a GOAWAY.
@@ -1280,19 +1282,13 @@ GOAWAY Message {
 A subscription causes the publisher to send newly published objects for a track.
 A subscriber MUST NOT make multiple active subscriptions for a track within a
 single session and publishers SHOULD treat this as a protocol violation.
-The only objects prior to the current object that can be requested are those
-in the current group.
 
 **Filter Types**
 
 The subscriber specifies a filter on the subscription to allow
 the publisher to identify which objects need to be delivered.
 
-There are 4 types of filters:
-
-Latest Group (0x1) : Specifies an open-ended subscription with objects
-from the beginning of the current group.  If no content has been delivered yet,
-the subscription starts with the first published or received group.
+There are 3 types of filters:
 
 Latest Object (0x2): Specifies an open-ended subscription beginning from
 the current object of the current group.  If no content has been delivered yet,
@@ -1304,10 +1300,11 @@ StartGroup is prior to the current group, the subscription starts at the
 beginning of the current object like the 'Latest Object' filter.
 
 AbsoluteRange (0x4):  Specifies a closed subscription starting at StartObject
-in StartGroup and ending at EndObject in EndGroup.  The start and end of the
-range are inclusive.  EndGroup MUST specify the same or a later group than
-StartGroup. If the StartGroup is prior to the current group, the subscription
-starts at the beginning of the current object like the 'Latest Object' filter.
+in StartGroup and ending at the largest object in EndGroup.  The start and
+end of the range are inclusive.  EndGroup MUST specify the same or a later
+group than StartGroup. If the StartGroup is prior to the current group, the
+subscription starts at the beginning of the current object like the 'Latest
+Object' filter.
 
 A filter type other than the above MUST be treated as error.
 
@@ -1730,6 +1727,8 @@ ANNOUNCE_CANCEL Message {
 ({{track-name}}).
 
 * Error Code: Identifies an integer error code for canceling the announcement.
+ANNOUNCE_CANCEL uses the same error codes as ANNOUNCE_ERROR
+({{message-announce-error}}).
 
 * Reason Phrase: Provides the reason for announcement cancelation.
 
@@ -2367,8 +2366,8 @@ Track or Datagram.
 * Object Status: As enumeration used to indicate missing
 objects or mark the end of a group or track. See {{object-status}} below.
 
-* Object Extension Count: The number of Object Extensions present. A value of 0
-  indicates that no Object Extension Headers are present.
+* Object Extension Length: The total length of the Object Extension Headers
+  block, in bytes.
 
 * Object Extensions : A sequence of Object Extension Headers. See
   {{object-extensions}} below.
@@ -2472,10 +2471,8 @@ OBJECT_DATAGRAM {
   Group ID (i),
   Object ID (i),
   Publisher Priority (8),
-  Extension Count (i),
+  Extension Headers Length (i),
   [Extension headers (...)],
-  Object Payload Length (i),
-  [Object Status (i)],
   Object Payload (..),
 }
 ~~~
@@ -2495,6 +2492,8 @@ OBJECT_DATAGRAM_STATUS {
   Group ID (i),
   Object ID (i),
   Publisher Priority (8),
+  Extension Headers Length (i),
+  [Extension headers (...)],
   Object Status (i),
 }
 ~~~
@@ -2540,7 +2539,7 @@ The Object Status field is only sent if the Object Payload Length is zero.
 ~~~
 {
   Object ID (i),
-  Extension Count (i),
+  Extension Headers Length (i),
   [Extension headers (...)],
   Object Payload Length (i),
   [Object Status (i)],
@@ -2644,7 +2643,7 @@ Each object sent on a fetch stream after the FETCH_HEADER has the following form
   Subgroup ID (i),
   Object ID (i),
   Publisher Priority (8),
-  Extension Count (i),
+  Extension Headers Length (i),
   [Extension headers (...)],
   Object Payload Length (i),
   [Object Status (i)],
@@ -2673,11 +2672,13 @@ SUBGROUP_HEADER {
 }
 {
   Object ID = 0
+  Extension Headers Length = 0
   Object Payload Length = 4
   Payload = "abcd"
 }
 {
   Object ID = 1
+  Extension Headers Length = 0
   Object Payload Length = 4
   Payload = "efgh"
 }
@@ -2697,7 +2698,7 @@ STREAM_HEADER_GROUP {
 }
 {
   Object ID = 0
-  Extension Count  = 2
+  Extension Headers Length = 33
     { Type = 4
       Value = 2186796243
     },
@@ -2710,6 +2711,7 @@ STREAM_HEADER_GROUP {
 }
 {
   Object ID = 1
+  Extension Headers Length = 0
   Object Payload Length = 4
   Payload = "efgh"
 }
