@@ -229,7 +229,7 @@ Object:
 
 Track:
 
-: A track is a collection of one or more groups. See ({{model-track}}).
+: A track is a collection of groups. See ({{model-track}}).
 
 
 ## Notational Conventions
