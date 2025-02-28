@@ -2211,8 +2211,8 @@ publishers for a namespace.<a href="#section-4-2" class="pilcrow">¶</a></p>
         </h3>
 <p id="section-4.1-1">If the subscriber is aware of a namespace of interest, it can send
 SUBSCRIBE_ANNOUNCES to publishers/relays it has established a session with. The
-recipient of this message will send any relevant ANNOUNCE messages for that
-namespace, or subset of that namespace.<a href="#section-4.1-1" class="pilcrow">¶</a></p>
+recipient of this message will send any relevant ANNOUNCE or UNANNOUNCE messages
+for that namespace, or subset of that namespace.<a href="#section-4.1-1" class="pilcrow">¶</a></p>
 <p id="section-4.1-2">A publisher <span class="bcp14">MUST</span> send exactly one SUBSCRIBE_ANNOUNCES_OK or
 SUBSCRIBE_ANNOUNCES_ERROR in response to a SUBSCRIBE_ANNOUNCES. The subscriber
 <span class="bcp14">SHOULD</span> close the session with a protocol error if it detects receiving more than

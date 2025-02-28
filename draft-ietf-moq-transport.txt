@@ -725,7 +725,8 @@ Table of Contents
    If the subscriber is aware of a namespace of interest, it can send
    SUBSCRIBE_ANNOUNCES to publishers/relays it has established a session
    with.  The recipient of this message will send any relevant ANNOUNCE
-   messages for that namespace, or subset of that namespace.
+   or UNANNOUNCE messages for that namespace, or subset of that
+   namespace.
 
    A publisher MUST send exactly one SUBSCRIBE_ANNOUNCES_OK or
    SUBSCRIBE_ANNOUNCES_ERROR in response to a SUBSCRIBE_ANNOUNCES.  The
