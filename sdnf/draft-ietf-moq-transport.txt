@@ -112,7 +112,7 @@ Table of Contents
      5.3.  Considerations for Setting Priorities
    6.  Relays
      6.1.  Subscriber Interactions
-       6.1.1.  Graceful Publisher Relay Switchover
+       6.1.1.  Graceful Subscriber Relay Switchover
      6.2.  Publisher Interactions
        6.2.1.  Graceful Publisher Network Switchover
        6.2.2.  Graceful Publisher Relay Switchover
@@ -185,7 +185,7 @@ Table of Contents
    content is encoded, packaged, and mapped to MOQT objects, along with
    policies for discovery and subscription.
 
-   *  Section 2 describes the object model employed by MOQT.
+   *  Section 2 describes the data model employed by MOQT.
 
    *  Section 3 covers aspects of setting up a MOQT session.
 
@@ -262,6 +262,8 @@ Table of Contents
    "OPTIONAL" in this document are to be interpreted as described in
    BCP 14 [RFC2119] [RFC8174] when, and only when, they appear in all
    capitals, as shown here.
+
+   The following terms are used with the first letter capitalized.
 
    Client:  The party initiating a Transport Session.
 
@@ -883,16 +885,14 @@ Table of Contents
        is sent first.
 
    3.  If two objects have the same subscriber and publisher priority,
-       but belong to two different groups of the same track received
-       through the same subscription, *the group order* of the
-       associated subscription is used to decide the one that is sent
-       first.
+       but belong to two different groups of the same track, *the group
+       order* of the associated subscription is used to decide the one
+       that is sent first.
 
-   4.  If two objects belong to the same group of the same track
-       received through the same subscription, the one with *the lowest
-       Subgroup ID* (for tracks with delivery preference Subgroup), or
-       *the lowest Object ID* (for tracks with delivery preference
-       Datagram) is sent first.
+   4.  If two objects belong to the same group of the same track, the
+       one with *the lowest Subgroup ID* (for tracks with delivery
+       preference Subgroup), or *the lowest Object ID* (for tracks with
+       delivery preference Datagram) is sent first.
 
    This algorithm does not provide a well-defined ordering for objects
    that belong to different subscriptions, but have the same subscriber
@@ -984,7 +984,7 @@ Table of Contents
    subscription request is cached and shared among the pending
    subscribers.
 
-6.1.1.  Graceful Publisher Relay Switchover
+6.1.1.  Graceful Subscriber Relay Switchover
 
    This section describes behavior a subscriber MAY implement to allow
    for a better user experience when a relay sends a GOAWAY.
@@ -1399,21 +1399,14 @@ Table of Contents
    A subscription causes the publisher to send newly published objects
    for a track.  A subscriber MUST NOT make multiple active
    subscriptions for a track within a single session and publishers
-   SHOULD treat this as a protocol violation.  The only objects prior to
-   the current object that can be requested are those in the current
-   group.
+   SHOULD treat this as a protocol violation.
 
    *Filter Types*
 
    The subscriber specifies a filter on the subscription to allow the
    publisher to identify which objects need to be delivered.
 
-   There are 4 types of filters:
-
-   Latest Group (0x1) : Specifies an open-ended subscription with
-   objects from the beginning of the current group.  If no content has
-   been delivered yet, the subscription starts with the first published
-   or received group.
+   There are 3 types of filters:
 
    Latest Object (0x2): Specifies an open-ended subscription beginning
    from the current object of the current group.  If no content has been
@@ -1427,11 +1420,11 @@ Table of Contents
    Object' filter.
 
    AbsoluteRange (0x4): Specifies a closed subscription starting at
-   StartObject in StartGroup and ending at EndObject in EndGroup.  The
-   start and end of the range are inclusive.  EndGroup MUST specify the
-   same or a later group than StartGroup.  If the StartGroup is prior to
-   the current group, the subscription starts at the beginning of the
-   current object like the 'Latest Object' filter.
+   StartObject in StartGroup and ending at the largest object in
+   EndGroup.  The start and end of the range are inclusive.  EndGroup
+   MUST specify the same or a later group than StartGroup.  If the
+   StartGroup is prior to the current group, the subscription starts at
+   the beginning of the current object like the 'Latest Object' filter.
 
    A filter type other than the above MUST be treated as error.
 
@@ -1877,7 +1870,8 @@ Table of Contents
       (Section 2.4.1).
 
    *  Error Code: Identifies an integer error code for canceling the
-      announcement.
+      announcement.  ANNOUNCE_CANCEL uses the same error codes as
+      ANNOUNCE_ERROR (Section 7.10).
 
    *  Reason Phrase: Provides the reason for announcement cancelation.
 
@@ -2533,9 +2527,8 @@ Table of Contents
    *  Object Status: As enumeration used to indicate missing objects or
       mark the end of a group or track.  See Section 8.1.1.1 below.
 
-   *  Object Extension Count: The number of Object Extensions present.
-      A value of 0 indicates that no Object Extension Headers are
-      present.
+   *  Object Extension Length: The total length of the Object Extension
+      Headers block, in bytes.
 
    *  Object Extensions : A sequence of Object Extension Headers.  See
       Section 8.1.1.2 below.
@@ -2644,10 +2637,8 @@ Table of Contents
      Group ID (i),
      Object ID (i),
      Publisher Priority (8),
-     Extension Count (i),
+     Extension Headers Length (i),
      [Extension headers (...)],
-     Object Payload Length (i),
-     [Object Status (i)],
      Object Payload (..),
    }
 
@@ -2666,6 +2657,8 @@ Table of Contents
      Group ID (i),
      Object ID (i),
      Publisher Priority (8),
+     Extension Headers Length (i),
+     [Extension headers (...)],
      Object Status (i),
    }
 
@@ -2709,7 +2702,7 @@ Table of Contents
 
    {
      Object ID (i),
-     Extension Count (i),
+     Extension Headers Length (i),
      [Extension headers (...)],
      Object Payload Length (i),
      [Object Status (i)],
@@ -2822,7 +2815,7 @@ Table of Contents
      Subgroup ID (i),
      Object ID (i),
      Publisher Priority (8),
-     Extension Count (i),
+     Extension Headers Length (i),
      [Extension headers (...)],
      Object Payload Length (i),
      [Object Status (i)],
@@ -2851,11 +2844,13 @@ Table of Contents
    }
    {
      Object ID = 0
+     Extension Headers Length = 0
      Object Payload Length = 4
      Payload = "abcd"
    }
    {
      Object ID = 1
+     Extension Headers Length = 0
      Object Payload Length = 4
      Payload = "efgh"
    }
@@ -2873,7 +2868,7 @@ Table of Contents
    }
    {
      Object ID = 0
-     Extension Count  = 2
+     Extension Headers Length = 33
        { Type = 4
          Value = 2186796243
        },
@@ -2886,6 +2881,7 @@ Table of Contents
    }
    {
      Object ID = 1
+     Extension Headers Length = 0
      Object Payload Length = 4
      Payload = "efgh"
    }
