@@ -4498,7 +4498,8 @@ are beyond the end of a group or track.<a href="#section-8.1.1.1-1" class="pilcr
 <p id="section-8.1.1.1-2"><code>Status</code> can have following values:<a href="#section-8.1.1.1-2" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-8.1.1.1-3.1">
-                <p id="section-8.1.1.1-3.1.1">0x0 := Normal object. The payload is array of bytes and can be empty.<a href="#section-8.1.1.1-3.1.1" class="pilcrow">¶</a></p>
+                <p id="section-8.1.1.1-3.1.1">0x0 := Normal object. This status is implicit for any non-zero length object.
+       Zero-length objects explicitly encode the Normal status.<a href="#section-8.1.1.1-3.1.1" class="pilcrow">¶</a></p>
 </li>
               <li class="normal" id="section-8.1.1.1-3.2">
                 <p id="section-8.1.1.1-3.2.1">0x1 := Indicates Object does not exist. Indicates that this object
