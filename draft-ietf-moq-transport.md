@@ -1300,10 +1300,11 @@ StartGroup is prior to the current group, the subscription starts at the
 beginning of the current object like the 'Latest Object' filter.
 
 AbsoluteRange (0x4):  Specifies a closed subscription starting at StartObject
-in StartGroup and ending at EndObject in EndGroup.  The start and end of the
-range are inclusive.  EndGroup MUST specify the same or a later group than
-StartGroup. If the StartGroup is prior to the current group, the subscription
-starts at the beginning of the current object like the 'Latest Object' filter.
+in StartGroup and ending at the largest object in EndGroup.  The start and
+end of the range are inclusive.  EndGroup MUST specify the same or a later
+group than StartGroup. If the StartGroup is prior to the current group, the
+subscription starts at the beginning of the current object like the 'Latest
+Object' filter.
 
 A filter type other than the above MUST be treated as error.
 
