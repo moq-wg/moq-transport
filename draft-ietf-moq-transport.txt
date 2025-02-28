@@ -302,9 +302,7 @@ Table of Contents
       of bytes.  Objects form the base element in the MOQT data model.
       See (Section 2.1).
 
-   Track:  An encoded bitstream.  Tracks contain a sequential series of
-      one or more groups and are the subscribable entity with MOQT.  See
-      (Section 2.4).
+   Track:  A track is a collection of groups.  See (Section 2.4).
 
 1.3.  Notational Conventions
 
