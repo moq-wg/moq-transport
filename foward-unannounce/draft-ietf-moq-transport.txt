@@ -5,13 +5,13 @@
 Media Over QUIC                                                L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 31 August 2025                                             Meta
+Expires: 1 September 2025                                           Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                        27 February 2025
+                                                        28 February 2025
 
 
                        Media over QUIC Transport
@@ -59,7 +59,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 31 August 2025.
+   This Internet-Draft will expire on 1 September 2025.
 
 Copyright Notice
 
@@ -1421,11 +1421,11 @@ Table of Contents
    Object' filter.
 
    AbsoluteRange (0x4): Specifies a closed subscription starting at
-   StartObject in StartGroup and ending at EndObject in EndGroup.  The
-   start and end of the range are inclusive.  EndGroup MUST specify the
-   same or a later group than StartGroup.  If the StartGroup is prior to
-   the current group, the subscription starts at the beginning of the
-   current object like the 'Latest Object' filter.
+   StartObject in StartGroup and ending at the largest object in
+   EndGroup.  The start and end of the range are inclusive.  EndGroup
+   MUST specify the same or a later group than StartGroup.  If the
+   StartGroup is prior to the current group, the subscription starts at
+   the beginning of the current object like the 'Latest Object' filter.
 
    A filter type other than the above MUST be treated as error.
 
@@ -1851,7 +1851,8 @@ Table of Contents
       (Section 2.4.1).
 
    *  Error Code: Identifies an integer error code for canceling the
-      announcement.
+      announcement.  ANNOUNCE_CANCEL uses the same error codes as
+      ANNOUNCE_ERROR (Section 7.10).
 
    *  Reason Phrase: Provides the reason for announcement cancelation.
 
@@ -2619,8 +2620,6 @@ Table of Contents
      Publisher Priority (8),
      Extension Headers Length (i),
      [Extension headers (...)],
-     Object Payload Length (i),
-     [Object Status (i)],
      Object Payload (..),
    }
 
@@ -2639,6 +2638,8 @@ Table of Contents
      Group ID (i),
      Object ID (i),
      Publisher Priority (8),
+     Extension Headers Length (i),
+     [Extension headers (...)],
      Object Status (i),
    }
 
@@ -2824,11 +2825,13 @@ Table of Contents
    }
    {
      Object ID = 0
+     Extension Headers Length = 0
      Object Payload Length = 4
      Payload = "abcd"
    }
    {
      Object ID = 1
+     Extension Headers Length = 0
      Object Payload Length = 4
      Payload = "efgh"
    }
@@ -2859,6 +2862,7 @@ Table of Contents
    }
    {
      Object ID = 1
+     Extension Headers Length = 0
      Object Payload Length = 4
      Payload = "efgh"
    }
