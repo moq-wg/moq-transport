@@ -5,13 +5,13 @@
 Media Over QUIC                                                L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 31 August 2025                                             Meta
+Expires: 1 September 2025                                           Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                        27 February 2025
+                                                        28 February 2025
 
 
                        Media over QUIC Transport
@@ -59,7 +59,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 31 August 2025.
+   This Internet-Draft will expire on 1 September 2025.
 
 Copyright Notice
 
@@ -302,8 +302,7 @@ Table of Contents
       of bytes.  Objects form the base element in the MOQT data model.
       See (Section 2.1).
 
-   Track:  A track is a collection of one or more groups.  See
-      (Section 2.4).
+   Track:  A track is a collection of groups.  See (Section 2.4).
 
 1.3.  Notational Conventions
 
