@@ -2209,8 +2209,8 @@ publishers for a namespace.<a href="#section-4-2" class="pilcrow">¶</a></p>
         </h3>
 <p id="section-4.1-1">If the subscriber is aware of a namespace of interest, it can send
 SUBSCRIBE_ANNOUNCES to publishers/relays it has established a session with. The
-recipient of this message will send any relevant ANNOUNCE messages for that
-namespace, or subset of that namespace.<a href="#section-4.1-1" class="pilcrow">¶</a></p>
+recipient of this message will send any relevant ANNOUNCE or UNANNOUNCE messages
+for that namespace, or subset of that namespace.<a href="#section-4.1-1" class="pilcrow">¶</a></p>
 <p id="section-4.1-2">A publisher <span class="bcp14">MUST</span> send exactly one SUBSCRIBE_ANNOUNCES_OK or
 SUBSCRIBE_ANNOUNCES_ERROR in response to a SUBSCRIBE_ANNOUNCES. The subscriber
 <span class="bcp14">SHOULD</span> close the session with a protocol error if it detects receiving more than
@@ -2994,10 +2994,11 @@ from the object identified in the StartGroup and StartObject fields. If the
 StartGroup is prior to the current group, the subscription starts at the
 beginning of the current object like the 'Latest Object' filter.<a href="#section-7.4-6" class="pilcrow">¶</a></p>
 <p id="section-7.4-7">AbsoluteRange (0x4):  Specifies a closed subscription starting at StartObject
-in StartGroup and ending at EndObject in EndGroup.  The start and end of the
-range are inclusive.  EndGroup <span class="bcp14">MUST</span> specify the same or a later group than
-StartGroup. If the StartGroup is prior to the current group, the subscription
-starts at the beginning of the current object like the 'Latest Object' filter.<a href="#section-7.4-7" class="pilcrow">¶</a></p>
+in StartGroup and ending at the largest object in EndGroup.  The start and
+end of the range are inclusive.  EndGroup <span class="bcp14">MUST</span> specify the same or a later
+group than StartGroup. If the StartGroup is prior to the current group, the
+subscription starts at the beginning of the current object like the 'Latest
+Object' filter.<a href="#section-7.4-7" class="pilcrow">¶</a></p>
 <p id="section-7.4-8">A filter type other than the above <span class="bcp14">MUST</span> be treated as error.<a href="#section-7.4-8" class="pilcrow">¶</a></p>
 <p id="section-7.4-9">If a subscriber wants to subscribe to Objects both before and after
 the Latest Object, it can send a SUBSCRIBE for the Latest Object
@@ -3531,7 +3532,9 @@ ANNOUNCE_CANCEL Message {
 (<a href="#track-name" class="auto internal xref">Section 2.4.1</a>).<a href="#section-7.11-3.1.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-7.11-3.2">
-            <p id="section-7.11-3.2.1">Error Code: Identifies an integer error code for canceling the announcement.<a href="#section-7.11-3.2.1" class="pilcrow">¶</a></p>
+            <p id="section-7.11-3.2.1">Error Code: Identifies an integer error code for canceling the announcement.
+ANNOUNCE_CANCEL uses the same error codes as ANNOUNCE_ERROR
+(<a href="#message-announce-error" class="auto internal xref">Section 7.10</a>).<a href="#section-7.11-3.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-7.11-3.3">
             <p id="section-7.11-3.3.1">Reason Phrase: Provides the reason for announcement cancelation.<a href="#section-7.11-3.3.1" class="pilcrow">¶</a></p>
@@ -4599,8 +4602,6 @@ OBJECT_DATAGRAM {
   Publisher Priority (8),
   Extension Headers Length (i),
   [Extension headers (...)],
-  Object Payload Length (i),
-  [Object Status (i)],
   Object Payload (..),
 }
 </pre>
@@ -4629,6 +4630,8 @@ OBJECT_DATAGRAM_STATUS {
   Group ID (i),
   Object ID (i),
   Publisher Priority (8),
+  Extension Headers Length (i),
+  [Extension headers (...)],
   Object Status (i),
 }
 </pre>
@@ -4835,11 +4838,13 @@ SUBGROUP_HEADER {
 }
 {
   Object ID = 0
+  Extension Headers Length = 0
   Object Payload Length = 4
   Payload = "abcd"
 }
 {
   Object ID = 1
+  Extension Headers Length = 0
   Object Payload Length = 4
   Payload = "efgh"
 }
@@ -4872,6 +4877,7 @@ STREAM_HEADER_GROUP {
 }
 {
   Object ID = 1
+  Extension Headers Length = 0
   Object Payload Length = 4
   Payload = "efgh"
 }
