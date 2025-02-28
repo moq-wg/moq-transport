@@ -2824,11 +2824,13 @@ Table of Contents
    }
    {
      Object ID = 0
+     Extension Headers Length = 0
      Object Payload Length = 4
      Payload = "abcd"
    }
    {
      Object ID = 1
+     Extension Headers Length = 0
      Object Payload Length = 4
      Payload = "efgh"
    }
@@ -2859,6 +2861,7 @@ Table of Contents
    }
    {
      Object ID = 1
+     Extension Headers Length = 0
      Object Payload Length = 4
      Payload = "efgh"
    }
