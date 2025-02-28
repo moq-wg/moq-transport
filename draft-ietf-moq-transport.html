@@ -1883,21 +1883,22 @@ active.<a href="#section-2.4-1" class="pilcrow">¶</a></p>
           <h4 id="name-track-naming-and-scopes">
 <a href="#section-2.4.1" class="section-number selfRef">2.4.1. </a><a href="#name-track-naming-and-scopes" class="section-name selfRef">Track Naming and Scopes</a>
           </h4>
-<p id="section-2.4.1-1">In MOQT, every track has a track name and a track namespace associated
-with it.  A track name identifies an individual track within the
-namespace.<a href="#section-2.4.1-1" class="pilcrow">¶</a></p>
-<p id="section-2.4.1-2">Track namespace is an ordered N-tuple of bytes where N can be between 1 and 32.
+<p id="section-2.4.1-1">In MOQT, every track is identified by a Full Track Name, consisting of a Track
+Namespace and a Track Name.<a href="#section-2.4.1-1" class="pilcrow">¶</a></p>
+<p id="section-2.4.1-2">Track Namespace is an ordered N-tuple of bytes where N can be between 1 and 32.
 The structured nature of Track Namespace allows relays and applications to
-manipulate prefixes of a namespace. Track name is a sequence of bytes.
-If an endpoint receives a Track Namespace tuple with an N of 0 or more
-than 32, it <span class="bcp14">MUST</span> close the session with a Protocol Violation.<a href="#section-2.4.1-2" class="pilcrow">¶</a></p>
-<p id="section-2.4.1-3">In this specification, both the Track Namespace tuple fields and the Track Name
+manipulate prefixes of a namespace. If an endpoint receives a Track Namespace
+tuple with an N of 0 or more than 32, it <span class="bcp14">MUST</span> close the session with a Protocol
+Violation.<a href="#section-2.4.1-2" class="pilcrow">¶</a></p>
+<p id="section-2.4.1-3">Track Name is a sequence of bytes that identifies an individual track within the
+namespace.<a href="#section-2.4.1-3" class="pilcrow">¶</a></p>
+<p id="section-2.4.1-4">In this specification, both the Track Namespace tuple fields and the Track Name
 are not constrained to a specific encoding. They carry a sequence of bytes and
 comparison between two Track Namespace tuple fields or Track Names is done by
 exact comparison of the bytes. Specifications that use MoQ Transport may
 constrain the information in these fields, for example by restricting them to
 UTF-8. Any specification that does needs to specify the canonicalization into
-the bytes in the Track Namespace or Track Name such that exact comparison works.<a href="#section-2.4.1-3" class="pilcrow">¶</a></p>
+the bytes in the Track Namespace or Track Name such that exact comparison works.<a href="#section-2.4.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="track-scope">

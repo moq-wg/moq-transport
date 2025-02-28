@@ -455,16 +455,17 @@ Table of Contents
 
 2.4.1.  Track Naming and Scopes
 
-   In MOQT, every track has a track name and a track namespace
-   associated with it.  A track name identifies an individual track
-   within the namespace.
+   In MOQT, every track is identified by a Full Track Name, consisting
+   of a Track Namespace and a Track Name.
 
-   Track namespace is an ordered N-tuple of bytes where N can be between
+   Track Namespace is an ordered N-tuple of bytes where N can be between
    1 and 32.  The structured nature of Track Namespace allows relays and
-   applications to manipulate prefixes of a namespace.  Track name is a
-   sequence of bytes.  If an endpoint receives a Track Namespace tuple
-   with an N of 0 or more than 32, it MUST close the session with a
-   Protocol Violation.
+   applications to manipulate prefixes of a namespace.  If an endpoint
+   receives a Track Namespace tuple with an N of 0 or more than 32, it
+   MUST close the session with a Protocol Violation.
+
+   Track Name is a sequence of bytes that identifies an individual track
+   within the namespace.
 
    In this specification, both the Track Namespace tuple fields and the
    Track Name are not constrained to a specific encoding.  They carry a
