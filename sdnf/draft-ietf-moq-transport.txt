@@ -5,13 +5,13 @@
 Media Over QUIC                                                L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 1 September 2025                                           Meta
+Expires: 2 September 2025                                           Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                        28 February 2025
+                                                            1 March 2025
 
 
                        Media over QUIC Transport
@@ -59,7 +59,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 1 September 2025.
+   This Internet-Draft will expire on 2 September 2025.
 
 Copyright Notice
 
@@ -1491,11 +1491,10 @@ Table of Contents
       Group Order SHOULD be used.  Values larger than 0x2 are a protocol
       error.
 
-   *  Forward: If set to 1, the objects received on the subscription is
-      forwarded to the subscriber.  If set to 0, the objects are not
-      forwarded to the subscriber.  Any other value is a protocol error
-      and MUST terminate the session with a Protocol Violation
-      (Section 3.5).
+   *  Forward: If 1, Objects matching the subscription are forwarded to
+      the subscriber.  If 0, Objects are not forwarded to the
+      subscriber.  Any other value is a protocol error and MUST
+      terminate the session with a Protocol Violation (Section 3.5).
 
    *  Filter Type: Identifies the type of filter, which also indicates
       whether the StartGroup/StartObject and EndGroup/EndObject fields
