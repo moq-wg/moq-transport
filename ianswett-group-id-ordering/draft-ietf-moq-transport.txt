@@ -449,9 +449,9 @@ Table of Contents
    increase with time.  Subscribers to tracks which do not follow this
    requirement SHOULD NOT use range filters which span multiple groups
    in FETCH or SUBSCRIBE.  SUBSCRIBE and FETCH delivery use Group Order,
-   so a FETCH cannot deliver Groups out of order and subscription could
-   have unexpected delivery order if Group IDs do not increase with
-   time.
+   so a FETCH cannot deliver Groups out of order and a subscription
+   could have unexpected delivery order if Group IDs do not increase
+   with time.
 
 2.4.  Track
 
