@@ -3008,7 +3008,9 @@ followed by a FETCH. Depending upon the application, one might want to send
 both messages at the same time or wait for the first to return before sending
 the second.<a href="#section-7.4-9" class="pilcrow">¶</a></p>
 <p id="section-7.4-10">Subscribers can also request a publisher to not forward objects for a given
-track by setting the <code>Forward</code> field to 0. Relays <span class="bcp14">SHOULD</span> always set the <code>Forward</code>
+track by setting the <code>Forward</code> field to 0. This can reduce the latency of beginning delivery of
+a track that is expected to be needed soon when a Relay is substantially closer to the
+subscriber than the Original Publisher. Relays <span class="bcp14">SHOULD</span> always set the <code>Forward</code>
 flag to 1 when forwarding the SUBSCRIBE message upstream, regardless of the
 value of the <code>Forward</code> field from the downstream subscription.<a href="#section-7.4-10" class="pilcrow">¶</a></p>
 <p id="section-7.4-11">The format of SUBSCRIBE is as follows:<a href="#section-7.4-11" class="pilcrow">¶</a></p>
