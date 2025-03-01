@@ -1369,8 +1369,8 @@ Ascending (0x1) or Descending (0x2) order by group. See {{priorities}}.
 A value of 0x0 indicates the original publisher's Group Order SHOULD be
 used. Values larger than 0x2 are a protocol error.
 
-* Forward:  If set to 1, the objects received on the subscription is forwarded
-to the subscriber. If set to 0, the objects are not forwarded to the subscriber.
+* Forward: If 1, Objects matching the subscription are forwarded
+to the subscriber. If 0, Objects are not forwarded to the subscriber.
 Any other value is a protocol error and MUST terminate the
 session with a Protocol Violation ({{session-termination}}).
 
