@@ -1452,8 +1452,8 @@ open-ended.
 other subscriptions in the same session. Lower numbers get higher priority.
 See {{priorities}}.
 
-* Forward: If set to 1, the objects received on the subscription is forwarded
-to the subscriber. If set to 0, the objects are not forwarded to the subscriber.
+* Forward: If 1, Objects matching the subscription are forwarded
+to the subscriber. If 0, Objects are not forwarded to the subscriber.
 Any other value is a protocol error and MUST terminate the
 session with a Protocol Violation ({{session-termination}}).
 
