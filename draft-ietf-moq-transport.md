@@ -1431,7 +1431,7 @@ SUBSCRIBE_UPDATE Message {
   StartObject (i),
   EndGroup (i),
   Subscriber Priority (8),
-  Forward(8),
+  Forward (8),
   Number of Parameters (i),
   Subscribe Parameters (..) ...
 }
