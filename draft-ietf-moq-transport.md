@@ -383,7 +383,7 @@ Within a track, the original publisher SHOULD produce Group IDs which increase
 with time. Subscribers to tracks which do not follow this requirement SHOULD NOT
 use range filters which span multiple groups in FETCH or SUBSCRIBE. SUBSCRIBE and
 FETCH delivery use Group Order, so a FETCH cannot deliver Groups out of order
-and subscription could have unexpected delivery order if Group IDs do not increase
+and a subscription could have unexpected delivery order if Group IDs do not increase
 with time.
 
 ## Track {#model-track}
