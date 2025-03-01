@@ -229,7 +229,9 @@ Object:
 
 Track:
 
-: A track is a collection of groups. See ({{model-track}}).
+: An encoded bitstream. Tracks contain a sequential series of one or
+  more groups and are the subscribable entity with MOQT.
+  See ({{model-track}}).
 
 
 ## Notational Conventions
@@ -390,17 +392,15 @@ active.
 
 ### Track Naming and Scopes {#track-name}
 
-In MOQT, every track is identified by a Full Track Name, consisting of a Track
-Namespace and a Track Name.
-
-Track Namespace is an ordered N-tuple of bytes where N can be between 1 and 32.
-The structured nature of Track Namespace allows relays and applications to
-manipulate prefixes of a namespace. If an endpoint receives a Track Namespace
-tuple with an N of 0 or more than 32, it MUST close the session with a Protocol
-Violation.
-
-Track Name is a sequence of bytes that identifies an individual track within the
+In MOQT, every track has a track name and a track namespace associated
+with it.  A track name identifies an individual track within the
 namespace.
+
+Track namespace is an ordered N-tuple of bytes where N can be between 1 and 32.
+The structured nature of Track Namespace allows relays and applications to
+manipulate prefixes of a namespace. Track name is a sequence of bytes.
+If an endpoint receives a Track Namespace tuple with an N of 0 or more
+than 32, it MUST close the session with a Protocol Violation.
 
 In this specification, both the Track Namespace tuple fields and the Track Name
 are not constrained to a specific encoding. They carry a sequence of bytes and
@@ -646,8 +646,8 @@ The syntax of these messages is described in {{message}}.
 
 If the subscriber is aware of a namespace of interest, it can send
 SUBSCRIBE_ANNOUNCES to publishers/relays it has established a session with. The
-recipient of this message will send any relevant ANNOUNCE or UNANNOUNCE messages
-for that namespace, or subset of that namespace.
+recipient of this message will send any relevant ANNOUNCE messages for that
+namespace, or subset of that namespace.
 
 A publisher MUST send exactly one SUBSCRIBE_ANNOUNCES_OK or
 SUBSCRIBE_ANNOUNCES_ERROR in response to a SUBSCRIBE_ANNOUNCES. The subscriber
@@ -1471,16 +1471,20 @@ fetch response. All omitted objects have status Object Does Not Exist.
 
 **Fetch Types**
 
-There are two types of Fetch messages:
+There are three types of Fetch messages:
 
 Standalone Fetch (0x1) : A Fetch of Objects performed independently of any Subscribe.
 
-Joining Fetch (0x2) : A Fetch joined together with a Subscribe by specifying
-the Subscribe ID of an active subscription. A publisher receiving a
-Joining Fetch uses properties of the associated Subscribe to determine the
+Relative Joining Fetch (0x2) : A Fetch joined together with a Subscribe by specifying
+the Subscribe ID of an active subscription and a relative starting offset. A publisher
+receiving a Joining Fetch uses properties of the associated Subscribe to determine the
 Track Namespace, Track, StartGroup, StartObject, EndGroup, and EndObject such that
 it is contiguous with the associated Subscribe. The Joining Fetch begins the
 Preceding Group Offset prior to the associated subscription.
+
+Absolute Joining Fetch (0x3) : identical to a Relative Joining Fetch except that the 
+StartGroup is determined by an absolute Group value rather than a relative offset to the
+subscription. 
 
 A Subscriber can use a Joining Fetch to, for example, fill a playback buffer with a
 certain number of groups prior to the live edge of a track.
@@ -1488,7 +1492,7 @@ certain number of groups prior to the live edge of a track.
 A Joining Fetch is only permitted when the associated Subscribe has the Filter
 Type Latest Object.
 
-A Fetch Type other than 0x1 or 0x2 MUST be treated as an error.
+A Fetch Type other than 0x1, 0x2 or 0x3 MUST be treated as an error.
 
 A publisher responds to a FETCH request with either a FETCH_OK or a FETCH_ERROR
 message.  If it responds with FETCH_OK, the publisher creates a new unidirectional
@@ -1519,8 +1523,8 @@ FETCH Message {
    StartObject (i),
    EndGroup (i),
    EndObject (i),]
-  [Joining Subscribe ID (i),
-   Preceding Group Offset (i),]
+  [ Subscribe ID (i),
+    Start (i),]
   Number of Parameters (i),
   Parameters (..) ...
 }
@@ -1542,7 +1546,7 @@ Ascending (0x1) or Descending (0x2) order by group. See {{priorities}}.
 A value of 0x0 indicates the original publisher's Group Order SHOULD be
 used. Values larger than 0x2 are a protocol error.
 
-* Fetch Type: Identifies the type of Fetch, whether joining or standalone.
+* Fetch Type: Identifies the type of Fetch, whether  or standalone.
 
 * Parameters: The parameters are defined in {{version-specific-params}}.
 
@@ -1562,15 +1566,18 @@ Fields present only for Standalone Fetch (0x1):
 * EndObject: The end Object ID, plus 1. A value of 0 means the entire group is
 requested.
 
-Fields present only for Joining Fetch (0x2):
+Fields present only for Relative  Fetch (0x2) and Absolute  Fetch
+(0x3):
 
 * Joining Subscribe ID: The Subscribe ID of the existing subscription to be
 joined. If a publisher receives a Joining Fetch with a Subscribe ID that does
 not correspond to an existing Subscribe, it MUST respond with a Fetch Error.
 
-* Preceding Group Offset: The group offset for the Fetch prior and relative
-to the Current Group of the corresponding Subscribe. A value of 0 indicates
-the Fetch starts at the beginning of the Current Group.
+* Joining Start : for a Relative Joining Fetch (0x2), this value represents the
+  group offset for the Fetch prior and relative to the Current Group of the
+  corresponding Subscribe. A value of 0 indicates the Fetch starts at the beginning
+  of the Current Group. For an Absolute Joining Fetch (0x3), this value represents
+  the Starting Group ID.
 
 Objects that are not yet published will not be retrieved by a FETCH.
 The latest available Object is indicated in the FETCH_OK, and is the last
@@ -1584,22 +1591,22 @@ subgroup ID is not used for ordering.
 If StartGroup/StartObject is greater than the latest published Object group,
 the publisher MUST return FETCH_ERROR with error code 'No Objects'.
 
-### Calculating the Range of a Joining Fetch
+### Calculating the Range of a Relative Joining Fetch
 
 A publisher that receives a Fetch of type Type 0x2 treats it
 as a Fetch with a range dynamically determined by the Preceding Group Offset
 and field values derived from the corresponding subscription.
 
 The Largest Group ID and Largest Object ID values from the corresponding
-subscription are used to calculate the end of a Joining Fetch so the Objects
-retrieved by the FETCH and SUBSCRIBE are contiguous and non-overlapping.
+subscription are used to calculate the end of a Relative Joining Fetch so the
+Objects retrieved by the FETCH and SUBSCRIBE are contiguous and non-overlapping.
 If no Objects have been published for the track, and the SUBSCRIBE_OK has a
 ContentExists value of 0, the publisher responds with a FETCH_ERROR with
 error code 'No Objects'.
 
-The publisher receiving a Joining Fetch computes the range as follows:
+The publisher receiving a Relative Joining Fetch computes the range as follows:
 
-* Fetch StartGroup: Subscribe Largest Group - Preceding Group Offset
+* Fetch StartGroup: Subscribe Largest Group - Joining start
 * Fetch StartObject: 0
 * Fetch EndGroup: Subscribe Largest Group
 * Fetch EndObject: Subscribe Largest Object
@@ -1607,6 +1614,12 @@ The publisher receiving a Joining Fetch computes the range as follows:
 A Fetch EndObject of 0 requests the entire group, but Fetch will not
 retrieve Objects that have not yet been published, so 1 is subtracted from
 the Fetch EndGroup if Fetch EndObject is 0.
+
+### Calculating the Range of an Absolute Joining Fetch
+
+Identical to the Relative Joining fetch except that Fetch StartGroup is calculated
+directly as the Joining Start value.
+
 
 ## FETCH_CANCEL {#message-fetch-cancel}
 
@@ -2036,18 +2049,8 @@ SUBSCRIBE_DONE Message {
 * Status Code: An integer status code indicating why the subscription ended.
 
 * Stream Count: An integer indicating the number of data streams the publisher
-opened for this subscription.  This helps the subscriber know if it has received
-all of the data published in this subscription by comparing the number of
-streams received.  The subscriber can immediately remove all subscription state
-once the same number of streams have been processed.  If the track had
-Forwarding Preference = Datagram, the publisher MUST set Stream Count to 0.  If
-the publisher is unable to set Stream Count to the exact number of streams
-opened for the subscription, it MUST set Stream Count to 2^62 - 1. Subscribers
-SHOULD use a timeout or other mechanism to remove subscription state in case
-the publisher set an incorrect value, reset a stream before the SUBGROUP_HEADER,
-or set the maximum value.  If a subscriber receives more streams for a
-subscription than specified in Stream Count, it MAY close the session with a
-Protocol Violation.
+opened for this subscription.  The subscriber can remove all subscription state
+once the same number of streams have been processed.
 
 * Reason Phrase: Provides the reason for subscription error.
 
@@ -2376,8 +2379,7 @@ are beyond the end of a group or track.
 
 `Status` can have following values:
 
-* 0x0 := Normal object. This status is implicit for any non-zero length object.
-         Zero-length objects explicitly encode the Normal status.
+* 0x0 := Normal object. The payload is array of bytes and can be empty.
 
 * 0x1 := Indicates Object does not exist. Indicates that this object
          does not exist at any publisher and it will not be published in
