@@ -90,7 +90,7 @@ Table of Contents
      2.2.  Subgroups
      2.3.  Groups
      2.4.  Track
-       2.4.1.  Track Naming and Scopes
+       2.4.1.  Track Naming
        2.4.2.  Scope
        2.4.3.  Connection URL
    3.  Sessions
@@ -461,7 +461,7 @@ Table of Contents
    group boundary, including any new objects pushed by the publisher
    while the track is active.
 
-2.4.1.  Track Naming and Scopes
+2.4.1.  Track Naming
 
    In MOQT, every track is identified by a Full Track Name, consisting
    of a Track Namespace and a Track Name.
