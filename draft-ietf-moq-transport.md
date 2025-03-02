@@ -394,7 +394,7 @@ can request to receive individual tracks starting at a group boundary,
 including any new objects pushed by the publisher while the track is
 active.
 
-### Track Naming and Scopes {#track-name}
+### Track Naming {#track-name}
 
 In MOQT, every track is identified by a Full Track Name, consisting of a Track
 Namespace and a Track Name.
