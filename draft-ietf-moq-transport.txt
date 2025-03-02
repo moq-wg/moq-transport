@@ -5,13 +5,13 @@
 Media Over QUIC                                                L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 1 September 2025                                           Meta
+Expires: 3 September 2025                                           Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                        28 February 2025
+                                                            2 March 2025
 
 
                        Media over QUIC Transport
@@ -59,7 +59,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 1 September 2025.
+   This Internet-Draft will expire on 3 September 2025.
 
 Copyright Notice
 
@@ -444,6 +444,14 @@ Table of Contents
    latest group(s).  The publisher then selectively transmits objects
    based on their group membership.  Groups can contain any number of
    objects.
+
+   Within a track, the original publisher SHOULD produce Group IDs which
+   increase with time.  Subscribers to tracks which do not follow this
+   requirement SHOULD NOT use range filters which span multiple groups
+   in FETCH or SUBSCRIBE.  SUBSCRIBE and FETCH delivery use Group Order,
+   so a FETCH cannot deliver Groups out of order and a subscription
+   could have unexpected delivery order if Group IDs do not increase
+   with time.
 
 2.4.  Track
 
