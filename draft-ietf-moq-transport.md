@@ -434,13 +434,6 @@ the ones defined by HTTP ({{?RFC9110, Section 10}}); if, at a given
 moment in time, two tracks within the same scope contain different data,
 they have to have different names and/or namespaces.
 
-### Connection URL
-
-Each track MAY have one or more associated connection URLs specifying
-network hosts through which a track may be accessed. The syntax of the
-Connection URL and the associated connection setup procedures are
-specific to the underlying transport protocol usage {{session}}.
-
 
 # Sessions {#session}
 
@@ -492,6 +485,13 @@ and `query` portions of the URI are communicated to the server using the
 PATH parameter ({{path}}) which is sent in the CLIENT_SETUP message at the
 start of the session.  The ALPN value {{!RFC7301}} used by the protocol
 is `moq-00`.
+
+### Connection URL
+
+Each track MAY have one or more associated connection URLs specifying
+network hosts through which a track may be accessed. The syntax of the
+Connection URL and the associated connection setup procedures are
+specific to the underlying transport protocol usage {{session}}.
 
 ## Version and Extension Negotiation {#version-negotiation}
 
