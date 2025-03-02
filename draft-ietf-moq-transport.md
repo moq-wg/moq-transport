@@ -635,7 +635,7 @@ and announcements. The client can choose to delay closing the session if it
 expects more OBJECTs to be delivered. The server closes the session with a
 'GOAWAY Timeout' if the client doesn't close the session quickly enough.
 
-# Retrieving Track Data with Subscribe and Fetch
+# Retrieving Tracks with Subscribe and Fetch
 
 The central interaction with a publisher is to send SUBSCRIBE and/or FETCH for
 a particular track. The subscriber expects to receive a SUBSCRIBE_OK/FETCH_OK
