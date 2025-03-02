@@ -102,7 +102,7 @@ Table of Contents
      3.4.  Stream Cancellation
      3.5.  Termination
      3.6.  Migration
-   4.  Retrieving Track Data with Subscribe and Fetch
+   4.  Retrieving Tracks with Subscribe and Fetch
    5.  Namespace Discovery and Routing Subscriptions
      5.1.  Subscribing to Announces
      5.2.  Announces
@@ -714,7 +714,7 @@ Table of Contents
    'GOAWAY Timeout' if the client doesn't close the session quickly
    enough.
 
-4.  Retrieving Track Data with Subscribe and Fetch
+4.  Retrieving Tracks with Subscribe and Fetch
 
    The central interaction with a publisher is to send SUBSCRIBE and/or
    FETCH for a particular track.  The subscriber expects to receive a
