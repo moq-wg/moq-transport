@@ -635,7 +635,42 @@ and announcements. The client can choose to delay closing the session if it
 expects more OBJECTs to be delivered. The server closes the session with a
 'GOAWAY Timeout' if the client doesn't close the session quickly enough.
 
-# Track Discovery and Retrieval {#track-discovery}
+# Retrieving Track Data with Subscribe and Fetch
+
+The central interaction with a publisher is to send SUBSCRIBE and/or FETCH for
+a particular track. The subscriber expects to receive a SUBSCRIBE_OK/FETCH_OK
+and objects from the track.
+
+A publisher MUST send exactly one SUBSCRIBE_OK or SUBSCRIBE_ERROR in response to
+a SUBSCRIBE. It MUST send exactly one FETCH_OK or FETCH_ERROR in response to a
+FETCH. The subscriber SHOULD close the session with a protocol error if it
+receives more than one.
+
+A subscriber keeps SUBSCRIBE state until it sends UNSUBSCRIBE, or after receipt
+of a SUBSCRIBE_DONE or SUBSCRIBE_ERROR. Note that SUBSCRIBE_DONE does not
+usually indicate that state can immediately be destroyed, see
+{{message-subscribe-done}}.
+
+A subscriber keeps FETCH state until it sends FETCH_CANCEL, receives
+FETCH_ERROR, or receives a FIN or RESET_STREAM for the FETCH data stream. If the
+data stream is already open, it MAY send STOP_SENDING for the data stream along
+with FETCH_CANCEL, but MUST send FETCH_CANCEL.
+
+The Publisher can destroy subscription or fetch state as soon as it has received
+UNSUBSCRIBE or FETCH_CANCEL, respectively. It MUST reset any open streams
+associated with the SUBSCRIBE or FETCH. It can also destroy state after closing
+the FETCH data stream.
+
+The publisher can immediately delete SUBSCRIBE state after sending
+SUBSCRIBE_DONE, but MUST NOT send it until it has closed all related streams. It
+can destroy all FETCH state after closing the data stream.
+
+A SUBSCRIBE_ERROR or FETCH_ERROR indicates no objects will be delivered, and
+both endpoints can immediately destroy relevant state. Objects MUST NOT be sent
+for requests that end with an error.
+
+
+# Namespace Discovery and Routing Subscriptions {#track-discovery}
 
 Discovery of MoQT servers is always done out-of-band. Namespace discovery can be
 done in the context of an established MoQT session.
@@ -648,7 +683,8 @@ publishers for a namespace.
 
 The syntax of these messages is described in {{message}}.
 
-## SUBSCRIBE_ANNOUNCES
+
+## Subscribing to Announces
 
 If the subscriber is aware of a namespace of interest, it can send
 SUBSCRIBE_ANNOUNCES to publishers/relays it has established a session with. The
@@ -667,7 +703,7 @@ further publishers to contact.
 An UNSUBSCRIBE_ANNOUNCES withdraws a previous SUBSCRIBE_ANNOUNCES. It does
 not prohibit the receiver (publisher) from sending further ANNOUNCE messages.
 
-## ANNOUNCE
+## Announces
 
 A publisher MAY send ANNOUNCE messages to any subscriber. An ANNOUNCE indicates
 to the subscriber where to route a SUBSCRIBE or FETCH for that namespace. A
@@ -705,44 +741,11 @@ not a full-fledged routing protocol and does not protect against loops and other
 phenomena. In particular, ANNOUNCE SHOULD NOT be used to find paths through
 richly connected networks of relays.
 
-## SUBSCRIBE/FETCH
-
-The central interaction with a publisher is to send SUBSCRIBE and/or FETCH for
-a particular track. The subscriber expects to receive a
-SUBSCRIBE_OK/FETCH_OK and objects from the track.
-
 A subscriber MAY send a SUBSCRIBE or FETCH for a track to any publisher. If it
 has accepted an ANNOUNCE with a namespace that exactly matches the namespace for
 that track, it SHOULD only request it from the senders of those ANNOUNCE
 messages.
 
-A publisher MUST send exactly one SUBSCRIBE_OK or SUBSCRIBE_ERROR in response to
-a SUBSCRIBE. It MUST send exactly one FETCH_OK or FETCH_ERROR in response to a
-FETCH. The subscriber SHOULD close the session with a protocol error if it
-receives more than one.
-
-A subscriber keeps SUBSCRIBE state until it sends UNSUBSCRIBE, or after receipt
-of a SUBSCRIBE_DONE or SUBSCRIBE_ERROR. Note that SUBSCRIBE_DONE does not
-usually indicate that state can immediately be destroyed, see
-{{message-subscribe-done}}.
-
-A subscriber keeps FETCH state until it sends FETCH_CANCEL, receives
-FETCH_ERROR, or receives a FIN or RESET_STREAM for the FETCH data stream. If the
-data stream is already open, it MAY send STOP_SENDING for the data stream along
-with FETCH_CANCEL, but MUST send FETCH_CANCEL.
-
-The Publisher can destroy subscription or fetch state as soon as it has received
-UNSUBSCRIBE or FETCH_CANCEL, respectively. It MUST reset any open streams
-associated with the SUBSCRIBE or FETCH. It can also destroy state after closing
-the FETCH data stream.
-
-The publisher can immediately delete SUBSCRIBE state after sending
-SUBSCRIBE_DONE, but MUST NOT send it until it has closed all related streams. It
-can destroy all FETCH state after closing the data stream.
-
-A SUBSCRIBE_ERROR or FETCH_ERROR indicates no objects will be delivered, and
-both endpoints can immediately destroy relevant state. Objects MUST NOT be sent
-for requests that end with an error.
 
 # Priorities {#priorities}
 
