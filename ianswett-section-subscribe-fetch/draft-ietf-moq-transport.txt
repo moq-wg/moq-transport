@@ -105,7 +105,7 @@ Table of Contents
    4.  Retrieving Tracks with Subscribe and Fetch
    5.  Namespace Discovery and Routing Subscriptions
      5.1.  Subscribing to Announcements
-     5.2.  Announces
+     5.2.  Announcements
    6.  Priorities
      6.1.  Definitions
      6.2.  Scheduling Algorithm
@@ -784,7 +784,7 @@ Table of Contents
    It does not prohibit the receiver (publisher) from sending further
    ANNOUNCE messages.
 
-5.2.  Announces
+5.2.  Announcements
 
    A publisher MAY send ANNOUNCE messages to any subscriber.  An
    ANNOUNCE indicates to the subscriber where to route a SUBSCRIBE or
