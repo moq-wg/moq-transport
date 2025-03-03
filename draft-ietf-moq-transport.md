@@ -684,7 +684,7 @@ publishers for a namespace.
 The syntax of these messages is described in {{message}}.
 
 
-## Subscribing to Announces
+## Subscribing to Announcements
 
 If the subscriber is aware of a namespace of interest, it can send
 SUBSCRIBE_ANNOUNCES to publishers/relays it has established a session with. The
