@@ -5,13 +5,13 @@
 Media Over QUIC                                                L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 3 September 2025                                           Meta
+Expires: 4 September 2025                                           Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                            2 March 2025
+                                                            3 March 2025
 
 
                        Media over QUIC Transport
@@ -59,7 +59,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 3 September 2025.
+   This Internet-Draft will expire on 4 September 2025.
 
 Copyright Notice
 
@@ -104,7 +104,7 @@ Table of Contents
      3.6.  Migration
    4.  Retrieving Tracks with Subscribe and Fetch
    5.  Namespace Discovery and Routing Subscriptions
-     5.1.  Subscribing to Announces
+     5.1.  Subscribing to Announcements
      5.2.  Announces
    6.  Priorities
      6.1.  Definitions
@@ -763,7 +763,7 @@ Table of Contents
 
    The syntax of these messages is described in Section 8.
 
-5.1.  Subscribing to Announces
+5.1.  Subscribing to Announcements
 
    If the subscriber is aware of a namespace of interest, it can send
    SUBSCRIBE_ANNOUNCES to publishers/relays it has established a session
