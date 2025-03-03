@@ -1170,7 +1170,7 @@ means Objects earlier in a multi-object stream will expire earlier than Objects
 later in the stream. Once Objects have expired, their state becomes unknown, and
 a relay that handles a subscription that includes those Objects re-requests them.
 
-#### AUTHORIZATION ALIAS {#authorization-id}
+#### AUTHORIZATION ALIAS {#authorization-alias}
 
 AUTHORIZATION ALIAS parameter (Parameter Type 0x05) identifies an alias by which
 AUTHORIZATION INFO (Parameter Type 0x02) can be referenced within the current
