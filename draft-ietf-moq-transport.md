@@ -703,7 +703,7 @@ further publishers to contact.
 An UNSUBSCRIBE_ANNOUNCES withdraws a previous SUBSCRIBE_ANNOUNCES. It does
 not prohibit the receiver (publisher) from sending further ANNOUNCE messages.
 
-## Announces
+## Announcements
 
 A publisher MAY send ANNOUNCE messages to any subscriber. An ANNOUNCE indicates
 to the subscriber where to route a SUBSCRIBE or FETCH for that namespace. A
