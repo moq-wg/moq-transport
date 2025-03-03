@@ -1175,7 +1175,7 @@ a relay that handles a subscription that includes those Objects re-requests them
 AUTHORIZATION ALIAS parameter (Parameter Type 0x05) identifies an alias by which
 AUTHORIZATION INFO (Parameter Type 0x02) can be referenced within the current
 session. Transmission of both AUTHORIZATION ALIAS and AUTHORIZATION INFO parameters
-in the same parameter set is an instruction to the receiver to associate the 
+in the same parameter set is an instruction to the receiver to associate the
 AUTHORIZATION ALIAS with the AUTHORIZATION INFO. Receivers processing future
 parameters sets in which only the AUTHORIZATION ALIAS is sent MUST process the
 parameter set as if the AUTHORIZATION INFO had been retransmitted.
