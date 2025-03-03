@@ -381,6 +381,12 @@ subscriber that does not want to receive the entire track can opt to receive onl
 the latest group(s).  The publisher then selectively transmits objects based on
 their group membership.  Groups can contain any number of objects.
 
+Within a track, the original publisher SHOULD produce Group IDs which increase
+with time. Subscribers to tracks which do not follow this requirement SHOULD NOT
+use range filters which span multiple groups in FETCH or SUBSCRIBE. SUBSCRIBE and
+FETCH delivery use Group Order, so a FETCH cannot deliver Groups out of order
+and a subscription could have unexpected delivery order if Group IDs do not increase
+with time.
 
 ## Track {#model-track}
 
@@ -390,7 +396,7 @@ can request to receive individual tracks starting at a group boundary,
 including any new objects pushed by the publisher while the track is
 active.
 
-### Track Naming and Scopes {#track-name}
+### Track Naming {#track-name}
 
 In MOQT, every track has a track name and a track namespace associated
 with it.  A track name identifies an individual track within the
