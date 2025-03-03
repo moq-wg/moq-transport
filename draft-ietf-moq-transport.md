@@ -394,7 +394,7 @@ can request to receive individual tracks starting at a group boundary,
 including any new objects pushed by the publisher while the track is
 active.
 
-### Track Naming and Scopes {#track-name}
+### Track Naming {#track-name}
 
 In MOQT, every track is identified by a Full Track Name, consisting of a Track
 Namespace and a Track Name.
@@ -433,13 +433,6 @@ MOQT does not provide any in-band content negotiation methods similar to
 the ones defined by HTTP ({{?RFC9110, Section 10}}); if, at a given
 moment in time, two tracks within the same scope contain different data,
 they have to have different names and/or namespaces.
-
-### Connection URL
-
-Each track MAY have one or more associated connection URLs specifying
-network hosts through which a track may be accessed. The syntax of the
-Connection URL and the associated connection setup procedures are
-specific to the underlying transport protocol usage {{session}}.
 
 
 # Sessions {#session}
@@ -493,6 +486,13 @@ PATH parameter ({{path}}) which is sent in the CLIENT_SETUP message at the
 start of the session.  The ALPN value {{!RFC7301}} used by the protocol
 is `moq-00`.
 
+### Connection URL
+
+Each track MAY have one or more associated connection URLs specifying
+network hosts through which a track may be accessed. The syntax of the
+Connection URL and the associated connection setup procedures are
+specific to the underlying transport protocol usage {{session}}.
+
 ## Version and Extension Negotiation {#version-negotiation}
 
 Endpoints use the exchange of Setup messages to negotiate the MOQT version and
@@ -537,13 +537,6 @@ bidirectional streams, a peer MAY currently close the session as a
 The control stream MUST NOT be closed at the underlying transport layer while the
 session is active.  Doing so results in the session being closed as a
 'Protocol Violation'.
-
-## Stream Cancellation
-
-Streams aside from the control stream MAY be canceled due to congestion
-or other reasons by either the publisher or subscriber. Early termination of a
-stream does not affect the MoQ application state, and therefore has no
-effect on outstanding subscriptions.
 
 ## Termination  {#session-termination}
 
@@ -2512,6 +2505,12 @@ SHOULD be terminated with a Protocol Violation.
 A publisher SHOULD NOT open more than one stream at a time with the same Subgroup
 Header field values.
 
+### Stream Cancellation
+
+Streams aside from the control stream MAY be canceled due to congestion
+or other reasons by either the publisher or subscriber. Early termination of a
+stream does not affect the MoQ application state, and therefore has no
+effect on outstanding subscriptions.
 
 ### Subgroup Header
 
