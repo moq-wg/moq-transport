@@ -1488,7 +1488,7 @@ Track Namespace, Track, StartGroup, StartObject, EndGroup, and EndObject such th
 it is contiguous with the associated Subscribe. The Joining Fetch begins the
 Preceding Group Offset prior to the associated subscription.
 
-Absolute Joining Fetch (0x3) : identical to a Relative Joining Fetch except that the
+Absolute Joining Fetch (0x3) : Identical to a Relative Joining Fetch except that the
 StartGroup is determined by an absolute Group value rather than a relative offset to the
 subscription.
 
@@ -1552,7 +1552,8 @@ Ascending (0x1) or Descending (0x2) order by group. See {{priorities}}.
 A value of 0x0 indicates the original publisher's Group Order SHOULD be
 used. Values larger than 0x2 are a protocol error.
 
-* Fetch Type: Identifies the type of Fetch, whether  or standalone.
+* Fetch Type: Identifies the type of Fetch, whether Standalone, Relative
+  Joining or Absolute Joining.
 
 * Parameters: The parameters are defined in {{version-specific-params}}.
 
