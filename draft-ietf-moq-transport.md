@@ -538,13 +538,6 @@ The control stream MUST NOT be closed at the underlying transport layer while th
 session is active.  Doing so results in the session being closed as a
 'Protocol Violation'.
 
-## Stream Cancellation
-
-Streams aside from the control stream MAY be canceled due to congestion
-or other reasons by either the publisher or subscriber. Early termination of a
-stream does not affect the MoQ application state, and therefore has no
-effect on outstanding subscriptions.
-
 ## Termination  {#session-termination}
 
 The Transport Session can be terminated at any point.  When native QUIC
@@ -2509,6 +2502,12 @@ SHOULD be terminated with a Protocol Violation.
 A publisher SHOULD NOT open more than one stream at a time with the same Subgroup
 Header field values.
 
+### Stream Cancellation
+
+Streams aside from the control stream MAY be canceled due to congestion
+or other reasons by either the publisher or subscriber. Early termination of a
+stream does not affect the MoQ application state, and therefore has no
+effect on outstanding subscriptions.
 
 ### Subgroup Header
 
