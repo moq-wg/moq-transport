@@ -123,30 +123,30 @@ Table of Contents
        8.2.1.  Versions
        8.2.2.  Setup Parameters
      8.3.  GOAWAY
-     8.4.  SUBSCRIBE
-     8.5.  SUBSCRIBE_UPDATE
-     8.6.  UNSUBSCRIBE
-     8.7.  FETCH
-       8.7.1.  Calculating the Range of a Joining Fetch
-     8.8.  FETCH_CANCEL
-     8.9.  ANNOUNCE_OK
-     8.10. ANNOUNCE_ERROR
-     8.11. ANNOUNCE_CANCEL
-     8.12. TRACK_STATUS_REQUEST
-     8.13. SUBSCRIBE_ANNOUNCES
-     8.14. UNSUBSCRIBE_ANNOUNCES
-     8.15. SUBSCRIBE_OK
-     8.16. SUBSCRIBE_ERROR
-     8.17. FETCH_OK
-     8.18. FETCH_ERROR
-     8.19. SUBSCRIBE_DONE
-     8.20. MAX_SUBSCRIBE_ID
-     8.21. SUBSCRIBES_BLOCKED
-     8.22. ANNOUNCE
-     8.23. UNANNOUNCE
-     8.24. TRACK_STATUS
-     8.25. SUBSCRIBE_ANNOUNCES_OK
-     8.26. SUBSCRIBE_ANNOUNCES_ERROR
+     8.4.  MAX_SUBSCRIBE_ID
+     8.5.  SUBSCRIBES_BLOCKED
+     8.6.  SUBSCRIBE
+     8.7.  SUBSCRIBE_OK
+     8.8.  SUBSCRIBE_ERROR
+     8.9.  SUBSCRIBE_UPDATE
+     8.10. UNSUBSCRIBE
+     8.11. SUBSCRIBE_DONE
+     8.12. FETCH
+       8.12.1.  Calculating the Range of a Joining Fetch
+     8.13. FETCH_OK
+     8.14. FETCH_ERROR
+     8.15. FETCH_CANCEL
+     8.16. TRACK_STATUS_REQUEST
+     8.17. TRACK_STATUS
+     8.18. ANNOUNCE
+     8.19. ANNOUNCE_OK
+     8.20. ANNOUNCE_ERROR
+     8.21. UNANNOUNCE
+     8.22. ANNOUNCE_CANCEL
+     8.23. SUBSCRIBE_ANNOUNCES
+     8.24. SUBSCRIBE_ANNOUNCES_OK
+     8.25. SUBSCRIBE_ANNOUNCES_ERROR
+     8.26. UNSUBSCRIBE_ANNOUNCES
    9.  Data Streams
      9.1.  Object Headers
        9.1.1.  Canonical Object Fields
@@ -721,7 +721,7 @@ Table of Contents
    A subscriber keeps SUBSCRIBE state until it sends UNSUBSCRIBE, or
    after receipt of a SUBSCRIBE_DONE or SUBSCRIBE_ERROR.  Note that
    SUBSCRIBE_DONE does not usually indicate that state can immediately
-   be destroyed, see Section 8.19.
+   be destroyed, see Section 8.11.
 
    A subscriber keeps FETCH state until it sends FETCH_CANCEL, receives
    FETCH_ERROR, or receives a FIN or RESET_STREAM for the FETCH data
@@ -945,7 +945,7 @@ Table of Contents
 
 7.1.  Subscriber Interactions
 
-   Subscribers subscribe to tracks by sending a SUBSCRIBE (Section 8.4)
+   Subscribers subscribe to tracks by sending a SUBSCRIBE (Section 8.6)
    control message for each track of interest.  Relays MUST ensure
    subscribers are authorized to access the content associated with the
    track.  The authorization information can be part of subscription
@@ -1035,9 +1035,9 @@ Table of Contents
    SHOULD send a SUBSCRIBE to the publisher that sent the ANNOUNCE.
 
    OBJECT message headers carry a short hop-by-hop Track Alias that maps
-   to the Full Track Name (see Section 8.15).  Relays use the Track
-   Alias of an incoming OBJECT message to identify its track and find
-   the active subscribers for that track.  Relays MUST forward OBJECT
+   to the Full Track Name (see Section 8.7).  Relays use the Track Alias
+   of an incoming OBJECT message to identify its track and find the
+   active subscribers for that track.  Relays MUST forward OBJECT
    messages to matching subscribers in accordance to each subscription's
    priority, group order, and delivery timeout.
 
@@ -1110,57 +1110,57 @@ Table of Contents
             +======+=========================================+
             |   ID | Messages                                |
             +======+=========================================+
-            |  0x2 | SUBSCRIBE_UPDATE (Section 8.5)          |
-            +------+-----------------------------------------+
-            |  0x3 | SUBSCRIBE (Section 8.4)                 |
-            +------+-----------------------------------------+
-            |  0x4 | SUBSCRIBE_OK (Section 8.15)             |
-            +------+-----------------------------------------+
-            |  0x5 | SUBSCRIBE_ERROR (Section 8.16)          |
-            +------+-----------------------------------------+
-            |  0x6 | ANNOUNCE (Section 8.22)                 |
-            +------+-----------------------------------------+
-            |  0x7 | ANNOUNCE_OK (Section 8.9)               |
-            +------+-----------------------------------------+
-            |  0x8 | ANNOUNCE_ERROR (Section 8.10)           |
-            +------+-----------------------------------------+
-            |  0x9 | UNANNOUNCE (Section 8.23)               |
-            +------+-----------------------------------------+
-            |  0xA | UNSUBSCRIBE (Section 8.6)               |
-            +------+-----------------------------------------+
-            |  0xB | SUBSCRIBE_DONE (Section 8.19)           |
-            +------+-----------------------------------------+
-            |  0xC | ANNOUNCE_CANCEL (Section 8.11)          |
-            +------+-----------------------------------------+
-            |  0xD | TRACK_STATUS_REQUEST (Section 8.12)     |
-            +------+-----------------------------------------+
-            |  0xE | TRACK_STATUS (Section 8.24)             |
-            +------+-----------------------------------------+
-            | 0x10 | GOAWAY (Section 8.3)                    |
-            +------+-----------------------------------------+
-            | 0x11 | SUBSCRIBE_ANNOUNCES (Section 8.13)      |
-            +------+-----------------------------------------+
-            | 0x12 | SUBSCRIBE_ANNOUNCES_OK (Section 8.25)   |
-            +------+-----------------------------------------+
-            | 0x13 | SUBSCRIBE_ANNOUNCES_ERROR (Section 8.26 |
-            +------+-----------------------------------------+
-            | 0x14 | UNSUBSCRIBE_ANNOUNCES (Section 8.14)    |
-            +------+-----------------------------------------+
-            | 0x15 | MAX_SUBSCRIBE_ID (Section 8.20)         |
-            +------+-----------------------------------------+
-            | 0x1A | SUBSCRIBES_BLOCKED (Section 8.21)       |
-            +------+-----------------------------------------+
-            | 0x16 | FETCH (Section 8.7)                     |
-            +------+-----------------------------------------+
-            | 0x17 | FETCH_CANCEL (Section 8.8)              |
-            +------+-----------------------------------------+
-            | 0x18 | FETCH_OK (Section 8.17)                 |
-            +------+-----------------------------------------+
-            | 0x19 | FETCH_ERROR (Section 8.18)              |
-            +------+-----------------------------------------+
             | 0x40 | CLIENT_SETUP (Section 8.2)              |
             +------+-----------------------------------------+
             | 0x41 | SERVER_SETUP (Section 8.2)              |
+            +------+-----------------------------------------+
+            | 0x10 | GOAWAY (Section 8.3)                    |
+            +------+-----------------------------------------+
+            | 0x15 | MAX_SUBSCRIBE_ID (Section 8.4)          |
+            +------+-----------------------------------------+
+            | 0x1A | SUBSCRIBES_BLOCKED (Section 8.5)        |
+            +------+-----------------------------------------+
+            |  0x3 | SUBSCRIBE (Section 8.6)                 |
+            +------+-----------------------------------------+
+            |  0x4 | SUBSCRIBE_OK (Section 8.7)              |
+            +------+-----------------------------------------+
+            |  0x5 | SUBSCRIBE_ERROR (Section 8.8)           |
+            +------+-----------------------------------------+
+            |  0xA | UNSUBSCRIBE (Section 8.10)              |
+            +------+-----------------------------------------+
+            |  0x2 | SUBSCRIBE_UPDATE (Section 8.9)          |
+            +------+-----------------------------------------+
+            |  0xB | SUBSCRIBE_DONE (Section 8.11)           |
+            +------+-----------------------------------------+
+            | 0x16 | FETCH (Section 8.12)                    |
+            +------+-----------------------------------------+
+            | 0x18 | FETCH_OK (Section 8.13)                 |
+            +------+-----------------------------------------+
+            | 0x19 | FETCH_ERROR (Section 8.14)              |
+            +------+-----------------------------------------+
+            | 0x17 | FETCH_CANCEL (Section 8.15)             |
+            +------+-----------------------------------------+
+            |  0xD | TRACK_STATUS_REQUEST (Section 8.16)     |
+            +------+-----------------------------------------+
+            |  0xE | TRACK_STATUS (Section 8.17)             |
+            +------+-----------------------------------------+
+            |  0x6 | ANNOUNCE (Section 8.18)                 |
+            +------+-----------------------------------------+
+            |  0x7 | ANNOUNCE_OK (Section 8.19)              |
+            +------+-----------------------------------------+
+            |  0x8 | ANNOUNCE_ERROR (Section 8.20)           |
+            +------+-----------------------------------------+
+            |  0x9 | UNANNOUNCE (Section 8.21)               |
+            +------+-----------------------------------------+
+            |  0xC | ANNOUNCE_CANCEL (Section 8.22)          |
+            +------+-----------------------------------------+
+            | 0x11 | SUBSCRIBE_ANNOUNCES (Section 8.23)      |
+            +------+-----------------------------------------+
+            | 0x12 | SUBSCRIBE_ANNOUNCES_OK (Section 8.24)   |
+            +------+-----------------------------------------+
+            | 0x13 | SUBSCRIBE_ANNOUNCES_ERROR (Section 8.25 |
+            +------+-----------------------------------------+
+            | 0x14 | UNSUBSCRIBE_ANNOUNCES (Section 8.26)    |
             +------+-----------------------------------------+
 
                                  Table 2
@@ -1395,7 +1395,63 @@ Table of Contents
       If a server receives a GOAWAY with a non-zero New Session URI
       Length it MUST terminate the session with a Protocol Violation.
 
-8.4.  SUBSCRIBE
+8.4.  MAX_SUBSCRIBE_ID
+
+   A publisher sends a MAX_SUBSCRIBE_ID message to increase the number
+   of subscriptions a subscriber can create within a session.
+
+   The Maximum Subscribe Id MUST only increase within a session, and
+   receipt of a MAX_SUBSCRIBE_ID message with an equal or smaller
+   Subscribe ID value is a 'Protocol Violation'.
+
+   MAX_SUBSCRIBE_ID
+   {
+     Type (i) = 0x15,
+     Length (i),
+     Subscribe ID (i),
+   }
+
+                  Figure 5: MOQT MAX_SUBSCRIBE_ID Message
+
+   *  Subscribe ID: The new Maximum Subscribe ID for the session.  If a
+      Subscribe ID Section 8.6 equal or larger than this is received by
+      the publisher that sent the MAX_SUBSCRIBE_ID, the publisher MUST
+      close the session with an error of 'Too Many Subscribes'.
+
+   MAX_SUBSCRIBE_ID is similar to MAX_STREAMS in ([RFC9000],
+   Section 4.6), and similar considerations apply when deciding how
+   often to send MAX_SUBSCRIBE_ID.  For example, implementations might
+   choose to increase MAX_SUBSCRIBE_ID as subscriptions close to keep
+   the number of subscriptions available to subscribers roughly
+   consistent.
+
+8.5.  SUBSCRIBES_BLOCKED
+
+   The SUBSCRIBES_BLOCKED message is sent when a subscriber would like
+   to begin a new subscription, but cannot because the Subscribe ID
+   would exceed the Maximum Subscribe ID value sent by the peer.  The
+   subscriber SHOULD send only one SUBSCRIBES_BLOCKED for a given
+   Maximum Subscribe ID.
+
+   A publisher MAY send a MAX_SUBSCRIBE_ID upon receipt of
+   SUBSCRIBES_BLOCKED, but it MUST NOT rely on SUBSCRIBES_BLOCKED to
+   trigger sending a MAX_SUBSCRIBE_ID, because sending
+   SUBSCRIBES_BLOCKED is not required.
+
+   SUBSCRIBES_BLOCKED
+   {
+     Type (i) = 0x1A,
+     Length (i),
+     Maximum Subscribe ID (i),
+   }
+
+                 Figure 6: MOQT SUBSCRIBES_BLOCKED Message
+
+   *  Maximum Subscribe ID: The Maximum Subscribe ID for the session on
+      which the subscriber is blocked.  More on Subscribe ID in
+      Section 8.6.
+
+8.6.  SUBSCRIBE
 
    A subscription causes the publisher to send newly published objects
    for a track.  A subscriber MUST NOT make multiple active
@@ -1455,7 +1511,7 @@ Table of Contents
      Subscribe Parameters (..) ...
    }
 
-                      Figure 5: MOQT SUBSCRIBE Message
+                      Figure 7: MOQT SUBSCRIBE Message
 
    *  Subscribe ID: The subscriber specified identifier used to manage a
       subscription.  Subscribe ID is a variable length integer that MUST
@@ -1510,7 +1566,109 @@ Table of Contents
    code 'Invalid Range'.  A publisher MUST NOT send objects from outside
    the requested start and end.
 
-8.5.  SUBSCRIBE_UPDATE
+8.7.  SUBSCRIBE_OK
+
+   A publisher sends a SUBSCRIBE_OK control message for successful
+   subscriptions.
+
+   SUBSCRIBE_OK
+   {
+     Type (i) = 0x4,
+     Length (i),
+     Subscribe ID (i),
+     Expires (i),
+     Group Order (8),
+     ContentExists (8),
+     [Largest Group ID (i)],
+     [Largest Object ID (i)],
+     Number of Parameters (i),
+     Subscribe Parameters (..) ...
+   }
+
+                    Figure 8: MOQT SUBSCRIBE_OK Message
+
+   *  Subscribe ID: Subscription Identifier as defined in Section 8.6.
+
+   *  Expires: Time in milliseconds after which the subscription is no
+      longer valid.  A value of 0 indicates that the subscription does
+      not expire or expires at an unknown time.  Expires is advisory and
+      a subscription can end prior to the expiry time or last longer.
+
+   *  Group Order: Indicates the subscription will be delivered in
+      Ascending (0x1) or Descending (0x2) order by group.  See
+      Section 6.  Values of 0x0 and those larger than 0x2 are a protocol
+      error.
+
+   *  ContentExists: 1 if an object has been published on this track, 0
+      if not.  If 0, then the Largest Group ID and Largest Object ID
+      fields will not be present.  Any other value is a protocol error
+      and MUST terminate the session with a Protocol Violation
+      (Section 3.4).
+
+   *  Largest Group ID: The largest Group ID available for this track.
+      This field is only present if ContentExists has a value of 1.
+
+   *  Largest Object ID: The largest Object ID available within the
+      largest Group ID for this track.  This field is only present if
+      ContentExists has a value of 1.
+
+   *  Subscribe Parameters: The parameters are defined in Section 8.1.1.
+
+8.8.  SUBSCRIBE_ERROR
+
+   A publisher sends a SUBSCRIBE_ERROR control message in response to a
+   failed SUBSCRIBE.
+
+   SUBSCRIBE_ERROR
+   {
+     Type (i) = 0x5,
+     Length (i),
+     Subscribe ID (i),
+     Error Code (i),
+     Reason Phrase Length (i),
+     Reason Phrase (..),
+     Track Alias (i),
+   }
+
+                   Figure 9: MOQT SUBSCRIBE_ERROR Message
+
+   *  Subscribe ID: Subscription Identifier as defined in Section 8.6.
+
+   *  Error Code: Identifies an integer error code for subscription
+      failure.
+
+   *  Reason Phrase: Provides the reason for subscription error.
+
+   *  Track Alias: When Error Code is 'Retry Track Alias', the
+      subscriber SHOULD re-issue the SUBSCRIBE with this Track Alias
+      instead.  If this Track Alias is already in use, the subscriber
+      MUST close the connection with a Duplicate Track Alias error
+      (Section 3.4).
+
+   The application SHOULD use a relevant error code in SUBSCRIBE_ERROR,
+   as defined below:
+
+                      +======+======================+
+                      | Code | Reason               |
+                      +======+======================+
+                      |  0x0 | Internal Error       |
+                      +------+----------------------+
+                      |  0x1 | Unauthorized         |
+                      +------+----------------------+
+                      |  0x2 | Timeout              |
+                      +------+----------------------+
+                      |  0x3 | Not Supported        |
+                      +------+----------------------+
+                      |  0x4 | Track Does Not Exist |
+                      +------+----------------------+
+                      |  0x5 | Invalid Range        |
+                      +------+----------------------+
+                      |  0x6 | Retry Track Alias    |
+                      +------+----------------------+
+
+                                  Table 3
+
+8.9.  SUBSCRIBE_UPDATE
 
    A subscriber issues a SUBSCRIBE_UPDATE to a publisher to request a
    change to an existing subscription.  Subscriptions can only become
@@ -1550,7 +1708,7 @@ Table of Contents
      Subscribe Parameters (..) ...
    }
 
-                  Figure 6: MOQT SUBSCRIBE_UPDATE Message
+                  Figure 10: MOQT SUBSCRIBE_UPDATE Message
 
    *  Subscribe ID: The subscription identifier that is unique within
       the session.  This MUST match an existing Subscribe ID.
@@ -1568,7 +1726,7 @@ Table of Contents
 
    *  Subscribe Parameters: The parameters are defined in Section 8.1.1.
 
-8.6.  UNSUBSCRIBE
+8.10.  UNSUBSCRIBE
 
    A subscriber issues a UNSUBSCRIBE message to a publisher indicating
    it is no longer interested in receiving media for the specified track
@@ -1583,11 +1741,111 @@ Table of Contents
      Subscribe ID (i)
    }
 
-                     Figure 7: MOQT UNSUBSCRIBE Message
+                    Figure 11: MOQT UNSUBSCRIBE Message
 
-   *  Subscribe ID: Subscription Identifier as defined in Section 8.4.
+   *  Subscribe ID: Subscription Identifier as defined in Section 8.6.
 
-8.7.  FETCH
+8.11.  SUBSCRIBE_DONE
+
+   A publisher sends a SUBSCRIBE_DONE message to indicate it is done
+   publishing Objects for that subscription.  The Status Code indicates
+   why the subscription ended, and whether it was an error.  Because
+   SUBSCRIBE_DONE is sent on the control stream, it is likely to arrive
+   at the receiver before late-arriving objects, and often even late-
+   opening streams.  However, the receiver uses it as an indication that
+   it should receive any late-opening streams in a relatively short
+   time.
+
+   Note that some objects in the subscribed track might never be
+   delivered, because a stream was reset, or never opened in the first
+   place, due to the delivery timeout.
+
+   A sender MUST NOT send SUBSCRIBE_DONE until it has closed all streams
+   it will ever open, and has no further datagrams to send, for a
+   subscription.  After sending SUBSCRIBE_DONE, the sender can
+   immediately destroy subscription state, although stream state can
+   persist until delivery completes.  The sender might persist
+   subscription state to enforce the delivery timeout by resetting
+   streams on which it has already sent FIN, only deleting it when all
+   such streams have received ACK of the FIN.
+
+   A sender MUST NOT destroy subscription state until it sends
+   SUBSCRIBE_DONE, though it can choose to stop sending objects (and
+   thus send SUBSCRIBE_DONE) for any reason.
+
+   A subscriber that receives SUBSCRIBE_DONE SHOULD set a timer of at
+   least its delivery timeout in case some objects are still inbound due
+   to prioritization or packet loss.  The subscriber MAY dispense with a
+   timer if it sent UNSUBSCRIBE or is otherwise no longer interested in
+   objects from the track.  Once the timer has expired, the receiver
+   destroys subscription state once all open streams for the
+   subscription have closed.  A subscriber MAY discard subscription
+   state earlier, at the cost of potentially not delivering some late
+   objects to the application.  The subscriber SHOULD send STOP_SENDING
+   on all streams related to the subscription when it deletes
+   subscription state.
+
+   The format of SUBSCRIBE_DONE is as follows:
+
+   SUBSCRIBE_DONE Message {
+     Type (i) = 0xB,
+     Length (i),
+     Subscribe ID (i),
+     Status Code (i),
+     Stream Count (i),
+     Reason Phrase Length (i),
+     Reason Phrase (..),
+   }
+
+                   Figure 12: MOQT SUBSCRIBE_DONE Message
+
+   *  Subscribe ID: Subscription identifier as defined in Section 8.6.
+
+   *  Status Code: An integer status code indicating why the
+      subscription ended.
+
+   *  Stream Count: An integer indicating the number of data streams the
+      publisher opened for this subscription.  This helps the subscriber
+      know if it has received all of the data published in this
+      subscription by comparing the number of streams received.  The
+      subscriber can immediately remove all subscription state once the
+      same number of streams have been processed.  If the track had
+      Forwarding Preference = Datagram, the publisher MUST set Stream
+      Count to 0.  If the publisher is unable to set Stream Count to the
+      exact number of streams opened for the subscription, it MUST set
+      Stream Count to 2^62 - 1.  Subscribers SHOULD use a timeout or
+      other mechanism to remove subscription state in case the publisher
+      set an incorrect value, reset a stream before the SUBGROUP_HEADER,
+      or set the maximum value.  If a subscriber receives more streams
+      for a subscription than specified in Stream Count, it MAY close
+      the session with a Protocol Violation.
+
+   *  Reason Phrase: Provides the reason for subscription error.
+
+   The application SHOULD use a relevant status code in SUBSCRIBE_DONE,
+   as defined below:
+
+                       +======+====================+
+                       | Code | Reason             |
+                       +======+====================+
+                       |  0x0 | Internal Error     |
+                       +------+--------------------+
+                       |  0x1 | Unauthorized       |
+                       +------+--------------------+
+                       |  0x2 | Track Ended        |
+                       +------+--------------------+
+                       |  0x3 | Subscription Ended |
+                       +------+--------------------+
+                       |  0x4 | Going Away         |
+                       +------+--------------------+
+                       |  0x5 | Expired            |
+                       +------+--------------------+
+                       |  0x6 | Too Far Behind     |
+                       +------+--------------------+
+
+                                  Table 4
+
+8.12.  FETCH
 
    A subscriber issues a FETCH to a publisher to request a range of
    already published objects within a track.  The publisher responding
@@ -1656,7 +1914,7 @@ Table of Contents
      Parameters (..) ...
    }
 
-                        Figure 8: MOQT FETCH Message
+                       Figure 13: MOQT FETCH Message
 
    Fields common to all Fetch Types:
 
@@ -1721,7 +1979,7 @@ Table of Contents
    group, the publisher MUST return FETCH_ERROR with error code 'No
    Objects'.
 
-8.7.1.  Calculating the Range of a Joining Fetch
+8.12.1.  Calculating the Range of a Joining Fetch
 
    A publisher that receives a Fetch of type Type 0x2 treats it as a
    Fetch with a range dynamically determined by the Preceding Group
@@ -1750,302 +2008,7 @@ Table of Contents
    retrieve Objects that have not yet been published, so 1 is subtracted
    from the Fetch EndGroup if Fetch EndObject is 0.
 
-8.8.  FETCH_CANCEL
-
-   A subscriber issues a FETCH_CANCEL message to a publisher indicating
-   it is no longer interested in receiving Objects for the fetch
-   specified by 'Subscribe ID'.  The publisher SHOULD close the
-   unidirectional stream as soon as possible.
-
-   The format of FETCH_CANCEL is as follows:
-
-   FETCH_CANCEL Message {
-     Type (i) = 0x17,
-     Length (i),
-     Subscribe ID (i)
-   }
-
-                    Figure 9: MOQT FETCH_CANCEL Message
-
-   *  Subscribe ID: Subscription Identifier as defined in Section 8.7.
-
-8.9.  ANNOUNCE_OK
-
-   The subscriber sends an ANNOUNCE_OK control message to acknowledge
-   the successful authorization and acceptance of an ANNOUNCE message.
-
-   ANNOUNCE_OK Message
-   {
-     Type (i) = 0x7,
-     Length (i),
-     Track Namespace (tuple),
-   }
-
-                    Figure 10: MOQT ANNOUNCE_OK Message
-
-   *  Track Namespace: Identifies the track namespace in the ANNOUNCE
-      message for which this response is provided.
-
-8.10.  ANNOUNCE_ERROR
-
-   The subscriber sends an ANNOUNCE_ERROR control message for tracks
-   that failed authorization.
-
-   ANNOUNCE_ERROR Message
-   {
-     Type (i) = 0x8,
-     Length (i),
-     Track Namespace (tuple),
-     Error Code (i),
-     Reason Phrase Length (i),
-     Reason Phrase (..),
-   }
-
-                   Figure 11: MOQT ANNOUNCE_ERROR Message
-
-   *  Track Namespace: Identifies the track namespace in the ANNOUNCE
-      message for which this response is provided.
-
-   *  Error Code: Identifies an integer error code for announcement
-      failure.
-
-   *  Reason Phrase: Provides the reason for announcement error.
-
-   The application SHOULD use a relevant error code in ANNOUNCE_ERROR,
-   as defined below:
-
-                         +======+================+
-                         | Code | Reason         |
-                         +======+================+
-                         |  0x0 | Internal Error |
-                         +------+----------------+
-                         |  0x1 | Unauthorized   |
-                         +------+----------------+
-                         |  0x2 | Timeout        |
-                         +------+----------------+
-                         |  0x3 | Not Supported  |
-                         +------+----------------+
-                         |  0x4 | Uninterested   |
-                         +------+----------------+
-
-                                  Table 3
-
-8.11.  ANNOUNCE_CANCEL
-
-   The subscriber sends an ANNOUNCE_CANCEL control message to indicate
-   it will stop sending new subscriptions for tracks within the provided
-   Track Namespace.
-
-   ANNOUNCE_CANCEL Message {
-     Type (i) = 0xC,
-     Length (i),
-     Track Namespace (tuple),
-     Error Code (i),
-     Reason Phrase Length (i),
-     Reason Phrase Length (..),
-   }
-
-                  Figure 12: MOQT ANNOUNCE_CANCEL Message
-
-   *  Track Namespace: Identifies a track's namespace as defined in
-      (Section 2.4.1).
-
-   *  Error Code: Identifies an integer error code for canceling the
-      announcement.  ANNOUNCE_CANCEL uses the same error codes as
-      ANNOUNCE_ERROR (Section 8.10).
-
-   *  Reason Phrase: Provides the reason for announcement cancelation.
-
-8.12.  TRACK_STATUS_REQUEST
-
-   A potential subscriber sends a 'TRACK_STATUS_REQUEST' message on the
-   control stream to obtain information about the current status of a
-   given track.
-
-   A TRACK_STATUS message MUST be sent in response to each
-   TRACK_STATUS_REQUEST.
-
-   TRACK_STATUS_REQUEST Message {
-     Type (i) = 0xD,
-     Length (i),
-     Track Namespace (tuple),
-     Track Name Length (i),
-     Track Name (..),
-   }
-
-                Figure 13: MOQT TRACK_STATUS_REQUEST Message
-
-8.13.  SUBSCRIBE_ANNOUNCES
-
-   The subscriber sends the SUBSCRIBE_ANNOUNCES control message to a
-   publisher to request the current set of matching announcements, as
-   well as future updates to the set.
-
-   SUBSCRIBE_ANNOUNCES Message {
-     Type (i) = 0x11,
-     Length (i),
-     Track Namespace Prefix (tuple),
-     Number of Parameters (i),
-     Parameters (..) ...,
-   }
-
-                Figure 14: MOQT SUBSCRIBE_ANNOUNCES Message
-
-   *  Track Namespace Prefix: An ordered N-Tuple of byte fields which
-      are matched against track namespaces known to the publisher.  For
-      example, if the publisher is a relay that has received ANNOUNCE
-      messages for namespaces ("example.com", "meeting=123",
-      "participant=100") and ("example.com", "meeting=123",
-      "participant=200"), a SUBSCRIBE_ANNOUNCES for ("example.com",
-      "meeting=123") would match both.  If an endpoint receives a Track
-      Namespace Prefix tuple with an N of 0 or more than 32, it MUST
-      close the session with a Protocol Violation.
-
-   *  Parameters: The parameters are defined in Section 8.1.1.
-
-   The publisher will respond with SUBSCRIBE_ANNOUNCES_OK or
-   SUBSCRIBE_ANNOUNCES_ERROR.  If the SUBSCRIBE_ANNOUNCES is successful,
-   the publisher will forward any matching ANNOUNCE messages to the
-   subscriber that it has not yet sent.  If the set of matching ANNOUNCE
-   messages changes, the publisher sends the corresponding ANNOUNCE or
-   UNANNOUNCE message.
-
-   A subscriber cannot make overlapping namespace subscriptions on a
-   single session.  Within a session, if a publisher receives a
-   SUBSCRIBE_ANNOUNCES with a Track Namespace Prefix that is a prefix of
-   an earlier SUBSCRIBE_ANNOUNCES or vice versa, it MUST respond with
-   SUBSCRIBE_ANNOUNCES_ERROR, with error code
-   SUBSCRIBE_ANNOUNCES_OVERLAP.
-
-   The publisher MUST ensure the subscriber is authorized to perform
-   this namespace subscription.
-
-   SUBSCRIBE_ANNOUNCES is not required for a publisher to send ANNOUNCE
-   and UNANNOUNCE messages to a subscriber.  It is useful in
-   applications or relays where subscribers are only interested in or
-   authorized to access a subset of available announcements.
-
-8.14.  UNSUBSCRIBE_ANNOUNCES
-
-   A subscriber issues a UNSUBSCRIBE_ANNOUNCES message to a publisher
-   indicating it is no longer interested in ANNOUNCE and UNANNOUNCE
-   messages for the specified track namespace prefix.
-
-   The format of UNSUBSCRIBE_ANNOUNCES is as follows:
-
-   UNSUBSCRIBE_ANNOUNCES Message {
-     Type (i) = 0x14,
-     Length (i),
-     Track Namespace Prefix (tuple)
-   }
-
-                    Figure 15: MOQT UNSUBSCRIBE Message
-
-   *  Track Namespace Prefix: As defined in Section 8.13.
-
-8.15.  SUBSCRIBE_OK
-
-   A publisher sends a SUBSCRIBE_OK control message for successful
-   subscriptions.
-
-   SUBSCRIBE_OK
-   {
-     Type (i) = 0x4,
-     Length (i),
-     Subscribe ID (i),
-     Expires (i),
-     Group Order (8),
-     ContentExists (8),
-     [Largest Group ID (i)],
-     [Largest Object ID (i)],
-     Number of Parameters (i),
-     Subscribe Parameters (..) ...
-   }
-
-                    Figure 16: MOQT SUBSCRIBE_OK Message
-
-   *  Subscribe ID: Subscription Identifier as defined in Section 8.4.
-
-   *  Expires: Time in milliseconds after which the subscription is no
-      longer valid.  A value of 0 indicates that the subscription does
-      not expire or expires at an unknown time.  Expires is advisory and
-      a subscription can end prior to the expiry time or last longer.
-
-   *  Group Order: Indicates the subscription will be delivered in
-      Ascending (0x1) or Descending (0x2) order by group.  See
-      Section 6.  Values of 0x0 and those larger than 0x2 are a protocol
-      error.
-
-   *  ContentExists: 1 if an object has been published on this track, 0
-      if not.  If 0, then the Largest Group ID and Largest Object ID
-      fields will not be present.  Any other value is a protocol error
-      and MUST terminate the session with a Protocol Violation
-      (Section 3.4).
-
-   *  Largest Group ID: The largest Group ID available for this track.
-      This field is only present if ContentExists has a value of 1.
-
-   *  Largest Object ID: The largest Object ID available within the
-      largest Group ID for this track.  This field is only present if
-      ContentExists has a value of 1.
-
-   *  Subscribe Parameters: The parameters are defined in Section 8.1.1.
-
-8.16.  SUBSCRIBE_ERROR
-
-   A publisher sends a SUBSCRIBE_ERROR control message in response to a
-   failed SUBSCRIBE.
-
-   SUBSCRIBE_ERROR
-   {
-     Type (i) = 0x5,
-     Length (i),
-     Subscribe ID (i),
-     Error Code (i),
-     Reason Phrase Length (i),
-     Reason Phrase (..),
-     Track Alias (i),
-   }
-
-                  Figure 17: MOQT SUBSCRIBE_ERROR Message
-
-   *  Subscribe ID: Subscription Identifier as defined in Section 8.4.
-
-   *  Error Code: Identifies an integer error code for subscription
-      failure.
-
-   *  Reason Phrase: Provides the reason for subscription error.
-
-   *  Track Alias: When Error Code is 'Retry Track Alias', the
-      subscriber SHOULD re-issue the SUBSCRIBE with this Track Alias
-      instead.  If this Track Alias is already in use, the subscriber
-      MUST close the connection with a Duplicate Track Alias error
-      (Section 3.4).
-
-   The application SHOULD use a relevant error code in SUBSCRIBE_ERROR,
-   as defined below:
-
-                      +======+======================+
-                      | Code | Reason               |
-                      +======+======================+
-                      |  0x0 | Internal Error       |
-                      +------+----------------------+
-                      |  0x1 | Unauthorized         |
-                      +------+----------------------+
-                      |  0x2 | Timeout              |
-                      +------+----------------------+
-                      |  0x3 | Not Supported        |
-                      +------+----------------------+
-                      |  0x4 | Track Does Not Exist |
-                      +------+----------------------+
-                      |  0x5 | Invalid Range        |
-                      +------+----------------------+
-                      |  0x6 | Retry Track Alias    |
-                      +------+----------------------+
-
-                                  Table 4
-
-8.17.  FETCH_OK
+8.13.  FETCH_OK
 
    A publisher sends a FETCH_OK control message in response to
    successful fetches.  A publisher MAY send Objects in response to a
@@ -2065,9 +2028,9 @@ Table of Contents
      Subscribe Parameters (..) ...
    }
 
-                      Figure 18: MOQT FETCH_OK Message
+                      Figure 14: MOQT FETCH_OK Message
 
-   *  Subscribe ID: Fetch Identifier as defined in Section 8.7.
+   *  Subscribe ID: Fetch Identifier as defined in Section 8.12.
 
    *  Group Order: Indicates the fetch will be delivered in Ascending
       (0x1) or Descending (0x2) order by group.  See Section 6.  Values
@@ -2084,7 +2047,7 @@ Table of Contents
 
    *  Subscribe Parameters: The parameters are defined in Section 8.1.1.
 
-8.18.  FETCH_ERROR
+8.14.  FETCH_ERROR
 
    A publisher sends a FETCH_ERROR control message in response to a
    failed FETCH.
@@ -2099,9 +2062,9 @@ Table of Contents
      Reason Phrase (..),
    }
 
-                    Figure 19: MOQT FETCH_ERROR Message
+                    Figure 15: MOQT FETCH_ERROR Message
 
-   *  Subscribe ID: Subscription Identifier as defined in Section 8.4.
+   *  Subscribe ID: Subscription Identifier as defined in Section 8.6.
 
    *  Error Code: Identifies an integer error code for fetch failure.
 
@@ -2128,202 +2091,45 @@ Table of Contents
 
                                   Table 5
 
-8.19.  SUBSCRIBE_DONE
+8.15.  FETCH_CANCEL
 
-   A publisher sends a SUBSCRIBE_DONE message to indicate it is done
-   publishing Objects for that subscription.  The Status Code indicates
-   why the subscription ended, and whether it was an error.  Because
-   SUBSCRIBE_DONE is sent on the control stream, it is likely to arrive
-   at the receiver before late-arriving objects, and often even late-
-   opening streams.  However, the receiver uses it as an indication that
-   it should receive any late-opening streams in a relatively short
-   time.
+   A subscriber issues a FETCH_CANCEL message to a publisher indicating
+   it is no longer interested in receiving Objects for the fetch
+   specified by 'Subscribe ID'.  The publisher SHOULD close the
+   unidirectional stream as soon as possible.
 
-   Note that some objects in the subscribed track might never be
-   delivered, because a stream was reset, or never opened in the first
-   place, due to the delivery timeout.
+   The format of FETCH_CANCEL is as follows:
 
-   A sender MUST NOT send SUBSCRIBE_DONE until it has closed all streams
-   it will ever open, and has no further datagrams to send, for a
-   subscription.  After sending SUBSCRIBE_DONE, the sender can
-   immediately destroy subscription state, although stream state can
-   persist until delivery completes.  The sender might persist
-   subscription state to enforce the delivery timeout by resetting
-   streams on which it has already sent FIN, only deleting it when all
-   such streams have received ACK of the FIN.
-
-   A sender MUST NOT destroy subscription state until it sends
-   SUBSCRIBE_DONE, though it can choose to stop sending objects (and
-   thus send SUBSCRIBE_DONE) for any reason.
-
-   A subscriber that receives SUBSCRIBE_DONE SHOULD set a timer of at
-   least its delivery timeout in case some objects are still inbound due
-   to prioritization or packet loss.  The subscriber MAY dispense with a
-   timer if it sent UNSUBSCRIBE or is otherwise no longer interested in
-   objects from the track.  Once the timer has expired, the receiver
-   destroys subscription state once all open streams for the
-   subscription have closed.  A subscriber MAY discard subscription
-   state earlier, at the cost of potentially not delivering some late
-   objects to the application.  The subscriber SHOULD send STOP_SENDING
-   on all streams related to the subscription when it deletes
-   subscription state.
-
-   The format of SUBSCRIBE_DONE is as follows:
-
-   SUBSCRIBE_DONE Message {
-     Type (i) = 0xB,
+   FETCH_CANCEL Message {
+     Type (i) = 0x17,
      Length (i),
-     Subscribe ID (i),
-     Status Code (i),
-     Stream Count (i),
-     Reason Phrase Length (i),
-     Reason Phrase (..),
+     Subscribe ID (i)
    }
 
-                   Figure 20: MOQT SUBSCRIBE_DONE Message
+                    Figure 16: MOQT FETCH_CANCEL Message
 
-   *  Subscribe ID: Subscription identifier as defined in Section 8.4.
+   *  Subscribe ID: Subscription Identifier as defined in Section 8.12.
 
-   *  Status Code: An integer status code indicating why the
-      subscription ended.
+8.16.  TRACK_STATUS_REQUEST
 
-   *  Stream Count: An integer indicating the number of data streams the
-      publisher opened for this subscription.  This helps the subscriber
-      know if it has received all of the data published in this
-      subscription by comparing the number of streams received.  The
-      subscriber can immediately remove all subscription state once the
-      same number of streams have been processed.  If the track had
-      Forwarding Preference = Datagram, the publisher MUST set Stream
-      Count to 0.  If the publisher is unable to set Stream Count to the
-      exact number of streams opened for the subscription, it MUST set
-      Stream Count to 2^62 - 1.  Subscribers SHOULD use a timeout or
-      other mechanism to remove subscription state in case the publisher
-      set an incorrect value, reset a stream before the SUBGROUP_HEADER,
-      or set the maximum value.  If a subscriber receives more streams
-      for a subscription than specified in Stream Count, it MAY close
-      the session with a Protocol Violation.
+   A potential subscriber sends a 'TRACK_STATUS_REQUEST' message on the
+   control stream to obtain information about the current status of a
+   given track.
 
-   *  Reason Phrase: Provides the reason for subscription error.
+   A TRACK_STATUS message MUST be sent in response to each
+   TRACK_STATUS_REQUEST.
 
-   The application SHOULD use a relevant status code in SUBSCRIBE_DONE,
-   as defined below:
-
-                       +======+====================+
-                       | Code | Reason             |
-                       +======+====================+
-                       |  0x0 | Internal Error     |
-                       +------+--------------------+
-                       |  0x1 | Unauthorized       |
-                       +------+--------------------+
-                       |  0x2 | Track Ended        |
-                       +------+--------------------+
-                       |  0x3 | Subscription Ended |
-                       +------+--------------------+
-                       |  0x4 | Going Away         |
-                       +------+--------------------+
-                       |  0x5 | Expired            |
-                       +------+--------------------+
-                       |  0x6 | Too Far Behind     |
-                       +------+--------------------+
-
-                                  Table 6
-
-8.20.  MAX_SUBSCRIBE_ID
-
-   A publisher sends a MAX_SUBSCRIBE_ID message to increase the number
-   of subscriptions a subscriber can create within a session.
-
-   The Maximum Subscribe Id MUST only increase within a session, and
-   receipt of a MAX_SUBSCRIBE_ID message with an equal or smaller
-   Subscribe ID value is a 'Protocol Violation'.
-
-   MAX_SUBSCRIBE_ID
-   {
-     Type (i) = 0x15,
-     Length (i),
-     Subscribe ID (i),
-   }
-
-                  Figure 21: MOQT MAX_SUBSCRIBE_ID Message
-
-   *  Subscribe ID: The new Maximum Subscribe ID for the session.  If a
-      Subscribe ID Section 8.4 equal or larger than this is received by
-      the publisher that sent the MAX_SUBSCRIBE_ID, the publisher MUST
-      close the session with an error of 'Too Many Subscribes'.
-
-   MAX_SUBSCRIBE_ID is similar to MAX_STREAMS in ([RFC9000],
-   Section 4.6), and similar considerations apply when deciding how
-   often to send MAX_SUBSCRIBE_ID.  For example, implementations might
-   choose to increase MAX_SUBSCRIBE_ID as subscriptions close to keep
-   the number of subscriptions available to subscribers roughly
-   consistent.
-
-8.21.  SUBSCRIBES_BLOCKED
-
-   The SUBSCRIBES_BLOCKED message is sent when a subscriber would like
-   to begin a new subscription, but cannot because the Subscribe ID
-   would exceed the Maximum Subscribe ID value sent by the peer.  The
-   subscriber SHOULD send only one SUBSCRIBES_BLOCKED for a given
-   Maximum Subscribe ID.
-
-   A publisher MAY send a MAX_SUBSCRIBE_ID upon receipt of
-   SUBSCRIBES_BLOCKED, but it MUST NOT rely on SUBSCRIBES_BLOCKED to
-   trigger sending a MAX_SUBSCRIBE_ID, because sending
-   SUBSCRIBES_BLOCKED is not required.
-
-   SUBSCRIBES_BLOCKED
-   {
-     Type (i) = 0x1A,
-     Length (i),
-     Maximum Subscribe ID (i),
-   }
-
-                 Figure 22: MOQT SUBSCRIBES_BLOCKED Message
-
-   *  Maximum Subscribe ID: The Maximum Subscribe ID for the session on
-      which the subscriber is blocked.  More on Subscribe ID in
-      Section 8.4.
-
-8.22.  ANNOUNCE
-
-   The publisher sends the ANNOUNCE control message to advertise where
-   the receiver can route SUBSCRIBEs for tracks within the announced
-   Track Namespace.  The receiver verifies the publisher is authorized
-   to publish tracks under this namespace.
-
-   ANNOUNCE Message {
-     Type (i) = 0x6,
+   TRACK_STATUS_REQUEST Message {
+     Type (i) = 0xD,
      Length (i),
      Track Namespace (tuple),
-     Number of Parameters (i),
-     Parameters (..) ...,
+     Track Name Length (i),
+     Track Name (..),
    }
 
-                      Figure 23: MOQT ANNOUNCE Message
+                Figure 17: MOQT TRACK_STATUS_REQUEST Message
 
-   *  Track Namespace: Identifies a track's namespace as defined in
-      (Section 2.4.1)
-
-   *  Parameters: The parameters are defined in Section 8.1.1.
-
-8.23.  UNANNOUNCE
-
-   The publisher sends the UNANNOUNCE control message to indicate its
-   intent to stop serving new subscriptions for tracks within the
-   provided Track Namespace.
-
-   UNANNOUNCE Message {
-     Type (i) = 0x9,
-     Length (i),
-     Track Namespace (tuple),
-   }
-
-                     Figure 24: MOQT UNANNOUNCE Message
-
-   *  Track Namespace: Identifies a track's namespace as defined in
-      (Section 2.4.1).
-
-8.24.  TRACK_STATUS
+8.17.  TRACK_STATUS
 
    A publisher sends a 'TRACK_STATUS' message on the control stream in
    response to a TRACK_STATUS_REQUEST message.
@@ -2339,7 +2145,7 @@ Table of Contents
      Last Object ID (i),
    }
 
-                    Figure 25: MOQT TRACK_STATUS Message
+                    Figure 18: MOQT TRACK_STATUS Message
 
    The 'Status Code' field provides additional information about the
    status of the track.  It MUST hold one of the following values.  Any
@@ -2379,7 +2185,183 @@ Table of Contents
    information from the latest arriving message, as they are delivered
    in order on a single stream.
 
-8.25.  SUBSCRIBE_ANNOUNCES_OK
+8.18.  ANNOUNCE
+
+   The publisher sends the ANNOUNCE control message to advertise where
+   the receiver can route SUBSCRIBEs for tracks within the announced
+   Track Namespace.  The receiver verifies the publisher is authorized
+   to publish tracks under this namespace.
+
+   ANNOUNCE Message {
+     Type (i) = 0x6,
+     Length (i),
+     Track Namespace (tuple),
+     Number of Parameters (i),
+     Parameters (..) ...,
+   }
+
+                      Figure 19: MOQT ANNOUNCE Message
+
+   *  Track Namespace: Identifies a track's namespace as defined in
+      (Section 2.4.1)
+
+   *  Parameters: The parameters are defined in Section 8.1.1.
+
+8.19.  ANNOUNCE_OK
+
+   The subscriber sends an ANNOUNCE_OK control message to acknowledge
+   the successful authorization and acceptance of an ANNOUNCE message.
+
+   ANNOUNCE_OK Message
+   {
+     Type (i) = 0x7,
+     Length (i),
+     Track Namespace (tuple),
+   }
+
+                    Figure 20: MOQT ANNOUNCE_OK Message
+
+   *  Track Namespace: Identifies the track namespace in the ANNOUNCE
+      message for which this response is provided.
+
+8.20.  ANNOUNCE_ERROR
+
+   The subscriber sends an ANNOUNCE_ERROR control message for tracks
+   that failed authorization.
+
+   ANNOUNCE_ERROR Message
+   {
+     Type (i) = 0x8,
+     Length (i),
+     Track Namespace (tuple),
+     Error Code (i),
+     Reason Phrase Length (i),
+     Reason Phrase (..),
+   }
+
+                   Figure 21: MOQT ANNOUNCE_ERROR Message
+
+   *  Track Namespace: Identifies the track namespace in the ANNOUNCE
+      message for which this response is provided.
+
+   *  Error Code: Identifies an integer error code for announcement
+      failure.
+
+   *  Reason Phrase: Provides the reason for announcement error.
+
+   The application SHOULD use a relevant error code in ANNOUNCE_ERROR,
+   as defined below:
+
+                         +======+================+
+                         | Code | Reason         |
+                         +======+================+
+                         |  0x0 | Internal Error |
+                         +------+----------------+
+                         |  0x1 | Unauthorized   |
+                         +------+----------------+
+                         |  0x2 | Timeout        |
+                         +------+----------------+
+                         |  0x3 | Not Supported  |
+                         +------+----------------+
+                         |  0x4 | Uninterested   |
+                         +------+----------------+
+
+                                  Table 6
+
+8.21.  UNANNOUNCE
+
+   The publisher sends the UNANNOUNCE control message to indicate its
+   intent to stop serving new subscriptions for tracks within the
+   provided Track Namespace.
+
+   UNANNOUNCE Message {
+     Type (i) = 0x9,
+     Length (i),
+     Track Namespace (tuple),
+   }
+
+                     Figure 22: MOQT UNANNOUNCE Message
+
+   *  Track Namespace: Identifies a track's namespace as defined in
+      (Section 2.4.1).
+
+8.22.  ANNOUNCE_CANCEL
+
+   The subscriber sends an ANNOUNCE_CANCEL control message to indicate
+   it will stop sending new subscriptions for tracks within the provided
+   Track Namespace.
+
+   ANNOUNCE_CANCEL Message {
+     Type (i) = 0xC,
+     Length (i),
+     Track Namespace (tuple),
+     Error Code (i),
+     Reason Phrase Length (i),
+     Reason Phrase Length (..),
+   }
+
+                  Figure 23: MOQT ANNOUNCE_CANCEL Message
+
+   *  Track Namespace: Identifies a track's namespace as defined in
+      (Section 2.4.1).
+
+   *  Error Code: Identifies an integer error code for canceling the
+      announcement.  ANNOUNCE_CANCEL uses the same error codes as
+      ANNOUNCE_ERROR (Section 8.20).
+
+   *  Reason Phrase: Provides the reason for announcement cancelation.
+
+8.23.  SUBSCRIBE_ANNOUNCES
+
+   The subscriber sends the SUBSCRIBE_ANNOUNCES control message to a
+   publisher to request the current set of matching announcements, as
+   well as future updates to the set.
+
+   SUBSCRIBE_ANNOUNCES Message {
+     Type (i) = 0x11,
+     Length (i),
+     Track Namespace Prefix (tuple),
+     Number of Parameters (i),
+     Parameters (..) ...,
+   }
+
+                Figure 24: MOQT SUBSCRIBE_ANNOUNCES Message
+
+   *  Track Namespace Prefix: An ordered N-Tuple of byte fields which
+      are matched against track namespaces known to the publisher.  For
+      example, if the publisher is a relay that has received ANNOUNCE
+      messages for namespaces ("example.com", "meeting=123",
+      "participant=100") and ("example.com", "meeting=123",
+      "participant=200"), a SUBSCRIBE_ANNOUNCES for ("example.com",
+      "meeting=123") would match both.  If an endpoint receives a Track
+      Namespace Prefix tuple with an N of 0 or more than 32, it MUST
+      close the session with a Protocol Violation.
+
+   *  Parameters: The parameters are defined in Section 8.1.1.
+
+   The publisher will respond with SUBSCRIBE_ANNOUNCES_OK or
+   SUBSCRIBE_ANNOUNCES_ERROR.  If the SUBSCRIBE_ANNOUNCES is successful,
+   the publisher will forward any matching ANNOUNCE messages to the
+   subscriber that it has not yet sent.  If the set of matching ANNOUNCE
+   messages changes, the publisher sends the corresponding ANNOUNCE or
+   UNANNOUNCE message.
+
+   A subscriber cannot make overlapping namespace subscriptions on a
+   single session.  Within a session, if a publisher receives a
+   SUBSCRIBE_ANNOUNCES with a Track Namespace Prefix that is a prefix of
+   an earlier SUBSCRIBE_ANNOUNCES or vice versa, it MUST respond with
+   SUBSCRIBE_ANNOUNCES_ERROR, with error code
+   SUBSCRIBE_ANNOUNCES_OVERLAP.
+
+   The publisher MUST ensure the subscriber is authorized to perform
+   this namespace subscription.
+
+   SUBSCRIBE_ANNOUNCES is not required for a publisher to send ANNOUNCE
+   and UNANNOUNCE messages to a subscriber.  It is useful in
+   applications or relays where subscribers are only interested in or
+   authorized to access a subset of available announcements.
+
+8.24.  SUBSCRIBE_ANNOUNCES_OK
 
    A publisher sends a SUBSCRIBE_ANNOUNCES_OK control message for
    successful namespace subscriptions.
@@ -2391,11 +2373,11 @@ Table of Contents
      Track Namespace Prefix (tuple),
    }
 
-               Figure 26: MOQT SUBSCRIBE_ANNOUNCES_OK Message
+               Figure 25: MOQT SUBSCRIBE_ANNOUNCES_OK Message
 
-   *  Track Namespace Prefix: As defined in Section 8.13.
+   *  Track Namespace Prefix: As defined in Section 8.23.
 
-8.26.  SUBSCRIBE_ANNOUNCES_ERROR
+8.25.  SUBSCRIBE_ANNOUNCES_ERROR
 
    A publisher sends a SUBSCRIBE_ANNOUNCES_ERROR control message in
    response to a failed SUBSCRIBE_ANNOUNCES.
@@ -2410,9 +2392,9 @@ Table of Contents
      Reason Phrase (..),
    }
 
-             Figure 27: MOQT SUBSCRIBE_ANNOUNCES_ERROR Message
+             Figure 26: MOQT SUBSCRIBE_ANNOUNCES_ERROR Message
 
-   *  Track Namespace Prefix: As defined in Section 8.13.
+   *  Track Namespace Prefix: As defined in Section 8.23.
 
    *  Error Code: Identifies an integer error code for the namespace
       subscription failure.
@@ -2438,6 +2420,24 @@ Table of Contents
                     +------+--------------------------+
 
                                   Table 7
+
+8.26.  UNSUBSCRIBE_ANNOUNCES
+
+   A subscriber issues a UNSUBSCRIBE_ANNOUNCES message to a publisher
+   indicating it is no longer interested in ANNOUNCE and UNANNOUNCE
+   messages for the specified track namespace prefix.
+
+   The format of UNSUBSCRIBE_ANNOUNCES is as follows:
+
+   UNSUBSCRIBE_ANNOUNCES Message {
+     Type (i) = 0x14,
+     Length (i),
+     Track Namespace Prefix (tuple)
+   }
+
+                    Figure 27: MOQT UNSUBSCRIBE Message
+
+   *  Track Namespace Prefix: As defined in Section 8.23.
 
 9.  Data Streams
 
@@ -2737,7 +2737,7 @@ Table of Contents
    current Group.  When RESET_STREAM_AT is used, the reliable_size
    SHOULD include the stream header so the receiver can identify the
    corresponding subscription and accurately account for reset data
-   streams when handling SUBSCRIBE_DONE (see Section 8.19).  Publishers
+   streams when handling SUBSCRIBE_DONE (see Section 8.11).  Publishers
    that reset data streams without using RESET_STREAM_AT with an
    appropriate reliable_size can cause subscribers to hold on to
    subscription state until a timeout expires.
