@@ -1124,7 +1124,7 @@ these parameters to appear in Setup messages.
 AUTHORIZATION INFO parameter (Parameter Type 0x02) identifies a track's
 authorization information in a SUBSCRIBE, SUBSCRIBE_ANNOUNCES, ANNOUNCE
 or FETCH message. This parameter is populated for cases where the authorization
-is required at the track level. The value is an ASCII string.
+is required at the track level.
 
 #### DELIVERY TIMEOUT Parameter {#delivery-timeout}
 
@@ -1169,6 +1169,25 @@ milliseconds has elapsed since the beginning of the Object was received.  This
 means Objects earlier in a multi-object stream will expire earlier than Objects
 later in the stream. Once Objects have expired, their state becomes unknown, and
 a relay that handles a subscription that includes those Objects re-requests them.
+
+#### AUTHORIZATION ALIAS {#authorization-id}
+
+AUTHORIZATION ALIAS parameter (Parameter Type 0x05) identifies an alias by which
+AUTHORIZATION INFO (Parameter Type 0x02) can be referenced within the current
+session. Transmission of both AUTHORIZATION ALIAS and AUTHORIZATION INFO parameters
+in the same parameter set is an instruction to the receiver to associate the 
+AUTHORIZATION ALIAS with the AUTHORIZATION INFO. Receivers processing future
+parameters sets in which only the AUTHORIZATION ALIAS is sent MUST process the
+parameter set as if the AUTHORIZATION INFO had been retransmitted.
+
+If an AUTHORIZATION ALIAS is received without first having been associated with an
+AUTHORIZATION INFO in that session, then the receiver SHALL process the parameter
+set as if no AUTHORIZATION INFO had been included.
+
+If an AUTHORIZATION ALIAS is associated with an AUTHORIZATION INFO instance and then
+later in the same session associated with a different AUTHORIZATION INFO instance,
+the receiver SHALL update the AUTHORIZATION ALIAS to reference the last provided
+AUTHORIZATION INFO instance.
 
 ## CLIENT_SETUP and SERVER_SETUP {#message-setup}
 
