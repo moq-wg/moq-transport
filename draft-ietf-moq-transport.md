@@ -562,7 +562,7 @@ code, as defined below:
 |------|---------------------------|
 | 0x4  | Duplicate Track Alias     |
 |------|---------------------------|
-| 0x5  | Parameter Length Mismatch |
+| 0x5  | Parameter Value Mismatch |
 |------|---------------------------|
 | 0x6  | Too Many Subscribes       |
 |------|---------------------------|
@@ -1072,7 +1072,7 @@ length of the message content, the receiver MUST close the session.
 ## Parameters {#params}
 
 Some messages include a Parameters field that encode optional message
-elements. They contain a type, length, and value.
+elements. They contain a type, an optional length, and a value.
 
 Senders MUST NOT repeat the same parameter type in a message. Receivers
 SHOULD check that there are no duplicate parameters and close the session
@@ -1080,33 +1080,37 @@ as a 'Protocol Violation' if found.
 
 Receivers ignore unrecognized parameters.
 
+Parameters MUST be serialized in ascending Parameter Type order.
+
 The format of Parameters is as follows:
 
 ~~~
 Parameter {
   Parameter Type (i),
-  Parameter Length (i),
-  Parameter Value (..),
+  [Parameter Value (i)]
+  [Parameter Length (i),
+   Parameter Value (..)]
 }
 ~~~
 {: #moq-param format title="MOQT Parameter"}
 
-Parameter Type is an integer that indicates the semantic meaning of the
-parameter. Setup message parameters use a namespace that is constant across all
-MoQ Transport versions. All other messages use a version-specific namespace. For
-example, the integer '1' can refer to different parameters for Setup messages
-and for all other message types.
+Parameter Type is an unsigned integer that indicates the semantic meaning of the
+parameter and also the subsequent serialization. Parameter Type is delta encoded.
+The first Parameter Type in the message is encoded with an absolute value and all
+subsequent Parameter Types are encoded as a delta to the prior Parameter Type.
+Setup message parameters use a namespace that is constant across all MoQ Transport
+versions. All other messages use a version-specific namespace. For example, the
+integer '1' can refer to different parameters for Setup messages and for all other
+message types. SETUP message parameter types are defined in {{setup-params}}.
+Version-specific parameter types are defined in {{version-specific-params}}.
 
-SETUP message parameter types are defined in {{setup-params}}. Version-
-specific parameter types are defined in {{version-specific-params}}.
+Parameter Values: even Parameter Types are followed by a single varint encoded value.
+Odd Parameter Types are followed by the Parameter Value length in bytes followed by
+the Parameter Value.
 
-The Parameter Length field of the String Parameter encodes the length
-of the Parameter Value field in bytes.
-
-Each parameter description will indicate the data type in the Parameter Value
-field. If a receiver understands a parameter type, and the parameter length
-implied by that type does not match the Parameter Length field, the receiver
-MUST terminate the session with error code 'Parameter Length Mismatch'.
+If a receiver understands a Parameter Type, and the following Value or Length/Value
+does not match the serialization defined by that Parameter Type, the receiver
+MUST terminate the session with error code 'Parameter Value Mismatch'.
 
 ### Version Specific Parameters {#version-specific-params}
 
@@ -1115,16 +1119,9 @@ it can appear. If it appears in some other type of message, it MUST be ignored.
 Note that since Setup parameters use a separate namespace, it is impossible for
 these parameters to appear in Setup messages.
 
-#### AUTHORIZATION INFO {#authorization-info}
-
-AUTHORIZATION INFO parameter (Parameter Type 0x02) identifies a track's
-authorization information in a SUBSCRIBE, SUBSCRIBE_ANNOUNCES, ANNOUNCE
-or FETCH message. This parameter is populated for cases where the authorization
-is required at the track level. The value is an ASCII string.
-
 #### DELIVERY TIMEOUT Parameter {#delivery-timeout}
 
-The DELIVERY TIMEOUT parameter (Parameter Type 0x03) MAY appear in a
+The DELIVERY TIMEOUT parameter (Parameter Type 0x02) MAY appear in a
 SUBSCRIBE, SUBSCRIBE_OK, or a SUBSCRIBE_UDPATE message.  It is the duration in
 milliseconds the relay SHOULD continue to attempt forwarding Objects after
 they have been received.  The start time for the timeout is based on when the
@@ -1155,6 +1152,13 @@ to serve multiple subscriptions for the same track.
 Publishers SHOULD consider whether the entire Object is likely to be delivered
 before sending any data for that Object, taking into account priorities,
 congestion control, and any other relevant information.
+
+#### AUTHORIZATION INFO {#authorization-info}
+
+AUTHORIZATION INFO parameter (Parameter Type 0x03) identifies a track's
+authorization information in a SUBSCRIBE, SUBSCRIBE_ANNOUNCES, ANNOUNCE
+or FETCH message. This parameter is populated for cases where the authorization
+is required at the track level. The value is an ASCII string.
 
 #### MAX CACHE DURATION Parameter {#max-cache-duration}
 
@@ -2425,24 +2429,10 @@ If supported by the relay and subject to the processing rules specified in the
 definition of the extension, Extension Headers MAY be modified, added, removed,
 and/or cached by relays.
 
-Object Extension Headers are serialized as defined below:
+Object Extension Headers are serialized as Parameters {{moq-param}}.
 
-~~~
-Extension Header {
-  Header Type (i),
-  [Header Value (i)]
-  [Header Length (i),
-   Header Value (..)]
-}
-~~~
-{: #object-extension-format title="Object Extension Header Format"}
-
-* Header type: an unsigned integer, encoded as a varint, identifying the type
-  of the extension and also the subsequent serialization.
-* Header values: even types are followed by a single varint encoded value. Odd
-  types are followed by a varint encoded length and then the header value.
-  Header types are registered in the IANA table 'MOQ Extension Headers'.
-  See {{iana}}.
+Extension Header types are registered in the IANA table 'MOQ Extension Headers'. See
+{{iana}}.
 
 ## Object Datagram {#object-datagram}
 
