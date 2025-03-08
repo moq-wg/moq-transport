@@ -1104,13 +1104,13 @@ integer '1' can refer to different parameters for Setup messages and for all oth
 message types. SETUP message parameter types are defined in {{setup-params}}.
 Version-specific parameter types are defined in {{version-specific-params}}.
 
-Parameter Values: even Parameter Types are followed by a single varint encoded value.
-Odd Parameter Types are followed by the Parameter Value length in bytes followed by
-the Parameter Value.
+Parameter Values: even Parameter Types are followed by a single varint encoded
+value. Odd Parameter Types are followed by the Parameter Value length in bytes
+followed by the Parameter Value.
 
-If a receiver understands a Parameter Type, and the following Value or Length/Value
-does not match the serialization defined by that Parameter Type, the receiver
-MUST terminate the session with error code 'Parameter Value Mismatch'.
+If a receiver understands a Parameter Type, and the following Value or
+Length/Value does not match the serialization defined by that Parameter Type,
+the receiver MUST terminate the session with error code 'Parameter Value Mismatch'.
 
 ### Version Specific Parameters {#version-specific-params}
 
@@ -2431,8 +2431,8 @@ and/or cached by relays.
 
 Object Extension Headers are serialized as Parameters {{moq-param}}.
 
-Extension Header types are registered in the IANA table 'MOQ Extension Headers'. See
-{{iana}}.
+Extension Header types are registered in the IANA table 'MOQ Extension Headers'.
+See {{iana}}.
 
 ## Object Datagram {#object-datagram}
 
