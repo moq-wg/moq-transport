@@ -2324,7 +2324,7 @@ SHOULD close the session with an error of 'Protocol Violation'.
 
 ## Object Headers {#message-object}
 
-An OBJECT message contains a range of contiguous bytes from from the
+An OBJECT message contains a range of contiguous bytes from the
 specified track, as well as associated metadata required to deliver,
 cache, and forward it.  Objects are sent by publishers.
 
