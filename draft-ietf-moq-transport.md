@@ -1454,8 +1454,8 @@ SUBSCRIBE_OK
   Expires (i),
   Group Order (8),
   ContentExists (8),
-  [Largest Group ID (i)],
-  [Largest Object ID (i)],
+  [Largest Group ID (i),
+   Largest Object ID (i)],
   Number of Parameters (i),
   Subscribe Parameters (..) ...
 }
