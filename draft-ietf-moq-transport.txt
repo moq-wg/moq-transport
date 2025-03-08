@@ -5,13 +5,13 @@
 Media Over QUIC                                                L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 4 September 2025                                           Meta
+Expires: 9 September 2025                                           Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                            3 March 2025
+                                                            8 March 2025
 
 
                        Media over QUIC Transport
@@ -59,7 +59,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 4 September 2025.
+   This Internet-Draft will expire on 9 September 2025.
 
 Copyright Notice
 
@@ -1579,8 +1579,8 @@ Table of Contents
      Expires (i),
      Group Order (8),
      ContentExists (8),
-     [Largest Group ID (i)],
-     [Largest Object ID (i)],
+     [Largest Group ID (i),
+      Largest Object ID (i)],
      Number of Parameters (i),
      Subscribe Parameters (..) ...
    }
@@ -3012,9 +3012,9 @@ Normative References
    [WebTransport]
               Frindell, A., Kinnear, E., and V. Vasiliev, "WebTransport
               over HTTP/3", Work in Progress, Internet-Draft, draft-
-              ietf-webtrans-http3-11, 21 October 2024,
+              ietf-webtrans-http3-12, 3 March 2025,
               <https://datatracker.ietf.org/doc/html/draft-ietf-
-              webtrans-http3-11>.
+              webtrans-http3-12>.
 
 Informative References
 
