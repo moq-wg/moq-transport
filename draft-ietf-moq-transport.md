@@ -1177,7 +1177,7 @@ parameters sets in which only the AUTHORIZATION ALIAS is sent MUST process the
 parameter set as if the AUTHORIZATION INFO had been retransmitted.
 
 If an AUTHORIZATION ALIAS is received without first having been associated with an
-AUTHORIZATION INFO in that session, then the receiver SHALL process the parameter
+AUTHORIZATION INFO in that session, then the receiver SHOULD process the parameter
 set as if no AUTHORIZATION INFO had been included.
 
 If an AUTHORIZATION ALIAS is associated with an AUTHORIZATION INFO instance and then
