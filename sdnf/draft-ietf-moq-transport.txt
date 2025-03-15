@@ -5,13 +5,13 @@
 Media Over QUIC                                                L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 2 September 2025                                           Meta
+Expires: 16 September 2025                                          Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                            1 March 2025
+                                                           15 March 2025
 
 
                        Media over QUIC Transport
@@ -59,7 +59,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 2 September 2025.
+   This Internet-Draft will expire on 16 September 2025.
 
 Copyright Notice
 
@@ -1436,14 +1436,14 @@ Table of Contents
 
    Subscribers can also request a publisher to not forward objects for a
    given track by setting the Forward field to 0.  This can reduce the
-   latency of beginning delivery of a track that is expected to be
-   needed soon when a Relay is substantially closer to the subscriber
-   than the Original Publisher.  Relays SHOULD always set the Forward
-   flag to 1 if a new subscription needs to be sent upstream, regardless
-   of the value of the Forward field from the downstream subscription.
-   Subscriptions that are not forwarded consume resources from the
-   publisher, so a publisher might deprioritize, reject, or close those
-   subscriptions to ensure other subscriptions can be delivered.
+   latency of receiving Objects that might be needed urgently when the
+   Relay is substantially closer to the subscriber than to the Original
+   Publisher.  Relays SHOULD always set the Forward flag to 1 if a new
+   subscription needs to be sent upstream, regardless of the value of
+   the Forward field from the downstream subscription.  Subscriptions
+   that are not forwarded consume resources from the publisher, so a
+   publisher might deprioritize, reject, or close those subscriptions to
+   ensure other subscriptions can be delivered.
 
    The format of SUBSCRIBE is as follows:
 
@@ -3015,9 +3015,9 @@ Normative References
    [WebTransport]
               Frindell, A., Kinnear, E., and V. Vasiliev, "WebTransport
               over HTTP/3", Work in Progress, Internet-Draft, draft-
-              ietf-webtrans-http3-11, 21 October 2024,
+              ietf-webtrans-http3-12, 3 March 2025,
               <https://datatracker.ietf.org/doc/html/draft-ietf-
-              webtrans-http3-11>.
+              webtrans-http3-12>.
 
 Informative References
 
