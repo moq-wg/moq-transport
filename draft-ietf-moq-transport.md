@@ -1315,9 +1315,9 @@ both messages at the same time or wait for the first to return before sending
 the second.
 
 Subscribers can also request a publisher to not forward objects for a given
-track by setting the `Forward` field to 0. This can reduce the latency of beginning delivery of
-a track that is expected to be needed soon when a Relay is substantially closer to the
-subscriber than the Original Publisher. Relays SHOULD always set the `Forward`
+track by setting the `Forward` field to 0. This can reduce the latency of receiving
+Objects that might be needed urgently when the Relay is substantially closer to the
+subscriber than to the Original Publisher. Relays SHOULD always set the `Forward`
 flag to 1 if a new subscription needs to be sent upstream, regardless of the
 value of the `Forward` field from the downstream subscription. Subscriptions that
 are not forwarded consume resources from the publisher, so a publisher might
