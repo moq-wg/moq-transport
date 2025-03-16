@@ -1100,8 +1100,8 @@ and for all other message types.
 SETUP message parameter types are defined in {{setup-params}}. Version-
 specific parameter types are defined in {{version-specific-params}}.
 
-The Parameter Length field of the String Parameter encodes the length
-of the Parameter Value field in bytes.
+The Parameter Length field encodes the length of the Parameter Value field in
+bytes.
 
 Each parameter description will indicate the data type in the Parameter Value
 field. If a receiver understands a parameter type, and the parameter length
@@ -1120,7 +1120,7 @@ these parameters to appear in Setup messages.
 AUTHORIZATION INFO parameter (Parameter Type 0x02) identifies a track's
 authorization information in a SUBSCRIBE, SUBSCRIBE_ANNOUNCES, ANNOUNCE
 or FETCH message. This parameter is populated for cases where the authorization
-is required at the track level. The value is an ASCII string.
+is required at the track level.
 
 #### DELIVERY TIMEOUT Parameter {#delivery-timeout}
 
