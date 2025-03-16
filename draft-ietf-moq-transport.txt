@@ -5,13 +5,13 @@
 Media Over QUIC                                                L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 16 September 2025                                          Meta
+Expires: 17 September 2025                                          Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                           15 March 2025
+                                                           16 March 2025
 
 
                        Media over QUIC Transport
@@ -59,7 +59,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 16 September 2025.
+   This Internet-Draft will expire on 17 September 2025.
 
 Copyright Notice
 
@@ -1202,8 +1202,8 @@ Table of Contents
    SETUP message parameter types are defined in Section 8.2.2.  Version-
    specific parameter types are defined in Section 8.1.1.
 
-   The Parameter Length field of the String Parameter encodes the length
-   of the Parameter Value field in bytes.
+   The Parameter Length field encodes the length of the Parameter Value
+   field in bytes.
 
    Each parameter description will indicate the data type in the
    Parameter Value field.  If a receiver understands a parameter type,
@@ -1225,7 +1225,7 @@ Table of Contents
    track's authorization information in a SUBSCRIBE,
    SUBSCRIBE_ANNOUNCES, ANNOUNCE or FETCH message.  This parameter is
    populated for cases where the authorization is required at the track
-   level.  The value is an ASCII string.
+   level.
 
 8.1.1.2.  DELIVERY TIMEOUT Parameter
 
