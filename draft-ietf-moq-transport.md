@@ -1182,7 +1182,7 @@ set as if no AUTHORIZATION INFO had been included.
 
 If an AUTHORIZATION ALIAS is associated with an AUTHORIZATION INFO instance and then
 later in the same session associated with a different AUTHORIZATION INFO instance,
-the receiver SHOULD update the AUTHORIZATION ALIAS to reference the last provided
+the receiver MUST update the AUTHORIZATION ALIAS to reference the last provided
 AUTHORIZATION INFO instance.
 
 ## CLIENT_SETUP and SERVER_SETUP {#message-setup}
