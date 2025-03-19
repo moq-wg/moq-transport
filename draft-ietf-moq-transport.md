@@ -389,8 +389,8 @@ Group Order.
 
 As a result, Subscribers will not know the status of a Group within a SUBSCRIBE's
 Group range, even if there is no Delivery Timeout for the Subscription, until
-either the Group is received or a 'Group Does Not Exist' status is received
-for the Group.  This can create gaps in the MoQ cache that MUST be filled by
+either the Group is received or a 'Group Does Not Exist' status is received.
+This can create gaps in the MoQ cache that MUST be filled by
 doing a Fetch upstream if a Fetch is received that requests those Groups.
 
 Subscribers to tracks which do not follow this requirement SHOULD NOT
