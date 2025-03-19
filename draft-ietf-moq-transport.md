@@ -379,8 +379,21 @@ subscriber that does not want to receive the entire track can opt to receive onl
 the latest group(s).  The publisher then selectively transmits objects based on
 their group membership.  Groups can contain any number of objects.
 
-Within a track, the original publisher SHOULD produce Group IDs which increase
-with time. Subscribers to tracks which do not follow this requirement SHOULD NOT
+### Group Ordering
+
+Within a track, the original publisher SHOULD publish Group IDs which increase
+with time. There are cases when even if the Groups are produced in increasing order,
+they might not be sent to the MoQ network or various Subscribers in the network
+in that order. One example is if the original publisher is publishing in descending
+Group Order.
+
+As a result, Subscribers will not know the status of a Group within a SUBSCRIBE's
+Group range, even if there is no Delivery Timeout for the Subscription, until
+either the Group is received or a 'Group Does Not Exist' status is received
+for the Group.  This can create gaps in the MoQ cache that MUST be filled by
+doing a Fetch upstream if a Fetch is received that requests those Groups.
+
+Subscribers to tracks which do not follow this requirement SHOULD NOT
 use range filters which span multiple groups in FETCH or SUBSCRIBE. SUBSCRIBE and
 FETCH delivery use Group Order, so a FETCH cannot deliver Groups out of order
 and a subscription could have unexpected delivery order if Group IDs do not increase
