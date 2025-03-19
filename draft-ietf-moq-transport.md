@@ -1810,7 +1810,7 @@ Fields present only for Standalone Fetch (0x1):
 * EndObject: The end Object ID, plus 1. A value of 0 means the entire group is
 requested.
 
-Fields present only for Relative Fetch (0x2) and Absolute  Fetch (0x3):
+Fields present only for Relative Fetch (0x2) and Absolute Fetch (0x3):
 
 * Joining Subscribe ID: The Subscribe ID of the existing subscription to be
 joined. If a publisher receives a Joining Fetch with a Subscribe ID that does
