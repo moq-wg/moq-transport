@@ -1767,7 +1767,7 @@ FETCH Message {
    EndGroup (i),
    EndObject (i),]
   [ Subscribe ID (i),
-    Start (i),]
+    Joining Start (i),]
   Number of Parameters (i),
   Parameters (..) ...
 }
