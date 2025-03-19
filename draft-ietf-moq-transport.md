@@ -1860,8 +1860,8 @@ the Fetch EndGroup if Fetch EndObject is 0.
 
 ### Calculating the Range of an Absolute Joining Fetch
 
-Identical to the Relative Joining fetch except that Fetch StartGroup is calculated
-directly as the Joining Start value.
+Identical to the Relative Joining fetch except that Fetch StartGroup is the
+Joining Start value.
 
 
 ## FETCH_OK {#message-fetch-ok}
