@@ -229,9 +229,7 @@ Object:
 
 Track:
 
-: An encoded bitstream. Tracks contain a sequential series of one or
-  more groups and are the subscribable entity with MOQT.
-  See ({{model-track}}).
+: A track is a collection of groups. See ({{model-track}}).
 
 
 ## Notational Conventions
@@ -398,15 +396,17 @@ active.
 
 ### Track Naming {#track-name}
 
-In MOQT, every track has a track name and a track namespace associated
-with it.  A track name identifies an individual track within the
-namespace.
+In MOQT, every track is identified by a Full Track Name, consisting of a Track
+Namespace and a Track Name.
 
-Track namespace is an ordered N-tuple of bytes where N can be between 1 and 32.
+Track Namespace is an ordered N-tuple of bytes where N can be between 1 and 32.
 The structured nature of Track Namespace allows relays and applications to
-manipulate prefixes of a namespace. Track name is a sequence of bytes.
-If an endpoint receives a Track Namespace tuple with an N of 0 or more
-than 32, it MUST close the session with a Protocol Violation.
+manipulate prefixes of a namespace. If an endpoint receives a Track Namespace
+tuple with an N of 0 or more than 32, it MUST close the session with a Protocol
+Violation.
+
+Track Name is a sequence of bytes that identifies an individual track within the
+namespace.
 
 In this specification, both the Track Namespace tuple fields and the Track Name
 are not constrained to a specific encoding. They carry a sequence of bytes and
@@ -681,8 +681,8 @@ The syntax of these messages is described in {{message}}.
 
 If the subscriber is aware of a namespace of interest, it can send
 SUBSCRIBE_ANNOUNCES to publishers/relays it has established a session with. The
-recipient of this message will send any relevant ANNOUNCE messages for that
-namespace, or subset of that namespace.
+recipient of this message will send any relevant ANNOUNCE or UNANNOUNCE messages
+for that namespace, or subset of that namespace.
 
 A publisher MUST send exactly one SUBSCRIBE_ANNOUNCES_OK or
 SUBSCRIBE_ANNOUNCES_ERROR in response to a SUBSCRIBE_ANNOUNCES. The subscriber
@@ -1966,7 +1966,6 @@ FETCH_CANCEL Message {
 
 * Subscribe ID: Subscription Identifier as defined in {{message-fetch}}.
 
-
 ## TRACK_STATUS_REQUEST {#message-track-status-req}
 
 A potential subscriber sends a 'TRACK_STATUS_REQUEST' message on the control
@@ -2387,7 +2386,8 @@ are beyond the end of a group or track.
 
 `Status` can have following values:
 
-* 0x0 := Normal object. The payload is array of bytes and can be empty.
+* 0x0 := Normal object. This status is implicit for any non-zero length object.
+         Zero-length objects explicitly encode the Normal status.
 
 * 0x1 := Indicates Object does not exist. Indicates that this object
          does not exist at any publisher and it will not be published in
