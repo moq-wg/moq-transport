@@ -1726,8 +1726,8 @@ it is contiguous with the associated Subscribe. The Joining Fetch begins the
 Preceding Group Offset prior to the associated subscription.
 
 Absolute Joining Fetch (0x3) : Identical to a Relative Joining Fetch except that the
-StartGroup is determined by an absolute Group value rather than a relative offset to the
-subscription.
+StartGroup is determined by an absolute Group value rather than a relative offset to
+the subscription.
 
 A Subscriber can use a Joining Fetch to, for example, fill a playback buffer with a
 certain number of groups prior to the live edge of a track.
