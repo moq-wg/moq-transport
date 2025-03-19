@@ -1100,8 +1100,8 @@ and for all other message types.
 SETUP message parameter types are defined in {{setup-params}}. Version-
 specific parameter types are defined in {{version-specific-params}}.
 
-The Parameter Length field of the String Parameter encodes the length
-of the Parameter Value field in bytes.
+The Parameter Length field encodes the length of the Parameter Value field in
+bytes.
 
 Each parameter description will indicate the data type in the Parameter Value
 field. If a receiver understands a parameter type, and the parameter length
@@ -2343,7 +2343,7 @@ SHOULD close the session with an error of 'Protocol Violation'.
 
 ## Object Headers {#message-object}
 
-An OBJECT message contains a range of contiguous bytes from from the
+An OBJECT message contains a range of contiguous bytes from the
 specified track, as well as associated metadata required to deliver,
 cache, and forward it.  Objects are sent by publishers.
 
