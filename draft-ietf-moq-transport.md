@@ -1335,7 +1335,7 @@ is blocked. More on Subscribe ID in {{message-subscribe-req}}.
 ## SUBSCRIBE {#message-subscribe-req}
 
 A subscription causes the publisher to send newly published objects for a track.
-A subscriber MUST NOT make multiple active subscriptions for a track within a
+A subscriber MUST NOT make overlapping active subscriptions for a track within a
 single session and publishers SHOULD treat this as a protocol violation.
 
 **Filter Types**
@@ -1557,9 +1557,9 @@ expected that it will always succeed and the worst outcome is that it is not
 processed promptly and some extra objects from the existing subscription are
 delivered.
 
-Unlike a new subscription, SUBSCRIBE_UPDATE can not cause an Object to be
-delivered multiple times.  Like SUBSCRIBE, EndGroup MUST specify the
-same or a later object than StartGroup and StartObject.
+SUBSCRIBE_UPDATE does not cause an Object to be delivered multiple times.
+Like SUBSCRIBE, EndGroup MUST specify the same or a later Object than
+StartGroup and StartObject.
 
 The format of SUBSCRIBE_UPDATE is as follows:
 
