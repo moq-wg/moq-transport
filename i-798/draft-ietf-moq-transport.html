@@ -3949,8 +3949,8 @@ contain the highest Group and object ID known.<a href="#section-8.17-7" class="p
 <p id="section-8.17-8">0x04: The publisher is a relay that cannot obtain the current track status from
 upstream. Subsequent fields contain the largest group and object ID known.<a href="#section-8.17-8" class="pilcrow">¶</a></p>
 <p id="section-8.17-9">Any other value in the Status Code field is a malformed message.<a href="#section-8.17-9" class="pilcrow">¶</a></p>
-<p id="section-8.17-10">The <code>Last Group ID</code> and <code>Last Object ID</code> fields represent the highest group and
-object IDs observed by the publisher for an active subscription. If the
+<p id="section-8.17-10">The <code>Largest Group ID</code> and <code>Largest Object ID</code> fields represent the highest Group and
+Object IDs observed by the Publisher for an active subscription. If the
 publisher is a relay without an active subscription, it <span class="bcp14">SHOULD</span> send a
 TRACK_STATUS_REQUEST upstream or <span class="bcp14">MAY</span> subscribe to the track, to obtain the
 same information. If neither is possible, it should return the best

@@ -2171,8 +2171,8 @@ Table of Contents
 
    Any other value in the Status Code field is a malformed message.
 
-   The Last Group ID and Last Object ID fields represent the highest
-   group and object IDs observed by the publisher for an active
+   The Largest Group ID and Largest Object ID fields represent the
+   highest Group and Object IDs observed by the Publisher for an active
    subscription.  If the publisher is a relay without an active
    subscription, it SHOULD send a TRACK_STATUS_REQUEST upstream or MAY
    subscribe to the track, to obtain the same information.  If neither
