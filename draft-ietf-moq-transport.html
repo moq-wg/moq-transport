@@ -3926,8 +3926,8 @@ TRACK_STATUS Message {
   Track Name Length(i),
   Track Name (..),
   Status Code (i),
-  Last Group ID (i),
-  Last Object ID (i),
+  Largest Group ID (i),
+  Largest Object ID (i),
 }
 </pre>
 </div>
@@ -3949,17 +3949,15 @@ contain the highest Group and object ID known.<a href="#section-8.17-7" class="p
 <p id="section-8.17-8">0x04: The publisher is a relay that cannot obtain the current track status from
 upstream. Subsequent fields contain the largest group and object ID known.<a href="#section-8.17-8" class="pilcrow">¶</a></p>
 <p id="section-8.17-9">Any other value in the Status Code field is a malformed message.<a href="#section-8.17-9" class="pilcrow">¶</a></p>
-<p id="section-8.17-10">When a relay is subscribed to a track, it can simply return the highest group
-and object ID it has observed, whether or not that object was cached or
-completely delivered. If not subscribed, a relay <span class="bcp14">SHOULD</span> send a
-TRACK_STATUS_REQUEST upstream to obtain updated information.<a href="#section-8.17-10" class="pilcrow">¶</a></p>
-<p id="section-8.17-11">Alternatively, the relay <span class="bcp14">MAY</span> subscribe to the track to obtain the same
-information.<a href="#section-8.17-11" class="pilcrow">¶</a></p>
-<p id="section-8.17-12">If a relay cannot or will not do either, it should return its best available
-information with status code 0x04.<a href="#section-8.17-12" class="pilcrow">¶</a></p>
-<p id="section-8.17-13">The receiver of multiple TRACK_STATUS messages for a track uses the information
+<p id="section-8.17-10">The <code>Largest Group ID</code> and <code>Largest Object ID</code> fields represent the highest Group and
+Object IDs observed by the Publisher for an active subscription. If the
+publisher is a relay without an active subscription, it <span class="bcp14">SHOULD</span> send a
+TRACK_STATUS_REQUEST upstream or <span class="bcp14">MAY</span> subscribe to the track, to obtain the
+same information. If neither is possible, it should return the best
+available information with status code 0x04.<a href="#section-8.17-10" class="pilcrow">¶</a></p>
+<p id="section-8.17-11">The receiver of multiple TRACK_STATUS messages for a track uses the information
 from the latest arriving message, as they are delivered in order on a single
-stream.<a href="#section-8.17-13" class="pilcrow">¶</a></p>
+stream.<a href="#section-8.17-11" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="message-announce">
