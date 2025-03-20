@@ -1071,7 +1071,7 @@ length of the message content, the receiver MUST close the session.
 
 If the session is closed due to an unknown or invalid control message
 or Object, the receiver MUST NOT continue to propagate that message
-or Object, because it enables a single session to close unrelated
+or Object, because it would enable a single session to close unrelated
 sessions.
 
 ## Parameters {#params}
