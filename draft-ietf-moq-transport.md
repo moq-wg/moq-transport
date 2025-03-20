@@ -1069,6 +1069,11 @@ Control messages have a length to make parsing easier, but no control
 messages are intended to be ignored. If the length does not match the
 length of the message content, the receiver MUST close the session.
 
+If the session is closed due to an unknown or invalid control message
+or Object, the receiver MUST NOT continue to propagate that message
+or Object, because it enables a single session to close unrelated
+sessions.
+
 ## Parameters {#params}
 
 Some messages include a Parameters field that encode optional message
