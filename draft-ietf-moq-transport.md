@@ -1945,6 +1945,8 @@ as defined below:
 |------|---------------------------|
 | 0x5  | Invalid Range             |
 |------|---------------------------|
+| 0x6  | No Objects                |
+|------|---------------------------|
 
 ## FETCH_CANCEL {#message-fetch-cancel}
 
@@ -1996,8 +1998,8 @@ TRACK_STATUS Message {
   Track Name Length(i),
   Track Name (..),
   Status Code (i),
-  Last Group ID (i),
-  Last Object ID (i),
+  Largest Group ID (i),
+  Largest Object ID (i),
 }
 ~~~
 {: #moq-track-status-format title="MOQT TRACK_STATUS Message"}
@@ -2023,16 +2025,12 @@ upstream. Subsequent fields contain the largest group and object ID known.
 
 Any other value in the Status Code field is a malformed message.
 
-When a relay is subscribed to a track, it can simply return the highest group
-and object ID it has observed, whether or not that object was cached or
-completely delivered. If not subscribed, a relay SHOULD send a
-TRACK_STATUS_REQUEST upstream to obtain updated information.
-
-Alternatively, the relay MAY subscribe to the track to obtain the same
-information.
-
-If a relay cannot or will not do either, it should return its best available
-information with status code 0x04.
+The `Largest Group ID` and `Largest Object ID` fields represent the highest Group and
+Object IDs observed by the Publisher for an active subscription. If the
+publisher is a relay without an active subscription, it SHOULD send a
+TRACK_STATUS_REQUEST upstream or MAY subscribe to the track, to obtain the
+same information. If neither is possible, it should return the best
+available information with status code 0x04.
 
 The receiver of multiple TRACK_STATUS messages for a track uses the information
 from the latest arriving message, as they are delivered in order on a single
