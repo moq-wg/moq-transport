@@ -1932,6 +1932,8 @@ as defined below:
 |------|---------------------------|
 | 0x5  | Invalid Range             |
 |------|---------------------------|
+| 0x6  | No Objects                |
+|------|---------------------------|
 
 ## FETCH_CANCEL {#message-fetch-cancel}
 
