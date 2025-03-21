@@ -1002,11 +1002,13 @@ formatted as follows:
 ~~~
 MOQT Control Message {
   Message Type (i),
-  Message Length (i),
+  Message Length (16),
   Message Payload (..),
 }
 ~~~
 {: #moq-transport-message-format title="MOQT Message"}
+
+The following Message Types are defined:
 
 |-------|-----------------------------------------------------|
 | ID    | Messages                                            |
@@ -1101,7 +1103,9 @@ SETUP message parameter types are defined in {{setup-params}}. Version-
 specific parameter types are defined in {{version-specific-params}}.
 
 The Parameter Length field encodes the length of the Parameter Value field in
-bytes.
+bytes. The maximum length of a parameter is 2^16-1 bytes.  If an endpoint
+receives a length larger than the maximum, it MUST close the session with a
+Protocol Violation.
 
 Each parameter description will indicate the data type in the Parameter Value
 field. If a receiver understands a parameter type, and the parameter length
@@ -1182,7 +1186,7 @@ The wire format of the Setup messages are as follows:
 CLIENT_SETUP Message {
   Type (i) = 0x40,
   Length (i),
-  Number of Supported Versions (i),
+  Number of Supported Versions (8),
   Supported Version (i) ...,
   Number of Parameters (i) ...,
   Setup Parameters (..) ...,
@@ -1207,7 +1211,7 @@ This version of the specification is identified by the number 0x00000001.
 Versions with the most significant 16 bits of the version number cleared are
 reserved for use in future IETF consensus documents.
 
-The client offers the list of the protocol versions it supports; the
+The client offers a list of up to 256 protocol versions it supports; the
 server MUST reply with one of the versions offered by the client. If the
 server does not support any of the versions offered by the client, or
 the client receives a server version that it did not offer, the
@@ -1273,7 +1277,9 @@ GOAWAY Message {
   connect to continue this session.  The client MUST use this URI for the new
   session if provided. If the URI is zero bytes long, the client can reuse the
   current URI is reused instead. The new session URI SHOULD use the same scheme
-  as the current URL to ensure compatibility.
+  as the current URL to ensure compatibility.  The maxmimum length of the New
+  Session URI is 8,192 bytes.  If an endpoint receives a length exceeding the
+  maximum, it MUST close the session with a Protocol Violation.
 
   If a server receives a GOAWAY with a non-zero New Session URI Length it MUST
   terminate the session with a Protocol Violation.
@@ -1386,7 +1392,7 @@ SUBSCRIBE Message {
   [StartGroup (i),
    StartObject (i)],
   [EndGroup (i)],
-  Number of Parameters (i),
+  Number of Parameters (8),
   Subscribe Parameters (..) ...
 }
 ~~~
@@ -1456,7 +1462,7 @@ SUBSCRIBE_OK
   ContentExists (8),
   [Largest Group ID (i),
    Largest Object ID (i)],
-  Number of Parameters (i),
+  Number of Parameters (8),
   Subscribe Parameters (..) ...
 }
 ~~~
@@ -1509,7 +1515,9 @@ SUBSCRIBE_ERROR
 
 * Error Code: Identifies an integer error code for subscription failure.
 
-* Reason Phrase: Provides the reason for subscription error.
+* Reason Phrase: Provides the reason for subscription error.  The reason phrase
+  has a maximum length of 1024 bytes.  If an endpoint recieves a length exceeding
+  the maximum, it MUST close the session with a Protocol Violation.
 
 * Track Alias: When Error Code is 'Retry Track Alias', the subscriber SHOULD re-issue the
   SUBSCRIBE with this Track Alias instead. If this Track Alias is already in use,
@@ -1572,7 +1580,7 @@ SUBSCRIBE_UPDATE Message {
   StartObject (i),
   EndGroup (i),
   Subscriber Priority (8),
-  Number of Parameters (i),
+  Number of Parameters (8),
   Subscribe Parameters (..) ...
 }
 ~~~
@@ -1764,7 +1772,7 @@ FETCH Message {
    EndObject (i),]
   [Joining Subscribe ID (i),
    Preceding Group Offset (i),]
-  Number of Parameters (i),
+  Number of Parameters (8),
   Parameters (..) ...
 }
 ~~~
@@ -1867,7 +1875,7 @@ FETCH_OK
   End Of Track (8),
   Largest Group ID (i),
   Largest Object ID (i),
-  Number of Parameters (i),
+  Number of Parameters (8),
   Subscribe Parameters (..) ...
 }
 ~~~
@@ -1912,7 +1920,9 @@ FETCH_ERROR
 
 * Error Code: Identifies an integer error code for fetch failure.
 
-* Reason Phrase: Provides the reason for fetch error.
+* Reason Phrase: Provides the reason for fetch error.  The reason phrase
+  has a maximum length of 1024 bytes.  If an endpoint recieves a length
+  exceeding the maximum, it MUST close the session with a Protocol Violation.
 
 The application SHOULD use a relevant error code in FETCH_ERROR,
 as defined below:
@@ -2035,7 +2045,7 @@ ANNOUNCE Message {
   Type (i) = 0x6,
   Length (i),
   Track Namespace (tuple),
-  Number of Parameters (i),
+  Number of Parameters (8),
   Parameters (..) ...,
 }
 ~~~
@@ -2087,7 +2097,9 @@ message for which this response is provided.
 
 * Error Code: Identifies an integer error code for announcement failure.
 
-* Reason Phrase: Provides the reason for announcement error.
+* Reason Phrase: Provides the reason for announcement error. The reason phrase
+  has a maximum length of 1024 bytes.  If an endpoint recieves a length
+  exceeding the maximum, it MUST close the session with a Protocol Violation.
 
 The application SHOULD use a relevant error code in ANNOUNCE_ERROR, as defined
 below:
@@ -2149,7 +2161,9 @@ ANNOUNCE_CANCEL Message {
 ANNOUNCE_CANCEL uses the same error codes as ANNOUNCE_ERROR
 ({{message-announce-error}}).
 
-* Reason Phrase: Provides the reason for announcement cancelation.
+* Reason Phrase: Provides the reason for announcement cancelation. The reason
+  phrase has a maximum length of 1024 bytes.  If an endpoint recieves a length
+  exceeding the maximum, it MUST close the session with a Protocol Violation.
 
 ## SUBSCRIBE_ANNOUNCES {#message-subscribe-ns}
 
@@ -2162,7 +2176,7 @@ SUBSCRIBE_ANNOUNCES Message {
   Type (i) = 0x11,
   Length (i),
   Track Namespace Prefix (tuple),
-  Number of Parameters (i),
+  Number of Parameters (8),
   Parameters (..) ...,
 }
 ~~~
@@ -2242,6 +2256,9 @@ title="MOQT SUBSCRIBE_ANNOUNCES_ERROR Message"}
 failure.
 
 * Reason Phrase: Provides the reason for the namespace subscription error.
+  The reason phrase has a maximum length of 1024 bytes.  If an endpoint
+  recieves a length exceeding the maximum, it MUST close the session with a
+  Protocol Violation.
 
 The application SHOULD use a relevant error code in SUBSCRIBE_ANNOUNCES_ERROR,
 as defined below:
@@ -2545,6 +2562,10 @@ The Object Status field is only sent if the Object Payload Length is zero.
 A publisher MUST NOT send an Object on a stream if its Object ID is less than a
 previously sent Object ID within a given group in that stream.
 
+The maximum length of the Extension headers is 2^16-1 bytes.  If an endpoint
+receives a length larger than the maximum it MUST close the session with a
+Protocol Violation.
+
 ### Closing Subgroup Streams
 
 Subscribers will often need to know if they have received all objects in a
@@ -2650,6 +2671,10 @@ The Object Status field is only sent if the Object Payload Length is zero.
 
 The Subgroup ID field of an object with a Forwarding Preference of "Datagram"
 (see {{object-fields}}) is set to the Object ID.
+
+The maximum length of the Extension headers is 2^16-1 bytes.  If an endpoint
+receives a length larger than the maximum it MUST close the session with a
+Protocol Violation.
 
 ## Examples
 
