@@ -566,6 +566,8 @@ code, as defined below:
 |------|---------------------------|
 | 0x6  | Too Many Subscribes       |
 |------|---------------------------|
+| 0x7  | Invalid Path              |
+|------|---------------------------|
 | 0x10 | GOAWAY Timeout            |
 |------|---------------------------|
 | 0x11 | Control Message Timeout   |
@@ -1230,14 +1232,15 @@ The PATH parameter (Parameter Type 0x01) allows the client to specify the path
 of the MoQ URI when using native QUIC ({{QUIC}}).  It MUST NOT be used by
 the server, or when WebTransport is used.  If the peer receives a PATH
 parameter from the server, or when WebTransport is used, it MUST close
-the connection. It follows the URI formatting rules {{!RFC3986}}.
+the session with Invalid Path. It follows the URI formatting rules
+{{!RFC3986}}.
 
 When connecting to a server using a URI with the "moqt" scheme, the
 client MUST set the PATH parameter to the `path-abempty` portion of the
 URI; if `query` is present, the client MUST concatenate `?`, followed by
 the `query` portion of the URI to the parameter.  If the server receives an
-improperly formatted PATH parameter, it MUST close the session with a Protocol
-Violation.
+improperly formatted PATH parameter, it MUST close the session with Invalid
+Path.
 
 #### MAX_SUBSCRIBE_ID {#max-subscribe-id}
 
