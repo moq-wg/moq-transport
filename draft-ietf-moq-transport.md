@@ -1235,7 +1235,9 @@ the connection. It follows the URI formatting rules {{!RFC3986}}.
 When connecting to a server using a URI with the "moqt" scheme, the
 client MUST set the PATH parameter to the `path-abempty` portion of the
 URI; if `query` is present, the client MUST concatenate `?`, followed by
-the `query` portion of the URI to the parameter.
+the `query` portion of the URI to the parameter.  If the server receives an
+improperly formatted PATH parameter, it MUST close the session with a Protocol
+Violation.
 
 #### MAX_SUBSCRIBE_ID {#max-subscribe-id}
 
