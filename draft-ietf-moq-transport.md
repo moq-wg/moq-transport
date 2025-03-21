@@ -2467,10 +2467,11 @@ OBJECT_DATAGRAM {
 ~~~
 {: #object-datagram-format title="MOQT OBJECT_DATAGRAM"}
 
-The Type field takes the form 0b0000000X (or the set of values from 0x00 to 0x01).
-The LSB of the type determines if the Extensions Headers Length and Extension
-headers are present. If and endpoint receives a datagram with Type 0x01 and
-Extension Headers Length is 0, it MUST close the session with Protocol Violation.
+The Type field takes the form 0b0000000X (or the set of values from 0x00 to
+0x01). The LSB of the type determines if the Extensions Headers Length and
+Extension headers are present. If and endpoint receives a datagram with Type
+0x01 and Extension Headers Length is 0, it MUST close the session with Protocol
+Violation.
 
 There is no explicit length field.  The entirety of the transport datagram
 following Publisher Priority contains the Object Payload.
@@ -2494,10 +2495,11 @@ OBJECT_DATAGRAM_STATUS {
 ~~~
 {: #object-datagram-status-format title="MOQT OBJECT_DATAGRAM_STATUS"}
 
-The Type field takes the form 0b0000001X (or the set of values from 0x02 to 0x03).
-The LSB of the type determines if the Extensions Headers Length and Extension
-headers are present. If and endpoint receives a datagram with Type 0x03 and
-Extension Headers Length is 0, it MUST close the session with Protocol Violation.
+The Type field takes the form 0b0000001X (or the set of values from 0x02 to
+0x03). The LSB of the type determines if the Extensions Headers Length and
+Extension headers are present. If and endpoint receives a datagram with Type
+0x03 and Extension Headers Length is 0, it MUST close the session with Protocol
+Violation.
 
 ## Streams
 
@@ -2533,12 +2535,13 @@ SUBGROUP_HEADER {
 ~~~
 {: #object-header-format title="MOQT SUBGROUP_HEADER"}
 
-The Type field takes the form 0b0000000X (or the set of values from 0x00 to 0x01).
-The LSB of the type determines if the Extensions Headers Length and Extension
-headers are present in objects in this subgroup.
-
 All Objects received on a stream opened with `SUBGROUP_HEADER` have an
 `Object Forwarding Preference` = `Subgroup`.
+
+The Type field takes the form 0b0000000X (or the set of values from 0x00 to
+0x01). The LSB determines if the Extensions Headers Length is present in objects
+in this subgroup.  When it is 0, Extensions Headers Length is not present and all
+objects have no extensions.
 
 To send an Object with `Object Forwarding Preference` = `Subgroup`, find the open
 stream that is associated with the subscription, `Group ID` and `Subgroup ID`,
@@ -2550,8 +2553,8 @@ The Object Status field is only sent if the Object Payload Length is zero.
 ~~~
 {
   Object ID (i),
-  Extension Headers Length (i),
-  [Extension headers (...)],
+  [Extension Headers Length (i),
+  Extension headers (...)],
   Object Payload Length (i),
   [Object Status (i)],
   Object Payload (..),
@@ -2676,6 +2679,7 @@ Sending a subgroup on one stream:
 Stream = 2
 
 SUBGROUP_HEADER {
+  Type = 0
   Track Alias = 2
   Group ID = 0
   Subgroup ID = 0
@@ -2683,13 +2687,11 @@ SUBGROUP_HEADER {
 }
 {
   Object ID = 0
-  Extension Headers Length = 0
   Object Payload Length = 4
   Payload = "abcd"
 }
 {
   Object ID = 1
-  Extension Headers Length = 0
   Object Payload Length = 4
   Payload = "efgh"
 }
@@ -2702,6 +2704,7 @@ Extension Headers.
 Stream = 2
 
 STREAM_HEADER_GROUP {
+  Type = 1
   Subscribe ID = 2
   Track Alias = 2
   Group ID = 0
