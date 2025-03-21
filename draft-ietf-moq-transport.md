@@ -2287,24 +2287,24 @@ A publisher sends Objects matching a subscription on Data Streams.
 All unidirectional MOQT streams start with a variable-length integer indicating
 the type of the stream in question.
 
-|-------|-------------------------------------------------------|
-| ID    | Type                                                  |
-|------:|:------------------------------------------------------|
-| 0x4   | SUBGROUP_HEADER  ({{subgroup-header}})                |
-|-------|-------------------------------------------------------|
-| 0x5   | FETCH_HEADER  ({{fetch-header}})                      |
-|-------|-------------------------------------------------------|
+|-------------|-------------------------------------------------|
+| ID          | Type                                            |
+|------------:|:------------------------------------------------|
+| 0x00-0x01   | SUBGROUP_HEADER  ({{subgroup-header}})          |
+|-------------|-------------------------------------------------|
+| 0x10        | FETCH_HEADER  ({{fetch-header}})                |
+|-------------|-------------------------------------------------|
 
 All MOQT datagrams start with a variable-length integer indicating the type of
 the datagram.
 
-|-------|-------------------------------------------------------|
-| ID    | Type                                                  |
-|------:|:------------------------------------------------------|
-| 0x1   | OBJECT_DATAGRAM ({{object-datagram}})                 |
-|-------|-------------------------------------------------------|
-| 0x2   | OBJECT_DATAGRAM_STATUS ({{object-datagram}})          |
-|-------|-------------------------------------------------------|
+|-----------|---------------------------------------------------|
+| ID        | Type                                              |
+|----------:|:--------------------------------------------------|
+| 0x00-0x01 | OBJECT_DATAGRAM ({{object-datagram}})             |
+|-----------|---------------------------------------------------|
+| 0x02-0x03 | OBJECT_DATAGRAM_STATUS ({{object-datagram}})      |
+|-----------|---------------------------------------------------|
 
 An endpoint that receives an unknown stream or datagram type MUST close the
 session.
@@ -2455,16 +2455,22 @@ will be dropped.
 
 ~~~
 OBJECT_DATAGRAM {
+  Type (i),
   Track Alias (i),
   Group ID (i),
   Object ID (i),
   Publisher Priority (8),
-  Extension Headers Length (i),
-  [Extension headers (...)],
+  [Extension Headers Length (i),
+  Extension headers (...)],
   Object Payload (..),
 }
 ~~~
 {: #object-datagram-format title="MOQT OBJECT_DATAGRAM"}
+
+The Type field takes the form 0b0000000X (or the set of values from 0x00 to 0x01).
+The LSB of the type determines if the Extensions Headers Length and Extension
+headers are present. If and endpoint receives a datagram with Type 0x01 and
+Extension Headers Length is 0, it MUST close the session with Protocol Violation.
 
 There is no explicit length field.  The entirety of the transport datagram
 following Publisher Priority contains the Object Payload.
@@ -2476,16 +2482,22 @@ conveys an Object Status and has no payload.
 
 ~~~
 OBJECT_DATAGRAM_STATUS {
+  Type (i),
   Track Alias (i),
   Group ID (i),
   Object ID (i),
   Publisher Priority (8),
-  Extension Headers Length (i),
-  [Extension headers (...)],
+  [Extension Headers Length (i),
+  Extension headers (...)],
   Object Status (i),
 }
 ~~~
 {: #object-datagram-status-format title="MOQT OBJECT_DATAGRAM_STATUS"}
+
+The Type field takes the form 0b0000001X (or the set of values from 0x02 to 0x03).
+The LSB of the type determines if the Extensions Headers Length and Extension
+headers are present. If and endpoint receives a datagram with Type 0x03 and
+Extension Headers Length is 0, it MUST close the session with Protocol Violation.
 
 ## Streams
 
@@ -2512,6 +2524,7 @@ and the subgroup indicated by 'Group ID' and `Subgroup ID`.
 
 ~~~
 SUBGROUP_HEADER {
+  Type (i),
   Track Alias (i),
   Group ID (i),
   Subgroup ID (i),
@@ -2519,6 +2532,10 @@ SUBGROUP_HEADER {
 }
 ~~~
 {: #object-header-format title="MOQT SUBGROUP_HEADER"}
+
+The Type field takes the form 0b0000000X (or the set of values from 0x00 to 0x01).
+The LSB of the type determines if the Extensions Headers Length and Extension
+headers are present in objects in this subgroup.
 
 All Objects received on a stream opened with `SUBGROUP_HEADER` have an
 `Object Forwarding Preference` = `Subgroup`.
