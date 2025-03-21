@@ -1561,8 +1561,8 @@ Unlike a new subscription, SUBSCRIBE_UPDATE can not cause an Object to be
 delivered multiple times.  Like SUBSCRIBE, EndGroup MUST specify the
 same or a later object than StartGroup and StartObject.
 
-If a parameter was included in SUBSCRIBE and is not present in
-SUBSCRIBE_UPDATE, its value remains unchanged.  There is no mechanism to
+If a parameter included in `SUBSCRIBE` is not present in
+`SUBSCRIBE_UPDATE`, its value remains unchanged.  There is no mechanism to
 remove a parameter from a subscription.
 
 The format of SUBSCRIBE_UPDATE is as follows:
