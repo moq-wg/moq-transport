@@ -2616,7 +2616,7 @@ RESET_STREAM and STOP_SENDING on SUBSCRIBE data streams have no impact on other
 Subgroups in the Group or the subscription, although applications might cancel all
 Subgroups in a Group at once.
 
-The application SHOULD use a relevant error code in RESET_STREAM or 
+The application SHOULD use a relevant error code in RESET_STREAM or
 RESET_STREAM_AT, as defined below:
 
 |------|---------------------------|
