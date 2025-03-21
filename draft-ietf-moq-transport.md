@@ -2471,7 +2471,7 @@ following Publisher Priority contains the Object Payload.
 
 ## Object Datagram Status {#object-datagram-status}
 
-An `OBJECT_DATAGRAM_STATUS` is similar to OBEJCT_DATAGRAM except it
+An `OBJECT_DATAGRAM_STATUS` is similar to OBJECT_DATAGRAM except it
 conveys an Object Status and has no payload.
 
 ~~~
