@@ -2702,13 +2702,13 @@ Table of Contents
 
                       Figure 31: MOQT SUBGROUP_HEADER
 
-   The Type field takes the form 0b0000000X (or the set of values from
-   0x00 to 0x01).  The LSB of the type determines if the Extensions
-   Headers Length and Extension headers are present in objects in this
-   subgroup.
-
    All Objects received on a stream opened with SUBGROUP_HEADER have an
    Object Forwarding Preference = Subgroup.
+
+   The Type field takes the form 0b0000000X (or the set of values from
+   0x00 to 0x01).  The LSB determines if the Extensions Headers Length
+   is present in objects in this subgroup.  When it is 0, Extensions
+   Headers Length is not present and all objects have no extensions.
 
    To send an Object with Object Forwarding Preference = Subgroup, find
    the open stream that is associated with the subscription, Group ID
@@ -2720,8 +2720,8 @@ Table of Contents
 
    {
      Object ID (i),
-     Extension Headers Length (i),
-     [Extension headers (...)],
+     [Extension Headers Length (i),
+     Extension headers (...)],
      Object Payload Length (i),
      [Object Status (i)],
      Object Payload (..),
@@ -2855,6 +2855,7 @@ Table of Contents
    Stream = 2
 
    SUBGROUP_HEADER {
+     Type = 0
      Track Alias = 2
      Group ID = 0
      Subgroup ID = 0
@@ -2862,13 +2863,11 @@ Table of Contents
    }
    {
      Object ID = 0
-     Extension Headers Length = 0
      Object Payload Length = 4
      Payload = "abcd"
    }
    {
      Object ID = 1
-     Extension Headers Length = 0
      Object Payload Length = 4
      Payload = "efgh"
    }
@@ -2879,6 +2878,7 @@ Table of Contents
    Stream = 2
 
    STREAM_HEADER_GROUP {
+     Type = 1
      Subscribe ID = 2
      Track Alias = 2
      Group ID = 0

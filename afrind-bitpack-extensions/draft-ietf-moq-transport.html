@@ -4620,10 +4620,11 @@ OBJECT_DATAGRAM {
 <a href="#name-moqt-object_datagram" class="selfRef">MOQT OBJECT_DATAGRAM</a>
           </figcaption></figure>
 </div>
-<p id="section-9.2-4">The Type field takes the form 0b0000000X (or the set of values from 0x00 to 0x01).
-The LSB of the type determines if the Extensions Headers Length and Extension
-headers are present. If and endpoint receives a datagram with Type 0x01 and
-Extension Headers Length is 0, it <span class="bcp14">MUST</span> close the session with Protocol Violation.<a href="#section-9.2-4" class="pilcrow">¶</a></p>
+<p id="section-9.2-4">The Type field takes the form 0b0000000X (or the set of values from 0x00 to
+0x01). The LSB of the type determines if the Extensions Headers Length and
+Extension headers are present. If and endpoint receives a datagram with Type
+0x01 and Extension Headers Length is 0, it <span class="bcp14">MUST</span> close the session with Protocol
+Violation.<a href="#section-9.2-4" class="pilcrow">¶</a></p>
 <p id="section-9.2-5">There is no explicit length field.  The entirety of the transport datagram
 following Publisher Priority contains the Object Payload.<a href="#section-9.2-5" class="pilcrow">¶</a></p>
 </section>
@@ -4655,10 +4656,11 @@ OBJECT_DATAGRAM_STATUS {
 <a href="#name-moqt-object_datagram_status" class="selfRef">MOQT OBJECT_DATAGRAM_STATUS</a>
           </figcaption></figure>
 </div>
-<p id="section-9.3-3">The Type field takes the form 0b0000001X (or the set of values from 0x02 to 0x03).
-The LSB of the type determines if the Extensions Headers Length and Extension
-headers are present. If and endpoint receives a datagram with Type 0x03 and
-Extension Headers Length is 0, it <span class="bcp14">MUST</span> close the session with Protocol Violation.<a href="#section-9.3-3" class="pilcrow">¶</a></p>
+<p id="section-9.3-3">The Type field takes the form 0b0000001X (or the set of values from 0x02 to
+0x03). The LSB of the type determines if the Extensions Headers Length and
+Extension headers are present. If and endpoint receives a datagram with Type
+0x03 and Extension Headers Length is 0, it <span class="bcp14">MUST</span> close the session with Protocol
+Violation.<a href="#section-9.3-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="streams">
@@ -4708,11 +4710,12 @@ SUBGROUP_HEADER {
 <a href="#name-moqt-subgroup_header" class="selfRef">MOQT SUBGROUP_HEADER</a>
             </figcaption></figure>
 </div>
-<p id="section-9.4.2-3">The Type field takes the form 0b0000000X (or the set of values from 0x00 to 0x01).
-The LSB of the type determines if the Extensions Headers Length and Extension
-headers are present in objects in this subgroup.<a href="#section-9.4.2-3" class="pilcrow">¶</a></p>
-<p id="section-9.4.2-4">All Objects received on a stream opened with <code>SUBGROUP_HEADER</code> have an
-<code>Object Forwarding Preference</code> = <code>Subgroup</code>.<a href="#section-9.4.2-4" class="pilcrow">¶</a></p>
+<p id="section-9.4.2-3">All Objects received on a stream opened with <code>SUBGROUP_HEADER</code> have an
+<code>Object Forwarding Preference</code> = <code>Subgroup</code>.<a href="#section-9.4.2-3" class="pilcrow">¶</a></p>
+<p id="section-9.4.2-4">The Type field takes the form 0b0000000X (or the set of values from 0x00 to
+0x01). The LSB determines if the Extensions Headers Length is present in objects
+in this subgroup.  When it is 0, Extensions Headers Length is not present and all
+objects have no extensions.<a href="#section-9.4.2-4" class="pilcrow">¶</a></p>
 <p id="section-9.4.2-5">To send an Object with <code>Object Forwarding Preference</code> = <code>Subgroup</code>, find the open
 stream that is associated with the subscription, <code>Group ID</code> and <code>Subgroup ID</code>,
 or open a new one and send the <code>SUBGROUP_HEADER</code>. Then serialize the
@@ -4724,8 +4727,8 @@ following fields.<a href="#section-9.4.2-5" class="pilcrow">¶</a></p>
 <pre>
 {
   Object ID (i),
-  Extension Headers Length (i),
-  [Extension headers (...)],
+  [Extension Headers Length (i),
+  Extension headers (...)],
   Object Payload Length (i),
   [Object Status (i)],
   Object Payload (..),
@@ -4865,6 +4868,7 @@ FETCH_HEADER {
 Stream = 2
 
 SUBGROUP_HEADER {
+  Type = 0
   Track Alias = 2
   Group ID = 0
   Subgroup ID = 0
@@ -4872,13 +4876,11 @@ SUBGROUP_HEADER {
 }
 {
   Object ID = 0
-  Extension Headers Length = 0
   Object Payload Length = 4
   Payload = "abcd"
 }
 {
   Object ID = 1
-  Extension Headers Length = 0
   Object Payload Length = 4
   Payload = "efgh"
 }
@@ -4891,6 +4893,7 @@ Extension Headers.<a href="#section-9.5-3" class="pilcrow">¶</a></p>
 Stream = 2
 
 STREAM_HEADER_GROUP {
+  Type = 1
   Subscribe ID = 2
   Track Alias = 2
   Group ID = 0
