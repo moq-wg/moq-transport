@@ -660,9 +660,13 @@ The publisher can immediately delete SUBSCRIBE state after sending
 SUBSCRIBE_DONE, but MUST NOT send it until it has closed all related streams. It
 can destroy all FETCH state after closing the data stream.
 
-A SUBSCRIBE_ERROR or FETCH_ERROR indicates no objects will be delivered, and
-both endpoints can immediately destroy relevant state. Objects MUST NOT be sent
-for requests that end with an error.
+A SUBSCRIBE_ERROR indicates no objects will be delivered, and both endpoints can
+immediately destroy relevant state. Objects MUST NOT be sent for requests that
+end with an error.
+
+A FETCH_ERROR indicates that both endpoints can immediately destroy state, 
+although publisher can start delivering FETCH objects from cache before
+determining the result of the request.
 
 
 # Namespace Discovery and Routing Subscriptions {#track-discovery}
@@ -1740,10 +1744,11 @@ Type Latest Object.
 A Fetch Type other than 0x1, 0x2 or 0x3 MUST be treated as an error.
 
 A publisher responds to a FETCH request with either a FETCH_OK or a FETCH_ERROR
-message.  If it responds with FETCH_OK, the publisher creates a new unidirectional
-stream that is used to send the Objects.  A relay MAY start sending objects immediately
-in response to a FETCH, even if sending the FETCH_OK takes longer because it requires
-going upstream to populate the latest object.
+message.  The publisher creates a new unidirectional stream that is used to send the
+Objects.  A relay MAY start sending objects immediately in response to a FETCH, even
+if sending the FETCH_OK takes longer because it requires going upstream to populate
+the latest object.  If the upstream FETCH fails in this case, the relay sends a
+FETCH_ERROR and can reset the unidirectional stream.
 
 The Object Forwarding Preference does not apply to fetches.
 
