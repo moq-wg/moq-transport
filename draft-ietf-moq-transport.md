@@ -2388,7 +2388,7 @@ are beyond the end of a group or track.
          in this track and the ObjectID is one greater than the largest object
          produced in that group, or GroupID is one greater than the largest
          group produced in this track and the ObjectID is zero. This status
-         implies the end of the specified group. An object with this status
+         also indicates the last group has ended. An object with this status
          that has a Group ID less than any other GroupID, or an ObjectID less
          than or equal to the largest in the specified group, is a protocol
          error, and the receiver MUST terminate the session. This SHOULD be
