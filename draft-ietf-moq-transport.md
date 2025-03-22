@@ -664,9 +664,10 @@ A SUBSCRIBE_ERROR indicates no objects will be delivered, and both endpoints can
 immediately destroy relevant state. Objects MUST NOT be sent for requests that
 end with an error.
 
-A FETCH_ERROR indicates that both endpoints can immediately destroy state, 
-although publisher can start delivering FETCH objects from cache before
-determining the result of the request.
+A FETCH_ERROR indicates that both endpoints can immediately destroy state.
+Since a relay can start delivering FETCH objects from cache before determining
+the result of the request, some objects could be received even if the FETCH results
+in error.
 
 
 # Namespace Discovery and Routing Subscriptions {#track-discovery}
