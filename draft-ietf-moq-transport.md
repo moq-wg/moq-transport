@@ -1168,6 +1168,25 @@ means Objects earlier in a multi-object stream will expire earlier than Objects
 later in the stream. Once Objects have expired, their state becomes unknown, and
 a relay that handles a subscription that includes those Objects re-requests them.
 
+#### AUTHORIZATION ALIAS {#authorization-alias}
+
+AUTHORIZATION ALIAS parameter (Parameter Type 0x06) identifies a varint alias by
+which an AUTHORIZATION INFO (Parameter Type 0x02) can be referenced within the
+current session. Transmission of both AUTHORIZATION ALIAS and AUTHORIZATION INFO
+parameters in the same parameter set is an instruction to the receiver to associate
+the AUTHORIZATION ALIAS with the AUTHORIZATION INFO. Receivers processing future
+parameters sets in which only the AUTHORIZATION ALIAS is sent MUST process the
+parameter set as if the AUTHORIZATION INFO had been retransmitted.
+
+If an AUTHORIZATION ALIAS is received in a message without that alias first having been
+associated with an AUTHORIZATION INFO in that session, then the receiver MUST reject
+that message with an "Invalid Auth alias" error.
+
+If an AUTHORIZATION ALIAS is associated with an AUTHORIZATION INFO instance and then
+later in the same session associated with a different AUTHORIZATION INFO instance,
+the receiver MUST update the AUTHORIZATION ALIAS to reference the last provided
+AUTHORIZATION INFO instance.
+
 ## CLIENT_SETUP and SERVER_SETUP {#message-setup}
 
 The `CLIENT_SETUP` and `SERVER_SETUP` messages are the first messages exchanged
@@ -1537,6 +1556,8 @@ as defined below:
 | 0x5  | Invalid Range             |
 |------|---------------------------|
 | 0x6  | Retry Track Alias         |
+|------|---------------------------|
+| 0x7  | Invalid Auth alias        |
 |------|---------------------------|
 
 ## SUBSCRIBE_UPDATE {#message-subscribe-update}
@@ -1949,6 +1970,8 @@ as defined below:
 |------|---------------------------|
 | 0x6  | No Objects                |
 |------|---------------------------|
+| 0x7  | Invalid Auth alias        |
+|------|---------------------------|
 
 ## FETCH_CANCEL {#message-fetch-cancel}
 
@@ -2120,6 +2143,8 @@ below:
 |------|---------------------------|
 | 0x4  | Uninterested              |
 |------|---------------------------|
+| 0x5  | Invalid Auth alias        |
+|------|---------------------------|
 
 ## UNANNOUNCE {#message-unannounce}
 
@@ -2273,6 +2298,8 @@ as defined below:
 | 0x3  | Not Supported             |
 |------|---------------------------|
 | 0x4  | Namespace Prefix Unknown  |
+|------|---------------------------|
+| 0x5  | Invalid Auth alias        |
 |------|---------------------------|
 
 ## UNSUBSCRIBE_ANNOUNCES {#message-unsub-ann}
