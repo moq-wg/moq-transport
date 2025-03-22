@@ -4530,19 +4530,15 @@ are beyond the end of a group or track.<a href="#section-9.1.1.1-1" class="pilcr
        Group object to signal the end of all open Subgroups in a Group.<a href="#section-9.1.1.1-3.3.1" class="pilcrow">¶</a></p>
 </li>
               <li class="normal" id="section-9.1.1.1-3.4">
-                <p id="section-9.1.1.1-3.4.1">0x4 := Indicates end of Track and Group. GroupID is the largest group produced
-       in this track and the ObjectId is one greater than the largest object
-       produced in that group. An object with this status that has a Group ID
-       less than any other Group ID, or an Object ID less than or equal to the
-       largest in the group, is a protocol error, and the receiver <span class="bcp14">MUST</span>
-       terminate the session. This <span class="bcp14">SHOULD</span> be cached.<a href="#section-9.1.1.1-3.4.1" class="pilcrow">¶</a></p>
-</li>
-              <li class="normal" id="section-9.1.1.1-3.5">
-                <p id="section-9.1.1.1-3.5.1">0x5 := Indicates end of Track. GroupID is one greater than the largest group
-       produced in this track and the ObjectId is zero. An object with this
-       status that has a Group ID less than or equal to any other Group ID, or
-       an Object ID other than zero, is a protocol error, and the receiver
-       <span class="bcp14">MUST</span> terminate the session. This <span class="bcp14">SHOULD</span> be cached.<a href="#section-9.1.1.1-3.5.1" class="pilcrow">¶</a></p>
+                <p id="section-9.1.1.1-3.4.1">0x4 := Indicates end of Track. GroupID is either the largest group produced
+       in this track and the ObjectID is one greater than the largest object
+       produced in that group, or GroupID is one greater than the largest
+       group produced in this track and the ObjectID is zero. This status
+       also indicates the last group has ended. An object with this status
+       that has a Group ID less than any other GroupID, or an ObjectID less
+       than or equal to the largest in the specified group, is a protocol
+       error, and the receiver <span class="bcp14">MUST</span> terminate the session. This <span class="bcp14">SHOULD</span> be
+       cached.<a href="#section-9.1.1.1-3.4.1" class="pilcrow">¶</a></p>
 </li>
             </ul>
 <p id="section-9.1.1.1-4">Any other value <span class="bcp14">SHOULD</span> be treated as a protocol error and terminate the
