@@ -322,7 +322,9 @@ underlying encoding, compression, any end-to-end encryption, or
 authentication. A relay MUST NOT combine, split, or otherwise modify object
 payloads.
 
-Objects within a group are ordered numerically by their Object ID.
+Objects within a Group are ordered numerically by their Object ID. The first
+Object in a Group has an Object ID of 0, and IDs increase sequentially for
+each Object within the Group.
 
 ## Subgroups {#model-subgroup}
 
@@ -2335,9 +2337,7 @@ A canonical MoQ Object has the following information:
 * Group ID: The object is a member of the indicated group ID
 {{model-group}} within the track.
 
-* Object ID: The order of the object within the group.  The
-IDs starts at 0, increasing sequentially for each object within the
-group.
+* Object ID: The order of the object within the group.
 
 * Publisher Priority: An 8 bit integer indicating the publisher's priority for
 the Object {{priorities}}.
