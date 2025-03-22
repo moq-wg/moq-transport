@@ -1870,7 +1870,7 @@ Joining Start value.
 
 A publisher sends a FETCH_OK control message in response to successful fetches.
 A publisher MAY send Objects in response to a FETCH before the FETCH_OK message is sent,
-but the FETCH_OK MUST NOT be sent until the latest group and object are known.
+but the FETCH_OK MUST NOT be sent until the end group and object are known.
 
 ~~~
 FETCH_OK
