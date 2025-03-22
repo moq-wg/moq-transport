@@ -1880,8 +1880,8 @@ FETCH_OK
   Subscribe ID (i),
   Group Order (8),
   End Of Track (8),
-  Largest Group ID (i),
-  Largest Object ID (i),
+  End Group ID (i),
+  End Object ID (i),
   Number of Parameters (i),
   Subscribe Parameters (..) ...
 }
@@ -1895,13 +1895,15 @@ Ascending (0x1) or Descending (0x2) order by group. See {{priorities}}.
 Values of 0x0 and those larger than 0x2 are a protocol error.
 
 * End Of Track: 1 if all objects have been published on this track, so
-the Largest Group ID and Object Id indicate the last Object in the track,
+the End Group ID and Object Id indicate the last Object in the track,
 0 if not.
 
-* Largest Group ID: The largest Group ID available for this track.
-
-* Largest Object ID: The largest Object ID available within the largest Group ID
-for this track.
+* End Group ID/End Object ID: The largest object covered by the FETCH response.
+  This is the minimum of the {EndGroup,EndObject} specified in FETCH and the
+  largest known {group,object}.  If the track is currently live at a relay,
+  the largest known {group,object} at the relay is used.  For non-live tracks
+  with a requested end larger than what is cached, the relay makes an
+  upstream request in order to satisfy the FETCH.
 
 * Subscribe Parameters: The parameters are defined in {{version-specific-params}}.
 
