@@ -1368,7 +1368,10 @@ networks and is designed for high scale and low latency distribution.<a href="#s
                 <p id="section-toc.1-1.8.2.12.1"><a href="#section-8.12" class="auto internal xref">8.12</a>. <a href="#name-fetch" class="internal xref">FETCH</a></p>
 <ul class="compact toc ulBare ulEmpty">
 <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.12.2.1">
-                    <p id="section-toc.1-1.8.2.12.2.1.1"><a href="#section-8.12.1" class="auto internal xref">8.12.1</a>.  <a href="#name-calculating-the-range-of-a-" class="internal xref">Calculating the Range of a Joining Fetch</a></p>
+                    <p id="section-toc.1-1.8.2.12.2.1.1"><a href="#section-8.12.1" class="auto internal xref">8.12.1</a>.  <a href="#name-calculating-the-range-of-a-" class="internal xref">Calculating the Range of a Relative Joining Fetch</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.12.2.2">
+                    <p id="section-toc.1-1.8.2.12.2.2.1"><a href="#section-8.12.2" class="auto internal xref">8.12.2</a>.  <a href="#name-calculating-the-range-of-an" class="internal xref">Calculating the Range of an Absolute Joining Fetch</a></p>
 </li>
                 </ul>
 </li>
@@ -3557,32 +3560,35 @@ objects within a track. The publisher responding to a FETCH is responsible for r
 all available Objects. If there are gaps between Objects, the publisher omits them from the
 fetch response. All omitted objects have status Object Does Not Exist.<a href="#section-8.12-1" class="pilcrow">¶</a></p>
 <p id="section-8.12-2"><strong>Fetch Types</strong><a href="#section-8.12-2" class="pilcrow">¶</a></p>
-<p id="section-8.12-3">There are two types of Fetch messages:<a href="#section-8.12-3" class="pilcrow">¶</a></p>
+<p id="section-8.12-3">There are three types of Fetch messages:<a href="#section-8.12-3" class="pilcrow">¶</a></p>
 <p id="section-8.12-4">Standalone Fetch (0x1) : A Fetch of Objects performed independently of any Subscribe.<a href="#section-8.12-4" class="pilcrow">¶</a></p>
-<p id="section-8.12-5">Joining Fetch (0x2) : A Fetch joined together with a Subscribe by specifying
-the Subscribe ID of an active subscription. A publisher receiving a
-Joining Fetch uses properties of the associated Subscribe to determine the
+<p id="section-8.12-5">Relative Joining Fetch (0x2) : A Fetch joined together with a Subscribe by specifying
+the Subscribe ID of an active subscription and a relative starting offset. A publisher
+receiving a Joining Fetch uses properties of the associated Subscribe to determine the
 Track Namespace, Track, StartGroup, StartObject, EndGroup, and EndObject such that
 it is contiguous with the associated Subscribe. The Joining Fetch begins the
 Preceding Group Offset prior to the associated subscription.<a href="#section-8.12-5" class="pilcrow">¶</a></p>
-<p id="section-8.12-6">A Subscriber can use a Joining Fetch to, for example, fill a playback buffer with a
-certain number of groups prior to the live edge of a track.<a href="#section-8.12-6" class="pilcrow">¶</a></p>
-<p id="section-8.12-7">A Joining Fetch is only permitted when the associated Subscribe has the Filter
-Type Latest Object.<a href="#section-8.12-7" class="pilcrow">¶</a></p>
-<p id="section-8.12-8">A Fetch Type other than 0x1 or 0x2 <span class="bcp14">MUST</span> be treated as an error.<a href="#section-8.12-8" class="pilcrow">¶</a></p>
-<p id="section-8.12-9">A publisher responds to a FETCH request with either a FETCH_OK or a FETCH_ERROR
+<p id="section-8.12-6">Absolute Joining Fetch (0x3) : Identical to a Relative Joining Fetch except that the
+StartGroup is determined by an absolute Group value rather than a relative offset to
+the subscription.<a href="#section-8.12-6" class="pilcrow">¶</a></p>
+<p id="section-8.12-7">A Subscriber can use a Joining Fetch to, for example, fill a playback buffer with a
+certain number of groups prior to the live edge of a track.<a href="#section-8.12-7" class="pilcrow">¶</a></p>
+<p id="section-8.12-8">A Joining Fetch is only permitted when the associated Subscribe has the Filter
+Type Latest Object.<a href="#section-8.12-8" class="pilcrow">¶</a></p>
+<p id="section-8.12-9">A Fetch Type other than 0x1, 0x2 or 0x3 <span class="bcp14">MUST</span> be treated as an error.<a href="#section-8.12-9" class="pilcrow">¶</a></p>
+<p id="section-8.12-10">A publisher responds to a FETCH request with either a FETCH_OK or a FETCH_ERROR
 message.  If it responds with FETCH_OK, the publisher creates a new unidirectional
 stream that is used to send the Objects.  A relay <span class="bcp14">MAY</span> start sending objects immediately
 in response to a FETCH, even if sending the FETCH_OK takes longer because it requires
-going upstream to populate the latest object.<a href="#section-8.12-9" class="pilcrow">¶</a></p>
-<p id="section-8.12-10">The Object Forwarding Preference does not apply to fetches.<a href="#section-8.12-10" class="pilcrow">¶</a></p>
-<p id="section-8.12-11">Fetch specifies an inclusive range of Objects starting at StartObject
+going upstream to populate the latest object.<a href="#section-8.12-10" class="pilcrow">¶</a></p>
+<p id="section-8.12-11">The Object Forwarding Preference does not apply to fetches.<a href="#section-8.12-11" class="pilcrow">¶</a></p>
+<p id="section-8.12-12">Fetch specifies an inclusive range of Objects starting at StartObject
 in StartGroup and ending at EndObject in EndGroup. EndGroup and EndObject <span class="bcp14">MUST</span>
-specify the same or a later object than StartGroup and StartObject.<a href="#section-8.12-11" class="pilcrow">¶</a></p>
-<p id="section-8.12-12">The format of FETCH is as follows:<a href="#section-8.12-12" class="pilcrow">¶</a></p>
+specify the same or a later object than StartGroup and StartObject.<a href="#section-8.12-12" class="pilcrow">¶</a></p>
+<p id="section-8.12-13">The format of FETCH is as follows:<a href="#section-8.12-13" class="pilcrow">¶</a></p>
 <span id="name-moqt-fetch-message"></span><div id="moq-transport-fetch-format">
 <figure id="figure-13">
-          <div class="alignLeft art-text artwork" id="section-8.12-13.1">
+          <div class="alignLeft art-text artwork" id="section-8.12-14.1">
 <pre>
 FETCH Message {
   Type (i) = 0x16,
@@ -3598,8 +3604,8 @@ FETCH Message {
    StartObject (i),
    EndGroup (i),
    EndObject (i),]
-  [Joining Subscribe ID (i),
-   Preceding Group Offset (i),]
+  [ Subscribe ID (i),
+    Joining Start (i),]
   Number of Parameters (i),
   Parameters (..) ...
 }
@@ -3609,94 +3615,97 @@ FETCH Message {
 <a href="#name-moqt-fetch-message" class="selfRef">MOQT FETCH Message</a>
           </figcaption></figure>
 </div>
-<p id="section-8.12-14">Fields common to all Fetch Types:<a href="#section-8.12-14" class="pilcrow">¶</a></p>
+<p id="section-8.12-15">Fields common to all Fetch Types:<a href="#section-8.12-15" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-8.12-15.1">
-            <p id="section-8.12-15.1.1">Subscribe ID: The Subscribe ID identifies a given fetch request. Subscribe ID
+<li class="normal" id="section-8.12-16.1">
+            <p id="section-8.12-16.1.1">Subscribe ID: The Subscribe ID identifies a given fetch request. Subscribe ID
 is a variable length integer that <span class="bcp14">MUST</span> be unique and monotonically increasing
-within a session.<a href="#section-8.12-15.1.1" class="pilcrow">¶</a></p>
+within a session.<a href="#section-8.12-16.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-8.12-15.2">
-            <p id="section-8.12-15.2.1">Subscriber Priority: Specifies the priority of a fetch request relative to
+          <li class="normal" id="section-8.12-16.2">
+            <p id="section-8.12-16.2.1">Subscriber Priority: Specifies the priority of a fetch request relative to
 other subscriptions or fetches in the same session. Lower numbers get higher
-priority. See <a href="#priorities" class="auto internal xref">Section 6</a>.<a href="#section-8.12-15.2.1" class="pilcrow">¶</a></p>
+priority. See <a href="#priorities" class="auto internal xref">Section 6</a>.<a href="#section-8.12-16.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-8.12-15.3">
-            <p id="section-8.12-15.3.1">Group Order: Allows the subscriber to request Objects be delivered in
+          <li class="normal" id="section-8.12-16.3">
+            <p id="section-8.12-16.3.1">Group Order: Allows the subscriber to request Objects be delivered in
 Ascending (0x1) or Descending (0x2) order by group. See <a href="#priorities" class="auto internal xref">Section 6</a>.
 A value of 0x0 indicates the original publisher's Group Order <span class="bcp14">SHOULD</span> be
-used. Values larger than 0x2 are a protocol error.<a href="#section-8.12-15.3.1" class="pilcrow">¶</a></p>
+used. Values larger than 0x2 are a protocol error.<a href="#section-8.12-16.3.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-8.12-15.4">
-            <p id="section-8.12-15.4.1">Fetch Type: Identifies the type of Fetch, whether joining or standalone.<a href="#section-8.12-15.4.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-8.12-16.4">
+            <p id="section-8.12-16.4.1">Fetch Type: Identifies the type of Fetch, whether Standalone, Relative
+Joining or Absolute Joining.<a href="#section-8.12-16.4.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-8.12-15.5">
-            <p id="section-8.12-15.5.1">Parameters: The parameters are defined in <a href="#version-specific-params" class="auto internal xref">Section 8.1.1</a>.<a href="#section-8.12-15.5.1" class="pilcrow">¶</a></p>
-</li>
-        </ul>
-<p id="section-8.12-16">Fields present only for Standalone Fetch (0x1):<a href="#section-8.12-16" class="pilcrow">¶</a></p>
-<ul class="normal">
-<li class="normal" id="section-8.12-17.1">
-            <p id="section-8.12-17.1.1">Track Namespace: Identifies the namespace of the track as defined in
-(<a href="#track-name" class="auto internal xref">Section 2.4.1</a>).<a href="#section-8.12-17.1.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="section-8.12-17.2">
-            <p id="section-8.12-17.2.1">Track Name: Identifies the track name as defined in (<a href="#track-name" class="auto internal xref">Section 2.4.1</a>).<a href="#section-8.12-17.2.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="section-8.12-17.3">
-            <p id="section-8.12-17.3.1">StartGroup: The start Group ID.<a href="#section-8.12-17.3.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="section-8.12-17.4">
-            <p id="section-8.12-17.4.1">StartObject: The start Object ID.<a href="#section-8.12-17.4.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="section-8.12-17.5">
-            <p id="section-8.12-17.5.1">EndGroup: The end Group ID.<a href="#section-8.12-17.5.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="section-8.12-17.6">
-            <p id="section-8.12-17.6.1">EndObject: The end Object ID, plus 1. A value of 0 means the entire group is
-requested.<a href="#section-8.12-17.6.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-8.12-16.5">
+            <p id="section-8.12-16.5.1">Parameters: The parameters are defined in <a href="#version-specific-params" class="auto internal xref">Section 8.1.1</a>.<a href="#section-8.12-16.5.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
-<p id="section-8.12-18">Fields present only for Joining Fetch (0x2):<a href="#section-8.12-18" class="pilcrow">¶</a></p>
+<p id="section-8.12-17">Fields present only for Standalone Fetch (0x1):<a href="#section-8.12-17" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-8.12-19.1">
-            <p id="section-8.12-19.1.1">Joining Subscribe ID: The Subscribe ID of the existing subscription to be
+<li class="normal" id="section-8.12-18.1">
+            <p id="section-8.12-18.1.1">Track Namespace: Identifies the namespace of the track as defined in
+(<a href="#track-name" class="auto internal xref">Section 2.4.1</a>).<a href="#section-8.12-18.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-8.12-18.2">
+            <p id="section-8.12-18.2.1">Track Name: Identifies the track name as defined in (<a href="#track-name" class="auto internal xref">Section 2.4.1</a>).<a href="#section-8.12-18.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-8.12-18.3">
+            <p id="section-8.12-18.3.1">StartGroup: The start Group ID.<a href="#section-8.12-18.3.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-8.12-18.4">
+            <p id="section-8.12-18.4.1">StartObject: The start Object ID.<a href="#section-8.12-18.4.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-8.12-18.5">
+            <p id="section-8.12-18.5.1">EndGroup: The end Group ID.<a href="#section-8.12-18.5.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-8.12-18.6">
+            <p id="section-8.12-18.6.1">EndObject: The end Object ID, plus 1. A value of 0 means the entire group is
+requested.<a href="#section-8.12-18.6.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<p id="section-8.12-19">Fields present only for Relative Fetch (0x2) and Absolute Fetch (0x3):<a href="#section-8.12-19" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-8.12-20.1">
+            <p id="section-8.12-20.1.1">Joining Subscribe ID: The Subscribe ID of the existing subscription to be
 joined. If a publisher receives a Joining Fetch with a Subscribe ID that does
-not correspond to an existing Subscribe, it <span class="bcp14">MUST</span> respond with a Fetch Error.<a href="#section-8.12-19.1.1" class="pilcrow">¶</a></p>
+not correspond to an existing Subscribe, it <span class="bcp14">MUST</span> respond with a Fetch Error.<a href="#section-8.12-20.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-8.12-19.2">
-            <p id="section-8.12-19.2.1">Preceding Group Offset: The group offset for the Fetch prior and relative
-to the Current Group of the corresponding Subscribe. A value of 0 indicates
-the Fetch starts at the beginning of the Current Group.<a href="#section-8.12-19.2.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-8.12-20.2">
+            <p id="section-8.12-20.2.1">Joining Start : for a Relative Joining Fetch (0x2), this value represents the
+group offset for the Fetch prior and relative to the Current Group of the
+corresponding Subscribe. A value of 0 indicates the Fetch starts at the beginning
+of the Current Group. For an Absolute Joining Fetch (0x3), this value represents
+the Starting Group ID.<a href="#section-8.12-20.2.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
-<p id="section-8.12-20">Objects that are not yet published will not be retrieved by a FETCH.
+<p id="section-8.12-21">Objects that are not yet published will not be retrieved by a FETCH.
 The latest available Object is indicated in the FETCH_OK, and is the last
 Object a fetch will return if the EndGroup and EndObject have not yet been
-published.<a href="#section-8.12-20" class="pilcrow">¶</a></p>
-<p id="section-8.12-21">A publisher <span class="bcp14">MUST</span> send fetched groups in the determined group order, either
+published.<a href="#section-8.12-21" class="pilcrow">¶</a></p>
+<p id="section-8.12-22">A publisher <span class="bcp14">MUST</span> send fetched groups in the determined group order, either
 ascending or descending. Within each group, objects are sent in Object ID order;
-subgroup ID is not used for ordering.<a href="#section-8.12-21" class="pilcrow">¶</a></p>
-<p id="section-8.12-22">If StartGroup/StartObject is greater than the latest published Object group,
-the publisher <span class="bcp14">MUST</span> return FETCH_ERROR with error code 'No Objects'.<a href="#section-8.12-22" class="pilcrow">¶</a></p>
-<div id="calculating-the-range-of-a-joining-fetch">
+subgroup ID is not used for ordering.<a href="#section-8.12-22" class="pilcrow">¶</a></p>
+<p id="section-8.12-23">If StartGroup/StartObject is greater than the latest published Object group,
+the publisher <span class="bcp14">MUST</span> return FETCH_ERROR with error code 'No Objects'.<a href="#section-8.12-23" class="pilcrow">¶</a></p>
+<div id="calculating-the-range-of-a-relative-joining-fetch">
 <section id="section-8.12.1">
           <h4 id="name-calculating-the-range-of-a-">
-<a href="#section-8.12.1" class="section-number selfRef">8.12.1. </a><a href="#name-calculating-the-range-of-a-" class="section-name selfRef">Calculating the Range of a Joining Fetch</a>
+<a href="#section-8.12.1" class="section-number selfRef">8.12.1. </a><a href="#name-calculating-the-range-of-a-" class="section-name selfRef">Calculating the Range of a Relative Joining Fetch</a>
           </h4>
 <p id="section-8.12.1-1">A publisher that receives a Fetch of type Type 0x2 treats it
 as a Fetch with a range dynamically determined by the Preceding Group Offset
 and field values derived from the corresponding subscription.<a href="#section-8.12.1-1" class="pilcrow">¶</a></p>
 <p id="section-8.12.1-2">The Largest Group ID and Largest Object ID values from the corresponding
-subscription are used to calculate the end of a Joining Fetch so the Objects
-retrieved by the FETCH and SUBSCRIBE are contiguous and non-overlapping.
+subscription are used to calculate the end of a Relative Joining Fetch so the
+Objects retrieved by the FETCH and SUBSCRIBE are contiguous and non-overlapping.
 If no Objects have been published for the track, and the SUBSCRIBE_OK has a
 ContentExists value of 0, the publisher responds with a FETCH_ERROR with
 error code 'No Objects'.<a href="#section-8.12.1-2" class="pilcrow">¶</a></p>
-<p id="section-8.12.1-3">The publisher receiving a Joining Fetch computes the range as follows:<a href="#section-8.12.1-3" class="pilcrow">¶</a></p>
+<p id="section-8.12.1-3">The publisher receiving a Relative Joining Fetch computes the range as follows:<a href="#section-8.12.1-3" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-8.12.1-4.1">
-              <p id="section-8.12.1-4.1.1">Fetch StartGroup: Subscribe Largest Group - Preceding Group Offset<a href="#section-8.12.1-4.1.1" class="pilcrow">¶</a></p>
+              <p id="section-8.12.1-4.1.1">Fetch StartGroup: Subscribe Largest Group - Joining start<a href="#section-8.12.1-4.1.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-8.12.1-4.2">
               <p id="section-8.12.1-4.2.1">Fetch StartObject: 0<a href="#section-8.12.1-4.2.1" class="pilcrow">¶</a></p>
@@ -3711,6 +3720,15 @@ error code 'No Objects'.<a href="#section-8.12.1-2" class="pilcrow">¶</a></p>
 <p id="section-8.12.1-5">A Fetch EndObject of 0 requests the entire group, but Fetch will not
 retrieve Objects that have not yet been published, so 1 is subtracted from
 the Fetch EndGroup if Fetch EndObject is 0.<a href="#section-8.12.1-5" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="calculating-the-range-of-an-absolute-joining-fetch">
+<section id="section-8.12.2">
+          <h4 id="name-calculating-the-range-of-an">
+<a href="#section-8.12.2" class="section-number selfRef">8.12.2. </a><a href="#name-calculating-the-range-of-an" class="section-name selfRef">Calculating the Range of an Absolute Joining Fetch</a>
+          </h4>
+<p id="section-8.12.2-1">Identical to the Relative Joining fetch except that Fetch StartGroup is the
+Joining Start value.<a href="#section-8.12.2-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
