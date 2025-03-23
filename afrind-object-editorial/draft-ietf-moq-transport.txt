@@ -1522,10 +1522,10 @@ Table of Contents
       be less than the session's Maximum Subscribe ID.
 
    *  Track Alias: A session specific identifier for the track.  Data
-      streams and datagrams reference this Track Alias instead of the
-      Track Name and Track Namespace to reduce overhead.  If the Track
-      Alias is already being used for a different track, the publisher
-      MUST close the session with a Duplicate Track Alias error
+      streams and datagrams specify the Track Alias instead of the Track
+      Name and Track Namespace to reduce overhead.  If the Track Alias
+      is already being used for a different track, the publisher MUST
+      close the session with a Duplicate Track Alias error
       (Section 3.4).
 
    *  Track Namespace: Identifies the namespace of the track as defined
