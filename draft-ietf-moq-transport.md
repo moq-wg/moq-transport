@@ -1400,7 +1400,7 @@ unique and monotonically increasing within a session and MUST be less
 than the session's Maximum Subscribe ID.
 
 * Track Alias: A session specific identifier for the track.
-Data streams and datagrams reference this Track Alias instead of the Track Name
+Data streams and datagrams specify the Track Alias instead of the Track Name
 and Track Namespace to reduce overhead. If the Track Alias is already being used
 for a different track, the publisher MUST close the session with a Duplicate
 Track Alias error ({{session-termination}}).
