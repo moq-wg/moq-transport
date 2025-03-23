@@ -1539,10 +1539,10 @@ as defined below:
 | 0x6  | Retry Track Alias         |
 |------|---------------------------|
 
-* Internal Error - An implementation specific or generic error
+* Internal Error - An implementation specific or generic error occurred.
 
 * Unauthorized - The subscriber is not authorized to subscribe to the given
-  track
+  track.
 
 * Timeout - The subscription could not be completed before an implementation
   specific timeout.  For example, a relay could not establish an upstream
@@ -1727,7 +1727,7 @@ SUBSCRIBE_DONE, as defined below:
 | 0x6  | Too Far Behind            |
 |------|---------------------------|
 
-* Internal Error - An implementation specific or generic error.
+* Internal Error - An implementation specific or generic error occurred.
 
 * Unauthorized - The subscriber is no longer authorized to subscribe to the
   given track.
@@ -1737,9 +1737,9 @@ SUBSCRIBE_DONE, as defined below:
 * Subscription Ended - The publisher reached the end of an associated
   Subscribe filter.
 
-* Going Away - the subscriber or publisher issued a GOAWAY message
+* Going Away - The subscriber or publisher issued a GOAWAY message.
 
-* Expired - the publisher reached the timeout specified in SUBSCRIBE_OK
+* Expired - The publisher reached the timeout specified in SUBSCRIBE_OK.
 
 * Too Far Behind - The publisher's queue of objects to be sent to the given
   subscriber exceeds its implementation defined limit.
@@ -1988,23 +1988,23 @@ as defined below:
 | 0x6  | No Objects                |
 |------|---------------------------|
 
-* Internal Error - an implementation specific or generic error
+* Internal Error - An implementation specific or generic error occurred.
 
-* Unauthorized - the subscriber is not authorized to fetch from the given
-  track
+* Unauthorized - The subscriber is not authorized to fetch from the given
+  track.
 
-* Timeout - the fetch could not be completed before an implementation
+* Timeout - The fetch could not be completed before an implementation
   specific timeout.  For example, a relay could not FETCH missing objects
-  within the timeout
+  within the timeout.
 
-* Not supported - the endpoint does not support the FETCH method
+* Not supported - The endpoint does not support the FETCH method.
 
-* Track Does Not Exist - the requested track is not available at the publisher
+* Track Does Not Exist - The requested track is not available at the publisher.
 
-* Invalid Range - The end of the requested range is earlier than the beginning
+* Invalid Range - The end of the requested range is earlier than the beginning.
 
 * No Objects - The beginning of the requested range is after the latest group
-  and object for the track, or the track has not published any objects
+  and object for the track, or the track has not published any objects.
 
 
 ## FETCH_CANCEL {#message-fetch-cancel}
@@ -2178,17 +2178,17 @@ below:
 | 0x4  | Uninterested              |
 |------|---------------------------|
 
-* Internal Error - an implementation specific or generic error
+* Internal Error - An implementation specific or generic error occurred.
 
-* Unauthorized - the subscriber is not authorized to announce the given
-  namespace
+* Unauthorized - The subscriber is not authorized to announce the given
+  namespace.
 
-* Timeout - the announce could not be completed before an implementation
-  specific timeout
+* Timeout - The announce could not be completed before an implementation
+  specific timeout.
 
-* Not Supported - the endpoint does not support the ANNOUNCE method
+* Not Supported - The endpoint does not support the ANNOUNCE method.
 
-* Uninterested - the namespace is not of interest to the endpoint
+* Uninterested - The namespace is not of interest to the endpoint.
 
 
 ## UNANNOUNCE {#message-unannounce}
@@ -2345,18 +2345,18 @@ as defined below:
 | 0x4  | Namespace Prefix Unknown  |
 |------|---------------------------|
 
-* Internal Error - an implementation specific or generic error
+* Internal Error - An implementation specific or generic error occurred.
 
-* Unauthorized - the subscriber is not authorized to subscribe to the given
-  namespace prefix
+* Unauthorized - The subscriber is not authorized to subscribe to the given
+  namespace prefix.
 
-* Timeout - the operation could not be completed before an implementation
-  specific timeout
+* Timeout - The operation could not be completed before an implementation
+  specific timeout.
 
-* Not Supported - the endpoint does not support the SUBSCRIBE_ANNOUNCES method
+* Not Supported - The endpoint does not support the SUBSCRIBE_ANNOUNCES method.
 
-* Namespace Prefix Unknown - the namespace prefix is not available for
-  subscription
+* Namespace Prefix Unknown - The namespace prefix is not available for
+  subscription.
 
 
 ## UNSUBSCRIBE_ANNOUNCES {#message-unsub-ann}
