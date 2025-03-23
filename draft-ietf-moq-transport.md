@@ -941,7 +941,7 @@ SUBSCRIBE to the publisher that sent the ANNOUNCE.
 
 Object headers carry a short hop-by-hop `Track Alias` that maps to
 the Full Track Name (see {{message-subscribe-ok}}). Relays use the
-`Track Alias` of incoming Objects to identify its track and find
+`Track Alias` of an incoming Object to identify its track and find
 the active subscribers for that track. Relays MUST forward Objects to
 matching subscribers in accordance to each subscription's priority, group order,
 and delivery timeout.
@@ -2294,7 +2294,7 @@ UNSUBSCRIBE_ANNOUNCES Message {
 * Track Namespace Prefix: As defined in {{message-subscribe-ns}}.
 
 
-# Data Streams {#data-streams} and Datagrams
+# Data Streams and Datagrams {#data-streams}
 
 A publisher sends Objects matching a subscription on Data Streams or Datagrams.
 
