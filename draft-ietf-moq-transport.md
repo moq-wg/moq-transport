@@ -846,7 +846,25 @@ validating subscribe and publish requests at the edge of a network.
 Relays are endpoints, which means they terminate Transport Sessions in order to
 have visibility of MoQ Object metadata.
 
+## Caching Relays
+
 Relays MAY cache Objects, but are not required to.
+
+A caching relay saves Objects to its cache identified by the Object's
+Full Track Name, Group ID and Object ID.
+If multiple objects are received with the same Full Track Name,
+Group ID and Object ID, Relays MAY ignore subsequently received Objects
+or MAY use them to update the cache. Implementations that update the
+cache need to protect against cache poisoning.  The only fields that can be
+updated are the following:
+
+1. Object Status can transition from any status to Object Not Exists in cases
+   where the object is no longer available
+2. Object Header Extensions can be added, removed or updated
+
+An endpoint that receives a duplicate object with fields that differ from a
+previous version other than these MUST close the session with a Protocol
+Violation.
 
 ## Subscriber Interactions
 
@@ -869,14 +887,9 @@ subscribers for each track. Each new OBJECT belonging to the
 track within the subscription range is forwarded to each active
 subscriber, dependent on the congestion response.
 
-A caching relay saves Objects to its cache identified by the Object's
-Full Track Name, Group ID and Object ID. Relays MUST be able to
-process objects for the same Full Track Name from multiple
-publishers and forward objects to active matching subscriptions.
-If multiple objects are received with the same Full Track Name,
-Group ID and Object ID, Relays MAY ignore subsequently received Objects
-or MAY use them to update the cache. Implementations that update the
-cache need to protect against cache poisoning.
+Relays MUST be able to process objects for the same Full Track Name from
+multiple publishers and forward objects to active matching subscriptions.  The
+same object SHOULD NOT be forwarded more than once to the same subscriber.
 
 A relay MUST NOT reorder or drop objects received on a multi-object stream when
 forwarding to subscribers, unless it has application specific information.
