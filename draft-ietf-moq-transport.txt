@@ -5,13 +5,13 @@
 Media Over QUIC                                                L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 23 September 2025                                          Meta
+Expires: 24 September 2025                                          Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                           22 March 2025
+                                                           23 March 2025
 
 
                        Media over QUIC Transport
@@ -59,7 +59,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 23 September 2025.
+   This Internet-Draft will expire on 24 September 2025.
 
 Copyright Notice
 
@@ -148,9 +148,9 @@ Table of Contents
      8.24. SUBSCRIBE_ANNOUNCES_OK
      8.25. SUBSCRIBE_ANNOUNCES_ERROR
      8.26. UNSUBSCRIBE_ANNOUNCES
-   9.  Data Streams
-     9.1.  Object Headers
-       9.1.1.  Canonical Object Fields
+   9.  Data Streams and Datagrams
+     9.1.  Objects
+       9.1.1.  Canonical Object Properties
      9.2.  Object Datagram
      9.3.  Object Datagram Status
      9.4.  Streams
@@ -964,7 +964,7 @@ Table of Contents
    upstream.
 
    For successful subscriptions, the publisher maintains a list of
-   subscribers for each track.  Each new OBJECT belonging to the track
+   subscribers for each track.  Each new Object belonging to the track
    within the subscription range is forwarded to each active subscriber,
    dependent on the congestion response.
 
@@ -1037,12 +1037,12 @@ Table of Contents
    each active upstream subscription that matches that namespace, it
    SHOULD send a SUBSCRIBE to the publisher that sent the ANNOUNCE.
 
-   OBJECT message headers carry a short hop-by-hop Track Alias that maps
-   to the Full Track Name (see Section 8.7).  Relays use the Track Alias
-   of an incoming OBJECT message to identify its track and find the
-   active subscribers for that track.  Relays MUST forward OBJECT
-   messages to matching subscribers in accordance to each subscription's
-   priority, group order, and delivery timeout.
+   Object headers carry a short hop-by-hop Track Alias that maps to the
+   Full Track Name (see Section 8.7).  Relays use the Track Alias of an
+   incoming Object to identify its track and find the active subscribers
+   for that track.  Relays MUST forward Objects to matching subscribers
+   in accordance to each subscription's priority, group order, and
+   delivery timeout.
 
 7.2.1.  Graceful Publisher Network Switchover
 
@@ -1078,7 +1078,7 @@ Table of Contents
 
 7.3.  Relay Object Handling
 
-   MOQT encodes the delivery information for a stream via OBJECT headers
+   MOQT encodes the delivery information via Object headers
    (Section 9.1).  A relay MUST NOT modify Object properties when
    forwarding.
 
@@ -1521,12 +1521,12 @@ Table of Contents
       be unique and monotonically increasing within a session and MUST
       be less than the session's Maximum Subscribe ID.
 
-   *  Track Alias: A session specific identifier for the track.
-      Messages that reference a track, such as OBJECT (Section 9.1),
-      reference this Track Alias instead of the Track Name and Track
-      Namespace to reduce overhead.  If the Track Alias is already being
-      used for a different track, the publisher MUST close the session
-      with a Duplicate Track Alias error (Section 3.4).
+   *  Track Alias: A session specific identifier for the track.  Data
+      streams and datagrams specify the Track Alias instead of the Track
+      Name and Track Namespace to reduce overhead.  If the Track Alias
+      is already being used for a different track, the publisher MUST
+      close the session with a Duplicate Track Alias error
+      (Section 3.4).
 
    *  Track Namespace: Identifies the namespace of the track as defined
       in (Section 2.4.1).
@@ -2453,9 +2453,10 @@ Table of Contents
 
    *  Track Namespace Prefix: As defined in Section 8.23.
 
-9.  Data Streams
+9.  Data Streams and Datagrams
 
-   A publisher sends Objects matching a subscription on Data Streams.
+   A publisher sends Objects matching a subscription on Data Streams or
+   Datagrams.
 
    All unidirectional MOQT streams start with a variable-length integer
    indicating the type of the stream in question.
@@ -2499,13 +2500,13 @@ Table of Contents
    preferences for a track, it SHOULD close the session with an error of
    'Protocol Violation'.
 
-9.1.  Object Headers
+9.1.  Objects
 
-   An OBJECT message contains a range of contiguous bytes from the
-   specified track, as well as associated metadata required to deliver,
-   cache, and forward it.  Objects are sent by publishers.
+   An Object contains a range of contiguous bytes from the specified
+   track, as well as associated metadata required to deliver, cache, and
+   forward it.  Objects are sent by publishers.
 
-9.1.1.  Canonical Object Fields
+9.1.1.  Canonical Object Properties
 
    A canonical MoQ Object has the following information:
 
