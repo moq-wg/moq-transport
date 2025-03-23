@@ -1539,24 +1539,24 @@ as defined below:
 | 0x6  | Retry Track Alias         |
 |------|---------------------------|
 
-* Internal Error - an implementation specific or generic error
+* Internal Error - An implementation specific or generic error
 
-* Unauthorized - the subscriber is not authorized to subscribe to the given
+* Unauthorized - The subscriber is not authorized to subscribe to the given
   track
 
-* Timeout - the subscription could not be completed before an implementation
+* Timeout - The subscription could not be completed before an implementation
   specific timeout.  For example, a relay could not establish an upstream
   subscription within the timeout.
 
-* Not Supported - the endpoint does not support the SUBSCRIBE method
+* Not Supported - The endpoint does not support the SUBSCRIBE method.
 
-* Track Does Not Exist - the requested track is not available at the publisher
+* Track Does Not Exist - The requested track is not available at the publisher.
 
 * Invalid Range - The end of the SUBSCRIBE range is earlier than the beginning,
   or the end of the range has already been published.
 
 * Retry Track Alias - The publisher requires the subscriber to use the given
-  Track Alis when subscribing
+  Track Alias when subscribing.
 
 
 ## SUBSCRIBE_UPDATE {#message-subscribe-update}
@@ -1727,15 +1727,15 @@ SUBSCRIBE_DONE, as defined below:
 | 0x6  | Too Far Behind            |
 |------|---------------------------|
 
-* Internal Error - an implementation specific or generic error
+* Internal Error - An implementation specific or generic error.
 
-* Unauthorized - the subscriber is no longer authorized to subscribe to the
-  given track
+* Unauthorized - The subscriber is no longer authorized to subscribe to the
+  given track.
 
-* Track Ended - the track is no longer being published
+* Track Ended - The track is no longer being published.
 
-* Subscription Ended - the publisher reached the end of an associated
-  Subscribe filter
+* Subscription Ended - The publisher reached the end of an associated
+  Subscribe filter.
 
 * Going Away - the subscriber or publisher issued a GOAWAY message
 
