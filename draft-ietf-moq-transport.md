@@ -2549,7 +2549,7 @@ The Object Status field is only sent if the Object Payload Length is zero.
   Object Payload (..),
 }
 ~~~
-{: #object-subgroup-format title="MOQT Subgroup Fields"}
+{: #object-subgroup-format title="MOQT Subgroup Object Fields"}
 
 A publisher MUST NOT send an Object on a stream if its Object ID is less than a
 previously sent Object ID within a given group in that stream.
