@@ -2717,7 +2717,7 @@ Table of Contents
      Object Payload (..),
    }
 
-                      Figure 32: MOQT Subgroup Fields
+                   Figure 32: MOQT Subgroup Object Fields
 
    A publisher MUST NOT send an Object on a stream if its Object ID is
    less than a previously sent Object ID within a given group in that
