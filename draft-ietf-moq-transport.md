@@ -1731,19 +1731,19 @@ SUBSCRIBE_DONE, as defined below:
 
 * Unauthorized - the subscriber is no longer authorized to subscribe to the
   given track
-  
+
 * Track Ended - the track is no longer being published
-  
+
 * Subscription Ended - the publisher reached the end of an associated
   Subscribe filter
-  
+
 * Going Away - the subscriber or publisher issued a GOAWAY message
-  
+
 * Expired - the publisher reached the timeout specified in SUBSCRIBE_OK
-  
+
 * Too Far Behind - The publisher's queue of objects to be sent to the given
   subscriber exceeds its implementation defined limit.
-  
+
 
 ## FETCH {#message-fetch}
 
