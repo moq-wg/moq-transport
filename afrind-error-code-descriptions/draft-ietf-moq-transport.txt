@@ -1672,9 +1672,10 @@ Table of Contents
                                   Table 3
 
    *  Internal Error - An implementation specific or generic error
+      occurred.
 
    *  Unauthorized - The subscriber is not authorized to subscribe to
-      the given track
+      the given track.
 
    *  Timeout - The subscription could not be completed before an
       implementation specific timeout.  For example, a relay could not
@@ -1869,7 +1870,8 @@ Table of Contents
 
                                   Table 4
 
-   *  Internal Error - An implementation specific or generic error.
+   *  Internal Error - An implementation specific or generic error
+      occurred.
 
    *  Unauthorized - The subscriber is no longer authorized to subscribe
       to the given track.
@@ -1879,10 +1881,10 @@ Table of Contents
    *  Subscription Ended - The publisher reached the end of an
       associated Subscribe filter.
 
-   *  Going Away - the subscriber or publisher issued a GOAWAY message
+   *  Going Away - The subscriber or publisher issued a GOAWAY message.
 
-   *  Expired - the publisher reached the timeout specified in
-      SUBSCRIBE_OK
+   *  Expired - The publisher reached the timeout specified in
+      SUBSCRIBE_OK.
 
    *  Too Far Behind - The publisher's queue of objects to be sent to
       the given subscriber exceeds its implementation defined limit.
@@ -2148,26 +2150,27 @@ Table of Contents
 
                                   Table 5
 
-   *  Internal Error - an implementation specific or generic error
+   *  Internal Error - An implementation specific or generic error
+      occurred.
 
-   *  Unauthorized - the subscriber is not authorized to fetch from the
-      given track
+   *  Unauthorized - The subscriber is not authorized to fetch from the
+      given track.
 
-   *  Timeout - the fetch could not be completed before an
+   *  Timeout - The fetch could not be completed before an
       implementation specific timeout.  For example, a relay could not
-      FETCH missing objects within the timeout
+      FETCH missing objects within the timeout.
 
-   *  Not supported - the endpoint does not support the FETCH method
+   *  Not supported - The endpoint does not support the FETCH method.
 
-   *  Track Does Not Exist - the requested track is not available at the
-      publisher
+   *  Track Does Not Exist - The requested track is not available at the
+      publisher.
 
    *  Invalid Range - The end of the requested range is earlier than the
-      beginning
+      beginning.
 
    *  No Objects - The beginning of the requested range is after the
       latest group and object for the track, or the track has not
-      published any objects
+      published any objects.
 
 8.15.  FETCH_CANCEL
 
@@ -2342,17 +2345,18 @@ Table of Contents
 
                                   Table 6
 
-   *  Internal Error - an implementation specific or generic error
+   *  Internal Error - An implementation specific or generic error
+      occurred.
 
-   *  Unauthorized - the subscriber is not authorized to announce the
-      given namespace
+   *  Unauthorized - The subscriber is not authorized to announce the
+      given namespace.
 
-   *  Timeout - the announce could not be completed before an
-      implementation specific timeout
+   *  Timeout - The announce could not be completed before an
+      implementation specific timeout.
 
-   *  Not Supported - the endpoint does not support the ANNOUNCE method
+   *  Not Supported - The endpoint does not support the ANNOUNCE method.
 
-   *  Uninterested - the namespace is not of interest to the endpoint
+   *  Uninterested - The namespace is not of interest to the endpoint.
 
 8.21.  UNANNOUNCE
 
@@ -2507,19 +2511,20 @@ Table of Contents
 
                                   Table 7
 
-   *  Internal Error - an implementation specific or generic error
+   *  Internal Error - An implementation specific or generic error
+      occurred.
 
-   *  Unauthorized - the subscriber is not authorized to subscribe to
-      the given namespace prefix
+   *  Unauthorized - The subscriber is not authorized to subscribe to
+      the given namespace prefix.
 
-   *  Timeout - the operation could not be completed before an
-      implementation specific timeout
+   *  Timeout - The operation could not be completed before an
+      implementation specific timeout.
 
-   *  Not Supported - the endpoint does not support the
-      SUBSCRIBE_ANNOUNCES method
+   *  Not Supported - The endpoint does not support the
+      SUBSCRIBE_ANNOUNCES method.
 
-   *  Namespace Prefix Unknown - the namespace prefix is not available
-      for subscription
+   *  Namespace Prefix Unknown - The namespace prefix is not available
+      for subscription.
 
 8.26.  UNSUBSCRIBE_ANNOUNCES
 
