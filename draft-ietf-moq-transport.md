@@ -1067,9 +1067,11 @@ MOQT Control Message {
 |-------|-----------------------------------------------------|
 
 An endpoint that receives an unknown message type MUST close the session.
-Control messages have a length to make parsing easier, but no control
-messages are intended to be ignored. If the length does not match the
-length of the message content, the receiver MUST close the session.
+Control messages have a length to make parsing easier, but no control messages
+are intended to be ignored. The length is set to the number of bytes in Message
+Payload, which is defined by each message type.  If the length does not match
+the length of the Message Payload, the receiver MUST close the session with
+Protocol Violation.
 
 ## Parameters {#params}
 
