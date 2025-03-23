@@ -1540,23 +1540,24 @@ as defined below:
 |------|---------------------------|
 
 * Internal Error - an implementation specific or generic error
-  
+
 * Unauthorized - the subscriber is not authorized to subscribe to the given
   track
-  
+
 * Timeout - the subscription could not be completed before an implementation
   specific timeout.  For example, a relay could not establish an upstream
   subscription within the timeout.
-  
-* Not supported - the endpoint does not support the SUBSCRIBE method
-  
+
+* Not Supported - the endpoint does not support the SUBSCRIBE method
+
 * Track Does Not Exist - the requested track is not available at the publisher
-  
+
 * Invalid Range - The end of the SUBSCRIBE range is earlier than the beginning,
   or the end of the range has already been published.
-  
+
 * Retry Track Alias - The publisher requires the subscriber to use the given
   Track Alis when subscribing
+
 
 ## SUBSCRIBE_UPDATE {#message-subscribe-update}
 
@@ -1988,23 +1989,23 @@ as defined below:
 |------|---------------------------|
 
 * Internal Error - an implementation specific or generic error
-  
+
 * Unauthorized - the subscriber is not authorized to fetch from the given
   track
-  
+
 * Timeout - the fetch could not be completed before an implementation
   specific timeout.  For example, a relay could not FETCH missing objects
   within the timeout
-  
+
 * Not supported - the endpoint does not support the FETCH method
-  
+
 * Track Does Not Exist - the requested track is not available at the publisher
-  
+
 * Invalid Range - The end of the requested range is earlier than the beginning
-  
+
 * No Objects - The beginning of the requested range is after the latest group
   and object for the track, or the track has not published any objects
-  
+
 
 ## FETCH_CANCEL {#message-fetch-cancel}
 
@@ -2178,15 +2179,15 @@ below:
 |------|---------------------------|
 
 * Internal Error - an implementation specific or generic error
-  
+
 * Unauthorized - the subscriber is not authorized to announce the given
   namespace
-  
+
 * Timeout - the announce could not be completed before an implementation
   specific timeout
-  
-* Not supported - the endpoint does not support the ANNOUNCE method
-  
+
+* Not Supported - the endpoint does not support the ANNOUNCE method
+
 * Uninterested - the namespace is not of interest to the endpoint
 
 
@@ -2345,15 +2346,15 @@ as defined below:
 |------|---------------------------|
 
 * Internal Error - an implementation specific or generic error
-  
+
 * Unauthorized - the subscriber is not authorized to subscribe to the given
   namespace prefix
-  
+
 * Timeout - the operation could not be completed before an implementation
   specific timeout
-  
-* Not supported - the endpoint does not support the SUBSCRIBE_ANNOUNCES method
-  
+
+* Not Supported - the endpoint does not support the SUBSCRIBE_ANNOUNCES method
+
 * Namespace Prefix Unknown - the namespace prefix is not available for
   subscription
 
