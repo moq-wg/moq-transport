@@ -524,7 +524,7 @@ separate Setup parameters for that information in each version.
 
 The first stream opened is a client-initiated bidirectional control stream where
 the endpoints exchange Setup messages ({{message-setup}}), followed by other
-messages defined in {{control-messages}}.
+messages defined in {{message}}.
 
 This draft only specifies a single use of bidirectional streams. Objects are
 sent on unidirectional streams.  Because there are no other uses of
