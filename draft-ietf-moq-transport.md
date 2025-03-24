@@ -1538,6 +1538,26 @@ as defined below:
 | 0x6  | Retry Track Alias         |
 |------|---------------------------|
 
+* Internal Error - An implementation specific or generic error occurred.
+
+* Unauthorized - The subscriber is not authorized to subscribe to the given
+  track.
+
+* Timeout - The subscription could not be completed before an implementation
+  specific timeout.  For example, a relay could not establish an upstream
+  subscription within the timeout.
+
+* Not Supported - The endpoint does not support the SUBSCRIBE method.
+
+* Track Does Not Exist - The requested track is not available at the publisher.
+
+* Invalid Range - The end of the SUBSCRIBE range is earlier than the beginning,
+  or the end of the range has already been published.
+
+* Retry Track Alias - The publisher requires the subscriber to use the given
+  Track Alias when subscribing.
+
+
 ## SUBSCRIBE_UPDATE {#message-subscribe-update}
 
 A subscriber issues a SUBSCRIBE_UPDATE to a publisher to request a change to
@@ -1705,6 +1725,24 @@ SUBSCRIBE_DONE, as defined below:
 |------|---------------------------|
 | 0x6  | Too Far Behind            |
 |------|---------------------------|
+
+* Internal Error - An implementation specific or generic error occurred.
+
+* Unauthorized - The subscriber is no longer authorized to subscribe to the
+  given track.
+
+* Track Ended - The track is no longer being published.
+
+* Subscription Ended - The publisher reached the end of an associated
+  Subscribe filter.
+
+* Going Away - The subscriber or publisher issued a GOAWAY message.
+
+* Expired - The publisher reached the timeout specified in SUBSCRIBE_OK.
+
+* Too Far Behind - The publisher's queue of objects to be sent to the given
+  subscriber exceeds its implementation defined limit.
+
 
 ## FETCH {#message-fetch}
 
@@ -1949,6 +1987,25 @@ as defined below:
 | 0x6  | No Objects                |
 |------|---------------------------|
 
+* Internal Error - An implementation specific or generic error occurred.
+
+* Unauthorized - The subscriber is not authorized to fetch from the given
+  track.
+
+* Timeout - The fetch could not be completed before an implementation
+  specific timeout.  For example, a relay could not FETCH missing objects
+  within the timeout.
+
+* Not supported - The endpoint does not support the FETCH method.
+
+* Track Does Not Exist - The requested track is not available at the publisher.
+
+* Invalid Range - The end of the requested range is earlier than the beginning.
+
+* No Objects - The beginning of the requested range is after the latest group
+  and object for the track, or the track has not published any objects.
+
+
 ## FETCH_CANCEL {#message-fetch-cancel}
 
 A subscriber issues a `FETCH_CANCEL` message to a publisher indicating it is no
@@ -2120,6 +2177,19 @@ below:
 | 0x4  | Uninterested              |
 |------|---------------------------|
 
+* Internal Error - An implementation specific or generic error occurred.
+
+* Unauthorized - The subscriber is not authorized to announce the given
+  namespace.
+
+* Timeout - The announce could not be completed before an implementation
+  specific timeout.
+
+* Not Supported - The endpoint does not support the ANNOUNCE method.
+
+* Uninterested - The namespace is not of interest to the endpoint.
+
+
 ## UNANNOUNCE {#message-unannounce}
 
 The publisher sends the `UNANNOUNCE` control message to indicate
@@ -2273,6 +2343,20 @@ as defined below:
 |------|---------------------------|
 | 0x4  | Namespace Prefix Unknown  |
 |------|---------------------------|
+
+* Internal Error - An implementation specific or generic error occurred.
+
+* Unauthorized - The subscriber is not authorized to subscribe to the given
+  namespace prefix.
+
+* Timeout - The operation could not be completed before an implementation
+  specific timeout.
+
+* Not Supported - The endpoint does not support the SUBSCRIBE_ANNOUNCES method.
+
+* Namespace Prefix Unknown - The namespace prefix is not available for
+  subscription.
+
 
 ## UNSUBSCRIBE_ANNOUNCES {#message-unsub-ann}
 
