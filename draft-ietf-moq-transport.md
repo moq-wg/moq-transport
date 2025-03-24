@@ -2498,8 +2498,8 @@ Though some status information could be inferred from QUIC stream state,
 that information is not reliable and cacheable.
 
 #### Object Extension Header {#object-extensions}
-Any Object may have extension headers except those with Object Status Object
-does not exist.  If an endpoint receives a non-existent Object containing
+Any Object may have extension headers except those with Object Status 'Object
+does not exist'.  If an endpoint receives a non-existent Object containing
 extension headers it MUST close the session with a Protocol Violation.
 
 Object Extension Headers are visible to relays and allow the transmission of
