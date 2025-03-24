@@ -2336,7 +2336,7 @@ datagram, and is the same for all objects in a single subgroup.<a href="#section
 'Ascending' (groups with lower group ID are sent first), or 'Descending'
 (groups with higher group ID are sent first).  The subscriber optionally
 communicates its group order preference in the SUBSCRIBE message; the
-publisher's preference is used if the subscriber did not express one.  The
+publisher's preference is used if the subscriber did not express one (by setting Group Order field to value 0x0).  The
 group order of an existing subscription cannot be changed.<a href="#section-6.1-7" class="pilcrow">¶</a></p>
 </section>
 </div>
