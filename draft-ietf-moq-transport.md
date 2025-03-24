@@ -1844,7 +1844,7 @@ StandaloneFetch {
 }
 ~~~
 {: #moq-transport-standalone-fetch-format title="MOQT Standalone Fetch"}
-   
+ 
 * Track Namespace: Identifies the namespace of the track as defined in
 ({{track-name}}).
 
