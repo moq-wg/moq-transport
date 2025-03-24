@@ -5,13 +5,13 @@
 Media Over QUIC                                                L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 21 September 2025                                          Meta
+Expires: 25 September 2025                                          Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                           20 March 2025
+                                                           24 March 2025
 
 
                        Media over QUIC Transport
@@ -59,7 +59,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 21 September 2025.
+   This Internet-Draft will expire on 25 September 2025.
 
 Copyright Notice
 
@@ -449,11 +449,11 @@ Table of Contents
 2.3.1.  Group Ordering
 
    Within a track, the original publisher SHOULD publish Group IDs which
-   increase with time.  There are cases when even if the Groups are
-   produced in increasing order, they might not be sent to the MoQ
-   network or various Subscribers in the network in that order.  One
-   example is if the original publisher is publishing in descending
-   Group Order.
+   increase with time.  In some cases, Groups will be produced in
+   increasing order, but sent to subscribers in a different order, for
+   example when the subscription's Group Order is Descending.  Due to
+   network reordering and the partial reliability features of MoQT,
+   Groups can always be received out of order.
 
    As a result, Subscribers will not know the status of a Group within a
    SUBSCRIBE's Group range, even if there is no Delivery Timeout for the
