@@ -1891,6 +1891,9 @@ use range filters which span multiple groups in FETCH or SUBSCRIBE. SUBSCRIBE an
 FETCH delivery use Group Order, so a FETCH cannot deliver Groups out of order
 and a subscription could have unexpected delivery order if Group IDs do not increase
 with time.<a href="#section-2.3.1-3" class="pilcrow">¶</a></p>
+<p id="section-2.3.1-4">Applications that cannot produce Group IDs that increase with time are limited
+to the subset of MoQT that does not compare group IDs. Subscribers to these Tracks
+<span class="bcp14">SHOULD NOT</span> use range filters which span multiple Groups in FETCH or SUBSCRIBE.<a href="#section-2.3.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
