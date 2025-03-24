@@ -293,7 +293,7 @@ Location {
 ~~~
 {: #moq-location format title="Location structure"}
 
-Location A < Location B iff 
+Location A < Location B iff
 
 `A.Group < B.Group || (A.Group == B.Group && A.Object < B.Object)`
 
@@ -1764,16 +1764,16 @@ There are three types of Fetch messages:
 
 Standalone Fetch (0x1) : A Fetch of Objects performed independently of any Subscribe.
 
-Relative Joining Fetch (0x2) : A Fetch joined together with a Subscribe by specifying
-the Subscribe ID of an active subscription and a relative starting offset. A publisher
-receiving a Joining Fetch uses properties of the associated Subscribe to determine the
-Track Namespace, Track, Start and End such that it is contiguous with the associated
-Subscribe. The Joining Fetch begins the Preceding Group Offset prior to the associated
-subscription.
+Relative Joining Fetch (0x2) : A Fetch joined together with a Subscribe by
+specifying the Subscribe ID of an active subscription and a relative starting
+offset. A publisher receiving a Joining Fetch uses properties of the associated
+Subscribe to determine the Track Namespace, Track, Start and End such that it is
+contiguous with the associated Subscribe. The Joining Fetch begins the specified
+number of groups prior to the associated subscription.
 
-Absolute Joining Fetch (0x3) : Identical to a Relative Joining Fetch except that the
-start group is determined by an absolute Group value rather than a relative offset to
-the subscription.
+Absolute Joining Fetch (0x3) : Identical to a Relative Joining Fetch except that
+the start group is determined by an absolute Group value rather than a relative
+offset to the subscription.
 
 A Subscriber can use a Joining Fetch to, for example, fill a playback buffer with a
 certain number of groups prior to the live edge of a track.
@@ -1832,7 +1832,7 @@ used. Values larger than 0x2 are a protocol error.
 
 * Parameters: The parameters are defined in {{version-specific-params}}.
 
-Standalone Fetch is only present for Fetch Type = 0x1:
+Standalone Fetch is only present for Fetch Type `Standalone Fetch` (0x1):
 
 ~~~
 StandaloneFetch {
@@ -1856,8 +1856,8 @@ StandaloneFetch {
   entire group is requested.  Otherwise, the last requested object is
   End.Object-1.
 
-Joining Fetch is only present for Fetch Type's Relative Fetch (0x2) and
-Absolute Fetch (0x3):
+Joining Fetch is only present for Fetch Types `Relative Joining Fetch` (0x2) and
+`Absolute Joining Fetch` (0x3):
 
 ~~~
 JoiningFetch {
