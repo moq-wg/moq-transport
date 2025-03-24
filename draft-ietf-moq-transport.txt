@@ -5,13 +5,13 @@
 Media Over QUIC                                                L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 24 September 2025                                          Meta
+Expires: 25 September 2025                                          Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                           23 March 2025
+                                                           24 March 2025
 
 
                        Media over QUIC Transport
@@ -59,7 +59,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 24 September 2025.
+   This Internet-Draft will expire on 25 September 2025.
 
 Copyright Notice
 
@@ -1671,6 +1671,28 @@ Table of Contents
 
                                   Table 3
 
+   *  Internal Error - An implementation specific or generic error
+      occurred.
+
+   *  Unauthorized - The subscriber is not authorized to subscribe to
+      the given track.
+
+   *  Timeout - The subscription could not be completed before an
+      implementation specific timeout.  For example, a relay could not
+      establish an upstream subscription within the timeout.
+
+   *  Not Supported - The endpoint does not support the SUBSCRIBE
+      method.
+
+   *  Track Does Not Exist - The requested track is not available at the
+      publisher.
+
+   *  Invalid Range - The end of the SUBSCRIBE range is earlier than the
+      beginning, or the end of the range has already been published.
+
+   *  Retry Track Alias - The publisher requires the subscriber to use
+      the given Track Alias when subscribing.
+
 8.9.  SUBSCRIBE_UPDATE
 
    A subscriber issues a SUBSCRIBE_UPDATE to a publisher to request a
@@ -1847,6 +1869,25 @@ Table of Contents
                        +------+--------------------+
 
                                   Table 4
+
+   *  Internal Error - An implementation specific or generic error
+      occurred.
+
+   *  Unauthorized - The subscriber is no longer authorized to subscribe
+      to the given track.
+
+   *  Track Ended - The track is no longer being published.
+
+   *  Subscription Ended - The publisher reached the end of an
+      associated Subscribe filter.
+
+   *  Going Away - The subscriber or publisher issued a GOAWAY message.
+
+   *  Expired - The publisher reached the timeout specified in
+      SUBSCRIBE_OK.
+
+   *  Too Far Behind - The publisher's queue of objects to be sent to
+      the given subscriber exceeds its implementation defined limit.
 
 8.12.  FETCH
 
@@ -2109,6 +2150,28 @@ Table of Contents
 
                                   Table 5
 
+   *  Internal Error - An implementation specific or generic error
+      occurred.
+
+   *  Unauthorized - The subscriber is not authorized to fetch from the
+      given track.
+
+   *  Timeout - The fetch could not be completed before an
+      implementation specific timeout.  For example, a relay could not
+      FETCH missing objects within the timeout.
+
+   *  Not supported - The endpoint does not support the FETCH method.
+
+   *  Track Does Not Exist - The requested track is not available at the
+      publisher.
+
+   *  Invalid Range - The end of the requested range is earlier than the
+      beginning.
+
+   *  No Objects - The beginning of the requested range is after the
+      latest group and object for the track, or the track has not
+      published any objects.
+
 8.15.  FETCH_CANCEL
 
    A subscriber issues a FETCH_CANCEL message to a publisher indicating
@@ -2282,6 +2345,19 @@ Table of Contents
 
                                   Table 6
 
+   *  Internal Error - An implementation specific or generic error
+      occurred.
+
+   *  Unauthorized - The subscriber is not authorized to announce the
+      given namespace.
+
+   *  Timeout - The announce could not be completed before an
+      implementation specific timeout.
+
+   *  Not Supported - The endpoint does not support the ANNOUNCE method.
+
+   *  Uninterested - The namespace is not of interest to the endpoint.
+
 8.21.  UNANNOUNCE
 
    The publisher sends the UNANNOUNCE control message to indicate its
@@ -2434,6 +2510,21 @@ Table of Contents
                     +------+--------------------------+
 
                                   Table 7
+
+   *  Internal Error - An implementation specific or generic error
+      occurred.
+
+   *  Unauthorized - The subscriber is not authorized to subscribe to
+      the given namespace prefix.
+
+   *  Timeout - The operation could not be completed before an
+      implementation specific timeout.
+
+   *  Not Supported - The endpoint does not support the
+      SUBSCRIBE_ANNOUNCES method.
+
+   *  Namespace Prefix Unknown - The namespace prefix is not available
+      for subscription.
 
 8.26.  UNSUBSCRIBE_ANNOUNCES
 
