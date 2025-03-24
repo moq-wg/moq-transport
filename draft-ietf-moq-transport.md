@@ -335,7 +335,7 @@ stream and are sent on a single stream whenever possible. A Group is delivered
 using at least as many streams as there are Subgroups,
 typically with a one-to-one mapping between Subgroups and streams.
 
-When a Track's forwarding preference (see {{object-fields}}) is
+When a Track's forwarding preference (see {{object-properties}}) is
 "Datagram", Objects are not sent in Subgroups and the
 description in the remainder of this section does not apply.
 
@@ -865,7 +865,7 @@ until receiving one from upstream. It MUST withhold FETCH_OK until receiving
 one from upstream.
 
 For successful subscriptions, the publisher maintains a list of
-subscribers for each track. Each new OBJECT belonging to the
+subscribers for each track. Each new Object belonging to the
 track within the subscription range is forwarded to each active
 subscriber, dependent on the congestion response.
 
@@ -939,10 +939,10 @@ When a relay receives an incoming ANNOUNCE for a given namespace, for
 each active upstream subscription that matches that namespace, it SHOULD send a
 SUBSCRIBE to the publisher that sent the ANNOUNCE.
 
-OBJECT message headers carry a short hop-by-hop `Track Alias` that maps to
+Object headers carry a short hop-by-hop `Track Alias` that maps to
 the Full Track Name (see {{message-subscribe-ok}}). Relays use the
-`Track Alias` of an incoming OBJECT message to identify its track and find
-the active subscribers for that track. Relays MUST forward OBJECT messages to
+`Track Alias` of an incoming Object to identify its track and find
+the active subscribers for that track. Relays MUST forward Objects to
 matching subscribers in accordance to each subscription's priority, group order,
 and delivery timeout.
 
@@ -977,7 +977,7 @@ the announcement and subscription to the old relay can be stopped.
 
 ## Relay Object Handling
 
-MOQT encodes the delivery information for a stream via OBJECT headers
+MOQT encodes the delivery information via Object headers
 ({{message-object}}).  A relay MUST NOT modify Object properties when
 forwarding.
 
@@ -1400,11 +1400,10 @@ unique and monotonically increasing within a session and MUST be less
 than the session's Maximum Subscribe ID.
 
 * Track Alias: A session specific identifier for the track.
-Messages that reference a track, such as OBJECT ({{message-object}}),
-reference this Track Alias instead of the Track Name and Track Namespace to
-reduce overhead. If the Track Alias is already being used for a different
-track, the publisher MUST close the session with a Duplicate Track Alias
-error ({{session-termination}}).
+Data streams and datagrams specify the Track Alias instead of the Track Name
+and Track Namespace to reduce overhead. If the Track Alias is already being used
+for a different track, the publisher MUST close the session with a Duplicate
+Track Alias error ({{session-termination}}).
 
 * Track Namespace: Identifies the namespace of the track as defined in
 ({{track-name}}).
@@ -2295,9 +2294,9 @@ UNSUBSCRIBE_ANNOUNCES Message {
 * Track Namespace Prefix: As defined in {{message-subscribe-ns}}.
 
 
-# Data Streams {#data-streams}
+# Data Streams and Datagrams {#data-streams}
 
-A publisher sends Objects matching a subscription on Data Streams.
+A publisher sends Objects matching a subscription on Data Streams or Datagrams.
 
 All unidirectional MOQT streams start with a variable-length integer indicating
 the type of the stream in question.
@@ -2335,13 +2334,13 @@ Publisher MUST NOT mix different forwarding preferences within a single track.
 If a subscriber receives different forwarding preferences for a track, it
 SHOULD close the session with an error of 'Protocol Violation'.
 
-## Object Headers {#message-object}
+## Objects {#message-object}
 
-An OBJECT message contains a range of contiguous bytes from the
+An Object contains a range of contiguous bytes from the
 specified track, as well as associated metadata required to deliver,
 cache, and forward it.  Objects are sent by publishers.
 
-### Canonical Object Fields {#object-fields}
+### Canonical Object Properties {#object-properties}
 
 A canonical MoQ Object has the following information:
 
@@ -2550,7 +2549,7 @@ The Object Status field is only sent if the Object Payload Length is zero.
   Object Payload (..),
 }
 ~~~
-{: #object-subgroup-format title="MOQT Subgroup Fields"}
+{: #object-subgroup-format title="MOQT Subgroup Object Fields"}
 
 A publisher MUST NOT send an Object on a stream if its Object ID is less than a
 previously sent Object ID within a given group in that stream.
@@ -2659,7 +2658,7 @@ Each object sent on a fetch stream after the FETCH_HEADER has the following form
 The Object Status field is only sent if the Object Payload Length is zero.
 
 The Subgroup ID field of an object with a Forwarding Preference of "Datagram"
-(see {{object-fields}}) is set to the Object ID.
+(see {{object-properties}}) is set to the Object ID.
 
 ## Examples
 
