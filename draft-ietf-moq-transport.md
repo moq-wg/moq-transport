@@ -1718,8 +1718,13 @@ A subscriber issues a FETCH to a publisher to request a range of already
 published objects within a track. The publisher responding to a FETCH is
 responsible for delivering all available Objects in the requested range in the
 requested order. The Objects in the response are delivered on a single
-unidirectional stream. Any Objects not included in the response do not exist
-(eg: they implicitly have status `Object Does Not Exist`).
+unidirectional stream. Any gaps in the Group and Object IDs in the response
+stream indicate objects that do not exist (eg: they implicitly have status
+`Object Does Not Exist`).  For Ascending Group Order this includes ranges
+between the first requested object and the first object in the stream; between
+objects in the stream; and between the last object in the stream and the Largest
+Group/Object indicated in FETCH_OK, so long as the fetch stream is terminated by
+a FIN.
 
 **Fetch Types**
 
