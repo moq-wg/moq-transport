@@ -388,9 +388,8 @@ Order is Descending.  Due to network reordering and the partial reliability
 features of MoQT, Groups can always be received out of order.
 
 As a result, subscribers cannot infer the existence of a Group until an object in
-the Group is received.
-This can create gaps in the MoQ cache that MUST be filled by
-doing a Fetch upstream if a Fetch is received that requests those Groups.
+the Group is received. This can create gaps in the MoQ cache that MUST be filled
+by doing a Fetch upstream if a Fetch is received that requests those Groups.
 
 Subscribers to tracks which do not follow this requirement SHOULD NOT
 use range filters which span multiple groups in FETCH or SUBSCRIBE. SUBSCRIBE and
