@@ -1714,10 +1714,12 @@ SUBSCRIBE_DONE, as defined below:
 
 ## FETCH {#message-fetch}
 
-A subscriber issues a FETCH to a publisher to request a range of already published
-objects within a track. The publisher responding to a FETCH is responsible for retrieving
-all available Objects. If there are gaps between Objects, the publisher omits them from the
-fetch response. All omitted objects have status Object Does Not Exist.
+A subscriber issues a FETCH to a publisher to request a range of already
+published objects within a track. The publisher responding to a FETCH is
+responsible for delivering all available Objects in the requested range in the
+requested order. The Objects in the response are delivered on a single
+unidirectional stream. Any Objects not included in the response do not exist
+(eg: they implicitly have status `Object Does Not Exist`).
 
 **Fetch Types**
 
@@ -1746,10 +1748,16 @@ A Fetch Type other than 0x1, 0x2 or 0x3 MUST be treated as an error.
 
 A publisher responds to a FETCH request with either a FETCH_OK or a FETCH_ERROR
 message.  The publisher creates a new unidirectional stream that is used to send the
-Objects.  A relay MAY start sending objects immediately in response to a FETCH, even
-if sending the FETCH_OK takes longer because it requires going upstream to populate
-the latest object.  If the upstream FETCH fails in this case, the relay sends a
-FETCH_ERROR and can reset the unidirectional stream.
+Objects.  The FETCH_OK or FETCH_ERROR can come at any time relative to object
+delivery.
+
+A relay that has cached objects from the beginning of the range MAY start
+sending objects immediately in response to a FETCH.  If it encounters an object
+in the requested range that is not cached and has unknown status, the relay MUST
+pause subsequent delivery until it has confirmed the object's status upstream.
+If the upstream FETCH fails, the relay sends a FETCH_ERROR and can reset the
+unidirectional stream.  It can chose to do so immediately or wait until the
+cached objects have been delivered before resetting the stream.
 
 The Object Forwarding Preference does not apply to fetches.
 
