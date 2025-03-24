@@ -1355,9 +1355,9 @@ group than StartGroup. If the StartGroup is prior to the current group, the
 subscription starts at the beginning of the current object like the 'Latest
 Object' filter.
 
-Higher Objects (0x5): Specifies an open-ended subscriptions. All objects with
-a Group and Object ID higher than the Largest ID in the SUBSCRIBE_OK will be
-delivered by the subscriber. This is most useful where the Group ID implies a
+Higher Objects (0x5): Specifies an open-ended subscription. All objects with
+a sequence number higher than the Largest ID in the SUBSCRIBE_OK will be
+delivered by the publisher. This is most useful where the Group ID implies a
 temporal relationship.
 
 Later Objects (0x6): All objects that arrive at, or are created by, the
