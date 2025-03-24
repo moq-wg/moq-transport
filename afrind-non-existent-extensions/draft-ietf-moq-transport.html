@@ -2459,7 +2459,11 @@ forwarding to subscribers, unless it has application specific information.<a hre
 multiple subscribers request the same track. Subscription aggregation
 allows relays to make only a single upstream subscription for the
 track. The published content received from the upstream subscription
-request is cached and shared among the pending subscribers.<a href="#section-7.1-6" class="pilcrow">¶</a></p>
+request is cached and shared among the pending subscribers.
+Because SUBSCRIBE_UPDATE only allows narrowing a subscription, relays that
+aggregate upstream subscriptions can subscribe using the Latest Object
+filter to avoid churn as downstream subscribers with disparate filters
+subscribe and unsubscribe from a track.<a href="#section-7.1-6" class="pilcrow">¶</a></p>
 <div id="graceful-subscriber-relay-switchover">
 <section id="section-7.1.1">
           <h4 id="name-graceful-subscriber-relay-s">
