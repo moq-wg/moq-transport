@@ -430,12 +430,9 @@ contrast, an application that uses multiple CDNs to serve media may
 require the scope to include all of those CDNs.
 
 Because the tuple of Track Namespace and Track Name are unique within an
-MOQT scope, they can be used as a cache key.
-MOQT does not provide any in-band content negotiation methods similar to
-the ones defined by HTTP ({{?RFC9110, Section 10}}); if, at a given
-moment in time, two tracks within the same scope contain different data,
-they have to have different names and/or namespaces.
-
+MOQT scope, they can be used as a cache key for the track.
+If, at a given moment in time, two tracks within the same scope contain
+different data, they MUST have different names and/or namespaces.
 
 # Sessions {#session}
 
