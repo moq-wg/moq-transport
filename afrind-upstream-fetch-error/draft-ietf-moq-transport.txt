@@ -1903,7 +1903,7 @@ Table of Contents
    has unknown status, the relay MUST pause subsequent delivery until it
    has confirmed the object's status upstream.  If the upstream FETCH
    fails, the relay sends a FETCH_ERROR and can reset the unidirectional
-   stream.  It can chose to do so immediately or wait until the cached
+   stream.  It can choose to do so immediately or wait until the cached
    objects have been delivered before resetting the stream.
 
    The Object Forwarding Preference does not apply to fetches.

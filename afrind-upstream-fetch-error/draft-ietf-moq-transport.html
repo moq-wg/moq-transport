@@ -3591,7 +3591,7 @@ sending objects immediately in response to a FETCH.  If it encounters an object
 in the requested range that is not cached and has unknown status, the relay <span class="bcp14">MUST</span>
 pause subsequent delivery until it has confirmed the object's status upstream.
 If the upstream FETCH fails, the relay sends a FETCH_ERROR and can reset the
-unidirectional stream.  It can chose to do so immediately or wait until the
+unidirectional stream.  It can choose to do so immediately or wait until the
 cached objects have been delivered before resetting the stream.<a href="#section-8.12-11" class="pilcrow">¶</a></p>
 <p id="section-8.12-12">The Object Forwarding Preference does not apply to fetches.<a href="#section-8.12-12" class="pilcrow">¶</a></p>
 <p id="section-8.12-13">Fetch specifies an inclusive range of Objects starting at StartObject
