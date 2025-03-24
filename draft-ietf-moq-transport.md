@@ -382,10 +382,10 @@ their group membership.  Groups can contain any number of objects.
 ### Group Ordering
 
 Within a track, the original publisher SHOULD publish Group IDs which increase
-with time. There are cases when even if the Groups are produced in increasing order,
-they might not be sent to the MoQ network or various Subscribers in the network
-in that order. One example is if the original publisher is publishing in descending
-Group Order.
+with time. In some cases, Groups will be produced in increasing order, but sent
+to subscribers in a different order, for example when the subscription's Group
+Order is Descending.  Due to network reordering and the partial reliability
+features of MoQT, Groups can always be received out of order.
 
 As a result, Subscribers will not know the status of a Group within a SUBSCRIBE's
 Group range, even if there is no Delivery Timeout for the Subscription, until
