@@ -4848,7 +4848,8 @@ SUBGROUP_HEADER {
 <p id="section-9.4.2-4">The Type field takes the form 0b0000000X (or the set of values from 0x00 to
 0x01). The LSB determines if the Extensions Headers Length is present in objects
 in this subgroup.  When it is 0, Extensions Headers Length is not present and all
-objects have no extensions.<a href="#section-9.4.2-4" class="pilcrow">¶</a></p>
+objects have no extensions.  When it is 1, Extension Headers Length is present in
+all objects in this subgroup.<a href="#section-9.4.2-4" class="pilcrow">¶</a></p>
 <p id="section-9.4.2-5">To send an Object with <code>Object Forwarding Preference</code> = <code>Subgroup</code>, find the open
 stream that is associated with the subscription, <code>Group ID</code> and <code>Subgroup ID</code>,
 or open a new one and send the <code>SUBGROUP_HEADER</code>. Then serialize the
