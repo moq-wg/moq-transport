@@ -1343,10 +1343,6 @@ the publisher to identify which objects need to be delivered.
 
 There are 3 types of filters:
 
-Latest Object (0x2): Specifies an open-ended subscription beginning from
-the current object of the current group.  If no content has been delivered yet,
-the subscription starts with the first published or received group.
-
 AbsoluteStart (0x3):  Specifies an open-ended subscription beginning
 from the object identified in the StartGroup and StartObject fields. If the
 StartGroup is prior to the current group, the subscription starts at the
@@ -1358,6 +1354,16 @@ end of the range are inclusive.  EndGroup MUST specify the same or a later
 group than StartGroup. If the StartGroup is prior to the current group, the
 subscription starts at the beginning of the current object like the 'Latest
 Object' filter.
+
+Higher Objects (0x5): Specifies an open-ended subscriptions. All objects with
+a Group and Object ID higher than the Largest ID in the SUBSCRIBE_OK will be
+delivered by the subscriber. This is most useful where the Group ID implies a
+temporal relationship.
+
+Later Objects (0x6): All objects that arrive at, or are created by, the
+publisher after the object indicated by the Largest ID field in the
+SUBSCRIBE_OK, whether or not the ID is higher. This is most useful for tracks
+where the Group ID does not imply a temporal relationship.
 
 A filter type other than the above MUST be treated as error.
 
