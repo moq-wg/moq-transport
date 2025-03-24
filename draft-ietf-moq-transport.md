@@ -1346,7 +1346,7 @@ There are 3 types of filters:
 AbsoluteStart (0x3):  Specifies an open-ended subscription beginning
 from the object identified in the StartGroup and StartObject fields. If the
 StartGroup is prior to the current group, the subscription starts at the
-beginning of the current object like the 'Highest Objects' filter.
+beginning of the current object like the 'Higher Objects' filter.
 
 AbsoluteRange (0x4):  Specifies a closed subscription starting at StartObject
 in StartGroup and ending at the largest object in EndGroup.  The start and
