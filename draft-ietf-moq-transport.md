@@ -387,9 +387,8 @@ to subscribers in a different order, for example when the subscription's Group
 Order is Descending.  Due to network reordering and the partial reliability
 features of MoQT, Groups can always be received out of order.
 
-As a result, Subscribers will not know the status of a Group within a SUBSCRIBE's
-Group range, even if there is no Delivery Timeout for the Subscription, until
-either the Group is received or a 'Group Does Not Exist' status is received.
+As a result, subscribers cannot infer the existence of a Group until an object in
+the Group is received.
 This can create gaps in the MoQ cache that MUST be filled by
 doing a Fetch upstream if a Fetch is received that requests those Groups.
 
