@@ -2562,7 +2562,7 @@ OBJECT_DATAGRAM {
 
 The Type field takes the form 0b0000000X (or the set of values from 0x00 to
 0x01). The LSB of the type determines if the Extensions Headers Length and
-Extension headers are present. If and endpoint receives a datagram with Type
+Extension headers are present. If an endpoint receives a datagram with Type
 0x01 and Extension Headers Length is 0, it MUST close the session with Protocol
 Violation.
 
@@ -2590,7 +2590,7 @@ OBJECT_DATAGRAM_STATUS {
 
 The Type field takes the form 0b0000001X (or the set of values from 0x02 to
 0x03). The LSB of the type determines if the Extensions Headers Length and
-Extension headers are present. If and endpoint receives a datagram with Type
+Extension headers are present. If an endpoint receives a datagram with Type
 0x03 and Extension Headers Length is 0, it MUST close the session with Protocol
 Violation.
 
