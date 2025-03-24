@@ -2634,7 +2634,8 @@ All Objects received on a stream opened with `SUBGROUP_HEADER` have an
 The Type field takes the form 0b0000000X (or the set of values from 0x00 to
 0x01). The LSB determines if the Extensions Headers Length is present in objects
 in this subgroup.  When it is 0, Extensions Headers Length is not present and all
-objects have no extensions.
+objects have no extensions.  When it is 1, Extension Headers Length is present in
+all objects in this subgroup.
 
 To send an Object with `Object Forwarding Preference` = `Subgroup`, find the open
 stream that is associated with the subscription, `Group ID` and `Subgroup ID`,
