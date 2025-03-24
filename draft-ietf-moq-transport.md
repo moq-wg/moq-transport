@@ -277,10 +277,25 @@ x (tuple):
   as described in ({{?RFC9000, Section 16}}), followed by that many variable
   length tuple fields, each of which are encoded as (b) above.
 
-
 To reduce unnecessary use of bandwidth, variable length integers SHOULD
 be encoded using the least number of bytes possible to represent the
 required value.
+
+### Location Structure
+
+Location identifies a particular group and object within a track.
+
+~~~
+Location {
+  Group (i),
+  Object (i)
+}
+~~~
+{: #moq-location format title="Location structure"}
+
+Location A < Location B iff 
+
+`A.Group < B.Group || (A.Group == B.Group && A.Object < B.Object)`
 
 
 # Object Data Model {#model}
@@ -1351,16 +1366,16 @@ the current object of the current group.  If no content has been delivered yet,
 the subscription starts with the first published or received group.
 
 AbsoluteStart (0x3):  Specifies an open-ended subscription beginning
-from the object identified in the StartGroup and StartObject fields. If the
-StartGroup is prior to the current group, the subscription starts at the
+from the object identified in the `Start` field. If the
+start group is prior to the current group, the subscription starts at the
 beginning of the current object like the 'Latest Object' filter.
 
-AbsoluteRange (0x4):  Specifies a closed subscription starting at StartObject
-in StartGroup and ending at the largest object in EndGroup.  The start and
+AbsoluteRange (0x4):  Specifies a closed subscription starting at `Start`
+and ending at the largest object in EndGroup.  The start and
 end of the range are inclusive.  EndGroup MUST specify the same or a later
-group than StartGroup. If the StartGroup is prior to the current group, the
-subscription starts at the beginning of the current object like the 'Latest
-Object' filter.
+group than specified in `start`. If the start group is prior to the current
+group, the subscription starts at the beginning of the current object like
+the 'Latest Object' filter.
 
 A filter type other than the above MUST be treated as error.
 
@@ -1384,8 +1399,7 @@ SUBSCRIBE Message {
   Subscriber Priority (8),
   Group Order (8),
   Filter Type (i),
-  [StartGroup (i),
-   StartObject (i)],
+  [Start (Location)],
   [EndGroup (i)],
   Number of Parameters (i),
   Subscribe Parameters (..) ...
@@ -1419,13 +1433,10 @@ A value of 0x0 indicates the original publisher's Group Order SHOULD be
 used. Values larger than 0x2 are a protocol error.
 
 * Filter Type: Identifies the type of filter, which also indicates whether
-the StartGroup/StartObject and EndGroup/EndObject fields will be present.
+the Start and End fields will be present.
 
-* StartGroup: The start Group ID. Only present for "AbsoluteStart" and
-"AbsoluteRange" filter types.
-
-* StartObject: The start Object ID. Only present for "AbsoluteStart" and
-"AbsoluteRange" filter types.
+* Start: The starting location for this subscriptions. Only present for
+  "AbsoluteStart" and "AbsoluteRange" filter types.
 
 * EndGroup: The end Group ID, inclusive. Only present for the "AbsoluteRange"
 filter type.
@@ -1454,8 +1465,7 @@ SUBSCRIBE_OK
   Expires (i),
   Group Order (8),
   ContentExists (8),
-  [Largest Group ID (i),
-   Largest Object ID (i)],
+  [Largest (Location)],
   Number of Parameters (i),
   Subscribe Parameters (..) ...
 }
@@ -1478,11 +1488,8 @@ If 0, then the Largest Group ID and Largest Object ID fields will not be
 present. Any other value is a protocol error and MUST terminate the
 session with a Protocol Violation ({{session-termination}}).
 
-* Largest Group ID: The largest Group ID available for this track. This field
-is only present if ContentExists has a value of 1.
-
-* Largest Object ID: The largest Object ID available within the largest Group ID
-for this track. This field is only present if ContentExists has a value of 1.
+* Largest: The location of the largest object available for this track. This
+  field is only present if ContentExists has a value of 1.
 
 * Subscribe Parameters: The parameters are defined in {{version-specific-params}}.
 
@@ -1592,8 +1599,7 @@ SUBSCRIBE_UPDATE Message {
   Type (i) = 0x2,
   Length (i),
   Subscribe ID (i),
-  StartGroup (i),
-  StartObject (i),
+  Start (Location),
   EndGroup (i),
   Subscriber Priority (8),
   Number of Parameters (i),
@@ -1605,9 +1611,7 @@ SUBSCRIBE_UPDATE Message {
 * Subscribe ID: The subscription identifier that is unique within the session.
 This MUST match an existing Subscribe ID.
 
-* StartGroup: The start Group ID.
-
-* StartObject: The start Object ID.
+* Start: The starting location.
 
 * EndGroup: The end Group ID, plus 1. A value of 0 means the subscription is
 open-ended.
@@ -1763,12 +1767,12 @@ Standalone Fetch (0x1) : A Fetch of Objects performed independently of any Subsc
 Relative Joining Fetch (0x2) : A Fetch joined together with a Subscribe by specifying
 the Subscribe ID of an active subscription and a relative starting offset. A publisher
 receiving a Joining Fetch uses properties of the associated Subscribe to determine the
-Track Namespace, Track, StartGroup, StartObject, EndGroup, and EndObject such that
-it is contiguous with the associated Subscribe. The Joining Fetch begins the
-Preceding Group Offset prior to the associated subscription.
+Track Namespace, Track, Start and End such that it is contiguous with the associated
+Subscribe. The Joining Fetch begins the Preceding Group Offset prior to the associated
+subscription.
 
 Absolute Joining Fetch (0x3) : Identical to a Relative Joining Fetch except that the
-StartGroup is determined by an absolute Group value rather than a relative offset to
+start group is determined by an absolute Group value rather than a relative offset to
 the subscription.
 
 A Subscriber can use a Joining Fetch to, for example, fill a playback buffer with a
@@ -1787,9 +1791,8 @@ going upstream to populate the latest object.
 
 The Object Forwarding Preference does not apply to fetches.
 
-Fetch specifies an inclusive range of Objects starting at StartObject
-in StartGroup and ending at EndObject in EndGroup. EndGroup and EndObject MUST
-specify the same or a later object than StartGroup and StartObject.
+Fetch specifies an inclusive range of Objects starting at `Start` and ending at `End`.
+`End` MUST specify the same or a later object than `Start`.
 
 The format of FETCH is as follows:
 
@@ -1801,15 +1804,8 @@ FETCH Message {
   Subscriber Priority (8),
   Group Order (8),
   Fetch Type (i),
-  [Track Namespace (tuple),
-   Track Name Length (i),
-   Track Name (..),
-   StartGroup (i),
-   StartObject (i),
-   EndGroup (i),
-   EndObject (i),]
-  [ Subscribe ID (i),
-    Joining Start (i),]
+  [Standalone Fetch (StandaloneFetch),]
+  [Joining Fetch (JoiningFetch),]
   Number of Parameters (i),
   Parameters (..) ...
 }
@@ -1836,29 +1832,46 @@ used. Values larger than 0x2 are a protocol error.
 
 * Parameters: The parameters are defined in {{version-specific-params}}.
 
-Fields present only for Standalone Fetch (0x1):
+Standalone Fetch is only present for Fetch Type = 0x1:
 
+~~~
+StandaloneFetch {
+   Track Namespace (tuple),
+   Track Name Length (i),
+   Track Name (..),
+   Start (Location),
+   End (Location)
+}
+~~~
+{: #moq-transport-fetch-format title="MOQT Standalone Fetch"}
+   
 * Track Namespace: Identifies the namespace of the track as defined in
 ({{track-name}}).
 
 * Track Name: Identifies the track name as defined in ({{track-name}}).
 
-* StartGroup: The start Group ID.
+* Start: The start location.
 
-* StartObject: The start Object ID.
+* End: A special encoding of the end location.  When End.Object is 0, the
+  entire group is requested.  Otherwise, the last requested object is
+  End.Object-1.
 
-* EndGroup: The end Group ID.
+Joining Fetch is only present for Fetch Type's Relative Fetch (0x2) and
+Absolute Fetch (0x3):
 
-* EndObject: The end Object ID, plus 1. A value of 0 means the entire group is
-requested.
+~~~
+JoiningFetch {
+  Subscribe ID (i),
+  Start Parameter (i),
+}
+~~~
+{: #moq-transport-fetch-format title="MOQT JoiningFetch"}
 
-Fields present only for Relative Fetch (0x2) and Absolute Fetch (0x3):
-
-* Joining Subscribe ID: The Subscribe ID of the existing subscription to be
+* Subscribe ID: The Subscribe ID of the existing subscription to be
 joined. If a publisher receives a Joining Fetch with a Subscribe ID that does
 not correspond to an existing Subscribe, it MUST respond with a Fetch Error.
 
-* Joining Start : for a Relative Joining Fetch (0x2), this value represents the
+* Start Parameter: for a Relative Joining Fetch (0x2), this value represents the
   group offset for the Fetch prior and relative to the Current Group of the
   corresponding Subscribe. A value of 0 indicates the Fetch starts at the beginning
   of the Current Group. For an Absolute Joining Fetch (0x3), this value represents
@@ -1873,8 +1886,8 @@ A publisher MUST send fetched groups in the determined group order, either
 ascending or descending. Within each group, objects are sent in Object ID order;
 subgroup ID is not used for ordering.
 
-If StartGroup/StartObject is greater than the latest published Object group,
-the publisher MUST return FETCH_ERROR with error code 'No Objects'.
+If the resolved `Start` is greater than the latest published Object, the publisher
+MUST return FETCH_ERROR with error code 'No Objects'.
 
 ### Calculating the Range of a Relative Joining Fetch
 
@@ -1891,19 +1904,19 @@ error code 'No Objects'.
 
 The publisher receiving a Relative Joining Fetch computes the range as follows:
 
-* Fetch StartGroup: Subscribe Largest Group - Joining start
-* Fetch StartObject: 0
-* Fetch EndGroup: Subscribe Largest Group
-* Fetch EndObject: Subscribe Largest Object
+* Fetch Start.Group: Subscribe Largest Group - JoiningFetch.Start Parameter
+* Fetch Start.Object: 0
+* Fetch End.Group: Subscribe Largest Group
+* Fetch End.Object: Subscribe Largest Object
 
-A Fetch EndObject of 0 requests the entire group, but Fetch will not
+A Fetch End.Object of 0 requests the entire group, but Fetch will not
 retrieve Objects that have not yet been published, so 1 is subtracted from
-the Fetch EndGroup if Fetch EndObject is 0.
+the Fetch End.Group if Fetch End.Object is 0.
 
 ### Calculating the Range of an Absolute Joining Fetch
 
-Identical to the Relative Joining fetch except that Fetch StartGroup is the
-Joining Start value.
+Identical to the Relative Joining fetch except that Fetch Start.Group is the
+`JoiningFetch.StartParameter` value.
 
 
 ## FETCH_OK {#message-fetch-ok}
@@ -2059,8 +2072,7 @@ TRACK_STATUS Message {
   Track Name Length(i),
   Track Name (..),
   Status Code (i),
-  Largest Group ID (i),
-  Largest Object ID (i),
+  Largest (Location),
 }
 ~~~
 {: #moq-track-status-format title="MOQT TRACK_STATUS Message"}
@@ -2086,12 +2098,11 @@ upstream. Subsequent fields contain the largest group and object ID known.
 
 Any other value in the Status Code field is a malformed message.
 
-The `Largest Group ID` and `Largest Object ID` fields represent the highest Group and
-Object IDs observed by the Publisher for an active subscription. If the
-publisher is a relay without an active subscription, it SHOULD send a
-TRACK_STATUS_REQUEST upstream or MAY subscribe to the track, to obtain the
-same information. If neither is possible, it should return the best
-available information with status code 0x04.
+The `Largest` fields represent the highest Object location observed by the
+Publisher for an active subscription. If the publisher is a relay without an
+active subscription, it SHOULD send a TRACK_STATUS_REQUEST upstream or MAY
+subscribe to the track, to obtain the same information. If neither is possible,
+it should return the best available information with status code 0x04.
 
 The receiver of multiple TRACK_STATUS messages for a track uses the information
 from the latest arriving message, as they are delivered in order on a single
@@ -2524,17 +2535,18 @@ Object Extension Headers are serialized as defined below:
 ~~~
 Extension Header {
   Header Type (i),
-  [Header Value (i)]
-  [Header Length (i),
-   Header Value (..)]
+  [Header Length (i),]
+  Header Value (..)
 }
 ~~~
 {: #object-extension-format title="Object Extension Header Format"}
 
-* Header type: an unsigned integer, encoded as a varint, identifying the type
+* Header Type: an unsigned integer, encoded as a varint, identifying the type
   of the extension and also the subsequent serialization.
-* Header values: even types are followed by a single varint encoded value. Odd
-  types are followed by a varint encoded length and then the header value.
+* Header Length: Only present when Header Type is odd.  Species the length of
+  the Header Value field.
+* Header Value: A single varint encoded value when Header Type is even,
+  otherwise a sequence of Header Length bytes.
   Header types are registered in the IANA table 'MOQ Extension Headers'.
   See {{iana}}.
 
