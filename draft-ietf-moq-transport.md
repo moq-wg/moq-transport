@@ -776,7 +776,7 @@ _Group Order_ is a property of an individual subscription.  It can be either
 'Ascending' (groups with lower group ID are sent first), or 'Descending'
 (groups with higher group ID are sent first).  The subscriber optionally
 communicates its group order preference in the SUBSCRIBE message; the
-publisher's preference is used if the subscriber did not express one.  The
+publisher's preference is used if the subscriber did not express one (by setting Group Order field to value 0x0).  The
 group order of an existing subscription cannot be changed.
 
 ## Scheduling Algorithm
