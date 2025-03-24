@@ -1843,7 +1843,7 @@ StandaloneFetch {
    End (Location)
 }
 ~~~
-{: #moq-transport-fetch-format title="MOQT Standalone Fetch"}
+{: #moq-transport-standalone-fetch-format title="MOQT Standalone Fetch"}
    
 * Track Namespace: Identifies the namespace of the track as defined in
 ({{track-name}}).
@@ -1865,7 +1865,7 @@ JoiningFetch {
   Start Parameter (i),
 }
 ~~~
-{: #moq-transport-fetch-format title="MOQT JoiningFetch"}
+{: #moq-transport-joining-fetch-format title="MOQT JoiningFetch"}
 
 * Subscribe ID: The Subscribe ID of the existing subscription to be
 joined. If a publisher receives a Joining Fetch with a Subscribe ID that does
