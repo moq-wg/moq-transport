@@ -2389,12 +2389,12 @@ subscribed Objects.<a href="#section-6.2-4" class="pilcrow">¶</a></p>
 <a href="#section-6.3" class="section-number selfRef">6.3. </a><a href="#name-considerations-for-setting-" class="section-name selfRef">Considerations for Setting Priorities</a>
         </h3>
 <p id="section-6.3-1">Relays <span class="bcp14">SHOULD</span> respect the subscriber and original publisher's priorities.
-Relays <span class="bcp14">SHOULD NOT</span> directly use Subscriber Priority or Group Order
-from incoming subscriptions for upstream subscriptions. Relays use of
-Subscriber Priority for upstream subscriptions can be based on
-factors specific to it, such as the popularity of the
-content or policy, or relays can specify the same value for all
-upstream subscriptions.<a href="#section-6.3-1" class="pilcrow">¶</a></p>
+Relays can receive subscriptions with conflicting subscriber priorities
+or Group Order preferences.  Relays <span class="bcp14">SHOULD NOT</span> directly use Subscriber Priority
+or Group Order from incoming subscriptions for upstream subscriptions. Relays
+use of these fields for upstream subscriptions can be based on factors specific
+to it, such as the popularity of the content or policy, or relays can specify
+the same value for all upstream subscriptions.<a href="#section-6.3-1" class="pilcrow">¶</a></p>
 <p id="section-6.3-2">MoQ Sessions can span multiple namespaces, and priorities might not
 be coordinated across namespaces.  The subscriber's priority is
 considered first, so there is a mechanism for a subscriber to fix

@@ -911,12 +911,13 @@ Table of Contents
 6.3.  Considerations for Setting Priorities
 
    Relays SHOULD respect the subscriber and original publisher's
-   priorities.  Relays SHOULD NOT directly use Subscriber Priority or
-   Group Order from incoming subscriptions for upstream subscriptions.
-   Relays use of Subscriber Priority for upstream subscriptions can be
-   based on factors specific to it, such as the popularity of the
-   content or policy, or relays can specify the same value for all
-   upstream subscriptions.
+   priorities.  Relays can receive subscriptions with conflicting
+   subscriber priorities or Group Order preferences.  Relays SHOULD NOT
+   directly use Subscriber Priority or Group Order from incoming
+   subscriptions for upstream subscriptions.  Relays use of these fields
+   for upstream subscriptions can be based on factors specific to it,
+   such as the popularity of the content or policy, or relays can
+   specify the same value for all upstream subscriptions.
 
    MoQ Sessions can span multiple namespaces, and priorities might not
    be coordinated across namespaces.  The subscriber's priority is
