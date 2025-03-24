@@ -1057,7 +1057,7 @@ svg :is([fill="white"], [fill^="#fff"]) {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Curley, et al.</td>
-<td class="center">Expires 24 September 2025</td>
+<td class="center">Expires 25 September 2025</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1070,12 +1070,12 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dd class="internet-draft">draft-ietf-moq-transport-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2025-03-23" class="published">23 March 2025</time>
+<time datetime="2025-03-24" class="published">24 March 2025</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2025-09-24">24 September 2025</time></dd>
+<dd class="expires"><time datetime="2025-09-25">25 September 2025</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1147,7 +1147,7 @@ networks and is designed for high scale and low latency distribution.<a href="#s
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 24 September 2025.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 25 September 2025.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1420,13 +1420,13 @@ networks and is designed for high scale and low latency distribution.<a href="#s
             </ul>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9">
-            <p id="section-toc.1-1.9.1"><a href="#section-9" class="auto internal xref">9</a>.  <a href="#name-data-streams" class="internal xref">Data Streams</a></p>
+            <p id="section-toc.1-1.9.1"><a href="#section-9" class="auto internal xref">9</a>.  <a href="#name-data-streams-and-datagrams" class="internal xref">Data Streams and Datagrams</a></p>
 <ul class="compact toc ulBare ulEmpty">
 <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.1">
-                <p id="section-toc.1-1.9.2.1.1"><a href="#section-9.1" class="auto internal xref">9.1</a>.  <a href="#name-object-headers" class="internal xref">Object Headers</a></p>
+                <p id="section-toc.1-1.9.2.1.1"><a href="#section-9.1" class="auto internal xref">9.1</a>.  <a href="#name-objects-2" class="internal xref">Objects</a></p>
 <ul class="compact toc ulBare ulEmpty">
 <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.1.2.1">
-                    <p id="section-toc.1-1.9.2.1.2.1.1"><a href="#section-9.1.1" class="auto internal xref">9.1.1</a>.  <a href="#name-canonical-object-fields" class="internal xref">Canonical Object Fields</a></p>
+                    <p id="section-toc.1-1.9.2.1.2.1.1"><a href="#section-9.1.1" class="auto internal xref">9.1.1</a>.  <a href="#name-canonical-object-properties" class="internal xref">Canonical Object Properties</a></p>
 </li>
                 </ul>
 </li>
@@ -1823,7 +1823,7 @@ have a dependency and priority relationship consistent with sharing a
 stream and are sent on a single stream whenever possible. A Group is delivered
 using at least as many streams as there are Subgroups,
 typically with a one-to-one mapping between Subgroups and streams.<a href="#section-2.2-1" class="pilcrow">¶</a></p>
-<p id="section-2.2-2">When a Track's forwarding preference (see <a href="#object-fields" class="auto internal xref">Section 9.1.1</a>) is
+<p id="section-2.2-2">When a Track's forwarding preference (see <a href="#object-properties" class="auto internal xref">Section 9.1.1</a>) is
 "Datagram", Objects are not sent in Subgroups and the
 description in the remainder of this section does not apply.<a href="#section-2.2-2" class="pilcrow">¶</a></p>
 <p id="section-2.2-3">Streams offer in-order reliable delivery and the ability to cancel sending
@@ -2389,12 +2389,12 @@ subscribed Objects.<a href="#section-6.2-4" class="pilcrow">¶</a></p>
 <a href="#section-6.3" class="section-number selfRef">6.3. </a><a href="#name-considerations-for-setting-" class="section-name selfRef">Considerations for Setting Priorities</a>
         </h3>
 <p id="section-6.3-1">Relays <span class="bcp14">SHOULD</span> respect the subscriber and original publisher's priorities.
-Relays <span class="bcp14">SHOULD NOT</span> directly use Subscriber Priority or Group Order
-from incoming subscriptions for upstream subscriptions. Relays use of
-Subscriber Priority for upstream subscriptions can be based on
-factors specific to it, such as the popularity of the
-content or policy, or relays can specify the same value for all
-upstream subscriptions.<a href="#section-6.3-1" class="pilcrow">¶</a></p>
+Relays can receive subscriptions with conflicting subscriber priorities
+or Group Order preferences.  Relays <span class="bcp14">SHOULD NOT</span> directly use Subscriber Priority
+or Group Order from incoming subscriptions for upstream subscriptions. Relays
+use of these fields for upstream subscriptions can be based on factors specific
+to it, such as the popularity of the content or policy, or relays can specify
+the same value for all upstream subscriptions.<a href="#section-6.3-1" class="pilcrow">¶</a></p>
 <p id="section-6.3-2">MoQ Sessions can span multiple namespaces, and priorities might not
 be coordinated across namespaces.  The subscriber's priority is
 considered first, so there is a mechanism for a subscriber to fix
@@ -2442,7 +2442,7 @@ requested range. In this case, it <span class="bcp14">SHOULD</span> withhold sen
 until receiving one from upstream. It <span class="bcp14">MUST</span> withhold FETCH_OK until receiving
 one from upstream.<a href="#section-7.1-2" class="pilcrow">¶</a></p>
 <p id="section-7.1-3">For successful subscriptions, the publisher maintains a list of
-subscribers for each track. Each new OBJECT belonging to the
+subscribers for each track. Each new Object belonging to the
 track within the subscription range is forwarded to each active
 subscriber, dependent on the congestion response.<a href="#section-7.1-3" class="pilcrow">¶</a></p>
 <p id="section-7.1-4">A caching relay saves Objects to its cache identified by the Object's
@@ -2512,10 +2512,10 @@ incoming SUBSCRIBE request from all available publishers.<a href="#section-7.2-6
 <p id="section-7.2-7">When a relay receives an incoming ANNOUNCE for a given namespace, for
 each active upstream subscription that matches that namespace, it <span class="bcp14">SHOULD</span> send a
 SUBSCRIBE to the publisher that sent the ANNOUNCE.<a href="#section-7.2-7" class="pilcrow">¶</a></p>
-<p id="section-7.2-8">OBJECT message headers carry a short hop-by-hop <code>Track Alias</code> that maps to
+<p id="section-7.2-8">Object headers carry a short hop-by-hop <code>Track Alias</code> that maps to
 the Full Track Name (see <a href="#message-subscribe-ok" class="auto internal xref">Section 8.7</a>). Relays use the
-<code>Track Alias</code> of an incoming OBJECT message to identify its track and find
-the active subscribers for that track. Relays <span class="bcp14">MUST</span> forward OBJECT messages to
+<code>Track Alias</code> of an incoming Object to identify its track and find
+the active subscribers for that track. Relays <span class="bcp14">MUST</span> forward Objects to
 matching subscribers in accordance to each subscription's priority, group order,
 and delivery timeout.<a href="#section-7.2-8" class="pilcrow">¶</a></p>
 <div id="graceful-publisher-network-switchover">
@@ -2560,7 +2560,7 @@ the announcement and subscription to the old relay can be stopped.<a href="#sect
         <h3 id="name-relay-object-handling">
 <a href="#section-7.3" class="section-number selfRef">7.3. </a><a href="#name-relay-object-handling" class="section-name selfRef">Relay Object Handling</a>
         </h3>
-<p id="section-7.3-1">MOQT encodes the delivery information for a stream via OBJECT headers
+<p id="section-7.3-1">MOQT encodes the delivery information via Object headers
 (<a href="#message-object" class="auto internal xref">Section 9.1</a>).  A relay <span class="bcp14">MUST NOT</span> modify Object properties when
 forwarding.<a href="#section-7.3-1" class="pilcrow">¶</a></p>
 <p id="section-7.3-2">A relay <span class="bcp14">MUST</span> treat the object payload as opaque.  A relay <span class="bcp14">MUST NOT</span>
@@ -3120,11 +3120,10 @@ than the session's Maximum Subscribe ID.<a href="#section-8.6-12.1.1" class="pil
 </li>
           <li class="normal" id="section-8.6-12.2">
             <p id="section-8.6-12.2.1">Track Alias: A session specific identifier for the track.
-Messages that reference a track, such as OBJECT (<a href="#message-object" class="auto internal xref">Section 9.1</a>),
-reference this Track Alias instead of the Track Name and Track Namespace to
-reduce overhead. If the Track Alias is already being used for a different
-track, the publisher <span class="bcp14">MUST</span> close the session with a Duplicate Track Alias
-error (<a href="#session-termination" class="auto internal xref">Section 3.4</a>).<a href="#section-8.6-12.2.1" class="pilcrow">¶</a></p>
+Data streams and datagrams specify the Track Alias instead of the Track Name
+and Track Namespace to reduce overhead. If the Track Alias is already being used
+for a different track, the publisher <span class="bcp14">MUST</span> close the session with a Duplicate
+Track Alias error (<a href="#session-termination" class="auto internal xref">Section 3.4</a>).<a href="#section-8.6-12.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.6-12.3">
             <p id="section-8.6-12.3.1">Track Namespace: Identifies the namespace of the track as defined in
@@ -3322,6 +3321,34 @@ as defined below:<a href="#section-8.8-4" class="pilcrow">¶</a></p>
             </tr>
           </tbody>
         </table>
+<ul class="normal">
+<li class="normal" id="section-8.8-6.1">
+            <p id="section-8.8-6.1.1">Internal Error - An implementation specific or generic error occurred.<a href="#section-8.8-6.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-8.8-6.2">
+            <p id="section-8.8-6.2.1">Unauthorized - The subscriber is not authorized to subscribe to the given
+track.<a href="#section-8.8-6.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-8.8-6.3">
+            <p id="section-8.8-6.3.1">Timeout - The subscription could not be completed before an implementation
+specific timeout.  For example, a relay could not establish an upstream
+subscription within the timeout.<a href="#section-8.8-6.3.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-8.8-6.4">
+            <p id="section-8.8-6.4.1">Not Supported - The endpoint does not support the SUBSCRIBE method.<a href="#section-8.8-6.4.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-8.8-6.5">
+            <p id="section-8.8-6.5.1">Track Does Not Exist - The requested track is not available at the publisher.<a href="#section-8.8-6.5.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-8.8-6.6">
+            <p id="section-8.8-6.6.1">Invalid Range - The end of the SUBSCRIBE range is earlier than the beginning,
+or the end of the range has already been published.<a href="#section-8.8-6.6.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-8.8-6.7">
+            <p id="section-8.8-6.7.1">Retry Track Alias - The publisher requires the subscriber to use the given
+Track Alias when subscribing.<a href="#section-8.8-6.7.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
 </section>
 </div>
 <div id="message-subscribe-update">
@@ -3548,6 +3575,32 @@ SUBSCRIBE_DONE, as defined below:<a href="#section-8.11-9" class="pilcrow">¶</a
             </tr>
           </tbody>
         </table>
+<ul class="normal">
+<li class="normal" id="section-8.11-11.1">
+            <p id="section-8.11-11.1.1">Internal Error - An implementation specific or generic error occurred.<a href="#section-8.11-11.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-8.11-11.2">
+            <p id="section-8.11-11.2.1">Unauthorized - The subscriber is no longer authorized to subscribe to the
+given track.<a href="#section-8.11-11.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-8.11-11.3">
+            <p id="section-8.11-11.3.1">Track Ended - The track is no longer being published.<a href="#section-8.11-11.3.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-8.11-11.4">
+            <p id="section-8.11-11.4.1">Subscription Ended - The publisher reached the end of an associated
+Subscribe filter.<a href="#section-8.11-11.4.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-8.11-11.5">
+            <p id="section-8.11-11.5.1">Going Away - The subscriber or publisher issued a GOAWAY message.<a href="#section-8.11-11.5.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-8.11-11.6">
+            <p id="section-8.11-11.6.1">Expired - The publisher reached the timeout specified in SUBSCRIBE_OK.<a href="#section-8.11-11.6.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-8.11-11.7">
+            <p id="section-8.11-11.7.1">Too Far Behind - The publisher's queue of objects to be sent to the given
+subscriber exceeds its implementation defined limit.<a href="#section-8.11-11.7.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
 </section>
 </div>
 <div id="message-fetch">
@@ -3868,6 +3921,33 @@ as defined below:<a href="#section-8.14-4" class="pilcrow">¶</a></p>
             </tr>
           </tbody>
         </table>
+<ul class="normal">
+<li class="normal" id="section-8.14-6.1">
+            <p id="section-8.14-6.1.1">Internal Error - An implementation specific or generic error occurred.<a href="#section-8.14-6.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-8.14-6.2">
+            <p id="section-8.14-6.2.1">Unauthorized - The subscriber is not authorized to fetch from the given
+track.<a href="#section-8.14-6.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-8.14-6.3">
+            <p id="section-8.14-6.3.1">Timeout - The fetch could not be completed before an implementation
+specific timeout.  For example, a relay could not FETCH missing objects
+within the timeout.<a href="#section-8.14-6.3.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-8.14-6.4">
+            <p id="section-8.14-6.4.1">Not supported - The endpoint does not support the FETCH method.<a href="#section-8.14-6.4.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-8.14-6.5">
+            <p id="section-8.14-6.5.1">Track Does Not Exist - The requested track is not available at the publisher.<a href="#section-8.14-6.5.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-8.14-6.6">
+            <p id="section-8.14-6.6.1">Invalid Range - The end of the requested range is earlier than the beginning.<a href="#section-8.14-6.6.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-8.14-6.7">
+            <p id="section-8.14-6.7.1">No Objects - The beginning of the requested range is after the latest group
+and object for the track, or the track has not published any objects.<a href="#section-8.14-6.7.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
 </section>
 </div>
 <div id="message-fetch-cancel">
@@ -4119,6 +4199,25 @@ below:<a href="#section-8.20-4" class="pilcrow">¶</a></p>
             </tr>
           </tbody>
         </table>
+<ul class="normal">
+<li class="normal" id="section-8.20-6.1">
+            <p id="section-8.20-6.1.1">Internal Error - An implementation specific or generic error occurred.<a href="#section-8.20-6.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-8.20-6.2">
+            <p id="section-8.20-6.2.1">Unauthorized - The subscriber is not authorized to announce the given
+namespace.<a href="#section-8.20-6.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-8.20-6.3">
+            <p id="section-8.20-6.3.1">Timeout - The announce could not be completed before an implementation
+specific timeout.<a href="#section-8.20-6.3.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-8.20-6.4">
+            <p id="section-8.20-6.4.1">Not Supported - The endpoint does not support the ANNOUNCE method.<a href="#section-8.20-6.4.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-8.20-6.5">
+            <p id="section-8.20-6.5.1">Uninterested - The namespace is not of interest to the endpoint.<a href="#section-8.20-6.5.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
 </section>
 </div>
 <div id="message-unannounce">
@@ -4353,6 +4452,26 @@ as defined below:<a href="#section-8.25-4" class="pilcrow">¶</a></p>
             </tr>
           </tbody>
         </table>
+<ul class="normal">
+<li class="normal" id="section-8.25-6.1">
+            <p id="section-8.25-6.1.1">Internal Error - An implementation specific or generic error occurred.<a href="#section-8.25-6.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-8.25-6.2">
+            <p id="section-8.25-6.2.1">Unauthorized - The subscriber is not authorized to subscribe to the given
+namespace prefix.<a href="#section-8.25-6.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-8.25-6.3">
+            <p id="section-8.25-6.3.1">Timeout - The operation could not be completed before an implementation
+specific timeout.<a href="#section-8.25-6.3.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-8.25-6.4">
+            <p id="section-8.25-6.4.1">Not Supported - The endpoint does not support the SUBSCRIBE_ANNOUNCES method.<a href="#section-8.25-6.4.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-8.25-6.5">
+            <p id="section-8.25-6.5.1">Namespace Prefix Unknown - The namespace prefix is not available for
+subscription.<a href="#section-8.25-6.5.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
 </section>
 </div>
 <div id="message-unsub-ann">
@@ -4390,10 +4509,10 @@ UNSUBSCRIBE_ANNOUNCES Message {
 </div>
 <div id="data-streams">
 <section id="section-9">
-      <h2 id="name-data-streams">
-<a href="#section-9" class="section-number selfRef">9. </a><a href="#name-data-streams" class="section-name selfRef">Data Streams</a>
+      <h2 id="name-data-streams-and-datagrams">
+<a href="#section-9" class="section-number selfRef">9. </a><a href="#name-data-streams-and-datagrams" class="section-name selfRef">Data Streams and Datagrams</a>
       </h2>
-<p id="section-9-1">A publisher sends Objects matching a subscription on Data Streams.<a href="#section-9-1" class="pilcrow">¶</a></p>
+<p id="section-9-1">A publisher sends Objects matching a subscription on Data Streams or Datagrams.<a href="#section-9-1" class="pilcrow">¶</a></p>
 <p id="section-9-2">All unidirectional MOQT streams start with a variable-length integer indicating
 the type of the stream in question.<a href="#section-9-2" class="pilcrow">¶</a></p>
 <table class="center" id="table-8">
@@ -4449,16 +4568,16 @@ If a subscriber receives different forwarding preferences for a track, it
 <span class="bcp14">SHOULD</span> close the session with an error of 'Protocol Violation'.<a href="#section-9-8" class="pilcrow">¶</a></p>
 <div id="message-object">
 <section id="section-9.1">
-        <h3 id="name-object-headers">
-<a href="#section-9.1" class="section-number selfRef">9.1. </a><a href="#name-object-headers" class="section-name selfRef">Object Headers</a>
+        <h3 id="name-objects-2">
+<a href="#section-9.1" class="section-number selfRef">9.1. </a><a href="#name-objects-2" class="section-name selfRef">Objects</a>
         </h3>
-<p id="section-9.1-1">An OBJECT message contains a range of contiguous bytes from the
+<p id="section-9.1-1">An Object contains a range of contiguous bytes from the
 specified track, as well as associated metadata required to deliver,
 cache, and forward it.  Objects are sent by publishers.<a href="#section-9.1-1" class="pilcrow">¶</a></p>
-<div id="object-fields">
+<div id="object-properties">
 <section id="section-9.1.1">
-          <h4 id="name-canonical-object-fields">
-<a href="#section-9.1.1" class="section-number selfRef">9.1.1. </a><a href="#name-canonical-object-fields" class="section-name selfRef">Canonical Object Fields</a>
+          <h4 id="name-canonical-object-properties">
+<a href="#section-9.1.1" class="section-number selfRef">9.1.1. </a><a href="#name-canonical-object-properties" class="section-name selfRef">Canonical Object Properties</a>
           </h4>
 <p id="section-9.1.1-1">A canonical MoQ Object has the following information:<a href="#section-9.1.1-1" class="pilcrow">¶</a></p>
 <ul class="normal">
@@ -4721,7 +4840,7 @@ stream that is associated with the subscription, <code>Group ID</code> and <code
 or open a new one and send the <code>SUBGROUP_HEADER</code>. Then serialize the
 following fields.<a href="#section-9.4.2-4" class="pilcrow">¶</a></p>
 <p id="section-9.4.2-5">The Object Status field is only sent if the Object Payload Length is zero.<a href="#section-9.4.2-5" class="pilcrow">¶</a></p>
-<span id="name-moqt-subgroup-fields"></span><div id="object-subgroup-format">
+<span id="name-moqt-subgroup-object-fields"></span><div id="object-subgroup-format">
 <figure id="figure-32">
             <div class="alignLeft art-text artwork" id="section-9.4.2-6.1">
 <pre>
@@ -4736,7 +4855,7 @@ following fields.<a href="#section-9.4.2-4" class="pilcrow">¶</a></p>
 </pre>
 </div>
 <figcaption><a href="#figure-32" class="selfRef">Figure 32</a>:
-<a href="#name-moqt-subgroup-fields" class="selfRef">MOQT Subgroup Fields</a>
+<a href="#name-moqt-subgroup-object-fields" class="selfRef">MOQT Subgroup Object Fields</a>
             </figcaption></figure>
 </div>
 <p id="section-9.4.2-7">A publisher <span class="bcp14">MUST NOT</span> send an Object on a stream if its Object ID is less than a
@@ -4852,7 +4971,7 @@ FETCH_HEADER {
 </div>
 <p id="section-9.4.4-5">The Object Status field is only sent if the Object Payload Length is zero.<a href="#section-9.4.4-5" class="pilcrow">¶</a></p>
 <p id="section-9.4.4-6">The Subgroup ID field of an object with a Forwarding Preference of "Datagram"
-(see <a href="#object-fields" class="auto internal xref">Section 9.1.1</a>) is set to the Object ID.<a href="#section-9.4.4-6" class="pilcrow">¶</a></p>
+(see <a href="#object-properties" class="auto internal xref">Section 9.1.1</a>) is set to the Object ID.<a href="#section-9.4.4-6" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
