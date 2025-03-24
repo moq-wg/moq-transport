@@ -399,6 +399,10 @@ FETCH delivery use Group Order, so a FETCH cannot deliver Groups out of order
 and a subscription could have unexpected delivery order if Group IDs do not increase
 with time.
 
+Applications that cannot produce Group IDs that increase with time are limited
+to the subset of MoQT that does not compare group IDs. Subscribers to these Tracks
+SHOULD NOT use range filters which span multiple Groups in FETCH or SUBSCRIBE.
+
 ## Track {#model-track}
 
 A track is a sequence of groups ({{model-group}}). It is the entity
