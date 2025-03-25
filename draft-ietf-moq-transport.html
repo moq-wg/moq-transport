@@ -3800,7 +3800,7 @@ Joining Start value.<a href="#section-8.12.2-1" class="pilcrow">¶</a></p>
         </h3>
 <p id="section-8.13-1">A publisher sends a FETCH_OK control message in response to successful fetches.
 A publisher <span class="bcp14">MAY</span> send Objects in response to a FETCH before the FETCH_OK message is sent,
-but the FETCH_OK <span class="bcp14">MUST NOT</span> be sent until the latest group and object are known.<a href="#section-8.13-1" class="pilcrow">¶</a></p>
+but the FETCH_OK <span class="bcp14">MUST NOT</span> be sent until the end group and object are known.<a href="#section-8.13-1" class="pilcrow">¶</a></p>
 <span id="name-moqt-fetch_ok-message"></span><div id="moq-transport-fetch-ok">
 <figure id="figure-14">
           <div class="alignLeft art-text artwork" id="section-8.13-2.1">
@@ -3812,8 +3812,8 @@ FETCH_OK
   Subscribe ID (i),
   Group Order (8),
   End Of Track (8),
-  Largest Group ID (i),
-  Largest Object ID (i),
+  End Group ID (i),
+  End Object ID (i),
   Number of Parameters (i),
   Subscribe Parameters (..) ...
 }
@@ -3834,18 +3834,20 @@ Values of 0x0 and those larger than 0x2 are a protocol error.<a href="#section-8
 </li>
           <li class="normal" id="section-8.13-3.3">
             <p id="section-8.13-3.3.1">End Of Track: 1 if all objects have been published on this track, so
-the Largest Group ID and Object Id indicate the last Object in the track,
+the End Group ID and Object Id indicate the last Object in the track,
 0 if not.<a href="#section-8.13-3.3.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.13-3.4">
-            <p id="section-8.13-3.4.1">Largest Group ID: The largest Group ID available for this track.<a href="#section-8.13-3.4.1" class="pilcrow">¶</a></p>
+            <p id="section-8.13-3.4.1">End Group ID/End Object ID: The largest object covered by the FETCH response.
+This is the minimum of the {EndGroup,EndObject} specified in FETCH and the
+largest known {group,object}.  If the relay is currently subscribed to the
+track, the largest known {group,object} at the relay is used.  For tracks
+with a requested end larger than what is cached without an active
+subscription, the relay makes an upstream request in order to satisfy the
+FETCH.<a href="#section-8.13-3.4.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.13-3.5">
-            <p id="section-8.13-3.5.1">Largest Object ID: The largest Object ID available within the largest Group ID
-for this track.<a href="#section-8.13-3.5.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="section-8.13-3.6">
-            <p id="section-8.13-3.6.1">Subscribe Parameters: The parameters are defined in <a href="#version-specific-params" class="auto internal xref">Section 8.1.1</a>.<a href="#section-8.13-3.6.1" class="pilcrow">¶</a></p>
+            <p id="section-8.13-3.5.1">Subscribe Parameters: The parameters are defined in <a href="#version-specific-params" class="auto internal xref">Section 8.1.1</a>.<a href="#section-8.13-3.5.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
