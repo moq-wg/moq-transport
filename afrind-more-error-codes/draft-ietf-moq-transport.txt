@@ -2185,6 +2185,9 @@ Table of Contents
       latest group and object for the track, or the track has not
       published any objects.
 
+   *  Invalid Subscribe ID - The joining Fetch referenced a Subscribe ID
+      that did not belong to an active Subscription.
+
 8.15.  FETCH_CANCEL
 
    A subscriber issues a FETCH_CANCEL message to a publisher indicating
