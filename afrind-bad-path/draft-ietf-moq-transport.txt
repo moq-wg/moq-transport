@@ -5,13 +5,13 @@
 Media Over QUIC                                                L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 22 September 2025                                          Meta
+Expires: 26 September 2025                                          Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                           21 March 2025
+                                                           25 March 2025
 
 
                        Media over QUIC Transport
@@ -59,7 +59,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 22 September 2025.
+   This Internet-Draft will expire on 26 September 2025.
 
 Copyright Notice
 
@@ -1346,8 +1346,8 @@ Table of Contents
    the path of the MoQ URI when using native QUIC ([QUIC]).  It MUST NOT
    be used by the server, or when WebTransport is used.  If the peer
    receives a PATH parameter from the server, or when WebTransport is
-   used, it MUST close the session with Invalid Path.  It follows the
-   URI formatting rules [RFC3986].
+   used, it MUST close the session with Invalid Path.  The PATH
+   parameter follows the URI formatting rules [RFC3986].
 
    When connecting to a server using a URI with the "moqt" scheme, the
    client MUST set the PATH parameter to the path-abempty portion of the
