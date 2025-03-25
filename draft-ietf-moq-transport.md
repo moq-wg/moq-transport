@@ -784,12 +784,13 @@ _Publisher Priority_ is a priority number associated with an individual
 schedulable object.  It is specified in the header of the respective subgroup or
 datagram, and is the same for all objects in a single subgroup.
 
-_Group Order_ is a property of an invidual subscription.  It can be either
+_Group Order_ is a property of an individual subscription.  It can be either
 'Ascending' (groups with lower group ID are sent first), or 'Descending'
-(groups with higher group ID are sent first).  The publisher communicates its
-group order in the SUBSCRIBE_OK message; the subscriber can override it in its
-SUBSCRIBE message.  The group order of an existing subscription cannot be
-changed.
+(groups with higher group ID are sent first).  The subscriber optionally
+communicates its group order preference in the SUBSCRIBE message; the
+publisher's preference is used if the subscriber did not express one (by
+setting Group Order field to value 0x0).  The group order of an existing
+subscription cannot be changed.
 
 ## Scheduling Algorithm
 
@@ -1083,9 +1084,11 @@ MOQT Control Message {
 |-------|-----------------------------------------------------|
 
 An endpoint that receives an unknown message type MUST close the session.
-Control messages have a length to make parsing easier, but no control
-messages are intended to be ignored. If the length does not match the
-length of the message content, the receiver MUST close the session.
+Control messages have a length to make parsing easier, but no control messages
+are intended to be ignored. The length is set to the number of bytes in Message
+Payload, which is defined by each message type.  If the length does not match
+the length of the Message Payload, the receiver MUST close the session with
+Protocol Violation.
 
 ## Parameters {#params}
 
@@ -1916,7 +1919,7 @@ Joining Start value.
 
 A publisher sends a FETCH_OK control message in response to successful fetches.
 A publisher MAY send Objects in response to a FETCH before the FETCH_OK message is sent,
-but the FETCH_OK MUST NOT be sent until the latest group and object are known.
+but the FETCH_OK MUST NOT be sent until the end group and object are known.
 
 ~~~
 FETCH_OK
@@ -1926,8 +1929,8 @@ FETCH_OK
   Subscribe ID (i),
   Group Order (8),
   End Of Track (8),
-  Largest Group ID (i),
-  Largest Object ID (i),
+  End Group ID (i),
+  End Object ID (i),
   Number of Parameters (i),
   Subscribe Parameters (..) ...
 }
@@ -1941,13 +1944,16 @@ Ascending (0x1) or Descending (0x2) order by group. See {{priorities}}.
 Values of 0x0 and those larger than 0x2 are a protocol error.
 
 * End Of Track: 1 if all objects have been published on this track, so
-the Largest Group ID and Object Id indicate the last Object in the track,
+the End Group ID and Object Id indicate the last Object in the track,
 0 if not.
 
-* Largest Group ID: The largest Group ID available for this track.
-
-* Largest Object ID: The largest Object ID available within the largest Group ID
-for this track.
+* End Group ID/End Object ID: The largest object covered by the FETCH response.
+  This is the minimum of the {EndGroup,EndObject} specified in FETCH and the
+  largest known {group,object}.  If the relay is currently subscribed to the
+  track, the largest known {group,object} at the relay is used.  For tracks
+  with a requested end larger than what is cached without an active
+  subscription, the relay makes an upstream request in order to satisfy the
+  FETCH.
 
 * Subscribe Parameters: The parameters are defined in {{version-specific-params}}.
 
@@ -2533,17 +2539,18 @@ Object Extension Headers are serialized as defined below:
 ~~~
 Extension Header {
   Header Type (i),
-  [Header Value (i)]
-  [Header Length (i),
-   Header Value (..)]
+  [Header Length (i),]
+  Header Value (..)
 }
 ~~~
 {: #object-extension-format title="Object Extension Header Format"}
 
-* Header type: an unsigned integer, encoded as a varint, identifying the type
+* Header Type: an unsigned integer, encoded as a varint, identifying the type
   of the extension and also the subsequent serialization.
-* Header values: even types are followed by a single varint encoded value. Odd
-  types are followed by a varint encoded length and then the header value.
+* Header Length: Only present when Header Type is odd.  Species the length of
+  the Header Value field.
+* Header Value: A single varint encoded value when Header Type is even,
+  otherwise a sequence of Header Length bytes.
   Header types are registered in the IANA table 'MOQ Extension Headers'.
   See {{iana}}.
 
