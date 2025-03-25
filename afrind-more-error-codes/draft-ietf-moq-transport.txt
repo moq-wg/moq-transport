@@ -5,13 +5,13 @@
 Media Over QUIC                                                L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 23 September 2025                                          Meta
+Expires: 26 September 2025                                          Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                           22 March 2025
+                                                           25 March 2025
 
 
                        Media over QUIC Transport
@@ -59,7 +59,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 23 September 2025.
+   This Internet-Draft will expire on 26 September 2025.
 
 Copyright Notice
 
@@ -148,9 +148,9 @@ Table of Contents
      8.24. SUBSCRIBE_ANNOUNCES_OK
      8.25. SUBSCRIBE_ANNOUNCES_ERROR
      8.26. UNSUBSCRIBE_ANNOUNCES
-   9.  Data Streams
-     9.1.  Object Headers
-       9.1.1.  Canonical Object Fields
+   9.  Data Streams and Datagrams
+     9.1.  Objects
+       9.1.1.  Canonical Object Properties
      9.2.  Object Datagram
      9.3.  Object Datagram Status
      9.4.  Streams
@@ -500,11 +500,9 @@ Table of Contents
    require the scope to include all of those CDNs.
 
    Because the tuple of Track Namespace and Track Name are unique within
-   an MOQT scope, they can be used as a cache key.  MOQT does not
-   provide any in-band content negotiation methods similar to the ones
-   defined by HTTP ([RFC9110], Section 10); if, at a given moment in
-   time, two tracks within the same scope contain different data, they
-   have to have different names and/or namespaces.
+   an MOQT scope, they can be used as a cache key for the track.  If, at
+   a given moment in time, two tracks within the same scope contain
+   different data, they MUST have different names and/or namespaces.
 
 3.  Sessions
 
@@ -593,14 +591,8 @@ Table of Contents
 3.3.  Session initialization
 
    The first stream opened is a client-initiated bidirectional control
-   stream where the endpoints exchange Setup messages (Section 8.2).
-   All messages defined in this draft except OBJECT and
-   OBJECT_WITH_LENGTH are sent on the control stream after the Setup
-   message.  Control messages MUST NOT be sent on any other stream, and
-   a peer receiving a control message on a different stream closes the
-   session as a 'Protocol Violation'.  Objects MUST NOT be sent on the
-   control stream, and a peer receiving an Object on the control stream
-   closes the session as a 'Protocol Violation'.
+   stream where the endpoints exchange Setup messages (Section 8.2),
+   followed by other messages defined in Section 8.
 
    This draft only specifies a single use of bidirectional streams.
    Objects are sent on unidirectional streams.  Because there are no
@@ -916,12 +908,13 @@ Table of Contents
 6.3.  Considerations for Setting Priorities
 
    Relays SHOULD respect the subscriber and original publisher's
-   priorities.  Relays SHOULD NOT directly use Subscriber Priority or
-   Group Order from incoming subscriptions for upstream subscriptions.
-   Relays use of Subscriber Priority for upstream subscriptions can be
-   based on factors specific to it, such as the popularity of the
-   content or policy, or relays can specify the same value for all
-   upstream subscriptions.
+   priorities.  Relays can receive subscriptions with conflicting
+   subscriber priorities or Group Order preferences.  Relays SHOULD NOT
+   directly use Subscriber Priority or Group Order from incoming
+   subscriptions for upstream subscriptions.  Relays use of these fields
+   for upstream subscriptions can be based on factors specific to it,
+   such as the popularity of the content or policy, or relays can
+   specify the same value for all upstream subscriptions.
 
    MoQ Sessions can span multiple namespaces, and priorities might not
    be coordinated across namespaces.  The subscriber's priority is
@@ -969,7 +962,7 @@ Table of Contents
    upstream.
 
    For successful subscriptions, the publisher maintains a list of
-   subscribers for each track.  Each new OBJECT belonging to the track
+   subscribers for each track.  Each new Object belonging to the track
    within the subscription range is forwarded to each active subscriber,
    dependent on the congestion response.
 
@@ -991,7 +984,11 @@ Table of Contents
    aggregation allows relays to make only a single upstream subscription
    for the track.  The published content received from the upstream
    subscription request is cached and shared among the pending
-   subscribers.
+   subscribers.  Because SUBSCRIBE_UPDATE only allows narrowing a
+   subscription, relays that aggregate upstream subscriptions can
+   subscribe using the Latest Object filter to avoid churn as downstream
+   subscribers with disparate filters subscribe and unsubscribe from a
+   track.
 
 7.1.1.  Graceful Subscriber Relay Switchover
 
@@ -1042,12 +1039,12 @@ Table of Contents
    each active upstream subscription that matches that namespace, it
    SHOULD send a SUBSCRIBE to the publisher that sent the ANNOUNCE.
 
-   OBJECT message headers carry a short hop-by-hop Track Alias that maps
-   to the Full Track Name (see Section 8.7).  Relays use the Track Alias
-   of an incoming OBJECT message to identify its track and find the
-   active subscribers for that track.  Relays MUST forward OBJECT
-   messages to matching subscribers in accordance to each subscription's
-   priority, group order, and delivery timeout.
+   Object headers carry a short hop-by-hop Track Alias that maps to the
+   Full Track Name (see Section 8.7).  Relays use the Track Alias of an
+   incoming Object to identify its track and find the active subscribers
+   for that track.  Relays MUST forward Objects to matching subscribers
+   in accordance to each subscription's priority, group order, and
+   delivery timeout.
 
 7.2.1.  Graceful Publisher Network Switchover
 
@@ -1083,7 +1080,7 @@ Table of Contents
 
 7.3.  Relay Object Handling
 
-   MOQT encodes the delivery information for a stream via OBJECT headers
+   MOQT encodes the delivery information via Object headers
    (Section 9.1).  A relay MUST NOT modify Object properties when
    forwarding.
 
@@ -1528,12 +1525,12 @@ Table of Contents
       receives a SUBSCRIBE with a Subscribe ID that is already in use,
       it MUST close the session with Duplicate Subscribe ID.
 
-   *  Track Alias: A session specific identifier for the track.
-      Messages that reference a track, such as OBJECT (Section 9.1),
-      reference this Track Alias instead of the Track Name and Track
-      Namespace to reduce overhead.  If the Track Alias is already being
-      used for a different track, the publisher MUST close the session
-      with a Duplicate Track Alias error (Section 3.4).
+   *  Track Alias: A session specific identifier for the track.  Data
+      streams and datagrams specify the Track Alias instead of the Track
+      Name and Track Namespace to reduce overhead.  If the Track Alias
+      is already being used for a different track, the publisher MUST
+      close the session with a Duplicate Track Alias error
+      (Section 3.4).
 
    *  Track Namespace: Identifies the namespace of the track as defined
       in (Section 2.4.1).
@@ -1678,6 +1675,28 @@ Table of Contents
 
                                   Table 3
 
+   *  Internal Error - An implementation specific or generic error
+      occurred.
+
+   *  Unauthorized - The subscriber is not authorized to subscribe to
+      the given track.
+
+   *  Timeout - The subscription could not be completed before an
+      implementation specific timeout.  For example, a relay could not
+      establish an upstream subscription within the timeout.
+
+   *  Not Supported - The endpoint does not support the SUBSCRIBE
+      method.
+
+   *  Track Does Not Exist - The requested track is not available at the
+      publisher.
+
+   *  Invalid Range - The end of the SUBSCRIBE range is earlier than the
+      beginning, or the end of the range has already been published.
+
+   *  Retry Track Alias - The publisher requires the subscriber to use
+      the given Track Alias when subscribing.
+
 8.9.  SUBSCRIBE_UPDATE
 
    A subscriber issues a SUBSCRIBE_UPDATE to a publisher to request a
@@ -1703,6 +1722,10 @@ Table of Contents
    Unlike a new subscription, SUBSCRIBE_UPDATE can not cause an Object
    to be delivered multiple times.  Like SUBSCRIBE, EndGroup MUST
    specify the same or a later object than StartGroup and StartObject.
+
+   If a parameter included in SUBSCRIBE is not present in
+   SUBSCRIBE_UPDATE, its value remains unchanged.  There is no mechanism
+   to remove a parameter from a subscription.
 
    The format of SUBSCRIBE_UPDATE is as follows:
 
@@ -1854,6 +1877,25 @@ Table of Contents
                        +------+--------------------+
 
                                   Table 4
+
+   *  Internal Error - An implementation specific or generic error
+      occurred.
+
+   *  Unauthorized - The subscriber is no longer authorized to subscribe
+      to the given track.
+
+   *  Track Ended - The track is no longer being published.
+
+   *  Subscription Ended - The publisher reached the end of an
+      associated Subscribe filter.
+
+   *  Going Away - The subscriber or publisher issued a GOAWAY message.
+
+   *  Expired - The publisher reached the timeout specified in
+      SUBSCRIBE_OK.
+
+   *  Too Far Behind - The publisher's queue of objects to be sent to
+      the given subscriber exceeds its implementation defined limit.
 
 8.12.  FETCH
 
@@ -2121,6 +2163,28 @@ Table of Contents
 
                                   Table 5
 
+   *  Internal Error - An implementation specific or generic error
+      occurred.
+
+   *  Unauthorized - The subscriber is not authorized to fetch from the
+      given track.
+
+   *  Timeout - The fetch could not be completed before an
+      implementation specific timeout.  For example, a relay could not
+      FETCH missing objects within the timeout.
+
+   *  Not supported - The endpoint does not support the FETCH method.
+
+   *  Track Does Not Exist - The requested track is not available at the
+      publisher.
+
+   *  Invalid Range - The end of the requested range is earlier than the
+      beginning.
+
+   *  No Objects - The beginning of the requested range is after the
+      latest group and object for the track, or the track has not
+      published any objects.
+
 8.15.  FETCH_CANCEL
 
    A subscriber issues a FETCH_CANCEL message to a publisher indicating
@@ -2294,6 +2358,19 @@ Table of Contents
 
                                   Table 6
 
+   *  Internal Error - An implementation specific or generic error
+      occurred.
+
+   *  Unauthorized - The subscriber is not authorized to announce the
+      given namespace.
+
+   *  Timeout - The announce could not be completed before an
+      implementation specific timeout.
+
+   *  Not Supported - The endpoint does not support the ANNOUNCE method.
+
+   *  Uninterested - The namespace is not of interest to the endpoint.
+
 8.21.  UNANNOUNCE
 
    The publisher sends the UNANNOUNCE control message to indicate its
@@ -2376,8 +2453,7 @@ Table of Contents
    single session.  Within a session, if a publisher receives a
    SUBSCRIBE_ANNOUNCES with a Track Namespace Prefix that is a prefix of
    an earlier SUBSCRIBE_ANNOUNCES or vice versa, it MUST respond with
-   SUBSCRIBE_ANNOUNCES_ERROR, with error code
-   SUBSCRIBE_ANNOUNCES_OVERLAP.
+   SUBSCRIBE_ANNOUNCES_ERROR, with error code Namespace Prefix Overlap.
 
    The publisher MUST ensure the subscriber is authorized to perform
    this namespace subscription.
@@ -2444,8 +2520,28 @@ Table of Contents
                     +------+--------------------------+
                     |  0x4 | Namespace Prefix Unknown |
                     +------+--------------------------+
+                    |  0x5 | Namespace Prefix Overlap |
+                    +------+--------------------------+
 
                                   Table 7
+
+   *  Internal Error - An implementation specific or generic error
+      occurred.
+
+   *  Unauthorized - The subscriber is not authorized to subscribe to
+      the given namespace prefix.
+
+   *  Timeout - The operation could not be completed before an
+      implementation specific timeout.
+
+   *  Not Supported - The endpoint does not support the
+      SUBSCRIBE_ANNOUNCES method.
+
+   *  Namespace Prefix Unknown - The namespace prefix is not available
+      for subscription.
+
+   *  Namespace Prefix Overlap - The namespace prefix overlaps with
+      another SUBSCRIBE_ANNOUNCES in the same session.
 
 8.26.  UNSUBSCRIBE_ANNOUNCES
 
@@ -2465,9 +2561,10 @@ Table of Contents
 
    *  Track Namespace Prefix: As defined in Section 8.23.
 
-9.  Data Streams
+9.  Data Streams and Datagrams
 
-   A publisher sends Objects matching a subscription on Data Streams.
+   A publisher sends Objects matching a subscription on Data Streams or
+   Datagrams.
 
    All unidirectional MOQT streams start with a variable-length integer
    indicating the type of the stream in question.
@@ -2511,13 +2608,13 @@ Table of Contents
    preferences for a track, it SHOULD close the session with an error of
    'Protocol Violation'.
 
-9.1.  Object Headers
+9.1.  Objects
 
-   An OBJECT message contains a range of contiguous bytes from the
-   specified track, as well as associated metadata required to deliver,
-   cache, and forward it.  Objects are sent by publishers.
+   An Object contains a range of contiguous bytes from the specified
+   track, as well as associated metadata required to deliver, cache, and
+   forward it.  Objects are sent by publishers.
 
-9.1.1.  Canonical Object Fields
+9.1.1.  Canonical Object Properties
 
    A canonical MoQ Object has the following information:
 
@@ -2728,7 +2825,7 @@ Table of Contents
      Object Payload (..),
    }
 
-                      Figure 32: MOQT Subgroup Fields
+                   Figure 32: MOQT Subgroup Object Fields
 
    A publisher MUST NOT send an Object on a stream if its Object ID is
    less than a previously sent Object ID within a given group in that
