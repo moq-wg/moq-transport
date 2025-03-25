@@ -1435,7 +1435,7 @@ A value of 0x0 indicates the original publisher's Group Order SHOULD be
 used. Values larger than 0x2 are a protocol error.
 
 * Filter Type: Identifies the type of filter, which also indicates whether
-the Start and End fields will be present.
+the Start and EndGroup fields will be present.
 
 * Start: The starting location for this subscriptions. Only present for
   "AbsoluteStart" and "AbsoluteRange" filter types.
