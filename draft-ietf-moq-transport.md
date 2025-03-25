@@ -2016,6 +2016,9 @@ as defined below:
 * No Objects - The beginning of the requested range is after the latest group
   and object for the track, or the track has not published any objects.
 
+* Invalid Subscribe ID - The joining Fetch referenced a Subscribe ID that did
+  not belong to an active Subscription.
+
 
 ## FETCH_CANCEL {#message-fetch-cancel}
 
