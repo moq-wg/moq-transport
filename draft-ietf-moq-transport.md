@@ -283,7 +283,7 @@ required value.
 
 ### Location Structure
 
-Location identifies a particular group and object within a track.
+Location identifies a particular Object in a Group within a Track.
 
 ~~~
 Location {
