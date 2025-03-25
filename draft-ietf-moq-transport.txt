@@ -456,7 +456,7 @@ Table of Contents
 2.3.  Groups
 
    A group is a collection of objects and is a sub-unit of a track
-   (Section 2.4).  Groups SHOULD be indendepently useful, so objects
+   (Section 2.4).  Groups SHOULD be independently useful, so objects
    within a group SHOULD NOT depend on objects in other groups.  A group
    provides a join point for subscriptions, so a subscriber that does
    not want to receive the entire track can opt to receive only the
