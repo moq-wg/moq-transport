@@ -3827,8 +3827,7 @@ FETCH_OK
   Subscribe ID (i),
   Group Order (8),
   End Of Track (8),
-  End Group ID (i),
-  End Object ID (i),
+  End (Location),
   Number of Parameters (i),
   Subscribe Parameters (..) ...
 }
@@ -3853,7 +3852,7 @@ the End Group ID and Object Id indicate the last Object in the track,
 0 if not.<a href="#section-8.13-3.3.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.13-3.4">
-            <p id="section-8.13-3.4.1">End Group ID/End Object ID: The largest object covered by the FETCH response.
+            <p id="section-8.13-3.4.1">End: The largest object covered by the FETCH response.
 This is the minimum of the {EndGroup,EndObject} specified in FETCH and the
 largest known {group,object}.  If the relay is currently subscribed to the
 track, the largest known {group,object} at the relay is used.  For tracks

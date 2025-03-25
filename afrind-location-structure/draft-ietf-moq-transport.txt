@@ -2090,8 +2090,7 @@ Table of Contents
      Subscribe ID (i),
      Group Order (8),
      End Of Track (8),
-     End Group ID (i),
-     End Object ID (i),
+     End (Location),
      Number of Parameters (i),
      Subscribe Parameters (..) ...
    }
@@ -2108,13 +2107,13 @@ Table of Contents
       so the End Group ID and Object Id indicate the last Object in the
       track, 0 if not.
 
-   *  End Group ID/End Object ID: The largest object covered by the
-      FETCH response.  This is the minimum of the {EndGroup,EndObject}
-      specified in FETCH and the largest known {group,object}.  If the
-      relay is currently subscribed to the track, the largest known
-      {group,object} at the relay is used.  For tracks with a requested
-      end larger than what is cached without an active subscription, the
-      relay makes an upstream request in order to satisfy the FETCH.
+   *  End: The largest object covered by the FETCH response.  This is
+      the minimum of the {EndGroup,EndObject} specified in FETCH and the
+      largest known {group,object}.  If the relay is currently
+      subscribed to the track, the largest known {group,object} at the
+      relay is used.  For tracks with a requested end larger than what
+      is cached without an active subscription, the relay makes an
+      upstream request in order to satisfy the FETCH.
 
    *  Subscribe Parameters: The parameters are defined in Section 8.1.1.
 
