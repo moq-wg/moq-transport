@@ -2720,9 +2720,11 @@ MOQT Control Message {
         </tbody>
       </table>
 <p id="section-8-4">An endpoint that receives an unknown message type <span class="bcp14">MUST</span> close the session.
-Control messages have a length to make parsing easier, but no control
-messages are intended to be ignored. If the length does not match the
-length of the message content, the receiver <span class="bcp14">MUST</span> close the session.<a href="#section-8-4" class="pilcrow">¶</a></p>
+Control messages have a length to make parsing easier, but no control messages
+are intended to be ignored. The length is set to the number of bytes in Message
+Payload, which is defined by each message type.  If the length does not match
+the length of the Message Payload, the receiver <span class="bcp14">MUST</span> close the session with
+Protocol Violation.<a href="#section-8-4" class="pilcrow">¶</a></p>
 <div id="params">
 <section id="section-8.1">
         <h3 id="name-parameters">
