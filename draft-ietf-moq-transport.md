@@ -2521,17 +2521,18 @@ Object Extension Headers are serialized as defined below:
 ~~~
 Extension Header {
   Header Type (i),
-  [Header Value (i)]
-  [Header Length (i),
-   Header Value (..)]
+  [Header Length (i),]
+  Header Value (..)
 }
 ~~~
 {: #object-extension-format title="Object Extension Header Format"}
 
-* Header type: an unsigned integer, encoded as a varint, identifying the type
+* Header Type: an unsigned integer, encoded as a varint, identifying the type
   of the extension and also the subsequent serialization.
-* Header values: even types are followed by a single varint encoded value. Odd
-  types are followed by a varint encoded length and then the header value.
+* Header Length: Only present when Header Type is odd.  Species the length of
+  the Header Value field.
+* Header Value: A single varint encoded value when Header Type is even,
+  otherwise a sequence of Header Length bytes.
   Header types are registered in the IANA table 'MOQ Extension Headers'.
   See {{iana}}.
 
