@@ -699,8 +699,8 @@ SHOULD close the session with a protocol error if it detects receiving more than
 one.
 
 The receiver of a SUBSCRIBE_ANNOUNCES_OK or SUBSCRIBE_ANNOUNCES_ERROR ought to
-forward the result to the application, so that it can make decisions about
-further publishers to contact.
+forward the result to the application, so that the application can make decisions
+about further publishers to contact.
 
 An UNSUBSCRIBE_ANNOUNCES withdraws a previous SUBSCRIBE_ANNOUNCES. It does
 not prohibit the receiver (publisher) from sending further ANNOUNCE messages.
@@ -715,7 +715,7 @@ an ANNOUNCE for it.
 If a publisher is authoritative for a given namespace, or is a relay that has
 received an authorized ANNOUNCE for that namespace from an upstream publisher,
 it MUST send an ANNOUNCE to any subscriber that has subscribed to ANNOUNCE for
-that namespace, or a subset of that namespace. A publisher MAY send the ANNOUNCE
+that namespace, or a superset of that namespace. A publisher MAY send the ANNOUNCE
 to any other subscriber.
 
 An endpoint SHOULD NOT, however, send an ANNOUNCE advertising a namespace that
