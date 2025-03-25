@@ -433,6 +433,10 @@ Because the tuple of Track Namespace and Track Name are unique within an
 MOQT scope, they can be used as a cache key for the track.
 If, at a given moment in time, two tracks within the same scope contain
 different data, they MUST have different names and/or namespaces.
+MOQT provides subscribers with the ability to alter the specific manner in
+which tracks are delivered via Subscribe Parameters, but the actual content of
+the tracks does not depend on those parameters; this is in contrast to
+protocols like HTTP, where request headers can alter the server response.
 
 # Sessions {#session}
 
@@ -1441,6 +1445,10 @@ specified and the publisher SHOULD start delivering objects.
 If a publisher cannot satisfy the requested start or end or if the end has
 already been published it SHOULD send a SUBSCRIBE_ERROR with code 'Invalid Range'.
 A publisher MUST NOT send objects from outside the requested start and end.
+
+Subscribe Parameters MUST NOT cause the publisher to alter the payload of the
+objects it sends, as that would violate the track uniqueness guarantee
+described in {{track-scope}}.
 
 ## SUBSCRIBE_OK {#message-subscribe-ok}
 
