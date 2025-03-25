@@ -2091,7 +2091,7 @@ upstream. Subsequent fields contain the largest group and object ID known.
 
 Any other value in the Status Code field is a malformed message.
 
-The `Largest` fields represent the highest Object location observed by the
+The `Largest` field represents the largest Object location observed by the
 Publisher for an active subscription. If the publisher is a relay without an
 active subscription, it SHOULD send a TRACK_STATUS_REQUEST upstream or MAY
 subscribe to the track, to obtain the same information. If neither is possible,
