@@ -390,7 +390,7 @@ to minimize the number of streams used.
 ## Groups {#model-group}
 
 A group is a collection of objects and is a sub-unit of a track ({{model-track}}).
-Groups SHOULD be indendepently useful, so objects within a group SHOULD NOT depend
+Groups SHOULD be independently useful, so objects within a group SHOULD NOT depend
 on objects in other groups. A group provides a join point for subscriptions, so a
 subscriber that does not want to receive the entire track can opt to receive only
 the latest group(s).  The publisher then selectively transmits objects based on
