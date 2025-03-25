@@ -2273,7 +2273,7 @@ A subscriber cannot make overlapping namespace subscriptions on a single
 session.  Within a session, if a publisher receives a SUBSCRIBE_ANNOUNCES
 with a Track Namespace Prefix that is a prefix of an earlier
 SUBSCRIBE_ANNOUNCES or vice versa, it MUST respond with
-SUBSCRIBE_ANNOUNCES_ERROR, with error code SUBSCRIBE_ANNOUNCES_OVERLAP.
+SUBSCRIBE_ANNOUNCES_ERROR, with error code Namespace Prefix Overlap.
 
 The publisher MUST ensure the subscriber is authorized to perform this
 namespace subscription.
@@ -2343,6 +2343,8 @@ as defined below:
 |------|---------------------------|
 | 0x4  | Namespace Prefix Unknown  |
 |------|---------------------------|
+| 0x5  | Namespace Prefix Overlap  |
+|------|---------------------------|
 
 * Internal Error - An implementation specific or generic error occurred.
 
@@ -2356,6 +2358,9 @@ as defined below:
 
 * Namespace Prefix Unknown - The namespace prefix is not available for
   subscription.
+
+* Namespace Prefix Overlap - The namespace prefix overlaps with another
+  SUBSCRIBE_ANNOUNCES in the same session.
 
 
 ## UNSUBSCRIBE_ANNOUNCES {#message-unsub-ann}
