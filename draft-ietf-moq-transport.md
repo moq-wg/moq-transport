@@ -1929,8 +1929,7 @@ FETCH_OK
   Subscribe ID (i),
   Group Order (8),
   End Of Track (8),
-  End Group ID (i),
-  End Object ID (i),
+  End (Location),
   Number of Parameters (i),
   Subscribe Parameters (..) ...
 }
@@ -1947,7 +1946,7 @@ Values of 0x0 and those larger than 0x2 are a protocol error.
 the End Group ID and Object Id indicate the last Object in the track,
 0 if not.
 
-* End Group ID/End Object ID: The largest object covered by the FETCH response.
+* End: The largest object covered by the FETCH response.
   This is the minimum of the {EndGroup,EndObject} specified in FETCH and the
   largest known {group,object}.  If the relay is currently subscribed to the
   track, the largest known {group,object} at the relay is used.  For tracks
