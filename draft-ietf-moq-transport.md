@@ -277,10 +277,25 @@ x (tuple):
   as described in ({{?RFC9000, Section 16}}), followed by that many variable
   length tuple fields, each of which are encoded as (b) above.
 
-
 To reduce unnecessary use of bandwidth, variable length integers SHOULD
 be encoded using the least number of bytes possible to represent the
 required value.
+
+### Location Structure
+
+Location identifies a particular group and object within a track.
+
+~~~
+Location {
+  Group (i),
+  Object (i)
+}
+~~~
+{: #moq-location format title="Location structure"}
+
+Location A < Location B iff
+
+`A.Group < B.Group || (A.Group == B.Group && A.Object < B.Object)`
 
 
 # Object Data Model {#model}
@@ -1353,16 +1368,16 @@ the current object of the current group.  If no content has been delivered yet,
 the subscription starts with the first published or received group.
 
 AbsoluteStart (0x3):  Specifies an open-ended subscription beginning
-from the object identified in the StartGroup and StartObject fields. If the
-StartGroup is prior to the current group, the subscription starts at the
+from the object identified in the `Start` field. If the
+start group is prior to the current group, the subscription starts at the
 beginning of the current object like the 'Latest Object' filter.
 
-AbsoluteRange (0x4):  Specifies a closed subscription starting at StartObject
-in StartGroup and ending at the largest object in EndGroup.  The start and
+AbsoluteRange (0x4):  Specifies a closed subscription starting at `Start`
+and ending at the largest object in EndGroup.  The start and
 end of the range are inclusive.  EndGroup MUST specify the same or a later
-group than StartGroup. If the StartGroup is prior to the current group, the
-subscription starts at the beginning of the current object like the 'Latest
-Object' filter.
+group than specified in `start`. If the start group is prior to the current
+group, the subscription starts at the beginning of the current object like
+the 'Latest Object' filter.
 
 A filter type other than the above MUST be treated as error.
 
@@ -1386,8 +1401,7 @@ SUBSCRIBE Message {
   Subscriber Priority (8),
   Group Order (8),
   Filter Type (i),
-  [StartGroup (i),
-   StartObject (i)],
+  [Start (Location)],
   [EndGroup (i)],
   Number of Parameters (i),
   Subscribe Parameters (..) ...
@@ -1421,13 +1435,10 @@ A value of 0x0 indicates the original publisher's Group Order SHOULD be
 used. Values larger than 0x2 are a protocol error.
 
 * Filter Type: Identifies the type of filter, which also indicates whether
-the StartGroup/StartObject and EndGroup/EndObject fields will be present.
+the Start and End fields will be present.
 
-* StartGroup: The start Group ID. Only present for "AbsoluteStart" and
-"AbsoluteRange" filter types.
-
-* StartObject: The start Object ID. Only present for "AbsoluteStart" and
-"AbsoluteRange" filter types.
+* Start: The starting location for this subscriptions. Only present for
+  "AbsoluteStart" and "AbsoluteRange" filter types.
 
 * EndGroup: The end Group ID, inclusive. Only present for the "AbsoluteRange"
 filter type.
@@ -1456,8 +1467,7 @@ SUBSCRIBE_OK
   Expires (i),
   Group Order (8),
   ContentExists (8),
-  [Largest Group ID (i),
-   Largest Object ID (i)],
+  [Largest (Location)],
   Number of Parameters (i),
   Subscribe Parameters (..) ...
 }
@@ -1480,11 +1490,8 @@ If 0, then the Largest Group ID and Largest Object ID fields will not be
 present. Any other value is a protocol error and MUST terminate the
 session with a Protocol Violation ({{session-termination}}).
 
-* Largest Group ID: The largest Group ID available for this track. This field
-is only present if ContentExists has a value of 1.
-
-* Largest Object ID: The largest Object ID available within the largest Group ID
-for this track. This field is only present if ContentExists has a value of 1.
+* Largest: The location of the largest object available for this track. This
+  field is only present if ContentExists has a value of 1.
 
 * Subscribe Parameters: The parameters are defined in {{version-specific-params}}.
 
@@ -1594,8 +1601,7 @@ SUBSCRIBE_UPDATE Message {
   Type (i) = 0x2,
   Length (i),
   Subscribe ID (i),
-  StartGroup (i),
-  StartObject (i),
+  Start (Location),
   EndGroup (i),
   Subscriber Priority (8),
   Number of Parameters (i),
@@ -1607,9 +1613,7 @@ SUBSCRIBE_UPDATE Message {
 * Subscribe ID: The subscription identifier that is unique within the session.
 This MUST match an existing Subscribe ID.
 
-* StartGroup: The start Group ID.
-
-* StartObject: The start Object ID.
+* Start: The starting location.
 
 * EndGroup: The end Group ID, plus 1. A value of 0 means the subscription is
 open-ended.
@@ -2061,8 +2065,7 @@ TRACK_STATUS Message {
   Track Name Length(i),
   Track Name (..),
   Status Code (i),
-  Largest Group ID (i),
-  Largest Object ID (i),
+  Largest (Location),
 }
 ~~~
 {: #moq-track-status-format title="MOQT TRACK_STATUS Message"}
@@ -2088,12 +2091,11 @@ upstream. Subsequent fields contain the largest group and object ID known.
 
 Any other value in the Status Code field is a malformed message.
 
-The `Largest Group ID` and `Largest Object ID` fields represent the highest Group and
-Object IDs observed by the Publisher for an active subscription. If the
-publisher is a relay without an active subscription, it SHOULD send a
-TRACK_STATUS_REQUEST upstream or MAY subscribe to the track, to obtain the
-same information. If neither is possible, it should return the best
-available information with status code 0x04.
+The `Largest` fields represent the highest Object location observed by the
+Publisher for an active subscription. If the publisher is a relay without an
+active subscription, it SHOULD send a TRACK_STATUS_REQUEST upstream or MAY
+subscribe to the track, to obtain the same information. If neither is possible,
+it should return the best available information with status code 0x04.
 
 The receiver of multiple TRACK_STATUS messages for a track uses the information
 from the latest arriving message, as they are delivered in order on a single
