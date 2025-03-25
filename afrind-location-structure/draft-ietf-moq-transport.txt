@@ -1561,7 +1561,7 @@ Table of Contents
       error.
 
    *  Filter Type: Identifies the type of filter, which also indicates
-      whether the Start and End fields will be present.
+      whether the Start and EndGroup fields will be present.
 
    *  Start: The starting location for this subscriptions.  Only present
       for "AbsoluteStart" and "AbsoluteRange" filter types.
