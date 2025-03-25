@@ -5,13 +5,13 @@
 Media Over QUIC                                                L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 21 September 2025                                          Meta
+Expires: 26 September 2025                                          Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                           20 March 2025
+                                                           25 March 2025
 
 
                        Media over QUIC Transport
@@ -59,7 +59,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 21 September 2025.
+   This Internet-Draft will expire on 26 September 2025.
 
 Copyright Notice
 
@@ -1041,6 +1041,11 @@ Table of Contents
    messages to matching subscribers in accordance to each subscription's
    priority, group order, and delivery timeout.
 
+   If an upstream session is closed due to an unknown or invalid control
+   message or Object, the relay MUST NOT continue to propagate that
+   message or Object downstream, because it would enable a single
+   session to close unrelated sessions.
+
 7.2.1.  Graceful Publisher Network Switchover
 
    This section describes behavior that a publisher MAY choose to
@@ -1170,11 +1175,6 @@ Table of Contents
    no control messages are intended to be ignored.  If the length does
    not match the length of the message content, the receiver MUST close
    the session.
-
-   If the session is closed due to an unknown or invalid control message
-   or Object, the receiver MUST NOT continue to propagate that message
-   or Object, because it would enable a single session to close
-   unrelated sessions.
 
 8.1.  Parameters
 
