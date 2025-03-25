@@ -2515,6 +2515,10 @@ the Full Track Name (see <a href="#message-subscribe-ok" class="auto internal xr
 the active subscribers for that track. Relays <span class="bcp14">MUST</span> forward Objects to
 matching subscribers in accordance to each subscription's priority, group order,
 and delivery timeout.<a href="#section-7.2-8" class="pilcrow">¶</a></p>
+<p id="section-7.2-9">If an upstream session is closed due to an unknown or invalid control message
+or Object, the relay <span class="bcp14">MUST NOT</span> continue to propagate that message or Object
+downstream, because it would enable a single session to close unrelated
+sessions.<a href="#section-7.2-9" class="pilcrow">¶</a></p>
 <div id="graceful-publisher-network-switchover">
 <section id="section-7.2.1">
           <h4 id="name-graceful-publisher-network-">
