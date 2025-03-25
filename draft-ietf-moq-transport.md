@@ -1232,8 +1232,8 @@ The PATH parameter (Parameter Type 0x01) allows the client to specify the path
 of the MoQ URI when using native QUIC ({{QUIC}}).  It MUST NOT be used by
 the server, or when WebTransport is used.  If the peer receives a PATH
 parameter from the server, or when WebTransport is used, it MUST close
-the session with Invalid Path. It follows the URI formatting rules
-{{!RFC3986}}.
+the session with Invalid Path. The PATH parameter follows the URI formatting
+rules {{!RFC3986}}.
 
 When connecting to a server using a URI with the "moqt" scheme, the
 client MUST set the PATH parameter to the `path-abempty` portion of the
