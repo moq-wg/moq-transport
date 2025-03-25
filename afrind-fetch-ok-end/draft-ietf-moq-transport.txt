@@ -2106,10 +2106,10 @@ Table of Contents
    *  End Group ID/End Object ID: The largest object covered by the
       FETCH response.  This is the minimum of the {EndGroup,EndObject}
       specified in FETCH and the largest known {group,object}.  If the
-      track is currently live at a relay, the largest known
-      {group,object} at the relay is used.  For non-live tracks with a
-      requested end larger than what is cached, the relay makes an
-      upstream request in order to satisfy the FETCH.
+      relay is currently subscribed to the track, the largest known
+      {group,object} at the relay is used.  For tracks with a requested
+      end larger than what is cached without an active subscription, the
+      relay makes an upstream request in order to satisfy the FETCH.
 
    *  Subscribe Parameters: The parameters are defined in Section 8.1.1.
 
