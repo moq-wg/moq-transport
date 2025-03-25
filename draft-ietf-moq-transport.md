@@ -944,6 +944,11 @@ the active subscribers for that track. Relays MUST forward OBJECT messages to
 matching subscribers in accordance to each subscription's priority, group order,
 and delivery timeout.
 
+If an upstream session is closed due to an unknown or invalid control message
+or Object, the relay MUST NOT continue to propagate that message or Object
+downstream, because it would enable a single session to close unrelated
+sessions.
+
 ### Graceful Publisher Network Switchover
 
 This section describes behavior that a publisher MAY
@@ -1068,11 +1073,6 @@ An endpoint that receives an unknown message type MUST close the session.
 Control messages have a length to make parsing easier, but no control
 messages are intended to be ignored. If the length does not match the
 length of the message content, the receiver MUST close the session.
-
-If the session is closed due to an unknown or invalid control message
-or Object, the receiver MUST NOT continue to propagate that message
-or Object, because it would enable a single session to close unrelated
-sessions.
 
 ## Parameters {#params}
 
