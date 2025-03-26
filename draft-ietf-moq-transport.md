@@ -972,7 +972,7 @@ switching between networks, such as WiFi to Cellular or vice versa.
 If the original publisher detects it is likely to need to switch networks,
 for example because the WiFi signal is getting weaker, and it does not
 have QUIC connection migration available, it establishes a new session
-over the new interface and sends an ANNOUCE. The relay will forward
+over the new interface and sends an ANNOUNCE. The relay will forward
 matching subscribes and the publisher publishes objects on both sessions.
 Once the subscriptions have migrated over to session on the new network,
 the publisher can stop publishing objects on the old network. The relay
