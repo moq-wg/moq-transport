@@ -5,13 +5,13 @@
 Media Over QUIC                                                L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 26 September 2025                                          Meta
+Expires: 27 September 2025                                          Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                           25 March 2025
+                                                           26 March 2025
 
 
                        Media over QUIC Transport
@@ -59,7 +59,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 26 September 2025.
+   This Internet-Draft will expire on 27 September 2025.
 
 Copyright Notice
 
@@ -1072,14 +1072,14 @@ Table of Contents
    If the original publisher detects it is likely to need to switch
    networks, for example because the WiFi signal is getting weaker, and
    it does not have QUIC connection migration available, it establishes
-   a new session over the new interface and sends an ANNOUCE.  The relay
-   will forward matching subscribes and the publisher publishes objects
-   on both sessions.  Once the subscriptions have migrated over to
-   session on the new network, the publisher can stop publishing objects
-   on the old network.  The relay will drop duplicate objects received
-   on both subscriptions.  Ideally, the subscriptions downstream from
-   the relay do no observe this change, and keep receiving the objects
-   on the same subscription.
+   a new session over the new interface and sends an ANNOUNCE.  The
+   relay will forward matching subscribes and the publisher publishes
+   objects on both sessions.  Once the subscriptions have migrated over
+   to session on the new network, the publisher can stop publishing
+   objects on the old network.  The relay will drop duplicate objects
+   received on both subscriptions.  Ideally, the subscriptions
+   downstream from the relay do no observe this change, and keep
+   receiving the objects on the same subscription.
 
 7.2.2.  Graceful Publisher Relay Switchover
 
