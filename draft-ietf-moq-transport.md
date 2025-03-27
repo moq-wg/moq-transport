@@ -163,6 +163,10 @@ remains opaque and private.
 
 The following terms are used with the first letter capitalized.
 
+Application:
+
+: The entity using MoQT to transmit and receive data.
+
 Client:
 
 : The party initiating a Transport Session.
@@ -2836,7 +2840,7 @@ the network layer.  Endpoints SHOULD set flow control limits based on the
 anticipated bitrate.
 
 Endpoints MAY impose a MAX STREAM count limit which would restrict the
-number of concurrent streams which a MOQT Streaming Format could have in
+number of concurrent streams which an application could have in
 flight.
 
 The publisher prioritizes and transmits streams out of order.  Streams
