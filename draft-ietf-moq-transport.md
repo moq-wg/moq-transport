@@ -1357,14 +1357,11 @@ Object' filter.
 
 Higher Objects (0x5): Specifies an open-ended subscription. All objects with
 a Location greater than the Largest Group ID and Latest Object ID fields in the
-SUBSCRIBE_OK will be delivered by the publisher. This is most useful where the
-Group ID implies a temporal relationship.
+SUBSCRIBE_OK will be delivered by the publisher.
 
 All Objects (0x6): All objects that arrive via upstream SUBSCRIBE at, or are
 created by, the publisher after processing the SUBSCRIBE, whether or not the
 Location is higher than the highest observed when the SUBSCRIBE is processed.
-This is most useful for tracks where the Group ID does not imply a temporal
-relationship.
 
 A filter type other than the above MUST be treated as error.
 
