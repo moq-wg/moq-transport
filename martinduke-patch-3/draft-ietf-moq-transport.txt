@@ -782,7 +782,7 @@ Table of Contents
 
    The receiver of a SUBSCRIBE_ANNOUNCES_OK or SUBSCRIBE_ANNOUNCES_ERROR
    ought to forward the result to the application, so the application
-   can decide which other publishers to contact.
+   can decide which other publishers to contact, if any.
 
    An UNSUBSCRIBE_ANNOUNCES withdraws a previous SUBSCRIBE_ANNOUNCES.
    It does not prohibit the receiver (publisher) from sending further
