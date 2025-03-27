@@ -267,6 +267,8 @@ Table of Contents
 
    The following terms are used with the first letter capitalized.
 
+   Application:  The entity using MoQT to transmit and receive data.
+
    Client:  The party initiating a Transport Session.
 
    Server:  The party accepting an incoming Transport Session.
@@ -3014,8 +3016,8 @@ Table of Contents
    the anticipated bitrate.
 
    Endpoints MAY impose a MAX STREAM count limit which would restrict
-   the number of concurrent streams which a MOQT Streaming Format could
-   have in flight.
+   the number of concurrent streams which an application could have in
+   flight.
 
    The publisher prioritizes and transmits streams out of order.
    Streams might be starved indefinitely during congestion.  The
