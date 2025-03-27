@@ -5,13 +5,13 @@
 Media Over QUIC                                                L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 24 September 2025                                          Meta
+Expires: 28 September 2025                                          Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                           23 March 2025
+                                                           27 March 2025
 
 
                        Media over QUIC Transport
@@ -59,7 +59,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 24 September 2025.
+   This Internet-Draft will expire on 28 September 2025.
 
 Copyright Notice
 
@@ -962,9 +962,10 @@ Table of Contents
 
    2.  Object Header Extensions can be added, removed or updated
 
-   An endpoint that receives a duplicate object with fields that differ
-   from a previous version other than these MUST close the session with
-   a Protocol Violation.
+   An endpoint that receives a duplicate object with an illegal Object
+   Status change, or a Forwarding Preference, Subgroup ID, Priority or
+   Payload that differ from a previous version MUST close the session
+   with a Protocol Violation.
 
 7.2.  Subscriber Interactions
 
