@@ -862,8 +862,9 @@ updated are the following:
    where the object is no longer available
 2. Object Header Extensions can be added, removed or updated
 
-An endpoint that receives a duplicate object with fields that differ from a
-previous version other than these MUST close the session with a Protocol
+An endpoint that receives a duplicate object with an illegal Object Status
+change, or a Forwarding Preference, Subgroup ID, Priority or Payload that
+differ from a previous version MUST close the session with a Protocol
 Violation.
 
 ## Subscriber Interactions
