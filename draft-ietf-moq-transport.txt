@@ -5,13 +5,13 @@
 Media Over QUIC                                                L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 27 September 2025                                          Meta
+Expires: 28 September 2025                                          Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                           26 March 2025
+                                                           27 March 2025
 
 
                        Media over QUIC Transport
@@ -59,7 +59,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 27 September 2025.
+   This Internet-Draft will expire on 28 September 2025.
 
 Copyright Notice
 
@@ -400,8 +400,6 @@ Table of Contents
    combine, split, or otherwise modify object payloads.
 
    Objects within a Group are ordered numerically by their Object ID.
-   The first Object in a Group has an Object ID of 0, and IDs increase
-   sequentially for each Object within the Group.
 
 2.2.  Subgroups
 
