@@ -691,7 +691,7 @@ The syntax of these messages is described in {{message}}.
 If the subscriber is aware of a namespace of interest, it can send
 SUBSCRIBE_ANNOUNCES to publishers/relays it has established a session with. The
 recipient of this message will send any relevant ANNOUNCE or UNANNOUNCE messages
-for that namespace, or subset of that namespace.
+for that namespace, or more specific part of that namespace.
 
 A publisher MUST send exactly one SUBSCRIBE_ANNOUNCES_OK or
 SUBSCRIBE_ANNOUNCES_ERROR in response to a SUBSCRIBE_ANNOUNCES. The subscriber
@@ -715,8 +715,8 @@ an ANNOUNCE for it.
 If a publisher is authoritative for a given namespace, or is a relay that has
 received an authorized ANNOUNCE for that namespace from an upstream publisher,
 it MUST send an ANNOUNCE to any subscriber that has subscribed to ANNOUNCE for
-that namespace, or a superset of that namespace. A publisher MAY send the ANNOUNCE
-to any other subscriber.
+that namespace, or a more generic set including that namespace. A publisher MAY
+send the ANNOUNCE to any other subscriber.
 
 An endpoint SHOULD NOT, however, send an ANNOUNCE advertising a namespace that
 exactly matches a namespace for which the peer sent an earlier ANNOUNCE
