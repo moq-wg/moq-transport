@@ -678,8 +678,8 @@ done in the context of an established MoQT session.
 Given sufficient out of band information, it is valid for a subscriber
 to send a SUBSCRIBE or FETCH message to a publisher (including a relay) without
 any previous MoQT messages besides SETUP. However, SUBSCRIBE_ANNOUNCES and
-ANNOUNCE messages provide an in-band means of discovery of subscribers and
-publishers for a namespace.
+ANNOUNCE messages provide an in-band means of discovery of publishers for a
+namespace.
 
 The syntax of these messages is described in {{message}}.
 
