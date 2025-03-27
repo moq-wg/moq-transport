@@ -337,9 +337,7 @@ underlying encoding, compression, any end-to-end encryption, or
 authentication. A relay MUST NOT combine, split, or otherwise modify object
 payloads.
 
-Objects within a Group are ordered numerically by their Object ID. The first
-Object in a Group has an Object ID of 0, and IDs increase sequentially for
-each Object within the Group.
+Objects within a Group are ordered numerically by their Object ID.
 
 ## Subgroups {#model-subgroup}
 
