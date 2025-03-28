@@ -674,7 +674,7 @@ both endpoints can immediately destroy relevant state. Objects MUST NOT be sent
 for requests that end with an error.
 
 
-# Namespace Discovery and Routing Subscriptions {#track-discovery}
+# Namespace Discovery {#track-discovery}
 
 Discovery of MoQT servers is always done out-of-band. Namespace discovery can be
 done in the context of an established MoQT session.
@@ -710,7 +710,7 @@ not prohibit the receiver (publisher) from sending further ANNOUNCE messages.
 ## Announcements
 
 A publisher MAY send ANNOUNCE messages to any subscriber. An ANNOUNCE indicates
-to the subscriber where to route a SUBSCRIBE or FETCH for that namespace. A
+to the subscriber that the publisher has tracks available in that namespace. A
 subscriber MAY send SUBSCRIBE or FETCH for a namespace without having received
 an ANNOUNCE for it.
 
@@ -740,9 +740,9 @@ example due to expiration of authorization credentials. The message enables the
 publisher to ANNOUNCE again with refreshed authorization, or discard associated
 state. After receiving an ANNOUNCE_CANCEL, the publisher does not send UNANNOUNCE.
 
-While ANNOUNCE does provide hints on where to route a SUBSCRIBE or FETCH, it is
-not a full-fledged routing protocol and does not protect against loops and other
-phenomena. In particular, ANNOUNCE SHOULD NOT be used to find paths through
+While ANNOUNCE indicates to relays how to connect publishers and subscribers, it
+is not a full-fledged routing protocol and does not protect against loops and
+other phenomena. In particular, ANNOUNCE SHOULD NOT be used to find paths through
 richly connected networks of relays.
 
 A subscriber MAY send a SUBSCRIBE or FETCH for a track to any publisher. If it
@@ -931,10 +931,9 @@ Track Namespace and it SHOULD respond with the same response to each of the
 publishers, as though it was responding to an ANNOUNCE
 from a single publisher for a given track namespace.
 
-When a publisher wants to stop
-new subscriptions for an announced namespace it sends an UNANNOUNCE.
-A subscriber indicates it will no longer route subscriptions for a
-namespace it previously responded ANNOUNCE_OK to by sending an
+When a publisher wants to stop new subscriptions for an announced namespace it
+sends an UNANNOUNCE. A subscriber indicates it will no longer subcribe to tracks
+in a namespace it previously responded ANNOUNCE_OK to by sending an
 ANNOUNCE_CANCEL.
 
 A relay manages sessions from multiple publishers and subscribers,
@@ -2110,10 +2109,9 @@ stream.
 
 ## ANNOUNCE {#message-announce}
 
-The publisher sends the ANNOUNCE control message to advertise where the
-receiver can route SUBSCRIBEs for tracks within the announced
-Track Namespace. The receiver verifies the publisher is authorized to
-publish tracks under this namespace.
+The publisher sends the ANNOUNCE control message to advertise that it has
+tracks available within the announced Track Namespace. The receiver verifies the
+publisher is authorized to publish tracks under this namespace.
 
 ~~~
 ANNOUNCE Message {
