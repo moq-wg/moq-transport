@@ -3118,7 +3118,7 @@ the Latest Object, it can send a SUBSCRIBE for the Latest Object
 followed by a FETCH. Depending upon the application, one might want to send
 both messages at the same time or wait for the first to return before sending
 the second.<a href="#section-8.6-9" class="pilcrow">¶</a></p>
-<p id="section-8.6-10">Subscribers can also request a publisher to not forward objects for a given
+<p id="section-8.6-10">A Subscription can also request a publisher to not forward Objects for a given
 track by setting the <code>Forward</code> field to 0. This can reduce the latency of receiving
 Objects that might be needed urgently when the Relay is substantially closer to the
 subscriber than to the Original Publisher. Relays <span class="bcp14">SHOULD</span> always set the <code>Forward</code>
