@@ -1798,6 +1798,9 @@ objects within a track. The publisher responding to a FETCH is responsible for r
 all available Objects. If there are gaps between Objects, the publisher omits them from the
 fetch response. All omitted objects have status Object Does Not Exist.
 
+If an Original Publisher receives a FETCH with a range that includes an object with
+unknown status, it MUST return FETCH_ERROR with code Unknown Status in Range.
+
 **Fetch Types**
 
 There are three types of Fetch messages:
@@ -2034,6 +2037,8 @@ as defined below:
 | 0x5  | Invalid Range             |
 |------|---------------------------|
 | 0x6  | No Objects                |
+|------|---------------------------|
+| 0x7  | Unknown Status in Range   |
 |------|---------------------------|
 
 * Internal Error - An implementation specific or generic error occurred.
