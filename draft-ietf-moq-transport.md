@@ -1407,7 +1407,7 @@ A Subscription can also request a publisher to not forward Objects for a given
 track by setting the `Forward` field to 0. This allows the publisher or relay
 to prepare to serve the subscription in advance, reducing the time to
 receive objects in the future. Relays SHOULD set the `Forward` flag to 1 if a
-new subscription needs to be sent upstream, regardless of the value of the 
+new subscription needs to be sent upstream, regardless of the value of the
 `Forward` field from the downstream subscription. Subscriptions that are not
 forwarded consume resources from the publisher, so a publisher might
 deprioritize, reject, or close those subscriptions to ensure other
