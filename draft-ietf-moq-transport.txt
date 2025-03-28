@@ -5,13 +5,13 @@
 Media Over QUIC                                                L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 28 September 2025                                          Meta
+Expires: 29 September 2025                                          Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                           27 March 2025
+                                                           28 March 2025
 
 
                        Media over QUIC Transport
@@ -59,7 +59,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 28 September 2025.
+   This Internet-Draft will expire on 29 September 2025.
 
 Copyright Notice
 
@@ -103,7 +103,7 @@ Table of Contents
      3.4.  Termination
      3.5.  Migration
    4.  Retrieving Tracks with Subscribe and Fetch
-   5.  Namespace Discovery and Routing Subscriptions
+   5.  Namespace Discovery
      5.1.  Subscribing to Announcements
      5.2.  Announcements
    6.  Priorities
@@ -754,7 +754,7 @@ Table of Contents
    delivered, and both endpoints can immediately destroy relevant state.
    Objects MUST NOT be sent for requests that end with an error.
 
-5.  Namespace Discovery and Routing Subscriptions
+5.  Namespace Discovery
 
    Discovery of MoQT servers is always done out-of-band.  Namespace
    discovery can be done in the context of an established MoQT session.
@@ -791,9 +791,9 @@ Table of Contents
 5.2.  Announcements
 
    A publisher MAY send ANNOUNCE messages to any subscriber.  An
-   ANNOUNCE indicates to the subscriber where to route a SUBSCRIBE or
-   FETCH for that namespace.  A subscriber MAY send SUBSCRIBE or FETCH
-   for a namespace without having received an ANNOUNCE for it.
+   ANNOUNCE indicates to the subscriber that the publisher has tracks
+   available in that namespace.  A subscriber MAY send SUBSCRIBE or
+   FETCH for a namespace without having received an ANNOUNCE for it.
 
    If a publisher is authoritative for a given namespace, or is a relay
    that has received an authorized ANNOUNCE for that namespace from an
@@ -825,10 +825,10 @@ Table of Contents
    authorization, or discard associated state.  After receiving an
    ANNOUNCE_CANCEL, the publisher does not send UNANNOUNCE.
 
-   While ANNOUNCE does provide hints on where to route a SUBSCRIBE or
-   FETCH, it is not a full-fledged routing protocol and does not protect
-   against loops and other phenomena.  In particular, ANNOUNCE SHOULD
-   NOT be used to find paths through richly connected networks of
+   While ANNOUNCE indicates to relays how to connect publishers and
+   subscribers, it is not a full-fledged routing protocol and does not
+   protect against loops and other phenomena.  In particular, ANNOUNCE
+   SHOULD NOT be used to find paths through richly connected networks of
    relays.
 
    A subscriber MAY send a SUBSCRIBE or FETCH for a track to any
@@ -1032,7 +1032,7 @@ Table of Contents
 
    When a publisher wants to stop new subscriptions for an announced
    namespace it sends an UNANNOUNCE.  A subscriber indicates it will no
-   longer route subscriptions for a namespace it previously responded
+   longer subcribe to tracks in a namespace it previously responded
    ANNOUNCE_OK to by sending an ANNOUNCE_CANCEL.
 
    A relay manages sessions from multiple publishers and subscribers,
@@ -2275,10 +2275,10 @@ Table of Contents
 
 8.18.  ANNOUNCE
 
-   The publisher sends the ANNOUNCE control message to advertise where
-   the receiver can route SUBSCRIBEs for tracks within the announced
-   Track Namespace.  The receiver verifies the publisher is authorized
-   to publish tracks under this namespace.
+   The publisher sends the ANNOUNCE control message to advertise that it
+   has tracks available within the announced Track Namespace.  The
+   receiver verifies the publisher is authorized to publish tracks under
+   this namespace.
 
    ANNOUNCE Message {
      Type (i) = 0x6,
