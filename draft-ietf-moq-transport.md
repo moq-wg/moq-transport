@@ -398,12 +398,24 @@ subscriber that does not want to receive the entire track can opt to receive onl
 the latest group(s).  The publisher then selectively transmits objects based on
 their group membership.  Groups can contain any number of objects.
 
-Within a track, the original publisher SHOULD produce Group IDs which increase
-with time. Subscribers to tracks which do not follow this requirement SHOULD NOT
-use range filters which span multiple groups in FETCH or SUBSCRIBE. SUBSCRIBE and
-FETCH delivery use Group Order, so a FETCH cannot deliver Groups out of order
-and a subscription could have unexpected delivery order if Group IDs do not increase
-with time.
+### Group Ordering
+
+Within a track, the original publisher SHOULD publish Group IDs which increase
+with time. In some cases, Groups will be produced in increasing order, but sent
+to subscribers in a different order, for example when the subscription's Group
+Order is Descending.  Due to network reordering and the partial reliability
+features of MoQT, Groups can always be received out of order.
+
+As a result, subscribers cannot infer the existence of a Group until an object in
+the Group is received. This can create gaps in a cache that can be filled
+by doing a Fetch upstream, if necessary.
+
+Applications that cannot produce Group IDs that increase with time are limited
+to the subset of MoQT that does not compare group IDs. Subscribers to these Tracks
+SHOULD NOT use range filters which span multiple Groups in FETCH or SUBSCRIBE.
+SUBSCRIBE and FETCH delivery use Group Order, so a FETCH cannot deliver Groups
+out of order and a subscription could have unexpected delivery order if Group IDs
+do not increase with time.
 
 ## Track {#model-track}
 
