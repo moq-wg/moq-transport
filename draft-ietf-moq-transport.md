@@ -1403,6 +1403,16 @@ followed by a FETCH. Depending upon the application, one might want to send
 both messages at the same time or wait for the first to return before sending
 the second.
 
+A Subscription can also request a publisher to not forward Objects for a given
+track by setting the `Forward` field to 0. This allows the publisher or relay
+to prepare to serve the subscription in advance, reducing the time to
+receive objects in the future. Relays SHOULD set the `Forward` flag to 1 if a
+new subscription needs to be sent upstream, regardless of the value of the
+`Forward` field from the downstream subscription. Subscriptions that are not
+forwarded consume resources from the publisher, so a publisher might
+deprioritize, reject, or close those subscriptions to ensure other
+subscriptions can be delivered.
+
 The format of SUBSCRIBE is as follows:
 
 ~~~
@@ -1416,6 +1426,7 @@ SUBSCRIBE Message {
   Track Name (..),
   Subscriber Priority (8),
   Group Order (8),
+  Forward (8),
   Filter Type (i),
   [Start (Location)],
   [EndGroup (i)],
@@ -1449,6 +1460,11 @@ See {{priorities}}.
 Ascending (0x1) or Descending (0x2) order by group. See {{priorities}}.
 A value of 0x0 indicates the original publisher's Group Order SHOULD be
 used. Values larger than 0x2 are a protocol error.
+
+* Forward: If 1, Objects matching the subscription are forwarded
+to the subscriber. If 0, Objects are not forwarded to the subscriber.
+Any other value is a protocol error and MUST terminate the
+session with a Protocol Violation ({{session-termination}}).
 
 * Filter Type: Identifies the type of filter, which also indicates whether
 the Start and EndGroup fields will be present.
@@ -1620,6 +1636,7 @@ SUBSCRIBE_UPDATE Message {
   Start (Location),
   EndGroup (i),
   Subscriber Priority (8),
+  Forward (8),
   Number of Parameters (i),
   Subscribe Parameters (..) ...
 }
@@ -1637,6 +1654,11 @@ open-ended.
 * Subscriber Priority: Specifies the priority of a subscription relative to
 other subscriptions in the same session. Lower numbers get higher priority.
 See {{priorities}}.
+
+* Forward: If 1, Objects matching the subscription are forwarded
+to the subscriber. If 0, Objects are not forwarded to the subscriber.
+Any other value is a protocol error and MUST terminate the
+session with a Protocol Violation ({{session-termination}}).
 
 * Subscribe Parameters: The parameters are defined in {{version-specific-params}}.
 
