@@ -163,6 +163,10 @@ remains opaque and private.
 
 The following terms are used with the first letter capitalized.
 
+Application:
+
+: The entity using MoQT to transmit and receive data.
+
 Client:
 
 : The party initiating a Transport Session.
@@ -277,10 +281,25 @@ x (tuple):
   as described in ({{?RFC9000, Section 16}}), followed by that many variable
   length tuple fields, each of which are encoded as (b) above.
 
-
 To reduce unnecessary use of bandwidth, variable length integers SHOULD
 be encoded using the least number of bytes possible to represent the
 required value.
+
+### Location Structure
+
+Location identifies a particular Object in a Group within a Track.
+
+~~~
+Location {
+  Group (i),
+  Object (i)
+}
+~~~
+{: #moq-location format title="Location structure"}
+
+Location A < Location B iff
+
+`A.Group < B.Group || (A.Group == B.Group && A.Object < B.Object)`
 
 
 # Object Data Model {#model}
@@ -322,9 +341,7 @@ underlying encoding, compression, any end-to-end encryption, or
 authentication. A relay MUST NOT combine, split, or otherwise modify object
 payloads.
 
-Objects within a Group are ordered numerically by their Object ID. The first
-Object in a Group has an Object ID of 0, and IDs increase sequentially for
-each Object within the Group.
+Objects within a Group are ordered numerically by their Object ID.
 
 ## Subgroups {#model-subgroup}
 
@@ -375,7 +392,7 @@ to minimize the number of streams used.
 ## Groups {#model-group}
 
 A group is a collection of objects and is a sub-unit of a track ({{model-track}}).
-Groups SHOULD be indendepently useful, so objects within a group SHOULD NOT depend
+Groups SHOULD be independently useful, so objects within a group SHOULD NOT depend
 on objects in other groups. A group provides a join point for subscriptions, so a
 subscriber that does not want to receive the entire track can opt to receive only
 the latest group(s).  The publisher then selectively transmits objects based on
@@ -672,7 +689,7 @@ both endpoints can immediately destroy relevant state. Objects MUST NOT be sent
 for requests that end with an error.
 
 
-# Namespace Discovery and Routing Subscriptions {#track-discovery}
+# Namespace Discovery {#track-discovery}
 
 Discovery of MoQT servers is always done out-of-band. Namespace discovery can be
 done in the context of an established MoQT session.
@@ -680,8 +697,8 @@ done in the context of an established MoQT session.
 Given sufficient out of band information, it is valid for a subscriber
 to send a SUBSCRIBE or FETCH message to a publisher (including a relay) without
 any previous MoQT messages besides SETUP. However, SUBSCRIBE_ANNOUNCES and
-ANNOUNCE messages provide an in-band means of discovery of subscribers and
-publishers for a namespace.
+ANNOUNCE messages provide an in-band means of discovery of publishers for a
+namespace.
 
 The syntax of these messages is described in {{message}}.
 
@@ -691,7 +708,7 @@ The syntax of these messages is described in {{message}}.
 If the subscriber is aware of a namespace of interest, it can send
 SUBSCRIBE_ANNOUNCES to publishers/relays it has established a session with. The
 recipient of this message will send any relevant ANNOUNCE or UNANNOUNCE messages
-for that namespace, or subset of that namespace.
+for that namespace, or more specific part of that namespace.
 
 A publisher MUST send exactly one SUBSCRIBE_ANNOUNCES_OK or
 SUBSCRIBE_ANNOUNCES_ERROR in response to a SUBSCRIBE_ANNOUNCES. The subscriber
@@ -699,8 +716,8 @@ SHOULD close the session with a protocol error if it detects receiving more than
 one.
 
 The receiver of a SUBSCRIBE_ANNOUNCES_OK or SUBSCRIBE_ANNOUNCES_ERROR ought to
-forward the result to the application, so that it can make decisions about
-further publishers to contact.
+forward the result to the application, so the application can decide which other
+publishers to contact, if any.
 
 An UNSUBSCRIBE_ANNOUNCES withdraws a previous SUBSCRIBE_ANNOUNCES. It does
 not prohibit the receiver (publisher) from sending further ANNOUNCE messages.
@@ -708,15 +725,15 @@ not prohibit the receiver (publisher) from sending further ANNOUNCE messages.
 ## Announcements
 
 A publisher MAY send ANNOUNCE messages to any subscriber. An ANNOUNCE indicates
-to the subscriber where to route a SUBSCRIBE or FETCH for that namespace. A
+to the subscriber that the publisher has tracks available in that namespace. A
 subscriber MAY send SUBSCRIBE or FETCH for a namespace without having received
 an ANNOUNCE for it.
 
 If a publisher is authoritative for a given namespace, or is a relay that has
 received an authorized ANNOUNCE for that namespace from an upstream publisher,
 it MUST send an ANNOUNCE to any subscriber that has subscribed to ANNOUNCE for
-that namespace, or a subset of that namespace. A publisher MAY send the ANNOUNCE
-to any other subscriber.
+that namespace, or a more generic set including that namespace. A publisher MAY
+send the ANNOUNCE to any other subscriber.
 
 An endpoint SHOULD NOT, however, send an ANNOUNCE advertising a namespace that
 exactly matches a namespace for which the peer sent an earlier ANNOUNCE
@@ -738,9 +755,9 @@ example due to expiration of authorization credentials. The message enables the
 publisher to ANNOUNCE again with refreshed authorization, or discard associated
 state. After receiving an ANNOUNCE_CANCEL, the publisher does not send UNANNOUNCE.
 
-While ANNOUNCE does provide hints on where to route a SUBSCRIBE or FETCH, it is
-not a full-fledged routing protocol and does not protect against loops and other
-phenomena. In particular, ANNOUNCE SHOULD NOT be used to find paths through
+While ANNOUNCE indicates to relays how to connect publishers and subscribers, it
+is not a full-fledged routing protocol and does not protect against loops and
+other phenomena. In particular, ANNOUNCE SHOULD NOT be used to find paths through
 richly connected networks of relays.
 
 A subscriber MAY send a SUBSCRIBE or FETCH for a track to any publisher. If it
@@ -784,12 +801,13 @@ _Publisher Priority_ is a priority number associated with an individual
 schedulable object.  It is specified in the header of the respective subgroup or
 datagram, and is the same for all objects in a single subgroup.
 
-_Group Order_ is a property of an invidual subscription.  It can be either
+_Group Order_ is a property of an individual subscription.  It can be either
 'Ascending' (groups with lower group ID are sent first), or 'Descending'
-(groups with higher group ID are sent first).  The publisher communicates its
-group order in the SUBSCRIBE_OK message; the subscriber can override it in its
-SUBSCRIBE message.  The group order of an existing subscription cannot be
-changed.
+(groups with higher group ID are sent first).  The subscriber optionally
+communicates its group order preference in the SUBSCRIBE message; the
+publisher's preference is used if the subscriber did not express one (by
+setting Group Order field to value 0x0).  The group order of an existing
+subscription cannot be changed.
 
 ## Scheduling Algorithm
 
@@ -928,10 +946,9 @@ Track Namespace and it SHOULD respond with the same response to each of the
 publishers, as though it was responding to an ANNOUNCE
 from a single publisher for a given track namespace.
 
-When a publisher wants to stop
-new subscriptions for an announced namespace it sends an UNANNOUNCE.
-A subscriber indicates it will no longer route subscriptions for a
-namespace it previously responded ANNOUNCE_OK to by sending an
+When a publisher wants to stop new subscriptions for an announced namespace it
+sends an UNANNOUNCE. A subscriber indicates it will no longer subcribe to tracks
+in a namespace it previously responded ANNOUNCE_OK to by sending an
 ANNOUNCE_CANCEL.
 
 A relay manages sessions from multiple publishers and subscribers,
@@ -957,6 +974,11 @@ the active subscribers for that track. Relays MUST forward Objects to
 matching subscribers in accordance to each subscription's priority, group order,
 and delivery timeout.
 
+If an upstream session is closed due to an unknown or invalid control message
+or Object, the relay MUST NOT continue to propagate that message or Object
+downstream, because it would enable a single session to close unrelated
+sessions.
+
 ### Graceful Publisher Network Switchover
 
 This section describes behavior that a publisher MAY
@@ -966,7 +988,7 @@ switching between networks, such as WiFi to Cellular or vice versa.
 If the original publisher detects it is likely to need to switch networks,
 for example because the WiFi signal is getting weaker, and it does not
 have QUIC connection migration available, it establishes a new session
-over the new interface and sends an ANNOUCE. The relay will forward
+over the new interface and sends an ANNOUNCE. The relay will forward
 matching subscribes and the publisher publishes objects on both sessions.
 Once the subscriptions have migrated over to session on the new network,
 the publisher can stop publishing objects on the old network. The relay
@@ -1078,9 +1100,11 @@ MOQT Control Message {
 |-------|-----------------------------------------------------|
 
 An endpoint that receives an unknown message type MUST close the session.
-Control messages have a length to make parsing easier, but no control
-messages are intended to be ignored. If the length does not match the
-length of the message content, the receiver MUST close the session.
+Control messages have a length to make parsing easier, but no control messages
+are intended to be ignored. The length is set to the number of bytes in Message
+Payload, which is defined by each message type.  If the length does not match
+the length of the Message Payload, the receiver MUST close the session with
+Protocol Violation.
 
 ## Parameters {#params}
 
@@ -1363,16 +1387,16 @@ the current object of the current group.  If no content has been delivered yet,
 the subscription starts with the first published or received group.
 
 AbsoluteStart (0x3):  Specifies an open-ended subscription beginning
-from the object identified in the StartGroup and StartObject fields. If the
-StartGroup is prior to the current group, the subscription starts at the
+from the object identified in the `Start` field. If the
+start group is prior to the current group, the subscription starts at the
 beginning of the current object like the 'Latest Object' filter.
 
-AbsoluteRange (0x4):  Specifies a closed subscription starting at StartObject
-in StartGroup and ending at the largest object in EndGroup.  The start and
+AbsoluteRange (0x4):  Specifies a closed subscription starting at `Start`
+and ending at the largest object in EndGroup.  The start and
 end of the range are inclusive.  EndGroup MUST specify the same or a later
-group than StartGroup. If the StartGroup is prior to the current group, the
-subscription starts at the beginning of the current object like the 'Latest
-Object' filter.
+group than specified in `start`. If the start group is prior to the current
+group, the subscription starts at the beginning of the current object like
+the 'Latest Object' filter.
 
 A filter type other than the above MUST be treated as error.
 
@@ -1396,8 +1420,7 @@ SUBSCRIBE Message {
   Subscriber Priority (8),
   Group Order (8),
   Filter Type (i),
-  [StartGroup (i),
-   StartObject (i)],
+  [Start (Location)],
   [EndGroup (i)],
   Number of Parameters (i),
   Subscribe Parameters (..) ...
@@ -1431,13 +1454,10 @@ A value of 0x0 indicates the original publisher's Group Order SHOULD be
 used. Values larger than 0x2 are a protocol error.
 
 * Filter Type: Identifies the type of filter, which also indicates whether
-the StartGroup/StartObject and EndGroup/EndObject fields will be present.
+the Start and EndGroup fields will be present.
 
-* StartGroup: The start Group ID. Only present for "AbsoluteStart" and
-"AbsoluteRange" filter types.
-
-* StartObject: The start Object ID. Only present for "AbsoluteStart" and
-"AbsoluteRange" filter types.
+* Start: The starting location for this subscriptions. Only present for
+  "AbsoluteStart" and "AbsoluteRange" filter types.
 
 * EndGroup: The end Group ID, inclusive. Only present for the "AbsoluteRange"
 filter type.
@@ -1466,8 +1486,7 @@ SUBSCRIBE_OK
   Expires (i),
   Group Order (8),
   ContentExists (8),
-  [Largest Group ID (i),
-   Largest Object ID (i)],
+  [Largest (Location)],
   Number of Parameters (i),
   Subscribe Parameters (..) ...
 }
@@ -1490,11 +1509,8 @@ If 0, then the Largest Group ID and Largest Object ID fields will not be
 present. Any other value is a protocol error and MUST terminate the
 session with a Protocol Violation ({{session-termination}}).
 
-* Largest Group ID: The largest Group ID available for this track. This field
-is only present if ContentExists has a value of 1.
-
-* Largest Object ID: The largest Object ID available within the largest Group ID
-for this track. This field is only present if ContentExists has a value of 1.
+* Largest: The location of the largest object available for this track. This
+  field is only present if ContentExists has a value of 1.
 
 * Subscribe Parameters: The parameters are defined in {{version-specific-params}}.
 
@@ -1604,8 +1620,7 @@ SUBSCRIBE_UPDATE Message {
   Type (i) = 0x2,
   Length (i),
   Subscribe ID (i),
-  StartGroup (i),
-  StartObject (i),
+  Start (Location),
   EndGroup (i),
   Subscriber Priority (8),
   Number of Parameters (i),
@@ -1617,9 +1632,7 @@ SUBSCRIBE_UPDATE Message {
 * Subscribe ID: The subscription identifier that is unique within the session.
 This MUST match an existing Subscribe ID.
 
-* StartGroup: The start Group ID.
-
-* StartObject: The start Object ID.
+* Start: The starting location.
 
 * EndGroup: The end Group ID, plus 1. A value of 0 means the subscription is
 open-ended.
@@ -1922,7 +1935,7 @@ Joining Start value.
 
 A publisher sends a FETCH_OK control message in response to successful fetches.
 A publisher MAY send Objects in response to a FETCH before the FETCH_OK message is sent,
-but the FETCH_OK MUST NOT be sent until the latest group and object are known.
+but the FETCH_OK MUST NOT be sent until the end group and object are known.
 
 ~~~
 FETCH_OK
@@ -1932,8 +1945,7 @@ FETCH_OK
   Subscribe ID (i),
   Group Order (8),
   End Of Track (8),
-  Largest Group ID (i),
-  Largest Object ID (i),
+  End (Location),
   Number of Parameters (i),
   Subscribe Parameters (..) ...
 }
@@ -1947,13 +1959,16 @@ Ascending (0x1) or Descending (0x2) order by group. See {{priorities}}.
 Values of 0x0 and those larger than 0x2 are a protocol error.
 
 * End Of Track: 1 if all objects have been published on this track, so
-the Largest Group ID and Object Id indicate the last Object in the track,
+the End Group ID and Object Id indicate the last Object in the track,
 0 if not.
 
-* Largest Group ID: The largest Group ID available for this track.
-
-* Largest Object ID: The largest Object ID available within the largest Group ID
-for this track.
+* End: The largest object covered by the FETCH response.
+  This is the minimum of the {EndGroup,EndObject} specified in FETCH and the
+  largest known {group,object}.  If the relay is currently subscribed to the
+  track, the largest known {group,object} at the relay is used.  For tracks
+  with a requested end larger than what is cached without an active
+  subscription, the relay makes an upstream request in order to satisfy the
+  FETCH.
 
 * Subscribe Parameters: The parameters are defined in {{version-specific-params}}.
 
@@ -2071,8 +2086,7 @@ TRACK_STATUS Message {
   Track Name Length(i),
   Track Name (..),
   Status Code (i),
-  Largest Group ID (i),
-  Largest Object ID (i),
+  Largest (Location),
 }
 ~~~
 {: #moq-track-status-format title="MOQT TRACK_STATUS Message"}
@@ -2098,12 +2112,11 @@ upstream. Subsequent fields contain the largest group and object ID known.
 
 Any other value in the Status Code field is a malformed message.
 
-The `Largest Group ID` and `Largest Object ID` fields represent the highest Group and
-Object IDs observed by the Publisher for an active subscription. If the
-publisher is a relay without an active subscription, it SHOULD send a
-TRACK_STATUS_REQUEST upstream or MAY subscribe to the track, to obtain the
-same information. If neither is possible, it should return the best
-available information with status code 0x04.
+The `Largest` field represents the largest Object location observed by the
+Publisher for an active subscription. If the publisher is a relay without an
+active subscription, it SHOULD send a TRACK_STATUS_REQUEST upstream or MAY
+subscribe to the track, to obtain the same information. If neither is possible,
+it should return the best available information with status code 0x04.
 
 The receiver of multiple TRACK_STATUS messages for a track uses the information
 from the latest arriving message, as they are delivered in order on a single
@@ -2111,10 +2124,9 @@ stream.
 
 ## ANNOUNCE {#message-announce}
 
-The publisher sends the ANNOUNCE control message to advertise where the
-receiver can route SUBSCRIBEs for tracks within the announced
-Track Namespace. The receiver verifies the publisher is authorized to
-publish tracks under this namespace.
+The publisher sends the ANNOUNCE control message to advertise that it has
+tracks available within the announced Track Namespace. The receiver verifies the
+publisher is authorized to publish tracks under this namespace.
 
 ~~~
 ANNOUNCE Message {
@@ -2464,7 +2476,7 @@ MUST be sent according to its `Object Forwarding Preference`, described below.
 
 * Subgroup ID: The object is a member of the indicated subgroup ID ({{model-subgroup}})
 within the group. This field is omitted if the Object Forwarding Preference is
-Track or Datagram.
+Datagram.
 
 * Object Status: As enumeration used to indicate missing
 objects or mark the end of a group or track. See {{object-status}} below.
@@ -2541,17 +2553,18 @@ Object Extension Headers are serialized as defined below:
 ~~~
 Extension Header {
   Header Type (i),
-  [Header Value (i)]
-  [Header Length (i),
-   Header Value (..)]
+  [Header Length (i),]
+  Header Value (..)
 }
 ~~~
 {: #object-extension-format title="Object Extension Header Format"}
 
-* Header type: an unsigned integer, encoded as a varint, identifying the type
+* Header Type: an unsigned integer, encoded as a varint, identifying the type
   of the extension and also the subsequent serialization.
-* Header values: even types are followed by a single varint encoded value. Odd
-  types are followed by a varint encoded length and then the header value.
+* Header Length: Only present when Header Type is odd.  Species the length of
+  the Header Value field.
+* Header Value: A single varint encoded value when Header Type is even,
+  otherwise a sequence of Header Length bytes.
   Header types are registered in the IANA table 'MOQ Extension Headers'.
   See {{iana}}.
 
@@ -2840,7 +2853,7 @@ the network layer.  Endpoints SHOULD set flow control limits based on the
 anticipated bitrate.
 
 Endpoints MAY impose a MAX STREAM count limit which would restrict the
-number of concurrent streams which a MOQT Streaming Format could have in
+number of concurrent streams which an application could have in
 flight.
 
 The publisher prioritizes and transmits streams out of order.  Streams
