@@ -763,7 +763,7 @@ Table of Contents
    subscriber to send a SUBSCRIBE or FETCH message to a publisher
    (including a relay) without any previous MoQT messages besides SETUP.
    However, SUBSCRIBE_ANNOUNCES and ANNOUNCE messages provide an in-band
-   means of discovery of subscribers and publishers for a namespace.
+   means of discovery of publishers for a namespace.
 
    The syntax of these messages is described in Section 8.
 
