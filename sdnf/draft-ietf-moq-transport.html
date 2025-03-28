@@ -3122,7 +3122,7 @@ the second.<a href="#section-8.6-9" class="pilcrow">¶</a></p>
 track by setting the <code>Forward</code> field to 0. This can reduce the latency until
 receiving Objects when the Subscriber later urgently needs them, because the
 Relay will have them, rather than having to subscribe upstream. Relays <span class="bcp14">SHOULD</span>
-always set the <code>Forward</code> flag to 1 if a new subscription needs to be sent
+set the <code>Forward</code> flag to 1 if a new subscription needs to be sent
 upstream, regardless of the value of the <code>Forward</code> field from the downstream
 subscription. Subscriptions that are not forwarded consume resources from the
 publisher, so a publisher might deprioritize, reject, or close those
