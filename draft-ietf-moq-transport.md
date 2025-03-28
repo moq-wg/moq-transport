@@ -163,6 +163,10 @@ remains opaque and private.
 
 The following terms are used with the first letter capitalized.
 
+Application:
+
+: The entity using MoQT to transmit and receive data.
+
 Client:
 
 : The party initiating a Transport Session.
@@ -337,9 +341,7 @@ underlying encoding, compression, any end-to-end encryption, or
 authentication. A relay MUST NOT combine, split, or otherwise modify object
 payloads.
 
-Objects within a Group are ordered numerically by their Object ID. The first
-Object in a Group has an Object ID of 0, and IDs increase sequentially for
-each Object within the Group.
+Objects within a Group are ordered numerically by their Object ID.
 
 ## Subgroups {#model-subgroup}
 
@@ -396,12 +398,24 @@ subscriber that does not want to receive the entire track can opt to receive onl
 the latest group(s).  The publisher then selectively transmits objects based on
 their group membership.  Groups can contain any number of objects.
 
-Within a track, the original publisher SHOULD produce Group IDs which increase
-with time. Subscribers to tracks which do not follow this requirement SHOULD NOT
-use range filters which span multiple groups in FETCH or SUBSCRIBE. SUBSCRIBE and
-FETCH delivery use Group Order, so a FETCH cannot deliver Groups out of order
-and a subscription could have unexpected delivery order if Group IDs do not increase
-with time.
+### Group Ordering
+
+Within a track, the original publisher SHOULD publish Group IDs which increase
+with time. In some cases, Groups will be produced in increasing order, but sent
+to subscribers in a different order, for example when the subscription's Group
+Order is Descending.  Due to network reordering and the partial reliability
+features of MoQT, Groups can always be received out of order.
+
+As a result, subscribers cannot infer the existence of a Group until an object in
+the Group is received. This can create gaps in a cache that can be filled
+by doing a Fetch upstream, if necessary.
+
+Applications that cannot produce Group IDs that increase with time are limited
+to the subset of MoQT that does not compare group IDs. Subscribers to these Tracks
+SHOULD NOT use range filters which span multiple Groups in FETCH or SUBSCRIBE.
+SUBSCRIBE and FETCH delivery use Group Order, so a FETCH cannot deliver Groups
+out of order and a subscription could have unexpected delivery order if Group IDs
+do not increase with time.
 
 ## Track {#model-track}
 
@@ -674,7 +688,7 @@ both endpoints can immediately destroy relevant state. Objects MUST NOT be sent
 for requests that end with an error.
 
 
-# Namespace Discovery and Routing Subscriptions {#track-discovery}
+# Namespace Discovery {#track-discovery}
 
 Discovery of MoQT servers is always done out-of-band. Namespace discovery can be
 done in the context of an established MoQT session.
@@ -682,8 +696,8 @@ done in the context of an established MoQT session.
 Given sufficient out of band information, it is valid for a subscriber
 to send a SUBSCRIBE or FETCH message to a publisher (including a relay) without
 any previous MoQT messages besides SETUP. However, SUBSCRIBE_ANNOUNCES and
-ANNOUNCE messages provide an in-band means of discovery of subscribers and
-publishers for a namespace.
+ANNOUNCE messages provide an in-band means of discovery of publishers for a
+namespace.
 
 The syntax of these messages is described in {{message}}.
 
@@ -693,7 +707,7 @@ The syntax of these messages is described in {{message}}.
 If the subscriber is aware of a namespace of interest, it can send
 SUBSCRIBE_ANNOUNCES to publishers/relays it has established a session with. The
 recipient of this message will send any relevant ANNOUNCE or UNANNOUNCE messages
-for that namespace, or subset of that namespace.
+for that namespace, or more specific part of that namespace.
 
 A publisher MUST send exactly one SUBSCRIBE_ANNOUNCES_OK or
 SUBSCRIBE_ANNOUNCES_ERROR in response to a SUBSCRIBE_ANNOUNCES. The subscriber
@@ -701,8 +715,8 @@ SHOULD close the session with a protocol error if it detects receiving more than
 one.
 
 The receiver of a SUBSCRIBE_ANNOUNCES_OK or SUBSCRIBE_ANNOUNCES_ERROR ought to
-forward the result to the application, so that it can make decisions about
-further publishers to contact.
+forward the result to the application, so the application can decide which other
+publishers to contact, if any.
 
 An UNSUBSCRIBE_ANNOUNCES withdraws a previous SUBSCRIBE_ANNOUNCES. It does
 not prohibit the receiver (publisher) from sending further ANNOUNCE messages.
@@ -710,15 +724,15 @@ not prohibit the receiver (publisher) from sending further ANNOUNCE messages.
 ## Announcements
 
 A publisher MAY send ANNOUNCE messages to any subscriber. An ANNOUNCE indicates
-to the subscriber where to route a SUBSCRIBE or FETCH for that namespace. A
+to the subscriber that the publisher has tracks available in that namespace. A
 subscriber MAY send SUBSCRIBE or FETCH for a namespace without having received
 an ANNOUNCE for it.
 
 If a publisher is authoritative for a given namespace, or is a relay that has
 received an authorized ANNOUNCE for that namespace from an upstream publisher,
 it MUST send an ANNOUNCE to any subscriber that has subscribed to ANNOUNCE for
-that namespace, or a subset of that namespace. A publisher MAY send the ANNOUNCE
-to any other subscriber.
+that namespace, or a more generic set including that namespace. A publisher MAY
+send the ANNOUNCE to any other subscriber.
 
 An endpoint SHOULD NOT, however, send an ANNOUNCE advertising a namespace that
 exactly matches a namespace for which the peer sent an earlier ANNOUNCE
@@ -740,9 +754,9 @@ example due to expiration of authorization credentials. The message enables the
 publisher to ANNOUNCE again with refreshed authorization, or discard associated
 state. After receiving an ANNOUNCE_CANCEL, the publisher does not send UNANNOUNCE.
 
-While ANNOUNCE does provide hints on where to route a SUBSCRIBE or FETCH, it is
-not a full-fledged routing protocol and does not protect against loops and other
-phenomena. In particular, ANNOUNCE SHOULD NOT be used to find paths through
+While ANNOUNCE indicates to relays how to connect publishers and subscribers, it
+is not a full-fledged routing protocol and does not protect against loops and
+other phenomena. In particular, ANNOUNCE SHOULD NOT be used to find paths through
 richly connected networks of relays.
 
 A subscriber MAY send a SUBSCRIBE or FETCH for a track to any publisher. If it
@@ -931,10 +945,9 @@ Track Namespace and it SHOULD respond with the same response to each of the
 publishers, as though it was responding to an ANNOUNCE
 from a single publisher for a given track namespace.
 
-When a publisher wants to stop
-new subscriptions for an announced namespace it sends an UNANNOUNCE.
-A subscriber indicates it will no longer route subscriptions for a
-namespace it previously responded ANNOUNCE_OK to by sending an
+When a publisher wants to stop new subscriptions for an announced namespace it
+sends an UNANNOUNCE. A subscriber indicates it will no longer subcribe to tracks
+in a namespace it previously responded ANNOUNCE_OK to by sending an
 ANNOUNCE_CANCEL.
 
 A relay manages sessions from multiple publishers and subscribers,
@@ -974,7 +987,7 @@ switching between networks, such as WiFi to Cellular or vice versa.
 If the original publisher detects it is likely to need to switch networks,
 for example because the WiFi signal is getting weaker, and it does not
 have QUIC connection migration available, it establishes a new session
-over the new interface and sends an ANNOUCE. The relay will forward
+over the new interface and sends an ANNOUNCE. The relay will forward
 matching subscribes and the publisher publishes objects on both sessions.
 Once the subscriptions have migrated over to session on the new network,
 the publisher can stop publishing objects on the old network. The relay
@@ -1395,6 +1408,16 @@ followed by a FETCH. Depending upon the application, one might want to send
 both messages at the same time or wait for the first to return before sending
 the second.
 
+A Subscription can also request a publisher to not forward Objects for a given
+track by setting the `Forward` field to 0. This allows the publisher or relay
+to prepare to serve the subscription in advance, reducing the time to
+receive objects in the future. Relays SHOULD set the `Forward` flag to 1 if a
+new subscription needs to be sent upstream, regardless of the value of the
+`Forward` field from the downstream subscription. Subscriptions that are not
+forwarded consume resources from the publisher, so a publisher might
+deprioritize, reject, or close those subscriptions to ensure other
+subscriptions can be delivered.
+
 The format of SUBSCRIBE is as follows:
 
 ~~~
@@ -1408,6 +1431,7 @@ SUBSCRIBE Message {
   Track Name (..),
   Subscriber Priority (8),
   Group Order (8),
+  Forward (8),
   Filter Type (i),
   [Start (Location)],
   [EndGroup (i)],
@@ -1441,6 +1465,11 @@ See {{priorities}}.
 Ascending (0x1) or Descending (0x2) order by group. See {{priorities}}.
 A value of 0x0 indicates the original publisher's Group Order SHOULD be
 used. Values larger than 0x2 are a protocol error.
+
+* Forward: If 1, Objects matching the subscription are forwarded
+to the subscriber. If 0, Objects are not forwarded to the subscriber.
+Any other value is a protocol error and MUST terminate the
+session with a Protocol Violation ({{session-termination}}).
 
 * Filter Type: Identifies the type of filter, which also indicates whether
 the Start and EndGroup fields will be present.
@@ -1612,6 +1641,7 @@ SUBSCRIBE_UPDATE Message {
   Start (Location),
   EndGroup (i),
   Subscriber Priority (8),
+  Forward (8),
   Number of Parameters (i),
   Subscribe Parameters (..) ...
 }
@@ -1629,6 +1659,11 @@ open-ended.
 * Subscriber Priority: Specifies the priority of a subscription relative to
 other subscriptions in the same session. Lower numbers get higher priority.
 See {{priorities}}.
+
+* Forward: If 1, Objects matching the subscription are forwarded
+to the subscriber. If 0, Objects are not forwarded to the subscriber.
+Any other value is a protocol error and MUST terminate the
+session with a Protocol Violation ({{session-termination}}).
 
 * Subscribe Parameters: The parameters are defined in {{version-specific-params}}.
 
@@ -2113,10 +2148,9 @@ stream.
 
 ## ANNOUNCE {#message-announce}
 
-The publisher sends the ANNOUNCE control message to advertise where the
-receiver can route SUBSCRIBEs for tracks within the announced
-Track Namespace. The receiver verifies the publisher is authorized to
-publish tracks under this namespace.
+The publisher sends the ANNOUNCE control message to advertise that it has
+tracks available within the announced Track Namespace. The receiver verifies the
+publisher is authorized to publish tracks under this namespace.
 
 ~~~
 ANNOUNCE Message {
@@ -2466,7 +2500,7 @@ MUST be sent according to its `Object Forwarding Preference`, described below.
 
 * Subgroup ID: The object is a member of the indicated subgroup ID ({{model-subgroup}})
 within the group. This field is omitted if the Object Forwarding Preference is
-Track or Datagram.
+Datagram.
 
 * Object Status: As enumeration used to indicate missing
 objects or mark the end of a group or track. See {{object-status}} below.
@@ -2843,7 +2877,7 @@ the network layer.  Endpoints SHOULD set flow control limits based on the
 anticipated bitrate.
 
 Endpoints MAY impose a MAX STREAM count limit which would restrict the
-number of concurrent streams which a MOQT Streaming Format could have in
+number of concurrent streams which an application could have in
 flight.
 
 The publisher prioritizes and transmits streams out of order.  Streams
