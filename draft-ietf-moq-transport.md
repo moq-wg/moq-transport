@@ -25,18 +25,6 @@ pi: [toc, sortrefs, symrefs, docmapping]
 
 author:
   -
-    ins: L. Curley
-    name: Luke Curley
-    organization: Discord
-    email: kixelated@gmail.com
-
-  -
-    ins: K. Pugin
-    name: Kirill Pugin
-    organization: Meta
-    email: ikir@meta.com
-
-  -
     ins: S. Nandakumar
     name: Suhas Nandakumar
     organization: Cisco
@@ -53,6 +41,13 @@ author:
     name: Ian Swett
     organization: Google
     email: ianswett@google.com
+    role: editor
+
+  -
+    ins: A. Frindell
+    name: Alan Frindell
+    organization: Meta
+    email: afrind@meta.com
     role: editor
 
 normative:
