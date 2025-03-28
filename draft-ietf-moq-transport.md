@@ -1144,6 +1144,11 @@ authorization information in a SUBSCRIBE, SUBSCRIBE_ANNOUNCES, ANNOUNCE
 or FETCH message. This parameter is populated for cases where the authorization
 is required at the track level.
 
+### GROUP ORDER
+
+The GROUP ORDER parameter (Parameter Type 0x10) can appear in SUBSCRIBE,
+SUBSCRIBE_OK, FETCH and TRACK_STATUS.  See each message for an explanation.
+
 #### DELIVERY TIMEOUT Parameter {#delivery-timeout}
 
 The DELIVERY TIMEOUT parameter (Parameter Type 0x03) MAY appear in a
@@ -1403,7 +1408,6 @@ SUBSCRIBE Message {
   Track Name Length (i),
   Track Name (..),
   Subscriber Priority (8),
-  Group Order (8),
   Filter Type (i),
   [Start (Location)],
   [EndGroup (i)],
@@ -1433,11 +1437,6 @@ Track Alias error ({{session-termination}}).
 other subscriptions in the same session. Lower numbers get higher priority.
 See {{priorities}}.
 
-* Group Order: Allows the subscriber to request Objects be delivered in
-Ascending (0x1) or Descending (0x2) order by group. See {{priorities}}.
-A value of 0x0 indicates the original publisher's Group Order SHOULD be
-used. Values larger than 0x2 are a protocol error.
-
 * Filter Type: Identifies the type of filter, which also indicates whether
 the Start and EndGroup fields will be present.
 
@@ -1448,6 +1447,12 @@ the Start and EndGroup fields will be present.
 filter type.
 
 * Subscribe Parameters: The parameters are defined in {{version-specific-params}}.
+
+GROUP_ORDER: the group order priority parameter for this subscripton, either
+Ascending (0x0) or Descending (0x1). See {{priorities}}.
+If not present, the original publisher's Group Order SHOULD be used. Values
+larger than 0x1 are a protocol error.
+
 
 On successful subscription, the publisher MUST reply with a SUBSCRIBE_OK,
 allowing the subscriber to determine the start group/object when not explicitly
@@ -1469,7 +1474,6 @@ SUBSCRIBE_OK
   Length (i),
   Subscribe ID (i),
   Expires (i),
-  Group Order (8),
   ContentExists (8),
   [Largest (Location)],
   Number of Parameters (i),
@@ -1485,10 +1489,6 @@ longer valid. A value of 0 indicates that the subscription does not expire
 or expires at an unknown time.  Expires is advisory and a subscription can
 end prior to the expiry time or last longer.
 
-* Group Order: Indicates the subscription will be delivered in
-Ascending (0x1) or Descending (0x2) order by group. See {{priorities}}.
-Values of 0x0 and those larger than 0x2 are a protocol error.
-
 * ContentExists: 1 if an object has been published on this track, 0 if not.
 If 0, then the Largest Group ID and Largest Object ID fields will not be
 present. Any other value is a protocol error and MUST terminate the
@@ -1498,6 +1498,11 @@ session with a Protocol Violation ({{session-termination}}).
   field is only present if ContentExists has a value of 1.
 
 * Subscribe Parameters: The parameters are defined in {{version-specific-params}}.
+
+GROUP ORDER: the group order priority parameter for this subscripton,
+either Ascending (0x0) or Descending (0x1).  See {{priorities}}. Values larger
+than 0x1 are a protocol error.  If not present, it defaults to Ascending.
+
 
 ## SUBSCRIBE_ERROR {#message-subscribe-error}
 
@@ -1809,7 +1814,6 @@ FETCH Message {
   Length (i),
   Subscribe ID (i),
   Subscriber Priority (8),
-  Group Order (8),
   Fetch Type (i),
   [Track Namespace (tuple),
    Track Name Length (i),
@@ -1836,15 +1840,15 @@ within a session.
 other subscriptions or fetches in the same session. Lower numbers get higher
 priority. See {{priorities}}.
 
-* Group Order: Allows the subscriber to request Objects be delivered in
-Ascending (0x1) or Descending (0x2) order by group. See {{priorities}}.
-A value of 0x0 indicates the original publisher's Group Order SHOULD be
-used. Values larger than 0x2 are a protocol error.
-
 * Fetch Type: Identifies the type of Fetch, whether Standalone, Relative
   Joining or Absolute Joining.
 
 * Parameters: The parameters are defined in {{version-specific-params}}.
+
+GROUP ORDER: Indicates the Group Order in the FETCH response, either
+Ascending (0x0) or Descending (0x1). If not present, it defaults to
+Ascending.
+
 
 Fields present only for Standalone Fetch (0x1):
 
@@ -1879,7 +1883,7 @@ The latest available Object is indicated in the FETCH_OK, and is the last
 Object a fetch will return if the EndGroup and EndObject have not yet been
 published.
 
-A publisher MUST send fetched groups in the determined group order, either
+A publisher MUST send fetched groups in the requested group order, either
 ascending or descending. Within each group, objects are sent in Object ID order;
 subgroup ID is not used for ordering.
 
@@ -1928,7 +1932,6 @@ FETCH_OK
   Type (i) = 0x18,
   Length (i),
   Subscribe ID (i),
-  Group Order (8),
   End Of Track (8),
   End (Location),
   Number of Parameters (i),
@@ -1938,10 +1941,6 @@ FETCH_OK
 {: #moq-transport-fetch-ok format title="MOQT FETCH_OK Message"}
 
 * Subscribe ID: Fetch Identifier as defined in {{message-fetch}}.
-
-* Group Order: Indicates the fetch will be delivered in
-Ascending (0x1) or Descending (0x2) order by group. See {{priorities}}.
-Values of 0x0 and those larger than 0x2 are a protocol error.
 
 * End Of Track: 1 if all objects have been published on this track, so
 the End Group ID and Object Id indicate the last Object in the track,
