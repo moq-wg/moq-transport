@@ -5,13 +5,13 @@
 Media Over QUIC                                                L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 28 September 2025                                          Meta
+Expires: 29 September 2025                                          Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                           27 March 2025
+                                                           28 March 2025
 
 
                        Media over QUIC Transport
@@ -59,7 +59,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 28 September 2025.
+   This Internet-Draft will expire on 29 September 2025.
 
 Copyright Notice
 
@@ -90,6 +90,7 @@ Table of Contents
      2.1.  Objects
      2.2.  Subgroups
      2.3.  Groups
+       2.3.1.  Group Ordering
      2.4.  Track
        2.4.1.  Track Naming
        2.4.2.  Scope
@@ -103,7 +104,7 @@ Table of Contents
      3.4.  Termination
      3.5.  Migration
    4.  Retrieving Tracks with Subscribe and Fetch
-   5.  Namespace Discovery and Routing Subscriptions
+   5.  Namespace Discovery
      5.1.  Subscribing to Announcements
      5.2.  Announcements
    6.  Priorities
@@ -464,13 +465,26 @@ Table of Contents
    based on their group membership.  Groups can contain any number of
    objects.
 
-   Within a track, the original publisher SHOULD produce Group IDs which
-   increase with time.  Subscribers to tracks which do not follow this
-   requirement SHOULD NOT use range filters which span multiple groups
-   in FETCH or SUBSCRIBE.  SUBSCRIBE and FETCH delivery use Group Order,
-   so a FETCH cannot deliver Groups out of order and a subscription
-   could have unexpected delivery order if Group IDs do not increase
-   with time.
+2.3.1.  Group Ordering
+
+   Within a track, the original publisher SHOULD publish Group IDs which
+   increase with time.  In some cases, Groups will be produced in
+   increasing order, but sent to subscribers in a different order, for
+   example when the subscription's Group Order is Descending.  Due to
+   network reordering and the partial reliability features of MoQT,
+   Groups can always be received out of order.
+
+   As a result, subscribers cannot infer the existence of a Group until
+   an object in the Group is received.  This can create gaps in a cache
+   that can be filled by doing a Fetch upstream, if necessary.
+
+   Applications that cannot produce Group IDs that increase with time
+   are limited to the subset of MoQT that does not compare group IDs.
+   Subscribers to these Tracks SHOULD NOT use range filters which span
+   multiple Groups in FETCH or SUBSCRIBE.  SUBSCRIBE and FETCH delivery
+   use Group Order, so a FETCH cannot deliver Groups out of order and a
+   subscription could have unexpected delivery order if Group IDs do not
+   increase with time.
 
 2.4.  Track
 
@@ -754,7 +768,7 @@ Table of Contents
    delivered, and both endpoints can immediately destroy relevant state.
    Objects MUST NOT be sent for requests that end with an error.
 
-5.  Namespace Discovery and Routing Subscriptions
+5.  Namespace Discovery
 
    Discovery of MoQT servers is always done out-of-band.  Namespace
    discovery can be done in the context of an established MoQT session.
@@ -763,7 +777,7 @@ Table of Contents
    subscriber to send a SUBSCRIBE or FETCH message to a publisher
    (including a relay) without any previous MoQT messages besides SETUP.
    However, SUBSCRIBE_ANNOUNCES and ANNOUNCE messages provide an in-band
-   means of discovery of subscribers and publishers for a namespace.
+   means of discovery of publishers for a namespace.
 
    The syntax of these messages is described in Section 8.
 
@@ -791,9 +805,9 @@ Table of Contents
 5.2.  Announcements
 
    A publisher MAY send ANNOUNCE messages to any subscriber.  An
-   ANNOUNCE indicates to the subscriber where to route a SUBSCRIBE or
-   FETCH for that namespace.  A subscriber MAY send SUBSCRIBE or FETCH
-   for a namespace without having received an ANNOUNCE for it.
+   ANNOUNCE indicates to the subscriber that the publisher has tracks
+   available in that namespace.  A subscriber MAY send SUBSCRIBE or
+   FETCH for a namespace without having received an ANNOUNCE for it.
 
    If a publisher is authoritative for a given namespace, or is a relay
    that has received an authorized ANNOUNCE for that namespace from an
@@ -825,10 +839,10 @@ Table of Contents
    authorization, or discard associated state.  After receiving an
    ANNOUNCE_CANCEL, the publisher does not send UNANNOUNCE.
 
-   While ANNOUNCE does provide hints on where to route a SUBSCRIBE or
-   FETCH, it is not a full-fledged routing protocol and does not protect
-   against loops and other phenomena.  In particular, ANNOUNCE SHOULD
-   NOT be used to find paths through richly connected networks of
+   While ANNOUNCE indicates to relays how to connect publishers and
+   subscribers, it is not a full-fledged routing protocol and does not
+   protect against loops and other phenomena.  In particular, ANNOUNCE
+   SHOULD NOT be used to find paths through richly connected networks of
    relays.
 
    A subscriber MAY send a SUBSCRIBE or FETCH for a track to any
@@ -1032,7 +1046,7 @@ Table of Contents
 
    When a publisher wants to stop new subscriptions for an announced
    namespace it sends an UNANNOUNCE.  A subscriber indicates it will no
-   longer route subscriptions for a namespace it previously responded
+   longer subcribe to tracks in a namespace it previously responded
    ANNOUNCE_OK to by sending an ANNOUNCE_CANCEL.
 
    A relay manages sessions from multiple publishers and subscribers,
@@ -1514,6 +1528,17 @@ Table of Contents
    to send both messages at the same time or wait for the first to
    return before sending the second.
 
+   A Subscription can also request a publisher to not forward Objects
+   for a given track by setting the Forward field to 0.  This allows the
+   publisher or relay to prepare to serve the subscription in advance,
+   reducing the time to receive objects in the future.  Relays SHOULD
+   set the Forward flag to 1 if a new subscription needs to be sent
+   upstream, regardless of the value of the Forward field from the
+   downstream subscription.  Subscriptions that are not forwarded
+   consume resources from the publisher, so a publisher might
+   deprioritize, reject, or close those subscriptions to ensure other
+   subscriptions can be delivered.
+
    The format of SUBSCRIBE is as follows:
 
    SUBSCRIBE Message {
@@ -1526,6 +1551,7 @@ Table of Contents
      Track Name (..),
      Subscriber Priority (8),
      Group Order (8),
+     Forward (8),
      Filter Type (i),
      [Start (Location)],
      [EndGroup (i)],
@@ -1562,6 +1588,11 @@ Table of Contents
       Section 6.  A value of 0x0 indicates the original publisher's
       Group Order SHOULD be used.  Values larger than 0x2 are a protocol
       error.
+
+   *  Forward: If 1, Objects matching the subscription are forwarded to
+      the subscriber.  If 0, Objects are not forwarded to the
+      subscriber.  Any other value is a protocol error and MUST
+      terminate the session with a Protocol Violation (Section 3.4).
 
    *  Filter Type: Identifies the type of filter, which also indicates
       whether the Start and EndGroup fields will be present.
@@ -1743,6 +1774,7 @@ Table of Contents
      Start (Location),
      EndGroup (i),
      Subscriber Priority (8),
+     Forward (8),
      Number of Parameters (i),
      Subscribe Parameters (..) ...
    }
@@ -1760,6 +1792,11 @@ Table of Contents
    *  Subscriber Priority: Specifies the priority of a subscription
       relative to other subscriptions in the same session.  Lower
       numbers get higher priority.  See Section 6.
+
+   *  Forward: If 1, Objects matching the subscription are forwarded to
+      the subscriber.  If 0, Objects are not forwarded to the
+      subscriber.  Any other value is a protocol error and MUST
+      terminate the session with a Protocol Violation (Section 3.4).
 
    *  Subscribe Parameters: The parameters are defined in Section 8.1.1.
 
@@ -2276,10 +2313,10 @@ Table of Contents
 
 8.18.  ANNOUNCE
 
-   The publisher sends the ANNOUNCE control message to advertise where
-   the receiver can route SUBSCRIBEs for tracks within the announced
-   Track Namespace.  The receiver verifies the publisher is authorized
-   to publish tracks under this namespace.
+   The publisher sends the ANNOUNCE control message to advertise that it
+   has tracks available within the announced Track Namespace.  The
+   receiver verifies the publisher is authorized to publish tracks under
+   this namespace.
 
    ANNOUNCE Message {
      Type (i) = 0x6,
