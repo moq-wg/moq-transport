@@ -1919,8 +1919,8 @@ to subscribers in a different order, for example when the subscription's Group
 Order is Descending.  Due to network reordering and the partial reliability
 features of MoQT, Groups can always be received out of order.<a href="#section-2.3.1-1" class="pilcrow">¶</a></p>
 <p id="section-2.3.1-2">As a result, subscribers cannot infer the existence of a Group until an object in
-the Group is received. This can create gaps in the MoQ cache that <span class="bcp14">MUST</span> be filled
-by doing a Fetch upstream if a Fetch is received that requests those Groups.<a href="#section-2.3.1-2" class="pilcrow">¶</a></p>
+the Group is received. This can create gaps in a cache that can be filled
+by doing a Fetch upstream, if necessary.<a href="#section-2.3.1-2" class="pilcrow">¶</a></p>
 <p id="section-2.3.1-3">Subscribers to tracks which do not follow this requirement <span class="bcp14">SHOULD NOT</span>
 use range filters which span multiple groups in FETCH or SUBSCRIBE. SUBSCRIBE and
 FETCH delivery use Group Order, so a FETCH cannot deliver Groups out of order
