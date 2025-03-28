@@ -1921,14 +1921,12 @@ features of MoQT, Groups can always be received out of order.<a href="#section-2
 <p id="section-2.3.1-2">As a result, subscribers cannot infer the existence of a Group until an object in
 the Group is received. This can create gaps in a cache that can be filled
 by doing a Fetch upstream, if necessary.<a href="#section-2.3.1-2" class="pilcrow">¶</a></p>
-<p id="section-2.3.1-3">Subscribers to tracks which do not follow this requirement <span class="bcp14">SHOULD NOT</span>
-use range filters which span multiple groups in FETCH or SUBSCRIBE. SUBSCRIBE and
-FETCH delivery use Group Order, so a FETCH cannot deliver Groups out of order
-and a subscription could have unexpected delivery order if Group IDs do not increase
-with time.<a href="#section-2.3.1-3" class="pilcrow">¶</a></p>
-<p id="section-2.3.1-4">Applications that cannot produce Group IDs that increase with time are limited
+<p id="section-2.3.1-3">Applications that cannot produce Group IDs that increase with time are limited
 to the subset of MoQT that does not compare group IDs. Subscribers to these Tracks
-<span class="bcp14">SHOULD NOT</span> use range filters which span multiple Groups in FETCH or SUBSCRIBE.<a href="#section-2.3.1-4" class="pilcrow">¶</a></p>
+<span class="bcp14">SHOULD NOT</span> use range filters which span multiple Groups in FETCH or SUBSCRIBE.
+SUBSCRIBE and FETCH delivery use Group Order, so a FETCH cannot deliver Groups
+out of order and a subscription could have unexpected delivery order if Group IDs
+do not increase with time.<a href="#section-2.3.1-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
