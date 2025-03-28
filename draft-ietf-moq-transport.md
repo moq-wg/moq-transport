@@ -1391,7 +1391,7 @@ followed by a FETCH. Depending upon the application, one might want to send
 both messages at the same time or wait for the first to return before sending
 the second.
 
-Subscribers can also request a publisher to not forward objects for a given
+A Subscription can also request a publisher to not forward Objects for a given
 track by setting the `Forward` field to 0. This can reduce the latency of receiving
 Objects that might be needed urgently when the Relay is substantially closer to the
 subscriber than to the Original Publisher. Relays SHOULD always set the `Forward`
