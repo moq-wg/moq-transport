@@ -2,15 +2,13 @@
 
 
 
-Media Over QUIC                                                L. Curley
-Internet-Draft                                                   Discord
-Intended status: Standards Track                                K. Pugin
-Expires: 29 September 2025                                          Meta
-                                                           S. Nandakumar
-                                                                   Cisco
-                                                             V. Vasiliev
-                                                           I. Swett, Ed.
+Media Over QUIC                                            S. Nandakumar
+Internet-Draft                                                     Cisco
+Intended status: Standards Track                             V. Vasiliev
+Expires: 29 September 2025                                 I. Swett, Ed.
                                                                   Google
+                                                        A. Frindell, Ed.
+                                                                    Meta
                                                            28 March 2025
 
 
@@ -3185,16 +3183,6 @@ Informative References
 
 Authors' Addresses
 
-   Luke Curley
-   Discord
-   Email: kixelated@gmail.com
-
-
-   Kirill Pugin
-   Meta
-   Email: ikir@meta.com
-
-
    Suhas Nandakumar
    Cisco
    Email: snandaku@cisco.com
@@ -3208,3 +3196,8 @@ Authors' Addresses
    Ian Swett (editor)
    Google
    Email: ianswett@google.com
+
+
+   Alan Frindell (editor)
+   Meta
+   Email: afrind@meta.com
