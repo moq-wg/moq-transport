@@ -1392,14 +1392,14 @@ both messages at the same time or wait for the first to return before sending
 the second.
 
 A Subscription can also request a publisher to not forward Objects for a given
-track by setting the `Forward` field to 0. This can reduce the latency until
-receiving Objects when the Subscriber later urgently needs them, because the
-Relay will have them, rather than having to subscribe upstream. Relays SHOULD
-set the `Forward` flag to 1 if a new subscription needs to be sent
-upstream, regardless of the value of the `Forward` field from the downstream
-subscription. Subscriptions that are not forwarded consume resources from the
-publisher, so a publisher might deprioritize, reject, or close those
-subscriptions to ensure other subscriptions can be delivered.
+track by setting the `Forward` field to 0. This allows the publisher or relay
+to prepare to serve the subscription in advance, reducing the time to
+receive objects in the future. Relays SHOULD set the `Forward` flag to 1 if a
+new subscription needs to be sent upstream, regardless of the value of the 
+`Forward` field from the downstream subscription. Subscriptions that are not
+forwarded consume resources from the publisher, so a publisher might
+deprioritize, reject, or close those subscriptions to ensure other
+subscriptions can be delivered.
 
 The format of SUBSCRIBE is as follows:
 
