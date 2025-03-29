@@ -2911,6 +2911,8 @@ TODO: register the URI scheme and the ALPN and grease the Extension types
 - Cullen Jennings
 - James Hurley
 - Jordi Cenzano
+- Kirill Pugin
+- Luke Curley
 - Mike English
 - Mo Zanaty
 - Will Law
