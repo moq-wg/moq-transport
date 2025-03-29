@@ -475,7 +475,7 @@ There is no definition of the protocol over other transports,
 such as TCP, and applications using MoQ might need to fallback to
 another protocol when QUIC or WebTransport aren't available.
 
-MoQ uses ALPN in QUIC and "WT-Available-Protocols" in WebTransport
+MoQT uses ALPN in QUIC and "WT-Available-Protocols" in WebTransport
 to negotiate the version of MoQ.
 
 The ALPN value {{!RFC7301}} for the final version of this specification
