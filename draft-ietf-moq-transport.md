@@ -1187,13 +1187,14 @@ congestion control, and any other relevant information.
 
 #### MAX CACHE DURATION Parameter {#max-cache-duration}
 
-MAX_CACHE_DURATION (Parameter Type 0x04): An integer expressing a number of
-milliseconds. If present, the relay MUST NOT start forwarding any individual
-Object received through this subscription after the specified number of
-milliseconds has elapsed since the beginning of the Object was received.  This
-means Objects earlier in a multi-object stream will expire earlier than Objects
-later in the stream. Once Objects have expired, their state becomes unknown, and
-a relay that handles a subscription that includes those Objects re-requests them.
+MAX_CACHE_DURATION (Parameter Type 0x04): An integer expressing the number of
+milliseconds an object can be served from a cache. If present, the relay MUST
+NOT start forwarding any individual Object received through this subscription
+or fetch after the specified number of milliseconds has elapsed since the
+beginning of the Object was received.  This means Objects earlier in a
+multi-object stream will expire earlier than Objects later in the stream. Once
+Objects have expired from cache, their state becomes unknown, and a relay that
+handles a downstream request that includes those Objects re-requests them.
 
 ## CLIENT_SETUP and SERVER_SETUP {#message-setup}
 
