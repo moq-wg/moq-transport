@@ -1103,7 +1103,7 @@ Protocol Violation.
 Some messages contain a control message ID that correlates requests and
 responses.  There are independent control message IDs for each endpoint. The
 client's control message ID starts at 0 and the server's control message ID
-starts at 1.  The control message ID increments by 2 with ANNOUNCE, 
+starts at 1.  The control message ID increments by 2 with ANNOUNCE,
 SUBSCRIBE_ANNOUNCES or TRACK_STATUS.
 
 ## Parameters {#params}
