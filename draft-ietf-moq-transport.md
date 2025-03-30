@@ -1098,6 +1098,14 @@ Payload, which is defined by each message type.  If the length does not match
 the length of the Message Payload, the receiver MUST close the session with
 Protocol Violation.
 
+## Control Message ID
+
+Some messages contain a control message ID that correlates requests and
+responses.  There are independent control message IDs for each endpoint. The
+client's control message ID starts at 0 and the server's control message ID
+starts at 1.  The control message ID increments by 2 with ANNOUNCE, 
+SUBSCRIBE_ANNOUNCES or TRACK_STATUS.
+
 ## Parameters {#params}
 
 Some messages include a Parameters field that encode optional message
@@ -2081,12 +2089,21 @@ A TRACK_STATUS message MUST be sent in response to each TRACK_STATUS_REQUEST.
 TRACK_STATUS_REQUEST Message {
   Type (i) = 0xD,
   Length (i),
+  Control Message ID (i),
   Track Namespace (tuple),
   Track Name Length (i),
   Track Name (..),
 }
 ~~~
 {: #moq-track-status-request-format title="MOQT TRACK_STATUS_REQUEST Message"}
+
+* Control Message ID: the control message ID described in
+  {{control-message-id}}.
+
+* Track Namespace: Identifies the namespace of the track as defined in
+({{track-name}}).
+
+* Track Name: Identifies the track name as defined in ({{track-name}}).
 
 ## TRACK_STATUS {#message-track-status}
 
@@ -2097,16 +2114,17 @@ to a TRACK_STATUS_REQUEST message.
 TRACK_STATUS Message {
   Type (i) = 0xE,
   Length (i),
-  Track Namespace (tuple),
-  Track Name Length(i),
-  Track Name (..),
+  Control Message ID (i),
   Status Code (i),
   Largest (Location),
 }
 ~~~
 {: #moq-track-status-format title="MOQT TRACK_STATUS Message"}
 
-The 'Status Code' field provides additional information about the status of the
+* Control Message ID: Control Message ID of the ANNOUNCE for which this
+  response is provided.
+
+* Status Code: Provides additional information about the status of the
 track. It MUST hold one of the following values. Any other value is a malformed
 message.
 
@@ -2127,15 +2145,11 @@ upstream. Subsequent fields contain the largest group and object ID known.
 
 Any other value in the Status Code field is a malformed message.
 
-The `Largest` field represents the largest Object location observed by the
+* Largest: represents the largest Object location observed by the
 Publisher for an active subscription. If the publisher is a relay without an
 active subscription, it SHOULD send a TRACK_STATUS_REQUEST upstream or MAY
 subscribe to the track, to obtain the same information. If neither is possible,
 it should return the best available information with status code 0x04.
-
-The receiver of multiple TRACK_STATUS messages for a track uses the information
-from the latest arriving message, as they are delivered in order on a single
-stream.
 
 ## ANNOUNCE {#message-announce}
 
@@ -2147,12 +2161,16 @@ publisher is authorized to publish tracks under this namespace.
 ANNOUNCE Message {
   Type (i) = 0x6,
   Length (i),
+  Control Message ID (i),
   Track Namespace (tuple),
   Number of Parameters (i),
   Parameters (..) ...,
 }
 ~~~
 {: #moq-transport-announce-format title="MOQT ANNOUNCE Message"}
+
+* Control Message ID: the control message ID described in
+  {{control-message-id}}.
 
 * Track Namespace: Identifies a track's namespace as defined in
 ({{track-name}})
@@ -2169,13 +2187,13 @@ ANNOUNCE_OK Message
 {
   Type (i) = 0x7,
   Length (i),
-  Track Namespace (tuple),
+  Control Message ID (i)
 }
 ~~~
 {: #moq-transport-announce-ok format title="MOQT ANNOUNCE_OK Message"}
 
-* Track Namespace: Identifies the track namespace in the ANNOUNCE
-message for which this response is provided.
+* Control Message ID: Control Message ID of the ANNOUNCE for which this
+  response is provided.
 
 ## ANNOUNCE_ERROR {#message-announce-error}
 
@@ -2187,7 +2205,7 @@ ANNOUNCE_ERROR Message
 {
   Type (i) = 0x8,
   Length (i),
-  Track Namespace (tuple),
+  Control Message ID (i),
   Error Code (i),
   Reason Phrase Length (i),
   Reason Phrase (..),
@@ -2195,8 +2213,8 @@ ANNOUNCE_ERROR Message
 ~~~
 {: #moq-transport-announce-error format title="MOQT ANNOUNCE_ERROR Message"}
 
-* Track Namespace: Identifies the track namespace in the ANNOUNCE
-message for which this response is provided.
+* Control Message ID: Control Message ID of the ANNOUNCE for which this
+  response is provided.
 
 * Error Code: Identifies an integer error code for announcement failure.
 
@@ -2287,12 +2305,16 @@ to the set.
 SUBSCRIBE_ANNOUNCES Message {
   Type (i) = 0x11,
   Length (i),
+  Control Message ID (i),
   Track Namespace Prefix (tuple),
   Number of Parameters (i),
   Parameters (..) ...,
 }
 ~~~
 {: #moq-transport-subscribe-ns-format title="MOQT SUBSCRIBE_ANNOUNCES Message"}
+
+* Control Message ID: the control message ID described in
+  {{control-message-id}}.
 
 * Track Namespace Prefix: An ordered N-Tuple of byte fields which are matched
 against track namespaces known to the publisher.  For example, if the publisher
@@ -2335,13 +2357,14 @@ SUBSCRIBE_ANNOUNCES_OK
 {
   Type (i) = 0x12,
   Length (i),
-  Track Namespace Prefix (tuple),
+  Control Message ID (i),
 }
 ~~~
 {: #moq-transport-sub-ann-ok format title="MOQT SUBSCRIBE_ANNOUNCES_OK
 Message"}
 
-* Track Namespace Prefix: As defined in {{message-subscribe-ns}}.
+* Control Message ID: Control Message ID of the SUBSCRIBE_ANNOUNCES for which
+  this response is provided.
 
 ## SUBSCRIBE_ANNOUNCES_ERROR {#message-sub-ann-error}
 
@@ -2353,7 +2376,7 @@ SUBSCRIBE_ANNOUNCES_ERROR
 {
   Type (i) = 0x13,
   Length (i),
-  Track Namespace Prefix (tuple),
+  Control Message ID (i),
   Error Code (i),
   Reason Phrase Length (i),
   Reason Phrase (..),
@@ -2362,7 +2385,8 @@ SUBSCRIBE_ANNOUNCES_ERROR
 {: #moq-transport-sub-ann-error format
 title="MOQT SUBSCRIBE_ANNOUNCES_ERROR Message"}
 
-* Track Namespace Prefix: As defined in {{message-subscribe-ns}}.
+* Control Message ID: Control Message ID of the SUBSCRIBE_ANNOUNCES for which
+  this response is provided.
 
 * Error Code: Identifies an integer error code for the namespace subscription
 failure.
