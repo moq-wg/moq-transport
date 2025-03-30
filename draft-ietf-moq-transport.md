@@ -618,8 +618,14 @@ code, as defined below:
   long to send data expected on an open Data Stream {{data-streams}}.  This
   includes fields of a stream header or an object header within a data
   stream. If an endpoint times out waiting for a new object header on an
-  open subgroup stream, it MAY send a STOP_SENDING on that stream, terminate
-  the subscription, or close the session with an error.
+  open subgroup stream, it MAY send a STOP_SENDING on that stream or
+  terminate the subscription.
+
+An endpoint MAY choose to treat a subscription or request specific error as a
+session error under certain circumstances, closing the entire session in
+response to a condition with a single subscription or message. Implementations
+need to consider the impact on other outstanding subscriptions before making this
+choice.
 
 ## Migration {#session-migration}
 
