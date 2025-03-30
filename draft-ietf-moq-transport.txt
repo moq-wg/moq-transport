@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 30 September 2025                                 I. Swett, Ed.
+Expires: 1 October 2025                                    I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                           29 March 2025
+                                                           30 March 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 30 September 2025.
+   This Internet-Draft will expire on 1 October 2025.
 
 Copyright Notice
 
@@ -1303,14 +1303,15 @@ Table of Contents
 
 8.1.1.3.  MAX CACHE DURATION Parameter
 
-   MAX_CACHE_DURATION (Parameter Type 0x04): An integer expressing a
-   number of milliseconds.  If present, the relay MUST NOT start
-   forwarding any individual Object received through this subscription
-   after the specified number of milliseconds has elapsed since the
-   beginning of the Object was received.  This means Objects earlier in
-   a multi-object stream will expire earlier than Objects later in the
-   stream.  Once Objects have expired, their state becomes unknown, and
-   a relay that handles a subscription that includes those Objects re-
+   MAX_CACHE_DURATION (Parameter Type 0x04): An integer expressing the
+   number of milliseconds an object can be served from a cache.  If
+   present, the relay MUST NOT start forwarding any individual Object
+   received through this subscription or fetch after the specified
+   number of milliseconds has elapsed since the beginning of the Object
+   was received.  This means Objects earlier in a multi-object stream
+   will expire earlier than Objects later in the stream.  Once Objects
+   have expired from cache, their state becomes unknown, and a relay
+   that handles a downstream request that includes those Objects re-
    requests them.
 
 8.2.  CLIENT_SETUP and SERVER_SETUP
