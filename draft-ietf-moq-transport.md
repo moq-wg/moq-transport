@@ -1926,7 +1926,7 @@ The Largest Group ID and Largest Object ID values from the corresponding
 subscription are used to calculate the end of a Relative Joining Fetch so the
 Objects retrieved by the FETCH and SUBSCRIBE are contiguous and non-overlapping.
 If no Objects have been published for the track, and the SUBSCRIBE_OK has a
-ContentExists value of 0, the publisher responds with a FETCH_ERROR with
+ContentExists value of 0, the publisher MUST respond with a FETCH_ERROR with
 error code 'No Objects'.
 
 The publisher receiving a Relative Joining Fetch computes the range as follows:
