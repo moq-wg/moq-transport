@@ -562,7 +562,7 @@ code, as defined below:
 |------|---------------------------|
 | 0x4  | Duplicate Track Alias     |
 |------|---------------------------|
-| 0x5  | Parameter Value Mismatch |
+| 0x5  | Parameter Formatting Error|
 |------|---------------------------|
 | 0x6  | Too Many Subscribes       |
 |------|---------------------------|
@@ -1095,14 +1095,12 @@ Parameter {
 {: #moq-param format title="MOQT Parameter"}
 
 Parameter Type is an unsigned integer that indicates the semantic meaning of the
-parameter and also the subsequent serialization. Parameter Type is delta encoded.
-The first Parameter Type in the message is encoded with an absolute value and all
-subsequent Parameter Types are encoded as a delta to the prior Parameter Type.
-Setup message parameters use a namespace that is constant across all MoQ Transport
-versions. All other messages use a version-specific namespace. For example, the
-integer '1' can refer to different parameters for Setup messages and for all other
-message types. SETUP message parameter types are defined in {{setup-params}}.
-Version-specific parameter types are defined in {{version-specific-params}}.
+parameter and also the subsequent serialization. Setup message parameters use a
+namespace that is constant across all MoQ Transport versions. All other messages
+use a version-specific namespace. For example, the integer '1' can refer to
+different parameters for Setup messages and for all other message types. SETUP
+message parameter types are defined in {{setup-params}}. Version-specific
+parameter types are defined in {{version-specific-params}}.
 
 Parameter Values: even Parameter Types are followed by a single varint encoded
 value. Odd Parameter Types are followed by the Parameter Value length in bytes
@@ -1110,7 +1108,8 @@ followed by the Parameter Value.
 
 If a receiver understands a Parameter Type, and the following Value or
 Length/Value does not match the serialization defined by that Parameter Type,
-the receiver MUST terminate the session with error code 'Parameter Value Mismatch'.
+the receiver MUST terminate the session with error code 'Parameter Formatting
+Error'.
 
 ### Version Specific Parameters {#version-specific-params}
 
