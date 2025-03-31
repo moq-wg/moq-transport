@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 1 October 2025                                    I. Swett, Ed.
+Expires: 2 October 2025                                    I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                           30 March 2025
+                                                           31 March 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 1 October 2025.
+   This Internet-Draft will expire on 2 October 2025.
 
 Copyright Notice
 
@@ -2089,8 +2089,8 @@ Table of Contents
    Relative Joining Fetch so the Objects retrieved by the FETCH and
    SUBSCRIBE are contiguous and non-overlapping.  If no Objects have
    been published for the track, and the SUBSCRIBE_OK has a
-   ContentExists value of 0, the publisher responds with a FETCH_ERROR
-   with error code 'No Objects'.
+   ContentExists value of 0, the publisher MUST respond with a
+   FETCH_ERROR with error code 'No Objects'.
 
    The publisher receiving a Relative Joining Fetch computes the range
    as follows:
