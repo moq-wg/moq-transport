@@ -605,8 +605,7 @@ code, as defined below:
   that was already in use.
 
 * Too Many Requests: The session was closed because the subscriber used a
-  Request ID equal or larger than the current Maximum Control Message
-  ID.
+  Request ID equal or larger than the current Maximum Request ID.
 
 * GOAWAY Timeout: The session was closed because the peer took too long to
   close the session in response to a GOAWAY ({{message-goaway}}) message.
@@ -1340,8 +1339,9 @@ MAX_REQUEST_ID
 
 * Request ID: The new Maximum Request ID for the session. If a Request ID equal
   or larger than this is received by the endpoint that sent the MAX_REQUEST_ID
-  in ANNOUNCE, FETCH, SUBSCRIBE, SUBSCRIBE_ANNOUNCES or TRACK_STATUS_REQUEST,
-  the endpoint MUST close the session with an error of 'Too Many Requests'.
+  in any request message (ANNOUNCE, FETCH, SUBSCRIBE, SUBSCRIBE_ANNOUNCES
+  or TRACK_STATUS_REQUEST), the endpoint MUST close the session with an error
+  of 'Too Many Requests'.
 
 MAX_REQUEST_ID is similar to MAX_STREAMS in ({{?RFC9000, Section 4.6}}), and
 similar considerations apply when deciding how often to send MAX_REQUEST_ID.
@@ -1861,7 +1861,7 @@ FETCH Message {
    StartObject (i),
    EndGroup (i),
    EndObject (i),]
-  [ Request ID (i),
+  [ Joining Request ID (i),
     Joining Start (i),]
   Number of Parameters (i),
   Parameters (..) ...
@@ -1906,8 +1906,9 @@ requested.
 Fields present only for Relative Fetch (0x2) and Absolute Fetch (0x3):
 
 * Joining Request ID: The Request ID of the existing subscription to be
-joined. If a publisher receives a Joining Fetch with a Request ID that does
-not correspond to an existing Subscribe, it MUST respond with a Fetch Error.
+joined. If a publisher receives a Joining Fetch with a Joining Request ID that
+does not correspond to an existing Subscribe, it MUST respond with a Fetch
+Error.
 
 * Joining Start : for a Relative Joining Fetch (0x2), this value represents the
   group offset for the Fetch prior and relative to the Current Group of the
@@ -2853,7 +2854,6 @@ Extension Headers.
 Stream = 2
 
 STREAM_HEADER_GROUP {
-  Request ID = 2
   Track Alias = 2
   Group ID = 0
   Publisher Priority = 0
