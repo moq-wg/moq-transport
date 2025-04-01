@@ -1104,9 +1104,9 @@ Most MoQT control messages contain a Request ID.  The Request ID correlates
 requests and responses, allows endpoints to update or terminate ongoing
 requests, and supports the endpoint's ability to limit the concurrency and
 frequency of requests.  There are independent Request IDs for each endpoint. The
-client's Request ID starts at 0 and are even and the server's Request ID starts at 1 and are odd.  The
-Request ID increments by 2 with ANNOUNCE, FETCH, SUBSCRIBE, SUBSCRIBE_ANNOUNCES
-or TRACK_STATUS request.
+client's Request ID starts at 0 and are even and the server's Request ID starts
+at 1 and are odd.  The Request ID increments by 2 with ANNOUNCE, FETCH,
+SUBSCRIBE, SUBSCRIBE_ANNOUNCES or TRACK_STATUS request.
 
 ## Parameters {#params}
 
