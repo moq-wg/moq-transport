@@ -1080,8 +1080,6 @@ as a 'Protocol Violation' if found.
 
 Receivers ignore unrecognized parameters.
 
-Parameters MUST be serialized in ascending Parameter Type order.
-
 The format of Parameters is as follows:
 
 ~~~
@@ -1094,11 +1092,11 @@ Parameter {
 ~~~
 {: #moq-param format title="MOQT Parameter"}
 
-Parameter Type is an unsigned integer that indicates the semantic meaning of the
-parameter and also the subsequent serialization. Setup message parameters use a
-namespace that is constant across all MoQ Transport versions. All other messages
-use a version-specific namespace. For example, the integer '1' can refer to
-different parameters for Setup messages and for all other message types. SETUP
+Parameter Type is a variable length integer that indicates the semantic meaning
+of the parameter and also the subsequent serialization. Setup message parameters
+use a namespace that is constant across all MoQ Transport versions. All other
+messages use a version-specific namespace. For example, the integer '1' can refer
+to different parameters for Setup messages and for all other message types. SETUP
 message parameter types are defined in {{setup-params}}. Version-specific
 parameter types are defined in {{version-specific-params}}.
 
