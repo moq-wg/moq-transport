@@ -660,6 +660,9 @@ A SUBSCRIBE_ERROR or FETCH_ERROR indicates no objects will be delivered, and
 both endpoints can immediately destroy relevant state. Objects MUST NOT be sent
 for requests that end with an error.
 
+The Parameters in SUBSCRIBE and FETCH MUST NOT cause the publisher to alter the
+payload of the objects it sends, as that would violate the track uniqueness
+guarantee described in {{track-scope}}.
 
 # Namespace Discovery and Routing Subscriptions {#track-discovery}
 
@@ -1445,10 +1448,6 @@ specified and the publisher SHOULD start delivering objects.
 If a publisher cannot satisfy the requested start or end or if the end has
 already been published it SHOULD send a SUBSCRIBE_ERROR with code 'Invalid Range'.
 A publisher MUST NOT send objects from outside the requested start and end.
-
-Subscribe Parameters MUST NOT cause the publisher to alter the payload of the
-objects it sends, as that would violate the track uniqueness guarantee
-described in {{track-scope}}.
 
 ## SUBSCRIBE_OK {#message-subscribe-ok}
 
