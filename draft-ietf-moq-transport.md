@@ -2637,7 +2637,7 @@ Internal Error:
 
 Cancelled:
 
-: The receiver requested cancellation via UNSUBSCRIBE, FETCH_CANCEL or
+: The subscriber requested cancellation via UNSUBSCRIBE, FETCH_CANCEL or
 STOP_SENDING
 
 Delivery Timeout:
