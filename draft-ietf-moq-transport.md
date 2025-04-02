@@ -2110,24 +2110,24 @@ The 'Status Code' field provides information about the status of the track. It
 MUST hold one of the following values. If an endpoint receives any other value
 in the Status Code field it MUST close the session with a `Protocol Violation`.
 
-0x00 (IN PROGRESS): The track is in progress.  Either the publisher is the
-Original Publisher, or a relay with an active upstream subscription for this track.  The
-`Largest` field contains the largest group and object ID available at the
-endpoint.
+0x00 (In Progress): The track is in progress.  Either the publisher is the
+Original Publisher, or a relay with an active upstream subscription for this
+track.  The `Largest` field contains the largest group and object ID available
+at the endpoint.
 
-0x01 (NOT FOUND): The track does not exist or could not be located by a relay.
+0x01 (Not Found): The track does not exist or could not be located by a relay.
 The `Largest` field must have group and object set to 0.  If an endpoint
 receives a non-zero value for either field it MUST close the session with a
 `Protocol Violation`.
 
-0x02 (NOT STARTED): The track has not yet begun. The Largest field must have
+0x02 (Not Started): The track has not yet begun. The Largest field must have
 group and object set to 0.  If an endpoint receives a non-zero value for either
 field it MUST close the session with a `Protocol Violation`.
 
-0x03 (FINISHED): The track has finished.  The `Largest` field contains the
+0x03 (Finished): The track has finished.  The `Largest` field contains the
 largest Group and Object ID in the track.
 
-0x04 (PARTIAL INFORMATION): The publisher is a relay with prior knowledge of
+0x04 (Partial Information): The publisher is a relay with prior knowledge of
 this track (for example, it has at least one object cached), but does not have
 an active subscription, and cannot obtain the current track status from
 upstream. The `Largest` field contains the largest group and object ID known
