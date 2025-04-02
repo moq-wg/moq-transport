@@ -2121,7 +2121,7 @@ TRACK_STATUS Message {
 ~~~
 {: #moq-track-status-format title="MOQT TRACK_STATUS Message"}
 
-* Control Message ID: Control Message ID of the ANNOUNCE for which this
+* Control Message ID: Control Message ID of the TRACK_STATUS_REQUEST for which this
   response is provided.
 
 * Status Code: Provides additional information about the status of the
