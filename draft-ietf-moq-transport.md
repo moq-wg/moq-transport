@@ -2120,7 +2120,7 @@ The `Largest` field must have group and object set to 0.  If an endpoint
 receives a non-zero value for either field it MUST close the session with a
 `Protocol Violation`.
 
-0x02 (Not Started): The track has not yet begun. The Largest field must have
+0x02 (Not Started): The track has not yet begun. The `Largest` field must have
 group and object set to 0.  If an endpoint receives a non-zero value for either
 field it MUST close the session with a `Protocol Violation`.
 
@@ -2132,6 +2132,11 @@ this track (for example, it has at least one object cached), but does not have
 an active subscription, and cannot obtain the current track status from
 upstream. The `Largest` field contains the largest group and object ID known
 to the relay.
+
+0x05 (Empty Track): The track is complete and is known to have no objects.
+The `Largest` field must have group and object set to 0.  If an endpoint
+receives a non-zero value for either field it MUST close the session with
+a `Protocol Violation`.
 
 The `Largest` field represents the largest Object location observed by the
 Publisher for an active subscription. If the publisher is a relay without an
