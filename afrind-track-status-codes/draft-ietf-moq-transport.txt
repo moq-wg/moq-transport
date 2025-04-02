@@ -2282,9 +2282,9 @@ Table of Contents
    session with a Protocol Violation.
 
    0x00 (IN PROGRESS): The track is in progress.  Either the publisher
-   is the Original Publisher, or a relay with an active subscription for
-   this track.  The Largest field contains the largest group and object
-   ID available at the endpoint.
+   is the Original Publisher, or a relay with an active upstream
+   subscription for this track.  The Largest field contains the largest
+   group and object ID available at the endpoint.
 
    0x01 (NOT FOUND): The track does not exist or could not be located by
    a relay.  The Largest field must have group and object set to 0.  If
