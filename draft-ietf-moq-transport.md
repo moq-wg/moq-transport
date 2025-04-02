@@ -2111,7 +2111,7 @@ MUST hold one of the following values. If an endpoint receives any other value
 in the Status Code field it MUST close the session with a `Protocol Violation`.
 
 0x00 (IN PROGRESS): The track is in progress.  Either the publisher is the
-Original Publisher, or a relay with an active subscription for this track.  The
+Original Publisher, or a relay with an active upstream subscription for this track.  The
 `Largest` field contains the largest group and object ID available at the
 endpoint.
 
