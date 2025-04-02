@@ -606,7 +606,7 @@ code, as defined below:
 * Duplicate Track Alias: The endpoint attempted to use a Track Alias
   that was already in use.
 
-* Too Many Requests: The session was closed because the subscriber used a
+* Too Many Requests: The session was closed because the endpoint used a
   Request ID equal or larger than the current Maximum Request ID.
 
 * Invalid Request ID: The session was closed because the endpoint used a
@@ -1380,7 +1380,7 @@ REQUESTS_BLOCKED
 {: #moq-transport-requests-blocked format title="MOQT REQUESTS_BLOCKED Message"}
 
 * Maximum Request ID: The Maximum Request ID for the session on which the
-  subscriber is blocked. More on Request ID in {{message-subscribe-req}}.
+  endpoint is blocked. More on Request ID in {{message-subscribe-req}}.
 
 ## SUBSCRIBE {#message-subscribe-req}
 
