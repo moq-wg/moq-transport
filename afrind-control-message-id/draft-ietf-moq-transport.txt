@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 1 October 2025                                    I. Swett, Ed.
+Expires: 4 October 2025                                    I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                           30 March 2025
+                                                            2 April 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 1 October 2025.
+   This Internet-Draft will expire on 4 October 2025.
 
 Copyright Notice
 
@@ -2293,8 +2293,8 @@ Table of Contents
 
                     Figure 19: MOQT TRACK_STATUS Message
 
-   *  Control Message ID: Control Message ID of the ANNOUNCE for which
-      this response is provided.
+   *  Control Message ID: Control Message ID of the TRACK_STATUS_REQUEST
+      for which this response is provided.
 
    *  Status Code: Provides additional information about the status of
       the track.  It MUST hold one of the following values.  Any other
