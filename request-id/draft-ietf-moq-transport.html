@@ -2150,6 +2150,10 @@ code, as defined below:<a href="#section-3.4-2" class="pilcrow">¶</a></p>
               <td class="text-left" rowspan="1" colspan="1">Too Many Requests</td>
             </tr>
             <tr>
+              <td class="text-right" rowspan="1" colspan="1">0x7</td>
+              <td class="text-left" rowspan="1" colspan="1">Invalid Request ID</td>
+            </tr>
+            <tr>
               <td class="text-right" rowspan="1" colspan="1">0x10</td>
               <td class="text-left" rowspan="1" colspan="1">GOAWAY Timeout</td>
             </tr>
@@ -2187,21 +2191,27 @@ that was already in use.<a href="#section-3.4-4.5.1" class="pilcrow">¶</a></p>
 Request ID equal or larger than the current Maximum Request ID.<a href="#section-3.4-4.6.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-3.4-4.7">
-            <p id="section-3.4-4.7.1">GOAWAY Timeout: The session was closed because the peer took too long to
-close the session in response to a GOAWAY (<a href="#message-goaway" class="auto internal xref">Section 8.4</a>) message.
-See session migration (<a href="#session-migration" class="auto internal xref">Section 3.5</a>).<a href="#section-3.4-4.7.1" class="pilcrow">¶</a></p>
+            <p id="section-3.4-4.7.1">Invalid Request ID: The session was closed because the endpoint used a
+Request ID that was smaller than a previously received request ID, or
+the least-significant bit of the request ID was incorrect for the
+endpoint.<a href="#section-3.4-4.7.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-3.4-4.8">
-            <p id="section-3.4-4.8.1">Control Message Timeout: The session was closed because the peer took too
-long to respond to a control message.<a href="#section-3.4-4.8.1" class="pilcrow">¶</a></p>
+            <p id="section-3.4-4.8.1">GOAWAY Timeout: The session was closed because the peer took too long to
+close the session in response to a GOAWAY (<a href="#message-goaway" class="auto internal xref">Section 8.4</a>) message.
+See session migration (<a href="#session-migration" class="auto internal xref">Section 3.5</a>).<a href="#section-3.4-4.8.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-3.4-4.9">
-            <p id="section-3.4-4.9.1">Data Stream Timeout: The session was closed because the peer took too
+            <p id="section-3.4-4.9.1">Control Message Timeout: The session was closed because the peer took too
+long to respond to a control message.<a href="#section-3.4-4.9.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-3.4-4.10">
+            <p id="section-3.4-4.10.1">Data Stream Timeout: The session was closed because the peer took too
 long to send data expected on an open Data Stream <a href="#data-streams" class="auto internal xref">Section 9</a>.  This
 includes fields of a stream header or an object header within a data
 stream. If an endpoint times out waiting for a new object header on an
 open subgroup stream, it <span class="bcp14">MAY</span> send a STOP_SENDING on that stream, terminate
-the subscription, or close the session with an error.<a href="#section-3.4-4.9.1" class="pilcrow">¶</a></p>
+the subscription, or close the session with an error.<a href="#section-3.4-4.10.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
@@ -2786,7 +2796,9 @@ requests, and supports the endpoint's ability to limit the concurrency and
 frequency of requests.  There are independent Request IDs for each endpoint. The
 client's Request ID starts at 0 and are even and the server's Request ID starts
 at 1 and are odd.  The Request ID increments by 2 with ANNOUNCE, FETCH,
-SUBSCRIBE, SUBSCRIBE_ANNOUNCES or TRACK_STATUS request.<a href="#section-8.1-1" class="pilcrow">¶</a></p>
+SUBSCRIBE, SUBSCRIBE_ANNOUNCES or TRACK_STATUS request.  If an endpoint receives
+a Request ID that is not valid for the peer, or a new request with a Request ID
+that is not expected, it <span class="bcp14">MUST</span> close the session with <code>Invalid Request ID</code>.<a href="#section-8.1-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="params">
