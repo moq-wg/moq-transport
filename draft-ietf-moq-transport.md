@@ -2110,28 +2110,36 @@ The 'Status Code' field provides additional information about the status of the
 track. It MUST hold one of the following values. Any other value is a malformed
 message.
 
-0x00: The track is in progress, and subsequent fields contain the highest group
-and object ID for that track.
+0x00 (IN PROGRESS): The track is in progress.  Either the publisher is the
+Original Publisher, or a relay with an active subscription for this track.  The
+`Largest` field contains the largest group and object ID available at the
+endpoint.
 
-0x01: The track does not exist. Subsequent fields MUST be zero, and any other
-value is a malformed message.
+0x01 (NOT FOUND): The track does not exist or could not be located by a relay.
+The `Largest` field must have group and object set to 0.  If an endpoint
+receives a non-zero value for either field it MUST close the session with a 
+`Protocol Violation`.
 
-0x02: The track has not yet begun. Subsequent fields MUST be zero. Any other
-value is a malformed message.
+0x02 (NOT STARTED): The track has not yet begun. The Largest field must have
+group and object set to 0.  If an endpoint receives a non-zero value for either
+field it MUST close the session with a `Protocol Violation`.
 
-0x03: The track has finished, so there is no "live edge." Subsequent fields
-contain the highest Group and object ID known.
+0x03 (FINISHED): The track has finished.  The `Largest` field contains the
+highest Group and Object ID in the track.
 
-0x04: The publisher is a relay that cannot obtain the current track status from
-upstream. Subsequent fields contain the largest group and object ID known.
+0x04 (PARTIAL INFORMATION): The publisher is a relay with prior knowledge of
+this track (for example it has at least one object cached), but does not have
+an active subscription, and cannot obtain the current track status from
+upstream. The `Largest` field contains the largest group and object ID known
+to the relay.
 
-Any other value in the Status Code field is a malformed message.
+If an endpoint receives any other value in the Status Code field it MUST close
+the session with a `Protocol Violation`.
 
 The `Largest` field represents the largest Object location observed by the
 Publisher for an active subscription. If the publisher is a relay without an
 active subscription, it SHOULD send a TRACK_STATUS_REQUEST upstream or MAY
-subscribe to the track, to obtain the same information. If neither is possible,
-it should return the best available information with status code 0x04.
+subscribe to the track, to obtain the same information.
 
 The receiver of multiple TRACK_STATUS messages for a track uses the information
 from the latest arriving message, as they are delivered in order on a single
