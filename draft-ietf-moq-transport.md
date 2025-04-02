@@ -2638,7 +2638,9 @@ Internal Error:
 Cancelled:
 
 : The subscriber requested cancellation via UNSUBSCRIBE, FETCH_CANCEL or
-STOP_SENDING
+STOP_SENDING, or the publisher ended the subscription, in which case
+SUBSCRIBE_DONE ({{message-subscribe-done}}) will have a more detailed
+status code.
 
 Delivery Timeout:
 
