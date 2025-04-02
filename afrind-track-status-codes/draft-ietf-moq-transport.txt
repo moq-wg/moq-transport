@@ -2305,6 +2305,11 @@ Table of Contents
    the current track status from upstream.  The Largest field contains
    the largest group and object ID known to the relay.
 
+   0x05 (Empty Track): The track is complete and is known to have no
+   objects.  The Largest field must have group and object set to 0.  If
+   an endpoint receives a non-zero value for either field it MUST close
+   the session with a Protocol Violation.
+
    The Largest field represents the largest Object location observed by
    the Publisher for an active subscription.  If the publisher is a
    relay without an active subscription, it SHOULD send a

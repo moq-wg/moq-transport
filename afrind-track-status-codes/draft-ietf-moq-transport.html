@@ -4109,7 +4109,7 @@ at the endpoint.<a href="#section-8.17-4" class="pilcrow">¶</a></p>
 The <code>Largest</code> field must have group and object set to 0.  If an endpoint
 receives a non-zero value for either field it <span class="bcp14">MUST</span> close the session with a
 <code>Protocol Violation</code>.<a href="#section-8.17-5" class="pilcrow">¶</a></p>
-<p id="section-8.17-6">0x02 (Not Started): The track has not yet begun. The Largest field must have
+<p id="section-8.17-6">0x02 (Not Started): The track has not yet begun. The <code>Largest</code> field must have
 group and object set to 0.  If an endpoint receives a non-zero value for either
 field it <span class="bcp14">MUST</span> close the session with a <code>Protocol Violation</code>.<a href="#section-8.17-6" class="pilcrow">¶</a></p>
 <p id="section-8.17-7">0x03 (Finished): The track has finished.  The <code>Largest</code> field contains the
@@ -4119,14 +4119,18 @@ this track (for example, it has at least one object cached), but does not have
 an active subscription, and cannot obtain the current track status from
 upstream. The <code>Largest</code> field contains the largest group and object ID known
 to the relay.<a href="#section-8.17-8" class="pilcrow">¶</a></p>
-<p id="section-8.17-9">The <code>Largest</code> field represents the largest Object location observed by the
+<p id="section-8.17-9">0x05 (Empty Track): The track is complete and is known to have no objects.
+The <code>Largest</code> field must have group and object set to 0.  If an endpoint
+receives a non-zero value for either field it <span class="bcp14">MUST</span> close the session with
+a <code>Protocol Violation</code>.<a href="#section-8.17-9" class="pilcrow">¶</a></p>
+<p id="section-8.17-10">The <code>Largest</code> field represents the largest Object location observed by the
 Publisher for an active subscription. If the publisher is a relay without an
 active subscription, it <span class="bcp14">SHOULD</span> send a TRACK_STATUS_REQUEST upstream or <span class="bcp14">MAY</span>
 subscribe to the track to obtain the same information before sending
-TRACK_STATUS.<a href="#section-8.17-9" class="pilcrow">¶</a></p>
-<p id="section-8.17-10">The receiver of multiple TRACK_STATUS messages for a track uses the information
+TRACK_STATUS.<a href="#section-8.17-10" class="pilcrow">¶</a></p>
+<p id="section-8.17-11">The receiver of multiple TRACK_STATUS messages for a track uses the information
 from the latest arriving message, as they are delivered in order on a single
-stream.<a href="#section-8.17-10" class="pilcrow">¶</a></p>
+stream.<a href="#section-8.17-11" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="message-announce">
