@@ -5,13 +5,13 @@
 Media Over QUIC                                                L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 26 September 2025                                          Meta
+Expires: 4 October 2025                                             Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                           25 March 2025
+                                                            2 April 2025
 
 
                        Media over QUIC Transport
@@ -59,7 +59,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 26 September 2025.
+   This Internet-Draft will expire on 4 October 2025.
 
 Copyright Notice
 
@@ -475,7 +475,7 @@ Table of Contents
    Track Name is a sequence of bytes that identifies an individual track
    within the namespace.
 
-   The maximum total length of a Full Track Name is 4,196 bytes,
+   The maximum total length of a Full Track Name is 4,096 bytes,
    computed as the sum of the lengths of each Track Namespace tuple
    field and the Track Name length field.  If an endpoint receives a
    Full Track Name exceeding this length, it MUST close the session with
