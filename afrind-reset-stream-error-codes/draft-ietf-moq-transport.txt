@@ -5,13 +5,13 @@
 Media Over QUIC                                                L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 22 September 2025                                          Meta
+Expires: 4 October 2025                                             Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                           21 March 2025
+                                                            2 April 2025
 
 
                        Media over QUIC Transport
@@ -59,7 +59,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 22 September 2025.
+   This Internet-Draft will expire on 4 October 2025.
 
 Copyright Notice
 
@@ -2812,7 +2812,7 @@ Table of Contents
 
    Internal Error:  An implementation specific error
 
-   Cancelled:  The receiver requested cancellation via UNSUBSCRIBE,
+   Cancelled:  The subscriber requested cancellation via UNSUBSCRIBE,
       FETCH_CANCEL or STOP_SENDING
 
    Delivery Timeout:  The DELIVERY TIMEOUT Section 8.1.1.2 was exceeded
