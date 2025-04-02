@@ -584,6 +584,8 @@ code, as defined below:
 |------|---------------------------|
 | 0x6  | Too Many Requests         |
 |------|---------------------------|
+| 0x7  | Invalid Request ID        |
+|------|---------------------------|
 | 0x10 | GOAWAY Timeout            |
 |------|---------------------------|
 | 0x11 | Control Message Timeout   |
@@ -606,6 +608,11 @@ code, as defined below:
 
 * Too Many Requests: The session was closed because the subscriber used a
   Request ID equal or larger than the current Maximum Request ID.
+
+* Invalid Request ID: The session was closed because the endpoint used a
+  Request ID that was smaller than a previously received request ID, or
+  the least-significant bit of the request ID was incorrect for the
+  endpoint.
 
 * GOAWAY Timeout: The session was closed because the peer took too long to
   close the session in response to a GOAWAY ({{message-goaway}}) message.
@@ -1106,7 +1113,9 @@ requests, and supports the endpoint's ability to limit the concurrency and
 frequency of requests.  There are independent Request IDs for each endpoint. The
 client's Request ID starts at 0 and are even and the server's Request ID starts
 at 1 and are odd.  The Request ID increments by 2 with ANNOUNCE, FETCH,
-SUBSCRIBE, SUBSCRIBE_ANNOUNCES or TRACK_STATUS request.
+SUBSCRIBE, SUBSCRIBE_ANNOUNCES or TRACK_STATUS request.  If an endpoint receives
+a Request ID that is not valid for the peer, or a new request with a Request ID
+that is not expected, it MUST close the session with `Invalid Request ID`.
 
 ## Parameters {#params}
 
