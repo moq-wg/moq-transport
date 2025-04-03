@@ -434,6 +434,11 @@ Violation.
 Track Name is a sequence of bytes that identifies an individual track within the
 namespace.
 
+The maximum total length of a Full Track Name is 4,096 bytes, computed as the
+sum of the lengths of each Track Namespace tuple field and the Track Name length
+field.  If an endpoint receives a Full Track Name exceeding this length, it MUST
+close the session with a Protocol Violation.
+
 In this specification, both the Track Namespace tuple fields and the Track Name
 are not constrained to a specific encoding. They carry a sequence of bytes and
 comparison between two Track Namespace tuple fields or Track Names is done by
@@ -457,6 +462,10 @@ Because the tuple of Track Namespace and Track Name are unique within an
 MOQT scope, they can be used as a cache key for the track.
 If, at a given moment in time, two tracks within the same scope contain
 different data, they MUST have different names and/or namespaces.
+MOQT provides subscribers with the ability to alter the specific manner in
+which tracks are delivered via Subscribe Parameters, but the actual content of
+the tracks does not depend on those parameters; this is in contrast to
+protocols like HTTP, where request headers can alter the server response.
 
 # Sessions {#session}
 
@@ -578,13 +587,13 @@ code, as defined below:
 |------|---------------------------|
 | 0x3  | Protocol Violation        |
 |------|---------------------------|
-| 0x4  | Duplicate Track Alias     |
+| 0x4  | Invalid Request ID        |
 |------|---------------------------|
-| 0x5  | Parameter Length Mismatch |
+| 0x5  | Duplicate Track Alias     |
 |------|---------------------------|
-| 0x6  | Too Many Requests         |
+| 0x6  | Parameter Length Mismatch |
 |------|---------------------------|
-| 0x7  | Invalid Request ID        |
+| 0x7  | Too Many Requests         |
 |------|---------------------------|
 | 0x10 | GOAWAY Timeout            |
 |------|---------------------------|
@@ -603,16 +612,16 @@ code, as defined below:
 * Protocol Violation: The remote endpoint performed an action that was
   disallowed by the specification.
 
+* Invalid Request ID: The session was closed because the endpoint used a
+  Request ID that was smaller than a previously received request ID, or
+  the least-significant bit of the request ID was incorrect for the
+  endpoint.
+
 * Duplicate Track Alias: The endpoint attempted to use a Track Alias
   that was already in use.
 
 * Too Many Requests: The session was closed because the endpoint used a
   Request ID equal or larger than the current Maximum Request ID.
-
-* Invalid Request ID: The session was closed because the endpoint used a
-  Request ID that was smaller than a previously received request ID, or
-  the least-significant bit of the request ID was incorrect for the
-  endpoint.
 
 * GOAWAY Timeout: The session was closed because the peer took too long to
   close the session in response to a GOAWAY ({{message-goaway}}) message.
@@ -687,6 +696,9 @@ A SUBSCRIBE_ERROR or FETCH_ERROR indicates no objects will be delivered, and
 both endpoints can immediately destroy relevant state. Objects MUST NOT be sent
 for requests that end with an error.
 
+The Parameters in SUBSCRIBE and FETCH MUST NOT cause the publisher to alter the
+payload of the objects it sends, as that would violate the track uniqueness
+guarantee described in {{track-scope}}.
 
 # Namespace Discovery {#track-discovery}
 
@@ -1206,7 +1218,8 @@ congestion control, and any other relevant information.
 
 #### MAX CACHE DURATION Parameter {#max-cache-duration}
 
-MAX_CACHE_DURATION (Parameter Type 0x04): An integer expressing the number of
+The MAX_CACHE_DURATION parameter (Parameter Type 0x04) MAY appear in a
+SUBSCRIBE_OK or FETCH_OK message.  It is an integer expressing the number of
 milliseconds an object can be served from a cache. If present, the relay MUST
 NOT start forwarding any individual Object received through this subscription
 or fetch after the specified number of milliseconds has elapsed since the
@@ -1917,7 +1930,7 @@ Fields present only for Relative Fetch (0x2) and Absolute Fetch (0x3):
 * Joining Request ID: The Request ID of the existing subscription to be
 joined. If a publisher receives a Joining Fetch with a Joining Request ID that
 does not correspond to an existing Subscribe, it MUST respond with a Fetch
-Error.
+Error Invalid Joining Request ID.
 
 * Joining Start : for a Relative Joining Fetch (0x2), this value represents the
   group offset for the Fetch prior and relative to the Current Group of the
@@ -1947,7 +1960,7 @@ The Largest Group ID and Largest Object ID values from the corresponding
 subscription are used to calculate the end of a Relative Joining Fetch so the
 Objects retrieved by the FETCH and SUBSCRIBE are contiguous and non-overlapping.
 If no Objects have been published for the track, and the SUBSCRIBE_OK has a
-ContentExists value of 0, the publisher responds with a FETCH_ERROR with
+ContentExists value of 0, the publisher MUST respond with a FETCH_ERROR with
 error code 'No Objects'.
 
 The publisher receiving a Relative Joining Fetch computes the range as follows:
@@ -2054,6 +2067,8 @@ as defined below:
 |------|---------------------------|
 | 0x6  | No Objects                |
 |------|---------------------------|
+| 0x7  | Invalid Joining Request ID|  
+|------|---------------------------|
 
 * Internal Error - An implementation specific or generic error occurred.
 
@@ -2072,6 +2087,9 @@ as defined below:
 
 * No Objects - The beginning of the requested range is after the latest group
   and object for the track, or the track has not published any objects.
+
+* Invalid Subscribe ID - The joining Fetch referenced a Subscribe ID that did
+  not belong to an active Subscription.
 
 
 ## FETCH_CANCEL {#message-fetch-cancel}
