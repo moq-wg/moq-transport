@@ -1198,7 +1198,7 @@ TOKEN {
 |      | the pool of actively registered tokens.                                 |
 |------|-------------------------------------------------------------------------|
 | 0x1  | There is an Alias and a Value. This Alias MUST be associated  with the  |
-|      | Token Value for the duration of the Session. This action is termed      |     
+|      | Token Value for the duration of the Session. This action is termed      |
 |      | "registering" the Token.                                                |
 |------|-------------------------------------------------------------------------|
 | 0x2  | There is an Alias and no Value. Use the Token Value previously          |
