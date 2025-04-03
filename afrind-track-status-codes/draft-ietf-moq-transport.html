@@ -4116,18 +4116,19 @@ field it <span class="bcp14">MUST</span> close the session with a <code>Protocol
 largest Group and Object ID in the track.<a href="#section-8.17-7" class="pilcrow">¶</a></p>
 <p id="section-8.17-8">0x04 (Partial Information): The publisher is a relay with prior knowledge of
 this track (for example, it has at least one object cached), but does not have
-an active subscription, and cannot obtain the current status of the track from
-upstream. The <code>Largest</code> field contains the largest group and object ID known
-to the relay.<a href="#section-8.17-8" class="pilcrow">¶</a></p>
+an active upstream subscription, and cannot obtain the current status of the
+track from upstream. The <code>Largest</code> field contains the largest group and object
+ID known to the relay.<a href="#section-8.17-8" class="pilcrow">¶</a></p>
 <p id="section-8.17-9">0x05 (Empty Track): The track is complete and is known to have no objects.
 The <code>Largest</code> field must have group and object set to 0.  If an endpoint
 receives a non-zero value for either field it <span class="bcp14">MUST</span> close the session with
 a <code>Protocol Violation</code>.<a href="#section-8.17-9" class="pilcrow">¶</a></p>
 <p id="section-8.17-10">The <code>Largest</code> field represents the largest Object location observed by the
-Publisher for an active subscription. If the publisher is a relay without an
-active subscription, it <span class="bcp14">SHOULD</span> send a TRACK_STATUS_REQUEST upstream or <span class="bcp14">MAY</span>
-subscribe to the track to obtain the same information before sending
-TRACK_STATUS. Alternatively, a relay publisher <span class="bcp14">MAY</span> respond with TRACK_STATUS having <code>Status</code> of 0x04 (Partial Information), wherever possible<a href="#section-8.17-10" class="pilcrow">¶</a></p>
+Publisher for a track. If the publisher is a relay without an active upstream
+subscription, it <span class="bcp14">SHOULD</span> send a TRACK_STATUS_REQUEST upstream or <span class="bcp14">MAY</span> subscribe
+to the track to obtain the same information before sending TRACK_STATUS.
+Alternately, a relay <span class="bcp14">MAY</span> choose to respond with <code>Status</code> 0x04 (Partial
+Information).<a href="#section-8.17-10" class="pilcrow">¶</a></p>
 <p id="section-8.17-11">The receiver of multiple TRACK_STATUS messages for a track uses the information
 from the latest arriving message, as they are delivered in order on a single
 stream.<a href="#section-8.17-11" class="pilcrow">¶</a></p>
