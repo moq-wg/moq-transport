@@ -1120,9 +1120,11 @@ Protocol Violation.
 Some messages include a Parameters field that encode optional message
 elements. They contain a type, length, and value.
 
-Senders MUST NOT repeat the same parameter type in a message. Receivers
-SHOULD check that there are no duplicate parameters and close the session
-as a 'Protocol Violation' if found.
+Senders MUST NOT repeat the same parameter type in a message unless the 
+parameter definition explicitly allows multiple instances of that type to 
+be sent in a single message. Receivers SHOULD check that there are no
+unauthorized duplicate parameters and close the session as a
+'Protocol Violation' if found.
 
 Receivers ignore unrecognized parameters.
 
@@ -1167,6 +1169,8 @@ AUTHORIZATION TOKEN parameter (Parameter Type 0x01) identifies a track's
 authorization information in a SUBSCRIBE, SUBSCRIBE_ANNOUNCES, ANNOUNCE
 or FETCH message. This parameter is populated for cases where the authorization
 is required at the track level.
+
+The AUTHORIZATION TOKEN parameter MAY be repeated within a message.
 
 The TOKEN value is a structured object containing an optional session-specific
 alias. The Alias allows the client to reference a previously transmitted TOKEN
