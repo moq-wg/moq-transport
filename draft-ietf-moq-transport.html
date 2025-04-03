@@ -2140,14 +2140,18 @@ code, as defined below:<a href="#section-3.4-2" class="pilcrow">¶</a></p>
             </tr>
             <tr>
               <td class="text-right" rowspan="1" colspan="1">0x4</td>
-              <td class="text-left" rowspan="1" colspan="1">Duplicate Track Alias</td>
+              <td class="text-left" rowspan="1" colspan="1">Duplicate Subscribe ID</td>
             </tr>
             <tr>
               <td class="text-right" rowspan="1" colspan="1">0x5</td>
-              <td class="text-left" rowspan="1" colspan="1">Parameter Length Mismatch</td>
+              <td class="text-left" rowspan="1" colspan="1">Duplicate Track Alias</td>
             </tr>
             <tr>
               <td class="text-right" rowspan="1" colspan="1">0x6</td>
+              <td class="text-left" rowspan="1" colspan="1">Parameter Length Mismatch</td>
+            </tr>
+            <tr>
+              <td class="text-right" rowspan="1" colspan="1">0x7</td>
               <td class="text-left" rowspan="1" colspan="1">Too Many Subscribes</td>
             </tr>
             <tr>
@@ -2180,29 +2184,33 @@ code, as defined below:<a href="#section-3.4-2" class="pilcrow">¶</a></p>
 disallowed by the specification.<a href="#section-3.4-4.4.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-3.4-4.5">
-            <p id="section-3.4-4.5.1">Duplicate Track Alias: The endpoint attempted to use a Track Alias
+            <p id="section-3.4-4.5.1">Duplicate Subscribe ID: The endpoint attempted to use a Subscribe ID
 that was already in use.<a href="#section-3.4-4.5.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-3.4-4.6">
-            <p id="section-3.4-4.6.1">Too Many Subscribes: The session was closed because the subscriber used
-a Subscribe ID equal or larger than the current Maximum Subscribe ID.<a href="#section-3.4-4.6.1" class="pilcrow">¶</a></p>
+            <p id="section-3.4-4.6.1">Duplicate Track Alias: The endpoint attempted to use a Track Alias
+that was already in use.<a href="#section-3.4-4.6.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-3.4-4.7">
-            <p id="section-3.4-4.7.1">GOAWAY Timeout: The session was closed because the peer took too long to
-close the session in response to a GOAWAY (<a href="#message-goaway" class="auto internal xref">Section 8.3</a>) message.
-See session migration (<a href="#session-migration" class="auto internal xref">Section 3.5</a>).<a href="#section-3.4-4.7.1" class="pilcrow">¶</a></p>
+            <p id="section-3.4-4.7.1">Too Many Subscribes: The session was closed because the subscriber used
+a Subscribe ID equal or larger than the current Maximum Subscribe ID.<a href="#section-3.4-4.7.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-3.4-4.8">
-            <p id="section-3.4-4.8.1">Control Message Timeout: The session was closed because the peer took too
-long to respond to a control message.<a href="#section-3.4-4.8.1" class="pilcrow">¶</a></p>
+            <p id="section-3.4-4.8.1">GOAWAY Timeout: The session was closed because the peer took too long to
+close the session in response to a GOAWAY (<a href="#message-goaway" class="auto internal xref">Section 8.3</a>) message.
+See session migration (<a href="#session-migration" class="auto internal xref">Section 3.5</a>).<a href="#section-3.4-4.8.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-3.4-4.9">
-            <p id="section-3.4-4.9.1">Data Stream Timeout: The session was closed because the peer took too
+            <p id="section-3.4-4.9.1">Control Message Timeout: The session was closed because the peer took too
+long to respond to a control message.<a href="#section-3.4-4.9.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-3.4-4.10">
+            <p id="section-3.4-4.10.1">Data Stream Timeout: The session was closed because the peer took too
 long to send data expected on an open Data Stream <a href="#data-streams" class="auto internal xref">Section 9</a>.  This
 includes fields of a stream header or an object header within a data
 stream. If an endpoint times out waiting for a new object header on an
 open subgroup stream, it <span class="bcp14">MAY</span> send a STOP_SENDING on that stream, terminate
-the subscription, or close the session with an error.<a href="#section-3.4-4.9.1" class="pilcrow">¶</a></p>
+the subscription, or close the session with an error.<a href="#section-3.4-4.10.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
@@ -3183,7 +3191,9 @@ SUBSCRIBE Message {
             <p id="section-8.6-13.1.1">Subscribe ID: The subscriber specified identifier used to manage a
 subscription. <code>Subscribe ID</code> is a variable length integer that <span class="bcp14">MUST</span> be
 unique and monotonically increasing within a session and <span class="bcp14">MUST</span> be less
-than the session's Maximum Subscribe ID.<a href="#section-8.6-13.1.1" class="pilcrow">¶</a></p>
+than the session's Maximum Subscribe ID.  If an endpoint receives a
+SUBSCRIBE with a Subscribe ID that is already in use, it <span class="bcp14">MUST</span> close
+the session with Duplicate Subscribe ID.<a href="#section-8.6-13.1.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.6-13.2">
             <p id="section-8.6-13.2.1">Track Alias: A session specific identifier for the track.
@@ -3727,7 +3737,7 @@ FETCH Message {
    StartObject (i),
    EndGroup (i),
    EndObject (i),]
-  [ Subscribe ID (i),
+  [ Joining Subscribe ID (i),
     Joining Start (i),]
   Number of Parameters (i),
   Parameters (..) ...
@@ -3743,7 +3753,8 @@ FETCH Message {
 <li class="normal" id="section-8.12-16.1">
             <p id="section-8.12-16.1.1">Subscribe ID: The Subscribe ID identifies a given fetch request. Subscribe ID
 is a variable length integer that <span class="bcp14">MUST</span> be unique and monotonically increasing
-within a session.<a href="#section-8.12-16.1.1" class="pilcrow">¶</a></p>
+within a session.  If an endpoint receives a FETCH with a Subscribe ID that is
+already in use, it <span class="bcp14">MUST</span> close the session with Duplicate Subscribe ID.<a href="#section-8.12-16.1.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.12-16.2">
             <p id="section-8.12-16.2.1">Subscriber Priority: Specifies the priority of a fetch request relative to
@@ -3792,7 +3803,8 @@ requested.<a href="#section-8.12-18.6.1" class="pilcrow">¶</a></p>
 <li class="normal" id="section-8.12-20.1">
             <p id="section-8.12-20.1.1">Joining Subscribe ID: The Subscribe ID of the existing subscription to be
 joined. If a publisher receives a Joining Fetch with a Subscribe ID that does
-not correspond to an existing Subscribe, it <span class="bcp14">MUST</span> respond with a Fetch Error.<a href="#section-8.12-20.1.1" class="pilcrow">¶</a></p>
+not correspond to an existing Subscribe, it <span class="bcp14">MUST</span> respond with a Fetch Error
+with code Invalid Subscribe ID.<a href="#section-8.12-20.1.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.12-20.2">
             <p id="section-8.12-20.2.1">Joining Start : for a Relative Joining Fetch (0x2), this value represents the
@@ -3990,6 +4002,10 @@ as defined below:<a href="#section-8.14-4" class="pilcrow">¶</a></p>
               <td class="text-right" rowspan="1" colspan="1">0x6</td>
               <td class="text-left" rowspan="1" colspan="1">No Objects</td>
             </tr>
+            <tr>
+              <td class="text-right" rowspan="1" colspan="1">0x7</td>
+              <td class="text-left" rowspan="1" colspan="1">Invalid Subscribe ID</td>
+            </tr>
           </tbody>
         </table>
 <ul class="normal">
@@ -4017,6 +4033,10 @@ within the timeout.<a href="#section-8.14-6.3.1" class="pilcrow">¶</a></p>
           <li class="normal" id="section-8.14-6.7">
             <p id="section-8.14-6.7.1">No Objects - The beginning of the requested range is after the latest group
 and object for the track, or the track has not published any objects.<a href="#section-8.14-6.7.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-8.14-6.8">
+            <p id="section-8.14-6.8.1">Invalid Subscribe ID - The joining Fetch referenced a Subscribe ID that did
+not belong to an active Subscription.<a href="#section-8.14-6.8.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
