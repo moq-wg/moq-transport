@@ -1951,13 +1951,17 @@ tuple with an N of 0 or more than 32, it <span class="bcp14">MUST</span> close t
 Violation.<a href="#section-2.4.1-2" class="pilcrow">¶</a></p>
 <p id="section-2.4.1-3">Track Name is a sequence of bytes that identifies an individual track within the
 namespace.<a href="#section-2.4.1-3" class="pilcrow">¶</a></p>
-<p id="section-2.4.1-4">In this specification, both the Track Namespace tuple fields and the Track Name
+<p id="section-2.4.1-4">The maximum total length of a Full Track Name is 4,096 bytes, computed as the
+sum of the lengths of each Track Namespace tuple field and the Track Name length
+field.  If an endpoint receives a Full Track Name exceeding this length, it <span class="bcp14">MUST</span>
+close the session with a Protocol Violation.<a href="#section-2.4.1-4" class="pilcrow">¶</a></p>
+<p id="section-2.4.1-5">In this specification, both the Track Namespace tuple fields and the Track Name
 are not constrained to a specific encoding. They carry a sequence of bytes and
 comparison between two Track Namespace tuple fields or Track Names is done by
 exact comparison of the bytes. Specifications that use MoQ Transport may
 constrain the information in these fields, for example by restricting them to
 UTF-8. Any specification that does needs to specify the canonicalization into
-the bytes in the Track Namespace or Track Name such that exact comparison works.<a href="#section-2.4.1-4" class="pilcrow">¶</a></p>
+the bytes in the Track Namespace or Track Name such that exact comparison works.<a href="#section-2.4.1-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="track-scope">
