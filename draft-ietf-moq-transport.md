@@ -457,6 +457,10 @@ Because the tuple of Track Namespace and Track Name are unique within an
 MOQT scope, they can be used as a cache key for the track.
 If, at a given moment in time, two tracks within the same scope contain
 different data, they MUST have different names and/or namespaces.
+MOQT provides subscribers with the ability to alter the specific manner in
+which tracks are delivered via Subscribe Parameters, but the actual content of
+the tracks does not depend on those parameters; this is in contrast to
+protocols like HTTP, where request headers can alter the server response.
 
 # Sessions {#session}
 
@@ -680,6 +684,9 @@ A SUBSCRIBE_ERROR or FETCH_ERROR indicates no objects will be delivered, and
 both endpoints can immediately destroy relevant state. Objects MUST NOT be sent
 for requests that end with an error.
 
+The Parameters in SUBSCRIBE and FETCH MUST NOT cause the publisher to alter the
+payload of the objects it sends, as that would violate the track uniqueness
+guarantee described in {{track-scope}}.
 
 # Namespace Discovery {#track-discovery}
 
