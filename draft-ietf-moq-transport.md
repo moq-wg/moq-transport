@@ -2129,9 +2129,9 @@ largest Group and Object ID in the track.
 
 0x04 (Partial Information): The publisher is a relay with prior knowledge of
 this track (for example, it has at least one object cached), but does not have
-an active subscription, and cannot obtain the current status of the track from
-upstream. The `Largest` field contains the largest group and object ID known
-to the relay.
+an active upstream subscription, and cannot obtain the current status of the
+track from upstream. The `Largest` field contains the largest group and object
+ID known to the relay.
 
 0x05 (Empty Track): The track is complete and is known to have no objects.
 The `Largest` field must have group and object set to 0.  If an endpoint
@@ -2139,10 +2139,11 @@ receives a non-zero value for either field it MUST close the session with
 a `Protocol Violation`.
 
 The `Largest` field represents the largest Object location observed by the
-Publisher for an active subscription. If the publisher is a relay without an
-active subscription, it SHOULD send a TRACK_STATUS_REQUEST upstream or MAY
-subscribe to the track to obtain the same information before sending
-TRACK_STATUS. Alternatively, a relay publisher MAY respond with TRACK_STATUS having `Status` of 0x04 (Partial Information), wherever possible
+Publisher for a track. If the publisher is a relay without an active upstream
+subscription, it SHOULD send a TRACK_STATUS_REQUEST upstream or MAY subscribe
+to the track to obtain the same information before sending TRACK_STATUS.
+Alternately, a relay MAY choose to respond with `Status` 0x04 (Partial
+Information).
 
 The receiver of multiple TRACK_STATUS messages for a track uses the information
 from the latest arriving message, as they are delivered in order on a single
