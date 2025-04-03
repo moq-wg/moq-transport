@@ -434,6 +434,11 @@ Violation.
 Track Name is a sequence of bytes that identifies an individual track within the
 namespace.
 
+The maximum total length of a Full Track Name is 4,096 bytes, computed as the
+sum of the lengths of each Track Namespace tuple field and the Track Name length
+field.  If an endpoint receives a Full Track Name exceeding this length, it MUST
+close the session with a Protocol Violation.
+
 In this specification, both the Track Namespace tuple fields and the Track Name
 are not constrained to a specific encoding. They carry a sequence of bytes and
 comparison between two Track Namespace tuple fields or Track Names is done by
