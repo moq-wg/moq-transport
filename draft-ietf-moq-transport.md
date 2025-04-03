@@ -434,6 +434,11 @@ Violation.
 Track Name is a sequence of bytes that identifies an individual track within the
 namespace.
 
+The maximum total length of a Full Track Name is 4,096 bytes, computed as the
+sum of the lengths of each Track Namespace tuple field and the Track Name length
+field.  If an endpoint receives a Full Track Name exceeding this length, it MUST
+close the session with a Protocol Violation.
+
 In this specification, both the Track Namespace tuple fields and the Track Name
 are not constrained to a specific encoding. They carry a sequence of bytes and
 comparison between two Track Namespace tuple fields or Track Names is done by
@@ -457,6 +462,10 @@ Because the tuple of Track Namespace and Track Name are unique within an
 MOQT scope, they can be used as a cache key for the track.
 If, at a given moment in time, two tracks within the same scope contain
 different data, they MUST have different names and/or namespaces.
+MOQT provides subscribers with the ability to alter the specific manner in
+which tracks are delivered via Subscribe Parameters, but the actual content of
+the tracks does not depend on those parameters; this is in contrast to
+protocols like HTTP, where request headers can alter the server response.
 
 # Sessions {#session}
 
@@ -578,11 +587,13 @@ code, as defined below:
 |------|---------------------------|
 | 0x3  | Protocol Violation        |
 |------|---------------------------|
-| 0x4  | Duplicate Track Alias     |
+| 0x4  | Duplicate Subscribe ID    |
 |------|---------------------------|
-| 0x5  | Parameter Formatting Error|
+| 0x5  | Duplicate Track Alias     |
 |------|---------------------------|
-| 0x6  | Too Many Subscribes       |
+| 0x6  | Parameter Formatting Error|
+|------|---------------------------|
+| 0x7  | Too Many Subscribes       |
 |------|---------------------------|
 | 0x10 | GOAWAY Timeout            |
 |------|---------------------------|
@@ -601,8 +612,13 @@ code, as defined below:
 * Protocol Violation: The remote endpoint performed an action that was
   disallowed by the specification.
 
+* Duplicate Subscribe ID: The endpoint attempted to use a Subscribe ID
+  that was already in use.
+
 * Duplicate Track Alias: The endpoint attempted to use a Track Alias
   that was already in use.
+
+* Parameter Formatting Error: the parameter has a formatting error.
 
 * Too Many Subscribes: The session was closed because the subscriber used
   a Subscribe ID equal or larger than the current Maximum Subscribe ID.
@@ -680,6 +696,9 @@ A SUBSCRIBE_ERROR or FETCH_ERROR indicates no objects will be delivered, and
 both endpoints can immediately destroy relevant state. Objects MUST NOT be sent
 for requests that end with an error.
 
+The Parameters in SUBSCRIBE and FETCH MUST NOT cause the publisher to alter the
+payload of the objects it sends, as that would violate the track uniqueness
+guarantee described in {{track-scope}}.
 
 # Namespace Discovery {#track-discovery}
 
@@ -1188,7 +1207,8 @@ is required at the track level.
 
 #### MAX CACHE DURATION Parameter {#max-cache-duration}
 
-MAX_CACHE_DURATION (Parameter Type 0x04): An integer expressing the number of
+The MAX_CACHE_DURATION parameter (Parameter Type 0x04) MAY appear in a
+SUBSCRIBE_OK or FETCH_OK message.  It is an integer expressing the number of
 milliseconds an object can be served from a cache. If present, the relay MUST
 NOT start forwarding any individual Object received through this subscription
 or fetch after the specified number of milliseconds has elapsed since the
@@ -1436,7 +1456,9 @@ SUBSCRIBE Message {
 * Subscribe ID: The subscriber specified identifier used to manage a
 subscription. `Subscribe ID` is a variable length integer that MUST be
 unique and monotonically increasing within a session and MUST be less
-than the session's Maximum Subscribe ID.
+than the session's Maximum Subscribe ID.  If an endpoint receives a
+SUBSCRIBE with a Subscribe ID that is already in use, it MUST close
+the session with Duplicate Subscribe ID.
 
 * Track Alias: A session specific identifier for the track.
 Data streams and datagrams specify the Track Alias instead of the Track Name
@@ -1849,7 +1871,7 @@ FETCH Message {
    StartObject (i),
    EndGroup (i),
    EndObject (i),]
-  [ Subscribe ID (i),
+  [ Joining Subscribe ID (i),
     Joining Start (i),]
   Number of Parameters (i),
   Parameters (..) ...
@@ -1861,7 +1883,8 @@ Fields common to all Fetch Types:
 
 * Subscribe ID: The Subscribe ID identifies a given fetch request. Subscribe ID
 is a variable length integer that MUST be unique and monotonically increasing
-within a session.
+within a session.  If an endpoint receives a FETCH with a Subscribe ID that is
+already in use, it MUST close the session with Duplicate Subscribe ID.
 
 * Subscriber Priority: Specifies the priority of a fetch request relative to
 other subscriptions or fetches in the same session. Lower numbers get higher
@@ -1897,7 +1920,8 @@ Fields present only for Relative Fetch (0x2) and Absolute Fetch (0x3):
 
 * Joining Subscribe ID: The Subscribe ID of the existing subscription to be
 joined. If a publisher receives a Joining Fetch with a Subscribe ID that does
-not correspond to an existing Subscribe, it MUST respond with a Fetch Error.
+not correspond to an existing Subscribe, it MUST respond with a Fetch Error
+with code Invalid Subscribe ID.
 
 * Joining Start : for a Relative Joining Fetch (0x2), this value represents the
   group offset for the Fetch prior and relative to the Current Group of the
@@ -2032,6 +2056,8 @@ as defined below:
 |------|---------------------------|
 | 0x6  | No Objects                |
 |------|---------------------------|
+| 0x7  | Invalid Subscribe ID      |
+|------|---------------------------|
 
 * Internal Error - An implementation specific or generic error occurred.
 
@@ -2050,6 +2076,9 @@ as defined below:
 
 * No Objects - The beginning of the requested range is after the latest group
   and object for the track, or the track has not published any objects.
+
+* Invalid Subscribe ID - The joining Fetch referenced a Subscribe ID that did
+  not belong to an active Subscription.
 
 
 ## FETCH_CANCEL {#message-fetch-cancel}
