@@ -1120,9 +1120,11 @@ Protocol Violation.
 Some messages include a Parameters field that encode optional message
 elements. They contain a type, length, and value.
 
-Senders MUST NOT repeat the same parameter type in a message. Receivers
-SHOULD check that there are no duplicate parameters and close the session
-as a 'Protocol Violation' if found.
+Senders MUST NOT repeat the same parameter type in a message unless the
+parameter definition explicitly allows multiple instances of that type to
+be sent in a single message. Receivers SHOULD check that there are no
+unauthorized duplicate parameters and close the session as a
+'Protocol Violation' if found.
 
 Receivers ignore unrecognized parameters.
 
@@ -1161,16 +1163,83 @@ it can appear. If it appears in some other type of message, it MUST be ignored.
 Note that since Setup parameters use a separate namespace, it is impossible for
 these parameters to appear in Setup messages.
 
-#### AUTHORIZATION INFO {#authorization-info}
+#### AUTHORIZATION TOKEN {#authorization-token}
 
-AUTHORIZATION INFO parameter (Parameter Type 0x02) identifies a track's
+AUTHORIZATION TOKEN parameter (Parameter Type 0x01) identifies a track's
 authorization information in a SUBSCRIBE, SUBSCRIBE_ANNOUNCES, ANNOUNCE
 or FETCH message. This parameter is populated for cases where the authorization
 is required at the track level.
 
+The AUTHORIZATION TOKEN parameter MAY be repeated within a message.
+
+The TOKEN value is a structured object containing an optional session-specific
+alias. The Alias allows the client to reference a previously transmitted TOKEN
+in future messages. The TOKEN value is serialized as follows:
+
+~~~
+TOKEN {
+  Token Type (i),
+  Alias Type (i),
+  [Token Alias (i),]
+  [Token Value (..)]
+}
+~~~
+{: #moq-token format title="AUTHORIZATION TOKEN value"}
+
+* Token Type  - a numeric identifier for the type of Token payload being
+  transmitted. This type is defined by the IANA table "MOQT Auth Token Type". See
+  {{iana}}. Type 0 is reserved to indicate that the type is not defined in the
+  table and must be negotiated out-of-band between client and receiver.
+
+* Alias Type - an integer defining both the serialization and the processing
+  behavior of the receiver. This Alias type has the following code points:
+
+|------|-------------------------------------------------------------------------|
+| Code | Serialization and behavior                                              |
+|-----:|:------------------------------------------------------------------------|
+| 0x0  | There is an Alias but no Value. This Alias and the Token Value it was   |
+|      | previously associated with MUST be retired. Retiring removes them from  |
+|      | the pool of actively registered tokens.                                 |
+|------|-------------------------------------------------------------------------|
+| 0x1  | There is an Alias and a Value. This Alias MUST be associated  with the  |
+|      | Token Value for the duration of the Session. This action is termed      |
+|      | "registering" the Token.                                                |
+|------|-------------------------------------------------------------------------|
+| 0x2  | There is an Alias and no Value. Use the Token Value previously          |
+|      | registered with this Alias.                                             |
+|------|-------------------------------------------------------------------------|
+| 0x3  | There is no Alias and there is a Value. Use the Token Value as provided.|
+|      | The Token Value may be discarded after processing.                      |
+|------|-------------------------------------------------------------------------|
+
+* Token Alias  - a session-specific integer identifier that references a Token
+  Value. The Token Alias MUST be unique within the Session. Once a Token Alias has
+  been registered, it cannot be re-registered within the Session. Use of the Token
+  Alias is optional.
+
+* Token Value - the payload of the Token. The contents and serialization of this
+  payload are defined by the Token Type.
+
+The receiver of a message containing an invalid AUTHORIZATION TOKEN parameter MUST
+reject that message with an "Invalid Auth Token" error. This may be due to invalid
+serialization, referencing an alias which has not been registered, attempting to
+register an alias which has been previously registered, or providing a token value
+which does not match the declared Token type.
+
+Clients SHOULD only register tokens which they intend to re-use during the session.
+Client SHOULD retire previously registered tokens once their utility has passed.
+
+By registering a Token, the client is requiring the receiver to store the Token Alias
+and Token Value until they are retired, or the Session ends. The receiver can protect
+its resources by sending a SETUP parameter defining the MAX_AUTH_SIZE {{max-auth-size}}
+limit it is willing to accept. If a registration is attempted which would cause this
+limit to be exceeded, the receiver MUST reject that message with a
+"Max Auth Limit Exceeded" error.
+
+
 #### DELIVERY TIMEOUT Parameter {#delivery-timeout}
 
-The DELIVERY TIMEOUT parameter (Parameter Type 0x03) MAY appear in a
+The DELIVERY TIMEOUT parameter (Parameter Type 0x02) MAY appear in a
 SUBSCRIBE, SUBSCRIBE_OK, or a SUBSCRIBE_UDPATE message.  It is the duration in
 milliseconds the relay SHOULD continue to attempt forwarding Objects after
 they have been received.  The start time for the timeout is based on when the
@@ -1290,6 +1359,19 @@ the `query` portion of the URI to the parameter.
 The MAX_SUBSCRIBE_ID parameter (Parameter Type 0x02) communicates an initial
 value for the Maximum Subscribe ID to the receiving subscriber. The default
 value is 0, so if not specified, the peer MUST NOT create subscriptions.
+
+#### MAX_AUTH_SIZE {#max-auth-size}
+
+The MAX_AUTH_SIZE parameter (Parameter Type 0x04) communicates the maximum
+size in bytes of all actively registered Authorization tokens that the server
+is willing to store per Session. This parameter is optional. The default value
+is 0 which prohibits the use of token aliases.
+
+The token size is calculated as 8 bytes + the size of the Token value
+(see {{moq-token}}). The total size as restricted by the MAX_AUTH_SIZE parameter
+is calculated as the sum of the token sizes for all registered tokens (Alias Type
+value of 0x01) minus the sum of the token sizes for all deregistered tokens (Alias
+Type value of 0x00), since Session initiation.
 
 ## GOAWAY {#message-goaway}
 
@@ -1593,6 +1675,10 @@ as defined below:
 |------|---------------------------|
 | 0x6  | Retry Track Alias         |
 |------|---------------------------|
+| 0x7  | Invalid Auth Token        |
+|------|---------------------------|
+| 0x8  | Max Auth Limit Exceeded   |
+|------|---------------------------|
 
 * Internal Error - An implementation specific or generic error occurred.
 
@@ -1612,6 +1698,14 @@ as defined below:
 
 * Retry Track Alias - The publisher requires the subscriber to use the given
   Track Alias when subscribing.
+
+* Invalid Auth Token - An invalid Authorization token was provided. This may
+  be due to invalid serialization, referencing an alias which has not been
+  registered, or attempting to register an alias which has been previously
+  registered.
+
+* Max Auth Limit Exceeded - the size of the Authorization token supplied
+  causes the Session limit of all registered Authorization tokens to be
 
 
 ## SUBSCRIBE_UPDATE {#message-subscribe-update}
@@ -2053,7 +2147,11 @@ as defined below:
 |------|---------------------------|
 | 0x6  | No Objects                |
 |------|---------------------------|
-| 0x7  | Invalid Subscribe ID      |
+| 0x7  | Invalid Auth Token        |
+|------|---------------------------|
+| 0x8  | Max Auth Limit Exceeded   |
+|------|---------------------------|
+| 0x9  | Invalid Subscribe ID      |
 |------|---------------------------|
 
 * Internal Error - An implementation specific or generic error occurred.
@@ -2073,6 +2171,12 @@ as defined below:
 
 * No Objects - The beginning of the requested range is after the latest group
   and object for the track, or the track has not published any objects.
+
+* Invalid Auth Token - An invalid Authorization token was provided.
+
+* Max Auth Limit Exceeded - the size of the Authorization token supplied
+  causes the Session limit of all registered Authorization tokens to be
+  exceeded.
 
 * Invalid Subscribe ID - The joining Fetch referenced a Subscribe ID that did
   not belong to an active Subscription.
@@ -2245,6 +2349,10 @@ below:
 |------|---------------------------|
 | 0x4  | Uninterested              |
 |------|---------------------------|
+| 0x7  | Invalid Auth Token        |
+|------|---------------------------|
+| 0x8  | Max Auth Limit Exceeded   |
+|------|---------------------------|
 
 * Internal Error - An implementation specific or generic error occurred.
 
@@ -2257,6 +2365,12 @@ below:
 * Not Supported - The endpoint does not support the ANNOUNCE method.
 
 * Uninterested - The namespace is not of interest to the endpoint.
+
+* Invalid Auth Token - An invalid Authorization token was provided.
+
+* Max Auth Limit Exceeded - the size of the Authorization token supplied
+  causes the Session limit of all registered Authorization tokens to be
+  exceeded.
 
 
 ## UNANNOUNCE {#message-unannounce}
@@ -2414,6 +2528,10 @@ as defined below:
 |------|---------------------------|
 | 0x5  | Namespace Prefix Overlap  |
 |------|---------------------------|
+| 0x7  | Invalid Auth Token        |
+|------|---------------------------|
+| 0x8  | Max Auth Limit Exceeded   |
+|------|---------------------------|
 
 * Internal Error - An implementation specific or generic error occurred.
 
@@ -2430,6 +2548,13 @@ as defined below:
 
 * Namespace Prefix Overlap - The namespace prefix overlaps with another
   SUBSCRIBE_ANNOUNCES in the same session.
+
+* Invalid Auth Token - An invalid Authorization token was provided.
+
+* Max Auth Limit Exceeded - the size of the Authorization token supplied
+  causes the Session limit of all registered Authorization tokens to be
+  exceeded.
+
 
 
 ## UNSUBSCRIBE_ANNOUNCES {#message-unsub-ann}
@@ -2926,6 +3051,7 @@ TODO: fill out currently missing registries:
   standards utilization where space is a premium, 64 - 16383 for
   standards utilization where space is less of a concern, and 16384 and
   above for first-come-first-served non-standardization usage.
+* MOQT Auth Token Type
 
 TODO: register the URI scheme and the ALPN and grease the Extension types
 
