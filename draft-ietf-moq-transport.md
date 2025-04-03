@@ -1205,14 +1205,15 @@ congestion control, and any other relevant information.
 #### MAX CACHE DURATION Parameter {#max-cache-duration}
 
 The MAX_CACHE_DURATION parameter (Parameter Type 0x04) MAY appear in a
-SUBSCRIBE_OK or FETCH_OK message.  It is an integer expressing the number of
-milliseconds an object can be served from a cache. If present, the relay MUST
-NOT start forwarding any individual Object received through this subscription
-or fetch after the specified number of milliseconds has elapsed since the
-beginning of the Object was received.  This means Objects earlier in a
-multi-object stream will expire earlier than Objects later in the stream. Once
-Objects have expired from cache, their state becomes unknown, and a relay that
-handles a downstream request that includes those Objects re-requests them.
+SUBSCRIBE_OK, FETCH_OK or TRACK_STATUS message.  It is an integer expressing
+the number of milliseconds an object can be served from a cache. If present,
+the relay MUST NOT start forwarding any individual Object received through
+this subscription or fetch after the specified number of milliseconds has
+elapsed since the beginning of the Object was received.  This means Objects
+earlier in a multi-object stream will expire earlier than Objects later in the
+stream. Once Objects have expired from cache, their state becomes unknown, and
+a relay that handles a downstream request that includes those Objects
+re-requests them.
 
 ## CLIENT_SETUP and SERVER_SETUP {#message-setup}
 
