@@ -2067,7 +2067,7 @@ as defined below:
 |------|---------------------------|
 | 0x6  | No Objects                |
 |------|---------------------------|
-| 0x7  | Invalid Joining Request ID|  
+| 0x7  | Invalid Joining Request ID|
 |------|---------------------------|
 
 * Internal Error - An implementation specific or generic error occurred.
