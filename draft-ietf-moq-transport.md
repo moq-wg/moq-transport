@@ -1364,10 +1364,14 @@ value is 0, so if not specified, the peer MUST NOT create subscriptions.
 
 The MAX_AUTH_SIZE parameter (Parameter Type 0x04) communicates the maximum
 size in bytes of all actively registered Authorization tokens that the server
-is willing to store per Session. This parameter is optional. The total size is
-calculated as the sum of the size of all registered tokens (Alias Type value of
-0x01 - see {{moq-token}})  minus the size for all deregistered tokens
-(Alias Type value of 0x00), since Session initiation.
+is willing to store per Session. This parameter is optional. The default value
+is 0 which prohibits the use of token aliases.
+
+The token size is calculated as 8 bytes + the size of the Token value
+(see {{moq-token}}). The total size as restricted by the MAX_AUTH_SIZE parameter
+is calculated as the sum of the token sizes for all registered tokens (Alias Type
+value of 0x01) minus the sum of the token sizes for all deregistered tokens (Alias
+Type value of 0x00), since Session initiation.
 
 ## GOAWAY {#message-goaway}
 
