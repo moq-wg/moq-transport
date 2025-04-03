@@ -2885,7 +2885,8 @@ congestion control, and any other relevant information.<a href="#section-8.1.1.2
             <h5 id="name-max-cache-duration-paramete">
 <a href="#section-8.1.1.3" class="section-number selfRef">8.1.1.3. </a><a href="#name-max-cache-duration-paramete" class="section-name selfRef">MAX CACHE DURATION Parameter</a>
             </h5>
-<p id="section-8.1.1.3-1">MAX_CACHE_DURATION (Parameter Type 0x04): An integer expressing the number of
+<p id="section-8.1.1.3-1">The MAX_CACHE_DURATION parameter (Parameter Type 0x04) <span class="bcp14">MAY</span> appear in a
+SUBSCRIBE_OK or FETCH_OK message.  It is an integer expressing the number of
 milliseconds an object can be served from a cache. If present, the relay <span class="bcp14">MUST NOT</span> start forwarding any individual Object received through this subscription
 or fetch after the specified number of milliseconds has elapsed since the
 beginning of the Object was received.  This means Objects earlier in a

@@ -1317,7 +1317,8 @@ Table of Contents
 
 8.1.1.3.  MAX CACHE DURATION Parameter
 
-   MAX_CACHE_DURATION (Parameter Type 0x04): An integer expressing the
+   The MAX_CACHE_DURATION parameter (Parameter Type 0x04) MAY appear in
+   a SUBSCRIBE_OK or FETCH_OK message.  It is an integer expressing the
    number of milliseconds an object can be served from a cache.  If
    present, the relay MUST NOT start forwarding any individual Object
    received through this subscription or fetch after the specified
