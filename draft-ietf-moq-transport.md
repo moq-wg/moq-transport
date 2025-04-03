@@ -1120,8 +1120,8 @@ Protocol Violation.
 Some messages include a Parameters field that encode optional message
 elements. They contain a type, length, and value.
 
-Senders MUST NOT repeat the same parameter type in a message unless the 
-parameter definition explicitly allows multiple instances of that type to 
+Senders MUST NOT repeat the same parameter type in a message unless the
+parameter definition explicitly allows multiple instances of that type to
 be sent in a single message. Receivers SHOULD check that there are no
 unauthorized duplicate parameters and close the session as a
 'Protocol Violation' if found.
