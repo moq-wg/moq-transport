@@ -582,11 +582,13 @@ code, as defined below:
 |------|---------------------------|
 | 0x3  | Protocol Violation        |
 |------|---------------------------|
-| 0x4  | Duplicate Track Alias     |
+| 0x4  | Duplicate Subscribe ID    |
 |------|---------------------------|
-| 0x5  | Parameter Length Mismatch |
+| 0x5  | Duplicate Track Alias     |
 |------|---------------------------|
-| 0x6  | Too Many Subscribes       |
+| 0x6  | Parameter Length Mismatch |
+|------|---------------------------|
+| 0x7  | Too Many Subscribes       |
 |------|---------------------------|
 | 0x10 | GOAWAY Timeout            |
 |------|---------------------------|
@@ -604,6 +606,9 @@ code, as defined below:
 
 * Protocol Violation: The remote endpoint performed an action that was
   disallowed by the specification.
+
+* Duplicate Subscribe ID: The endpoint attempted to use a Subscribe ID
+  that was already in use.
 
 * Duplicate Track Alias: The endpoint attempted to use a Track Alias
   that was already in use.
@@ -1442,7 +1447,9 @@ SUBSCRIBE Message {
 * Subscribe ID: The subscriber specified identifier used to manage a
 subscription. `Subscribe ID` is a variable length integer that MUST be
 unique and monotonically increasing within a session and MUST be less
-than the session's Maximum Subscribe ID.
+than the session's Maximum Subscribe ID.  If an endpoint receives a
+SUBSCRIBE with a Subscribe ID that is already in use, it MUST close
+the session with Duplicate Subscribe ID.
 
 * Track Alias: A session specific identifier for the track.
 Data streams and datagrams specify the Track Alias instead of the Track Name
@@ -1855,7 +1862,7 @@ FETCH Message {
    StartObject (i),
    EndGroup (i),
    EndObject (i),]
-  [ Subscribe ID (i),
+  [ Joining Subscribe ID (i),
     Joining Start (i),]
   Number of Parameters (i),
   Parameters (..) ...
@@ -1867,7 +1874,8 @@ Fields common to all Fetch Types:
 
 * Subscribe ID: The Subscribe ID identifies a given fetch request. Subscribe ID
 is a variable length integer that MUST be unique and monotonically increasing
-within a session.
+within a session.  If an endpoint receives a FETCH with a Subscribe ID that is
+already in use, it MUST close the session with Duplicate Subscribe ID.
 
 * Subscriber Priority: Specifies the priority of a fetch request relative to
 other subscriptions or fetches in the same session. Lower numbers get higher
@@ -1903,7 +1911,8 @@ Fields present only for Relative Fetch (0x2) and Absolute Fetch (0x3):
 
 * Joining Subscribe ID: The Subscribe ID of the existing subscription to be
 joined. If a publisher receives a Joining Fetch with a Subscribe ID that does
-not correspond to an existing Subscribe, it MUST respond with a Fetch Error.
+not correspond to an existing Subscribe, it MUST respond with a Fetch Error
+with code Invalid Subscribe ID.
 
 * Joining Start : for a Relative Joining Fetch (0x2), this value represents the
   group offset for the Fetch prior and relative to the Current Group of the
@@ -2038,6 +2047,8 @@ as defined below:
 |------|---------------------------|
 | 0x6  | No Objects                |
 |------|---------------------------|
+| 0x7  | Invalid Subscribe ID      |
+|------|---------------------------|
 
 * Internal Error - An implementation specific or generic error occurred.
 
@@ -2056,6 +2067,9 @@ as defined below:
 
 * No Objects - The beginning of the requested range is after the latest group
   and object for the track, or the track has not published any objects.
+
+* Invalid Subscribe ID - The joining Fetch referenced a Subscribe ID that did
+  not belong to an active Subscription.
 
 
 ## FETCH_CANCEL {#message-fetch-cancel}
