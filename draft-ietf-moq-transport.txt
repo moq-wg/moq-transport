@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 2 October 2025                                    I. Swett, Ed.
+Expires: 5 October 2025                                    I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                           31 March 2025
+                                                            3 April 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 2 October 2025.
+   This Internet-Draft will expire on 5 October 2025.
 
 Copyright Notice
 
@@ -531,6 +531,11 @@ Table of Contents
    an MOQT scope, they can be used as a cache key for the track.  If, at
    a given moment in time, two tracks within the same scope contain
    different data, they MUST have different names and/or namespaces.
+   MOQT provides subscribers with the ability to alter the specific
+   manner in which tracks are delivered via Subscribe Parameters, but
+   the actual content of the tracks does not depend on those parameters;
+   this is in contrast to protocols like HTTP, where request headers can
+   alter the server response.
 
 3.  Sessions
 
@@ -765,6 +770,10 @@ Table of Contents
    A SUBSCRIBE_ERROR or FETCH_ERROR indicates no objects will be
    delivered, and both endpoints can immediately destroy relevant state.
    Objects MUST NOT be sent for requests that end with an error.
+
+   The Parameters in SUBSCRIBE and FETCH MUST NOT cause the publisher to
+   alter the payload of the objects it sends, as that would violate the
+   track uniqueness guarantee described in Section 2.4.2.
 
 5.  Namespace Discovery
 
