@@ -17,18 +17,18 @@ media to publish data and have it consumed via subscription by a
 multiplicity of endpoints. It supports intermediate content distribution
 networks and is designed for high scale and low latency distribution. 
     " name="description">
-<meta content="xml2rfc 3.28.0" name="generator">
+<meta content="xml2rfc 3.28.1" name="generator">
 <meta content="media over quic" name="keyword">
 <meta content="draft-ietf-moq-transport-latest" name="ietf.draft">
 <!-- Generator version information:
-  xml2rfc 3.28.0
+  xml2rfc 3.28.1
     Python 3.12.9
     ConfigArgParse 1.7
     google-i18n-address 3.1.1
     intervaltree 3.1.0
     Jinja2 3.1.6
     lxml 5.3.0
-    platformdirs 4.3.6
+    platformdirs 4.3.7
     pycountry 24.6.1
     PyYAML 6.0.2
     requests 2.32.3
@@ -1056,7 +1056,7 @@ svg :is([fill="white"], [fill^="#fff"]) {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Nandakumar, et al.</td>
-<td class="center">Expires 4 October 2025</td>
+<td class="center">Expires 5 October 2025</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1069,12 +1069,12 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dd class="internet-draft">draft-ietf-moq-transport-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2025-04-02" class="published">2 April 2025</time>
+<time datetime="2025-04-03" class="published">3 April 2025</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2025-10-04">4 October 2025</time></dd>
+<dd class="expires"><time datetime="2025-10-05">5 October 2025</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1143,7 +1143,7 @@ networks and is designed for high scale and low latency distribution.<a href="#s
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 4 October 2025.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 5 October 2025.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -4104,7 +4104,7 @@ in the Status Code field it <span class="bcp14">MUST</span> close the session wi
 <p id="section-8.17-4">0x00 (In Progress): The track is in progress.  Either the publisher is the
 Original Publisher, or a relay with an active upstream subscription for this
 track.  The <code>Largest</code> field contains the largest group and object ID available
-at the endpoint.<a href="#section-8.17-4" class="pilcrow">¶</a></p>
+at the publisher<a href="#section-8.17-4" class="pilcrow">¶</a></p>
 <p id="section-8.17-5">0x01 (Not Found): The track does not exist or could not be located by a relay.
 The <code>Largest</code> field must have group and object set to 0.  If an endpoint
 receives a non-zero value for either field it <span class="bcp14">MUST</span> close the session with a
@@ -4116,7 +4116,7 @@ field it <span class="bcp14">MUST</span> close the session with a <code>Protocol
 largest Group and Object ID in the track.<a href="#section-8.17-7" class="pilcrow">¶</a></p>
 <p id="section-8.17-8">0x04 (Partial Information): The publisher is a relay with prior knowledge of
 this track (for example, it has at least one object cached), but does not have
-an active subscription, and cannot obtain the current track status from
+an active subscription, and cannot obtain the current status of the track from
 upstream. The <code>Largest</code> field contains the largest group and object ID known
 to the relay.<a href="#section-8.17-8" class="pilcrow">¶</a></p>
 <p id="section-8.17-9">0x05 (Empty Track): The track is complete and is known to have no objects.
@@ -4127,7 +4127,7 @@ a <code>Protocol Violation</code>.<a href="#section-8.17-9" class="pilcrow">¶</
 Publisher for an active subscription. If the publisher is a relay without an
 active subscription, it <span class="bcp14">SHOULD</span> send a TRACK_STATUS_REQUEST upstream or <span class="bcp14">MAY</span>
 subscribe to the track to obtain the same information before sending
-TRACK_STATUS.<a href="#section-8.17-10" class="pilcrow">¶</a></p>
+TRACK_STATUS. Alternatively, a relay publisher <span class="bcp14">MAY</span> respond with TRACK_STATUS having <code>Status</code> of 0x04 (Partial Information), wherever possible<a href="#section-8.17-10" class="pilcrow">¶</a></p>
 <p id="section-8.17-11">The receiver of multiple TRACK_STATUS messages for a track uses the information
 from the latest arriving message, as they are delivered in order on a single
 stream.<a href="#section-8.17-11" class="pilcrow">¶</a></p>
