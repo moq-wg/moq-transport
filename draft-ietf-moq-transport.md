@@ -296,6 +296,36 @@ Location A < Location B iff
 
 `A.Group < B.Group || (A.Group == B.Group && A.Object < B.Object)`
 
+### Key-Value-Pair Structure
+
+Key-Value-Pair is a flexible structure designed to carry key/value
+pairs in which the key is a variable length integer and the value
+is either a variable length integer or a byte field of arbitrary
+length.
+
+Key-Value-Pair is used in both the data plane and control plane, but
+is optimized for use in the data plane.
+
+~~~
+Key-Value-Pair {
+  Type (i),
+  [Length (i),]
+  Value (..)
+}
+~~~
+{: #moq-key-value-pair format title="MOQT Key-Value-Pair"}
+
+* Type: an unsigned integer, encoded as a varint, identifying the
+  type of the value and also the subsequent serialization.
+* Length: Only present when Type is odd. Species the length of the
+  Value field.
+* Value: A single varint encoded value when Type is even, otherwise a
+  sequence of Length bytes.
+
+If a receiver understands a Type, and the following Value or
+Length/Value does not match the serialization defined by that Type,
+the receiver MUST terminate the session with error code 'Key-Value
+Formatting Error'.
 
 # Object Data Model {#model}
 
@@ -591,7 +621,7 @@ code, as defined below:
 |------|---------------------------|
 | 0x5  | Duplicate Track Alias     |
 |------|---------------------------|
-| 0x6  | Parameter Formatting Error|
+| 0x6  | Key-Value Formatting Error|
 |------|---------------------------|
 | 0x7  | Too Many Subscribes       |
 |------|---------------------------|
@@ -618,7 +648,7 @@ code, as defined below:
 * Duplicate Track Alias: The endpoint attempted to use a Track Alias
   that was already in use.
 
-* Parameter Formatting Error: the parameter has a formatting error.
+* Key-Value Formatting Error: the key-value pair has a formatting error.
 
 * Too Many Subscribes: The session was closed because the subscriber used
   a Subscribe ID equal or larger than the current Maximum Subscribe ID.
@@ -1120,7 +1150,7 @@ Protocol Violation.
 ## Parameters {#params}
 
 Some messages include a Parameters field that encode optional message
-elements. They contain a type, an optional length, and a value.
+elements.
 
 Senders MUST NOT repeat the same parameter type in a message. Receivers
 SHOULD check that there are no duplicate parameters and close the session
@@ -1128,33 +1158,14 @@ as a 'Protocol Violation' if found.
 
 Receivers ignore unrecognized parameters.
 
-The format of Parameters is as follows:
+Parameters are serialized as Key-Value-Pairs {{moq-key-value-pair}}.
 
-~~~
-Parameter {
-  Parameter Type (i),
-  [Parameter Length (i),]
-  Parameter Value (..)
-}
-~~~
-{: #moq-param format title="MOQT Parameter"}
-
-* Parameter Type: an unsigned integer, encoded as a varint, identifying the
-  type of the parameter and also the subsequent serialization. Setup message
-  parameters use a namespace that is constant across all MoQ Transport versions.
-  All other messages use a version-specific namespace. For example, the integer
-  '1' can refer to different parameters for Setup messages and for all other
-  message types. SETUP message parameter types are defined in {{setup-params}}.
-  Version-specific parameter types are defined in {{version-specific-params}}.
-* Parameter Length: Only present when Parameter Type is odd.  Species the length
-  of the Parameter Value field.
-* Parameter Value: A single varint encoded value when Parameter Type is even,
-  otherwise a sequence of Parameter Length bytes.
-
-If a receiver understands a Parameter Type, and the following Value or
-Length/Value does not match the serialization defined by that Parameter Type,
-the receiver MUST terminate the session with error code 'Parameter Formatting
-Error'.
+Setup message parameters use a namespace that is constant across all MoQ
+Transport versions. All other messages use a version-specific namespace.
+For example, the integer '1' can refer to different parameters for Setup
+messages and for all other message types. SETUP message parameter types
+are defined in {{setup-params}}. Version-specific parameter types are defined
+in {{version-specific-params}}.
 
 ### Version Specific Parameters {#version-specific-params}
 
@@ -2593,7 +2604,7 @@ If supported by the relay and subject to the processing rules specified in the
 definition of the extension, Extension Headers MAY be modified, added, removed,
 and/or cached by relays.
 
-Object Extension Headers are serialized as Parameters {{moq-param}}.
+Object Extension Headers are serialized as Key-Value-Pairs {{moq-key-value-pair}}.
 
 Header types are registered in the IANA table 'MOQ Extension Headers'.
 See {{iana}}.
