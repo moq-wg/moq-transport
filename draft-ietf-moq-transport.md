@@ -1393,7 +1393,7 @@ the publisher to identify which objects need to be delivered.
 
 All filters have a Start Location and an optional End Group.  Only objects
 published or received via a subscription having Locations greater than or
-equal to start and strictly less than than or within the End Group (when
+equal to Start and strictly less than or within the End Group (when
 present) pass the filter.
 
 The `Largest Object` is defined to be the object with the largest Location
@@ -1421,15 +1421,12 @@ AbsoluteRange (0x4):  The Start Location and End Group are specified explicitly
 in the message. The Start Location MAY be less than the `Largest Object`. If End
 Group is the same group specified in Start Location, the remainder of that group
 passes the filter.  EndGroup MUST specify the same or a later group than
-specified in `Start`. 
+specified in `Start`.
 
 A filter type other than the above MUST be treated as error.
 
-Because objects can be reordered on the network, a SUBSCRIBE with the Latest
-Object filter might begin at 
-
-Subscribe only delivers newly published or received Objects.  Objects from
-the past are retrieved using FETCH ({{message-fetch}}).
+Subscribe only delivers newly published or received Objects.  Objects from the
+past are retrieved using FETCH ({{message-fetch}}).
 
 A Subscription can also request a publisher to not forward Objects for a given
 track by setting the `Forward` field to 0. This allows the publisher or relay
