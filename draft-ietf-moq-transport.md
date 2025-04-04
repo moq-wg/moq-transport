@@ -927,7 +927,7 @@ allows relays to make only a single upstream subscription for the
 track. The published content received from the upstream subscription
 request is cached and shared among the pending subscribers.
 Because SUBSCRIBE_UPDATE only allows narrowing a subscription, relays that
-aggregate upstream subscriptions can subscribe using the Latest Object
+aggregate upstream subscriptions can subscribe using the Higher Objects
 filter to avoid churn as downstream subscribers with disparate filters
 subscribe and unsubscribe from a track.
 
@@ -1400,29 +1400,32 @@ the publisher to identify which objects need to be delivered.
 
 There are 3 types of filters:
 
-Latest Object (0x2): Specifies an open-ended subscription beginning from
-the current object of the current group.  If no content has been delivered yet,
-the subscription starts with the first published or received group.
-
 AbsoluteStart (0x3):  Specifies an open-ended subscription beginning
 from the object identified in the `Start` field. If the
 start group is prior to the current group, the subscription starts at the
-beginning of the current object like the 'Latest Object' filter.
+beginning of the current object like the 'Higher Objects' filter.
 
 AbsoluteRange (0x4):  Specifies a closed subscription starting at `Start`
 and ending at the largest object in EndGroup.  The start and
 end of the range are inclusive.  EndGroup MUST specify the same or a later
 group than specified in `start`. If the start group is prior to the current
 group, the subscription starts at the beginning of the current object like
-the 'Latest Object' filter.
+the 'Higher Objects' filter.
+
+Higher Objects (0x5): Specifies an open-ended subscription. All objects with
+a Location greater than the Largest Group ID and Latest Object ID fields in the
+SUBSCRIBE_OK will be delivered by the publisher.
+
+All Objects (0x6): All objects that arrive via upstream SUBSCRIBE at, or are
+created by, the publisher after processing the SUBSCRIBE, whether or not the
+Location is higher than the highest observed when the SUBSCRIBE is processed.
 
 A filter type other than the above MUST be treated as error.
 
-If a subscriber wants to subscribe to Objects both before and after
-the Latest Object, it can send a SUBSCRIBE for the Latest Object
-followed by a FETCH. Depending upon the application, one might want to send
-both messages at the same time or wait for the first to return before sending
-the second.
+If a subscriber wants to subscribe to Objects that precede the Higher Objects
+filter, it can send a SUBSCRIBE for Higher Objects followed by a FETCH.
+Depending upon the application, one might want to send both messages at the same
+time or wait for the first to return before sending the second.
 
 A Subscription can also request a publisher to not forward Objects for a given
 track by setting the `Forward` field to 0. This allows the publisher or relay
@@ -1842,7 +1845,7 @@ A Subscriber can use a Joining Fetch to, for example, fill a playback buffer wit
 certain number of groups prior to the live edge of a track.
 
 A Joining Fetch is only permitted when the associated Subscribe has the Filter
-Type Latest Object.
+Type Higher Objects.
 
 A Fetch Type other than 0x1, 0x2 or 0x3 MUST be treated as an error.
 
