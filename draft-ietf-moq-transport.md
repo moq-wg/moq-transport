@@ -1414,7 +1414,7 @@ Latest Object filter.
 AbsoluteStart (0x3):  The Start Location is specified explicitly in the message.
 The Start Location MAY be less than the `Largest Object`. There is no End Group
 - the subscription is open ended.  To receive any object that is published or
-is received after this subscription is processed, a subscriber can use a an
+is received after this subscription is processed, a subscriber can use an
 AbsoluteStart filter with Start Location = {0, 0}.
 
 AbsoluteRange (0x4):  The Start Location and End Group are specified explicitly
