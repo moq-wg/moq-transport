@@ -2213,10 +2213,15 @@ long to respond to a control message.<a href="#section-3.4-4.9.1" class="pilcrow
 long to send data expected on an open Data Stream <a href="#data-streams" class="auto internal xref">Section 9</a>.  This
 includes fields of a stream header or an object header within a data
 stream. If an endpoint times out waiting for a new object header on an
-open subgroup stream, it <span class="bcp14">MAY</span> send a STOP_SENDING on that stream, terminate
-the subscription, or close the session with an error.<a href="#section-3.4-4.10.1" class="pilcrow">¶</a></p>
+open subgroup stream, it <span class="bcp14">MAY</span> send a STOP_SENDING on that stream or
+terminate the subscription.<a href="#section-3.4-4.10.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
+<p id="section-3.4-5">An endpoint <span class="bcp14">MAY</span> choose to treat a subscription or request specific error as a
+session error under certain circumstances, closing the entire session in
+response to a condition with a single subscription or message. Implementations
+need to consider the impact on other outstanding subscriptions before making this
+choice.<a href="#section-3.4-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="session-migration">
