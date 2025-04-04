@@ -317,7 +317,7 @@ Key-Value-Pair {
 
 * Type: an unsigned integer, encoded as a varint, identifying the
   type of the value and also the subsequent serialization.
-* Length: Only present when Type is odd. Species the length of the
+* Length: Only present when Type is odd. Specifies the length of the
   Value field.
 * Value: A single varint encoded value when Type is even, otherwise a
   sequence of Length bytes.
