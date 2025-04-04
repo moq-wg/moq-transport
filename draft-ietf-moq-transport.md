@@ -1391,31 +1391,45 @@ single session and publishers SHOULD treat this as a protocol violation.
 The subscriber specifies a filter on the subscription to allow
 the publisher to identify which objects need to be delivered.
 
+All filters have a Start Location and an optional End Group.  Only objects
+published or received via a subscription having Locations greater than or
+equal to start and strictly less than than or within the End Group (when
+present) pass the filter.
+
+The `Largest Object` is defined to be the object with the largest Location
+({{location-structure}}) in the track from the perspective of the endpoint
+processing the SUBSCRIBE message.
+
 There are 3 types of filters:
 
-Latest Object (0x2): Specifies an open-ended subscription beginning from
-the current object of the current group.  If no content has been delivered yet,
-the subscription starts with the first published or received group.
+Latest Object (0x2): The Start Location is the next object published or received
+via subscription with a Location larger than the `Largest Object`, which is
+communicated in SUBSCRIBE_OK. If no content has been delivered yet, the Start
+Location is the first published or received group.  There is no End Group - the
+subscription is open ended.  Note that due to network reordering or
+prioritization, relays can receive objects with Locations smaller than `Largest
+Object` after the SUBSCRIBE is processed, but these objects do not pass the
+Latest Object filter.
 
-AbsoluteStart (0x3):  Specifies an open-ended subscription beginning
-from the object identified in the `Start` field. If the
-start group is prior to the current group, the subscription starts at the
-beginning of the current object like the 'Latest Object' filter.
+AbsoluteStart (0x3):  The Start Location is specified explicitly in the message.
+The Start Location MAY be less than the `Largest Object`. There is no End Group
+- the subscription is open ended.  To receive any object that is published or
+is received after this subscription is processed, a subscriber can use a an
+AbsoluteStart filter with Start Location = {0, 0}.
 
-AbsoluteRange (0x4):  Specifies a closed subscription starting at `Start`
-and ending at the largest object in EndGroup.  The start and
-end of the range are inclusive.  EndGroup MUST specify the same or a later
-group than specified in `start`. If the start group is prior to the current
-group, the subscription starts at the beginning of the current object like
-the 'Latest Object' filter.
+AbsoluteRange (0x4):  The Start Location and End Group are specified explicitly
+in the message. The Start Location MAY be less than the `Largest Object`. If End
+Group is the same group specified in Start Location, the remainder of that group
+passes the filter.  EndGroup MUST specify the same or a later group than
+specified in `Start`. 
 
 A filter type other than the above MUST be treated as error.
 
-If a subscriber wants to subscribe to Objects both before and after
-the Latest Object, it can send a SUBSCRIBE for the Latest Object
-followed by a FETCH. Depending upon the application, one might want to send
-both messages at the same time or wait for the first to return before sending
-the second.
+Because objects can be reordered on the network, a SUBSCRIBE with the Latest
+Object filter might begin at 
+
+Subscribe only delivers newly published or received Objects.  Objects from
+the past are retrieved using FETCH ({{message-fetch}}).
 
 A Subscription can also request a publisher to not forward Objects for a given
 track by setting the `Forward` field to 0. This allows the publisher or relay
