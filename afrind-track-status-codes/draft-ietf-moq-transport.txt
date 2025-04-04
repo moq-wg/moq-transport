@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 5 October 2025                                    I. Swett, Ed.
+Expires: 6 October 2025                                    I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                            3 April 2025
+                                                            4 April 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 5 October 2025.
+   This Internet-Draft will expire on 6 October 2025.
 
 Copyright Notice
 
@@ -506,6 +506,12 @@ Table of Contents
    Track Name is a sequence of bytes that identifies an individual track
    within the namespace.
 
+   The maximum total length of a Full Track Name is 4,096 bytes,
+   computed as the sum of the lengths of each Track Namespace tuple
+   field and the Track Name length field.  If an endpoint receives a
+   Full Track Name exceeding this length, it MUST close the session with
+   a Protocol Violation.
+
    In this specification, both the Track Namespace tuple fields and the
    Track Name are not constrained to a specific encoding.  They carry a
    sequence of bytes and comparison between two Track Namespace tuple
@@ -531,6 +537,11 @@ Table of Contents
    an MOQT scope, they can be used as a cache key for the track.  If, at
    a given moment in time, two tracks within the same scope contain
    different data, they MUST have different names and/or namespaces.
+   MOQT provides subscribers with the ability to alter the specific
+   manner in which tracks are delivered via Subscribe Parameters, but
+   the actual content of the tracks does not depend on those parameters;
+   this is in contrast to protocols like HTTP, where request headers can
+   alter the server response.
 
 3.  Sessions
 
@@ -654,11 +665,13 @@ Table of Contents
                    +------+---------------------------+
                    |  0x3 | Protocol Violation        |
                    +------+---------------------------+
-                   |  0x4 | Duplicate Track Alias     |
+                   |  0x4 | Duplicate Subscribe ID    |
                    +------+---------------------------+
-                   |  0x5 | Parameter Length Mismatch |
+                   |  0x5 | Duplicate Track Alias     |
                    +------+---------------------------+
-                   |  0x6 | Too Many Subscribes       |
+                   |  0x6 | Parameter Length Mismatch |
+                   +------+---------------------------+
+                   |  0x7 | Too Many Subscribes       |
                    +------+---------------------------+
                    | 0x10 | GOAWAY Timeout            |
                    +------+---------------------------+
@@ -679,6 +692,9 @@ Table of Contents
    *  Protocol Violation: The remote endpoint performed an action that
       was disallowed by the specification.
 
+   *  Duplicate Subscribe ID: The endpoint attempted to use a Subscribe
+      ID that was already in use.
+
    *  Duplicate Track Alias: The endpoint attempted to use a Track Alias
       that was already in use.
 
@@ -698,8 +714,13 @@ Table of Contents
       This includes fields of a stream header or an object header within
       a data stream.  If an endpoint times out waiting for a new object
       header on an open subgroup stream, it MAY send a STOP_SENDING on
-      that stream, terminate the subscription, or close the session with
-      an error.
+      that stream or terminate the subscription.
+
+   An endpoint MAY choose to treat a subscription or request specific
+   error as a session error under certain circumstances, closing the
+   entire session in response to a condition with a single subscription
+   or message.  Implementations need to consider the impact on other
+   outstanding subscriptions before making this choice.
 
 3.5.  Migration
 
@@ -765,6 +786,10 @@ Table of Contents
    A SUBSCRIBE_ERROR or FETCH_ERROR indicates no objects will be
    delivered, and both endpoints can immediately destroy relevant state.
    Objects MUST NOT be sent for requests that end with an error.
+
+   The Parameters in SUBSCRIBE and FETCH MUST NOT cause the publisher to
+   alter the payload of the objects it sends, as that would violate the
+   track uniqueness guarantee described in Section 2.4.2.
 
 5.  Namespace Discovery
 
@@ -1257,21 +1282,21 @@ Table of Contents
 8.1.1.1.  AUTHORIZATION INFO
 
    AUTHORIZATION INFO parameter (Parameter Type 0x02) identifies a
-   track's authorization information in a SUBSCRIBE,
-   SUBSCRIBE_ANNOUNCES, ANNOUNCE or FETCH message.  This parameter is
-   populated for cases where the authorization is required at the track
-   level.
+   track's authorization information in a TRACK_STATUS_REQUEST,
+   SUBSCRIBE, SUBSCRIBE_ANNOUNCES, ANNOUNCE, or FETCH message.  This
+   parameter is populated for cases where the authorization is required
+   at the track level.
 
 8.1.1.2.  DELIVERY TIMEOUT Parameter
 
    The DELIVERY TIMEOUT parameter (Parameter Type 0x03) MAY appear in a
-   SUBSCRIBE, SUBSCRIBE_OK, or a SUBSCRIBE_UDPATE message.  It is the
-   duration in milliseconds the relay SHOULD continue to attempt
-   forwarding Objects after they have been received.  The start time for
-   the timeout is based on when the beginning of the Object is received,
-   and does not depend upon the forwarding preference.  There is no
-   explicit signal that an Object was not sent because the delivery
-   timeout was exceeded.
+   TRACK_STATUS, SUBSCRIBE, SUBSCRIBE_OK, or a SUBSCRIBE_UDPATE message.
+   It is the duration in milliseconds the relay SHOULD continue to
+   attempt forwarding Objects after they have been received.  The start
+   time for the timeout is based on when the beginning of the Object is
+   received, and does not depend upon the forwarding preference.  There
+   is no explicit signal that an Object was not sent because the
+   delivery timeout was exceeded.
 
    If both the subscriber and publisher specify the parameter, they use
    the min of the two values for the subscription.  The publisher SHOULD
@@ -1303,16 +1328,17 @@ Table of Contents
 
 8.1.1.3.  MAX CACHE DURATION Parameter
 
-   MAX_CACHE_DURATION (Parameter Type 0x04): An integer expressing the
-   number of milliseconds an object can be served from a cache.  If
-   present, the relay MUST NOT start forwarding any individual Object
-   received through this subscription or fetch after the specified
-   number of milliseconds has elapsed since the beginning of the Object
-   was received.  This means Objects earlier in a multi-object stream
-   will expire earlier than Objects later in the stream.  Once Objects
-   have expired from cache, their state becomes unknown, and a relay
-   that handles a downstream request that includes those Objects re-
-   requests them.
+   The MAX_CACHE_DURATION parameter (Parameter Type 0x04) MAY appear in
+   a SUBSCRIBE_OK, FETCH_OK or TRACK_STATUS message.  It is an integer
+   expressing the number of milliseconds an object can be served from a
+   cache.  If present, the relay MUST NOT start forwarding any
+   individual Object received through this subscription or fetch after
+   the specified number of milliseconds has elapsed since the beginning
+   of the Object was received.  This means Objects earlier in a multi-
+   object stream will expire earlier than Objects later in the stream.
+   Once Objects have expired from cache, their state becomes unknown,
+   and a relay that handles a downstream request that includes those
+   Objects re-requests them.
 
 8.2.  CLIENT_SETUP and SERVER_SETUP
 
@@ -1562,7 +1588,9 @@ Table of Contents
    *  Subscribe ID: The subscriber specified identifier used to manage a
       subscription.  Subscribe ID is a variable length integer that MUST
       be unique and monotonically increasing within a session and MUST
-      be less than the session's Maximum Subscribe ID.
+      be less than the session's Maximum Subscribe ID.  If an endpoint
+      receives a SUBSCRIBE with a Subscribe ID that is already in use,
+      it MUST close the session with Duplicate Subscribe ID.
 
    *  Track Alias: A session specific identifier for the track.  Data
       streams and datagrams specify the Track Alias instead of the Track
@@ -2004,7 +2032,7 @@ Table of Contents
       StartObject (i),
       EndGroup (i),
       EndObject (i),]
-     [ Subscribe ID (i),
+     [ Joining Subscribe ID (i),
        Joining Start (i),]
      Number of Parameters (i),
      Parameters (..) ...
@@ -2016,7 +2044,9 @@ Table of Contents
 
    *  Subscribe ID: The Subscribe ID identifies a given fetch request.
       Subscribe ID is a variable length integer that MUST be unique and
-      monotonically increasing within a session.
+      monotonically increasing within a session.  If an endpoint
+      receives a FETCH with a Subscribe ID that is already in use, it
+      MUST close the session with Duplicate Subscribe ID.
 
    *  Subscriber Priority: Specifies the priority of a fetch request
       relative to other subscriptions or fetches in the same session.
@@ -2056,7 +2086,8 @@ Table of Contents
    *  Joining Subscribe ID: The Subscribe ID of the existing
       subscription to be joined.  If a publisher receives a Joining
       Fetch with a Subscribe ID that does not correspond to an existing
-      Subscribe, it MUST respond with a Fetch Error.
+      Subscribe, it MUST respond with a Fetch Error with code Invalid
+      Subscribe ID.
 
    *  Joining Start : for a Relative Joining Fetch (0x2), this value
       represents the group offset for the Fetch prior and relative to
@@ -2196,6 +2227,8 @@ Table of Contents
                       +------+----------------------+
                       |  0x6 | No Objects           |
                       +------+----------------------+
+                      |  0x7 | Invalid Subscribe ID |
+                      +------+----------------------+
 
                                   Table 5
 
@@ -2220,6 +2253,9 @@ Table of Contents
    *  No Objects - The beginning of the requested range is after the
       latest group and object for the track, or the track has not
       published any objects.
+
+   *  Invalid Subscribe ID - The joining Fetch referenced a Subscribe ID
+      that did not belong to an active Subscription.
 
 8.15.  FETCH_CANCEL
 
@@ -2255,9 +2291,19 @@ Table of Contents
      Track Namespace (tuple),
      Track Name Length (i),
      Track Name (..),
+     Number of Parameters (i),
+     Parameters (..) ...,
    }
 
                 Figure 18: MOQT TRACK_STATUS_REQUEST Message
+
+   *  Track Namespace: Identifies the namespace of the track as defined
+      in (Section 2.4.1).
+
+   *  Track Name: Identifies the track name as defined in
+      (Section 2.4.1).
+
+   *  Parameters: The parameters are defined in Section 8.1.1.
 
 8.17.  TRACK_STATUS
 
@@ -2272,6 +2318,8 @@ Table of Contents
      Track Name (..),
      Status Code (i),
      Largest (Location),
+     Number of Parameters (i),
+     Parameters (..) ...,
    }
 
                     Figure 19: MOQT TRACK_STATUS Message
@@ -2317,6 +2365,8 @@ Table of Contents
    upstream or MAY subscribe to the track to obtain the same information
    before sending TRACK_STATUS.  Alternately, a relay MAY choose to
    respond with Status 0x04 (Partial Information).
+
+   The Parameters are defined in Section 8.1.1.
 
    The receiver of multiple TRACK_STATUS messages for a track uses the
    information from the latest arriving message, as they are delivered
