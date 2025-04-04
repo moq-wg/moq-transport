@@ -664,8 +664,14 @@ code, as defined below:
   long to send data expected on an open Data Stream {{data-streams}}.  This
   includes fields of a stream header or an object header within a data
   stream. If an endpoint times out waiting for a new object header on an
-  open subgroup stream, it MAY send a STOP_SENDING on that stream, terminate
-  the subscription, or close the session with an error.
+  open subgroup stream, it MAY send a STOP_SENDING on that stream or
+  terminate the subscription.
+
+An endpoint MAY choose to treat a subscription or request specific error as a
+session error under certain circumstances, closing the entire session in
+response to a condition with a single subscription or message. Implementations
+need to consider the impact on other outstanding subscriptions before making this
+choice.
 
 ## Migration {#session-migration}
 
@@ -1182,12 +1188,12 @@ these parameters to appear in Setup messages.
 #### DELIVERY TIMEOUT Parameter {#delivery-timeout}
 
 The DELIVERY TIMEOUT parameter (Parameter Type 0x02) MAY appear in a
-SUBSCRIBE, SUBSCRIBE_OK, or a SUBSCRIBE_UDPATE message.  It is the duration in
-milliseconds the relay SHOULD continue to attempt forwarding Objects after
-they have been received.  The start time for the timeout is based on when the
-beginning of the Object is received, and does not depend upon the forwarding
-preference. There is no explicit signal that an Object was not sent because
-the delivery timeout was exceeded.
+TRACK_STATUS, SUBSCRIBE, SUBSCRIBE_OK, or a SUBSCRIBE_UDPATE message.
+It is the duration in milliseconds the relay SHOULD continue to attempt
+forwarding Objects after they have been received.  The start time for the
+timeout is based on when the beginning of the Object is received, and does
+not depend upon the forwarding preference. There is no explicit signal that
+an Object was not sent because the delivery timeout was exceeded.
 
 If both the subscriber and publisher specify the parameter, they use the min of the
 two values for the subscription.  The publisher SHOULD always specify the value
@@ -1216,21 +1222,22 @@ congestion control, and any other relevant information.
 #### AUTHORIZATION INFO {#authorization-info}
 
 AUTHORIZATION INFO parameter (Parameter Type 0x03) identifies a track's
-authorization information in a SUBSCRIBE, SUBSCRIBE_ANNOUNCES, ANNOUNCE
-or FETCH message. This parameter is populated for cases where the authorization
-is required at the track level.
+authorization information in a TRACK_STATUS_REQUEST, SUBSCRIBE,
+SUBSCRIBE_ANNOUNCES, ANNOUNCE, or FETCH message. This parameter is populated
+for cases where the authorization is required at the track level.
 
 #### MAX CACHE DURATION Parameter {#max-cache-duration}
 
 The MAX_CACHE_DURATION parameter (Parameter Type 0x04) MAY appear in a
-SUBSCRIBE_OK or FETCH_OK message.  It is an integer expressing the number of
-milliseconds an object can be served from a cache. If present, the relay MUST
-NOT start forwarding any individual Object received through this subscription
-or fetch after the specified number of milliseconds has elapsed since the
-beginning of the Object was received.  This means Objects earlier in a
-multi-object stream will expire earlier than Objects later in the stream. Once
-Objects have expired from cache, their state becomes unknown, and a relay that
-handles a downstream request that includes those Objects re-requests them.
+SUBSCRIBE_OK, FETCH_OK or TRACK_STATUS message.  It is an integer expressing
+the number of milliseconds an object can be served from a cache. If present,
+the relay MUST NOT start forwarding any individual Object received through
+this subscription or fetch after the specified number of milliseconds has
+elapsed since the beginning of the Object was received.  This means Objects
+earlier in a multi-object stream will expire earlier than Objects later in the
+stream. Once Objects have expired from cache, their state becomes unknown, and
+a relay that handles a downstream request that includes those Objects
+re-requests them.
 
 ## CLIENT_SETUP and SERVER_SETUP {#message-setup}
 
@@ -2129,9 +2136,18 @@ TRACK_STATUS_REQUEST Message {
   Track Namespace (tuple),
   Track Name Length (i),
   Track Name (..),
+  Number of Parameters (i),
+  Parameters (..) ...,
 }
 ~~~
 {: #moq-track-status-request-format title="MOQT TRACK_STATUS_REQUEST Message"}
+
+* Track Namespace: Identifies the namespace of the track as defined in
+({{track-name}}).
+
+* Track Name: Identifies the track name as defined in ({{track-name}}).
+
+* Parameters: The parameters are defined in {{version-specific-params}}.
 
 ## TRACK_STATUS {#message-track-status}
 
@@ -2147,6 +2163,8 @@ TRACK_STATUS Message {
   Track Name (..),
   Status Code (i),
   Largest (Location),
+  Number of Parameters (i),
+  Parameters (..) ...,
 }
 ~~~
 {: #moq-track-status-format title="MOQT TRACK_STATUS Message"}
@@ -2177,6 +2195,8 @@ Publisher for an active subscription. If the publisher is a relay without an
 active subscription, it SHOULD send a TRACK_STATUS_REQUEST upstream or MAY
 subscribe to the track, to obtain the same information. If neither is possible,
 it should return the best available information with status code 0x04.
+
+The `Parameters` are defined in {{version-specific-params}}.
 
 The receiver of multiple TRACK_STATUS messages for a track uses the information
 from the latest arriving message, as they are delivered in order on a single
