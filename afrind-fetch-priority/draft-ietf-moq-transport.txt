@@ -5,13 +5,13 @@
 Media Over QUIC                                                L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 25 September 2025                                          Meta
+Expires: 6 October 2025                                             Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                           24 March 2025
+                                                            4 April 2025
 
 
                        Media over QUIC Transport
@@ -59,7 +59,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 25 September 2025.
+   This Internet-Draft will expire on 6 October 2025.
 
 Copyright Notice
 
@@ -898,10 +898,9 @@ Table of Contents
        preference Subgroup), or *the lowest Object ID* (for tracks with
        delivery preference Datagram) is sent first.
 
-   When objects are delivered via FETCH, only the subscriber priority is
-   considered.  If a FETCH response stream has the same subscriber
-   priority as another schedulable object, the order is implementation
-   defined.
+   When Objects are delivered via FETCH, only the subscriber priority is
+   considered.  If a FETCH response has the same subscriber priority as
+   another schedulable Object, the order is implementation specific.
 
    This algorithm does not provide a well-defined ordering for objects
    that belong to different subscriptions, but have the same subscriber
