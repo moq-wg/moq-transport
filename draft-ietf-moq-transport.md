@@ -842,6 +842,10 @@ the objects SHOULD be selected as follows:
    with delivery preference Subgroup), or **the lowest Object ID** (for tracks
    with delivery preference Datagram) is sent first.
 
+When Objects are delivered via FETCH, only the subscriber priority is
+considered. If a FETCH response has the same subscriber priority as
+another schedulable Object, the order is implementation specific.
+
 This algorithm does not provide a well-defined ordering for objects that belong
 to different subscriptions, but have the same subscriber and publisher
 priority.  The ordering in those cases is implementation-defined, though the
