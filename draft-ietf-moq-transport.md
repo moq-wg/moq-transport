@@ -1093,7 +1093,9 @@ MOQT Control Message {
 |-------|-----------------------------------------------------|
 | 0xD   | TRACK_STATUS_REQUEST ({{message-track-status-req}}) |
 |-------|-----------------------------------------------------|
-| 0xE   | TRACK_STATUS ({{message-track-status}})             |
+| 0xE   | TRACK_STATUS_OK ({{message-track-status-ok}})       |
+|-------|-----------------------------------------------------|
+| 0xF   | TRACK_STATUS_ERROR ({{message-track-status-error}}) |
 |-------|-----------------------------------------------------|
 | 0x6   | ANNOUNCE  ({{message-announce}})                    |
 |-------|-----------------------------------------------------|
@@ -1177,7 +1179,7 @@ for cases where the authorization is required at the track level.
 #### DELIVERY TIMEOUT Parameter {#delivery-timeout}
 
 The DELIVERY TIMEOUT parameter (Parameter Type 0x03) MAY appear in a
-TRACK_STATUS, SUBSCRIBE, SUBSCRIBE_OK, or a SUBSCRIBE_UDPATE message.
+TRACK_STATUS_OK, SUBSCRIBE, SUBSCRIBE_OK, or a SUBSCRIBE_UDPATE message.
 It is the duration in milliseconds the relay SHOULD continue to attempt
 forwarding Objects after they have been received.  The start time for the
 timeout is based on when the beginning of the Object is received, and does
@@ -1211,7 +1213,7 @@ congestion control, and any other relevant information.
 #### MAX CACHE DURATION Parameter {#max-cache-duration}
 
 The MAX_CACHE_DURATION parameter (Parameter Type 0x04) MAY appear in a
-SUBSCRIBE_OK, FETCH_OK or TRACK_STATUS message.  It is an integer expressing
+SUBSCRIBE_OK, FETCH_OK or TRACK_STATUS_OK message.  It is an integer expressing
 the number of milliseconds an object can be served from a cache. If present,
 the relay MUST NOT start forwarding any individual Object received through
 this subscription or fetch after the specified number of milliseconds has
@@ -2109,7 +2111,9 @@ FETCH_CANCEL Message {
 A potential subscriber sends a 'TRACK_STATUS_REQUEST' message on the control
 stream to obtain information about the current status of a given track.
 
-A TRACK_STATUS message MUST be sent in response to each TRACK_STATUS_REQUEST.
+Excactly one TRACK_STATUS_OK or TRACK_STATUS_ERROR message MUST be sent in
+response to each TRACK_STATUS_REQUEST.  The subscriber MUST close the
+session with a Protocol Violation if it detects more than one.
 
 ~~~
 TRACK_STATUS_REQUEST Message {
@@ -2131,58 +2135,71 @@ TRACK_STATUS_REQUEST Message {
 
 * Parameters: The parameters are defined in {{version-specific-params}}.
 
-## TRACK_STATUS {#message-track-status}
+## TRACK_STATUS_OK {#message-track-status}
 
-A publisher sends a 'TRACK_STATUS' message on the control stream in response
-to a TRACK_STATUS_REQUEST message.
+A publisher sends a 'TRACK_STATUS_OK' message on the control stream in response
+to a successful TRACK_STATUS_REQUEST message.
 
 ~~~
-TRACK_STATUS Message {
+TRACK_STATUS_OK Message {
   Type (i) = 0xE,
   Length (i),
   Track Namespace (tuple),
   Track Name Length(i),
   Track Name (..),
-  Status Code (i),
-  Largest (Location),
+  Partial Information (1),
+  End Of Track (1),
+  Reserved (6),
+  Expires (i),
+  Group Order (8),
+  ContentExists (8),
+  [Largest (Location)],
   Number of Parameters (i),
   Parameters (..) ...,
 }
 ~~~
 {: #moq-track-status-format title="MOQT TRACK_STATUS Message"}
 
-The 'Status Code' field provides additional information about the status of the
-track. It MUST hold one of the following values. Any other value is a malformed
-message.
+* Partial Information: Set to 1 if the publisher is a relay without an active
+  upstream subscription for this request and could not contact an upstream
+  publisher, and 0 otherwise.
 
-0x00: The track is in progress, and subsequent fields contain the highest group
-and object ID for that track.
+* End of Track: Set to 1 if the publisher knows this track is no longer live.
+The `Expires`, `ContentExists`, `Largest` and `Parameters` fields are identical
+to the publisher's SUBSCRIBE_OK message for this track.   `Group Order` is the
+preferred publisher Group Order.
 
-0x01: The track does not exist. Subsequent fields MUST be zero, and any other
-value is a malformed message.
+If the publisher is a relay without an active subscription, it SHOULD send a
+TRACK_STATUS_REQUEST upstream or MAY subscribe to the track, to obtain the same
+information. If neither is possible, it should return the best available
+information, and set Partial Information to 1.
 
-0x02: The track has not yet begun. Subsequent fields MUST be zero. Any other
-value is a malformed message.
+The receiver of multiple TRACK_STATUS_OK messages for a track uses the
+information from the latest arriving message, as they are delivered in order on
+a single stream.
 
-0x03: The track has finished, so there is no "live edge." Subsequent fields
-contain the highest Group and object ID known.
+## TRACK_STATUS_ERROR {#message-track-status-error}
 
-0x04: The publisher is a relay that cannot obtain the current track status from
-upstream. Subsequent fields contain the largest group and object ID known.
+A publisher sends a TRACKS_STATUS_ERROR control message in response to a
+failed TRACK_STATUS.
 
-Any other value in the Status Code field is a malformed message.
+~~~
+TRACK_STATUS_ERROR
+{
+  Type (i) = 0xF,
+  Length (i),
+  Track Namespace (tuple),
+  Track Name Length(i),
+  Track Name (..),
+  Error Code (i),
+  Reason Phrase Length (i),
+  Reason Phrase (..),
+}
+~~~
+{: #moq-transport-track-status-error format title="MOQT TRACK_STATUS_ERROR Message"}
 
-The `Largest` field represents the largest Object location observed by the
-Publisher for an active subscription. If the publisher is a relay without an
-active subscription, it SHOULD send a TRACK_STATUS_REQUEST upstream or MAY
-subscribe to the track, to obtain the same information. If neither is possible,
-it should return the best available information with status code 0x04.
-
-The `Parameters` are defined in {{version-specific-params}}.
-
-The receiver of multiple TRACK_STATUS messages for a track uses the information
-from the latest arriving message, as they are delivered in order on a single
-stream.
+The `Error Code` and `Reason Phrase` fields are identical to the publisher's
+SUBSCRIBE_ERROR message for this track.   
 
 ## ANNOUNCE {#message-announce}
 
