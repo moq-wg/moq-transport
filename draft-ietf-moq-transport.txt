@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 6 October 2025                                    I. Swett, Ed.
+Expires: 9 October 2025                                    I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                            4 April 2025
+                                                            7 April 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 6 October 2025.
+   This Internet-Draft will expire on 9 October 2025.
 
 Copyright Notice
 
@@ -783,9 +783,14 @@ Table of Contents
    streams.  It can destroy all FETCH state after closing the data
    stream.
 
-   A SUBSCRIBE_ERROR or FETCH_ERROR indicates no objects will be
-   delivered, and both endpoints can immediately destroy relevant state.
-   Objects MUST NOT be sent for requests that end with an error.
+   A SUBSCRIBE_ERROR indicates no objects will be delivered, and both
+   endpoints can immediately destroy relevant state.  Objects MUST NOT
+   be sent for requests that end with an error.
+
+   A FETCH_ERROR indicates that both endpoints can immediately destroy
+   state.  Since a relay can start delivering FETCH objects from cache
+   before determining the result of the request, some objects could be
+   received even if the FETCH results in error.
 
    The Parameters in SUBSCRIBE and FETCH MUST NOT cause the publisher to
    alter the payload of the objects it sends, as that would violate the
@@ -1968,10 +1973,16 @@ Table of Contents
 
    A subscriber issues a FETCH to a publisher to request a range of
    already published objects within a track.  The publisher responding
-   to a FETCH is responsible for retrieving all available Objects.  If
-   there are gaps between Objects, the publisher omits them from the
-   fetch response.  All omitted objects have status Object Does Not
-   Exist.
+   to a FETCH is responsible for delivering all available Objects in the
+   requested range in the requested order.  The Objects in the response
+   are delivered on a single unidirectional stream.  Any gaps in the
+   Group and Object IDs in the response stream indicate objects that do
+   not exist (eg: they implicitly have status Object Does Not Exist).
+   For Ascending Group Order this includes ranges between the first
+   requested object and the first object in the stream; between objects
+   in the stream; and between the last object in the stream and the
+   Largest Group/Object indicated in FETCH_OK, so long as the fetch
+   stream is terminated by a FIN.
 
    *Fetch Types*
 
@@ -2003,11 +2014,18 @@ Table of Contents
    A Fetch Type other than 0x1, 0x2 or 0x3 MUST be treated as an error.
 
    A publisher responds to a FETCH request with either a FETCH_OK or a
-   FETCH_ERROR message.  If it responds with FETCH_OK, the publisher
-   creates a new unidirectional stream that is used to send the Objects.
-   A relay MAY start sending objects immediately in response to a FETCH,
-   even if sending the FETCH_OK takes longer because it requires going
-   upstream to populate the latest object.
+   FETCH_ERROR message.  The publisher creates a new unidirectional
+   stream that is used to send the Objects.  The FETCH_OK or FETCH_ERROR
+   can come at any time relative to object delivery.
+
+   A relay that has cached objects from the beginning of the range MAY
+   start sending objects immediately in response to a FETCH.  If it
+   encounters an object in the requested range that is not cached and
+   has unknown status, the relay MUST pause subsequent delivery until it
+   has confirmed the object's status upstream.  If the upstream FETCH
+   fails, the relay sends a FETCH_ERROR and can reset the unidirectional
+   stream.  It can choose to do so immediately or wait until the cached
+   objects have been delivered before resetting the stream.
 
    The Object Forwarding Preference does not apply to fetches.
 
