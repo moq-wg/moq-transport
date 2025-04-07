@@ -317,8 +317,10 @@ Key-Value-Pair {
 
 * Type: an unsigned integer, encoded as a varint, identifying the
   type of the value and also the subsequent serialization.
-* Length: Only present when Type is odd. Specifies the length of the
-  Value field.
+* Length: Only present when Type is odd. Specifies the length of the Value field.
+  The maximum length of a value is 2^16-1 bytes.  If an endpoint receives a
+  length larger than the maximum, it MUST close the session with a Protocol
+  Violation.
 * Value: A single varint encoded value when Type is even, otherwise a
   sequence of Length bytes.
 
@@ -1089,11 +1091,13 @@ formatted as follows:
 ~~~
 MOQT Control Message {
   Message Type (i),
-  Message Length (i),
+  Message Length (16),
   Message Payload (..),
 }
 ~~~
 {: #moq-transport-message-format title="MOQT Message"}
+
+The following Message Types are defined:
 
 |-------|-----------------------------------------------------|
 | ID    | Messages                                            |
@@ -1172,6 +1176,9 @@ SHOULD check that there are no duplicate parameters and close the session
 as a 'Protocol Violation' if found.
 
 Receivers ignore unrecognized parameters.
+
+The number of parameters in a message is not specifically limited, but the
+total length of a control message is limited to 2^16-1.
 
 Parameters are serialized as Key-Value-Pairs {{moq-key-value-pair}}.
 
@@ -1351,7 +1358,9 @@ GOAWAY Message {
   connect to continue this session.  The client MUST use this URI for the new
   session if provided. If the URI is zero bytes long, the client can reuse the
   current URI is reused instead. The new session URI SHOULD use the same scheme
-  as the current URL to ensure compatibility.
+  as the current URL to ensure compatibility.  The maxmimum length of the New
+  Session URI is 8,192 bytes.  If an endpoint receives a length exceeding the
+  maximum, it MUST close the session with a Protocol Violation.
 
   If a server receives a GOAWAY with a non-zero New Session URI Length it MUST
   terminate the session with a Protocol Violation.
@@ -1596,7 +1605,9 @@ SUBSCRIBE_ERROR
 
 * Error Code: Identifies an integer error code for subscription failure.
 
-* Reason Phrase: Provides the reason for subscription error.
+* Reason Phrase: Provides the reason for subscription error.  The reason phrase
+  has a maximum length of 1024 bytes.  If an endpoint recieves a length exceeding
+  the maximum, it MUST close the session with a Protocol Violation.
 
 * Track Alias: When Error Code is 'Retry Track Alias', the subscriber SHOULD re-issue the
   SUBSCRIBE with this Track Alias instead. If this Track Alias is already in use,
@@ -2075,7 +2086,9 @@ FETCH_ERROR
 
 * Error Code: Identifies an integer error code for fetch failure.
 
-* Reason Phrase: Provides the reason for fetch error.
+* Reason Phrase: Provides the reason for fetch error.  The reason phrase
+  has a maximum length of 1024 bytes.  If an endpoint recieves a length
+  exceeding the maximum, it MUST close the session with a Protocol Violation.
 
 The application SHOULD use a relevant error code in FETCH_ERROR,
 as defined below:
@@ -2284,7 +2297,9 @@ message for which this response is provided.
 
 * Error Code: Identifies an integer error code for announcement failure.
 
-* Reason Phrase: Provides the reason for announcement error.
+* Reason Phrase: Provides the reason for announcement error. The reason phrase
+  has a maximum length of 1024 bytes.  If an endpoint recieves a length
+  exceeding the maximum, it MUST close the session with a Protocol Violation.
 
 The application SHOULD use a relevant error code in ANNOUNCE_ERROR, as defined
 below:
@@ -2359,7 +2374,9 @@ ANNOUNCE_CANCEL Message {
 ANNOUNCE_CANCEL uses the same error codes as ANNOUNCE_ERROR
 ({{message-announce-error}}).
 
-* Reason Phrase: Provides the reason for announcement cancelation.
+* Reason Phrase: Provides the reason for announcement cancelation. The reason
+  phrase has a maximum length of 1024 bytes.  If an endpoint recieves a length
+  exceeding the maximum, it MUST close the session with a Protocol Violation.
 
 ## SUBSCRIBE_ANNOUNCES {#message-subscribe-ns}
 
@@ -2452,6 +2469,9 @@ title="MOQT SUBSCRIBE_ANNOUNCES_ERROR Message"}
 failure.
 
 * Reason Phrase: Provides the reason for the namespace subscription error.
+  The reason phrase has a maximum length of 1024 bytes.  If an endpoint
+  recieves a length exceeding the maximum, it MUST close the session with a
+  Protocol Violation.
 
 The application SHOULD use a relevant error code in SUBSCRIBE_ANNOUNCES_ERROR,
 as defined below:
