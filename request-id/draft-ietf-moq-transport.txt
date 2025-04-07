@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 5 October 2025                                    I. Swett, Ed.
+Expires: 9 October 2025                                    I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                            3 April 2025
+                                                            7 April 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 5 October 2025.
+   This Internet-Draft will expire on 9 October 2025.
 
 Copyright Notice
 
@@ -694,9 +694,9 @@ Table of Contents
       was disallowed by the specification.
 
    *  Invalid Request ID: The session was closed because the endpoint
-      used a Request ID that was smaller than a previously received
-      request ID, or the least-significant bit of the request ID was
-      incorrect for the endpoint.
+      used a Request ID that was smaller than or equal to a previously
+      received request ID, or the least-significant bit of the request
+      ID was incorrect for the endpoint.
 
    *  Duplicate Track Alias: The endpoint attempted to use a Track Alias
       that was already in use.
