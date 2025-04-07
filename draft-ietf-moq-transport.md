@@ -2846,6 +2846,41 @@ RESET_STREAM and STOP_SENDING on SUBSCRIBE data streams have no impact on other
 Subgroups in the Group or the subscription, although applications might cancel all
 Subgroups in a Group at once.
 
+The application SHOULD use a relevant error code in RESET_STREAM or
+RESET_STREAM_AT, as defined below:
+
+|------|---------------------------|
+| Code | Reason                    |
+|-----:|:--------------------------|
+| 0x0  | Internal Error            |
+|------|---------------------------|
+| 0x1  | Cancelled                 |
+|------|---------------------------|
+| 0x2  | Delivery Timeout          |
+|------|---------------------------|
+| 0x3  | Session Closed            |
+|------|---------------------------|
+
+Internal Error:
+
+: An implementation specific error
+
+Cancelled:
+
+: The subscriber requested cancellation via UNSUBSCRIBE, FETCH_CANCEL or
+STOP_SENDING, or the publisher ended the subscription, in which case
+SUBSCRIBE_DONE ({{message-subscribe-done}}) will have a more detailed
+status code.
+
+Delivery Timeout:
+
+: The DELIVERY TIMEOUT {{delivery-timeout}} was exceeded for this
+stream
+
+Session Closed:
+
+: The publisher session is being closed
+
 ### Fetch Header {#fetch-header}
 
 When a stream begins with `FETCH_HEADER`, all objects on the stream belong to the
