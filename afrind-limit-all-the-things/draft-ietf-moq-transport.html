@@ -1056,7 +1056,7 @@ svg :is([fill="white"], [fill^="#fff"]) {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Nandakumar, et al.</td>
-<td class="center">Expires 7 October 2025</td>
+<td class="center">Expires 9 October 2025</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1069,12 +1069,12 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dd class="internet-draft">draft-ietf-moq-transport-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2025-04-05" class="published">5 April 2025</time>
+<time datetime="2025-04-07" class="published">7 April 2025</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2025-10-07">7 October 2025</time></dd>
+<dd class="expires"><time datetime="2025-10-09">9 October 2025</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1143,7 +1143,7 @@ networks and is designed for high scale and low latency distribution.<a href="#s
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 7 October 2025.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 9 October 2025.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -2808,10 +2808,12 @@ elements. They contain a type, length, and value.<a href="#section-8.1-1" class=
 <span class="bcp14">SHOULD</span> check that there are no duplicate parameters and close the session
 as a 'Protocol Violation' if found.<a href="#section-8.1-2" class="pilcrow">¶</a></p>
 <p id="section-8.1-3">Receivers ignore unrecognized parameters.<a href="#section-8.1-3" class="pilcrow">¶</a></p>
-<p id="section-8.1-4">The format of Parameters is as follows:<a href="#section-8.1-4" class="pilcrow">¶</a></p>
+<p id="section-8.1-4">The number of parameters in a message is not specifically limited, but the
+total length of a control message is limited to 2^16-1.<a href="#section-8.1-4" class="pilcrow">¶</a></p>
+<p id="section-8.1-5">The format of Parameters is as follows:<a href="#section-8.1-5" class="pilcrow">¶</a></p>
 <span id="name-moqt-parameter"></span><div id="moq-param">
 <figure id="figure-3">
-          <div class="alignLeft art-text artwork" id="section-8.1-5.1">
+          <div class="alignLeft art-text artwork" id="section-8.1-6.1">
 <pre>
 Parameter {
   Parameter Type (i),
@@ -2824,21 +2826,21 @@ Parameter {
 <a href="#name-moqt-parameter" class="selfRef">MOQT Parameter</a>
           </figcaption></figure>
 </div>
-<p id="section-8.1-6">Parameter Type is an integer that indicates the semantic meaning of the
+<p id="section-8.1-7">Parameter Type is an integer that indicates the semantic meaning of the
 parameter. Setup message parameters use a namespace that is constant across all
 MoQ Transport versions. All other messages use a version-specific namespace. For
 example, the integer '1' can refer to different parameters for Setup messages
-and for all other message types.<a href="#section-8.1-6" class="pilcrow">¶</a></p>
-<p id="section-8.1-7">SETUP message parameter types are defined in <a href="#setup-params" class="auto internal xref">Section 8.2.2</a>. Version-
-specific parameter types are defined in <a href="#version-specific-params" class="auto internal xref">Section 8.1.1</a>.<a href="#section-8.1-7" class="pilcrow">¶</a></p>
-<p id="section-8.1-8">The Parameter Length field encodes the length of the Parameter Value field in
+and for all other message types.<a href="#section-8.1-7" class="pilcrow">¶</a></p>
+<p id="section-8.1-8">SETUP message parameter types are defined in <a href="#setup-params" class="auto internal xref">Section 8.2.2</a>. Version-
+specific parameter types are defined in <a href="#version-specific-params" class="auto internal xref">Section 8.1.1</a>.<a href="#section-8.1-8" class="pilcrow">¶</a></p>
+<p id="section-8.1-9">The Parameter Length field encodes the length of the Parameter Value field in
 bytes. The maximum length of a parameter is 2^16-1 bytes.  If an endpoint
 receives a length larger than the maximum, it <span class="bcp14">MUST</span> close the session with a
-Protocol Violation.<a href="#section-8.1-8" class="pilcrow">¶</a></p>
-<p id="section-8.1-9">Each parameter description will indicate the data type in the Parameter Value
+Protocol Violation.<a href="#section-8.1-9" class="pilcrow">¶</a></p>
+<p id="section-8.1-10">Each parameter description will indicate the data type in the Parameter Value
 field. If a receiver understands a parameter type, and the parameter length
 implied by that type does not match the Parameter Length field, the receiver
-<span class="bcp14">MUST</span> terminate the session with error code 'Parameter Length Mismatch'.<a href="#section-8.1-9" class="pilcrow">¶</a></p>
+<span class="bcp14">MUST</span> terminate the session with error code 'Parameter Length Mismatch'.<a href="#section-8.1-10" class="pilcrow">¶</a></p>
 <div id="version-specific-params">
 <section id="section-8.1.1">
           <h4 id="name-version-specific-parameters">
@@ -2933,7 +2935,7 @@ setup parameters. TODO: describe GREASE for those.<a href="#section-8.2-1" class
 CLIENT_SETUP Message {
   Type (i) = 0x40,
   Length (i),
-  Number of Supported Versions (8),
+  Number of Supported Versions (i),
   Supported Version (i) ...,
   Number of Parameters (i) ...,
   Setup Parameters (..) ...,
@@ -2962,7 +2964,7 @@ SERVER_SETUP Message {
 This version of the specification is identified by the number 0x00000001.
 Versions with the most significant 16 bits of the version number cleared are
 reserved for use in future IETF consensus documents.<a href="#section-8.2.1-1" class="pilcrow">¶</a></p>
-<p id="section-8.2.1-2">The client offers a list of up to 256 protocol versions it supports; the
+<p id="section-8.2.1-2">The client offers the list of the protocol versions it supports; the
 server <span class="bcp14">MUST</span> reply with one of the versions offered by the client. If the
 server does not support any of the versions offered by the client, or
 the client receives a server version that it did not offer, the
@@ -3194,7 +3196,7 @@ SUBSCRIBE Message {
   Filter Type (i),
   [Start (Location)],
   [EndGroup (i)],
-  Number of Parameters (8),
+  Number of Parameters (i),
   Subscribe Parameters (..) ...
 }
 </pre>
@@ -3287,7 +3289,7 @@ SUBSCRIBE_OK
   Group Order (8),
   ContentExists (8),
   [Largest (Location)],
-  Number of Parameters (8),
+  Number of Parameters (i),
   Subscribe Parameters (..) ...
 }
 </pre>
@@ -3484,7 +3486,7 @@ SUBSCRIBE_UPDATE Message {
   EndGroup (i),
   Subscriber Priority (8),
   Forward (8),
-  Number of Parameters (8),
+  Number of Parameters (i),
   Subscribe Parameters (..) ...
 }
 </pre>
@@ -3758,7 +3760,7 @@ FETCH Message {
    EndObject (i),]
   [ Joining Subscribe ID (i),
     Joining Start (i),]
-  Number of Parameters (8),
+  Number of Parameters (i),
   Parameters (..) ...
 }
 </pre>
@@ -3907,7 +3909,7 @@ FETCH_OK
   Group Order (8),
   End Of Track (8),
   End (Location),
-  Number of Parameters (8),
+  Number of Parameters (i),
   Subscribe Parameters (..) ...
 }
 </pre>
@@ -4203,7 +4205,7 @@ ANNOUNCE Message {
   Type (i) = 0x6,
   Length (i),
   Track Namespace (tuple),
-  Number of Parameters (8),
+  Number of Parameters (i),
   Parameters (..) ...,
 }
 </pre>
@@ -4439,7 +4441,7 @@ SUBSCRIBE_ANNOUNCES Message {
   Type (i) = 0x11,
   Length (i),
   Track Namespace Prefix (tuple),
-  Number of Parameters (8),
+  Number of Parameters (i),
   Parameters (..) ...,
 }
 </pre>
