@@ -1832,8 +1832,10 @@ Key-Value-Pair {
 type of the value and also the subsequent serialization.<a href="#section-1.3.2-4.1.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-1.3.2-4.2">
-              <p id="section-1.3.2-4.2.1">Length: Only present when Type is odd. Specifies the length of the
-Value field.<a href="#section-1.3.2-4.2.1" class="pilcrow">¶</a></p>
+              <p id="section-1.3.2-4.2.1">Length: Only present when Type is odd. Specifies the length of the Value field.
+The maximum length of a value is 2^16-1 bytes.  If an endpoint receives a
+length larger than the maximum, it <span class="bcp14">MUST</span> close the session with a Protocol
+Violation.<a href="#section-1.3.2-4.2.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-1.3.2-4.3">
               <p id="section-1.3.2-4.3.1">Value: A single varint encoded value when Type is even, otherwise a
@@ -2721,7 +2723,7 @@ formatted as follows:<a href="#section-8-1" class="pilcrow">¶</a></p>
 <pre>
 MOQT Control Message {
   Message Type (i),
-  Message Length (i),
+  Message Length (16),
   Message Payload (..),
 }
 </pre>
@@ -2730,6 +2732,7 @@ MOQT Control Message {
 <a href="#name-moqt-message" class="selfRef">MOQT Message</a>
         </figcaption></figure>
 </div>
+<p id="section-8-3">The following Message Types are defined:<a href="#section-8-3" class="pilcrow">¶</a></p>
 <table class="center" id="table-2">
         <caption><a href="#table-2" class="selfRef">Table 2</a></caption>
 <thead>
@@ -2854,12 +2857,12 @@ MOQT Control Message {
           </tr>
         </tbody>
       </table>
-<p id="section-8-4">An endpoint that receives an unknown message type <span class="bcp14">MUST</span> close the session.
+<p id="section-8-5">An endpoint that receives an unknown message type <span class="bcp14">MUST</span> close the session.
 Control messages have a length to make parsing easier, but no control messages
 are intended to be ignored. The length is set to the number of bytes in Message
 Payload, which is defined by each message type.  If the length does not match
 the length of the Message Payload, the receiver <span class="bcp14">MUST</span> close the session with
-Protocol Violation.<a href="#section-8-4" class="pilcrow">¶</a></p>
+Protocol Violation.<a href="#section-8-5" class="pilcrow">¶</a></p>
 <div id="params">
 <section id="section-8.1">
         <h3 id="name-parameters">
@@ -2871,13 +2874,15 @@ elements.<a href="#section-8.1-1" class="pilcrow">¶</a></p>
 <span class="bcp14">SHOULD</span> check that there are no duplicate parameters and close the session
 as a 'Protocol Violation' if found.<a href="#section-8.1-2" class="pilcrow">¶</a></p>
 <p id="section-8.1-3">Receivers ignore unrecognized parameters.<a href="#section-8.1-3" class="pilcrow">¶</a></p>
-<p id="section-8.1-4">Parameters are serialized as Key-Value-Pairs <a href="#moq-key-value-pair" class="auto internal xref">Figure 2</a>.<a href="#section-8.1-4" class="pilcrow">¶</a></p>
-<p id="section-8.1-5">Setup message parameters use a namespace that is constant across all MoQ
+<p id="section-8.1-4">The number of parameters in a message is not specifically limited, but the
+total length of a control message is limited to 2^16-1.<a href="#section-8.1-4" class="pilcrow">¶</a></p>
+<p id="section-8.1-5">Parameters are serialized as Key-Value-Pairs <a href="#moq-key-value-pair" class="auto internal xref">Figure 2</a>.<a href="#section-8.1-5" class="pilcrow">¶</a></p>
+<p id="section-8.1-6">Setup message parameters use a namespace that is constant across all MoQ
 Transport versions. All other messages use a version-specific namespace.
 For example, the integer '1' can refer to different parameters for Setup
 messages and for all other message types. SETUP message parameter types
 are defined in <a href="#setup-params" class="auto internal xref">Section 8.2.2</a>. Version-specific parameter types are defined
-in <a href="#version-specific-params" class="auto internal xref">Section 8.1.1</a>.<a href="#section-8.1-5" class="pilcrow">¶</a></p>
+in <a href="#version-specific-params" class="auto internal xref">Section 8.1.1</a>.<a href="#section-8.1-6" class="pilcrow">¶</a></p>
 <div id="version-specific-params">
 <section id="section-8.1.1">
           <h4 id="name-version-specific-parameters">
@@ -3087,7 +3092,9 @@ GOAWAY Message {
 connect to continue this session.  The client <span class="bcp14">MUST</span> use this URI for the new
 session if provided. If the URI is zero bytes long, the client can reuse the
 current URI is reused instead. The new session URI <span class="bcp14">SHOULD</span> use the same scheme
-as the current URL to ensure compatibility.<a href="#section-8.3-6.1.1" class="pilcrow">¶</a></p>
+as the current URL to ensure compatibility.  The maxmimum length of the New
+Session URI is 8,192 bytes.  If an endpoint receives a length exceeding the
+maximum, it <span class="bcp14">MUST</span> close the session with a Protocol Violation.<a href="#section-8.3-6.1.1" class="pilcrow">¶</a></p>
 <p id="section-8.3-6.1.2">
 If a server receives a GOAWAY with a non-zero New Session URI Length it <span class="bcp14">MUST</span>
 terminate the session with a Protocol Violation.<a href="#section-8.3-6.1.2" class="pilcrow">¶</a></p>
@@ -3399,7 +3406,9 @@ SUBSCRIBE_ERROR
             <p id="section-8.8-3.2.1">Error Code: Identifies an integer error code for subscription failure.<a href="#section-8.8-3.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.8-3.3">
-            <p id="section-8.8-3.3.1">Reason Phrase: Provides the reason for subscription error.<a href="#section-8.8-3.3.1" class="pilcrow">¶</a></p>
+            <p id="section-8.8-3.3.1">Reason Phrase: Provides the reason for subscription error.  The reason phrase
+has a maximum length of 1024 bytes.  If an endpoint recieves a length exceeding
+the maximum, it <span class="bcp14">MUST</span> close the session with a Protocol Violation.<a href="#section-8.8-3.3.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.8-3.4">
             <p id="section-8.8-3.4.1">Track Alias: When Error Code is 'Retry Track Alias', the subscriber <span class="bcp14">SHOULD</span> re-issue the
@@ -4027,7 +4036,9 @@ FETCH_ERROR
             <p id="section-8.14-3.2.1">Error Code: Identifies an integer error code for fetch failure.<a href="#section-8.14-3.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.14-3.3">
-            <p id="section-8.14-3.3.1">Reason Phrase: Provides the reason for fetch error.<a href="#section-8.14-3.3.1" class="pilcrow">¶</a></p>
+            <p id="section-8.14-3.3.1">Reason Phrase: Provides the reason for fetch error.  The reason phrase
+has a maximum length of 1024 bytes.  If an endpoint recieves a length
+exceeding the maximum, it <span class="bcp14">MUST</span> close the session with a Protocol Violation.<a href="#section-8.14-3.3.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-8.14-4">The application <span class="bcp14">SHOULD</span> use a relevant error code in FETCH_ERROR,
@@ -4335,7 +4346,9 @@ message for which this response is provided.<a href="#section-8.20-3.1.1" class=
             <p id="section-8.20-3.2.1">Error Code: Identifies an integer error code for announcement failure.<a href="#section-8.20-3.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.20-3.3">
-            <p id="section-8.20-3.3.1">Reason Phrase: Provides the reason for announcement error.<a href="#section-8.20-3.3.1" class="pilcrow">¶</a></p>
+            <p id="section-8.20-3.3.1">Reason Phrase: Provides the reason for announcement error. The reason phrase
+has a maximum length of 1024 bytes.  If an endpoint recieves a length
+exceeding the maximum, it <span class="bcp14">MUST</span> close the session with a Protocol Violation.<a href="#section-8.20-3.3.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-8.20-4">The application <span class="bcp14">SHOULD</span> use a relevant error code in ANNOUNCE_ERROR, as defined
@@ -4460,7 +4473,9 @@ ANNOUNCE_CANCEL uses the same error codes as ANNOUNCE_ERROR
 (<a href="#message-announce-error" class="auto internal xref">Section 8.20</a>).<a href="#section-8.22-3.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.22-3.3">
-            <p id="section-8.22-3.3.1">Reason Phrase: Provides the reason for announcement cancelation.<a href="#section-8.22-3.3.1" class="pilcrow">¶</a></p>
+            <p id="section-8.22-3.3.1">Reason Phrase: Provides the reason for announcement cancelation. The reason
+phrase has a maximum length of 1024 bytes.  If an endpoint recieves a length
+exceeding the maximum, it <span class="bcp14">MUST</span> close the session with a Protocol Violation.<a href="#section-8.22-3.3.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
@@ -4588,7 +4603,10 @@ SUBSCRIBE_ANNOUNCES_ERROR
 failure.<a href="#section-8.25-3.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.25-3.3">
-            <p id="section-8.25-3.3.1">Reason Phrase: Provides the reason for the namespace subscription error.<a href="#section-8.25-3.3.1" class="pilcrow">¶</a></p>
+            <p id="section-8.25-3.3.1">Reason Phrase: Provides the reason for the namespace subscription error.
+The reason phrase has a maximum length of 1024 bytes.  If an endpoint
+recieves a length exceeding the maximum, it <span class="bcp14">MUST</span> close the session with a
+Protocol Violation.<a href="#section-8.25-3.3.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-8.25-4">The application <span class="bcp14">SHOULD</span> use a relevant error code in SUBSCRIBE_ANNOUNCES_ERROR,
