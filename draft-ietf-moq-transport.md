@@ -612,10 +612,9 @@ code, as defined below:
 * Protocol Violation: The remote endpoint performed an action that was
   disallowed by the specification.
 
-* Invalid Request ID: The session was closed because the endpoint used a
-  Request ID that was smaller than a previously received request ID, or
-  the least-significant bit of the request ID was incorrect for the
-  endpoint.
+* Invalid Request ID: The session was closed because the endpoint used a Request
+  ID that was smaller than or equal to a previously received request ID, or the
+  least-significant bit of the request ID was incorrect for the endpoint.
 
 * Duplicate Track Alias: The endpoint attempted to use a Track Alias
   that was already in use.
