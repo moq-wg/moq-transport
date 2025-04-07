@@ -296,6 +296,36 @@ Location A < Location B iff
 
 `A.Group < B.Group || (A.Group == B.Group && A.Object < B.Object)`
 
+### Key-Value-Pair Structure
+
+Key-Value-Pair is a flexible structure designed to carry key/value
+pairs in which the key is a variable length integer and the value
+is either a variable length integer or a byte field of arbitrary
+length.
+
+Key-Value-Pair is used in both the data plane and control plane, but
+is optimized for use in the data plane.
+
+~~~
+Key-Value-Pair {
+  Type (i),
+  [Length (i),]
+  Value (..)
+}
+~~~
+{: #moq-key-value-pair format title="MOQT Key-Value-Pair"}
+
+* Type: an unsigned integer, encoded as a varint, identifying the
+  type of the value and also the subsequent serialization.
+* Length: Only present when Type is odd. Specifies the length of the
+  Value field.
+* Value: A single varint encoded value when Type is even, otherwise a
+  sequence of Length bytes.
+
+If a receiver understands a Type, and the following Value or
+Length/Value does not match the serialization defined by that Type,
+the receiver MUST terminate the session with error code 'Key-Value
+Formatting Error'.
 
 # Object Data Model {#model}
 
@@ -591,7 +621,7 @@ code, as defined below:
 |------|---------------------------|
 | 0x5  | Duplicate Track Alias     |
 |------|---------------------------|
-| 0x6  | Parameter Length Mismatch |
+| 0x6  | Key-Value Formatting Error|
 |------|---------------------------|
 | 0x7  | Too Many Subscribes       |
 |------|---------------------------|
@@ -617,6 +647,8 @@ code, as defined below:
 
 * Duplicate Track Alias: The endpoint attempted to use a Track Alias
   that was already in use.
+
+* Key-Value Formatting Error: the key-value pair has a formatting error.
 
 * Too Many Subscribes: The session was closed because the subscriber used
   a Subscribe ID equal or larger than the current Maximum Subscribe ID.
@@ -1066,9 +1098,13 @@ MOQT Control Message {
 |-------|-----------------------------------------------------|
 | ID    | Messages                                            |
 |------:|:----------------------------------------------------|
-| 0x40  | CLIENT_SETUP ({{message-setup}})                    |
+| 0x40  | RESERVED (CLIENT_SETUP for versions <= 10)          |
 |-------|-----------------------------------------------------|
-| 0x41  | SERVER_SETUP ({{message-setup}})                    |
+| 0x41  | RESERVED (SERVER_SETUP for versions <= 10)          |
+|-------|-----------------------------------------------------|
+| 0x50  | CLIENT_SETUP ({{message-setup}})                    |
+|-------|-----------------------------------------------------|
+| 0x51  | SERVER_SETUP ({{message-setup}})                    |
 |-------|-----------------------------------------------------|
 | 0x10  | GOAWAY ({{message-goaway}})                         |
 |-------|-----------------------------------------------------|
@@ -1129,7 +1165,7 @@ Protocol Violation.
 ## Parameters {#params}
 
 Some messages include a Parameters field that encode optional message
-elements. They contain a type, length, and value.
+elements.
 
 Senders MUST NOT repeat the same parameter type in a message. Receivers
 SHOULD check that there are no duplicate parameters and close the session
@@ -1137,33 +1173,14 @@ as a 'Protocol Violation' if found.
 
 Receivers ignore unrecognized parameters.
 
-The format of Parameters is as follows:
+Parameters are serialized as Key-Value-Pairs {{moq-key-value-pair}}.
 
-~~~
-Parameter {
-  Parameter Type (i),
-  Parameter Length (i),
-  Parameter Value (..),
-}
-~~~
-{: #moq-param format title="MOQT Parameter"}
-
-Parameter Type is an integer that indicates the semantic meaning of the
-parameter. Setup message parameters use a namespace that is constant across all
-MoQ Transport versions. All other messages use a version-specific namespace. For
-example, the integer '1' can refer to different parameters for Setup messages
-and for all other message types.
-
-SETUP message parameter types are defined in {{setup-params}}. Version-
-specific parameter types are defined in {{version-specific-params}}.
-
-The Parameter Length field encodes the length of the Parameter Value field in
-bytes.
-
-Each parameter description will indicate the data type in the Parameter Value
-field. If a receiver understands a parameter type, and the parameter length
-implied by that type does not match the Parameter Length field, the receiver
-MUST terminate the session with error code 'Parameter Length Mismatch'.
+Setup message parameters use a namespace that is constant across all MoQ
+Transport versions. All other messages use a version-specific namespace.
+For example, the integer '1' can refer to different parameters for Setup
+messages and for all other message types. SETUP message parameter types
+are defined in {{setup-params}}. Version-specific parameter types are defined
+in {{version-specific-params}}.
 
 ### Version Specific Parameters {#version-specific-params}
 
@@ -1172,16 +1189,10 @@ it can appear. If it appears in some other type of message, it MUST be ignored.
 Note that since Setup parameters use a separate namespace, it is impossible for
 these parameters to appear in Setup messages.
 
-#### AUTHORIZATION INFO {#authorization-info}
-
-AUTHORIZATION INFO parameter (Parameter Type 0x02) identifies a track's
-authorization information in a TRACK_STATUS_REQUEST, SUBSCRIBE,
-SUBSCRIBE_ANNOUNCES, ANNOUNCE, or FETCH message. This parameter is populated
-for cases where the authorization is required at the track level.
 
 #### DELIVERY TIMEOUT Parameter {#delivery-timeout}
 
-The DELIVERY TIMEOUT parameter (Parameter Type 0x03) MAY appear in a
+The DELIVERY TIMEOUT parameter (Parameter Type 0x02) MAY appear in a
 TRACK_STATUS, SUBSCRIBE, SUBSCRIBE_OK, or a SUBSCRIBE_UDPATE message.
 It is the duration in milliseconds the relay SHOULD continue to attempt
 forwarding Objects after they have been received.  The start time for the
@@ -1213,6 +1224,13 @@ Publishers SHOULD consider whether the entire Object is likely to be delivered
 before sending any data for that Object, taking into account priorities,
 congestion control, and any other relevant information.
 
+#### AUTHORIZATION INFO {#authorization-info}
+
+AUTHORIZATION INFO parameter (Parameter Type 0x03) identifies a track's
+authorization information in a TRACK_STATUS_REQUEST, SUBSCRIBE,
+SUBSCRIBE_ANNOUNCES, ANNOUNCE, or FETCH message. This parameter is populated
+for cases where the authorization is required at the track level.
+
 #### MAX CACHE DURATION Parameter {#max-cache-duration}
 
 The MAX_CACHE_DURATION parameter (Parameter Type 0x04) MAY appear in a
@@ -1240,7 +1258,7 @@ The wire format of the Setup messages are as follows:
 
 ~~~
 CLIENT_SETUP Message {
-  Type (i) = 0x40,
+  Type (i) = 0x50,
   Length (i),
   Number of Supported Versions (i),
   Supported Version (i) ...,
@@ -1249,7 +1267,7 @@ CLIENT_SETUP Message {
 }
 
 SERVER_SETUP Message {
-  Type (i) = 0x41,
+  Type (i) = 0x51,
   Length (i),
   Selected Version (i),
   Number of Parameters (i) ...,
@@ -2629,25 +2647,10 @@ If supported by the relay and subject to the processing rules specified in the
 definition of the extension, Extension Headers MAY be modified, added, removed,
 and/or cached by relays.
 
-Object Extension Headers are serialized as defined below:
+Object Extension Headers are serialized as Key-Value-Pairs {{moq-key-value-pair}}.
 
-~~~
-Extension Header {
-  Header Type (i),
-  [Header Length (i),]
-  Header Value (..)
-}
-~~~
-{: #object-extension-format title="Object Extension Header Format"}
-
-* Header Type: an unsigned integer, encoded as a varint, identifying the type
-  of the extension and also the subsequent serialization.
-* Header Length: Only present when Header Type is odd.  Species the length of
-  the Header Value field.
-* Header Value: A single varint encoded value when Header Type is even,
-  otherwise a sequence of Header Length bytes.
-  Header types are registered in the IANA table 'MOQ Extension Headers'.
-  See {{iana}}.
+Header types are registered in the IANA table 'MOQ Extension Headers'.
+See {{iana}}.
 
 ## Object Datagram {#object-datagram}
 
