@@ -633,6 +633,8 @@ code, as defined below:
 |------|---------------------------|
 | 0x12 | Data Stream Timeout       |
 |------|---------------------------|
+| 0x13 | Max Auth Limit Exceeded   |
+|------|---------------------------|
 
 * No Error: The session is being terminated without an error.
 
@@ -668,6 +670,9 @@ code, as defined below:
   stream. If an endpoint times out waiting for a new object header on an
   open subgroup stream, it MAY send a STOP_SENDING on that stream or
   terminate the subscription.
+
+* Max Auth Limit Exceeded - the Session limit {{max-auth-size}} of all registered
+  Authorization tokens has been exceeded.
 
 An endpoint MAY choose to treat a subscription or request specific error as a
 session error under certain circumstances, closing the entire session in
@@ -1261,6 +1266,10 @@ serialization, referencing an alias which has not been registered, attempting to
 register an alias which has been previously registered, or providing a token value
 which does not match the declared Token type.
 
+Retiring an alais and token that was previously used to authorize a message has no
+retroactive effect on the original authorization, nor does it prevent that same token
+being re-registered as long as that registration is performed with a new alias.
+
 Clients SHOULD only register tokens which they intend to re-use during the session.
 Client SHOULD retire previously registered tokens once their utility has passed.
 
@@ -1268,7 +1277,7 @@ By registering a Token, the client is requiring the receiver to store the Token 
 and Token Value until they are retired, or the Session ends. The receiver can protect
 its resources by sending a SETUP parameter defining the MAX_AUTH_SIZE {{max-auth-size}}
 limit it is willing to accept. If a registration is attempted which would cause this
-limit to be exceeded, the receiver MUST reject that message with a
+limit to be exceeded, the receiver MUST termiate the Session with a
 "Max Auth Limit Exceeded" error.
 
 
@@ -1724,8 +1733,6 @@ as defined below:
 |------|---------------------------|
 | 0x7  | Invalid Auth Token        |
 |------|---------------------------|
-| 0x8  | Max Auth Limit Exceeded   |
-|------|---------------------------|
 
 * Internal Error - An implementation specific or generic error occurred.
 
@@ -1750,10 +1757,6 @@ as defined below:
   be due to invalid serialization, referencing an alias which has not been
   registered, or attempting to register an alias which has been previously
   registered.
-
-* Max Auth Limit Exceeded - the size of the Authorization token supplied
-  causes the Session limit of all registered Authorization tokens to be
-
 
 ## SUBSCRIBE_UPDATE {#message-subscribe-update}
 
@@ -2212,9 +2215,7 @@ as defined below:
 |------|---------------------------|
 | 0x7  | Invalid Auth Token        |
 |------|---------------------------|
-| 0x8  | Max Auth Limit Exceeded   |
-|------|---------------------------|
-| 0x9  | Invalid Subscribe ID      |
+| 0x8  | Invalid Subscribe ID      |
 |------|---------------------------|
 
 * Internal Error - An implementation specific or generic error occurred.
@@ -2236,10 +2237,6 @@ as defined below:
   and object for the track, or the track has not published any objects.
 
 * Invalid Auth Token - An invalid Authorization token was provided.
-
-* Max Auth Limit Exceeded - the size of the Authorization token supplied
-  causes the Session limit of all registered Authorization tokens to be
-  exceeded.
 
 * Invalid Subscribe ID - The joining Fetch referenced a Subscribe ID that did
   not belong to an active Subscription.
@@ -2429,8 +2426,6 @@ below:
 |------|---------------------------|
 | 0x7  | Invalid Auth Token        |
 |------|---------------------------|
-| 0x8  | Max Auth Limit Exceeded   |
-|------|---------------------------|
 
 * Internal Error - An implementation specific or generic error occurred.
 
@@ -2445,10 +2440,6 @@ below:
 * Uninterested - The namespace is not of interest to the endpoint.
 
 * Invalid Auth Token - An invalid Authorization token was provided.
-
-* Max Auth Limit Exceeded - the size of the Authorization token supplied
-  causes the Session limit of all registered Authorization tokens to be
-  exceeded.
 
 
 ## UNANNOUNCE {#message-unannounce}
@@ -2613,8 +2604,6 @@ as defined below:
 |------|---------------------------|
 | 0x7  | Invalid Auth Token        |
 |------|---------------------------|
-| 0x8  | Max Auth Limit Exceeded   |
-|------|---------------------------|
 
 * Internal Error - An implementation specific or generic error occurred.
 
@@ -2633,12 +2622,6 @@ as defined below:
   SUBSCRIBE_ANNOUNCES in the same session.
 
 * Invalid Auth Token - An invalid Authorization token was provided.
-
-* Max Auth Limit Exceeded - the size of the Authorization token supplied
-  causes the Session limit of all registered Authorization tokens to be
-  exceeded.
-
-
 
 ## UNSUBSCRIBE_ANNOUNCES {#message-unsub-ann}
 
