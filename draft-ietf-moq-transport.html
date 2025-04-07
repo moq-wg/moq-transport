@@ -5094,6 +5094,61 @@ stream header is of questionable utility.<a href="#section-9.4.3-10" class="pilc
 <p id="section-9.4.3-11">RESET_STREAM and STOP_SENDING on SUBSCRIBE data streams have no impact on other
 Subgroups in the Group or the subscription, although applications might cancel all
 Subgroups in a Group at once.<a href="#section-9.4.3-11" class="pilcrow">¶</a></p>
+<p id="section-9.4.3-12">The application <span class="bcp14">SHOULD</span> use a relevant error code in RESET_STREAM or
+RESET_STREAM_AT, as defined below:<a href="#section-9.4.3-12" class="pilcrow">¶</a></p>
+<table class="center" id="table-10">
+            <caption><a href="#table-10" class="selfRef">Table 10</a></caption>
+<thead>
+              <tr>
+                <th class="text-right" rowspan="1" colspan="1">Code</th>
+                <th class="text-left" rowspan="1" colspan="1">Reason</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="text-right" rowspan="1" colspan="1">0x0</td>
+                <td class="text-left" rowspan="1" colspan="1">Internal Error</td>
+              </tr>
+              <tr>
+                <td class="text-right" rowspan="1" colspan="1">0x1</td>
+                <td class="text-left" rowspan="1" colspan="1">Cancelled</td>
+              </tr>
+              <tr>
+                <td class="text-right" rowspan="1" colspan="1">0x2</td>
+                <td class="text-left" rowspan="1" colspan="1">Delivery Timeout</td>
+              </tr>
+              <tr>
+                <td class="text-right" rowspan="1" colspan="1">0x3</td>
+                <td class="text-left" rowspan="1" colspan="1">Session Closed</td>
+              </tr>
+            </tbody>
+          </table>
+<span class="break"></span><dl class="dlParallel" id="section-9.4.3-14">
+            <dt id="section-9.4.3-14.1">Internal Error:</dt>
+            <dd style="margin-left: 1.5em" id="section-9.4.3-14.2">
+              <p id="section-9.4.3-14.2.1">An implementation specific error<a href="#section-9.4.3-14.2.1" class="pilcrow">¶</a></p>
+</dd>
+            <dd class="break"></dd>
+<dt id="section-9.4.3-14.3">Cancelled:</dt>
+            <dd style="margin-left: 1.5em" id="section-9.4.3-14.4">
+              <p id="section-9.4.3-14.4.1">The subscriber requested cancellation via UNSUBSCRIBE, FETCH_CANCEL or
+STOP_SENDING, or the publisher ended the subscription, in which case
+SUBSCRIBE_DONE (<a href="#message-subscribe-done" class="auto internal xref">Section 8.11</a>) will have a more detailed
+status code.<a href="#section-9.4.3-14.4.1" class="pilcrow">¶</a></p>
+</dd>
+            <dd class="break"></dd>
+<dt id="section-9.4.3-14.5">Delivery Timeout:</dt>
+            <dd style="margin-left: 1.5em" id="section-9.4.3-14.6">
+              <p id="section-9.4.3-14.6.1">The DELIVERY TIMEOUT <a href="#delivery-timeout" class="auto internal xref">Section 8.1.1.1</a> was exceeded for this
+stream<a href="#section-9.4.3-14.6.1" class="pilcrow">¶</a></p>
+</dd>
+            <dd class="break"></dd>
+<dt id="section-9.4.3-14.7">Session Closed:</dt>
+            <dd style="margin-left: 1.5em" id="section-9.4.3-14.8">
+              <p id="section-9.4.3-14.8.1">The publisher session is being closed<a href="#section-9.4.3-14.8.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+</dl>
 </section>
 </div>
 <div id="fetch-header">
