@@ -1077,6 +1077,8 @@ MOQT Control Message {
 |-------|-----------------------------------------------------|
 | 0x5   | SUBSCRIBE_ERROR ({{message-subscribe-error}})       |
 |-------|-----------------------------------------------------|
+| 0x6   | BATCH_SUBSCRIBE ({{message-batch-subscribe}})       |
+|-------|-----------------------------------------------------|
 | 0xA   | UNSUBSCRIBE ({{message-unsubscribe}})               |
 |-------|-----------------------------------------------------|
 | 0x2   | SUBSCRIBE_UPDATE ({{message-subscribe-update}})     |
@@ -1507,6 +1509,50 @@ specified and the publisher SHOULD start delivering objects.
 If a publisher cannot satisfy the requested start or end or if the end has
 already been published it SHOULD send a SUBSCRIBE_ERROR with code 'Invalid Range'.
 A publisher MUST NOT send objects from outside the requested start and end.
+
+## BATCH_SUBSCRIBE {#message-batch-subscribe}
+
+A message format to enable subscriptions to multiple tracks sharing the
+same track namespace prefix with a single message instead of multiple
+SUBSCRIBE messages.
+
+~~~
+BATCH_SUBSCRIBE Message {
+  Type (i) = 0x6,
+  Length (i),
+  Track Namespace Prefix (tuple),
+  Number of Subscriptions (i),
+  (
+    Subscribe ID (i),
+    Track Alias (i),
+    Track Namespace Suffix (tuple),
+    Track Name Length (i),
+    Track Name (..),
+    Subscriber Priority (8),
+    Group Order (8),
+    Filter Type (i),
+    [StartGroup (i),
+     StartObject (i)],
+    [EndGroup (i)],
+    Number of Parameters (i),
+    Subscribe Parameters (..) ...
+  ) ...
+}
+~~~
+
+The receiver of the BATCH_SUBSCRIBE message MUST treat it as identical to receiving
+multiple SUBSCRIBE messages; this includes replying to each of them individually
+with SUBSCRIBE_OK (or SUBSCRIBE_ERROR), allowing update and cancel
+each SUBSCRIBE individually with SUBSCRIBE_UPDATE and UNSUBSCRIBE.
+
+* Track Namespace Prefix: The namespace prefix which will be prepended to the
+Track Namespace Suffix for all the subscriptions, it MAY be a empty tuple
+if there is no common prefix.
+
+It contains the Number of Subscriptions followed by those many number of
+subscribe messages, with a format nearly identical to SUBSCRIBE except for
+the Track Namespace field replaced with Track Namespace Suffix.
+
 
 ## SUBSCRIBE_OK {#message-subscribe-ok}
 
