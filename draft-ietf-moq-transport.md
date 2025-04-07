@@ -1134,6 +1134,9 @@ as a 'Protocol Violation' if found.
 
 Receivers ignore unrecognized parameters.
 
+The number of parameters in a message is not specifically limited, but the
+total length of a control message is limited to 2^16-1.
+
 The format of Parameters is as follows:
 
 ~~~
@@ -1241,7 +1244,7 @@ The wire format of the Setup messages are as follows:
 CLIENT_SETUP Message {
   Type (i) = 0x40,
   Length (i),
-  Number of Supported Versions (8),
+  Number of Supported Versions (i),
   Supported Version (i) ...,
   Number of Parameters (i) ...,
   Setup Parameters (..) ...,
@@ -1266,7 +1269,7 @@ This version of the specification is identified by the number 0x00000001.
 Versions with the most significant 16 bits of the version number cleared are
 reserved for use in future IETF consensus documents.
 
-The client offers a list of up to 256 protocol versions it supports; the
+The client offers the list of the protocol versions it supports; the
 server MUST reply with one of the versions offered by the client. If the
 server does not support any of the versions offered by the client, or
 the client receives a server version that it did not offer, the
@@ -1457,7 +1460,7 @@ SUBSCRIBE Message {
   Filter Type (i),
   [Start (Location)],
   [EndGroup (i)],
-  Number of Parameters (8),
+  Number of Parameters (i),
   Subscribe Parameters (..) ...
 }
 ~~~
@@ -1529,7 +1532,7 @@ SUBSCRIBE_OK
   Group Order (8),
   ContentExists (8),
   [Largest (Location)],
-  Number of Parameters (8),
+  Number of Parameters (i),
   Subscribe Parameters (..) ...
 }
 ~~~
@@ -1668,7 +1671,7 @@ SUBSCRIBE_UPDATE Message {
   EndGroup (i),
   Subscriber Priority (8),
   Forward (8),
-  Number of Parameters (8),
+  Number of Parameters (i),
   Subscribe Parameters (..) ...
 }
 ~~~
@@ -1885,7 +1888,7 @@ FETCH Message {
    EndObject (i),]
   [ Joining Subscribe ID (i),
     Joining Start (i),]
-  Number of Parameters (8),
+  Number of Parameters (i),
   Parameters (..) ...
 }
 ~~~
@@ -1998,7 +2001,7 @@ FETCH_OK
   Group Order (8),
   End Of Track (8),
   End (Location),
-  Number of Parameters (8),
+  Number of Parameters (i),
   Subscribe Parameters (..) ...
 }
 ~~~
@@ -2205,7 +2208,7 @@ ANNOUNCE Message {
   Type (i) = 0x6,
   Length (i),
   Track Namespace (tuple),
-  Number of Parameters (8),
+  Number of Parameters (i),
   Parameters (..) ...,
 }
 ~~~
@@ -2349,7 +2352,7 @@ SUBSCRIBE_ANNOUNCES Message {
   Type (i) = 0x11,
   Length (i),
   Track Namespace Prefix (tuple),
-  Number of Parameters (8),
+  Number of Parameters (i),
   Parameters (..) ...,
 }
 ~~~
