@@ -2210,6 +2210,14 @@ code, as defined below:<a href="#section-3.4-2" class="pilcrow">¶</a></p>
               <td class="text-left" rowspan="1" colspan="1">Too Many Subscribes</td>
             </tr>
             <tr>
+              <td class="text-right" rowspan="1" colspan="1">0x8</td>
+              <td class="text-left" rowspan="1" colspan="1">Invalid Path</td>
+            </tr>
+            <tr>
+              <td class="text-right" rowspan="1" colspan="1">0x9</td>
+              <td class="text-left" rowspan="1" colspan="1">Malformed Path</td>
+            </tr>
+            <tr>
               <td class="text-right" rowspan="1" colspan="1">0x10</td>
               <td class="text-left" rowspan="1" colspan="1">GOAWAY Timeout</td>
             </tr>
@@ -2254,21 +2262,28 @@ that was already in use.<a href="#section-3.4-4.6.1" class="pilcrow">¶</a></p>
 a Subscribe ID equal or larger than the current Maximum Subscribe ID.<a href="#section-3.4-4.8.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-3.4-4.9">
-            <p id="section-3.4-4.9.1">GOAWAY Timeout: The session was closed because the peer took too long to
-close the session in response to a GOAWAY (<a href="#message-goaway" class="auto internal xref">Section 8.3</a>) message.
-See session migration (<a href="#session-migration" class="auto internal xref">Section 3.5</a>).<a href="#section-3.4-4.9.1" class="pilcrow">¶</a></p>
+            <p id="section-3.4-4.9.1">Invalid Path: The PATH parameter was used by a server, on a WebTransport
+session, or the server does not support the path.<a href="#section-3.4-4.9.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-3.4-4.10">
-            <p id="section-3.4-4.10.1">Control Message Timeout: The session was closed because the peer took too
-long to respond to a control message.<a href="#section-3.4-4.10.1" class="pilcrow">¶</a></p>
+            <p id="section-3.4-4.10.1">Malformed Path: The PATH parameter does not conform to the rules in <a href="#path" class="auto internal xref">Section 8.2.2.1</a>.<a href="#section-3.4-4.10.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-3.4-4.11">
-            <p id="section-3.4-4.11.1">Data Stream Timeout: The session was closed because the peer took too
+            <p id="section-3.4-4.11.1">GOAWAY Timeout: The session was closed because the peer took too long to
+close the session in response to a GOAWAY (<a href="#message-goaway" class="auto internal xref">Section 8.3</a>) message.
+See session migration (<a href="#session-migration" class="auto internal xref">Section 3.5</a>).<a href="#section-3.4-4.11.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-3.4-4.12">
+            <p id="section-3.4-4.12.1">Control Message Timeout: The session was closed because the peer took too
+long to respond to a control message.<a href="#section-3.4-4.12.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-3.4-4.13">
+            <p id="section-3.4-4.13.1">Data Stream Timeout: The session was closed because the peer took too
 long to send data expected on an open Data Stream <a href="#data-streams" class="auto internal xref">Section 9</a>.  This
 includes fields of a stream header or an object header within a data
 stream. If an endpoint times out waiting for a new object header on an
 open subgroup stream, it <span class="bcp14">MAY</span> send a STOP_SENDING on that stream or
-terminate the subscription.<a href="#section-3.4-4.11.1" class="pilcrow">¶</a></p>
+terminate the subscription.<a href="#section-3.4-4.13.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-3.4-5">An endpoint <span class="bcp14">MAY</span> choose to treat a subscription or request specific error as a
@@ -3037,12 +3052,14 @@ identified as 0xff00000D.<a href="#section-8.2.1-4" class="pilcrow">¶</a></p>
 <p id="section-8.2.2.1-1">The PATH parameter (Parameter Type 0x01) allows the client to specify the path
 of the MoQ URI when using native QUIC (<span>[<a href="#QUIC" class="cite xref">QUIC</a>]</span>).  It <span class="bcp14">MUST NOT</span> be used by
 the server, or when WebTransport is used.  If the peer receives a PATH
-parameter from the server, or when WebTransport is used, it <span class="bcp14">MUST</span> close
-the connection. It follows the URI formatting rules <span>[<a href="#RFC3986" class="cite xref">RFC3986</a>]</span>.<a href="#section-8.2.2.1-1" class="pilcrow">¶</a></p>
-<p id="section-8.2.2.1-2">When connecting to a server using a URI with the "moqt" scheme, the
+parameter from the server, when WebTransport is used, or one the server
+does not support, it <span class="bcp14">MUST</span> close the session with Invalid Path.<a href="#section-8.2.2.1-1" class="pilcrow">¶</a></p>
+<p id="section-8.2.2.1-2">The PATH parameter follows the URI formatting rules <span>[<a href="#RFC3986" class="cite xref">RFC3986</a>]</span>.
+When connecting to a server using a URI with the "moqt" scheme, the
 client <span class="bcp14">MUST</span> set the PATH parameter to the <code>path-abempty</code> portion of the
 URI; if <code>query</code> is present, the client <span class="bcp14">MUST</span> concatenate <code>?</code>, followed by
-the <code>query</code> portion of the URI to the parameter.<a href="#section-8.2.2.1-2" class="pilcrow">¶</a></p>
+the <code>query</code> portion of the URI to the parameter. If a PATH does not conform to
+these rules, the session <span class="bcp14">MUST</span> be closed with Malformed Path.<a href="#section-8.2.2.1-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="max-subscribe-id">
