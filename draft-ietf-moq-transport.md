@@ -627,6 +627,10 @@ code, as defined below:
 |------|---------------------------|
 | 0x7  | Too Many Subscribes       |
 |------|---------------------------|
+| 0x8  | Invalid Path              |
+|------|---------------------------|
+| 0x9  | Malformed Path            |
+|------|---------------------------|
 | 0x10 | GOAWAY Timeout            |
 |------|---------------------------|
 | 0x11 | Control Message Timeout   |
@@ -654,6 +658,11 @@ code, as defined below:
 
 * Too Many Subscribes: The session was closed because the subscriber used
   a Subscribe ID equal or larger than the current Maximum Subscribe ID.
+
+* Invalid Path: The PATH parameter was used by a server, on a WebTransport
+  session, or the server does not support the path.
+
+* Malformed Path: The PATH parameter does not conform to the rules in {{path}}.
 
 * GOAWAY Timeout: The session was closed because the peer took too long to
   close the session in response to a GOAWAY ({{message-goaway}}) message.
@@ -1316,13 +1325,15 @@ identified as 0xff00000D.
 The PATH parameter (Parameter Type 0x01) allows the client to specify the path
 of the MoQ URI when using native QUIC ({{QUIC}}).  It MUST NOT be used by
 the server, or when WebTransport is used.  If the peer receives a PATH
-parameter from the server, or when WebTransport is used, it MUST close
-the connection. It follows the URI formatting rules {{!RFC3986}}.
+parameter from the server, when WebTransport is used, or one the server
+does not support, it MUST close the session with Invalid Path.
 
+The PATH parameter follows the URI formatting rules {{!RFC3986}}.
 When connecting to a server using a URI with the "moqt" scheme, the
 client MUST set the PATH parameter to the `path-abempty` portion of the
 URI; if `query` is present, the client MUST concatenate `?`, followed by
-the `query` portion of the URI to the parameter.
+the `query` portion of the URI to the parameter. If a PATH does not conform to
+these rules, the session MUST be closed with Malformed Path.
 
 #### MAX_SUBSCRIBE_ID {#max-subscribe-id}
 
