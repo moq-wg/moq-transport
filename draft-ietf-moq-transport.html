@@ -1056,7 +1056,7 @@ svg :is([fill="white"], [fill^="#fff"]) {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Nandakumar, et al.</td>
-<td class="center">Expires 9 October 2025</td>
+<td class="center">Expires 11 October 2025</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1069,12 +1069,12 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dd class="internet-draft">draft-ietf-moq-transport-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2025-04-07" class="published">7 April 2025</time>
+<time datetime="2025-04-09" class="published">9 April 2025</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2025-10-09">9 October 2025</time></dd>
+<dd class="expires"><time datetime="2025-10-11">11 October 2025</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1143,7 +1143,7 @@ networks and is designed for high scale and low latency distribution.<a href="#s
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 9 October 2025.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 11 October 2025.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -2743,6 +2743,10 @@ MOQT Control Message {
         </thead>
         <tbody>
           <tr>
+            <td class="text-right" rowspan="1" colspan="1">0x01</td>
+            <td class="text-left" rowspan="1" colspan="1">RESERVED (SETUP for version 00)</td>
+          </tr>
+          <tr>
             <td class="text-right" rowspan="1" colspan="1">0x40</td>
             <td class="text-left" rowspan="1" colspan="1">RESERVED (CLIENT_SETUP for versions &lt;= 10)</td>
           </tr>
@@ -2751,11 +2755,11 @@ MOQT Control Message {
             <td class="text-left" rowspan="1" colspan="1">RESERVED (SERVER_SETUP for versions &lt;= 10)</td>
           </tr>
           <tr>
-            <td class="text-right" rowspan="1" colspan="1">0x50</td>
+            <td class="text-right" rowspan="1" colspan="1">0x20</td>
             <td class="text-left" rowspan="1" colspan="1">CLIENT_SETUP (<a href="#message-setup" class="auto internal xref">Section 8.2</a>)</td>
           </tr>
           <tr>
-            <td class="text-right" rowspan="1" colspan="1">0x51</td>
+            <td class="text-right" rowspan="1" colspan="1">0x21</td>
             <td class="text-left" rowspan="1" colspan="1">SERVER_SETUP (<a href="#message-setup" class="auto internal xref">Section 8.2</a>)</td>
           </tr>
           <tr>

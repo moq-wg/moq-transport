@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 9 October 2025                                    I. Swett, Ed.
+Expires: 11 October 2025                                   I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                            7 April 2025
+                                                            9 April 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 9 October 2025.
+   This Internet-Draft will expire on 11 October 2025.
 
 Copyright Notice
 
@@ -1213,13 +1213,15 @@ Table of Contents
            +======+============================================+
            |   ID | Messages                                   |
            +======+============================================+
+           | 0x01 | RESERVED (SETUP for version 00)            |
+           +------+--------------------------------------------+
            | 0x40 | RESERVED (CLIENT_SETUP for versions <= 10) |
            +------+--------------------------------------------+
            | 0x41 | RESERVED (SERVER_SETUP for versions <= 10) |
            +------+--------------------------------------------+
-           | 0x50 | CLIENT_SETUP (Section 8.2)                 |
+           | 0x20 | CLIENT_SETUP (Section 8.2)                 |
            +------+--------------------------------------------+
-           | 0x51 | SERVER_SETUP (Section 8.2)                 |
+           | 0x21 | SERVER_SETUP (Section 8.2)                 |
            +------+--------------------------------------------+
            | 0x10 | GOAWAY (Section 8.3)                       |
            +------+--------------------------------------------+
