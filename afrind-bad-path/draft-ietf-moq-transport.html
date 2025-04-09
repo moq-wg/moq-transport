@@ -3041,7 +3041,7 @@ identified as 0xff00000D.<a href="#section-8.2.1-4" class="pilcrow">¶</a></p>
 <p id="section-8.2.2.1-1">The PATH parameter (Parameter Type 0x01) allows the client to specify the path
 of the MoQ URI when using native QUIC (<span>[<a href="#QUIC" class="cite xref">QUIC</a>]</span>).  It <span class="bcp14">MUST NOT</span> be used by
 the server, or when WebTransport is used.  If the peer receives a PATH
-parameter from the server, or when WebTransport is used, it <span class="bcp14">MUST</span> close
+parameter from the server, or when WebTransport is used, or the the one server doesn't support, it <span class="bcp14">MUST</span> close
 the session with Invalid Path.<a href="#section-8.2.2.1-1" class="pilcrow">¶</a></p>
 <p id="section-8.2.2.1-2">The PATH parameter follows the URI formatting rules <span>[<a href="#RFC3986" class="cite xref">RFC3986</a>]</span>.
 When connecting to a server using a URI with the "moqt" scheme, the
