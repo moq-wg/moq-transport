@@ -2210,8 +2210,12 @@ code, as defined below:<a href="#section-3.4-2" class="pilcrow">¶</a></p>
               <td class="text-left" rowspan="1" colspan="1">Too Many Subscribes</td>
             </tr>
             <tr>
-              <td class="text-right" rowspan="1" colspan="1">0x7</td>
+              <td class="text-right" rowspan="1" colspan="1">0x8</td>
               <td class="text-left" rowspan="1" colspan="1">Invalid Path</td>
+            </tr>
+            <tr>
+              <td class="text-right" rowspan="1" colspan="1">0x9</td>
+              <td class="text-left" rowspan="1" colspan="1">Malformed Path</td>
             </tr>
             <tr>
               <td class="text-right" rowspan="1" colspan="1">0x10</td>
@@ -3038,14 +3042,13 @@ identified as 0xff00000D.<a href="#section-8.2.1-4" class="pilcrow">¶</a></p>
 of the MoQ URI when using native QUIC (<span>[<a href="#QUIC" class="cite xref">QUIC</a>]</span>).  It <span class="bcp14">MUST NOT</span> be used by
 the server, or when WebTransport is used.  If the peer receives a PATH
 parameter from the server, or when WebTransport is used, it <span class="bcp14">MUST</span> close
-the session with Invalid Path. The PATH parameter follows the URI formatting
-rules <span>[<a href="#RFC3986" class="cite xref">RFC3986</a>]</span>.<a href="#section-8.2.2.1-1" class="pilcrow">¶</a></p>
-<p id="section-8.2.2.1-2">When connecting to a server using a URI with the "moqt" scheme, the
+the session with Invalid Path.<a href="#section-8.2.2.1-1" class="pilcrow">¶</a></p>
+<p id="section-8.2.2.1-2">The PATH parameter follows the URI formatting rules <span>[<a href="#RFC3986" class="cite xref">RFC3986</a>]</span>.
+When connecting to a server using a URI with the "moqt" scheme, the
 client <span class="bcp14">MUST</span> set the PATH parameter to the <code>path-abempty</code> portion of the
 URI; if <code>query</code> is present, the client <span class="bcp14">MUST</span> concatenate <code>?</code>, followed by
-the <code>query</code> portion of the URI to the parameter.  If the server receives an
-improperly formatted PATH parameter, it <span class="bcp14">MUST</span> close the session with Invalid
-Path.<a href="#section-8.2.2.1-2" class="pilcrow">¶</a></p>
+the <code>query</code> portion of the URI to the parameter. If a PATH does not conform to
+these rules, the session <span class="bcp14">MUST</span> be closed with Malformed Path.<a href="#section-8.2.2.1-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="max-subscribe-id">
