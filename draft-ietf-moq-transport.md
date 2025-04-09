@@ -659,6 +659,11 @@ code, as defined below:
 * Too Many Subscribes: The session was closed because the subscriber used
   a Subscribe ID equal or larger than the current Maximum Subscribe ID.
 
+* Invalid Path: The PATH parameter was used by a server, on a WebTransport
+  session, or the server does not support the path.
+
+* Malformed Path: The PATH parameter does not conform to the rules in {{path}}.
+
 * GOAWAY Timeout: The session was closed because the peer took too long to
   close the session in response to a GOAWAY ({{message-goaway}}) message.
   See session migration ({{session-migration}}).
