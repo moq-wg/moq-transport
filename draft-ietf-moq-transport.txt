@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 11 October 2025                                   I. Swett, Ed.
+Expires: 12 October 2025                                   I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                            9 April 2025
+                                                           10 April 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 11 October 2025.
+   This Internet-Draft will expire on 12 October 2025.
 
 Copyright Notice
 
@@ -2729,26 +2729,26 @@ Table of Contents
    All unidirectional MOQT streams start with a variable-length integer
    indicating the type of the stream in question.
 
-                 +=====+=================================+
-                 |  ID | Type                            |
-                 +=====+=================================+
-                 | 0x4 | SUBGROUP_HEADER (Section 9.4.2) |
-                 +-----+---------------------------------+
-                 | 0x5 | FETCH_HEADER (Section 9.4.4)    |
-                 +-----+---------------------------------+
+              +===========+=================================+
+              |        ID | Type                            |
+              +===========+=================================+
+              | 0x08-0x09 | SUBGROUP_HEADER (Section 9.4.2) |
+              +-----------+---------------------------------+
+              |      0x05 | FETCH_HEADER (Section 9.4.4)    |
+              +-----------+---------------------------------+
 
                                   Table 8
 
    All MOQT datagrams start with a variable-length integer indicating
    the type of the datagram.
 
-              +=====+======================================+
-              |  ID | Type                                 |
-              +=====+======================================+
-              | 0x1 | OBJECT_DATAGRAM (Section 9.2)        |
-              +-----+--------------------------------------+
-              | 0x2 | OBJECT_DATAGRAM_STATUS (Section 9.2) |
-              +-----+--------------------------------------+
+           +===========+======================================+
+           |        ID | Type                                 |
+           +===========+======================================+
+           | 0x00-0x01 | OBJECT_DATAGRAM (Section 9.2)        |
+           +-----------+--------------------------------------+
+           | 0x02-0x03 | OBJECT_DATAGRAM_STATUS (Section 9.2) |
+           +-----------+--------------------------------------+
 
                                  Table 9
 
@@ -2888,16 +2888,23 @@ Table of Contents
    the session, the Object will be dropped.
 
    OBJECT_DATAGRAM {
+     Type (i),
      Track Alias (i),
      Group ID (i),
      Object ID (i),
      Publisher Priority (8),
-     Extension Headers Length (i),
-     [Extension headers (...)],
+     [Extension Headers Length (i),
+     Extension headers (...)],
      Object Payload (..),
    }
 
                       Figure 29: MOQT OBJECT_DATAGRAM
+
+   The Type field takes the form 0b0000000X (or the set of values from
+   0x00 to 0x01).  The LSB of the type determines if the Extensions
+   Headers Length and Extension headers are present.  If an endpoint
+   receives a datagram with Type 0x01 and Extension Headers Length is 0,
+   it MUST close the session with Protocol Violation.
 
    There is no explicit length field.  The entirety of the transport
    datagram following Publisher Priority contains the Object Payload.
@@ -2908,16 +2915,23 @@ Table of Contents
    conveys an Object Status and has no payload.
 
    OBJECT_DATAGRAM_STATUS {
+     Type (i),
      Track Alias (i),
      Group ID (i),
      Object ID (i),
      Publisher Priority (8),
-     Extension Headers Length (i),
-     [Extension headers (...)],
+     [Extension Headers Length (i),
+     Extension headers (...)],
      Object Status (i),
    }
 
                    Figure 30: MOQT OBJECT_DATAGRAM_STATUS
+
+   The Type field takes the form 0b0000001X (or the set of values from
+   0x02 to 0x03).  The LSB of the type determines if the Extensions
+   Headers Length and Extension headers are present.  If an endpoint
+   receives a datagram with Type 0x03 and Extension Headers Length is 0,
+   it MUST close the session with Protocol Violation.
 
 9.4.  Streams
 
@@ -2943,6 +2957,7 @@ Table of Contents
    Track Alias and the subgroup indicated by 'Group ID' and Subgroup ID.
 
    SUBGROUP_HEADER {
+     Type (i),
      Track Alias (i),
      Group ID (i),
      Subgroup ID (i),
@@ -2954,6 +2969,13 @@ Table of Contents
    All Objects received on a stream opened with SUBGROUP_HEADER have an
    Object Forwarding Preference = Subgroup.
 
+   The Type field takes the form 0b0000100X (or the set of values from
+   0x08 to 0x09).  The LSB determines if the Extensions Headers Length
+   is present in Objects in this subgroup.  When it is 0, Extensions
+   Headers Length is not present and all Objects have no extensions.
+   When it is 1, Extension Headers Length is present in all Objects in
+   this subgroup.
+
    To send an Object with Object Forwarding Preference = Subgroup, find
    the open stream that is associated with the subscription, Group ID
    and Subgroup ID, or open a new one and send the SUBGROUP_HEADER.
@@ -2964,8 +2986,8 @@ Table of Contents
 
    {
      Object ID (i),
-     Extension Headers Length (i),
-     [Extension headers (...)],
+     [Extension Headers Length (i),
+     Extension headers (...)],
      Object Payload Length (i),
      [Object Status (i)],
      Object Payload (..),
@@ -3128,6 +3150,7 @@ Table of Contents
    Stream = 2
 
    SUBGROUP_HEADER {
+     Type = 0
      Track Alias = 2
      Group ID = 0
      Subgroup ID = 0
@@ -3135,13 +3158,11 @@ Table of Contents
    }
    {
      Object ID = 0
-     Extension Headers Length = 0
      Object Payload Length = 4
      Payload = "abcd"
    }
    {
      Object ID = 1
-     Extension Headers Length = 0
      Object Payload Length = 4
      Payload = "efgh"
    }
@@ -3151,7 +3172,8 @@ Table of Contents
 
    Stream = 2
 
-   STREAM_HEADER_GROUP {
+   SUBGROUP_HEADER {
+     Type = 1
      Subscribe ID = 2
      Track Alias = 2
      Group ID = 0
