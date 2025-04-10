@@ -1056,7 +1056,7 @@ svg :is([fill="white"], [fill^="#fff"]) {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Nandakumar, et al.</td>
-<td class="center">Expires 9 October 2025</td>
+<td class="center">Expires 12 October 2025</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1069,12 +1069,12 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dd class="internet-draft">draft-ietf-moq-transport-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2025-04-07" class="published">7 April 2025</time>
+<time datetime="2025-04-10" class="published">10 April 2025</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2025-10-09">9 October 2025</time></dd>
+<dd class="expires"><time datetime="2025-10-12">12 October 2025</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1143,7 +1143,7 @@ networks and is designed for high scale and low latency distribution.<a href="#s
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 9 October 2025.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 12 October 2025.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1200,6 +1200,9 @@ networks and is designed for high scale and low latency distribution.<a href="#s
 <ul class="compact toc ulBare ulEmpty">
 <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.1.2.3.2.1">
                     <p id="section-toc.1-1.1.2.3.2.1.1"><a href="#section-1.3.1" class="auto internal xref">1.3.1</a>.  <a href="#name-location-structure" class="internal xref">Location Structure</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.1.2.3.2.2">
+                    <p id="section-toc.1-1.1.2.3.2.2.1"><a href="#section-1.3.2" class="auto internal xref">1.3.2</a>.  <a href="#name-key-value-pair-structure" class="internal xref">Key-Value-Pair Structure</a></p>
 </li>
                 </ul>
 </li>
@@ -1800,6 +1803,54 @@ Location {
 <p id="section-1.3.1-4"><code>A.Group &lt; B.Group || (A.Group == B.Group &amp;&amp; A.Object &lt; B.Object)</code><a href="#section-1.3.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
+<div id="key-value-pair-structure">
+<section id="section-1.3.2">
+          <h4 id="name-key-value-pair-structure">
+<a href="#section-1.3.2" class="section-number selfRef">1.3.2. </a><a href="#name-key-value-pair-structure" class="section-name selfRef">Key-Value-Pair Structure</a>
+          </h4>
+<p id="section-1.3.2-1">Key-Value-Pair is a flexible structure designed to carry key/value
+pairs in which the key is a variable length integer and the value
+is either a variable length integer or a byte field of arbitrary
+length.<a href="#section-1.3.2-1" class="pilcrow">¶</a></p>
+<p id="section-1.3.2-2">Key-Value-Pair is used in both the data plane and control plane, but
+is optimized for use in the data plane.<a href="#section-1.3.2-2" class="pilcrow">¶</a></p>
+<span id="name-moqt-key-value-pair"></span><div id="moq-key-value-pair">
+<figure id="figure-2">
+            <div class="alignLeft art-text artwork" id="section-1.3.2-3.1">
+<pre>
+Key-Value-Pair {
+  Type (i),
+  [Length (i),]
+  Value (..)
+}
+</pre>
+</div>
+<figcaption><a href="#figure-2" class="selfRef">Figure 2</a>:
+<a href="#name-moqt-key-value-pair" class="selfRef">MOQT Key-Value-Pair</a>
+            </figcaption></figure>
+</div>
+<ul class="normal">
+<li class="normal" id="section-1.3.2-4.1">
+              <p id="section-1.3.2-4.1.1">Type: an unsigned integer, encoded as a varint, identifying the
+type of the value and also the subsequent serialization.<a href="#section-1.3.2-4.1.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-1.3.2-4.2">
+              <p id="section-1.3.2-4.2.1">Length: Only present when Type is odd. Specifies the length of the Value field.
+The maximum length of a value is 2^16-1 bytes.  If an endpoint receives a
+length larger than the maximum, it <span class="bcp14">MUST</span> close the session with a Protocol
+Violation.<a href="#section-1.3.2-4.2.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-1.3.2-4.3">
+              <p id="section-1.3.2-4.3.1">Value: A single varint encoded value when Type is even, otherwise a
+sequence of Length bytes.<a href="#section-1.3.2-4.3.1" class="pilcrow">¶</a></p>
+</li>
+          </ul>
+<p id="section-1.3.2-5">If a receiver understands a Type, and the following Value or
+Length/Value does not match the serialization defined by that Type,
+the receiver <span class="bcp14">MUST</span> terminate the session with error code 'Key-Value
+Formatting Error'.<a href="#section-1.3.2-5" class="pilcrow">¶</a></p>
+</section>
+</div>
 </section>
 </div>
 </section>
@@ -2155,11 +2206,19 @@ code, as defined below:<a href="#section-3.4-2" class="pilcrow">¶</a></p>
             </tr>
             <tr>
               <td class="text-right" rowspan="1" colspan="1">0x6</td>
-              <td class="text-left" rowspan="1" colspan="1">Parameter Length Mismatch</td>
+              <td class="text-left" rowspan="1" colspan="1">Key-Value Formatting Error</td>
             </tr>
             <tr>
               <td class="text-right" rowspan="1" colspan="1">0x7</td>
               <td class="text-left" rowspan="1" colspan="1">Too Many Requests</td>
+            </tr>
+            <tr>
+              <td class="text-right" rowspan="1" colspan="1">0x8</td>
+              <td class="text-left" rowspan="1" colspan="1">Invalid Path</td>
+            </tr>
+            <tr>
+              <td class="text-right" rowspan="1" colspan="1">0x9</td>
+              <td class="text-left" rowspan="1" colspan="1">Malformed Path</td>
             </tr>
             <tr>
               <td class="text-right" rowspan="1" colspan="1">0x10</td>
@@ -2200,27 +2259,42 @@ least-significant bit of the request ID was incorrect for the endpoint.<a href="
 that was already in use.<a href="#section-3.4-4.6.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-3.4-4.7">
-            <p id="section-3.4-4.7.1">Too Many Requests: The session was closed because the endpoint used a
-Request ID equal or larger than the current Maximum Request ID.<a href="#section-3.4-4.7.1" class="pilcrow">¶</a></p>
+            <p id="section-3.4-4.7.1">Key-Value Formatting Error: the key-value pair has a formatting error.<a href="#section-3.4-4.7.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-3.4-4.8">
-            <p id="section-3.4-4.8.1">GOAWAY Timeout: The session was closed because the peer took too long to
-close the session in response to a GOAWAY (<a href="#message-goaway" class="auto internal xref">Section 8.4</a>) message.
-See session migration (<a href="#session-migration" class="auto internal xref">Section 3.5</a>).<a href="#section-3.4-4.8.1" class="pilcrow">¶</a></p>
+            <p id="section-3.4-4.8.1">Too Many Requests: The session was closed because the endpoint used a
+Request ID equal or larger than the current Maximum Request ID.<a href="#section-3.4-4.8.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-3.4-4.9">
-            <p id="section-3.4-4.9.1">Control Message Timeout: The session was closed because the peer took too
-long to respond to a control message.<a href="#section-3.4-4.9.1" class="pilcrow">¶</a></p>
+            <p id="section-3.4-4.9.1">Invalid Path: The PATH parameter was used by a server, on a WebTransport
+session, or the server does not support the path.<a href="#section-3.4-4.9.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-3.4-4.10">
-            <p id="section-3.4-4.10.1">Data Stream Timeout: The session was closed because the peer took too
+            <p id="section-3.4-4.10.1">Malformed Path: The PATH parameter does not conform to the rules in <a href="#path" class="auto internal xref">Section 8.3.2.1</a>.<a href="#section-3.4-4.10.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-3.4-4.11">
+            <p id="section-3.4-4.11.1">GOAWAY Timeout: The session was closed because the peer took too long to
+close the session in response to a GOAWAY (<a href="#message-goaway" class="auto internal xref">Section 8.4</a>) message.
+See session migration (<a href="#session-migration" class="auto internal xref">Section 3.5</a>).<a href="#section-3.4-4.11.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-3.4-4.12">
+            <p id="section-3.4-4.12.1">Control Message Timeout: The session was closed because the peer took too
+long to respond to a control message.<a href="#section-3.4-4.12.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-3.4-4.13">
+            <p id="section-3.4-4.13.1">Data Stream Timeout: The session was closed because the peer took too
 long to send data expected on an open Data Stream <a href="#data-streams" class="auto internal xref">Section 9</a>.  This
 includes fields of a stream header or an object header within a data
 stream. If an endpoint times out waiting for a new object header on an
-open subgroup stream, it <span class="bcp14">MAY</span> send a STOP_SENDING on that stream, terminate
-the subscription, or close the session with an error.<a href="#section-3.4-4.10.1" class="pilcrow">¶</a></p>
+open subgroup stream, it <span class="bcp14">MAY</span> send a STOP_SENDING on that stream or
+terminate the subscription.<a href="#section-3.4-4.13.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
+<p id="section-3.4-5">An endpoint <span class="bcp14">MAY</span> choose to treat a subscription or request specific error as a
+session error under certain circumstances, closing the entire session in
+response to a condition with a single subscription or message. Implementations
+need to consider the impact on other outstanding subscriptions before making this
+choice.<a href="#section-3.4-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="session-migration">
@@ -2278,12 +2352,16 @@ the FETCH data stream.<a href="#section-4-5" class="pilcrow">¶</a></p>
 <p id="section-4-6">The publisher can immediately delete SUBSCRIBE state after sending
 SUBSCRIBE_DONE, but <span class="bcp14">MUST NOT</span> send it until it has closed all related streams. It
 can destroy all FETCH state after closing the data stream.<a href="#section-4-6" class="pilcrow">¶</a></p>
-<p id="section-4-7">A SUBSCRIBE_ERROR or FETCH_ERROR indicates no objects will be delivered, and
-both endpoints can immediately destroy relevant state. Objects <span class="bcp14">MUST NOT</span> be sent
-for requests that end with an error.<a href="#section-4-7" class="pilcrow">¶</a></p>
-<p id="section-4-8">The Parameters in SUBSCRIBE and FETCH <span class="bcp14">MUST NOT</span> cause the publisher to alter the
+<p id="section-4-7">A SUBSCRIBE_ERROR indicates no objects will be delivered, and both endpoints can
+immediately destroy relevant state. Objects <span class="bcp14">MUST NOT</span> be sent for requests that
+end with an error.<a href="#section-4-7" class="pilcrow">¶</a></p>
+<p id="section-4-8">A FETCH_ERROR indicates that both endpoints can immediately destroy state.
+Since a relay can start delivering FETCH objects from cache before determining
+the result of the request, some objects could be received even if the FETCH results
+in error.<a href="#section-4-8" class="pilcrow">¶</a></p>
+<p id="section-4-9">The Parameters in SUBSCRIBE and FETCH <span class="bcp14">MUST NOT</span> cause the publisher to alter the
 payload of the objects it sends, as that would violate the track uniqueness
-guarantee described in <a href="#track-scope" class="auto internal xref">Section 2.4.2</a>.<a href="#section-4-8" class="pilcrow">¶</a></p>
+guarantee described in <a href="#track-scope" class="auto internal xref">Section 2.4.2</a>.<a href="#section-4-9" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="track-discovery">
@@ -2659,20 +2737,21 @@ limits.  See section 2.2 in <span>[<a href="#QUIC" class="cite xref">QUIC</a>]</
 defined in <a href="#session-init" class="auto internal xref">Section 3.3</a>.  Every single message on the control stream is
 formatted as follows:<a href="#section-8-1" class="pilcrow">¶</a></p>
 <span id="name-moqt-message"></span><div id="moq-transport-message-format">
-<figure id="figure-2">
+<figure id="figure-3">
         <div class="alignLeft art-text artwork" id="section-8-2.1">
 <pre>
 MOQT Control Message {
   Message Type (i),
-  Message Length (i),
+  Message Length (16),
   Message Payload (..),
 }
 </pre>
 </div>
-<figcaption><a href="#figure-2" class="selfRef">Figure 2</a>:
+<figcaption><a href="#figure-3" class="selfRef">Figure 3</a>:
 <a href="#name-moqt-message" class="selfRef">MOQT Message</a>
         </figcaption></figure>
 </div>
+<p id="section-8-3">The following Message Types are defined:<a href="#section-8-3" class="pilcrow">¶</a></p>
 <table class="center" id="table-2">
         <caption><a href="#table-2" class="selfRef">Table 2</a></caption>
 <thead>
@@ -2683,11 +2762,23 @@ MOQT Control Message {
         </thead>
         <tbody>
           <tr>
+            <td class="text-right" rowspan="1" colspan="1">0x01</td>
+            <td class="text-left" rowspan="1" colspan="1">RESERVED (SETUP for version 00)</td>
+          </tr>
+          <tr>
             <td class="text-right" rowspan="1" colspan="1">0x40</td>
-            <td class="text-left" rowspan="1" colspan="1">CLIENT_SETUP (<a href="#message-setup" class="auto internal xref">Section 8.3</a>)</td>
+            <td class="text-left" rowspan="1" colspan="1">RESERVED (CLIENT_SETUP for versions &lt;= 10)</td>
           </tr>
           <tr>
             <td class="text-right" rowspan="1" colspan="1">0x41</td>
+            <td class="text-left" rowspan="1" colspan="1">RESERVED (SERVER_SETUP for versions &lt;= 10)</td>
+          </tr>
+          <tr>
+            <td class="text-right" rowspan="1" colspan="1">0x20</td>
+            <td class="text-left" rowspan="1" colspan="1">CLIENT_SETUP (<a href="#message-setup" class="auto internal xref">Section 8.3</a>)</td>
+          </tr>
+          <tr>
+            <td class="text-right" rowspan="1" colspan="1">0x21</td>
             <td class="text-left" rowspan="1" colspan="1">SERVER_SETUP (<a href="#message-setup" class="auto internal xref">Section 8.3</a>)</td>
           </tr>
           <tr>
@@ -2789,12 +2880,12 @@ MOQT Control Message {
           </tr>
         </tbody>
       </table>
-<p id="section-8-4">An endpoint that receives an unknown message type <span class="bcp14">MUST</span> close the session.
+<p id="section-8-5">An endpoint that receives an unknown message type <span class="bcp14">MUST</span> close the session.
 Control messages have a length to make parsing easier, but no control messages
 are intended to be ignored. The length is set to the number of bytes in Message
 Payload, which is defined by each message type.  If the length does not match
 the length of the Message Payload, the receiver <span class="bcp14">MUST</span> close the session with
-Protocol Violation.<a href="#section-8-4" class="pilcrow">¶</a></p>
+Protocol Violation.<a href="#section-8-5" class="pilcrow">¶</a></p>
 <div id="request-id">
 <section id="section-8.1">
         <h3 id="name-request-id">
@@ -2817,40 +2908,20 @@ that is not expected, it <span class="bcp14">MUST</span> close the session with 
 <a href="#section-8.2" class="section-number selfRef">8.2. </a><a href="#name-parameters" class="section-name selfRef">Parameters</a>
         </h3>
 <p id="section-8.2-1">Some messages include a Parameters field that encode optional message
-elements. They contain a type, length, and value.<a href="#section-8.2-1" class="pilcrow">¶</a></p>
+elements.<a href="#section-8.2-1" class="pilcrow">¶</a></p>
 <p id="section-8.2-2">Senders <span class="bcp14">MUST NOT</span> repeat the same parameter type in a message. Receivers
 <span class="bcp14">SHOULD</span> check that there are no duplicate parameters and close the session
 as a 'Protocol Violation' if found.<a href="#section-8.2-2" class="pilcrow">¶</a></p>
 <p id="section-8.2-3">Receivers ignore unrecognized parameters.<a href="#section-8.2-3" class="pilcrow">¶</a></p>
-<p id="section-8.2-4">The format of Parameters is as follows:<a href="#section-8.2-4" class="pilcrow">¶</a></p>
-<span id="name-moqt-parameter"></span><div id="moq-param">
-<figure id="figure-3">
-          <div class="alignLeft art-text artwork" id="section-8.2-5.1">
-<pre>
-Parameter {
-  Parameter Type (i),
-  Parameter Length (i),
-  Parameter Value (..),
-}
-</pre>
-</div>
-<figcaption><a href="#figure-3" class="selfRef">Figure 3</a>:
-<a href="#name-moqt-parameter" class="selfRef">MOQT Parameter</a>
-          </figcaption></figure>
-</div>
-<p id="section-8.2-6">Parameter Type is an integer that indicates the semantic meaning of the
-parameter. Setup message parameters use a namespace that is constant across all
-MoQ Transport versions. All other messages use a version-specific namespace. For
-example, the integer '1' can refer to different parameters for Setup messages
-and for all other message types.<a href="#section-8.2-6" class="pilcrow">¶</a></p>
-<p id="section-8.2-7">SETUP message parameter types are defined in <a href="#setup-params" class="auto internal xref">Section 8.3.2</a>. Version-
-specific parameter types are defined in <a href="#version-specific-params" class="auto internal xref">Section 8.2.1</a>.<a href="#section-8.2-7" class="pilcrow">¶</a></p>
-<p id="section-8.2-8">The Parameter Length field encodes the length of the Parameter Value field in
-bytes.<a href="#section-8.2-8" class="pilcrow">¶</a></p>
-<p id="section-8.2-9">Each parameter description will indicate the data type in the Parameter Value
-field. If a receiver understands a parameter type, and the parameter length
-implied by that type does not match the Parameter Length field, the receiver
-<span class="bcp14">MUST</span> terminate the session with error code 'Parameter Length Mismatch'.<a href="#section-8.2-9" class="pilcrow">¶</a></p>
+<p id="section-8.2-4">The number of parameters in a message is not specifically limited, but the
+total length of a control message is limited to 2^16-1.<a href="#section-8.2-4" class="pilcrow">¶</a></p>
+<p id="section-8.2-5">Parameters are serialized as Key-Value-Pairs <a href="#moq-key-value-pair" class="auto internal xref">Figure 2</a>.<a href="#section-8.2-5" class="pilcrow">¶</a></p>
+<p id="section-8.2-6">Setup message parameters use a namespace that is constant across all MoQ
+Transport versions. All other messages use a version-specific namespace.
+For example, the integer '1' can refer to different parameters for Setup
+messages and for all other message types. SETUP message parameter types
+are defined in <a href="#setup-params" class="auto internal xref">Section 8.3.2</a>. Version-specific parameter types are defined
+in <a href="#version-specific-params" class="auto internal xref">Section 8.2.1</a>.<a href="#section-8.2-6" class="pilcrow">¶</a></p>
 <div id="version-specific-params">
 <section id="section-8.2.1">
           <h4 id="name-version-specific-parameters">
@@ -2860,48 +2931,48 @@ implied by that type does not match the Parameter Length field, the receiver
 it can appear. If it appears in some other type of message, it <span class="bcp14">MUST</span> be ignored.
 Note that since Setup parameters use a separate namespace, it is impossible for
 these parameters to appear in Setup messages.<a href="#section-8.2.1-1" class="pilcrow">¶</a></p>
-<div id="authorization-info">
-<section id="section-8.2.1.1">
-            <h5 id="name-authorization-info">
-<a href="#section-8.2.1.1" class="section-number selfRef">8.2.1.1. </a><a href="#name-authorization-info" class="section-name selfRef">AUTHORIZATION INFO</a>
-            </h5>
-<p id="section-8.2.1.1-1">AUTHORIZATION INFO parameter (Parameter Type 0x02) identifies a track's
-authorization information in a SUBSCRIBE, SUBSCRIBE_ANNOUNCES, ANNOUNCE
-or FETCH message. This parameter is populated for cases where the authorization
-is required at the track level.<a href="#section-8.2.1.1-1" class="pilcrow">¶</a></p>
-</section>
-</div>
 <div id="delivery-timeout">
-<section id="section-8.2.1.2">
+<section id="section-8.2.1.1">
             <h5 id="name-delivery-timeout-parameter">
-<a href="#section-8.2.1.2" class="section-number selfRef">8.2.1.2. </a><a href="#name-delivery-timeout-parameter" class="section-name selfRef">DELIVERY TIMEOUT Parameter</a>
+<a href="#section-8.2.1.1" class="section-number selfRef">8.2.1.1. </a><a href="#name-delivery-timeout-parameter" class="section-name selfRef">DELIVERY TIMEOUT Parameter</a>
             </h5>
-<p id="section-8.2.1.2-1">The DELIVERY TIMEOUT parameter (Parameter Type 0x03) <span class="bcp14">MAY</span> appear in a
-SUBSCRIBE, SUBSCRIBE_OK, or a SUBSCRIBE_UDPATE message.  It is the duration in
-milliseconds the relay <span class="bcp14">SHOULD</span> continue to attempt forwarding Objects after
-they have been received.  The start time for the timeout is based on when the
-beginning of the Object is received, and does not depend upon the forwarding
-preference. There is no explicit signal that an Object was not sent because
-the delivery timeout was exceeded.<a href="#section-8.2.1.2-1" class="pilcrow">¶</a></p>
-<p id="section-8.2.1.2-2">If both the subscriber and publisher specify the parameter, they use the min of the
+<p id="section-8.2.1.1-1">The DELIVERY TIMEOUT parameter (Parameter Type 0x02) <span class="bcp14">MAY</span> appear in a
+TRACK_STATUS, SUBSCRIBE, SUBSCRIBE_OK, or a SUBSCRIBE_UDPATE message.
+It is the duration in milliseconds the relay <span class="bcp14">SHOULD</span> continue to attempt
+forwarding Objects after they have been received.  The start time for the
+timeout is based on when the beginning of the Object is received, and does
+not depend upon the forwarding preference. There is no explicit signal that
+an Object was not sent because the delivery timeout was exceeded.<a href="#section-8.2.1.1-1" class="pilcrow">¶</a></p>
+<p id="section-8.2.1.1-2">If both the subscriber and publisher specify the parameter, they use the min of the
 two values for the subscription.  The publisher <span class="bcp14">SHOULD</span> always specify the value
 received from an upstream subscription when there is one, and nothing otherwise.
 If an earlier Object arrives later than subsequent Objects, relays can consider
 the receipt time as that of the next later Object, with the assumption that the
-Object's data was reordered.<a href="#section-8.2.1.2-2" class="pilcrow">¶</a></p>
-<p id="section-8.2.1.2-3">If neither the subscriber or publisher specify DELIVERY TIMEOUT, all Objects
+Object's data was reordered.<a href="#section-8.2.1.1-2" class="pilcrow">¶</a></p>
+<p id="section-8.2.1.1-3">If neither the subscriber or publisher specify DELIVERY TIMEOUT, all Objects
 in the track matching the subscription filter are delivered as indicated by
 their Group Order and Priority.  If a subscriber exceeds the publisher's
 resource limits by failing to consume objects at a sufficient rate, the
-publisher <span class="bcp14">MAY</span> terminate the subscription with error 'Too Far Behind'.<a href="#section-8.2.1.2-3" class="pilcrow">¶</a></p>
-<p id="section-8.2.1.2-4">If an object in a subgroup exceeds the delivery timeout, the publisher <span class="bcp14">MUST</span>
-reset the underlying transport stream (see <a href="#closing-subgroup-streams" class="auto internal xref">Section 9.4.3</a>).<a href="#section-8.2.1.2-4" class="pilcrow">¶</a></p>
-<p id="section-8.2.1.2-5">When sent by a subscriber, this parameter is intended to be specific to a
+publisher <span class="bcp14">MAY</span> terminate the subscription with error 'Too Far Behind'.<a href="#section-8.2.1.1-3" class="pilcrow">¶</a></p>
+<p id="section-8.2.1.1-4">If an object in a subgroup exceeds the delivery timeout, the publisher <span class="bcp14">MUST</span>
+reset the underlying transport stream (see <a href="#closing-subgroup-streams" class="auto internal xref">Section 9.4.3</a>).<a href="#section-8.2.1.1-4" class="pilcrow">¶</a></p>
+<p id="section-8.2.1.1-5">When sent by a subscriber, this parameter is intended to be specific to a
 subscription, so it <span class="bcp14">SHOULD NOT</span> be forwarded upstream by a relay that intends
-to serve multiple subscriptions for the same track.<a href="#section-8.2.1.2-5" class="pilcrow">¶</a></p>
-<p id="section-8.2.1.2-6">Publishers <span class="bcp14">SHOULD</span> consider whether the entire Object is likely to be delivered
+to serve multiple subscriptions for the same track.<a href="#section-8.2.1.1-5" class="pilcrow">¶</a></p>
+<p id="section-8.2.1.1-6">Publishers <span class="bcp14">SHOULD</span> consider whether the entire Object is likely to be delivered
 before sending any data for that Object, taking into account priorities,
-congestion control, and any other relevant information.<a href="#section-8.2.1.2-6" class="pilcrow">¶</a></p>
+congestion control, and any other relevant information.<a href="#section-8.2.1.1-6" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="authorization-info">
+<section id="section-8.2.1.2">
+            <h5 id="name-authorization-info">
+<a href="#section-8.2.1.2" class="section-number selfRef">8.2.1.2. </a><a href="#name-authorization-info" class="section-name selfRef">AUTHORIZATION INFO</a>
+            </h5>
+<p id="section-8.2.1.2-1">AUTHORIZATION INFO parameter (Parameter Type 0x03) identifies a track's
+authorization information in a TRACK_STATUS_REQUEST, SUBSCRIBE,
+SUBSCRIBE_ANNOUNCES, ANNOUNCE, or FETCH message. This parameter is populated
+for cases where the authorization is required at the track level.<a href="#section-8.2.1.2-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="max-cache-duration">
@@ -2910,13 +2981,15 @@ congestion control, and any other relevant information.<a href="#section-8.2.1.2
 <a href="#section-8.2.1.3" class="section-number selfRef">8.2.1.3. </a><a href="#name-max-cache-duration-paramete" class="section-name selfRef">MAX CACHE DURATION Parameter</a>
             </h5>
 <p id="section-8.2.1.3-1">The MAX_CACHE_DURATION parameter (Parameter Type 0x04) <span class="bcp14">MAY</span> appear in a
-SUBSCRIBE_OK or FETCH_OK message.  It is an integer expressing the number of
-milliseconds an object can be served from a cache. If present, the relay <span class="bcp14">MUST NOT</span> start forwarding any individual Object received through this subscription
-or fetch after the specified number of milliseconds has elapsed since the
-beginning of the Object was received.  This means Objects earlier in a
-multi-object stream will expire earlier than Objects later in the stream. Once
-Objects have expired from cache, their state becomes unknown, and a relay that
-handles a downstream request that includes those Objects re-requests them.<a href="#section-8.2.1.3-1" class="pilcrow">¶</a></p>
+SUBSCRIBE_OK, FETCH_OK or TRACK_STATUS message.  It is an integer expressing
+the number of milliseconds an object can be served from a cache. If present,
+the relay <span class="bcp14">MUST NOT</span> start forwarding any individual Object received through
+this subscription or fetch after the specified number of milliseconds has
+elapsed since the beginning of the Object was received.  This means Objects
+earlier in a multi-object stream will expire earlier than Objects later in the
+stream. Once Objects have expired from cache, their state becomes unknown, and
+a relay that handles a downstream request that includes those Objects
+re-requests them.<a href="#section-8.2.1.3-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -2941,7 +3014,7 @@ setup parameters. TODO: describe GREASE for those.<a href="#section-8.3-1" class
           <div class="alignLeft art-text artwork" id="section-8.3-3.1">
 <pre>
 CLIENT_SETUP Message {
-  Type (i) = 0x40,
+  Type (i) = 0x50,
   Length (i),
   Number of Supported Versions (i),
   Supported Version (i) ...,
@@ -2950,7 +3023,7 @@ CLIENT_SETUP Message {
 }
 
 SERVER_SETUP Message {
-  Type (i) = 0x41,
+  Type (i) = 0x51,
   Length (i),
   Selected Version (i),
   Number of Parameters (i) ...,
@@ -2999,12 +3072,14 @@ identified as 0xff00000D.<a href="#section-8.3.1-4" class="pilcrow">¶</a></p>
 <p id="section-8.3.2.1-1">The PATH parameter (Parameter Type 0x01) allows the client to specify the path
 of the MoQ URI when using native QUIC (<span>[<a href="#QUIC" class="cite xref">QUIC</a>]</span>).  It <span class="bcp14">MUST NOT</span> be used by
 the server, or when WebTransport is used.  If the peer receives a PATH
-parameter from the server, or when WebTransport is used, it <span class="bcp14">MUST</span> close
-the connection. It follows the URI formatting rules <span>[<a href="#RFC3986" class="cite xref">RFC3986</a>]</span>.<a href="#section-8.3.2.1-1" class="pilcrow">¶</a></p>
-<p id="section-8.3.2.1-2">When connecting to a server using a URI with the "moqt" scheme, the
+parameter from the server, when WebTransport is used, or one the server
+does not support, it <span class="bcp14">MUST</span> close the session with Invalid Path.<a href="#section-8.3.2.1-1" class="pilcrow">¶</a></p>
+<p id="section-8.3.2.1-2">The PATH parameter follows the URI formatting rules <span>[<a href="#RFC3986" class="cite xref">RFC3986</a>]</span>.
+When connecting to a server using a URI with the "moqt" scheme, the
 client <span class="bcp14">MUST</span> set the PATH parameter to the <code>path-abempty</code> portion of the
 URI; if <code>query</code> is present, the client <span class="bcp14">MUST</span> concatenate <code>?</code>, followed by
-the <code>query</code> portion of the URI to the parameter.<a href="#section-8.3.2.1-2" class="pilcrow">¶</a></p>
+the <code>query</code> portion of the URI to the parameter. If a PATH does not conform to
+these rules, the session <span class="bcp14">MUST</span> be closed with Malformed Path.<a href="#section-8.3.2.1-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="max-request-id">
@@ -3058,7 +3133,9 @@ GOAWAY Message {
 connect to continue this session.  The client <span class="bcp14">MUST</span> use this URI for the new
 session if provided. If the URI is zero bytes long, the client can reuse the
 current URI is reused instead. The new session URI <span class="bcp14">SHOULD</span> use the same scheme
-as the current URL to ensure compatibility.<a href="#section-8.4-6.1.1" class="pilcrow">¶</a></p>
+as the current URL to ensure compatibility.  The maxmimum length of the New
+Session URI is 8,192 bytes.  If an endpoint receives a length exceeding the
+maximum, it <span class="bcp14">MUST</span> close the session with a Protocol Violation.<a href="#section-8.4-6.1.1" class="pilcrow">¶</a></p>
 <p id="section-8.4-6.1.2">
 If a server receives a GOAWAY with a non-zero New Session URI Length it <span class="bcp14">MUST</span>
 terminate the session with a Protocol Violation.<a href="#section-8.4-6.1.2" class="pilcrow">¶</a></p>
@@ -3368,7 +3445,9 @@ SUBSCRIBE_ERROR
             <p id="section-8.9-3.2.1">Error Code: Identifies an integer error code for subscription failure.<a href="#section-8.9-3.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.9-3.3">
-            <p id="section-8.9-3.3.1">Reason Phrase: Provides the reason for subscription error.<a href="#section-8.9-3.3.1" class="pilcrow">¶</a></p>
+            <p id="section-8.9-3.3.1">Reason Phrase: Provides the reason for subscription error.  The reason phrase
+has a maximum length of 1024 bytes.  If an endpoint recieves a length exceeding
+the maximum, it <span class="bcp14">MUST</span> close the session with a Protocol Violation.<a href="#section-8.9-3.3.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.9-3.4">
             <p id="section-8.9-3.4.1">Track Alias: When Error Code is 'Retry Track Alias', the subscriber <span class="bcp14">SHOULD</span> re-issue the
@@ -3713,10 +3792,17 @@ subscriber exceeds its implementation defined limit.<a href="#section-8.12-11.7.
         <h3 id="name-fetch">
 <a href="#section-8.13" class="section-number selfRef">8.13. </a><a href="#name-fetch" class="section-name selfRef">FETCH</a>
         </h3>
-<p id="section-8.13-1">A subscriber issues a FETCH to a publisher to request a range of already published
-objects within a track. The publisher responding to a FETCH is responsible for retrieving
-all available Objects. If there are gaps between Objects, the publisher omits them from the
-fetch response. All omitted objects have status Object Does Not Exist.<a href="#section-8.13-1" class="pilcrow">¶</a></p>
+<p id="section-8.13-1">A subscriber issues a FETCH to a publisher to request a range of already
+published objects within a track. The publisher responding to a FETCH is
+responsible for delivering all available Objects in the requested range in the
+requested order. The Objects in the response are delivered on a single
+unidirectional stream. Any gaps in the Group and Object IDs in the response
+stream indicate objects that do not exist (eg: they implicitly have status
+<code>Object Does Not Exist</code>).  For Ascending Group Order this includes ranges
+between the first requested object and the first object in the stream; between
+objects in the stream; and between the last object in the stream and the Largest
+Group/Object indicated in FETCH_OK, so long as the fetch stream is terminated by
+a FIN.<a href="#section-8.13-1" class="pilcrow">¶</a></p>
 <p id="section-8.13-2"><strong>Fetch Types</strong><a href="#section-8.13-2" class="pilcrow">¶</a></p>
 <p id="section-8.13-3">There are three types of Fetch messages:<a href="#section-8.13-3" class="pilcrow">¶</a></p>
 <p id="section-8.13-4">Standalone Fetch (0x1) : A Fetch of Objects performed independently of any Subscribe.<a href="#section-8.13-4" class="pilcrow">¶</a></p>
@@ -3736,18 +3822,24 @@ certain number of groups prior to the live edge of a track.<a href="#section-8.1
 Type Latest Object.<a href="#section-8.13-8" class="pilcrow">¶</a></p>
 <p id="section-8.13-9">A Fetch Type other than 0x1, 0x2 or 0x3 <span class="bcp14">MUST</span> be treated as an error.<a href="#section-8.13-9" class="pilcrow">¶</a></p>
 <p id="section-8.13-10">A publisher responds to a FETCH request with either a FETCH_OK or a FETCH_ERROR
-message.  If it responds with FETCH_OK, the publisher creates a new unidirectional
-stream that is used to send the Objects.  A relay <span class="bcp14">MAY</span> start sending objects immediately
-in response to a FETCH, even if sending the FETCH_OK takes longer because it requires
-going upstream to populate the latest object.<a href="#section-8.13-10" class="pilcrow">¶</a></p>
-<p id="section-8.13-11">The Object Forwarding Preference does not apply to fetches.<a href="#section-8.13-11" class="pilcrow">¶</a></p>
-<p id="section-8.13-12">Fetch specifies an inclusive range of Objects starting at StartObject
+message.  The publisher creates a new unidirectional stream that is used to send the
+Objects.  The FETCH_OK or FETCH_ERROR can come at any time relative to object
+delivery.<a href="#section-8.13-10" class="pilcrow">¶</a></p>
+<p id="section-8.13-11">A relay that has cached objects from the beginning of the range <span class="bcp14">MAY</span> start
+sending objects immediately in response to a FETCH.  If it encounters an object
+in the requested range that is not cached and has unknown status, the relay <span class="bcp14">MUST</span>
+pause subsequent delivery until it has confirmed the object's status upstream.
+If the upstream FETCH fails, the relay sends a FETCH_ERROR and can reset the
+unidirectional stream.  It can choose to do so immediately or wait until the
+cached objects have been delivered before resetting the stream.<a href="#section-8.13-11" class="pilcrow">¶</a></p>
+<p id="section-8.13-12">The Object Forwarding Preference does not apply to fetches.<a href="#section-8.13-12" class="pilcrow">¶</a></p>
+<p id="section-8.13-13">Fetch specifies an inclusive range of Objects starting at StartObject
 in StartGroup and ending at EndObject in EndGroup. EndGroup and EndObject <span class="bcp14">MUST</span>
-specify the same or a later object than StartGroup and StartObject.<a href="#section-8.13-12" class="pilcrow">¶</a></p>
-<p id="section-8.13-13">The format of FETCH is as follows:<a href="#section-8.13-13" class="pilcrow">¶</a></p>
+specify the same or a later object than StartGroup and StartObject.<a href="#section-8.13-13" class="pilcrow">¶</a></p>
+<p id="section-8.13-14">The format of FETCH is as follows:<a href="#section-8.13-14" class="pilcrow">¶</a></p>
 <span id="name-moqt-fetch-message"></span><div id="moq-transport-fetch-format">
 <figure id="figure-14">
-          <div class="alignLeft art-text artwork" id="section-8.13-14.1">
+          <div class="alignLeft art-text artwork" id="section-8.13-15.1">
 <pre>
 FETCH Message {
   Type (i) = 0x16,
@@ -3774,78 +3866,78 @@ FETCH Message {
 <a href="#name-moqt-fetch-message" class="selfRef">MOQT FETCH Message</a>
           </figcaption></figure>
 </div>
-<p id="section-8.13-15">Fields common to all Fetch Types:<a href="#section-8.13-15" class="pilcrow">¶</a></p>
+<p id="section-8.13-16">Fields common to all Fetch Types:<a href="#section-8.13-16" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-8.13-16.1">
-            <p id="section-8.13-16.1.1">Request ID: See <a href="#request-id" class="auto internal xref">Section 8.1</a>.<a href="#section-8.13-16.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-8.13-17.1">
+            <p id="section-8.13-17.1.1">Request ID: See <a href="#request-id" class="auto internal xref">Section 8.1</a>.<a href="#section-8.13-17.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-8.13-16.2">
-            <p id="section-8.13-16.2.1">Subscriber Priority: Specifies the priority of a fetch request relative to
+          <li class="normal" id="section-8.13-17.2">
+            <p id="section-8.13-17.2.1">Subscriber Priority: Specifies the priority of a fetch request relative to
 other subscriptions or fetches in the same session. Lower numbers get higher
-priority. See <a href="#priorities" class="auto internal xref">Section 6</a>.<a href="#section-8.13-16.2.1" class="pilcrow">¶</a></p>
+priority. See <a href="#priorities" class="auto internal xref">Section 6</a>.<a href="#section-8.13-17.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-8.13-16.3">
-            <p id="section-8.13-16.3.1">Group Order: Allows the subscriber to request Objects be delivered in
+          <li class="normal" id="section-8.13-17.3">
+            <p id="section-8.13-17.3.1">Group Order: Allows the subscriber to request Objects be delivered in
 Ascending (0x1) or Descending (0x2) order by group. See <a href="#priorities" class="auto internal xref">Section 6</a>.
 A value of 0x0 indicates the original publisher's Group Order <span class="bcp14">SHOULD</span> be
-used. Values larger than 0x2 are a protocol error.<a href="#section-8.13-16.3.1" class="pilcrow">¶</a></p>
+used. Values larger than 0x2 are a protocol error.<a href="#section-8.13-17.3.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-8.13-16.4">
-            <p id="section-8.13-16.4.1">Fetch Type: Identifies the type of Fetch, whether Standalone, Relative
-Joining or Absolute Joining.<a href="#section-8.13-16.4.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-8.13-17.4">
+            <p id="section-8.13-17.4.1">Fetch Type: Identifies the type of Fetch, whether Standalone, Relative
+Joining or Absolute Joining.<a href="#section-8.13-17.4.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-8.13-16.5">
-            <p id="section-8.13-16.5.1">Parameters: The parameters are defined in <a href="#version-specific-params" class="auto internal xref">Section 8.2.1</a>.<a href="#section-8.13-16.5.1" class="pilcrow">¶</a></p>
-</li>
-        </ul>
-<p id="section-8.13-17">Fields present only for Standalone Fetch (0x1):<a href="#section-8.13-17" class="pilcrow">¶</a></p>
-<ul class="normal">
-<li class="normal" id="section-8.13-18.1">
-            <p id="section-8.13-18.1.1">Track Namespace: Identifies the namespace of the track as defined in
-(<a href="#track-name" class="auto internal xref">Section 2.4.1</a>).<a href="#section-8.13-18.1.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="section-8.13-18.2">
-            <p id="section-8.13-18.2.1">Track Name: Identifies the track name as defined in (<a href="#track-name" class="auto internal xref">Section 2.4.1</a>).<a href="#section-8.13-18.2.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="section-8.13-18.3">
-            <p id="section-8.13-18.3.1">StartGroup: The start Group ID.<a href="#section-8.13-18.3.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="section-8.13-18.4">
-            <p id="section-8.13-18.4.1">StartObject: The start Object ID.<a href="#section-8.13-18.4.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="section-8.13-18.5">
-            <p id="section-8.13-18.5.1">EndGroup: The end Group ID.<a href="#section-8.13-18.5.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="section-8.13-18.6">
-            <p id="section-8.13-18.6.1">EndObject: The end Object ID, plus 1. A value of 0 means the entire group is
-requested.<a href="#section-8.13-18.6.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-8.13-17.5">
+            <p id="section-8.13-17.5.1">Parameters: The parameters are defined in <a href="#version-specific-params" class="auto internal xref">Section 8.2.1</a>.<a href="#section-8.13-17.5.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
-<p id="section-8.13-19">Fields present only for Relative Fetch (0x2) and Absolute Fetch (0x3):<a href="#section-8.13-19" class="pilcrow">¶</a></p>
+<p id="section-8.13-18">Fields present only for Standalone Fetch (0x1):<a href="#section-8.13-18" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-8.13-20.1">
-            <p id="section-8.13-20.1.1">Joining Request ID: The Request ID of the existing subscription to be
+<li class="normal" id="section-8.13-19.1">
+            <p id="section-8.13-19.1.1">Track Namespace: Identifies the namespace of the track as defined in
+(<a href="#track-name" class="auto internal xref">Section 2.4.1</a>).<a href="#section-8.13-19.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-8.13-19.2">
+            <p id="section-8.13-19.2.1">Track Name: Identifies the track name as defined in (<a href="#track-name" class="auto internal xref">Section 2.4.1</a>).<a href="#section-8.13-19.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-8.13-19.3">
+            <p id="section-8.13-19.3.1">StartGroup: The start Group ID.<a href="#section-8.13-19.3.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-8.13-19.4">
+            <p id="section-8.13-19.4.1">StartObject: The start Object ID.<a href="#section-8.13-19.4.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-8.13-19.5">
+            <p id="section-8.13-19.5.1">EndGroup: The end Group ID.<a href="#section-8.13-19.5.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-8.13-19.6">
+            <p id="section-8.13-19.6.1">EndObject: The end Object ID, plus 1. A value of 0 means the entire group is
+requested.<a href="#section-8.13-19.6.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<p id="section-8.13-20">Fields present only for Relative Fetch (0x2) and Absolute Fetch (0x3):<a href="#section-8.13-20" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-8.13-21.1">
+            <p id="section-8.13-21.1.1">Joining Request ID: The Request ID of the existing subscription to be
 joined. If a publisher receives a Joining Fetch with a Joining Request ID that
 does not correspond to an existing Subscribe, it <span class="bcp14">MUST</span> respond with a Fetch
-Error Invalid Joining Request ID.<a href="#section-8.13-20.1.1" class="pilcrow">¶</a></p>
+Error Invalid Joining Request ID.<a href="#section-8.13-21.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-8.13-20.2">
-            <p id="section-8.13-20.2.1">Joining Start : for a Relative Joining Fetch (0x2), this value represents the
+          <li class="normal" id="section-8.13-21.2">
+            <p id="section-8.13-21.2.1">Joining Start : for a Relative Joining Fetch (0x2), this value represents the
 group offset for the Fetch prior and relative to the Current Group of the
 corresponding Subscribe. A value of 0 indicates the Fetch starts at the beginning
 of the Current Group. For an Absolute Joining Fetch (0x3), this value represents
-the Starting Group ID.<a href="#section-8.13-20.2.1" class="pilcrow">¶</a></p>
+the Starting Group ID.<a href="#section-8.13-21.2.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
-<p id="section-8.13-21">Objects that are not yet published will not be retrieved by a FETCH.
+<p id="section-8.13-22">Objects that are not yet published will not be retrieved by a FETCH.
 The latest available Object is indicated in the FETCH_OK, and is the last
 Object a fetch will return if the EndGroup and EndObject have not yet been
-published.<a href="#section-8.13-21" class="pilcrow">¶</a></p>
-<p id="section-8.13-22">A publisher <span class="bcp14">MUST</span> send fetched groups in the determined group order, either
+published.<a href="#section-8.13-22" class="pilcrow">¶</a></p>
+<p id="section-8.13-23">A publisher <span class="bcp14">MUST</span> send fetched groups in the determined group order, either
 ascending or descending. Within each group, objects are sent in Object ID order;
-subgroup ID is not used for ordering.<a href="#section-8.13-22" class="pilcrow">¶</a></p>
-<p id="section-8.13-23">If StartGroup/StartObject is greater than the latest published Object group,
-the publisher <span class="bcp14">MUST</span> return FETCH_ERROR with error code 'No Objects'.<a href="#section-8.13-23" class="pilcrow">¶</a></p>
+subgroup ID is not used for ordering.<a href="#section-8.13-23" class="pilcrow">¶</a></p>
+<p id="section-8.13-24">If StartGroup/StartObject is greater than the latest published Object group,
+the publisher <span class="bcp14">MUST</span> return FETCH_ERROR with error code 'No Objects'.<a href="#section-8.13-24" class="pilcrow">¶</a></p>
 <div id="calculating-the-range-of-a-relative-joining-fetch">
 <section id="section-8.13.1">
           <h4 id="name-calculating-the-range-of-a-">
@@ -3985,7 +4077,9 @@ FETCH_ERROR
             <p id="section-8.15-3.2.1">Error Code: Identifies an integer error code for fetch failure.<a href="#section-8.15-3.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.15-3.3">
-            <p id="section-8.15-3.3.1">Reason Phrase: Provides the reason for fetch error.<a href="#section-8.15-3.3.1" class="pilcrow">¶</a></p>
+            <p id="section-8.15-3.3.1">Reason Phrase: Provides the reason for fetch error.  The reason phrase
+has a maximum length of 1024 bytes.  If an endpoint recieves a length
+exceeding the maximum, it <span class="bcp14">MUST</span> close the session with a Protocol Violation.<a href="#section-8.15-3.3.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-8.15-4">The application <span class="bcp14">SHOULD</span> use a relevant error code in FETCH_ERROR,
@@ -4117,6 +4211,8 @@ TRACK_STATUS_REQUEST Message {
   Track Namespace (tuple),
   Track Name Length (i),
   Track Name (..),
+  Number of Parameters (i),
+  Parameters (..) ...,
 }
 </pre>
 </div>
@@ -4134,6 +4230,9 @@ TRACK_STATUS_REQUEST Message {
 </li>
           <li class="normal" id="section-8.17-4.3">
             <p id="section-8.17-4.3.1">Track Name: Identifies the track name as defined in (<a href="#track-name" class="auto internal xref">Section 2.4.1</a>).<a href="#section-8.17-4.3.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-8.17-4.4">
+            <p id="section-8.17-4.4.1">Parameters: The parameters are defined in <a href="#version-specific-params" class="auto internal xref">Section 8.2.1</a>.<a href="#section-8.17-4.4.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
@@ -4155,6 +4254,8 @@ TRACK_STATUS Message {
   Request ID (i),
   Status Code (i),
   Largest (Location),
+  Number of Parameters (i),
+  Parameters (..) ...,
 }
 </pre>
 </div>
@@ -4193,6 +4294,7 @@ subscribe to the track, to obtain the same information. If neither is possible,
 it should return the best available information with status code 0x04.<a href="#section-8.18-10.1.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
+<p id="section-8.18-11">The <code>Parameters</code> are defined in <a href="#version-specific-params" class="auto internal xref">Section 8.2.1</a>.<a href="#section-8.18-11" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="message-announce">
@@ -4301,7 +4403,9 @@ ANNOUNCE_ERROR Message
             <p id="section-8.21-3.2.1">Error Code: Identifies an integer error code for announcement failure.<a href="#section-8.21-3.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.21-3.3">
-            <p id="section-8.21-3.3.1">Reason Phrase: Provides the reason for announcement error.<a href="#section-8.21-3.3.1" class="pilcrow">¶</a></p>
+            <p id="section-8.21-3.3.1">Reason Phrase: Provides the reason for announcement error. The reason phrase
+has a maximum length of 1024 bytes.  If an endpoint recieves a length
+exceeding the maximum, it <span class="bcp14">MUST</span> close the session with a Protocol Violation.<a href="#section-8.21-3.3.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-8.21-4">The application <span class="bcp14">SHOULD</span> use a relevant error code in ANNOUNCE_ERROR, as defined
@@ -4426,7 +4530,9 @@ ANNOUNCE_CANCEL uses the same error codes as ANNOUNCE_ERROR
 (<a href="#message-announce-error" class="auto internal xref">Section 8.21</a>).<a href="#section-8.23-3.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.23-3.3">
-            <p id="section-8.23-3.3.1">Reason Phrase: Provides the reason for announcement cancelation.<a href="#section-8.23-3.3.1" class="pilcrow">¶</a></p>
+            <p id="section-8.23-3.3.1">Reason Phrase: Provides the reason for announcement cancelation. The reason
+phrase has a maximum length of 1024 bytes.  If an endpoint recieves a length
+exceeding the maximum, it <span class="bcp14">MUST</span> close the session with a Protocol Violation.<a href="#section-8.23-3.3.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
@@ -4560,7 +4666,10 @@ to <a href="#message-subscribe-ns" class="auto internal xref">Section 8.24</a>.<
 failure.<a href="#section-8.26-3.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.26-3.3">
-            <p id="section-8.26-3.3.1">Reason Phrase: Provides the reason for the namespace subscription error.<a href="#section-8.26-3.3.1" class="pilcrow">¶</a></p>
+            <p id="section-8.26-3.3.1">Reason Phrase: Provides the reason for the namespace subscription error.
+The reason phrase has a maximum length of 1024 bytes.  If an endpoint
+recieves a length exceeding the maximum, it <span class="bcp14">MUST</span> close the session with a
+Protocol Violation.<a href="#section-8.26-3.3.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-8.26-4">The application <span class="bcp14">SHOULD</span> use a relevant error code in SUBSCRIBE_ANNOUNCES_ERROR,
@@ -4838,38 +4947,9 @@ cached as part of the Object and <span class="bcp14">MUST</span> be forwarded by
 <p id="section-9.1.1.2-4">If supported by the relay and subject to the processing rules specified in the
 definition of the extension, Extension Headers <span class="bcp14">MAY</span> be modified, added, removed,
 and/or cached by relays.<a href="#section-9.1.1.2-4" class="pilcrow">¶</a></p>
-<p id="section-9.1.1.2-5">Object Extension Headers are serialized as defined below:<a href="#section-9.1.1.2-5" class="pilcrow">¶</a></p>
-<span id="name-object-extension-header-for"></span><div id="object-extension-format">
-<figure id="figure-29">
-              <div class="alignLeft art-text artwork" id="section-9.1.1.2-6.1">
-<pre>
-Extension Header {
-  Header Type (i),
-  [Header Length (i),]
-  Header Value (..)
-}
-</pre>
-</div>
-<figcaption><a href="#figure-29" class="selfRef">Figure 29</a>:
-<a href="#name-object-extension-header-for" class="selfRef">Object Extension Header Format</a>
-              </figcaption></figure>
-</div>
-<ul class="normal">
-<li class="normal" id="section-9.1.1.2-7.1">
-                <p id="section-9.1.1.2-7.1.1">Header Type: an unsigned integer, encoded as a varint, identifying the type
-of the extension and also the subsequent serialization.<a href="#section-9.1.1.2-7.1.1" class="pilcrow">¶</a></p>
-</li>
-              <li class="normal" id="section-9.1.1.2-7.2">
-                <p id="section-9.1.1.2-7.2.1">Header Length: Only present when Header Type is odd.  Species the length of
-the Header Value field.<a href="#section-9.1.1.2-7.2.1" class="pilcrow">¶</a></p>
-</li>
-              <li class="normal" id="section-9.1.1.2-7.3">
-                <p id="section-9.1.1.2-7.3.1">Header Value: A single varint encoded value when Header Type is even,
-otherwise a sequence of Header Length bytes.
-Header types are registered in the IANA table 'MOQ Extension Headers'.
-See <a href="#iana" class="auto internal xref">Section 11</a>.<a href="#section-9.1.1.2-7.3.1" class="pilcrow">¶</a></p>
-</li>
-            </ul>
+<p id="section-9.1.1.2-5">Object Extension Headers are serialized as Key-Value-Pairs <a href="#moq-key-value-pair" class="auto internal xref">Figure 2</a>.<a href="#section-9.1.1.2-5" class="pilcrow">¶</a></p>
+<p id="section-9.1.1.2-6">Header types are registered in the IANA table 'MOQ Extension Headers'.
+See <a href="#iana" class="auto internal xref">Section 11</a>.<a href="#section-9.1.1.2-6" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -4889,7 +4969,7 @@ payload and send the Object as datagram. In certain scenarios where the object
 size can be larger than maximum datagram size for the session, the Object
 will be dropped.<a href="#section-9.2-2" class="pilcrow">¶</a></p>
 <span id="name-moqt-object_datagram"></span><div id="object-datagram-format">
-<figure id="figure-30">
+<figure id="figure-29">
           <div class="alignLeft art-text artwork" id="section-9.2-3.1">
 <pre>
 OBJECT_DATAGRAM {
@@ -4903,7 +4983,7 @@ OBJECT_DATAGRAM {
 }
 </pre>
 </div>
-<figcaption><a href="#figure-30" class="selfRef">Figure 30</a>:
+<figcaption><a href="#figure-29" class="selfRef">Figure 29</a>:
 <a href="#name-moqt-object_datagram" class="selfRef">MOQT OBJECT_DATAGRAM</a>
           </figcaption></figure>
 </div>
@@ -4919,7 +4999,7 @@ following Publisher Priority contains the Object Payload.<a href="#section-9.2-4
 <p id="section-9.3-1">An <code>OBJECT_DATAGRAM_STATUS</code> is similar to OBJECT_DATAGRAM except it
 conveys an Object Status and has no payload.<a href="#section-9.3-1" class="pilcrow">¶</a></p>
 <span id="name-moqt-object_datagram_status"></span><div id="object-datagram-status-format">
-<figure id="figure-31">
+<figure id="figure-30">
           <div class="alignLeft art-text artwork" id="section-9.3-2.1">
 <pre>
 OBJECT_DATAGRAM_STATUS {
@@ -4933,7 +5013,7 @@ OBJECT_DATAGRAM_STATUS {
 }
 </pre>
 </div>
-<figcaption><a href="#figure-31" class="selfRef">Figure 31</a>:
+<figcaption><a href="#figure-30" class="selfRef">Figure 30</a>:
 <a href="#name-moqt-object_datagram_status" class="selfRef">MOQT OBJECT_DATAGRAM_STATUS</a>
           </figcaption></figure>
 </div>
@@ -4970,7 +5050,7 @@ effect on outstanding subscriptions.<a href="#section-9.4.1-1" class="pilcrow">�
 belong to the track requested in the Subscribe message identified by <code>Track Alias</code>
 and the subgroup indicated by 'Group ID' and <code>Subgroup ID</code>.<a href="#section-9.4.2-1" class="pilcrow">¶</a></p>
 <span id="name-moqt-subgroup_header"></span><div id="object-header-format">
-<figure id="figure-32">
+<figure id="figure-31">
             <div class="alignLeft art-text artwork" id="section-9.4.2-2.1">
 <pre>
 SUBGROUP_HEADER {
@@ -4981,7 +5061,7 @@ SUBGROUP_HEADER {
 }
 </pre>
 </div>
-<figcaption><a href="#figure-32" class="selfRef">Figure 32</a>:
+<figcaption><a href="#figure-31" class="selfRef">Figure 31</a>:
 <a href="#name-moqt-subgroup_header" class="selfRef">MOQT SUBGROUP_HEADER</a>
             </figcaption></figure>
 </div>
@@ -4993,7 +5073,7 @@ or open a new one and send the <code>SUBGROUP_HEADER</code>. Then serialize the
 following fields.<a href="#section-9.4.2-4" class="pilcrow">¶</a></p>
 <p id="section-9.4.2-5">The Object Status field is only sent if the Object Payload Length is zero.<a href="#section-9.4.2-5" class="pilcrow">¶</a></p>
 <span id="name-moqt-subgroup-object-fields"></span><div id="object-subgroup-format">
-<figure id="figure-33">
+<figure id="figure-32">
             <div class="alignLeft art-text artwork" id="section-9.4.2-6.1">
 <pre>
 {
@@ -5006,7 +5086,7 @@ following fields.<a href="#section-9.4.2-4" class="pilcrow">¶</a></p>
 }
 </pre>
 </div>
-<figcaption><a href="#figure-33" class="selfRef">Figure 33</a>:
+<figcaption><a href="#figure-32" class="selfRef">Figure 32</a>:
 <a href="#name-moqt-subgroup-object-fields" class="selfRef">MOQT Subgroup Object Fields</a>
             </figcaption></figure>
 </div>
@@ -5077,6 +5157,61 @@ stream header is of questionable utility.<a href="#section-9.4.3-10" class="pilc
 <p id="section-9.4.3-11">RESET_STREAM and STOP_SENDING on SUBSCRIBE data streams have no impact on other
 Subgroups in the Group or the subscription, although applications might cancel all
 Subgroups in a Group at once.<a href="#section-9.4.3-11" class="pilcrow">¶</a></p>
+<p id="section-9.4.3-12">The application <span class="bcp14">SHOULD</span> use a relevant error code in RESET_STREAM or
+RESET_STREAM_AT, as defined below:<a href="#section-9.4.3-12" class="pilcrow">¶</a></p>
+<table class="center" id="table-10">
+            <caption><a href="#table-10" class="selfRef">Table 10</a></caption>
+<thead>
+              <tr>
+                <th class="text-right" rowspan="1" colspan="1">Code</th>
+                <th class="text-left" rowspan="1" colspan="1">Reason</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="text-right" rowspan="1" colspan="1">0x0</td>
+                <td class="text-left" rowspan="1" colspan="1">Internal Error</td>
+              </tr>
+              <tr>
+                <td class="text-right" rowspan="1" colspan="1">0x1</td>
+                <td class="text-left" rowspan="1" colspan="1">Cancelled</td>
+              </tr>
+              <tr>
+                <td class="text-right" rowspan="1" colspan="1">0x2</td>
+                <td class="text-left" rowspan="1" colspan="1">Delivery Timeout</td>
+              </tr>
+              <tr>
+                <td class="text-right" rowspan="1" colspan="1">0x3</td>
+                <td class="text-left" rowspan="1" colspan="1">Session Closed</td>
+              </tr>
+            </tbody>
+          </table>
+<span class="break"></span><dl class="dlParallel" id="section-9.4.3-14">
+            <dt id="section-9.4.3-14.1">Internal Error:</dt>
+            <dd style="margin-left: 1.5em" id="section-9.4.3-14.2">
+              <p id="section-9.4.3-14.2.1">An implementation specific error<a href="#section-9.4.3-14.2.1" class="pilcrow">¶</a></p>
+</dd>
+            <dd class="break"></dd>
+<dt id="section-9.4.3-14.3">Cancelled:</dt>
+            <dd style="margin-left: 1.5em" id="section-9.4.3-14.4">
+              <p id="section-9.4.3-14.4.1">The subscriber requested cancellation via UNSUBSCRIBE, FETCH_CANCEL or
+STOP_SENDING, or the publisher ended the subscription, in which case
+SUBSCRIBE_DONE (<a href="#message-subscribe-done" class="auto internal xref">Section 8.12</a>) will have a more detailed
+status code.<a href="#section-9.4.3-14.4.1" class="pilcrow">¶</a></p>
+</dd>
+            <dd class="break"></dd>
+<dt id="section-9.4.3-14.5">Delivery Timeout:</dt>
+            <dd style="margin-left: 1.5em" id="section-9.4.3-14.6">
+              <p id="section-9.4.3-14.6.1">The DELIVERY TIMEOUT <a href="#delivery-timeout" class="auto internal xref">Section 8.2.1.1</a> was exceeded for this
+stream<a href="#section-9.4.3-14.6.1" class="pilcrow">¶</a></p>
+</dd>
+            <dd class="break"></dd>
+<dt id="section-9.4.3-14.7">Session Closed:</dt>
+            <dd style="margin-left: 1.5em" id="section-9.4.3-14.8">
+              <p id="section-9.4.3-14.8.1">The publisher session is being closed<a href="#section-9.4.3-14.8.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+</dl>
 </section>
 </div>
 <div id="fetch-header">
@@ -5087,7 +5222,7 @@ Subgroups in a Group at once.<a href="#section-9.4.3-11" class="pilcrow">¶</a><
 <p id="section-9.4.4-1">When a stream begins with <code>FETCH_HEADER</code>, all objects on the stream belong to the
 track requested in the Fetch message identified by <code>Request ID</code>.<a href="#section-9.4.4-1" class="pilcrow">¶</a></p>
 <span id="name-moqt-fetch_header"></span><div id="fetch-header-format">
-<figure id="figure-34">
+<figure id="figure-33">
             <div class="alignLeft art-text artwork" id="section-9.4.4-2.1">
 <pre>
 FETCH_HEADER {
@@ -5095,13 +5230,13 @@ FETCH_HEADER {
 }
 </pre>
 </div>
-<figcaption><a href="#figure-34" class="selfRef">Figure 34</a>:
+<figcaption><a href="#figure-33" class="selfRef">Figure 33</a>:
 <a href="#name-moqt-fetch_header" class="selfRef">MOQT FETCH_HEADER</a>
             </figcaption></figure>
 </div>
 <p id="section-9.4.4-3">Each object sent on a fetch stream after the FETCH_HEADER has the following format:<a href="#section-9.4.4-3" class="pilcrow">¶</a></p>
 <span id="name-moqt-fetch-object-fields"></span><div id="object-fetch-format">
-<figure id="figure-35">
+<figure id="figure-34">
             <div class="alignLeft art-text artwork" id="section-9.4.4-4.1">
 <pre>
 {
@@ -5117,7 +5252,7 @@ FETCH_HEADER {
 }
 </pre>
 </div>
-<figcaption><a href="#figure-35" class="selfRef">Figure 35</a>:
+<figcaption><a href="#figure-34" class="selfRef">Figure 34</a>:
 <a href="#name-moqt-fetch-object-fields" class="selfRef">MOQT Fetch Object Fields</a>
             </figcaption></figure>
 </div>
