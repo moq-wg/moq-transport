@@ -1207,8 +1207,8 @@ these parameters to appear in Setup messages.
 
 AUTHORIZATION TOKEN parameter (Parameter Type 0x01) identifies a track's
 authorization information in a SUBSCRIBE, SUBSCRIBE_ANNOUNCES, ANNOUNCE
-or FETCH message. This parameter is populated for cases where the authorization
-is required at the track level.
+TRACK_STATUS_REQUEST or FETCH message. This parameter is populated for
+cases where the authorization is required at the track level.
 
 The AUTHORIZATION TOKEN parameter MAY be repeated within a message.
 
@@ -1226,7 +1226,7 @@ TOKEN {
 ~~~
 {: #moq-token format title="AUTHORIZATION TOKEN value"}
 
-* Token Type  - a numeric identifier for the type of Token payload being
+* Token Type - a numeric identifier for the type of Token payload being
   transmitted. This type is defined by the IANA table "MOQT Auth Token Type". See
   {{iana}}. Type 0 is reserved to indicate that the type is not defined in the
   table and must be negotiated out-of-band between client and receiver.
@@ -1234,25 +1234,29 @@ TOKEN {
 * Alias Type - an integer defining both the serialization and the processing
   behavior of the receiver. This Alias type has the following code points:
 
-|------|-------------------------------------------------------------------------|
-| Code | Serialization and behavior                                              |
-|-----:|:------------------------------------------------------------------------|
-| 0x0  | There is an Alias but no Value. This Alias and the Token Value it was   |
-|      | previously associated with MUST be retired. Retiring removes them from  |
-|      | the pool of actively registered tokens.                                 |
-|------|-------------------------------------------------------------------------|
-| 0x1  | There is an Alias and a Value. This Alias MUST be associated  with the  |
-|      | Token Value for the duration of the Session. This action is termed      |
-|      | "registering" the Token.                                                |
-|------|-------------------------------------------------------------------------|
-| 0x2  | There is an Alias and no Value. Use the Token Value previously          |
-|      | registered with this Alias.                                             |
-|------|-------------------------------------------------------------------------|
-| 0x3  | There is no Alias and there is a Value. Use the Token Value as provided.|
-|      | The Token Value may be discarded after processing.                      |
-|------|-------------------------------------------------------------------------|
+|------|------------|------------------------------------------------------|
+| Code | Name       | Serialization and behavior                           |
+|-----:|:-----------|------------------------------------------------------|
+| 0x0  | DELETE     | There is an Alias but no Value. This Alias and the   |
+|      |            | Token Value it was previously associated with MUST be|
+|      |            | retired. Retiring removes them from the pool of      |
+|      |            | actively registered tokens.                          |
+|------|------------|------------------------------------------------------|
+| 0x1  | REGISTER   | There is an Alias and a Value. This Alias MUST be    |
+|      |            | associated with the Token Value for the duration of  |
+|      |            | the Session. This action is termed "registering" the |
+|      |            | Token.                                               |
+|------|------------|------------------------------------------------------|
+| 0x2  | USE_ALIAS  | There is an Alias and no Value. Use the Token Value  |
+|      |            | previously registered with this Alias.               |
+|------|------------|------------------------------------------------------|
+| 0x3  | USE_VALUE  | There is no Alias and there is a Value. Use the Token|
+|      |            | Value as provided. The Token Value may be discarded  |
+|      |            | after processing.                                    |
+|------|------------|------------------------------------------------------|
 
-* Token Alias  - a session-specific integer identifier that references a Token
+
+* Token Alias - a session-specific integer identifier that references a Token
   Value. The Token Alias MUST be unique within the Session. Once a Token Alias has
   been registered, it cannot be re-registered within the Session. Use of the Token
   Alias is optional.
