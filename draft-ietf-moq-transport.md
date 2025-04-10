@@ -516,6 +516,14 @@ There is no definition of the protocol over other transports,
 such as TCP, and applications using MoQ might need to fallback to
 another protocol when QUIC or WebTransport aren't available.
 
+MoQT uses ALPN in QUIC and "WT-Available-Protocols" in WebTransport
+to negotiate the version of MoQ.
+
+The ALPN value {{!RFC7301}} for the final version of this specification
+is `moq`.  ALPNs used to identify IETF drafts are created by appending
+the draft number to "moq-". For example, draft-ietf-moq-transport-13
+would be identified as "moq-13".
+
 ### WebTransport
 
 A MOQT server that is accessible via WebTransport can be identified
@@ -547,8 +555,7 @@ given URI by setting up a QUIC connection to the host and port
 identified by the `authority` section of the URI.  The `path-abempty`
 and `query` portions of the URI are communicated to the server using the
 PATH parameter ({{path}}) which is sent in the CLIENT_SETUP message at the
-start of the session.  The ALPN value {{!RFC7301}} used by the protocol
-is `moq-00`.
+start of the session.
 
 ### Connection URL
 
@@ -557,22 +564,21 @@ network hosts through which a track may be accessed. The syntax of the
 Connection URL and the associated connection setup procedures are
 specific to the underlying transport protocol usage {{session}}.
 
-## Version and Extension Negotiation {#version-negotiation}
+## Extension Negotiation {#extension-negotiation}
 
-Endpoints use the exchange of Setup messages to negotiate the MOQT version and
-any extensions to use.
+Endpoints use the exchange of Setup messages to negotiate any MOQT extensions
+to use.
 
-The client indicates the MOQT versions it supports in the CLIENT_SETUP message
-(see {{message-setup}}). It also includes the union of all Setup Parameters
-{{setup-params}} required for a handshake by any of those versions.
+The client includes all Setup Parameters {{setup-params}} required for the
+negotiated MoQ version in CLIENT_SETUP.
 
 Within any MOQT version, clients request the use of extensions by adding Setup
 parameters corresponding to that extension. No extensions are defined in this
 document.
 
-The server replies with a SERVER_SETUP message that indicates the chosen
-version, includes all parameters required for a handshake in that version, and
-parameters for every extension requested by the client that it supports.
+The server replies with a SERVER_SETUP message that includes all parameters
+required for a handshake in that version, and parameters for every extension
+requested by the client that it supports.
 
 New versions of MOQT MUST specify which existing extensions can be used with
 that version. New extensions MUST specify the existing versions with which they
@@ -1265,12 +1271,12 @@ re-requests them.
 ## CLIENT_SETUP and SERVER_SETUP {#message-setup}
 
 The `CLIENT_SETUP` and `SERVER_SETUP` messages are the first messages exchanged
-by the client and the server; they allow the endpoints to establish the mutually
-supported version and agree on the initial configuration before any objects are
-exchanged. It is a sequence of key-value pairs called Setup parameters; the
-semantics and format of which can vary based on whether the client or server is
-sending.  To ensure future extensibility of MOQT, endpoints MUST ignore unknown
-setup parameters. TODO: describe GREASE for those.
+by the client and the server; they allow the peers to agree on the initial
+configuration before any objects are exchanged. It is a sequence of key-value
+pairs called Setup parameters; the semantics and format of which can vary based
+on whether the client or server is sending.  To ensure future extensibility of
+MOQT, the peers MUST ignore unknown setup parameters. 
+TODO: describe GREASE for Setup Parameters.
 
 The wire format of the Setup messages are as follows:
 
@@ -1278,8 +1284,6 @@ The wire format of the Setup messages are as follows:
 CLIENT_SETUP Message {
   Type (i) = 0x50,
   Length (i),
-  Number of Supported Versions (i),
-  Supported Version (i) ...,
   Number of Parameters (i) ...,
   Setup Parameters (..) ...,
 }
@@ -1287,36 +1291,13 @@ CLIENT_SETUP Message {
 SERVER_SETUP Message {
   Type (i) = 0x51,
   Length (i),
-  Selected Version (i),
   Number of Parameters (i) ...,
   Setup Parameters (..) ...,
 }
 ~~~
 {: #moq-transport-setup-format title="MOQT Setup Messages"}
 
-The available versions and Setup parameters are detailed in the next sections.
-
-### Versions {#setup-versions}
-
-MoQ Transport versions are a 32-bit unsigned integer, encoded as a varint.
-This version of the specification is identified by the number 0x00000001.
-Versions with the most significant 16 bits of the version number cleared are
-reserved for use in future IETF consensus documents.
-
-The client offers the list of the protocol versions it supports; the
-server MUST reply with one of the versions offered by the client. If the
-server does not support any of the versions offered by the client, or
-the client receives a server version that it did not offer, the
-corresponding peer MUST close the session.
-
-\[\[RFC editor: please remove the remainder of this section before
-publication.]]
-
-The version number for the final version of this specification (0x00000001), is
-reserved for the version of the protocol that is published as an RFC.
-Version numbers used to identify IETF drafts are created by adding the draft
-number to 0xff000000. For example, draft-ietf-moq-transport-13 would be
-identified as 0xff00000D.
+The available Setup parameters are detailed in the next sections.
 
 ### Setup Parameters {#setup-params}
 
@@ -3045,7 +3026,7 @@ an expected time.  Each implementation is expected to set its own limits.
 
 TODO: fill out currently missing registries:
 
-* MOQT version numbers
+* MOQT ALPN values
 * Setup parameters
 * Subscribe parameters
 * Subscribe Error codes
