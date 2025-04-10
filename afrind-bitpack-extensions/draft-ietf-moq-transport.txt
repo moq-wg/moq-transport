@@ -5,13 +5,13 @@
 Media Over QUIC                                                L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 29 September 2025                                          Meta
+Expires: 12 October 2025                                            Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                           28 March 2025
+                                                           10 April 2025
 
 
                        Media over QUIC Transport
@@ -59,7 +59,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 29 September 2025.
+   This Internet-Draft will expire on 12 October 2025.
 
 Copyright Notice
 
@@ -2556,9 +2556,9 @@ Table of Contents
               +===========+=================================+
               |        ID | Type                            |
               +===========+=================================+
-              | 0x00-0x01 | SUBGROUP_HEADER (Section 9.4.2) |
+              | 0x08-0x09 | SUBGROUP_HEADER (Section 9.4.2) |
               +-----------+---------------------------------+
-              |      0x10 | FETCH_HEADER (Section 9.4.4)    |
+              |      0x05 | FETCH_HEADER (Section 9.4.4)    |
               +-----------+---------------------------------+
 
                                   Table 8
@@ -2807,8 +2807,8 @@ Table of Contents
    All Objects received on a stream opened with SUBGROUP_HEADER have an
    Object Forwarding Preference = Subgroup.
 
-   The Type field takes the form 0b0000000X (or the set of values from
-   0x00 to 0x01).  The LSB determines if the Extensions Headers Length
+   The Type field takes the form 0b0000100X (or the set of values from
+   0x08 to 0x09).  The LSB determines if the Extensions Headers Length
    is present in Objects in this subgroup.  When it is 0, Extensions
    Headers Length is not present and all Objects have no extensions.
    When it is 1, Extension Headers Length is present in all Objects in
