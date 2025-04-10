@@ -2388,9 +2388,9 @@ the type of the stream in question.
 |-------------|-------------------------------------------------|
 | ID          | Type                                            |
 |------------:|:------------------------------------------------|
-| 0x00-0x01   | SUBGROUP_HEADER  ({{subgroup-header}})          |
+| 0x08-0x09   | SUBGROUP_HEADER  ({{subgroup-header}})          |
 |-------------|-------------------------------------------------|
-| 0x10        | FETCH_HEADER  ({{fetch-header}})                |
+| 0x05        | FETCH_HEADER  ({{fetch-header}})                |
 |-------------|-------------------------------------------------|
 
 All MOQT datagrams start with a variable-length integer indicating the type of
@@ -2631,8 +2631,8 @@ SUBGROUP_HEADER {
 All Objects received on a stream opened with `SUBGROUP_HEADER` have an
 `Object Forwarding Preference` = `Subgroup`.
 
-The Type field takes the form 0b0000000X (or the set of values from 0x00 to
-0x01). The LSB determines if the Extensions Headers Length is present in Objects
+The Type field takes the form 0b0000100X (or the set of values from 0x08 to
+0x09). The LSB determines if the Extensions Headers Length is present in Objects
 in this subgroup.  When it is 0, Extensions Headers Length is not present and all
 Objects have no extensions.  When it is 1, Extension Headers Length is present in
 all Objects in this subgroup.
