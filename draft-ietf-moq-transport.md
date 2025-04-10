@@ -2982,7 +2982,7 @@ Extension Headers.
 ~~~
 Stream = 2
 
-STREAM_HEADER_GROUP {
+SUBGROUP_HEADER {
   Type = 1
   Subscribe ID = 2
   Track Alias = 2
