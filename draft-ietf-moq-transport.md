@@ -1928,8 +1928,8 @@ using the following structues:
 
 ~~~
 Delta Location {
-  Group Delta (i), 
-  Object Delta (i) 
+  Group Delta (i),
+  Object Delta (i)
 }
 ~~~
 
