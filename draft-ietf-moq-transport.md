@@ -3065,10 +3065,10 @@ TODO: register the URI scheme and the ALPN and grease the Extension types
 
 The original design behind this protocol was inspired by three independent
 proposals: WARP {{?I-D.draft-lcurley-warp}} by Luke Curley, RUSH
-{{?I-D.draft-kpugin-rush}} by Kirill Pugin et al, and QUICR
-{{?I-D.draft-jennings-moq-quicr-proto}} by Cullen Jennings, Suhas Nandakumar and
-Christian Huitema.  The authors of those documents merged their proposals into
-MoQT.
+{{?I-D.draft-kpugin-rush}} by Kirill Pugin, Alan Frindell, Jordi Cenzano and
+Jake Weissman, and QUICR {{?I-D.draft-jennings-moq-quicr-proto}} by Cullen
+Jennings, Suhas Nandakumar and Christian Huitema.  The authors of those
+documents merged their proposals into MoQT.
 
 The IETF MoQ Working Group received an enormous amount of support from many
 people. The following people provided substantive contributions to this
