@@ -3028,7 +3028,7 @@ MUST be ignored.
 
 This extension is not mandatory, as publishers might not know the Gap Size. This
 extension can be added by the Original Publisher, but cannot be added by relays.
-This extension cannot be removed.
+This extension cannot be modified or removed.
 
 # Security Considerations {#security}
 
