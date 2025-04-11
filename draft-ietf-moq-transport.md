@@ -3027,8 +3027,8 @@ malformed.  If this extension is present in an Object in Group 0, the value
 MUST be ignored.
 
 This extension is not mandatory, as publishers might not know the Gap Size. This
-extension can be added by the Original Publisher, but cannot be added by relays.
-This extension cannot be modified or removed.
+extension can be added by the Original Publisher, but MUST NOT be added by
+relays. This extension MUST NOT be modified or removed.
 
 # Security Considerations {#security}
 
