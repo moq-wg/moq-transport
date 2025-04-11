@@ -1866,19 +1866,20 @@ SUBSCRIBE_DONE, as defined below:
 
 ## FETCH {#message-fetch}
 
-A subscriber issues a FETCH to a publisher to request a range of already
-published objects within a track. The publisher responding to a FETCH is
-responsible for delivering all available Objects in the requested range in the
+A subscriber issues a FETCH to a publisher to request one or more ranges of
+already published objects within a track. The publisher responding to a FETCH is
+responsible for delivering all available Objects in the requested ranges in the
 requested order. The Objects in the response are delivered on a single
 unidirectional stream. Any gaps in the Group and Object IDs in the response
 stream indicate objects that do not exist (eg: they implicitly have status
-`Object Does Not Exist`).  For Ascending Group Order this includes ranges
+`Object Does Not Exist`).  For Ascending Group Order this includes objects
 between the first requested object and the first object in the stream; between
 objects in the stream; and between the last object in the stream and the Largest
 Group/Object indicated in FETCH_OK, so long as the fetch stream is terminated by
-a FIN.
+a FIN.  No information is conveyed about objects before, between or after
+requested ranges.
 
-**Fetch Types**
+### Fetch Types
 
 There are three types of Fetch messages:
 
@@ -1895,6 +1896,8 @@ Absolute Joining Fetch (0x3) : Identical to a Relative Joining Fetch except that
 StartGroup is determined by an absolute Group value rather than a relative offset to
 the subscription.
 
+Joining Fetch types only request a single range.
+
 A Subscriber can use a Joining Fetch to, for example, fill a playback buffer with a
 certain number of groups prior to the live edge of a track.
 
@@ -1910,7 +1913,7 @@ delivery.
 
 A relay that has cached objects from the beginning of the range MAY start
 sending objects immediately in response to a FETCH.  If it encounters an object
-in the requested range that is not cached and has unknown status, the relay MUST
+in a requested range that is not cached and has unknown status, the relay MUST
 pause subsequent delivery until it has confirmed the object's status upstream.
 If the upstream FETCH fails, the relay sends a FETCH_ERROR and can reset the
 unidirectional stream.  It can choose to do so immediately or wait until the
@@ -1918,9 +1921,49 @@ cached objects have been delivered before resetting the stream.
 
 The Object Forwarding Preference does not apply to fetches.
 
-Fetch specifies an inclusive range of Objects starting at StartObject
-in StartGroup and ending at EndObject in EndGroup. EndGroup and EndObject MUST
-specify the same or a later object than StartGroup and StartObject.
+### Fetch Ranges
+
+Fetch specifies one or more inclusive ranges of Objects, which are delta encoded
+using the following structues:
+
+~~~
+Delta Location {
+  Group Delta (i), 
+  Object Delta (i) 
+}
+~~~
+
+A Delta Location `d` is combined with a previous Location `c` to compute a Start
+Location or End Location as follows:
+
+~~~
+  loc.group = c.group + d.groupDelta
+  if d.groupDelta == 0:
+    loc.object = c.object + d.objectDelta
+  else:
+    loc.object = d.objectDelta
+~~~
+
+~~~
+Delta Range {
+  Start (Delta Location),
+  End (Delta Location)
+}
+~~~
+
+A Delta Range contains a Start and End.  Start is the delta from the previous
+range End, or from Group=0, Object=0 for the first range.  The decoded range
+MUST contain at least one object, otherwise the endpoint returns FETCH_ERROR
+with `Invalid Range`.
+
+If the End Location Object in a range is 0 after decoding, the entire End Group
+is included in the range, otherwise its value is one more than the last
+requested Object in the Group.  For example, if the requested range after
+decoding has Start={2,3} and End={2,0}, then all Objects in Group 2 >= 3 are
+requested.  If the requested range after decoding has Start={4,0}, End={4,10},
+Objects 0 - 9 in Group 4 are requested.
+
+### FETCH Message
 
 The format of FETCH is as follows:
 
@@ -1935,10 +1978,8 @@ FETCH Message {
   [Track Namespace (tuple),
    Track Name Length (i),
    Track Name (..),
-   StartGroup (i),
-   StartObject (i),
-   EndGroup (i),
-   EndObject (i),]
+   Number of Ranges (i),
+   Delta Range (..) ]
   [ Joining Subscribe ID (i),
     Joining Start (i),]
   Number of Parameters (i),
@@ -1950,18 +1991,18 @@ FETCH Message {
 Fields common to all Fetch Types:
 
 * Subscribe ID: The Subscribe ID identifies a given fetch request. Subscribe ID
-is a variable length integer that MUST be unique and monotonically increasing
-within a session.  If an endpoint receives a FETCH with a Subscribe ID that is
-already in use, it MUST close the session with Duplicate Subscribe ID.
+  is a variable length integer that MUST be unique and monotonically increasing
+  within a session.  If an endpoint receives a FETCH with a Subscribe ID that is
+  already in use, it MUST close the session with Duplicate Subscribe ID.
 
 * Subscriber Priority: Specifies the priority of a fetch request relative to
-other subscriptions or fetches in the same session. Lower numbers get higher
-priority. See {{priorities}}.
+  other subscriptions or fetches in the same session. Lower numbers get higher
+  priority. See {{priorities}}.
 
 * Group Order: Allows the subscriber to request Objects be delivered in
-Ascending (0x1) or Descending (0x2) order by group. See {{priorities}}.
-A value of 0x0 indicates the original publisher's Group Order SHOULD be
-used. Values larger than 0x2 are a protocol error.
+  Ascending (0x1) or Descending (0x2) order by group. See {{priorities}}.
+  A value of 0x0 indicates the original publisher's Group Order SHOULD be
+  used. Values larger than 0x2 are a protocol error.
 
 * Fetch Type: Identifies the type of Fetch, whether Standalone, Relative
   Joining or Absolute Joining.
@@ -1975,21 +2016,20 @@ Fields present only for Standalone Fetch (0x1):
 
 * Track Name: Identifies the track name as defined in ({{track-name}}).
 
-* StartGroup: The start Group ID.
+* Number of Ranges: The number of Delta Ranges that follow.  If the value is
+  0, the publisher returns FETCH_ERROR with `Invalid Range`.  The number
+  of ranges is not explicitly limited but control messages are restricted
+  to 2^16-1 bytes.
 
-* StartObject: The start Object ID.
-
-* EndGroup: The end Group ID.
-
-* EndObject: The end Object ID, plus 1. A value of 0 means the entire group is
-requested.
+* Delta Range: The delta encoded ranges of the fetch as described in
+  {{fetch-ranges}}.
 
 Fields present only for Relative Fetch (0x2) and Absolute Fetch (0x3):
 
 * Joining Subscribe ID: The Subscribe ID of the existing subscription to be
-joined. If a publisher receives a Joining Fetch with a Subscribe ID that does
-not correspond to an existing Subscribe, it MUST respond with a Fetch Error
-with code Invalid Subscribe ID.
+  joined. If a publisher receives a Joining Fetch with a Subscribe ID that does
+  not correspond to an existing Subscribe, it MUST respond with a Fetch Error
+  with code Invalid Subscribe ID.
 
 * Joining Start : for a Relative Joining Fetch (0x2), this value represents the
   group offset for the Fetch prior and relative to the Current Group of the
@@ -1999,21 +2039,22 @@ with code Invalid Subscribe ID.
 
 Objects that are not yet published will not be retrieved by a FETCH.
 The latest available Object is indicated in the FETCH_OK, and is the last
-Object a fetch will return if the EndGroup and EndObject have not yet been
+Object a fetch will return if any Object in a requested range has not yet been
 published.
 
 A publisher MUST send fetched groups in the determined group order, either
 ascending or descending. Within each group, objects are sent in Object ID order;
 subgroup ID is not used for ordering.
 
-If StartGroup/StartObject is greater than the latest published Object group,
-the publisher MUST return FETCH_ERROR with error code 'No Objects'.
+If the computed Start Location of the first range is greater than the latest
+published Object group, the publisher MUST return FETCH_ERROR with error code
+'No Objects'.
 
 ### Calculating the Range of a Relative Joining Fetch
 
-A publisher that receives a Fetch of type Type 0x2 treats it
-as a Fetch with a range dynamically determined by the Preceding Group Offset
-and field values derived from the corresponding subscription.
+A publisher that receives a Fetch of type Type 0x2 treats it as a Fetch with a
+single range dynamically determined by the Joining Start field and field values
+derived from the corresponding subscription.
 
 The Largest Group ID and Largest Object ID values from the corresponding
 subscription are used to calculate the end of a Relative Joining Fetch so the
@@ -2024,18 +2065,18 @@ error code 'No Objects'.
 
 The publisher receiving a Relative Joining Fetch computes the range as follows:
 
-* Fetch StartGroup: Subscribe Largest Group - Joining start
-* Fetch StartObject: 0
-* Fetch EndGroup: Subscribe Largest Group
-* Fetch EndObject: Subscribe Largest Object
+* Start Location Group: Subscribe Largest Group - Joining Start
+* Start Location Object: 0
+* End Location Group: Subscribe Largest Group
+* End Location Object: Subscribe Largest Object
 
-A Fetch EndObject of 0 requests the entire group, but Fetch will not
-retrieve Objects that have not yet been published, so 1 is subtracted from
-the Fetch EndGroup if Fetch EndObject is 0.
+An End Location Object of 0 requests the entire group, but FETCH will not
+retrieve Objects that have not yet been published, so 1 is subtracted from the
+End Location Group if End Location Object is 0.
 
 ### Calculating the Range of an Absolute Joining Fetch
 
-Identical to the Relative Joining fetch except that Fetch StartGroup is the
+Identical to the Relative Joining fetch except that Start Location Group is the
 Joining Start value.
 
 
