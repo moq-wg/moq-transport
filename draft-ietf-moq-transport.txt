@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 12 October 2025                                   I. Swett, Ed.
+Expires: 13 October 2025                                   I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                           10 April 2025
+                                                           11 April 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 12 October 2025.
+   This Internet-Draft will expire on 13 October 2025.
 
 Copyright Notice
 
@@ -588,7 +588,10 @@ Table of Contents
    main difference lies in how the servers are identified and how the
    connection is established.  When using QUIC, datagrams MUST be
    supported via the [QUIC-DATAGRAM] extension, which is already a
-   requirement for WebTransport over HTTP/3.
+   requirement for WebTransport over HTTP/3.  The RESET_STREAM_AT
+   [I-D.draft-ietf-quic-reliable-stream-reset] extension to QUIC can be
+   used by MoQT, but the protocol is also designed to work correctly
+   when the extension is not supported.
 
    There is no definition of the protocol over other transports, such as
    TCP, and applications using MoQ might need to fallback to another
