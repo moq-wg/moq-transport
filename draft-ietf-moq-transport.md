@@ -1258,8 +1258,8 @@ TOKEN {
 
 * Token Alias - a session-specific integer identifier that references a Token
   Value. The Token Alias MUST be unique within the Session. Once a Token Alias has
-  been registered, it cannot be re-registered within the Session. Use of the Token
-  Alias is optional.
+  been registered, it cannot be re-registered within the Session without first
+  being deleted. Use of the Token Alias is optional.
 
 * Token Value - the payload of the Token. The contents and serialization of this
   payload are defined by the Token Type.
@@ -1270,9 +1270,11 @@ serialization, referencing an alias which has not been registered, attempting to
 register an alias which has been previously registered, or providing a token value
 which does not match the declared Token type.
 
-Retiring an alais and token that was previously used to authorize a message has no
-retroactive effect on the original authorization, nor does it prevent that same token
-being re-registered as long as that registration is performed with a new alias.
+Using an Alias to refer to a previously registered Token Value is for efficiency
+only and has the same effect as if the Token Value was included directly.
+Retiring an Alias that was previously used to authorize a message has no
+retroactive effect on the original authorization, nor does it prevent that same
+Token Value being re-registered.
 
 Clients SHOULD only register tokens which they intend to re-use during the session.
 Client SHOULD retire previously registered tokens once their utility has passed.
