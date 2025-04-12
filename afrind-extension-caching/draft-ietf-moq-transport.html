@@ -2478,7 +2478,7 @@ track within the subscription range is forwarded to each active
 subscriber, dependent on the congestion response.<a href="#section-7.2-3" class="pilcrow">¶</a></p>
 <p id="section-7.2-4">Relays <span class="bcp14">MUST</span> be able to process objects for the same Full Track Name from
 multiple publishers and forward objects to active matching subscriptions.  The
-same object <span class="bcp14">SHOULD NOT</span> be forwarded more than once to the same subscriber.<a href="#section-7.2-4" class="pilcrow">¶</a></p>
+same object <span class="bcp14">SHOULD NOT</span> be forwarded more than once on the same subscription.<a href="#section-7.2-4" class="pilcrow">¶</a></p>
 <p id="section-7.2-5">A relay <span class="bcp14">MUST NOT</span> reorder or drop objects received on a multi-object stream when
 forwarding to subscribers, unless it has application specific information.<a href="#section-7.2-5" class="pilcrow">¶</a></p>
 <p id="section-7.2-6">Relays <span class="bcp14">MAY</span> aggregate authorized subscriptions for a given track when

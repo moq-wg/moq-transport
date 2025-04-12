@@ -993,7 +993,7 @@ Table of Contents
    Relays MUST be able to process objects for the same Full Track Name
    from multiple publishers and forward objects to active matching
    subscriptions.  The same object SHOULD NOT be forwarded more than
-   once to the same subscriber.
+   once on the same subscription.
 
    A relay MUST NOT reorder or drop objects received on a multi-object
    stream when forwarding to subscribers, unless it has application
