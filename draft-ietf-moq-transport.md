@@ -861,7 +861,7 @@ updated are the following:
 1. Object Status can transition from any status to Object Not Exists in cases
    where the object is no longer available
 2. Object Header Extensions can be added, removed or updated, subject
-to the constraints of the specific header extension.
+   to the constraints of the specific header extension.
 
 An endpoint that receives a duplicate object with an illegal Object Status
 change, or a Forwarding Preference, Subgroup ID, Priority or Payload that
@@ -891,7 +891,7 @@ subscriber, dependent on the congestion response.
 
 Relays MUST be able to process objects for the same Full Track Name from
 multiple publishers and forward objects to active matching subscriptions.  The
-same object SHOULD NOT be forwarded more than once to the same subscriber.
+same object SHOULD NOT be forwarded more than once on the same subscription.
 
 A relay MUST NOT reorder or drop objects received on a multi-object stream when
 forwarding to subscribers, unless it has application specific information.
