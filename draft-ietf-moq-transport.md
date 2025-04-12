@@ -1279,7 +1279,7 @@ The wire format of the Setup messages are as follows:
 
 ~~~
 CLIENT_SETUP Message {
-  Type (i) = 0x50,
+  Type (i) = 0x20,
   Length (i),
   Number of Supported Versions (i),
   Supported Version (i) ...,
@@ -1288,7 +1288,7 @@ CLIENT_SETUP Message {
 }
 
 SERVER_SETUP Message {
-  Type (i) = 0x51,
+  Type (i) = 0x21,
   Length (i),
   Selected Version (i),
   Number of Parameters (i) ...,
