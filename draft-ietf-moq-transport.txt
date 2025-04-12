@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 13 October 2025                                   I. Swett, Ed.
+Expires: 14 October 2025                                   I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                           11 April 2025
+                                                           12 April 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 13 October 2025.
+   This Internet-Draft will expire on 14 October 2025.
 
 Copyright Notice
 
@@ -1400,7 +1400,7 @@ Table of Contents
    The wire format of the Setup messages are as follows:
 
    CLIENT_SETUP Message {
-     Type (i) = 0x50,
+     Type (i) = 0x20,
      Length (i),
      Number of Supported Versions (i),
      Supported Version (i) ...,
@@ -1409,7 +1409,7 @@ Table of Contents
    }
 
    SERVER_SETUP Message {
-     Type (i) = 0x51,
+     Type (i) = 0x21,
      Length (i),
      Selected Version (i),
      Number of Parameters (i) ...,
