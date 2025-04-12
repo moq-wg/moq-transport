@@ -5,13 +5,13 @@
 Media Over QUIC                                                L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 28 September 2025                                          Meta
+Expires: 14 October 2025                                            Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                           27 March 2025
+                                                           12 April 2025
 
 
                        Media over QUIC Transport
@@ -59,7 +59,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 28 September 2025.
+   This Internet-Draft will expire on 14 October 2025.
 
 Copyright Notice
 
@@ -960,7 +960,8 @@ Table of Contents
    1.  Object Status can transition from any status to Object Not Exists
        in cases where the object is no longer available
 
-   2.  Object Header Extensions can be added, removed or updated
+   2.  Object Header Extensions can be added, removed or updated,
+       subject to the constraints of the specific header extension.
 
    An endpoint that receives a duplicate object with an illegal Object
    Status change, or a Forwarding Preference, Subgroup ID, Priority or
