@@ -860,7 +860,8 @@ updated are the following:
 
 1. Object Status can transition from any status to Object Not Exists in cases
    where the object is no longer available
-2. Object Header Extensions can be added, removed or updated
+2. Object Header Extensions can be added, removed or updated, subject
+to the constraints of the specific header extension.
 
 An endpoint that receives a duplicate object with an illegal Object Status
 change, or a Forwarding Preference, Subgroup ID, Priority or Payload that
