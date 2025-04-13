@@ -720,17 +720,18 @@ built on top of MOQT.
 
 ### Bufferbloat
 
-Traditional AIMD congestion controllers (ex. CUBIC and Reno) are prone to Bufferbloat.
-Bufferbloat is when elements along the path build up a substantial queue or packets,
-commonly more than doubling the round trip time. These queued packets cause
-head-of-line blocking and latency, even when there is no packet loss.
+Traditional AIMD congestion controllers (ex. CUBIC {{?RFC9438}} and Reno {{?RFC6582}})
+are prone to Bufferbloat. Bufferbloat is when elements along the path build up
+a substantial queue or packets, commonly more than doubling the round trip time.
+These queued packets cause head-of-line blocking and latency, even when there is
+no packet loss.
 
 ### Application-Limited
 
 The average bitrate for latency sensitive content needs to be less than the available
 bandwidth of the network, otherwise data will be queued and/or dropped. As such,
 many MOQT applications will typically be limited by the available data to send, and
-not the congestion controller. Many congestion control algorithms (ex. CUBIC, Reno, BBR)
+not the congestion controller. Many congestion control algorithms
 only increase the congestion window or bandwidth estimate if fully utilized. This
 combination can lead to underestimating the available network bandwidth. As a result,
 applications might need to ensure the congestion controller is not app-limited for at
