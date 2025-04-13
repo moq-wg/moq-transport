@@ -2787,16 +2787,16 @@ The Type field takes the form 0b00001XXX (or the set of values from 0x08 to
 0x0D). The three low-order bits of the frame type determine the fields that
 are present in the frame:
 
-The EXT bit (0x01) determines if the Extensions Headers Length is present in
+The EXT bit (0x001) determines if the Extensions Headers Length is present in
 Objects in this subgroup.  When it is 0, Extensions Headers Length is not
 present and all Objects have no extensions.  When it is 1, Extension Headers
 Length is present in all Objects in this subgroup.
 
-The HAS_SUBGROUP_ID bit (0x02) determines if the Subgroup ID field is present.
+The HAS_SUBGROUP_ID bit (0x010) determines if the Subgroup ID field is present.
 When it is 0, there is no explicit Subgroup ID field and the SUBGROUP_ID bit
 determines the Subgroup ID.  When it is 1, the Subgroup ID field is present.
 
-The SUBGROUP_ID bit (0x4) determines the implicit Subgroup ID when the
+The SUBGROUP_ID bit (0x100) determines the implicit Subgroup ID when the
 HAS_SUBGROUP_ID bit is 0.  When the SUBGROUP_ID bit is 0, the Subgroup ID is 0.
 When the SUBGROUP_ID bit is 1, the Subgroup ID is the Object ID of the first
 object transmitted in this subgroup.
