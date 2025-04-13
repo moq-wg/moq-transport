@@ -2349,10 +2349,11 @@ built on top of MOQT.<a href="#section-3.6-1" class="pilcrow">¶</a></p>
           <h4 id="name-bufferbloat">
 <a href="#section-3.6.1" class="section-number selfRef">3.6.1. </a><a href="#name-bufferbloat" class="section-name selfRef">Bufferbloat</a>
           </h4>
-<p id="section-3.6.1-1">Traditional AIMD congestion controllers (ex. CUBIC and Reno) are prone to Bufferbloat.
-Bufferbloat is when elements along the path build up a substantial queue or packets,
-commonly more than doubling the round trip time. These queued packets cause
-head-of-line blocking and latency, even when there is no packet loss.<a href="#section-3.6.1-1" class="pilcrow">¶</a></p>
+<p id="section-3.6.1-1">Traditional AIMD congestion controllers (ex. CUBIC <span>[<a href="#RFC9438" class="cite xref">RFC9438</a>]</span> and Reno <span>[<a href="#RFC6582" class="cite xref">RFC6582</a>]</span>)
+are prone to Bufferbloat. Bufferbloat is when elements along the path build up
+a substantial queue or packets, commonly more than doubling the round trip time.
+These queued packets cause head-of-line blocking and latency, even when there is
+no packet loss.<a href="#section-3.6.1-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="application-limited">
@@ -2363,7 +2364,7 @@ head-of-line blocking and latency, even when there is no packet loss.<a href="#s
 <p id="section-3.6.2-1">The average bitrate for latency sensitive content needs to be less than the available
 bandwidth of the network, otherwise data will be queued and/or dropped. As such,
 many MOQT applications will typically be limited by the available data to send, and
-not the congestion controller. Many congestion control algorithms (ex. CUBIC, Reno, BBR)
+not the congestion controller. Many congestion control algorithms
 only increase the congestion window or bandwidth estimate if fully utilized. This
 combination can lead to underestimating the available network bandwidth. As a result,
 applications might need to ensure the congestion controller is not app-limited for at
@@ -5556,9 +5557,17 @@ above for first-come-first-served non-standardization usage.<a href="#section-11
         <dd>
 <span class="refAuthor">Vasiliev, V.</span>, <span class="refTitle">"The WebTransport Protocol Framework"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-webtrans-overview-09</span>, <time datetime="2025-02-25" class="refDate">25 February 2025</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-overview-09">https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-overview-09</a>&gt;</span>. </dd>
 <dd class="break"></dd>
+<dt id="RFC6582">[RFC6582]</dt>
+        <dd>
+<span class="refAuthor">Henderson, T.</span>, <span class="refAuthor">Floyd, S.</span>, <span class="refAuthor">Gurtov, A.</span>, and <span class="refAuthor">Y. Nishida</span>, <span class="refTitle">"The NewReno Modification to TCP's Fast Recovery Algorithm"</span>, <span class="seriesInfo">RFC 6582</span>, <span class="seriesInfo">DOI 10.17487/RFC6582</span>, <time datetime="2012-04" class="refDate">April 2012</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc6582">https://www.rfc-editor.org/rfc/rfc6582</a>&gt;</span>. </dd>
+<dd class="break"></dd>
 <dt id="RFC9000">[RFC9000]</dt>
-      <dd>
+        <dd>
 <span class="refAuthor">Iyengar, J., Ed.</span> and <span class="refAuthor">M. Thomson, Ed.</span>, <span class="refTitle">"QUIC: A UDP-Based Multiplexed and Secure Transport"</span>, <span class="seriesInfo">RFC 9000</span>, <span class="seriesInfo">DOI 10.17487/RFC9000</span>, <time datetime="2021-05" class="refDate">May 2021</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9000">https://www.rfc-editor.org/rfc/rfc9000</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC9438">[RFC9438]</dt>
+      <dd>
+<span class="refAuthor">Xu, L.</span>, <span class="refAuthor">Ha, S.</span>, <span class="refAuthor">Rhee, I.</span>, <span class="refAuthor">Goel, V.</span>, and <span class="refAuthor">L. Eggert, Ed.</span>, <span class="refTitle">"CUBIC for Fast and Long-Distance Networks"</span>, <span class="seriesInfo">RFC 9438</span>, <span class="seriesInfo">DOI 10.17487/RFC9438</span>, <time datetime="2023-08" class="refDate">August 2023</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9438">https://www.rfc-editor.org/rfc/rfc9438</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 </dl>
 </section>
