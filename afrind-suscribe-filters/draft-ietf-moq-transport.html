@@ -3144,7 +3144,7 @@ processing the SUBSCRIBE message.<a href="#section-8.6-5" class="pilcrow">¶</a>
 <p id="section-8.6-6">There are 3 types of filters:<a href="#section-8.6-6" class="pilcrow">¶</a></p>
 <p id="section-8.6-7">Latest Object (0x2): The Start Location is <code>{Largest Object.Group, Largest Object.Object + 1}</code>. <code>Largest Object</code> is
 communicated in SUBSCRIBE_OK. If no content has been delivered yet, the Start
-Location is the first published or received group.  There is no End Group - the
+Location is {0, 0}.  There is no End Group - the
 subscription is open ended.  Note that due to network reordering or
 prioritization, relays can receive objects with Locations smaller than <code>Largest
 Object</code> after the SUBSCRIBE is processed, but these objects do not pass the
