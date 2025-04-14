@@ -1393,7 +1393,7 @@ the publisher to identify which objects need to be delivered.
 
 All filters have a Start Location and an optional End Group.  Only objects
 published or received via a subscription having Locations greater than or
-equal to Start and strictly less than or within the End Group (when
+equal to Start and strictly less than or equal to the End Group (when
 present) pass the filter.
 
 The `Largest Object` is defined to be the object with the largest Location
@@ -1402,8 +1402,7 @@ processing the SUBSCRIBE message.
 
 There are 3 types of filters:
 
-Latest Object (0x2): The Start Location is the next object published or received
-via subscription with a Location larger than the `Largest Object`, which is
+Latest Object (0x2): The Start Location is `{Largest Object.Group, Largest Object.Object + 1}`. `Largest Object` is
 communicated in SUBSCRIBE_OK. If no content has been delivered yet, the Start
 Location is the first published or received group.  There is no End Group - the
 subscription is open ended.  Note that due to network reordering or
