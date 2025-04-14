@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 15 October 2025                                   I. Swett, Ed.
+Expires: 16 October 2025                                   I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                           13 April 2025
+                                                           14 April 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 15 October 2025.
+   This Internet-Draft will expire on 16 October 2025.
 
 Copyright Notice
 
@@ -814,8 +814,8 @@ Table of Contents
 3.6.1.  Bufferbloat
 
    Traditional AIMD congestion controllers (ex.  CUBIC [RFC9438] and
-   Reno [RFC6582]) are prone to Bufferbloat.  Bufferbloat is when
-   elements along the path build up a substantial queue or packets,
+   Reno [RFC6582]) are prone to Bufferbloat.  Bufferbloat occurs when
+   elements along the path build up a substantial queue of packets,
    commonly more than doubling the round trip time.  These queued
    packets cause head-of-line blocking and latency, even when there is
    no packet loss.
