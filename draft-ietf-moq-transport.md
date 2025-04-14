@@ -3015,19 +3015,23 @@ SUBGROUP_HEADER {
 
 The following Object Extension Headers are defined in MoQT.
 
-## Group ID Gap Size
+## Prior Group ID Gap
 
-Group ID Gap Size (Extension Header Type 0x40) is a variable length integer
+Prior Group ID Gap (Extension Header Type 0x40) is a variable length integer
 containing the number of Groups prior to the current Group that do not and will
 never exist. For example, if the Original Publisher published an Object in Group
 7 and knows it will never publish any Objects in Group 8 or Group 9, it can
-include Group ID Gap Size = 2 in any Object in Group 10.  A Group that contains
-more than one Object with different values for Group ID Gap Size, has a
-Group ID Gap Size larger than or equal to the Group ID, or has an Object present
-in a Group ID within a gap is considered malformed.
+include Prior Group ID Gap = 2 in any Object in Group 10.  A track with a Group
+that contains more than one Object with different values for Prior Group ID Gap,
+has a Prior Group ID Gap larger than the Group ID is considered malformed.  If an
+endpoint receives an Object with a Group ID within a previously communicated gap
+is also treats the track as malformed.
 
-This extension is optional, as publishers might not know the Gap Size. This
-extension can be added by the Original Publisher, but MUST NOT be added by
+This extension is optional, as publishers might not know the prior gap gize. If
+Prior Group ID Gap is not present, the receiver cannot infer any information
+about the existence of prior groups (see {{group-ordering}}).
+
+This extension can be added by the Original Publisher, but MUST NOT be added by
 relays. This extension MUST NOT be modified or removed.
 
 # Security Considerations {#security}
