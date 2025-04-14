@@ -859,14 +859,20 @@ cache need to protect against cache poisoning.  The only fields that can be
 updated are the following:
 
 1. Object Status can transition from any status to Object Not Exists in cases
-   where the object is no longer available
-2. Object Header Extensions can be added, removed or updated, subject
+   where the object is no longer available.  Transitions between Normal, End
+   of Group and End of Track are invalid.
+3. Object Header Extensions can be added, removed or updated, subject
    to the constraints of the specific header extension.
 
-An endpoint that receives a duplicate object with an illegal Object Status
+An endpoint that receives a duplicate Object with an invalid Object Status
 change, or a Forwarding Preference, Subgroup ID, Priority or Payload that
-differ from a previous version MUST close the session with a Protocol
-Violation.
+differ from a previous version MUST treat the track as Malformed.
+
+Note that due to reordering, an implementation can receive a duplicate Object
+with a status of Normal, End of Group or End of Track after receiving a
+previous status of Object Not Exists.  The endpoint SHOULD NOT cache or
+forward the duplicate object in this case.
+
 
 ## Subscriber Interactions
 
