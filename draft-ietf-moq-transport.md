@@ -721,8 +721,8 @@ built on top of MOQT.
 ### Bufferbloat
 
 Traditional AIMD congestion controllers (ex. CUBIC {{?RFC9438}} and Reno {{?RFC6582}})
-are prone to Bufferbloat. Bufferbloat is when elements along the path build up
-a substantial queue or packets, commonly more than doubling the round trip time.
+are prone to Bufferbloat. Bufferbloat occurs when elements along the path build up
+a substantial queue of packets, commonly more than doubling the round trip time.
 These queued packets cause head-of-line blocking and latency, even when there is
 no packet loss.
 
