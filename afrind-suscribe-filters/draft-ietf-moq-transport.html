@@ -3159,7 +3159,7 @@ AbsoluteStart filter with <code>Start</code> = {0, 0}.<a href="#section-8.6-8" c
 explicitly in the SUBSCRIBE message. The <code>Start</code> specified in the SUBSCRIBE
 message <span class="bcp14">MAY</span> be less than the <code>Largest Object</code> observed at the publisher. If the
 specified <code>EndGroup</code> is the same group specified in <code>Start</code>, the remainder of
-that Group passes the filter. <code>EndGroup</code> <span class="bcp14">MUST</span> specify the same or a later Group
+that Group passes the filter. <code>EndGroup</code> <span class="bcp14">MUST</span> specify the same or a larger Group
 than specified in <code>Start</code>.<a href="#section-8.6-9" class="pilcrow">¶</a></p>
 <p id="section-8.6-10">A filter type other than the above <span class="bcp14">MUST</span> be treated as error.<a href="#section-8.6-10" class="pilcrow">¶</a></p>
 <p id="section-8.6-11">Subscribe only delivers newly published or received Objects.  Objects from the
@@ -3463,7 +3463,7 @@ processed promptly and some extra objects from the existing subscription are
 delivered.<a href="#section-8.9-2" class="pilcrow">¶</a></p>
 <p id="section-8.9-3">Unlike a new subscription, SUBSCRIBE_UPDATE can not cause an Object to be
 delivered multiple times.  Like SUBSCRIBE, EndGroup <span class="bcp14">MUST</span> specify the
-same or a later object than StartGroup and StartObject.<a href="#section-8.9-3" class="pilcrow">¶</a></p>
+same or a larger Object than StartGroup and StartObject.<a href="#section-8.9-3" class="pilcrow">¶</a></p>
 <p id="section-8.9-4">If a parameter included in <code>SUBSCRIBE</code> is not present in
 <code>SUBSCRIBE_UPDATE</code>, its value remains unchanged.  There is no mechanism to
 remove a parameter from a subscription.<a href="#section-8.9-4" class="pilcrow">¶</a></p>
@@ -3732,7 +3732,7 @@ going upstream to populate the latest object.<a href="#section-8.12-10" class="p
 <p id="section-8.12-11">The Object Forwarding Preference does not apply to fetches.<a href="#section-8.12-11" class="pilcrow">¶</a></p>
 <p id="section-8.12-12">Fetch specifies an inclusive range of Objects starting at StartObject
 in StartGroup and ending at EndObject in EndGroup. EndGroup and EndObject <span class="bcp14">MUST</span>
-specify the same or a later object than StartGroup and StartObject.<a href="#section-8.12-12" class="pilcrow">¶</a></p>
+specify the same or a larger Object than StartGroup and StartObject.<a href="#section-8.12-12" class="pilcrow">¶</a></p>
 <p id="section-8.12-13">The format of FETCH is as follows:<a href="#section-8.12-13" class="pilcrow">¶</a></p>
 <span id="name-moqt-fetch-message"></span><div id="moq-transport-fetch-format">
 <figure id="figure-14">
