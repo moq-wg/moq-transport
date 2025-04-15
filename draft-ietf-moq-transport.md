@@ -1421,7 +1421,7 @@ AbsoluteRange (0x4):  The filer Start Location and End Group are specified
 explicitly in the SUBSCRIBE message. The `Start` specified in the SUBSCRIBE
 message MAY be less than the `Largest Object` observed at the publisher. If the
 specified `EndGroup` is the same group specified in `Start`, the remainder of
-that Group passes the filter. `EndGroup` MUST specify the same or a later Group
+that Group passes the filter. `EndGroup` MUST specify the same or a larger Group
 than specified in `Start`.
 
 A filter type other than the above MUST be treated as error.
@@ -1648,7 +1648,7 @@ delivered.
 
 Unlike a new subscription, SUBSCRIBE_UPDATE can not cause an Object to be
 delivered multiple times.  Like SUBSCRIBE, EndGroup MUST specify the
-same or a later object than StartGroup and StartObject.
+same or a larger Object than StartGroup and StartObject.
 
 If a parameter included in `SUBSCRIBE` is not present in
 `SUBSCRIBE_UPDATE`, its value remains unchanged.  There is no mechanism to
@@ -1861,7 +1861,7 @@ The Object Forwarding Preference does not apply to fetches.
 
 Fetch specifies an inclusive range of Objects starting at StartObject
 in StartGroup and ending at EndObject in EndGroup. EndGroup and EndObject MUST
-specify the same or a later object than StartGroup and StartObject.
+specify the same or a larger Object than StartGroup and StartObject.
 
 The format of FETCH is as follows:
 
