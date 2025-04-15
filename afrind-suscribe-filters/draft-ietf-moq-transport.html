@@ -3142,23 +3142,25 @@ present) pass the filter.<a href="#section-8.6-4" class="pilcrow">¶</a></p>
 (<a href="#location-structure" class="auto internal xref">Section 1.3.1</a>) in the track from the perspective of the endpoint
 processing the SUBSCRIBE message.<a href="#section-8.6-5" class="pilcrow">¶</a></p>
 <p id="section-8.6-6">There are 3 types of filters:<a href="#section-8.6-6" class="pilcrow">¶</a></p>
-<p id="section-8.6-7">Latest Object (0x2): The Start Location is <code>{Largest Object.Group, Largest Object.Object + 1}</code>. <code>Largest Object</code> is
-communicated in SUBSCRIBE_OK. If no content has been delivered yet, the Start
-Location is {0, 0}.  There is no End Group - the
-subscription is open ended.  Note that due to network reordering or
-prioritization, relays can receive objects with Locations smaller than <code>Largest
-Object</code> after the SUBSCRIBE is processed, but these objects do not pass the
-Latest Object filter.<a href="#section-8.6-7" class="pilcrow">¶</a></p>
-<p id="section-8.6-8">AbsoluteStart (0x3):  The Start Location is specified explicitly in the Subscribe message.
-The Start Location specified in the Subscribe message <span class="bcp14">MAY</span> be less than the <code>Largest Object</code> observed at the publisher. There is no End Group
-- the subscription is open ended.  To receive any object that is published or
-is received after this subscription is processed, a subscriber can use an
-AbsoluteStart filter with Start Location = {0, 0}.<a href="#section-8.6-8" class="pilcrow">¶</a></p>
-<p id="section-8.6-9">AbsoluteRange (0x4):  The Start Location and End Group are specified explicitly
-in the message. The Start Location <span class="bcp14">MAY</span> be less than the <code>Largest Object</code>. If End
-Group is the same group specified in Start Location, the remainder of that group
-passes the filter.  EndGroup <span class="bcp14">MUST</span> specify the same or a later group than
-specified in <code>Start</code>.<a href="#section-8.6-9" class="pilcrow">¶</a></p>
+<p id="section-8.6-7">Latest Object (0x2): The filter Start Location is <code>{Largest Object.Group,
+Largest Object.Object + 1}</code> and <code>Largest Object</code> is communicated in
+SUBSCRIBE_OK. If no content has been delivered yet, the filter Start Location is
+{0, 0}. There is no End Group - the subscription is open ended.  Note that due
+to network reordering or prioritization, relays can receive Objects with
+Locations smaller than  <code>Largest Object</code> after the SUBSCRIBE is processed, but
+these Objects do not pass the Latest Object filter.<a href="#section-8.6-7" class="pilcrow">¶</a></p>
+<p id="section-8.6-8">AbsoluteStart (0x3):  The filter Start Location is specified explicitly in the
+SUBSCRIBE message. The <code>Start</code> specified in the SUBSCRIBE message <span class="bcp14">MAY</span> be less
+than the <code>Largest Object</code> observed at the publisher. There is no End Group - the
+subscription is open ended.  To receive any Object that is published or is
+received after this subscription is processed, a subscriber can use an
+AbsoluteStart filter with <code>Start</code> = {0, 0}.<a href="#section-8.6-8" class="pilcrow">¶</a></p>
+<p id="section-8.6-9">AbsoluteRange (0x4):  The filer Start Location and End Group are specified
+explicitly in the SUBSCRIBE message. The <code>Start</code> specified in the SUBSCRIBE
+message <span class="bcp14">MAY</span> be less than the <code>Largest Object</code> observed at the publisher. If the
+specified <code>EndGroup</code> is the same group specified in <code>Start</code>, the remainder of
+that Group passes the filter. <code>EndGroup</code> <span class="bcp14">MUST</span> specify the same or a later Group
+than specified in <code>Start</code>.<a href="#section-8.6-9" class="pilcrow">¶</a></p>
 <p id="section-8.6-10">A filter type other than the above <span class="bcp14">MUST</span> be treated as error.<a href="#section-8.6-10" class="pilcrow">¶</a></p>
 <p id="section-8.6-11">Subscribe only delivers newly published or received Objects.  Objects from the
 past are retrieved using FETCH (<a href="#message-fetch" class="auto internal xref">Section 8.12</a>).<a href="#section-8.6-11" class="pilcrow">¶</a></p>
