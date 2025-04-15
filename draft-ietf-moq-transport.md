@@ -1402,25 +1402,27 @@ processing the SUBSCRIBE message.
 
 There are 3 types of filters:
 
-Latest Object (0x2): The Start Location is `{Largest Object.Group, Largest Object.Object + 1}`. `Largest Object` is
-communicated in SUBSCRIBE_OK. If no content has been delivered yet, the Start
-Location is {0, 0}.  There is no End Group - the
-subscription is open ended.  Note that due to network reordering or
-prioritization, relays can receive objects with Locations smaller than `Largest
-Object` after the SUBSCRIBE is processed, but these objects do not pass the
-Latest Object filter.
+Latest Object (0x2): The filter Start Location is `{Largest Object.Group,
+Largest Object.Object + 1}` and `Largest Object` is communicated in
+SUBSCRIBE_OK. If no content has been delivered yet, the filter Start Location is
+{0, 0}. There is no End Group - the subscription is open ended.  Note that due
+to network reordering or prioritization, relays can receive Objects with
+Locations smaller than  `Largest Object` after the SUBSCRIBE is processed, but
+these Objects do not pass the Latest Object filter.
 
-AbsoluteStart (0x3):  The Start Location is specified explicitly in the Subscribe message.
-The Start Location specified in the Subscribe message MAY be less than the `Largest Object` observed at the publisher. There is no End Group
-- the subscription is open ended.  To receive any object that is published or
-is received after this subscription is processed, a subscriber can use an
-AbsoluteStart filter with Start Location = {0, 0}.
+AbsoluteStart (0x3):  The filter Start Location is specified explicitly in the
+SUBSCRIBE message. The `Start` specified in the SUBSCRIBE message MAY be less
+than the `Largest Object` observed at the publisher. There is no End Group - the
+subscription is open ended.  To receive any Object that is published or is
+received after this subscription is processed, a subscriber can use an
+AbsoluteStart filter with `Start` = {0, 0}.
 
-AbsoluteRange (0x4):  The Start Location and End Group are specified explicitly
-in the message. The Start Location MAY be less than the `Largest Object`. If End
-Group is the same group specified in Start Location, the remainder of that group
-passes the filter.  EndGroup MUST specify the same or a later group than
-specified in `Start`.
+AbsoluteRange (0x4):  The filer Start Location and End Group are specified
+explicitly in the SUBSCRIBE message. The `Start` specified in the SUBSCRIBE
+message MAY be less than the `Largest Object` observed at the publisher. If the
+specified `EndGroup` is the same group specified in `Start`, the remainder of
+that Group passes the filter. `EndGroup` MUST specify the same or a later Group
+than specified in `Start`.
 
 A filter type other than the above MUST be treated as error.
 
