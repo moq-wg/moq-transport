@@ -1410,8 +1410,8 @@ prioritization, relays can receive objects with Locations smaller than `Largest
 Object` after the SUBSCRIBE is processed, but these objects do not pass the
 Latest Object filter.
 
-AbsoluteStart (0x3):  The Start Location is specified explicitly in the message.
-The Start Location MAY be less than the `Largest Object`. There is no End Group
+AbsoluteStart (0x3):  The Start Location is specified explicitly in the Subscribe message.
+The Start Location specified in the Subscribe message MAY be less than the `Largest Object` observed at the publisher. There is no End Group
 - the subscription is open ended.  To receive any object that is published or
 is received after this subscription is processed, a subscriber can use an
 AbsoluteStart filter with Start Location = {0, 0}.
