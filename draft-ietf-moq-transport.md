@@ -1413,7 +1413,7 @@ these Objects do not pass the Latest Object filter.
 AbsoluteStart (0x3):  The filter Start Location is specified explicitly in the
 SUBSCRIBE message. The `Start` specified in the SUBSCRIBE message MAY be less
 than the `Largest Object` observed at the publisher. There is no End Group - the
-subscription is open ended.  To receive any Object that is published or is
+subscription is open ended.  To receive all Objects that are published or are
 received after this subscription is processed, a subscriber can use an
 AbsoluteStart filter with `Start` = {0, 0}.
 
@@ -1647,8 +1647,8 @@ processed promptly and some extra objects from the existing subscription are
 delivered.
 
 Unlike a new subscription, SUBSCRIBE_UPDATE can not cause an Object to be
-delivered multiple times.  Like SUBSCRIBE, EndGroup MUST specify the
-same or a larger Object than StartGroup and StartObject.
+delivered multiple times.  Like SUBSCRIBE, EndGroup MUST be greater than or
+equal to the Group specified in `Start`.
 
 If a parameter included in `SUBSCRIBE` is not present in
 `SUBSCRIBE_UPDATE`, its value remains unchanged.  There is no mechanism to
