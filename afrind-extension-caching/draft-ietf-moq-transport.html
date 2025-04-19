@@ -2432,18 +2432,17 @@ have visibility of MoQ Object metadata.<a href="#section-7-2" class="pilcrow">¶
 <a href="#section-7.1" class="section-number selfRef">7.1. </a><a href="#name-caching-relays" class="section-name selfRef">Caching Relays</a>
         </h3>
 <p id="section-7.1-1">Relays <span class="bcp14">MAY</span> cache Objects, but are not required to.<a href="#section-7.1-1" class="pilcrow">¶</a></p>
-<p id="section-7.1-2">A caching relay saves Objects to its cache identified by the Object's
-Full Track Name, Group ID and Object ID.
-If multiple objects are received with the same Full Track Name,
-Group ID and Object ID, Relays <span class="bcp14">MAY</span> ignore subsequently received Objects
-or <span class="bcp14">MAY</span> use them to update the cache. Implementations that update the
-cache need to protect against cache poisoning.  The only fields that can be
-updated are the following:<a href="#section-7.1-2" class="pilcrow">¶</a></p>
+<p id="section-7.1-2">A caching relay saves Objects to its cache identified by the Object's Full Track
+Name, Group ID and Object ID. If multiple objects are received with the same
+Full Track Name, Group ID and Object ID, Relays <span class="bcp14">MAY</span> ignore subsequently received
+Objects or <span class="bcp14">MAY</span> use them to update certain cached fields. Implementations that
+update the cache need to protect against cache poisoning.  The only Object
+fields that can be updated are the following:<a href="#section-7.1-2" class="pilcrow">¶</a></p>
 <ol start="1" type="1" class="normal type-1" id="section-7.1-3">
 <li id="section-7.1-3.1">
-            <p id="section-7.1-3.1.1">Object Status can transition from any status to Object Does Not Exist in cases
-where the object is no longer available.  Transitions between Normal, End
-of Group and End of Track are invalid.<a href="#section-7.1-3.1.1" class="pilcrow">¶</a></p>
+            <p id="section-7.1-3.1.1">Object Status can transition from any status to Object Does Not Exist in
+cases where the object is no longer available.  Transitions between Normal,
+End of Group and End of Track are invalid.<a href="#section-7.1-3.1.1" class="pilcrow">¶</a></p>
 </li>
           <li id="section-7.1-3.2">
             <p id="section-7.1-3.2.1">Object Header Extensions can be added, removed or updated, subject
