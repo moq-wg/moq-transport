@@ -5,13 +5,13 @@
 Media Over QUIC                                                L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 25 September 2025                                          Meta
+Expires: 21 October 2025                                            Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                           24 March 2025
+                                                           19 April 2025
 
 
                        Media over QUIC Transport
@@ -59,7 +59,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 25 September 2025.
+   This Internet-Draft will expire on 21 October 2025.
 
 Copyright Notice
 
@@ -2681,7 +2681,7 @@ Table of Contents
 9.1.1.2.  Object Extension Header
 
    Any Object may have extension headers except those with Object Status
-   'Object does not exist'.  If an endpoint receives a non-existent
+   'Object Does Not Exist'.  If an endpoint receives a non-existent
    Object containing extension headers it MUST close the session with a
    Protocol Violation.
 
