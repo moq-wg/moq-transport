@@ -111,12 +111,13 @@ Table of Contents
      6.2.  Scheduling Algorithm
      6.3.  Considerations for Setting Priorities
    7.  Relays
-     7.1.  Subscriber Interactions
-       7.1.1.  Graceful Subscriber Relay Switchover
-     7.2.  Publisher Interactions
-       7.2.1.  Graceful Publisher Network Switchover
-       7.2.2.  Graceful Publisher Relay Switchover
-     7.3.  Relay Object Handling
+     7.1.  Caching Relays
+     7.2.  Subscriber Interactions
+       7.2.1.  Graceful Subscriber Relay Switchover
+     7.3.  Publisher Interactions
+       7.3.1.  Graceful Publisher Network Switchover
+       7.3.2.  Graceful Publisher Relay Switchover
+     7.4.  Relay Object Handling
    8.  Control Messages
      8.1.  Parameters
        8.1.1.  Version Specific Parameters
@@ -1046,9 +1047,38 @@ Table of Contents
    Relays are endpoints, which means they terminate Transport Sessions
    in order to have visibility of MoQ Object metadata.
 
+7.1.  Caching Relays
+
    Relays MAY cache Objects, but are not required to.
 
-7.1.  Subscriber Interactions
+   A caching relay saves Objects to its cache identified by the Object's
+   Full Track Name, Group ID and Object ID.  If multiple objects are
+   received with the same Full Track Name, Group ID and Object ID,
+   Relays MAY ignore subsequently received Objects or MAY use them to
+   update certain cached fields.  Implementations that update the cache
+   need to protect against cache poisoning.  The only Object fields that
+   can be updated are the following:
+
+   1.  Object Status can transition from any status to Object Does Not
+       Exist in cases where the object is no longer available.
+       Transitions between Normal, End of Group and End of Track are
+       invalid.
+
+   2.  Object Header Extensions can be added, removed or updated,
+       subject to the constraints of the specific header extension.
+
+   An endpoint that receives a duplicate Object with an invalid Object
+   Status change, or a Forwarding Preference, Subgroup ID, Priority or
+   Payload that differ from a previous version MUST treat the track as
+   Malformed.
+
+   Note that due to reordering, an implementation can receive a
+   duplicate Object with a status of Normal, End of Group or End of
+   Track after receiving a previous status of Object Not Exists.  The
+   endpoint SHOULD NOT cache or forward the duplicate object in this
+   case.
+
+7.2.  Subscriber Interactions
 
    Subscribers subscribe to tracks by sending a SUBSCRIBE (Section 8.6)
    control message for each track of interest.  Relays MUST ensure
@@ -1070,14 +1100,10 @@ Table of Contents
    within the subscription range is forwarded to each active subscriber,
    dependent on the congestion response.
 
-   A caching relay saves Objects to its cache identified by the Object's
-   Full Track Name, Group ID and Object ID.  Relays MUST be able to
-   process objects for the same Full Track Name from multiple publishers
-   and forward objects to active matching subscriptions.  If multiple
-   objects are received with the same Full Track Name, Group ID and
-   Object ID, Relays MAY ignore subsequently received Objects or MAY use
-   them to update the cache.  Implementations that update the cache need
-   to protect against cache poisoning.
+   Relays MUST be able to process objects for the same Full Track Name
+   from multiple publishers and forward objects to active matching
+   subscriptions.  The same object SHOULD NOT be forwarded more than
+   once on the same subscription.
 
    A relay MUST NOT reorder or drop objects received on a multi-object
    stream when forwarding to subscribers, unless it has application
@@ -1094,7 +1120,7 @@ Table of Contents
    subscribers with disparate filters subscribe and unsubscribe from a
    track.
 
-7.1.1.  Graceful Subscriber Relay Switchover
+7.2.1.  Graceful Subscriber Relay Switchover
 
    This section describes behavior a subscriber MAY implement to allow
    for a better user experience when a relay sends a GOAWAY.
@@ -1105,7 +1131,7 @@ Table of Contents
    response to the subscribes and if they are successful, the
    subscriptions to the old relay can be stopped with an UNSUBSCRIBE.
 
-7.2.  Publisher Interactions
+7.3.  Publisher Interactions
 
    Publishing through the relay starts with publisher sending ANNOUNCE
    control message with a Track Namespace (Section 2.4).  The ANNOUNCE
@@ -1155,7 +1181,7 @@ Table of Contents
    message or Object downstream, because it would enable a single
    session to close unrelated sessions.
 
-7.2.1.  Graceful Publisher Network Switchover
+7.3.1.  Graceful Publisher Network Switchover
 
    This section describes behavior that a publisher MAY choose to
    implement to allow for a better users experience when switching
@@ -1173,7 +1199,7 @@ Table of Contents
    downstream from the relay do no observe this change, and keep
    receiving the objects on the same subscription.
 
-7.2.2.  Graceful Publisher Relay Switchover
+7.3.2.  Graceful Publisher Relay Switchover
 
    This section describes behavior that a publisher MAY choose to
    implement to allow for a better user experience when a relay sends
@@ -1187,7 +1213,7 @@ Table of Contents
    the new relay, the announcement and subscription to the old relay can
    be stopped.
 
-7.3.  Relay Object Handling
+7.4.  Relay Object Handling
 
    MOQT encodes the delivery information via Object headers
    (Section 9.1).  A relay MUST NOT modify Object properties when
