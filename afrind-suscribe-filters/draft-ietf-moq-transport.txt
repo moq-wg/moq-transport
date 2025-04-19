@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 17 October 2025                                   I. Swett, Ed.
+Expires: 21 October 2025                                   I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                           15 April 2025
+                                                           19 April 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 17 October 2025.
+   This Internet-Draft will expire on 21 October 2025.
 
 Copyright Notice
 
@@ -1544,7 +1544,7 @@ Table of Contents
    explicitly in the SUBSCRIBE message.  The Start specified in the
    SUBSCRIBE message MAY be less than the Largest Object observed at the
    publisher.  There is no End Group - the subscription is open ended.
-   To receive any Object that is published or is received after this
+   To receive all Objects that are published or are received after this
    subscription is processed, a subscriber can use an AbsoluteStart
    filter with Start = {0, 0}.
 
@@ -1793,8 +1793,8 @@ Table of Contents
    from the existing subscription are delivered.
 
    Unlike a new subscription, SUBSCRIBE_UPDATE can not cause an Object
-   to be delivered multiple times.  Like SUBSCRIBE, EndGroup MUST
-   specify the same or a larger Object than StartGroup and StartObject.
+   to be delivered multiple times.  Like SUBSCRIBE, EndGroup MUST be
+   greater than or equal to the Group specified in Start.
 
    If a parameter included in SUBSCRIBE is not present in
    SUBSCRIBE_UPDATE, its value remains unchanged.  There is no mechanism
