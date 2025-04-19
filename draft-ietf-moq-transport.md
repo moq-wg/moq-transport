@@ -510,7 +510,10 @@ semantics (see {{?I-D.ietf-webtrans-overview, Section 4}}); thus, the
 main difference lies in how the servers are identified and how the
 connection is established.  When using QUIC, datagrams MUST be
 supported via the [QUIC-DATAGRAM] extension, which is already a
-requirement for WebTransport over HTTP/3.
+requirement for WebTransport over HTTP/3. The RESET_STREAM_AT
+{{!I-D.draft-ietf-quic-reliable-stream-reset}} extension to QUIC
+can be used by MoQT, but the protocol is also designed to work
+correctly when the extension is not supported.
 
 There is no definition of the protocol over other transports,
 such as TCP, and applications using MoQ might need to fallback to
@@ -935,7 +938,32 @@ validating subscribe and publish requests at the edge of a network.
 Relays are endpoints, which means they terminate Transport Sessions in order to
 have visibility of MoQ Object metadata.
 
+## Caching Relays
+
 Relays MAY cache Objects, but are not required to.
+
+A caching relay saves Objects to its cache identified by the Object's Full Track
+Name, Group ID and Object ID. If multiple objects are received with the same
+Full Track Name, Group ID and Object ID, Relays MAY ignore subsequently received
+Objects or MAY use them to update certain cached fields. Implementations that
+update the cache need to protect against cache poisoning.  The only Object
+fields that can be updated are the following:
+
+1. Object Status can transition from any status to Object Does Not Exist in
+   cases where the object is no longer available.  Transitions between Normal,
+   End of Group and End of Track are invalid.
+3. Object Header Extensions can be added, removed or updated, subject
+   to the constraints of the specific header extension.
+
+An endpoint that receives a duplicate Object with an invalid Object Status
+change, or a Forwarding Preference, Subgroup ID, Priority or Payload that
+differ from a previous version MUST treat the track as Malformed.
+
+Note that due to reordering, an implementation can receive a duplicate Object
+with a status of Normal, End of Group or End of Track after receiving a
+previous status of Object Not Exists.  The endpoint SHOULD NOT cache or
+forward the duplicate object in this case.
+
 
 ## Subscriber Interactions
 
@@ -958,14 +986,9 @@ subscribers for each track. Each new Object belonging to the
 track within the subscription range is forwarded to each active
 subscriber, dependent on the congestion response.
 
-A caching relay saves Objects to its cache identified by the Object's
-Full Track Name, Group ID and Object ID. Relays MUST be able to
-process objects for the same Full Track Name from multiple
-publishers and forward objects to active matching subscriptions.
-If multiple objects are received with the same Full Track Name,
-Group ID and Object ID, Relays MAY ignore subsequently received Objects
-or MAY use them to update the cache. Implementations that update the
-cache need to protect against cache poisoning.
+Relays MUST be able to process objects for the same Full Track Name from
+multiple publishers and forward objects to active matching subscriptions.  The
+same object SHOULD NOT be forwarded more than once on the same subscription.
 
 A relay MUST NOT reorder or drop objects received on a multi-object stream when
 forwarding to subscribers, unless it has application specific information.
@@ -1289,7 +1312,7 @@ The wire format of the Setup messages are as follows:
 
 ~~~
 CLIENT_SETUP Message {
-  Type (i) = 0x50,
+  Type (i) = 0x20,
   Length (i),
   Number of Supported Versions (i),
   Supported Version (i) ...,
@@ -1298,7 +1321,7 @@ CLIENT_SETUP Message {
 }
 
 SERVER_SETUP Message {
-  Type (i) = 0x51,
+  Type (i) = 0x21,
   Length (i),
   Selected Version (i),
   Number of Parameters (i) ...,
@@ -1382,8 +1405,8 @@ GOAWAY Message {
 
 * New Session URI: When received by a client, indicates where the client can
   connect to continue this session.  The client MUST use this URI for the new
-  session if provided. If the URI is zero bytes long, the client can reuse the
-  current URI is reused instead. The new session URI SHOULD use the same scheme
+  session if provided. If the URI is zero bytes long, the current URI is reused
+  instead. The new session URI SHOULD use the same scheme
   as the current URL to ensure compatibility.  The maxmimum length of the New
   Session URI is 8,192 bytes.  If an endpoint receives a length exceeding the
   maximum, it MUST close the session with a Protocol Violation.
@@ -2571,24 +2594,24 @@ A publisher sends Objects matching a subscription on Data Streams or Datagrams.
 All unidirectional MOQT streams start with a variable-length integer indicating
 the type of the stream in question.
 
-|-------|-------------------------------------------------------|
-| ID    | Type                                                  |
-|------:|:------------------------------------------------------|
-| 0x4   | SUBGROUP_HEADER  ({{subgroup-header}})                |
-|-------|-------------------------------------------------------|
-| 0x5   | FETCH_HEADER  ({{fetch-header}})                      |
-|-------|-------------------------------------------------------|
+|-------------|-------------------------------------------------|
+| ID          | Type                                            |
+|------------:|:------------------------------------------------|
+| 0x08-0x09   | SUBGROUP_HEADER  ({{subgroup-header}})          |
+|-------------|-------------------------------------------------|
+| 0x05        | FETCH_HEADER  ({{fetch-header}})                |
+|-------------|-------------------------------------------------|
 
 All MOQT datagrams start with a variable-length integer indicating the type of
 the datagram.
 
-|-------|-------------------------------------------------------|
-| ID    | Type                                                  |
-|------:|:------------------------------------------------------|
-| 0x1   | OBJECT_DATAGRAM ({{object-datagram}})                 |
-|-------|-------------------------------------------------------|
-| 0x2   | OBJECT_DATAGRAM_STATUS ({{object-datagram}})          |
-|-------|-------------------------------------------------------|
+|-----------|---------------------------------------------------|
+| ID        | Type                                              |
+|----------:|:--------------------------------------------------|
+| 0x00-0x01 | OBJECT_DATAGRAM ({{object-datagram}})             |
+|-----------|---------------------------------------------------|
+| 0x02-0x03 | OBJECT_DATAGRAM_STATUS ({{object-datagram}})      |
+|-----------|---------------------------------------------------|
 
 An endpoint that receives an unknown stream or datagram type MUST close the
 session.
@@ -2720,16 +2743,23 @@ will be dropped.
 
 ~~~
 OBJECT_DATAGRAM {
+  Type (i),
   Track Alias (i),
   Group ID (i),
   Object ID (i),
   Publisher Priority (8),
-  Extension Headers Length (i),
-  [Extension headers (...)],
+  [Extension Headers Length (i),
+  Extension headers (...)],
   Object Payload (..),
 }
 ~~~
 {: #object-datagram-format title="MOQT OBJECT_DATAGRAM"}
+
+The Type field takes the form 0b0000000X (or the set of values from 0x00 to
+0x01). The LSB of the type determines if the Extensions Headers Length and
+Extension headers are present. If an endpoint receives a datagram with Type
+0x01 and Extension Headers Length is 0, it MUST close the session with Protocol
+Violation.
 
 There is no explicit length field.  The entirety of the transport datagram
 following Publisher Priority contains the Object Payload.
@@ -2741,16 +2771,23 @@ conveys an Object Status and has no payload.
 
 ~~~
 OBJECT_DATAGRAM_STATUS {
+  Type (i),
   Track Alias (i),
   Group ID (i),
   Object ID (i),
   Publisher Priority (8),
-  Extension Headers Length (i),
-  [Extension headers (...)],
+  [Extension Headers Length (i),
+  Extension headers (...)],
   Object Status (i),
 }
 ~~~
 {: #object-datagram-status-format title="MOQT OBJECT_DATAGRAM_STATUS"}
+
+The Type field takes the form 0b0000001X (or the set of values from 0x02 to
+0x03). The LSB of the type determines if the Extensions Headers Length and
+Extension headers are present. If an endpoint receives a datagram with Type
+0x03 and Extension Headers Length is 0, it MUST close the session with Protocol
+Violation.
 
 ## Streams
 
@@ -2777,6 +2814,7 @@ and the subgroup indicated by 'Group ID' and `Subgroup ID`.
 
 ~~~
 SUBGROUP_HEADER {
+  Type (i),
   Track Alias (i),
   Group ID (i),
   Subgroup ID (i),
@@ -2788,6 +2826,12 @@ SUBGROUP_HEADER {
 All Objects received on a stream opened with `SUBGROUP_HEADER` have an
 `Object Forwarding Preference` = `Subgroup`.
 
+The Type field takes the form 0b0000100X (or the set of values from 0x08 to
+0x09). The LSB determines if the Extensions Headers Length is present in Objects
+in this subgroup.  When it is 0, Extensions Headers Length is not present and all
+Objects have no extensions.  When it is 1, Extension Headers Length is present in
+all Objects in this subgroup.
+
 To send an Object with `Object Forwarding Preference` = `Subgroup`, find the open
 stream that is associated with the subscription, `Group ID` and `Subgroup ID`,
 or open a new one and send the `SUBGROUP_HEADER`. Then serialize the
@@ -2798,8 +2842,8 @@ The Object Status field is only sent if the Object Payload Length is zero.
 ~~~
 {
   Object ID (i),
-  Extension Headers Length (i),
-  [Extension headers (...)],
+  [Extension Headers Length (i),
+  Extension headers (...)],
   Object Payload Length (i),
   [Object Status (i)],
   Object Payload (..),
@@ -2959,6 +3003,7 @@ Sending a subgroup on one stream:
 Stream = 2
 
 SUBGROUP_HEADER {
+  Type = 0
   Track Alias = 2
   Group ID = 0
   Subgroup ID = 0
@@ -2966,13 +3011,11 @@ SUBGROUP_HEADER {
 }
 {
   Object ID = 0
-  Extension Headers Length = 0
   Object Payload Length = 4
   Payload = "abcd"
 }
 {
   Object ID = 1
-  Extension Headers Length = 0
   Object Payload Length = 4
   Payload = "efgh"
 }
@@ -2984,7 +3027,8 @@ Extension Headers.
 ~~~
 Stream = 2
 
-STREAM_HEADER_GROUP {
+SUBGROUP_HEADER {
+  Type = 1
   Track Alias = 2
   Group ID = 0
   Publisher Priority = 0
