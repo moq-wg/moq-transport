@@ -858,7 +858,7 @@ or MAY use them to update the cache. Implementations that update the
 cache need to protect against cache poisoning.  The only fields that can be
 updated are the following:
 
-1. Object Status can transition from any status to Object Not Exists in cases
+1. Object Status can transition from any status to Object Does Not Exist in cases
    where the object is no longer available.  Transitions between Normal, End
    of Group and End of Track are invalid.
 3. Object Header Extensions can be added, removed or updated, subject
