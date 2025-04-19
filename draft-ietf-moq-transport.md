@@ -1372,8 +1372,8 @@ GOAWAY Message {
 
 * New Session URI: When received by a client, indicates where the client can
   connect to continue this session.  The client MUST use this URI for the new
-  session if provided. If the URI is zero bytes long, the client can reuse the
-  current URI is reused instead. The new session URI SHOULD use the same scheme
+  session if provided. If the URI is zero bytes long, the current URI is reused
+  instead. The new session URI SHOULD use the same scheme
   as the current URL to ensure compatibility.  The maxmimum length of the New
   Session URI is 8,192 bytes.  If an endpoint receives a length exceeding the
   maximum, it MUST close the session with a Protocol Violation.
