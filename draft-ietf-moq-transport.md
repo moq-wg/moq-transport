@@ -1861,7 +1861,7 @@ The Object Forwarding Preference does not apply to fetches.
 
 Fetch specifies an inclusive range of Objects starting at StartObject
 in StartGroup and ending at EndObject in EndGroup. EndGroup and EndObject MUST
-specify the same or a larger Object than StartGroup and StartObject.
+specify the same or a larger Location than StartGroup and StartObject.
 
 The format of FETCH is as follows:
 
