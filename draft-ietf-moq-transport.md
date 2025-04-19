@@ -1480,31 +1480,43 @@ single session and publishers SHOULD treat this as a protocol violation.
 The subscriber specifies a filter on the subscription to allow
 the publisher to identify which objects need to be delivered.
 
+All filters have a Start Location and an optional End Group.  Only objects
+published or received via a subscription having Locations greater than or
+equal to Start and strictly less than or equal to the End Group (when
+present) pass the filter.
+
+The `Largest Object` is defined to be the object with the largest Location
+({{location-structure}}) in the track from the perspective of the endpoint
+processing the SUBSCRIBE message.
+
 There are 3 types of filters:
 
-Latest Object (0x2): Specifies an open-ended subscription beginning from
-the current object of the current group.  If no content has been delivered yet,
-the subscription starts with the first published or received group.
+Latest Object (0x2): The filter Start Location is `{Largest Object.Group,
+Largest Object.Object + 1}` and `Largest Object` is communicated in
+SUBSCRIBE_OK. If no content has been delivered yet, the filter Start Location is
+{0, 0}. There is no End Group - the subscription is open ended.  Note that due
+to network reordering or prioritization, relays can receive Objects with
+Locations smaller than  `Largest Object` after the SUBSCRIBE is processed, but
+these Objects do not pass the Latest Object filter.
 
-AbsoluteStart (0x3):  Specifies an open-ended subscription beginning
-from the object identified in the `Start` field. If the
-start group is prior to the current group, the subscription starts at the
-beginning of the current object like the 'Latest Object' filter.
+AbsoluteStart (0x3):  The filter Start Location is specified explicitly in the
+SUBSCRIBE message. The `Start` specified in the SUBSCRIBE message MAY be less
+than the `Largest Object` observed at the publisher. There is no End Group - the
+subscription is open ended.  To receive all Objects that are published or are
+received after this subscription is processed, a subscriber can use an
+AbsoluteStart filter with `Start` = {0, 0}.
 
-AbsoluteRange (0x4):  Specifies a closed subscription starting at `Start`
-and ending at the largest object in EndGroup.  The start and
-end of the range are inclusive.  EndGroup MUST specify the same or a later
-group than specified in `start`. If the start group is prior to the current
-group, the subscription starts at the beginning of the current object like
-the 'Latest Object' filter.
+AbsoluteRange (0x4):  The filer Start Location and End Group are specified
+explicitly in the SUBSCRIBE message. The `Start` specified in the SUBSCRIBE
+message MAY be less than the `Largest Object` observed at the publisher. If the
+specified `EndGroup` is the same group specified in `Start`, the remainder of
+that Group passes the filter. `EndGroup` MUST specify the same or a larger Group
+than specified in `Start`.
 
 A filter type other than the above MUST be treated as error.
 
-If a subscriber wants to subscribe to Objects both before and after
-the Latest Object, it can send a SUBSCRIBE for the Latest Object
-followed by a FETCH. Depending upon the application, one might want to send
-both messages at the same time or wait for the first to return before sending
-the second.
+Subscribe only delivers newly published or received Objects.  Objects from the
+past are retrieved using FETCH ({{message-fetch}}).
 
 A Subscription can also request a publisher to not forward Objects for a given
 track by setting the `Forward` field to 0. This allows the publisher or relay
@@ -1723,8 +1735,8 @@ processed promptly and some extra objects from the existing subscription are
 delivered.
 
 Unlike a new subscription, SUBSCRIBE_UPDATE can not cause an Object to be
-delivered multiple times.  Like SUBSCRIBE, EndGroup MUST specify the
-same or a later object than StartGroup and StartObject.
+delivered multiple times.  Like SUBSCRIBE, EndGroup MUST be greater than or
+equal to the Group specified in `Start`.
 
 If a parameter included in `SUBSCRIBE` is not present in
 `SUBSCRIBE_UPDATE`, its value remains unchanged.  There is no mechanism to
@@ -1954,7 +1966,7 @@ The Object Forwarding Preference does not apply to fetches.
 
 Fetch specifies an inclusive range of Objects starting at StartObject
 in StartGroup and ending at EndObject in EndGroup. EndGroup and EndObject MUST
-specify the same or a later object than StartGroup and StartObject.
+specify the same or a larger Location than StartGroup and StartObject.
 
 The format of FETCH is as follows:
 
