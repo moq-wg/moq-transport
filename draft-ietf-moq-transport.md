@@ -1180,12 +1180,12 @@ Protocol Violation.
 
 ## Request ID
 
-Most MoQT control messages contain a Request ID.  The Request ID correlates
-requests and responses, allows endpoints to update or terminate ongoing
-requests, and supports the endpoint's ability to limit the concurrency and
-frequency of requests.  There are independent Request IDs for each endpoint. The
-client's Request ID starts at 0 and are even and the server's Request ID starts
-at 1 and are odd.  The Request ID increments by 2 with ANNOUNCE, FETCH,
+Most MoQT control messages contain a session specific Request ID.  The Request
+ID correlates requests and responses, allows endpoints to update or terminate
+ongoing requests, and supports the endpoint's ability to limit the concurrency
+and frequency of requests.  There are independent Request IDs for each endpoint.
+The client's Request ID starts at 0 and are even and the server's Request ID
+starts at 1 and are odd.  The Request ID increments by 2 with ANNOUNCE, FETCH,
 SUBSCRIBE, SUBSCRIBE_ANNOUNCES or TRACK_STATUS request.  If an endpoint receives
 a Request ID that is not valid for the peer, or a new request with a Request ID
 that is not expected, it MUST close the session with `Invalid Request ID`.
