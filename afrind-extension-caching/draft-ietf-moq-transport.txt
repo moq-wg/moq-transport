@@ -5,13 +5,13 @@
 Media Over QUIC                                                L. Curley
 Internet-Draft                                                   Discord
 Intended status: Standards Track                                K. Pugin
-Expires: 16 October 2025                                            Meta
+Expires: 21 October 2025                                            Meta
                                                            S. Nandakumar
                                                                    Cisco
                                                              V. Vasiliev
                                                            I. Swett, Ed.
                                                                   Google
-                                                           14 April 2025
+                                                           19 April 2025
 
 
                        Media over QUIC Transport
@@ -59,7 +59,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 16 October 2025.
+   This Internet-Draft will expire on 21 October 2025.
 
 Copyright Notice
 
@@ -957,9 +957,10 @@ Table of Contents
    protect against cache poisoning.  The only fields that can be updated
    are the following:
 
-   1.  Object Status can transition from any status to Object Not Exists
-       in cases where the object is no longer available.  Transitions
-       between Normal, End of Group and End of Track are invalid.
+   1.  Object Status can transition from any status to Object Does Not
+       Exist in cases where the object is no longer available.
+       Transitions between Normal, End of Group and End of Track are
+       invalid.
 
    2.  Object Header Extensions can be added, removed or updated,
        subject to the constraints of the specific header extension.
