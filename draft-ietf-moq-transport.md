@@ -850,17 +850,16 @@ have visibility of MoQ Object metadata.
 
 Relays MAY cache Objects, but are not required to.
 
-A caching relay saves Objects to its cache identified by the Object's
-Full Track Name, Group ID and Object ID.
-If multiple objects are received with the same Full Track Name,
-Group ID and Object ID, Relays MAY ignore subsequently received Objects
-or MAY use them to update the cache. Implementations that update the
-cache need to protect against cache poisoning.  The only fields that can be
-updated are the following:
+A caching relay saves Objects to its cache identified by the Object's Full Track
+Name, Group ID and Object ID. If multiple objects are received with the same
+Full Track Name, Group ID and Object ID, Relays MAY ignore subsequently received
+Objects or MAY use them to update certain cached fields. Implementations that
+update the cache need to protect against cache poisoning.  The only Object
+fields that can be updated are the following:
 
-1. Object Status can transition from any status to Object Does Not Exist in cases
-   where the object is no longer available.  Transitions between Normal, End
-   of Group and End of Track are invalid.
+1. Object Status can transition from any status to Object Does Not Exist in
+   cases where the object is no longer available.  Transitions between Normal,
+   End of Group and End of Track are invalid.
 3. Object Header Extensions can be added, removed or updated, subject
    to the constraints of the specific header extension.
 
