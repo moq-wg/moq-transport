@@ -642,6 +642,8 @@ code, as defined below:
 |------|---------------------------|
 | 0x13 | Auth Token Cache Overflow |
 |------|---------------------------|
+| 0x14 | Duplicate Auth Token Alias|
+|------|---------------------------|
 
 * No Error: The session is being terminated without an error.
 
@@ -686,6 +688,9 @@ code, as defined below:
 
 * Auth Token Cache Overflow - the Session limit {{max-auth-token-cache-size}} of
   all registered Authorization tokens has been exceeded.
+
+* Duplicate Auth Token Alias - Authorization Token attempted to register an
+  alias that was in use (see {{authorization-token}}).
 
 An endpoint MAY choose to treat a subscription or request specific error as a
 session error under certain circumstances, closing the entire session in
@@ -1318,13 +1323,12 @@ to invalid serialization or providing a token value which does not match the
 declared Token Type.  The receiver of a message referencing an alias that is
 not currently registered MUST reject the message with `Unknown Auth Token
 Alias`. The receiver of a message attempting to register an alias which is
-already registered MUST reject the message with `Duplicate Auth Token Alias`.
+already registered MUST close the session with `Duplicate Auth Token Alias`.
 
 Any message carrying an AUTHORIZATION TOKEN with Alias Type REGISTER that does
-not result in `Malformed Auth Token` or `Duplicate Auth Token Alias` MUST
-effect the token registration, even if the message fails for other reasons,
-including `Unauthorized`.  This allows senders to pipeline messages that refer
-to previously registered tokens.
+not result in `Malformed Auth Token` MUST effect the token registration, even
+if the message fails for other reasons, including `Unauthorized`.  This allows
+senders to pipeline messages that refer to previously registered tokens.
 
 If a receiver detects that an authorization token has expired, it MUST retain
 the registered alias until it is deleted by the sender, though it MAY discard
@@ -1490,7 +1494,7 @@ maximum size in bytes of all actively registered Authorization tokens that the
 server is willing to store per Session. This parameter is optional. The default
 value is 0 which prohibits the use of token aliases.
 
-The token size is calculated as 8 bytes + the size of the Token value (see 
+The token size is calculated as 8 bytes + the size of the Token value (see
 {{moq-token}}). The total size as restricted by the MAX_AUTH_TOKEN_CACHE_SIZE
 parameter is calculated as the sum of the token sizes for all registered tokens
 (Alias Type value of 0x01) minus the sum of the token sizes for all deregistered
@@ -1816,9 +1820,7 @@ as defined below:
 |------|---------------------------|
 | 0x11 | Unknown Auth Token Alias  |
 |------|---------------------------|
-| 0x12 | Duplicate Auth Token Alias|
-|------|---------------------------|
-| 0x13 | Expired Auth Token        |
+| 0x12 | Expired Auth Token        |
 |------|---------------------------|
 
 * Internal Error - An implementation specific or generic error occurred.
@@ -1842,13 +1844,10 @@ as defined below:
 
 * Malformed Auth Token - Invalid Auth Token serialization during registration
   (see {{authorization-token}}).
-  
+
 * Unknown Auth Token Alias - Authroization Token refers to an alias that is
   not registered (see {{authorization-token}}).
-  
-* Duplicate Auth Token Alias - Authorization Token attempted to register an
-  alias that was in use (see {{authorization-token}}).
-  
+
 * Expired Auth Token - Authorization token has expired {{authorization-token}}).
 
 
@@ -2315,9 +2314,7 @@ as defined below:
 |------|---------------------------|
 | 0x11 | Unknown Auth Token Alias  |
 |------|---------------------------|
-| 0x12 | Duplicate Auth Token Alias|
-|------|---------------------------|
-| 0x13 | Expired Auth Token        |
+| 0x12 | Expired Auth Token        |
 |------|---------------------------|
 
 * Internal Error - An implementation specific or generic error occurred.
@@ -2343,13 +2340,10 @@ as defined below:
 
 * Malformed Auth Token - Invalid Auth Token serialization during registration
   (see {{authorization-token}}).
-  
+
 * Unknown Auth Token Alias - Authroization Token refers to an alias that is
   not registered (see {{authorization-token}}).
-  
-* Duplicate Auth Token Alias - Authorization Token attempted to register an
-  alias that was in use (see {{authorization-token}}).
-  
+
 * Expired Auth Token - Authorization token has expired {{authorization-token}}).
 
 
@@ -2545,9 +2539,7 @@ below:
 |------|---------------------------|
 | 0x11 | Unknown Auth Token Alias  |
 |------|---------------------------|
-| 0x12 | Duplicate Auth Token Alias|
-|------|---------------------------|
-| 0x13 | Expired Auth Token        |
+| 0x12 | Expired Auth Token        |
 |------|---------------------------|
 
 * Internal Error - An implementation specific or generic error occurred.
@@ -2564,13 +2556,10 @@ below:
 
 * Malformed Auth Token - Invalid Auth Token serialization during registration
   (see {{authorization-token}}).
-  
+
 * Unknown Auth Token Alias - Authroization Token refers to an alias that is
   not registered (see {{authorization-token}}).
-  
-* Duplicate Auth Token Alias - Authorization Token attempted to register an
-  alias that was in use (see {{authorization-token}}).
-  
+
 * Expired Auth Token - Authorization token has expired {{authorization-token}}).
 
 
@@ -2743,9 +2732,7 @@ as defined below:
 |------|---------------------------|
 | 0x11 | Unknown Auth Token Alias  |
 |------|---------------------------|
-| 0x12 | Duplicate Auth Token Alias|
-|------|---------------------------|
-| 0x13 | Expired Auth Token        |
+| 0x12 | Expired Auth Token        |
 |------|---------------------------|
 
 * Internal Error - An implementation specific or generic error occurred.
@@ -2766,13 +2753,10 @@ as defined below:
 
 * Malformed Auth Token - Invalid Auth Token serialization during registration
   (see {{authorization-token}}).
-  
+
 * Unknown Auth Token Alias - Authroization Token refers to an alias that is
   not registered (see {{authorization-token}}).
-  
-* Duplicate Auth Token Alias - Authorization Token attempted to register an
-  alias that was in use (see {{authorization-token}}).
-  
+
 * Expired Auth Token - Authorization token has expired {{authorization-token}}).
 
 
