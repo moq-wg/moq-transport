@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 16 October 2025                                   I. Swett, Ed.
+Expires: 23 October 2025                                   I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                           14 April 2025
+                                                           21 April 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 16 October 2025.
+   This Internet-Draft will expire on 23 October 2025.
 
 Copyright Notice
 
@@ -3260,12 +3260,11 @@ Contributors
 
    The original design behind this protocol was inspired by three
    independent proposals: WARP [I-D.draft-lcurley-warp] by Luke Curley,
-   RUSH [I-D.draft-kpugin-rush] by Kirill Pugin, Alan Frindell, Jordi
-   Cenzano and Jake Weissman, and QUICR
+   RUSH [I-D.draft-kpugin-rush] by Kirill Pugin, Nitin Garg, Alan
+   Frindell, Jordi Cenzano and Jake Weissman, and QUICR
    [I-D.draft-jennings-moq-quicr-proto] by Cullen Jennings, Suhas
    Nandakumar and Christian Huitema.  The authors of those documents
    merged their proposals to create the first draft of moq-transport.
-
    The IETF MoQ Working Group received an enormous amount of support
    from many people.  The following people provided substantive
    contributions to this document:
@@ -3353,11 +3352,12 @@ Informative References
               jennings-moq-quicr-proto-01>.
 
    [I-D.draft-kpugin-rush]
-              Pugin, K., Frindell, A., Ferret, J. C., and J. Weissman,
-              "RUSH - Reliable (unreliable) streaming protocol", Work in
-              Progress, Internet-Draft, draft-kpugin-rush-02, 10 May
-              2023, <https://datatracker.ietf.org/doc/html/draft-kpugin-
-              rush-02>.
+              Pugin, K., Garg, N., Frindell, A., Ferret, J. C., and J.
+              Weissman, "RUSH - Reliable (unreliable) streaming
+              protocol", Work in Progress, Internet-Draft, draft-kpugin-
+              rush-03, 21 April 2025,
+              <https://datatracker.ietf.org/doc/html/draft-kpugin-rush-
+              03>.
 
    [I-D.draft-lcurley-warp]
               Curley, L., Pugin, K., Nandakumar, S., and V. Vasiliev,
