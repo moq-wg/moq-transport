@@ -640,6 +640,8 @@ code, as defined below:
 |------|---------------------------|
 | 0x12 | Data Stream Timeout       |
 |------|---------------------------|
+| 0x13 | Version Negotiation Failed|
+|------|---------------------------|
 
 * No Error: The session is being terminated without an error.
 
@@ -681,6 +683,9 @@ code, as defined below:
   stream. If an endpoint times out waiting for a new object header on an
   open subgroup stream, it MAY send a STOP_SENDING on that stream or
   terminate the subscription.
+
+* Version Negotiation Failed: The client didn't offer a version supported
+  by the server.
 
 An endpoint MAY choose to treat a subscription or request specific error as a
 session error under certain circumstances, closing the entire session in
@@ -1343,7 +1348,7 @@ The client offers the list of the protocol versions it supports; the
 server MUST reply with one of the versions offered by the client. If the
 server does not support any of the versions offered by the client, or
 the client receives a server version that it did not offer, the
-corresponding peer MUST close the session.
+corresponding peer MUST close the session with `Version Negotiation Failed`.
 
 \[\[RFC editor: please remove the remainder of this section before
 publication.]]
