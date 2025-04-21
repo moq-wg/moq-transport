@@ -1489,7 +1489,7 @@ The `Largest Object` is defined to be the object with the largest Location
 ({{location-structure}}) in the track from the perspective of the endpoint
 processing the SUBSCRIBE message.
 
-There are 3 types of filters:
+There are 5 types of filters:
 
 Latest Object (0x2): The filter Start Location is `{Largest Object.Group,
 Largest Object.Object + 1}` and `Largest Object` is communicated in
@@ -1498,6 +1498,11 @@ SUBSCRIBE_OK. If no content has been delivered yet, the filter Start Location is
 to network reordering or prioritization, relays can receive Objects with
 Locations smaller than  `Largest Object` after the SUBSCRIBE is processed, but
 these Objects do not pass the Latest Object filter.
+
+Next Group Start (0x1): The filter start Location is `{Largest Object.Group + 1,
+0}` and `Largest Object` is communicated in SUBSCRIBE_OK. If no content has been
+delivered yet, the filter Start Location is {0, 0}.  There is no End Group -
+the subscription is open ended.
 
 AbsoluteStart (0x3):  The filter Start Location is specified explicitly in the
 SUBSCRIBE message. The `Start` specified in the SUBSCRIBE message MAY be less
