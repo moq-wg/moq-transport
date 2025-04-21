@@ -479,6 +479,39 @@ constrain the information in these fields, for example by restricting them to
 UTF-8. Any specification that does needs to specify the canonicalization into
 the bytes in the Track Namespace or Track Name such that exact comparison works.
 
+## Malformed Tracks
+
+A track is considered malformed if any of the following conditions are detected
+by a receiver:
+
+1. An Object is received on a Subgroup whose Object ID is not strictly larger
+   than the previous Object received on the same Subgroup.
+2. An Object is received in a FETCH response with the same Group as the
+   previous Object, but whose Object ID is not strictly larger than the previous
+   object.
+3. An Object is received in an Asending FETCH response whose Group ID is smaller
+   than the previous Object in the response.
+4. An Object is received in a Descending FETCH response whose Group ID is larger
+   than the previous Object in the resopnse.
+5. A Subgroup or FETCH response is terminated with a FIN in the middle of an
+   Object
+6. An Object is received whose Object ID is larger than the confirmed largest
+   Object in the subgroup.
+7. An Object is received in a Group whose Object ID is larger than the
+   confirmed largest Object in the Group.
+8. An Object is received on a Track whose Object ID is larger than the confirmed
+   largest Object in the Track.
+8. The same Object is received more than once with with different Payload or
+   other immutable properties.
+10. An Object is received with a different Forwarding Preference than previously
+   observed from the same Track.
+
+When a subscriber detects a Malformed Track, it MUST UNSUBSCRIBE from the
+Track and SHOULD deliver an error to the application.  If a relay detects a
+Malformed Track, it MUST immediately terminate downstream subscriptions with
+SUBSCRIBE_DONE with Status Code `Malformed Track`.
+
+
 ### Scope {#track-scope}
 
 A MOQT scope is a set of servers (as identified by their connection
@@ -1890,6 +1923,8 @@ SUBSCRIBE_DONE, as defined below:
 |------|---------------------------|
 | 0x6  | Too Far Behind            |
 |------|---------------------------|
+| 0x7  | Malformed Track           |
+|------|---------------------------|
 
 * Internal Error - An implementation specific or generic error occurred.
 
@@ -1908,6 +1943,8 @@ SUBSCRIBE_DONE, as defined below:
 * Too Far Behind - The publisher's queue of objects to be sent to the given
   subscriber exceeds its implementation defined limit.
 
+* Malformed Track - The publisher detected the track was malformed (see
+  {{malformed-tracks}}).
 
 ## FETCH {#message-fetch}
 
@@ -2173,6 +2210,8 @@ as defined below:
 |------|---------------------------|
 | 0x7  | Invalid Joining Request ID|
 |------|---------------------------|
+| 0x8  | Malformed Track           |
+|------|---------------------------|
 
 * Internal Error - An implementation specific or generic error occurred.
 
@@ -2194,6 +2233,9 @@ as defined below:
 
 * Invalid Subscribe ID - The joining Fetch referenced a Subscribe ID that did
   not belong to an active Subscription.
+
+* Malformed Track - The publisher detected the track was malformed (see
+  {{malformed-tracks}}).
 
 
 ## FETCH_CANCEL {#message-fetch-cancel}
@@ -3085,7 +3127,8 @@ include Prior Group ID Gap = 2 in any number of Objects in Group 10, as it sees
 fit.  A track with a Group that contains more than one Object with different
 values for Prior Group ID Gap or has a Prior Group ID Gap larger than the Group
 ID is considered malformed.  If an endpoint receives an Object with a Group ID
-within a previously communicated gap it also treats the track as malformed.
+within a previously communicated gap it also treats the track as malformed
+(see {{malformed-tracks}}.
 
 This extension is optional, as publishers might not know the prior gap gize, or
 there may not be a gap. If Prior Group ID Gap is not present, the receiver
