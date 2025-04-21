@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 17 October 2025                                   I. Swett, Ed.
+Expires: 23 October 2025                                   I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                           15 April 2025
+                                                           21 April 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 17 October 2025.
+   This Internet-Draft will expire on 23 October 2025.
 
 Copyright Notice
 
@@ -3220,9 +3220,9 @@ Table of Contents
    treats the track as malformed.
 
    This extension is optional, as publishers might not know the prior
-   gap gize.  If Prior Group ID Gap is not present, the receiver cannot
-   infer any information about the existence of prior groups (see
-   Section 2.3.1).
+   gap gize, or there may not be a gap.  If Prior Group ID Gap is not
+   present, the receiver cannot infer any information about the
+   existence of prior groups (see Section 2.3.1).
 
    This extension can be added by the Original Publisher, but MUST NOT
    be added by relays.  This extension MUST NOT be modified or removed.
