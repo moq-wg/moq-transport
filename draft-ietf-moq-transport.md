@@ -2049,8 +2049,9 @@ A publisher MUST send fetched groups in the determined group order, either
 ascending or descending. Within each group, objects are sent in Object ID order;
 subgroup ID is not used for ordering.
 
-If StartGroup/StartObject is greater than the latest published Object group,
-the publisher MUST return FETCH_ERROR with error code 'No Objects'.
+If StartGroup/StartObject is greater than `Largest Object`
+({{message-subscribe-req}}), or all requested Objects have status `Object Does
+Not Exist`, the publisher MUST return FETCH_ERROR with error code 'No Objects'.
 
 ### Calculating the Range of a Relative Joining Fetch
 
@@ -2120,7 +2121,8 @@ the End Group ID and Object Id indicate the last Object in the track,
   track, the largest known {group,object} at the relay is used.  For tracks
   with a requested end larger than what is cached without an active
   subscription, the relay makes an upstream request in order to satisfy the
-  FETCH.
+  FETCH.  If End is smaller than the Start Location in the corresponding
+  FETCH the receiver MUST close the session with `Protocol Violation`
 
 * Subscribe Parameters: The parameters are defined in {{version-specific-params}}.
 
@@ -3010,6 +3012,10 @@ The Object Status field is only sent if the Object Payload Length is zero.
 
 The Subgroup ID field of an object with a Forwarding Preference of "Datagram"
 (see {{object-properties}}) is set to the Object ID.
+
+A valid FETCH stream always contains at least one Object.  If a subscriber
+receives a FIN on a FETCH stream without any Objects, it MUST close the session
+with a `Protocol Violation`.
 
 ## Examples
 
