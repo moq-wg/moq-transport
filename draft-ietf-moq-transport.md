@@ -687,7 +687,7 @@ code, as defined below:
   terminate the subscription.
 
 * Auth Token Cache Overflow - the Session limit {{max-auth-token-cache-size}} of
-  all registered Authorization tokens has been exceeded.
+  the size of all registered Authorization tokens has been exceeded.
 
 * Duplicate Auth Token Alias - Authorization Token attempted to register an
   alias that was in use (see {{authorization-token}}).
