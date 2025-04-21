@@ -3146,7 +3146,16 @@ TODO: register the URI scheme and the ALPN and grease the Extension types
 # Contributors
 {:numbered="false"}
 
-- Alan Frindell
+The original design behind this protocol was inspired by three independent
+proposals: WARP {{?I-D.draft-lcurley-warp}} by Luke Curley, RUSH
+{{?I-D.draft-kpugin-rush}} by Kirill Pugin, Nitin Garg, Alan Frindell, Jordi
+Cenzano and Jake Weissman, and QUICR {{?I-D.draft-jennings-moq-quicr-proto}} by
+Cullen Jennings, Suhas Nandakumar and Christian Huitema.  The authors of those
+documents merged their proposals to create the first draft of moq-transport.
+The IETF MoQ Working Group received an enormous amount of support from many
+people. The following people provided substantive contributions to this
+document:
+
 - Ali Begen
 - Charles Krasic
 - Christian Huitema
