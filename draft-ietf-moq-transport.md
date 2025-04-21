@@ -754,10 +754,10 @@ MoQT maintains priorities between different _schedulable objects_.
 A schedulable object in MoQT is either:
 
 1. An object in response to a SUBSCRIBE that belongs to a subgroup where
-   that object would be the next object to be sent in that subgroup.
-1. An object in response to a SUBSCRIBE that belongs to a track with
+   that object is the next object in that subgroup.
+2. An object in response to a SUBSCRIBE that belongs to a track with
    delivery preference Datagram.
-1. An object in response to a FETCH where that object would be the next
+3. An object in response to a FETCH where that object is the next
    object in the response.
 
 A single subgroup or datagram has a single publisher priority. Within a
@@ -798,11 +798,11 @@ the objects SHOULD be selected as follows:
    the one with **the highest subscriber priority** is sent first.
 1. If two objects have the same subscriber priority, but a different publisher
    priority, the one with **the highest publisher priority** is sent first.
-1. If two objects in response to the same request have the same subscriber
+2. If two objects in response to the same request have the same subscriber
    and publisher priority, but belong to two different groups of the same track,
    **the group order** of the associated subscription is used to
    decide the one that is sent first.
-1. If two objects in response to the same request belong to the same group of
+3. If two objects in response to the same request belong to the same group of
    the same track, the one with **the lowest Subgroup ID** (for tracks
    with delivery preference Subgroup), or **the lowest Object ID** (for tracks
    with delivery preference Datagram) is sent first.
