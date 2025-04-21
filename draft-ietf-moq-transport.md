@@ -1845,7 +1845,7 @@ as defined below:
 * Malformed Auth Token - Invalid Auth Token serialization during registration
   (see {{authorization-token}}).
 
-* Unknown Auth Token Alias - Authroization Token refers to an alias that is
+* Unknown Auth Token Alias - Authorization Token refers to an alias that is
   not registered (see {{authorization-token}}).
 
 * Expired Auth Token - Authorization token has expired {{authorization-token}}).
@@ -2341,7 +2341,7 @@ as defined below:
 * Malformed Auth Token - Invalid Auth Token serialization during registration
   (see {{authorization-token}}).
 
-* Unknown Auth Token Alias - Authroization Token refers to an alias that is
+* Unknown Auth Token Alias - Authorization Token refers to an alias that is
   not registered (see {{authorization-token}}).
 
 * Expired Auth Token - Authorization token has expired {{authorization-token}}).
@@ -2557,7 +2557,7 @@ below:
 * Malformed Auth Token - Invalid Auth Token serialization during registration
   (see {{authorization-token}}).
 
-* Unknown Auth Token Alias - Authroization Token refers to an alias that is
+* Unknown Auth Token Alias - Authorization Token refers to an alias that is
   not registered (see {{authorization-token}}).
 
 * Expired Auth Token - Authorization token has expired {{authorization-token}}).
@@ -2754,7 +2754,7 @@ as defined below:
 * Malformed Auth Token - Invalid Auth Token serialization during registration
   (see {{authorization-token}}).
 
-* Unknown Auth Token Alias - Authroization Token refers to an alias that is
+* Unknown Auth Token Alias - Authorization Token refers to an alias that is
   not registered (see {{authorization-token}}).
 
 * Expired Auth Token - Authorization token has expired {{authorization-token}}).
