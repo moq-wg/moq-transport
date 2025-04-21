@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 21 October 2025                                   I. Swett, Ed.
+Expires: 23 October 2025                                   I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                           19 April 2025
+                                                           21 April 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 21 October 2025.
+   This Internet-Draft will expire on 23 October 2025.
 
 Copyright Notice
 
@@ -162,10 +162,12 @@ Table of Contents
        9.4.3.  Closing Subgroup Streams
        9.4.4.  Fetch Header
      9.5.  Examples
-   10. Security Considerations
-     10.1.  Resource Exhaustion
-     10.2.  Timeouts
-   11. IANA Considerations
+   10. Extension Headers
+     10.1.  Prior Group ID Gap
+   11. Security Considerations
+     11.1.  Resource Exhaustion
+     11.2.  Timeouts
+   12. IANA Considerations
    Contributors
    References
      Normative References
@@ -2927,7 +2929,7 @@ Table of Contents
    header.
 
    Extension Headers are defined in external specifications and
-   registered in an IANA table Section 11.  These specifications define
+   registered in an IANA table Section 12.  These specifications define
    the type and value of the header, along with any rules concerning
    processing, modification, caching and forwarding.  A relay which is
    coded to implement these rules is said to "support" the extension.
@@ -2942,7 +2944,7 @@ Table of Contents
    Object Extension Headers are serialized as Key-Value-Pairs Figure 2.
 
    Header types are registered in the IANA table 'MOQ Extension
-   Headers'.  See Section 11.
+   Headers'.  See Section 12.
 
 9.2.  Object Datagram
 
@@ -3266,11 +3268,37 @@ Table of Contents
      Payload = "efgh"
    }
 
-10.  Security Considerations
+10.  Extension Headers
+
+   The following Object Extension Headers are defined in MoQT.
+
+10.1.  Prior Group ID Gap
+
+   Prior Group ID Gap (Extension Header Type 0x40) is a variable length
+   integer containing the number of Groups prior to the current Group
+   that do not and will never exist.  For example, if the Original
+   Publisher published an Object in Group 7 and knows it will never
+   publish any Objects in Group 8 or Group 9, it can include Prior Group
+   ID Gap = 2 in any number of Objects in Group 10, as it sees fit.  A
+   track with a Group that contains more than one Object with different
+   values for Prior Group ID Gap or has a Prior Group ID Gap larger than
+   the Group ID is considered malformed.  If an endpoint receives an
+   Object with a Group ID within a previously communicated gap it also
+   treats the track as malformed.
+
+   This extension is optional, as publishers might not know the prior
+   gap gize, or there may not be a gap.  If Prior Group ID Gap is not
+   present, the receiver cannot infer any information about the
+   existence of prior groups (see Section 2.3.1).
+
+   This extension can be added by the Original Publisher, but MUST NOT
+   be added by relays.  This extension MUST NOT be modified or removed.
+
+11.  Security Considerations
 
    TODO: Expand this section, including subscriptions.
 
-10.1.  Resource Exhaustion
+11.1.  Resource Exhaustion
 
    Live content requires significant bandwidth and resources.  Failure
    to set limits will quickly cause resource exhaustion.
@@ -3288,14 +3316,14 @@ Table of Contents
    publisher and subscriber MUST cancel a stream, preferably the lowest
    priority, after reaching a resource limit.
 
-10.2.  Timeouts
+11.2.  Timeouts
 
    Implementations are advised to use timeouts to prevent resource
    exhaustion attacks by a peer that does not send expected data within
    an expected time.  Each implementation is expected to set its own
    limits.
 
-11.  IANA Considerations
+12.  IANA Considerations
 
    TODO: fill out currently missing registries:
 
