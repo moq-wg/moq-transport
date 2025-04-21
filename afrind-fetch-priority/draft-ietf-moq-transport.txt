@@ -840,14 +840,13 @@ Table of Contents
    schedulable object in MoQT is either:
 
    1.  An object in response to a SUBSCRIBE that belongs to a subgroup
-       where that object would be the next object to be sent in that
-       subgroup.
+       where that object is the next object in that subgroup.
 
    2.  An object in response to a SUBSCRIBE that belongs to a track with
        delivery preference Datagram.
 
-   3.  An object in response to a FETCH where that object would be the
-       next object in the response.
+   3.  An object in response to a FETCH where that object is the next
+       object in the response.
 
    A single subgroup or datagram has a single publisher priority.
    Within a response to SUBSCRIBE, it can be useful to conceptualize
