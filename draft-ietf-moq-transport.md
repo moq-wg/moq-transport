@@ -2554,8 +2554,6 @@ the type of the stream in question.
 |------------:|:------------------------------------------------|
 | 0x08-0x0D   | SUBGROUP_HEADER  ({{subgroup-header}})          |
 |-------------|-------------------------------------------------|
-| 0x0E-0xF    | RESERVED                                        |
-|-------------|-------------------------------------------------|
 | 0x05        | FETCH_HEADER  ({{fetch-header}})                |
 |-------------|-------------------------------------------------|
 
@@ -2783,26 +2781,33 @@ SUBGROUP_HEADER {
 All Objects received on a stream opened with `SUBGROUP_HEADER` have an
 `Object Forwarding Preference` = `Subgroup`.
 
-The Type field takes the form 0b00001XXX (or the set of values from 0x08 to
-0x0D). The three low-order bits of the frame type determine the fields that
-are present in the frame:
+There are 6 defined Type values for SUBGROUP_HEADER:
 
-The EXT bit (0x001) determines if the Extensions Headers Length is present in
-Objects in this subgroup.  When it is 0, Extensions Headers Length is not
-present and all Objects have no extensions.  When it is 1, Extension Headers
-Length is present in all Objects in this subgroup.
+|------|---------------|-----------------|------------|
+| Type | Subgroup ID   | Subgroup ID     | Extensions |
+|      | Field Present | Value           | Present    |
+|------|---------------|-----------------|------------|
+| 0x08 | No            | 0               | No         |
+|------|---------------|-----------------|------------|
+| 0x09 | No            | 0               | Yes        |
+|------|---------------|-----------------|------------|
+| 0x0A | No            | First Object ID | No         |
+|------|---------------|-----------------|------------|
+| 0x0B | No            | First Object ID | Yes        |
+|------|---------------|-----------------|------------|
+| 0x0C | Yes           | N/A             | No         |
+|------|---------------|-----------------|------------|
+| 0x0D | Yes           | N/A             | Yes        |
+|------|---------------|-----------------|------------|
 
-The HAS_SUBGROUP_ID bit (0x010) determines if the Subgroup ID field is present.
-When it is 0, there is no explicit Subgroup ID field and the SUBGROUP_ID bit
-determines the Subgroup ID.  When it is 1, the Subgroup ID field is present.
+For Type values where Subgroup ID Field Present is No, there is no explicit
+Subgroup ID field in the header and the Subgroup ID is either 0 (for Types
+0x08-09) or the Object ID of the first object transmitted in this subgroup
+(for Types 0x0A-0B).
 
-The SUBGROUP_ID bit (0x100) determines the implicit Subgroup ID when the
-HAS_SUBGROUP_ID bit is 0.  When the SUBGROUP_ID bit is 0, the Subgroup ID is 0.
-When the SUBGROUP_ID bit is 1, the Subgroup ID is the Object ID of the first
-object transmitted in this subgroup.
-
-It is not valid to send HAS_SUBGROUP_ID=1 and SUBGROUP_ID=1.  Those values of
-type (0x0E-0x0F) are reserved and have no meaning in MoQT.
+For Type values where Extensions Present is No, Extensions Headers Length is
+not present and all Objects have no extensions.  When Extensions Present is
+Yes, Extension Headers Length is present in all Objects in this subgroup.
 
 To send an Object with `Object Forwarding Preference` = `Subgroup`, find the open
 stream that is associated with the subscription, `Group ID` and `Subgroup ID`,
