@@ -2116,13 +2116,17 @@ the End Group ID and Object Id indicate the last Object in the track,
 0 if not.
 
 * End: The largest object covered by the FETCH response.
-  This is the minimum of the {EndGroup,EndObject} specified in FETCH and the
-  largest known {group,object}.  If the relay is currently subscribed to the
-  track, the largest known {group,object} at the relay is used.  For tracks
-  with a requested end larger than what is cached without an active
-  subscription, the relay makes an upstream request in order to satisfy the
-  FETCH.  If End is smaller than the Start Location in the corresponding
-  FETCH the receiver MUST close the session with `Protocol Violation`
+  The End value is determined by taking the minimum of two values:
+   - The {EndGroup, EndObject} specified in the FETCH request.
+   - The largest known {Group, Object} available.
+
+  If the relay is subscribed to the track, it uses its knowledge of the largest
+  {group, object} to set End.  If if is not subscribed and the requested End
+  Location exceeds its cached data, the relay makes an upstream request to
+  complete the FETCH, and uses the upstream response to set End.
+
+  If End is smaller than the Start Location in the corresponding FETCH the
+  receiver MUST close the session with `Protocol Violation`
 
 * Subscribe Parameters: The parameters are defined in {{version-specific-params}}.
 
