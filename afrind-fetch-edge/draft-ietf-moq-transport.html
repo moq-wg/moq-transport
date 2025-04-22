@@ -1056,7 +1056,7 @@ svg :is([fill="white"], [fill^="#fff"]) {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Nandakumar, et al.</td>
-<td class="center">Expires 23 October 2025</td>
+<td class="center">Expires 24 October 2025</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1069,12 +1069,12 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dd class="internet-draft">draft-ietf-moq-transport-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2025-04-21" class="published">21 April 2025</time>
+<time datetime="2025-04-22" class="published">22 April 2025</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2025-10-23">23 October 2025</time></dd>
+<dd class="expires"><time datetime="2025-10-24">24 October 2025</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1143,7 +1143,7 @@ networks and is designed for high scale and low latency distribution.<a href="#s
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 23 October 2025.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 24 October 2025.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -4080,13 +4080,23 @@ the End Group ID and Object Id indicate the last Object in the track,
 </li>
           <li class="normal" id="section-8.14-3.4">
             <p id="section-8.14-3.4.1">End: The largest object covered by the FETCH response.
-This is the minimum of the {EndGroup,EndObject} specified in FETCH and the
-largest known {group,object}.  If the relay is currently subscribed to the
-track, the largest known {group,object} at the relay is used.  For tracks
-with a requested end larger than what is cached without an active
-subscription, the relay makes an upstream request in order to satisfy the
-FETCH.  If End is smaller than the Start Location in the corresponding
-FETCH the receiver <span class="bcp14">MUST</span> close the session with <code>Protocol Violation</code><a href="#section-8.14-3.4.1" class="pilcrow">¶</a></p>
+The End value is determined by taking the minimum of two values:<a href="#section-8.14-3.4.1" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-8.14-3.4.2.1">
+                <p id="section-8.14-3.4.2.1.1">The {EndGroup, EndObject} specified in the FETCH request.<a href="#section-8.14-3.4.2.1.1" class="pilcrow">¶</a></p>
+</li>
+              <li class="normal" id="section-8.14-3.4.2.2">
+                <p id="section-8.14-3.4.2.2.1">The largest known {Group, Object} available.<a href="#section-8.14-3.4.2.2.1" class="pilcrow">¶</a></p>
+</li>
+            </ul>
+<p id="section-8.14-3.4.3">
+If the relay is subscribed to the track, it uses its knowledge of the largest
+{group, object} to set End.  If if is not subscribed and the requested End
+Location exceeds its cached data, the relay makes an upstream request to
+complete the FETCH, and uses the upstream response to set End.<a href="#section-8.14-3.4.3" class="pilcrow">¶</a></p>
+<p id="section-8.14-3.4.4">
+If End is smaller than the Start Location in the corresponding FETCH the
+receiver <span class="bcp14">MUST</span> close the session with <code>Protocol Violation</code><a href="#section-8.14-3.4.4" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.14-3.5">
             <p id="section-8.14-3.5.1">Subscribe Parameters: The parameters are defined in <a href="#version-specific-params" class="auto internal xref">Section 8.2.1</a>.<a href="#section-8.14-3.5.1" class="pilcrow">¶</a></p>
