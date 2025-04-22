@@ -1489,7 +1489,7 @@ The `Largest Object` is defined to be the object with the largest Location
 ({{location-structure}}) in the track from the perspective of the endpoint
 processing the SUBSCRIBE message.
 
-There are 5 types of filters:
+There are 4 types of filters:
 
 Latest Object (0x2): The filter Start Location is `{Largest Object.Group,
 Largest Object.Object + 1}` and `Largest Object` is communicated in
