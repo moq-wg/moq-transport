@@ -2,16 +2,14 @@
 
 
 
-Media Over QUIC                                                L. Curley
-Internet-Draft                                                   Discord
-Intended status: Standards Track                                K. Pugin
-Expires: 24 September 2025                                          Meta
-                                                           S. Nandakumar
-                                                                   Cisco
-                                                             V. Vasiliev
-                                                           I. Swett, Ed.
+Media Over QUIC                                            S. Nandakumar
+Internet-Draft                                                     Cisco
+Intended status: Standards Track                             V. Vasiliev
+Expires: 24 October 2025                                   I. Swett, Ed.
                                                                   Google
-                                                           23 March 2025
+                                                        A. Frindell, Ed.
+                                                                    Meta
+                                                           22 April 2025
 
 
                        Media over QUIC Transport
@@ -59,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 24 September 2025.
+   This Internet-Draft will expire on 24 October 2025.
 
 Copyright Notice
 
@@ -85,10 +83,13 @@ Table of Contents
        1.1.4.  Relays
      1.2.  Terms and Definitions
      1.3.  Notational Conventions
+       1.3.1.  Location Structure
+       1.3.2.  Key-Value-Pair Structure
    2.  Object Data Model
      2.1.  Objects
      2.2.  Subgroups
      2.3.  Groups
+       2.3.1.  Group Ordering
      2.4.  Track
        2.4.1.  Track Naming
        2.4.2.  Scope
@@ -102,7 +103,7 @@ Table of Contents
      3.4.  Termination
      3.5.  Migration
    4.  Retrieving Tracks with Subscribe and Fetch
-   5.  Namespace Discovery and Routing Subscriptions
+   5.  Namespace Discovery
      5.1.  Subscribing to Announcements
      5.2.  Announcements
    6.  Priorities
@@ -110,47 +111,49 @@ Table of Contents
      6.2.  Scheduling Algorithm
      6.3.  Considerations for Setting Priorities
    7.  Relays
-     7.1.  Subscriber Interactions
-       7.1.1.  Graceful Subscriber Relay Switchover
-     7.2.  Publisher Interactions
-       7.2.1.  Graceful Publisher Network Switchover
-       7.2.2.  Graceful Publisher Relay Switchover
-     7.3.  Relay Object Handling
+     7.1.  Caching Relays
+     7.2.  Subscriber Interactions
+       7.2.1.  Graceful Subscriber Relay Switchover
+     7.3.  Publisher Interactions
+       7.3.1.  Graceful Publisher Network Switchover
+       7.3.2.  Graceful Publisher Relay Switchover
+     7.4.  Relay Object Handling
    8.  Control Messages
-     8.1.  Parameters
-       8.1.1.  Version Specific Parameters
-     8.2.  CLIENT_SETUP and SERVER_SETUP
-       8.2.1.  Versions
-       8.2.2.  Setup Parameters
-     8.3.  GOAWAY
-     8.4.  MAX_SUBSCRIBE_ID
-     8.5.  SUBSCRIBES_BLOCKED
-     8.6.  SUBSCRIBE
-     8.7.  SUBSCRIBE_OK
-     8.8.  SUBSCRIBE_ERROR
-     8.9.  SUBSCRIBE_UPDATE
-     8.10. UNSUBSCRIBE
-     8.11. SUBSCRIBE_DONE
-     8.12. FETCH
-       8.12.1.  Calculating the Range of a Relative Joining Fetch
-       8.12.2.  Calculating the Range of an Absolute Joining Fetch
-     8.13. FETCH_OK
-     8.14. FETCH_ERROR
-     8.15. FETCH_CANCEL
-     8.16. TRACK_STATUS_REQUEST
-     8.17. TRACK_STATUS
-     8.18. ANNOUNCE
-     8.19. ANNOUNCE_OK
-     8.20. ANNOUNCE_ERROR
-     8.21. UNANNOUNCE
-     8.22. ANNOUNCE_CANCEL
-     8.23. SUBSCRIBE_ANNOUNCES
-     8.24. SUBSCRIBE_ANNOUNCES_OK
-     8.25. SUBSCRIBE_ANNOUNCES_ERROR
-     8.26. UNSUBSCRIBE_ANNOUNCES
-   9.  Data Streams
-     9.1.  Object Headers
-       9.1.1.  Canonical Object Fields
+     8.1.  Request ID
+     8.2.  Parameters
+       8.2.1.  Version Specific Parameters
+     8.3.  CLIENT_SETUP and SERVER_SETUP
+       8.3.1.  Versions
+       8.3.2.  Setup Parameters
+     8.4.  GOAWAY
+     8.5.  MAX_REQUEST_ID
+     8.6.  REQUESTS_BLOCKED
+     8.7.  SUBSCRIBE
+     8.8.  SUBSCRIBE_OK
+     8.9.  SUBSCRIBE_ERROR
+     8.10. SUBSCRIBE_UPDATE
+     8.11. UNSUBSCRIBE
+     8.12. SUBSCRIBE_DONE
+     8.13. FETCH
+       8.13.1.  Calculating the Range of a Relative Joining Fetch
+       8.13.2.  Calculating the Range of an Absolute Joining Fetch
+     8.14. FETCH_OK
+     8.15. FETCH_ERROR
+     8.16. FETCH_CANCEL
+     8.17. TRACK_STATUS_REQUEST
+     8.18. TRACK_STATUS
+     8.19. ANNOUNCE
+     8.20. ANNOUNCE_OK
+     8.21. ANNOUNCE_ERROR
+     8.22. UNANNOUNCE
+     8.23. ANNOUNCE_CANCEL
+     8.24. SUBSCRIBE_ANNOUNCES
+     8.25. SUBSCRIBE_ANNOUNCES_OK
+     8.26. SUBSCRIBE_ANNOUNCES_ERROR
+     8.27. UNSUBSCRIBE_ANNOUNCES
+   9.  Data Streams and Datagrams
+     9.1.  Objects
+       9.1.1.  Canonical Object Properties
      9.2.  Object Datagram
      9.3.  Object Datagram Status
      9.4.  Streams
@@ -159,10 +162,13 @@ Table of Contents
        9.4.3.  Closing Subgroup Streams
        9.4.4.  Fetch Header
      9.5.  Examples
-   10. Security Considerations
-     10.1.  Resource Exhaustion
-     10.2.  Timeouts
-   11. IANA Considerations
+   10. Extension Headers
+     10.1.  Prior Group ID Gap
+     10.2.  Prior Object ID Gap
+   11. Security Considerations
+     11.1.  Resource Exhaustion
+     11.2.  Timeouts
+   12. IANA Considerations
    Contributors
    References
      Normative References
@@ -266,6 +272,8 @@ Table of Contents
 
    The following terms are used with the first letter capitalized.
 
+   Application:  The entity using MoQT to transmit and receive data.
+
    Client:  The party initiating a Transport Session.
 
    Server:  The party accepting an incoming Transport Session.
@@ -343,6 +351,54 @@ Table of Contents
    SHOULD be encoded using the least number of bytes possible to
    represent the required value.
 
+1.3.1.  Location Structure
+
+   Location identifies a particular Object in a Group within a Track.
+
+   Location {
+     Group (i),
+     Object (i)
+   }
+
+                        Figure 1: Location structure
+
+   Location A < Location B iff
+
+   A.Group < B.Group || (A.Group == B.Group && A.Object < B.Object)
+
+1.3.2.  Key-Value-Pair Structure
+
+   Key-Value-Pair is a flexible structure designed to carry key/value
+   pairs in which the key is a variable length integer and the value is
+   either a variable length integer or a byte field of arbitrary length.
+
+   Key-Value-Pair is used in both the data plane and control plane, but
+   is optimized for use in the data plane.
+
+   Key-Value-Pair {
+     Type (i),
+     [Length (i),]
+     Value (..)
+   }
+
+                       Figure 2: MOQT Key-Value-Pair
+
+   *  Type: an unsigned integer, encoded as a varint, identifying the
+      type of the value and also the subsequent serialization.
+
+   *  Length: Only present when Type is odd.  Specifies the length of
+      the Value field.  The maximum length of a value is 2^16-1 bytes.
+      If an endpoint receives a length larger than the maximum, it MUST
+      close the session with a Protocol Violation.
+
+   *  Value: A single varint encoded value when Type is even, otherwise
+      a sequence of Length bytes.
+
+   If a receiver understands a Type, and the following Value or Length/
+   Value does not match the serialization defined by that Type, the
+   receiver MUST terminate the session with error code 'Key-Value
+   Formatting Error'.
+
 2.  Object Data Model
 
    MOQT has a hierarchical data model, comprised of tracks which contain
@@ -384,8 +440,6 @@ Table of Contents
    combine, split, or otherwise modify object payloads.
 
    Objects within a Group are ordered numerically by their Object ID.
-   The first Object in a Group has an Object ID of 0, and IDs increase
-   sequentially for each Object within the Group.
 
 2.2.  Subgroups
 
@@ -440,7 +494,7 @@ Table of Contents
 2.3.  Groups
 
    A group is a collection of objects and is a sub-unit of a track
-   (Section 2.4).  Groups SHOULD be indendepently useful, so objects
+   (Section 2.4).  Groups SHOULD be independently useful, so objects
    within a group SHOULD NOT depend on objects in other groups.  A group
    provides a join point for subscriptions, so a subscriber that does
    not want to receive the entire track can opt to receive only the
@@ -448,13 +502,26 @@ Table of Contents
    based on their group membership.  Groups can contain any number of
    objects.
 
-   Within a track, the original publisher SHOULD produce Group IDs which
-   increase with time.  Subscribers to tracks which do not follow this
-   requirement SHOULD NOT use range filters which span multiple groups
-   in FETCH or SUBSCRIBE.  SUBSCRIBE and FETCH delivery use Group Order,
-   so a FETCH cannot deliver Groups out of order and a subscription
-   could have unexpected delivery order if Group IDs do not increase
-   with time.
+2.3.1.  Group Ordering
+
+   Within a track, the original publisher SHOULD publish Group IDs which
+   increase with time.  In some cases, Groups will be produced in
+   increasing order, but sent to subscribers in a different order, for
+   example when the subscription's Group Order is Descending.  Due to
+   network reordering and the partial reliability features of MoQT,
+   Groups can always be received out of order.
+
+   As a result, subscribers cannot infer the existence of a Group until
+   an object in the Group is received.  This can create gaps in a cache
+   that can be filled by doing a Fetch upstream, if necessary.
+
+   Applications that cannot produce Group IDs that increase with time
+   are limited to the subset of MoQT that does not compare group IDs.
+   Subscribers to these Tracks SHOULD NOT use range filters which span
+   multiple Groups in FETCH or SUBSCRIBE.  SUBSCRIBE and FETCH delivery
+   use Group Order, so a FETCH cannot deliver Groups out of order and a
+   subscription could have unexpected delivery order if Group IDs do not
+   increase with time.
 
 2.4.  Track
 
@@ -478,6 +545,12 @@ Table of Contents
    Track Name is a sequence of bytes that identifies an individual track
    within the namespace.
 
+   The maximum total length of a Full Track Name is 4,096 bytes,
+   computed as the sum of the lengths of each Track Namespace tuple
+   field and the Track Name length field.  If an endpoint receives a
+   Full Track Name exceeding this length, it MUST close the session with
+   a Protocol Violation.
+
    In this specification, both the Track Namespace tuple fields and the
    Track Name are not constrained to a specific encoding.  They carry a
    sequence of bytes and comparison between two Track Namespace tuple
@@ -500,11 +573,14 @@ Table of Contents
    require the scope to include all of those CDNs.
 
    Because the tuple of Track Namespace and Track Name are unique within
-   an MOQT scope, they can be used as a cache key.  MOQT does not
-   provide any in-band content negotiation methods similar to the ones
-   defined by HTTP ([RFC9110], Section 10); if, at a given moment in
-   time, two tracks within the same scope contain different data, they
-   have to have different names and/or namespaces.
+   an MOQT scope, they can be used as a cache key for the track.  If, at
+   a given moment in time, two tracks within the same scope contain
+   different data, they MUST have different names and/or namespaces.
+   MOQT provides subscribers with the ability to alter the specific
+   manner in which tracks are delivered via Subscribe Parameters, but
+   the actual content of the tracks does not depend on those parameters;
+   this is in contrast to protocols like HTTP, where request headers can
+   alter the server response.
 
 3.  Sessions
 
@@ -517,7 +593,10 @@ Table of Contents
    main difference lies in how the servers are identified and how the
    connection is established.  When using QUIC, datagrams MUST be
    supported via the [QUIC-DATAGRAM] extension, which is already a
-   requirement for WebTransport over HTTP/3.
+   requirement for WebTransport over HTTP/3.  The RESET_STREAM_AT
+   [I-D.draft-ietf-quic-reliable-stream-reset] extension to QUIC can be
+   used by MoQT, but the protocol is also designed to work correctly
+   when the extension is not supported.
 
    There is no definition of the protocol over other transports, such as
    TCP, and applications using MoQ might need to fallback to another
@@ -551,7 +630,7 @@ Table of Contents
    given URI by setting up a QUIC connection to the host and port
    identified by the authority section of the URI.  The path-abempty and
    query portions of the URI are communicated to the server using the
-   PATH parameter (Section 8.2.2.1) which is sent in the CLIENT_SETUP
+   PATH parameter (Section 8.3.2.1) which is sent in the CLIENT_SETUP
    message at the start of the session.  The ALPN value [RFC7301] used
    by the protocol is moq-00.
 
@@ -568,8 +647,8 @@ Table of Contents
    version and any extensions to use.
 
    The client indicates the MOQT versions it supports in the
-   CLIENT_SETUP message (see Section 8.2).  It also includes the union
-   of all Setup Parameters Section 8.2.2 required for a handshake by any
+   CLIENT_SETUP message (see Section 8.3).  It also includes the union
+   of all Setup Parameters Section 8.3.2 required for a handshake by any
    of those versions.
 
    Within any MOQT version, clients request the use of extensions by
@@ -593,14 +672,8 @@ Table of Contents
 3.3.  Session initialization
 
    The first stream opened is a client-initiated bidirectional control
-   stream where the endpoints exchange Setup messages (Section 8.2).
-   All messages defined in this draft except OBJECT and
-   OBJECT_WITH_LENGTH are sent on the control stream after the Setup
-   message.  Control messages MUST NOT be sent on any other stream, and
-   a peer receiving a control message on a different stream closes the
-   session as a 'Protocol Violation'.  Objects MUST NOT be sent on the
-   control stream, and a peer receiving an Object on the control stream
-   closes the session as a 'Protocol Violation'.
+   stream where the endpoints exchange Setup messages (Section 8.3),
+   followed by other messages defined in Section 8.
 
    This draft only specifies a single use of bidirectional streams.
    Objects are sent on unidirectional streams.  Because there are no
@@ -623,31 +696,37 @@ Table of Contents
    The application MAY use any error message and SHOULD use a relevant
    code, as defined below:
 
-                   +======+===========================+
-                   | Code | Reason                    |
-                   +======+===========================+
-                   |  0x0 | No Error                  |
-                   +------+---------------------------+
-                   |  0x1 | Internal Error            |
-                   +------+---------------------------+
-                   |  0x2 | Unauthorized              |
-                   +------+---------------------------+
-                   |  0x3 | Protocol Violation        |
-                   +------+---------------------------+
-                   |  0x4 | Duplicate Track Alias     |
-                   +------+---------------------------+
-                   |  0x5 | Parameter Length Mismatch |
-                   +------+---------------------------+
-                   |  0x6 | Too Many Subscribes       |
-                   +------+---------------------------+
-                   | 0x10 | GOAWAY Timeout            |
-                   +------+---------------------------+
-                   | 0x11 | Control Message Timeout   |
-                   +------+---------------------------+
-                   | 0x12 | Data Stream Timeout       |
-                   +------+---------------------------+
+                   +======+============================+
+                   | Code | Reason                     |
+                   +======+============================+
+                   |  0x0 | No Error                   |
+                   +------+----------------------------+
+                   |  0x1 | Internal Error             |
+                   +------+----------------------------+
+                   |  0x2 | Unauthorized               |
+                   +------+----------------------------+
+                   |  0x3 | Protocol Violation         |
+                   +------+----------------------------+
+                   |  0x4 | Invalid Request ID         |
+                   +------+----------------------------+
+                   |  0x5 | Duplicate Track Alias      |
+                   +------+----------------------------+
+                   |  0x6 | Key-Value Formatting Error |
+                   +------+----------------------------+
+                   |  0x7 | Too Many Requests          |
+                   +------+----------------------------+
+                   |  0x8 | Invalid Path               |
+                   +------+----------------------------+
+                   |  0x9 | Malformed Path             |
+                   +------+----------------------------+
+                   | 0x10 | GOAWAY Timeout             |
+                   +------+----------------------------+
+                   | 0x11 | Control Message Timeout    |
+                   +------+----------------------------+
+                   | 0x12 | Data Stream Timeout        |
+                   +------+----------------------------+
 
-                                 Table 1
+                                  Table 1
 
    *  No Error: The session is being terminated without an error.
 
@@ -659,15 +738,29 @@ Table of Contents
    *  Protocol Violation: The remote endpoint performed an action that
       was disallowed by the specification.
 
+   *  Invalid Request ID: The session was closed because the endpoint
+      used a Request ID that was smaller than or equal to a previously
+      received request ID, or the least-significant bit of the request
+      ID was incorrect for the endpoint.
+
    *  Duplicate Track Alias: The endpoint attempted to use a Track Alias
       that was already in use.
 
-   *  Too Many Subscribes: The session was closed because the subscriber
-      used a Subscribe ID equal or larger than the current Maximum
-      Subscribe ID.
+   *  Key-Value Formatting Error: the key-value pair has a formatting
+      error.
+
+   *  Too Many Requests: The session was closed because the endpoint
+      used a Request ID equal or larger than the current Maximum Request
+      ID.
+
+   *  Invalid Path: The PATH parameter was used by a server, on a
+      WebTransport session, or the server does not support the path.
+
+   *  Malformed Path: The PATH parameter does not conform to the rules
+      in Section 8.3.2.1.
 
    *  GOAWAY Timeout: The session was closed because the peer took too
-      long to close the session in response to a GOAWAY (Section 8.3)
+      long to close the session in response to a GOAWAY (Section 8.4)
       message.  See session migration (Section 3.5).
 
    *  Control Message Timeout: The session was closed because the peer
@@ -678,8 +771,13 @@ Table of Contents
       This includes fields of a stream header or an object header within
       a data stream.  If an endpoint times out waiting for a new object
       header on an open subgroup stream, it MAY send a STOP_SENDING on
-      that stream, terminate the subscription, or close the session with
-      an error.
+      that stream or terminate the subscription.
+
+   An endpoint MAY choose to treat a subscription or request specific
+   error as a session error under certain circumstances, closing the
+   entire session in response to a condition with a single subscription
+   or message.  Implementations need to consider the impact on other
+   outstanding subscriptions before making this choice.
 
 3.5.  Migration
 
@@ -687,7 +785,7 @@ Table of Contents
    provider needs the ability to shutdown/restart a server without
    waiting for all sessions to drain naturally, as that can take days
    for long-form media.  MOQT enables proactively draining sessions via
-   the GOAWAY message (Section 8.3).
+   the GOAWAY message (Section 8.4).
 
    The server sends a GOAWAY message, signaling the client to establish
    a new session and migrate any active subscriptions.  The GOAWAY
@@ -724,7 +822,7 @@ Table of Contents
    A subscriber keeps SUBSCRIBE state until it sends UNSUBSCRIBE, or
    after receipt of a SUBSCRIBE_DONE or SUBSCRIBE_ERROR.  Note that
    SUBSCRIBE_DONE does not usually indicate that state can immediately
-   be destroyed, see Section 8.11.
+   be destroyed, see Section 8.12.
 
    A subscriber keeps FETCH state until it sends FETCH_CANCEL, receives
    FETCH_ERROR, or receives a FIN or RESET_STREAM for the FETCH data
@@ -742,11 +840,20 @@ Table of Contents
    streams.  It can destroy all FETCH state after closing the data
    stream.
 
-   A SUBSCRIBE_ERROR or FETCH_ERROR indicates no objects will be
-   delivered, and both endpoints can immediately destroy relevant state.
-   Objects MUST NOT be sent for requests that end with an error.
+   A SUBSCRIBE_ERROR indicates no objects will be delivered, and both
+   endpoints can immediately destroy relevant state.  Objects MUST NOT
+   be sent for requests that end with an error.
 
-5.  Namespace Discovery and Routing Subscriptions
+   A FETCH_ERROR indicates that both endpoints can immediately destroy
+   state.  Since a relay can start delivering FETCH objects from cache
+   before determining the result of the request, some objects could be
+   received even if the FETCH results in error.
+
+   The Parameters in SUBSCRIBE and FETCH MUST NOT cause the publisher to
+   alter the payload of the objects it sends, as that would violate the
+   track uniqueness guarantee described in Section 2.4.2.
+
+5.  Namespace Discovery
 
    Discovery of MoQT servers is always done out-of-band.  Namespace
    discovery can be done in the context of an established MoQT session.
@@ -755,7 +862,7 @@ Table of Contents
    subscriber to send a SUBSCRIBE or FETCH message to a publisher
    (including a relay) without any previous MoQT messages besides SETUP.
    However, SUBSCRIBE_ANNOUNCES and ANNOUNCE messages provide an in-band
-   means of discovery of subscribers and publishers for a namespace.
+   means of discovery of publishers for a namespace.
 
    The syntax of these messages is described in Section 8.
 
@@ -764,8 +871,8 @@ Table of Contents
    If the subscriber is aware of a namespace of interest, it can send
    SUBSCRIBE_ANNOUNCES to publishers/relays it has established a session
    with.  The recipient of this message will send any relevant ANNOUNCE
-   or UNANNOUNCE messages for that namespace, or subset of that
-   namespace.
+   or UNANNOUNCE messages for that namespace, or more specific part of
+   that namespace.
 
    A publisher MUST send exactly one SUBSCRIBE_ANNOUNCES_OK or
    SUBSCRIBE_ANNOUNCES_ERROR in response to a SUBSCRIBE_ANNOUNCES.  The
@@ -773,8 +880,8 @@ Table of Contents
    detects receiving more than one.
 
    The receiver of a SUBSCRIBE_ANNOUNCES_OK or SUBSCRIBE_ANNOUNCES_ERROR
-   ought to forward the result to the application, so that it can make
-   decisions about further publishers to contact.
+   ought to forward the result to the application, so the application
+   can decide which other publishers to contact, if any.
 
    An UNSUBSCRIBE_ANNOUNCES withdraws a previous SUBSCRIBE_ANNOUNCES.
    It does not prohibit the receiver (publisher) from sending further
@@ -783,16 +890,16 @@ Table of Contents
 5.2.  Announcements
 
    A publisher MAY send ANNOUNCE messages to any subscriber.  An
-   ANNOUNCE indicates to the subscriber where to route a SUBSCRIBE or
-   FETCH for that namespace.  A subscriber MAY send SUBSCRIBE or FETCH
-   for a namespace without having received an ANNOUNCE for it.
+   ANNOUNCE indicates to the subscriber that the publisher has tracks
+   available in that namespace.  A subscriber MAY send SUBSCRIBE or
+   FETCH for a namespace without having received an ANNOUNCE for it.
 
    If a publisher is authoritative for a given namespace, or is a relay
    that has received an authorized ANNOUNCE for that namespace from an
    upstream publisher, it MUST send an ANNOUNCE to any subscriber that
-   has subscribed to ANNOUNCE for that namespace, or a subset of that
-   namespace.  A publisher MAY send the ANNOUNCE to any other
-   subscriber.
+   has subscribed to ANNOUNCE for that namespace, or a more generic set
+   including that namespace.  A publisher MAY send the ANNOUNCE to any
+   other subscriber.
 
    An endpoint SHOULD NOT, however, send an ANNOUNCE advertising a
    namespace that exactly matches a namespace for which the peer sent an
@@ -817,10 +924,10 @@ Table of Contents
    authorization, or discard associated state.  After receiving an
    ANNOUNCE_CANCEL, the publisher does not send UNANNOUNCE.
 
-   While ANNOUNCE does provide hints on where to route a SUBSCRIBE or
-   FETCH, it is not a full-fledged routing protocol and does not protect
-   against loops and other phenomena.  In particular, ANNOUNCE SHOULD
-   NOT be used to find paths through richly connected networks of
+   While ANNOUNCE indicates to relays how to connect publishers and
+   subscribers, it is not a full-fledged routing protocol and does not
+   protect against loops and other phenomena.  In particular, ANNOUNCE
+   SHOULD NOT be used to find paths through richly connected networks of
    relays.
 
    A subscriber MAY send a SUBSCRIBE or FETCH for a track to any
@@ -868,12 +975,13 @@ Table of Contents
    respective subgroup or datagram, and is the same for all objects in a
    single subgroup.
 
-   _Group Order_ is a property of an invidual subscription.  It can be
+   _Group Order_ is a property of an individual subscription.  It can be
    either 'Ascending' (groups with lower group ID are sent first), or
    'Descending' (groups with higher group ID are sent first).  The
-   publisher communicates its group order in the SUBSCRIBE_OK message;
-   the subscriber can override it in its SUBSCRIBE message.  The group
-   order of an existing subscription cannot be changed.
+   subscriber optionally communicates its group order preference in the
+   SUBSCRIBE message; the publisher's preference is used if the
+   subscriber did not express one (by setting Group Order field to value
+   0x0).  The group order of an existing subscription cannot be changed.
 
 6.2.  Scheduling Algorithm
 
@@ -911,12 +1019,13 @@ Table of Contents
 6.3.  Considerations for Setting Priorities
 
    Relays SHOULD respect the subscriber and original publisher's
-   priorities.  Relays SHOULD NOT directly use Subscriber Priority or
-   Group Order from incoming subscriptions for upstream subscriptions.
-   Relays use of Subscriber Priority for upstream subscriptions can be
-   based on factors specific to it, such as the popularity of the
-   content or policy, or relays can specify the same value for all
-   upstream subscriptions.
+   priorities.  Relays can receive subscriptions with conflicting
+   subscriber priorities or Group Order preferences.  Relays SHOULD NOT
+   directly use Subscriber Priority or Group Order from incoming
+   subscriptions for upstream subscriptions.  Relays use of these fields
+   for upstream subscriptions can be based on factors specific to it,
+   such as the popularity of the content or policy, or relays can
+   specify the same value for all upstream subscriptions.
 
    MoQ Sessions can span multiple namespaces, and priorities might not
    be coordinated across namespaces.  The subscriber's priority is
@@ -944,11 +1053,40 @@ Table of Contents
    Relays are endpoints, which means they terminate Transport Sessions
    in order to have visibility of MoQ Object metadata.
 
+7.1.  Caching Relays
+
    Relays MAY cache Objects, but are not required to.
 
-7.1.  Subscriber Interactions
+   A caching relay saves Objects to its cache identified by the Object's
+   Full Track Name, Group ID and Object ID.  If multiple objects are
+   received with the same Full Track Name, Group ID and Object ID,
+   Relays MAY ignore subsequently received Objects or MAY use them to
+   update certain cached fields.  Implementations that update the cache
+   need to protect against cache poisoning.  The only Object fields that
+   can be updated are the following:
 
-   Subscribers subscribe to tracks by sending a SUBSCRIBE (Section 8.6)
+   1.  Object Status can transition from any status to Object Does Not
+       Exist in cases where the object is no longer available.
+       Transitions between Normal, End of Group and End of Track are
+       invalid.
+
+   2.  Object Header Extensions can be added, removed or updated,
+       subject to the constraints of the specific header extension.
+
+   An endpoint that receives a duplicate Object with an invalid Object
+   Status change, or a Forwarding Preference, Subgroup ID, Priority or
+   Payload that differ from a previous version MUST treat the track as
+   Malformed.
+
+   Note that due to reordering, an implementation can receive a
+   duplicate Object with a status of Normal, End of Group or End of
+   Track after receiving a previous status of Object Not Exists.  The
+   endpoint SHOULD NOT cache or forward the duplicate object in this
+   case.
+
+7.2.  Subscriber Interactions
+
+   Subscribers subscribe to tracks by sending a SUBSCRIBE (Section 8.7)
    control message for each track of interest.  Relays MUST ensure
    subscribers are authorized to access the content associated with the
    track.  The authorization information can be part of subscription
@@ -964,18 +1102,14 @@ Table of Contents
    upstream.
 
    For successful subscriptions, the publisher maintains a list of
-   subscribers for each track.  Each new OBJECT belonging to the track
+   subscribers for each track.  Each new Object belonging to the track
    within the subscription range is forwarded to each active subscriber,
    dependent on the congestion response.
 
-   A caching relay saves Objects to its cache identified by the Object's
-   Full Track Name, Group ID and Object ID.  Relays MUST be able to
-   process objects for the same Full Track Name from multiple publishers
-   and forward objects to active matching subscriptions.  If multiple
-   objects are received with the same Full Track Name, Group ID and
-   Object ID, Relays MAY ignore subsequently received Objects or MAY use
-   them to update the cache.  Implementations that update the cache need
-   to protect against cache poisoning.
+   Relays MUST be able to process objects for the same Full Track Name
+   from multiple publishers and forward objects to active matching
+   subscriptions.  The same object SHOULD NOT be forwarded more than
+   once on the same subscription.
 
    A relay MUST NOT reorder or drop objects received on a multi-object
    stream when forwarding to subscribers, unless it has application
@@ -986,9 +1120,13 @@ Table of Contents
    aggregation allows relays to make only a single upstream subscription
    for the track.  The published content received from the upstream
    subscription request is cached and shared among the pending
-   subscribers.
+   subscribers.  Because SUBSCRIBE_UPDATE only allows narrowing a
+   subscription, relays that aggregate upstream subscriptions can
+   subscribe using the Latest Object filter to avoid churn as downstream
+   subscribers with disparate filters subscribe and unsubscribe from a
+   track.
 
-7.1.1.  Graceful Subscriber Relay Switchover
+7.2.1.  Graceful Subscriber Relay Switchover
 
    This section describes behavior a subscriber MAY implement to allow
    for a better user experience when a relay sends a GOAWAY.
@@ -999,7 +1137,7 @@ Table of Contents
    response to the subscribes and if they are successful, the
    subscriptions to the old relay can be stopped with an UNSUBSCRIBE.
 
-7.2.  Publisher Interactions
+7.3.  Publisher Interactions
 
    Publishing through the relay starts with publisher sending ANNOUNCE
    control message with a Track Namespace (Section 2.4).  The ANNOUNCE
@@ -1018,7 +1156,7 @@ Table of Contents
 
    When a publisher wants to stop new subscriptions for an announced
    namespace it sends an UNANNOUNCE.  A subscriber indicates it will no
-   longer route subscriptions for a namespace it previously responded
+   longer subcribe to tracks in a namespace it previously responded
    ANNOUNCE_OK to by sending an ANNOUNCE_CANCEL.
 
    A relay manages sessions from multiple publishers and subscribers,
@@ -1037,14 +1175,19 @@ Table of Contents
    each active upstream subscription that matches that namespace, it
    SHOULD send a SUBSCRIBE to the publisher that sent the ANNOUNCE.
 
-   OBJECT message headers carry a short hop-by-hop Track Alias that maps
-   to the Full Track Name (see Section 8.7).  Relays use the Track Alias
-   of an incoming OBJECT message to identify its track and find the
-   active subscribers for that track.  Relays MUST forward OBJECT
-   messages to matching subscribers in accordance to each subscription's
-   priority, group order, and delivery timeout.
+   Object headers carry a short hop-by-hop Track Alias that maps to the
+   Full Track Name (see Section 8.8).  Relays use the Track Alias of an
+   incoming Object to identify its track and find the active subscribers
+   for that track.  Relays MUST forward Objects to matching subscribers
+   in accordance to each subscription's priority, group order, and
+   delivery timeout.
 
-7.2.1.  Graceful Publisher Network Switchover
+   If an upstream session is closed due to an unknown or invalid control
+   message or Object, the relay MUST NOT continue to propagate that
+   message or Object downstream, because it would enable a single
+   session to close unrelated sessions.
+
+7.3.1.  Graceful Publisher Network Switchover
 
    This section describes behavior that a publisher MAY choose to
    implement to allow for a better users experience when switching
@@ -1053,16 +1196,16 @@ Table of Contents
    If the original publisher detects it is likely to need to switch
    networks, for example because the WiFi signal is getting weaker, and
    it does not have QUIC connection migration available, it establishes
-   a new session over the new interface and sends an ANNOUCE.  The relay
-   will forward matching subscribes and the publisher publishes objects
-   on both sessions.  Once the subscriptions have migrated over to
-   session on the new network, the publisher can stop publishing objects
-   on the old network.  The relay will drop duplicate objects received
-   on both subscriptions.  Ideally, the subscriptions downstream from
-   the relay do no observe this change, and keep receiving the objects
-   on the same subscription.
+   a new session over the new interface and sends an ANNOUNCE.  The
+   relay will forward matching subscribes and the publisher publishes
+   objects on both sessions.  Once the subscriptions have migrated over
+   to session on the new network, the publisher can stop publishing
+   objects on the old network.  The relay will drop duplicate objects
+   received on both subscriptions.  Ideally, the subscriptions
+   downstream from the relay do no observe this change, and keep
+   receiving the objects on the same subscription.
 
-7.2.2.  Graceful Publisher Relay Switchover
+7.3.2.  Graceful Publisher Relay Switchover
 
    This section describes behavior that a publisher MAY choose to
    implement to allow for a better user experience when a relay sends
@@ -1076,9 +1219,9 @@ Table of Contents
    the new relay, the announcement and subscription to the old relay can
    be stopped.
 
-7.3.  Relay Object Handling
+7.4.  Relay Object Handling
 
-   MOQT encodes the delivery information for a stream via OBJECT headers
+   MOQT encodes the delivery information via Object headers
    (Section 9.1).  A relay MUST NOT modify Object properties when
    forwarding.
 
@@ -1104,80 +1247,103 @@ Table of Contents
 
    MOQT Control Message {
      Message Type (i),
-     Message Length (i),
+     Message Length (16),
      Message Payload (..),
    }
 
-                           Figure 1: MOQT Message
+                           Figure 3: MOQT Message
 
-            +======+=========================================+
-            |   ID | Messages                                |
-            +======+=========================================+
-            | 0x40 | CLIENT_SETUP (Section 8.2)              |
-            +------+-----------------------------------------+
-            | 0x41 | SERVER_SETUP (Section 8.2)              |
-            +------+-----------------------------------------+
-            | 0x10 | GOAWAY (Section 8.3)                    |
-            +------+-----------------------------------------+
-            | 0x15 | MAX_SUBSCRIBE_ID (Section 8.4)          |
-            +------+-----------------------------------------+
-            | 0x1A | SUBSCRIBES_BLOCKED (Section 8.5)        |
-            +------+-----------------------------------------+
-            |  0x3 | SUBSCRIBE (Section 8.6)                 |
-            +------+-----------------------------------------+
-            |  0x4 | SUBSCRIBE_OK (Section 8.7)              |
-            +------+-----------------------------------------+
-            |  0x5 | SUBSCRIBE_ERROR (Section 8.8)           |
-            +------+-----------------------------------------+
-            |  0xA | UNSUBSCRIBE (Section 8.10)              |
-            +------+-----------------------------------------+
-            |  0x2 | SUBSCRIBE_UPDATE (Section 8.9)          |
-            +------+-----------------------------------------+
-            |  0xB | SUBSCRIBE_DONE (Section 8.11)           |
-            +------+-----------------------------------------+
-            | 0x16 | FETCH (Section 8.12)                    |
-            +------+-----------------------------------------+
-            | 0x18 | FETCH_OK (Section 8.13)                 |
-            +------+-----------------------------------------+
-            | 0x19 | FETCH_ERROR (Section 8.14)              |
-            +------+-----------------------------------------+
-            | 0x17 | FETCH_CANCEL (Section 8.15)             |
-            +------+-----------------------------------------+
-            |  0xD | TRACK_STATUS_REQUEST (Section 8.16)     |
-            +------+-----------------------------------------+
-            |  0xE | TRACK_STATUS (Section 8.17)             |
-            +------+-----------------------------------------+
-            |  0x6 | ANNOUNCE (Section 8.18)                 |
-            +------+-----------------------------------------+
-            |  0x7 | ANNOUNCE_OK (Section 8.19)              |
-            +------+-----------------------------------------+
-            |  0x8 | ANNOUNCE_ERROR (Section 8.20)           |
-            +------+-----------------------------------------+
-            |  0x9 | UNANNOUNCE (Section 8.21)               |
-            +------+-----------------------------------------+
-            |  0xC | ANNOUNCE_CANCEL (Section 8.22)          |
-            +------+-----------------------------------------+
-            | 0x11 | SUBSCRIBE_ANNOUNCES (Section 8.23)      |
-            +------+-----------------------------------------+
-            | 0x12 | SUBSCRIBE_ANNOUNCES_OK (Section 8.24)   |
-            +------+-----------------------------------------+
-            | 0x13 | SUBSCRIBE_ANNOUNCES_ERROR (Section 8.25 |
-            +------+-----------------------------------------+
-            | 0x14 | UNSUBSCRIBE_ANNOUNCES (Section 8.26)    |
-            +------+-----------------------------------------+
+   The following Message Types are defined:
 
-                                 Table 2
+           +======+============================================+
+           |   ID | Messages                                   |
+           +======+============================================+
+           | 0x01 | RESERVED (SETUP for version 00)            |
+           +------+--------------------------------------------+
+           | 0x40 | RESERVED (CLIENT_SETUP for versions <= 10) |
+           +------+--------------------------------------------+
+           | 0x41 | RESERVED (SERVER_SETUP for versions <= 10) |
+           +------+--------------------------------------------+
+           | 0x20 | CLIENT_SETUP (Section 8.3)                 |
+           +------+--------------------------------------------+
+           | 0x21 | SERVER_SETUP (Section 8.3)                 |
+           +------+--------------------------------------------+
+           | 0x10 | GOAWAY (Section 8.4)                       |
+           +------+--------------------------------------------+
+           | 0x15 | MAX_REQUEST_ID (Section 8.5)               |
+           +------+--------------------------------------------+
+           | 0x1A | REQUESTS_BLOCKED (Section 8.6)             |
+           +------+--------------------------------------------+
+           |  0x3 | SUBSCRIBE (Section 8.7)                    |
+           +------+--------------------------------------------+
+           |  0x4 | SUBSCRIBE_OK (Section 8.8)                 |
+           +------+--------------------------------------------+
+           |  0x5 | SUBSCRIBE_ERROR (Section 8.9)              |
+           +------+--------------------------------------------+
+           |  0xA | UNSUBSCRIBE (Section 8.11)                 |
+           +------+--------------------------------------------+
+           |  0x2 | SUBSCRIBE_UPDATE (Section 8.10)            |
+           +------+--------------------------------------------+
+           |  0xB | SUBSCRIBE_DONE (Section 8.12)              |
+           +------+--------------------------------------------+
+           | 0x16 | FETCH (Section 8.13)                       |
+           +------+--------------------------------------------+
+           | 0x18 | FETCH_OK (Section 8.14)                    |
+           +------+--------------------------------------------+
+           | 0x19 | FETCH_ERROR (Section 8.15)                 |
+           +------+--------------------------------------------+
+           | 0x17 | FETCH_CANCEL (Section 8.16)                |
+           +------+--------------------------------------------+
+           |  0xD | TRACK_STATUS_REQUEST (Section 8.17)        |
+           +------+--------------------------------------------+
+           |  0xE | TRACK_STATUS (Section 8.18)                |
+           +------+--------------------------------------------+
+           |  0x6 | ANNOUNCE (Section 8.19)                    |
+           +------+--------------------------------------------+
+           |  0x7 | ANNOUNCE_OK (Section 8.20)                 |
+           +------+--------------------------------------------+
+           |  0x8 | ANNOUNCE_ERROR (Section 8.21)              |
+           +------+--------------------------------------------+
+           |  0x9 | UNANNOUNCE (Section 8.22)                  |
+           +------+--------------------------------------------+
+           |  0xC | ANNOUNCE_CANCEL (Section 8.23)             |
+           +------+--------------------------------------------+
+           | 0x11 | SUBSCRIBE_ANNOUNCES (Section 8.24)         |
+           +------+--------------------------------------------+
+           | 0x12 | SUBSCRIBE_ANNOUNCES_OK (Section 8.25)      |
+           +------+--------------------------------------------+
+           | 0x13 | SUBSCRIBE_ANNOUNCES_ERROR (Section 8.26    |
+           +------+--------------------------------------------+
+           | 0x14 | UNSUBSCRIBE_ANNOUNCES (Section 8.27)       |
+           +------+--------------------------------------------+
+
+                                  Table 2
 
    An endpoint that receives an unknown message type MUST close the
    session.  Control messages have a length to make parsing easier, but
-   no control messages are intended to be ignored.  If the length does
-   not match the length of the message content, the receiver MUST close
-   the session.
+   no control messages are intended to be ignored.  The length is set to
+   the number of bytes in Message Payload, which is defined by each
+   message type.  If the length does not match the length of the Message
+   Payload, the receiver MUST close the session with Protocol Violation.
 
-8.1.  Parameters
+8.1.  Request ID
+
+   Most MoQT control messages contain a session specific Request ID.
+   The Request ID correlates requests and responses, allows endpoints to
+   update or terminate ongoing requests, and supports the endpoint's
+   ability to limit the concurrency and frequency of requests.  There
+   are independent Request IDs for each endpoint.  The client's Request
+   ID starts at 0 and are even and the server's Request ID starts at 1
+   and are odd.  The Request ID increments by 2 with ANNOUNCE, FETCH,
+   SUBSCRIBE, SUBSCRIBE_ANNOUNCES or TRACK_STATUS request.  If an
+   endpoint receives a Request ID that is not valid for the peer, or a
+   new request with a Request ID that is not expected, it MUST close the
+   session with Invalid Request ID.
+
+8.2.  Parameters
 
    Some messages include a Parameters field that encode optional message
-   elements.  They contain a type, length, and value.
+   elements.
 
    Senders MUST NOT repeat the same parameter type in a message.
    Receivers SHOULD check that there are no duplicate parameters and
@@ -1185,36 +1351,19 @@ Table of Contents
 
    Receivers ignore unrecognized parameters.
 
-   The format of Parameters is as follows:
+   The number of parameters in a message is not specifically limited,
+   but the total length of a control message is limited to 2^16-1.
 
-   Parameter {
-     Parameter Type (i),
-     Parameter Length (i),
-     Parameter Value (..),
-   }
+   Parameters are serialized as Key-Value-Pairs Figure 2.
 
-                          Figure 2: MOQT Parameter
+   Setup message parameters use a namespace that is constant across all
+   MoQ Transport versions.  All other messages use a version-specific
+   namespace.  For example, the integer '1' can refer to different
+   parameters for Setup messages and for all other message types.  SETUP
+   message parameter types are defined in Section 8.3.2.  Version-
+   specific parameter types are defined in Section 8.2.1.
 
-   Parameter Type is an integer that indicates the semantic meaning of
-   the parameter.  Setup message parameters use a namespace that is
-   constant across all MoQ Transport versions.  All other messages use a
-   version-specific namespace.  For example, the integer '1' can refer
-   to different parameters for Setup messages and for all other message
-   types.
-
-   SETUP message parameter types are defined in Section 8.2.2.  Version-
-   specific parameter types are defined in Section 8.1.1.
-
-   The Parameter Length field encodes the length of the Parameter Value
-   field in bytes.
-
-   Each parameter description will indicate the data type in the
-   Parameter Value field.  If a receiver understands a parameter type,
-   and the parameter length implied by that type does not match the
-   Parameter Length field, the receiver MUST terminate the session with
-   error code 'Parameter Length Mismatch'.
-
-8.1.1.  Version Specific Parameters
+8.2.1.  Version Specific Parameters
 
    Each version-specific parameter definition indicates the message
    types in which it can appear.  If it appears in some other type of
@@ -1222,24 +1371,16 @@ Table of Contents
    separate namespace, it is impossible for these parameters to appear
    in Setup messages.
 
-8.1.1.1.  AUTHORIZATION INFO
+8.2.1.1.  DELIVERY TIMEOUT Parameter
 
-   AUTHORIZATION INFO parameter (Parameter Type 0x02) identifies a
-   track's authorization information in a SUBSCRIBE,
-   SUBSCRIBE_ANNOUNCES, ANNOUNCE or FETCH message.  This parameter is
-   populated for cases where the authorization is required at the track
-   level.
-
-8.1.1.2.  DELIVERY TIMEOUT Parameter
-
-   The DELIVERY TIMEOUT parameter (Parameter Type 0x03) MAY appear in a
-   SUBSCRIBE, SUBSCRIBE_OK, or a SUBSCRIBE_UDPATE message.  It is the
-   duration in milliseconds the relay SHOULD continue to attempt
-   forwarding Objects after they have been received.  The start time for
-   the timeout is based on when the beginning of the Object is received,
-   and does not depend upon the forwarding preference.  There is no
-   explicit signal that an Object was not sent because the delivery
-   timeout was exceeded.
+   The DELIVERY TIMEOUT parameter (Parameter Type 0x02) MAY appear in a
+   TRACK_STATUS, SUBSCRIBE, SUBSCRIBE_OK, or a SUBSCRIBE_UDPATE message.
+   It is the duration in milliseconds the relay SHOULD continue to
+   attempt forwarding Objects after they have been received.  The start
+   time for the timeout is based on when the beginning of the Object is
+   received, and does not depend upon the forwarding preference.  There
+   is no explicit signal that an Object was not sent because the
+   delivery timeout was exceeded.
 
    If both the subscriber and publisher specify the parameter, they use
    the min of the two values for the subscription.  The publisher SHOULD
@@ -1269,19 +1410,29 @@ Table of Contents
    account priorities, congestion control, and any other relevant
    information.
 
-8.1.1.3.  MAX CACHE DURATION Parameter
+8.2.1.2.  AUTHORIZATION INFO
 
-   MAX_CACHE_DURATION (Parameter Type 0x04): An integer expressing a
-   number of milliseconds.  If present, the relay MUST NOT start
-   forwarding any individual Object received through this subscription
-   after the specified number of milliseconds has elapsed since the
-   beginning of the Object was received.  This means Objects earlier in
-   a multi-object stream will expire earlier than Objects later in the
-   stream.  Once Objects have expired, their state becomes unknown, and
-   a relay that handles a subscription that includes those Objects re-
-   requests them.
+   AUTHORIZATION INFO parameter (Parameter Type 0x03) identifies a
+   track's authorization information in a TRACK_STATUS_REQUEST,
+   SUBSCRIBE, SUBSCRIBE_ANNOUNCES, ANNOUNCE, or FETCH message.  This
+   parameter is populated for cases where the authorization is required
+   at the track level.
 
-8.2.  CLIENT_SETUP and SERVER_SETUP
+8.2.1.3.  MAX CACHE DURATION Parameter
+
+   The MAX_CACHE_DURATION parameter (Parameter Type 0x04) MAY appear in
+   a SUBSCRIBE_OK, FETCH_OK or TRACK_STATUS message.  It is an integer
+   expressing the number of milliseconds an object can be served from a
+   cache.  If present, the relay MUST NOT start forwarding any
+   individual Object received through this subscription or fetch after
+   the specified number of milliseconds has elapsed since the beginning
+   of the Object was received.  This means Objects earlier in a multi-
+   object stream will expire earlier than Objects later in the stream.
+   Once Objects have expired from cache, their state becomes unknown,
+   and a relay that handles a downstream request that includes those
+   Objects re-requests them.
+
+8.3.  CLIENT_SETUP and SERVER_SETUP
 
    The CLIENT_SETUP and SERVER_SETUP messages are the first messages
    exchanged by the client and the server; they allow the endpoints to
@@ -1295,7 +1446,7 @@ Table of Contents
    The wire format of the Setup messages are as follows:
 
    CLIENT_SETUP Message {
-     Type (i) = 0x40,
+     Type (i) = 0x20,
      Length (i),
      Number of Supported Versions (i),
      Supported Version (i) ...,
@@ -1304,19 +1455,19 @@ Table of Contents
    }
 
    SERVER_SETUP Message {
-     Type (i) = 0x41,
+     Type (i) = 0x21,
      Length (i),
      Selected Version (i),
      Number of Parameters (i) ...,
      Setup Parameters (..) ...,
    }
 
-                       Figure 3: MOQT Setup Messages
+                       Figure 4: MOQT Setup Messages
 
    The available versions and Setup parameters are detailed in the next
    sections.
 
-8.2.1.  Versions
+8.3.1.  Versions
 
    MoQ Transport versions are a 32-bit unsigned integer, encoded as a
    varint.  This version of the specification is identified by the
@@ -1339,30 +1490,33 @@ Table of Contents
    are created by adding the draft number to 0xff000000.  For example,
    draft-ietf-moq-transport-13 would be identified as 0xff00000D.
 
-8.2.2.  Setup Parameters
+8.3.2.  Setup Parameters
 
-8.2.2.1.  PATH
+8.3.2.1.  PATH
 
    The PATH parameter (Parameter Type 0x01) allows the client to specify
    the path of the MoQ URI when using native QUIC ([QUIC]).  It MUST NOT
    be used by the server, or when WebTransport is used.  If the peer
-   receives a PATH parameter from the server, or when WebTransport is
-   used, it MUST close the connection.  It follows the URI formatting
-   rules [RFC3986].
+   receives a PATH parameter from the server, when WebTransport is used,
+   or one the server does not support, it MUST close the session with
+   Invalid Path.
 
-   When connecting to a server using a URI with the "moqt" scheme, the
-   client MUST set the PATH parameter to the path-abempty portion of the
-   URI; if query is present, the client MUST concatenate ?, followed by
-   the query portion of the URI to the parameter.
+   The PATH parameter follows the URI formatting rules [RFC3986].  When
+   connecting to a server using a URI with the "moqt" scheme, the client
+   MUST set the PATH parameter to the path-abempty portion of the URI;
+   if query is present, the client MUST concatenate ?, followed by the
+   query portion of the URI to the parameter.  If a PATH does not
+   conform to these rules, the session MUST be closed with Malformed
+   Path.
 
-8.2.2.2.  MAX_SUBSCRIBE_ID
+8.3.2.2.  MAX_REQUEST_ID
 
-   The MAX_SUBSCRIBE_ID parameter (Parameter Type 0x02) communicates an
-   initial value for the Maximum Subscribe ID to the receiving
-   subscriber.  The default value is 0, so if not specified, the peer
-   MUST NOT create subscriptions.
+   The MAX_REQUEST_ID parameter (Parameter Type 0x02) communicates an
+   initial value for the Maximum Request ID to the receiving endpoint.
+   The default value is 0, so if not specified, the peer MUST NOT send
+   requests.
 
-8.3.  GOAWAY
+8.4.  GOAWAY
 
    An endpoint sends a GOAWAY message to inform the peer it intends to
    close the session soon.  Servers can use GOAWAY to initiate session
@@ -1386,75 +1540,76 @@ Table of Contents
      New Session URI (..),
    }
 
-                       Figure 4: MOQT GOAWAY Message
+                       Figure 5: MOQT GOAWAY Message
 
    *  New Session URI: When received by a client, indicates where the
       client can connect to continue this session.  The client MUST use
       this URI for the new session if provided.  If the URI is zero
-      bytes long, the client can reuse the current URI is reused
-      instead.  The new session URI SHOULD use the same scheme as the
-      current URL to ensure compatibility.
+      bytes long, the current URI is reused instead.  The new session
+      URI SHOULD use the same scheme as the current URL to ensure
+      compatibility.  The maxmimum length of the New Session URI is
+      8,192 bytes.  If an endpoint receives a length exceeding the
+      maximum, it MUST close the session with a Protocol Violation.
 
       If a server receives a GOAWAY with a non-zero New Session URI
       Length it MUST terminate the session with a Protocol Violation.
 
-8.4.  MAX_SUBSCRIBE_ID
+8.5.  MAX_REQUEST_ID
 
-   A publisher sends a MAX_SUBSCRIBE_ID message to increase the number
-   of subscriptions a subscriber can create within a session.
+   An endpoint sends a MAX_REQUEST_ID message to increase the number of
+   requests the peer can send within a session.
 
-   The Maximum Subscribe Id MUST only increase within a session, and
-   receipt of a MAX_SUBSCRIBE_ID message with an equal or smaller
-   Subscribe ID value is a 'Protocol Violation'.
+   The Maximum Request ID MUST only increase within a session, and
+   receipt of a MAX_REQUEST_ID message with an equal or smaller Request
+   ID value is a 'Protocol Violation'.
 
-   MAX_SUBSCRIBE_ID
+   MAX_REQUEST_ID
    {
      Type (i) = 0x15,
      Length (i),
-     Subscribe ID (i),
+     Request ID (i),
    }
 
-                  Figure 5: MOQT MAX_SUBSCRIBE_ID Message
+                   Figure 6: MOQT MAX_REQUEST_ID Message
 
-   *  Subscribe ID: The new Maximum Subscribe ID for the session.  If a
-      Subscribe ID Section 8.6 equal or larger than this is received by
-      the publisher that sent the MAX_SUBSCRIBE_ID, the publisher MUST
-      close the session with an error of 'Too Many Subscribes'.
+   *  Request ID: The new Maximum Request ID for the session.  If a
+      Request ID equal or larger than this is received by the endpoint
+      that sent the MAX_REQUEST_ID in any request message (ANNOUNCE,
+      FETCH, SUBSCRIBE, SUBSCRIBE_ANNOUNCES or TRACK_STATUS_REQUEST),
+      the endpoint MUST close the session with an error of 'Too Many
+      Requests'.
 
-   MAX_SUBSCRIBE_ID is similar to MAX_STREAMS in ([RFC9000],
-   Section 4.6), and similar considerations apply when deciding how
-   often to send MAX_SUBSCRIBE_ID.  For example, implementations might
-   choose to increase MAX_SUBSCRIBE_ID as subscriptions close to keep
-   the number of subscriptions available to subscribers roughly
-   consistent.
+   MAX_REQUEST_ID is similar to MAX_STREAMS in ([RFC9000], Section 4.6),
+   and similar considerations apply when deciding how often to send
+   MAX_REQUEST_ID.  For example, implementations might choose to
+   increase MAX_REQUEST_ID as subscriptions close to keep the number of
+   subscriptions available roughly consistent.
 
-8.5.  SUBSCRIBES_BLOCKED
+8.6.  REQUESTS_BLOCKED
 
-   The SUBSCRIBES_BLOCKED message is sent when a subscriber would like
-   to begin a new subscription, but cannot because the Subscribe ID
-   would exceed the Maximum Subscribe ID value sent by the peer.  The
-   subscriber SHOULD send only one SUBSCRIBES_BLOCKED for a given
-   Maximum Subscribe ID.
+   The REQUESTS_BLOCKED message is sent when an endpoint would like to
+   send a new request, but cannot because the Request ID would exceed
+   the Maximum Request ID value sent by the peer.  The endpoint SHOULD
+   send only one REQUESTS_BLOCKED for a given Maximum Request ID.
 
-   A publisher MAY send a MAX_SUBSCRIBE_ID upon receipt of
-   SUBSCRIBES_BLOCKED, but it MUST NOT rely on SUBSCRIBES_BLOCKED to
-   trigger sending a MAX_SUBSCRIBE_ID, because sending
-   SUBSCRIBES_BLOCKED is not required.
+   An endpoint MAY send a MAX_REQUEST_ID upon receipt of
+   REQUESTS_BLOCKED, but it MUST NOT rely on REQUESTS_BLOCKED to trigger
+   sending a MAX_REQUEST_ID, because sending REQUESTS_BLOCKED is not
+   required.
 
-   SUBSCRIBES_BLOCKED
+   REQUESTS_BLOCKED
    {
      Type (i) = 0x1A,
      Length (i),
-     Maximum Subscribe ID (i),
+     Maximum Request ID (i),
    }
 
-                 Figure 6: MOQT SUBSCRIBES_BLOCKED Message
+                  Figure 7: MOQT REQUESTS_BLOCKED Message
 
-   *  Maximum Subscribe ID: The Maximum Subscribe ID for the session on
-      which the subscriber is blocked.  More on Subscribe ID in
-      Section 8.6.
+   *  Maximum Request ID: The Maximum Request ID for the session on
+      which the endpoint is blocked.  More on Request ID in Section 8.7.
 
-8.6.  SUBSCRIBE
+8.7.  SUBSCRIBE
 
    A subscription causes the publisher to send newly published objects
    for a track.  A subscriber MUST NOT make multiple active
@@ -1466,67 +1621,88 @@ Table of Contents
    The subscriber specifies a filter on the subscription to allow the
    publisher to identify which objects need to be delivered.
 
+   All filters have a Start Location and an optional End Group.  Only
+   objects published or received via a subscription having Locations
+   greater than or equal to Start and strictly less than or equal to the
+   End Group (when present) pass the filter.
+
+   The Largest Object is defined to be the object with the largest
+   Location (Section 1.3.1) in the track from the perspective of the
+   endpoint processing the SUBSCRIBE message.
+
    There are 3 types of filters:
 
-   Latest Object (0x2): Specifies an open-ended subscription beginning
-   from the current object of the current group.  If no content has been
-   delivered yet, the subscription starts with the first published or
-   received group.
+   Latest Object (0x2): The filter Start Location is {Largest
+   Object.Group, Largest Object.Object + 1} and Largest Object is
+   communicated in SUBSCRIBE_OK.  If no content has been delivered yet,
+   the filter Start Location is {0, 0}. There is no End Group - the
+   subscription is open ended.  Note that due to network reordering or
+   prioritization, relays can receive Objects with Locations smaller
+   than Largest Object after the SUBSCRIBE is processed, but these
+   Objects do not pass the Latest Object filter.
 
-   AbsoluteStart (0x3): Specifies an open-ended subscription beginning
-   from the object identified in the StartGroup and StartObject fields.
-   If the StartGroup is prior to the current group, the subscription
-   starts at the beginning of the current object like the 'Latest
-   Object' filter.
+   AbsoluteStart (0x3): The filter Start Location is specified
+   explicitly in the SUBSCRIBE message.  The Start specified in the
+   SUBSCRIBE message MAY be less than the Largest Object observed at the
+   publisher.  There is no End Group - the subscription is open ended.
+   To receive all Objects that are published or are received after this
+   subscription is processed, a subscriber can use an AbsoluteStart
+   filter with Start = {0, 0}.
 
-   AbsoluteRange (0x4): Specifies a closed subscription starting at
-   StartObject in StartGroup and ending at the largest object in
-   EndGroup.  The start and end of the range are inclusive.  EndGroup
-   MUST specify the same or a later group than StartGroup.  If the
-   StartGroup is prior to the current group, the subscription starts at
-   the beginning of the current object like the 'Latest Object' filter.
+   AbsoluteRange (0x4): The filer Start Location and End Group are
+   specified explicitly in the SUBSCRIBE message.  The Start specified
+   in the SUBSCRIBE message MAY be less than the Largest Object observed
+   at the publisher.  If the specified EndGroup is the same group
+   specified in Start, the remainder of that Group passes the filter.
+   EndGroup MUST specify the same or a larger Group than specified in
+   Start.
 
    A filter type other than the above MUST be treated as error.
 
-   If a subscriber wants to subscribe to Objects both before and after
-   the Latest Object, it can send a SUBSCRIBE for the Latest Object
-   followed by a FETCH.  Depending upon the application, one might want
-   to send both messages at the same time or wait for the first to
-   return before sending the second.
+   Subscribe only delivers newly published or received Objects.  Objects
+   from the past are retrieved using FETCH (Section 8.13).
+
+   A Subscription can also request a publisher to not forward Objects
+   for a given track by setting the Forward field to 0.  This allows the
+   publisher or relay to prepare to serve the subscription in advance,
+   reducing the time to receive objects in the future.  Relays SHOULD
+   set the Forward flag to 1 if a new subscription needs to be sent
+   upstream, regardless of the value of the Forward field from the
+   downstream subscription.  Subscriptions that are not forwarded
+   consume resources from the publisher, so a publisher might
+   deprioritize, reject, or close those subscriptions to ensure other
+   subscriptions can be delivered.
 
    The format of SUBSCRIBE is as follows:
 
    SUBSCRIBE Message {
      Type (i) = 0x3,
      Length (i),
-     Subscribe ID (i),
+     Request ID (i),
      Track Alias (i),
      Track Namespace (tuple),
      Track Name Length (i),
      Track Name (..),
      Subscriber Priority (8),
      Group Order (8),
+     Forward (8),
      Filter Type (i),
-     [StartGroup (i),
-      StartObject (i)],
+     [Start (Location)],
      [EndGroup (i)],
      Number of Parameters (i),
      Subscribe Parameters (..) ...
    }
 
-                      Figure 7: MOQT SUBSCRIBE Message
+                      Figure 8: MOQT SUBSCRIBE Message
 
-   *  Subscribe ID: The subscriber specified identifier used to manage a
-      subscription.  Subscribe ID is a variable length integer that MUST
-      be unique and monotonically increasing within a session and MUST
-      be less than the session's Maximum Subscribe ID.
+   *  Request ID: See Section 8.1.
 
-   *  Track Alias: A session specific identifier for the track.
-      Messages that reference a track, such as OBJECT (Section 9.1),
-      reference this Track Alias instead of the Track Name and Track
-      Namespace to reduce overhead.  If the Track Alias is already being
-      used for a different track, the publisher MUST close the session
-      with a Duplicate Track Alias error (Section 3.4).
+   *  Track Alias: A session specific identifier for the track.  Data
+      streams and datagrams specify the Track Alias instead of the Track
+      Name and Track Namespace to reduce overhead.  If the Track Alias
+      is already being used for a different track, the publisher MUST
+      close the session with a Duplicate Track Alias error
+      (Section 3.4).
 
    *  Track Namespace: Identifies the namespace of the track as defined
       in (Section 2.4.1).
@@ -1544,20 +1720,21 @@ Table of Contents
       Group Order SHOULD be used.  Values larger than 0x2 are a protocol
       error.
 
+   *  Forward: If 1, Objects matching the subscription are forwarded to
+      the subscriber.  If 0, Objects are not forwarded to the
+      subscriber.  Any other value is a protocol error and MUST
+      terminate the session with a Protocol Violation (Section 3.4).
+
    *  Filter Type: Identifies the type of filter, which also indicates
-      whether the StartGroup/StartObject and EndGroup/EndObject fields
-      will be present.
+      whether the Start and EndGroup fields will be present.
 
-   *  StartGroup: The start Group ID.  Only present for "AbsoluteStart"
-      and "AbsoluteRange" filter types.
-
-   *  StartObject: The start Object ID.  Only present for
-      "AbsoluteStart" and "AbsoluteRange" filter types.
+   *  Start: The starting location for this subscriptions.  Only present
+      for "AbsoluteStart" and "AbsoluteRange" filter types.
 
    *  EndGroup: The end Group ID, inclusive.  Only present for the
       "AbsoluteRange" filter type.
 
-   *  Subscribe Parameters: The parameters are defined in Section 8.1.1.
+   *  Subscribe Parameters: The parameters are defined in Section 8.2.1.
 
    On successful subscription, the publisher MUST reply with a
    SUBSCRIBE_OK, allowing the subscriber to determine the start group/
@@ -1569,7 +1746,7 @@ Table of Contents
    code 'Invalid Range'.  A publisher MUST NOT send objects from outside
    the requested start and end.
 
-8.7.  SUBSCRIBE_OK
+8.8.  SUBSCRIBE_OK
 
    A publisher sends a SUBSCRIBE_OK control message for successful
    subscriptions.
@@ -1578,19 +1755,19 @@ Table of Contents
    {
      Type (i) = 0x4,
      Length (i),
-     Subscribe ID (i),
+     Request ID (i),
      Expires (i),
      Group Order (8),
      ContentExists (8),
-     [Largest Group ID (i),
-      Largest Object ID (i)],
+     [Largest (Location)],
      Number of Parameters (i),
      Subscribe Parameters (..) ...
    }
 
-                    Figure 8: MOQT SUBSCRIBE_OK Message
+                    Figure 9: MOQT SUBSCRIBE_OK Message
 
-   *  Subscribe ID: Subscription Identifier as defined in Section 8.6.
+   *  Request ID: The Request ID of the SUBSCRIBE this message is
+      replying to Section 8.7.
 
    *  Expires: Time in milliseconds after which the subscription is no
       longer valid.  A value of 0 indicates that the subscription does
@@ -1608,16 +1785,13 @@ Table of Contents
       and MUST terminate the session with a Protocol Violation
       (Section 3.4).
 
-   *  Largest Group ID: The largest Group ID available for this track.
-      This field is only present if ContentExists has a value of 1.
+   *  Largest: The location of the largest object available for this
+      track.  This field is only present if ContentExists has a value of
+      1.
 
-   *  Largest Object ID: The largest Object ID available within the
-      largest Group ID for this track.  This field is only present if
-      ContentExists has a value of 1.
+   *  Subscribe Parameters: The parameters are defined in Section 8.2.1.
 
-   *  Subscribe Parameters: The parameters are defined in Section 8.1.1.
-
-8.8.  SUBSCRIBE_ERROR
+8.9.  SUBSCRIBE_ERROR
 
    A publisher sends a SUBSCRIBE_ERROR control message in response to a
    failed SUBSCRIBE.
@@ -1626,21 +1800,25 @@ Table of Contents
    {
      Type (i) = 0x5,
      Length (i),
-     Subscribe ID (i),
+     Request ID (i),
      Error Code (i),
      Reason Phrase Length (i),
      Reason Phrase (..),
      Track Alias (i),
    }
 
-                   Figure 9: MOQT SUBSCRIBE_ERROR Message
+                  Figure 10: MOQT SUBSCRIBE_ERROR Message
 
-   *  Subscribe ID: Subscription Identifier as defined in Section 8.6.
+   *  Request ID: The Request ID of the SUBSCRIBE this message is
+      replying to Section 8.7.
 
    *  Error Code: Identifies an integer error code for subscription
       failure.
 
-   *  Reason Phrase: Provides the reason for subscription error.
+   *  Reason Phrase: Provides the reason for subscription error.  The
+      reason phrase has a maximum length of 1024 bytes.  If an endpoint
+      recieves a length exceeding the maximum, it MUST close the session
+      with a Protocol Violation.
 
    *  Track Alias: When Error Code is 'Retry Track Alias', the
       subscriber SHOULD re-issue the SUBSCRIBE with this Track Alias
@@ -1671,7 +1849,29 @@ Table of Contents
 
                                   Table 3
 
-8.9.  SUBSCRIBE_UPDATE
+   *  Internal Error - An implementation specific or generic error
+      occurred.
+
+   *  Unauthorized - The subscriber is not authorized to subscribe to
+      the given track.
+
+   *  Timeout - The subscription could not be completed before an
+      implementation specific timeout.  For example, a relay could not
+      establish an upstream subscription within the timeout.
+
+   *  Not Supported - The endpoint does not support the SUBSCRIBE
+      method.
+
+   *  Track Does Not Exist - The requested track is not available at the
+      publisher.
+
+   *  Invalid Range - The end of the SUBSCRIBE range is earlier than the
+      beginning, or the end of the range has already been published.
+
+   *  Retry Track Alias - The publisher requires the subscriber to use
+      the given Track Alias when subscribing.
+
+8.10.  SUBSCRIBE_UPDATE
 
    A subscriber issues a SUBSCRIBE_UPDATE to a publisher to request a
    change to an existing subscription.  Subscriptions can only become
@@ -1685,7 +1885,7 @@ Table of Contents
    publisher will not have already sent Objects after the new end
    Object.  A publisher SHOULD close the Session as a 'Protocol
    Violation' if the SUBSCRIBE_UPDATE violates either rule or if the
-   subscriber specifies a Subscribe ID that has not existed within the
+   subscriber specifies a Request ID that has not existed within the
    Session.
 
    There is no control message in response to a SUBSCRIBE_UPDATE,
@@ -1694,31 +1894,33 @@ Table of Contents
    from the existing subscription are delivered.
 
    Unlike a new subscription, SUBSCRIBE_UPDATE can not cause an Object
-   to be delivered multiple times.  Like SUBSCRIBE, EndGroup MUST
-   specify the same or a later object than StartGroup and StartObject.
+   to be delivered multiple times.  Like SUBSCRIBE, EndGroup MUST be
+   greater than or equal to the Group specified in Start.
+
+   If a parameter included in SUBSCRIBE is not present in
+   SUBSCRIBE_UPDATE, its value remains unchanged.  There is no mechanism
+   to remove a parameter from a subscription.
 
    The format of SUBSCRIBE_UPDATE is as follows:
 
    SUBSCRIBE_UPDATE Message {
      Type (i) = 0x2,
      Length (i),
-     Subscribe ID (i),
-     StartGroup (i),
-     StartObject (i),
+     Request ID (i),
+     Start (Location),
      EndGroup (i),
      Subscriber Priority (8),
+     Forward (8),
      Number of Parameters (i),
      Subscribe Parameters (..) ...
    }
 
-                  Figure 10: MOQT SUBSCRIBE_UPDATE Message
+                  Figure 11: MOQT SUBSCRIBE_UPDATE Message
 
-   *  Subscribe ID: The subscription identifier that is unique within
-      the session.  This MUST match an existing Subscribe ID.
+   *  Request ID: The Request ID of the SUBSCRIBE (Section 8.7) this
+      message is updating.  This MUST match an existing Request ID.
 
-   *  StartGroup: The start Group ID.
-
-   *  StartObject: The start Object ID.
+   *  Start: The starting location.
 
    *  EndGroup: The end Group ID, plus 1.  A value of 0 means the
       subscription is open-ended.
@@ -1727,9 +1929,14 @@ Table of Contents
       relative to other subscriptions in the same session.  Lower
       numbers get higher priority.  See Section 6.
 
-   *  Subscribe Parameters: The parameters are defined in Section 8.1.1.
+   *  Forward: If 1, Objects matching the subscription are forwarded to
+      the subscriber.  If 0, Objects are not forwarded to the
+      subscriber.  Any other value is a protocol error and MUST
+      terminate the session with a Protocol Violation (Section 3.4).
 
-8.10.  UNSUBSCRIBE
+   *  Subscribe Parameters: The parameters are defined in Section 8.2.1.
+
+8.11.  UNSUBSCRIBE
 
    A subscriber issues a UNSUBSCRIBE message to a publisher indicating
    it is no longer interested in receiving media for the specified track
@@ -1741,14 +1948,15 @@ Table of Contents
    UNSUBSCRIBE Message {
      Type (i) = 0xA,
      Length (i),
-     Subscribe ID (i)
+     Request ID (i)
    }
 
-                    Figure 11: MOQT UNSUBSCRIBE Message
+                    Figure 12: MOQT UNSUBSCRIBE Message
 
-   *  Subscribe ID: Subscription Identifier as defined in Section 8.6.
+   *  Request ID: The Request ID of the subscription that is being
+      terminated.  See Section 8.7.
 
-8.11.  SUBSCRIBE_DONE
+8.12.  SUBSCRIBE_DONE
 
    A publisher sends a SUBSCRIBE_DONE message to indicate it is done
    publishing Objects for that subscription.  The Status Code indicates
@@ -1793,16 +2001,17 @@ Table of Contents
    SUBSCRIBE_DONE Message {
      Type (i) = 0xB,
      Length (i),
-     Subscribe ID (i),
+     Request ID (i),
      Status Code (i),
      Stream Count (i),
      Reason Phrase Length (i),
      Reason Phrase (..),
    }
 
-                   Figure 12: MOQT SUBSCRIBE_DONE Message
+                   Figure 13: MOQT SUBSCRIBE_DONE Message
 
-   *  Subscribe ID: Subscription identifier as defined in Section 8.6.
+   *  Request ID: The Request ID of the subscription that is being
+      terminated.  See Section 8.7.
 
    *  Status Code: An integer status code indicating why the
       subscription ended.
@@ -1848,14 +2057,39 @@ Table of Contents
 
                                   Table 4
 
-8.12.  FETCH
+   *  Internal Error - An implementation specific or generic error
+      occurred.
+
+   *  Unauthorized - The subscriber is no longer authorized to subscribe
+      to the given track.
+
+   *  Track Ended - The track is no longer being published.
+
+   *  Subscription Ended - The publisher reached the end of an
+      associated Subscribe filter.
+
+   *  Going Away - The subscriber or publisher issued a GOAWAY message.
+
+   *  Expired - The publisher reached the timeout specified in
+      SUBSCRIBE_OK.
+
+   *  Too Far Behind - The publisher's queue of objects to be sent to
+      the given subscriber exceeds its implementation defined limit.
+
+8.13.  FETCH
 
    A subscriber issues a FETCH to a publisher to request a range of
    already published objects within a track.  The publisher responding
-   to a FETCH is responsible for retrieving all available Objects.  If
-   there are gaps between Objects, the publisher omits them from the
-   fetch response.  All omitted objects have status Object Does Not
-   Exist.
+   to a FETCH is responsible for delivering all available Objects in the
+   requested range in the requested order.  The Objects in the response
+   are delivered on a single unidirectional stream.  Any gaps in the
+   Group and Object IDs in the response stream indicate objects that do
+   not exist (eg: they implicitly have status Object Does Not Exist).
+   For Ascending Group Order this includes ranges between the first
+   requested object and the first object in the stream; between objects
+   in the stream; and between the last object in the stream and the
+   Largest Group/Object indicated in FETCH_OK, so long as the fetch
+   stream is terminated by a FIN.
 
    *Fetch Types*
 
@@ -1865,12 +2099,12 @@ Table of Contents
    of any Subscribe.
 
    Relative Joining Fetch (0x2) : A Fetch joined together with a
-   Subscribe by specifying the Subscribe ID of an active subscription
-   and a relative starting offset.  A publisher receiving a Joining
-   Fetch uses properties of the associated Subscribe to determine the
-   Track Namespace, Track, StartGroup, StartObject, EndGroup, and
-   EndObject such that it is contiguous with the associated Subscribe.
-   The Joining Fetch begins the Preceding Group Offset prior to the
+   Subscribe by specifying the Request ID of an active subscription and
+   a relative starting offset.  A publisher receiving a Joining Fetch
+   uses properties of the associated Subscribe to determine the Track
+   Namespace, Track, StartGroup, StartObject, EndGroup, and EndObject
+   such that it is contiguous with the associated Subscribe.  The
+   Joining Fetch begins the Preceding Group Offset prior to the
    associated subscription.
 
    Absolute Joining Fetch (0x3) : Identical to a Relative Joining Fetch
@@ -1887,25 +2121,32 @@ Table of Contents
    A Fetch Type other than 0x1, 0x2 or 0x3 MUST be treated as an error.
 
    A publisher responds to a FETCH request with either a FETCH_OK or a
-   FETCH_ERROR message.  If it responds with FETCH_OK, the publisher
-   creates a new unidirectional stream that is used to send the Objects.
-   A relay MAY start sending objects immediately in response to a FETCH,
-   even if sending the FETCH_OK takes longer because it requires going
-   upstream to populate the latest object.
+   FETCH_ERROR message.  The publisher creates a new unidirectional
+   stream that is used to send the Objects.  The FETCH_OK or FETCH_ERROR
+   can come at any time relative to object delivery.
+
+   A relay that has cached objects from the beginning of the range MAY
+   start sending objects immediately in response to a FETCH.  If it
+   encounters an object in the requested range that is not cached and
+   has unknown status, the relay MUST pause subsequent delivery until it
+   has confirmed the object's status upstream.  If the upstream FETCH
+   fails, the relay sends a FETCH_ERROR and can reset the unidirectional
+   stream.  It can choose to do so immediately or wait until the cached
+   objects have been delivered before resetting the stream.
 
    The Object Forwarding Preference does not apply to fetches.
 
    Fetch specifies an inclusive range of Objects starting at StartObject
    in StartGroup and ending at EndObject in EndGroup.  EndGroup and
-   EndObject MUST specify the same or a later object than StartGroup and
-   StartObject.
+   EndObject MUST specify the same or a larger Location than StartGroup
+   and StartObject.
 
    The format of FETCH is as follows:
 
    FETCH Message {
      Type (i) = 0x16,
      Length (i),
-     Subscribe ID (i),
+     Request ID (i),
      Subscriber Priority (8),
      Group Order (8),
      Fetch Type (i),
@@ -1916,19 +2157,17 @@ Table of Contents
       StartObject (i),
       EndGroup (i),
       EndObject (i),]
-     [ Subscribe ID (i),
+     [ Joining Request ID (i),
        Joining Start (i),]
      Number of Parameters (i),
      Parameters (..) ...
    }
 
-                       Figure 13: MOQT FETCH Message
+                       Figure 14: MOQT FETCH Message
 
    Fields common to all Fetch Types:
 
-   *  Subscribe ID: The Subscribe ID identifies a given fetch request.
-      Subscribe ID is a variable length integer that MUST be unique and
-      monotonically increasing within a session.
+   *  Request ID: See Section 8.1.
 
    *  Subscriber Priority: Specifies the priority of a fetch request
       relative to other subscriptions or fetches in the same session.
@@ -1943,7 +2182,7 @@ Table of Contents
    *  Fetch Type: Identifies the type of Fetch, whether Standalone,
       Relative Joining or Absolute Joining.
 
-   *  Parameters: The parameters are defined in Section 8.1.1.
+   *  Parameters: The parameters are defined in Section 8.2.1.
 
    Fields present only for Standalone Fetch (0x1):
 
@@ -1965,10 +2204,10 @@ Table of Contents
    Fields present only for Relative Fetch (0x2) and Absolute Fetch
    (0x3):
 
-   *  Joining Subscribe ID: The Subscribe ID of the existing
-      subscription to be joined.  If a publisher receives a Joining
-      Fetch with a Subscribe ID that does not correspond to an existing
-      Subscribe, it MUST respond with a Fetch Error.
+   *  Joining Request ID: The Request ID of the existing subscription to
+      be joined.  If a publisher receives a Joining Fetch with a Joining
+      Request ID that does not correspond to an existing Subscribe, it
+      MUST respond with a Fetch Error Invalid Joining Request ID.
 
    *  Joining Start : for a Relative Joining Fetch (0x2), this value
       represents the group offset for the Fetch prior and relative to
@@ -1990,7 +2229,7 @@ Table of Contents
    group, the publisher MUST return FETCH_ERROR with error code 'No
    Objects'.
 
-8.12.1.  Calculating the Range of a Relative Joining Fetch
+8.13.1.  Calculating the Range of a Relative Joining Fetch
 
    A publisher that receives a Fetch of type Type 0x2 treats it as a
    Fetch with a range dynamically determined by the Preceding Group
@@ -2001,8 +2240,8 @@ Table of Contents
    Relative Joining Fetch so the Objects retrieved by the FETCH and
    SUBSCRIBE are contiguous and non-overlapping.  If no Objects have
    been published for the track, and the SUBSCRIBE_OK has a
-   ContentExists value of 0, the publisher responds with a FETCH_ERROR
-   with error code 'No Objects'.
+   ContentExists value of 0, the publisher MUST respond with a
+   FETCH_ERROR with error code 'No Objects'.
 
    The publisher receiving a Relative Joining Fetch computes the range
    as follows:
@@ -2019,51 +2258,54 @@ Table of Contents
    retrieve Objects that have not yet been published, so 1 is subtracted
    from the Fetch EndGroup if Fetch EndObject is 0.
 
-8.12.2.  Calculating the Range of an Absolute Joining Fetch
+8.13.2.  Calculating the Range of an Absolute Joining Fetch
 
    Identical to the Relative Joining fetch except that Fetch StartGroup
    is the Joining Start value.
 
-8.13.  FETCH_OK
+8.14.  FETCH_OK
 
    A publisher sends a FETCH_OK control message in response to
    successful fetches.  A publisher MAY send Objects in response to a
    FETCH before the FETCH_OK message is sent, but the FETCH_OK MUST NOT
-   be sent until the latest group and object are known.
+   be sent until the end group and object are known.
 
    FETCH_OK
    {
      Type (i) = 0x18,
      Length (i),
-     Subscribe ID (i),
+     Request ID (i),
      Group Order (8),
      End Of Track (8),
-     Largest Group ID (i),
-     Largest Object ID (i),
+     End (Location),
      Number of Parameters (i),
      Subscribe Parameters (..) ...
    }
 
-                      Figure 14: MOQT FETCH_OK Message
+                      Figure 15: MOQT FETCH_OK Message
 
-   *  Subscribe ID: Fetch Identifier as defined in Section 8.12.
+   *  Request ID: The Request ID of the FETCH this message is replying
+      to Section 8.7.
 
    *  Group Order: Indicates the fetch will be delivered in Ascending
       (0x1) or Descending (0x2) order by group.  See Section 6.  Values
       of 0x0 and those larger than 0x2 are a protocol error.
 
    *  End Of Track: 1 if all objects have been published on this track,
-      so the Largest Group ID and Object Id indicate the last Object in
-      the track, 0 if not.
+      so the End Group ID and Object Id indicate the last Object in the
+      track, 0 if not.
 
-   *  Largest Group ID: The largest Group ID available for this track.
+   *  End: The largest object covered by the FETCH response.  This is
+      the minimum of the {EndGroup,EndObject} specified in FETCH and the
+      largest known {group,object}.  If the relay is currently
+      subscribed to the track, the largest known {group,object} at the
+      relay is used.  For tracks with a requested end larger than what
+      is cached without an active subscription, the relay makes an
+      upstream request in order to satisfy the FETCH.
 
-   *  Largest Object ID: The largest Object ID available within the
-      largest Group ID for this track.
+   *  Subscribe Parameters: The parameters are defined in Section 8.2.1.
 
-   *  Subscribe Parameters: The parameters are defined in Section 8.1.1.
-
-8.14.  FETCH_ERROR
+8.15.  FETCH_ERROR
 
    A publisher sends a FETCH_ERROR control message in response to a
    failed FETCH.
@@ -2072,48 +2314,79 @@ Table of Contents
    {
      Type (i) = 0x19,
      Length (i),
-     Subscribe ID (i),
+     Request ID (i),
      Error Code (i),
      Reason Phrase Length (i),
      Reason Phrase (..),
    }
 
-                    Figure 15: MOQT FETCH_ERROR Message
+                    Figure 16: MOQT FETCH_ERROR Message
 
-   *  Subscribe ID: Subscription Identifier as defined in Section 8.6.
+   *  Request ID: The Request ID of the FETCH this message is replying
+      to Section 8.7.
 
    *  Error Code: Identifies an integer error code for fetch failure.
 
-   *  Reason Phrase: Provides the reason for fetch error.
+   *  Reason Phrase: Provides the reason for fetch error.  The reason
+      phrase has a maximum length of 1024 bytes.  If an endpoint
+      recieves a length exceeding the maximum, it MUST close the session
+      with a Protocol Violation.
 
    The application SHOULD use a relevant error code in FETCH_ERROR, as
    defined below:
 
-                      +======+======================+
-                      | Code | Reason               |
-                      +======+======================+
-                      |  0x0 | Internal Error       |
-                      +------+----------------------+
-                      |  0x1 | Unauthorized         |
-                      +------+----------------------+
-                      |  0x2 | Timeout              |
-                      +------+----------------------+
-                      |  0x3 | Not Supported        |
-                      +------+----------------------+
-                      |  0x4 | Track Does Not Exist |
-                      +------+----------------------+
-                      |  0x5 | Invalid Range        |
-                      +------+----------------------+
-                      |  0x6 | No Objects           |
-                      +------+----------------------+
+                   +======+============================+
+                   | Code | Reason                     |
+                   +======+============================+
+                   |  0x0 | Internal Error             |
+                   +------+----------------------------+
+                   |  0x1 | Unauthorized               |
+                   +------+----------------------------+
+                   |  0x2 | Timeout                    |
+                   +------+----------------------------+
+                   |  0x3 | Not Supported              |
+                   +------+----------------------------+
+                   |  0x4 | Track Does Not Exist       |
+                   +------+----------------------------+
+                   |  0x5 | Invalid Range              |
+                   +------+----------------------------+
+                   |  0x6 | No Objects                 |
+                   +------+----------------------------+
+                   |  0x7 | Invalid Joining Request ID |
+                   +------+----------------------------+
 
                                   Table 5
 
-8.15.  FETCH_CANCEL
+   *  Internal Error - An implementation specific or generic error
+      occurred.
+
+   *  Unauthorized - The subscriber is not authorized to fetch from the
+      given track.
+
+   *  Timeout - The fetch could not be completed before an
+      implementation specific timeout.  For example, a relay could not
+      FETCH missing objects within the timeout.
+
+   *  Not supported - The endpoint does not support the FETCH method.
+
+   *  Track Does Not Exist - The requested track is not available at the
+      publisher.
+
+   *  Invalid Range - The end of the requested range is earlier than the
+      beginning.
+
+   *  No Objects - The beginning of the requested range is after the
+      latest group and object for the track, or the track has not
+      published any objects.
+
+   *  Invalid Subscribe ID - The joining Fetch referenced a Subscribe ID
+      that did not belong to an active Subscription.
+
+8.16.  FETCH_CANCEL
 
    A subscriber issues a FETCH_CANCEL message to a publisher indicating
    it is no longer interested in receiving Objects for the fetch
-   specified by 'Subscribe ID'.  The publisher SHOULD close the
+   specified by 'Request ID'.  The publisher SHOULD close the
    unidirectional stream as soon as possible.
 
    The format of FETCH_CANCEL is as follows:
@@ -2121,14 +2394,15 @@ Table of Contents
    FETCH_CANCEL Message {
      Type (i) = 0x17,
      Length (i),
-     Subscribe ID (i)
+     Request ID (i)
    }
 
-                    Figure 16: MOQT FETCH_CANCEL Message
+                    Figure 17: MOQT FETCH_CANCEL Message
 
-   *  Subscribe ID: Subscription Identifier as defined in Section 8.12.
+   *  Request ID: The Request ID of the FETCH (Section 8.13) this
+      message is cancelling.
 
-8.16.  TRACK_STATUS_REQUEST
+8.17.  TRACK_STATUS_REQUEST
 
    A potential subscriber sends a 'TRACK_STATUS_REQUEST' message on the
    control stream to obtain information about the current status of a
@@ -2140,14 +2414,27 @@ Table of Contents
    TRACK_STATUS_REQUEST Message {
      Type (i) = 0xD,
      Length (i),
+     Request ID (i),
      Track Namespace (tuple),
      Track Name Length (i),
      Track Name (..),
+     Number of Parameters (i),
+     Parameters (..) ...,
    }
 
-                Figure 17: MOQT TRACK_STATUS_REQUEST Message
+                Figure 18: MOQT TRACK_STATUS_REQUEST Message
 
-8.17.  TRACK_STATUS
+   *  Request ID: See Section 8.1.
+
+   *  Track Namespace: Identifies the namespace of the track as defined
+      in (Section 2.4.1).
+
+   *  Track Name: Identifies the track name as defined in
+      (Section 2.4.1).
+
+   *  Parameters: The parameters are defined in Section 8.2.1.
+
+8.18.  TRACK_STATUS
 
    A publisher sends a 'TRACK_STATUS' message on the control stream in
    response to a TRACK_STATUS_REQUEST message.
@@ -2155,19 +2442,21 @@ Table of Contents
    TRACK_STATUS Message {
      Type (i) = 0xE,
      Length (i),
-     Track Namespace (tuple),
-     Track Name Length(i),
-     Track Name (..),
+     Request ID (i),
      Status Code (i),
-     Largest Group ID (i),
-     Largest Object ID (i),
+     Largest (Location),
+     Number of Parameters (i),
+     Parameters (..) ...,
    }
 
-                    Figure 18: MOQT TRACK_STATUS Message
+                    Figure 19: MOQT TRACK_STATUS Message
 
-   The 'Status Code' field provides additional information about the
-   status of the track.  It MUST hold one of the following values.  Any
-   other value is a malformed message.
+   *  Request ID: The Request ID of the TRACK_STATUS_REQUEST this
+      message is replying to Section 8.18.
+
+   *  Status Code: Provides additional information about the status of
+      the track.  It MUST hold one of the following values.  Any other
+      value is a malformed message.
 
    0x00: The track is in progress, and subsequent fields contain the
    highest group and object ID for that track.
@@ -2187,41 +2476,41 @@ Table of Contents
 
    Any other value in the Status Code field is a malformed message.
 
-   The Largest Group ID and Largest Object ID fields represent the
-   highest Group and Object IDs observed by the Publisher for an active
-   subscription.  If the publisher is a relay without an active
-   subscription, it SHOULD send a TRACK_STATUS_REQUEST upstream or MAY
-   subscribe to the track, to obtain the same information.  If neither
-   is possible, it should return the best available information with
-   status code 0x04.
+   *  Largest: represents the largest Object location observed by the
+      Publisher for an active subscription.  If the publisher is a relay
+      without an active subscription, it SHOULD send a
+      TRACK_STATUS_REQUEST upstream or MAY subscribe to the track, to
+      obtain the same information.  If neither is possible, it should
+      return the best available information with status code 0x04.
 
-   The receiver of multiple TRACK_STATUS messages for a track uses the
-   information from the latest arriving message, as they are delivered
-   in order on a single stream.
+   The Parameters are defined in Section 8.2.1.
 
-8.18.  ANNOUNCE
+8.19.  ANNOUNCE
 
-   The publisher sends the ANNOUNCE control message to advertise where
-   the receiver can route SUBSCRIBEs for tracks within the announced
-   Track Namespace.  The receiver verifies the publisher is authorized
-   to publish tracks under this namespace.
+   The publisher sends the ANNOUNCE control message to advertise that it
+   has tracks available within the announced Track Namespace.  The
+   receiver verifies the publisher is authorized to publish tracks under
+   this namespace.
 
    ANNOUNCE Message {
      Type (i) = 0x6,
      Length (i),
+     Request ID (i),
      Track Namespace (tuple),
      Number of Parameters (i),
      Parameters (..) ...,
    }
 
-                      Figure 19: MOQT ANNOUNCE Message
+                      Figure 20: MOQT ANNOUNCE Message
+
+   *  Request ID: See Section 8.1.
 
    *  Track Namespace: Identifies a track's namespace as defined in
       (Section 2.4.1)
 
-   *  Parameters: The parameters are defined in Section 8.1.1.
+   *  Parameters: The parameters are defined in Section 8.2.1.
 
-8.19.  ANNOUNCE_OK
+8.20.  ANNOUNCE_OK
 
    The subscriber sends an ANNOUNCE_OK control message to acknowledge
    the successful authorization and acceptance of an ANNOUNCE message.
@@ -2230,15 +2519,15 @@ Table of Contents
    {
      Type (i) = 0x7,
      Length (i),
-     Track Namespace (tuple),
+     Request ID (i)
    }
 
-                    Figure 20: MOQT ANNOUNCE_OK Message
+                    Figure 21: MOQT ANNOUNCE_OK Message
 
-   *  Track Namespace: Identifies the track namespace in the ANNOUNCE
-      message for which this response is provided.
+   *  Request ID: The Request ID of the ANNOUNCE this message is
+      replying to Section 8.19.
 
-8.20.  ANNOUNCE_ERROR
+8.21.  ANNOUNCE_ERROR
 
    The subscriber sends an ANNOUNCE_ERROR control message for tracks
    that failed authorization.
@@ -2247,21 +2536,24 @@ Table of Contents
    {
      Type (i) = 0x8,
      Length (i),
-     Track Namespace (tuple),
+     Request ID (i),
      Error Code (i),
      Reason Phrase Length (i),
      Reason Phrase (..),
    }
 
-                   Figure 21: MOQT ANNOUNCE_ERROR Message
+                   Figure 22: MOQT ANNOUNCE_ERROR Message
 
-   *  Track Namespace: Identifies the track namespace in the ANNOUNCE
-      message for which this response is provided.
+   *  Request ID: The Request ID of the ANNOUNCE this message is
+      replying to Section 8.19.
 
    *  Error Code: Identifies an integer error code for announcement
       failure.
 
-   *  Reason Phrase: Provides the reason for announcement error.
+   *  Reason Phrase: Provides the reason for announcement error.  The
+      reason phrase has a maximum length of 1024 bytes.  If an endpoint
+      recieves a length exceeding the maximum, it MUST close the session
+      with a Protocol Violation.
 
    The application SHOULD use a relevant error code in ANNOUNCE_ERROR,
    as defined below:
@@ -2282,7 +2574,20 @@ Table of Contents
 
                                   Table 6
 
-8.21.  UNANNOUNCE
+   *  Internal Error - An implementation specific or generic error
+      occurred.
+
+   *  Unauthorized - The subscriber is not authorized to announce the
+      given namespace.
+
+   *  Timeout - The announce could not be completed before an
+      implementation specific timeout.
+
+   *  Not Supported - The endpoint does not support the ANNOUNCE method.
+
+   *  Uninterested - The namespace is not of interest to the endpoint.
+
+8.22.  UNANNOUNCE
 
    The publisher sends the UNANNOUNCE control message to indicate its
    intent to stop serving new subscriptions for tracks within the
@@ -2294,12 +2599,12 @@ Table of Contents
      Track Namespace (tuple),
    }
 
-                     Figure 22: MOQT UNANNOUNCE Message
+                     Figure 23: MOQT UNANNOUNCE Message
 
    *  Track Namespace: Identifies a track's namespace as defined in
       (Section 2.4.1).
 
-8.22.  ANNOUNCE_CANCEL
+8.23.  ANNOUNCE_CANCEL
 
    The subscriber sends an ANNOUNCE_CANCEL control message to indicate
    it will stop sending new subscriptions for tracks within the provided
@@ -2314,18 +2619,21 @@ Table of Contents
      Reason Phrase Length (..),
    }
 
-                  Figure 23: MOQT ANNOUNCE_CANCEL Message
+                  Figure 24: MOQT ANNOUNCE_CANCEL Message
 
    *  Track Namespace: Identifies a track's namespace as defined in
       (Section 2.4.1).
 
    *  Error Code: Identifies an integer error code for canceling the
       announcement.  ANNOUNCE_CANCEL uses the same error codes as
-      ANNOUNCE_ERROR (Section 8.20).
+      ANNOUNCE_ERROR (Section 8.21).
 
    *  Reason Phrase: Provides the reason for announcement cancelation.
+      The reason phrase has a maximum length of 1024 bytes.  If an
+      endpoint recieves a length exceeding the maximum, it MUST close
+      the session with a Protocol Violation.
 
-8.23.  SUBSCRIBE_ANNOUNCES
+8.24.  SUBSCRIBE_ANNOUNCES
 
    The subscriber sends the SUBSCRIBE_ANNOUNCES control message to a
    publisher to request the current set of matching announcements, as
@@ -2334,12 +2642,15 @@ Table of Contents
    SUBSCRIBE_ANNOUNCES Message {
      Type (i) = 0x11,
      Length (i),
+     Request ID (i),
      Track Namespace Prefix (tuple),
      Number of Parameters (i),
      Parameters (..) ...,
    }
 
-                Figure 24: MOQT SUBSCRIBE_ANNOUNCES Message
+                Figure 25: MOQT SUBSCRIBE_ANNOUNCES Message
+
+   *  Request ID: See Section 8.1.
 
    *  Track Namespace Prefix: An ordered N-Tuple of byte fields which
       are matched against track namespaces known to the publisher.  For
@@ -2351,7 +2662,7 @@ Table of Contents
       Namespace Prefix tuple with an N of 0 or more than 32, it MUST
       close the session with a Protocol Violation.
 
-   *  Parameters: The parameters are defined in Section 8.1.1.
+   *  Parameters: The parameters are defined in Section 8.2.1.
 
    The publisher will respond with SUBSCRIBE_ANNOUNCES_OK or
    SUBSCRIBE_ANNOUNCES_ERROR.  If the SUBSCRIBE_ANNOUNCES is successful,
@@ -2364,8 +2675,7 @@ Table of Contents
    single session.  Within a session, if a publisher receives a
    SUBSCRIBE_ANNOUNCES with a Track Namespace Prefix that is a prefix of
    an earlier SUBSCRIBE_ANNOUNCES or vice versa, it MUST respond with
-   SUBSCRIBE_ANNOUNCES_ERROR, with error code
-   SUBSCRIBE_ANNOUNCES_OVERLAP.
+   SUBSCRIBE_ANNOUNCES_ERROR, with error code Namespace Prefix Overlap.
 
    The publisher MUST ensure the subscriber is authorized to perform
    this namespace subscription.
@@ -2375,7 +2685,7 @@ Table of Contents
    applications or relays where subscribers are only interested in or
    authorized to access a subset of available announcements.
 
-8.24.  SUBSCRIBE_ANNOUNCES_OK
+8.25.  SUBSCRIBE_ANNOUNCES_OK
 
    A publisher sends a SUBSCRIBE_ANNOUNCES_OK control message for
    successful namespace subscriptions.
@@ -2384,14 +2694,15 @@ Table of Contents
    {
      Type (i) = 0x12,
      Length (i),
-     Track Namespace Prefix (tuple),
+     Request ID (i),
    }
 
-               Figure 25: MOQT SUBSCRIBE_ANNOUNCES_OK Message
+               Figure 26: MOQT SUBSCRIBE_ANNOUNCES_OK Message
 
-   *  Track Namespace Prefix: As defined in Section 8.23.
+   *  Request ID: The Request ID of the SUBSCRIBE_ANNOUNCES this message
+      is replying to Section 8.24.
 
-8.25.  SUBSCRIBE_ANNOUNCES_ERROR
+8.26.  SUBSCRIBE_ANNOUNCES_ERROR
 
    A publisher sends a SUBSCRIBE_ANNOUNCES_ERROR control message in
    response to a failed SUBSCRIBE_ANNOUNCES.
@@ -2400,21 +2711,24 @@ Table of Contents
    {
      Type (i) = 0x13,
      Length (i),
-     Track Namespace Prefix (tuple),
+     Request ID (i),
      Error Code (i),
      Reason Phrase Length (i),
      Reason Phrase (..),
    }
 
-             Figure 26: MOQT SUBSCRIBE_ANNOUNCES_ERROR Message
+             Figure 27: MOQT SUBSCRIBE_ANNOUNCES_ERROR Message
 
-   *  Track Namespace Prefix: As defined in Section 8.23.
+   *  Request ID: The Request ID of the SUBSCRIBE_ANNOUNCES this message
+      is replying to Section 8.24.
 
    *  Error Code: Identifies an integer error code for the namespace
       subscription failure.
 
    *  Reason Phrase: Provides the reason for the namespace subscription
-      error.
+      error.  The reason phrase has a maximum length of 1024 bytes.  If
+      an endpoint recieves a length exceeding the maximum, it MUST close
+      the session with a Protocol Violation.
 
    The application SHOULD use a relevant error code in
    SUBSCRIBE_ANNOUNCES_ERROR, as defined below:
@@ -2432,10 +2746,30 @@ Table of Contents
                     +------+--------------------------+
                     |  0x4 | Namespace Prefix Unknown |
                     +------+--------------------------+
+                    |  0x5 | Namespace Prefix Overlap |
+                    +------+--------------------------+
 
                                   Table 7
 
-8.26.  UNSUBSCRIBE_ANNOUNCES
+   *  Internal Error - An implementation specific or generic error
+      occurred.
+
+   *  Unauthorized - The subscriber is not authorized to subscribe to
+      the given namespace prefix.
+
+   *  Timeout - The operation could not be completed before an
+      implementation specific timeout.
+
+   *  Not Supported - The endpoint does not support the
+      SUBSCRIBE_ANNOUNCES method.
+
+   *  Namespace Prefix Unknown - The namespace prefix is not available
+      for subscription.
+
+   *  Namespace Prefix Overlap - The namespace prefix overlaps with
+      another SUBSCRIBE_ANNOUNCES in the same session.
+
+8.27.  UNSUBSCRIBE_ANNOUNCES
 
    A subscriber issues a UNSUBSCRIBE_ANNOUNCES message to a publisher
    indicating it is no longer interested in ANNOUNCE and UNANNOUNCE
@@ -2449,37 +2783,38 @@ Table of Contents
      Track Namespace Prefix (tuple)
    }
 
-                    Figure 27: MOQT UNSUBSCRIBE Message
+                    Figure 28: MOQT UNSUBSCRIBE Message
 
-   *  Track Namespace Prefix: As defined in Section 8.23.
+   *  Track Namespace Prefix: As defined in Section 8.24.
 
-9.  Data Streams
+9.  Data Streams and Datagrams
 
-   A publisher sends Objects matching a subscription on Data Streams.
+   A publisher sends Objects matching a subscription on Data Streams or
+   Datagrams.
 
    All unidirectional MOQT streams start with a variable-length integer
    indicating the type of the stream in question.
 
-                 +=====+=================================+
-                 |  ID | Type                            |
-                 +=====+=================================+
-                 | 0x4 | SUBGROUP_HEADER (Section 9.4.2) |
-                 +-----+---------------------------------+
-                 | 0x5 | FETCH_HEADER (Section 9.4.4)    |
-                 +-----+---------------------------------+
+              +===========+=================================+
+              |        ID | Type                            |
+              +===========+=================================+
+              | 0x08-0x09 | SUBGROUP_HEADER (Section 9.4.2) |
+              +-----------+---------------------------------+
+              |      0x05 | FETCH_HEADER (Section 9.4.4)    |
+              +-----------+---------------------------------+
 
                                   Table 8
 
    All MOQT datagrams start with a variable-length integer indicating
    the type of the datagram.
 
-              +=====+======================================+
-              |  ID | Type                                 |
-              +=====+======================================+
-              | 0x1 | OBJECT_DATAGRAM (Section 9.2)        |
-              +-----+--------------------------------------+
-              | 0x2 | OBJECT_DATAGRAM_STATUS (Section 9.2) |
-              +-----+--------------------------------------+
+           +===========+======================================+
+           |        ID | Type                                 |
+           +===========+======================================+
+           | 0x00-0x01 | OBJECT_DATAGRAM (Section 9.2)        |
+           +-----------+--------------------------------------+
+           | 0x02-0x03 | OBJECT_DATAGRAM_STATUS (Section 9.2) |
+           +-----------+--------------------------------------+
 
                                  Table 9
 
@@ -2499,13 +2834,13 @@ Table of Contents
    preferences for a track, it SHOULD close the session with an error of
    'Protocol Violation'.
 
-9.1.  Object Headers
+9.1.  Objects
 
-   An OBJECT message contains a range of contiguous bytes from the
-   specified track, as well as associated metadata required to deliver,
-   cache, and forward it.  Objects are sent by publishers.
+   An Object contains a range of contiguous bytes from the specified
+   track, as well as associated metadata required to deliver, cache, and
+   forward it.  Objects are sent by publishers.
 
-9.1.1.  Canonical Object Fields
+9.1.1.  Canonical Object Properties
 
    A canonical MoQ Object has the following information:
 
@@ -2526,7 +2861,7 @@ Table of Contents
 
    *  Subgroup ID: The object is a member of the indicated subgroup ID
       (Section 2.2) within the group.  This field is omitted if the
-      Object Forwarding Preference is Track or Datagram.
+      Object Forwarding Preference is Datagram.
 
    *  Object Status: As enumeration used to indicate missing objects or
       mark the end of a group or track.  See Section 9.1.1.1 below.
@@ -2583,6 +2918,11 @@ Table of Contents
 
 9.1.1.2.  Object Extension Header
 
+   Any Object may have extension headers except those with Object Status
+   'Object Does Not Exist'.  If an endpoint receives a non-existent
+   Object containing extension headers it MUST close the session with a
+   Protocol Violation.
+
    Object Extension Headers are visible to relays and allow the
    transmission of future metadata relevant to MOQT Object distribution.
    Any Object metadata never accessed by the transport or relays SHOULD
@@ -2590,7 +2930,7 @@ Table of Contents
    header.
 
    Extension Headers are defined in external specifications and
-   registered in an IANA table Section 11.  These specifications define
+   registered in an IANA table Section 12.  These specifications define
    the type and value of the header, along with any rules concerning
    processing, modification, caching and forwarding.  A relay which is
    coded to implement these rules is said to "support" the extension.
@@ -2602,24 +2942,10 @@ Table of Contents
    specified in the definition of the extension, Extension Headers MAY
    be modified, added, removed, and/or cached by relays.
 
-   Object Extension Headers are serialized as defined below:
+   Object Extension Headers are serialized as Key-Value-Pairs Figure 2.
 
-   Extension Header {
-     Header Type (i),
-     [Header Value (i)]
-     [Header Length (i),
-      Header Value (..)]
-   }
-
-                 Figure 28: Object Extension Header Format
-
-   *  Header type: an unsigned integer, encoded as a varint, identifying
-      the type of the extension and also the subsequent serialization.
-
-   *  Header values: even types are followed by a single varint encoded
-      value.  Odd types are followed by a varint encoded length and then
-      the header value.  Header types are registered in the IANA table
-      'MOQ Extension Headers'.  See Section 11.
+   Header types are registered in the IANA table 'MOQ Extension
+   Headers'.  See Section 12.
 
 9.2.  Object Datagram
 
@@ -2633,16 +2959,23 @@ Table of Contents
    the session, the Object will be dropped.
 
    OBJECT_DATAGRAM {
+     Type (i),
      Track Alias (i),
      Group ID (i),
      Object ID (i),
      Publisher Priority (8),
-     Extension Headers Length (i),
-     [Extension headers (...)],
+     [Extension Headers Length (i),
+     Extension headers (...)],
      Object Payload (..),
    }
 
                       Figure 29: MOQT OBJECT_DATAGRAM
+
+   The Type field takes the form 0b0000000X (or the set of values from
+   0x00 to 0x01).  The LSB of the type determines if the Extensions
+   Headers Length and Extension headers are present.  If an endpoint
+   receives a datagram with Type 0x01 and Extension Headers Length is 0,
+   it MUST close the session with Protocol Violation.
 
    There is no explicit length field.  The entirety of the transport
    datagram following Publisher Priority contains the Object Payload.
@@ -2653,16 +2986,23 @@ Table of Contents
    conveys an Object Status and has no payload.
 
    OBJECT_DATAGRAM_STATUS {
+     Type (i),
      Track Alias (i),
      Group ID (i),
      Object ID (i),
      Publisher Priority (8),
-     Extension Headers Length (i),
-     [Extension headers (...)],
+     [Extension Headers Length (i),
+     Extension headers (...)],
      Object Status (i),
    }
 
                    Figure 30: MOQT OBJECT_DATAGRAM_STATUS
+
+   The Type field takes the form 0b0000001X (or the set of values from
+   0x02 to 0x03).  The LSB of the type determines if the Extensions
+   Headers Length and Extension headers are present.  If an endpoint
+   receives a datagram with Type 0x03 and Extension Headers Length is 0,
+   it MUST close the session with Protocol Violation.
 
 9.4.  Streams
 
@@ -2688,6 +3028,7 @@ Table of Contents
    Track Alias and the subgroup indicated by 'Group ID' and Subgroup ID.
 
    SUBGROUP_HEADER {
+     Type (i),
      Track Alias (i),
      Group ID (i),
      Subgroup ID (i),
@@ -2699,6 +3040,13 @@ Table of Contents
    All Objects received on a stream opened with SUBGROUP_HEADER have an
    Object Forwarding Preference = Subgroup.
 
+   The Type field takes the form 0b0000100X (or the set of values from
+   0x08 to 0x09).  The LSB determines if the Extensions Headers Length
+   is present in Objects in this subgroup.  When it is 0, Extensions
+   Headers Length is not present and all Objects have no extensions.
+   When it is 1, Extension Headers Length is present in all Objects in
+   this subgroup.
+
    To send an Object with Object Forwarding Preference = Subgroup, find
    the open stream that is associated with the subscription, Group ID
    and Subgroup ID, or open a new one and send the SUBGROUP_HEADER.
@@ -2709,8 +3057,8 @@ Table of Contents
 
    {
      Object ID (i),
-     Extension Headers Length (i),
-     [Extension headers (...)],
+     [Extension Headers Length (i),
+     Extension headers (...)],
      Object Payload Length (i),
      [Object Status (i)],
      Object Payload (..),
@@ -2744,7 +3092,7 @@ Table of Contents
    current Group.  When RESET_STREAM_AT is used, the reliable_size
    SHOULD include the stream header so the receiver can identify the
    corresponding subscription and accurately account for reset data
-   streams when handling SUBSCRIBE_DONE (see Section 8.11).  Publishers
+   streams when handling SUBSCRIBE_DONE (see Section 8.12).  Publishers
    that reset data streams without using RESET_STREAM_AT with an
    appropriate reliable_size can cause subscribers to hold on to
    subscription state until a timeout expires.
@@ -2802,14 +3150,43 @@ Table of Contents
    impact on other Subgroups in the Group or the subscription, although
    applications might cancel all Subgroups in a Group at once.
 
+   The application SHOULD use a relevant error code in RESET_STREAM or
+   RESET_STREAM_AT, as defined below:
+
+                        +======+==================+
+                        | Code | Reason           |
+                        +======+==================+
+                        |  0x0 | Internal Error   |
+                        +------+------------------+
+                        |  0x1 | Cancelled        |
+                        +------+------------------+
+                        |  0x2 | Delivery Timeout |
+                        +------+------------------+
+                        |  0x3 | Session Closed   |
+                        +------+------------------+
+
+                                  Table 10
+
+   Internal Error:  An implementation specific error
+
+   Cancelled:  The subscriber requested cancellation via UNSUBSCRIBE,
+      FETCH_CANCEL or STOP_SENDING, or the publisher ended the
+      subscription, in which case SUBSCRIBE_DONE (Section 8.12) will
+      have a more detailed status code.
+
+   Delivery Timeout:  The DELIVERY TIMEOUT Section 8.2.1.1 was exceeded
+      for this stream
+
+   Session Closed:  The publisher session is being closed
+
 9.4.4.  Fetch Header
 
    When a stream begins with FETCH_HEADER, all objects on the stream
    belong to the track requested in the Fetch message identified by
-   Subscribe ID.
+   Request ID.
 
    FETCH_HEADER {
-     Subscribe ID (i),
+     Request ID (i),
    }
 
                         Figure 33: MOQT FETCH_HEADER
@@ -2844,6 +3221,7 @@ Table of Contents
    Stream = 2
 
    SUBGROUP_HEADER {
+     Type = 0
      Track Alias = 2
      Group ID = 0
      Subgroup ID = 0
@@ -2851,13 +3229,11 @@ Table of Contents
    }
    {
      Object ID = 0
-     Extension Headers Length = 0
      Object Payload Length = 4
      Payload = "abcd"
    }
    {
      Object ID = 1
-     Extension Headers Length = 0
      Object Payload Length = 4
      Payload = "efgh"
    }
@@ -2867,8 +3243,8 @@ Table of Contents
 
    Stream = 2
 
-   STREAM_HEADER_GROUP {
-     Subscribe ID = 2
+   SUBGROUP_HEADER {
+     Type = 1
      Track Alias = 2
      Group ID = 0
      Publisher Priority = 0
@@ -2893,11 +3269,75 @@ Table of Contents
      Payload = "efgh"
    }
 
-10.  Security Considerations
+10.  Extension Headers
+
+   The following Object Extension Headers are defined in MoQT.
+
+10.1.  Prior Group ID Gap
+
+   Prior Group ID Gap (Extension Header Type 0x3C) is a variable length
+   integer containing the number of Groups prior to the current Group
+   that do not and will never exist.  For example, if the Original
+   Publisher published an Object in Group 7 and knows it will never
+   publish any Objects in Group 8 or Group 9, it can include Prior Group
+   ID Gap = 2 in any number of Objects in Group 10, as it sees fit.  A
+   Track is considered malformed if any of the following conditions are
+   detected:
+
+   *  An Object contains more than one instance of Prior Group ID Gap
+
+   *  A Group contains more than one Object with different values for
+      Prior Group ID Gap
+
+   *  An Object has a Prior Group ID Gap larger than the Group ID
+
+   *  An endpoint receives an Object with a Prior Group ID Gap covering
+      an Object it previously received
+
+   *  An endpoint receives an Object with a Group ID within a previously
+      communicated gap
+
+   This extension is optional, as publishers might not know the prior
+   gap gize, or there may not be a gap.  If Prior Group ID Gap is not
+   present, the receiver cannot infer any information about the
+   existence of prior groups (see Section 2.3.1).
+
+   This extension can be added by the Original Publisher, but MUST NOT
+   be added by relays.  This extension MUST NOT be modified or removed.
+
+10.2.  Prior Object ID Gap
+
+   Prior Object ID Gap (Extension Header Type 0x3E) is a variable length
+   integer containing the number of Objects prior to the current Object
+   that do not and will never exist.  For example, if the Original
+   Publisher published Object 10 in Group 3 and knows it will never
+   publish Objects 8 or 9 in this Group, it can include Prior Object ID
+   Gap = 2.  A Track is considered malformed if any of the following
+   conditions are detected:
+
+   *  An Object contains more than one instance of Prior Object ID Gap
+
+   *  An Object has a Prior Object ID Gap larger than the Object ID
+
+   *  An endpoint receives an Object with a Prior Object ID Gap covering
+      an Object it previously received
+
+   *  An endpoint receives an Object with an Object ID within a
+      previously communicated gap
+
+   This extension is optional, as publishers might not know the prior
+   gap gize, or there may not be a gap.  If Prior Object ID Gap is not
+   present, the receiver cannot infer any information about the
+   existence of prior objects (see Section 2.1).
+
+   This extension can be added by the Original Publisher, but MUST NOT
+   be added by relays.  This extension MUST NOT be modified or removed.
+
+11.  Security Considerations
 
    TODO: Expand this section, including subscriptions.
 
-10.1.  Resource Exhaustion
+11.1.  Resource Exhaustion
 
    Live content requires significant bandwidth and resources.  Failure
    to set limits will quickly cause resource exhaustion.
@@ -2907,22 +3347,22 @@ Table of Contents
    the anticipated bitrate.
 
    Endpoints MAY impose a MAX STREAM count limit which would restrict
-   the number of concurrent streams which a MOQT Streaming Format could
-   have in flight.
+   the number of concurrent streams which an application could have in
+   flight.
 
    The publisher prioritizes and transmits streams out of order.
    Streams might be starved indefinitely during congestion.  The
    publisher and subscriber MUST cancel a stream, preferably the lowest
    priority, after reaching a resource limit.
 
-10.2.  Timeouts
+11.2.  Timeouts
 
    Implementations are advised to use timeouts to prevent resource
    exhaustion attacks by a peer that does not send expected data within
    an expected time.  Each implementation is expected to set its own
    limits.
 
-11.  IANA Considerations
+12.  IANA Considerations
 
    TODO: fill out currently missing registries:
 
@@ -2952,7 +3392,16 @@ Table of Contents
 
 Contributors
 
-   *  Alan Frindell
+   The original design behind this protocol was inspired by three
+   independent proposals: WARP [I-D.draft-lcurley-warp] by Luke Curley,
+   RUSH [I-D.draft-kpugin-rush] by Kirill Pugin, Nitin Garg, Alan
+   Frindell, Jordi Cenzano and Jake Weissman, and QUICR
+   [I-D.draft-jennings-moq-quicr-proto] by Cullen Jennings, Suhas
+   Nandakumar and Christian Huitema.  The authors of those documents
+   merged their proposals to create the first draft of moq-transport.
+   The IETF MoQ Working Group received an enormous amount of support
+   from many people.  The following people provided substantive
+   contributions to this document:
 
    *  Ali Begen
 
@@ -2965,6 +3414,10 @@ Contributors
    *  James Hurley
 
    *  Jordi Cenzano
+
+   *  Kirill Pugin
+
+   *  Luke Curley
 
    *  Mike English
 
@@ -3025,6 +3478,28 @@ Normative References
 
 Informative References
 
+   [I-D.draft-jennings-moq-quicr-proto]
+              Jennings, C. F., Nandakumar, S., and C. Huitema, "QuicR -
+              Media Delivery Protocol over QUIC", Work in Progress,
+              Internet-Draft, draft-jennings-moq-quicr-proto-01, 11 July
+              2022, <https://datatracker.ietf.org/doc/html/draft-
+              jennings-moq-quicr-proto-01>.
+
+   [I-D.draft-kpugin-rush]
+              Pugin, K., Garg, N., Frindell, A., Ferret, J. C., and J.
+              Weissman, "RUSH - Reliable (unreliable) streaming
+              protocol", Work in Progress, Internet-Draft, draft-kpugin-
+              rush-03, 21 April 2025,
+              <https://datatracker.ietf.org/doc/html/draft-kpugin-rush-
+              03>.
+
+   [I-D.draft-lcurley-warp]
+              Curley, L., Pugin, K., Nandakumar, S., and V. Vasiliev,
+              "Warp - Live Media Transport over QUIC", Work in Progress,
+              Internet-Draft, draft-lcurley-warp-04, 13 March 2023,
+              <https://datatracker.ietf.org/doc/html/draft-lcurley-warp-
+              04>.
+
    [I-D.ietf-webtrans-overview]
               Vasiliev, V., "The WebTransport Protocol Framework", Work
               in Progress, Internet-Draft, draft-ietf-webtrans-overview-
@@ -3039,16 +3514,6 @@ Informative References
 
 Authors' Addresses
 
-   Luke Curley
-   Discord
-   Email: kixelated@gmail.com
-
-
-   Kirill Pugin
-   Meta
-   Email: ikir@meta.com
-
-
    Suhas Nandakumar
    Cisco
    Email: snandaku@cisco.com
@@ -3062,3 +3527,8 @@ Authors' Addresses
    Ian Swett (editor)
    Google
    Email: ianswett@google.com
+
+
+   Alan Frindell (editor)
+   Meta
+   Email: afrind@meta.com
