@@ -1349,8 +1349,8 @@ CLIENT_SETUP Message {
   Type (i) = 0x20,
   Length (i),
   Number of Supported Versions (i),
-  Supported Version (i) ...,
-  Number of Parameters (i) ...,
+  Supported Versions (i) ...,
+  Number of Parameters (i),
   Setup Parameters (..) ...,
 }
 
@@ -1358,7 +1358,7 @@ SERVER_SETUP Message {
   Type (i) = 0x21,
   Length (i),
   Selected Version (i),
-  Number of Parameters (i) ...,
+  Number of Parameters (i),
   Setup Parameters (..) ...,
 }
 ~~~
@@ -1458,8 +1458,7 @@ receipt of a MAX_REQUEST_ID message with an equal or smaller Request ID
 value is a 'Protocol Violation'.
 
 ~~~
-MAX_REQUEST_ID
-{
+MAX_REQUEST_ID Message {
   Type (i) = 0x15,
   Length (i),
   Request ID (i),
@@ -1491,8 +1490,7 @@ MUST NOT rely on REQUESTS_BLOCKED to trigger sending a MAX_REQUEST_ID, because
 sending REQUESTS_BLOCKED is not required.
 
 ~~~
-REQUESTS_BLOCKED
-{
+REQUESTS_BLOCKED Message {
   Type (i) = 0x1A,
   Length (i),
   Maximum Request ID (i),
@@ -1543,8 +1541,8 @@ AbsoluteStart filter with `Start` = {0, 0}.
 AbsoluteRange (0x4):  The filer Start Location and End Group are specified
 explicitly in the SUBSCRIBE message. The `Start` specified in the SUBSCRIBE
 message MAY be less than the `Largest Object` observed at the publisher. If the
-specified `EndGroup` is the same group specified in `Start`, the remainder of
-that Group passes the filter. `EndGroup` MUST specify the same or a larger Group
+specified `End Group` is the same group specified in `Start`, the remainder of
+that Group passes the filter. `End Group` MUST specify the same or a larger Group
 than specified in `Start`.
 
 A filter type other than the above MUST be treated as error.
@@ -1577,8 +1575,8 @@ SUBSCRIBE Message {
   Group Order (8),
   Forward (8),
   Filter Type (i),
-  [Start (Location)],
-  [EndGroup (i)],
+  [Start Location (Location)],
+  [End Group (i)],
   Number of Parameters (i),
   Subscribe Parameters (..) ...
 }
@@ -1613,12 +1611,12 @@ Any other value is a protocol error and MUST terminate the
 session with a Protocol Violation ({{session-termination}}).
 
 * Filter Type: Identifies the type of filter, which also indicates whether
-the Start and EndGroup fields will be present.
+the Start and End Group fields will be present.
 
-* Start: The starting location for this subscriptions. Only present for
+* Start Location: The starting location for this subscriptions. Only present for
   "AbsoluteStart" and "AbsoluteRange" filter types.
 
-* EndGroup: The end Group ID, inclusive. Only present for the "AbsoluteRange"
+* End Group: The end Group ID, inclusive. Only present for the "AbsoluteRange"
 filter type.
 
 * Subscribe Parameters: The parameters are defined in {{version-specific-params}}.
@@ -1637,15 +1635,14 @@ A publisher sends a SUBSCRIBE_OK control message for successful
 subscriptions.
 
 ~~~
-SUBSCRIBE_OK
-{
+SUBSCRIBE_OK Message {
   Type (i) = 0x4,
   Length (i),
   Request ID (i),
   Expires (i),
   Group Order (8),
-  ContentExists (8),
-  [Largest (Location)],
+  Content Exists (8),
+  [Largest Location (Location)],
   Number of Parameters (i),
   Subscribe Parameters (..) ...
 }
@@ -1664,13 +1661,13 @@ end prior to the expiry time or last longer.
 Ascending (0x1) or Descending (0x2) order by group. See {{priorities}}.
 Values of 0x0 and those larger than 0x2 are a protocol error.
 
-* ContentExists: 1 if an object has been published on this track, 0 if not.
+* Content Exists: 1 if an object has been published on this track, 0 if not.
 If 0, then the Largest Group ID and Largest Object ID fields will not be
 present. Any other value is a protocol error and MUST terminate the
 session with a Protocol Violation ({{session-termination}}).
 
-* Largest: The location of the largest object available for this track. This
-  field is only present if ContentExists has a value of 1.
+* Largest Location: The location of the largest object available for this track. This
+  field is only present if Content Exists has a value of 1.
 
 * Subscribe Parameters: The parameters are defined in {{version-specific-params}}.
 
@@ -1680,8 +1677,7 @@ A publisher sends a SUBSCRIBE_ERROR control message in response to a
 failed SUBSCRIBE.
 
 ~~~
-SUBSCRIBE_ERROR
-{
+SUBSCRIBE_ERROR Message {
   Type (i) = 0x5,
   Length (i),
   Request ID (i),
@@ -1769,7 +1765,7 @@ processed promptly and some extra objects from the existing subscription are
 delivered.
 
 Unlike a new subscription, SUBSCRIBE_UPDATE can not cause an Object to be
-delivered multiple times.  Like SUBSCRIBE, EndGroup MUST be greater than or
+delivered multiple times.  Like SUBSCRIBE, End Group MUST be greater than or
 equal to the Group specified in `Start`.
 
 If a parameter included in `SUBSCRIBE` is not present in
@@ -1783,8 +1779,8 @@ SUBSCRIBE_UPDATE Message {
   Type (i) = 0x2,
   Length (i),
   Request ID (i),
-  Start (Location),
-  EndGroup (i),
+  Start Location (Location),
+  End Group (i),
   Subscriber Priority (8),
   Forward (8),
   Number of Parameters (i),
@@ -1796,9 +1792,9 @@ SUBSCRIBE_UPDATE Message {
 * Request ID: The Request ID of the SUBSCRIBE ({{message-subscribe-req}}) this
   message is updating.  This MUST match an existing Request ID.
 
-* Start: The starting location.
+* Start Location : The starting location.
 
-* EndGroup: The end Group ID, plus 1. A value of 0 means the subscription is
+* End Group: The end Group ID, plus 1. A value of 0 means the subscription is
 open-ended.
 
 * Subscriber Priority: Specifies the priority of a subscription relative to
@@ -1966,13 +1962,13 @@ Standalone Fetch (0x1) : A Fetch of Objects performed independently of any Subsc
 Relative Joining Fetch (0x2) : A Fetch joined together with a Subscribe by
 specifying the Request ID of an active subscription and a relative starting
 offset. A publisher receiving a Joining Fetch uses properties of the associated
-Subscribe to determine the Track Namespace, Track, StartGroup, StartObject,
-EndGroup, and EndObject such that it is contiguous with the associated
+Subscribe to determine the Track Namespace, Track, Start Group, Start Object,
+End Group, and End Object such that it is contiguous with the associated
 Subscribe. The Joining Fetch begins the Preceding Group Offset prior to the
 associated subscription.
 
 Absolute Joining Fetch (0x3) : Identical to a Relative Joining Fetch except that the
-StartGroup is determined by an absolute Group value rather than a relative offset to
+Start Group is determined by an absolute Group value rather than a relative offset to
 the subscription.
 
 A Subscriber can use a Joining Fetch to, for example, fill a playback buffer with a
@@ -1998,9 +1994,9 @@ cached objects have been delivered before resetting the stream.
 
 The Object Forwarding Preference does not apply to fetches.
 
-Fetch specifies an inclusive range of Objects starting at StartObject
-in StartGroup and ending at EndObject in EndGroup. EndGroup and EndObject MUST
-specify the same or a larger Location than StartGroup and StartObject.
+Fetch specifies an inclusive range of Objects starting at Start Object
+in Start Group and ending at End Object in End Group. End Group and End Object MUST
+specify the same or a larger Location than Start Group and Start Object.
 
 The format of FETCH is as follows:
 
@@ -2015,12 +2011,12 @@ FETCH Message {
   [Track Namespace (tuple),
    Track Name Length (i),
    Track Name (..),
-   StartGroup (i),
-   StartObject (i),
-   EndGroup (i),
-   EndObject (i),]
-  [ Joining Request ID (i),
-    Joining Start (i),]
+   Start Group (i),
+   Start Object (i),
+   End Group (i),
+   End Object (i),]
+  [Joining Request ID (i),
+   Joining Start (i),]
   Number of Parameters (i),
   Parameters (..) ...
 }
@@ -2052,13 +2048,13 @@ Fields present only for Standalone Fetch (0x1):
 
 * Track Name: Identifies the track name as defined in ({{track-name}}).
 
-* StartGroup: The start Group ID.
+* Start Group: The start Group ID.
 
-* StartObject: The start Object ID.
+* Start Object: The start Object ID.
 
-* EndGroup: The end Group ID.
+* End Group: The end Group ID.
 
-* EndObject: The end Object ID, plus 1. A value of 0 means the entire group is
+* End Object: The end Object ID, plus 1. A value of 0 means the entire group is
 requested.
 
 Fields present only for Relative Fetch (0x2) and Absolute Fetch (0x3):
@@ -2076,14 +2072,14 @@ Error Invalid Joining Request ID.
 
 Objects that are not yet published will not be retrieved by a FETCH.
 The latest available Object is indicated in the FETCH_OK, and is the last
-Object a fetch will return if the EndGroup and EndObject have not yet been
+Object a fetch will return if the End Group and End Object have not yet been
 published.
 
 A publisher MUST send fetched groups in the determined group order, either
 ascending or descending. Within each group, objects are sent in Object ID order;
 subgroup ID is not used for ordering.
 
-If StartGroup/StartObject is greater than the latest published Object group,
+If Start Group/Start Object is greater than the latest published Object group,
 the publisher MUST return FETCH_ERROR with error code 'No Objects'.
 
 ### Calculating the Range of a Relative Joining Fetch
@@ -2096,23 +2092,23 @@ The Largest Group ID and Largest Object ID values from the corresponding
 subscription are used to calculate the end of a Relative Joining Fetch so the
 Objects retrieved by the FETCH and SUBSCRIBE are contiguous and non-overlapping.
 If no Objects have been published for the track, and the SUBSCRIBE_OK has a
-ContentExists value of 0, the publisher MUST respond with a FETCH_ERROR with
+Content Exists value of 0, the publisher MUST respond with a FETCH_ERROR with
 error code 'No Objects'.
 
 The publisher receiving a Relative Joining Fetch computes the range as follows:
 
-* Fetch StartGroup: Subscribe Largest Group - Joining start
-* Fetch StartObject: 0
-* Fetch EndGroup: Subscribe Largest Group
-* Fetch EndObject: Subscribe Largest Object
+* Fetch Start Group: Subscribe Largest Group - Joining start
+* Fetch Start Object: 0
+* Fetch End Group: Subscribe Largest Group
+* Fetch End Object: Subscribe Largest Object
 
-A Fetch EndObject of 0 requests the entire group, but Fetch will not
+A Fetch End Object of 0 requests the entire group, but Fetch will not
 retrieve Objects that have not yet been published, so 1 is subtracted from
-the Fetch EndGroup if Fetch EndObject is 0.
+the Fetch End Group if Fetch End Object is 0.
 
 ### Calculating the Range of an Absolute Joining Fetch
 
-Identical to the Relative Joining fetch except that Fetch StartGroup is the
+Identical to the Relative Joining fetch except that Fetch Start Group is the
 Joining Start value.
 
 
@@ -2123,14 +2119,13 @@ A publisher MAY send Objects in response to a FETCH before the FETCH_OK message 
 but the FETCH_OK MUST NOT be sent until the end group and object are known.
 
 ~~~
-FETCH_OK
-{
+FETCH_OK Message {
   Type (i) = 0x18,
   Length (i),
   Request ID (i),
   Group Order (8),
   End Of Track (8),
-  End (Location),
+  End Location (Location),
   Number of Parameters (i),
   Subscribe Parameters (..) ...
 }
@@ -2148,8 +2143,8 @@ Values of 0x0 and those larger than 0x2 are a protocol error.
 the End Group ID and Object Id indicate the last Object in the track,
 0 if not.
 
-* End: The largest object covered by the FETCH response.
-  This is the minimum of the {EndGroup,EndObject} specified in FETCH and the
+* End Location: The largest object covered by the FETCH response.
+  This is the minimum of the {End Group,End Object} specified in FETCH and the
   largest known {group,object}.  If the relay is currently subscribed to the
   track, the largest known {group,object} at the relay is used.  For tracks
   with a requested end larger than what is cached without an active
@@ -2164,8 +2159,7 @@ A publisher sends a FETCH_ERROR control message in response to a
 failed FETCH.
 
 ~~~
-FETCH_ERROR
-{
+FETCH_ERROR Message {
   Type (i) = 0x19,
   Length (i),
   Request ID (i),
@@ -2291,7 +2285,7 @@ TRACK_STATUS Message {
   Length (i),
   Request ID (i),
   Status Code (i),
-  Largest (Location),
+  Largest Location (Location),
   Number of Parameters (i),
   Parameters (..) ...,
 }
@@ -2322,7 +2316,7 @@ upstream. Subsequent fields contain the largest group and object ID known.
 
 Any other value in the Status Code field is a malformed message.
 
-* Largest: represents the largest Object location observed by the
+* Largest Location: represents the largest Object location observed by the
 Publisher for an active subscription. If the publisher is a relay without an
 active subscription, it SHOULD send a TRACK_STATUS_REQUEST upstream or MAY
 subscribe to the track, to obtain the same information. If neither is possible,
@@ -2361,8 +2355,7 @@ The subscriber sends an ANNOUNCE_OK control message to acknowledge the
 successful authorization and acceptance of an ANNOUNCE message.
 
 ~~~
-ANNOUNCE_OK Message
-{
+ANNOUNCE_OK Message {
   Type (i) = 0x7,
   Length (i),
   Request ID (i)
@@ -2379,8 +2372,7 @@ The subscriber sends an ANNOUNCE_ERROR control message for tracks that
 failed authorization.
 
 ~~~
-ANNOUNCE_ERROR Message
-{
+ANNOUNCE_ERROR Message {
   Type (i) = 0x8,
   Length (i),
   Request ID (i),
@@ -2461,7 +2453,7 @@ ANNOUNCE_CANCEL Message {
   Track Namespace (tuple),
   Error Code (i),
   Reason Phrase Length (i),
-  Reason Phrase Length (..),
+  Reason Phrase (..),
 }
 ~~~
 {: #moq-transport-announce-cancel-format title="MOQT ANNOUNCE_CANCEL Message"}
@@ -2534,8 +2526,7 @@ A publisher sends a SUBSCRIBE_ANNOUNCES_OK control message for successful
 namespace subscriptions.
 
 ~~~
-SUBSCRIBE_ANNOUNCES_OK
-{
+SUBSCRIBE_ANNOUNCES_OK Message {
   Type (i) = 0x12,
   Length (i),
   Request ID (i),
@@ -2553,8 +2544,7 @@ A publisher sends a SUBSCRIBE_ANNOUNCES_ERROR control message in response to
 a failed SUBSCRIBE_ANNOUNCES.
 
 ~~~
-SUBSCRIBE_ANNOUNCES_ERROR
-{
+SUBSCRIBE_ANNOUNCES_ERROR Message {
   Type (i) = 0x13,
   Length (i),
   Request ID (i),
