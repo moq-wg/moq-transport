@@ -734,8 +734,8 @@ many MOQT applications will typically be limited by the available data to send, 
 not the congestion controller. Many congestion control algorithms
 only increase the congestion window or bandwidth estimate if fully utilized. This
 combination can lead to underestimating the available network bandwidth. As a result,
-applications might need to ensure the congestion controller is not app-limited for at
-least a full round trip every so often to ensure the full available bandwidth can be
+applications might need to periodically ensure the congestion controller is not
+app-limited for at least a full round trip to ensure the available bandwidth can be
 measured.
 
 ### Consistent Throughput
