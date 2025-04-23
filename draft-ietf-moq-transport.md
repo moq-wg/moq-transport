@@ -2049,7 +2049,6 @@ A publisher MUST send fetched groups in the determined group order, either
 ascending or descending. Within each group, objects are sent in Object ID order;
 subgroup ID is not used for ordering.
 
-If the StartGroup/StartObject is greater than `Largest Object`
 If StartGroup/StartObject is greater than `Largest Object`
 ({{message-subscribe-req}}), or all requested Objects have status `Object Does
 Not Exist`, the publisher MUST return FETCH_ERROR with error code 'No Objects'.
