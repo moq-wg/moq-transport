@@ -640,6 +640,10 @@ code, as defined below:
 |------|---------------------------|
 | 0x12 | Data Stream Timeout       |
 |------|---------------------------|
+| 0x13 | Auth Token Cache Overflow |
+|------|---------------------------|
+| 0x14 | Duplicate Auth Token Alias|
+|------|---------------------------|
 
 * No Error: The session is being terminated without an error.
 
@@ -681,6 +685,12 @@ code, as defined below:
   stream. If an endpoint times out waiting for a new object header on an
   open subgroup stream, it MAY send a STOP_SENDING on that stream or
   terminate the subscription.
+
+* Auth Token Cache Overflow - the Session limit {{max-auth-token-cache-size}} of
+  the size of all registered Authorization tokens has been exceeded.
+
+* Duplicate Auth Token Alias - Authorization Token attempted to register an
+  alias that was in use (see {{authorization-token}}).
 
 An endpoint MAY choose to treat a subscription or request specific error as a
 session error under certain circumstances, closing the entire session in
@@ -1252,9 +1262,12 @@ that is not expected, it MUST close the session with `Invalid Request ID`.
 Some messages include a Parameters field that encode optional message
 elements.
 
-Senders MUST NOT repeat the same parameter type in a message. Receivers
-SHOULD check that there are no duplicate parameters and close the session
-as a 'Protocol Violation' if found.
+Senders MUST NOT repeat the same parameter type in a message unless the
+parameter definition explicitly allows multiple instances of that type to
+be sent in a single message. Receivers SHOULD check that there are no
+unauthorized duplicate parameters and close the session as a
+'Protocol Violation' if found.  Receivers MUST allow duplicates of unknown
+parameters.
 
 Receivers ignore unrecognized parameters.
 
@@ -1276,6 +1289,103 @@ Each version-specific parameter definition indicates the message types in which
 it can appear. If it appears in some other type of message, it MUST be ignored.
 Note that since Setup parameters use a separate namespace, it is impossible for
 these parameters to appear in Setup messages.
+
+#### AUTHORIZATION TOKEN {#authorization-token}
+
+The AUTHORIZATION TOKEN parameter (Parameter Type 0x01) identifies a track's
+authorization information in a SUBSCRIBE, SUBSCRIBE_ANNOUNCES, ANNOUNCE
+TRACK_STATUS_REQUEST or FETCH message. This parameter is populated for
+cases where the authorization is required at the track or namespace level.
+
+The AUTHORIZATION TOKEN parameter MAY be repeated within a message.
+
+The TOKEN value is a structured object containing an optional session-specific
+alias. The Alias allows the client to reference a previously transmitted TOKEN
+in future messages. The TOKEN value is serialized as follows:
+
+~~~
+TOKEN {
+  Alias Type (i),
+  [Token Alias (i),]
+  [Token Type (i),]
+  [Token Value (..)]
+}
+~~~
+{: #moq-token format title="AUTHORIZATION TOKEN value"}
+
+* Alias Type - an integer defining both the serialization and the processing
+  behavior of the receiver. This Alias type has the following code points:
+
+|------|------------|------------------------------------------------------|
+| Code | Name       | Serialization and behavior                           |
+|-----:|:-----------|------------------------------------------------------|
+| 0x0  | DELETE     | There is an Alias but no Type or Value. This Alias   |
+|      |            | and the Token Value it was previously associated with|
+|      |            | MUST be retired. Retiring removes them from the pool |
+|      |            | of actively registered tokens.                       |
+|------|------------|------------------------------------------------------|
+| 0x1  | REGISTER   | There is an Alias, a Type and a Value. This Alias    |
+|      |            | MUST be associated with the Token Value for the      |
+|      |            | duration of the Session or it is deleted. This action|
+|      |            | is termed "registering" the Token.                   |
+|------|------------|------------------------------------------------------|
+| 0x2  | USE_ALIAS  | There is an Alias but no Type or Value. Use the Token|
+|      |            | Type and Value previously registered with this Alias.|
+|------|------------|------------------------------------------------------|
+| 0x3  | USE_VALUE  | There is no Alias and there is a Type and Value. Use |
+|      |            | the Token Value as provided. The Token Value may be  |
+|      |            | discarded after processing.                          |
+|------|------------|------------------------------------------------------|
+
+
+* Token Alias - a session-specific integer identifier that references a Token
+  Value. The Token Alias MUST be unique within the Session. Once a Token Alias has
+  been registered, it cannot be re-registered within the Session without first
+  being deleted. Use of the Token Alias is optional.
+
+* Token Type - a numeric identifier for the type of Token payload being
+  transmitted. This type is defined by the IANA table "MOQT Auth Token Type". See
+  {{iana}}. Type 0 is reserved to indicate that the type is not defined in the
+  table and must be negotiated out-of-band between client and receiver.
+
+* Token Value - the payload of the Token. The contents and serialization of this
+  payload are defined by the Token Type.
+
+The receiver of a message containing an invalid AUTHORIZATION TOKEN parameter
+MUST reject that message with an `Malformed Auth Token` error. This can be due
+to invalid serialization or providing a token value which does not match the
+declared Token Type.  The receiver of a message referencing an alias that is
+not currently registered MUST reject the message with `Unknown Auth Token
+Alias`. The receiver of a message attempting to register an alias which is
+already registered MUST close the session with `Duplicate Auth Token Alias`.
+
+Any message carrying an AUTHORIZATION TOKEN with Alias Type REGISTER that does
+not result in `Malformed Auth Token` MUST effect the token registration, even
+if the message fails for other reasons, including `Unauthorized`.  This allows
+senders to pipeline messages that refer to previously registered tokens.
+
+If a receiver detects that an authorization token has expired, it MUST retain
+the registered alias until it is deleted by the sender, though it MAY discard
+other state associated with the token that is no longer needed.  Expiration does
+not affect the size occupied by a token in the token cache.  Any message that
+references the token with Alias Type USE_ALIAS fails with `Expired Auth Token`.
+
+Using an Alias to refer to a previously registered Token Value is for efficiency
+only and has the same effect as if the Token Value was included directly.
+Retiring an Alias that was previously used to authorize a message has no
+retroactive effect on the original authorization, nor does it prevent that same
+Token Value being re-registered.
+
+Clients SHOULD only register tokens which they intend to re-use during the session.
+Client SHOULD retire previously registered tokens once their utility has passed.
+
+By registering a Token, the client is requiring the receiver to store the Token
+Alias and Token Value until they are retired, or the Session ends. The receiver
+can protect its resources by sending a SETUP parameter defining the
+MAX_AUTH_TOKEN_CACHE_SIZE {{max-auth-token-cache-size}} limit it is willing to
+accept. If a registration is attempted which would cause this limit to be
+exceeded, the receiver MUST termiate the Session with a `Auth Token Cache
+Overflow` error.
 
 
 #### DELIVERY TIMEOUT Parameter {#delivery-timeout}
@@ -1410,6 +1520,19 @@ these rules, the session MUST be closed with Malformed Path.
 The MAX_REQUEST_ID parameter (Parameter Type 0x02) communicates an initial
 value for the Maximum Request ID to the receiving endpoint. The default
 value is 0, so if not specified, the peer MUST NOT send requests.
+
+#### MAX_AUTH_TOKEN_CACHE_SIZE {#max-auth-token-cache-size}
+
+The MAX_AUTH_TOKEN_CACHE_SIZE parameter (Parameter Type 0x04) communicates the
+maximum size in bytes of all actively registered Authorization tokens that the
+server is willing to store per Session. This parameter is optional. The default
+value is 0 which prohibits the use of token aliases.
+
+The token size is calculated as 8 bytes + the size of the Token value (see
+{{moq-token}}). The total size as restricted by the MAX_AUTH_TOKEN_CACHE_SIZE
+parameter is calculated as the sum of the token sizes for all registered tokens
+(Alias Type value of 0x01) minus the sum of the token sizes for all deregistered
+tokens (Alias Type value of 0x00), since Session initiation.
 
 ## GOAWAY {#message-goaway}
 
@@ -1727,6 +1850,12 @@ as defined below:
 |------|---------------------------|
 | 0x6  | Retry Track Alias         |
 |------|---------------------------|
+| 0x10 | Malformed Auth Token      |
+|------|---------------------------|
+| 0x11 | Unknown Auth Token Alias  |
+|------|---------------------------|
+| 0x12 | Expired Auth Token        |
+|------|---------------------------|
 
 * Internal Error - An implementation specific or generic error occurred.
 
@@ -1746,6 +1875,14 @@ as defined below:
 
 * Retry Track Alias - The publisher requires the subscriber to use the given
   Track Alias when subscribing.
+
+* Malformed Auth Token - Invalid Auth Token serialization during registration
+  (see {{authorization-token}}).
+
+* Unknown Auth Token Alias - Authorization Token refers to an alias that is
+  not registered (see {{authorization-token}}).
+
+* Expired Auth Token - Authorization token has expired {{authorization-token}}).
 
 
 ## SUBSCRIBE_UPDATE {#message-subscribe-update}
@@ -2207,6 +2344,12 @@ as defined below:
 |------|---------------------------|
 | 0x7  | Invalid Joining Request ID|
 |------|---------------------------|
+| 0x10 | Malformed Auth Token      |
+|------|---------------------------|
+| 0x11 | Unknown Auth Token Alias  |
+|------|---------------------------|
+| 0x12 | Expired Auth Token        |
+|------|---------------------------|
 
 * Internal Error - An implementation specific or generic error occurred.
 
@@ -2226,8 +2369,16 @@ as defined below:
 * No Objects - The beginning of the requested range is after the latest group
   and object for the track, or the track has not published any objects.
 
-* Invalid Subscribe ID - The joining Fetch referenced a Subscribe ID that did
-  not belong to an active Subscription.
+* Invalid Joining Request ID - The joining Fetch referenced a Request ID that
+  did not belong to an active Subscription.
+
+* Malformed Auth Token - Invalid Auth Token serialization during registration
+  (see {{authorization-token}}).
+
+* Unknown Auth Token Alias - Authorization Token refers to an alias that is
+  not registered (see {{authorization-token}}).
+
+* Expired Auth Token - Authorization token has expired {{authorization-token}}).
 
 
 ## FETCH_CANCEL {#message-fetch-cancel}
@@ -2321,6 +2472,8 @@ contain the highest Group and object ID known.
 upstream. Subsequent fields contain the largest group and object ID known.
 
 Any other value in the Status Code field is a malformed message.
+
+TODO: Auth Failures
 
 * Largest: represents the largest Object location observed by the
 Publisher for an active subscription. If the publisher is a relay without an
@@ -2416,6 +2569,12 @@ below:
 |------|---------------------------|
 | 0x4  | Uninterested              |
 |------|---------------------------|
+| 0x10 | Malformed Auth Token      |
+|------|---------------------------|
+| 0x11 | Unknown Auth Token Alias  |
+|------|---------------------------|
+| 0x12 | Expired Auth Token        |
+|------|---------------------------|
 
 * Internal Error - An implementation specific or generic error occurred.
 
@@ -2428,6 +2587,14 @@ below:
 * Not Supported - The endpoint does not support the ANNOUNCE method.
 
 * Uninterested - The namespace is not of interest to the endpoint.
+
+* Malformed Auth Token - Invalid Auth Token serialization during registration
+  (see {{authorization-token}}).
+
+* Unknown Auth Token Alias - Authorization Token refers to an alias that is
+  not registered (see {{authorization-token}}).
+
+* Expired Auth Token - Authorization token has expired {{authorization-token}}).
 
 
 ## UNANNOUNCE {#message-unannounce}
@@ -2595,6 +2762,12 @@ as defined below:
 |------|---------------------------|
 | 0x5  | Namespace Prefix Overlap  |
 |------|---------------------------|
+| 0x10 | Malformed Auth Token      |
+|------|---------------------------|
+| 0x11 | Unknown Auth Token Alias  |
+|------|---------------------------|
+| 0x12 | Expired Auth Token        |
+|------|---------------------------|
 
 * Internal Error - An implementation specific or generic error occurred.
 
@@ -2611,6 +2784,14 @@ as defined below:
 
 * Namespace Prefix Overlap - The namespace prefix overlaps with another
   SUBSCRIBE_ANNOUNCES in the same session.
+
+* Malformed Auth Token - Invalid Auth Token serialization during registration
+  (see {{authorization-token}}).
+
+* Unknown Auth Token Alias - Authorization Token refers to an alias that is
+  not registered (see {{authorization-token}}).
+
+* Expired Auth Token - Authorization token has expired {{authorization-token}}).
 
 
 ## UNSUBSCRIBE_ANNOUNCES {#message-unsub-ann}
@@ -3174,6 +3355,7 @@ TODO: fill out currently missing registries:
   standards utilization where space is a premium, 64 - 16383 for
   standards utilization where space is less of a concern, and 16384 and
   above for first-come-first-served non-standardization usage.
+* MOQT Auth Token Type
 
 TODO: register the URI scheme and the ALPN and grease the Extension types
 
