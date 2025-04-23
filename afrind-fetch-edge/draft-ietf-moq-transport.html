@@ -3986,8 +3986,7 @@ published.<a href="#section-8.13-22" class="pilcrow">¶</a></p>
 <p id="section-8.13-23">A publisher <span class="bcp14">MUST</span> send fetched groups in the determined group order, either
 ascending or descending. Within each group, objects are sent in Object ID order;
 subgroup ID is not used for ordering.<a href="#section-8.13-23" class="pilcrow">¶</a></p>
-<p id="section-8.13-24">If the StartGroup/StartObject is greater than <code>Largest Object</code>
-If StartGroup/StartObject is greater than <code>Largest Object</code>
+<p id="section-8.13-24">If StartGroup/StartObject is greater than <code>Largest Object</code>
 (<a href="#message-subscribe-req" class="auto internal xref">Section 8.7</a>), or all requested Objects have status <code>Object Does
 Not Exist</code>, the publisher <span class="bcp14">MUST</span> return FETCH_ERROR with error code 'No Objects'.<a href="#section-8.13-24" class="pilcrow">¶</a></p>
 <div id="calculating-the-range-of-a-relative-joining-fetch">

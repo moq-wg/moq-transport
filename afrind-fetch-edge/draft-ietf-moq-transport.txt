@@ -2224,10 +2224,10 @@ Table of Contents
    either ascending or descending.  Within each group, objects are sent
    in Object ID order; subgroup ID is not used for ordering.
 
-   If the StartGroup/StartObject is greater than Largest Object If
-   StartGroup/StartObject is greater than Largest Object (Section 8.7),
-   or all requested Objects have status Object Does Not Exist, the
-   publisher MUST return FETCH_ERROR with error code 'No Objects'.
+   If StartGroup/StartObject is greater than Largest Object
+   (Section 8.7), or all requested Objects have status Object Does Not
+   Exist, the publisher MUST return FETCH_ERROR with error code 'No
+   Objects'.
 
 8.13.1.  Calculating the Range of a Relative Joining Fetch
 
