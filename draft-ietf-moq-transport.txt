@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 23 October 2025                                   I. Swett, Ed.
+Expires: 25 October 2025                                   I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                           21 April 2025
+                                                           23 April 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 23 October 2025.
+   This Internet-Draft will expire on 25 October 2025.
 
 Copyright Notice
 
@@ -102,6 +102,10 @@ Table of Contents
      3.3.  Session initialization
      3.4.  Termination
      3.5.  Migration
+     3.6.  Congestion Control
+       3.6.1.  Bufferbloat
+       3.6.2.  Application-Limited
+       3.6.3.  Consistent Throughput
    4.  Retrieving Tracks with Subscribe and Fetch
    5.  Namespace Discovery
      5.1.  Subscribing to Announcements
@@ -806,6 +810,43 @@ Table of Contents
    OBJECTs to be delivered.  The server closes the session with a
    'GOAWAY Timeout' if the client doesn't close the session quickly
    enough.
+
+3.6.  Congestion Control
+
+   MOQT does not specify a congestion controller, but there are
+   important attributes to consider when selecting a congestion
+   controller for use with an application built on top of MOQT.
+
+3.6.1.  Bufferbloat
+
+   Traditional AIMD congestion controllers (ex.  CUBIC [RFC9438] and
+   Reno [RFC6582]) are prone to Bufferbloat.  Bufferbloat occurs when
+   elements along the path build up a substantial queue of packets,
+   commonly more than doubling the round trip time.  These queued
+   packets cause head-of-line blocking and latency, even when there is
+   no packet loss.
+
+3.6.2.  Application-Limited
+
+   The average bitrate for latency sensitive content needs to be less
+   than the available bandwidth, otherwise data will be queued and/or
+   dropped.  As such, many MOQT applications will typically be limited
+   by the available data to send, and not the congestion controller.
+   Many congestion control algorithms only increase the congestion
+   window or bandwidth estimate if fully utilized.  This combination can
+   lead to underestimating the available network bandwidth.  As a
+   result, applications might need to periodically ensure the congestion
+   controller is not app-limited for at least a full round trip to
+   ensure the available bandwidth can be measured.
+
+3.6.3.  Consistent Throughput
+
+   Congestion control algorithms are commonly optimized for throughput,
+   not consistency.  For example, BBR's PROBE_RTT state halves the
+   sending rate for more than a round trip in order to obtain an
+   accurate minimum RTT.  Similarly, Reno halves it's congestion window
+   upon detecting loss.  In both cases, the large reduction in sending
+   rate might cause issues with latency sensitive applications.
 
 4.  Retrieving Tracks with Subscribe and Fetch
 
@@ -3468,10 +3509,20 @@ Informative References
               <https://datatracker.ietf.org/doc/html/draft-ietf-
               webtrans-overview-09>.
 
+   [RFC6582]  Henderson, T., Floyd, S., Gurtov, A., and Y. Nishida, "The
+              NewReno Modification to TCP's Fast Recovery Algorithm",
+              RFC 6582, DOI 10.17487/RFC6582, April 2012,
+              <https://www.rfc-editor.org/rfc/rfc6582>.
+
    [RFC9000]  Iyengar, J., Ed. and M. Thomson, Ed., "QUIC: A UDP-Based
               Multiplexed and Secure Transport", RFC 9000,
               DOI 10.17487/RFC9000, May 2021,
               <https://www.rfc-editor.org/rfc/rfc9000>.
+
+   [RFC9438]  Xu, L., Ha, S., Rhee, I., Goel, V., and L. Eggert, Ed.,
+              "CUBIC for Fast and Long-Distance Networks", RFC 9438,
+              DOI 10.17487/RFC9438, August 2023,
+              <https://www.rfc-editor.org/rfc/rfc9438>.
 
 Authors' Addresses
 
