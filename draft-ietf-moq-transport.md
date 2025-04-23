@@ -729,7 +729,7 @@ no packet loss.
 ### Application-Limited
 
 The average bitrate for latency sensitive content needs to be less than the available
-bandwidth of the network, otherwise data will be queued and/or dropped. As such,
+bandwidth, otherwise data will be queued and/or dropped. As such,
 many MOQT applications will typically be limited by the available data to send, and
 not the congestion controller. Many congestion control algorithms
 only increase the congestion window or bandwidth estimate if fully utilized. This
