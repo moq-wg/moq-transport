@@ -2824,7 +2824,7 @@ the type of the stream in question.
 |-------------|-------------------------------------------------|
 | ID          | Type                                            |
 |------------:|:------------------------------------------------|
-| 0x08-0x09   | SUBGROUP_HEADER  ({{subgroup-header}})          |
+| 0x08-0x0D   | SUBGROUP_HEADER  ({{subgroup-header}})          |
 |-------------|-------------------------------------------------|
 | 0x05        | FETCH_HEADER  ({{fetch-header}})                |
 |-------------|-------------------------------------------------|
@@ -3048,7 +3048,7 @@ SUBGROUP_HEADER {
   Type (i),
   Track Alias (i),
   Group ID (i),
-  Subgroup ID (i),
+  [Subgroup ID (i),]
   Publisher Priority (8),
 }
 ~~~
@@ -3057,11 +3057,34 @@ SUBGROUP_HEADER {
 All Objects received on a stream opened with `SUBGROUP_HEADER` have an
 `Object Forwarding Preference` = `Subgroup`.
 
-The Type field takes the form 0b0000100X (or the set of values from 0x08 to
-0x09). The LSB determines if the Extensions Headers Length is present in Objects
-in this subgroup.  When it is 0, Extensions Headers Length is not present and all
-Objects have no extensions.  When it is 1, Extension Headers Length is present in
-all Objects in this subgroup.
+There are 6 defined Type values for SUBGROUP_HEADER:
+
+|------|---------------|-----------------|------------|
+| Type | Subgroup ID   | Subgroup ID     | Extensions |
+|      | Field Present | Value           | Present    |
+|------|---------------|-----------------|------------|
+| 0x08 | No            | 0               | No         |
+|------|---------------|-----------------|------------|
+| 0x09 | No            | 0               | Yes        |
+|------|---------------|-----------------|------------|
+| 0x0A | No            | First Object ID | No         |
+|------|---------------|-----------------|------------|
+| 0x0B | No            | First Object ID | Yes        |
+|------|---------------|-----------------|------------|
+| 0x0C | Yes           | N/A             | No         |
+|------|---------------|-----------------|------------|
+| 0x0D | Yes           | N/A             | Yes        |
+|------|---------------|-----------------|------------|
+
+For Type values where Subgroup ID Field Present is No, there is no explicit
+Subgroup ID field in the header and the Subgroup ID is either 0 (for Types
+0x08-09) or the Object ID of the first object transmitted in this subgroup
+(for Types 0x0A-0B).
+
+For Type values where Extensions Present is No, Extensions Headers Length is
+not present and all Objects have no extensions.  When Extensions Present is
+Yes, Extension Headers Length is present in all Objects in this subgroup.
+Objects with no extensions set Extension Headers Length to 0.
 
 To send an Object with `Object Forwarding Preference` = `Subgroup`, find the open
 stream that is associated with the subscription, `Group ID` and `Subgroup ID`,
