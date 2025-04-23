@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 24 October 2025                                   I. Swett, Ed.
+Expires: 25 October 2025                                   I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                           22 April 2025
+                                                           23 April 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 24 October 2025.
+   This Internet-Draft will expire on 25 October 2025.
 
 Copyright Notice
 
@@ -2224,10 +2224,10 @@ Table of Contents
    either ascending or descending.  Within each group, objects are sent
    in Object ID order; subgroup ID is not used for ordering.
 
-   If StartGroup/StartObject is greater than Largest Object
-   (Section 8.7), or all requested Objects have status Object Does Not
-   Exist, the publisher MUST return FETCH_ERROR with error code 'No
-   Objects'.
+   If the StartGroup/StartObject is greater than Largest Object If
+   StartGroup/StartObject is greater than Largest Object (Section 8.7),
+   or all requested Objects have status Object Does Not Exist, the
+   publisher MUST return FETCH_ERROR with error code 'No Objects'.
 
 8.13.1.  Calculating the Range of a Relative Joining Fetch
 
@@ -2291,16 +2291,15 @@ Table of Contents
       (0x1) or Descending (0x2) order by group.  See Section 6.  Values
       of 0x0 and those larger than 0x2 are a protocol error.
 
-   *  End Of Track: 1 if all objects have been published on this track,
-      so the End Group ID and Object Id indicate the last Object in the
-      track, 0 if not.
+   *  End Of Track: 1 if all Objects have been published on this Track,
+      and the End Location is the final Object in the Track, 0 if not.
 
    *  End: The largest object covered by the FETCH response.  The End
       value is determined by taking the minimum of two values:
 
       -  The {EndGroup, EndObject} specified in the FETCH request.
 
-      -  The largest known {Group, Object} available.
+      -  The largest known, possibly final, {Group, Object} available
 
       If the relay is subscribed to the track, it uses its knowledge of
       the largest {group, object} to set End.  If if is not subscribed
