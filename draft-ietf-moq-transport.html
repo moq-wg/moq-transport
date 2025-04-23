@@ -5192,7 +5192,7 @@ the type of the stream in question.<a href="#section-9-2" class="pilcrow">¶</a>
         </thead>
         <tbody>
           <tr>
-            <td class="text-right" rowspan="1" colspan="1">0x08-0x09</td>
+            <td class="text-right" rowspan="1" colspan="1">0x08-0x0D</td>
             <td class="text-left" rowspan="1" colspan="1">SUBGROUP_HEADER  (<a href="#subgroup-header" class="auto internal xref">Section 9.4.2</a>)</td>
           </tr>
           <tr>
@@ -5478,7 +5478,7 @@ SUBGROUP_HEADER {
   Type (i),
   Track Alias (i),
   Group ID (i),
-  Subgroup ID (i),
+  [Subgroup ID (i),]
   Publisher Priority (8),
 }
 </pre>
@@ -5489,19 +5489,78 @@ SUBGROUP_HEADER {
 </div>
 <p id="section-9.4.2-3">All Objects received on a stream opened with <code>SUBGROUP_HEADER</code> have an
 <code>Object Forwarding Preference</code> = <code>Subgroup</code>.<a href="#section-9.4.2-3" class="pilcrow">¶</a></p>
-<p id="section-9.4.2-4">The Type field takes the form 0b0000100X (or the set of values from 0x08 to
-0x09). The LSB determines if the Extensions Headers Length is present in Objects
-in this subgroup.  When it is 0, Extensions Headers Length is not present and all
-Objects have no extensions.  When it is 1, Extension Headers Length is present in
-all Objects in this subgroup.<a href="#section-9.4.2-4" class="pilcrow">¶</a></p>
-<p id="section-9.4.2-5">To send an Object with <code>Object Forwarding Preference</code> = <code>Subgroup</code>, find the open
+<p id="section-9.4.2-4">There are 6 defined Type values for SUBGROUP_HEADER:<a href="#section-9.4.2-4" class="pilcrow">¶</a></p>
+<table class="center" id="table-11">
+            <caption><a href="#table-11" class="selfRef">Table 11</a></caption>
+<thead>
+              <tr>
+                <th class="text-left" rowspan="1" colspan="1">Type</th>
+                <th class="text-left" rowspan="1" colspan="1">Subgroup ID</th>
+                <th class="text-left" rowspan="1" colspan="1">Subgroup ID</th>
+                <th class="text-left" rowspan="1" colspan="1">Extensions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1"> </td>
+                <td class="text-left" rowspan="1" colspan="1">Field Present</td>
+                <td class="text-left" rowspan="1" colspan="1">Value</td>
+                <td class="text-left" rowspan="1" colspan="1">Present</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">0x08</td>
+                <td class="text-left" rowspan="1" colspan="1">No</td>
+                <td class="text-left" rowspan="1" colspan="1">0</td>
+                <td class="text-left" rowspan="1" colspan="1">No</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">0x09</td>
+                <td class="text-left" rowspan="1" colspan="1">No</td>
+                <td class="text-left" rowspan="1" colspan="1">0</td>
+                <td class="text-left" rowspan="1" colspan="1">Yes</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">0x0A</td>
+                <td class="text-left" rowspan="1" colspan="1">No</td>
+                <td class="text-left" rowspan="1" colspan="1">First Object ID</td>
+                <td class="text-left" rowspan="1" colspan="1">No</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">0x0B</td>
+                <td class="text-left" rowspan="1" colspan="1">No</td>
+                <td class="text-left" rowspan="1" colspan="1">First Object ID</td>
+                <td class="text-left" rowspan="1" colspan="1">Yes</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">0x0C</td>
+                <td class="text-left" rowspan="1" colspan="1">Yes</td>
+                <td class="text-left" rowspan="1" colspan="1">N/A</td>
+                <td class="text-left" rowspan="1" colspan="1">No</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">0x0D</td>
+                <td class="text-left" rowspan="1" colspan="1">Yes</td>
+                <td class="text-left" rowspan="1" colspan="1">N/A</td>
+                <td class="text-left" rowspan="1" colspan="1">Yes</td>
+              </tr>
+            </tbody>
+          </table>
+<p id="section-9.4.2-6">For Type values where Subgroup ID Field Present is No, there is no explicit
+Subgroup ID field in the header and the Subgroup ID is either 0 (for Types
+0x08-09) or the Object ID of the first object transmitted in this subgroup
+(for Types 0x0A-0B).<a href="#section-9.4.2-6" class="pilcrow">¶</a></p>
+<p id="section-9.4.2-7">For Type values where Extensions Present is No, Extensions Headers Length is
+not present and all Objects have no extensions.  When Extensions Present is
+Yes, Extension Headers Length is present in all Objects in this subgroup.
+Objects with no extensions set Extension Headers Length to 0.<a href="#section-9.4.2-7" class="pilcrow">¶</a></p>
+<p id="section-9.4.2-8">To send an Object with <code>Object Forwarding Preference</code> = <code>Subgroup</code>, find the open
 stream that is associated with the subscription, <code>Group ID</code> and <code>Subgroup ID</code>,
 or open a new one and send the <code>SUBGROUP_HEADER</code>. Then serialize the
-following fields.<a href="#section-9.4.2-5" class="pilcrow">¶</a></p>
-<p id="section-9.4.2-6">The Object Status field is only sent if the Object Payload Length is zero.<a href="#section-9.4.2-6" class="pilcrow">¶</a></p>
+following fields.<a href="#section-9.4.2-8" class="pilcrow">¶</a></p>
+<p id="section-9.4.2-9">The Object Status field is only sent if the Object Payload Length is zero.<a href="#section-9.4.2-9" class="pilcrow">¶</a></p>
 <span id="name-moqt-subgroup-object-fields"></span><div id="object-subgroup-format">
 <figure id="figure-33">
-            <div class="alignLeft art-text artwork" id="section-9.4.2-7.1">
+            <div class="alignLeft art-text artwork" id="section-9.4.2-10.1">
 <pre>
 {
   Object ID (i),
@@ -5517,8 +5576,8 @@ following fields.<a href="#section-9.4.2-5" class="pilcrow">¶</a></p>
 <a href="#name-moqt-subgroup-object-fields" class="selfRef">MOQT Subgroup Object Fields</a>
             </figcaption></figure>
 </div>
-<p id="section-9.4.2-8">A publisher <span class="bcp14">MUST NOT</span> send an Object on a stream if its Object ID is less than a
-previously sent Object ID within a given group in that stream.<a href="#section-9.4.2-8" class="pilcrow">¶</a></p>
+<p id="section-9.4.2-11">A publisher <span class="bcp14">MUST NOT</span> send an Object on a stream if its Object ID is less than a
+previously sent Object ID within a given group in that stream.<a href="#section-9.4.2-11" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="closing-subgroup-streams">
@@ -5586,8 +5645,8 @@ Subgroups in the Group or the subscription, although applications might cancel a
 Subgroups in a Group at once.<a href="#section-9.4.3-11" class="pilcrow">¶</a></p>
 <p id="section-9.4.3-12">The application <span class="bcp14">SHOULD</span> use a relevant error code in RESET_STREAM or
 RESET_STREAM_AT, as defined below:<a href="#section-9.4.3-12" class="pilcrow">¶</a></p>
-<table class="center" id="table-11">
-            <caption><a href="#table-11" class="selfRef">Table 11</a></caption>
+<table class="center" id="table-12">
+            <caption><a href="#table-12" class="selfRef">Table 12</a></caption>
 <thead>
               <tr>
                 <th class="text-right" rowspan="1" colspan="1">Code</th>
