@@ -2220,8 +2220,9 @@ A publisher MUST send fetched groups in the determined group order, either
 ascending or descending. Within each group, objects are sent in Object ID order;
 subgroup ID is not used for ordering.
 
-If StartGroup/StartObject is greater than the latest published Object group,
-the publisher MUST return FETCH_ERROR with error code 'No Objects'.
+If StartGroup/StartObject is greater than `Largest Object`
+({{message-subscribe-req}}), or all requested Objects have status `Object Does
+Not Exist`, the publisher MUST return FETCH_ERROR with error code 'No Objects'.
 
 ### Calculating the Range of a Relative Joining Fetch
 
@@ -2281,17 +2282,21 @@ FETCH_OK
 Ascending (0x1) or Descending (0x2) order by group. See {{priorities}}.
 Values of 0x0 and those larger than 0x2 are a protocol error.
 
-* End Of Track: 1 if all objects have been published on this track, so
-the End Group ID and Object Id indicate the last Object in the track,
-0 if not.
+* End Of Track: 1 if all Objects have been published on this Track, and
+  the End Location is the final Object in the Track, 0 if not.
 
 * End: The largest object covered by the FETCH response.
-  This is the minimum of the {EndGroup,EndObject} specified in FETCH and the
-  largest known {group,object}.  If the relay is currently subscribed to the
-  track, the largest known {group,object} at the relay is used.  For tracks
-  with a requested end larger than what is cached without an active
-  subscription, the relay makes an upstream request in order to satisfy the
-  FETCH.
+  The End value is determined by taking the minimum of two values:
+   - The {EndGroup, EndObject} specified in the FETCH request.
+   - The largest known, possibly final, {Group, Object} available
+
+  If the relay is subscribed to the track, it uses its knowledge of the largest
+  {group, object} to set End.  If if is not subscribed and the requested End
+  Location exceeds its cached data, the relay makes an upstream request to
+  complete the FETCH, and uses the upstream response to set End.
+
+  If End is smaller than the Start Location in the corresponding FETCH the
+  receiver MUST close the session with `Protocol Violation`
 
 * Subscribe Parameters: The parameters are defined in {{version-specific-params}}.
 
@@ -3248,6 +3253,10 @@ The Object Status field is only sent if the Object Payload Length is zero.
 
 The Subgroup ID field of an object with a Forwarding Preference of "Datagram"
 (see {{object-properties}}) is set to the Object ID.
+
+A valid FETCH stream always contains at least one Object.  If a subscriber
+receives a FIN on a FETCH stream without any Objects, it MUST close the session
+with a `Protocol Violation`.
 
 ## Examples
 
