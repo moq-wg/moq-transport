@@ -713,6 +713,40 @@ and announcements. The client can choose to delay closing the session if it
 expects more OBJECTs to be delivered. The server closes the session with a
 'GOAWAY Timeout' if the client doesn't close the session quickly enough.
 
+## Congestion Control
+
+MOQT does not specify a congestion controller, but there are important attributes
+to consider when selecting a congestion controller for use with an application
+built on top of MOQT.
+
+### Bufferbloat
+
+Traditional AIMD congestion controllers (ex. CUBIC {{?RFC9438}} and Reno {{?RFC6582}})
+are prone to Bufferbloat. Bufferbloat occurs when elements along the path build up
+a substantial queue of packets, commonly more than doubling the round trip time.
+These queued packets cause head-of-line blocking and latency, even when there is
+no packet loss.
+
+### Application-Limited
+
+The average bitrate for latency sensitive content needs to be less than the available
+bandwidth, otherwise data will be queued and/or dropped. As such,
+many MOQT applications will typically be limited by the available data to send, and
+not the congestion controller. Many congestion control algorithms
+only increase the congestion window or bandwidth estimate if fully utilized. This
+combination can lead to underestimating the available network bandwidth. As a result,
+applications might need to periodically ensure the congestion controller is not
+app-limited for at least a full round trip to ensure the available bandwidth can be
+measured.
+
+### Consistent Throughput
+
+Congestion control algorithms are commonly optimized for throughput, not consistency.
+For example, BBR's PROBE_RTT state halves the sending rate for more than a round trip
+in order to obtain an accurate minimum RTT. Similarly, Reno halves it's congestion
+window upon detecting loss.  In both cases, the large reduction in sending rate might
+cause issues with latency sensitive applications.
+
 # Retrieving Tracks with Subscribe and Fetch
 
 The central interaction with a publisher is to send SUBSCRIBE and/or FETCH for
