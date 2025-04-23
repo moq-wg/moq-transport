@@ -2049,6 +2049,7 @@ A publisher MUST send fetched groups in the determined group order, either
 ascending or descending. Within each group, objects are sent in Object ID order;
 subgroup ID is not used for ordering.
 
+If the StartGroup/StartObject is greater than `Largest Object`
 If StartGroup/StartObject is greater than `Largest Object`
 ({{message-subscribe-req}}), or all requested Objects have status `Object Does
 Not Exist`, the publisher MUST return FETCH_ERROR with error code 'No Objects'.
@@ -2111,14 +2112,13 @@ FETCH_OK
 Ascending (0x1) or Descending (0x2) order by group. See {{priorities}}.
 Values of 0x0 and those larger than 0x2 are a protocol error.
 
-* End Of Track: 1 if all objects have been published on this track, so
-the End Group ID and Object Id indicate the last Object in the track,
-0 if not.
+* End Of Track: 1 if all Objects have been published on this Track, and
+  the End Location is the final Object in the Track, 0 if not.
 
 * End: The largest object covered by the FETCH response.
   The End value is determined by taking the minimum of two values:
    - The {EndGroup, EndObject} specified in the FETCH request.
-   - The largest known {Group, Object} available.
+   - The largest known, possibly final, {Group, Object} available
 
   If the relay is subscribed to the track, it uses its knowledge of the largest
   {group, object} to set End.  If if is not subscribed and the requested End
