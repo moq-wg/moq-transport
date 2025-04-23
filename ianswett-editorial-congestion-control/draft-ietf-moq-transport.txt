@@ -823,16 +823,15 @@ Table of Contents
 3.6.2.  Application-Limited
 
    The average bitrate for latency sensitive content needs to be less
-   than the available bandwidth of the network, otherwise data will be
-   queued and/or dropped.  As such, many MOQT applications will
-   typically be limited by the available data to send, and not the
-   congestion controller.  Many congestion control algorithms only
-   increase the congestion window or bandwidth estimate if fully
-   utilized.  This combination can lead to underestimating the available
-   network bandwidth.  As a result, applications might need to
-   periodically ensure the congestion controller is not app-limited for
-   at least a full round trip to ensure the available bandwidth can be
-   measured.
+   than the available bandwidth, otherwise data will be queued and/or
+   dropped.  As such, many MOQT applications will typically be limited
+   by the available data to send, and not the congestion controller.
+   Many congestion control algorithms only increase the congestion
+   window or bandwidth estimate if fully utilized.  This combination can
+   lead to underestimating the available network bandwidth.  As a
+   result, applications might need to periodically ensure the congestion
+   controller is not app-limited for at least a full round trip to
+   ensure the available bandwidth can be measured.
 
 3.6.3.  Consistent Throughput
 
