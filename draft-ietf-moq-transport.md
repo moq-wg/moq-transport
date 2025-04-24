@@ -2088,7 +2088,8 @@ stream indicate objects that do not exist (eg: they implicitly have status
 between the first requested object and the first object in the stream; between
 objects in the stream; and between the last object in the stream and the Largest
 Group/Object indicated in FETCH_OK, so long as the fetch stream is terminated by
-a FIN.
+a FIN.  If no Objects exist in the requested range, the publisher returns
+FETCH_ERROR with code `No Objects`.
 
 **Fetch Types**
 
@@ -2217,7 +2218,7 @@ ascending or descending. Within each group, objects are sent in Object ID order;
 subgroup ID is not used for ordering.
 
 If Start Group/Start Object is greater than the latest published Object group,
-the publisher MUST return FETCH_ERROR with error code 'No Objects'.
+the publisher MUST return FETCH_ERROR with error code 'Invalid Range'.
 
 ### Calculating the Range of a Relative Joining Fetch
 
@@ -2230,7 +2231,7 @@ subscription are used to calculate the end of a Relative Joining Fetch so the
 Objects retrieved by the FETCH and SUBSCRIBE are contiguous and non-overlapping.
 If no Objects have been published for the track, and the SUBSCRIBE_OK has a
 Content Exists value of 0, the publisher MUST respond with a FETCH_ERROR with
-error code 'No Objects'.
+error code 'Invalid Range'.
 
 The publisher receiving a Relative Joining Fetch computes the range as follows:
 
@@ -2358,10 +2359,11 @@ as defined below:
 
 * Track Does Not Exist - The requested track is not available at the publisher.
 
-* Invalid Range - The end of the requested range is earlier than the beginning.
+* Invalid Range - The end of the requested range is earlier than the beginning,
+  the start of the requested range is beyond the Largest Object, or the track
+  has not published any Objects yet.
 
-* No Objects - The beginning of the requested range is after the latest group
-  and object for the track, or the track has not published any objects.
+* No Objects - No Objects exist between the requested Start and End Locations.
 
 * Invalid Joining Request ID - The joining Fetch referenced a Request ID that
   did not belong to an active Subscription.
