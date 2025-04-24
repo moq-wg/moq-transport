@@ -1056,7 +1056,7 @@ svg :is([fill="white"], [fill^="#fff"]) {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Nandakumar, et al.</td>
-<td class="center">Expires 25 October 2025</td>
+<td class="center">Expires 26 October 2025</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1069,12 +1069,12 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dd class="internet-draft">draft-ietf-moq-transport-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2025-04-23" class="published">23 April 2025</time>
+<time datetime="2025-04-24" class="published">24 April 2025</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2025-10-25">25 October 2025</time></dd>
+<dd class="expires"><time datetime="2025-10-26">26 October 2025</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1143,7 +1143,7 @@ networks and is designed for high scale and low latency distribution.<a href="#s
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 25 October 2025.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 26 October 2025.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -3304,8 +3304,8 @@ CLIENT_SETUP Message {
   Type (i) = 0x20,
   Length (i),
   Number of Supported Versions (i),
-  Supported Version (i) ...,
-  Number of Parameters (i) ...,
+  Supported Versions (i) ...,
+  Number of Parameters (i),
   Setup Parameters (..) ...,
 }
 
@@ -3313,7 +3313,7 @@ SERVER_SETUP Message {
   Type (i) = 0x21,
   Length (i),
   Selected Version (i),
-  Number of Parameters (i) ...,
+  Number of Parameters (i),
   Setup Parameters (..) ...,
 }
 </pre>
@@ -3460,8 +3460,7 @@ value is a 'Protocol Violation'.<a href="#section-8.5-2" class="pilcrow">¶</a><
 <figure id="figure-7">
           <div class="alignLeft art-text artwork" id="section-8.5-3.1">
 <pre>
-MAX_REQUEST_ID
-{
+MAX_REQUEST_ID Message {
   Type (i) = 0x15,
   Length (i),
   Request ID (i),
@@ -3504,8 +3503,7 @@ sending REQUESTS_BLOCKED is not required.<a href="#section-8.6-2" class="pilcrow
 <figure id="figure-8">
           <div class="alignLeft art-text artwork" id="section-8.6-3.1">
 <pre>
-REQUESTS_BLOCKED
-{
+REQUESTS_BLOCKED Message {
   Type (i) = 0x1A,
   Length (i),
   Maximum Request ID (i),
@@ -3559,8 +3557,8 @@ AbsoluteStart filter with <code>Start</code> = {0, 0}.<a href="#section-8.7-8" c
 <p id="section-8.7-9">AbsoluteRange (0x4):  The filer Start Location and End Group are specified
 explicitly in the SUBSCRIBE message. The <code>Start</code> specified in the SUBSCRIBE
 message <span class="bcp14">MAY</span> be less than the <code>Largest Object</code> observed at the publisher. If the
-specified <code>EndGroup</code> is the same group specified in <code>Start</code>, the remainder of
-that Group passes the filter. <code>EndGroup</code> <span class="bcp14">MUST</span> specify the same or a larger Group
+specified <code>End Group</code> is the same group specified in <code>Start</code>, the remainder of
+that Group passes the filter. <code>End Group</code> <span class="bcp14">MUST</span> specify the same or a larger Group
 than specified in <code>Start</code>.<a href="#section-8.7-9" class="pilcrow">¶</a></p>
 <p id="section-8.7-10">A filter type other than the above <span class="bcp14">MUST</span> be treated as error.<a href="#section-8.7-10" class="pilcrow">¶</a></p>
 <p id="section-8.7-11">Subscribe only delivers newly published or received Objects.  Objects from the
@@ -3591,8 +3589,8 @@ SUBSCRIBE Message {
   Group Order (8),
   Forward (8),
   Filter Type (i),
-  [Start (Location)],
-  [EndGroup (i)],
+  [Start Location (Location)],
+  [End Group (i)],
   Number of Parameters (i),
   Subscribe Parameters (..) ...
 }
@@ -3639,14 +3637,14 @@ session with a Protocol Violation (<a href="#session-termination" class="auto in
 </li>
           <li class="normal" id="section-8.7-15.8">
             <p id="section-8.7-15.8.1">Filter Type: Identifies the type of filter, which also indicates whether
-the Start and EndGroup fields will be present.<a href="#section-8.7-15.8.1" class="pilcrow">¶</a></p>
+the Start and End Group fields will be present.<a href="#section-8.7-15.8.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.7-15.9">
-            <p id="section-8.7-15.9.1">Start: The starting location for this subscriptions. Only present for
+            <p id="section-8.7-15.9.1">Start Location: The starting location for this subscriptions. Only present for
 "AbsoluteStart" and "AbsoluteRange" filter types.<a href="#section-8.7-15.9.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.7-15.10">
-            <p id="section-8.7-15.10.1">EndGroup: The end Group ID, inclusive. Only present for the "AbsoluteRange"
+            <p id="section-8.7-15.10.1">End Group: The end Group ID, inclusive. Only present for the "AbsoluteRange"
 filter type.<a href="#section-8.7-15.10.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.7-15.11">
@@ -3672,15 +3670,14 @@ subscriptions.<a href="#section-8.8-1" class="pilcrow">¶</a></p>
 <figure id="figure-10">
           <div class="alignLeft art-text artwork" id="section-8.8-2.1">
 <pre>
-SUBSCRIBE_OK
-{
+SUBSCRIBE_OK Message {
   Type (i) = 0x4,
   Length (i),
   Request ID (i),
   Expires (i),
   Group Order (8),
-  ContentExists (8),
-  [Largest (Location)],
+  Content Exists (8),
+  [Largest Location (Location)],
   Number of Parameters (i),
   Subscribe Parameters (..) ...
 }
@@ -3707,14 +3704,14 @@ Ascending (0x1) or Descending (0x2) order by group. See <a href="#priorities" cl
 Values of 0x0 and those larger than 0x2 are a protocol error.<a href="#section-8.8-3.3.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.8-3.4">
-            <p id="section-8.8-3.4.1">ContentExists: 1 if an object has been published on this track, 0 if not.
+            <p id="section-8.8-3.4.1">Content Exists: 1 if an object has been published on this track, 0 if not.
 If 0, then the Largest Group ID and Largest Object ID fields will not be
 present. Any other value is a protocol error and <span class="bcp14">MUST</span> terminate the
 session with a Protocol Violation (<a href="#session-termination" class="auto internal xref">Section 3.4</a>).<a href="#section-8.8-3.4.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.8-3.5">
-            <p id="section-8.8-3.5.1">Largest: The location of the largest object available for this track. This
-field is only present if ContentExists has a value of 1.<a href="#section-8.8-3.5.1" class="pilcrow">¶</a></p>
+            <p id="section-8.8-3.5.1">Largest Location: The location of the largest object available for this track. This
+field is only present if Content Exists has a value of 1.<a href="#section-8.8-3.5.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.8-3.6">
             <p id="section-8.8-3.6.1">Subscribe Parameters: The parameters are defined in <a href="#version-specific-params" class="auto internal xref">Section 8.2.1</a>.<a href="#section-8.8-3.6.1" class="pilcrow">¶</a></p>
@@ -3733,8 +3730,7 @@ failed SUBSCRIBE.<a href="#section-8.9-1" class="pilcrow">¶</a></p>
 <figure id="figure-11">
           <div class="alignLeft art-text artwork" id="section-8.9-2.1">
 <pre>
-SUBSCRIBE_ERROR
-{
+SUBSCRIBE_ERROR Message {
   Type (i) = 0x5,
   Length (i),
   Request ID (i),
@@ -3885,7 +3881,7 @@ expected that it will always succeed and the worst outcome is that it is not
 processed promptly and some extra objects from the existing subscription are
 delivered.<a href="#section-8.10-2" class="pilcrow">¶</a></p>
 <p id="section-8.10-3">Unlike a new subscription, SUBSCRIBE_UPDATE can not cause an Object to be
-delivered multiple times.  Like SUBSCRIBE, EndGroup <span class="bcp14">MUST</span> be greater than or
+delivered multiple times.  Like SUBSCRIBE, End Group <span class="bcp14">MUST</span> be greater than or
 equal to the Group specified in <code>Start</code>.<a href="#section-8.10-3" class="pilcrow">¶</a></p>
 <p id="section-8.10-4">If a parameter included in <code>SUBSCRIBE</code> is not present in
 <code>SUBSCRIBE_UPDATE</code>, its value remains unchanged.  There is no mechanism to
@@ -3899,8 +3895,8 @@ SUBSCRIBE_UPDATE Message {
   Type (i) = 0x2,
   Length (i),
   Request ID (i),
-  Start (Location),
-  EndGroup (i),
+  Start Location (Location),
+  End Group (i),
   Subscriber Priority (8),
   Forward (8),
   Number of Parameters (i),
@@ -3918,10 +3914,10 @@ SUBSCRIBE_UPDATE Message {
 message is updating.  This <span class="bcp14">MUST</span> match an existing Request ID.<a href="#section-8.10-7.1.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.10-7.2">
-            <p id="section-8.10-7.2.1">Start: The starting location.<a href="#section-8.10-7.2.1" class="pilcrow">¶</a></p>
+            <p id="section-8.10-7.2.1">Start Location : The starting location.<a href="#section-8.10-7.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.10-7.3">
-            <p id="section-8.10-7.3.1">EndGroup: The end Group ID, plus 1. A value of 0 means the subscription is
+            <p id="section-8.10-7.3.1">End Group: The end Group ID, plus 1. A value of 0 means the subscription is
 open-ended.<a href="#section-8.10-7.3.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.10-7.4">
@@ -4145,12 +4141,12 @@ a FIN.<a href="#section-8.13-1" class="pilcrow">¶</a></p>
 <p id="section-8.13-5">Relative Joining Fetch (0x2) : A Fetch joined together with a Subscribe by
 specifying the Request ID of an active subscription and a relative starting
 offset. A publisher receiving a Joining Fetch uses properties of the associated
-Subscribe to determine the Track Namespace, Track, StartGroup, StartObject,
-EndGroup, and EndObject such that it is contiguous with the associated
+Subscribe to determine the Track Namespace, Track, Start Group, Start Object,
+End Group, and End Object such that it is contiguous with the associated
 Subscribe. The Joining Fetch begins the Preceding Group Offset prior to the
 associated subscription.<a href="#section-8.13-5" class="pilcrow">¶</a></p>
 <p id="section-8.13-6">Absolute Joining Fetch (0x3) : Identical to a Relative Joining Fetch except that the
-StartGroup is determined by an absolute Group value rather than a relative offset to
+Start Group is determined by an absolute Group value rather than a relative offset to
 the subscription.<a href="#section-8.13-6" class="pilcrow">¶</a></p>
 <p id="section-8.13-7">A Subscriber can use a Joining Fetch to, for example, fill a playback buffer with a
 certain number of groups prior to the live edge of a track.<a href="#section-8.13-7" class="pilcrow">¶</a></p>
@@ -4169,9 +4165,9 @@ If the upstream FETCH fails, the relay sends a FETCH_ERROR and can reset the
 unidirectional stream.  It can choose to do so immediately or wait until the
 cached objects have been delivered before resetting the stream.<a href="#section-8.13-11" class="pilcrow">¶</a></p>
 <p id="section-8.13-12">The Object Forwarding Preference does not apply to fetches.<a href="#section-8.13-12" class="pilcrow">¶</a></p>
-<p id="section-8.13-13">Fetch specifies an inclusive range of Objects starting at StartObject
-in StartGroup and ending at EndObject in EndGroup. EndGroup and EndObject <span class="bcp14">MUST</span>
-specify the same or a larger Location than StartGroup and StartObject.<a href="#section-8.13-13" class="pilcrow">¶</a></p>
+<p id="section-8.13-13">Fetch specifies an inclusive range of Objects starting at Start Object
+in Start Group and ending at End Object in End Group. End Group and End Object <span class="bcp14">MUST</span>
+specify the same or a larger Location than Start Group and Start Object.<a href="#section-8.13-13" class="pilcrow">¶</a></p>
 <p id="section-8.13-14">The format of FETCH is as follows:<a href="#section-8.13-14" class="pilcrow">¶</a></p>
 <span id="name-moqt-fetch-message"></span><div id="moq-transport-fetch-format">
 <figure id="figure-15">
@@ -4187,12 +4183,12 @@ FETCH Message {
   [Track Namespace (tuple),
    Track Name Length (i),
    Track Name (..),
-   StartGroup (i),
-   StartObject (i),
-   EndGroup (i),
-   EndObject (i),]
-  [ Joining Request ID (i),
-    Joining Start (i),]
+   Start Group (i),
+   Start Object (i),
+   End Group (i),
+   End Object (i),]
+  [Joining Request ID (i),
+   Joining Start (i),]
   Number of Parameters (i),
   Parameters (..) ...
 }
@@ -4236,16 +4232,16 @@ Joining or Absolute Joining.<a href="#section-8.13-17.4.1" class="pilcrow">¶</a
             <p id="section-8.13-19.2.1">Track Name: Identifies the track name as defined in (<a href="#track-name" class="auto internal xref">Section 2.4.1</a>).<a href="#section-8.13-19.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.13-19.3">
-            <p id="section-8.13-19.3.1">StartGroup: The start Group ID.<a href="#section-8.13-19.3.1" class="pilcrow">¶</a></p>
+            <p id="section-8.13-19.3.1">Start Group: The start Group ID.<a href="#section-8.13-19.3.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.13-19.4">
-            <p id="section-8.13-19.4.1">StartObject: The start Object ID.<a href="#section-8.13-19.4.1" class="pilcrow">¶</a></p>
+            <p id="section-8.13-19.4.1">Start Object: The start Object ID.<a href="#section-8.13-19.4.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.13-19.5">
-            <p id="section-8.13-19.5.1">EndGroup: The end Group ID.<a href="#section-8.13-19.5.1" class="pilcrow">¶</a></p>
+            <p id="section-8.13-19.5.1">End Group: The end Group ID.<a href="#section-8.13-19.5.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.13-19.6">
-            <p id="section-8.13-19.6.1">EndObject: The end Object ID, plus 1. A value of 0 means the entire group is
+            <p id="section-8.13-19.6.1">End Object: The end Object ID, plus 1. A value of 0 means the entire group is
 requested.<a href="#section-8.13-19.6.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
@@ -4267,12 +4263,12 @@ the Starting Group ID.<a href="#section-8.13-21.2.1" class="pilcrow">¶</a></p>
         </ul>
 <p id="section-8.13-22">Objects that are not yet published will not be retrieved by a FETCH.
 The latest available Object is indicated in the FETCH_OK, and is the last
-Object a fetch will return if the EndGroup and EndObject have not yet been
+Object a fetch will return if the End Group and End Object have not yet been
 published.<a href="#section-8.13-22" class="pilcrow">¶</a></p>
 <p id="section-8.13-23">A publisher <span class="bcp14">MUST</span> send fetched groups in the determined group order, either
 ascending or descending. Within each group, objects are sent in Object ID order;
 subgroup ID is not used for ordering.<a href="#section-8.13-23" class="pilcrow">¶</a></p>
-<p id="section-8.13-24">If StartGroup/StartObject is greater than the latest published Object group,
+<p id="section-8.13-24">If Start Group/Start Object is greater than the latest published Object group,
 the publisher <span class="bcp14">MUST</span> return FETCH_ERROR with error code 'No Objects'.<a href="#section-8.13-24" class="pilcrow">¶</a></p>
 <div id="calculating-the-range-of-a-relative-joining-fetch">
 <section id="section-8.13.1">
@@ -4286,26 +4282,26 @@ and field values derived from the corresponding subscription.<a href="#section-8
 subscription are used to calculate the end of a Relative Joining Fetch so the
 Objects retrieved by the FETCH and SUBSCRIBE are contiguous and non-overlapping.
 If no Objects have been published for the track, and the SUBSCRIBE_OK has a
-ContentExists value of 0, the publisher <span class="bcp14">MUST</span> respond with a FETCH_ERROR with
+Content Exists value of 0, the publisher <span class="bcp14">MUST</span> respond with a FETCH_ERROR with
 error code 'No Objects'.<a href="#section-8.13.1-2" class="pilcrow">¶</a></p>
 <p id="section-8.13.1-3">The publisher receiving a Relative Joining Fetch computes the range as follows:<a href="#section-8.13.1-3" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-8.13.1-4.1">
-              <p id="section-8.13.1-4.1.1">Fetch StartGroup: Subscribe Largest Group - Joining start<a href="#section-8.13.1-4.1.1" class="pilcrow">¶</a></p>
+              <p id="section-8.13.1-4.1.1">Fetch Start Group: Subscribe Largest Group - Joining start<a href="#section-8.13.1-4.1.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-8.13.1-4.2">
-              <p id="section-8.13.1-4.2.1">Fetch StartObject: 0<a href="#section-8.13.1-4.2.1" class="pilcrow">¶</a></p>
+              <p id="section-8.13.1-4.2.1">Fetch Start Object: 0<a href="#section-8.13.1-4.2.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-8.13.1-4.3">
-              <p id="section-8.13.1-4.3.1">Fetch EndGroup: Subscribe Largest Group<a href="#section-8.13.1-4.3.1" class="pilcrow">¶</a></p>
+              <p id="section-8.13.1-4.3.1">Fetch End Group: Subscribe Largest Group<a href="#section-8.13.1-4.3.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-8.13.1-4.4">
-              <p id="section-8.13.1-4.4.1">Fetch EndObject: Subscribe Largest Object<a href="#section-8.13.1-4.4.1" class="pilcrow">¶</a></p>
+              <p id="section-8.13.1-4.4.1">Fetch End Object: Subscribe Largest Object<a href="#section-8.13.1-4.4.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
-<p id="section-8.13.1-5">A Fetch EndObject of 0 requests the entire group, but Fetch will not
+<p id="section-8.13.1-5">A Fetch End Object of 0 requests the entire group, but Fetch will not
 retrieve Objects that have not yet been published, so 1 is subtracted from
-the Fetch EndGroup if Fetch EndObject is 0.<a href="#section-8.13.1-5" class="pilcrow">¶</a></p>
+the Fetch End Group if Fetch End Object is 0.<a href="#section-8.13.1-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="calculating-the-range-of-an-absolute-joining-fetch">
@@ -4313,7 +4309,7 @@ the Fetch EndGroup if Fetch EndObject is 0.<a href="#section-8.13.1-5" class="pi
           <h4 id="name-calculating-the-range-of-an">
 <a href="#section-8.13.2" class="section-number selfRef">8.13.2. </a><a href="#name-calculating-the-range-of-an" class="section-name selfRef">Calculating the Range of an Absolute Joining Fetch</a>
           </h4>
-<p id="section-8.13.2-1">Identical to the Relative Joining fetch except that Fetch StartGroup is the
+<p id="section-8.13.2-1">Identical to the Relative Joining fetch except that Fetch Start Group is the
 Joining Start value.<a href="#section-8.13.2-1" class="pilcrow">¶</a></p>
 </section>
 </div>
@@ -4331,14 +4327,13 @@ but the FETCH_OK <span class="bcp14">MUST NOT</span> be sent until the end group
 <figure id="figure-16">
           <div class="alignLeft art-text artwork" id="section-8.14-2.1">
 <pre>
-FETCH_OK
-{
+FETCH_OK Message {
   Type (i) = 0x18,
   Length (i),
   Request ID (i),
   Group Order (8),
   End Of Track (8),
-  End (Location),
+  End Location (Location),
   Number of Parameters (i),
   Subscribe Parameters (..) ...
 }
@@ -4364,8 +4359,8 @@ the End Group ID and Object Id indicate the last Object in the track,
 0 if not.<a href="#section-8.14-3.3.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.14-3.4">
-            <p id="section-8.14-3.4.1">End: The largest object covered by the FETCH response.
-This is the minimum of the {EndGroup,EndObject} specified in FETCH and the
+            <p id="section-8.14-3.4.1">End Location: The largest object covered by the FETCH response.
+This is the minimum of the {End Group,End Object} specified in FETCH and the
 largest known {group,object}.  If the relay is currently subscribed to the
 track, the largest known {group,object} at the relay is used.  For tracks
 with a requested end larger than what is cached without an active
@@ -4389,8 +4384,7 @@ failed FETCH.<a href="#section-8.15-1" class="pilcrow">¶</a></p>
 <figure id="figure-17">
           <div class="alignLeft art-text artwork" id="section-8.15-2.1">
 <pre>
-FETCH_ERROR
-{
+FETCH_ERROR Message {
   Type (i) = 0x19,
   Length (i),
   Request ID (i),
@@ -4612,7 +4606,7 @@ TRACK_STATUS Message {
   Length (i),
   Request ID (i),
   Status Code (i),
-  Largest (Location),
+  Largest Location (Location),
   Number of Parameters (i),
   Parameters (..) ...,
 }
@@ -4647,7 +4641,7 @@ upstream. Subsequent fields contain the largest group and object ID known.<a hre
 <p id="section-8.18-10">TODO: Auth Failures<a href="#section-8.18-10" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-8.18-11.1">
-            <p id="section-8.18-11.1.1">Largest: represents the largest Object location observed by the
+            <p id="section-8.18-11.1.1">Largest Location: represents the largest Object location observed by the
 Publisher for an active subscription. If the publisher is a relay without an
 active subscription, it <span class="bcp14">SHOULD</span> send a TRACK_STATUS_REQUEST upstream or <span class="bcp14">MAY</span>
 subscribe to the track, to obtain the same information. If neither is possible,
@@ -4708,8 +4702,7 @@ successful authorization and acceptance of an ANNOUNCE message.<a href="#section
 <figure id="figure-22">
           <div class="alignLeft art-text artwork" id="section-8.20-2.1">
 <pre>
-ANNOUNCE_OK Message
-{
+ANNOUNCE_OK Message {
   Type (i) = 0x7,
   Length (i),
   Request ID (i)
@@ -4739,8 +4732,7 @@ failed authorization.<a href="#section-8.21-1" class="pilcrow">¶</a></p>
 <figure id="figure-23">
           <div class="alignLeft art-text artwork" id="section-8.21-2.1">
 <pre>
-ANNOUNCE_ERROR Message
-{
+ANNOUNCE_ERROR Message {
   Type (i) = 0x8,
   Length (i),
   Request ID (i),
@@ -4894,7 +4886,7 @@ ANNOUNCE_CANCEL Message {
   Track Namespace (tuple),
   Error Code (i),
   Reason Phrase Length (i),
-  Reason Phrase Length (..),
+  Reason Phrase (..),
 }
 </pre>
 </div>
@@ -4993,8 +4985,7 @@ namespace subscriptions.<a href="#section-8.25-1" class="pilcrow">¶</a></p>
 <figure id="figure-27">
           <div class="alignLeft art-text artwork" id="section-8.25-2.1">
 <pre>
-SUBSCRIBE_ANNOUNCES_OK
-{
+SUBSCRIBE_ANNOUNCES_OK Message {
   Type (i) = 0x12,
   Length (i),
   Request ID (i),
@@ -5024,8 +5015,7 @@ a failed SUBSCRIBE_ANNOUNCES.<a href="#section-8.26-1" class="pilcrow">¶</a></p
 <figure id="figure-28">
           <div class="alignLeft art-text artwork" id="section-8.26-2.1">
 <pre>
-SUBSCRIBE_ANNOUNCES_ERROR
-{
+SUBSCRIBE_ANNOUNCES_ERROR Message {
   Type (i) = 0x13,
   Length (i),
   Request ID (i),
