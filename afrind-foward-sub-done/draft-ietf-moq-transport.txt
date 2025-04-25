@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 26 October 2025                                   I. Swett, Ed.
+Expires: 27 October 2025                                   I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                           24 April 2025
+                                                           25 April 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 26 October 2025.
+   This Internet-Draft will expire on 27 October 2025.
 
 Copyright Notice
 
@@ -1857,16 +1857,16 @@ Table of Contents
    from the past are retrieved using FETCH (Section 8.13).
 
    A Subscription can also request a publisher to not forward Objects
-   for a given track by setting the Forward field to 0.  The
-   SUBCRIBE_DONE (Section 8.12) control message is not affected by this
-   flag.  This allows the publisher or relay to prepare to serve the
-   subscription in advance, reducing the time to receive objects in the
-   future.  Relays SHOULD set the Forward flag to 1 if a new
-   subscription needs to be sent upstream, regardless of the value of
-   the Forward field from the downstream subscription.  Subscriptions
-   that are not forwarded consume resources from the publisher, so a
-   publisher might deprioritize, reject, or close those subscriptions to
-   ensure other subscriptions can be delivered.
+   for a given track by setting the Forward field to 0.  Control
+   messages, such as SUBCRIBE_DONE (Section 8.12) are still sent.  This
+   allows the publisher or relay to prepare to serve the subscription in
+   advance, reducing the time to receive objects in the future.  Relays
+   SHOULD set the Forward flag to 1 if a new subscription needs to be
+   sent upstream, regardless of the value of the Forward field from the
+   downstream subscription.  Subscriptions that are not forwarded
+   consume resources from the publisher, so a publisher might
+   deprioritize, reject, or close those subscriptions to ensure other
+   subscriptions can be delivered.
 
    The format of SUBSCRIBE is as follows:
 
