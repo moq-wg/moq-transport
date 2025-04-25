@@ -3221,9 +3221,10 @@ Each object sent on a fetch stream after the FETCH_HEADER has the following form
 
 ~~~
 {
-  Group ID (i),
-  Subgroup ID (i),
-  Object ID (i),
+  Serialization (8),
+  [Group ID (i),]
+  [Subgroup ID (i),]
+  [Object ID (i),]
   Publisher Priority (8),
   Extension Headers Length (i),
   [Extension headers (...)],
@@ -3233,6 +3234,26 @@ Each object sent on a fetch stream after the FETCH_HEADER has the following form
 }
 ~~~
 {: #object-fetch-format title="MOQT Fetch Object Fields"}
+
+The Serialization field defines the serialization of the object. The
+following code points are defined:
+
+|------|--------------------------------------------------------------------|
+| Code | Description                                                        |
+|-----:|:-------------------------------------------------------------------|
+| 0x0  | The Group ID, Subgroup ID and Object ID fields are present         |
+|------|--------------------------------------------------------------------|
+| 0x1  | The Group ID and Subgroup ID of this object are identical to those |
+|      | of the prior object and Object ID increments by 1. The Group ID,   |
+|      | Subgroup ID and Object ID fields are not present.                  |
+|------|--------------------------------------------------------------------|
+| 0x2  | The Group ID field exists and Subgroup ID and Object ID are both 0.|
+|      | The Subgroup ID and Object ID fields are not present.              |
+|------|--------------------------------------------------------------------|
+| 0x3  | The Group ID of this object is identical to that of the prior      |
+|      | Object. Subgroup ID increments by 1 and Object ID is 0. The        |
+|      | Subgroup ID and Object ID fields are not present.                  |
+|------|--------------------------------------------------------------------|
 
 The Object Status field is only sent if the Object Payload Length is zero.
 
