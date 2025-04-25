@@ -3251,8 +3251,8 @@ following code points are defined:
 |      | The Subgroup ID and Object ID fields are not present.              |
 |------|--------------------------------------------------------------------|
 | 0x3  | The Group ID of this object is identical to that of the prior      |
-|      | Object. Subgroup ID increments by 1 and Object ID is 0. The        |
-|      | Subgroup ID and Object ID fields are not present.                  |
+|      | Object. Subgroup ID increments by 1 and Object ID increments by 1. |
+|      | The Subgroup ID and Object ID fields are not present.              |
 |------|--------------------------------------------------------------------|
 
 The Object Status field is only sent if the Object Payload Length is zero.
