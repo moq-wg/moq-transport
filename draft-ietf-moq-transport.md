@@ -1674,8 +1674,8 @@ Subscribe only delivers newly published or received Objects.  Objects from the
 past are retrieved using FETCH ({{message-fetch}}).
 
 A Subscription can also request a publisher to not forward Objects for a given
-track by setting the `Forward` field to 0. The SUBCRIBE_DONE
-({{message-subscribe-done}}) control message is not affected by this flag.
+track by setting the `Forward` field to 0. Control messages, such as SUBCRIBE_DONE
+({{message-subscribe-done}}) are still sent.
 This allows the publisher or relay to prepare to serve the subscription in
 advance, reducing the time to receive objects in the future. Relays SHOULD set
 the `Forward` flag to 1 if a new subscription needs to be sent upstream,
