@@ -495,16 +495,22 @@ by a receiver:
    than the previous Object in the resopnse.
 5. A Subgroup or FETCH response is terminated with a FIN in the middle of an
    Object
-6. An Object is received whose Object ID is larger than the confirmed largest
-   Object in the subgroup.
-7. An Object is received in a Group whose Object ID is larger than the
-   confirmed largest Object in the Group.
-8. An Object is received on a Track whose Group and Object ID are larger than the
-   confirmed largest Object in the Track.
-9. The same Object is received more than once with with different Payload or
-   other immutable properties.
-10. An Object is received with a different Forwarding Preference than previously
-   observed from the same Track.
+6. An Object is received whose Object ID is larger than the final Object in the
+   Subgroup.  The final Object in a Subgroup is the last Object received on a
+   Subgroup stream before a FIN.
+7. A Subgroup is received with two or more different final Objects.
+8. An Object is received in a Group whose Object ID is larger than the final
+   Object in the Group.  The final Object in a Group is the Object with Status
+   END_OF_GROUP or the last Object sent in a FETCH that requested the entire
+   Group.
+9. An Object is received on a Track whose Group and Object ID are larger than the
+   final Object in the Track.  The final Object in a Track is the Object with
+   Status END_OF_TRACK or the last Object sent in a FETCH whose response indicated
+   End of Track.
+10. The same Object is received more than once with with different Payload or
+    other immutable properties.
+11. An Object is received with a different Forwarding Preference than previously
+    observed from the same Track.
 
 When a subscriber detects a Malformed Track, it MUST UNSUBSCRIBE from the
 Track and SHOULD deliver an error to the application.  If a relay detects a
@@ -2677,9 +2683,8 @@ violation. Objects can arrive after a subscription or fetch has been cancelled,
 so the session MUST NOT be teriminated in that case.
 
 Every Track has a single 'Object Forwarding Preference' and the Original
-Publisher MUST NOT mix different forwarding preferences within a single track.
-If a subscriber receives different forwarding preferences for a track, it
-SHOULD close the session with an error of 'Protocol Violation'.
+Publisher MUST NOT mix different forwarding preferences within a single track
+(see {{malformed-tracks}}).
 
 ## Objects {#message-object}
 
