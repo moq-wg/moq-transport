@@ -2377,8 +2377,10 @@ as defined below:
 
 ## FETCH_CANCEL {#message-fetch-cancel}
 
-A subscriber sends a FETCH_CANCEL message to a publisher to indicate it is no longer interested in receiving objects for the fetch identified by the 'Request ID'. The publisher SHOULD promptly close the unidirectional stream, even if it is in
-the middle of delivering an object.
+A subscriber sends a FETCH_CANCEL message to a publisher to indicate it is no
+longer interested in receiving objects for the fetch identified by the 'Request
+ID'. The publisher SHOULD promptly close the unidirectional stream, even if it
+is in the middle of delivering an object.
 
 The format of `FETCH_CANCEL` is as follows:
 
