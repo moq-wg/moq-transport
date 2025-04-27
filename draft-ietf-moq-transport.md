@@ -2580,10 +2580,10 @@ an Object it never requested, it SHOULD terminate the session with a protocol
 violation. Objects can arrive after a subscription or fetch has been cancelled,
 so the session MUST NOT be teriminated in that case.
 
-Every Track has a single 'Object Forwarding Preference' and the Original
-Publisher MUST NOT mix different forwarding preferences within a single track.
-If a subscriber receives different forwarding preferences for a track, it
-SHOULD close the session with an error of 'Protocol Violation'.
+Every Track has a single 'Object Forwarding Preference'. If a subscriber
+receives objects via both stream and datagram in response to a SUBSCRIBE, or
+via Datagram in response to a FETCH, it SHOULD close the session with an error
+of 'Protocol Violation."
 
 ## Objects {#message-object}
 
@@ -2606,7 +2606,7 @@ A canonical MoQ Object has the following information:
 the Object {{priorities}}.
 
 * Object Forwarding Preference: An enumeration indicating how a publisher sends
-an object. The preferences are Subgroup and Datagram.  An Object
+an object. The preferences are Subgroup and Datagram.  When publishing, an Object
 MUST be sent according to its `Object Forwarding Preference`, described below.
 
 * Subgroup ID: The object is a member of the indicated subgroup ID ({{model-subgroup}})
