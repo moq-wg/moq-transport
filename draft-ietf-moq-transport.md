@@ -489,7 +489,7 @@ by a receiver:
 2. An Object is received in a FETCH response with the same Group as the
    previous Object, but whose Object ID is not strictly larger than the previous
    object.
-3. An Object is received in an Asending FETCH response whose Group ID is smaller
+3. An Object is received in an Ascending FETCH response whose Group ID is smaller
    than the previous Object in the response.
 4. An Object is received in a Descending FETCH response whose Group ID is larger
    than the previous Object in the resopnse.
@@ -499,9 +499,9 @@ by a receiver:
    Object in the subgroup.
 7. An Object is received in a Group whose Object ID is larger than the
    confirmed largest Object in the Group.
-8. An Object is received on a Track whose Object ID is larger than the confirmed
-   largest Object in the Track.
-8. The same Object is received more than once with with different Payload or
+8. An Object is received on a Track whose Group and Object ID are larger than the
+   confirmed largest Object in the Track.
+9. The same Object is received more than once with with different Payload or
    other immutable properties.
 10. An Object is received with a different Forwarding Preference than previously
    observed from the same Track.
