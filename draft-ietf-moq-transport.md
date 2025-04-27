@@ -1987,9 +1987,9 @@ requested.
 Fields present only for Relative Fetch (0x2) and Absolute Fetch (0x3):
 
 * Joining Subscribe ID: The Subscribe ID of the existing subscription to be
-joined. If a publisher receives a Joining Fetch with a Subscribe ID that does
-not correspond to an existing Subscribe, it MUST respond with a Fetch Error
-with code Invalid Subscribe ID.
+  joined. If a publisher receives a Joining Fetch with a Subscribe ID that does
+  not correspond to an existing Subscribe in the same session, it MUST respond
+  with a Fetch Error with code Invalid Subscribe ID.
 
 * Joining Start : for a Relative Joining Fetch (0x2), this value represents the
   group offset for the Fetch prior and relative to the Current Group of the
