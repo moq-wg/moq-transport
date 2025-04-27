@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 23 October 2025                                   I. Swett, Ed.
+Expires: 29 October 2025                                   I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                           21 April 2025
+                                                           27 April 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 23 October 2025.
+   This Internet-Draft will expire on 29 October 2025.
 
 Copyright Notice
 
@@ -574,7 +574,7 @@ Table of Contents
         the previous Object, but whose Object ID is not strictly larger
         than the previous object.
 
-   3.   An Object is received in an Asending FETCH response whose Group
+   3.   An Object is received in an Ascending FETCH response whose Group
         ID is smaller than the previous Object in the response.
 
    4.   An Object is received in a Descending FETCH response whose Group
@@ -589,8 +589,8 @@ Table of Contents
    7.   An Object is received in a Group whose Object ID is larger than
         the confirmed largest Object in the Group.
 
-   8.   An Object is received on a Track whose Object ID is larger than
-        the confirmed largest Object in the Track.
+   8.   An Object is received on a Track whose Group and Object ID are
+        larger than the confirmed largest Object in the Track.
 
    9.   The same Object is received more than once with with different
         Payload or other immutable properties.
