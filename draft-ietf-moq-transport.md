@@ -2631,8 +2631,7 @@ ANNOUNCE_CANCEL Message {
   Length (i),
   Track Namespace (tuple),
   Error Code (i),
-  Reason Phrase Length (i),
-  Reason Phrase Length (..),
+  Erorr Reason (Reason Phrase),
 }
 ~~~
 {: #moq-transport-announce-cancel-format title="MOQT ANNOUNCE_CANCEL Message"}
