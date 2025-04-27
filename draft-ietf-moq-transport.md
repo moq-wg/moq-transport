@@ -329,6 +329,28 @@ Length/Value does not match the serialization defined by that Type,
 the receiver MUST terminate the session with error code 'Key-Value
 Formatting Error'.
 
+### Reason Phrase Structure {#reason-phrase}
+
+Reason Phrase provides a way for the sender to encode additional diagnostic
+information about the error condition, where appropriate.
+
+~~~
+Reason Phrase {
+  Reason Phrase Length (i),
+  Reason Phrase Value (..)
+}
+~~~
+
+* Reason Phrase Length: A variable-length integer specifying the length of the
+reason phrase in bytes. The  reason phrase length has a maximum length of
+1024 bytes. If an endpoint recieves a length exceeding the maximum, it MUST
+close the session with a Protocol Violation
+
+* Reason Phrase Value: Additional diagnostic information about the error condition.
+The reason phrase value is encoded as UTF-8 string and does not carry information,
+such as language tags, that would aid comprehension by  any entity other than
+the one that created the text.
+
 # Object Data Model {#model}
 
 MOQT has a hierarchical data model, comprised of tracks which contain
@@ -1610,8 +1632,7 @@ SUBSCRIBE_ERROR
   Length (i),
   Subscribe ID (i),
   Error Code (i),
-  Reason Phrase Length (i),
-  Reason Phrase (..),
+  Error Reason (Reason Phrase),
   Track Alias (i),
 }
 ~~~
@@ -1621,9 +1642,7 @@ SUBSCRIBE_ERROR
 
 * Error Code: Identifies an integer error code for subscription failure.
 
-* Reason Phrase: Provides the reason for subscription error.  The reason phrase
-  has a maximum length of 1024 bytes.  If an endpoint recieves a length exceeding
-  the maximum, it MUST close the session with a Protocol Violation.
+* Error Reason: Provides the reason for subscription error. See {{reason-phrase}}.
 
 * Track Alias: When Error Code is 'Retry Track Alias', the subscriber SHOULD re-issue the
   SUBSCRIBE with this Track Alias instead. If this Track Alias is already in use,
@@ -1799,8 +1818,7 @@ SUBSCRIBE_DONE Message {
   Subscribe ID (i),
   Status Code (i),
   Stream Count (i),
-  Reason Phrase Length (i),
-  Reason Phrase (..),
+  Error Reason (Reason Phrase)
 }
 ~~~
 {: #moq-transport-subscribe-fin-format title="MOQT SUBSCRIBE_DONE Message"}
@@ -1823,7 +1841,7 @@ or set the maximum value.  If a subscriber receives more streams for a
 subscription than specified in Stream Count, it MAY close the session with a
 Protocol Violation.
 
-* Reason Phrase: Provides the reason for subscription error.
+* Error Reason: Provides the reason for subscription error. See {{reason-phrase}}.
 
 The application SHOULD use a relevant status code in
 SUBSCRIBE_DONE, as defined below:
@@ -2092,8 +2110,7 @@ FETCH_ERROR
   Length (i),
   Subscribe ID (i),
   Error Code (i),
-  Reason Phrase Length (i),
-  Reason Phrase (..),
+  Error Reason (Reason Phrase)
 }
 ~~~
 {: #moq-transport-fetch-error format title="MOQT FETCH_ERROR Message"}
@@ -2102,9 +2119,7 @@ FETCH_ERROR
 
 * Error Code: Identifies an integer error code for fetch failure.
 
-* Reason Phrase: Provides the reason for fetch error.  The reason phrase
-  has a maximum length of 1024 bytes.  If an endpoint recieves a length
-  exceeding the maximum, it MUST close the session with a Protocol Violation.
+* Error Reason: Provides the reason for fetch error. See {{reason-phrase}}.
 
 The application SHOULD use a relevant error code in FETCH_ERROR,
 as defined below:
@@ -2302,8 +2317,7 @@ ANNOUNCE_ERROR Message
   Length (i),
   Track Namespace (tuple),
   Error Code (i),
-  Reason Phrase Length (i),
-  Reason Phrase (..),
+  Error Reason (Reason Phrase)
 }
 ~~~
 {: #moq-transport-announce-error format title="MOQT ANNOUNCE_ERROR Message"}
@@ -2313,9 +2327,7 @@ message for which this response is provided.
 
 * Error Code: Identifies an integer error code for announcement failure.
 
-* Reason Phrase: Provides the reason for announcement error. The reason phrase
-  has a maximum length of 1024 bytes.  If an endpoint recieves a length
-  exceeding the maximum, it MUST close the session with a Protocol Violation.
+* Error Reason: Provides the reason for announcement error. See {{reason-phrase}}.
 
 The application SHOULD use a relevant error code in ANNOUNCE_ERROR, as defined
 below:
@@ -2377,8 +2389,7 @@ ANNOUNCE_CANCEL Message {
   Length (i),
   Track Namespace (tuple),
   Error Code (i),
-  Reason Phrase Length (i),
-  Reason Phrase Length (..),
+  Error Reason (Reason Phrase)
 }
 ~~~
 {: #moq-transport-announce-cancel-format title="MOQT ANNOUNCE_CANCEL Message"}
@@ -2390,9 +2401,7 @@ ANNOUNCE_CANCEL Message {
 ANNOUNCE_CANCEL uses the same error codes as ANNOUNCE_ERROR
 ({{message-announce-error}}).
 
-* Reason Phrase: Provides the reason for announcement cancelation. The reason
-  phrase has a maximum length of 1024 bytes.  If an endpoint recieves a length
-  exceeding the maximum, it MUST close the session with a Protocol Violation.
+* Error Reason: Provides the reason for announcement cancelation. See {{reason-phrase}}.
 
 ## SUBSCRIBE_ANNOUNCES {#message-subscribe-ns}
 
@@ -2472,8 +2481,7 @@ SUBSCRIBE_ANNOUNCES_ERROR
   Length (i),
   Track Namespace Prefix (tuple),
   Error Code (i),
-  Reason Phrase Length (i),
-  Reason Phrase (..),
+  Error Reason (Reason Phrase)
 }
 ~~~
 {: #moq-transport-sub-ann-error format
@@ -2484,10 +2492,8 @@ title="MOQT SUBSCRIBE_ANNOUNCES_ERROR Message"}
 * Error Code: Identifies an integer error code for the namespace subscription
 failure.
 
-* Reason Phrase: Provides the reason for the namespace subscription error.
-  The reason phrase has a maximum length of 1024 bytes.  If an endpoint
-  recieves a length exceeding the maximum, it MUST close the session with a
-  Protocol Violation.
+* Error Reason: Provides the reason for the namespace subscription error.
+  See {{reason-phrase}}.
 
 The application SHOULD use a relevant error code in SUBSCRIBE_ANNOUNCES_ERROR,
 as defined below:
