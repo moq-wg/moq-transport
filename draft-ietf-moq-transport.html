@@ -4152,7 +4152,8 @@ stream indicate objects that do not exist (eg: they implicitly have status
 between the first requested object and the first object in the stream; between
 objects in the stream; and between the last object in the stream and the Largest
 Group/Object indicated in FETCH_OK, so long as the fetch stream is terminated by
-a FIN.<a href="#section-8.13-1" class="pilcrow">¶</a></p>
+a FIN.  If no Objects exist in the requested range, the publisher returns
+FETCH_ERROR with code <code>No Objects</code>.<a href="#section-8.13-1" class="pilcrow">¶</a></p>
 <p id="section-8.13-2"><strong>Fetch Types</strong><a href="#section-8.13-2" class="pilcrow">¶</a></p>
 <p id="section-8.13-3">There are three types of Fetch messages:<a href="#section-8.13-3" class="pilcrow">¶</a></p>
 <p id="section-8.13-4">Standalone Fetch (0x1) : A Fetch of Objects performed independently of any Subscribe.<a href="#section-8.13-4" class="pilcrow">¶</a></p>
@@ -4287,7 +4288,7 @@ published.<a href="#section-8.13-22" class="pilcrow">¶</a></p>
 ascending or descending. Within each group, objects are sent in Object ID order;
 subgroup ID is not used for ordering.<a href="#section-8.13-23" class="pilcrow">¶</a></p>
 <p id="section-8.13-24">If Start Group/Start Object is greater than the latest published Object group,
-the publisher <span class="bcp14">MUST</span> return FETCH_ERROR with error code 'No Objects'.<a href="#section-8.13-24" class="pilcrow">¶</a></p>
+the publisher <span class="bcp14">MUST</span> return FETCH_ERROR with error code 'Invalid Range'.<a href="#section-8.13-24" class="pilcrow">¶</a></p>
 <div id="calculating-the-range-of-a-relative-joining-fetch">
 <section id="section-8.13.1">
           <h4 id="name-calculating-the-range-of-a-">
@@ -4301,7 +4302,7 @@ subscription are used to calculate the end of a Relative Joining Fetch so the
 Objects retrieved by the FETCH and SUBSCRIBE are contiguous and non-overlapping.
 If no Objects have been published for the track, and the SUBSCRIBE_OK has a
 Content Exists value of 0, the publisher <span class="bcp14">MUST</span> respond with a FETCH_ERROR with
-error code 'No Objects'.<a href="#section-8.13.1-2" class="pilcrow">¶</a></p>
+error code 'Invalid Range'.<a href="#section-8.13.1-2" class="pilcrow">¶</a></p>
 <p id="section-8.13.1-3">The publisher receiving a Relative Joining Fetch computes the range as follows:<a href="#section-8.13.1-3" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-8.13.1-4.1">
@@ -4507,11 +4508,12 @@ within the timeout.<a href="#section-8.15-6.3.1" class="pilcrow">¶</a></p>
             <p id="section-8.15-6.5.1">Track Does Not Exist - The requested track is not available at the publisher.<a href="#section-8.15-6.5.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.15-6.6">
-            <p id="section-8.15-6.6.1">Invalid Range - The end of the requested range is earlier than the beginning.<a href="#section-8.15-6.6.1" class="pilcrow">¶</a></p>
+            <p id="section-8.15-6.6.1">Invalid Range - The end of the requested range is earlier than the beginning,
+the start of the requested range is beyond the Largest Object, or the track
+has not published any Objects yet.<a href="#section-8.15-6.6.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.15-6.7">
-            <p id="section-8.15-6.7.1">No Objects - The beginning of the requested range is after the latest group
-and object for the track, or the track has not published any objects.<a href="#section-8.15-6.7.1" class="pilcrow">¶</a></p>
+            <p id="section-8.15-6.7.1">No Objects - No Objects exist between the requested Start and End Locations.<a href="#section-8.15-6.7.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.15-6.8">
             <p id="section-8.15-6.8.1">Invalid Joining Request ID - The joining Fetch referenced a Request ID that
