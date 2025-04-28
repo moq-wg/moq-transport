@@ -3435,6 +3435,7 @@ document:
 - Jordi Cenzano
 - Kirill Pugin
 - Luke Curley
+- Martin Duke
 - Mike English
 - Mo Zanaty
 - Will Law
