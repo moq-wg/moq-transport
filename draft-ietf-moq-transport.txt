@@ -996,34 +996,39 @@ Table of Contents
    MoQT maintains priorities between different _schedulable objects_. A
    schedulable object in MoQT is either:
 
-   1.  An object that belongs to a subgroup where that object would be
-       the next object to be sent in that subgroup.
+   1.  An object in response to a SUBSCRIBE that belongs to a subgroup
+       where that object is the next object in that subgroup.
 
-   2.  An object that belongs to a track with delivery preference
-       Datagram.
+   2.  An object in response to a SUBSCRIBE that belongs to a track with
+       delivery preference Datagram.
 
-   Since a single subgroup or datagram has a single publisher priority,
-   it can be useful to conceptualize this process as scheduling
-   subgroups or datagrams instead of individual objects on them.
+   3.  An object in response to a FETCH where that object is the next
+       object in the response.
+
+   A single subgroup or datagram has a single publisher priority.
+   Within a response to SUBSCRIBE, it can be useful to conceptualize
+   this process as scheduling subgroups or datagrams instead of
+   individual objects on them.  FETCH responses however can contain
+   objects with different publisher priorities.
 
    A _priority number_ is an unsigned integer with a value between 0 and
    255.  A lower priority number indicates higher priority; the highest
    priority is 0.
 
    _Subscriber Priority_ is a priority number associated with an
-   individual subscription.  It is specified in the SUBSCRIBE message,
-   and can be updated via SUBSCRIBE_UPDATE message.  The subscriber
-   priority of an individual schedulable object is the subscriber
-   priority of the subscription that caused that object to be sent.
-   When subscriber priority is changed, a best effort SHOULD be made to
-   apply the change to all objects that have not been sent, but it is
-   implementation dependent what happens to objects that have already
-   been received and possibly scheduled.
+   individual request.  It is specified in the SUBSCRIBE or FETCH
+   message, and can be updated via SUBSCRIBE_UPDATE message.  The
+   subscriber priority of an individual schedulable object is the
+   subscriber priority of the request that caused that object to be
+   sent.  When subscriber priority is changed, a best effort SHOULD be
+   made to apply the change to all objects that have not been sent, but
+   it is implementation dependent what happens to objects that have
+   already been received and possibly scheduled.
 
    _Publisher Priority_ is a priority number associated with an
    individual schedulable object.  It is specified in the header of the
-   respective subgroup or datagram, and is the same for all objects in a
-   single subgroup.
+   respective subgroup or datagram, or in each object in a FETCH
+   response.
 
    _Group Order_ is a property of an individual subscription.  It can be
    either 'Ascending' (groups with lower group ID are sent first), or
@@ -1046,20 +1051,28 @@ Table of Contents
        publisher priority, the one with *the highest publisher priority*
        is sent first.
 
-   3.  If two objects have the same subscriber and publisher priority,
-       but belong to two different groups of the same track, *the group
-       order* of the associated subscription is used to decide the one
-       that is sent first.
+   3.  If two objects in response to the same request have the same
+       subscriber and publisher priority, but belong to two different
+       groups of the same track, *the group order* of the associated
+       subscription is used to decide the one that is sent first.
 
-   4.  If two objects belong to the same group of the same track, the
-       one with *the lowest Subgroup ID* (for tracks with delivery
-       preference Subgroup), or *the lowest Object ID* (for tracks with
-       delivery preference Datagram) is sent first.
+   4.  If two objects in response to the same request belong to the same
+       group of the same track, the one with *the lowest Subgroup ID*
+       (for tracks with delivery preference Subgroup), or *the lowest
+       Object ID* (for tracks with delivery preference Datagram) is sent
+       first.
+
+   The definition of "sent first" in the algorithm is implementation
+   dependent and is constrained by the prioritization interface of the
+   underlying transport.  For some implementations, it could mean that
+   the object is serialized and passed to the underlying transport
+   first.  In other implementations, it can control the order packets
+   are initially transmitted.
 
    This algorithm does not provide a well-defined ordering for objects
-   that belong to different subscriptions, but have the same subscriber
-   and publisher priority.  The ordering in those cases is
-   implementation-defined, though the expectation is that all
+   that belong to different subscriptions or FETCH responses, but have
+   the same subscriber and publisher priority.  The ordering in those
+   cases is implementation-defined, though the expectation is that all
    subscriptions will be able to send some data.
 
    Given the critical nature of control messages and their relatively
