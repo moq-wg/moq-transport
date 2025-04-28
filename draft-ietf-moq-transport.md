@@ -3139,7 +3139,8 @@ Object in the Subgroup if at least one of the following is true:
  * the Object ID is one greater than the previous Object sent on this Subgroup
    stream.
  * the Object was received on the same upstream Subgroup stream as the
-   previously sent Object, with no other Objects in between.
+   previously sent Object on the downstream Subgroup stream, with no other
+   Objects in between.
  * it knows all Object IDs between the current and previous Object IDs
    on the Subgroup stream belong to different Subgroups or do not exist.
 
