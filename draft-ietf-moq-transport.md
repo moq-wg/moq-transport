@@ -1752,7 +1752,7 @@ SUBSCRIBE Message {
   Filter Type (i),
   [Start Location (Location)],
   [End Group (i)],
-  Subscribe Parameters (KeyValuePairs)
+  Parameters (KeyValuePairs)
 }
 ~~~
 {: #moq-transport-subscribe-format title="MOQT SUBSCRIBE Message"}
