@@ -5605,7 +5605,7 @@ with a reliable_size equal to the length of the stream header. This explicitly
 tells the receiver there is an unsent Subgroup.<a href="#section-9.4.3-5" class="pilcrow">¶</a></p>
 <p id="section-9.4.3-6">A relay <span class="bcp14">MUST NOT</span> forward an Object on an existing Subgroup stream unless it is
 the next Object in that Subgroup.  A relay knows that an Object is the next
-Object in the Subgroup if
+Object in the Subgroup if at least one of the following is true:
  * the Object ID is one greater than the previous Object sent on this Subgroup
    stream.
  * the Object was received on the same upstream Subgroup stream as the
