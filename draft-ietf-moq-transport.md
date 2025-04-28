@@ -3451,8 +3451,7 @@ Issue and pull request numbers are listed with a leading octothorp.
 
 * Added Common Structure definitions - Location, Key-Value-Pair and Reason
   Phrase
-* Limit lengths of all variable length fields, including Track Namespace and
-  Names
+* Limit lengths of all variable length fields, including Track Namespace and Name
 * Control Message length is now 16 bits instead of variable length
 * Subscribe ID became Request ID, and was added to most control messages. Request ID
   is used to correlate OK/ERROR responses for ANNOUNCE, SUBSCRIBE_ANNOUNCES,
