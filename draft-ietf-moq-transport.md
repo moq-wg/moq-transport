@@ -109,7 +109,7 @@ Latency is necessary to correct for variable network throughput. Ideally live
 content is consumed at the same bitrate it is produced. End-to-end latency would
 be fixed and only subject to encoding and transmission delays. Unfortunately,
 networks have variable throughput, primarily due to congestion. Attempting to
-deliver content encoded at a higher bitrate than the network can support causes
+deliver content encoded at a higher bitrate than the network can cause
 queuing along the path from producer to consumer. The speed at which a protocol
 can detect and respond to congestion determines the overall latency. TCP-based
 protocols are simple but are slow to detect congestion and suffer from
@@ -640,7 +640,11 @@ code, as defined below:
 |------|---------------------------|
 | 0x12 | Data Stream Timeout       |
 |------|---------------------------|
-| 0x13 | Version Negotiation Failed|
+| 0x13 | Auth Token Cache Overflow |
+|------|---------------------------|
+| 0x14 | Duplicate Auth Token Alias|
+|------|---------------------------|
+| 0x15 | Version Negotiation Failed|
 |------|---------------------------|
 
 * No Error: The session is being terminated without an error.
@@ -684,6 +688,12 @@ code, as defined below:
   open subgroup stream, it MAY send a STOP_SENDING on that stream or
   terminate the subscription.
 
+* Auth Token Cache Overflow - the Session limit {{max-auth-token-cache-size}} of
+  the size of all registered Authorization tokens has been exceeded.
+
+* Duplicate Auth Token Alias - Authorization Token attempted to register an
+  alias that was in use (see {{authorization-token}}).
+
 * Version Negotiation Failed: The client didn't offer a version supported
   by the server.
 
@@ -717,6 +727,40 @@ establishing a new session in the background and migrating active subscriptions
 and announcements. The client can choose to delay closing the session if it
 expects more OBJECTs to be delivered. The server closes the session with a
 'GOAWAY Timeout' if the client doesn't close the session quickly enough.
+
+## Congestion Control
+
+MOQT does not specify a congestion controller, but there are important attributes
+to consider when selecting a congestion controller for use with an application
+built on top of MOQT.
+
+### Bufferbloat
+
+Traditional AIMD congestion controllers (ex. CUBIC {{?RFC9438}} and Reno {{?RFC6582}})
+are prone to Bufferbloat. Bufferbloat occurs when elements along the path build up
+a substantial queue of packets, commonly more than doubling the round trip time.
+These queued packets cause head-of-line blocking and latency, even when there is
+no packet loss.
+
+### Application-Limited
+
+The average bitrate for latency sensitive content needs to be less than the available
+bandwidth, otherwise data will be queued and/or dropped. As such,
+many MOQT applications will typically be limited by the available data to send, and
+not the congestion controller. Many congestion control algorithms
+only increase the congestion window or bandwidth estimate if fully utilized. This
+combination can lead to underestimating the available network bandwidth. As a result,
+applications might need to periodically ensure the congestion controller is not
+app-limited for at least a full round trip to ensure the available bandwidth can be
+measured.
+
+### Consistent Throughput
+
+Congestion control algorithms are commonly optimized for throughput, not consistency.
+For example, BBR's PROBE_RTT state halves the sending rate for more than a round trip
+in order to obtain an accurate minimum RTT. Similarly, Reno halves it's congestion
+window upon detecting loss.  In both cases, the large reduction in sending rate might
+cause issues with latency sensitive applications.
 
 # Retrieving Tracks with Subscribe and Fetch
 
@@ -849,29 +893,34 @@ congestion.
 MoQT maintains priorities between different _schedulable objects_.
 A schedulable object in MoQT is either:
 
-1. An object that belongs to a subgroup where that object would be the next
-   object to be sent in that subgroup.
-1. An object that belongs to a track with delivery preference Datagram.
+1. An object in response to a SUBSCRIBE that belongs to a subgroup where
+   that object is the next object in that subgroup.
+2. An object in response to a SUBSCRIBE that belongs to a track with
+   delivery preference Datagram.
+3. An object in response to a FETCH where that object is the next
+   object in the response.
 
-Since a single subgroup or datagram has a single publisher priority, it can be
-useful to conceptualize this process as scheduling subgroups or datagrams
-instead of individual objects on them.
+A single subgroup or datagram has a single publisher priority. Within a
+response to SUBSCRIBE, it can be useful to conceptualize this process as
+scheduling subgroups or datagrams instead of individual objects on them.
+FETCH responses however can contain objects with different publisher
+priorities.
 
 A _priority number_ is an unsigned integer with a value between 0 and 255.
 A lower priority number indicates higher priority; the highest priority is 0.
 
 _Subscriber Priority_ is a priority number associated with an individual
-subscription.  It is specified in the SUBSCRIBE message, and can be updated via
-SUBSCRIBE_UPDATE message.  The subscriber priority of an individual schedulable
-object is the subscriber priority of the subscription that caused that object
-to be sent. When subscriber priority is changed, a best effort SHOULD be made
-to apply the change to all objects that have not been sent, but it is
+request.  It is specified in the SUBSCRIBE or FETCH message, and can be
+updated via SUBSCRIBE_UPDATE message.  The subscriber priority of an individual
+schedulable object is the subscriber priority of the request that caused that
+object to be sent. When subscriber priority is changed, a best effort SHOULD be
+made to apply the change to all objects that have not been sent, but it is
 implementation dependent what happens to objects that have already been
 received and possibly scheduled.
 
 _Publisher Priority_ is a priority number associated with an individual
 schedulable object.  It is specified in the header of the respective subgroup or
-datagram, and is the same for all objects in a single subgroup.
+datagram, or in each object in a FETCH response.
 
 _Group Order_ is a property of an individual subscription.  It can be either
 'Ascending' (groups with lower group ID are sent first), or 'Descending'
@@ -890,19 +939,25 @@ the objects SHOULD be selected as follows:
    the one with **the highest subscriber priority** is sent first.
 1. If two objects have the same subscriber priority, but a different publisher
    priority, the one with **the highest publisher priority** is sent first.
-1. If two objects have the same subscriber and publisher priority, but belong
-   to two different groups of the same track,
+2. If two objects in response to the same request have the same subscriber
+   and publisher priority, but belong to two different groups of the same track,
    **the group order** of the associated subscription is used to
    decide the one that is sent first.
-1. If two objects belong to the same group of the same track,
-   the one with **the lowest Subgroup ID** (for tracks
+3. If two objects in response to the same request belong to the same group of
+   the same track, the one with **the lowest Subgroup ID** (for tracks
    with delivery preference Subgroup), or **the lowest Object ID** (for tracks
    with delivery preference Datagram) is sent first.
 
+The definition of "sent first" in the algorithm is implementation dependent and
+is constrained by the prioritization interface of the underlying transport.
+For some implementations, it could mean that the object is serialized and
+passed to the underlying transport first.  In other implementations, it can
+control the order packets are initially transmitted.
+
 This algorithm does not provide a well-defined ordering for objects that belong
-to different subscriptions, but have the same subscriber and publisher
-priority.  The ordering in those cases is implementation-defined, though the
-expectation is that all subscriptions will be able to send some data.
+to different subscriptions or FETCH responses, but have the same subscriber and
+publisher priority.  The ordering in those cases is implementation-defined,
+though the expectation is that all subscriptions will be able to send some data.
 
 Given the critical nature of control messages and their relatively
 small size, the control stream SHOULD be prioritized higher than all
@@ -1223,9 +1278,12 @@ that is not expected, it MUST close the session with `Invalid Request ID`.
 Some messages include a Parameters field that encode optional message
 elements.
 
-Senders MUST NOT repeat the same parameter type in a message. Receivers
-SHOULD check that there are no duplicate parameters and close the session
-as a 'Protocol Violation' if found.
+Senders MUST NOT repeat the same parameter type in a message unless the
+parameter definition explicitly allows multiple instances of that type to
+be sent in a single message. Receivers SHOULD check that there are no
+unauthorized duplicate parameters and close the session as a
+'Protocol Violation' if found.  Receivers MUST allow duplicates of unknown
+parameters.
 
 Receivers ignore unrecognized parameters.
 
@@ -1247,6 +1305,103 @@ Each version-specific parameter definition indicates the message types in which
 it can appear. If it appears in some other type of message, it MUST be ignored.
 Note that since Setup parameters use a separate namespace, it is impossible for
 these parameters to appear in Setup messages.
+
+#### AUTHORIZATION TOKEN {#authorization-token}
+
+The AUTHORIZATION TOKEN parameter (Parameter Type 0x01) identifies a track's
+authorization information in a SUBSCRIBE, SUBSCRIBE_ANNOUNCES, ANNOUNCE
+TRACK_STATUS_REQUEST or FETCH message. This parameter is populated for
+cases where the authorization is required at the track or namespace level.
+
+The AUTHORIZATION TOKEN parameter MAY be repeated within a message.
+
+The TOKEN value is a structured object containing an optional session-specific
+alias. The Alias allows the client to reference a previously transmitted TOKEN
+in future messages. The TOKEN value is serialized as follows:
+
+~~~
+TOKEN {
+  Alias Type (i),
+  [Token Alias (i),]
+  [Token Type (i),]
+  [Token Value (..)]
+}
+~~~
+{: #moq-token format title="AUTHORIZATION TOKEN value"}
+
+* Alias Type - an integer defining both the serialization and the processing
+  behavior of the receiver. This Alias type has the following code points:
+
+|------|------------|------------------------------------------------------|
+| Code | Name       | Serialization and behavior                           |
+|-----:|:-----------|------------------------------------------------------|
+| 0x0  | DELETE     | There is an Alias but no Type or Value. This Alias   |
+|      |            | and the Token Value it was previously associated with|
+|      |            | MUST be retired. Retiring removes them from the pool |
+|      |            | of actively registered tokens.                       |
+|------|------------|------------------------------------------------------|
+| 0x1  | REGISTER   | There is an Alias, a Type and a Value. This Alias    |
+|      |            | MUST be associated with the Token Value for the      |
+|      |            | duration of the Session or it is deleted. This action|
+|      |            | is termed "registering" the Token.                   |
+|------|------------|------------------------------------------------------|
+| 0x2  | USE_ALIAS  | There is an Alias but no Type or Value. Use the Token|
+|      |            | Type and Value previously registered with this Alias.|
+|------|------------|------------------------------------------------------|
+| 0x3  | USE_VALUE  | There is no Alias and there is a Type and Value. Use |
+|      |            | the Token Value as provided. The Token Value may be  |
+|      |            | discarded after processing.                          |
+|------|------------|------------------------------------------------------|
+
+
+* Token Alias - a session-specific integer identifier that references a Token
+  Value. The Token Alias MUST be unique within the Session. Once a Token Alias has
+  been registered, it cannot be re-registered within the Session without first
+  being deleted. Use of the Token Alias is optional.
+
+* Token Type - a numeric identifier for the type of Token payload being
+  transmitted. This type is defined by the IANA table "MOQT Auth Token Type". See
+  {{iana}}. Type 0 is reserved to indicate that the type is not defined in the
+  table and must be negotiated out-of-band between client and receiver.
+
+* Token Value - the payload of the Token. The contents and serialization of this
+  payload are defined by the Token Type.
+
+The receiver of a message containing an invalid AUTHORIZATION TOKEN parameter
+MUST reject that message with an `Malformed Auth Token` error. This can be due
+to invalid serialization or providing a token value which does not match the
+declared Token Type.  The receiver of a message referencing an alias that is
+not currently registered MUST reject the message with `Unknown Auth Token
+Alias`. The receiver of a message attempting to register an alias which is
+already registered MUST close the session with `Duplicate Auth Token Alias`.
+
+Any message carrying an AUTHORIZATION TOKEN with Alias Type REGISTER that does
+not result in `Malformed Auth Token` MUST effect the token registration, even
+if the message fails for other reasons, including `Unauthorized`.  This allows
+senders to pipeline messages that refer to previously registered tokens.
+
+If a receiver detects that an authorization token has expired, it MUST retain
+the registered alias until it is deleted by the sender, though it MAY discard
+other state associated with the token that is no longer needed.  Expiration does
+not affect the size occupied by a token in the token cache.  Any message that
+references the token with Alias Type USE_ALIAS fails with `Expired Auth Token`.
+
+Using an Alias to refer to a previously registered Token Value is for efficiency
+only and has the same effect as if the Token Value was included directly.
+Retiring an Alias that was previously used to authorize a message has no
+retroactive effect on the original authorization, nor does it prevent that same
+Token Value being re-registered.
+
+Clients SHOULD only register tokens which they intend to re-use during the session.
+Client SHOULD retire previously registered tokens once their utility has passed.
+
+By registering a Token, the client is requiring the receiver to store the Token
+Alias and Token Value until they are retired, or the Session ends. The receiver
+can protect its resources by sending a SETUP parameter defining the
+MAX_AUTH_TOKEN_CACHE_SIZE {{max-auth-token-cache-size}} limit it is willing to
+accept. If a registration is attempted which would cause this limit to be
+exceeded, the receiver MUST termiate the Session with a `Auth Token Cache
+Overflow` error.
 
 
 #### DELIVERY TIMEOUT Parameter {#delivery-timeout}
@@ -1283,13 +1438,6 @@ Publishers SHOULD consider whether the entire Object is likely to be delivered
 before sending any data for that Object, taking into account priorities,
 congestion control, and any other relevant information.
 
-#### AUTHORIZATION INFO {#authorization-info}
-
-AUTHORIZATION INFO parameter (Parameter Type 0x03) identifies a track's
-authorization information in a TRACK_STATUS_REQUEST, SUBSCRIBE,
-SUBSCRIBE_ANNOUNCES, ANNOUNCE, or FETCH message. This parameter is populated
-for cases where the authorization is required at the track level.
-
 #### MAX CACHE DURATION Parameter {#max-cache-duration}
 
 The MAX_CACHE_DURATION parameter (Parameter Type 0x04) MAY appear in a
@@ -1320,8 +1468,8 @@ CLIENT_SETUP Message {
   Type (i) = 0x20,
   Length (i),
   Number of Supported Versions (i),
-  Supported Version (i) ...,
-  Number of Parameters (i) ...,
+  Supported Versions (i) ...,
+  Number of Parameters (i),
   Setup Parameters (..) ...,
 }
 
@@ -1329,7 +1477,7 @@ SERVER_SETUP Message {
   Type (i) = 0x21,
   Length (i),
   Selected Version (i),
-  Number of Parameters (i) ...,
+  Number of Parameters (i),
   Setup Parameters (..) ...,
 }
 ~~~
@@ -1382,6 +1530,19 @@ The MAX_REQUEST_ID parameter (Parameter Type 0x02) communicates an initial
 value for the Maximum Request ID to the receiving endpoint. The default
 value is 0, so if not specified, the peer MUST NOT send requests.
 
+#### MAX_AUTH_TOKEN_CACHE_SIZE {#max-auth-token-cache-size}
+
+The MAX_AUTH_TOKEN_CACHE_SIZE parameter (Parameter Type 0x04) communicates the
+maximum size in bytes of all actively registered Authorization tokens that the
+server is willing to store per Session. This parameter is optional. The default
+value is 0 which prohibits the use of token aliases.
+
+The token size is calculated as 8 bytes + the size of the Token value (see
+{{moq-token}}). The total size as restricted by the MAX_AUTH_TOKEN_CACHE_SIZE
+parameter is calculated as the sum of the token sizes for all registered tokens
+(Alias Type value of 0x01) minus the sum of the token sizes for all deregistered
+tokens (Alias Type value of 0x00), since Session initiation.
+
 ## GOAWAY {#message-goaway}
 
 An endpoint sends a `GOAWAY` message to inform the peer it intends to close
@@ -1429,8 +1590,7 @@ receipt of a MAX_REQUEST_ID message with an equal or smaller Request ID
 value is a 'Protocol Violation'.
 
 ~~~
-MAX_REQUEST_ID
-{
+MAX_REQUEST_ID Message {
   Type (i) = 0x15,
   Length (i),
   Request ID (i),
@@ -1462,8 +1622,7 @@ MUST NOT rely on REQUESTS_BLOCKED to trigger sending a MAX_REQUEST_ID, because
 sending REQUESTS_BLOCKED is not required.
 
 ~~~
-REQUESTS_BLOCKED
-{
+REQUESTS_BLOCKED Message {
   Type (i) = 0x1A,
   Length (i),
   Maximum Request ID (i),
@@ -1494,7 +1653,7 @@ The `Largest Object` is defined to be the object with the largest Location
 ({{location-structure}}) in the track from the perspective of the endpoint
 processing the SUBSCRIBE message.
 
-There are 3 types of filters:
+There are 4 types of filters:
 
 Latest Object (0x2): The filter Start Location is `{Largest Object.Group,
 Largest Object.Object + 1}` and `Largest Object` is communicated in
@@ -1503,6 +1662,13 @@ SUBSCRIBE_OK. If no content has been delivered yet, the filter Start Location is
 to network reordering or prioritization, relays can receive Objects with
 Locations smaller than  `Largest Object` after the SUBSCRIBE is processed, but
 these Objects do not pass the Latest Object filter.
+
+Next Group Start (0x1): The filter start Location is `{Largest Object.Group + 1,
+0}` and `Largest Object` is communicated in SUBSCRIBE_OK. If no content has been
+delivered yet, the filter Start Location is {0, 0}.  There is no End Group -
+the subscription is open ended. For scenarios where the subscriber intends to
+start more than one group in the future, it can use an AbsoluteStart filter
+instead.
 
 AbsoluteStart (0x3):  The filter Start Location is specified explicitly in the
 SUBSCRIBE message. The `Start` specified in the SUBSCRIBE message MAY be less
@@ -1514,8 +1680,8 @@ AbsoluteStart filter with `Start` = {0, 0}.
 AbsoluteRange (0x4):  The filer Start Location and End Group are specified
 explicitly in the SUBSCRIBE message. The `Start` specified in the SUBSCRIBE
 message MAY be less than the `Largest Object` observed at the publisher. If the
-specified `EndGroup` is the same group specified in `Start`, the remainder of
-that Group passes the filter. `EndGroup` MUST specify the same or a larger Group
+specified `End Group` is the same group specified in `Start`, the remainder of
+that Group passes the filter. `End Group` MUST specify the same or a larger Group
 than specified in `Start`.
 
 A filter type other than the above MUST be treated as error.
@@ -1548,8 +1714,8 @@ SUBSCRIBE Message {
   Group Order (8),
   Forward (8),
   Filter Type (i),
-  [Start (Location)],
-  [EndGroup (i)],
+  [Start Location (Location)],
+  [End Group (i)],
   Number of Parameters (i),
   Subscribe Parameters (..) ...
 }
@@ -1584,12 +1750,12 @@ Any other value is a protocol error and MUST terminate the
 session with a Protocol Violation ({{session-termination}}).
 
 * Filter Type: Identifies the type of filter, which also indicates whether
-the Start and EndGroup fields will be present.
+the Start and End Group fields will be present.
 
-* Start: The starting location for this subscriptions. Only present for
+* Start Location: The starting location for this subscriptions. Only present for
   "AbsoluteStart" and "AbsoluteRange" filter types.
 
-* EndGroup: The end Group ID, inclusive. Only present for the "AbsoluteRange"
+* End Group: The end Group ID, inclusive. Only present for the "AbsoluteRange"
 filter type.
 
 * Subscribe Parameters: The parameters are defined in {{version-specific-params}}.
@@ -1608,15 +1774,14 @@ A publisher sends a SUBSCRIBE_OK control message for successful
 subscriptions.
 
 ~~~
-SUBSCRIBE_OK
-{
+SUBSCRIBE_OK Message {
   Type (i) = 0x4,
   Length (i),
   Request ID (i),
   Expires (i),
   Group Order (8),
-  ContentExists (8),
-  [Largest (Location)],
+  Content Exists (8),
+  [Largest Location (Location)],
   Number of Parameters (i),
   Subscribe Parameters (..) ...
 }
@@ -1635,13 +1800,13 @@ end prior to the expiry time or last longer.
 Ascending (0x1) or Descending (0x2) order by group. See {{priorities}}.
 Values of 0x0 and those larger than 0x2 are a protocol error.
 
-* ContentExists: 1 if an object has been published on this track, 0 if not.
+* Content Exists: 1 if an object has been published on this track, 0 if not.
 If 0, then the Largest Group ID and Largest Object ID fields will not be
 present. Any other value is a protocol error and MUST terminate the
 session with a Protocol Violation ({{session-termination}}).
 
-* Largest: The location of the largest object available for this track. This
-  field is only present if ContentExists has a value of 1.
+* Largest Location: The location of the largest object available for this track. This
+  field is only present if Content Exists has a value of 1.
 
 * Subscribe Parameters: The parameters are defined in {{version-specific-params}}.
 
@@ -1651,8 +1816,7 @@ A publisher sends a SUBSCRIBE_ERROR control message in response to a
 failed SUBSCRIBE.
 
 ~~~
-SUBSCRIBE_ERROR
-{
+SUBSCRIBE_ERROR Message {
   Type (i) = 0x5,
   Length (i),
   Request ID (i),
@@ -1698,6 +1862,12 @@ as defined below:
 |------|---------------------------|
 | 0x6  | Retry Track Alias         |
 |------|---------------------------|
+| 0x10 | Malformed Auth Token      |
+|------|---------------------------|
+| 0x11 | Unknown Auth Token Alias  |
+|------|---------------------------|
+| 0x12 | Expired Auth Token        |
+|------|---------------------------|
 
 * Internal Error - An implementation specific or generic error occurred.
 
@@ -1717,6 +1887,14 @@ as defined below:
 
 * Retry Track Alias - The publisher requires the subscriber to use the given
   Track Alias when subscribing.
+
+* Malformed Auth Token - Invalid Auth Token serialization during registration
+  (see {{authorization-token}}).
+
+* Unknown Auth Token Alias - Authorization Token refers to an alias that is
+  not registered (see {{authorization-token}}).
+
+* Expired Auth Token - Authorization token has expired {{authorization-token}}).
 
 
 ## SUBSCRIBE_UPDATE {#message-subscribe-update}
@@ -1740,7 +1918,7 @@ processed promptly and some extra objects from the existing subscription are
 delivered.
 
 Unlike a new subscription, SUBSCRIBE_UPDATE can not cause an Object to be
-delivered multiple times.  Like SUBSCRIBE, EndGroup MUST be greater than or
+delivered multiple times.  Like SUBSCRIBE, End Group MUST be greater than or
 equal to the Group specified in `Start`.
 
 If a parameter included in `SUBSCRIBE` is not present in
@@ -1754,8 +1932,8 @@ SUBSCRIBE_UPDATE Message {
   Type (i) = 0x2,
   Length (i),
   Request ID (i),
-  Start (Location),
-  EndGroup (i),
+  Start Location (Location),
+  End Group (i),
   Subscriber Priority (8),
   Forward (8),
   Number of Parameters (i),
@@ -1767,9 +1945,9 @@ SUBSCRIBE_UPDATE Message {
 * Request ID: The Request ID of the SUBSCRIBE ({{message-subscribe-req}}) this
   message is updating.  This MUST match an existing Request ID.
 
-* Start: The starting location.
+* Start Location : The starting location.
 
-* EndGroup: The end Group ID, plus 1. A value of 0 means the subscription is
+* End Group: The end Group ID, plus 1. A value of 0 means the subscription is
 open-ended.
 
 * Subscriber Priority: Specifies the priority of a subscription relative to
@@ -1937,13 +2115,13 @@ Standalone Fetch (0x1) : A Fetch of Objects performed independently of any Subsc
 Relative Joining Fetch (0x2) : A Fetch joined together with a Subscribe by
 specifying the Request ID of an active subscription and a relative starting
 offset. A publisher receiving a Joining Fetch uses properties of the associated
-Subscribe to determine the Track Namespace, Track, StartGroup, StartObject,
-EndGroup, and EndObject such that it is contiguous with the associated
+Subscribe to determine the Track Namespace, Track, Start Group, Start Object,
+End Group, and End Object such that it is contiguous with the associated
 Subscribe. The Joining Fetch begins the Preceding Group Offset prior to the
 associated subscription.
 
 Absolute Joining Fetch (0x3) : Identical to a Relative Joining Fetch except that the
-StartGroup is determined by an absolute Group value rather than a relative offset to
+Start Group is determined by an absolute Group value rather than a relative offset to
 the subscription.
 
 A Subscriber can use a Joining Fetch to, for example, fill a playback buffer with a
@@ -1969,9 +2147,9 @@ cached objects have been delivered before resetting the stream.
 
 The Object Forwarding Preference does not apply to fetches.
 
-Fetch specifies an inclusive range of Objects starting at StartObject
-in StartGroup and ending at EndObject in EndGroup. EndGroup and EndObject MUST
-specify the same or a larger Location than StartGroup and StartObject.
+Fetch specifies an inclusive range of Objects starting at Start Object
+in Start Group and ending at End Object in End Group. End Group and End Object MUST
+specify the same or a larger Location than Start Group and Start Object.
 
 The format of FETCH is as follows:
 
@@ -1986,12 +2164,12 @@ FETCH Message {
   [Track Namespace (tuple),
    Track Name Length (i),
    Track Name (..),
-   StartGroup (i),
-   StartObject (i),
-   EndGroup (i),
-   EndObject (i),]
-  [ Joining Request ID (i),
-    Joining Start (i),]
+   Start Group (i),
+   Start Object (i),
+   End Group (i),
+   End Object (i),]
+  [Joining Request ID (i),
+   Joining Start (i),]
   Number of Parameters (i),
   Parameters (..) ...
 }
@@ -2023,13 +2201,13 @@ Fields present only for Standalone Fetch (0x1):
 
 * Track Name: Identifies the track name as defined in ({{track-name}}).
 
-* StartGroup: The start Group ID.
+* Start Group: The start Group ID.
 
-* StartObject: The start Object ID.
+* Start Object: The start Object ID.
 
-* EndGroup: The end Group ID.
+* End Group: The end Group ID.
 
-* EndObject: The end Object ID, plus 1. A value of 0 means the entire group is
+* End Object: The end Object ID, plus 1. A value of 0 means the entire group is
 requested.
 
 Fields present only for Relative Fetch (0x2) and Absolute Fetch (0x3):
@@ -2047,14 +2225,14 @@ Error Invalid Joining Request ID.
 
 Objects that are not yet published will not be retrieved by a FETCH.
 The latest available Object is indicated in the FETCH_OK, and is the last
-Object a fetch will return if the EndGroup and EndObject have not yet been
+Object a fetch will return if the End Group and End Object have not yet been
 published.
 
 A publisher MUST send fetched groups in the determined group order, either
 ascending or descending. Within each group, objects are sent in Object ID order;
 subgroup ID is not used for ordering.
 
-If StartGroup/StartObject is greater than the latest published Object group,
+If Start Group/Start Object is greater than the latest published Object group,
 the publisher MUST return FETCH_ERROR with error code 'No Objects'.
 
 ### Calculating the Range of a Relative Joining Fetch
@@ -2067,23 +2245,23 @@ The Largest Group ID and Largest Object ID values from the corresponding
 subscription are used to calculate the end of a Relative Joining Fetch so the
 Objects retrieved by the FETCH and SUBSCRIBE are contiguous and non-overlapping.
 If no Objects have been published for the track, and the SUBSCRIBE_OK has a
-ContentExists value of 0, the publisher MUST respond with a FETCH_ERROR with
+Content Exists value of 0, the publisher MUST respond with a FETCH_ERROR with
 error code 'No Objects'.
 
 The publisher receiving a Relative Joining Fetch computes the range as follows:
 
-* Fetch StartGroup: Subscribe Largest Group - Joining start
-* Fetch StartObject: 0
-* Fetch EndGroup: Subscribe Largest Group
-* Fetch EndObject: Subscribe Largest Object
+* Fetch Start Group: Subscribe Largest Group - Joining start
+* Fetch Start Object: 0
+* Fetch End Group: Subscribe Largest Group
+* Fetch End Object: Subscribe Largest Object
 
-A Fetch EndObject of 0 requests the entire group, but Fetch will not
+A Fetch End Object of 0 requests the entire group, but Fetch will not
 retrieve Objects that have not yet been published, so 1 is subtracted from
-the Fetch EndGroup if Fetch EndObject is 0.
+the Fetch End Group if Fetch End Object is 0.
 
 ### Calculating the Range of an Absolute Joining Fetch
 
-Identical to the Relative Joining fetch except that Fetch StartGroup is the
+Identical to the Relative Joining fetch except that Fetch Start Group is the
 Joining Start value.
 
 
@@ -2094,14 +2272,13 @@ A publisher MAY send Objects in response to a FETCH before the FETCH_OK message 
 but the FETCH_OK MUST NOT be sent until the end group and object are known.
 
 ~~~
-FETCH_OK
-{
+FETCH_OK Message {
   Type (i) = 0x18,
   Length (i),
   Request ID (i),
   Group Order (8),
   End Of Track (8),
-  End (Location),
+  End Location (Location),
   Number of Parameters (i),
   Subscribe Parameters (..) ...
 }
@@ -2119,8 +2296,8 @@ Values of 0x0 and those larger than 0x2 are a protocol error.
 the End Group ID and Object Id indicate the last Object in the track,
 0 if not.
 
-* End: The largest object covered by the FETCH response.
-  This is the minimum of the {EndGroup,EndObject} specified in FETCH and the
+* End Location: The largest object covered by the FETCH response.
+  This is the minimum of the {End Group,End Object} specified in FETCH and the
   largest known {group,object}.  If the relay is currently subscribed to the
   track, the largest known {group,object} at the relay is used.  For tracks
   with a requested end larger than what is cached without an active
@@ -2135,8 +2312,7 @@ A publisher sends a FETCH_ERROR control message in response to a
 failed FETCH.
 
 ~~~
-FETCH_ERROR
-{
+FETCH_ERROR Message {
   Type (i) = 0x19,
   Length (i),
   Request ID (i),
@@ -2178,6 +2354,12 @@ as defined below:
 |------|---------------------------|
 | 0x7  | Invalid Joining Request ID|
 |------|---------------------------|
+| 0x10 | Malformed Auth Token      |
+|------|---------------------------|
+| 0x11 | Unknown Auth Token Alias  |
+|------|---------------------------|
+| 0x12 | Expired Auth Token        |
+|------|---------------------------|
 
 * Internal Error - An implementation specific or generic error occurred.
 
@@ -2197,8 +2379,16 @@ as defined below:
 * No Objects - The beginning of the requested range is after the latest group
   and object for the track, or the track has not published any objects.
 
-* Invalid Subscribe ID - The joining Fetch referenced a Subscribe ID that did
-  not belong to an active Subscription.
+* Invalid Joining Request ID - The joining Fetch referenced a Request ID that
+  did not belong to an active Subscription.
+
+* Malformed Auth Token - Invalid Auth Token serialization during registration
+  (see {{authorization-token}}).
+
+* Unknown Auth Token Alias - Authorization Token refers to an alias that is
+  not registered (see {{authorization-token}}).
+
+* Expired Auth Token - Authorization token has expired {{authorization-token}}).
 
 
 ## FETCH_CANCEL {#message-fetch-cancel}
@@ -2262,7 +2452,7 @@ TRACK_STATUS Message {
   Length (i),
   Request ID (i),
   Status Code (i),
-  Largest (Location),
+  Largest Location (Location),
   Number of Parameters (i),
   Parameters (..) ...,
 }
@@ -2293,7 +2483,9 @@ upstream. Subsequent fields contain the largest group and object ID known.
 
 Any other value in the Status Code field is a malformed message.
 
-* Largest: represents the largest Object location observed by the
+TODO: Auth Failures
+
+* Largest Location: represents the largest Object location observed by the
 Publisher for an active subscription. If the publisher is a relay without an
 active subscription, it SHOULD send a TRACK_STATUS_REQUEST upstream or MAY
 subscribe to the track, to obtain the same information. If neither is possible,
@@ -2332,8 +2524,7 @@ The subscriber sends an ANNOUNCE_OK control message to acknowledge the
 successful authorization and acceptance of an ANNOUNCE message.
 
 ~~~
-ANNOUNCE_OK Message
-{
+ANNOUNCE_OK Message {
   Type (i) = 0x7,
   Length (i),
   Request ID (i)
@@ -2350,8 +2541,7 @@ The subscriber sends an ANNOUNCE_ERROR control message for tracks that
 failed authorization.
 
 ~~~
-ANNOUNCE_ERROR Message
-{
+ANNOUNCE_ERROR Message {
   Type (i) = 0x8,
   Length (i),
   Request ID (i),
@@ -2387,6 +2577,12 @@ below:
 |------|---------------------------|
 | 0x4  | Uninterested              |
 |------|---------------------------|
+| 0x10 | Malformed Auth Token      |
+|------|---------------------------|
+| 0x11 | Unknown Auth Token Alias  |
+|------|---------------------------|
+| 0x12 | Expired Auth Token        |
+|------|---------------------------|
 
 * Internal Error - An implementation specific or generic error occurred.
 
@@ -2399,6 +2595,14 @@ below:
 * Not Supported - The endpoint does not support the ANNOUNCE method.
 
 * Uninterested - The namespace is not of interest to the endpoint.
+
+* Malformed Auth Token - Invalid Auth Token serialization during registration
+  (see {{authorization-token}}).
+
+* Unknown Auth Token Alias - Authorization Token refers to an alias that is
+  not registered (see {{authorization-token}}).
+
+* Expired Auth Token - Authorization token has expired {{authorization-token}}).
 
 
 ## UNANNOUNCE {#message-unannounce}
@@ -2432,7 +2636,7 @@ ANNOUNCE_CANCEL Message {
   Track Namespace (tuple),
   Error Code (i),
   Reason Phrase Length (i),
-  Reason Phrase Length (..),
+  Reason Phrase (..),
 }
 ~~~
 {: #moq-transport-announce-cancel-format title="MOQT ANNOUNCE_CANCEL Message"}
@@ -2505,8 +2709,7 @@ A publisher sends a SUBSCRIBE_ANNOUNCES_OK control message for successful
 namespace subscriptions.
 
 ~~~
-SUBSCRIBE_ANNOUNCES_OK
-{
+SUBSCRIBE_ANNOUNCES_OK Message {
   Type (i) = 0x12,
   Length (i),
   Request ID (i),
@@ -2524,8 +2727,7 @@ A publisher sends a SUBSCRIBE_ANNOUNCES_ERROR control message in response to
 a failed SUBSCRIBE_ANNOUNCES.
 
 ~~~
-SUBSCRIBE_ANNOUNCES_ERROR
-{
+SUBSCRIBE_ANNOUNCES_ERROR Message {
   Type (i) = 0x13,
   Length (i),
   Request ID (i),
@@ -2566,6 +2768,12 @@ as defined below:
 |------|---------------------------|
 | 0x5  | Namespace Prefix Overlap  |
 |------|---------------------------|
+| 0x10 | Malformed Auth Token      |
+|------|---------------------------|
+| 0x11 | Unknown Auth Token Alias  |
+|------|---------------------------|
+| 0x12 | Expired Auth Token        |
+|------|---------------------------|
 
 * Internal Error - An implementation specific or generic error occurred.
 
@@ -2582,6 +2790,14 @@ as defined below:
 
 * Namespace Prefix Overlap - The namespace prefix overlaps with another
   SUBSCRIBE_ANNOUNCES in the same session.
+
+* Malformed Auth Token - Invalid Auth Token serialization during registration
+  (see {{authorization-token}}).
+
+* Unknown Auth Token Alias - Authorization Token refers to an alias that is
+  not registered (see {{authorization-token}}).
+
+* Expired Auth Token - Authorization token has expired {{authorization-token}}).
 
 
 ## UNSUBSCRIBE_ANNOUNCES {#message-unsub-ann}
@@ -2614,7 +2830,7 @@ the type of the stream in question.
 |-------------|-------------------------------------------------|
 | ID          | Type                                            |
 |------------:|:------------------------------------------------|
-| 0x08-0x09   | SUBGROUP_HEADER  ({{subgroup-header}})          |
+| 0x08-0x0D   | SUBGROUP_HEADER  ({{subgroup-header}})          |
 |-------------|-------------------------------------------------|
 | 0x05        | FETCH_HEADER  ({{fetch-header}})                |
 |-------------|-------------------------------------------------|
@@ -2838,7 +3054,7 @@ SUBGROUP_HEADER {
   Type (i),
   Track Alias (i),
   Group ID (i),
-  Subgroup ID (i),
+  [Subgroup ID (i),]
   Publisher Priority (8),
 }
 ~~~
@@ -2847,11 +3063,34 @@ SUBGROUP_HEADER {
 All Objects received on a stream opened with `SUBGROUP_HEADER` have an
 `Object Forwarding Preference` = `Subgroup`.
 
-The Type field takes the form 0b0000100X (or the set of values from 0x08 to
-0x09). The LSB determines if the Extensions Headers Length is present in Objects
-in this subgroup.  When it is 0, Extensions Headers Length is not present and all
-Objects have no extensions.  When it is 1, Extension Headers Length is present in
-all Objects in this subgroup.
+There are 6 defined Type values for SUBGROUP_HEADER:
+
+|------|---------------|-----------------|------------|
+| Type | Subgroup ID   | Subgroup ID     | Extensions |
+|      | Field Present | Value           | Present    |
+|------|---------------|-----------------|------------|
+| 0x08 | No            | 0               | No         |
+|------|---------------|-----------------|------------|
+| 0x09 | No            | 0               | Yes        |
+|------|---------------|-----------------|------------|
+| 0x0A | No            | First Object ID | No         |
+|------|---------------|-----------------|------------|
+| 0x0B | No            | First Object ID | Yes        |
+|------|---------------|-----------------|------------|
+| 0x0C | Yes           | N/A             | No         |
+|------|---------------|-----------------|------------|
+| 0x0D | Yes           | N/A             | Yes        |
+|------|---------------|-----------------|------------|
+
+For Type values where Subgroup ID Field Present is No, there is no explicit
+Subgroup ID field in the header and the Subgroup ID is either 0 (for Types
+0x08-09) or the Object ID of the first object transmitted in this subgroup
+(for Types 0x0A-0B).
+
+For Type values where Extensions Present is No, Extensions Headers Length is
+not present and all Objects have no extensions.  When Extensions Present is
+Yes, Extension Headers Length is present in all Objects in this subgroup.
+Objects with no extensions set Extension Headers Length to 0.
 
 To send an Object with `Object Forwarding Preference` = `Subgroup`, find the open
 stream that is associated with the subscription, `Group ID` and `Subgroup ID`,
@@ -3145,13 +3384,23 @@ TODO: fill out currently missing registries:
   standards utilization where space is a premium, 64 - 16383 for
   standards utilization where space is less of a concern, and 16384 and
   above for first-come-first-served non-standardization usage.
+* MOQT Auth Token Type
 
 TODO: register the URI scheme and the ALPN and grease the Extension types
 
 # Contributors
 {:numbered="false"}
 
-- Alan Frindell
+The original design behind this protocol was inspired by three independent
+proposals: WARP {{?I-D.draft-lcurley-warp}} by Luke Curley, RUSH
+{{?I-D.draft-kpugin-rush}} by Kirill Pugin, Nitin Garg, Alan Frindell, Jordi
+Cenzano and Jake Weissman, and QUICR {{?I-D.draft-jennings-moq-quicr-proto}} by
+Cullen Jennings, Suhas Nandakumar and Christian Huitema.  The authors of those
+documents merged their proposals to create the first draft of moq-transport.
+The IETF MoQ Working Group received an enormous amount of support from many
+people. The following people provided substantive contributions to this
+document:
+
 - Ali Begen
 - Charles Krasic
 - Christian Huitema
