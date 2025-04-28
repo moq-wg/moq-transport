@@ -1327,7 +1327,7 @@ Receivers ignore unrecognized parameters.
 The number of parameters in a message is not specifically limited, but the
 total length of a control message is limited to 2^16-1.
 
-Parameters are serialized as Key-Value-Pairs {{moq-key-value-pair}}.
+Parameters are serialized as Key-Value-Pairs {{moq-key-value-pairs}}.
 
 Setup message parameters use a namespace that is constant across all MoQ
 Transport versions. All other messages use a version-specific namespace.
