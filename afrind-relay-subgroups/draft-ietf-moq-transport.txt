@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 27 October 2025                                   I. Swett, Ed.
+Expires: 30 October 2025                                   I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                           25 April 2025
+                                                           28 April 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 27 October 2025.
+   This Internet-Draft will expire on 30 October 2025.
 
 Copyright Notice
 
@@ -3384,10 +3384,10 @@ Table of Contents
    Subgroup.
 
    A relay MUST NOT forward an Object on an existing Subgroup stream
-   unless it is the next Object in that Subgroup.  A relay knows that
-   that an Object is the next Object in the Subgroup if * the Object ID
-   is one greater than the previous Object sent on this Subgroup stream.
-   * the Object was received on the same upstream Subgroup stream as the
+   unless it is the next Object in that Subgroup.  A relay knows that an
+   Object is the next Object in the Subgroup if * the Object ID is one
+   greater than the previous Object sent on this Subgroup stream.  * the
+   Object was received on the same upstream Subgroup stream as the
    previously sent Object, with no other Objects in between.  * it knows
    all Object IDs between the current and previous Object IDs on the
    Subgroup stream belong to different Subgroups or do not exist.
