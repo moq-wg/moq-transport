@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 29 October 2025                                   I. Swett, Ed.
+Expires: 30 October 2025                                   I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                           27 April 2025
+                                                           28 April 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 29 October 2025.
+   This Internet-Draft will expire on 30 October 2025.
 
 Copyright Notice
 
@@ -415,7 +415,7 @@ Table of Contents
 
    *  Reason Phrase Length: A variable-length integer specifying the
       length of the reason phrase in bytes.  The reason phrase length
-      has a maximum length of 1024 bytes.  If an endpoint recieves a
+      has a maximum length of 1024 bytes.  If an endpoint receives a
       length exceeding the maximum, it MUST close the session with a
       Protocol Violation
 
