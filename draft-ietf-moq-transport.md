@@ -1256,10 +1256,6 @@ The following Message Types are defined:
 |-------|-----------------------------------------------------|
 | 0x17  | FETCH_CANCEL ({{message-fetch-cancel}})             |
 |-------|-----------------------------------------------------|
-| 0xD   | TRACK_STATUS_REQUEST ({{message-track-status-req}}) |
-|-------|-----------------------------------------------------|
-| 0xE   | TRACK_STATUS ({{message-track-status}})             |
-|-------|-----------------------------------------------------|
 | 0x6   | ANNOUNCE  ({{message-announce}})                    |
 |-------|-----------------------------------------------------|
 | 0x7   | ANNOUNCE_OK ({{message-announce-ok}})               |
@@ -1294,7 +1290,7 @@ ongoing requests, and supports the endpoint's ability to limit the concurrency
 and frequency of requests.  There are independent Request IDs for each endpoint.
 The client's Request ID starts at 0 and are even and the server's Request ID
 starts at 1 and are odd.  The Request ID increments by 2 with ANNOUNCE, FETCH,
-SUBSCRIBE, SUBSCRIBE_ANNOUNCES or TRACK_STATUS request.  If an endpoint receives
+SUBSCRIBE, or SUBSCRIBE_ANNOUNCES request.  If an endpoint receives
 a Request ID that is not valid for the peer, or a new request with a Request ID
 that is not expected, it MUST close the session with `Invalid Request ID`.
 
@@ -1334,9 +1330,9 @@ these parameters to appear in Setup messages.
 #### AUTHORIZATION TOKEN {#authorization-token}
 
 The AUTHORIZATION TOKEN parameter (Parameter Type 0x01) identifies a track's
-authorization information in a SUBSCRIBE, SUBSCRIBE_ANNOUNCES, ANNOUNCE
-TRACK_STATUS_REQUEST or FETCH message. This parameter is populated for
-cases where the authorization is required at the track or namespace level.
+authorization information in a SUBSCRIBE, SUBSCRIBE_ANNOUNCES, ANNOUNCE, or
+FETCH message. This parameter is populated for cases where the authorization is
+required at the track or namespace level.
 
 The AUTHORIZATION TOKEN parameter MAY be repeated within a message.
 
@@ -1431,13 +1427,13 @@ Overflow` error.
 
 #### DELIVERY TIMEOUT Parameter {#delivery-timeout}
 
-The DELIVERY TIMEOUT parameter (Parameter Type 0x02) MAY appear in a
-TRACK_STATUS, SUBSCRIBE, SUBSCRIBE_OK, or a SUBSCRIBE_UDPATE message.
-It is the duration in milliseconds the relay SHOULD continue to attempt
-forwarding Objects after they have been received.  The start time for the
-timeout is based on when the beginning of the Object is received, and does
-not depend upon the forwarding preference. There is no explicit signal that
-an Object was not sent because the delivery timeout was exceeded.
+The DELIVERY TIMEOUT parameter (Parameter Type 0x02) MAY appear in a SUBSCRIBE,
+SUBSCRIBE_OK, or a SUBSCRIBE_UDPATE message. It is the duration in milliseconds
+the relay SHOULD continue to attempt forwarding Objects after they have been
+received.  The start time for the timeout is based on when the beginning of the
+Object is received, and does not depend upon the forwarding preference. There is
+no explicit signal that an Object was not sent because the delivery timeout was
+exceeded.
 
 If both the subscriber and publisher specify the parameter, they use the min of the
 two values for the subscription.  The publisher SHOULD always specify the value
@@ -1466,7 +1462,7 @@ congestion control, and any other relevant information.
 #### MAX CACHE DURATION Parameter {#max-cache-duration}
 
 The MAX_CACHE_DURATION parameter (Parameter Type 0x04) MAY appear in a
-SUBSCRIBE_OK, FETCH_OK or TRACK_STATUS message.  It is an integer expressing
+SUBSCRIBE_OK, or FETCH_OK message.  It is an integer expressing
 the number of milliseconds an object can be served from a cache. If present,
 the relay MUST NOT start forwarding any individual Object received through
 this subscription or fetch after the specified number of milliseconds has
@@ -1625,9 +1621,8 @@ MAX_REQUEST_ID Message {
 
 * Request ID: The new Maximum Request ID for the session. If a Request ID equal
   or larger than this is received by the endpoint that sent the MAX_REQUEST_ID
-  in any request message (ANNOUNCE, FETCH, SUBSCRIBE, SUBSCRIBE_ANNOUNCES
-  or TRACK_STATUS_REQUEST), the endpoint MUST close the session with an error
-  of 'Too Many Requests'.
+  in any request message (ANNOUNCE, FETCH, SUBSCRIBE, or SUBSCRIBE_ANNOUNCES),
+  the endpoint MUST close the session with an error of 'Too Many Requests'.
 
 MAX_REQUEST_ID is similar to MAX_STREAMS in ({{?RFC9000, Section 4.6}}), and
 similar considerations apply when deciding how often to send MAX_REQUEST_ID.
@@ -2432,88 +2427,6 @@ FETCH_CANCEL Message {
 
 * Request ID: The Request ID of the FETCH ({{message-fetch}}) this message is
   cancelling.
-
-## TRACK_STATUS_REQUEST {#message-track-status-req}
-
-A potential subscriber sends a 'TRACK_STATUS_REQUEST' message on the control
-stream to obtain information about the current status of a given track.
-
-A TRACK_STATUS message MUST be sent in response to each TRACK_STATUS_REQUEST.
-
-~~~
-TRACK_STATUS_REQUEST Message {
-  Type (i) = 0xD,
-  Length (i),
-  Request ID (i),
-  Track Namespace (tuple),
-  Track Name Length (i),
-  Track Name (..),
-  Number of Parameters (i),
-  Parameters (..) ...,
-}
-~~~
-{: #moq-track-status-request-format title="MOQT TRACK_STATUS_REQUEST Message"}
-
-* Request ID: See {{request-id}}.
-
-* Track Namespace: Identifies the namespace of the track as defined in
-  ({{track-name}}).
-
-* Track Name: Identifies the track name as defined in ({{track-name}}).
-
-* Parameters: The parameters are defined in {{version-specific-params}}.
-
-## TRACK_STATUS {#message-track-status}
-
-A publisher sends a 'TRACK_STATUS' message on the control stream in response
-to a TRACK_STATUS_REQUEST message.
-
-~~~
-TRACK_STATUS Message {
-  Type (i) = 0xE,
-  Length (i),
-  Request ID (i),
-  Status Code (i),
-  Largest Location (Location),
-  Number of Parameters (i),
-  Parameters (..) ...,
-}
-~~~
-{: #moq-track-status-format title="MOQT TRACK_STATUS Message"}
-
-* Request ID: The Request ID of the TRACK_STATUS_REQUEST this message is
-  replying to {{message-track-status}}.
-
-* Status Code: Provides additional information about the status of the
-track. It MUST hold one of the following values. Any other value is a malformed
-message.
-
-0x00: The track is in progress, and subsequent fields contain the highest group
-and object ID for that track.
-
-0x01: The track does not exist. Subsequent fields MUST be zero, and any other
-value is a malformed message.
-
-0x02: The track has not yet begun. Subsequent fields MUST be zero. Any other
-value is a malformed message.
-
-0x03: The track has finished, so there is no "live edge." Subsequent fields
-contain the highest Group and object ID known.
-
-0x04: The publisher is a relay that cannot obtain the current track status from
-upstream. Subsequent fields contain the largest group and object ID known.
-
-Any other value in the Status Code field is a malformed message.
-
-TODO: Auth Failures
-
-* Largest Location: represents the largest Object location observed by the
-Publisher for an active subscription. If the publisher is a relay without an
-active subscription, it SHOULD send a TRACK_STATUS_REQUEST upstream or MAY
-subscribe to the track, to obtain the same information. If neither is possible,
-it should return the best available information with status code 0x04.
-
-The `Parameters` are defined in {{version-specific-params}}.
 
 ## ANNOUNCE {#message-announce}
 
