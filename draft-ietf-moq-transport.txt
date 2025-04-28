@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 27 October 2025                                   I. Swett, Ed.
+Expires: 30 October 2025                                   I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                           25 April 2025
+                                                           28 April 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 27 October 2025.
+   This Internet-Draft will expire on 30 October 2025.
 
 Copyright Notice
 
@@ -1591,15 +1591,7 @@ Table of Contents
    account priorities, congestion control, and any other relevant
    information.
 
-8.2.1.3.  AUTHORIZATION INFO
-
-   AUTHORIZATION INFO parameter (Parameter Type 0x03) identifies a
-   track's authorization information in a TRACK_STATUS_REQUEST,
-   SUBSCRIBE, SUBSCRIBE_ANNOUNCES, ANNOUNCE, or FETCH message.  This
-   parameter is populated for cases where the authorization is required
-   at the track level.
-
-8.2.1.4.  MAX CACHE DURATION Parameter
+8.2.1.3.  MAX CACHE DURATION Parameter
 
    The MAX_CACHE_DURATION parameter (Parameter Type 0x04) MAY appear in
    a SUBSCRIBE_OK, FETCH_OK or TRACK_STATUS message.  It is an integer
