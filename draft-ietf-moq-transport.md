@@ -337,6 +337,7 @@ length of the pairs in bytes.
 Key-Value-Pairs {
   Length (i),
   Pair (Key-Value)...,
+}
 ~~~
 {: #moq-key-value-pairs format title="MOQT Key-Value-Pairs"}
 
