@@ -2302,6 +2302,10 @@ code, as defined below:<a href="#section-3.4-2" class="pilcrow">¶</a></p>
               <td class="text-right" rowspan="1" colspan="1">0x14</td>
               <td class="text-left" rowspan="1" colspan="1">Duplicate Auth Token Alias</td>
             </tr>
+            <tr>
+              <td class="text-right" rowspan="1" colspan="1">0x15</td>
+              <td class="text-left" rowspan="1" colspan="1">Version Negotiation Failed</td>
+            </tr>
           </tbody>
         </table>
 <ul class="normal">
@@ -2366,6 +2370,10 @@ the size of all registered Authorization tokens has been exceeded.<a href="#sect
           <li class="normal" id="section-3.4-4.15">
             <p id="section-3.4-4.15.1">Duplicate Auth Token Alias - Authorization Token attempted to register an
 alias that was in use (see <a href="#authorization-token" class="auto internal xref">Section 8.2.1.1</a>).<a href="#section-3.4-4.15.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-3.4-4.16">
+            <p id="section-3.4-4.16.1">Version Negotiation Failed: The client didn't offer a version supported
+by the server.<a href="#section-3.4-4.16.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-3.4-5">An endpoint <span class="bcp14">MAY</span> choose to treat a subscription or request specific error as a
@@ -2584,29 +2592,36 @@ congestion.<a href="#section-6-1" class="pilcrow">¶</a></p>
 A schedulable object in MoQT is either:<a href="#section-6.1-1" class="pilcrow">¶</a></p>
 <ol start="1" type="1" class="normal type-1" id="section-6.1-2">
 <li id="section-6.1-2.1">
-            <p id="section-6.1-2.1.1">An object that belongs to a subgroup where that object would be the next
-object to be sent in that subgroup.<a href="#section-6.1-2.1.1" class="pilcrow">¶</a></p>
+            <p id="section-6.1-2.1.1">An object in response to a SUBSCRIBE that belongs to a subgroup where
+that object is the next object in that subgroup.<a href="#section-6.1-2.1.1" class="pilcrow">¶</a></p>
 </li>
           <li id="section-6.1-2.2">
-            <p id="section-6.1-2.2.1">An object that belongs to a track with delivery preference Datagram.<a href="#section-6.1-2.2.1" class="pilcrow">¶</a></p>
+            <p id="section-6.1-2.2.1">An object in response to a SUBSCRIBE that belongs to a track with
+delivery preference Datagram.<a href="#section-6.1-2.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li id="section-6.1-2.3">
+            <p id="section-6.1-2.3.1">An object in response to a FETCH where that object is the next
+object in the response.<a href="#section-6.1-2.3.1" class="pilcrow">¶</a></p>
 </li>
         </ol>
-<p id="section-6.1-3">Since a single subgroup or datagram has a single publisher priority, it can be
-useful to conceptualize this process as scheduling subgroups or datagrams
-instead of individual objects on them.<a href="#section-6.1-3" class="pilcrow">¶</a></p>
+<p id="section-6.1-3">A single subgroup or datagram has a single publisher priority. Within a
+response to SUBSCRIBE, it can be useful to conceptualize this process as
+scheduling subgroups or datagrams instead of individual objects on them.
+FETCH responses however can contain objects with different publisher
+priorities.<a href="#section-6.1-3" class="pilcrow">¶</a></p>
 <p id="section-6.1-4">A <em>priority number</em> is an unsigned integer with a value between 0 and 255.
 A lower priority number indicates higher priority; the highest priority is 0.<a href="#section-6.1-4" class="pilcrow">¶</a></p>
 <p id="section-6.1-5"><em>Subscriber Priority</em> is a priority number associated with an individual
-subscription.  It is specified in the SUBSCRIBE message, and can be updated via
-SUBSCRIBE_UPDATE message.  The subscriber priority of an individual schedulable
-object is the subscriber priority of the subscription that caused that object
-to be sent. When subscriber priority is changed, a best effort <span class="bcp14">SHOULD</span> be made
-to apply the change to all objects that have not been sent, but it is
+request.  It is specified in the SUBSCRIBE or FETCH message, and can be
+updated via SUBSCRIBE_UPDATE message.  The subscriber priority of an individual
+schedulable object is the subscriber priority of the request that caused that
+object to be sent. When subscriber priority is changed, a best effort <span class="bcp14">SHOULD</span> be
+made to apply the change to all objects that have not been sent, but it is
 implementation dependent what happens to objects that have already been
 received and possibly scheduled.<a href="#section-6.1-5" class="pilcrow">¶</a></p>
 <p id="section-6.1-6"><em>Publisher Priority</em> is a priority number associated with an individual
 schedulable object.  It is specified in the header of the respective subgroup or
-datagram, and is the same for all objects in a single subgroup.<a href="#section-6.1-6" class="pilcrow">¶</a></p>
+datagram, or in each object in a FETCH response.<a href="#section-6.1-6" class="pilcrow">¶</a></p>
 <p id="section-6.1-7"><em>Group Order</em> is a property of an individual subscription.  It can be either
 'Ascending' (groups with lower group ID are sent first), or 'Descending'
 (groups with higher group ID are sent first).  The subscriber optionally
@@ -2633,25 +2648,30 @@ the one with <strong>the highest subscriber priority</strong> is sent first.<a h
 priority, the one with <strong>the highest publisher priority</strong> is sent first.<a href="#section-6.2-2.2.1" class="pilcrow">¶</a></p>
 </li>
           <li id="section-6.2-2.3">
-            <p id="section-6.2-2.3.1">If two objects have the same subscriber and publisher priority, but belong
-to two different groups of the same track,
+            <p id="section-6.2-2.3.1">If two objects in response to the same request have the same subscriber
+and publisher priority, but belong to two different groups of the same track,
 <strong>the group order</strong> of the associated subscription is used to
 decide the one that is sent first.<a href="#section-6.2-2.3.1" class="pilcrow">¶</a></p>
 </li>
           <li id="section-6.2-2.4">
-            <p id="section-6.2-2.4.1">If two objects belong to the same group of the same track,
-the one with <strong>the lowest Subgroup ID</strong> (for tracks
+            <p id="section-6.2-2.4.1">If two objects in response to the same request belong to the same group of
+the same track, the one with <strong>the lowest Subgroup ID</strong> (for tracks
 with delivery preference Subgroup), or <strong>the lowest Object ID</strong> (for tracks
 with delivery preference Datagram) is sent first.<a href="#section-6.2-2.4.1" class="pilcrow">¶</a></p>
 </li>
         </ol>
-<p id="section-6.2-3">This algorithm does not provide a well-defined ordering for objects that belong
-to different subscriptions, but have the same subscriber and publisher
-priority.  The ordering in those cases is implementation-defined, though the
-expectation is that all subscriptions will be able to send some data.<a href="#section-6.2-3" class="pilcrow">¶</a></p>
-<p id="section-6.2-4">Given the critical nature of control messages and their relatively
+<p id="section-6.2-3">The definition of "sent first" in the algorithm is implementation dependent and
+is constrained by the prioritization interface of the underlying transport.
+For some implementations, it could mean that the object is serialized and
+passed to the underlying transport first.  In other implementations, it can
+control the order packets are initially transmitted.<a href="#section-6.2-3" class="pilcrow">¶</a></p>
+<p id="section-6.2-4">This algorithm does not provide a well-defined ordering for objects that belong
+to different subscriptions or FETCH responses, but have the same subscriber and
+publisher priority.  The ordering in those cases is implementation-defined,
+though the expectation is that all subscriptions will be able to send some data.<a href="#section-6.2-4" class="pilcrow">¶</a></p>
+<p id="section-6.2-5">Given the critical nature of control messages and their relatively
 small size, the control stream <span class="bcp14">SHOULD</span> be prioritized higher than all
-subscribed Objects.<a href="#section-6.2-4" class="pilcrow">¶</a></p>
+subscribed Objects.<a href="#section-6.2-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="considerations-for-setting-priorities">
@@ -2724,6 +2744,9 @@ differ from a previous version <span class="bcp14">MUST</span> treat the track a
 with a status of Normal, End of Group or End of Track after receiving a
 previous status of Object Not Exists.  The endpoint <span class="bcp14">SHOULD NOT</span> cache or
 forward the duplicate object in this case.<a href="#section-7.1-5" class="pilcrow">¶</a></p>
+<p id="section-7.1-6">A cache <span class="bcp14">MUST</span> store all properties of an Object defined in
+<a href="#object-properties" class="auto internal xref">Section 9.1.1</a>, with the exception of any extensions
+(<a href="#object-extensions" class="auto internal xref">Section 9.1.1.2</a>) that specify otherwise.<a href="#section-7.1-6" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="subscriber-interactions">
@@ -3285,23 +3308,12 @@ before sending any data for that Object, taking into account priorities,
 congestion control, and any other relevant information.<a href="#section-8.2.1.2-6" class="pilcrow">¶</a></p>
 </section>
 </div>
-<div id="authorization-info">
-<section id="section-8.2.1.3">
-            <h5 id="name-authorization-info">
-<a href="#section-8.2.1.3" class="section-number selfRef">8.2.1.3. </a><a href="#name-authorization-info" class="section-name selfRef">AUTHORIZATION INFO</a>
-            </h5>
-<p id="section-8.2.1.3-1">AUTHORIZATION INFO parameter (Parameter Type 0x03) identifies a track's
-authorization information in a TRACK_STATUS_REQUEST, SUBSCRIBE,
-SUBSCRIBE_ANNOUNCES, ANNOUNCE, or FETCH message. This parameter is populated
-for cases where the authorization is required at the track level.<a href="#section-8.2.1.3-1" class="pilcrow">¶</a></p>
-</section>
-</div>
 <div id="max-cache-duration">
-<section id="section-8.2.1.4">
+<section id="section-8.2.1.3">
             <h5 id="name-max-cache-duration-paramete">
-<a href="#section-8.2.1.4" class="section-number selfRef">8.2.1.4. </a><a href="#name-max-cache-duration-paramete" class="section-name selfRef">MAX CACHE DURATION Parameter</a>
+<a href="#section-8.2.1.3" class="section-number selfRef">8.2.1.3. </a><a href="#name-max-cache-duration-paramete" class="section-name selfRef">MAX CACHE DURATION Parameter</a>
             </h5>
-<p id="section-8.2.1.4-1">The MAX_CACHE_DURATION parameter (Parameter Type 0x04) <span class="bcp14">MAY</span> appear in a
+<p id="section-8.2.1.3-1">The MAX_CACHE_DURATION parameter (Parameter Type 0x04) <span class="bcp14">MAY</span> appear in a
 SUBSCRIBE_OK, FETCH_OK or TRACK_STATUS message.  It is an integer expressing
 the number of milliseconds an object can be served from a cache. If present,
 the relay <span class="bcp14">MUST NOT</span> start forwarding any individual Object received through
@@ -3310,7 +3322,7 @@ elapsed since the beginning of the Object was received.  This means Objects
 earlier in a multi-object stream will expire earlier than Objects later in the
 stream. Once Objects have expired from cache, their state becomes unknown, and
 a relay that handles a downstream request that includes those Objects
-re-requests them.<a href="#section-8.2.1.4-1" class="pilcrow">¶</a></p>
+re-requests them.<a href="#section-8.2.1.3-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -3370,7 +3382,7 @@ reserved for use in future IETF consensus documents.<a href="#section-8.3.1-1" c
 server <span class="bcp14">MUST</span> reply with one of the versions offered by the client. If the
 server does not support any of the versions offered by the client, or
 the client receives a server version that it did not offer, the
-corresponding peer <span class="bcp14">MUST</span> close the session.<a href="#section-8.3.1-2" class="pilcrow">¶</a></p>
+corresponding peer <span class="bcp14">MUST</span> close the session with <code>Version Negotiation Failed</code>.<a href="#section-8.3.1-2" class="pilcrow">¶</a></p>
 <p id="section-8.3.1-3">[[RFC editor: please remove the remainder of this section before
 publication.]]<a href="#section-8.3.1-3" class="pilcrow">¶</a></p>
 <p id="section-8.3.1-4">The version number for the final version of this specification (0x00000001), is
@@ -3574,7 +3586,7 @@ present) pass the filter.<a href="#section-8.7-4" class="pilcrow">¶</a></p>
 <p id="section-8.7-5">The <code>Largest Object</code> is defined to be the object with the largest Location
 (<a href="#location-structure" class="auto internal xref">Section 1.3.1</a>) in the track from the perspective of the endpoint
 processing the SUBSCRIBE message.<a href="#section-8.7-5" class="pilcrow">¶</a></p>
-<p id="section-8.7-6">There are 3 types of filters:<a href="#section-8.7-6" class="pilcrow">¶</a></p>
+<p id="section-8.7-6">There are 4 types of filters:<a href="#section-8.7-6" class="pilcrow">¶</a></p>
 <p id="section-8.7-7">Latest Object (0x2): The filter Start Location is <code>{Largest Object.Group,
 Largest Object.Object + 1}</code> and <code>Largest Object</code> is communicated in
 SUBSCRIBE_OK. If no content has been delivered yet, the filter Start Location is
@@ -3582,22 +3594,28 @@ SUBSCRIBE_OK. If no content has been delivered yet, the filter Start Location is
 to network reordering or prioritization, relays can receive Objects with
 Locations smaller than  <code>Largest Object</code> after the SUBSCRIBE is processed, but
 these Objects do not pass the Latest Object filter.<a href="#section-8.7-7" class="pilcrow">¶</a></p>
-<p id="section-8.7-8">AbsoluteStart (0x3):  The filter Start Location is specified explicitly in the
+<p id="section-8.7-8">Next Group Start (0x1): The filter start Location is <code>{Largest Object.Group + 1,
+0}</code> and <code>Largest Object</code> is communicated in SUBSCRIBE_OK. If no content has been
+delivered yet, the filter Start Location is {0, 0}.  There is no End Group -
+the subscription is open ended. For scenarios where the subscriber intends to
+start more than one group in the future, it can use an AbsoluteStart filter
+instead.<a href="#section-8.7-8" class="pilcrow">¶</a></p>
+<p id="section-8.7-9">AbsoluteStart (0x3):  The filter Start Location is specified explicitly in the
 SUBSCRIBE message. The <code>Start</code> specified in the SUBSCRIBE message <span class="bcp14">MAY</span> be less
 than the <code>Largest Object</code> observed at the publisher. There is no End Group - the
 subscription is open ended.  To receive all Objects that are published or are
 received after this subscription is processed, a subscriber can use an
-AbsoluteStart filter with <code>Start</code> = {0, 0}.<a href="#section-8.7-8" class="pilcrow">¶</a></p>
-<p id="section-8.7-9">AbsoluteRange (0x4):  The filer Start Location and End Group are specified
+AbsoluteStart filter with <code>Start</code> = {0, 0}.<a href="#section-8.7-9" class="pilcrow">¶</a></p>
+<p id="section-8.7-10">AbsoluteRange (0x4):  The filer Start Location and End Group are specified
 explicitly in the SUBSCRIBE message. The <code>Start</code> specified in the SUBSCRIBE
 message <span class="bcp14">MAY</span> be less than the <code>Largest Object</code> observed at the publisher. If the
 specified <code>End Group</code> is the same group specified in <code>Start</code>, the remainder of
 that Group passes the filter. <code>End Group</code> <span class="bcp14">MUST</span> specify the same or a larger Group
-than specified in <code>Start</code>.<a href="#section-8.7-9" class="pilcrow">¶</a></p>
-<p id="section-8.7-10">A filter type other than the above <span class="bcp14">MUST</span> be treated as error.<a href="#section-8.7-10" class="pilcrow">¶</a></p>
-<p id="section-8.7-11">Subscribe only delivers newly published or received Objects.  Objects from the
-past are retrieved using FETCH (<a href="#message-fetch" class="auto internal xref">Section 8.13</a>).<a href="#section-8.7-11" class="pilcrow">¶</a></p>
-<p id="section-8.7-12">A Subscription can also request a publisher to not forward Objects for a given
+than specified in <code>Start</code>.<a href="#section-8.7-10" class="pilcrow">¶</a></p>
+<p id="section-8.7-11">A filter type other than the above <span class="bcp14">MUST</span> be treated as error.<a href="#section-8.7-11" class="pilcrow">¶</a></p>
+<p id="section-8.7-12">Subscribe only delivers newly published or received Objects.  Objects from the
+past are retrieved using FETCH (<a href="#message-fetch" class="auto internal xref">Section 8.13</a>).<a href="#section-8.7-12" class="pilcrow">¶</a></p>
+<p id="section-8.7-13">A Subscription can also request a publisher to not forward Objects for a given
 track by setting the <code>Forward</code> field to 0. This allows the publisher or relay
 to prepare to serve the subscription in advance, reducing the time to
 receive objects in the future. Relays <span class="bcp14">SHOULD</span> set the <code>Forward</code> flag to 1 if a
@@ -3605,11 +3623,11 @@ new subscription needs to be sent upstream, regardless of the value of the
 <code>Forward</code> field from the downstream subscription. Subscriptions that are not
 forwarded consume resources from the publisher, so a publisher might
 deprioritize, reject, or close those subscriptions to ensure other
-subscriptions can be delivered.<a href="#section-8.7-12" class="pilcrow">¶</a></p>
-<p id="section-8.7-13">The format of SUBSCRIBE is as follows:<a href="#section-8.7-13" class="pilcrow">¶</a></p>
+subscriptions can be delivered.<a href="#section-8.7-13" class="pilcrow">¶</a></p>
+<p id="section-8.7-14">The format of SUBSCRIBE is as follows:<a href="#section-8.7-14" class="pilcrow">¶</a></p>
 <span id="name-moqt-subscribe-message"></span><div id="moq-transport-subscribe-format">
 <figure id="figure-9">
-          <div class="alignLeft art-text artwork" id="section-8.7-14.1">
+          <div class="alignLeft art-text artwork" id="section-8.7-15.1">
 <pre>
 SUBSCRIBE Message {
   Type (i) = 0x3,
@@ -3635,62 +3653,62 @@ SUBSCRIBE Message {
           </figcaption></figure>
 </div>
 <ul class="normal">
-<li class="normal" id="section-8.7-15.1">
-            <p id="section-8.7-15.1.1">Request ID: See <a href="#request-id" class="auto internal xref">Section 8.1</a>.<a href="#section-8.7-15.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-8.7-16.1">
+            <p id="section-8.7-16.1.1">Request ID: See <a href="#request-id" class="auto internal xref">Section 8.1</a>.<a href="#section-8.7-16.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-8.7-15.2">
-            <p id="section-8.7-15.2.1">Track Alias: A session specific identifier for the track.
+          <li class="normal" id="section-8.7-16.2">
+            <p id="section-8.7-16.2.1">Track Alias: A session specific identifier for the track.
 Data streams and datagrams specify the Track Alias instead of the Track Name
 and Track Namespace to reduce overhead. If the Track Alias is already being used
 for a different track, the publisher <span class="bcp14">MUST</span> close the session with a Duplicate
-Track Alias error (<a href="#session-termination" class="auto internal xref">Section 3.4</a>).<a href="#section-8.7-15.2.1" class="pilcrow">¶</a></p>
+Track Alias error (<a href="#session-termination" class="auto internal xref">Section 3.4</a>).<a href="#section-8.7-16.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-8.7-15.3">
-            <p id="section-8.7-15.3.1">Track Namespace: Identifies the namespace of the track as defined in
-(<a href="#track-name" class="auto internal xref">Section 2.4.1</a>).<a href="#section-8.7-15.3.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-8.7-16.3">
+            <p id="section-8.7-16.3.1">Track Namespace: Identifies the namespace of the track as defined in
+(<a href="#track-name" class="auto internal xref">Section 2.4.1</a>).<a href="#section-8.7-16.3.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-8.7-15.4">
-            <p id="section-8.7-15.4.1">Track Name: Identifies the track name as defined in (<a href="#track-name" class="auto internal xref">Section 2.4.1</a>).<a href="#section-8.7-15.4.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-8.7-16.4">
+            <p id="section-8.7-16.4.1">Track Name: Identifies the track name as defined in (<a href="#track-name" class="auto internal xref">Section 2.4.1</a>).<a href="#section-8.7-16.4.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-8.7-15.5">
-            <p id="section-8.7-15.5.1">Subscriber Priority: Specifies the priority of a subscription relative to
+          <li class="normal" id="section-8.7-16.5">
+            <p id="section-8.7-16.5.1">Subscriber Priority: Specifies the priority of a subscription relative to
 other subscriptions in the same session. Lower numbers get higher priority.
-See <a href="#priorities" class="auto internal xref">Section 6</a>.<a href="#section-8.7-15.5.1" class="pilcrow">¶</a></p>
+See <a href="#priorities" class="auto internal xref">Section 6</a>.<a href="#section-8.7-16.5.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-8.7-15.6">
-            <p id="section-8.7-15.6.1">Group Order: Allows the subscriber to request Objects be delivered in
+          <li class="normal" id="section-8.7-16.6">
+            <p id="section-8.7-16.6.1">Group Order: Allows the subscriber to request Objects be delivered in
 Ascending (0x1) or Descending (0x2) order by group. See <a href="#priorities" class="auto internal xref">Section 6</a>.
 A value of 0x0 indicates the original publisher's Group Order <span class="bcp14">SHOULD</span> be
-used. Values larger than 0x2 are a protocol error.<a href="#section-8.7-15.6.1" class="pilcrow">¶</a></p>
+used. Values larger than 0x2 are a protocol error.<a href="#section-8.7-16.6.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-8.7-15.7">
-            <p id="section-8.7-15.7.1">Forward: If 1, Objects matching the subscription are forwarded
+          <li class="normal" id="section-8.7-16.7">
+            <p id="section-8.7-16.7.1">Forward: If 1, Objects matching the subscription are forwarded
 to the subscriber. If 0, Objects are not forwarded to the subscriber.
 Any other value is a protocol error and <span class="bcp14">MUST</span> terminate the
-session with a Protocol Violation (<a href="#session-termination" class="auto internal xref">Section 3.4</a>).<a href="#section-8.7-15.7.1" class="pilcrow">¶</a></p>
+session with a Protocol Violation (<a href="#session-termination" class="auto internal xref">Section 3.4</a>).<a href="#section-8.7-16.7.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-8.7-15.8">
-            <p id="section-8.7-15.8.1">Filter Type: Identifies the type of filter, which also indicates whether
-the Start and End Group fields will be present.<a href="#section-8.7-15.8.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-8.7-16.8">
+            <p id="section-8.7-16.8.1">Filter Type: Identifies the type of filter, which also indicates whether
+the Start and End Group fields will be present.<a href="#section-8.7-16.8.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-8.7-15.9">
-            <p id="section-8.7-15.9.1">Start Location: The starting location for this subscriptions. Only present for
-"AbsoluteStart" and "AbsoluteRange" filter types.<a href="#section-8.7-15.9.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-8.7-16.9">
+            <p id="section-8.7-16.9.1">Start Location: The starting location for this subscriptions. Only present for
+"AbsoluteStart" and "AbsoluteRange" filter types.<a href="#section-8.7-16.9.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-8.7-15.10">
-            <p id="section-8.7-15.10.1">End Group: The end Group ID, inclusive. Only present for the "AbsoluteRange"
-filter type.<a href="#section-8.7-15.10.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-8.7-16.10">
+            <p id="section-8.7-16.10.1">End Group: The end Group ID, inclusive. Only present for the "AbsoluteRange"
+filter type.<a href="#section-8.7-16.10.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-8.7-15.11">
-            <p id="section-8.7-15.11.1">Subscribe Parameters: The parameters are defined in <a href="#version-specific-params" class="auto internal xref">Section 8.2.1</a>.<a href="#section-8.7-15.11.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-8.7-16.11">
+            <p id="section-8.7-16.11.1">Subscribe Parameters: The parameters are defined in <a href="#version-specific-params" class="auto internal xref">Section 8.2.1</a>.<a href="#section-8.7-16.11.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
-<p id="section-8.7-16">On successful subscription, the publisher <span class="bcp14">MUST</span> reply with a SUBSCRIBE_OK,
+<p id="section-8.7-17">On successful subscription, the publisher <span class="bcp14">MUST</span> reply with a SUBSCRIBE_OK,
 allowing the subscriber to determine the start group/object when not explicitly
-specified and the publisher <span class="bcp14">SHOULD</span> start delivering objects.<a href="#section-8.7-16" class="pilcrow">¶</a></p>
-<p id="section-8.7-17">If a publisher cannot satisfy the requested start or end or if the end has
+specified and the publisher <span class="bcp14">SHOULD</span> start delivering objects.<a href="#section-8.7-17" class="pilcrow">¶</a></p>
+<p id="section-8.7-18">If a publisher cannot satisfy the requested start or end or if the end has
 already been published it <span class="bcp14">SHOULD</span> send a SUBSCRIBE_ERROR with code 'Invalid Range'.
-A publisher <span class="bcp14">MUST NOT</span> send objects from outside the requested start and end.<a href="#section-8.7-17" class="pilcrow">¶</a></p>
+A publisher <span class="bcp14">MUST NOT</span> send objects from outside the requested start and end.<a href="#section-8.7-18" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="message-subscribe-ok">
@@ -4545,9 +4563,10 @@ not registered (see <a href="#authorization-token" class="auto internal xref">Se
         <h3 id="name-fetch_cancel">
 <a href="#section-8.16" class="section-number selfRef">8.16. </a><a href="#name-fetch_cancel" class="section-name selfRef">FETCH_CANCEL</a>
         </h3>
-<p id="section-8.16-1">A subscriber issues a <code>FETCH_CANCEL</code> message to a publisher indicating it is no
-longer interested in receiving Objects for the fetch specified by 'Request ID'.
-The publisher <span class="bcp14">SHOULD</span> close the unidirectional stream as soon as possible.<a href="#section-8.16-1" class="pilcrow">¶</a></p>
+<p id="section-8.16-1">A subscriber sends a FETCH_CANCEL message to a publisher to indicate it is no
+longer interested in receiving objects for the fetch identified by the 'Request
+ID'. The publisher <span class="bcp14">SHOULD</span> promptly close the unidirectional stream, even if it
+is in the middle of delivering an object.<a href="#section-8.16-1" class="pilcrow">¶</a></p>
 <p id="section-8.16-2">The format of <code>FETCH_CANCEL</code> is as follows:<a href="#section-8.16-2" class="pilcrow">¶</a></p>
 <span id="name-moqt-fetch_cancel-message"></span><div id="moq-transport-fetch-cancel">
 <figure id="figure-18">
