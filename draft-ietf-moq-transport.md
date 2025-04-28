@@ -3155,6 +3155,20 @@ a SUBGROUP_HEADER on a new stream, with no objects, and then send RESET_STREAM_A
 with a reliable_size equal to the length of the stream header. This explicitly
 tells the receiver there is an unsent Subgroup.
 
+A relay MUST NOT forward an Object on an existing Subgroup stream unless it is
+the next Object in that Subgroup.  A relay knows that an Object is the next
+Object in the Subgroup if at least one of the following is true:
+ * the Object ID is one greater than the previous Object sent on this Subgroup
+   stream.
+ * the Object was received on the same upstream Subgroup stream as the
+   previously sent Object on the downstream Subgroup stream, with no other
+   Objects in between.
+ * it knows all Object IDs between the current and previous Object IDs
+   on the Subgroup stream belong to different Subgroups or do not exist.
+
+If the relay does not know if an Object is the next Object, it MUST reset the
+Subgroup stream and open a new one to forward it.
+
 Since SUBSCRIBEs always end on a group boundary, an ending subscription can
 always cleanly close all its subgroups. A sender that terminates a stream
 early for any other reason (e.g., to handoff to a different sender) MUST
