@@ -1152,6 +1152,10 @@ Table of Contents
    endpoint SHOULD NOT cache or forward the duplicate object in this
    case.
 
+   A cache MUST store all properties of an Object defined in
+   Section 9.1.1, with the exception of any extensions (Section 9.1.1.2)
+   that specify otherwise.
+
 7.2.  Subscriber Interactions
 
    Subscribers subscribe to tracks by sending a SUBSCRIBE (Section 8.7)
