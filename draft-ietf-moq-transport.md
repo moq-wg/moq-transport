@@ -296,24 +296,25 @@ Location A < Location B iff
 
 `A.Group < B.Group || (A.Group == B.Group && A.Object < B.Object)`
 
-### Key-Value-Pair Structure
+### Key-Value-Pairs Structure
 
-Key-Value-Pair is a flexible structure designed to carry key/value
+Key-Value-Pairs is a flexible structure designed to carry key/value
 pairs in which the key is a variable length integer and the value
 is either a variable length integer or a byte field of arbitrary
 length.
 
-Key-Value-Pair is used in both the data plane and control plane, but
+Key-Value-Pairs is used in both the data plane and control plane, but
 is optimized for use in the data plane.
 
+A single Key-Value is:
 ~~~
-Key-Value-Pair {
+Key-Value {
   Type (i),
   [Length (i),]
   Value (..)
 }
 ~~~
-{: #moq-key-value-pair format title="MOQT Key-Value-Pair"}
+{: #moq-key-value format title="MOQT Key-Value"}
 
 * Type: an unsigned integer, encoded as a varint, identifying the
   type of the value and also the subsequent serialization.
@@ -328,6 +329,17 @@ If a receiver understands a Type, and the following Value or
 Length/Value does not match the serialization defined by that Type,
 the receiver MUST terminate the session with error code 'Key-Value
 Formatting Error'.
+
+
+Key-Value-Pairs are a sequence of Key-Values preceded by a total
+length of the pairs in bytes.
+~~~
+Key-Value-Pairs {
+  Length (i),
+  Pair (Key-Value)...,
+~~~
+{: #moq-key-value-pairs format title="MOQT Key-Value-Pairs"}
+
 
 ### Reason Phrase Structure {#reason-phrase}
 
@@ -1494,16 +1506,14 @@ CLIENT_SETUP Message {
   Length (i),
   Number of Supported Versions (i),
   Supported Versions (i) ...,
-  Number of Parameters (i),
-  Setup Parameters (..) ...,
+  Setup Parameters (..),
 }
 
 SERVER_SETUP Message {
   Type (i) = 0x21,
   Length (i),
   Selected Version (i),
-  Number of Parameters (i),
-  Setup Parameters (..) ...,
+  Setup Parameters (..),
 }
 ~~~
 {: #moq-transport-setup-format title="MOQT Setup Messages"}
@@ -1742,8 +1752,7 @@ SUBSCRIBE Message {
   Filter Type (i),
   [Start Location (Location)],
   [End Group (i)],
-  Number of Parameters (i),
-  Subscribe Parameters (..) ...
+  Subscribe Parameters (KeyValuePairs)
 }
 ~~~
 {: #moq-transport-subscribe-format title="MOQT SUBSCRIBE Message"}
@@ -1784,7 +1793,7 @@ the Start and End Group fields will be present.
 * End Group: The end Group ID, inclusive. Only present for the "AbsoluteRange"
 filter type.
 
-* Subscribe Parameters: The parameters are defined in {{version-specific-params}}.
+* Parameters: The parameters are defined in {{version-specific-params}}.
 
 On successful subscription, the publisher MUST reply with a SUBSCRIBE_OK,
 allowing the subscriber to determine the start group/object when not explicitly
@@ -1808,8 +1817,7 @@ SUBSCRIBE_OK Message {
   Group Order (8),
   Content Exists (8),
   [Largest Location (Location)],
-  Number of Parameters (i),
-  Subscribe Parameters (..) ...
+  Parameters (KeyValuePairs)
 }
 ~~~
 {: #moq-transport-subscribe-ok format title="MOQT SUBSCRIBE_OK Message"}
@@ -1834,7 +1842,7 @@ session with a Protocol Violation ({{session-termination}}).
 * Largest Location: The location of the largest object available for this track. This
   field is only present if Content Exists has a value of 1.
 
-* Subscribe Parameters: The parameters are defined in {{version-specific-params}}.
+* Parameters: The parameters are defined in {{version-specific-params}}.
 
 ## SUBSCRIBE_ERROR {#message-subscribe-error}
 
@@ -1959,8 +1967,7 @@ SUBSCRIBE_UPDATE Message {
   End Group (i),
   Subscriber Priority (8),
   Forward (8),
-  Number of Parameters (i),
-  Subscribe Parameters (..) ...
+  Parameters (KeyValuePairs)
 }
 ~~~
 {: #moq-transport-subscribe-update-format title="MOQT SUBSCRIBE_UPDATE Message"}
@@ -1982,7 +1989,7 @@ to the subscriber. If 0, Objects are not forwarded to the subscriber.
 Any other value is a protocol error and MUST terminate the
 session with a Protocol Violation ({{session-termination}}).
 
-* Subscribe Parameters: The parameters are defined in {{version-specific-params}}.
+* Parameters: The parameters are defined in {{version-specific-params}}.
 
 ## UNSUBSCRIBE {#message-unsubscribe}
 
@@ -2193,8 +2200,7 @@ FETCH Message {
    End Object (i),]
   [Joining Subscribe ID (i),
    Joining Start (i),]
-  Number of Parameters (i),
-  Parameters (..) ...
+  Parameters (KeyValuePairs)
 }
 ~~~
 {: #moq-transport-fetch-format title="MOQT FETCH Message"}
@@ -2302,8 +2308,7 @@ FETCH_OK Message {
   Group Order (8),
   End Of Track (8),
   End Location (Location),
-  Number of Parameters (i),
-  Subscribe Parameters (..) ...
+  Parameters (KeyValuePairs)
 }
 ~~~
 {: #moq-transport-fetch-ok format title="MOQT FETCH_OK Message"}
@@ -2327,7 +2332,7 @@ the End Group ID and Object Id indicate the last Object in the track,
   subscription, the relay makes an upstream request in order to satisfy the
   FETCH.
 
-* Subscribe Parameters: The parameters are defined in {{version-specific-params}}.
+* Parameters: The parameters are defined in {{version-specific-params}}.
 
 ## FETCH_ERROR {#message-fetch-error}
 
@@ -2448,8 +2453,7 @@ TRACK_STATUS_REQUEST Message {
   Track Namespace (tuple),
   Track Name Length (i),
   Track Name (..),
-  Number of Parameters (i),
-  Parameters (..) ...,
+  Parameters (KeyValuePairs)
 }
 ~~~
 {: #moq-track-status-request-format title="MOQT TRACK_STATUS_REQUEST Message"}
@@ -2527,8 +2531,7 @@ ANNOUNCE Message {
   Length (i),
   Request ID (i),
   Track Namespace (tuple),
-  Number of Parameters (i),
-  Parameters (..) ...,
+  Parameters (KeyValuePairs)
 }
 ~~~
 {: #moq-transport-announce-format title="MOQT ANNOUNCE Message"}
@@ -2680,8 +2683,7 @@ SUBSCRIBE_ANNOUNCES Message {
   Length (i),
   Request ID (i),
   Track Namespace Prefix (tuple),
-  Number of Parameters (i),
-  Parameters (..) ...,
+  Parameters (KeyValuePairs)
 }
 ~~~
 {: #moq-transport-subscribe-ns-format title="MOQT SUBSCRIBE_ANNOUNCES Message"}
@@ -2906,9 +2908,6 @@ Datagram.
 * Object Status: As enumeration used to indicate missing
 objects or mark the end of a group or track. See {{object-status}} below.
 
-* Object Extension Length: The total length of the Object Extension Headers
-  block, in bytes.
-
 * Object Extensions : A sequence of Object Extension Headers. See
   {{object-extensions}} below.
 
@@ -2974,7 +2973,7 @@ If supported by the relay and subject to the processing rules specified in the
 definition of the extension, Extension Headers MAY be modified, added, removed,
 and/or cached by relays.
 
-Object Extension Headers are serialized as Key-Value-Pairs {{moq-key-value-pair}}.
+Object Extension Headers are serialized as Key-Value-Pairs {{moq-key-value-pairs}}.
 
 Header types are registered in the IANA table 'MOQ Extension Headers'.
 See {{iana}}.
