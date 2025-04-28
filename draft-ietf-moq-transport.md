@@ -3445,18 +3445,21 @@ document:
 
 RFC Editor's Note: Please remove this section prior to publication of a final version of this document.
 
+Issue and pull request numbers are listed with a leading octothorp.
+
 ## Since draft-ietf-moq-transport-10
 
 * Added Common Structure definitions - Location, Key-Value-Pair and Reason
   Phrase
-* Length limits on all variable length fields, including Track Namespace and
+* Limit lengths of all variable length fields, including Track Namespace and
   Names
 * Control Message length is now 16 bits instead of variable length
-* Subscribe ID became Request ID, added to most control messages, used now to
-  correlate OK/ERROR responses for ANNOUNCE, SUBSCRIBE_ANNOUNCES, TRACK_STATUS
+* Subscribe ID became Request ID, and was added to most control messages. Request ID
+  is used to correlate OK/ERROR responses for ANNOUNCE, SUBSCRIBE_ANNOUNCES,
+  and TRACK_STATUS.  Like Subscribe ID, Request IDs are flow controlled.
 * Explain rules for caching in more detail
-* Changed SETUP parameter format for even number parameters to match Extension
-  format
+* Changed the SETUP parameter format for even number parameters to match the
+  Object Header Extension format
 * Rotated SETUP code points
 * Added Parameters to TRACK_STATUS and TRACK_STATUS_REQUEST
 * Clarified how subscribe filters work
@@ -3470,6 +3473,6 @@ RFC Editor's Note: Please remove this section prior to publication of a final ve
 * Coalesced END_OF_GROUP and END_OF_TRACK_AND_GROUP status
 * Objects that Do Not Exist cannot have extensions when sent on the wire
 * Specified error codes for resetting data streams
-* Defined an extension for communicating a known Group ID gap
-* Replaced AUTH INFO with AUTH TOKEN, which has more structure, compression and
-  additional Auth related error codes
+* Defined an Object Header Extension for communicating a known Group ID gap
+* Replaced AUTHORIZATION_INFO with AUTHORIZATION_TOKEN, which has more structure, 
+  compression and additional Auth related error codes (#760)
