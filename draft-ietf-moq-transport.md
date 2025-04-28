@@ -3134,7 +3134,7 @@ with a reliable_size equal to the length of the stream header. This explicitly
 tells the receiver there is an unsent Subgroup.
 
 A relay MUST NOT forward an Object on an existing Subgroup stream unless it is
-the next Object in that Subgroup.  A relay knows that that an Object is the next
+the next Object in that Subgroup.  A relay knows that an Object is the next
 Object in the Subgroup if
  * the Object ID is one greater than the previous Object sent on this Subgroup
    stream.
