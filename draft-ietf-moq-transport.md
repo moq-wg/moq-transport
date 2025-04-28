@@ -1422,13 +1422,6 @@ Publishers SHOULD consider whether the entire Object is likely to be delivered
 before sending any data for that Object, taking into account priorities,
 congestion control, and any other relevant information.
 
-#### AUTHORIZATION INFO {#authorization-info}
-
-AUTHORIZATION INFO parameter (Parameter Type 0x03) identifies a track's
-authorization information in a TRACK_STATUS_REQUEST, SUBSCRIBE,
-SUBSCRIBE_ANNOUNCES, ANNOUNCE, or FETCH message. This parameter is populated
-for cases where the authorization is required at the track level.
-
 #### MAX CACHE DURATION Parameter {#max-cache-duration}
 
 The MAX_CACHE_DURATION parameter (Parameter Type 0x04) MAY appear in a
