@@ -3701,6 +3701,8 @@ Contributors
 
    *  Luke Curley
 
+   *  Martin Duke
+
    *  Mike English
 
    *  Mo Zanaty
