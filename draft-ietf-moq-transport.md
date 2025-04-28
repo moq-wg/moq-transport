@@ -2848,7 +2848,8 @@ so the session MUST NOT be teriminated in that case.
 Every Track has a single 'Object Forwarding Preference' and the Original
 Publisher MUST NOT mix different forwarding preferences within a single track.
 If a subscriber receives Objects via both Subgroup streams and Datagrams in
-response to a SUBSCRIBE, it SHOULD close the session with an error of 'Protocol Violation."
+response to a SUBSCRIBE, it SHOULD close the session with an error of 'Protocol
+Violation'
 
 ## Objects {#message-object}
 
