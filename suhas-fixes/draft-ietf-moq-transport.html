@@ -5237,10 +5237,10 @@ publisher <span class="bcp14">MUST NOT</span> send Objects that are not requeste
 an Object it never requested, it <span class="bcp14">SHOULD</span> terminate the session with a protocol
 violation. Objects can arrive after a subscription or fetch has been cancelled,
 so the session <span class="bcp14">MUST NOT</span> be teriminated in that case.<a href="#section-9-7" class="pilcrow">¶</a></p>
-<p id="section-9-8">Every Track has a single 'Object Forwarding Preference'. If a subscriber
-receives objects via both stream and datagram in response to a SUBSCRIBE, or
-via Datagram in response to a FETCH, it <span class="bcp14">SHOULD</span> close the session with an error
-of 'Protocol Violation."<a href="#section-9-8" class="pilcrow">¶</a></p>
+<p id="section-9-8">Every Track has a single 'Object Forwarding Preference' and the Original
+Publisher <span class="bcp14">MUST NOT</span> mix different forwarding preferences within a single track.
+If a subscriber receives Objects via both Subgroup streams and Datagrams in
+response to a SUBSCRIBE, it <span class="bcp14">SHOULD</span> close the session with an error of 'Protocol Violation."<a href="#section-9-8" class="pilcrow">¶</a></p>
 <div id="message-object">
 <section id="section-9.1">
         <h3 id="name-objects-2">
@@ -5272,8 +5272,9 @@ the Object <a href="#priorities" class="auto internal xref">Section 6</a>.<a hre
 </li>
             <li class="normal" id="section-9.1.1-2.5">
               <p id="section-9.1.1-2.5.1">Object Forwarding Preference: An enumeration indicating how a publisher sends
-an object. The preferences are Subgroup and Datagram.  When publishing, an Object
-<span class="bcp14">MUST</span> be sent according to its <code>Object Forwarding Preference</code>, described below.<a href="#section-9.1.1-2.5.1" class="pilcrow">¶</a></p>
+an object. The preferences are Subgroup and Datagram.  When in response to a
+SUBSCRIBE, an Object <span class="bcp14">MUST</span> be sent according to its <code>Object Forwarding
+Preference</code>, described below.<a href="#section-9.1.1-2.5.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-9.1.1-2.6">
               <p id="section-9.1.1-2.6.1">Subgroup ID: The object is a member of the indicated subgroup ID (<a href="#model-subgroup" class="auto internal xref">Section 2.2</a>)
