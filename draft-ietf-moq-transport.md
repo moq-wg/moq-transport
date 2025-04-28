@@ -342,14 +342,14 @@ Reason Phrase {
 ~~~
 
 * Reason Phrase Length: A variable-length integer specifying the length of the
-reason phrase in bytes. The  reason phrase length has a maximum length of
-1024 bytes. If an endpoint recieves a length exceeding the maximum, it MUST
-close the session with a Protocol Violation
+  reason phrase in bytes. The reason phrase length has a maximum length of
+  1024 bytes. If an endpoint receives a length exceeding the maximum, it MUST
+  close the session with a Protocol Violation
 
 * Reason Phrase Value: Additional diagnostic information about the error condition.
-The reason phrase value is encoded as UTF-8 string and does not carry information,
-such as language tags, that would aid comprehension by  any entity other than
-the one that created the text.
+  The reason phrase value is encoded as UTF-8 string and does not carry information,
+  such as language tags, that would aid comprehension by any entity other than
+  the one that created the text.
 
 # Object Data Model {#model}
 
