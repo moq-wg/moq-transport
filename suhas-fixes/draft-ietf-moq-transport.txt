@@ -2888,7 +2888,7 @@ Table of Contents
      Length (i),
      Track Namespace (tuple),
      Error Code (i),
-     Erorr Reason (Reason Phrase),
+     Error Reason (Reason Phrase),
    }
 
                   Figure 25: MOQT ANNOUNCE_CANCEL Message
