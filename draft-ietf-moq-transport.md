@@ -1506,14 +1506,14 @@ CLIENT_SETUP Message {
   Length (i),
   Number of Supported Versions (i),
   Supported Versions (i) ...,
-  Setup Parameters (..),
+  Setup Parameters (KeyValuePairs),
 }
 
 SERVER_SETUP Message {
   Type (i) = 0x21,
   Length (i),
   Selected Version (i),
-  Setup Parameters (..),
+  Setup Parameters (KeyValuePairs),
 }
 ~~~
 {: #moq-transport-setup-format title="MOQT Setup Messages"}
