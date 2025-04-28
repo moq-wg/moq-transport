@@ -3089,7 +3089,7 @@ Table of Contents
    Original Publisher MUST NOT mix different forwarding preferences
    within a single track.  If a subscriber receives Objects via both
    Subgroup streams and Datagrams in response to a SUBSCRIBE, it SHOULD
-   close the session with an error of 'Protocol Violation."
+   close the session with an error of 'Protocol Violation'
 
 9.1.  Objects
 
