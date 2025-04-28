@@ -2189,7 +2189,7 @@ FETCH Message {
    Start Object (i),
    End Group (i),
    End Object (i),]
-  [Joining Request ID (i),
+  [Joining Subscribe ID (i),
    Joining Start (i),]
   Number of Parameters (i),
   Parameters (..) ...
