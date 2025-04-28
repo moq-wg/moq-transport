@@ -329,6 +329,28 @@ Length/Value does not match the serialization defined by that Type,
 the receiver MUST terminate the session with error code 'Key-Value
 Formatting Error'.
 
+### Reason Phrase Structure {#reason-phrase}
+
+Reason Phrase provides a way for the sender to encode additional diagnostic
+information about the error condition, where appropriate.
+
+~~~
+Reason Phrase {
+  Reason Phrase Length (i),
+  Reason Phrase Value (..)
+}
+~~~
+
+* Reason Phrase Length: A variable-length integer specifying the length of the
+  reason phrase in bytes. The reason phrase length has a maximum length of
+  1024 bytes. If an endpoint receives a length exceeding the maximum, it MUST
+  close the session with a Protocol Violation
+
+* Reason Phrase Value: Additional diagnostic information about the error condition.
+  The reason phrase value is encoded as UTF-8 string and does not carry information,
+  such as language tags, that would aid comprehension by any entity other than
+  the one that created the text.
+
 # Object Data Model {#model}
 
 MOQT has a hierarchical data model, comprised of tracks which contain
@@ -1825,8 +1847,7 @@ SUBSCRIBE_ERROR Message {
   Length (i),
   Request ID (i),
   Error Code (i),
-  Reason Phrase Length (i),
-  Reason Phrase (..),
+  Error Reason (Reason Phrase),
   Track Alias (i),
 }
 ~~~
@@ -1837,9 +1858,7 @@ SUBSCRIBE_ERROR Message {
 
 * Error Code: Identifies an integer error code for subscription failure.
 
-* Reason Phrase: Provides the reason for subscription error.  The reason phrase
-  has a maximum length of 1024 bytes.  If an endpoint recieves a length exceeding
-  the maximum, it MUST close the session with a Protocol Violation.
+* Error Reason: Provides the reason for subscription error. See {{reason-phrase}}.
 
 * Track Alias: When Error Code is 'Retry Track Alias', the subscriber SHOULD re-issue the
   SUBSCRIBE with this Track Alias instead. If this Track Alias is already in use,
@@ -2030,8 +2049,7 @@ SUBSCRIBE_DONE Message {
   Request ID (i),
   Status Code (i),
   Stream Count (i),
-  Reason Phrase Length (i),
-  Reason Phrase (..),
+  Error Reason (Reason Phrase)
 }
 ~~~
 {: #moq-transport-subscribe-fin-format title="MOQT SUBSCRIBE_DONE Message"}
@@ -2055,7 +2073,7 @@ or set the maximum value.  If a subscriber receives more streams for a
 subscription than specified in Stream Count, it MAY close the session with a
 Protocol Violation.
 
-* Reason Phrase: Provides the reason for subscription error.
+* Error Reason: Provides the reason for subscription error. See {{reason-phrase}}.
 
 The application SHOULD use a relevant status code in
 SUBSCRIBE_DONE, as defined below:
@@ -2173,7 +2191,7 @@ FETCH Message {
    Start Object (i),
    End Group (i),
    End Object (i),]
-  [Joining Request ID (i),
+  [Joining Subscribe ID (i),
    Joining Start (i),]
   Number of Parameters (i),
   Parameters (..) ...
@@ -2217,10 +2235,10 @@ requested.
 
 Fields present only for Relative Fetch (0x2) and Absolute Fetch (0x3):
 
-* Joining Request ID: The Request ID of the existing subscription to be
-joined. If a publisher receives a Joining Fetch with a Joining Request ID that
-does not correspond to an existing Subscribe, it MUST respond with a Fetch
-Error Invalid Joining Request ID.
+* Joining Subscribe ID: The Request ID of the existing subscription to be
+  joined. If a publisher receives a Joining Fetch with a Request ID that does
+  not correspond to an existing Subscribe in the same session, it MUST respond
+  with a Fetch Error with code Invalid Joining Subscribe ID.
 
 * Joining Start : for a Relative Joining Fetch (0x2), this value represents the
   group offset for the Fetch prior and relative to the Current Group of the
@@ -2322,8 +2340,7 @@ FETCH_ERROR Message {
   Length (i),
   Request ID (i),
   Error Code (i),
-  Reason Phrase Length (i),
-  Reason Phrase (..),
+  Error Reason (Reason Phrase)
 }
 ~~~
 {: #moq-transport-fetch-error format title="MOQT FETCH_ERROR Message"}
@@ -2333,38 +2350,36 @@ FETCH_ERROR Message {
 
 * Error Code: Identifies an integer error code for fetch failure.
 
-* Reason Phrase: Provides the reason for fetch error.  The reason phrase
-  has a maximum length of 1024 bytes.  If an endpoint recieves a length
-  exceeding the maximum, it MUST close the session with a Protocol Violation.
+* Error Reason: Provides the reason for fetch error. See {{reason-phrase}}.
 
 The application SHOULD use a relevant error code in FETCH_ERROR,
 as defined below:
 
-|------|---------------------------|
-| Code | Reason                    |
-|-----:|:--------------------------|
-| 0x0  | Internal Error            |
-|------|---------------------------|
-| 0x1  | Unauthorized              |
-|------|---------------------------|
-| 0x2  | Timeout                   |
-|------|---------------------------|
-| 0x3  | Not Supported             |
-|------|---------------------------|
-| 0x4  | Track Does Not Exist      |
-|------|---------------------------|
-| 0x5  | Invalid Range             |
-|------|---------------------------|
-| 0x6  | No Objects                |
-|------|---------------------------|
-| 0x7  | Invalid Joining Request ID|
-|------|---------------------------|
-| 0x10 | Malformed Auth Token      |
-|------|---------------------------|
-| 0x11 | Unknown Auth Token Alias  |
-|------|---------------------------|
-| 0x12 | Expired Auth Token        |
-|------|---------------------------|
+|------|------------------------------|
+| Code | Reason                       |
+|-----:|:-----------------------------|
+| 0x0  | Internal Error               |
+|------|------------------------------|
+| 0x1  | Unauthorized                 |
+|------|------------------------------|
+| 0x2  | Timeout                      |
+|------|------------------------------|
+| 0x3  | Not Supported                |
+|------|------------------------------|
+| 0x4  | Track Does Not Exist         |
+|------|------------------------------|
+| 0x5  | Invalid Range                |
+|------|------------------------------|
+| 0x6  | No Objects                   |
+|------|------------------------------|
+| 0x7  | Invalid Joining Subscribe ID |
+|------|------------------------------|
+| 0x10 | Malformed Auth Token         |
+|------|------------------------------|
+| 0x11 | Unknown Auth Token Alias     |
+|------|------------------------------|
+| 0x12 | Expired Auth Token           |
+|------|------------------------------|
 
 * Internal Error - An implementation specific or generic error occurred.
 
@@ -2385,7 +2400,7 @@ as defined below:
 
 * No Objects - No Objects exist between the requested Start and End Locations.
 
-* Invalid Joining Request ID - The joining Fetch referenced a Request ID that
+* Invalid Joining Subscribe ID - The joining Fetch referenced a Request ID that
   did not belong to an active Subscription.
 
 * Malformed Auth Token - Invalid Auth Token serialization during registration
@@ -2553,8 +2568,7 @@ ANNOUNCE_ERROR Message {
   Length (i),
   Request ID (i),
   Error Code (i),
-  Reason Phrase Length (i),
-  Reason Phrase (..),
+  Error Reason (Reason Phrase)
 }
 ~~~
 {: #moq-transport-announce-error format title="MOQT ANNOUNCE_ERROR Message"}
@@ -2564,9 +2578,7 @@ ANNOUNCE_ERROR Message {
 
 * Error Code: Identifies an integer error code for announcement failure.
 
-* Reason Phrase: Provides the reason for announcement error. The reason phrase
-  has a maximum length of 1024 bytes.  If an endpoint recieves a length
-  exceeding the maximum, it MUST close the session with a Protocol Violation.
+* Error Reason: Provides the reason for announcement error. See {{reason-phrase}}.
 
 The application SHOULD use a relevant error code in ANNOUNCE_ERROR, as defined
 below:
@@ -2642,8 +2654,7 @@ ANNOUNCE_CANCEL Message {
   Length (i),
   Track Namespace (tuple),
   Error Code (i),
-  Reason Phrase Length (i),
-  Reason Phrase (..),
+  Error Reason (Reason Phrase),
 }
 ~~~
 {: #moq-transport-announce-cancel-format title="MOQT ANNOUNCE_CANCEL Message"}
@@ -2655,9 +2666,7 @@ ANNOUNCE_CANCEL Message {
 ANNOUNCE_CANCEL uses the same error codes as ANNOUNCE_ERROR
 ({{message-announce-error}}).
 
-* Reason Phrase: Provides the reason for announcement cancelation. The reason
-  phrase has a maximum length of 1024 bytes.  If an endpoint recieves a length
-  exceeding the maximum, it MUST close the session with a Protocol Violation.
+* Error Reason: Provides the reason for announcement cancelation. See {{reason-phrase}}.
 
 ## SUBSCRIBE_ANNOUNCES {#message-subscribe-ns}
 
@@ -2739,8 +2748,7 @@ SUBSCRIBE_ANNOUNCES_ERROR Message {
   Length (i),
   Request ID (i),
   Error Code (i),
-  Reason Phrase Length (i),
-  Reason Phrase (..),
+  Error Reason (Reason Phrase)
 }
 ~~~
 {: #moq-transport-sub-ann-error format
@@ -2752,10 +2760,8 @@ title="MOQT SUBSCRIBE_ANNOUNCES_ERROR Message"}
 * Error Code: Identifies an integer error code for the namespace subscription
 failure.
 
-* Reason Phrase: Provides the reason for the namespace subscription error.
-  The reason phrase has a maximum length of 1024 bytes.  If an endpoint
-  recieves a length exceeding the maximum, it MUST close the session with a
-  Protocol Violation.
+* Error Reason: Provides the reason for the namespace subscription error.
+  See {{reason-phrase}}.
 
 The application SHOULD use a relevant error code in SUBSCRIBE_ANNOUNCES_ERROR,
 as defined below:
@@ -2864,8 +2870,9 @@ so the session MUST NOT be teriminated in that case.
 
 Every Track has a single 'Object Forwarding Preference' and the Original
 Publisher MUST NOT mix different forwarding preferences within a single track.
-If a subscriber receives different forwarding preferences for a track, it
-SHOULD close the session with an error of 'Protocol Violation'.
+If a subscriber receives Objects via both Subgroup streams and Datagrams in
+response to a SUBSCRIBE, it SHOULD close the session with an error of 'Protocol
+Violation'
 
 ## Objects {#message-object}
 
@@ -2888,8 +2895,9 @@ A canonical MoQ Object has the following information:
 the Object {{priorities}}.
 
 * Object Forwarding Preference: An enumeration indicating how a publisher sends
-an object. The preferences are Subgroup and Datagram.  An Object
-MUST be sent according to its `Object Forwarding Preference`, described below.
+an object. The preferences are Subgroup and Datagram.  When in response to a
+SUBSCRIBE, an Object MUST be sent according to its `Object Forwarding
+Preference`, described below.
 
 * Subgroup ID: The object is a member of the indicated subgroup ID ({{model-subgroup}})
 within the group. This field is omitted if the Object Forwarding Preference is
@@ -2942,9 +2950,6 @@ are beyond the end of a group or track.
 Any other value SHOULD be treated as a protocol error and terminate the
 session with a Protocol Violation ({{session-termination}}).
 Any object with a status code other than zero MUST have an empty payload.
-
-Though some status information could be inferred from QUIC stream state,
-that information is not reliable and cacheable.
 
 #### Object Extension Header {#object-extensions}
 Any Object may have extension headers except those with Object Status 'Object
