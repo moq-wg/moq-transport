@@ -1887,7 +1887,8 @@ Table of Contents
    downstream subscription.  Subscriptions that are not forwarded
    consume resources from the publisher, so a publisher might
    deprioritize, reject, or close those subscriptions to ensure other
-   subscriptions can be delivered.
+   subscriptions can be delivered.  Control messages, such as
+   SUBCRIBE_DONE (Section 8.12) are still sent.
 
    The format of SUBSCRIBE is as follows:
 

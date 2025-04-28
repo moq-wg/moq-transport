@@ -3582,14 +3582,15 @@ than specified in <code>Start</code>.<a href="#section-8.7-10" class="pilcrow">�
 <p id="section-8.7-12">Subscribe only delivers newly published or received Objects.  Objects from the
 past are retrieved using FETCH (<a href="#message-fetch" class="auto internal xref">Section 8.13</a>).<a href="#section-8.7-12" class="pilcrow">¶</a></p>
 <p id="section-8.7-13">A Subscription can also request a publisher to not forward Objects for a given
-track by setting the <code>Forward</code> field to 0. This allows the publisher or relay
-to prepare to serve the subscription in advance, reducing the time to
-receive objects in the future. Relays <span class="bcp14">SHOULD</span> set the <code>Forward</code> flag to 1 if a
-new subscription needs to be sent upstream, regardless of the value of the
-<code>Forward</code> field from the downstream subscription. Subscriptions that are not
-forwarded consume resources from the publisher, so a publisher might
-deprioritize, reject, or close those subscriptions to ensure other
-subscriptions can be delivered.<a href="#section-8.7-13" class="pilcrow">¶</a></p>
+track by setting the <code>Forward</code> field to 0. This allows the publisher or relay to
+prepare to serve the subscription in advance, reducing the time to receive
+objects in the future. Relays <span class="bcp14">SHOULD</span> set the <code>Forward</code> flag to 1 if a new
+subscription needs to be sent upstream, regardless of the value of the <code>Forward</code>
+field from the downstream subscription. Subscriptions that are not forwarded
+consume resources from the publisher, so a publisher might deprioritize, reject,
+or close those subscriptions to ensure other subscriptions can be delivered.
+Control messages, such as SUBCRIBE_DONE (<a href="#message-subscribe-done" class="auto internal xref">Section 8.12</a>) are still
+sent.<a href="#section-8.7-13" class="pilcrow">¶</a></p>
 <p id="section-8.7-14">The format of SUBSCRIBE is as follows:<a href="#section-8.7-14" class="pilcrow">¶</a></p>
 <span id="name-moqt-subscribe-message"></span><div id="moq-transport-subscribe-format">
 <figure id="figure-9">
