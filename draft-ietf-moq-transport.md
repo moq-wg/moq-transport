@@ -109,7 +109,7 @@ Latency is necessary to correct for variable network throughput. Ideally live
 content is consumed at the same bitrate it is produced. End-to-end latency would
 be fixed and only subject to encoding and transmission delays. Unfortunately,
 networks have variable throughput, primarily due to congestion. Attempting to
-deliver content encoded at a higher bitrate than the network can support causes
+deliver content encoded at a higher bitrate than the network can cause
 queuing along the path from producer to consumer. The speed at which a protocol
 can detect and respond to congestion determines the overall latency. TCP-based
 protocols are simple but are slow to detect congestion and suffer from
