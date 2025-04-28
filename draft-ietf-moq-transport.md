@@ -3474,5 +3474,5 @@ Issue and pull request numbers are listed with a leading octothorp.
 * Objects that Do Not Exist cannot have extensions when sent on the wire
 * Specified error codes for resetting data streams
 * Defined an Object Header Extension for communicating a known Group ID gap
-* Replaced AUTHORIZATION_INFO with AUTHORIZATION_TOKEN, which has more structure, 
-  compression and additional Auth related error codes (#760)
+* Replaced AUTHORIZATION_INFO with AUTHORIZATION_TOKEN, which has more structure,
+  compression, and additional Auth related error codes (#760)
