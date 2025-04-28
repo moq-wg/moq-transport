@@ -3170,9 +3170,6 @@ Table of Contents
    the session with a Protocol Violation (Section 3.4).  Any object with
    a status code other than zero MUST have an empty payload.
 
-   Though some status information could be inferred from QUIC stream
-   state, that information is not reliable and cacheable.
-
 9.1.1.2.  Object Extension Header
 
    Any Object may have extension headers except those with Object Status
