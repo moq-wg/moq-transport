@@ -2626,10 +2626,11 @@ Table of Contents
 
 8.16.  FETCH_CANCEL
 
-   A subscriber issues a FETCH_CANCEL message to a publisher indicating
-   it is no longer interested in receiving Objects for the fetch
-   specified by 'Request ID'.  The publisher SHOULD close the
-   unidirectional stream as soon as possible.
+   A subscriber sends a FETCH_CANCEL message to a publisher to indicate
+   it is no longer interested in receiving objects for the fetch
+   identified by the 'Request ID'.  The publisher SHOULD promptly close
+   the unidirectional stream, even if it is in the middle of delivering
+   an object.
 
    The format of FETCH_CANCEL is as follows:
 

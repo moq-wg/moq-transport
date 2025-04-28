@@ -4536,9 +4536,10 @@ not registered (see <a href="#authorization-token" class="auto internal xref">Se
         <h3 id="name-fetch_cancel">
 <a href="#section-8.16" class="section-number selfRef">8.16. </a><a href="#name-fetch_cancel" class="section-name selfRef">FETCH_CANCEL</a>
         </h3>
-<p id="section-8.16-1">A subscriber issues a <code>FETCH_CANCEL</code> message to a publisher indicating it is no
-longer interested in receiving Objects for the fetch specified by 'Request ID'.
-The publisher <span class="bcp14">SHOULD</span> close the unidirectional stream as soon as possible.<a href="#section-8.16-1" class="pilcrow">¶</a></p>
+<p id="section-8.16-1">A subscriber sends a FETCH_CANCEL message to a publisher to indicate it is no
+longer interested in receiving objects for the fetch identified by the 'Request
+ID'. The publisher <span class="bcp14">SHOULD</span> promptly close the unidirectional stream, even if it
+is in the middle of delivering an object.<a href="#section-8.16-1" class="pilcrow">¶</a></p>
 <p id="section-8.16-2">The format of <code>FETCH_CANCEL</code> is as follows:<a href="#section-8.16-2" class="pilcrow">¶</a></p>
 <span id="name-moqt-fetch_cancel-message"></span><div id="moq-transport-fetch-cancel">
 <figure id="figure-18">
