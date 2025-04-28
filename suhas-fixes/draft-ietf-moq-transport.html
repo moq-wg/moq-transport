@@ -4278,10 +4278,10 @@ requested.<a href="#section-8.13-19.6.1" class="pilcrow">¶</a></p>
 <p id="section-8.13-20">Fields present only for Relative Fetch (0x2) and Absolute Fetch (0x3):<a href="#section-8.13-20" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-8.13-21.1">
-            <p id="section-8.13-21.1.1">Joining Subscribe ID: The Subscribe ID of the existing subscription to be
-joined. If a publisher receives a Joining Fetch with a Subscribe ID that does
+            <p id="section-8.13-21.1.1">Joining Subscribe ID: The Request ID of the existing subscription to be
+joined. If a publisher receives a Joining Fetch with a Request ID that does
 not correspond to an existing Subscribe in the same session, it <span class="bcp14">MUST</span> respond
-with a Fetch Error with code Invalid Subscribe ID.<a href="#section-8.13-21.1.1" class="pilcrow">¶</a></p>
+with a Fetch Error with code Invalid Joining Subscribe ID.<a href="#section-8.13-21.1.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.13-21.2">
             <p id="section-8.13-21.2.1">Joining Start : for a Relative Joining Fetch (0x2), this value represents the
