@@ -2353,31 +2353,31 @@ FETCH_ERROR Message {
 The application SHOULD use a relevant error code in FETCH_ERROR,
 as defined below:
 
-|------|---------------------------|
-| Code | Reason                    |
-|-----:|:--------------------------|
-| 0x0  | Internal Error            |
-|------|---------------------------|
-| 0x1  | Unauthorized              |
-|------|---------------------------|
-| 0x2  | Timeout                   |
-|------|---------------------------|
-| 0x3  | Not Supported             |
-|------|---------------------------|
-| 0x4  | Track Does Not Exist      |
-|------|---------------------------|
-| 0x5  | Invalid Range             |
-|------|---------------------------|
-| 0x6  | No Objects                |
-|------|---------------------------|
-| 0x7  | Invalid Joining Request ID|
-|------|---------------------------|
-| 0x10 | Malformed Auth Token      |
-|------|---------------------------|
-| 0x11 | Unknown Auth Token Alias  |
-|------|---------------------------|
-| 0x12 | Expired Auth Token        |
-|------|---------------------------|
+|------|------------------------------|
+| Code | Reason                       |
+|-----:|:-----------------------------|
+| 0x0  | Internal Error               |
+|------|------------------------------|
+| 0x1  | Unauthorized                 |
+|------|------------------------------|
+| 0x2  | Timeout                      |
+|------|------------------------------|
+| 0x3  | Not Supported                |
+|------|------------------------------|
+| 0x4  | Track Does Not Exist         |
+|------|------------------------------|
+| 0x5  | Invalid Range                |
+|------|------------------------------|
+| 0x6  | No Objects                   |
+|------|------------------------------|
+| 0x7  | Invalid Joining Subscribe ID |
+|------|------------------------------|
+| 0x10 | Malformed Auth Token         |
+|------|------------------------------|
+| 0x11 | Unknown Auth Token Alias     |
+|------|------------------------------|
+| 0x12 | Expired Auth Token           |
+|------|------------------------------|
 
 * Internal Error - An implementation specific or generic error occurred.
 
@@ -2397,7 +2397,7 @@ as defined below:
 * No Objects - The beginning of the requested range is after the latest group
   and object for the track, or the track has not published any objects.
 
-* Invalid Joining Request ID - The joining Fetch referenced a Request ID that
+* Invalid Joining Subscribe ID - The joining Fetch referenced a Request ID that
   did not belong to an active Subscription.
 
 * Malformed Auth Token - Invalid Auth Token serialization during registration
