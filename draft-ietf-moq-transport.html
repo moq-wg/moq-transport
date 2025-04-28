@@ -1204,6 +1204,9 @@ networks and is designed for high scale and low latency distribution.<a href="#s
                   <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.1.2.3.2.2">
                     <p id="section-toc.1-1.1.2.3.2.2.1"><a href="#section-1.3.2" class="auto internal xref">1.3.2</a>.  <a href="#name-key-value-pair-structure" class="internal xref">Key-Value-Pair Structure</a></p>
 </li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.1.2.3.2.3">
+                    <p id="section-toc.1-1.1.2.3.2.3.1"><a href="#section-1.3.3" class="auto internal xref">1.3.3</a>.  <a href="#name-reason-phrase-structure" class="internal xref">Reason Phrase Structure</a></p>
+</li>
                 </ul>
 </li>
             </ul>
@@ -1874,6 +1877,37 @@ sequence of Length bytes.<a href="#section-1.3.2-4.3.1" class="pilcrow">¶</a></
 Length/Value does not match the serialization defined by that Type,
 the receiver <span class="bcp14">MUST</span> terminate the session with error code 'Key-Value
 Formatting Error'.<a href="#section-1.3.2-5" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="reason-phrase">
+<section id="section-1.3.3">
+          <h4 id="name-reason-phrase-structure">
+<a href="#section-1.3.3" class="section-number selfRef">1.3.3. </a><a href="#name-reason-phrase-structure" class="section-name selfRef">Reason Phrase Structure</a>
+          </h4>
+<p id="section-1.3.3-1">Reason Phrase provides a way for the sender to encode additional diagnostic
+information about the error condition, where appropriate.<a href="#section-1.3.3-1" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-1.3.3-2">
+<pre>
+Reason Phrase {
+  Reason Phrase Length (i),
+  Reason Phrase Value (..)
+}
+</pre><a href="#section-1.3.3-2" class="pilcrow">¶</a>
+</div>
+<ul class="normal">
+<li class="normal" id="section-1.3.3-3.1">
+              <p id="section-1.3.3-3.1.1">Reason Phrase Length: A variable-length integer specifying the length of the
+reason phrase in bytes. The reason phrase length has a maximum length of
+1024 bytes. If an endpoint receives a length exceeding the maximum, it <span class="bcp14">MUST</span>
+close the session with a Protocol Violation<a href="#section-1.3.3-3.1.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-1.3.3-3.2">
+              <p id="section-1.3.3-3.2.1">Reason Phrase Value: Additional diagnostic information about the error condition.
+The reason phrase value is encoded as UTF-8 string and does not carry information,
+such as language tags, that would aid comprehension by any entity other than
+the one that created the text.<a href="#section-1.3.3-3.2.1" class="pilcrow">¶</a></p>
+</li>
+          </ul>
 </section>
 </div>
 </section>
@@ -3754,8 +3788,7 @@ SUBSCRIBE_ERROR Message {
   Length (i),
   Request ID (i),
   Error Code (i),
-  Reason Phrase Length (i),
-  Reason Phrase (..),
+  Error Reason (Reason Phrase),
   Track Alias (i),
 }
 </pre>
@@ -3773,9 +3806,7 @@ SUBSCRIBE_ERROR Message {
             <p id="section-8.9-3.2.1">Error Code: Identifies an integer error code for subscription failure.<a href="#section-8.9-3.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.9-3.3">
-            <p id="section-8.9-3.3.1">Reason Phrase: Provides the reason for subscription error.  The reason phrase
-has a maximum length of 1024 bytes.  If an endpoint recieves a length exceeding
-the maximum, it <span class="bcp14">MUST</span> close the session with a Protocol Violation.<a href="#section-8.9-3.3.1" class="pilcrow">¶</a></p>
+            <p id="section-8.9-3.3.1">Error Reason: Provides the reason for subscription error. See <a href="#reason-phrase" class="auto internal xref">Section 1.3.3</a>.<a href="#section-8.9-3.3.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.9-3.4">
             <p id="section-8.9-3.4.1">Track Alias: When Error Code is 'Retry Track Alias', the subscriber <span class="bcp14">SHOULD</span> re-issue the
@@ -4033,8 +4064,7 @@ SUBSCRIBE_DONE Message {
   Request ID (i),
   Status Code (i),
   Stream Count (i),
-  Reason Phrase Length (i),
-  Reason Phrase (..),
+  Error Reason (Reason Phrase)
 }
 </pre>
 </div>
@@ -4066,7 +4096,7 @@ subscription than specified in Stream Count, it <span class="bcp14">MAY</span> c
 Protocol Violation.<a href="#section-8.12-8.3.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.12-8.4">
-            <p id="section-8.12-8.4.1">Reason Phrase: Provides the reason for subscription error.<a href="#section-8.12-8.4.1" class="pilcrow">¶</a></p>
+            <p id="section-8.12-8.4.1">Error Reason: Provides the reason for subscription error. See <a href="#reason-phrase" class="auto internal xref">Section 1.3.3</a>.<a href="#section-8.12-8.4.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-8.12-9">The application <span class="bcp14">SHOULD</span> use a relevant status code in
@@ -4207,7 +4237,7 @@ FETCH Message {
    Start Object (i),
    End Group (i),
    End Object (i),]
-  [Joining Request ID (i),
+  [Joining Subscribe ID (i),
    Joining Start (i),]
   Number of Parameters (i),
   Parameters (..) ...
@@ -4268,10 +4298,10 @@ requested.<a href="#section-8.13-19.6.1" class="pilcrow">¶</a></p>
 <p id="section-8.13-20">Fields present only for Relative Fetch (0x2) and Absolute Fetch (0x3):<a href="#section-8.13-20" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-8.13-21.1">
-            <p id="section-8.13-21.1.1">Joining Request ID: The Request ID of the existing subscription to be
-joined. If a publisher receives a Joining Fetch with a Joining Request ID that
-does not correspond to an existing Subscribe, it <span class="bcp14">MUST</span> respond with a Fetch
-Error Invalid Joining Request ID.<a href="#section-8.13-21.1.1" class="pilcrow">¶</a></p>
+            <p id="section-8.13-21.1.1">Joining Subscribe ID: The Request ID of the existing subscription to be
+joined. If a publisher receives a Joining Fetch with a Request ID that does
+not correspond to an existing Subscribe in the same session, it <span class="bcp14">MUST</span> respond
+with a Fetch Error with code Invalid Joining Subscribe ID.<a href="#section-8.13-21.1.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.13-21.2">
             <p id="section-8.13-21.2.1">Joining Start : for a Relative Joining Fetch (0x2), this value represents the
@@ -4409,8 +4439,7 @@ FETCH_ERROR Message {
   Length (i),
   Request ID (i),
   Error Code (i),
-  Reason Phrase Length (i),
-  Reason Phrase (..),
+  Error Reason (Reason Phrase)
 }
 </pre>
 </div>
@@ -4427,9 +4456,7 @@ FETCH_ERROR Message {
             <p id="section-8.15-3.2.1">Error Code: Identifies an integer error code for fetch failure.<a href="#section-8.15-3.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.15-3.3">
-            <p id="section-8.15-3.3.1">Reason Phrase: Provides the reason for fetch error.  The reason phrase
-has a maximum length of 1024 bytes.  If an endpoint recieves a length
-exceeding the maximum, it <span class="bcp14">MUST</span> close the session with a Protocol Violation.<a href="#section-8.15-3.3.1" class="pilcrow">¶</a></p>
+            <p id="section-8.15-3.3.1">Error Reason: Provides the reason for fetch error. See <a href="#reason-phrase" class="auto internal xref">Section 1.3.3</a>.<a href="#section-8.15-3.3.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-8.15-4">The application <span class="bcp14">SHOULD</span> use a relevant error code in FETCH_ERROR,
@@ -4473,7 +4500,7 @@ as defined below:<a href="#section-8.15-4" class="pilcrow">¶</a></p>
             </tr>
             <tr>
               <td class="text-right" rowspan="1" colspan="1">0x7</td>
-              <td class="text-left" rowspan="1" colspan="1">Invalid Joining Request ID</td>
+              <td class="text-left" rowspan="1" colspan="1">Invalid Joining Subscribe ID</td>
             </tr>
             <tr>
               <td class="text-right" rowspan="1" colspan="1">0x10</td>
@@ -4517,7 +4544,7 @@ has not published any Objects yet.<a href="#section-8.15-6.6.1" class="pilcrow">
             <p id="section-8.15-6.7.1">No Objects - No Objects exist between the requested Start and End Locations.<a href="#section-8.15-6.7.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.15-6.8">
-            <p id="section-8.15-6.8.1">Invalid Joining Request ID - The joining Fetch referenced a Request ID that
+            <p id="section-8.15-6.8.1">Invalid Joining Subscribe ID - The joining Fetch referenced a Request ID that
 did not belong to an active Subscription.<a href="#section-8.15-6.8.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.15-6.9">
@@ -4759,8 +4786,7 @@ ANNOUNCE_ERROR Message {
   Length (i),
   Request ID (i),
   Error Code (i),
-  Reason Phrase Length (i),
-  Reason Phrase (..),
+  Error Reason (Reason Phrase)
 }
 </pre>
 </div>
@@ -4777,9 +4803,7 @@ ANNOUNCE_ERROR Message {
             <p id="section-8.21-3.2.1">Error Code: Identifies an integer error code for announcement failure.<a href="#section-8.21-3.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.21-3.3">
-            <p id="section-8.21-3.3.1">Reason Phrase: Provides the reason for announcement error. The reason phrase
-has a maximum length of 1024 bytes.  If an endpoint recieves a length
-exceeding the maximum, it <span class="bcp14">MUST</span> close the session with a Protocol Violation.<a href="#section-8.21-3.3.1" class="pilcrow">¶</a></p>
+            <p id="section-8.21-3.3.1">Error Reason: Provides the reason for announcement error. See <a href="#reason-phrase" class="auto internal xref">Section 1.3.3</a>.<a href="#section-8.21-3.3.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-8.21-4">The application <span class="bcp14">SHOULD</span> use a relevant error code in ANNOUNCE_ERROR, as defined
@@ -4907,8 +4931,7 @@ ANNOUNCE_CANCEL Message {
   Length (i),
   Track Namespace (tuple),
   Error Code (i),
-  Reason Phrase Length (i),
-  Reason Phrase (..),
+  Error Reason (Reason Phrase),
 }
 </pre>
 </div>
@@ -4927,9 +4950,7 @@ ANNOUNCE_CANCEL uses the same error codes as ANNOUNCE_ERROR
 (<a href="#message-announce-error" class="auto internal xref">Section 8.21</a>).<a href="#section-8.23-3.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.23-3.3">
-            <p id="section-8.23-3.3.1">Reason Phrase: Provides the reason for announcement cancelation. The reason
-phrase has a maximum length of 1024 bytes.  If an endpoint recieves a length
-exceeding the maximum, it <span class="bcp14">MUST</span> close the session with a Protocol Violation.<a href="#section-8.23-3.3.1" class="pilcrow">¶</a></p>
+            <p id="section-8.23-3.3.1">Error Reason: Provides the reason for announcement cancelation. See <a href="#reason-phrase" class="auto internal xref">Section 1.3.3</a>.<a href="#section-8.23-3.3.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
@@ -5042,8 +5063,7 @@ SUBSCRIBE_ANNOUNCES_ERROR Message {
   Length (i),
   Request ID (i),
   Error Code (i),
-  Reason Phrase Length (i),
-  Reason Phrase (..),
+  Error Reason (Reason Phrase)
 }
 </pre>
 </div>
@@ -5061,10 +5081,8 @@ to <a href="#message-subscribe-ns" class="auto internal xref">Section 8.24</a>.<
 failure.<a href="#section-8.26-3.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.26-3.3">
-            <p id="section-8.26-3.3.1">Reason Phrase: Provides the reason for the namespace subscription error.
-The reason phrase has a maximum length of 1024 bytes.  If an endpoint
-recieves a length exceeding the maximum, it <span class="bcp14">MUST</span> close the session with a
-Protocol Violation.<a href="#section-8.26-3.3.1" class="pilcrow">¶</a></p>
+            <p id="section-8.26-3.3.1">Error Reason: Provides the reason for the namespace subscription error.
+See <a href="#reason-phrase" class="auto internal xref">Section 1.3.3</a>.<a href="#section-8.26-3.3.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-8.26-4">The application <span class="bcp14">SHOULD</span> use a relevant error code in SUBSCRIBE_ANNOUNCES_ERROR,
@@ -5243,8 +5261,9 @@ violation. Objects can arrive after a subscription or fetch has been cancelled,
 so the session <span class="bcp14">MUST NOT</span> be teriminated in that case.<a href="#section-9-7" class="pilcrow">¶</a></p>
 <p id="section-9-8">Every Track has a single 'Object Forwarding Preference' and the Original
 Publisher <span class="bcp14">MUST NOT</span> mix different forwarding preferences within a single track.
-If a subscriber receives different forwarding preferences for a track, it
-<span class="bcp14">SHOULD</span> close the session with an error of 'Protocol Violation'.<a href="#section-9-8" class="pilcrow">¶</a></p>
+If a subscriber receives Objects via both Subgroup streams and Datagrams in
+response to a SUBSCRIBE, it <span class="bcp14">SHOULD</span> close the session with an error of 'Protocol
+Violation'<a href="#section-9-8" class="pilcrow">¶</a></p>
 <div id="message-object">
 <section id="section-9.1">
         <h3 id="name-objects-2">
@@ -5276,8 +5295,9 @@ the Object <a href="#priorities" class="auto internal xref">Section 6</a>.<a hre
 </li>
             <li class="normal" id="section-9.1.1-2.5">
               <p id="section-9.1.1-2.5.1">Object Forwarding Preference: An enumeration indicating how a publisher sends
-an object. The preferences are Subgroup and Datagram.  An Object
-<span class="bcp14">MUST</span> be sent according to its <code>Object Forwarding Preference</code>, described below.<a href="#section-9.1.1-2.5.1" class="pilcrow">¶</a></p>
+an object. The preferences are Subgroup and Datagram.  When in response to a
+SUBSCRIBE, an Object <span class="bcp14">MUST</span> be sent according to its <code>Object Forwarding
+Preference</code>, described below.<a href="#section-9.1.1-2.5.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-9.1.1-2.6">
               <p id="section-9.1.1-2.6.1">Subgroup ID: The object is a member of the indicated subgroup ID (<a href="#model-subgroup" class="auto internal xref">Section 2.2</a>)
@@ -5342,8 +5362,6 @@ are beyond the end of a group or track.<a href="#section-9.1.1.1-1" class="pilcr
 <p id="section-9.1.1.1-4">Any other value <span class="bcp14">SHOULD</span> be treated as a protocol error and terminate the
 session with a Protocol Violation (<a href="#session-termination" class="auto internal xref">Section 3.4</a>).
 Any object with a status code other than zero <span class="bcp14">MUST</span> have an empty payload.<a href="#section-9.1.1.1-4" class="pilcrow">¶</a></p>
-<p id="section-9.1.1.1-5">Though some status information could be inferred from QUIC stream state,
-that information is not reliable and cacheable.<a href="#section-9.1.1.1-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="object-extensions">
