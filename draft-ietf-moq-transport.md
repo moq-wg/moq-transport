@@ -3135,7 +3135,7 @@ tells the receiver there is an unsent Subgroup.
 
 A relay MUST NOT forward an Object on an existing Subgroup stream unless it is
 the next Object in that Subgroup.  A relay knows that an Object is the next
-Object in the Subgroup if
+Object in the Subgroup if at least one of the following is true:
  * the Object ID is one greater than the previous Object sent on this Subgroup
    stream.
  * the Object was received on the same upstream Subgroup stream as the
