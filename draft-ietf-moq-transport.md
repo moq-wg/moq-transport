@@ -2927,9 +2927,6 @@ Any other value SHOULD be treated as a protocol error and terminate the
 session with a Protocol Violation ({{session-termination}}).
 Any object with a status code other than zero MUST have an empty payload.
 
-Though some status information could be inferred from QUIC stream state,
-that information is not reliable and cacheable.
-
 #### Object Extension Header {#object-extensions}
 Any Object may have extension headers except those with Object Status 'Object
 Does Not Exist'.  If an endpoint receives a non-existent Object containing
