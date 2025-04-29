@@ -3284,13 +3284,13 @@ following code points are defined:
 | Code | Group ID	| Subgroup ID	| Object ID	   | Publisher | Extension Headers |
 |      |         	|             |              | Priority	 | Length            |
 |------|----------|-------------|--------------|-----------|-------------------|
-| 0x0	 | Present	 | Present	    | Present	     | Present	  | Present           |
+| 0x0	 | Present  | Present	    | Present	     | Present   | Present           |
 |------|----------|-------------|--------------|-----------|-------------------|
-| 0x1	 | Present	 | Present	    | Present	     | Present	  | 0                 |
+| 0x1	 | Present  | Presen      | Present	     | Present   | 0                 |
 |------|----------|-------------|--------------|-----------|-------------------|
-| 0x2	 | Present	 | 0           | 0            | Present	  | Present           |
+| 0x2	 | Present  | 0           | 0            | Present	 | Present           |
 |------|----------|-------------|--------------|-----------|-------------------|
-| 0x3	 | Present	 | 0           | 0            | Present	  | 0                 |
+| 0x3	 | Present  | 0           | 0            | Present   | 0                 |
 |------|----------|-------------|--------------|-----------|-------------------|
 | 0x4	 | Previous | Previous    | Previous + 1 | Previous  | Present           |
 |------|----------|-------------|--------------|-----------|-------------------|
