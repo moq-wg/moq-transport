@@ -542,7 +542,7 @@ such as TCP, and applications using MoQ might need to fallback to
 another protocol when QUIC or WebTransport aren't available.
 
 MoQT uses ALPN in QUIC and "WT-Available-Protocols" in WebTransport
-to negotiate the version of MoQ.
+({{WebTransport, Section 3.4}}) to negotiate the version of MoQ.
 
 The ALPN value {{!RFC7301}} for the final version of this specification
 is `moq`.  ALPNs used to identify IETF drafts are created by appending
@@ -634,7 +634,7 @@ The Transport Session can be terminated at any point.  When native QUIC
 is used, the session is closed using the CONNECTION\_CLOSE frame
 ({{QUIC, Section 19.19}}).  When WebTransport is used, the session is
 closed using the CLOSE\_WEBTRANSPORT\_SESSION capsule ({{WebTransport,
-Section 5}}).
+Section 6}}).
 
 The application MAY use any error message and SHOULD use a relevant
 code, as defined below:
