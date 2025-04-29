@@ -1491,7 +1491,7 @@ The wire format of the Setup messages are as follows:
 ~~~
 CLIENT_SETUP Message {
   Type (i) = 0x20,
-  Length (i),
+  Length (16),
   Number of Supported Versions (i),
   Supported Versions (i) ...,
   Number of Parameters (i),
@@ -1500,7 +1500,7 @@ CLIENT_SETUP Message {
 
 SERVER_SETUP Message {
   Type (i) = 0x21,
-  Length (i),
+  Length (16),
   Selected Version (i),
   Number of Parameters (i),
   Setup Parameters (..) ...,
@@ -1587,7 +1587,7 @@ The endpoint MUST terminate the session with a Protocol Violation
 ~~~
 GOAWAY Message {
   Type (i) = 0x10,
-  Length (i),
+  Length (16),
   New Session URI Length (i),
   New Session URI (..),
 }
@@ -1617,7 +1617,7 @@ value is a 'Protocol Violation'.
 ~~~
 MAX_REQUEST_ID Message {
   Type (i) = 0x15,
-  Length (i),
+  Length (16),
   Request ID (i),
 }
 ~~~
@@ -1649,7 +1649,7 @@ sending REQUESTS_BLOCKED is not required.
 ~~~
 REQUESTS_BLOCKED Message {
   Type (i) = 0x1A,
-  Length (i),
+  Length (16),
   Maximum Request ID (i),
 }
 ~~~
@@ -1730,7 +1730,7 @@ The format of SUBSCRIBE is as follows:
 ~~~
 SUBSCRIBE Message {
   Type (i) = 0x3,
-  Length (i),
+  Length (16),
   Request ID (i),
   Track Alias (i),
   Track Namespace (tuple),
@@ -1802,7 +1802,7 @@ subscriptions.
 ~~~
 SUBSCRIBE_OK Message {
   Type (i) = 0x4,
-  Length (i),
+  Length (16),
   Request ID (i),
   Expires (i),
   Group Order (8),
@@ -1844,7 +1844,7 @@ failed SUBSCRIBE.
 ~~~
 SUBSCRIBE_ERROR Message {
   Type (i) = 0x5,
-  Length (i),
+  Length (16),
   Request ID (i),
   Error Code (i),
   Error Reason (Reason Phrase),
@@ -1953,7 +1953,7 @@ The format of SUBSCRIBE_UPDATE is as follows:
 ~~~
 SUBSCRIBE_UPDATE Message {
   Type (i) = 0x2,
-  Length (i),
+  Length (16),
   Request ID (i),
   Start Location (Location),
   End Group (i),
@@ -1995,7 +1995,7 @@ The format of `UNSUBSCRIBE` is as follows:
 ~~~
 UNSUBSCRIBE Message {
   Type (i) = 0xA,
-  Length (i),
+  Length (16),
   Request ID (i)
 }
 ~~~
@@ -2045,7 +2045,7 @@ The format of `SUBSCRIBE_DONE` is as follows:
 ~~~
 SUBSCRIBE_DONE Message {
   Type (i) = 0xB,
-  Length (i),
+  Length (16),
   Request ID (i),
   Status Code (i),
   Stream Count (i),
@@ -2179,7 +2179,7 @@ The format of FETCH is as follows:
 ~~~
 FETCH Message {
   Type (i) = 0x16,
-  Length (i),
+  Length (16),
   Request ID (i),
   Subscriber Priority (8),
   Group Order (8),
@@ -2297,7 +2297,7 @@ but the FETCH_OK MUST NOT be sent until the end group and object are known.
 ~~~
 FETCH_OK Message {
   Type (i) = 0x18,
-  Length (i),
+  Length (16),
   Request ID (i),
   Group Order (8),
   End Of Track (8),
@@ -2337,7 +2337,7 @@ failed FETCH.
 ~~~
 FETCH_ERROR Message {
   Type (i) = 0x19,
-  Length (i),
+  Length (16),
   Request ID (i),
   Error Code (i),
   Error Reason (Reason Phrase)
@@ -2424,7 +2424,7 @@ The format of `FETCH_CANCEL` is as follows:
 ~~~
 FETCH_CANCEL Message {
   Type (i) = 0x17,
-  Length (i),
+  Length (16),
   Request ID (i)
 }
 ~~~
@@ -2443,7 +2443,7 @@ A TRACK_STATUS message MUST be sent in response to each TRACK_STATUS_REQUEST.
 ~~~
 TRACK_STATUS_REQUEST Message {
   Type (i) = 0xD,
-  Length (i),
+  Length (16),
   Request ID (i),
   Track Namespace (tuple),
   Track Name Length (i),
@@ -2471,7 +2471,7 @@ to a TRACK_STATUS_REQUEST message.
 ~~~
 TRACK_STATUS Message {
   Type (i) = 0xE,
-  Length (i),
+  Length (16),
   Request ID (i),
   Status Code (i),
   Largest Location (Location),
@@ -2524,7 +2524,7 @@ publisher is authorized to publish tracks under this namespace.
 ~~~
 ANNOUNCE Message {
   Type (i) = 0x6,
-  Length (i),
+  Length (16),
   Request ID (i),
   Track Namespace (tuple),
   Number of Parameters (i),
@@ -2548,7 +2548,7 @@ successful authorization and acceptance of an ANNOUNCE message.
 ~~~
 ANNOUNCE_OK Message {
   Type (i) = 0x7,
-  Length (i),
+  Length (16),
   Request ID (i)
 }
 ~~~
@@ -2565,7 +2565,7 @@ failed authorization.
 ~~~
 ANNOUNCE_ERROR Message {
   Type (i) = 0x8,
-  Length (i),
+  Length (16),
   Request ID (i),
   Error Code (i),
   Error Reason (Reason Phrase)
@@ -2633,7 +2633,7 @@ within the provided Track Namespace.
 ~~~
 UNANNOUNCE Message {
   Type (i) = 0x9,
-  Length (i),
+  Length (16),
   Track Namespace (tuple),
 }
 ~~~
@@ -2651,7 +2651,7 @@ within the provided Track Namespace.
 ~~~
 ANNOUNCE_CANCEL Message {
   Type (i) = 0xC,
-  Length (i),
+  Length (16),
   Track Namespace (tuple),
   Error Code (i),
   Error Reason (Reason Phrase),
@@ -2677,7 +2677,7 @@ to the set.
 ~~~
 SUBSCRIBE_ANNOUNCES Message {
   Type (i) = 0x11,
-  Length (i),
+  Length (16),
   Request ID (i),
   Track Namespace Prefix (tuple),
   Number of Parameters (i),
@@ -2727,7 +2727,7 @@ namespace subscriptions.
 ~~~
 SUBSCRIBE_ANNOUNCES_OK Message {
   Type (i) = 0x12,
-  Length (i),
+  Length (16),
   Request ID (i),
 }
 ~~~
@@ -2745,7 +2745,7 @@ a failed SUBSCRIBE_ANNOUNCES.
 ~~~
 SUBSCRIBE_ANNOUNCES_ERROR Message {
   Type (i) = 0x13,
-  Length (i),
+  Length (16),
   Request ID (i),
   Error Code (i),
   Error Reason (Reason Phrase)
@@ -2824,7 +2824,7 @@ The format of `UNSUBSCRIBE_ANNOUNCES` is as follows:
 ~~~
 UNSUBSCRIBE_ANNOUNCES Message {
   Type (i) = 0x14,
-  Length (i),
+  Length (16),
   Track Namespace Prefix (tuple)
 }
 ~~~
