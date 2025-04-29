@@ -3267,8 +3267,8 @@ Each object sent on a fetch stream after the FETCH_HEADER has the following form
   [Group ID (i),]
   [Subgroup ID (i),]
   [Object ID (i),]
-  Publisher Priority (8),
-  Extension Headers Length (i),
+  [Publisher Priority (8),]
+  [Extension Headers Length (i),]
   [Extension headers (...)],
   Object Payload Length (i),
   [Object Status (i)],
@@ -3280,22 +3280,33 @@ Each object sent on a fetch stream after the FETCH_HEADER has the following form
 The Serialization field defines the serialization of the object. The
 following code points are defined:
 
-|------|--------------------------------------------------------------------|
-| Code | Description                                                        |
-|-----:|:-------------------------------------------------------------------|
-| 0x0  | The Group ID, Subgroup ID and Object ID fields are present         |
-|------|--------------------------------------------------------------------|
-| 0x1  | The Group ID and Subgroup ID of this object are identical to those |
-|      | of the prior object and Object ID increments by 1. The Group ID,   |
-|      | Subgroup ID and Object ID fields are not present.                  |
-|------|--------------------------------------------------------------------|
-| 0x2  | The Group ID field exists and Subgroup ID and Object ID are both 0.|
-|      | The Subgroup ID and Object ID fields are not present.              |
-|------|--------------------------------------------------------------------|
-| 0x3  | The Group ID of this object is identical to that of the prior      |
-|      | Object. Subgroup ID increments by 1 and Object ID increments by 1. |
-|      | The Subgroup ID and Object ID fields are not present.              |
-|------|--------------------------------------------------------------------|
+|------|----------|-------------|--------------|-----------|-------------------|
+| Code | Group ID	| Subgroup ID	| Object ID	   | Publisher | Extension Headers |
+|      |         	|             |              | Priority	 | Length            |
+|------|----------|-------------|--------------|-----------|-------------------|
+| 0x0	 | Present	 | Present	    | Present	     | Present	  | Present           |
+|------|----------|-------------|--------------|-----------|-------------------|
+| 0x1	 | Present	 | Present	    | Present	     | Present	  | 0                 |
+|------|----------|-------------|--------------|-----------|-------------------|
+| 0x2	 | Present	 | 0           | 0            | Present	  | Present           |
+|------|----------|-------------|--------------|-----------|-------------------|
+| 0x3	 | Present	 | 0           | 0            | Present	  | 0                 |
+|------|----------|-------------|--------------|-----------|-------------------|
+| 0x4	 | Previous | Previous    | Previous + 1 | Previous  | Present           |
+|------|----------|-------------|--------------|-----------|-------------------|
+| 0x5	 | Previous | Previous    | Previous + 1 | Previous  | 0                 |
+|------|----------|-------------|--------------|-----------|-------------------|
+| 0x6	 | Previous | Previous +1 | Previous + 1 | Present   | Present           |
+|------|----------|-------------|--------------|-----------|-------------------|
+| 0x7	 | Previous | Previous +1 | Previous + 1 | Present   | 0                 |
+|------|----------|-------------|--------------|-----------|-------------------|
+
+'Present' indicates that the field is serialized and holds a value.
+'Previous' indicates that the field is not serialized and that the attribute
+value is identical to that of the prior Object.
+'Previous + 1' indicates that the field is not serialized and that the attribute
+value is 1 more than that of the prior Object.
+'0' indicates that the field is not serialized and that is has a value of 0.
 
 The Object Status field is only sent if the Object Payload Length is zero.
 
