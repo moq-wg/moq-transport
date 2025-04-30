@@ -3063,7 +3063,7 @@ and the subgroup indicated by 'Group ID' and `Subgroup ID`.
 
 ~~~
 SUBGROUP_HEADER {
-  Type (i),
+  Config (i),
   Track Alias (i),
   Group ID (i),
   [Subgroup ID (i),]
@@ -3075,10 +3075,10 @@ SUBGROUP_HEADER {
 All Objects received on a stream opened with `SUBGROUP_HEADER` have an
 `Object Forwarding Preference` = `Subgroup`.
 
-There are 6 defined Type values for SUBGROUP_HEADER:
+There are 6 defined Config values for SUBGROUP_HEADER:
 
 |------|---------------|-----------------|------------|
-| Type | Subgroup ID   | Subgroup ID     | Extensions |
+|Config| Subgroup ID   | Subgroup ID     | Extensions |
 |      | Field Present | Value           | Present    |
 |------|---------------|-----------------|------------|
 | 0x08 | No            | 0               | No         |
@@ -3094,12 +3094,12 @@ There are 6 defined Type values for SUBGROUP_HEADER:
 | 0x0D | Yes           | N/A             | Yes        |
 |------|---------------|-----------------|------------|
 
-For Type values where Subgroup ID Field Present is No, there is no explicit
-Subgroup ID field in the header and the Subgroup ID is either 0 (for Types
-0x08-09) or the Object ID of the first object transmitted in this subgroup
-(for Types 0x0A-0B).
+For Confif values where Subgroup ID Field Present is No, there is no explicit
+Subgroup ID field in the header and the Subgroup ID is either 0 (for Config
+values 0x08-09) or the Object ID of the first object transmitted in this subgroup
+(for Config values  0x0A-0B).
 
-For Type values where Extensions Present is No, Extensions Headers Length is
+For Config values where Extensions Present is No, Extensions Headers Length is
 not present and all Objects have no extensions.  When Extensions Present is
 Yes, Extension Headers Length is present in all Objects in this subgroup.
 Objects with no extensions set Extension Headers Length to 0.
@@ -3289,7 +3289,7 @@ Sending a subgroup on one stream:
 Stream = 2
 
 SUBGROUP_HEADER {
-  Type = 0
+  Config = 0
   Track Alias = 2
   Group ID = 0
   Subgroup ID = 0
@@ -3314,7 +3314,7 @@ Extension Headers.
 Stream = 2
 
 SUBGROUP_HEADER {
-  Type = 1
+  Config = 1
   Track Alias = 2
   Group ID = 0
   Publisher Priority = 0
@@ -3322,7 +3322,7 @@ SUBGROUP_HEADER {
 {
   Object ID = 0
   Extension Headers Length = 33
-    { Type = 4
+    { Config = 4
       Value = 2186796243
     },
     { Type = 77
