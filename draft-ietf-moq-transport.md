@@ -2170,9 +2170,9 @@ cached objects have been delivered before resetting the stream.
 
 The Object Forwarding Preference does not apply to fetches.
 
-Fetch specifies an inclusive range of Objects starting at Start Object
-in Start Group and ending at End Object in End Group. End Group and End Object MUST
-specify the same or a larger Location than Start Group and Start Object.
+Fetch specifies an inclusive range of Objects starting at Start Location
+and ending at End Location. End Location MUST
+specify the same or a larger Location than Start Location.
 
 The format of FETCH is as follows:
 
@@ -2187,10 +2187,8 @@ FETCH Message {
   [Track Namespace (tuple),
    Track Name Length (i),
    Track Name (..),
-   Start Group (i),
-   Start Object (i),
-   End Group (i),
-   End Object (i),]
+   Start Location (Location),
+   End Location (Location),]
   [Joining Subscribe ID (i),
    Joining Start (i),]
   Number of Parameters (i),
@@ -2224,13 +2222,9 @@ Fields present only for Standalone Fetch (0x1):
 
 * Track Name: Identifies the track name as defined in ({{track-name}}).
 
-* Start Group: The start Group ID.
+* Start Location: The start Location.
 
-* Start Object: The start Object ID.
-
-* End Group: The end Group ID.
-
-* End Object: The end Object ID, plus 1. A value of 0 means the entire group is
+* End Location: The end Location, plus 1 Object ID. An Object ID value of 0 means the entire group is
 requested.
 
 Fields present only for Relative Fetch (0x2) and Absolute Fetch (0x3):
@@ -2248,14 +2242,14 @@ Fields present only for Relative Fetch (0x2) and Absolute Fetch (0x3):
 
 Objects that are not yet published will not be retrieved by a FETCH.
 The latest available Object is indicated in the FETCH_OK, and is the last
-Object a fetch will return if the End Group and End Object have not yet been
+Object a fetch will return if the End Location has not yet been
 published.
 
 A publisher MUST send fetched groups in the determined group order, either
 ascending or descending. Within each group, objects are sent in Object ID order;
 subgroup ID is not used for ordering.
 
-If Start Group/Start Object is greater than the latest published Object group,
+If Start Location is greater than the latest published Location,
 the publisher MUST return FETCH_ERROR with error code 'Invalid Range'.
 
 ### Calculating the Range of a Relative Joining Fetch
