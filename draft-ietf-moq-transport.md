@@ -2634,13 +2634,14 @@ within the provided Track Namespace.
 UNANNOUNCE Message {
   Type (i) = 0x9,
   Length (i),
-  Track Namespace (tuple),
+  Request ID (i)
 }
 ~~~
 {: #moq-transport-unannounce-format title="MOQT UNANNOUNCE Message"}
 
-* Track Namespace: Identifies a track's namespace as defined in
-({{track-name}}).
+* Request ID: The Request ID of the ANNOUNCE this message is replying to
+  {{message-announce}}.
+
 
 ## ANNOUNCE_CANCEL {#message-announce-cancel}
 
@@ -2652,15 +2653,15 @@ within the provided Track Namespace.
 ANNOUNCE_CANCEL Message {
   Type (i) = 0xC,
   Length (i),
-  Track Namespace (tuple),
+  Request ID (i),
   Error Code (i),
   Error Reason (Reason Phrase),
 }
 ~~~
 {: #moq-transport-announce-cancel-format title="MOQT ANNOUNCE_CANCEL Message"}
 
-* Track Namespace: Identifies a track's namespace as defined in
-({{track-name}}).
+* Request ID: The Request ID of the ANNOUNCE this message is replying to
+  {{message-announce}}.
 
 * Error Code: Identifies an integer error code for canceling the announcement.
 ANNOUNCE_CANCEL uses the same error codes as ANNOUNCE_ERROR
