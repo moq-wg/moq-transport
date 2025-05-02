@@ -529,7 +529,7 @@ The subscriber either accepts or rejects the subscription using PUBLISH_OK or
 PUBLISH_ERROR.  A subscriber initiates a subscription to a track by sending the
 SUBSCRIBE message.  The publisher either accepts or rejects the subscription
 using SUBSCRIBE_OK or SUBSCRIBE_ERROR.  Once either of these sequences is
-complete, the subscription can be updated by the subscriber using
+successful, the subscription can be updated by the subscriber using
 SUBSCRIBE_UPDATE, terminated by the subscriber using UNSUBSCRIBE, or terminated
 by the publisher using SUBSCRIBE_DONE.
 
@@ -883,8 +883,8 @@ forward the result to the application, so the application can decide which other
 publishers to contact, if any.
 
 An UNSUBSCRIBE_ANNOUNCES withdraws a previous SUBSCRIBE_ANNOUNCES. It does not
-prohibit the publishers from sending further ANNOUNCE or PUBLISH messages, but
-it does prevent relays from sending them.
+prohibit original publishers from sending further ANNOUNCE or PUBLISH messages,
+but it does prevent relays from sending them.
 
 ## Announcements
 
@@ -1169,8 +1169,8 @@ subscription in Forward State=0, it SHOULD send a SUBSCRIBE_UDPATE with
 Forward=1 to all publishers.
 
 When a relay receives an incoming PUBLISH message, it SHOULD send a PUBLISH
-request to each subscriber that has subscribed to the track's namespace or
-prefix thereof.
+request to each subscriber that has subscribed (via SUBSCRIBE_ANNOUNCES)
+to the track's namespace or prefix thereof.
 
 When a relay receives an incoming ANNOUNCE for a given namespace, for
 each active upstream subscription that matches that namespace, it SHOULD send a
@@ -2227,7 +2227,8 @@ PUBLISH_OK Message
 
 * Subscriber Priority: The Subscriber Priority for this subscription.
 
-* Group Order: The Group Order preference for this subscription.
+* Group Order: The Group Order preference for this subscription.  This
+overwrites the GroupOrder specified PUBLISH.
 
 * Filter Type, Start, End Group: See {{message-subscribe-req}}.
 
