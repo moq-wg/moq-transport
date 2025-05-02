@@ -1140,7 +1140,7 @@ each active upstream subscription that matches that namespace, it SHOULD send a
 SUBSCRIBE to the publisher that sent the ANNOUNCE.
 
 Relays use the Track Alias ({{track-alias}}) of an incoming Object to identify
-its track and find the active subscribers for that track. Relays MUST forward
+its track and find the active subscribers. Relays MUST forward
 Objects to matching subscribers in accordance to each subscription's priority,
 group order, and delivery timeout.
 
