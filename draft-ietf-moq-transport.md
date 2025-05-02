@@ -2138,8 +2138,8 @@ Standalone Fetch (0x1) : A Fetch of Objects performed independently of any Subsc
 Relative Joining Fetch (0x2) : A Fetch joined together with a Subscribe by
 specifying the Request ID of an active subscription and a relative starting
 offset. A publisher receiving a Joining Fetch uses properties of the associated
-Subscribe to determine the Track Namespace, Track, Start Group, Start Object,
-End Group, and End Object such that it is contiguous with the associated
+Subscribe to determine the Track Namespace, Track, Start Location,
+and End Location such that it is contiguous with the associated
 Subscribe. The Joining Fetch begins the Preceding Group Offset prior to the
 associated subscription.
 
@@ -2258,8 +2258,8 @@ A publisher that receives a Fetch of type Type 0x2 treats it
 as a Fetch with a range dynamically determined by the Preceding Group Offset
 and field values derived from the corresponding subscription.
 
-The Largest Group ID and Largest Object ID values from the corresponding
-subscription are used to calculate the end of a Relative Joining Fetch so the
+The Largest Location value from the corresponding
+subscription is used to calculate the end of a Relative Joining Fetch so the
 Objects retrieved by the FETCH and SUBSCRIBE are contiguous and non-overlapping.
 If no Objects have been published for the track, and the SUBSCRIBE_OK has a
 Content Exists value of 0, the publisher MUST respond with a FETCH_ERROR with
@@ -2267,18 +2267,16 @@ error code 'Invalid Range'.
 
 The publisher receiving a Relative Joining Fetch computes the range as follows:
 
-* Fetch Start Group: Subscribe Largest Group - Joining start
-* Fetch Start Object: 0
-* Fetch End Group: Subscribe Largest Group
-* Fetch End Object: Subscribe Largest Object
+* Fetch Start Location: {Subscribe Largest Location Group - Joining Start, 0}
+* Fetch End Location: Subscribe Largest Location
 
-A Fetch End Object of 0 requests the entire group, but Fetch will not
+A Fetch End Location Object of 0 requests the entire group, but Fetch will not
 retrieve Objects that have not yet been published, so 1 is subtracted from
-the Fetch End Group if Fetch End Object is 0.
+the Fetch End Location Group if Fetch End Location Object is 0.
 
 ### Calculating the Range of an Absolute Joining Fetch
 
-Identical to the Relative Joining fetch except that Fetch Start Group is the
+Identical to the Relative Joining fetch except that Fetch Start Location Group is the
 Joining Start value.
 
 
@@ -2286,7 +2284,7 @@ Joining Start value.
 
 A publisher sends a FETCH_OK control message in response to successful fetches.
 A publisher MAY send Objects in response to a FETCH before the FETCH_OK message is sent,
-but the FETCH_OK MUST NOT be sent until the end group and object are known.
+but the FETCH_OK MUST NOT be sent until the End Location is known.
 
 ~~~
 FETCH_OK Message {
@@ -2389,7 +2387,7 @@ as defined below:
 * Track Does Not Exist - The requested track is not available at the publisher.
 
 * Invalid Range - The end of the requested range is earlier than the beginning,
-  the start of the requested range is beyond the Largest Object, or the track
+  the start of the requested range is beyond the Largest Location, or the track
   has not published any Objects yet.
 
 * No Objects - No Objects exist between the requested Start and End Locations.
