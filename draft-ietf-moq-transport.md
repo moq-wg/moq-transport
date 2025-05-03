@@ -2235,10 +2235,10 @@ requested.
 
 Fields present only for Relative Fetch (0x2) and Absolute Fetch (0x3):
 
-* Joining Subscribe ID: The Request ID of the existing subscription to be
+* Joining Request ID: The Request ID of the existing subscription to be
   joined. If a publisher receives a Joining Fetch with a Request ID that does
   not correspond to an existing Subscribe in the same session, it MUST respond
-  with a Fetch Error with code Invalid Joining Subscribe ID.
+  with a Fetch Error with code Invalid Joining Request ID.
 
 * Joining Start : for a Relative Joining Fetch (0x2), this value represents the
   group offset for the Fetch prior and relative to the Current Group of the
@@ -2372,7 +2372,7 @@ as defined below:
 |------|------------------------------|
 | 0x6  | No Objects                   |
 |------|------------------------------|
-| 0x7  | Invalid Joining Subscribe ID |
+| 0x7  | Invalid Joining Request ID   |
 |------|------------------------------|
 | 0x10 | Malformed Auth Token         |
 |------|------------------------------|
