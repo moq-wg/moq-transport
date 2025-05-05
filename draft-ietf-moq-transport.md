@@ -541,10 +541,12 @@ sender of PUBLISH_OK can update the Forward State based on its preference.  Once
 established, the subscriber can change the Forward State by sending
 SUBSCRIBE_UPDATE.
 
-Either endpoint can initiate a subscription to a track without exhanging any
-prior messages other than SETUP.  Relays however do not send any PUBLISH
-messages without first receiving a SUBSCRIBE_ANNOUNCES to a relevant track
-namespace or namespace prefix.
+Either endpoint can initiate a subscription to a track without exchanging any
+prior messages other than SETUP.  Relays MUST NOT send any PUBLISH messages
+without knowing the client is interested in and authorized to receive the
+content. The communication of intent and authorization can be accomplished by
+the client sending SUBSCRIBE_ANNOUNCES, or conveyed in other mechanisms out of
+band.
 
 # Sessions {#session}
 
@@ -884,7 +886,8 @@ publishers to contact, if any.
 
 An UNSUBSCRIBE_ANNOUNCES withdraws a previous SUBSCRIBE_ANNOUNCES. It does not
 prohibit original publishers from sending further ANNOUNCE or PUBLISH messages,
-but it does prevent relays from sending them.
+but relays MUST not send a PUBLISH message to a client without knowing the
+client is interested in and authorized to receive the content.
 
 ## Announcements
 
@@ -1160,7 +1163,7 @@ namespace=(foo, bar) respectively, but not one that sent ANNOUNCE
 namespace=(foobar).  Relays MUST forward to all publishers or subscribers that
 have a namespace prefix match.  TODO: do we need to say more about this.
 
-When a relay receives an incoming SUBSCRIBE request that triggers an upstream
+When a relay receives an incoming SUBSCRIBE that triggers an upstream
 subscription, it SHOULD send a SUBSCRIBE request to each publisher that has
 announced the subscription's namespace or prefix thereof, unless it already has
 an active subscription for the Objects requested by the incoming SUBSCRIBE
