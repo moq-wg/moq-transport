@@ -1160,8 +1160,9 @@ determine which publishers receive a SUBSCRIBE or which subscribers receive a
 PUBLISH. For example, a SUBSCRIBE namespace=(foo,bar), track=x message will be
 forwarded to the sessions that sent ANNOUNCE namespace=(foo) and ANNOUNCE
 namespace=(foo, bar) respectively, but not one that sent ANNOUNCE
-namespace=(foobar).  Relays MUST forward to all publishers or subscribers that
-have a namespace prefix match.  TODO: do we need to say more about this.
+namespace=(foobar).  Relays MUST forward SUBSCRIBE messages to all publishers
+and ANNOUNCE and PUBLISH messages to all subscribers that have a namespace
+prefix match.
 
 When a relay receives an incoming SUBSCRIBE that triggers an upstream
 subscription, it SHOULD send a SUBSCRIBE request to each publisher that has
