@@ -1242,9 +1242,9 @@ The following Message Types are defined:
 |-------|-----------------------------------------------------|
 | 0x5   | SUBSCRIBE_ERROR ({{message-subscribe-error}})       |
 |-------|-----------------------------------------------------|
-| 0xA   | UNSUBSCRIBE ({{message-unsubscribe}})               |
-|-------|-----------------------------------------------------|
 | 0x2   | SUBSCRIBE_UPDATE ({{message-subscribe-update}})     |
+|-------|-----------------------------------------------------|
+| 0xA   | UNSUBSCRIBE ({{message-unsubscribe}})               |
 |-------|-----------------------------------------------------|
 | 0xB   | SUBSCRIBE_DONE ({{message-subscribe-done}})         |
 |-------|-----------------------------------------------------|
