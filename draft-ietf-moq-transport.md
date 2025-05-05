@@ -521,33 +521,6 @@ which tracks are delivered via Subscribe Parameters, but the actual content of
 the tracks does not depend on those parameters; this is in contrast to
 protocols like HTTP, where request headers can alter the server response.
 
-### Subscriptions
-
-A subscription can be initiated by either a publisher or a subscriber.  A
-publisher initiates a subscription to a track by sending the PUBLISH message.
-The subscriber either accepts or rejects the subscription using PUBLISH_OK or
-PUBLISH_ERROR.  A subscriber initiates a subscription to a track by sending the
-SUBSCRIBE message.  The publisher either accepts or rejects the subscription
-using SUBSCRIBE_OK or SUBSCRIBE_ERROR.  Once either of these sequences is
-successful, the subscription can be updated by the subscriber using
-SUBSCRIBE_UPDATE, terminated by the subscriber using UNSUBSCRIBE, or terminated
-by the publisher using SUBSCRIBE_DONE.
-
-All subscriptions have a Forward State which is either 0 or 1.  If the Forward
-State is 0, the publisher does not send objects for the subscription.  If the
-Forward State is 1, the publisher sends objects.  The initiator of the
-subscription sets the initial Forward State in either PUBLISH or SUBSCRIBE.  The
-sender of PUBLISH_OK can update the Forward State based on its preference.  Once
-established, the subscriber can change the Forward State by sending
-SUBSCRIBE_UPDATE.
-
-Either endpoint can initiate a subscription to a track without exchanging any
-prior messages other than SETUP.  Relays MUST NOT send any PUBLISH messages
-without knowing the client is interested in and authorized to receive the
-content. The communication of intent and authorization can be accomplished by
-the client sending SUBSCRIBE_ANNOUNCES, or conveyed in other mechanisms out of
-band.
-
 # Sessions {#session}
 
 ## Session establishment {#session-establishment}
@@ -811,20 +784,44 @@ in order to obtain an accurate minimum RTT. Similarly, Reno halves it's congesti
 window upon detecting loss.  In both cases, the large reduction in sending rate might
 cause issues with latency sensitive applications.
 
-# Retrieving Tracks with Subscribe and Fetch
+# Publishing and Retrieving Tracks
 
-The central interaction with a publisher is to send SUBSCRIBE and/or FETCH for
-a particular track. The subscriber expects to receive a SUBSCRIBE_OK/FETCH_OK
-and objects from the track.
+## Subscriptions
+
+A subscription can be initiated by either a publisher or a subscriber.  A
+publisher initiates a subscription to a track by sending the PUBLISH message.
+The subscriber either accepts or rejects the subscription using PUBLISH_OK or
+PUBLISH_ERROR.  A subscriber initiates a subscription to a track by sending the
+SUBSCRIBE message.  The publisher either accepts or rejects the subscription
+using SUBSCRIBE_OK or SUBSCRIBE_ERROR.  Once either of these sequences is
+successful, the subscription can be updated by the subscriber using
+SUBSCRIBE_UPDATE, terminated by the subscriber using UNSUBSCRIBE, or terminated
+by the publisher using SUBSCRIBE_DONE.
+
+All subscriptions have a Forward State which is either 0 or 1.  If the Forward
+State is 0, the publisher does not send objects for the subscription.  If the
+Forward State is 1, the publisher sends objects.  The initiator of the
+subscription sets the initial Forward State in either PUBLISH or SUBSCRIBE.  The
+sender of PUBLISH_OK can update the Forward State based on its preference.  Once
+established, the subscriber can change the Forward State by sending
+SUBSCRIBE_UPDATE.
+
+Either endpoint can initiate a subscription to a track without exchanging any
+prior messages other than SETUP.  Relays MUST NOT send any PUBLISH messages
+without knowing the client is interested in and authorized to receive the
+content. The communication of intent and authorization can be accomplished by
+the client sending SUBSCRIBE_ANNOUNCES, or conveyed in other mechanisms out of
+band.
 
 A publisher MUST send exactly one SUBSCRIBE_OK or SUBSCRIBE_ERROR in response to
 a SUBSCRIBE. It MUST send exactly one FETCH_OK or FETCH_ERROR in response to a
-FETCH. The subscriber SHOULD close the session with a protocol error if it
-receives more than one.
+FETCH. A subscriber MUST send exactly one PUBLISH_OK or PUBLISH_ERROR in
+response to a PUBLISH. The peer SHOULD close the session with a protocol error
+if it receives more than one.
 
-A subscriber keeps SUBSCRIBE state until it sends UNSUBSCRIBE, or after receipt
-of a SUBSCRIBE_DONE or SUBSCRIBE_ERROR. Note that SUBSCRIBE_DONE does not
-usually indicate that state can immediately be destroyed, see
+A subscriber keeps subscription state until it sends UNSUBSCRIBE, or after
+receipt of a SUBSCRIBE_DONE or SUBSCRIBE_ERROR. Note that SUBSCRIBE_DONE does
+not usually indicate that state can immediately be destroyed, see
 {{message-subscribe-done}}.
 
 A subscriber keeps FETCH state until it sends FETCH_CANCEL, receives
@@ -837,7 +834,7 @@ UNSUBSCRIBE or FETCH_CANCEL, respectively. It MUST reset any open streams
 associated with the SUBSCRIBE or FETCH. It can also destroy state after closing
 the FETCH data stream.
 
-The publisher can immediately delete SUBSCRIBE state after sending
+The publisher can immediately delete subscription state after sending
 SUBSCRIBE_DONE, but MUST NOT send it until it has closed all related streams. It
 can destroy all FETCH state after closing the data stream.
 
@@ -850,9 +847,9 @@ Since a relay can start delivering FETCH objects from cache before determining
 the result of the request, some objects could be received even if the FETCH results
 in error.
 
-The Parameters in SUBSCRIBE and FETCH MUST NOT cause the publisher to alter the
-payload of the objects it sends, as that would violate the track uniqueness
-guarantee described in {{track-scope}}.
+The Parameters in SUBSCRIBE, PUBLISH_OK and FETCH MUST NOT cause the publisher
+to alter the payload of the objects it sends, as that would violate the track
+uniqueness guarantee described in {{track-scope}}.
 
 # Namespace Discovery {#track-discovery}
 
@@ -1132,12 +1129,11 @@ to the old relay can be stopped with an UNSUBSCRIBE.
 
 ## Publisher Interactions
 
-Publishing through the relay starts with publisher sending ANNOUNCE
-control message with a `Track Namespace` ({{model-track}}).
-The ANNOUNCE enables the relay to know which publisher to forward a
-SUBSCRIBE to.  Alternately, the publisher can send one or more PUBLISH messages
-to establish subscriptions to tracks.  Relays MAY respond with PUBLISH_OK in
-Forward State=0 until there are known subscribers for new tracks.
+There are two ways to publish through a relay - sending a PUBLISH messages for a
+specific Track or sending an ANNOUNCE message for a Track Namespace and waiting
+for SUBSCRIBE.  Relays MAY respond to PUBLISH with PUBLISH_OK in Forward State=0
+until there are known subscribers for new tracks. ANNOUNCE enables the relay to
+know which publisher to forward a SUBSCRIBE to.
 
 Relays MUST verify that publishers are authorized to publish the content
 associated with the set of tracks whose Track Namespace matches the namespace in
@@ -1146,8 +1142,8 @@ identification of the publisher occurs depends on the way the relay is managed
 and is application specific.
 
 A Relay can receive announcements for the same Track Namespace or PUBLISH
-messages for the same track from multiple publishers, and it SHOULD respond with
-the same response to each of the publishers.
+messages for the same Track from multiple publishers and is expected to treat
+them uniformly.
 
 When a publisher wants to stop new subscriptions for an announced namespace it
 sends an UNANNOUNCE. A subscriber indicates it will no longer subcribe to tracks
@@ -2880,8 +2876,8 @@ Violation.
 
 The publisher will respond with SUBSCRIBE_ANNOUNCES_OK or
 SUBSCRIBE_ANNOUNCES_ERROR.  If the SUBSCRIBE_ANNOUNCES is successful, the
-publisher will forward any matching ANNOUNCE and PUBLISH messages to the
-subscriber that it has not yet sent.  If the set of matching ANNOUNCE messages
+publisher will immediately forward existing ANNOUNCE and PUBLISH messages that
+have the Track Namespace Prefix.  If the set of matching ANNOUNCE messages
 changes, the publisher sends the corresponding ANNOUNCE or UNANNOUNCE
 message.
 
@@ -3058,7 +3054,8 @@ Violation'
 
 To optimize wire efficiency, Subgroups and Datagrams refer to a track by a
 numeric identifier, rather than the Full Track Name.  Track Alias is chosen by
-the publisher and included in SUBSCRIBE_OK ({{message-subscribe-ok}}.
+the publisher and included in SUBSCRIBE_OK ({{message-subscribe-ok}} or PUBLISH
+({{message-publish}}).
 
 Though a Track Alias is only required to be unique within a single session,
 Publishers MAY set Track Alias to a more unique (possibly globally unique)
