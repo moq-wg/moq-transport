@@ -3253,6 +3253,7 @@ track requested in the Fetch message identified by `Request ID`.
 
 ~~~
 FETCH_HEADER {
+  Type (i) = 0x5,
   Request ID (i),
 }
 ~~~
