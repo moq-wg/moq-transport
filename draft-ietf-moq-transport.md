@@ -3249,10 +3249,12 @@ Session Closed:
 ### Fetch Header {#fetch-header}
 
 When a stream begins with `FETCH_HEADER`, all objects on the stream belong to the
-track requested in the Fetch message identified by `Request ID`.
+track requested in the Fetch message identified by `Request ID`. The `Type` 
+field is assigned the value 0x5.
 
 ~~~
 FETCH_HEADER {
+  Type (i),
   Request ID (i),
 }
 ~~~
