@@ -3356,7 +3356,7 @@ setup parameters. TODO: describe GREASE for those.<a href="#section-8.3-1" class
 <pre>
 CLIENT_SETUP Message {
   Type (i) = 0x20,
-  Length (i),
+  Length (16),
   Number of Supported Versions (i),
   Supported Versions (i) ...,
   Number of Parameters (i),
@@ -3365,7 +3365,7 @@ CLIENT_SETUP Message {
 
 SERVER_SETUP Message {
   Type (i) = 0x21,
-  Length (i),
+  Length (16),
   Selected Version (i),
   Number of Parameters (i),
   Setup Parameters (..) ...,
@@ -3474,7 +3474,7 @@ the peer including SUBSCRIBE, FETCH, ANNOUNCE and SUBSCRIBE_ANNOUNCE.<a href="#s
 <pre>
 GOAWAY Message {
   Type (i) = 0x10,
-  Length (i),
+  Length (16),
   New Session URI Length (i),
   New Session URI (..),
 }
@@ -3516,7 +3516,7 @@ value is a 'Protocol Violation'.<a href="#section-8.5-2" class="pilcrow">¶</a><
 <pre>
 MAX_REQUEST_ID Message {
   Type (i) = 0x15,
-  Length (i),
+  Length (16),
   Request ID (i),
 }
 </pre>
@@ -3559,7 +3559,7 @@ sending REQUESTS_BLOCKED is not required.<a href="#section-8.6-2" class="pilcrow
 <pre>
 REQUESTS_BLOCKED Message {
   Type (i) = 0x1A,
-  Length (i),
+  Length (16),
   Maximum Request ID (i),
 }
 </pre>
@@ -3640,7 +3640,7 @@ sent.<a href="#section-8.7-13" class="pilcrow">¶</a></p>
 <pre>
 SUBSCRIBE Message {
   Type (i) = 0x3,
-  Length (i),
+  Length (16),
   Request ID (i),
   Track Alias (i),
   Track Namespace (tuple),
@@ -3733,7 +3733,7 @@ subscriptions.<a href="#section-8.8-1" class="pilcrow">¶</a></p>
 <pre>
 SUBSCRIBE_OK Message {
   Type (i) = 0x4,
-  Length (i),
+  Length (16),
   Request ID (i),
   Expires (i),
   Group Order (8),
@@ -3793,7 +3793,7 @@ failed SUBSCRIBE.<a href="#section-8.9-1" class="pilcrow">¶</a></p>
 <pre>
 SUBSCRIBE_ERROR Message {
   Type (i) = 0x5,
-  Length (i),
+  Length (16),
   Request ID (i),
   Error Code (i),
   Error Reason (Reason Phrase),
@@ -3951,7 +3951,7 @@ remove a parameter from a subscription.<a href="#section-8.10-4" class="pilcrow"
 <pre>
 SUBSCRIBE_UPDATE Message {
   Type (i) = 0x2,
-  Length (i),
+  Length (16),
   Request ID (i),
   Start Location (Location),
   End Group (i),
@@ -4010,7 +4010,7 @@ the publisher stop sending Objects as soon as possible.<a href="#section-8.11-1"
 <pre>
 UNSUBSCRIBE Message {
   Type (i) = 0xA,
-  Length (i),
+  Length (16),
   Request ID (i)
 }
 </pre>
@@ -4068,7 +4068,7 @@ the subscription when it deletes subscription state.<a href="#section-8.12-5" cl
 <pre>
 SUBSCRIBE_DONE Message {
   Type (i) = 0xB,
-  Length (i),
+  Length (16),
   Request ID (i),
   Status Code (i),
   Stream Count (i),
@@ -4233,7 +4233,7 @@ specify the same or a larger Location than Start Group and Start Object.<a href=
 <pre>
 FETCH Message {
   Type (i) = 0x16,
-  Length (i),
+  Length (16),
   Request ID (i),
   Subscriber Priority (8),
   Group Order (8),
@@ -4387,7 +4387,7 @@ but the FETCH_OK <span class="bcp14">MUST NOT</span> be sent until the end group
 <pre>
 FETCH_OK Message {
   Type (i) = 0x18,
-  Length (i),
+  Length (16),
   Request ID (i),
   Group Order (8),
   End Of Track (8),
@@ -4444,7 +4444,7 @@ failed FETCH.<a href="#section-8.15-1" class="pilcrow">¶</a></p>
 <pre>
 FETCH_ERROR Message {
   Type (i) = 0x19,
-  Length (i),
+  Length (16),
   Request ID (i),
   Error Code (i),
   Error Reason (Reason Phrase)
@@ -4585,7 +4585,7 @@ is in the middle of delivering an object.<a href="#section-8.16-1" class="pilcro
 <pre>
 FETCH_CANCEL Message {
   Type (i) = 0x17,
-  Length (i),
+  Length (16),
   Request ID (i)
 }
 </pre>
@@ -4616,7 +4616,7 @@ stream to obtain information about the current status of a given track.<a href="
 <pre>
 TRACK_STATUS_REQUEST Message {
   Type (i) = 0xD,
-  Length (i),
+  Length (16),
   Request ID (i),
   Track Namespace (tuple),
   Track Name Length (i),
@@ -4660,7 +4660,7 @@ to a TRACK_STATUS_REQUEST message.<a href="#section-8.18-1" class="pilcrow">¶</
 <pre>
 TRACK_STATUS Message {
   Type (i) = 0xE,
-  Length (i),
+  Length (16),
   Request ID (i),
   Status Code (i),
   Largest Location (Location),
@@ -4722,7 +4722,7 @@ publisher is authorized to publish tracks under this namespace.<a href="#section
 <pre>
 ANNOUNCE Message {
   Type (i) = 0x6,
-  Length (i),
+  Length (16),
   Request ID (i),
   Track Namespace (tuple),
   Number of Parameters (i),
@@ -4761,7 +4761,7 @@ successful authorization and acceptance of an ANNOUNCE message.<a href="#section
 <pre>
 ANNOUNCE_OK Message {
   Type (i) = 0x7,
-  Length (i),
+  Length (16),
   Request ID (i)
 }
 </pre>
@@ -4791,7 +4791,7 @@ failed authorization.<a href="#section-8.21-1" class="pilcrow">¶</a></p>
 <pre>
 ANNOUNCE_ERROR Message {
   Type (i) = 0x8,
-  Length (i),
+  Length (16),
   Request ID (i),
   Error Code (i),
   Error Reason (Reason Phrase)
@@ -4905,7 +4905,7 @@ within the provided Track Namespace.<a href="#section-8.22-1" class="pilcrow">¶
 <pre>
 UNANNOUNCE Message {
   Type (i) = 0x9,
-  Length (i),
+  Length (16),
   Track Namespace (tuple),
 }
 </pre>
@@ -4936,7 +4936,7 @@ within the provided Track Namespace.<a href="#section-8.23-1" class="pilcrow">¶
 <pre>
 ANNOUNCE_CANCEL Message {
   Type (i) = 0xC,
-  Length (i),
+  Length (16),
   Track Namespace (tuple),
   Error Code (i),
   Error Reason (Reason Phrase),
@@ -4977,7 +4977,7 @@ to the set.<a href="#section-8.24-1" class="pilcrow">¶</a></p>
 <pre>
 SUBSCRIBE_ANNOUNCES Message {
   Type (i) = 0x11,
-  Length (i),
+  Length (16),
   Request ID (i),
   Track Namespace Prefix (tuple),
   Number of Parameters (i),
@@ -5038,7 +5038,7 @@ namespace subscriptions.<a href="#section-8.25-1" class="pilcrow">¶</a></p>
 <pre>
 SUBSCRIBE_ANNOUNCES_OK Message {
   Type (i) = 0x12,
-  Length (i),
+  Length (16),
   Request ID (i),
 }
 </pre>
@@ -5068,7 +5068,7 @@ a failed SUBSCRIBE_ANNOUNCES.<a href="#section-8.26-1" class="pilcrow">¶</a></p
 <pre>
 SUBSCRIBE_ANNOUNCES_ERROR Message {
   Type (i) = 0x13,
-  Length (i),
+  Length (16),
   Request ID (i),
   Error Code (i),
   Error Reason (Reason Phrase)
@@ -5194,7 +5194,7 @@ the specified track namespace prefix.<a href="#section-8.27-1" class="pilcrow">�
 <pre>
 UNSUBSCRIBE_ANNOUNCES Message {
   Type (i) = 0x14,
-  Length (i),
+  Length (16),
   Track Namespace Prefix (tuple)
 }
 </pre>

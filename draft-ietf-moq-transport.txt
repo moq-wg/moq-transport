@@ -1667,7 +1667,7 @@ Table of Contents
 
    CLIENT_SETUP Message {
      Type (i) = 0x20,
-     Length (i),
+     Length (16),
      Number of Supported Versions (i),
      Supported Versions (i) ...,
      Number of Parameters (i),
@@ -1676,7 +1676,7 @@ Table of Contents
 
    SERVER_SETUP Message {
      Type (i) = 0x21,
-     Length (i),
+     Length (16),
      Selected Version (i),
      Number of Parameters (i),
      Setup Parameters (..) ...,
@@ -1771,7 +1771,7 @@ Table of Contents
 
    GOAWAY Message {
      Type (i) = 0x10,
-     Length (i),
+     Length (16),
      New Session URI Length (i),
      New Session URI (..),
    }
@@ -1801,7 +1801,7 @@ Table of Contents
 
    MAX_REQUEST_ID Message {
      Type (i) = 0x15,
-     Length (i),
+     Length (16),
      Request ID (i),
    }
 
@@ -1834,7 +1834,7 @@ Table of Contents
 
    REQUESTS_BLOCKED Message {
      Type (i) = 0x1A,
-     Length (i),
+     Length (16),
      Maximum Request ID (i),
    }
 
@@ -1919,7 +1919,7 @@ Table of Contents
 
    SUBSCRIBE Message {
      Type (i) = 0x3,
-     Length (i),
+     Length (16),
      Request ID (i),
      Track Alias (i),
      Track Namespace (tuple),
@@ -1995,7 +1995,7 @@ Table of Contents
 
    SUBSCRIBE_OK Message {
      Type (i) = 0x4,
-     Length (i),
+     Length (16),
      Request ID (i),
      Expires (i),
      Group Order (8),
@@ -2039,7 +2039,7 @@ Table of Contents
 
    SUBSCRIBE_ERROR Message {
      Type (i) = 0x5,
-     Length (i),
+     Length (16),
      Request ID (i),
      Error Code (i),
      Error Reason (Reason Phrase),
@@ -2157,7 +2157,7 @@ Table of Contents
 
    SUBSCRIBE_UPDATE Message {
      Type (i) = 0x2,
-     Length (i),
+     Length (16),
      Request ID (i),
      Start Location (Location),
      End Group (i),
@@ -2199,7 +2199,7 @@ Table of Contents
 
    UNSUBSCRIBE Message {
      Type (i) = 0xA,
-     Length (i),
+     Length (16),
      Request ID (i)
    }
 
@@ -2252,7 +2252,7 @@ Table of Contents
 
    SUBSCRIBE_DONE Message {
      Type (i) = 0xB,
-     Length (i),
+     Length (16),
      Request ID (i),
      Status Code (i),
      Stream Count (i),
@@ -2398,7 +2398,7 @@ Table of Contents
 
    FETCH Message {
      Type (i) = 0x16,
-     Length (i),
+     Length (16),
      Request ID (i),
      Subscriber Priority (8),
      Group Order (8),
@@ -2526,7 +2526,7 @@ Table of Contents
 
    FETCH_OK Message {
      Type (i) = 0x18,
-     Length (i),
+     Length (16),
      Request ID (i),
      Group Order (8),
      End Of Track (8),
@@ -2565,7 +2565,7 @@ Table of Contents
 
    FETCH_ERROR Message {
      Type (i) = 0x19,
-     Length (i),
+     Length (16),
      Request ID (i),
      Error Code (i),
      Error Reason (Reason Phrase)
@@ -2658,7 +2658,7 @@ Table of Contents
 
    FETCH_CANCEL Message {
      Type (i) = 0x17,
-     Length (i),
+     Length (16),
      Request ID (i)
    }
 
@@ -2678,7 +2678,7 @@ Table of Contents
 
    TRACK_STATUS_REQUEST Message {
      Type (i) = 0xD,
-     Length (i),
+     Length (16),
      Request ID (i),
      Track Namespace (tuple),
      Track Name Length (i),
@@ -2706,7 +2706,7 @@ Table of Contents
 
    TRACK_STATUS Message {
      Type (i) = 0xE,
-     Length (i),
+     Length (16),
      Request ID (i),
      Status Code (i),
      Largest Location (Location),
@@ -2761,7 +2761,7 @@ Table of Contents
 
    ANNOUNCE Message {
      Type (i) = 0x6,
-     Length (i),
+     Length (16),
      Request ID (i),
      Track Namespace (tuple),
      Number of Parameters (i),
@@ -2784,7 +2784,7 @@ Table of Contents
 
    ANNOUNCE_OK Message {
      Type (i) = 0x7,
-     Length (i),
+     Length (16),
      Request ID (i)
    }
 
@@ -2800,7 +2800,7 @@ Table of Contents
 
    ANNOUNCE_ERROR Message {
      Type (i) = 0x8,
-     Length (i),
+     Length (16),
      Request ID (i),
      Error Code (i),
      Error Reason (Reason Phrase)
@@ -2872,7 +2872,7 @@ Table of Contents
 
    UNANNOUNCE Message {
      Type (i) = 0x9,
-     Length (i),
+     Length (16),
      Track Namespace (tuple),
    }
 
@@ -2889,7 +2889,7 @@ Table of Contents
 
    ANNOUNCE_CANCEL Message {
      Type (i) = 0xC,
-     Length (i),
+     Length (16),
      Track Namespace (tuple),
      Error Code (i),
      Error Reason (Reason Phrase),
@@ -2915,7 +2915,7 @@ Table of Contents
 
    SUBSCRIBE_ANNOUNCES Message {
      Type (i) = 0x11,
-     Length (i),
+     Length (16),
      Request ID (i),
      Track Namespace Prefix (tuple),
      Number of Parameters (i),
@@ -2966,7 +2966,7 @@ Table of Contents
 
    SUBSCRIBE_ANNOUNCES_OK Message {
      Type (i) = 0x12,
-     Length (i),
+     Length (16),
      Request ID (i),
    }
 
@@ -2982,7 +2982,7 @@ Table of Contents
 
    SUBSCRIBE_ANNOUNCES_ERROR Message {
      Type (i) = 0x13,
-     Length (i),
+     Length (16),
      Request ID (i),
      Error Code (i),
      Error Reason (Reason Phrase)
@@ -3063,7 +3063,7 @@ Table of Contents
 
    UNSUBSCRIBE_ANNOUNCES Message {
      Type (i) = 0x14,
-     Length (i),
+     Length (16),
      Track Namespace Prefix (tuple)
    }
 
