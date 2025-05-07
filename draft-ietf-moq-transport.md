@@ -292,7 +292,9 @@ Location {
 ~~~
 {: #moq-location format title="Location structure"}
 
-Location A < Location B iff
+In this document, the constituent parts of any Location A can be referred to using A.Group or A.Object.
+
+Location A < Location B if:
 
 `A.Group < B.Group || (A.Group == B.Group && A.Object < B.Object)`
 
@@ -2267,16 +2269,16 @@ error code 'Invalid Range'.
 
 The publisher receiving a Relative Joining Fetch computes the range as follows:
 
-* Fetch Start Location: {Subscribe Largest Location Group - Joining Start, 0}
+* Fetch Start Location: {Subscribe Largest Location.Group - Joining Start, 0}
 * Fetch End Location: Subscribe Largest Location
 
-A Fetch End Location Object of 0 requests the entire group, but Fetch will not
+A Fetch End Location.Object of 0 requests the entire group, but Fetch will not
 retrieve Objects that have not yet been published, so 1 is subtracted from
-the Fetch End Location Group if Fetch End Location Object is 0.
+the Fetch End Location.Group if Fetch End Location.Object is 0.
 
 ### Calculating the Range of an Absolute Joining Fetch
 
-Identical to the Relative Joining fetch except that Fetch Start Location Group is the
+Identical to the Relative Joining fetch except that Fetch Start Location.Group is the
 Joining Start value.
 
 
