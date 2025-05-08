@@ -759,12 +759,6 @@ Table of Contents
                    +------+----------------------------+
                    | 0x15 | Version Negotiation Failed |
                    +------+----------------------------+
-                   | 0x16 | Malformed Auth Token       |
-                   +------+----------------------------+
-                   | 0x17 | Unknown Auth Token Alias   |
-                   +------+----------------------------+
-                   | 0x18 | Expired Auth Token         |
-                   +------+----------------------------+
 
                                   Table 1
 
@@ -772,7 +766,8 @@ Table of Contents
 
    *  Internal Error: An implementation specific error occurred.
 
-   *  Unauthorized: The client is not authorized to establish a session.
+   *  Unauthorized: The endpoint breached an agreement, which MAY have
+      been pre-negotiated by the application.
 
    *  Protocol Violation: The remote endpoint performed an action that
       was disallowed by the specification.
@@ -820,15 +815,6 @@ Table of Contents
 
    *  Version Negotiation Failed: The client didn't offer a version
       supported by the server.
-
-   *  Malformed Auth Token - Invalid Auth Token serialization during
-      registration (see Section 8.2.1.1).
-
-   *  Unknown Auth Token Alias - Authorization Token refers to an alias
-      that is not registered (see Section 8.2.1.1).
-
-   *  Expired Auth Token - Authorization token has expired
-      Section 8.2.1.1).
 
    An endpoint MAY choose to treat a subscription or request specific
    error as a session error under certain circumstances, closing the
@@ -1486,20 +1472,20 @@ Table of Contents
 
 8.2.1.1.  AUTHORIZATION TOKEN
 
-   The AUTHORIZATION TOKEN parameter (Parameter Type 0x03) MAY appeat in
-   a CLIENT_SETUP, SUBSCRIBE, SUBSCRIBE_ANNOUNCES, ANNOUNCE
-   TRACK_STATUS_REQUEST or FETCH message.  This parameter converys
-   information to authorize the sender to perform the operation carrying
-   the parameter.
+   The AUTHORIZATION TOKEN parameter (Parameter Type 0x01) identifies a
+   track's authorization information in a SUBSCRIBE,
+   SUBSCRIBE_ANNOUNCES, ANNOUNCE TRACK_STATUS_REQUEST or FETCH message.
+   This parameter is populated for cases where the authorization is
+   required at the track or namespace level.
 
    The AUTHORIZATION TOKEN parameter MAY be repeated within a message.
 
-   The parameter value is a Token structure containing an optional
-   session-specific Alias.  The Alias allows the sender to reference a
-   previously transmitted Token Type and Token Value in future messages.
-   The Token structure is serialized as follows:
+   The TOKEN value is a structured object containing an optional
+   session-specific alias.  The Alias allows the client to reference a
+   previously transmitted TOKEN in future messages.  The TOKEN value is
+   serialized as follows:
 
-   Token {
+   TOKEN {
      Alias Type (i),
      [Token Alias (i),]
      [Token Type (i),]
@@ -1533,7 +1519,7 @@ Table of Contents
            |      |           | MUST be associated with the   |
            |      |           | Token Value for the           |
            +------+-----------+-------------------------------+
-           |      |           | duration of the session or it |
+           |      |           | duration of the Session or it |
            |      |           | is deleted.  This action      |
            +------+-----------+-------------------------------+
            |      |           | is termed "registering" the   |
@@ -1558,15 +1544,15 @@ Table of Contents
 
    *  Token Alias - a session-specific integer identifier that
       references a Token Value.  The Token Alias MUST be unique within
-      the session.  Once a Token Alias has been registered, it cannot be
-      re-registered within the session without first being deleted.  Use
+      the Session.  Once a Token Alias has been registered, it cannot be
+      re-registered within the Session without first being deleted.  Use
       of the Token Alias is optional.
 
    *  Token Type - a numeric identifier for the type of Token payload
       being transmitted.  This type is defined by the IANA table "MOQT
       Auth Token Type".  See Section 12.  Type 0 is reserved to indicate
       that the type is not defined in the table and must be negotiated
-      out-of-band between sender and receiver.
+      out-of-band between client and receiver.
 
    *  Token Value - the payload of the Token.  The contents and
       serialization of this payload are defined by the Token Type.
@@ -1580,42 +1566,37 @@ Table of Contents
    message attempting to register an alias which is already registered
    MUST close the session with Duplicate Auth Token Alias.
 
-   The receiver of a message carrying an AUTHORIZATION TOKEN with Alias
-   Type REGISTER that does not result in a session error MUST register
-   the Token Alias, Type and Value in the token cache, even if the
-   message fails for other reasons, including Unauthorized.  This allows
-   senders to pipeline messages that refer to previously registered
-   tokens.
-
-   An endpoint that receives Token that uses or attempts to delete an
-   Alias that is not registered MUST close the session with Unknown Auth
-   Token Alias.
+   Any message carrying an AUTHORIZATION TOKEN with Alias Type REGISTER
+   that does not result in Malformed Auth Token MUST effect the token
+   registration, even if the message fails for other reasons, including
+   Unauthorized.  This allows senders to pipeline messages that refer to
+   previously registered tokens.
 
    If a receiver detects that an authorization token has expired, it
-   MUST retain the registered Alias until it is deleted by the sender,
+   MUST retain the registered alias until it is deleted by the sender,
    though it MAY discard other state associated with the token that is
    no longer needed.  Expiration does not affect the size occupied by a
    token in the token cache.  Any message that references the token with
    Alias Type USE_ALIAS fails with Expired Auth Token.
 
-   Using an Alias to refer to a previously registered Token Type and
-   Value is for efficiency only and has the same effect as if the Token
-   Type and Value was included directly.  Retiring an Alias that was
-   previously used to authorize a message has no retroactive effect on
-   the original authorization, nor does it prevent that same Token Value
-   being re-registered.
+   Using an Alias to refer to a previously registered Token Value is for
+   efficiency only and has the same effect as if the Token Value was
+   included directly.  Retiring an Alias that was previously used to
+   authorize a message has no retroactive effect on the original
+   authorization, nor does it prevent that same Token Value being re-
+   registered.
 
-   Senders of tokens SHOULD only register tokens which they intend to
-   re-use during the session and SHOULD retire previously registered
+   Clients SHOULD only register tokens which they intend to re-use
+   during the session.  Client SHOULD retire previously registered
    tokens once their utility has passed.
 
-   By registering a Token, the sender is requiring the receiver to store
-   the Token Alias and Token Value until they are delete, or the session
-   ends.  The receiver can protect its resources by sending a SETUP
-   parameter defining the MAX_AUTH_TOKEN_CACHE_SIZE Section 8.3.2.3
-   limit it is willing to accept.  If a registration is attempted which
-   would cause this limit to be exceeded, the receiver MUST termiate the
-   session with an Auth Token Cache Overflow error.
+   By registering a Token, the client is requiring the receiver to store
+   the Token Alias and Token Value until they are retired, or the
+   Session ends.  The receiver can protect its resources by sending a
+   SETUP parameter defining the MAX_AUTH_TOKEN_CACHE_SIZE
+   Section 8.3.2.3 limit it is willing to accept.  If a registration is
+   attempted which would cause this limit to be exceeded, the receiver
+   MUST termiate the Session with a Auth Token Cache Overflow error.
 
 8.2.1.2.  DELIVERY TIMEOUT Parameter
 
@@ -1669,15 +1650,6 @@ Table of Contents
    Once Objects have expired from cache, their state becomes unknown,
    and a relay that handles a downstream request that includes those
    Objects re-requests them.
-
-8.2.1.4.  EXPIRES Parameter
-
-   The EXPIRES parameter (Parameter Type 0x8) MAY appear in
-   SUBSCRIBE_OK, SUBSCRIBE_ANNOUNCES_OK, ANNOUNCE_OK or TRACK_STATUS_OK.
-   It is a variable length integer encoding the time in milliseconds
-   after which the sender will terminate the subscription or
-   announcement.  This value is advisory and can terminate the
-   subscription or announcement prior to or after the expiry time.
 
 8.3.  CLIENT_SETUP and SERVER_SETUP
 
@@ -1778,14 +1750,6 @@ Table of Contents
    token sizes for all registered tokens (Alias Type value of 0x01)
    minus the sum of the token sizes for all deregistered tokens (Alias
    Type value of 0x00), since Session initiation.
-
-8.3.2.4.  AUTHORIZATION TOKEN
-
-   See Section 8.2.1.1.  The client can specify one or more tokens in
-   CLIENT_SETUP that the server can use to authorize the client to
-   establish an MOQT session.  If the server receives a
-   MAX_AUTH_TOKEN_CACHE_SIZE parameter after an AUTHORIZATION_TOKEN in
-   CLIENT_SETUP, it MUST close the session with a Protocol Violation.
 
 8.4.  GOAWAY
 
@@ -2032,6 +1996,7 @@ Table of Contents
      Type (i) = 0x4,
      Length (16),
      Request ID (i),
+     Expires (i),
      Group Order (8),
      Content Exists (8),
      [Largest Location (Location)],
@@ -2043,6 +2008,11 @@ Table of Contents
 
    *  Request ID: The Request ID of the SUBSCRIBE this message is
       replying to Section 8.7.
+
+   *  Expires: Time in milliseconds after which the subscription is no
+      longer valid.  A value of 0 indicates that the subscription does
+      not expire or expires at an unknown time.  Expires is advisory and
+      a subscription can end prior to the expiry time or last longer.
 
    *  Group Order: Indicates the subscription will be delivered in
       Ascending (0x1) or Descending (0x2) order by group.  See
@@ -2095,27 +2065,29 @@ Table of Contents
    The application SHOULD use a relevant error code in SUBSCRIBE_ERROR,
    as defined below:
 
-                      +======+======================+
-                      | Code | Reason               |
-                      +======+======================+
-                      |  0x0 | Internal Error       |
-                      +------+----------------------+
-                      |  0x1 | Unauthorized         |
-                      +------+----------------------+
-                      |  0x2 | Timeout              |
-                      +------+----------------------+
-                      |  0x3 | Not Supported        |
-                      +------+----------------------+
-                      |  0x4 | Track Does Not Exist |
-                      +------+----------------------+
-                      |  0x5 | Invalid Range        |
-                      +------+----------------------+
-                      |  0x6 | Retry Track Alias    |
-                      +------+----------------------+
-                      | 0x10 | Malformed Auth Token |
-                      +------+----------------------+
-                      | 0x12 | Expired Auth Token   |
-                      +------+----------------------+
+                    +======+==========================+
+                    | Code | Reason                   |
+                    +======+==========================+
+                    |  0x0 | Internal Error           |
+                    +------+--------------------------+
+                    |  0x1 | Unauthorized             |
+                    +------+--------------------------+
+                    |  0x2 | Timeout                  |
+                    +------+--------------------------+
+                    |  0x3 | Not Supported            |
+                    +------+--------------------------+
+                    |  0x4 | Track Does Not Exist     |
+                    +------+--------------------------+
+                    |  0x5 | Invalid Range            |
+                    +------+--------------------------+
+                    |  0x6 | Retry Track Alias        |
+                    +------+--------------------------+
+                    | 0x10 | Malformed Auth Token     |
+                    +------+--------------------------+
+                    | 0x11 | Unknown Auth Token Alias |
+                    +------+--------------------------+
+                    | 0x12 | Expired Auth Token       |
+                    +------+--------------------------+
 
                                   Table 4
 
@@ -2143,6 +2115,9 @@ Table of Contents
 
    *  Malformed Auth Token - Invalid Auth Token serialization during
       registration (see Section 8.2.1.1).
+
+   *  Unknown Auth Token Alias - Authorization Token refers to an alias
+      that is not registered (see Section 8.2.1.1).
 
    *  Expired Auth Token - Authorization token has expired
       Section 8.2.1.1).
@@ -2629,6 +2604,8 @@ Table of Contents
                   +------+------------------------------+
                   | 0x10 | Malformed Auth Token         |
                   +------+------------------------------+
+                  | 0x11 | Unknown Auth Token Alias     |
+                  +------+------------------------------+
                   | 0x12 | Expired Auth Token           |
                   +------+------------------------------+
 
@@ -2661,6 +2638,9 @@ Table of Contents
 
    *  Malformed Auth Token - Invalid Auth Token serialization during
       registration (see Section 8.2.1.1).
+
+   *  Unknown Auth Token Alias - Authorization Token refers to an alias
+      that is not registered (see Section 8.2.1.1).
 
    *  Expired Auth Token - Authorization token has expired
       Section 8.2.1.1).
@@ -2839,23 +2819,25 @@ Table of Contents
    The application SHOULD use a relevant error code in ANNOUNCE_ERROR,
    as defined below:
 
-                      +======+======================+
-                      | Code | Reason               |
-                      +======+======================+
-                      |  0x0 | Internal Error       |
-                      +------+----------------------+
-                      |  0x1 | Unauthorized         |
-                      +------+----------------------+
-                      |  0x2 | Timeout              |
-                      +------+----------------------+
-                      |  0x3 | Not Supported        |
-                      +------+----------------------+
-                      |  0x4 | Uninterested         |
-                      +------+----------------------+
-                      | 0x10 | Malformed Auth Token |
-                      +------+----------------------+
-                      | 0x12 | Expired Auth Token   |
-                      +------+----------------------+
+                    +======+==========================+
+                    | Code | Reason                   |
+                    +======+==========================+
+                    |  0x0 | Internal Error           |
+                    +------+--------------------------+
+                    |  0x1 | Unauthorized             |
+                    +------+--------------------------+
+                    |  0x2 | Timeout                  |
+                    +------+--------------------------+
+                    |  0x3 | Not Supported            |
+                    +------+--------------------------+
+                    |  0x4 | Uninterested             |
+                    +------+--------------------------+
+                    | 0x10 | Malformed Auth Token     |
+                    +------+--------------------------+
+                    | 0x11 | Unknown Auth Token Alias |
+                    +------+--------------------------+
+                    | 0x12 | Expired Auth Token       |
+                    +------+--------------------------+
 
                                   Table 7
 
@@ -2874,6 +2856,9 @@ Table of Contents
 
    *  Malformed Auth Token - Invalid Auth Token serialization during
       registration (see Section 8.2.1.1).
+
+   *  Unknown Auth Token Alias - Authorization Token refers to an alias
+      that is not registered (see Section 8.2.1.1).
 
    *  Expired Auth Token - Authorization token has expired
       Section 8.2.1.1).
@@ -3033,6 +3018,8 @@ Table of Contents
                     +------+--------------------------+
                     | 0x10 | Malformed Auth Token     |
                     +------+--------------------------+
+                    | 0x11 | Unknown Auth Token Alias |
+                    +------+--------------------------+
                     | 0x12 | Expired Auth Token       |
                     +------+--------------------------+
 
@@ -3058,6 +3045,9 @@ Table of Contents
 
    *  Malformed Auth Token - Invalid Auth Token serialization during
       registration (see Section 8.2.1.1).
+
+   *  Unknown Auth Token Alias - Authorization Token refers to an alias
+      that is not registered (see Section 8.2.1.1).
 
    *  Expired Auth Token - Authorization token has expired
       Section 8.2.1.1).

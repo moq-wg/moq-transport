@@ -2314,18 +2314,6 @@ code, as defined below:<a href="#section-3.4-2" class="pilcrow">¶</a></p>
               <td class="text-right" rowspan="1" colspan="1">0x15</td>
               <td class="text-left" rowspan="1" colspan="1">Version Negotiation Failed</td>
             </tr>
-            <tr>
-              <td class="text-right" rowspan="1" colspan="1">0x16</td>
-              <td class="text-left" rowspan="1" colspan="1">Malformed Auth Token</td>
-            </tr>
-            <tr>
-              <td class="text-right" rowspan="1" colspan="1">0x17</td>
-              <td class="text-left" rowspan="1" colspan="1">Unknown Auth Token Alias</td>
-            </tr>
-            <tr>
-              <td class="text-right" rowspan="1" colspan="1">0x18</td>
-              <td class="text-left" rowspan="1" colspan="1">Expired Auth Token</td>
-            </tr>
           </tbody>
         </table>
 <ul class="normal">
@@ -2336,7 +2324,8 @@ code, as defined below:<a href="#section-3.4-2" class="pilcrow">¶</a></p>
             <p id="section-3.4-4.2.1">Internal Error: An implementation specific error occurred.<a href="#section-3.4-4.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-3.4-4.3">
-            <p id="section-3.4-4.3.1">Unauthorized: The client is not authorized to establish a session.<a href="#section-3.4-4.3.1" class="pilcrow">¶</a></p>
+            <p id="section-3.4-4.3.1">Unauthorized: The endpoint breached an agreement, which <span class="bcp14">MAY</span> have been
+ pre-negotiated by the application.<a href="#section-3.4-4.3.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-3.4-4.4">
             <p id="section-3.4-4.4.1">Protocol Violation: The remote endpoint performed an action that was
@@ -2393,17 +2382,6 @@ alias that was in use (see <a href="#authorization-token" class="auto internal x
           <li class="normal" id="section-3.4-4.16">
             <p id="section-3.4-4.16.1">Version Negotiation Failed: The client didn't offer a version supported
 by the server.<a href="#section-3.4-4.16.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="section-3.4-4.17">
-            <p id="section-3.4-4.17.1">Malformed Auth Token - Invalid Auth Token serialization during registration
-(see <a href="#authorization-token" class="auto internal xref">Section 8.2.1.1</a>).<a href="#section-3.4-4.17.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="section-3.4-4.18">
-            <p id="section-3.4-4.18.1">Unknown Auth Token Alias - Authorization Token refers to an alias that is
-not registered (see <a href="#authorization-token" class="auto internal xref">Section 8.2.1.1</a>).<a href="#section-3.4-4.18.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="section-3.4-4.19">
-            <p id="section-3.4-4.19.1">Expired Auth Token - Authorization token has expired <a href="#authorization-token" class="auto internal xref">Section 8.2.1.1</a>).<a href="#section-3.4-4.19.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-3.4-5">An endpoint <span class="bcp14">MAY</span> choose to treat a subscription or request specific error as a
@@ -3145,20 +3123,19 @@ these parameters to appear in Setup messages.<a href="#section-8.2.1-1" class="p
             <h5 id="name-authorization-token">
 <a href="#section-8.2.1.1" class="section-number selfRef">8.2.1.1. </a><a href="#name-authorization-token" class="section-name selfRef">AUTHORIZATION TOKEN</a>
             </h5>
-<p id="section-8.2.1.1-1">The AUTHORIZATION TOKEN parameter (Parameter Type 0x03) <span class="bcp14">MAY</span> appeat in a
-CLIENT_SETUP, SUBSCRIBE, SUBSCRIBE_ANNOUNCES, ANNOUNCE TRACK_STATUS_REQUEST or
-FETCH message. This parameter converys information to authorize the sender to
-perform the operation carrying the parameter.<a href="#section-8.2.1.1-1" class="pilcrow">¶</a></p>
+<p id="section-8.2.1.1-1">The AUTHORIZATION TOKEN parameter (Parameter Type 0x01) identifies a track's
+authorization information in a SUBSCRIBE, SUBSCRIBE_ANNOUNCES, ANNOUNCE
+TRACK_STATUS_REQUEST or FETCH message. This parameter is populated for
+cases where the authorization is required at the track or namespace level.<a href="#section-8.2.1.1-1" class="pilcrow">¶</a></p>
 <p id="section-8.2.1.1-2">The AUTHORIZATION TOKEN parameter <span class="bcp14">MAY</span> be repeated within a message.<a href="#section-8.2.1.1-2" class="pilcrow">¶</a></p>
-<p id="section-8.2.1.1-3">The parameter value is a Token structure containing an optional session-specific
-Alias. The Alias allows the sender to reference a previously transmitted Token
-Type and Token Value in future messages. The Token structure is serialized as
-follows:<a href="#section-8.2.1.1-3" class="pilcrow">¶</a></p>
+<p id="section-8.2.1.1-3">The TOKEN value is a structured object containing an optional session-specific
+alias. The Alias allows the client to reference a previously transmitted TOKEN
+in future messages. The TOKEN value is serialized as follows:<a href="#section-8.2.1.1-3" class="pilcrow">¶</a></p>
 <span id="name-authorization-token-value"></span><div id="moq-token">
 <figure id="figure-4">
               <div class="alignLeft art-text artwork" id="section-8.2.1.1-4.1">
 <pre>
-Token {
+TOKEN {
   Alias Type (i),
   [Token Alias (i),]
   [Token Type (i),]
@@ -3221,7 +3198,7 @@ behavior of the receiver. This Alias type has the following code points:<a href=
                 <tr>
                   <td class="text-right" rowspan="1" colspan="1"> </td>
                   <td class="text-left" rowspan="1" colspan="1"> </td>
-                  <td class="text-left" rowspan="1" colspan="1">duration of the session or it is deleted. This action</td>
+                  <td class="text-left" rowspan="1" colspan="1">duration of the Session or it is deleted. This action</td>
                 </tr>
                 <tr>
                   <td class="text-right" rowspan="1" colspan="1"> </td>
@@ -3258,16 +3235,15 @@ behavior of the receiver. This Alias type has the following code points:<a href=
 <ul class="normal">
 <li class="normal" id="section-8.2.1.1-7.1">
                 <p id="section-8.2.1.1-7.1.1">Token Alias - a session-specific integer identifier that references a Token
-Value. The Token Alias <span class="bcp14">MUST</span> be unique within the session. Once a Token Alias
-has been registered, it cannot be re-registered within the session without
-first being deleted. Use of the Token Alias is optional.<a href="#section-8.2.1.1-7.1.1" class="pilcrow">¶</a></p>
+Value. The Token Alias <span class="bcp14">MUST</span> be unique within the Session. Once a Token Alias has
+been registered, it cannot be re-registered within the Session without first
+being deleted. Use of the Token Alias is optional.<a href="#section-8.2.1.1-7.1.1" class="pilcrow">¶</a></p>
 </li>
               <li class="normal" id="section-8.2.1.1-7.2">
                 <p id="section-8.2.1.1-7.2.1">Token Type - a numeric identifier for the type of Token payload being
-transmitted. This type is defined by the IANA table "MOQT Auth Token
-Type". See <a href="#iana" class="auto internal xref">Section 12</a>. Type 0 is reserved to indicate that the type is not
-defined in the table and must be negotiated out-of-band between sender and
-receiver.<a href="#section-8.2.1.1-7.2.1" class="pilcrow">¶</a></p>
+transmitted. This type is defined by the IANA table "MOQT Auth Token Type". See
+<a href="#iana" class="auto internal xref">Section 12</a>. Type 0 is reserved to indicate that the type is not defined in the
+table and must be negotiated out-of-band between client and receiver.<a href="#section-8.2.1.1-7.2.1" class="pilcrow">¶</a></p>
 </li>
               <li class="normal" id="section-8.2.1.1-7.3">
                 <p id="section-8.2.1.1-7.3.1">Token Value - the payload of the Token. The contents and serialization of this
@@ -3281,33 +3257,29 @@ declared Token Type.  The receiver of a message referencing an alias that is
 not currently registered <span class="bcp14">MUST</span> reject the message with <code>Unknown Auth Token
 Alias</code>. The receiver of a message attempting to register an alias which is
 already registered <span class="bcp14">MUST</span> close the session with <code>Duplicate Auth Token Alias</code>.<a href="#section-8.2.1.1-8" class="pilcrow">¶</a></p>
-<p id="section-8.2.1.1-9">The receiver of a message carrying an AUTHORIZATION TOKEN with Alias Type
-REGISTER that does not result in a session error <span class="bcp14">MUST</span> register the Token Alias,
-Type and Value in the token cache, even if the message fails for other reasons,
-including <code>Unauthorized</code>.  This allows senders to pipeline messages that refer
-to previously registered tokens.<a href="#section-8.2.1.1-9" class="pilcrow">¶</a></p>
-<p id="section-8.2.1.1-10">An endpoint that receives Token that uses or attempts to delete an Alias that is
-not registered <span class="bcp14">MUST</span> close the session with Unknown Auth Token Alias.<a href="#section-8.2.1.1-10" class="pilcrow">¶</a></p>
-<p id="section-8.2.1.1-11">If a receiver detects that an authorization token has expired, it <span class="bcp14">MUST</span> retain
-the registered Alias until it is deleted by the sender, though it <span class="bcp14">MAY</span> discard
+<p id="section-8.2.1.1-9">Any message carrying an AUTHORIZATION TOKEN with Alias Type REGISTER that does
+not result in <code>Malformed Auth Token</code> <span class="bcp14">MUST</span> effect the token registration, even
+if the message fails for other reasons, including <code>Unauthorized</code>.  This allows
+senders to pipeline messages that refer to previously registered tokens.<a href="#section-8.2.1.1-9" class="pilcrow">¶</a></p>
+<p id="section-8.2.1.1-10">If a receiver detects that an authorization token has expired, it <span class="bcp14">MUST</span> retain
+the registered alias until it is deleted by the sender, though it <span class="bcp14">MAY</span> discard
 other state associated with the token that is no longer needed.  Expiration does
 not affect the size occupied by a token in the token cache.  Any message that
-references the token with Alias Type USE_ALIAS fails with <code>Expired Auth Token</code>.<a href="#section-8.2.1.1-11" class="pilcrow">¶</a></p>
-<p id="section-8.2.1.1-12">Using an Alias to refer to a previously registered Token Type and Value is for
-efficiency only and has the same effect as if the Token Type and Value was
-included directly.  Retiring an Alias that was previously used to authorize a
-message has no retroactive effect on the original authorization, nor does it
-prevent that same Token Value being re-registered.<a href="#section-8.2.1.1-12" class="pilcrow">¶</a></p>
-<p id="section-8.2.1.1-13">Senders of tokens <span class="bcp14">SHOULD</span> only register tokens which they intend to re-use during
-the session and <span class="bcp14">SHOULD</span> retire previously registered tokens once their utility
-has passed.<a href="#section-8.2.1.1-13" class="pilcrow">¶</a></p>
-<p id="section-8.2.1.1-14">By registering a Token, the sender is requiring the receiver to store the Token
-Alias and Token Value until they are delete, or the session ends. The receiver
+references the token with Alias Type USE_ALIAS fails with <code>Expired Auth Token</code>.<a href="#section-8.2.1.1-10" class="pilcrow">¶</a></p>
+<p id="section-8.2.1.1-11">Using an Alias to refer to a previously registered Token Value is for efficiency
+only and has the same effect as if the Token Value was included directly.
+Retiring an Alias that was previously used to authorize a message has no
+retroactive effect on the original authorization, nor does it prevent that same
+Token Value being re-registered.<a href="#section-8.2.1.1-11" class="pilcrow">¶</a></p>
+<p id="section-8.2.1.1-12">Clients <span class="bcp14">SHOULD</span> only register tokens which they intend to re-use during the session.
+Client <span class="bcp14">SHOULD</span> retire previously registered tokens once their utility has passed.<a href="#section-8.2.1.1-12" class="pilcrow">¶</a></p>
+<p id="section-8.2.1.1-13">By registering a Token, the client is requiring the receiver to store the Token
+Alias and Token Value until they are retired, or the Session ends. The receiver
 can protect its resources by sending a SETUP parameter defining the
 MAX_AUTH_TOKEN_CACHE_SIZE <a href="#max-auth-token-cache-size" class="auto internal xref">Section 8.3.2.3</a> limit it is willing to
 accept. If a registration is attempted which would cause this limit to be
-exceeded, the receiver <span class="bcp14">MUST</span> termiate the session with an <code>Auth Token Cache
-Overflow</code> error.<a href="#section-8.2.1.1-14" class="pilcrow">¶</a></p>
+exceeded, the receiver <span class="bcp14">MUST</span> termiate the Session with a <code>Auth Token Cache
+Overflow</code> error.<a href="#section-8.2.1.1-13" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="delivery-timeout">
@@ -3358,18 +3330,6 @@ earlier in a multi-object stream will expire earlier than Objects later in the
 stream. Once Objects have expired from cache, their state becomes unknown, and
 a relay that handles a downstream request that includes those Objects
 re-requests them.<a href="#section-8.2.1.3-1" class="pilcrow">¶</a></p>
-</section>
-</div>
-<div id="expires">
-<section id="section-8.2.1.4">
-            <h5 id="name-expires-parameter">
-<a href="#section-8.2.1.4" class="section-number selfRef">8.2.1.4. </a><a href="#name-expires-parameter" class="section-name selfRef">EXPIRES Parameter</a>
-            </h5>
-<p id="section-8.2.1.4-1">The EXPIRES parameter (Parameter Type 0x8) <span class="bcp14">MAY</span> appear in SUBSCRIBE_OK,
-SUBSCRIBE_ANNOUNCES_OK, ANNOUNCE_OK or TRACK_STATUS_OK.  It is a variable length
-integer encoding the time in milliseconds after which the sender will terminate
-the subscription or announcement.  This value is advisory and can terminate the
-subscription or announcement prior to or after the expiry time.<a href="#section-8.2.1.4-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -3486,18 +3446,6 @@ value is 0 which prohibits the use of token aliases.<a href="#section-8.3.2.3-1"
 parameter is calculated as the sum of the token sizes for all registered tokens
 (Alias Type value of 0x01) minus the sum of the token sizes for all deregistered
 tokens (Alias Type value of 0x00), since Session initiation.<a href="#section-8.3.2.3-2" class="pilcrow">¶</a></p>
-</section>
-</div>
-<div id="setup-auth-token">
-<section id="section-8.3.2.4">
-            <h5 id="name-authorization-token-2">
-<a href="#section-8.3.2.4" class="section-number selfRef">8.3.2.4. </a><a href="#name-authorization-token-2" class="section-name selfRef">AUTHORIZATION TOKEN</a>
-            </h5>
-<p id="section-8.3.2.4-1">See <a href="#authorization-token" class="auto internal xref">Section 8.2.1.1</a>.  The client can specify one or more tokens in
-CLIENT_SETUP that the server can use to authorize the client to establish an
-MOQT session.  If the server receives a MAX_AUTH_TOKEN_CACHE_SIZE parameter
-after an AUTHORIZATION_TOKEN in CLIENT_SETUP, it <span class="bcp14">MUST</span> close the session with a
-Protocol Violation.<a href="#section-8.3.2.4-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -3786,6 +3734,7 @@ SUBSCRIBE_OK Message {
   Type (i) = 0x4,
   Length (16),
   Request ID (i),
+  Expires (i),
   Group Order (8),
   Content Exists (8),
   [Largest Location (Location)],
@@ -3804,22 +3753,28 @@ SUBSCRIBE_OK Message {
 <a href="#message-subscribe-req" class="auto internal xref">Section 8.7</a>.<a href="#section-8.8-3.1.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.8-3.2">
-            <p id="section-8.8-3.2.1">Group Order: Indicates the subscription will be delivered in
-Ascending (0x1) or Descending (0x2) order by group. See <a href="#priorities" class="auto internal xref">Section 6</a>.
-Values of 0x0 and those larger than 0x2 are a protocol error.<a href="#section-8.8-3.2.1" class="pilcrow">¶</a></p>
+            <p id="section-8.8-3.2.1">Expires: Time in milliseconds after which the subscription is no
+longer valid. A value of 0 indicates that the subscription does not expire
+or expires at an unknown time.  Expires is advisory and a subscription can
+end prior to the expiry time or last longer.<a href="#section-8.8-3.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.8-3.3">
-            <p id="section-8.8-3.3.1">Content Exists: 1 if an object has been published on this track, 0 if not.
-If 0, then the Largest Group ID and Largest Object ID fields will not be
-present. Any other value is a protocol error and <span class="bcp14">MUST</span> terminate the
-session with a Protocol Violation (<a href="#session-termination" class="auto internal xref">Section 3.4</a>).<a href="#section-8.8-3.3.1" class="pilcrow">¶</a></p>
+            <p id="section-8.8-3.3.1">Group Order: Indicates the subscription will be delivered in
+Ascending (0x1) or Descending (0x2) order by group. See <a href="#priorities" class="auto internal xref">Section 6</a>.
+Values of 0x0 and those larger than 0x2 are a protocol error.<a href="#section-8.8-3.3.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.8-3.4">
-            <p id="section-8.8-3.4.1">Largest Location: The location of the largest object available for this track. This
-field is only present if Content Exists has a value of 1.<a href="#section-8.8-3.4.1" class="pilcrow">¶</a></p>
+            <p id="section-8.8-3.4.1">Content Exists: 1 if an object has been published on this track, 0 if not.
+If 0, then the Largest Group ID and Largest Object ID fields will not be
+present. Any other value is a protocol error and <span class="bcp14">MUST</span> terminate the
+session with a Protocol Violation (<a href="#session-termination" class="auto internal xref">Section 3.4</a>).<a href="#section-8.8-3.4.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.8-3.5">
-            <p id="section-8.8-3.5.1">Subscribe Parameters: The parameters are defined in <a href="#version-specific-params" class="auto internal xref">Section 8.2.1</a>.<a href="#section-8.8-3.5.1" class="pilcrow">¶</a></p>
+            <p id="section-8.8-3.5.1">Largest Location: The location of the largest object available for this track. This
+field is only present if Content Exists has a value of 1.<a href="#section-8.8-3.5.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-8.8-3.6">
+            <p id="section-8.8-3.6.1">Subscribe Parameters: The parameters are defined in <a href="#version-specific-params" class="auto internal xref">Section 8.2.1</a>.<a href="#section-8.8-3.6.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
@@ -3911,6 +3866,10 @@ as defined below:<a href="#section-8.9-4" class="pilcrow">¶</a></p>
               <td class="text-left" rowspan="1" colspan="1">Malformed Auth Token</td>
             </tr>
             <tr>
+              <td class="text-right" rowspan="1" colspan="1">0x11</td>
+              <td class="text-left" rowspan="1" colspan="1">Unknown Auth Token Alias</td>
+            </tr>
+            <tr>
               <td class="text-right" rowspan="1" colspan="1">0x12</td>
               <td class="text-left" rowspan="1" colspan="1">Expired Auth Token</td>
             </tr>
@@ -3948,7 +3907,11 @@ Track Alias when subscribing.<a href="#section-8.9-6.7.1" class="pilcrow">¶</a>
 (see <a href="#authorization-token" class="auto internal xref">Section 8.2.1.1</a>).<a href="#section-8.9-6.8.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.9-6.9">
-            <p id="section-8.9-6.9.1">Expired Auth Token - Authorization token has expired <a href="#authorization-token" class="auto internal xref">Section 8.2.1.1</a>).<a href="#section-8.9-6.9.1" class="pilcrow">¶</a></p>
+            <p id="section-8.9-6.9.1">Unknown Auth Token Alias - Authorization Token refers to an alias that is
+not registered (see <a href="#authorization-token" class="auto internal xref">Section 8.2.1.1</a>).<a href="#section-8.9-6.9.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-8.9-6.10">
+            <p id="section-8.9-6.10.1">Expired Auth Token - Authorization token has expired <a href="#authorization-token" class="auto internal xref">Section 8.2.1.1</a>).<a href="#section-8.9-6.10.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
@@ -4551,6 +4514,10 @@ as defined below:<a href="#section-8.15-4" class="pilcrow">¶</a></p>
               <td class="text-left" rowspan="1" colspan="1">Malformed Auth Token</td>
             </tr>
             <tr>
+              <td class="text-right" rowspan="1" colspan="1">0x11</td>
+              <td class="text-left" rowspan="1" colspan="1">Unknown Auth Token Alias</td>
+            </tr>
+            <tr>
               <td class="text-right" rowspan="1" colspan="1">0x12</td>
               <td class="text-left" rowspan="1" colspan="1">Expired Auth Token</td>
             </tr>
@@ -4592,7 +4559,11 @@ did not belong to an active Subscription.<a href="#section-8.15-6.8.1" class="pi
 (see <a href="#authorization-token" class="auto internal xref">Section 8.2.1.1</a>).<a href="#section-8.15-6.9.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.15-6.10">
-            <p id="section-8.15-6.10.1">Expired Auth Token - Authorization token has expired <a href="#authorization-token" class="auto internal xref">Section 8.2.1.1</a>).<a href="#section-8.15-6.10.1" class="pilcrow">¶</a></p>
+            <p id="section-8.15-6.10.1">Unknown Auth Token Alias - Authorization Token refers to an alias that is
+not registered (see <a href="#authorization-token" class="auto internal xref">Section 8.2.1.1</a>).<a href="#section-8.15-6.10.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-8.15-6.11">
+            <p id="section-8.15-6.11.1">Expired Auth Token - Authorization token has expired <a href="#authorization-token" class="auto internal xref">Section 8.2.1.1</a>).<a href="#section-8.15-6.11.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
@@ -4878,6 +4849,10 @@ below:<a href="#section-8.21-4" class="pilcrow">¶</a></p>
               <td class="text-left" rowspan="1" colspan="1">Malformed Auth Token</td>
             </tr>
             <tr>
+              <td class="text-right" rowspan="1" colspan="1">0x11</td>
+              <td class="text-left" rowspan="1" colspan="1">Unknown Auth Token Alias</td>
+            </tr>
+            <tr>
               <td class="text-right" rowspan="1" colspan="1">0x12</td>
               <td class="text-left" rowspan="1" colspan="1">Expired Auth Token</td>
             </tr>
@@ -4906,7 +4881,11 @@ specific timeout.<a href="#section-8.21-6.3.1" class="pilcrow">¶</a></p>
 (see <a href="#authorization-token" class="auto internal xref">Section 8.2.1.1</a>).<a href="#section-8.21-6.6.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.21-6.7">
-            <p id="section-8.21-6.7.1">Expired Auth Token - Authorization token has expired <a href="#authorization-token" class="auto internal xref">Section 8.2.1.1</a>).<a href="#section-8.21-6.7.1" class="pilcrow">¶</a></p>
+            <p id="section-8.21-6.7.1">Unknown Auth Token Alias - Authorization Token refers to an alias that is
+not registered (see <a href="#authorization-token" class="auto internal xref">Section 8.2.1.1</a>).<a href="#section-8.21-6.7.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-8.21-6.8">
+            <p id="section-8.21-6.8.1">Expired Auth Token - Authorization token has expired <a href="#authorization-token" class="auto internal xref">Section 8.2.1.1</a>).<a href="#section-8.21-6.8.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
@@ -5153,6 +5132,10 @@ as defined below:<a href="#section-8.26-4" class="pilcrow">¶</a></p>
               <td class="text-left" rowspan="1" colspan="1">Malformed Auth Token</td>
             </tr>
             <tr>
+              <td class="text-right" rowspan="1" colspan="1">0x11</td>
+              <td class="text-left" rowspan="1" colspan="1">Unknown Auth Token Alias</td>
+            </tr>
+            <tr>
               <td class="text-right" rowspan="1" colspan="1">0x12</td>
               <td class="text-left" rowspan="1" colspan="1">Expired Auth Token</td>
             </tr>
@@ -5186,7 +5169,11 @@ SUBSCRIBE_ANNOUNCES in the same session.<a href="#section-8.26-6.6.1" class="pil
 (see <a href="#authorization-token" class="auto internal xref">Section 8.2.1.1</a>).<a href="#section-8.26-6.7.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.26-6.8">
-            <p id="section-8.26-6.8.1">Expired Auth Token - Authorization token has expired <a href="#authorization-token" class="auto internal xref">Section 8.2.1.1</a>).<a href="#section-8.26-6.8.1" class="pilcrow">¶</a></p>
+            <p id="section-8.26-6.8.1">Unknown Auth Token Alias - Authorization Token refers to an alias that is
+not registered (see <a href="#authorization-token" class="auto internal xref">Section 8.2.1.1</a>).<a href="#section-8.26-6.8.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-8.26-6.9">
+            <p id="section-8.26-6.9.1">Expired Auth Token - Authorization token has expired <a href="#authorization-token" class="auto internal xref">Section 8.2.1.1</a>).<a href="#section-8.26-6.9.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
