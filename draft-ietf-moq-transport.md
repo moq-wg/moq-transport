@@ -1476,6 +1476,16 @@ stream. Once Objects have expired from cache, their state becomes unknown, and
 a relay that handles a downstream request that includes those Objects
 re-requests them.
 
+
+#### EXPIRES Parameter {#expires}
+
+The EXPIRES parameter (Parameter Type 0x8) MAY appear in SUBSCRIBE_OK,
+SUBSCRIBE_ANNOUNCES_OK, ANNOUNCE_OK or TRACK_STATUS_OK.  It is a variable length
+integer encoding the time in milliseconds after which the sender will terminate
+the subscription or announcement.  This value is advisory and can terminate the
+subscription or announcement prior to or after the expiry time.
+
+
 ## CLIENT_SETUP and SERVER_SETUP {#message-setup}
 
 The `CLIENT_SETUP` and `SERVER_SETUP` messages are the first messages exchanged
@@ -1804,7 +1814,6 @@ SUBSCRIBE_OK Message {
   Type (i) = 0x4,
   Length (16),
   Request ID (i),
-  Expires (i),
   Group Order (8),
   Content Exists (8),
   [Largest Location (Location)],
@@ -1816,11 +1825,6 @@ SUBSCRIBE_OK Message {
 
 * Request ID: The Request ID of the SUBSCRIBE this message is replying to
   {{message-subscribe-req}}.
-
-* Expires: Time in milliseconds after which the subscription is no
-longer valid. A value of 0 indicates that the subscription does not expire
-or expires at an unknown time.  Expires is advisory and a subscription can
-end prior to the expiry time or last longer.
 
 * Group Order: Indicates the subscription will be delivered in
 Ascending (0x1) or Descending (0x2) order by group. See {{priorities}}.
