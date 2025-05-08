@@ -530,12 +530,12 @@ over a QUIC connection directly [QUIC], and over WebTransport
 [WebTransport].  Both provide streams and datagrams with similar
 semantics (see {{?I-D.ietf-webtrans-overview, Section 4}}); thus, the
 main difference lies in how the servers are identified and how the
-connection is established.  When using QUIC, datagrams MUST be
-supported via the [QUIC-DATAGRAM] extension, which is already a
-requirement for WebTransport over HTTP/3. The RESET_STREAM_AT
-{{!I-D.draft-ietf-quic-reliable-stream-reset}} extension to QUIC
-can be used by MoQT, but the protocol is also designed to work
-correctly when the extension is not supported.
+connection is established. The [QUIC-DATAGRAM] extension
+MUST be supported and negotiated in the QUIC connection used for MOQT,
+which is already a requirement for WebTransport over HTTP/3. The
+RESET_STREAM_AT {{!I-D.draft-ietf-quic-reliable-stream-reset}}
+extension to QUIC can be used by MoQT, but the protocol is also
+designed to work correctly when the extension is not supported.
 
 There is no definition of the protocol over other transports,
 such as TCP, and applications using MoQ might need to fallback to
