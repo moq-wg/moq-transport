@@ -3063,7 +3063,7 @@ and the subgroup indicated by 'Group ID' and `Subgroup ID`.
 
 ~~~
 SUBGROUP_HEADER {
-  Type (i),
+  Type (i) = 0x8..0xD,
   Track Alias (i),
   Group ID (i),
   [Subgroup ID (i),]
