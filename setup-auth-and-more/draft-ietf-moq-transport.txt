@@ -816,7 +816,7 @@ Table of Contents
       the size of all registered Authorization tokens has been exceeded.
 
    *  Duplicate Auth Token Alias - Authorization Token attempted to
-      register an alias that was in use (see Section 8.2.1.1).
+      register an Alias that was in use (see Section 8.2.1.1).
 
    *  Version Negotiation Failed: The client didn't offer a version
       supported by the server.
@@ -824,7 +824,7 @@ Table of Contents
    *  Malformed Auth Token - Invalid Auth Token serialization during
       registration (see Section 8.2.1.1).
 
-   *  Unknown Auth Token Alias - Authorization Token refers to an alias
+   *  Unknown Auth Token Alias - Authorization Token refers to an Alias
       that is not registered (see Section 8.2.1.1).
 
    *  Expired Auth Token - Authorization token has expired
@@ -1507,7 +1507,7 @@ Table of Contents
      [Token Value (..)]
    }
 
-                    Figure 4: AUTHORIZATION TOKEN value
+                         Figure 4: Token structure
 
    *  Alias Type - an integer defining both the serialization and the
       processing behavior of the receiver.  This Alias type has the
@@ -1558,10 +1558,11 @@ Table of Contents
                                  Table 3
 
    *  Token Alias - a session-specific integer identifier that
-      references a Token Value.  The Token Alias MUST be unique within
-      the session.  Once a Token Alias has been registered, it cannot be
-      re-registered within the session without first being deleted.  Use
-      of the Token Alias is optional.
+      references a Token Value.  There are separate Alias spaces for the
+      client and server (eg: they can each register Alias=1).  Once a
+      Token Alias has been registered, it cannot be re-registered by the
+      same sender in the session without first being deleted.  Use of
+      the Token Alias is optional.
 
    *  Token Type - a numeric identifier for the type of Token payload
       being transmitted.  This type is defined by the IANA table "MOQT
@@ -1572,25 +1573,23 @@ Table of Contents
    *  Token Value - the payload of the Token.  The contents and
       serialization of this payload are defined by the Token Type.
 
-   The receiver of a message containing an invalid AUTHORIZATION TOKEN
-   parameter MUST reject that message with an Malformed Auth Token
-   error.  This can be due to invalid serialization or providing a token
-   value which does not match the declared Token Type.  The receiver of
-   a message referencing an alias that is not currently registered MUST
-   reject the message with Unknown Auth Token Alias.  The receiver of a
-   message attempting to register an alias which is already registered
-   MUST close the session with Duplicate Auth Token Alias.
+   If the Token structure cannot be decoded, the receiver MUST close the
+   session with Key-Value Formatting error.  The receiver of a message
+   attempting to register an Alias which is already registered MUST
+   close the session with Duplicate Auth Token Alias.  The receiver of a
+   message referencing an Alias that is not currently registered MUST
+   reject the message with Unknown Auth Token Alias.
+
+   The receiver of a message containing a well-formed Token structure
+   but otherwise invalid AUTHORIZATION TOKEN parameter MUST reject that
+   message with an Malformed Auth Token error.
 
    The receiver of a message carrying an AUTHORIZATION TOKEN with Alias
    Type REGISTER that does not result in a session error MUST register
    the Token Alias, Type and Value in the token cache, even if the
    message fails for other reasons, including Unauthorized.  This allows
    senders to pipeline messages that refer to previously registered
-   tokens.
-
-   An endpoint that receives Token that uses or attempts to delete an
-   Alias that is not registered MUST close the session with Unknown Auth
-   Token Alias.
+   tokens without potentially terminating the entire session.
 
    If a receiver detects that an authorization token has expired, it
    MUST retain the registered Alias until it is deleted by the sender,
@@ -1603,8 +1602,8 @@ Table of Contents
    Value is for efficiency only and has the same effect as if the Token
    Type and Value was included directly.  Retiring an Alias that was
    previously used to authorize a message has no retroactive effect on
-   the original authorization, nor does it prevent that same Token Value
-   being re-registered.
+   the original authorization, nor does it prevent that same Token Type
+   and Value from being re-registered.
 
    Senders of tokens SHOULD only register tokens which they intend to
    re-use during the session and SHOULD retire previously registered
@@ -1762,10 +1761,10 @@ Table of Contents
    communicates the maximum size in bytes of all actively registered
    Authorization tokens that the server is willing to store per Session.
    This parameter is optional.  The default value is 0 which prohibits
-   the use of token aliases.
+   the use of token Aliases.
 
-   The token size is calculated as 8 bytes + the size of the Token value
-   (see Figure 4).  The total size as restricted by the
+   The token size is calculated as 16 bytes + the size of the Token
+   Value field (see Figure 4).  The total size as restricted by the
    MAX_AUTH_TOKEN_CACHE_SIZE parameter is calculated as the sum of the
    token sizes for all registered tokens (Alias Type value of 0x01)
    minus the sum of the token sizes for all deregistered tokens (Alias
