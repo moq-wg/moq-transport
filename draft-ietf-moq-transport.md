@@ -2854,9 +2854,9 @@ the datagram.
 |-----------|---------------------------------------------------|
 | ID        | Type                                              |
 |----------:|:--------------------------------------------------|
-| 0x00-0x01 | OBJECT_DATAGRAM ({{object-datagram}})             |
+| 0x00-0x03 | OBJECT_DATAGRAM ({{object-datagram}})             |
 |-----------|---------------------------------------------------|
-| 0x02-0x03 | OBJECT_DATAGRAM_STATUS ({{object-datagram}})      |
+| 0x04-0x05 | OBJECT_DATAGRAM_STATUS ({{object-datagram}})      |
 |-----------|---------------------------------------------------|
 
 An endpoint that receives an unknown stream or datagram type MUST close the
@@ -2935,7 +2935,10 @@ are beyond the end of a group or track.
          GroupID. This is sent right after the last object in the
          group. If the ObjectID is 0, it indicates there are no Objects
          in this Group. This SHOULD be cached. A publisher MAY use an end of
-         Group object to signal the end of all open Subgroups in a Group.
+         Group object to signal the end of all open Subgroups in a Group. A
+         non-zero-length Object can be the End of Group, as signaled in
+         the DATAGRAM or SUBGROUP_HEADER Type field (see {{object-datagram}}
+         and {{subgroup-header}}).
 
 * 0x4 := Indicates end of Track. GroupID is either the largest group produced
          in this track and the ObjectID is one greater than the largest object
@@ -2992,7 +2995,7 @@ will be dropped.
 
 ~~~
 OBJECT_DATAGRAM {
-  Type (i),
+  Type (i) = 0x0-0x4,
   Track Alias (i),
   Group ID (i),
   Object ID (i),
@@ -3004,11 +3007,29 @@ OBJECT_DATAGRAM {
 ~~~
 {: #object-datagram-format title="MOQT OBJECT_DATAGRAM"}
 
-The Type field takes the form 0b0000000X (or the set of values from 0x00 to
-0x01). The LSB of the type determines if the Extensions Headers Length and
-Extension headers are present. If an endpoint receives a datagram with Type
-0x01 and Extension Headers Length is 0, it MUST close the session with Protocol
-Violation.
+There are 4 defined Type values for OBJECT_DATAGRAM:
+
+|------|---------------|------------|
+| Type | End Of Group  | Extensions |
+|      |               | Present    |
+|------|---------------|------------|
+| 0x00 | No            | No         |
+|------|---------------|------------|
+| 0x01 | No            | Yes        |
+|------|---------------|------------|
+| 0x02 | Yes           | No         |
+|------|---------------|------------|
+| 0x03 | Yes           | Yes        |
+|------|---------------|------------|
+
+For Type values where End of Group is Yes, the Object is the last Object in the
+Group.
+
+For Type values where Extensions Present is No, Extensions Headers Length is not
+present and the Object has no extensions.  When Extensions Present is Yes,
+Extension Headers Length is present.  If an endpoint receives a datagram with
+Type 0x01 and Extension Headers Length is 0, it MUST close the session with
+Protocol Violation.
 
 There is no explicit length field.  The entirety of the transport datagram
 following Publisher Priority contains the Object Payload.
@@ -3075,29 +3096,46 @@ SUBGROUP_HEADER {
 All Objects received on a stream opened with `SUBGROUP_HEADER` have an
 `Object Forwarding Preference` = `Subgroup`.
 
-There are 6 defined Type values for SUBGROUP_HEADER:
+There are 12 defined Type values for SUBGROUP_HEADER:
 
-|------|---------------|-----------------|------------|
-| Type | Subgroup ID   | Subgroup ID     | Extensions |
-|      | Field Present | Value           | Present    |
-|------|---------------|-----------------|------------|
-| 0x08 | No            | 0               | No         |
-|------|---------------|-----------------|------------|
-| 0x09 | No            | 0               | Yes        |
-|------|---------------|-----------------|------------|
-| 0x0A | No            | First Object ID | No         |
-|------|---------------|-----------------|------------|
-| 0x0B | No            | First Object ID | Yes        |
-|------|---------------|-----------------|------------|
-| 0x0C | Yes           | N/A             | No         |
-|------|---------------|-----------------|------------|
-| 0x0D | Yes           | N/A             | Yes        |
-|------|---------------|-----------------|------------|
+|------|---------------|-----------------|------------|--------------|
+| Type | Subgroup ID   | Subgroup ID     | Extensions | Contains End |
+|      | Field Present | Value           | Present    | of Group     |
+|------|---------------|-----------------|------------|--------------|
+| 0x10 | No            | 0               | No         | No           |
+|------|---------------|-----------------|------------|--------------|
+| 0x11 | No            | 0               | Yes        | No           |
+|------|---------------|-----------------|------------|--------------|
+| 0x12 | No            | First Object ID | No         | No           |
+|------|---------------|-----------------|------------|--------------|
+| 0x13 | No            | First Object ID | Yes        | No           |
+|------|---------------|-----------------|------------|--------------|
+| 0x14 | Yes           | N/A             | No         | No           |
+|------|---------------|-----------------|------------|--------------|
+| 0x15 | Yes           | N/A             | Yes        | No           |
+|------|---------------|-----------------|------------|--------------|
+| 0x18 | No            | 0               | No         | Yes          |
+|------|---------------|-----------------|------------|--------------|
+| 0x19 | No            | 0               | Yes        | Yes          |
+|------|---------------|-----------------|------------|--------------|
+| 0x1A | No            | First Object ID | No         | Yes          |
+|------|---------------|-----------------|------------|--------------|
+| 0x1B | No            | First Object ID | Yes        | Yes          |
+|------|---------------|-----------------|------------|--------------|
+| 0x1C | Yes           | N/A             | No         | Yes          |
+|------|---------------|-----------------|------------|--------------|
+| 0x1D | Yes           | N/A             | Yes        | Yes          |
+|------|---------------|-----------------|------------|--------------|
+
+For Type values where Contains End of Group is Yes, the last Object in this
+Subgroup stream before a FIN is the last Object in the Group.  If the Subgroup
+stream is terminated with a RESET_STREAM or RESET_STREAM_AT, the receiver cannot
+determine the End of Group Object ID.
 
 For Type values where Subgroup ID Field Present is No, there is no explicit
 Subgroup ID field in the header and the Subgroup ID is either 0 (for Types
-0x08-09) or the Object ID of the first object transmitted in this subgroup
-(for Types 0x0A-0B).
+0x10-11 and 0x18-19) or the Object ID of the first object transmitted in this
+subgroup (for Types 0x12-13 and 0x1A-1B).
 
 For Type values where Extensions Present is No, Extensions Headers Length is
 not present and all Objects have no extensions.  When Extensions Present is
