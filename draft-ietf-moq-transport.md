@@ -1439,18 +1439,20 @@ timeout is based on when the beginning of the Object is received, and does
 not depend upon the forwarding preference. There is no explicit signal that
 an Object was not sent because the delivery timeout was exceeded.
 
-If both the subscriber and publisher specify the parameter, they use the min of the
-two values for the subscription.  The publisher SHOULD always specify the value
-received from an upstream subscription when there is one, and nothing otherwise.
-If an earlier Object arrives later than subsequent Objects, relays can consider
-the receipt time as that of the next later Object, with the assumption that the
-Object's data was reordered.
+If both the subscriber and publisher specify the parameter, they use the min of
+the two values for the subscription.  The publisher SHOULD always specify the
+value received from an upstream subscription when there is one, and nothing
+otherwise.  If an earlier Object arrives later than subsequent Objects, relays
+can consider the receipt time as that of the next later Object, with the
+assumption that the Object's data was reordered.
 
-If neither the subscriber or publisher specify DELIVERY TIMEOUT, all Objects
-in the track matching the subscription filter are delivered as indicated by
-their Group Order and Priority.  If a subscriber exceeds the publisher's
-resource limits by failing to consume objects at a sufficient rate, the
-publisher MAY terminate the subscription with error 'Too Far Behind'.
+Publishers can, at their discretion, discontinue forwarding Objects earlier than
+the negotiated DELIVERY TIMEOUT.  However, if neither the subscriber or
+publisher specify DELIVERY TIMEOUT, all Objects in the track matching the
+subscription filter are delivered as indicated by their Group Order and
+Priority.  If a subscriber fails to consume Objects at a sufficient rate,
+causing the publisher to exceed its resource limits, the publisher MAY terminate
+the subscription with error 'Too Far Behind'.
 
 If an object in a subgroup exceeds the delivery timeout, the publisher MUST
 reset the underlying transport stream (see {{closing-subgroup-streams}}).
