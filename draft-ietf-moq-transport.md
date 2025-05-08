@@ -243,11 +243,6 @@ x (L):
 
 : Indicates that x is L bits long
 
-x (i):
-
-: Indicates that x holds an integer value using the variable-length
-  encoding as described in ({{?RFC9000, Section 16}})
-
 x (..):
 
 : Indicates that x can be any length including zero bits long.  Values
@@ -261,6 +256,13 @@ x (L) ...:
 
 : Indicates that x is repeated zero or more times and that each instance
   has a length of L
+
+This document redfines the following RFC9000 syntax:
+
+x (i):
+
+: Indicates that x holds an integer value using the variable-length
+  encoding as described in {{variable-length-integers}}.
 
 This document extends the RFC9000 syntax and with the additional field types:
 
@@ -276,9 +278,43 @@ x (tuple):
   as described in ({{?RFC9000, Section 16}}), followed by that many variable
   length tuple fields, each of which are encoded as (b) above.
 
+
+### Variable-Length Integers
+
+RFC9000 variable-length integers use a two-bit length prefix in the first byte
+to determine the encoded length.  This limits the number of encodings to 4,
+reduces the value range of 1-byte encodings to 0-63, and prevents encoding full
+64-bit numbers.  This encoding is not suitable for MoQT.
+
+The variable-length integer encoding reserves the most one to four significant
+bits of the first byte to encode the length of the integer encoding in
+bytes. The integer value is encoded on the remaining bits, in network byte
+order.
+
+Integers are encoded in 1, 2, 4, 8, or 9 bytes and can encode 7-, 14-, 29-, 60-,
+or 64-bit values, respectively. The following table summarizes the encoding
+properties.
+
+|--------------|----------------|-------------|---------------|
+| Leading Bits | Length (bytes) | Usable Bits | Range         |
+|--------------|----------------|-------------|---------------|
+| 0            | 1              | 7           | 0-127         |
+|--------------|----------------|-------------|---------------|
+| 10           | 2              | 14          | 0-16,383      |
+|--------------|----------------|-------------|---------------|
+| 110          | 4              | 29          | 0-536,870,911 |
+|--------------|----------------|-------------|---------------|
+| 1110         | 8              | 60          | 0-2^60-1      |
+|--------------|----------------|-------------|---------------|
+| 1111XXXX     | 9              | 64          | 0-2^64-1      |
+|--------------|----------------|-------------|---------------|
+{: format title="Summary of Integer Encodings"}
+
 To reduce unnecessary use of bandwidth, variable length integers SHOULD
 be encoded using the least number of bytes possible to represent the
 required value.
+
+A sample decoding algorithm is in {{sample-decoding}}.
 
 ### Location Structure
 
@@ -3442,6 +3478,31 @@ document:
 - Will Law
 
 --- back
+
+# Sample Variable-Length Integer Decoding {#sample-decoding}
+
+The function ReadVarint takes a single argument -- a sequence of bytes, which
+can be read in network byte order.
+
+~~~
+ReadVarint(data):
+  lengths = [ 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 4, 4, 8, 9 ]
+  masks = [ 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f,
+            0x3f, 0x3f, 0x3f, 0x3f, 0x1f, 0x1f, 0x0f, 0x00 ]
+  // The length of variable-length integers is encoded in the
+  // first one to four bits of the first byte.
+  v = data.next_byte()
+  prefix = v >> 4
+  length = lengths[prefix]
+  mask = masks[prefix]
+
+  // Once the length is known, remove these bits and read any
+  // remaining bytes.
+  v = v & mask
+  repeat length-1 times:
+    v = (v << 8) + data.next_byte()
+  return v
+~~~
 
 # Change Log
 
