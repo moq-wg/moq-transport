@@ -2972,16 +2972,25 @@ Object Extension Headers are serialized as Key-Value-Pairs {{moq-key-value-pair}
 Header types are registered in the IANA table 'MOQ Extension Headers'.
 See {{iana}}.
 
-## Object Datagram {#object-datagram}
+## Datagrams
+
+A single object can be conveyed in a datagram.  The Track Alias field
+{{track-alias}} indicates the track this Datagram belongs to.  If an endpoint
+receives a datagram with an unknown Track Alias, it MAY drop the datagram or
+choose to buffer it for a brief period to handle reordering with the control
+message that establishes the Track Alias.
+
+An Object received in an `OBJECT_DATAGRAM` or `OBJECT_DATAGRAM_STATUS` message
+has an `Object Forwarding Preference` = `Datagram`. To send an Object with
+`Object Forwarding Preference` = `Datagram`, determine the length of the header
+and payload and send the Object as datagram. In certain scenarios where the
+object size can be larger than maximum datagram size for the session, the Object
+will be dropped.
+
+
+### Object Datagram {#object-datagram}
 
 An `OBJECT_DATAGRAM` carries a single object in a datagram.
-
-An Object received in an `OBJECT_DATAGRAM` message has an `Object
-Forwarding Preference` = `Datagram`. To send an Object with `Object
-Forwarding Preference` = `Datagram`, determine the length of the header and
-payload and send the Object as datagram. In certain scenarios where the object
-size can be larger than maximum datagram size for the session, the Object
-will be dropped.
 
 ~~~
 OBJECT_DATAGRAM {
@@ -3006,7 +3015,7 @@ Violation.
 There is no explicit length field.  The entirety of the transport datagram
 following Publisher Priority contains the Object Payload.
 
-## Object Datagram Status {#object-datagram-status}
+### Object Datagram Status {#object-datagram-status}
 
 An `OBJECT_DATAGRAM_STATUS` is similar to OBJECT_DATAGRAM except it
 conveys an Object Status and has no payload.
@@ -3030,11 +3039,6 @@ The Type field takes the form 0b0000001X (or the set of values from 0x02 to
 Extension headers are present. If an endpoint receives a datagram with Type
 0x03 and Extension Headers Length is 0, it MUST close the session with Protocol
 Violation.
-
-* Track Alias: The Track Alias ({{track-alias}} indicating the track this
-  Datagram belongs to.  If an endpoint receives a datagram with an unknown Track
-  Alias, it MAY drop the datagram or choose to buffer it for a brief period to
-  handle reordering with the control message that establishes the Track Alias.
 
 ## Streams
 
