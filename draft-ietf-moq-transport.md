@@ -3492,14 +3492,16 @@ Function WriteVarint(value, output):
     else if value <= 16383:
         output.append(networkByteOrder(uint16_t(value | 0x8000)), 2)
     else if value <= 536870911:
-        output.append(networkByteOrder(uint32_t(value | 0xC0000000)), 4)
+        output.append(networkByteOrder(
+            uint32_t(value | 0xC0000000)), 4)
     else if value <= 1152921504606846975:
-        output.append(networkByteOrder(uint64_t(value | 0xE000000000000000)), 8)
+        output.append(networkByteOrder(
+            uint64_t(value | 0xE000000000000000)), 8)
     else:
         output.append(0xF0, 1)
         output.append(networkByteOrder(value), 8)
 ~~~
-        
+
 
 The function ReadVarint takes a single argument -- a sequence of bytes, which
 can be read in network byte order.
