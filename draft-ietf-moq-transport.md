@@ -1485,6 +1485,8 @@ integer encoding the time in milliseconds after which the sender will terminate
 the subscription or announcement.  This value is advisory and can terminate the
 subscription or announcement prior to or after the expiry time.
 
+If the EXPIRES parameter is 0 or is not present in a message, the subscription
+or announcement does not expire or expires at an unknown time.
 
 ## CLIENT_SETUP and SERVER_SETUP {#message-setup}
 
