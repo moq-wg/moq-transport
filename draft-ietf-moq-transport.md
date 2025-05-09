@@ -501,6 +501,10 @@ constrain the information in these fields, for example by restricting them to
 UTF-8. Any specification that does needs to specify the canonicalization into
 the bytes in the Track Namespace or Track Name such that exact comparison works.
 
+Repeating the bytes corresponding to tuples between the Track Namespace
+and the Track Name is an invalid construction. Endpoints encountering such
+a construction MUST terminate the session with a 'Protocol Violation' error.
+
 ### Scope {#track-scope}
 
 A MOQT scope is a set of servers (as identified by their connection
