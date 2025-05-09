@@ -369,7 +369,7 @@ track to allow the subscriber to pick the appropriate resolution given
 the display environment and available bandwidth. Each "group of pictures"
 in a video is sent as a group because the first frame is needed to
 decode later frames. This allows the client to join at the logical points
-where they can get the information to start decoding the stream.
+where they can get the information to start decoding the media.
 The temporal layers are sent as separate sub groups to allow the
 priority mechanism to favour the base layer when there is not enough
 bandwidth to send both the base and enhancement layers. Each frame of
