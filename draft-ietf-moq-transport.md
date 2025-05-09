@@ -211,6 +211,11 @@ Transport Session:
 
 : A raw QUIC connection or a WebTransport session.
 
+Stream:
+
+: A bidirectional or unidirectional bytestream provided by the
+QUIC transport or WebTransport.
+
 Congestion:
 
 : Packet loss and queuing caused by degraded or overloaded networks.
