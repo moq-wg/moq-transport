@@ -2867,13 +2867,6 @@ To optimize wire efficiency, Subgroups and Datagrams refer to a track by a
 numeric identifier, rather than the Full Track Name.  Track Alias is chosen by
 the publisher and included in SUBSCRIBE_OK ({{message-subscribe-ok}}.
 
-Though a Track Alias is only required to be unique within a single session,
-Publishers MAY set Track Alias to a more unique (possibly globally unique)
-identifier for the Track.  Relays SHOULD assign the Track Alias received in an
-upstream SUBSCRIBE_OK to downstream subscriptions for the same track. Since
-subscribers can request Tracks from uncoordinated publishers through a single
-relay session, it is not always possible to reuse the upstream Track Alias.
-
 ## Objects {#message-object}
 
 An Object contains a range of contiguous bytes from the
@@ -3068,9 +3061,10 @@ ID` in the SUBGROUP_HEADER.
 
 If an endpoint receives a subgroup with an unknown Track Alias, it MAY abandon
 the stream, or choose to buffer it for a brief period to handle reordering with
-the control message that establishes the Track Alias.  The endpoint SHOULD NOT
-release stream flow control beyond the SUBGROUP_HEADER until the Track Alias has
-been established.  TODO: talk about possible deadlocks.
+the control message that establishes the Track Alias.  The endpoint MAY withhold
+stream flow control beyond the SUBGROUP_HEADER until the Track Alias has been
+established.  To prevent deadlocks, the publisher MUST allocate connection flow
+control to the control stream before allocating it any data streams.
 
 ~~~
 SUBGROUP_HEADER {
