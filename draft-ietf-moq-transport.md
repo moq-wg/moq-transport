@@ -281,10 +281,11 @@ x (tuple):
 
 ### Variable-Length Integers
 
-RFC9000 variable-length integers use a two-bit length prefix in the first byte
-to determine the encoded length.  This limits the number of encodings to 4,
-reduces the value range of 1-byte encodings to 0-63, and prevents encoding full
-64-bit numbers.  This encoding is not suitable for MoQT.
+MoQT requires a variable-length integer encoding with the following properties:
+
+1. The encoded length can be determined from the first encoded byte.
+2. The range of 1 byte values is as large as possible.
+3. All 64 bit numbers can be encoded.
 
 The variable-length integer encoding reserves the most one to four significant
 bits of the first byte to encode the length of the integer encoding in
@@ -314,7 +315,7 @@ To reduce unnecessary use of bandwidth, variable length integers SHOULD
 be encoded using the least number of bytes possible to represent the
 required value.
 
-A sample decoding algorithm is in {{sample-decoding}}.
+A sample encoding and decoding algorithm is in {{sample-varint}}.
 
 ### Location Structure
 
@@ -3479,12 +3480,31 @@ document:
 
 --- back
 
-# Sample Variable-Length Integer Decoding {#sample-decoding}
+# Sample Variable-Length Integer Encoding and Decoding {#sample-varint}
+
+The WriteVarint function takes two parameters, a 64 bit integer and an
+output buffer with an append operation.
+
+~~~pseudocode
+Function WriteVarint(value, output):
+    if value <= 127:
+        output.append(value, 1)
+    else if value <= 16383:
+        output.append(networkByteOrder(uint16_t(value | 0x8000)), 2)
+    else if value <= 536870911:
+        output.append(networkByteOrder(uint32_t(value | 0xC0000000)), 4)
+    else if value <= 1152921504606846975:
+        output.append(networkByteOrder(uint64_t(value | 0xE000000000000000)), 8)
+    else:
+        output.append(0xF0, 1)
+        output.append(networkByteOrder(value), 8)
+~~~
+        
 
 The function ReadVarint takes a single argument -- a sequence of bytes, which
 can be read in network byte order.
 
-~~~
+~~~pseudocode
 ReadVarint(data):
   lengths = [ 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 4, 4, 8, 9 ]
   masks = [ 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f,
@@ -3503,6 +3523,12 @@ ReadVarint(data):
     v = (v << 8) + data.next_byte()
   return v
 ~~~
+For example, the nine-byte sequence 0xf0ffffffffffffffff decodes to the decimal
+value 18,446,744,073,709,551,615; the eight-byte sequence 0xe2197c5eff14e88c
+decodes to the decimal value 151,288,809,941,952,652; the four-byte sequence
+0xdd7f3e7d decodes to 494,878,333; the two-byte sequence 0xbbbd decodes to
+15,293; and the single byte 0x25 decodes to 37 (as does the two-byte sequence
+0x8025).
 
 # Change Log
 
