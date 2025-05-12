@@ -3542,10 +3542,6 @@ Table of Contents
    The Subgroup ID field of an object with a Forwarding Preference of
    "Datagram" (see Section 9.1.1) is set to the Object ID.
 
-   A valid FETCH stream always contains at least one Object.  If a
-   subscriber receives a FIN on a FETCH stream without any Objects, it
-   MUST close the session with a Protocol Violation.
-
 9.5.  Examples
 
    Sending a subgroup on one stream:
