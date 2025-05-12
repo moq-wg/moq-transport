@@ -2325,7 +2325,7 @@ Values of 0x0 and those larger than 0x2 are a protocol error.
      Object in the Group, End Location is {Fetch.End Group, 0}
    - If the requested FETCH End was beyond the Largest known (possibly final)
      Object, End Location is {Largest.Group, Largest.Object + 1}
-   - Otherwise, End Location is {Fetch.End Group, Fetch.End Object} 
+   - Otherwise, End Location is {Fetch.End Group, Fetch.End Object}
 
   If the relay is subscribed to the track, it uses its knowledge of the largest
   {Group, Object} to set End.  If if is not subscribed and the requested End
