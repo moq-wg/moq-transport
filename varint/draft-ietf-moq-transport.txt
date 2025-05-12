@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 10 November 2025                                  I. Swett, Ed.
+Expires: 13 November 2025                                  I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                              9 May 2025
+                                                             12 May 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 10 November 2025.
+   This Internet-Draft will expire on 13 November 2025.
 
 Copyright Notice
 
@@ -368,10 +368,10 @@ Table of Contents
 
    3.  All 64 bit numbers can be encoded.
 
-   The variable-length integer encoding reserves the most one to four
-   significant bits of the first byte to encode the length of the
-   integer encoding in bytes.  The integer value is encoded on the
-   remaining bits, in network byte order.
+   The variable-length integer encoding uses the most significant one to
+   four bits of the first byte to indicate the length of the encoding in
+   bytes.  The remaining bits represent the integer value, encoded in
+   network byte order.
 
    Integers are encoded in 1, 2, 4, 8, or 9 bytes and can encode 7-,
    14-, 29-, 60-, or 64-bit values, respectively.  The following table
@@ -392,6 +392,9 @@ Table of Contents
       +--------------+----------------+-------------+---------------+
 
                    Table 1: Summary of Integer Encodings
+
+   The four least significant bits of the first byte are reserved in
+   9-byte encodings.
 
    To reduce unnecessary use of bandwidth, variable length integers
    SHOULD be encoded using the least number of bytes possible to
