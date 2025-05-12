@@ -4418,13 +4418,18 @@ the End Location is the final Object in the Track, 0 if not.<a href="#section-8.
 </li>
           <li class="normal" id="section-8.14-3.4">
             <p id="section-8.14-3.4.1">End Location: The largest object covered by the FETCH response.
-The End value is determined by taking the minimum of two values:<a href="#section-8.14-3.4.1" class="pilcrow">¶</a></p>
+The End Location is determined as follows:<a href="#section-8.14-3.4.1" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-8.14-3.4.2.1">
-                <p id="section-8.14-3.4.2.1.1">The {End Group, End Object} specified in the FETCH request.<a href="#section-8.14-3.4.2.1.1" class="pilcrow">¶</a></p>
+                <p id="section-8.14-3.4.2.1.1">If End Object in the FETCH request was 0 and the response covers the last
+Object in the Group, End Location is {Fetch.End Group, 0}<a href="#section-8.14-3.4.2.1.1" class="pilcrow">¶</a></p>
 </li>
               <li class="normal" id="section-8.14-3.4.2.2">
-                <p id="section-8.14-3.4.2.2.1">The largest known, possibly final, {Group, Object} available<a href="#section-8.14-3.4.2.2.1" class="pilcrow">¶</a></p>
+                <p id="section-8.14-3.4.2.2.1">If the requested FETCH End was beyond the Largest known (possibly final)
+Object, End Location is {Largest.Group, Largest.Object + 1}<a href="#section-8.14-3.4.2.2.1" class="pilcrow">¶</a></p>
+</li>
+              <li class="normal" id="section-8.14-3.4.2.3">
+                <p id="section-8.14-3.4.2.3.1">Otherwise, End Location is {Fetch.End Group, Fetch.End Object}<a href="#section-8.14-3.4.2.3.1" class="pilcrow">¶</a></p>
 </li>
             </ul>
 <p id="section-8.14-3.4.3">
