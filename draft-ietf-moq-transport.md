@@ -3287,10 +3287,6 @@ The Object Status field is only sent if the Object Payload Length is zero.
 The Subgroup ID field of an object with a Forwarding Preference of "Datagram"
 (see {{object-properties}}) is set to the Object ID.
 
-A valid FETCH stream always contains at least one Object.  If a subscriber
-receives a FIN on a FETCH stream without any Objects, it MUST close the session
-with a `Protocol Violation`.
-
 ## Examples
 
 Sending a subgroup on one stream:
