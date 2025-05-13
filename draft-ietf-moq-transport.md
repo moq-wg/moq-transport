@@ -257,7 +257,7 @@ x (L) ...:
 : Indicates that x is repeated zero or more times and that each instance
   has a length of L
 
-This document redfines the following RFC9000 syntax:
+This document redefines the following RFC9000 syntax:
 
 x (i):
 
