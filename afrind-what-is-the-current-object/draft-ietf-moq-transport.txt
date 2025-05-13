@@ -1637,15 +1637,10 @@ Table of Contents
    Object.Group, Largest Object.Object + 1} and Largest Object is
    communicated in SUBSCRIBE_OK.  If no content has been delivered yet,
    the filter Start Location is {0, 0}. There is no End Group - the
-   subscription is open ended.  If an implementation has published or
-   received the beginning of a new Largest Object but not the end, it
-   can choose either this "current" Object or the previous Largest
-   Object to create this filter.  If it chooses the previous value, the
-   current Object passes the Latest Object filter, and it MUST be
-   delivered starting from the beginning.  Note that due to network
-   reordering or prioritization, relays can receive Objects with
-   Locations smaller than Largest Object after the SUBSCRIBE is
-   processed, but these Objects do not pass the Latest Object filter.
+   subscription is open ended.  Note that due to network reordering or
+   prioritization, relays can receive Objects with Locations smaller
+   than Largest Object after the SUBSCRIBE is processed, but these
+   Objects do not pass the Latest Object filter.
 
    AbsoluteStart (0x3): The filter Start Location is specified
    explicitly in the SUBSCRIBE message.  The Start specified in the
