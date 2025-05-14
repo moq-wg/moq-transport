@@ -3366,6 +3366,36 @@ cannot infer any information about the existence of prior groups (see
 This extension can be added by the Original Publisher, but MUST NOT be added by
 relays. This extension MUST NOT be modified or removed.
 
+## Immutable Extensions Marker
+
+The "Immutable Extension Marker" (Extension Header Type 0xA) serves as a
+boundary indicating the start of immutable header extensions.  The
+primary purpose of this marker is so that end to end encryption schemes
+know that any header extensions after and including this marker can be
+end to end authenticated.
+
+Header extensions appearing after this marker MUST NOT be modified or
+removed by relays and MUST be cached if the object is
+cached. Conversely, header extensions preceding this marker MAY be
+modified or removed by relays, as specified by their individual
+specifications. The Immutable Extension Marker is assigned Type 0xA and
+represents a boolean value.  It's absence implies that none of the
+header extensions should be end to end authenticated.
+
+The following figure shows an example Object structure with a
+combination of mutable and immutable extensions and end to end encrypted
+extensions in the object payload.
+
+~~~
++------+------------+-----------+-------------+------------+--------+
+|Header| Mutable    | Marker    | Immutable   | Encrypted  | Object |
+|      | Extensions | Extension | Extensions  | Extensions | Data   |
++------+------------+-----------+-------------+------------+--------+
+                   Object Header                    Object Payload
+<---------------------------------------------><-------------------->
+~~~
+
+
 # Security Considerations {#security}
 
 TODO: Expand this section, including subscriptions.
