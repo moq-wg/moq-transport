@@ -292,7 +292,8 @@ Location {
 ~~~
 {: #moq-location format title="Location structure"}
 
-In this document, the constituent parts of any Location A can be referred to using A.Group or A.Object.
+In this document, the constituent parts of any Location A can be referred to
+using A.Group or A.Object.
 
 Location A < Location B if:
 
@@ -2172,9 +2173,9 @@ cached objects have been delivered before resetting the stream.
 
 The Object Forwarding Preference does not apply to fetches.
 
-Fetch specifies an inclusive range of Objects starting at Start Location
-and ending at End Location. End Location MUST
-specify the same or a larger Location than Start Location.
+Fetch specifies an inclusive range of Objects starting at Start Location and
+ending at End Location. End Location MUST specify the same or a larger Location
+than Start Location.
 
 The format of FETCH is as follows:
 
@@ -2226,8 +2227,8 @@ Fields present only for Standalone Fetch (0x1):
 
 * Start Location: The start Location.
 
-* End Location: The end Location, plus 1 Object ID. An Object ID value of 0 means the entire group is
-requested.
+* End Location: The end Location, plus 1 Object ID. An Object ID value of 0
+  means the entire group is requested.
 
 Fields present only for Relative Fetch (0x2) and Absolute Fetch (0x3):
 
@@ -2244,15 +2245,14 @@ Fields present only for Relative Fetch (0x2) and Absolute Fetch (0x3):
 
 Objects that are not yet published will not be retrieved by a FETCH.
 The latest available Object is indicated in the FETCH_OK, and is the last
-Object a fetch will return if the End Location has not yet been
-published.
+Object a fetch will return if the End Location has not yet been published.
 
 A publisher MUST send fetched groups in the determined group order, either
 ascending or descending. Within each group, objects are sent in Object ID order;
 subgroup ID is not used for ordering.
 
-If Start Location is greater than the latest published Location,
-the publisher MUST return FETCH_ERROR with error code 'Invalid Range'.
+If Start Location is greater than the latest published Location, the publisher
+MUST return FETCH_ERROR with error code 'Invalid Range'.
 
 ### Calculating the Range of a Relative Joining Fetch
 
@@ -2278,8 +2278,8 @@ the Fetch End Location.Group if Fetch End Location.Object is 0.
 
 ### Calculating the Range of an Absolute Joining Fetch
 
-Identical to the Relative Joining fetch except that Fetch Start Location.Group is the
-Joining Start value.
+Identical to the Relative Joining fetch except that Fetch Start Location.Group
+is the Joining Start value.
 
 
 ## FETCH_OK {#message-fetch-ok}
