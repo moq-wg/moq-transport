@@ -727,8 +727,8 @@ code, as defined below:
 * Malformed Auth Token - Invalid Auth Token serialization during registration
   (see {{authorization-token}}).
 
-* Unknown Auth Token Alias - Authorization Token refers to an Alias that is
-  not registered (see {{authorization-token}}).
+* Unknown Auth Token Alias - No registered token found for the provided Alias
+  (see {{authorization-token}}).
 
 * Expired Auth Token - Authorization token has expired {{authorization-token}}).
 
@@ -1346,9 +1346,9 @@ these parameters to appear in Setup messages.
 
 #### AUTHORIZATION TOKEN {#authorization-token}
 
-The AUTHORIZATION TOKEN parameter (Parameter Type 0x03) MAY appeat in a
-CLIENT_SETUP, SUBSCRIBE, SUBSCRIBE_ANNOUNCES, ANNOUNCE TRACK_STATUS_REQUEST or
-FETCH message. This parameter converys information to authorize the sender to
+The AUTHORIZATION TOKEN parameter (Parameter Type 0x03) MAY appear in a
+CLIENT_SETUP, SUBSCRIBE, SUBSCRIBE_ANNOUNCES, ANNOUNCE, TRACK_STATUS_REQUEST or
+FETCH message. This parameter conveys information to authorize the sender to
 perform the operation carrying the parameter.
 
 The AUTHORIZATION TOKEN parameter MAY be repeated within a message.
