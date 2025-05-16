@@ -1730,27 +1730,33 @@ Publisher or End Subscriber.<a href="#section-1.2-3.20.1" class="pilcrow">¶</a>
             <p id="section-1.2-3.26.1">A raw QUIC connection or a WebTransport session.<a href="#section-1.2-3.26.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-1.2-3.27">Congestion:</dt>
+<dt id="section-1.2-3.27">Stream:</dt>
           <dd style="margin-left: 1.5em" id="section-1.2-3.28">
-            <p id="section-1.2-3.28.1">Packet loss and queuing caused by degraded or overloaded networks.<a href="#section-1.2-3.28.1" class="pilcrow">¶</a></p>
+            <p id="section-1.2-3.28.1">A bidirectional or unidirectional bytestream provided by the
+QUIC transport or WebTransport.<a href="#section-1.2-3.28.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-1.2-3.29">Group:</dt>
+<dt id="section-1.2-3.29">Congestion:</dt>
           <dd style="margin-left: 1.5em" id="section-1.2-3.30">
-            <p id="section-1.2-3.30.1">A temporal sequence of objects. A group represents a join point in a
-track. See (<a href="#model-group" class="auto internal xref">Section 2.3</a>).<a href="#section-1.2-3.30.1" class="pilcrow">¶</a></p>
+            <p id="section-1.2-3.30.1">Packet loss and queuing caused by degraded or overloaded networks.<a href="#section-1.2-3.30.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-1.2-3.31">Object:</dt>
+<dt id="section-1.2-3.31">Group:</dt>
           <dd style="margin-left: 1.5em" id="section-1.2-3.32">
-            <p id="section-1.2-3.32.1">An object is an addressable unit whose payload is a sequence of
-bytes. Objects form the base element in the MOQT data model. See
-(<a href="#model-object" class="auto internal xref">Section 2.1</a>).<a href="#section-1.2-3.32.1" class="pilcrow">¶</a></p>
+            <p id="section-1.2-3.32.1">A temporal sequence of objects. A group represents a join point in a
+track. See (<a href="#model-group" class="auto internal xref">Section 2.3</a>).<a href="#section-1.2-3.32.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-1.2-3.33">Track:</dt>
+<dt id="section-1.2-3.33">Object:</dt>
           <dd style="margin-left: 1.5em" id="section-1.2-3.34">
-            <p id="section-1.2-3.34.1">A track is a collection of groups. See (<a href="#model-track" class="auto internal xref">Section 2.4</a>).<a href="#section-1.2-3.34.1" class="pilcrow">¶</a></p>
+            <p id="section-1.2-3.34.1">An object is an addressable unit whose payload is a sequence of
+bytes. Objects form the base element in the MOQT data model. See
+(<a href="#model-object" class="auto internal xref">Section 2.1</a>).<a href="#section-1.2-3.34.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-1.2-3.35">Track:</dt>
+          <dd style="margin-left: 1.5em" id="section-1.2-3.36">
+            <p id="section-1.2-3.36.1">A track is a collection of groups. See (<a href="#model-track" class="auto internal xref">Section 2.4</a>).<a href="#section-1.2-3.36.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
 </dl>
@@ -1939,7 +1945,7 @@ track to allow the subscriber to pick the appropriate resolution given
 the display environment and available bandwidth. Each "group of pictures"
 in a video is sent as a group because the first frame is needed to
 decode later frames. This allows the client to join at the logical points
-where they can get the information to start decoding the stream.
+where they can get the information to start decoding the media.
 The temporal layers are sent as separate sub groups to allow the
 priority mechanism to favour the base layer when there is not enough
 bandwidth to send both the base and enhancement layers. Each frame of
