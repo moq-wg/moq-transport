@@ -2192,8 +2192,8 @@ FETCH Message {
    Track Name (..),
    Start Location (Location),
    End Location (Location),]
-   [Joining Request ID (i),
-    Joining Start (i),]
+  [Joining Request ID (i),
+   Joining Start (i),]
   Number of Parameters (i),
   Parameters (..) ...
 }
