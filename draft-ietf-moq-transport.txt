@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 9 November 2025                                   I. Swett, Ed.
+Expires: 17 November 2025                                  I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                              8 May 2025
+                                                             16 May 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 9 November 2025.
+   This Internet-Draft will expire on 17 November 2025.
 
 Copyright Notice
 
@@ -2410,7 +2410,7 @@ Table of Contents
       Start Object (i),
       End Group (i),
       End Object (i),]
-     [Joining Subscribe ID (i),
+     [Joining Request ID (i),
       Joining Start (i),]
      Number of Parameters (i),
      Parameters (..) ...
@@ -2457,11 +2457,11 @@ Table of Contents
    Fields present only for Relative Fetch (0x2) and Absolute Fetch
    (0x3):
 
-   *  Joining Subscribe ID: The Request ID of the existing subscription
-      to be joined.  If a publisher receives a Joining Fetch with a
-      Request ID that does not correspond to an existing Subscribe in
-      the same session, it MUST respond with a Fetch Error with code
-      Invalid Joining Subscribe ID.
+   *  Joining Request ID: The Request ID of the existing subscription to
+      be joined.  If a publisher receives a Joining Fetch with a Request
+      ID that does not correspond to an existing Subscribe in the same
+      session, it MUST respond with a Fetch Error with code Invalid
+      Joining Request ID.
 
    *  Joining Start : for a Relative Joining Fetch (0x2), this value
       represents the group offset for the Fetch prior and relative to
@@ -2584,31 +2584,31 @@ Table of Contents
    The application SHOULD use a relevant error code in FETCH_ERROR, as
    defined below:
 
-                  +======+==============================+
-                  | Code | Reason                       |
-                  +======+==============================+
-                  |  0x0 | Internal Error               |
-                  +------+------------------------------+
-                  |  0x1 | Unauthorized                 |
-                  +------+------------------------------+
-                  |  0x2 | Timeout                      |
-                  +------+------------------------------+
-                  |  0x3 | Not Supported                |
-                  +------+------------------------------+
-                  |  0x4 | Track Does Not Exist         |
-                  +------+------------------------------+
-                  |  0x5 | Invalid Range                |
-                  +------+------------------------------+
-                  |  0x6 | No Objects                   |
-                  +------+------------------------------+
-                  |  0x7 | Invalid Joining Subscribe ID |
-                  +------+------------------------------+
-                  | 0x10 | Malformed Auth Token         |
-                  +------+------------------------------+
-                  | 0x11 | Unknown Auth Token Alias     |
-                  +------+------------------------------+
-                  | 0x12 | Expired Auth Token           |
-                  +------+------------------------------+
+                   +======+============================+
+                   | Code | Reason                     |
+                   +======+============================+
+                   |  0x0 | Internal Error             |
+                   +------+----------------------------+
+                   |  0x1 | Unauthorized               |
+                   +------+----------------------------+
+                   |  0x2 | Timeout                    |
+                   +------+----------------------------+
+                   |  0x3 | Not Supported              |
+                   +------+----------------------------+
+                   |  0x4 | Track Does Not Exist       |
+                   +------+----------------------------+
+                   |  0x5 | Invalid Range              |
+                   +------+----------------------------+
+                   |  0x6 | No Objects                 |
+                   +------+----------------------------+
+                   |  0x7 | Invalid Joining Request ID |
+                   +------+----------------------------+
+                   | 0x10 | Malformed Auth Token       |
+                   +------+----------------------------+
+                   | 0x11 | Unknown Auth Token Alias   |
+                   +------+----------------------------+
+                   | 0x12 | Expired Auth Token         |
+                   +------+----------------------------+
 
                                   Table 6
 
