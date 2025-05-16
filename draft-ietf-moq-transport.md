@@ -211,6 +211,11 @@ Transport Session:
 
 : A raw QUIC connection or a WebTransport session.
 
+Stream:
+
+: A bidirectional or unidirectional bytestream provided by the
+QUIC transport or WebTransport.
+
 Congestion:
 
 : Packet loss and queuing caused by degraded or overloaded networks.
@@ -292,7 +297,10 @@ Location {
 ~~~
 {: #moq-location format title="Location structure"}
 
-Location A < Location B iff
+In this document, the constituent parts of any Location A can be referred to
+using A.Group or A.Object.
+
+Location A < Location B if:
 
 `A.Group < B.Group || (A.Group == B.Group && A.Object < B.Object)`
 
@@ -364,7 +372,7 @@ track to allow the subscriber to pick the appropriate resolution given
 the display environment and available bandwidth. Each "group of pictures"
 in a video is sent as a group because the first frame is needed to
 decode later frames. This allows the client to join at the logical points
-where they can get the information to start decoding the stream.
+where they can get the information to start decoding the media.
 The temporal layers are sent as separate sub groups to allow the
 priority mechanism to favour the base layer when there is not enough
 bandwidth to send both the base and enhancement layers. Each frame of
@@ -2138,8 +2146,8 @@ Standalone Fetch (0x1) : A Fetch of Objects performed independently of any Subsc
 Relative Joining Fetch (0x2) : A Fetch joined together with a Subscribe by
 specifying the Request ID of an active subscription and a relative starting
 offset. A publisher receiving a Joining Fetch uses properties of the associated
-Subscribe to determine the Track Namespace, Track, Start Group, Start Object,
-End Group, and End Object such that it is contiguous with the associated
+Subscribe to determine the Track Namespace, Track, Start Location,
+and End Location such that it is contiguous with the associated
 Subscribe. The Joining Fetch begins the Preceding Group Offset prior to the
 associated subscription.
 
@@ -2170,9 +2178,9 @@ cached objects have been delivered before resetting the stream.
 
 The Object Forwarding Preference does not apply to fetches.
 
-Fetch specifies an inclusive range of Objects starting at Start Object
-in Start Group and ending at End Object in End Group. End Group and End Object MUST
-specify the same or a larger Location than Start Group and Start Object.
+Fetch specifies an inclusive range of Objects starting at Start Location and
+ending at End Location. End Location MUST specify the same or a larger Location
+than Start Location.
 
 The format of FETCH is as follows:
 
@@ -2187,11 +2195,9 @@ FETCH Message {
   [Track Namespace (tuple),
    Track Name Length (i),
    Track Name (..),
-   Start Group (i),
-   Start Object (i),
-   End Group (i),
-   End Object (i),]
-  [Joining Subscribe ID (i),
+   Start Location (Location),
+   End Location (Location),]
+  [Joining Request ID (i),
    Joining Start (i),]
   Number of Parameters (i),
   Parameters (..) ...
@@ -2224,21 +2230,17 @@ Fields present only for Standalone Fetch (0x1):
 
 * Track Name: Identifies the track name as defined in ({{track-name}}).
 
-* Start Group: The start Group ID.
+* Start Location: The start Location.
 
-* Start Object: The start Object ID.
-
-* End Group: The end Group ID.
-
-* End Object: The end Object ID, plus 1. A value of 0 means the entire group is
-requested.
+* End Location: The end Location, plus 1 Object ID. An Object ID value of 0
+  means the entire group is requested.
 
 Fields present only for Relative Fetch (0x2) and Absolute Fetch (0x3):
 
-* Joining Subscribe ID: The Request ID of the existing subscription to be
+* Joining Request ID: The Request ID of the existing subscription to be
   joined. If a publisher receives a Joining Fetch with a Request ID that does
   not correspond to an existing Subscribe in the same session, it MUST respond
-  with a Fetch Error with code Invalid Joining Subscribe ID.
+  with a Fetch Error with code Invalid Joining Request ID.
 
 * Joining Start : for a Relative Joining Fetch (0x2), this value represents the
   group offset for the Fetch prior and relative to the Current Group of the
@@ -2248,15 +2250,15 @@ Fields present only for Relative Fetch (0x2) and Absolute Fetch (0x3):
 
 Objects that are not yet published will not be retrieved by a FETCH.  The
 Largest available Object in the requested range is indicated in the FETCH_OK,
-and is the last Object a fetch will return if the End Group and End Object have
-not yet been published.
+and is the last Object a fetch will return if the End Location have not yet been
+published.
 
 A publisher MUST send fetched groups in the determined group order, either
 ascending or descending. Within each group, objects are sent in Object ID order;
 subgroup ID is not used for ordering.
 
-If Start Group/Start Object is greater than the Largest Object, the publisher
-MUST return FETCH_ERROR with error code 'Invalid Range'.
+If Start Location is greater than the Largest Object, the publisher MUST return
+FETCH_ERROR with error code 'Invalid Range'.
 
 ### Calculating the Range of a Relative Joining Fetch
 
@@ -2264,8 +2266,8 @@ A publisher that receives a Fetch of type Type 0x2 treats it
 as a Fetch with a range dynamically determined by the Preceding Group Offset
 and field values derived from the corresponding subscription.
 
-The Largest Group ID and Largest Object ID values from the corresponding
-subscription are used to calculate the end of a Relative Joining Fetch so the
+The Largest Location value from the corresponding
+subscription is used to calculate the end of a Relative Joining Fetch so the
 Objects retrieved by the FETCH and SUBSCRIBE are contiguous and non-overlapping.
 If no Objects have been published for the track, and the SUBSCRIBE_OK has a
 Content Exists value of 0, the publisher MUST respond with a FETCH_ERROR with
@@ -2273,26 +2275,24 @@ error code 'Invalid Range'.
 
 The publisher receiving a Relative Joining Fetch computes the range as follows:
 
-* Fetch Start Group: Subscribe Largest Group - Joining start
-* Fetch Start Object: 0
-* Fetch End Group: Subscribe Largest Group
-* Fetch End Object: Subscribe Largest Object
+* Fetch Start Location: {Subscribe Largest Location.Group - Joining Start, 0}
+* Fetch End Location: Subscribe Largest Location
 
-A Fetch End Object of 0 requests the entire group, but Fetch will not
+A Fetch End Location.Object of 0 requests the entire group, but Fetch will not
 retrieve Objects that have not yet been published, so 1 is subtracted from
-the Fetch End Group if Fetch End Object is 0.
+the Fetch End Location.Group if Fetch End Location.Object is 0.
 
 ### Calculating the Range of an Absolute Joining Fetch
 
-Identical to the Relative Joining fetch except that Fetch Start Group is the
-Joining Start value.
+Identical to the Relative Joining fetch except that Fetch Start Location.Group
+is the Joining Start value.
 
 
 ## FETCH_OK {#message-fetch-ok}
 
 A publisher sends a FETCH_OK control message in response to successful fetches.
 A publisher MAY send Objects in response to a FETCH before the FETCH_OK message is sent,
-but the FETCH_OK MUST NOT be sent until the end group and object are known.
+but the FETCH_OK MUST NOT be sent until the End Location is known.
 
 ~~~
 FETCH_OK Message {
@@ -2372,7 +2372,7 @@ as defined below:
 |------|------------------------------|
 | 0x6  | No Objects                   |
 |------|------------------------------|
-| 0x7  | Invalid Joining Subscribe ID |
+| 0x7  | Invalid Joining Request ID   |
 |------|------------------------------|
 | 0x10 | Malformed Auth Token         |
 |------|------------------------------|
@@ -2395,7 +2395,7 @@ as defined below:
 * Track Does Not Exist - The requested track is not available at the publisher.
 
 * Invalid Range - The end of the requested range is earlier than the beginning,
-  the start of the requested range is beyond the Largest Object, or the track
+  the start of the requested range is beyond the Largest Location, or the track
   has not published any Objects yet.
 
 * No Objects - No Objects exist between the requested Start and End Locations.
