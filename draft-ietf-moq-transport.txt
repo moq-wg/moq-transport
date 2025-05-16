@@ -527,14 +527,13 @@ Table of Contents
 
 2.3.  Groups
 
-   A group is a collection of objects and is a sub-unit of a track
-   (Section 2.4).  Groups SHOULD be independently useful, so objects
-   within a group SHOULD NOT depend on objects in other groups.  A group
+   A group is a collection of Objects and is a sub-unit of a Track
+   (Section 2.4).  Groups SHOULD be independently useful, so Objects
+   within a Group SHOULD NOT depend on Objects in other Groups.  A Group
    provides a join point for subscriptions, so a subscriber that does
-   not want to receive the entire track can opt to receive only the
-   latest group(s).  The publisher then selectively transmits objects
-   based on their group membership.  Groups can contain any number of
-   objects.
+   not want to receive the entire Track can opt to receive only Groups
+   starting from a given Group ID.  Groups can contain any number of
+   Objects.
 
 2.3.1.  Group Ordering
 
@@ -931,8 +930,8 @@ Table of Contents
    be sent for requests that end with an error.
 
    A FETCH_ERROR indicates that both endpoints can immediately destroy
-   state.  Since a relay can start delivering FETCH objects from cache
-   before determining the result of the request, some objects could be
+   state.  Since a relay can start delivering FETCH Objects from cache
+   before determining the result of the request, some Objects could be
    received even if the FETCH results in error.
 
    The Parameters in SUBSCRIBE and FETCH MUST NOT cause the publisher to
@@ -1225,9 +1224,9 @@ Table of Contents
    subscription request is cached and shared among the pending
    subscribers.  Because SUBSCRIBE_UPDATE only allows narrowing a
    subscription, relays that aggregate upstream subscriptions can
-   subscribe using the Latest Object filter to avoid churn as downstream
-   subscribers with disparate filters subscribe and unsubscribe from a
-   track.
+   subscribe using the Largest Object filter to avoid churn as
+   downstream subscribers with disparate filters subscribe and
+   unsubscribe from a track.
 
 7.2.1.  Graceful Subscriber Relay Switchover
 
@@ -1619,10 +1618,10 @@ Table of Contents
    If both the subscriber and publisher specify the parameter, they use
    the min of the two values for the subscription.  The publisher SHOULD
    always specify the value received from an upstream subscription when
-   there is one, and nothing otherwise.  If an earlier Object arrives
-   later than subsequent Objects, relays can consider the receipt time
-   as that of the next later Object, with the assumption that the
-   Object's data was reordered.
+   there is one, and nothing otherwise.  If an Object with a smaller ID
+   arrives later than subsequent Objects, relays can consider its
+   receipt time as that of the Object with the next larger Location,
+   with the assumption that the Objects were reordered.
 
    If neither the subscriber or publisher specify DELIVERY TIMEOUT, all
    Objects in the track matching the subscription filter are delivered
@@ -1872,14 +1871,14 @@ Table of Contents
 
    There are 4 types of filters:
 
-   Latest Object (0x2): The filter Start Location is {Largest
+   Largest Object (0x2): The filter Start Location is {Largest
    Object.Group, Largest Object.Object + 1} and Largest Object is
    communicated in SUBSCRIBE_OK.  If no content has been delivered yet,
    the filter Start Location is {0, 0}. There is no End Group - the
    subscription is open ended.  Note that due to network reordering or
    prioritization, relays can receive Objects with Locations smaller
    than Largest Object after the SUBSCRIBE is processed, but these
-   Objects do not pass the Latest Object filter.
+   Objects do not pass the Largest Object filter.
 
    Next Group Start (0x1): The filter start Location is {Largest
    Object.Group + 1, 0} and Largest Object is communicated in
@@ -2131,20 +2130,20 @@ Table of Contents
 
 8.10.  SUBSCRIBE_UPDATE
 
-   A subscriber issues a SUBSCRIBE_UPDATE to a publisher to request a
-   change to an existing subscription.  Subscriptions can only become
-   more narrow, not wider, because an attempt to widen a subscription
-   could fail.  If Objects before the start or after the end of the
-   current subscription are needed, a fetch might be able to retrieve
-   objects before the start.  The start Object MUST NOT decrease and
-   when it increases, there is no guarantee that a publisher will not
-   have already sent Objects before the new start Object.  The end Group
-   MUST NOT increase and when it decreases, there is no guarantee that a
-   publisher will not have already sent Objects after the new end
-   Object.  A publisher SHOULD close the Session as a 'Protocol
-   Violation' if the SUBSCRIBE_UPDATE violates either rule or if the
-   subscriber specifies a Request ID that has not existed within the
-   Session.
+   A subscriber sends a SUBSCRIBE_UPDATE to a publisher to modify an
+   existing subscription.  Subscriptions can only be narrowed, not
+   widened, as an attempt to widen could fail.  If Objects with
+   Locations smaller than the current subscription's Start Location are
+   required, FETCH can be used to retrieve them.  The Start Location
+   MUST NOT decrease, and if it increases, there is no guarantee that
+   the publisher has not already sent Objects with Locations smaller
+   than the new Start Location.  Similarly, the End Group MUST NOT
+   increase, and if it decreases, there is no guarantee that the
+   publisher has not already sent Objects with Locations larger than the
+   new End Location.  A publisher MUST terminate the session with a
+   'Protocol Violation' if the SUBSCRIBE_UPDATE violates these rules or
+   if the subscriber specifies a request ID that has not existed within
+   the Session.
 
    There is no control message in response to a SUBSCRIBE_UPDATE,
    because it is expected that it will always succeed and the worst
@@ -2374,7 +2373,7 @@ Table of Contents
    track.
 
    A Joining Fetch is only permitted when the associated Subscribe has
-   the Filter Type Latest Object.
+   the Filter Type Largest Object.
 
    A Fetch Type other than 0x1, 0x2 or 0x3 MUST be treated as an error.
 
@@ -2469,16 +2468,16 @@ Table of Contents
       Starting Group ID.
 
    Objects that are not yet published will not be retrieved by a FETCH.
-   The latest available Object is indicated in the FETCH_OK, and is the
-   last Object a fetch will return if the End Location has not yet been
-   published.
+   The Largest available Object in the requested range is indicated in
+   the FETCH_OK, and is the last Object a fetch will return if the End
+   Location have not yet been published.
 
    A publisher MUST send fetched groups in the determined group order,
    either ascending or descending.  Within each group, objects are sent
    in Object ID order; subgroup ID is not used for ordering.
 
-   If Start Location is greater than the latest published Location, the
-   publisher MUST return FETCH_ERROR with error code 'Invalid Range'.
+   If Start Location is greater than the Largest Object, the publisher
+   MUST return FETCH_ERROR with error code 'Invalid Range'.
 
 8.13.1.  Calculating the Range of a Relative Joining Fetch
 
@@ -3380,17 +3379,17 @@ Table of Contents
    unlocks flow control credit to open more streams.
 
    If a sender has delivered all objects in a Subgroup to the QUIC
-   stream, except any objects before the beginning of a subscription, it
-   MUST close the stream with a FIN.
+   stream, except any Objects with Locations smaller than the
+   subscription's Start Location, it MUST close the stream with a FIN.
 
    If a sender closes the stream before delivering all such objects to
    the QUIC stream, it MUST use a RESET_STREAM or RESET_STREAM_AT
    [I-D.draft-ietf-quic-reliable-stream-reset] frame.  This includes an
    open Subgroup exceeding its Delivery Timeout, early termination of
    subscription due to an UNSUBSCRIBE message, a publisher's decision to
-   end the subscription early, or a SUBSCRIBE_UPDATE moving the end of
-   the subscription to before the current Group or the start after the
-   current Group.  When RESET_STREAM_AT is used, the reliable_size
+   end the subscription early, or a SUBSCRIBE_UPDATE moving the
+   subscription's End Group to a smaller Group or the Start Location to
+   a larger Location.  When RESET_STREAM_AT is used, the reliable_size
    SHOULD include the stream header so the receiver can identify the
    corresponding subscription and accurately account for reset data
    streams when handling SUBSCRIBE_DONE (see Section 8.12).  Publishers
