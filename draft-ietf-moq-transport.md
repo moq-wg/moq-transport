@@ -1922,18 +1922,18 @@ as defined below:
 
 ## SUBSCRIBE_UPDATE {#message-subscribe-update}
 
-A subscriber issues a SUBSCRIBE_UPDATE to a publisher to request a change to an
-existing subscription. Subscriptions can only become more narrow, not wider,
-because an attempt to widen a subscription could fail. If Objects with Locations
-smaller than the Start Location of the current subscription are needed, a FETCH
-might be able to retrieve them. The Start Location MUST NOT decrease and when it
-increases, there is no guarantee that a publisher will not have already sent
-Objects with IDs smaller the new Start Location.  The End Group MUST NOT
-increase and when it decreases, there is no guarantee that a publisher will not
-have already sent Objects with Locations larger than the new End Location. A
-publisher SHOULD close the Session as a 'Protocol Violation' if the
-SUBSCRIBE_UPDATE violates either rule or if the subscriber specifies a Request
-ID that has not existed within the Session.
+A subscriber sends a SUBSCRIBE_UPDATE to a publisher to modify an existing
+subscription. Subscriptions can only be narrowed, not widened, as an attempt to
+widen could fail. If Objects with Locations smaller than the current
+subscription's Start Location are required, FETCH can be used to retrieve
+them. The Start Location MUST NOT decrease, and if it increases, there is no
+guarantee that the publisher has not already sent Objects with Locations smaller
+than the new Start Location. Similarly, the End Group MUST NOT increase, and if
+it decreases, there is no guarantee that the publisher has not already sent
+Objects with Locations larger than the new End Location.  A publisher MUST
+terminate the session with a 'Protocol Violation' if the SUBSCRIBE_UPDATE
+violates these rules or if the subscriber specifies a request ID that has not
+existed within the Session.
 
 There is no control message in response to a SUBSCRIBE_UPDATE, because it is
 expected that it will always succeed and the worst outcome is that it is not
