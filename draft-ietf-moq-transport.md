@@ -3068,7 +3068,9 @@ the stream, or choose to buffer it for a brief period to handle reordering with
 the control message that establishes the Track Alias.  The endpoint MAY withhold
 stream flow control beyond the SUBGROUP_HEADER until the Track Alias has been
 established.  To prevent deadlocks, the publisher MUST allocate connection flow
-control to the control stream before allocating it any data streams.
+control to the control stream before allocating it any data streams. Otherwise,
+a receiver might wait for a control message containing a Track Alias to release
+flow control, while the sender waits for flow control to send the message.
 
 ~~~
 SUBGROUP_HEADER {
