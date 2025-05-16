@@ -1730,27 +1730,33 @@ Publisher or End Subscriber.<a href="#section-1.2-3.20.1" class="pilcrow">¶</a>
             <p id="section-1.2-3.26.1">A raw QUIC connection or a WebTransport session.<a href="#section-1.2-3.26.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-1.2-3.27">Congestion:</dt>
+<dt id="section-1.2-3.27">Stream:</dt>
           <dd style="margin-left: 1.5em" id="section-1.2-3.28">
-            <p id="section-1.2-3.28.1">Packet loss and queuing caused by degraded or overloaded networks.<a href="#section-1.2-3.28.1" class="pilcrow">¶</a></p>
+            <p id="section-1.2-3.28.1">A bidirectional or unidirectional bytestream provided by the
+QUIC transport or WebTransport.<a href="#section-1.2-3.28.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-1.2-3.29">Group:</dt>
+<dt id="section-1.2-3.29">Congestion:</dt>
           <dd style="margin-left: 1.5em" id="section-1.2-3.30">
-            <p id="section-1.2-3.30.1">A temporal sequence of objects. A group represents a join point in a
-track. See (<a href="#model-group" class="auto internal xref">Section 2.3</a>).<a href="#section-1.2-3.30.1" class="pilcrow">¶</a></p>
+            <p id="section-1.2-3.30.1">Packet loss and queuing caused by degraded or overloaded networks.<a href="#section-1.2-3.30.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-1.2-3.31">Object:</dt>
+<dt id="section-1.2-3.31">Group:</dt>
           <dd style="margin-left: 1.5em" id="section-1.2-3.32">
-            <p id="section-1.2-3.32.1">An object is an addressable unit whose payload is a sequence of
-bytes. Objects form the base element in the MOQT data model. See
-(<a href="#model-object" class="auto internal xref">Section 2.1</a>).<a href="#section-1.2-3.32.1" class="pilcrow">¶</a></p>
+            <p id="section-1.2-3.32.1">A temporal sequence of objects. A group represents a join point in a
+track. See (<a href="#model-group" class="auto internal xref">Section 2.3</a>).<a href="#section-1.2-3.32.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-1.2-3.33">Track:</dt>
+<dt id="section-1.2-3.33">Object:</dt>
           <dd style="margin-left: 1.5em" id="section-1.2-3.34">
-            <p id="section-1.2-3.34.1">A track is a collection of groups. See (<a href="#model-track" class="auto internal xref">Section 2.4</a>).<a href="#section-1.2-3.34.1" class="pilcrow">¶</a></p>
+            <p id="section-1.2-3.34.1">An object is an addressable unit whose payload is a sequence of
+bytes. Objects form the base element in the MOQT data model. See
+(<a href="#model-object" class="auto internal xref">Section 2.1</a>).<a href="#section-1.2-3.34.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-1.2-3.35">Track:</dt>
+          <dd style="margin-left: 1.5em" id="section-1.2-3.36">
+            <p id="section-1.2-3.36.1">A track is a collection of groups. See (<a href="#model-track" class="auto internal xref">Section 2.4</a>).<a href="#section-1.2-3.36.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
 </dl>
@@ -1835,8 +1841,10 @@ Location {
 <a href="#name-location-structure-2" class="selfRef">Location structure</a>
             </figcaption></figure>
 </div>
-<p id="section-1.3.1-3">Location A &lt; Location B iff<a href="#section-1.3.1-3" class="pilcrow">¶</a></p>
-<p id="section-1.3.1-4"><code>A.Group &lt; B.Group || (A.Group == B.Group &amp;&amp; A.Object &lt; B.Object)</code><a href="#section-1.3.1-4" class="pilcrow">¶</a></p>
+<p id="section-1.3.1-3">In this document, the constituent parts of any Location A can be referred to
+using A.Group or A.Object.<a href="#section-1.3.1-3" class="pilcrow">¶</a></p>
+<p id="section-1.3.1-4">Location A &lt; Location B if:<a href="#section-1.3.1-4" class="pilcrow">¶</a></p>
+<p id="section-1.3.1-5"><code>A.Group &lt; B.Group || (A.Group == B.Group &amp;&amp; A.Object &lt; B.Object)</code><a href="#section-1.3.1-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="key-value-pair-structure">
@@ -1937,7 +1945,7 @@ track to allow the subscriber to pick the appropriate resolution given
 the display environment and available bandwidth. Each "group of pictures"
 in a video is sent as a group because the first frame is needed to
 decode later frames. This allows the client to join at the logical points
-where they can get the information to start decoding the stream.
+where they can get the information to start decoding the media.
 The temporal layers are sent as separate sub groups to allow the
 priority mechanism to favour the base layer when there is not enough
 bandwidth to send both the base and enhancement layers. Each frame of
@@ -4199,8 +4207,8 @@ FETCH_ERROR with code <code>No Objects</code>.<a href="#section-8.13-1" class="p
 <p id="section-8.13-5">Relative Joining Fetch (0x2) : A Fetch joined together with a Subscribe by
 specifying the Request ID of an active subscription and a relative starting
 offset. A publisher receiving a Joining Fetch uses properties of the associated
-Subscribe to determine the Track Namespace, Track, Start Group, Start Object,
-End Group, and End Object such that it is contiguous with the associated
+Subscribe to determine the Track Namespace, Track, Start Location,
+and End Location such that it is contiguous with the associated
 Subscribe. The Joining Fetch begins the Preceding Group Offset prior to the
 associated subscription.<a href="#section-8.13-5" class="pilcrow">¶</a></p>
 <p id="section-8.13-6">Absolute Joining Fetch (0x3) : Identical to a Relative Joining Fetch except that the
@@ -4223,9 +4231,9 @@ If the upstream FETCH fails, the relay sends a FETCH_ERROR and can reset the
 unidirectional stream.  It can choose to do so immediately or wait until the
 cached objects have been delivered before resetting the stream.<a href="#section-8.13-11" class="pilcrow">¶</a></p>
 <p id="section-8.13-12">The Object Forwarding Preference does not apply to fetches.<a href="#section-8.13-12" class="pilcrow">¶</a></p>
-<p id="section-8.13-13">Fetch specifies an inclusive range of Objects starting at Start Object
-in Start Group and ending at End Object in End Group. End Group and End Object <span class="bcp14">MUST</span>
-specify the same or a larger Location than Start Group and Start Object.<a href="#section-8.13-13" class="pilcrow">¶</a></p>
+<p id="section-8.13-13">Fetch specifies an inclusive range of Objects starting at Start Location and
+ending at End Location. End Location <span class="bcp14">MUST</span> specify the same or a larger Location
+than Start Location.<a href="#section-8.13-13" class="pilcrow">¶</a></p>
 <p id="section-8.13-14">The format of FETCH is as follows:<a href="#section-8.13-14" class="pilcrow">¶</a></p>
 <span id="name-moqt-fetch-message"></span><div id="moq-transport-fetch-format">
 <figure id="figure-15">
@@ -4241,11 +4249,9 @@ FETCH Message {
   [Track Namespace (tuple),
    Track Name Length (i),
    Track Name (..),
-   Start Group (i),
-   Start Object (i),
-   End Group (i),
-   End Object (i),]
-  [Joining Subscribe ID (i),
+   Start Location (Location),
+   End Location (Location),]
+  [Joining Request ID (i),
    Joining Start (i),]
   Number of Parameters (i),
   Parameters (..) ...
@@ -4290,26 +4296,20 @@ Joining or Absolute Joining.<a href="#section-8.13-17.4.1" class="pilcrow">¶</a
             <p id="section-8.13-19.2.1">Track Name: Identifies the track name as defined in (<a href="#track-name" class="auto internal xref">Section 2.4.1</a>).<a href="#section-8.13-19.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.13-19.3">
-            <p id="section-8.13-19.3.1">Start Group: The start Group ID.<a href="#section-8.13-19.3.1" class="pilcrow">¶</a></p>
+            <p id="section-8.13-19.3.1">Start Location: The start Location.<a href="#section-8.13-19.3.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.13-19.4">
-            <p id="section-8.13-19.4.1">Start Object: The start Object ID.<a href="#section-8.13-19.4.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="section-8.13-19.5">
-            <p id="section-8.13-19.5.1">End Group: The end Group ID.<a href="#section-8.13-19.5.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="section-8.13-19.6">
-            <p id="section-8.13-19.6.1">End Object: The end Object ID, plus 1. A value of 0 means the entire group is
-requested.<a href="#section-8.13-19.6.1" class="pilcrow">¶</a></p>
+            <p id="section-8.13-19.4.1">End Location: The end Location, plus 1 Object ID. An Object ID value of 0
+means the entire group is requested.<a href="#section-8.13-19.4.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-8.13-20">Fields present only for Relative Fetch (0x2) and Absolute Fetch (0x3):<a href="#section-8.13-20" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-8.13-21.1">
-            <p id="section-8.13-21.1.1">Joining Subscribe ID: The Request ID of the existing subscription to be
+            <p id="section-8.13-21.1.1">Joining Request ID: The Request ID of the existing subscription to be
 joined. If a publisher receives a Joining Fetch with a Request ID that does
 not correspond to an existing Subscribe in the same session, it <span class="bcp14">MUST</span> respond
-with a Fetch Error with code Invalid Joining Subscribe ID.<a href="#section-8.13-21.1.1" class="pilcrow">¶</a></p>
+with a Fetch Error with code Invalid Joining Request ID.<a href="#section-8.13-21.1.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.13-21.2">
             <p id="section-8.13-21.2.1">Joining Start : for a Relative Joining Fetch (0x2), this value represents the
@@ -4321,13 +4321,13 @@ the Starting Group ID.<a href="#section-8.13-21.2.1" class="pilcrow">¶</a></p>
         </ul>
 <p id="section-8.13-22">Objects that are not yet published will not be retrieved by a FETCH.  The
 Largest available Object in the requested range is indicated in the FETCH_OK,
-and is the last Object a fetch will return if the End Group and End Object have
-not yet been published.<a href="#section-8.13-22" class="pilcrow">¶</a></p>
+and is the last Object a fetch will return if the End Location have not yet been
+published.<a href="#section-8.13-22" class="pilcrow">¶</a></p>
 <p id="section-8.13-23">A publisher <span class="bcp14">MUST</span> send fetched groups in the determined group order, either
 ascending or descending. Within each group, objects are sent in Object ID order;
 subgroup ID is not used for ordering.<a href="#section-8.13-23" class="pilcrow">¶</a></p>
-<p id="section-8.13-24">If Start Group/Start Object is greater than the Largest Object, the publisher
-<span class="bcp14">MUST</span> return FETCH_ERROR with error code 'Invalid Range'.<a href="#section-8.13-24" class="pilcrow">¶</a></p>
+<p id="section-8.13-24">If Start Location is greater than the Largest Object, the publisher <span class="bcp14">MUST</span> return
+FETCH_ERROR with error code 'Invalid Range'.<a href="#section-8.13-24" class="pilcrow">¶</a></p>
 <div id="calculating-the-range-of-a-relative-joining-fetch">
 <section id="section-8.13.1">
           <h4 id="name-calculating-the-range-of-a-">
@@ -4336,8 +4336,8 @@ subgroup ID is not used for ordering.<a href="#section-8.13-23" class="pilcrow">
 <p id="section-8.13.1-1">A publisher that receives a Fetch of type Type 0x2 treats it
 as a Fetch with a range dynamically determined by the Preceding Group Offset
 and field values derived from the corresponding subscription.<a href="#section-8.13.1-1" class="pilcrow">¶</a></p>
-<p id="section-8.13.1-2">The Largest Group ID and Largest Object ID values from the corresponding
-subscription are used to calculate the end of a Relative Joining Fetch so the
+<p id="section-8.13.1-2">The Largest Location value from the corresponding
+subscription is used to calculate the end of a Relative Joining Fetch so the
 Objects retrieved by the FETCH and SUBSCRIBE are contiguous and non-overlapping.
 If no Objects have been published for the track, and the SUBSCRIBE_OK has a
 Content Exists value of 0, the publisher <span class="bcp14">MUST</span> respond with a FETCH_ERROR with
@@ -4345,21 +4345,15 @@ error code 'Invalid Range'.<a href="#section-8.13.1-2" class="pilcrow">¶</a></p
 <p id="section-8.13.1-3">The publisher receiving a Relative Joining Fetch computes the range as follows:<a href="#section-8.13.1-3" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-8.13.1-4.1">
-              <p id="section-8.13.1-4.1.1">Fetch Start Group: Subscribe Largest Group - Joining start<a href="#section-8.13.1-4.1.1" class="pilcrow">¶</a></p>
+              <p id="section-8.13.1-4.1.1">Fetch Start Location: {Subscribe Largest Location.Group - Joining Start, 0}<a href="#section-8.13.1-4.1.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-8.13.1-4.2">
-              <p id="section-8.13.1-4.2.1">Fetch Start Object: 0<a href="#section-8.13.1-4.2.1" class="pilcrow">¶</a></p>
-</li>
-            <li class="normal" id="section-8.13.1-4.3">
-              <p id="section-8.13.1-4.3.1">Fetch End Group: Subscribe Largest Group<a href="#section-8.13.1-4.3.1" class="pilcrow">¶</a></p>
-</li>
-            <li class="normal" id="section-8.13.1-4.4">
-              <p id="section-8.13.1-4.4.1">Fetch End Object: Subscribe Largest Object<a href="#section-8.13.1-4.4.1" class="pilcrow">¶</a></p>
+              <p id="section-8.13.1-4.2.1">Fetch End Location: Subscribe Largest Location<a href="#section-8.13.1-4.2.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
-<p id="section-8.13.1-5">A Fetch End Object of 0 requests the entire group, but Fetch will not
+<p id="section-8.13.1-5">A Fetch End Location.Object of 0 requests the entire group, but Fetch will not
 retrieve Objects that have not yet been published, so 1 is subtracted from
-the Fetch End Group if Fetch End Object is 0.<a href="#section-8.13.1-5" class="pilcrow">¶</a></p>
+the Fetch End Location.Group if Fetch End Location.Object is 0.<a href="#section-8.13.1-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="calculating-the-range-of-an-absolute-joining-fetch">
@@ -4367,8 +4361,8 @@ the Fetch End Group if Fetch End Object is 0.<a href="#section-8.13.1-5" class="
           <h4 id="name-calculating-the-range-of-an">
 <a href="#section-8.13.2" class="section-number selfRef">8.13.2. </a><a href="#name-calculating-the-range-of-an" class="section-name selfRef">Calculating the Range of an Absolute Joining Fetch</a>
           </h4>
-<p id="section-8.13.2-1">Identical to the Relative Joining fetch except that Fetch Start Group is the
-Joining Start value.<a href="#section-8.13.2-1" class="pilcrow">¶</a></p>
+<p id="section-8.13.2-1">Identical to the Relative Joining fetch except that Fetch Start Location.Group
+is the Joining Start value.<a href="#section-8.13.2-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -4380,7 +4374,7 @@ Joining Start value.<a href="#section-8.13.2-1" class="pilcrow">¶</a></p>
         </h3>
 <p id="section-8.14-1">A publisher sends a FETCH_OK control message in response to successful fetches.
 A publisher <span class="bcp14">MAY</span> send Objects in response to a FETCH before the FETCH_OK message is sent,
-but the FETCH_OK <span class="bcp14">MUST NOT</span> be sent until the end group and object are known.<a href="#section-8.14-1" class="pilcrow">¶</a></p>
+but the FETCH_OK <span class="bcp14">MUST NOT</span> be sent until the End Location is known.<a href="#section-8.14-1" class="pilcrow">¶</a></p>
 <span id="name-moqt-fetch_ok-message"></span><div id="moq-transport-fetch-ok">
 <figure id="figure-16">
           <div class="alignLeft art-text artwork" id="section-8.14-2.1">
@@ -4508,7 +4502,7 @@ as defined below:<a href="#section-8.15-4" class="pilcrow">¶</a></p>
             </tr>
             <tr>
               <td class="text-right" rowspan="1" colspan="1">0x7</td>
-              <td class="text-left" rowspan="1" colspan="1">Invalid Joining Subscribe ID</td>
+              <td class="text-left" rowspan="1" colspan="1">Invalid Joining Request ID</td>
             </tr>
             <tr>
               <td class="text-right" rowspan="1" colspan="1">0x10</td>
@@ -4545,7 +4539,7 @@ within the timeout.<a href="#section-8.15-6.3.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.15-6.6">
             <p id="section-8.15-6.6.1">Invalid Range - The end of the requested range is earlier than the beginning,
-the start of the requested range is beyond the Largest Object, or the track
+the start of the requested range is beyond the Largest Location, or the track
 has not published any Objects yet.<a href="#section-8.15-6.6.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.15-6.7">
