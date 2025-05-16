@@ -1056,7 +1056,7 @@ svg :is([fill="white"], [fill^="#fff"]) {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Nandakumar, et al.</td>
-<td class="center">Expires 13 November 2025</td>
+<td class="center">Expires 17 November 2025</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1069,12 +1069,12 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dd class="internet-draft">draft-ietf-moq-transport-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2025-05-12" class="published">12 May 2025</time>
+<time datetime="2025-05-16" class="published">16 May 2025</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2025-11-13">13 November 2025</time></dd>
+<dd class="expires"><time datetime="2025-11-17">17 November 2025</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1143,7 +1143,7 @@ networks and is designed for high scale and low latency distribution.<a href="#s
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 13 November 2025.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 17 November 2025.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1730,27 +1730,33 @@ Publisher or End Subscriber.<a href="#section-1.2-3.20.1" class="pilcrow">¶</a>
             <p id="section-1.2-3.26.1">A raw QUIC connection or a WebTransport session.<a href="#section-1.2-3.26.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-1.2-3.27">Congestion:</dt>
+<dt id="section-1.2-3.27">Stream:</dt>
           <dd style="margin-left: 1.5em" id="section-1.2-3.28">
-            <p id="section-1.2-3.28.1">Packet loss and queuing caused by degraded or overloaded networks.<a href="#section-1.2-3.28.1" class="pilcrow">¶</a></p>
+            <p id="section-1.2-3.28.1">A bidirectional or unidirectional bytestream provided by the
+QUIC transport or WebTransport.<a href="#section-1.2-3.28.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-1.2-3.29">Group:</dt>
+<dt id="section-1.2-3.29">Congestion:</dt>
           <dd style="margin-left: 1.5em" id="section-1.2-3.30">
-            <p id="section-1.2-3.30.1">A temporal sequence of objects. A group represents a join point in a
-track. See (<a href="#model-group" class="auto internal xref">Section 2.3</a>).<a href="#section-1.2-3.30.1" class="pilcrow">¶</a></p>
+            <p id="section-1.2-3.30.1">Packet loss and queuing caused by degraded or overloaded networks.<a href="#section-1.2-3.30.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-1.2-3.31">Object:</dt>
+<dt id="section-1.2-3.31">Group:</dt>
           <dd style="margin-left: 1.5em" id="section-1.2-3.32">
-            <p id="section-1.2-3.32.1">An object is an addressable unit whose payload is a sequence of
-bytes. Objects form the base element in the MOQT data model. See
-(<a href="#model-object" class="auto internal xref">Section 2.1</a>).<a href="#section-1.2-3.32.1" class="pilcrow">¶</a></p>
+            <p id="section-1.2-3.32.1">A temporal sequence of objects. A group represents a join point in a
+track. See (<a href="#model-group" class="auto internal xref">Section 2.3</a>).<a href="#section-1.2-3.32.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-1.2-3.33">Track:</dt>
+<dt id="section-1.2-3.33">Object:</dt>
           <dd style="margin-left: 1.5em" id="section-1.2-3.34">
-            <p id="section-1.2-3.34.1">A track is a collection of groups. See (<a href="#model-track" class="auto internal xref">Section 2.4</a>).<a href="#section-1.2-3.34.1" class="pilcrow">¶</a></p>
+            <p id="section-1.2-3.34.1">An object is an addressable unit whose payload is a sequence of
+bytes. Objects form the base element in the MOQT data model. See
+(<a href="#model-object" class="auto internal xref">Section 2.1</a>).<a href="#section-1.2-3.34.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-1.2-3.35">Track:</dt>
+          <dd style="margin-left: 1.5em" id="section-1.2-3.36">
+            <p id="section-1.2-3.36.1">A track is a collection of groups. See (<a href="#model-track" class="auto internal xref">Section 2.4</a>).<a href="#section-1.2-3.36.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
 </dl>
@@ -1835,8 +1841,10 @@ Location {
 <a href="#name-location-structure-2" class="selfRef">Location structure</a>
             </figcaption></figure>
 </div>
-<p id="section-1.3.1-3">Location A &lt; Location B iff<a href="#section-1.3.1-3" class="pilcrow">¶</a></p>
-<p id="section-1.3.1-4"><code>A.Group &lt; B.Group || (A.Group == B.Group &amp;&amp; A.Object &lt; B.Object)</code><a href="#section-1.3.1-4" class="pilcrow">¶</a></p>
+<p id="section-1.3.1-3">In this document, the constituent parts of any Location A can be referred to
+using A.Group or A.Object.<a href="#section-1.3.1-3" class="pilcrow">¶</a></p>
+<p id="section-1.3.1-4">Location A &lt; Location B if:<a href="#section-1.3.1-4" class="pilcrow">¶</a></p>
+<p id="section-1.3.1-5"><code>A.Group &lt; B.Group || (A.Group == B.Group &amp;&amp; A.Object &lt; B.Object)</code><a href="#section-1.3.1-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="key-value-pair-structure">
@@ -1937,7 +1945,7 @@ track to allow the subscriber to pick the appropriate resolution given
 the display environment and available bandwidth. Each "group of pictures"
 in a video is sent as a group because the first frame is needed to
 decode later frames. This allows the client to join at the logical points
-where they can get the information to start decoding the stream.
+where they can get the information to start decoding the media.
 The temporal layers are sent as separate sub groups to allow the
 priority mechanism to favour the base layer when there is not enough
 bandwidth to send both the base and enhancement layers. Each frame of
@@ -2019,12 +2027,12 @@ to minimize the number of streams used.<a href="#section-2.2-8.3.1" class="pilcr
         <h3 id="name-groups">
 <a href="#section-2.3" class="section-number selfRef">2.3. </a><a href="#name-groups" class="section-name selfRef">Groups</a>
         </h3>
-<p id="section-2.3-1">A group is a collection of objects and is a sub-unit of a track (<a href="#model-track" class="auto internal xref">Section 2.4</a>).
-Groups <span class="bcp14">SHOULD</span> be independently useful, so objects within a group <span class="bcp14">SHOULD NOT</span> depend
-on objects in other groups. A group provides a join point for subscriptions, so a
-subscriber that does not want to receive the entire track can opt to receive only
-the latest group(s).  The publisher then selectively transmits objects based on
-their group membership.  Groups can contain any number of objects.<a href="#section-2.3-1" class="pilcrow">¶</a></p>
+<p id="section-2.3-1">A group is a collection of Objects and is a sub-unit of a Track
+(<a href="#model-track" class="auto internal xref">Section 2.4</a>).  Groups <span class="bcp14">SHOULD</span> be independently useful, so Objects within a
+Group <span class="bcp14">SHOULD NOT</span> depend on Objects in other Groups. A Group provides a join
+point for subscriptions, so a subscriber that does not want to receive the
+entire Track can opt to receive only Groups starting from a given Group ID.
+Groups can contain any number of Objects.<a href="#section-2.3-1" class="pilcrow">¶</a></p>
 <div id="group-ordering">
 <section id="section-2.3.1">
           <h4 id="name-group-ordering">
@@ -2387,8 +2395,8 @@ by the server.<a href="#section-3.4-4.16.1" class="pilcrow">¶</a></p>
 <p id="section-3.4-5">An endpoint <span class="bcp14">MAY</span> choose to treat a subscription or request specific error as a
 session error under certain circumstances, closing the entire session in
 response to a condition with a single subscription or message. Implementations
-need to consider the impact on other outstanding subscriptions before making this
-choice.<a href="#section-3.4-5" class="pilcrow">¶</a></p>
+need to consider the impact on other outstanding subscriptions before making
+this choice.<a href="#section-3.4-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="session-migration">
@@ -2500,9 +2508,9 @@ can destroy all FETCH state after closing the data stream.<a href="#section-4-6"
 immediately destroy relevant state. Objects <span class="bcp14">MUST NOT</span> be sent for requests that
 end with an error.<a href="#section-4-7" class="pilcrow">¶</a></p>
 <p id="section-4-8">A FETCH_ERROR indicates that both endpoints can immediately destroy state.
-Since a relay can start delivering FETCH objects from cache before determining
-the result of the request, some objects could be received even if the FETCH results
-in error.<a href="#section-4-8" class="pilcrow">¶</a></p>
+Since a relay can start delivering FETCH Objects from cache before determining
+the result of the request, some Objects could be received even if the FETCH
+results in error.<a href="#section-4-8" class="pilcrow">¶</a></p>
 <p id="section-4-9">The Parameters in SUBSCRIBE and FETCH <span class="bcp14">MUST NOT</span> cause the publisher to alter the
 payload of the objects it sends, as that would violate the track uniqueness
 guarantee described in <a href="#track-scope" class="auto internal xref">Section 2.4.2</a>.<a href="#section-4-9" class="pilcrow">¶</a></p>
@@ -2789,7 +2797,7 @@ allows relays to make only a single upstream subscription for the
 track. The published content received from the upstream subscription
 request is cached and shared among the pending subscribers.
 Because SUBSCRIBE_UPDATE only allows narrowing a subscription, relays that
-aggregate upstream subscriptions can subscribe using the Latest Object
+aggregate upstream subscriptions can subscribe using the Largest Object
 filter to avoid churn as downstream subscribers with disparate filters
 subscribe and unsubscribe from a track.<a href="#section-7.2-6" class="pilcrow">¶</a></p>
 <div id="graceful-subscriber-relay-switchover">
@@ -3295,12 +3303,12 @@ forwarding Objects after they have been received.  The start time for the
 timeout is based on when the beginning of the Object is received, and does
 not depend upon the forwarding preference. There is no explicit signal that
 an Object was not sent because the delivery timeout was exceeded.<a href="#section-8.2.1.2-1" class="pilcrow">¶</a></p>
-<p id="section-8.2.1.2-2">If both the subscriber and publisher specify the parameter, they use the min of the
-two values for the subscription.  The publisher <span class="bcp14">SHOULD</span> always specify the value
-received from an upstream subscription when there is one, and nothing otherwise.
-If an earlier Object arrives later than subsequent Objects, relays can consider
-the receipt time as that of the next later Object, with the assumption that the
-Object's data was reordered.<a href="#section-8.2.1.2-2" class="pilcrow">¶</a></p>
+<p id="section-8.2.1.2-2">If both the subscriber and publisher specify the parameter, they use the min of
+the two values for the subscription.  The publisher <span class="bcp14">SHOULD</span> always specify the
+value received from an upstream subscription when there is one, and nothing
+otherwise.  If an Object with a smaller ID arrives later than subsequent
+Objects, relays can consider its receipt time as that of the Object with the
+next larger Location, with the assumption that the Objects were reordered.<a href="#section-8.2.1.2-2" class="pilcrow">¶</a></p>
 <p id="section-8.2.1.2-3">If neither the subscriber or publisher specify DELIVERY TIMEOUT, all Objects
 in the track matching the subscription filter are delivered as indicated by
 their Group Order and Priority.  If a subscriber exceeds the publisher's
@@ -3595,13 +3603,13 @@ present) pass the filter.<a href="#section-8.7-4" class="pilcrow">¶</a></p>
 (<a href="#location-structure" class="auto internal xref">Section 1.3.1</a>) in the track from the perspective of the endpoint
 processing the SUBSCRIBE message.<a href="#section-8.7-5" class="pilcrow">¶</a></p>
 <p id="section-8.7-6">There are 4 types of filters:<a href="#section-8.7-6" class="pilcrow">¶</a></p>
-<p id="section-8.7-7">Latest Object (0x2): The filter Start Location is <code>{Largest Object.Group,
+<p id="section-8.7-7">Largest Object (0x2): The filter Start Location is <code>{Largest Object.Group,
 Largest Object.Object + 1}</code> and <code>Largest Object</code> is communicated in
 SUBSCRIBE_OK. If no content has been delivered yet, the filter Start Location is
 {0, 0}. There is no End Group - the subscription is open ended.  Note that due
 to network reordering or prioritization, relays can receive Objects with
 Locations smaller than  <code>Largest Object</code> after the SUBSCRIBE is processed, but
-these Objects do not pass the Latest Object filter.<a href="#section-8.7-7" class="pilcrow">¶</a></p>
+these Objects do not pass the Largest Object filter.<a href="#section-8.7-7" class="pilcrow">¶</a></p>
 <p id="section-8.7-8">Next Group Start (0x1): The filter start Location is <code>{Largest Object.Group + 1,
 0}</code> and <code>Largest Object</code> is communicated in SUBSCRIBE_OK. If no content has been
 delivered yet, the filter Start Location is {0, 0}.  There is no End Group -
@@ -3922,18 +3930,18 @@ not registered (see <a href="#authorization-token" class="auto internal xref">Se
         <h3 id="name-subscribe_update">
 <a href="#section-8.10" class="section-number selfRef">8.10. </a><a href="#name-subscribe_update" class="section-name selfRef">SUBSCRIBE_UPDATE</a>
         </h3>
-<p id="section-8.10-1">A subscriber issues a SUBSCRIBE_UPDATE to a publisher to request a change to
-an existing subscription. Subscriptions can only become more narrow, not wider,
-because an attempt to widen a subscription could fail. If Objects before the
-start or after the end of the current subscription are needed, a fetch might
-be able to retrieve objects before the start. The start Object <span class="bcp14">MUST NOT</span>
-decrease and when it increases, there is no guarantee that a publisher will
-not have already sent Objects before the new start Object.  The end Group
-<span class="bcp14">MUST NOT</span> increase and when it decreases, there is no guarantee that a publisher
-will not have already sent Objects after the new end Object. A publisher <span class="bcp14">SHOULD</span>
-close the Session as a 'Protocol Violation' if the SUBSCRIBE_UPDATE violates
-either rule or if the subscriber specifies a Request ID that has not existed
-within the Session.<a href="#section-8.10-1" class="pilcrow">¶</a></p>
+<p id="section-8.10-1">A subscriber sends a SUBSCRIBE_UPDATE to a publisher to modify an existing
+subscription. Subscriptions can only be narrowed, not widened, as an attempt to
+widen could fail. If Objects with Locations smaller than the current
+subscription's Start Location are required, FETCH can be used to retrieve
+them. The Start Location <span class="bcp14">MUST NOT</span> decrease, and if it increases, there is no
+guarantee that the publisher has not already sent Objects with Locations smaller
+than the new Start Location. Similarly, the End Group <span class="bcp14">MUST NOT</span> increase, and if
+it decreases, there is no guarantee that the publisher has not already sent
+Objects with Locations larger than the new End Location.  A publisher <span class="bcp14">MUST</span>
+terminate the session with a 'Protocol Violation' if the SUBSCRIBE_UPDATE
+violates these rules or if the subscriber specifies a request ID that has not
+existed within the Session.<a href="#section-8.10-1" class="pilcrow">¶</a></p>
 <p id="section-8.10-2">There is no control message in response to a SUBSCRIBE_UPDATE, because it is
 expected that it will always succeed and the worst outcome is that it is not
 processed promptly and some extra objects from the existing subscription are
@@ -4199,8 +4207,8 @@ FETCH_ERROR with code <code>No Objects</code>.<a href="#section-8.13-1" class="p
 <p id="section-8.13-5">Relative Joining Fetch (0x2) : A Fetch joined together with a Subscribe by
 specifying the Request ID of an active subscription and a relative starting
 offset. A publisher receiving a Joining Fetch uses properties of the associated
-Subscribe to determine the Track Namespace, Track, Start Group, Start Object,
-End Group, and End Object such that it is contiguous with the associated
+Subscribe to determine the Track Namespace, Track, Start Location,
+and End Location such that it is contiguous with the associated
 Subscribe. The Joining Fetch begins the Preceding Group Offset prior to the
 associated subscription.<a href="#section-8.13-5" class="pilcrow">¶</a></p>
 <p id="section-8.13-6">Absolute Joining Fetch (0x3) : Identical to a Relative Joining Fetch except that the
@@ -4209,7 +4217,7 @@ the subscription.<a href="#section-8.13-6" class="pilcrow">¶</a></p>
 <p id="section-8.13-7">A Subscriber can use a Joining Fetch to, for example, fill a playback buffer with a
 certain number of groups prior to the live edge of a track.<a href="#section-8.13-7" class="pilcrow">¶</a></p>
 <p id="section-8.13-8">A Joining Fetch is only permitted when the associated Subscribe has the Filter
-Type Latest Object.<a href="#section-8.13-8" class="pilcrow">¶</a></p>
+Type Largest Object.<a href="#section-8.13-8" class="pilcrow">¶</a></p>
 <p id="section-8.13-9">A Fetch Type other than 0x1, 0x2 or 0x3 <span class="bcp14">MUST</span> be treated as an error.<a href="#section-8.13-9" class="pilcrow">¶</a></p>
 <p id="section-8.13-10">A publisher responds to a FETCH request with either a FETCH_OK or a FETCH_ERROR
 message.  The publisher creates a new unidirectional stream that is used to send the
@@ -4223,9 +4231,9 @@ If the upstream FETCH fails, the relay sends a FETCH_ERROR and can reset the
 unidirectional stream.  It can choose to do so immediately or wait until the
 cached objects have been delivered before resetting the stream.<a href="#section-8.13-11" class="pilcrow">¶</a></p>
 <p id="section-8.13-12">The Object Forwarding Preference does not apply to fetches.<a href="#section-8.13-12" class="pilcrow">¶</a></p>
-<p id="section-8.13-13">Fetch specifies an inclusive range of Objects starting at Start Object
-in Start Group and ending at End Object in End Group. End Group and End Object <span class="bcp14">MUST</span>
-specify the same or a larger Location than Start Group and Start Object.<a href="#section-8.13-13" class="pilcrow">¶</a></p>
+<p id="section-8.13-13">Fetch specifies an inclusive range of Objects starting at Start Location and
+ending at End Location. End Location <span class="bcp14">MUST</span> specify the same or a larger Location
+than Start Location.<a href="#section-8.13-13" class="pilcrow">¶</a></p>
 <p id="section-8.13-14">The format of FETCH is as follows:<a href="#section-8.13-14" class="pilcrow">¶</a></p>
 <span id="name-moqt-fetch-message"></span><div id="moq-transport-fetch-format">
 <figure id="figure-15">
@@ -4241,11 +4249,9 @@ FETCH Message {
   [Track Namespace (tuple),
    Track Name Length (i),
    Track Name (..),
-   Start Group (i),
-   Start Object (i),
-   End Group (i),
-   End Object (i),]
-  [Joining Subscribe ID (i),
+   Start Location (Location),
+   End Location (Location),]
+  [Joining Request ID (i),
    Joining Start (i),]
   Number of Parameters (i),
   Parameters (..) ...
@@ -4290,26 +4296,20 @@ Joining or Absolute Joining.<a href="#section-8.13-17.4.1" class="pilcrow">¶</a
             <p id="section-8.13-19.2.1">Track Name: Identifies the track name as defined in (<a href="#track-name" class="auto internal xref">Section 2.4.1</a>).<a href="#section-8.13-19.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.13-19.3">
-            <p id="section-8.13-19.3.1">Start Group: The start Group ID.<a href="#section-8.13-19.3.1" class="pilcrow">¶</a></p>
+            <p id="section-8.13-19.3.1">Start Location: The start Location.<a href="#section-8.13-19.3.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.13-19.4">
-            <p id="section-8.13-19.4.1">Start Object: The start Object ID.<a href="#section-8.13-19.4.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="section-8.13-19.5">
-            <p id="section-8.13-19.5.1">End Group: The end Group ID.<a href="#section-8.13-19.5.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="section-8.13-19.6">
-            <p id="section-8.13-19.6.1">End Object: The end Object ID, plus 1. A value of 0 means the entire group is
-requested.<a href="#section-8.13-19.6.1" class="pilcrow">¶</a></p>
+            <p id="section-8.13-19.4.1">End Location: The end Location, plus 1 Object ID. An Object ID value of 0
+means the entire group is requested.<a href="#section-8.13-19.4.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-8.13-20">Fields present only for Relative Fetch (0x2) and Absolute Fetch (0x3):<a href="#section-8.13-20" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-8.13-21.1">
-            <p id="section-8.13-21.1.1">Joining Subscribe ID: The Request ID of the existing subscription to be
+            <p id="section-8.13-21.1.1">Joining Request ID: The Request ID of the existing subscription to be
 joined. If a publisher receives a Joining Fetch with a Request ID that does
 not correspond to an existing Subscribe in the same session, it <span class="bcp14">MUST</span> respond
-with a Fetch Error with code Invalid Joining Subscribe ID.<a href="#section-8.13-21.1.1" class="pilcrow">¶</a></p>
+with a Fetch Error with code Invalid Joining Request ID.<a href="#section-8.13-21.1.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.13-21.2">
             <p id="section-8.13-21.2.1">Joining Start : for a Relative Joining Fetch (0x2), this value represents the
@@ -4319,14 +4319,14 @@ of the Current Group. For an Absolute Joining Fetch (0x3), this value represents
 the Starting Group ID.<a href="#section-8.13-21.2.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
-<p id="section-8.13-22">Objects that are not yet published will not be retrieved by a FETCH.
-The latest available Object is indicated in the FETCH_OK, and is the last
-Object a fetch will return if the End Group and End Object have not yet been
+<p id="section-8.13-22">Objects that are not yet published will not be retrieved by a FETCH.  The
+Largest available Object in the requested range is indicated in the FETCH_OK,
+and is the last Object a fetch will return if the End Location have not yet been
 published.<a href="#section-8.13-22" class="pilcrow">¶</a></p>
 <p id="section-8.13-23">A publisher <span class="bcp14">MUST</span> send fetched groups in the determined group order, either
 ascending or descending. Within each group, objects are sent in Object ID order;
 subgroup ID is not used for ordering.<a href="#section-8.13-23" class="pilcrow">¶</a></p>
-<p id="section-8.13-24">If Start Group/Start Object is greater than <code>Largest Object</code>
+<p id="section-8.13-24">If Start Location is greater than the <code>Largest Object</code>
 (<a href="#message-subscribe-req" class="auto internal xref">Section 8.7</a>) the publisher <span class="bcp14">MUST</span> return FETCH_ERROR with error
 code 'Invalid Range'.<a href="#section-8.13-24" class="pilcrow">¶</a></p>
 <div id="calculating-the-range-of-a-relative-joining-fetch">
@@ -4337,8 +4337,8 @@ code 'Invalid Range'.<a href="#section-8.13-24" class="pilcrow">¶</a></p>
 <p id="section-8.13.1-1">A publisher that receives a Fetch of type Type 0x2 treats it
 as a Fetch with a range dynamically determined by the Preceding Group Offset
 and field values derived from the corresponding subscription.<a href="#section-8.13.1-1" class="pilcrow">¶</a></p>
-<p id="section-8.13.1-2">The Largest Group ID and Largest Object ID values from the corresponding
-subscription are used to calculate the end of a Relative Joining Fetch so the
+<p id="section-8.13.1-2">The Largest Location value from the corresponding
+subscription is used to calculate the end of a Relative Joining Fetch so the
 Objects retrieved by the FETCH and SUBSCRIBE are contiguous and non-overlapping.
 If no Objects have been published for the track, and the SUBSCRIBE_OK has a
 Content Exists value of 0, the publisher <span class="bcp14">MUST</span> respond with a FETCH_ERROR with
@@ -4346,21 +4346,15 @@ error code 'Invalid Range'.<a href="#section-8.13.1-2" class="pilcrow">¶</a></p
 <p id="section-8.13.1-3">The publisher receiving a Relative Joining Fetch computes the range as follows:<a href="#section-8.13.1-3" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-8.13.1-4.1">
-              <p id="section-8.13.1-4.1.1">Fetch Start Group: Subscribe Largest Group - Joining start<a href="#section-8.13.1-4.1.1" class="pilcrow">¶</a></p>
+              <p id="section-8.13.1-4.1.1">Fetch Start Location: {Subscribe Largest Location.Group - Joining Start, 0}<a href="#section-8.13.1-4.1.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-8.13.1-4.2">
-              <p id="section-8.13.1-4.2.1">Fetch Start Object: 0<a href="#section-8.13.1-4.2.1" class="pilcrow">¶</a></p>
-</li>
-            <li class="normal" id="section-8.13.1-4.3">
-              <p id="section-8.13.1-4.3.1">Fetch End Group: Subscribe Largest Group<a href="#section-8.13.1-4.3.1" class="pilcrow">¶</a></p>
-</li>
-            <li class="normal" id="section-8.13.1-4.4">
-              <p id="section-8.13.1-4.4.1">Fetch End Object: Subscribe Largest Object<a href="#section-8.13.1-4.4.1" class="pilcrow">¶</a></p>
+              <p id="section-8.13.1-4.2.1">Fetch End Location: Subscribe Largest Location<a href="#section-8.13.1-4.2.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
-<p id="section-8.13.1-5">A Fetch End Object of 0 requests the entire group, but Fetch will not
+<p id="section-8.13.1-5">A Fetch End Location.Object of 0 requests the entire group, but Fetch will not
 retrieve Objects that have not yet been published, so 1 is subtracted from
-the Fetch End Group if Fetch End Object is 0.<a href="#section-8.13.1-5" class="pilcrow">¶</a></p>
+the Fetch End Location.Group if Fetch End Location.Object is 0.<a href="#section-8.13.1-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="calculating-the-range-of-an-absolute-joining-fetch">
@@ -4368,8 +4362,8 @@ the Fetch End Group if Fetch End Object is 0.<a href="#section-8.13.1-5" class="
           <h4 id="name-calculating-the-range-of-an">
 <a href="#section-8.13.2" class="section-number selfRef">8.13.2. </a><a href="#name-calculating-the-range-of-an" class="section-name selfRef">Calculating the Range of an Absolute Joining Fetch</a>
           </h4>
-<p id="section-8.13.2-1">Identical to the Relative Joining fetch except that Fetch Start Group is the
-Joining Start value.<a href="#section-8.13.2-1" class="pilcrow">¶</a></p>
+<p id="section-8.13.2-1">Identical to the Relative Joining fetch except that Fetch Start Location.Group
+is the Joining Start value.<a href="#section-8.13.2-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -4381,7 +4375,7 @@ Joining Start value.<a href="#section-8.13.2-1" class="pilcrow">¶</a></p>
         </h3>
 <p id="section-8.14-1">A publisher sends a FETCH_OK control message in response to successful fetches.
 A publisher <span class="bcp14">MAY</span> send Objects in response to a FETCH before the FETCH_OK message is sent,
-but the FETCH_OK <span class="bcp14">MUST NOT</span> be sent until the end group and object are known.<a href="#section-8.14-1" class="pilcrow">¶</a></p>
+but the FETCH_OK <span class="bcp14">MUST NOT</span> be sent until the End Location is known.<a href="#section-8.14-1" class="pilcrow">¶</a></p>
 <span id="name-moqt-fetch_ok-message"></span><div id="moq-transport-fetch-ok">
 <figure id="figure-16">
           <div class="alignLeft art-text artwork" id="section-8.14-2.1">
@@ -4524,7 +4518,7 @@ as defined below:<a href="#section-8.15-4" class="pilcrow">¶</a></p>
             </tr>
             <tr>
               <td class="text-right" rowspan="1" colspan="1">0x7</td>
-              <td class="text-left" rowspan="1" colspan="1">Invalid Joining Subscribe ID</td>
+              <td class="text-left" rowspan="1" colspan="1">Invalid Joining Request ID</td>
             </tr>
             <tr>
               <td class="text-right" rowspan="1" colspan="1">0x10</td>
@@ -4561,7 +4555,7 @@ within the timeout.<a href="#section-8.15-6.3.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.15-6.6">
             <p id="section-8.15-6.6.1">Invalid Range - The end of the requested range is earlier than the beginning,
-the start of the requested range is beyond the Largest Object, or the track
+the start of the requested range is beyond the Largest Location, or the track
 has not published any Objects yet.<a href="#section-8.15-6.6.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.15-6.7">
@@ -5645,15 +5639,15 @@ streams provide signals that can be used for this purpose. Closing Subgroups
 promptly frees system resources and often unlocks flow control credit to open
 more streams.<a href="#section-9.4.3-1" class="pilcrow">¶</a></p>
 <p id="section-9.4.3-2">If a sender has delivered all objects in a Subgroup to the QUIC stream, except
-any objects before the beginning of a subscription, it <span class="bcp14">MUST</span> close the
-stream with a FIN.<a href="#section-9.4.3-2" class="pilcrow">¶</a></p>
+any Objects with Locations smaller than the subscription's Start Location, it
+<span class="bcp14">MUST</span> close the stream with a FIN.<a href="#section-9.4.3-2" class="pilcrow">¶</a></p>
 <p id="section-9.4.3-3">If a sender closes the stream before delivering all such objects to the QUIC
 stream, it <span class="bcp14">MUST</span> use a RESET_STREAM or RESET_STREAM_AT
 <span>[<a href="#I-D.draft-ietf-quic-reliable-stream-reset" class="cite xref">I-D.draft-ietf-quic-reliable-stream-reset</a>]</span> frame. This includes an open
-Subgroup exceeding its Delivery Timeout, early termination of subscription due to
-an UNSUBSCRIBE message, a publisher's decision to end the subscription early, or a
-SUBSCRIBE_UPDATE moving the end of the subscription to before the current Group
-or the start after the current Group.  When RESET_STREAM_AT is used, the
+Subgroup exceeding its Delivery Timeout, early termination of subscription due
+to an UNSUBSCRIBE message, a publisher's decision to end the subscription early,
+or a SUBSCRIBE_UPDATE moving the subscription's End Group to a smaller Group or
+the Start Location to a larger Location.  When RESET_STREAM_AT is used, the
 reliable_size <span class="bcp14">SHOULD</span> include the stream header so the receiver can identify the
 corresponding subscription and accurately account for reset data streams when
 handling SUBSCRIBE_DONE (see <a href="#message-subscribe-done" class="auto internal xref">Section 8.12</a>).  Publishers that reset
