@@ -2321,11 +2321,11 @@ Values of 0x0 and those larger than 0x2 are a protocol error.
 
 * End Location: The largest object covered by the FETCH response.
   The End Location is determined as follows:
-   - If End Object in the FETCH request was 0 and the response covers the last
-     Object in the Group, End Location is {Fetch.End Group, 0}
-   - If the requested FETCH End was beyond the Largest known (possibly final)
-     Object, End Location is {Largest.Group, Largest.Object + 1}
-   - Otherwise, End Location is {Fetch.End Group, Fetch.End Object}
+   - If the requested FETCH End Location was beyond the Largest known (possibly
+     final) Object, End Location is {Largest.Group, Largest.Object + 1}
+   - If End Location.Object in the FETCH request was 0 and the response covers
+     the last Object in the Group, End Location is {Fetch.End Location.Group, 0}
+   - Otherwise, End Location is Fetch.End Location
 
   If the relay is subscribed to the track, it uses its knowledge of the largest
   {Group, Object} to set End Location.  If if is not subscribed and the
