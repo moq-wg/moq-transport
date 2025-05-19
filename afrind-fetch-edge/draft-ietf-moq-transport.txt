@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 17 November 2025                                  I. Swett, Ed.
+Expires: 20 November 2025                                  I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                             16 May 2025
+                                                             19 May 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 17 November 2025.
+   This Internet-Draft will expire on 20 November 2025.
 
 Copyright Notice
 
@@ -2555,10 +2555,10 @@ Table of Contents
       -  Otherwise, End Location is {Fetch.End Group, Fetch.End Object}
 
       If the relay is subscribed to the track, it uses its knowledge of
-      the largest {Group, Object} to set End.  If if is not subscribed
-      and the requested End Location exceeds its cached data, the relay
-      makes an upstream request to complete the FETCH, and uses the
-      upstream response to set End.
+      the largest {Group, Object} to set End Location.  If if is not
+      subscribed and the requested End Location exceeds its cached data,
+      the relay makes an upstream request to complete the FETCH, and
+      uses the upstream response to set End Location.
 
       If End is smaller than the Start Location in the corresponding
       FETCH the receiver MUST close the session with Protocol Violation
