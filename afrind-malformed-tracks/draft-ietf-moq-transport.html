@@ -2168,10 +2168,11 @@ other immutable properties.<a href="#section-2.5-2.10.1" class="pilcrow">¶</a><
 observed from the same Track.<a href="#section-2.5-2.11.1" class="pilcrow">¶</a></p>
 </li>
         </ol>
-<p id="section-2.5-3">When a subscriber detects a Malformed Track, it <span class="bcp14">MUST</span> UNSUBSCRIBE from the
+<p id="section-2.5-3">The above list of conditions is not considered exhaustive.<a href="#section-2.5-3" class="pilcrow">¶</a></p>
+<p id="section-2.5-4">When a subscriber detects a Malformed Track, it <span class="bcp14">MUST</span> UNSUBSCRIBE from the
 Track and <span class="bcp14">SHOULD</span> deliver an error to the application.  If a relay detects a
 Malformed Track, it <span class="bcp14">MUST</span> immediately terminate downstream subscriptions with
-SUBSCRIBE_DONE with Status Code <code>Malformed Track</code>.<a href="#section-2.5-3" class="pilcrow">¶</a></p>
+SUBSCRIBE_DONE with Status Code <code>Malformed Track</code>.<a href="#section-2.5-4" class="pilcrow">¶</a></p>
 <div id="track-scope">
 <section id="section-2.5.1">
           <h4 id="name-scope">
