@@ -3242,11 +3242,6 @@ Extension headers are present. If an endpoint receives a datagram with Type
 0x03 and Extension Headers Length is 0, it MUST close the session with Protocol
 Violation.
 
-* Track Alias: The Track Alias ({{track-alias}} indicating the track this
-  Datagram belongs to.  If an endpoint receives a datagram with an unknown Track
-  Alias, it MAY drop the datagram or choose to buffer it for a brief period to
-  handle reordering with the control message that establishes the Track Alias.
-
 ## Streams
 
 When objects are sent on streams, the stream begins with a Subgroup Header
