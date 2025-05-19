@@ -544,6 +544,8 @@ include:
 11. An Object is received with a different Forwarding Preference than previously
     observed from the same Track.
 
+The above list of conditions is not considered exhaustive.
+
 When a subscriber detects a Malformed Track, it MUST UNSUBSCRIBE from the
 Track and SHOULD deliver an error to the application.  If a relay detects a
 Malformed Track, it MUST immediately terminate downstream subscriptions with
