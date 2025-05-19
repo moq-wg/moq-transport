@@ -2113,12 +2113,14 @@ the bytes in the Track Namespace or Track Name such that exact comparison works.
         <h3 id="name-malformed-tracks">
 <a href="#section-2.5" class="section-number selfRef">2.5. </a><a href="#name-malformed-tracks" class="section-name selfRef">Malformed Tracks</a>
         </h3>
-<p id="section-2.5-1">A track is considered malformed if any of the following conditions are detected
-by a receiver:<a href="#section-2.5-1" class="pilcrow">¶</a></p>
+<p id="section-2.5-1">There are multiple ways a publisher can transmit a Track that does not conform
+to MoQT constraints. Such a Track is considered malformed.  Some example
+conditions that constitute a malformed track when detected by a receiver
+include:<a href="#section-2.5-1" class="pilcrow">¶</a></p>
 <ol start="1" type="1" class="normal type-1" id="section-2.5-2">
 <li id="section-2.5-2.1">
-            <p id="section-2.5-2.1.1">An Object is received on a Subgroup whose Object ID is not strictly larger
-than the previous Object received on the same Subgroup.<a href="#section-2.5-2.1.1" class="pilcrow">¶</a></p>
+            <p id="section-2.5-2.1.1">An Object is received on a Subgroup stream whose Object ID is not strictly
+larger than the previous Object received on the same Subgroup.<a href="#section-2.5-2.1.1" class="pilcrow">¶</a></p>
 </li>
           <li id="section-2.5-2.2">
             <p id="section-2.5-2.2.1">An Object is received in a FETCH response with the same Group as the
