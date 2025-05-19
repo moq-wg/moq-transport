@@ -1455,18 +1455,26 @@ networks and is designed for high scale and low latency distribution.<a href="#s
             <p id="section-toc.1-1.9.1"><a href="#section-9" class="auto internal xref">9</a>.  <a href="#name-data-streams-and-datagrams" class="internal xref">Data Streams and Datagrams</a></p>
 <ul class="compact toc ulBare ulEmpty">
 <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.1">
-                <p id="section-toc.1-1.9.2.1.1"><a href="#section-9.1" class="auto internal xref">9.1</a>.  <a href="#name-objects-2" class="internal xref">Objects</a></p>
+                <p id="section-toc.1-1.9.2.1.1"><a href="#section-9.1" class="auto internal xref">9.1</a>.  <a href="#name-track-alias" class="internal xref">Track Alias</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.2">
+                <p id="section-toc.1-1.9.2.2.1"><a href="#section-9.2" class="auto internal xref">9.2</a>.  <a href="#name-objects-2" class="internal xref">Objects</a></p>
 <ul class="compact toc ulBare ulEmpty">
-<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.1.2.1">
-                    <p id="section-toc.1-1.9.2.1.2.1.1"><a href="#section-9.1.1" class="auto internal xref">9.1.1</a>.  <a href="#name-canonical-object-properties" class="internal xref">Canonical Object Properties</a></p>
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.2.2.1">
+                    <p id="section-toc.1-1.9.2.2.2.1.1"><a href="#section-9.2.1" class="auto internal xref">9.2.1</a>.  <a href="#name-canonical-object-properties" class="internal xref">Canonical Object Properties</a></p>
 </li>
                 </ul>
 </li>
-              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.2">
-                <p id="section-toc.1-1.9.2.2.1"><a href="#section-9.2" class="auto internal xref">9.2</a>.  <a href="#name-object-datagram" class="internal xref">Object Datagram</a></p>
-</li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.3">
-                <p id="section-toc.1-1.9.2.3.1"><a href="#section-9.3" class="auto internal xref">9.3</a>.  <a href="#name-object-datagram-status" class="internal xref">Object Datagram Status</a></p>
+                <p id="section-toc.1-1.9.2.3.1"><a href="#section-9.3" class="auto internal xref">9.3</a>.  <a href="#name-datagrams" class="internal xref">Datagrams</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.3.2.1">
+                    <p id="section-toc.1-1.9.2.3.2.1.1"><a href="#section-9.3.1" class="auto internal xref">9.3.1</a>.  <a href="#name-object-datagram" class="internal xref">Object Datagram</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.3.2.2">
+                    <p id="section-toc.1-1.9.2.3.2.2.1"><a href="#section-9.3.2" class="auto internal xref">9.3.2</a>.  <a href="#name-object-datagram-status" class="internal xref">Object Datagram Status</a></p>
+</li>
+                </ul>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.4">
                 <p id="section-toc.1-1.9.2.4.1"><a href="#section-9.4" class="auto internal xref">9.4</a>.  <a href="#name-streams" class="internal xref">Streams</a></p>
@@ -1985,7 +1993,7 @@ have a dependency and priority relationship consistent with sharing a
 stream and are sent on a single stream whenever possible. A Group is delivered
 using at least as many streams as there are Subgroups,
 typically with a one-to-one mapping between Subgroups and streams.<a href="#section-2.2-1" class="pilcrow">¶</a></p>
-<p id="section-2.2-2">When a Track's forwarding preference (see <a href="#object-properties" class="auto internal xref">Section 9.1.1</a>) is
+<p id="section-2.2-2">When a Track's forwarding preference (see <a href="#object-properties" class="auto internal xref">Section 9.2.1</a>) is
 "Datagram", Objects are not sent in Subgroups and the
 description in the remainder of this section does not apply.<a href="#section-2.2-2" class="pilcrow">¶</a></p>
 <p id="section-2.2-3">Streams offer in-order reliable delivery and the ability to cancel sending
@@ -2761,8 +2769,8 @@ with a status of Normal, End of Group or End of Track after receiving a
 previous status of Object Not Exists.  The endpoint <span class="bcp14">SHOULD NOT</span> cache or
 forward the duplicate object in this case.<a href="#section-7.1-5" class="pilcrow">¶</a></p>
 <p id="section-7.1-6">A cache <span class="bcp14">MUST</span> store all properties of an Object defined in
-<a href="#object-properties" class="auto internal xref">Section 9.1.1</a>, with the exception of any extensions
-(<a href="#object-extensions" class="auto internal xref">Section 9.1.1.2</a>) that specify otherwise.<a href="#section-7.1-6" class="pilcrow">¶</a></p>
+<a href="#object-properties" class="auto internal xref">Section 9.2.1</a>, with the exception of any extensions
+(<a href="#object-extensions" class="auto internal xref">Section 9.2.1.2</a>) that specify otherwise.<a href="#section-7.1-6" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="subscriber-interactions">
@@ -2851,12 +2859,10 @@ incoming SUBSCRIBE request from all available publishers.<a href="#section-7.3-6
 <p id="section-7.3-7">When a relay receives an incoming ANNOUNCE for a given namespace, for
 each active upstream subscription that matches that namespace, it <span class="bcp14">SHOULD</span> send a
 SUBSCRIBE to the publisher that sent the ANNOUNCE.<a href="#section-7.3-7" class="pilcrow">¶</a></p>
-<p id="section-7.3-8">Object headers carry a short hop-by-hop <code>Track Alias</code> that maps to
-the Full Track Name (see <a href="#message-subscribe-ok" class="auto internal xref">Section 8.8</a>). Relays use the
-<code>Track Alias</code> of an incoming Object to identify its track and find
-the active subscribers for that track. Relays <span class="bcp14">MUST</span> forward Objects to
-matching subscribers in accordance to each subscription's priority, group order,
-and delivery timeout.<a href="#section-7.3-8" class="pilcrow">¶</a></p>
+<p id="section-7.3-8">Relays use the Track Alias (<a href="#track-alias" class="auto internal xref">Section 9.1</a>) of an incoming Object to identify
+its track and find the active subscribers. Relays <span class="bcp14">MUST</span> forward
+Objects to matching subscribers in accordance to each subscription's priority,
+group order, and delivery timeout.<a href="#section-7.3-8" class="pilcrow">¶</a></p>
 <p id="section-7.3-9">If an upstream session is closed due to an unknown or invalid control message
 or Object, the relay <span class="bcp14">MUST NOT</span> continue to propagate that message or Object
 downstream, because it would enable a single session to close unrelated
@@ -2904,7 +2910,7 @@ the announcement and subscription to the old relay can be stopped.<a href="#sect
 <a href="#section-7.4" class="section-number selfRef">7.4. </a><a href="#name-relay-object-handling" class="section-name selfRef">Relay Object Handling</a>
         </h3>
 <p id="section-7.4-1">MOQT encodes the delivery information via Object headers
-(<a href="#message-object" class="auto internal xref">Section 9.1</a>).  A relay <span class="bcp14">MUST NOT</span> modify Object properties when
+(<a href="#message-object" class="auto internal xref">Section 9.2</a>).  A relay <span class="bcp14">MUST NOT</span> modify Object properties when
 forwarding.<a href="#section-7.4-1" class="pilcrow">¶</a></p>
 <p id="section-7.4-2">A relay <span class="bcp14">MUST</span> treat the object payload as opaque.  A relay <span class="bcp14">MUST NOT</span>
 combine, split, or otherwise modify object payloads.  A relay <span class="bcp14">SHOULD</span>
@@ -3650,7 +3656,6 @@ SUBSCRIBE Message {
   Type (i) = 0x3,
   Length (16),
   Request ID (i),
-  Track Alias (i),
   Track Namespace (tuple),
   Track Name Length (i),
   Track Name (..),
@@ -3674,50 +3679,43 @@ SUBSCRIBE Message {
             <p id="section-8.7-16.1.1">Request ID: See <a href="#request-id" class="auto internal xref">Section 8.1</a>.<a href="#section-8.7-16.1.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.7-16.2">
-            <p id="section-8.7-16.2.1">Track Alias: A session specific identifier for the track.
-Data streams and datagrams specify the Track Alias instead of the Track Name
-and Track Namespace to reduce overhead. If the Track Alias is already being used
-for a different track, the publisher <span class="bcp14">MUST</span> close the session with a Duplicate
-Track Alias error (<a href="#session-termination" class="auto internal xref">Section 3.4</a>).<a href="#section-8.7-16.2.1" class="pilcrow">¶</a></p>
+            <p id="section-8.7-16.2.1">Track Namespace: Identifies the namespace of the track as defined in
+(<a href="#track-name" class="auto internal xref">Section 2.4.1</a>).<a href="#section-8.7-16.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.7-16.3">
-            <p id="section-8.7-16.3.1">Track Namespace: Identifies the namespace of the track as defined in
-(<a href="#track-name" class="auto internal xref">Section 2.4.1</a>).<a href="#section-8.7-16.3.1" class="pilcrow">¶</a></p>
+            <p id="section-8.7-16.3.1">Track Name: Identifies the track name as defined in (<a href="#track-name" class="auto internal xref">Section 2.4.1</a>).<a href="#section-8.7-16.3.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.7-16.4">
-            <p id="section-8.7-16.4.1">Track Name: Identifies the track name as defined in (<a href="#track-name" class="auto internal xref">Section 2.4.1</a>).<a href="#section-8.7-16.4.1" class="pilcrow">¶</a></p>
+            <p id="section-8.7-16.4.1">Subscriber Priority: Specifies the priority of a subscription relative to
+other subscriptions in the same session. Lower numbers get higher priority.
+See <a href="#priorities" class="auto internal xref">Section 6</a>.<a href="#section-8.7-16.4.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.7-16.5">
-            <p id="section-8.7-16.5.1">Subscriber Priority: Specifies the priority of a subscription relative to
-other subscriptions in the same session. Lower numbers get higher priority.
-See <a href="#priorities" class="auto internal xref">Section 6</a>.<a href="#section-8.7-16.5.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="section-8.7-16.6">
-            <p id="section-8.7-16.6.1">Group Order: Allows the subscriber to request Objects be delivered in
+            <p id="section-8.7-16.5.1">Group Order: Allows the subscriber to request Objects be delivered in
 Ascending (0x1) or Descending (0x2) order by group. See <a href="#priorities" class="auto internal xref">Section 6</a>.
 A value of 0x0 indicates the original publisher's Group Order <span class="bcp14">SHOULD</span> be
-used. Values larger than 0x2 are a protocol error.<a href="#section-8.7-16.6.1" class="pilcrow">¶</a></p>
+used. Values larger than 0x2 are a protocol error.<a href="#section-8.7-16.5.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-8.7-16.7">
-            <p id="section-8.7-16.7.1">Forward: If 1, Objects matching the subscription are forwarded
+          <li class="normal" id="section-8.7-16.6">
+            <p id="section-8.7-16.6.1">Forward: If 1, Objects matching the subscription are forwarded
 to the subscriber. If 0, Objects are not forwarded to the subscriber.
 Any other value is a protocol error and <span class="bcp14">MUST</span> terminate the
-session with a Protocol Violation (<a href="#session-termination" class="auto internal xref">Section 3.4</a>).<a href="#section-8.7-16.7.1" class="pilcrow">¶</a></p>
+session with a Protocol Violation (<a href="#session-termination" class="auto internal xref">Section 3.4</a>).<a href="#section-8.7-16.6.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-8.7-16.7">
+            <p id="section-8.7-16.7.1">Filter Type: Identifies the type of filter, which also indicates whether
+the Start and End Group fields will be present.<a href="#section-8.7-16.7.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.7-16.8">
-            <p id="section-8.7-16.8.1">Filter Type: Identifies the type of filter, which also indicates whether
-the Start and End Group fields will be present.<a href="#section-8.7-16.8.1" class="pilcrow">¶</a></p>
+            <p id="section-8.7-16.8.1">Start Location: The starting location for this subscriptions. Only present for
+"AbsoluteStart" and "AbsoluteRange" filter types.<a href="#section-8.7-16.8.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.7-16.9">
-            <p id="section-8.7-16.9.1">Start Location: The starting location for this subscriptions. Only present for
-"AbsoluteStart" and "AbsoluteRange" filter types.<a href="#section-8.7-16.9.1" class="pilcrow">¶</a></p>
+            <p id="section-8.7-16.9.1">End Group: The end Group ID, inclusive. Only present for the "AbsoluteRange"
+filter type.<a href="#section-8.7-16.9.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.7-16.10">
-            <p id="section-8.7-16.10.1">End Group: The end Group ID, inclusive. Only present for the "AbsoluteRange"
-filter type.<a href="#section-8.7-16.10.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="section-8.7-16.11">
-            <p id="section-8.7-16.11.1">Subscribe Parameters: The parameters are defined in <a href="#version-specific-params" class="auto internal xref">Section 8.2.1</a>.<a href="#section-8.7-16.11.1" class="pilcrow">¶</a></p>
+            <p id="section-8.7-16.10.1">Subscribe Parameters: The parameters are defined in <a href="#version-specific-params" class="auto internal xref">Section 8.2.1</a>.<a href="#section-8.7-16.10.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-8.7-17">On successful subscription, the publisher <span class="bcp14">MUST</span> reply with a SUBSCRIBE_OK,
@@ -3743,6 +3741,7 @@ SUBSCRIBE_OK Message {
   Type (i) = 0x4,
   Length (16),
   Request ID (i),
+  Track Alias (i),
   Expires (i),
   Group Order (8),
   Content Exists (8),
@@ -3762,28 +3761,35 @@ SUBSCRIBE_OK Message {
 <a href="#message-subscribe-req" class="auto internal xref">Section 8.7</a>.<a href="#section-8.8-3.1.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.8-3.2">
-            <p id="section-8.8-3.2.1">Expires: Time in milliseconds after which the subscription is no
-longer valid. A value of 0 indicates that the subscription does not expire
-or expires at an unknown time.  Expires is advisory and a subscription can
-end prior to the expiry time or last longer.<a href="#section-8.8-3.2.1" class="pilcrow">¶</a></p>
+            <p id="section-8.8-3.2.1">Track Alias: The identifer used for this track in Subgroups or Datagrams (see
+<a href="#track-alias" class="auto internal xref">Section 9.1</a>). The same Track Alias <span class="bcp14">MUST NOT</span> be used to refer to two
+different Tracks simultaneously. If a subscriber receives a SUBSCRIBE_OK that
+uses the same Track Alias as a different track with an active subscription, it
+<span class="bcp14">MUST</span> close the session with error 'Duplicate Track Alias'.<a href="#section-8.8-3.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.8-3.3">
-            <p id="section-8.8-3.3.1">Group Order: Indicates the subscription will be delivered in
-Ascending (0x1) or Descending (0x2) order by group. See <a href="#priorities" class="auto internal xref">Section 6</a>.
-Values of 0x0 and those larger than 0x2 are a protocol error.<a href="#section-8.8-3.3.1" class="pilcrow">¶</a></p>
+            <p id="section-8.8-3.3.1">Expires: Time in milliseconds after which the subscription is no
+longer valid. A value of 0 indicates that the subscription does not expire
+or expires at an unknown time.  Expires is advisory and a subscription can
+end prior to the expiry time or last longer.<a href="#section-8.8-3.3.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.8-3.4">
-            <p id="section-8.8-3.4.1">Content Exists: 1 if an object has been published on this track, 0 if not.
-If 0, then the Largest Group ID and Largest Object ID fields will not be
-present. Any other value is a protocol error and <span class="bcp14">MUST</span> terminate the
-session with a Protocol Violation (<a href="#session-termination" class="auto internal xref">Section 3.4</a>).<a href="#section-8.8-3.4.1" class="pilcrow">¶</a></p>
+            <p id="section-8.8-3.4.1">Group Order: Indicates the subscription will be delivered in
+Ascending (0x1) or Descending (0x2) order by group. See <a href="#priorities" class="auto internal xref">Section 6</a>.
+Values of 0x0 and those larger than 0x2 are a protocol error.<a href="#section-8.8-3.4.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.8-3.5">
-            <p id="section-8.8-3.5.1">Largest Location: The location of the largest object available for this track. This
-field is only present if Content Exists has a value of 1.<a href="#section-8.8-3.5.1" class="pilcrow">¶</a></p>
+            <p id="section-8.8-3.5.1">Content Exists: 1 if an object has been published on this track, 0 if not.
+If 0, then the Largest Group ID and Largest Object ID fields will not be
+present. Any other value is a protocol error and <span class="bcp14">MUST</span> terminate the
+session with a Protocol Violation (<a href="#session-termination" class="auto internal xref">Section 3.4</a>).<a href="#section-8.8-3.5.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.8-3.6">
-            <p id="section-8.8-3.6.1">Subscribe Parameters: The parameters are defined in <a href="#version-specific-params" class="auto internal xref">Section 8.2.1</a>.<a href="#section-8.8-3.6.1" class="pilcrow">¶</a></p>
+            <p id="section-8.8-3.6.1">Largest Location: The location of the largest object available for this track. This
+field is only present if Content Exists has a value of 1.<a href="#section-8.8-3.6.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-8.8-3.7">
+            <p id="section-8.8-3.7.1">Subscribe Parameters: The parameters are defined in <a href="#version-specific-params" class="auto internal xref">Section 8.2.1</a>.<a href="#section-8.8-3.7.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
@@ -3805,7 +3811,6 @@ SUBSCRIBE_ERROR Message {
   Request ID (i),
   Error Code (i),
   Error Reason (Reason Phrase),
-  Track Alias (i),
 }
 </pre>
 </div>
@@ -3823,12 +3828,6 @@ SUBSCRIBE_ERROR Message {
 </li>
           <li class="normal" id="section-8.9-3.3">
             <p id="section-8.9-3.3.1">Error Reason: Provides the reason for subscription error. See <a href="#reason-phrase" class="auto internal xref">Section 1.3.3</a>.<a href="#section-8.9-3.3.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="section-8.9-3.4">
-            <p id="section-8.9-3.4.1">Track Alias: When Error Code is 'Retry Track Alias', the subscriber <span class="bcp14">SHOULD</span> re-issue the
-SUBSCRIBE with this Track Alias instead. If this Track Alias is already in use,
-the subscriber <span class="bcp14">MUST</span> close the connection with a Duplicate Track Alias error
-(<a href="#session-termination" class="auto internal xref">Section 3.4</a>).<a href="#section-8.9-3.4.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-8.9-4">The application <span class="bcp14">SHOULD</span> use a relevant error code in SUBSCRIBE_ERROR,
@@ -3865,10 +3864,6 @@ as defined below:<a href="#section-8.9-4" class="pilcrow">¶</a></p>
             <tr>
               <td class="text-right" rowspan="1" colspan="1">0x5</td>
               <td class="text-left" rowspan="1" colspan="1">Invalid Range</td>
-            </tr>
-            <tr>
-              <td class="text-right" rowspan="1" colspan="1">0x6</td>
-              <td class="text-left" rowspan="1" colspan="1">Retry Track Alias</td>
             </tr>
             <tr>
               <td class="text-right" rowspan="1" colspan="1">0x10</td>
@@ -3908,19 +3903,15 @@ subscription within the timeout.<a href="#section-8.9-6.3.1" class="pilcrow">¶<
 or the end of the range has already been published.<a href="#section-8.9-6.6.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.9-6.7">
-            <p id="section-8.9-6.7.1">Retry Track Alias - The publisher requires the subscriber to use the given
-Track Alias when subscribing.<a href="#section-8.9-6.7.1" class="pilcrow">¶</a></p>
+            <p id="section-8.9-6.7.1">Malformed Auth Token - Invalid Auth Token serialization during registration
+(see <a href="#authorization-token" class="auto internal xref">Section 8.2.1.1</a>).<a href="#section-8.9-6.7.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.9-6.8">
-            <p id="section-8.9-6.8.1">Malformed Auth Token - Invalid Auth Token serialization during registration
-(see <a href="#authorization-token" class="auto internal xref">Section 8.2.1.1</a>).<a href="#section-8.9-6.8.1" class="pilcrow">¶</a></p>
+            <p id="section-8.9-6.8.1">Unknown Auth Token Alias - Authorization Token refers to an alias that is
+not registered (see <a href="#authorization-token" class="auto internal xref">Section 8.2.1.1</a>).<a href="#section-8.9-6.8.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.9-6.9">
-            <p id="section-8.9-6.9.1">Unknown Auth Token Alias - Authorization Token refers to an alias that is
-not registered (see <a href="#authorization-token" class="auto internal xref">Section 8.2.1.1</a>).<a href="#section-8.9-6.9.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="section-8.9-6.10">
-            <p id="section-8.9-6.10.1">Expired Auth Token - Authorization token has expired <a href="#authorization-token" class="auto internal xref">Section 8.2.1.1</a>).<a href="#section-8.9-6.10.1" class="pilcrow">¶</a></p>
+            <p id="section-8.9-6.9.1">Expired Auth Token - Authorization token has expired <a href="#authorization-token" class="auto internal xref">Section 8.2.1.1</a>).<a href="#section-8.9-6.9.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
@@ -5263,11 +5254,11 @@ the datagram.<a href="#section-9-4" class="pilcrow">¶</a></p>
         <tbody>
           <tr>
             <td class="text-right" rowspan="1" colspan="1">0x00-0x01</td>
-            <td class="text-left" rowspan="1" colspan="1">OBJECT_DATAGRAM (<a href="#object-datagram" class="auto internal xref">Section 9.2</a>)</td>
+            <td class="text-left" rowspan="1" colspan="1">OBJECT_DATAGRAM (<a href="#object-datagram" class="auto internal xref">Section 9.3.1</a>)</td>
           </tr>
           <tr>
             <td class="text-right" rowspan="1" colspan="1">0x02-0x03</td>
-            <td class="text-left" rowspan="1" colspan="1">OBJECT_DATAGRAM_STATUS (<a href="#object-datagram" class="auto internal xref">Section 9.2</a>)</td>
+            <td class="text-left" rowspan="1" colspan="1">OBJECT_DATAGRAM_STATUS (<a href="#object-datagram" class="auto internal xref">Section 9.3.1</a>)</td>
           </tr>
         </tbody>
       </table>
@@ -5283,91 +5274,101 @@ Publisher <span class="bcp14">MUST NOT</span> mix different forwarding preferenc
 If a subscriber receives Objects via both Subgroup streams and Datagrams in
 response to a SUBSCRIBE, it <span class="bcp14">SHOULD</span> close the session with an error of 'Protocol
 Violation'<a href="#section-9-8" class="pilcrow">¶</a></p>
-<div id="message-object">
+<div id="track-alias">
 <section id="section-9.1">
-        <h3 id="name-objects-2">
-<a href="#section-9.1" class="section-number selfRef">9.1. </a><a href="#name-objects-2" class="section-name selfRef">Objects</a>
+        <h3 id="name-track-alias">
+<a href="#section-9.1" class="section-number selfRef">9.1. </a><a href="#name-track-alias" class="section-name selfRef">Track Alias</a>
         </h3>
-<p id="section-9.1-1">An Object contains a range of contiguous bytes from the
+<p id="section-9.1-1">To optimize wire efficiency, Subgroups and Datagrams refer to a track by a
+numeric identifier, rather than the Full Track Name.  Track Alias is chosen by
+the publisher and included in SUBSCRIBE_OK (<a href="#message-subscribe-ok" class="auto internal xref">Section 8.8</a>.<a href="#section-9.1-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="message-object">
+<section id="section-9.2">
+        <h3 id="name-objects-2">
+<a href="#section-9.2" class="section-number selfRef">9.2. </a><a href="#name-objects-2" class="section-name selfRef">Objects</a>
+        </h3>
+<p id="section-9.2-1">An Object contains a range of contiguous bytes from the
 specified track, as well as associated metadata required to deliver,
-cache, and forward it.  Objects are sent by publishers.<a href="#section-9.1-1" class="pilcrow">¶</a></p>
+cache, and forward it.  Objects are sent by publishers.<a href="#section-9.2-1" class="pilcrow">¶</a></p>
 <div id="object-properties">
-<section id="section-9.1.1">
+<section id="section-9.2.1">
           <h4 id="name-canonical-object-properties">
-<a href="#section-9.1.1" class="section-number selfRef">9.1.1. </a><a href="#name-canonical-object-properties" class="section-name selfRef">Canonical Object Properties</a>
+<a href="#section-9.2.1" class="section-number selfRef">9.2.1. </a><a href="#name-canonical-object-properties" class="section-name selfRef">Canonical Object Properties</a>
           </h4>
-<p id="section-9.1.1-1">A canonical MoQ Object has the following information:<a href="#section-9.1.1-1" class="pilcrow">¶</a></p>
+<p id="section-9.2.1-1">A canonical MoQ Object has the following information:<a href="#section-9.2.1-1" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-9.1.1-2.1">
-              <p id="section-9.1.1-2.1.1">Track Namespace and Track Name: The track this object belongs to.<a href="#section-9.1.1-2.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-9.2.1-2.1">
+              <p id="section-9.2.1-2.1.1">Track Namespace and Track Name: The track this object belongs to.<a href="#section-9.2.1-2.1.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-9.1.1-2.2">
-              <p id="section-9.1.1-2.2.1">Group ID: The object is a member of the indicated group ID
-<a href="#model-group" class="auto internal xref">Section 2.3</a> within the track.<a href="#section-9.1.1-2.2.1" class="pilcrow">¶</a></p>
+            <li class="normal" id="section-9.2.1-2.2">
+              <p id="section-9.2.1-2.2.1">Group ID: The object is a member of the indicated group ID
+<a href="#model-group" class="auto internal xref">Section 2.3</a> within the track.<a href="#section-9.2.1-2.2.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-9.1.1-2.3">
-              <p id="section-9.1.1-2.3.1">Object ID: The order of the object within the group.<a href="#section-9.1.1-2.3.1" class="pilcrow">¶</a></p>
+            <li class="normal" id="section-9.2.1-2.3">
+              <p id="section-9.2.1-2.3.1">Object ID: The order of the object within the group.<a href="#section-9.2.1-2.3.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-9.1.1-2.4">
-              <p id="section-9.1.1-2.4.1">Publisher Priority: An 8 bit integer indicating the publisher's priority for
-the Object <a href="#priorities" class="auto internal xref">Section 6</a>.<a href="#section-9.1.1-2.4.1" class="pilcrow">¶</a></p>
+            <li class="normal" id="section-9.2.1-2.4">
+              <p id="section-9.2.1-2.4.1">Publisher Priority: An 8 bit integer indicating the publisher's priority for
+the Object <a href="#priorities" class="auto internal xref">Section 6</a>.<a href="#section-9.2.1-2.4.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-9.1.1-2.5">
-              <p id="section-9.1.1-2.5.1">Object Forwarding Preference: An enumeration indicating how a publisher sends
+            <li class="normal" id="section-9.2.1-2.5">
+              <p id="section-9.2.1-2.5.1">Object Forwarding Preference: An enumeration indicating how a publisher sends
 an object. The preferences are Subgroup and Datagram.  When in response to a
 SUBSCRIBE, an Object <span class="bcp14">MUST</span> be sent according to its <code>Object Forwarding
-Preference</code>, described below.<a href="#section-9.1.1-2.5.1" class="pilcrow">¶</a></p>
+Preference</code>, described below.<a href="#section-9.2.1-2.5.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-9.1.1-2.6">
-              <p id="section-9.1.1-2.6.1">Subgroup ID: The object is a member of the indicated subgroup ID (<a href="#model-subgroup" class="auto internal xref">Section 2.2</a>)
+            <li class="normal" id="section-9.2.1-2.6">
+              <p id="section-9.2.1-2.6.1">Subgroup ID: The object is a member of the indicated subgroup ID (<a href="#model-subgroup" class="auto internal xref">Section 2.2</a>)
 within the group. This field is omitted if the Object Forwarding Preference is
-Datagram.<a href="#section-9.1.1-2.6.1" class="pilcrow">¶</a></p>
+Datagram.<a href="#section-9.2.1-2.6.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-9.1.1-2.7">
-              <p id="section-9.1.1-2.7.1">Object Status: As enumeration used to indicate missing
-objects or mark the end of a group or track. See <a href="#object-status" class="auto internal xref">Section 9.1.1.1</a> below.<a href="#section-9.1.1-2.7.1" class="pilcrow">¶</a></p>
+            <li class="normal" id="section-9.2.1-2.7">
+              <p id="section-9.2.1-2.7.1">Object Status: As enumeration used to indicate missing
+objects or mark the end of a group or track. See <a href="#object-status" class="auto internal xref">Section 9.2.1.1</a> below.<a href="#section-9.2.1-2.7.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-9.1.1-2.8">
-              <p id="section-9.1.1-2.8.1">Object Extension Length: The total length of the Object Extension Headers
-block, in bytes.<a href="#section-9.1.1-2.8.1" class="pilcrow">¶</a></p>
+            <li class="normal" id="section-9.2.1-2.8">
+              <p id="section-9.2.1-2.8.1">Object Extension Length: The total length of the Object Extension Headers
+block, in bytes.<a href="#section-9.2.1-2.8.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-9.1.1-2.9">
-              <p id="section-9.1.1-2.9.1">Object Extensions : A sequence of Object Extension Headers. See
-<a href="#object-extensions" class="auto internal xref">Section 9.1.1.2</a> below.<a href="#section-9.1.1-2.9.1" class="pilcrow">¶</a></p>
+            <li class="normal" id="section-9.2.1-2.9">
+              <p id="section-9.2.1-2.9.1">Object Extensions : A sequence of Object Extension Headers. See
+<a href="#object-extensions" class="auto internal xref">Section 9.2.1.2</a> below.<a href="#section-9.2.1-2.9.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-9.1.1-2.10">
-              <p id="section-9.1.1-2.10.1">Object Payload: An opaque payload intended for an End Subscriber and <span class="bcp14">SHOULD NOT</span> be processed by a relay. Only present when 'Object Status' is Normal (0x0).<a href="#section-9.1.1-2.10.1" class="pilcrow">¶</a></p>
+            <li class="normal" id="section-9.2.1-2.10">
+              <p id="section-9.2.1-2.10.1">Object Payload: An opaque payload intended for an End Subscriber and <span class="bcp14">SHOULD NOT</span> be processed by a relay. Only present when 'Object Status' is Normal (0x0).<a href="#section-9.2.1-2.10.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
 <div id="object-status">
-<section id="section-9.1.1.1">
+<section id="section-9.2.1.1">
             <h5 id="name-object-status">
-<a href="#section-9.1.1.1" class="section-number selfRef">9.1.1.1. </a><a href="#name-object-status" class="section-name selfRef">Object Status</a>
+<a href="#section-9.2.1.1" class="section-number selfRef">9.2.1.1. </a><a href="#name-object-status" class="section-name selfRef">Object Status</a>
             </h5>
-<p id="section-9.1.1.1-1">The Object Status informs subscribers what objects will not be received
+<p id="section-9.2.1.1-1">The Object Status informs subscribers what objects will not be received
 because they were never produced, are no longer available, or because they
-are beyond the end of a group or track.<a href="#section-9.1.1.1-1" class="pilcrow">¶</a></p>
-<p id="section-9.1.1.1-2"><code>Status</code> can have following values:<a href="#section-9.1.1.1-2" class="pilcrow">¶</a></p>
+are beyond the end of a group or track.<a href="#section-9.2.1.1-1" class="pilcrow">¶</a></p>
+<p id="section-9.2.1.1-2"><code>Status</code> can have following values:<a href="#section-9.2.1.1-2" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-9.1.1.1-3.1">
-                <p id="section-9.1.1.1-3.1.1">0x0 := Normal object. This status is implicit for any non-zero length object.
-       Zero-length objects explicitly encode the Normal status.<a href="#section-9.1.1.1-3.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-9.2.1.1-3.1">
+                <p id="section-9.2.1.1-3.1.1">0x0 := Normal object. This status is implicit for any non-zero length object.
+       Zero-length objects explicitly encode the Normal status.<a href="#section-9.2.1.1-3.1.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-9.1.1.1-3.2">
-                <p id="section-9.1.1.1-3.2.1">0x1 := Indicates Object does not exist. Indicates that this object
+              <li class="normal" id="section-9.2.1.1-3.2">
+                <p id="section-9.2.1.1-3.2.1">0x1 := Indicates Object does not exist. Indicates that this object
        does not exist at any publisher and it will not be published in
-       the future. This <span class="bcp14">SHOULD</span> be cached.<a href="#section-9.1.1.1-3.2.1" class="pilcrow">¶</a></p>
+       the future. This <span class="bcp14">SHOULD</span> be cached.<a href="#section-9.2.1.1-3.2.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-9.1.1.1-3.3">
-                <p id="section-9.1.1.1-3.3.1">0x3 := Indicates end of Group. ObjectId is one greater that the
+              <li class="normal" id="section-9.2.1.1-3.3">
+                <p id="section-9.2.1.1-3.3.1">0x3 := Indicates end of Group. ObjectId is one greater that the
        largest object produced in the group identified by the
        GroupID. This is sent right after the last object in the
        group. If the ObjectID is 0, it indicates there are no Objects
        in this Group. This <span class="bcp14">SHOULD</span> be cached. A publisher <span class="bcp14">MAY</span> use an end of
-       Group object to signal the end of all open Subgroups in a Group.<a href="#section-9.1.1.1-3.3.1" class="pilcrow">¶</a></p>
+       Group object to signal the end of all open Subgroups in a Group.<a href="#section-9.2.1.1-3.3.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-9.1.1.1-3.4">
-                <p id="section-9.1.1.1-3.4.1">0x4 := Indicates end of Track. GroupID is either the largest group produced
+              <li class="normal" id="section-9.2.1.1-3.4">
+                <p id="section-9.2.1.1-3.4.1">0x4 := Indicates end of Track. GroupID is either the largest group produced
        in this track and the ObjectID is one greater than the largest object
        produced in that group, or GroupID is one greater than the largest
        group produced in this track and the ObjectID is zero. This status
@@ -5375,60 +5376,70 @@ are beyond the end of a group or track.<a href="#section-9.1.1.1-1" class="pilcr
        that has a Group ID less than any other GroupID, or an ObjectID less
        than or equal to the largest in the specified group, is a protocol
        error, and the receiver <span class="bcp14">MUST</span> terminate the session. This <span class="bcp14">SHOULD</span> be
-       cached.<a href="#section-9.1.1.1-3.4.1" class="pilcrow">¶</a></p>
+       cached.<a href="#section-9.2.1.1-3.4.1" class="pilcrow">¶</a></p>
 </li>
             </ul>
-<p id="section-9.1.1.1-4">Any other value <span class="bcp14">SHOULD</span> be treated as a protocol error and terminate the
+<p id="section-9.2.1.1-4">Any other value <span class="bcp14">SHOULD</span> be treated as a protocol error and terminate the
 session with a Protocol Violation (<a href="#session-termination" class="auto internal xref">Section 3.4</a>).
-Any object with a status code other than zero <span class="bcp14">MUST</span> have an empty payload.<a href="#section-9.1.1.1-4" class="pilcrow">¶</a></p>
+Any object with a status code other than zero <span class="bcp14">MUST</span> have an empty payload.<a href="#section-9.2.1.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="object-extensions">
-<section id="section-9.1.1.2">
+<section id="section-9.2.1.2">
             <h5 id="name-object-extension-header">
-<a href="#section-9.1.1.2" class="section-number selfRef">9.1.1.2. </a><a href="#name-object-extension-header" class="section-name selfRef">Object Extension Header</a>
+<a href="#section-9.2.1.2" class="section-number selfRef">9.2.1.2. </a><a href="#name-object-extension-header" class="section-name selfRef">Object Extension Header</a>
             </h5>
-<p id="section-9.1.1.2-1">Any Object may have extension headers except those with Object Status 'Object
+<p id="section-9.2.1.2-1">Any Object may have extension headers except those with Object Status 'Object
 Does Not Exist'.  If an endpoint receives a non-existent Object containing
-extension headers it <span class="bcp14">MUST</span> close the session with a Protocol Violation.<a href="#section-9.1.1.2-1" class="pilcrow">¶</a></p>
-<p id="section-9.1.1.2-2">Object Extension Headers are visible to relays and allow the transmission of
+extension headers it <span class="bcp14">MUST</span> close the session with a Protocol Violation.<a href="#section-9.2.1.2-1" class="pilcrow">¶</a></p>
+<p id="section-9.2.1.2-2">Object Extension Headers are visible to relays and allow the transmission of
 future metadata relevant to MOQT Object distribution. Any Object metadata never
 accessed by the transport or relays <span class="bcp14">SHOULD</span> be serialized as part of the Object
-payload and not as an extension header.<a href="#section-9.1.1.2-2" class="pilcrow">¶</a></p>
-<p id="section-9.1.1.2-3">Extension Headers are defined in external specifications and registered in an
+payload and not as an extension header.<a href="#section-9.2.1.2-2" class="pilcrow">¶</a></p>
+<p id="section-9.2.1.2-3">Extension Headers are defined in external specifications and registered in an
 IANA table <a href="#iana" class="auto internal xref">Section 12</a>. These specifications define the type and value of the
 header, along with any rules concerning processing, modification, caching and
 forwarding. A relay which is coded to implement these rules is said to
-"support" the extension.<a href="#section-9.1.1.2-3" class="pilcrow">¶</a></p>
-<p id="section-9.1.1.2-4">If unsupported by the relay, Extension Headers <span class="bcp14">MUST NOT</span> be modified, <span class="bcp14">MUST</span> be
-cached as part of the Object and <span class="bcp14">MUST</span> be forwarded by relays.<a href="#section-9.1.1.2-4" class="pilcrow">¶</a></p>
-<p id="section-9.1.1.2-5">If supported by the relay and subject to the processing rules specified in the
+"support" the extension.<a href="#section-9.2.1.2-3" class="pilcrow">¶</a></p>
+<p id="section-9.2.1.2-4">If unsupported by the relay, Extension Headers <span class="bcp14">MUST NOT</span> be modified, <span class="bcp14">MUST</span> be
+cached as part of the Object and <span class="bcp14">MUST</span> be forwarded by relays.<a href="#section-9.2.1.2-4" class="pilcrow">¶</a></p>
+<p id="section-9.2.1.2-5">If supported by the relay and subject to the processing rules specified in the
 definition of the extension, Extension Headers <span class="bcp14">MAY</span> be modified, added, removed,
-and/or cached by relays.<a href="#section-9.1.1.2-5" class="pilcrow">¶</a></p>
-<p id="section-9.1.1.2-6">Object Extension Headers are serialized as Key-Value-Pairs <a href="#moq-key-value-pair" class="auto internal xref">Figure 2</a>.<a href="#section-9.1.1.2-6" class="pilcrow">¶</a></p>
-<p id="section-9.1.1.2-7">Header types are registered in the IANA table 'MOQ Extension Headers'.
-See <a href="#iana" class="auto internal xref">Section 12</a>.<a href="#section-9.1.1.2-7" class="pilcrow">¶</a></p>
+and/or cached by relays.<a href="#section-9.2.1.2-5" class="pilcrow">¶</a></p>
+<p id="section-9.2.1.2-6">Object Extension Headers are serialized as Key-Value-Pairs <a href="#moq-key-value-pair" class="auto internal xref">Figure 2</a>.<a href="#section-9.2.1.2-6" class="pilcrow">¶</a></p>
+<p id="section-9.2.1.2-7">Header types are registered in the IANA table 'MOQ Extension Headers'.
+See <a href="#iana" class="auto internal xref">Section 12</a>.<a href="#section-9.2.1.2-7" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
 </div>
 </section>
 </div>
-<div id="object-datagram">
-<section id="section-9.2">
-        <h3 id="name-object-datagram">
-<a href="#section-9.2" class="section-number selfRef">9.2. </a><a href="#name-object-datagram" class="section-name selfRef">Object Datagram</a>
+<div id="datagrams">
+<section id="section-9.3">
+        <h3 id="name-datagrams">
+<a href="#section-9.3" class="section-number selfRef">9.3. </a><a href="#name-datagrams" class="section-name selfRef">Datagrams</a>
         </h3>
-<p id="section-9.2-1">An <code>OBJECT_DATAGRAM</code> carries a single object in a datagram.<a href="#section-9.2-1" class="pilcrow">¶</a></p>
-<p id="section-9.2-2">An Object received in an <code>OBJECT_DATAGRAM</code> message has an <code>Object
-Forwarding Preference</code> = <code>Datagram</code>. To send an Object with <code>Object
-Forwarding Preference</code> = <code>Datagram</code>, determine the length of the header and
-payload and send the Object as datagram. In certain scenarios where the object
-size can be larger than maximum datagram size for the session, the Object
-will be dropped.<a href="#section-9.2-2" class="pilcrow">¶</a></p>
+<p id="section-9.3-1">A single object can be conveyed in a datagram.  The Track Alias field
+<a href="#track-alias" class="auto internal xref">Section 9.1</a> indicates the track this Datagram belongs to.  If an endpoint
+receives a datagram with an unknown Track Alias, it <span class="bcp14">MAY</span> drop the datagram or
+choose to buffer it for a brief period to handle reordering with the control
+message that establishes the Track Alias.<a href="#section-9.3-1" class="pilcrow">¶</a></p>
+<p id="section-9.3-2">An Object received in an <code>OBJECT_DATAGRAM</code> or <code>OBJECT_DATAGRAM_STATUS</code> message
+has an <code>Object Forwarding Preference</code> = <code>Datagram</code>. To send an Object with
+<code>Object Forwarding Preference</code> = <code>Datagram</code>, determine the length of the header
+and payload and send the Object as datagram. In certain scenarios where the
+object size can be larger than maximum datagram size for the session, the Object
+will be dropped.<a href="#section-9.3-2" class="pilcrow">¶</a></p>
+<div id="object-datagram">
+<section id="section-9.3.1">
+          <h4 id="name-object-datagram">
+<a href="#section-9.3.1" class="section-number selfRef">9.3.1. </a><a href="#name-object-datagram" class="section-name selfRef">Object Datagram</a>
+          </h4>
+<p id="section-9.3.1-1">An <code>OBJECT_DATAGRAM</code> carries a single object in a datagram.<a href="#section-9.3.1-1" class="pilcrow">¶</a></p>
 <span id="name-moqt-object_datagram"></span><div id="object-datagram-format">
 <figure id="figure-30">
-          <div class="alignLeft art-text artwork" id="section-9.2-3.1">
+            <div class="alignLeft art-text artwork" id="section-9.3.1-2.1">
 <pre>
 OBJECT_DATAGRAM {
   Type (i),
@@ -5444,27 +5455,27 @@ OBJECT_DATAGRAM {
 </div>
 <figcaption><a href="#figure-30" class="selfRef">Figure 30</a>:
 <a href="#name-moqt-object_datagram" class="selfRef">MOQT OBJECT_DATAGRAM</a>
-          </figcaption></figure>
+            </figcaption></figure>
 </div>
-<p id="section-9.2-4">The Type field takes the form 0b0000000X (or the set of values from 0x00 to
+<p id="section-9.3.1-3">The Type field takes the form 0b0000000X (or the set of values from 0x00 to
 0x01). The LSB of the type determines if the Extensions Headers Length and
 Extension headers are present. If an endpoint receives a datagram with Type
 0x01 and Extension Headers Length is 0, it <span class="bcp14">MUST</span> close the session with Protocol
-Violation.<a href="#section-9.2-4" class="pilcrow">¶</a></p>
-<p id="section-9.2-5">There is no explicit length field.  The entirety of the transport datagram
-following Publisher Priority contains the Object Payload.<a href="#section-9.2-5" class="pilcrow">¶</a></p>
+Violation.<a href="#section-9.3.1-3" class="pilcrow">¶</a></p>
+<p id="section-9.3.1-4">There is no explicit length field.  The entirety of the transport datagram
+following Publisher Priority contains the Object Payload.<a href="#section-9.3.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="object-datagram-status">
-<section id="section-9.3">
-        <h3 id="name-object-datagram-status">
-<a href="#section-9.3" class="section-number selfRef">9.3. </a><a href="#name-object-datagram-status" class="section-name selfRef">Object Datagram Status</a>
-        </h3>
-<p id="section-9.3-1">An <code>OBJECT_DATAGRAM_STATUS</code> is similar to OBJECT_DATAGRAM except it
-conveys an Object Status and has no payload.<a href="#section-9.3-1" class="pilcrow">¶</a></p>
+<section id="section-9.3.2">
+          <h4 id="name-object-datagram-status">
+<a href="#section-9.3.2" class="section-number selfRef">9.3.2. </a><a href="#name-object-datagram-status" class="section-name selfRef">Object Datagram Status</a>
+          </h4>
+<p id="section-9.3.2-1">An <code>OBJECT_DATAGRAM_STATUS</code> is similar to OBJECT_DATAGRAM except it
+conveys an Object Status and has no payload.<a href="#section-9.3.2-1" class="pilcrow">¶</a></p>
 <span id="name-moqt-object_datagram_status"></span><div id="object-datagram-status-format">
 <figure id="figure-31">
-          <div class="alignLeft art-text artwork" id="section-9.3-2.1">
+            <div class="alignLeft art-text artwork" id="section-9.3.2-2.1">
 <pre>
 OBJECT_DATAGRAM_STATUS {
   Type (i),
@@ -5480,13 +5491,15 @@ OBJECT_DATAGRAM_STATUS {
 </div>
 <figcaption><a href="#figure-31" class="selfRef">Figure 31</a>:
 <a href="#name-moqt-object_datagram_status" class="selfRef">MOQT OBJECT_DATAGRAM_STATUS</a>
-          </figcaption></figure>
+            </figcaption></figure>
 </div>
-<p id="section-9.3-3">The Type field takes the form 0b0000001X (or the set of values from 0x02 to
+<p id="section-9.3.2-3">The Type field takes the form 0b0000001X (or the set of values from 0x02 to
 0x03). The LSB of the type determines if the Extensions Headers Length and
 Extension headers are present. If an endpoint receives a datagram with Type
 0x03 and Extension Headers Length is 0, it <span class="bcp14">MUST</span> close the session with Protocol
-Violation.<a href="#section-9.3-3" class="pilcrow">¶</a></p>
+Violation.<a href="#section-9.3.2-3" class="pilcrow">¶</a></p>
+</section>
+</div>
 </section>
 </div>
 <div id="streams">
@@ -5516,12 +5529,20 @@ effect on outstanding subscriptions.<a href="#section-9.4.1-1" class="pilcrow">�
           <h4 id="name-subgroup-header">
 <a href="#section-9.4.2" class="section-number selfRef">9.4.2. </a><a href="#name-subgroup-header" class="section-name selfRef">Subgroup Header</a>
           </h4>
-<p id="section-9.4.2-1">When a stream begins with <code>SUBGROUP_HEADER</code>, all Objects on the stream
-belong to the track requested in the Subscribe message identified by <code>Track Alias</code>
-and the subgroup indicated by 'Group ID' and <code>Subgroup ID</code>.<a href="#section-9.4.2-1" class="pilcrow">¶</a></p>
+<p id="section-9.4.2-1">All Objects on a Subgroup stream belong to the track identified by <code>Track Alias</code>
+(see <a href="#track-alias" class="auto internal xref">Section 9.1</a>) and the Subgroup indicated by 'Group ID' and <code>Subgroup
+ID</code> in the SUBGROUP_HEADER.<a href="#section-9.4.2-1" class="pilcrow">¶</a></p>
+<p id="section-9.4.2-2">If an endpoint receives a subgroup with an unknown Track Alias, it <span class="bcp14">MAY</span> abandon
+the stream, or choose to buffer it for a brief period to handle reordering with
+the control message that establishes the Track Alias.  The endpoint <span class="bcp14">MAY</span> withhold
+stream flow control beyond the SUBGROUP_HEADER until the Track Alias has been
+established.  To prevent deadlocks, the publisher <span class="bcp14">MUST</span> allocate connection flow
+control to the control stream before allocating it any data streams. Otherwise,
+a receiver might wait for a control message containing a Track Alias to release
+flow control, while the sender waits for flow control to send the message.<a href="#section-9.4.2-2" class="pilcrow">¶</a></p>
 <span id="name-moqt-subgroup_header"></span><div id="object-header-format">
 <figure id="figure-32">
-            <div class="alignLeft art-text artwork" id="section-9.4.2-2.1">
+            <div class="alignLeft art-text artwork" id="section-9.4.2-3.1">
 <pre>
 SUBGROUP_HEADER {
   Type (i) = 0x8..0xD,
@@ -5536,9 +5557,9 @@ SUBGROUP_HEADER {
 <a href="#name-moqt-subgroup_header" class="selfRef">MOQT SUBGROUP_HEADER</a>
             </figcaption></figure>
 </div>
-<p id="section-9.4.2-3">All Objects received on a stream opened with <code>SUBGROUP_HEADER</code> have an
-<code>Object Forwarding Preference</code> = <code>Subgroup</code>.<a href="#section-9.4.2-3" class="pilcrow">¶</a></p>
-<p id="section-9.4.2-4">There are 6 defined Type values for SUBGROUP_HEADER:<a href="#section-9.4.2-4" class="pilcrow">¶</a></p>
+<p id="section-9.4.2-4">All Objects received on a stream opened with <code>SUBGROUP_HEADER</code> have an
+<code>Object Forwarding Preference</code> = <code>Subgroup</code>.<a href="#section-9.4.2-4" class="pilcrow">¶</a></p>
+<p id="section-9.4.2-5">There are 6 defined Type values for SUBGROUP_HEADER:<a href="#section-9.4.2-5" class="pilcrow">¶</a></p>
 <table class="center" id="table-11">
             <caption><a href="#table-11" class="selfRef">Table 11</a></caption>
 <thead>
@@ -5594,22 +5615,22 @@ SUBGROUP_HEADER {
               </tr>
             </tbody>
           </table>
-<p id="section-9.4.2-6">For Type values where Subgroup ID Field Present is No, there is no explicit
+<p id="section-9.4.2-7">For Type values where Subgroup ID Field Present is No, there is no explicit
 Subgroup ID field in the header and the Subgroup ID is either 0 (for Types
 0x08-09) or the Object ID of the first object transmitted in this subgroup
-(for Types 0x0A-0B).<a href="#section-9.4.2-6" class="pilcrow">¶</a></p>
-<p id="section-9.4.2-7">For Type values where Extensions Present is No, Extensions Headers Length is
+(for Types 0x0A-0B).<a href="#section-9.4.2-7" class="pilcrow">¶</a></p>
+<p id="section-9.4.2-8">For Type values where Extensions Present is No, Extensions Headers Length is
 not present and all Objects have no extensions.  When Extensions Present is
 Yes, Extension Headers Length is present in all Objects in this subgroup.
-Objects with no extensions set Extension Headers Length to 0.<a href="#section-9.4.2-7" class="pilcrow">¶</a></p>
-<p id="section-9.4.2-8">To send an Object with <code>Object Forwarding Preference</code> = <code>Subgroup</code>, find the open
+Objects with no extensions set Extension Headers Length to 0.<a href="#section-9.4.2-8" class="pilcrow">¶</a></p>
+<p id="section-9.4.2-9">To send an Object with <code>Object Forwarding Preference</code> = <code>Subgroup</code>, find the open
 stream that is associated with the subscription, <code>Group ID</code> and <code>Subgroup ID</code>,
 or open a new one and send the <code>SUBGROUP_HEADER</code>. Then serialize the
-following fields.<a href="#section-9.4.2-8" class="pilcrow">¶</a></p>
-<p id="section-9.4.2-9">The Object Status field is only sent if the Object Payload Length is zero.<a href="#section-9.4.2-9" class="pilcrow">¶</a></p>
+following fields.<a href="#section-9.4.2-9" class="pilcrow">¶</a></p>
+<p id="section-9.4.2-10">The Object Status field is only sent if the Object Payload Length is zero.<a href="#section-9.4.2-10" class="pilcrow">¶</a></p>
 <span id="name-moqt-subgroup-object-fields"></span><div id="object-subgroup-format">
 <figure id="figure-33">
-            <div class="alignLeft art-text artwork" id="section-9.4.2-10.1">
+            <div class="alignLeft art-text artwork" id="section-9.4.2-11.1">
 <pre>
 {
   Object ID (i),
@@ -5625,8 +5646,8 @@ following fields.<a href="#section-9.4.2-8" class="pilcrow">¶</a></p>
 <a href="#name-moqt-subgroup-object-fields" class="selfRef">MOQT Subgroup Object Fields</a>
             </figcaption></figure>
 </div>
-<p id="section-9.4.2-11">A publisher <span class="bcp14">MUST NOT</span> send an Object on a stream if its Object ID is less than a
-previously sent Object ID within a given group in that stream.<a href="#section-9.4.2-11" class="pilcrow">¶</a></p>
+<p id="section-9.4.2-12">A publisher <span class="bcp14">MUST NOT</span> send an Object on a stream if its Object ID is less than a
+previously sent Object ID within a given group in that stream.<a href="#section-9.4.2-12" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="closing-subgroup-streams">
@@ -5806,7 +5827,7 @@ FETCH_HEADER {
 </div>
 <p id="section-9.4.4-5">The Object Status field is only sent if the Object Payload Length is zero.<a href="#section-9.4.4-5" class="pilcrow">¶</a></p>
 <p id="section-9.4.4-6">The Subgroup ID field of an object with a Forwarding Preference of "Datagram"
-(see <a href="#object-properties" class="auto internal xref">Section 9.1.1</a>) is set to the Object ID.<a href="#section-9.4.4-6" class="pilcrow">¶</a></p>
+(see <a href="#object-properties" class="auto internal xref">Section 9.2.1</a>) is set to the Object ID.<a href="#section-9.4.4-6" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
