@@ -1452,11 +1452,14 @@ otherwise.  If an Object with a smaller ID arrives later than subsequent
 Objects, relays can consider its receipt time as that of the Object with the
 next larger Location, with the assumption that the Objects were reordered.
 
-If neither the subscriber or publisher specify DELIVERY TIMEOUT, all Objects
-in the track matching the subscription filter are delivered as indicated by
-their Group Order and Priority.  If a subscriber exceeds the publisher's
-resource limits by failing to consume objects at a sufficient rate, the
-publisher MAY terminate the subscription with error 'Too Far Behind'.
+Publishers can, at their discretion, discontinue forwarding Objects earlier than
+the negotiated DELIVERY TIMEOUT, subject to stream closure and ordering
+constraints described in {{closing-subgroup-streams}}.  However, if neither the
+subscriber or publisher specify DELIVERY TIMEOUT, all Objects in the track
+matching the subscription filter are delivered as indicated by their Group Order
+and Priority.  If a subscriber fails to consume Objects at a sufficient rate,
+causing the publisher to exceed its resource limits, the publisher MAY terminate
+the subscription with error 'Too Far Behind'.
 
 If an object in a subgroup exceeds the delivery timeout, the publisher MUST
 reset the underlying transport stream (see {{closing-subgroup-streams}}).
