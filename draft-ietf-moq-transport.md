@@ -2328,9 +2328,10 @@ Values of 0x0 and those larger than 0x2 are a protocol error.
    - Otherwise, End Location is {Fetch.End Group, Fetch.End Object}
 
   If the relay is subscribed to the track, it uses its knowledge of the largest
-  {Group, Object} to set End Location.  If if is not subscribed and the requested End
-  Location exceeds its cached data, the relay makes an upstream request to
-  complete the FETCH, and uses the upstream response to set End Location.
+  {Group, Object} to set End Location.  If if is not subscribed and the
+  requested End Location exceeds its cached data, the relay makes an upstream
+  request to complete the FETCH, and uses the upstream response to set End
+  Location.
 
   If End is smaller than the Start Location in the corresponding FETCH the
   receiver MUST close the session with `Protocol Violation`
