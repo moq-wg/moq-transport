@@ -1129,11 +1129,15 @@ to the old relay can be stopped with an UNSUBSCRIBE.
 
 ## Publisher Interactions
 
-There are two ways to publish through a relay - sending a PUBLISH messages for a
-specific Track or sending an ANNOUNCE message for a Track Namespace and waiting
-for SUBSCRIBE.  Relays MAY respond to PUBLISH with PUBLISH_OK in Forward State=0
-until there are known subscribers for new tracks. ANNOUNCE enables the relay to
-know which publisher to forward a SUBSCRIBE to.
+There are two ways to publish through a relay:
+
+1. Send a PUBLISH message for a specific Track to the relay. The relay MAY
+respond with PUBLISH_OK in Forward State=0 until there are known subscribers for
+new tracks.
+
+2. Send an ANNOUNCE message for a Track Namespace to the relay. This enables the
+relay to send SUBSCRIBE messages for Tracks in this Namespace in response to
+Consumer SUBSCRIBE messages.
 
 Relays MUST verify that publishers are authorized to publish the content
 associated with the set of tracks whose Track Namespace matches the namespace in
@@ -2246,8 +2250,7 @@ PUBLISH_ERROR Message
   Length (i),
   Request ID (i),
   Error Code (i),
-  Reason Phrase Length (i),
-  Reason Phrase (..),
+  Error Reason (Reason Phrase),
 }
 ~~~
 {: #moq-transport-publish-error format title="MOQT PUBLISH_ERROR Message"}
@@ -2257,7 +2260,7 @@ PUBLISH_ERROR Message
 
 * Error Code: Identifies an integer error code for failure.
 
-* Reason Phrase: Provides the reason for error.
+* Error Reason: Provides the reason for subscription error. See {{reason-phrase}}.
 
 The application SHOULD use a relevant error code in PUBLISH_ERROR, as defined
 below:
