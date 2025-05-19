@@ -803,8 +803,8 @@ State is 0, the publisher does not send objects for the subscription.  If the
 Forward State is 1, the publisher sends objects.  The initiator of the
 subscription sets the initial Forward State in either PUBLISH or SUBSCRIBE.  The
 sender of PUBLISH_OK can update the Forward State based on its preference.  Once
-established, the subscriber can change the Forward State by sending
-SUBSCRIBE_UPDATE.
+the subscription is established, the subscriber can update the Forward State by
+sending SUBSCRIBE_UPDATE.
 
 Either endpoint can initiate a subscription to a track without exchanging any
 prior messages other than SETUP.  Relays MUST NOT send any PUBLISH messages
@@ -883,8 +883,8 @@ publishers to contact, if any.
 
 An UNSUBSCRIBE_ANNOUNCES withdraws a previous SUBSCRIBE_ANNOUNCES. It does not
 prohibit original publishers from sending further ANNOUNCE or PUBLISH messages,
-but relays MUST not send a PUBLISH message to a client without knowing the
-client is interested in and authorized to receive the content.
+but relays MUST not send any further PUBLISH messages to a client without
+knowing the client is interested in and authorized to receive the content.
 
 ## Announcements
 
