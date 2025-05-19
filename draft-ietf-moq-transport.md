@@ -511,11 +511,13 @@ the bytes in the Track Namespace or Track Name such that exact comparison works.
 
 ## Malformed Tracks
 
-A track is considered malformed if any of the following conditions are detected
-by a receiver:
+There are multiple ways a publisher can transmit a Track that does not conform
+to MoQT constraints. Such a Track is considered malformed.  Some example
+conditions that constitute a malformed track when detected by a receiver
+include:
 
-1. An Object is received on a Subgroup whose Object ID is not strictly larger
-   than the previous Object received on the same Subgroup.
+1. An Object is received on a Subgroup stream whose Object ID is not strictly
+   larger than the previous Object received on the same Subgroup.
 2. An Object is received in a FETCH response with the same Group as the
    previous Object, but whose Object ID is not strictly larger than the previous
    object.
