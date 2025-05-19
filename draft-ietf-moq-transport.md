@@ -2257,8 +2257,9 @@ A publisher MUST send fetched groups in the determined group order, either
 ascending or descending. Within each group, objects are sent in Object ID order;
 subgroup ID is not used for ordering.
 
-If Start Location is greater than the Largest Object, the publisher MUST return
-FETCH_ERROR with error code 'Invalid Range'.
+If Start Location is greater than the `Largest Object`
+({{message-subscribe-req}}) the publisher MUST return FETCH_ERROR with error
+code 'Invalid Range'.
 
 ### Calculating the Range of a Relative Joining Fetch
 
@@ -2315,17 +2316,25 @@ FETCH_OK Message {
 Ascending (0x1) or Descending (0x2) order by group. See {{priorities}}.
 Values of 0x0 and those larger than 0x2 are a protocol error.
 
-* End Of Track: 1 if all objects have been published on this track, so
-the End Group ID and Object Id indicate the last Object in the track,
-0 if not.
+* End Of Track: 1 if all Objects have been published on this Track, and
+  the End Location is the final Object in the Track, 0 if not.
 
 * End Location: The largest object covered by the FETCH response.
-  This is the minimum of the {End Group,End Object} specified in FETCH and the
-  largest known {group,object}.  If the relay is currently subscribed to the
-  track, the largest known {group,object} at the relay is used.  For tracks
-  with a requested end larger than what is cached without an active
-  subscription, the relay makes an upstream request in order to satisfy the
-  FETCH.
+  The End Location is determined as follows:
+   - If the requested FETCH End Location was beyond the Largest known (possibly
+     final) Object, End Location is {Largest.Group, Largest.Object + 1}
+   - If End Location.Object in the FETCH request was 0 and the response covers
+     the last Object in the Group, End Location is {Fetch.End Location.Group, 0}
+   - Otherwise, End Location is Fetch.End Location
+
+  If the relay is subscribed to the track, it uses its knowledge of the largest
+  {Group, Object} to set End Location.  If if is not subscribed and the
+  requested End Location exceeds its cached data, the relay makes an upstream
+  request to complete the FETCH, and uses the upstream response to set End
+  Location.
+
+  If End is smaller than the Start Location in the corresponding FETCH the
+  receiver MUST close the session with `Protocol Violation`
 
 * Subscribe Parameters: The parameters are defined in {{version-specific-params}}.
 
