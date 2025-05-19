@@ -1147,12 +1147,10 @@ When a relay receives an incoming ANNOUNCE for a given namespace, for
 each active upstream subscription that matches that namespace, it SHOULD send a
 SUBSCRIBE to the publisher that sent the ANNOUNCE.
 
-Object headers carry a short hop-by-hop `Track Alias` that maps to
-the Full Track Name (see {{message-subscribe-ok}}). Relays use the
-`Track Alias` of an incoming Object to identify its track and find
-the active subscribers for that track. Relays MUST forward Objects to
-matching subscribers in accordance to each subscription's priority, group order,
-and delivery timeout.
+Relays use the Track Alias ({{track-alias}}) of an incoming Object to identify
+its track and find the active subscribers. Relays MUST forward
+Objects to matching subscribers in accordance to each subscription's priority,
+group order, and delivery timeout.
 
 If an upstream session is closed due to an unknown or invalid control message
 or Object, the relay MUST NOT continue to propagate that message or Object
@@ -1740,7 +1738,6 @@ SUBSCRIBE Message {
   Type (i) = 0x3,
   Length (16),
   Request ID (i),
-  Track Alias (i),
   Track Namespace (tuple),
   Track Name Length (i),
   Track Name (..),
@@ -1757,12 +1754,6 @@ SUBSCRIBE Message {
 {: #moq-transport-subscribe-format title="MOQT SUBSCRIBE Message"}
 
 * Request ID: See {{request-id}}.
-
-* Track Alias: A session specific identifier for the track.
-Data streams and datagrams specify the Track Alias instead of the Track Name
-and Track Namespace to reduce overhead. If the Track Alias is already being used
-for a different track, the publisher MUST close the session with a Duplicate
-Track Alias error ({{session-termination}}).
 
 * Track Namespace: Identifies the namespace of the track as defined in
 ({{track-name}}).
@@ -1812,6 +1803,7 @@ SUBSCRIBE_OK Message {
   Type (i) = 0x4,
   Length (16),
   Request ID (i),
+  Track Alias (i),
   Expires (i),
   Group Order (8),
   Content Exists (8),
@@ -1824,6 +1816,12 @@ SUBSCRIBE_OK Message {
 
 * Request ID: The Request ID of the SUBSCRIBE this message is replying to
   {{message-subscribe-req}}.
+
+* Track Alias: The identifer used for this track in Subgroups or Datagrams (see
+  {{track-alias}}). The same Track Alias MUST NOT be used to refer to two
+  different Tracks simultaneously. If a subscriber receives a SUBSCRIBE_OK that
+  uses the same Track Alias as a different track with an active subscription, it
+  MUST close the session with error 'Duplicate Track Alias'.
 
 * Expires: Time in milliseconds after which the subscription is no
 longer valid. A value of 0 indicates that the subscription does not expire
@@ -1856,7 +1854,6 @@ SUBSCRIBE_ERROR Message {
   Request ID (i),
   Error Code (i),
   Error Reason (Reason Phrase),
-  Track Alias (i),
 }
 ~~~
 {: #moq-transport-subscribe-error format title="MOQT SUBSCRIBE_ERROR Message"}
@@ -1867,11 +1864,6 @@ SUBSCRIBE_ERROR Message {
 * Error Code: Identifies an integer error code for subscription failure.
 
 * Error Reason: Provides the reason for subscription error. See {{reason-phrase}}.
-
-* Track Alias: When Error Code is 'Retry Track Alias', the subscriber SHOULD re-issue the
-  SUBSCRIBE with this Track Alias instead. If this Track Alias is already in use,
-  the subscriber MUST close the connection with a Duplicate Track Alias error
-  ({{session-termination}}).
 
 The application SHOULD use a relevant error code in SUBSCRIBE_ERROR,
 as defined below:
@@ -1890,8 +1882,6 @@ as defined below:
 | 0x4  | Track Does Not Exist      |
 |------|---------------------------|
 | 0x5  | Invalid Range             |
-|------|---------------------------|
-| 0x6  | Retry Track Alias         |
 |------|---------------------------|
 | 0x10 | Malformed Auth Token      |
 |------|---------------------------|
@@ -1915,9 +1905,6 @@ as defined below:
 
 * Invalid Range - The end of the SUBSCRIBE range is earlier than the beginning,
   or the end of the range has already been published.
-
-* Retry Track Alias - The publisher requires the subscriber to use the given
-  Track Alias when subscribing.
 
 * Malformed Auth Token - Invalid Auth Token serialization during registration
   (see {{authorization-token}}).
@@ -2883,6 +2870,12 @@ If a subscriber receives Objects via both Subgroup streams and Datagrams in
 response to a SUBSCRIBE, it SHOULD close the session with an error of 'Protocol
 Violation'
 
+## Track Alias
+
+To optimize wire efficiency, Subgroups and Datagrams refer to a track by a
+numeric identifier, rather than the Full Track Name.  Track Alias is chosen by
+the publisher and included in SUBSCRIBE_OK ({{message-subscribe-ok}}.
+
 ## Objects {#message-object}
 
 An Object contains a range of contiguous bytes from the
@@ -2988,16 +2981,25 @@ Object Extension Headers are serialized as Key-Value-Pairs {{moq-key-value-pair}
 Header types are registered in the IANA table 'MOQ Extension Headers'.
 See {{iana}}.
 
-## Object Datagram {#object-datagram}
+## Datagrams
+
+A single object can be conveyed in a datagram.  The Track Alias field
+{{track-alias}} indicates the track this Datagram belongs to.  If an endpoint
+receives a datagram with an unknown Track Alias, it MAY drop the datagram or
+choose to buffer it for a brief period to handle reordering with the control
+message that establishes the Track Alias.
+
+An Object received in an `OBJECT_DATAGRAM` or `OBJECT_DATAGRAM_STATUS` message
+has an `Object Forwarding Preference` = `Datagram`. To send an Object with
+`Object Forwarding Preference` = `Datagram`, determine the length of the header
+and payload and send the Object as datagram. In certain scenarios where the
+object size can be larger than maximum datagram size for the session, the Object
+will be dropped.
+
+
+### Object Datagram {#object-datagram}
 
 An `OBJECT_DATAGRAM` carries a single object in a datagram.
-
-An Object received in an `OBJECT_DATAGRAM` message has an `Object
-Forwarding Preference` = `Datagram`. To send an Object with `Object
-Forwarding Preference` = `Datagram`, determine the length of the header and
-payload and send the Object as datagram. In certain scenarios where the object
-size can be larger than maximum datagram size for the session, the Object
-will be dropped.
 
 ~~~
 OBJECT_DATAGRAM {
@@ -3022,7 +3024,7 @@ Violation.
 There is no explicit length field.  The entirety of the transport datagram
 following Publisher Priority contains the Object Payload.
 
-## Object Datagram Status {#object-datagram-status}
+### Object Datagram Status {#object-datagram-status}
 
 An `OBJECT_DATAGRAM_STATUS` is similar to OBJECT_DATAGRAM except it
 conveys an Object Status and has no payload.
@@ -3066,9 +3068,18 @@ effect on outstanding subscriptions.
 
 ### Subgroup Header
 
-When a stream begins with `SUBGROUP_HEADER`, all Objects on the stream
-belong to the track requested in the Subscribe message identified by `Track Alias`
-and the subgroup indicated by 'Group ID' and `Subgroup ID`.
+All Objects on a Subgroup stream belong to the track identified by `Track Alias`
+(see {{track-alias}}) and the Subgroup indicated by 'Group ID' and `Subgroup
+ID` in the SUBGROUP_HEADER.
+
+If an endpoint receives a subgroup with an unknown Track Alias, it MAY abandon
+the stream, or choose to buffer it for a brief period to handle reordering with
+the control message that establishes the Track Alias.  The endpoint MAY withhold
+stream flow control beyond the SUBGROUP_HEADER until the Track Alias has been
+established.  To prevent deadlocks, the publisher MUST allocate connection flow
+control to the control stream before allocating it any data streams. Otherwise,
+a receiver might wait for a control message containing a Track Alias to release
+flow control, while the sender waits for flow control to send the message.
 
 ~~~
 SUBGROUP_HEADER {
