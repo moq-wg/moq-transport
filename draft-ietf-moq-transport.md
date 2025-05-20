@@ -1685,7 +1685,9 @@ present) pass the filter.
 
 The `Largest Object` is defined to be the object with the largest Location
 ({{location-structure}}) in the track from the perspective of the endpoint
-processing the SUBSCRIBE message.
+processing the SUBSCRIBE message. Largest Object updates when the first byte of
+an Object with a larger Location than the previous value is published or
+received through a subscription.
 
 There are 4 types of filters:
 
