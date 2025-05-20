@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 20 November 2025                                  I. Swett, Ed.
+Expires: 21 November 2025                                  I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                             19 May 2025
+                                                             20 May 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 20 November 2025.
+   This Internet-Draft will expire on 21 November 2025.
 
 Copyright Notice
 
@@ -1870,7 +1870,9 @@ Table of Contents
 
    The Largest Object is defined to be the object with the largest
    Location (Section 1.3.1) in the track from the perspective of the
-   endpoint processing the SUBSCRIBE message.
+   endpoint processing the SUBSCRIBE message.  Largest Object updates
+   when the first byte of an Object with a larger Location than the
+   previous value is published or received through a subscription.
 
    There are 4 types of filters:
 
