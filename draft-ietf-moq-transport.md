@@ -458,7 +458,8 @@ Groups can contain any number of Objects.
 ### Group Ordering
 
 Within a track, the original publisher SHOULD publish Group IDs which increase
-with time. In some cases, Groups will be produced in increasing order, but sent
+with time (where "time" is defined according to the internal clock of the media
+being sent). In some cases, Groups will be produced in increasing order, but sent
 to subscribers in a different order, for example when the subscription's Group
 Order is Descending.  Due to network reordering and the partial reliability
 features of MoQT, Groups can always be received out of order.
@@ -473,6 +474,8 @@ SHOULD NOT use range filters which span multiple Groups in FETCH or SUBSCRIBE.
 SUBSCRIBE and FETCH delivery use Group Order, so a FETCH cannot deliver Groups
 out of order and a subscription could have unexpected delivery order if Group IDs
 do not increase with time.
+
+Note that the increase in time between two groups is not defined by the protocol.
 
 ## Track {#model-track}
 
