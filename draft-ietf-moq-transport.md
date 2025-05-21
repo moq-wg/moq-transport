@@ -509,6 +509,49 @@ constrain the information in these fields, for example by restricting them to
 UTF-8. Any specification that does needs to specify the canonicalization into
 the bytes in the Track Namespace or Track Name such that exact comparison works.
 
+## Malformed Tracks
+
+There are multiple ways a publisher can transmit a Track that does not conform
+to MoQT constraints. Such a Track is considered malformed.  Some example
+conditions that constitute a malformed track when detected by a receiver
+include:
+
+1. An Object is received on a Subgroup stream whose Object ID is not strictly
+   larger than the previous Object received on the same Subgroup.
+2. An Object is received in a FETCH response with the same Group as the
+   previous Object, but whose Object ID is not strictly larger than the previous
+   object.
+3. An Object is received in an Ascending FETCH response whose Group ID is smaller
+   than the previous Object in the response.
+4. An Object is received in a Descending FETCH response whose Group ID is larger
+   than the previous Object in the resopnse.
+5. A Subgroup or FETCH response is terminated with a FIN in the middle of an
+   Object
+6. An Object is received whose Object ID is larger than the final Object in the
+   Subgroup.  The final Object in a Subgroup is the last Object received on a
+   Subgroup stream before a FIN.
+7. A Subgroup is received with two or more different final Objects.
+8. An Object is received in a Group whose Object ID is larger than the final
+   Object in the Group.  The final Object in a Group is the Object with Status
+   END_OF_GROUP or the last Object sent in a FETCH that requested the entire
+   Group.
+9. An Object is received on a Track whose Group and Object ID are larger than the
+   final Object in the Track.  The final Object in a Track is the Object with
+   Status END_OF_TRACK or the last Object sent in a FETCH whose response indicated
+   End of Track.
+10. The same Object is received more than once with with different Payload or
+    other immutable properties.
+11. An Object is received with a different Forwarding Preference than previously
+    observed from the same Track.
+
+The above list of conditions is not considered exhaustive.
+
+When a subscriber detects a Malformed Track, it MUST UNSUBSCRIBE from the
+Track and SHOULD deliver an error to the application.  If a relay detects a
+Malformed Track, it MUST immediately terminate downstream subscriptions with
+SUBSCRIBE_DONE with Status Code `Malformed Track`.
+
+
 ### Scope {#track-scope}
 
 A MOQT scope is a set of servers (as identified by their connection
@@ -2095,6 +2138,8 @@ SUBSCRIBE_DONE, as defined below:
 |------|---------------------------|
 | 0x6  | Too Far Behind            |
 |------|---------------------------|
+| 0x7  | Malformed Track           |
+|------|---------------------------|
 
 * Internal Error - An implementation specific or generic error occurred.
 
@@ -2113,6 +2158,8 @@ SUBSCRIBE_DONE, as defined below:
 * Too Far Behind - The publisher's queue of objects to be sent to the given
   subscriber exceeds its implementation defined limit.
 
+* Malformed Track - The publisher detected the track was malformed (see
+  {{malformed-tracks}}).
 
 ## FETCH {#message-fetch}
 
@@ -2375,6 +2422,8 @@ as defined below:
 |------|------------------------------|
 | 0x7  | Invalid Joining Request ID   |
 |------|------------------------------|
+| 0x8  | Malformed Track              |
+|------|------------------------------|
 | 0x10 | Malformed Auth Token         |
 |------|------------------------------|
 | 0x11 | Unknown Auth Token Alias     |
@@ -2403,6 +2452,9 @@ as defined below:
 
 * Invalid Joining Subscribe ID - The joining Fetch referenced a Request ID that
   did not belong to an active Subscription.
+
+* Malformed Track - The publisher detected the track was malformed (see
+  {{malformed-tracks}}).
 
 * Malformed Auth Token - Invalid Auth Token serialization during registration
   (see {{authorization-token}}).
@@ -2870,10 +2922,8 @@ violation. Objects can arrive after a subscription or fetch has been cancelled,
 so the session MUST NOT be teriminated in that case.
 
 Every Track has a single 'Object Forwarding Preference' and the Original
-Publisher MUST NOT mix different forwarding preferences within a single track.
-If a subscriber receives Objects via both Subgroup streams and Datagrams in
-response to a SUBSCRIBE, it SHOULD close the session with an error of 'Protocol
-Violation'
+Publisher MUST NOT mix different forwarding preferences within a single track
+(see {{malformed-tracks}}).
 
 ## Track Alias
 
@@ -3381,7 +3431,8 @@ include Prior Group ID Gap = 2 in any number of Objects in Group 10, as it sees
 fit.  A track with a Group that contains more than one Object with different
 values for Prior Group ID Gap or has a Prior Group ID Gap larger than the Group
 ID is considered malformed.  If an endpoint receives an Object with a Group ID
-within a previously communicated gap it also treats the track as malformed.
+within a previously communicated gap it also treats the track as malformed
+(see {{malformed-tracks}}.
 
 This extension is optional, as publishers might not know the prior gap gize, or
 there may not be a gap. If Prior Group ID Gap is not present, the receiver
