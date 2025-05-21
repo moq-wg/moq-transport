@@ -2129,6 +2129,9 @@ Group/Object indicated in FETCH_OK, so long as the fetch stream is terminated by
 a FIN.  If no Objects exist in the requested range, the publisher returns
 FETCH_ERROR with code `No Objects`.
 
+If an Original Publisher receives a FETCH with a range that includes an object with
+unknown status, it MUST return FETCH_ERROR with code Unknown Status in Range.
+
 **Fetch Types**
 
 There are three types of Fetch messages:
@@ -2375,6 +2378,8 @@ as defined below:
 |------|------------------------------|
 | 0x7  | Invalid Joining Request ID   |
 |------|------------------------------|
+| 0x8  | Unknown Status in Range      |
+|------|------------------------------|
 | 0x10 | Malformed Auth Token         |
 |------|------------------------------|
 | 0x11 | Unknown Auth Token Alias     |
@@ -2400,6 +2405,9 @@ as defined below:
   has not published any Objects yet.
 
 * No Objects - No Objects exist between the requested Start and End Locations.
+
+* Unknown Status in Range - The requested range contains objects with unknown
+  status.
 
 * Invalid Joining Subscribe ID - The joining Fetch referenced a Request ID that
   did not belong to an active Subscription.
