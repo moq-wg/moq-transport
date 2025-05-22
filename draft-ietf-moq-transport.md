@@ -1068,11 +1068,10 @@ information can be part of subscription request itself or part of the
 encompassing session. The specifics of how a relay authorizes a user are outside
 the scope of this specification.
 
-The relay will have to send an upstream SUBSCRIBE and/or FETCH if it does not
-have all the objects in the FETCH, or is not currently subscribed to the full
-requested range. In this case, it SHOULD withhold sending its own SUBSCRIBE_OK
-until receiving one from upstream. It MUST withhold FETCH_OK until receiving
-one from upstream.
+The relay MUST have an established upstream subscription before sending
+SUBSCRIBE_OK in response to a downstream SUBSCRIBE.  If a relay does not have
+sufficient information to send a FETCH_OK immediately in response to a FETCH, it
+MUST withhold sending FETCH_OK until it does.
 
 For successful subscriptions, the publisher maintains a list of
 subscribers for each track. Each new Object belonging to the
