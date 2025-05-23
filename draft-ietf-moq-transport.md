@@ -248,11 +248,6 @@ x (L):
 
 : Indicates that x is L bits long
 
-x (i):
-
-: Indicates that x holds an integer value using the variable-length
-  encoding as described in ({{?RFC9000, Section 16}})
-
 x (..):
 
 : Indicates that x can be any length including zero bits long.  Values
@@ -266,6 +261,13 @@ x (L) ...:
 
 : Indicates that x is repeated zero or more times and that each instance
   has a length of L
+
+This document redefines the following RFC9000 syntax:
+
+x (i):
+
+: Indicates that x holds an integer value using the variable-length
+  encoding as described in {{variable-length-integers}}.
 
 This document extends the RFC9000 syntax and with the additional field types:
 
@@ -281,9 +283,46 @@ x (tuple):
   as described in ({{?RFC9000, Section 16}}), followed by that many variable
   length tuple fields, each of which are encoded as (b) above.
 
+
+### Variable-Length Integers
+
+MoQT requires a variable-length integer encoding with the following properties:
+
+1. The encoded length can be determined from the first encoded byte.
+2. The range of 1 byte values is as large as possible.
+3. All 64 bit numbers can be encoded.
+
+The variable-length integer encoding uses the most significant one to four
+bits of the first byte to indicate the length of the encoding in bytes. The
+remaining bits represent the integer value, encoded in network byte order.
+
+Integers are encoded in 1, 2, 4, 8, or 9 bytes and can encode 7-, 14-, 29-, 60-,
+or 64-bit values, respectively. The following table summarizes the encoding
+properties.
+
+|--------------|----------------|-------------|---------------|
+| Leading Bits | Length (bytes) | Usable Bits | Range         |
+|--------------|----------------|-------------|---------------|
+| 0            | 1              | 7           | 0-127         |
+|--------------|----------------|-------------|---------------|
+| 10           | 2              | 14          | 0-16,383      |
+|--------------|----------------|-------------|---------------|
+| 110          | 4              | 29          | 0-536,870,911 |
+|--------------|----------------|-------------|---------------|
+| 1110         | 8              | 60          | 0-2^60-1      |
+|--------------|----------------|-------------|---------------|
+| 1111XXXX     | 9              | 64          | 0-2^64-1      |
+|--------------|----------------|-------------|---------------|
+{: format title="Summary of Integer Encodings"}
+
+The four least significant bits of the first byte are reserved in 9-byte
+encodings.
+
 To reduce unnecessary use of bandwidth, variable length integers SHOULD
 be encoded using the least number of bytes possible to represent the
 required value.
+
+A sample encoding and decoding algorithm is in {{sample-varint}}.
 
 ### Location Structure
 
@@ -2060,18 +2099,18 @@ SUBSCRIBE_DONE Message {
 * Status Code: An integer status code indicating why the subscription ended.
 
 * Stream Count: An integer indicating the number of data streams the publisher
-opened for this subscription.  This helps the subscriber know if it has received
-all of the data published in this subscription by comparing the number of
-streams received.  The subscriber can immediately remove all subscription state
-once the same number of streams have been processed.  If the track had
-Forwarding Preference = Datagram, the publisher MUST set Stream Count to 0.  If
-the publisher is unable to set Stream Count to the exact number of streams
-opened for the subscription, it MUST set Stream Count to 2^62 - 1. Subscribers
-SHOULD use a timeout or other mechanism to remove subscription state in case
-the publisher set an incorrect value, reset a stream before the SUBGROUP_HEADER,
-or set the maximum value.  If a subscriber receives more streams for a
-subscription than specified in Stream Count, it MAY close the session with a
-Protocol Violation.
+  opened for this subscription.  This helps the subscriber know if it has
+  received all of the data published in this subscription by comparing the
+  number of streams received.  The subscriber can immediately remove all
+  subscription state once the same number of streams have been processed.  If
+  the track had Forwarding Preference = Datagram, the publisher MUST set Stream
+  Count to 0.  If the publisher is unable to set Stream Count to the exact
+  number of streams opened for the subscription, it MUST set Stream Count to a
+  value greater than or equal to 2^60. Subscribers SHOULD use a timeout or other
+  mechanism to remove subscription state in case the publisher set an incorrect
+  value, reset a stream before the SUBGROUP_HEADER, or set the maximum value. If
+  a subscriber receives more streams for a subscription than specified in Stream
+  Count, it MAY close the session with a Protocol Violation.
 
 * Error Reason: Provides the reason for subscription error. See {{reason-phrase}}.
 
@@ -3467,6 +3506,58 @@ document:
 - Will Law
 
 --- back
+
+# Sample Variable-Length Integer Encoding and Decoding {#sample-varint}
+
+The WriteVarint function takes two parameters, a 64 bit integer and an
+output buffer with an append operation.
+
+~~~pseudocode
+Function WriteVarint(value, output):
+    if value <= 127:
+        output.append(value, 1)
+    else if value <= 16383:
+        output.append(networkByteOrder(uint16_t(value | 0x8000)), 2)
+    else if value <= 536870911:
+        output.append(networkByteOrder(
+            uint32_t(value | 0xC0000000)), 4)
+    else if value <= 1152921504606846975:
+        output.append(networkByteOrder(
+            uint64_t(value | 0xE000000000000000)), 8)
+    else:
+        output.append(0xF0, 1)
+        output.append(networkByteOrder(value), 8)
+~~~
+
+
+The function ReadVarint takes a single argument -- a sequence of bytes, which
+can be read in network byte order.
+
+~~~pseudocode
+ReadVarint(data):
+  lengths = [ 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 4, 4, 8, 9 ]
+  masks = [ 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f,
+            0x3f, 0x3f, 0x3f, 0x3f, 0x1f, 0x1f, 0x0f, 0x00 ]
+  // The length of variable-length integers is encoded in the
+  // first one to four bits of the first byte.
+  v = data.next_byte()
+  prefix = v >> 4
+  length = lengths[prefix]
+  mask = masks[prefix]
+
+  // Once the length is known, remove these bits and read any
+  // remaining bytes.
+  v = v & mask
+  repeat length-1 times:
+    v = (v << 8) + data.next_byte()
+  return v
+~~~
+For example, the nine-byte sequence 0xf0ffffffffffffffff decodes to the decimal
+value 18,446,744,073,709,551,615; the eight-byte sequence 0xe2197c5eff14e88c
+decodes to the decimal value 151,288,809,941,952,652; the four-byte sequence
+0xdd7f3e7d decodes to 494,878,333; the two-byte sequence 0xbbbd decodes to
+15,293; and the single byte 0x25 decodes to 37 (as does the two-byte sequence
+0x8025).
 
 # Change Log
 
