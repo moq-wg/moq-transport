@@ -1284,6 +1284,8 @@ The following Message Types are defined:
 |-------|-----------------------------------------------------|
 | 0x14  | UNSUBSCRIBE_ANNOUNCES ({{message-unsub-ann}})       |
 |-------|-----------------------------------------------------|
+| 0x15  | GROUP_SYNC ({{message-group-sync}})                 |
+|-------|-----------------------------------------------------|
 
 An endpoint that receives an unknown message type MUST close the session.
 Control messages have a length to make parsing easier, but no control messages
@@ -2833,6 +2835,48 @@ UNSUBSCRIBE_ANNOUNCES Message {
 
 * Track Namespace Prefix: As defined in {{message-subscribe-ns}}.
 
+
+## GROUP SYNC {#message-group-sync}
+
+Subscribers issue a GROUP_SYNC message to request a new synchronization point
+(new Group) from the publisher. This message is sent after a subscription to a
+track has been successfully established. The GROUP_SYNC message identifies the
+Largest Group observed by the subscriber in the track and requests the publisher
+to publish a new Group with a GroupID greater than the one specified in the
+message.
+
+Relay publishers MUST aggregate GROUP_SYNC messages if the Largest Group in
+the request is less than or equal to the Largest Group in the GROUP_SYNC
+message issued upstream. Otherwise, the relay publisher MUST issue a new
+upstream GROUP_SYNC message.
+
+Original publishers MUST create and publish a new group in the requested track
+if no Group with a GroupID greater than or equal to the one specified in the
+most recent GROUP_SYNC message has been published.
+
+~~~
+GROUP_SYNC Message {
+Type (i) = 0x15,
+Length (16),
+Request ID(i),
+Largest Group (i),
+Number of Parameters (i),
+Parameters (..) ...,
+}
+~~~
+{: #moq-transport-sync-format title="MOQT GROUP_SYNC Message"}
+
+* Request ID: See {{request-id}}.
+
+* Track Namespace: Identifies a track's namespace as defined in
+({{track-name}})
+
+* Track Name: Identifies the track name as defined in ({{track-name}}).
+
+* Largest Group: The largest observed group in the track (either in
+SUBSCRIBE_OK or TRACK_STATUS_OK or SUBSCRIBE_UPDATE_OK).
+
+* Parameters: The parameters are d
 
 # Data Streams and Datagrams {#data-streams}
 
