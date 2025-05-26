@@ -3426,7 +3426,7 @@ TODO: fill out currently missing registries:
 
 * MOQT version numbers
 * Setup parameters
-* Subscribe parameters
+* Subscribe parameters - List which params can be repeated in the table.
 * Subscribe Error codes
 * Subscribe Namespace Error codes
 * Announce Error codes
@@ -3436,6 +3436,7 @@ TODO: fill out currently missing registries:
   standards utilization where space is a premium, 64 - 16383 for
   standards utilization where space is less of a concern, and 16384 and
   above for first-come-first-served non-standardization usage.
+  List which headers can be repeated in the table.
 * MOQT Auth Token Type
 
 TODO: register the URI scheme and the ALPN and grease the Extension types
