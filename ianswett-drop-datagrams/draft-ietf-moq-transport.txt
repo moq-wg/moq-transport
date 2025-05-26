@@ -3256,8 +3256,8 @@ Table of Contents
    Subscriber might have different maximum datagram sizes.
    Additionally, object extensions (Section 9.2.1.2) can be added to
    Objects as they pass through the MOQT network, increasing the size of
-   th Object and the chances it will exceed the maximum datagram size of
-   a downstream session and be dropped.
+   the Object and the chances it will exceed the maximum datagram size
+   of a downstream session and be dropped.
 
 9.3.1.  Object Datagram
 
