@@ -1442,7 +1442,7 @@ the session and SHOULD retire previously registered tokens once their utility
 has passed.
 
 By registering a Token, the sender is requiring the receiver to store the Token
-Alias and Token Value until they are delete, or the session ends. The receiver
+Alias and Token Value until they are deleted, or the session ends. The receiver
 can protect its resources by sending a SETUP parameter defining the
 MAX_AUTH_TOKEN_CACHE_SIZE {{max-auth-token-cache-size}} limit it is willing to
 accept. If a registration is attempted which would cause this limit to be
