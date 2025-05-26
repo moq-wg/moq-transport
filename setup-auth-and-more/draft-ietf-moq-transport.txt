@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 16 November 2025                                  I. Swett, Ed.
+Expires: 27 November 2025                                  I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                             15 May 2025
+                                                             26 May 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 16 November 2025.
+   This Internet-Draft will expire on 27 November 2025.
 
 Copyright Notice
 
@@ -1610,12 +1610,12 @@ Table of Contents
    tokens once their utility has passed.
 
    By registering a Token, the sender is requiring the receiver to store
-   the Token Alias and Token Value until they are delete, or the session
-   ends.  The receiver can protect its resources by sending a SETUP
-   parameter defining the MAX_AUTH_TOKEN_CACHE_SIZE Section 8.3.2.3
-   limit it is willing to accept.  If a registration is attempted which
-   would cause this limit to be exceeded, the receiver MUST termiate the
-   session with an Auth Token Cache Overflow error.
+   the Token Alias and Token Value until they are deleted, or the
+   session ends.  The receiver can protect its resources by sending a
+   SETUP parameter defining the MAX_AUTH_TOKEN_CACHE_SIZE
+   Section 8.3.2.3 limit it is willing to accept.  If a registration is
+   attempted which would cause this limit to be exceeded, the receiver
+   MUST termiate the session with an Auth Token Cache Overflow error.
 
 8.2.1.2.  DELIVERY TIMEOUT Parameter
 
