@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 8 November 2025                                   I. Swett, Ed.
+Expires: 29 November 2025                                  I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                              7 May 2025
+                                                             28 May 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 8 November 2025.
+   This Internet-Draft will expire on 29 November 2025.
 
 Copyright Notice
 
@@ -589,10 +589,11 @@ Table of Contents
    the bytes in the Track Namespace or Track Name such that exact
    comparison works.
 
-   Repeating the bytes corresponding to tuples between the Track
-   Namespace and the Track Name is an invalid construction.  Endpoints
-   encountering such a construction MUST terminate the session with a
-   'Protocol Violation' error.
+   To avoid confusion and potential ambiguity, the combined tuple
+   consisting of a Full Track Name's Namespace tuple fields and its
+   Track Name MUST NOT also be a Track Namespace or a prefix of a Track
+   Namespace.  Endpoints encountering such a construction MUST terminate
+   the session with a 'Protocol Violation' error.
 
 2.4.2.  Scope
 
