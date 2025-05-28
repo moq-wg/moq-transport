@@ -891,7 +891,7 @@ publishers to contact, if any.
 
 An UNSUBSCRIBE_ANNOUNCES withdraws a previous SUBSCRIBE_ANNOUNCES. It does not
 prohibit original publishers from sending further ANNOUNCE or PUBLISH messages,
-but relays MUST not send any further PUBLISH messages to a client without
+but relays MUST NOT send any further PUBLISH messages to a client without
 knowing the client is interested in and authorized to receive the content.
 
 ## Announcements
@@ -1147,10 +1147,10 @@ new tracks.
 relay to send SUBSCRIBE messages for Tracks in this Namespace in response to
 Consumer SUBSCRIBE messages.
 
-Relays MUST verify that publishers are authorized to publish the content
-associated with the set of tracks whose Track Namespace matches the namespace in
-an ANNOUNCE, or the Full Track Name in PUBLISH. Where the authorization and
-identification of the publisher occurs depends on the way the relay is managed
+Relays MUST verify that publishers are authorized to publish the set of tracks
+whose Track Namespace matches the namespace in
+an ANNOUNCE, or the Full Track Name in PUBLISH. The authorization and
+identification of the publisher depends on the way the relay is managed
 and is application specific.
 
 A Relay can receive announcements for the same Track Namespace or PUBLISH
@@ -2248,7 +2248,7 @@ overwrites the GroupOrder specified PUBLISH.
 
 ## PUBLISH_ERROR {#message-publish-error}
 
-The subscriber sends an PUBLISH_ERROR control message for to reject
+The subscriber sends an PUBLISH_ERROR control message to reject
 a subscription initiated by PUBLISH.
 
 ~~~
