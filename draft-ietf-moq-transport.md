@@ -1145,7 +1145,7 @@ new tracks.
 
 2. Send an ANNOUNCE message for a Track Namespace to the relay. This enables the
 relay to send SUBSCRIBE messages for Tracks in this Namespace in response to
-Consumer SUBSCRIBE messages.
+received SUBSCRIBE messages.
 
 Relays MUST verify that publishers are authorized to publish the set of tracks
 whose Track Namespace matches the namespace in
