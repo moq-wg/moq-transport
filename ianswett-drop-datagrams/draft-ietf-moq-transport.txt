@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 27 November 2025                                  I. Swett, Ed.
+Expires: 29 November 2025                                  I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                             26 May 2025
+                                                             28 May 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 27 November 2025.
+   This Internet-Draft will expire on 29 November 2025.
 
 Copyright Notice
 
@@ -2342,6 +2342,10 @@ Table of Contents
    stream is terminated by a FIN.  If no Objects exist in the requested
    range, the publisher returns FETCH_ERROR with code No Objects.
 
+   If an Original Publisher receives a FETCH with a range that includes
+   an object with unknown status, it MUST return FETCH_ERROR with code
+   Unknown Status in Range.
+
    *Fetch Types*
 
    There are three types of Fetch messages:
@@ -2603,6 +2607,8 @@ Table of Contents
                    +------+----------------------------+
                    |  0x7 | Invalid Joining Request ID |
                    +------+----------------------------+
+                   |  0x8 | Unknown Status in Range    |
+                   +------+----------------------------+
                    | 0x10 | Malformed Auth Token       |
                    +------+----------------------------+
                    | 0x11 | Unknown Auth Token Alias   |
@@ -2633,6 +2639,9 @@ Table of Contents
 
    *  No Objects - No Objects exist between the requested Start and End
       Locations.
+
+   *  Unknown Status in Range - The requested range contains objects
+      with unknown status.
 
    *  Invalid Joining Subscribe ID - The joining Fetch referenced a
       Request ID that did not belong to an active Subscription.
