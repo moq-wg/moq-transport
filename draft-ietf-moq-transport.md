@@ -468,11 +468,11 @@ the Group is received. This can create gaps in a cache that can be filled
 by doing a Fetch upstream, if necessary.
 
 Applications that cannot produce Group IDs that increase with time are limited
-to the subset of MOQT that does not compare group IDs. Subscribers to these Tracks
-SHOULD NOT use range filters which span multiple Groups in FETCH or SUBSCRIBE.
-SUBSCRIBE and FETCH delivery use Group Order, so a FETCH cannot deliver Groups
-out of order and a subscription could have unexpected delivery order if Group IDs
-do not increase with time.
+to the subset of MOQT that does not compare group IDs. Subscribers to these
+Tracks SHOULD NOT use range filters which span multiple Groups in FETCH or
+SUBSCRIBE.  SUBSCRIBE and FETCH delivery use Group Order, so a FETCH cannot
+deliver Groups out of order and a subscription could have unexpected delivery
+order if Group IDs do not increase with time.
 
 ## Track {#model-track}
 
@@ -504,10 +504,10 @@ close the session with a Protocol Violation.
 In this specification, both the Track Namespace tuple fields and the Track Name
 are not constrained to a specific encoding. They carry a sequence of bytes and
 comparison between two Track Namespace tuple fields or Track Names is done by
-exact comparison of the bytes. Specifications that use MOQT may
-constrain the information in these fields, for example by restricting them to
-UTF-8. Any specification that does needs to specify the canonicalization into
-the bytes in the Track Namespace or Track Name such that exact comparison works.
+exact comparison of the bytes. Specifications that use MOQT may constrain the
+information in these fields, for example by restricting them to UTF-8. Any
+specification that does needs to specify the canonicalization into the bytes in
+the Track Namespace or Track Name such that exact comparison works.
 
 ### Scope {#track-scope}
 
@@ -638,8 +638,8 @@ is used, the session is closed using the CONNECTION\_CLOSE frame
 closed using the CLOSE\_WEBTRANSPORT\_SESSION capsule ({{WebTransport,
 Section 5}}).
 
-When terminating the Transport Session, the application MAY use any error message and SHOULD use a relevant
-code, as defined below:
+When terminating the Session, the application MAY use any error message
+and SHOULD use a relevant code, as defined below:
 
 |------|---------------------------|
 | Code | Reason                    |
@@ -711,12 +711,12 @@ code, as defined below:
 * Control Message Timeout: The session was closed because the peer took too
   long to respond to a control message.
 
-* Data Stream Timeout: The session was closed because the peer took too
-  long to send data expected on an open Data Stream (see {{data-streams}}).  This
+* Data Stream Timeout: The session was closed because the peer took too long to
+  send data expected on an open Data Stream (see {{data-streams}}).  This
   includes fields of a stream header or an object header within a data
-  stream. If an endpoint times out waiting for a new object header on an
-  open subgroup stream, it MAY send a STOP_SENDING on that stream or
-  terminate the subscription.
+  stream. If an endpoint times out waiting for a new object header on an open
+  subgroup stream, it MAY send a STOP_SENDING on that stream or terminate the
+  subscription.
 
 * Auth Token Cache Overflow - the Session limit {{max-auth-token-cache-size}} of
   the size of all registered Authorization tokens has been exceeded.
@@ -995,13 +995,13 @@ subscribed Objects.
 
 ## Considerations for Setting Priorities
 
-For downstream subscriptions, relays SHOULD respect the subscriber and original publisher's priorities.
-Relays can receive subscriptions with conflicting subscriber priorities
-or Group Order preferences.  Relays SHOULD NOT directly use Subscriber Priority
-or Group Order from incoming subscriptions for upstream subscriptions. Relays'
-use of these fields for upstream subscriptions can be based on factors specific
-to it, such as the popularity of the content or policy, or relays can specify
-the same value for all upstream subscriptions.
+For downstream subscriptions, relays SHOULD respect the subscriber and original
+publisher's priorities.  Relays can receive subscriptions with conflicting
+subscriber priorities or Group Order preferences.  Relays SHOULD NOT directly
+use Subscriber Priority or Group Order from incoming subscriptions for upstream
+subscriptions. Relays' use of these fields for upstream subscriptions can be
+based on factors specific to it, such as the popularity of the content or
+policy, or relays can specify the same value for all upstream subscriptions.
 
 MoQ Sessions can span multiple namespaces, and priorities might not
 be coordinated across namespaces.  The subscriber's priority is
@@ -1190,7 +1190,8 @@ the announcement and subscription to the old relay can be stopped.
 
 MOQT encodes the delivery information via Object headers
 ({{message-object}}).  A relay MUST NOT modify Object properties when
-forwarding, except for Object Extension Headers as specified in {{object-extensions}}.
+forwarding, except for Object Extension Headers as specified in
+{{object-extensions}}.
 
 A relay MUST treat the object payload as opaque.  A relay MUST NOT
 combine, split, or otherwise modify object payloads.  A relay SHOULD
@@ -1429,16 +1430,16 @@ Client SHOULD retire previously registered tokens once their utility has passed.
 By registering a Token, the client is requiring the receiver to store the Token
 Alias and Token Value until they are retired, or the Session ends. The receiver
 can protect its resources by sending a SETUP parameter defining the
-MAX_AUTH_TOKEN_CACHE_SIZE limit (see {{max-auth-token-cache-size}}) it is willing to
-accept. If a registration is attempted which would cause this limit to be
-exceeded, the receiver MUST termiate the Session with a `Auth Token Cache
+MAX_AUTH_TOKEN_CACHE_SIZE limit (see {{max-auth-token-cache-size}}) it is
+willing to accept. If a registration is attempted which would cause this limit
+to be exceeded, the receiver MUST termiate the Session with a `Auth Token Cache
 Overflow` error.
 
 
 #### DELIVERY TIMEOUT Parameter {#delivery-timeout}
 
 The DELIVERY TIMEOUT parameter (Parameter Type 0x02) MAY appear in a
-TRACK_STATUS, SUBSCRIBE, SUBSCRIBE_OK or SUBSCRIBE_UDPATE message.
+TRACK_STATUS, SUBSCRIBE, SUBSCRIBE_OK, or SUBSCRIBE_UDPATE message.
 It is the duration in milliseconds the relay SHOULD continue to attempt
 forwarding Objects after they have been received.  The start time for the
 timeout is based on when the beginning of the Object is received, and does
@@ -1633,11 +1634,11 @@ MAX_REQUEST_ID Message {
 ~~~
 {: #moq-transport-max-request-id format title="MOQT MAX_REQUEST_ID Message"}
 
-* Request ID: The new Maximum Request ID for the session plus 1. If a Request ID equal
-  to or larger than this is received by the endpoint that sent the MAX_REQUEST_ID
-  in any request message (ANNOUNCE, FETCH, SUBSCRIBE, SUBSCRIBE_ANNOUNCES
-  or TRACK_STATUS_REQUEST), the endpoint MUST close the session with an error
-  of 'Too Many Requests'.
+* Request ID: The new Maximum Request ID for the session plus 1. If a Request ID
+  equal to or larger than this is received by the endpoint that sent the
+  MAX_REQUEST_ID in any request message (ANNOUNCE, FETCH, SUBSCRIBE,
+  SUBSCRIBE_ANNOUNCES or TRACK_STATUS_REQUEST), the endpoint MUST close the
+  session with an error of 'Too Many Requests'.
 
 MAX_REQUEST_ID is similar to MAX_STREAMS in ({{?RFC9000, Section 4.6}}), and
 similar considerations apply when deciding how often to send MAX_REQUEST_ID.
@@ -2982,7 +2983,8 @@ If supported by the relay and subject to the processing rules specified in the
 definition of the extension, Extension Headers MAY be modified, added, removed,
 and/or cached by relays.
 
-Object Extension Headers are serialized as Key-Value-Pairs (see {{moq-key-value-pair}}).
+Object Extension Headers are serialized as Key-Value-Pairs (see
+{{moq-key-value-pair}}).
 
 Header types are registered in the IANA table 'MOQ Extension Headers'.
 See {{iana}}.
