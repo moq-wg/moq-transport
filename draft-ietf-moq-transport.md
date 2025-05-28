@@ -501,9 +501,10 @@ constrain the information in these fields, for example by restricting them to
 UTF-8. Any specification that does needs to specify the canonicalization into
 the bytes in the Track Namespace or Track Name such that exact comparison works.
 
-Repeating the bytes corresponding to tuples between the Track Namespace
-and the Track Name is an invalid construction. Endpoints encountering such
-a construction MUST terminate the session with a 'Protocol Violation' error.
+To avoid confusion and potential ambiguity, the combined tuple consisting of a
+Full Track Name's Namespace tuple fields and its Track Name MUST NOT also be a
+Track Namespace or a prefix of a Track Namespace. Endpoints encountering such a
+construction MUST terminate the session with a 'Protocol Violation' error.
 
 ### Scope {#track-scope}
 
