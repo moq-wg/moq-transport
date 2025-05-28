@@ -2047,7 +2047,8 @@ Groups can contain any number of Objects.<a href="#section-2.3-1" class="pilcrow
 <a href="#section-2.3.1" class="section-number selfRef">2.3.1. </a><a href="#name-group-ordering" class="section-name selfRef">Group Ordering</a>
           </h4>
 <p id="section-2.3.1-1">Within a track, the original publisher <span class="bcp14">SHOULD</span> publish Group IDs which increase
-with time. In some cases, Groups will be produced in increasing order, but sent
+with time (where "time" is defined according to the internal clock of the media
+being sent). In some cases, Groups will be produced in increasing order, but sent
 to subscribers in a different order, for example when the subscription's Group
 Order is Descending.  Due to network reordering and the partial reliability
 features of MoQT, Groups can always be received out of order.<a href="#section-2.3.1-1" class="pilcrow">¶</a></p>
@@ -2060,6 +2061,7 @@ to the subset of MoQT that does not compare group IDs. Subscribers to these Trac
 SUBSCRIBE and FETCH delivery use Group Order, so a FETCH cannot deliver Groups
 out of order and a subscription could have unexpected delivery order if Group IDs
 do not increase with time.<a href="#section-2.3.1-3" class="pilcrow">¶</a></p>
+<p id="section-2.3.1-4">Note that the increase in time between two groups is not defined by the protocol.<a href="#section-2.3.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
