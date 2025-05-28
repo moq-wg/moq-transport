@@ -539,7 +539,7 @@ include:
    final Object in the Track.  The final Object in a Track is the Object with
    Status END_OF_TRACK or the last Object sent in a FETCH whose response indicated
    End of Track.
-10. The same Object is received more than once with with different Payload or
+10. The same Object is received more than once with different Payload or
     other immutable properties.
 11. An Object is received with a different Forwarding Preference than previously
     observed from the same Track.
