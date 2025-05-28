@@ -2785,11 +2785,10 @@ content associated with the track. The authorization
 information can be part of subscription request itself or part of the
 encompassing session. The specifics of how a relay authorizes a user are outside
 the scope of this specification.<a href="#section-7.2-1" class="pilcrow">¶</a></p>
-<p id="section-7.2-2">The relay will have to send an upstream SUBSCRIBE and/or FETCH if it does not
-have all the objects in the FETCH, or is not currently subscribed to the full
-requested range. In this case, it <span class="bcp14">SHOULD</span> withhold sending its own SUBSCRIBE_OK
-until receiving one from upstream. It <span class="bcp14">MUST</span> withhold FETCH_OK until receiving
-one from upstream.<a href="#section-7.2-2" class="pilcrow">¶</a></p>
+<p id="section-7.2-2">The relay <span class="bcp14">MUST</span> have an established upstream subscription before sending
+SUBSCRIBE_OK in response to a downstream SUBSCRIBE.  If a relay does not have
+sufficient information to send a FETCH_OK immediately in response to a FETCH, it
+<span class="bcp14">MUST</span> withhold sending FETCH_OK until it does.<a href="#section-7.2-2" class="pilcrow">¶</a></p>
 <p id="section-7.2-3">For successful subscriptions, the publisher maintains a list of
 subscribers for each track. Each new Object belonging to the
 track within the subscription range is forwarded to each active
