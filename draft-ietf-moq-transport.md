@@ -1163,8 +1163,8 @@ in a namespace it previously responded ANNOUNCE_OK to by sending an
 ANNOUNCE_CANCEL.
 
 A relay manages sessions from multiple publishers and subscribers, connecting
-them based on the track namespace or track name.  Prefix matching is used to
-determine which publishers receive a SUBSCRIBE or which subscribers receive a
+them based on the Track Namespace or Full Track Name.  Prefix matching is used
+to determine which publishers receive a SUBSCRIBE or which subscribers receive a
 PUBLISH. For example, a SUBSCRIBE namespace=(foo,bar), track=x message will be
 forwarded to the sessions that sent ANNOUNCE namespace=(foo) and ANNOUNCE
 namespace=(foo, bar) respectively, but not one that sent ANNOUNCE
