@@ -211,6 +211,11 @@ Transport Session:
 
 : A raw QUIC connection or a WebTransport session.
 
+Stream:
+
+: A bidirectional or unidirectional bytestream provided by the
+QUIC transport or WebTransport.
+
 Congestion:
 
 : Packet loss and queuing caused by degraded or overloaded networks.
@@ -292,7 +297,10 @@ Location {
 ~~~
 {: #moq-location format title="Location structure"}
 
-Location A < Location B iff
+In this document, the constituent parts of any Location A can be referred to
+using A.Group or A.Object.
+
+Location A < Location B if:
 
 `A.Group < B.Group || (A.Group == B.Group && A.Object < B.Object)`
 
@@ -364,7 +372,7 @@ track to allow the subscriber to pick the appropriate resolution given
 the display environment and available bandwidth. Each "group of pictures"
 in a video is sent as a group because the first frame is needed to
 decode later frames. This allows the client to join at the logical points
-where they can get the information to start decoding the stream.
+where they can get the information to start decoding the media.
 The temporal layers are sent as separate sub groups to allow the
 priority mechanism to favour the base layer when there is not enough
 bandwidth to send both the base and enhancement layers. Each frame of
@@ -440,17 +448,18 @@ to minimize the number of streams used.
 
 ## Groups {#model-group}
 
-A group is a collection of objects and is a sub-unit of a track ({{model-track}}).
-Groups SHOULD be independently useful, so objects within a group SHOULD NOT depend
-on objects in other groups. A group provides a join point for subscriptions, so a
-subscriber that does not want to receive the entire track can opt to receive only
-the latest group(s).  The publisher then selectively transmits objects based on
-their group membership.  Groups can contain any number of objects.
+A group is a collection of Objects and is a sub-unit of a Track
+({{model-track}}).  Groups SHOULD be independently useful, so Objects within a
+Group SHOULD NOT depend on Objects in other Groups. A Group provides a join
+point for subscriptions, so a subscriber that does not want to receive the
+entire Track can opt to receive only Groups starting from a given Group ID.
+Groups can contain any number of Objects.
 
 ### Group Ordering
 
 Within a track, the original publisher SHOULD publish Group IDs which increase
-with time. In some cases, Groups will be produced in increasing order, but sent
+with time (where "time" is defined according to the internal clock of the media
+being sent). In some cases, Groups will be produced in increasing order, but sent
 to subscribers in a different order, for example when the subscription's Group
 Order is Descending.  Due to network reordering and the partial reliability
 features of MoQT, Groups can always be received out of order.
@@ -465,6 +474,8 @@ SHOULD NOT use range filters which span multiple Groups in FETCH or SUBSCRIBE.
 SUBSCRIBE and FETCH delivery use Group Order, so a FETCH cannot deliver Groups
 out of order and a subscription could have unexpected delivery order if Group IDs
 do not increase with time.
+
+Note that the increase in time between two groups is not defined by the protocol.
 
 ## Track {#model-track}
 
@@ -535,12 +546,12 @@ over a QUIC connection directly [QUIC], and over WebTransport
 [WebTransport].  Both provide streams and datagrams with similar
 semantics (see {{?I-D.ietf-webtrans-overview, Section 4}}); thus, the
 main difference lies in how the servers are identified and how the
-connection is established.  When using QUIC, datagrams MUST be
-supported via the [QUIC-DATAGRAM] extension, which is already a
-requirement for WebTransport over HTTP/3. The RESET_STREAM_AT
-{{!I-D.draft-ietf-quic-reliable-stream-reset}} extension to QUIC
-can be used by MoQT, but the protocol is also designed to work
-correctly when the extension is not supported.
+connection is established. The [QUIC-DATAGRAM] extension
+MUST be supported and negotiated in the QUIC connection used for MOQT,
+which is already a requirement for WebTransport over HTTP/3. The
+RESET_STREAM_AT {{!I-D.draft-ietf-quic-reliable-stream-reset}}
+extension to QUIC can be used by MoQT, but the protocol is also
+designed to work correctly when the extension is not supported.
 
 There is no definition of the protocol over other transports,
 such as TCP, and applications using MoQ might need to fallback to
@@ -727,8 +738,8 @@ code, as defined below:
 An endpoint MAY choose to treat a subscription or request specific error as a
 session error under certain circumstances, closing the entire session in
 response to a condition with a single subscription or message. Implementations
-need to consider the impact on other outstanding subscriptions before making this
-choice.
+need to consider the impact on other outstanding subscriptions before making
+this choice.
 
 ## Migration {#session-migration}
 
@@ -824,9 +835,9 @@ immediately destroy relevant state. Objects MUST NOT be sent for requests that
 end with an error.
 
 A FETCH_ERROR indicates that both endpoints can immediately destroy state.
-Since a relay can start delivering FETCH objects from cache before determining
-the result of the request, some objects could be received even if the FETCH results
-in error.
+Since a relay can start delivering FETCH Objects from cache before determining
+the result of the request, some Objects could be received even if the FETCH
+results in error.
 
 The Parameters in SUBSCRIBE and FETCH MUST NOT cause the publisher to alter the
 payload of the objects it sends, as that would violate the track uniqueness
@@ -1065,11 +1076,10 @@ information can be part of subscription request itself or part of the
 encompassing session. The specifics of how a relay authorizes a user are outside
 the scope of this specification.
 
-The relay will have to send an upstream SUBSCRIBE and/or FETCH if it does not
-have all the objects in the FETCH, or is not currently subscribed to the full
-requested range. In this case, it SHOULD withhold sending its own SUBSCRIBE_OK
-until receiving one from upstream. It MUST withhold FETCH_OK until receiving
-one from upstream.
+The relay MUST have an established upstream subscription before sending
+SUBSCRIBE_OK in response to a downstream SUBSCRIBE.  If a relay does not have
+sufficient information to send a FETCH_OK immediately in response to a FETCH, it
+MUST withhold sending FETCH_OK until it does.
 
 For successful subscriptions, the publisher maintains a list of
 subscribers for each track. Each new Object belonging to the
@@ -1089,7 +1099,7 @@ allows relays to make only a single upstream subscription for the
 track. The published content received from the upstream subscription
 request is cached and shared among the pending subscribers.
 Because SUBSCRIBE_UPDATE only allows narrowing a subscription, relays that
-aggregate upstream subscriptions can subscribe using the Latest Object
+aggregate upstream subscriptions can subscribe using the Largest Object
 filter to avoid churn as downstream subscribers with disparate filters
 subscribe and unsubscribe from a track.
 
@@ -1144,12 +1154,10 @@ When a relay receives an incoming ANNOUNCE for a given namespace, for
 each active upstream subscription that matches that namespace, it SHOULD send a
 SUBSCRIBE to the publisher that sent the ANNOUNCE.
 
-Object headers carry a short hop-by-hop `Track Alias` that maps to
-the Full Track Name (see {{message-subscribe-ok}}). Relays use the
-`Track Alias` of an incoming Object to identify its track and find
-the active subscribers for that track. Relays MUST forward Objects to
-matching subscribers in accordance to each subscription's priority, group order,
-and delivery timeout.
+Relays use the Track Alias ({{track-alias}}) of an incoming Object to identify
+its track and find the active subscribers. Relays MUST forward
+Objects to matching subscribers in accordance to each subscription's priority,
+group order, and delivery timeout.
 
 If an upstream session is closed due to an unknown or invalid control message
 or Object, the relay MUST NOT continue to propagate that message or Object
@@ -1247,9 +1255,9 @@ The following Message Types are defined:
 |-------|-----------------------------------------------------|
 | 0x5   | SUBSCRIBE_ERROR ({{message-subscribe-error}})       |
 |-------|-----------------------------------------------------|
-| 0xA   | UNSUBSCRIBE ({{message-unsubscribe}})               |
-|-------|-----------------------------------------------------|
 | 0x2   | SUBSCRIBE_UPDATE ({{message-subscribe-update}})     |
+|-------|-----------------------------------------------------|
+| 0xA   | UNSUBSCRIBE ({{message-unsubscribe}})               |
 |-------|-----------------------------------------------------|
 | 0xB   | SUBSCRIBE_DONE ({{message-subscribe-done}})         |
 |-------|-----------------------------------------------------|
@@ -1444,18 +1452,21 @@ timeout is based on when the beginning of the Object is received, and does
 not depend upon the forwarding preference. There is no explicit signal that
 an Object was not sent because the delivery timeout was exceeded.
 
-If both the subscriber and publisher specify the parameter, they use the min of the
-two values for the subscription.  The publisher SHOULD always specify the value
-received from an upstream subscription when there is one, and nothing otherwise.
-If an earlier Object arrives later than subsequent Objects, relays can consider
-the receipt time as that of the next later Object, with the assumption that the
-Object's data was reordered.
+If both the subscriber and publisher specify the parameter, they use the min of
+the two values for the subscription.  The publisher SHOULD always specify the
+value received from an upstream subscription when there is one, and nothing
+otherwise.  If an Object with a smaller ID arrives later than subsequent
+Objects, relays can consider its receipt time as that of the Object with the
+next larger Location, with the assumption that the Objects were reordered.
 
-If neither the subscriber or publisher specify DELIVERY TIMEOUT, all Objects
-in the track matching the subscription filter are delivered as indicated by
-their Group Order and Priority.  If a subscriber exceeds the publisher's
-resource limits by failing to consume objects at a sufficient rate, the
-publisher MAY terminate the subscription with error 'Too Far Behind'.
+Publishers can, at their discretion, discontinue forwarding Objects earlier than
+the negotiated DELIVERY TIMEOUT, subject to stream closure and ordering
+constraints described in {{closing-subgroup-streams}}.  However, if neither the
+subscriber or publisher specify DELIVERY TIMEOUT, all Objects in the track
+matching the subscription filter are delivered as indicated by their Group Order
+and Priority.  If a subscriber fails to consume Objects at a sufficient rate,
+causing the publisher to exceed its resource limits, the publisher MAY terminate
+the subscription with error 'Too Far Behind'.
 
 If an object in a subgroup exceeds the delivery timeout, the publisher MUST
 reset the underlying transport stream (see {{closing-subgroup-streams}}).
@@ -1496,7 +1507,7 @@ The wire format of the Setup messages are as follows:
 ~~~
 CLIENT_SETUP Message {
   Type (i) = 0x20,
-  Length (i),
+  Length (16),
   Number of Supported Versions (i),
   Supported Versions (i) ...,
   Number of Parameters (i),
@@ -1505,7 +1516,7 @@ CLIENT_SETUP Message {
 
 SERVER_SETUP Message {
   Type (i) = 0x21,
-  Length (i),
+  Length (16),
   Selected Version (i),
   Number of Parameters (i),
   Setup Parameters (..) ...,
@@ -1592,7 +1603,7 @@ The endpoint MUST terminate the session with a Protocol Violation
 ~~~
 GOAWAY Message {
   Type (i) = 0x10,
-  Length (i),
+  Length (16),
   New Session URI Length (i),
   New Session URI (..),
 }
@@ -1622,7 +1633,7 @@ value is a 'Protocol Violation'.
 ~~~
 MAX_REQUEST_ID Message {
   Type (i) = 0x15,
-  Length (i),
+  Length (16),
   Request ID (i),
 }
 ~~~
@@ -1654,7 +1665,7 @@ sending REQUESTS_BLOCKED is not required.
 ~~~
 REQUESTS_BLOCKED Message {
   Type (i) = 0x1A,
-  Length (i),
+  Length (16),
   Maximum Request ID (i),
 }
 ~~~
@@ -1681,17 +1692,19 @@ present) pass the filter.
 
 The `Largest Object` is defined to be the object with the largest Location
 ({{location-structure}}) in the track from the perspective of the endpoint
-processing the SUBSCRIBE message.
+processing the SUBSCRIBE message. Largest Object updates when the first byte of
+an Object with a larger Location than the previous value is published or
+received through a subscription.
 
 There are 4 types of filters:
 
-Latest Object (0x2): The filter Start Location is `{Largest Object.Group,
+Largest Object (0x2): The filter Start Location is `{Largest Object.Group,
 Largest Object.Object + 1}` and `Largest Object` is communicated in
 SUBSCRIBE_OK. If no content has been delivered yet, the filter Start Location is
 {0, 0}. There is no End Group - the subscription is open ended.  Note that due
 to network reordering or prioritization, relays can receive Objects with
 Locations smaller than  `Largest Object` after the SUBSCRIBE is processed, but
-these Objects do not pass the Latest Object filter.
+these Objects do not pass the Largest Object filter.
 
 Next Group Start (0x1): The filter start Location is `{Largest Object.Group + 1,
 0}` and `Largest Object` is communicated in SUBSCRIBE_OK. If no content has been
@@ -1735,9 +1748,8 @@ The format of SUBSCRIBE is as follows:
 ~~~
 SUBSCRIBE Message {
   Type (i) = 0x3,
-  Length (i),
+  Length (16),
   Request ID (i),
-  Track Alias (i),
   Track Namespace (tuple),
   Track Name Length (i),
   Track Name (..),
@@ -1754,12 +1766,6 @@ SUBSCRIBE Message {
 {: #moq-transport-subscribe-format title="MOQT SUBSCRIBE Message"}
 
 * Request ID: See {{request-id}}.
-
-* Track Alias: A session specific identifier for the track.
-Data streams and datagrams specify the Track Alias instead of the Track Name
-and Track Namespace to reduce overhead. If the Track Alias is already being used
-for a different track, the publisher MUST close the session with a Duplicate
-Track Alias error ({{session-termination}}).
 
 * Track Namespace: Identifies the namespace of the track as defined in
 ({{track-name}}).
@@ -1807,8 +1813,9 @@ subscriptions.
 ~~~
 SUBSCRIBE_OK Message {
   Type (i) = 0x4,
-  Length (i),
+  Length (16),
   Request ID (i),
+  Track Alias (i),
   Expires (i),
   Group Order (8),
   Content Exists (8),
@@ -1821,6 +1828,12 @@ SUBSCRIBE_OK Message {
 
 * Request ID: The Request ID of the SUBSCRIBE this message is replying to
   {{message-subscribe-req}}.
+
+* Track Alias: The identifer used for this track in Subgroups or Datagrams (see
+  {{track-alias}}). The same Track Alias MUST NOT be used to refer to two
+  different Tracks simultaneously. If a subscriber receives a SUBSCRIBE_OK that
+  uses the same Track Alias as a different track with an active subscription, it
+  MUST close the session with error 'Duplicate Track Alias'.
 
 * Expires: Time in milliseconds after which the subscription is no
 longer valid. A value of 0 indicates that the subscription does not expire
@@ -1849,11 +1862,10 @@ failed SUBSCRIBE.
 ~~~
 SUBSCRIBE_ERROR Message {
   Type (i) = 0x5,
-  Length (i),
+  Length (16),
   Request ID (i),
   Error Code (i),
   Error Reason (Reason Phrase),
-  Track Alias (i),
 }
 ~~~
 {: #moq-transport-subscribe-error format title="MOQT SUBSCRIBE_ERROR Message"}
@@ -1864,11 +1876,6 @@ SUBSCRIBE_ERROR Message {
 * Error Code: Identifies an integer error code for subscription failure.
 
 * Error Reason: Provides the reason for subscription error. See {{reason-phrase}}.
-
-* Track Alias: When Error Code is 'Retry Track Alias', the subscriber SHOULD re-issue the
-  SUBSCRIBE with this Track Alias instead. If this Track Alias is already in use,
-  the subscriber MUST close the connection with a Duplicate Track Alias error
-  ({{session-termination}}).
 
 The application SHOULD use a relevant error code in SUBSCRIBE_ERROR,
 as defined below:
@@ -1887,8 +1894,6 @@ as defined below:
 | 0x4  | Track Does Not Exist      |
 |------|---------------------------|
 | 0x5  | Invalid Range             |
-|------|---------------------------|
-| 0x6  | Retry Track Alias         |
 |------|---------------------------|
 | 0x10 | Malformed Auth Token      |
 |------|---------------------------|
@@ -1913,9 +1918,6 @@ as defined below:
 * Invalid Range - The end of the SUBSCRIBE range is earlier than the beginning,
   or the end of the range has already been published.
 
-* Retry Track Alias - The publisher requires the subscriber to use the given
-  Track Alias when subscribing.
-
 * Malformed Auth Token - Invalid Auth Token serialization during registration
   (see {{authorization-token}}).
 
@@ -1927,18 +1929,18 @@ as defined below:
 
 ## SUBSCRIBE_UPDATE {#message-subscribe-update}
 
-A subscriber issues a SUBSCRIBE_UPDATE to a publisher to request a change to
-an existing subscription. Subscriptions can only become more narrow, not wider,
-because an attempt to widen a subscription could fail. If Objects before the
-start or after the end of the current subscription are needed, a fetch might
-be able to retrieve objects before the start. The start Object MUST NOT
-decrease and when it increases, there is no guarantee that a publisher will
-not have already sent Objects before the new start Object.  The end Group
-MUST NOT increase and when it decreases, there is no guarantee that a publisher
-will not have already sent Objects after the new end Object. A publisher SHOULD
-close the Session as a 'Protocol Violation' if the SUBSCRIBE_UPDATE violates
-either rule or if the subscriber specifies a Request ID that has not existed
-within the Session.
+A subscriber sends a SUBSCRIBE_UPDATE to a publisher to modify an existing
+subscription. Subscriptions can only be narrowed, not widened, as an attempt to
+widen could fail. If Objects with Locations smaller than the current
+subscription's Start Location are required, FETCH can be used to retrieve
+them. The Start Location MUST NOT decrease, and if it increases, there is no
+guarantee that the publisher has not already sent Objects with Locations smaller
+than the new Start Location. Similarly, the End Group MUST NOT increase, and if
+it decreases, there is no guarantee that the publisher has not already sent
+Objects with Locations larger than the new End Location.  A publisher MUST
+terminate the session with a 'Protocol Violation' if the SUBSCRIBE_UPDATE
+violates these rules or if the subscriber specifies a request ID that has not
+existed within the Session.
 
 There is no control message in response to a SUBSCRIBE_UPDATE, because it is
 expected that it will always succeed and the worst outcome is that it is not
@@ -1958,7 +1960,7 @@ The format of SUBSCRIBE_UPDATE is as follows:
 ~~~
 SUBSCRIBE_UPDATE Message {
   Type (i) = 0x2,
-  Length (i),
+  Length (16),
   Request ID (i),
   Start Location (Location),
   End Group (i),
@@ -2000,7 +2002,7 @@ The format of `UNSUBSCRIBE` is as follows:
 ~~~
 UNSUBSCRIBE Message {
   Type (i) = 0xA,
-  Length (i),
+  Length (16),
   Request ID (i)
 }
 ~~~
@@ -2050,7 +2052,7 @@ The format of `SUBSCRIBE_DONE` is as follows:
 ~~~
 SUBSCRIBE_DONE Message {
   Type (i) = 0xB,
-  Length (i),
+  Length (16),
   Request ID (i),
   Status Code (i),
   Stream Count (i),
@@ -2134,6 +2136,9 @@ Group/Object indicated in FETCH_OK, so long as the fetch stream is terminated by
 a FIN.  If no Objects exist in the requested range, the publisher returns
 FETCH_ERROR with code `No Objects`.
 
+If an Original Publisher receives a FETCH with a range that includes an object with
+unknown status, it MUST return FETCH_ERROR with code Unknown Status in Range.
+
 **Fetch Types**
 
 There are three types of Fetch messages:
@@ -2143,8 +2148,8 @@ Standalone Fetch (0x1) : A Fetch of Objects performed independently of any Subsc
 Relative Joining Fetch (0x2) : A Fetch joined together with a Subscribe by
 specifying the Request ID of an active subscription and a relative starting
 offset. A publisher receiving a Joining Fetch uses properties of the associated
-Subscribe to determine the Track Namespace, Track, Start Group, Start Object,
-End Group, and End Object such that it is contiguous with the associated
+Subscribe to determine the Track Namespace, Track, Start Location,
+and End Location such that it is contiguous with the associated
 Subscribe. The Joining Fetch begins the Preceding Group Offset prior to the
 associated subscription.
 
@@ -2156,7 +2161,7 @@ A Subscriber can use a Joining Fetch to, for example, fill a playback buffer wit
 certain number of groups prior to the live edge of a track.
 
 A Joining Fetch is only permitted when the associated Subscribe has the Filter
-Type Latest Object.
+Type Largest Object.
 
 A Fetch Type other than 0x1, 0x2 or 0x3 MUST be treated as an error.
 
@@ -2175,16 +2180,16 @@ cached objects have been delivered before resetting the stream.
 
 The Object Forwarding Preference does not apply to fetches.
 
-Fetch specifies an inclusive range of Objects starting at Start Object
-in Start Group and ending at End Object in End Group. End Group and End Object MUST
-specify the same or a larger Location than Start Group and Start Object.
+Fetch specifies an inclusive range of Objects starting at Start Location and
+ending at End Location. End Location MUST specify the same or a larger Location
+than Start Location.
 
 The format of FETCH is as follows:
 
 ~~~
 FETCH Message {
   Type (i) = 0x16,
-  Length (i),
+  Length (16),
   Request ID (i),
   Subscriber Priority (8),
   Group Order (8),
@@ -2192,11 +2197,9 @@ FETCH Message {
   [Track Namespace (tuple),
    Track Name Length (i),
    Track Name (..),
-   Start Group (i),
-   Start Object (i),
-   End Group (i),
-   End Object (i),]
-  [Joining Subscribe ID (i),
+   Start Location (Location),
+   End Location (Location),]
+  [Joining Request ID (i),
    Joining Start (i),]
   Number of Parameters (i),
   Parameters (..) ...
@@ -2229,21 +2232,17 @@ Fields present only for Standalone Fetch (0x1):
 
 * Track Name: Identifies the track name as defined in ({{track-name}}).
 
-* Start Group: The start Group ID.
+* Start Location: The start Location.
 
-* Start Object: The start Object ID.
-
-* End Group: The end Group ID.
-
-* End Object: The end Object ID, plus 1. A value of 0 means the entire group is
-requested.
+* End Location: The end Location, plus 1 Object ID. An Object ID value of 0
+  means the entire group is requested.
 
 Fields present only for Relative Fetch (0x2) and Absolute Fetch (0x3):
 
-* Joining Subscribe ID: The Request ID of the existing subscription to be
+* Joining Request ID: The Request ID of the existing subscription to be
   joined. If a publisher receives a Joining Fetch with a Request ID that does
   not correspond to an existing Subscribe in the same session, it MUST respond
-  with a Fetch Error with code Invalid Joining Subscribe ID.
+  with a Fetch Error with code Invalid Joining Request ID.
 
 * Joining Start : for a Relative Joining Fetch (0x2), this value represents the
   group offset for the Fetch prior and relative to the Current Group of the
@@ -2251,17 +2250,18 @@ Fields present only for Relative Fetch (0x2) and Absolute Fetch (0x3):
   of the Current Group. For an Absolute Joining Fetch (0x3), this value represents
   the Starting Group ID.
 
-Objects that are not yet published will not be retrieved by a FETCH.
-The latest available Object is indicated in the FETCH_OK, and is the last
-Object a fetch will return if the End Group and End Object have not yet been
+Objects that are not yet published will not be retrieved by a FETCH.  The
+Largest available Object in the requested range is indicated in the FETCH_OK,
+and is the last Object a fetch will return if the End Location have not yet been
 published.
 
 A publisher MUST send fetched groups in the determined group order, either
 ascending or descending. Within each group, objects are sent in Object ID order;
 subgroup ID is not used for ordering.
 
-If Start Group/Start Object is greater than the latest published Object group,
-the publisher MUST return FETCH_ERROR with error code 'Invalid Range'.
+If Start Location is greater than the `Largest Object`
+({{message-subscribe-req}}) the publisher MUST return FETCH_ERROR with error
+code 'Invalid Range'.
 
 ### Calculating the Range of a Relative Joining Fetch
 
@@ -2269,8 +2269,8 @@ A publisher that receives a Fetch of type Type 0x2 treats it
 as a Fetch with a range dynamically determined by the Preceding Group Offset
 and field values derived from the corresponding subscription.
 
-The Largest Group ID and Largest Object ID values from the corresponding
-subscription are used to calculate the end of a Relative Joining Fetch so the
+The Largest Location value from the corresponding
+subscription is used to calculate the end of a Relative Joining Fetch so the
 Objects retrieved by the FETCH and SUBSCRIBE are contiguous and non-overlapping.
 If no Objects have been published for the track, and the SUBSCRIBE_OK has a
 Content Exists value of 0, the publisher MUST respond with a FETCH_ERROR with
@@ -2278,31 +2278,29 @@ error code 'Invalid Range'.
 
 The publisher receiving a Relative Joining Fetch computes the range as follows:
 
-* Fetch Start Group: Subscribe Largest Group - Joining start
-* Fetch Start Object: 0
-* Fetch End Group: Subscribe Largest Group
-* Fetch End Object: Subscribe Largest Object
+* Fetch Start Location: {Subscribe Largest Location.Group - Joining Start, 0}
+* Fetch End Location: Subscribe Largest Location
 
-A Fetch End Object of 0 requests the entire group, but Fetch will not
+A Fetch End Location.Object of 0 requests the entire group, but Fetch will not
 retrieve Objects that have not yet been published, so 1 is subtracted from
-the Fetch End Group if Fetch End Object is 0.
+the Fetch End Location.Group if Fetch End Location.Object is 0.
 
 ### Calculating the Range of an Absolute Joining Fetch
 
-Identical to the Relative Joining fetch except that Fetch Start Group is the
-Joining Start value.
+Identical to the Relative Joining fetch except that Fetch Start Location.Group
+is the Joining Start value.
 
 
 ## FETCH_OK {#message-fetch-ok}
 
 A publisher sends a FETCH_OK control message in response to successful fetches.
 A publisher MAY send Objects in response to a FETCH before the FETCH_OK message is sent,
-but the FETCH_OK MUST NOT be sent until the end group and object are known.
+but the FETCH_OK MUST NOT be sent until the End Location is known.
 
 ~~~
 FETCH_OK Message {
   Type (i) = 0x18,
-  Length (i),
+  Length (16),
   Request ID (i),
   Group Order (8),
   End Of Track (8),
@@ -2320,17 +2318,25 @@ FETCH_OK Message {
 Ascending (0x1) or Descending (0x2) order by group. See {{priorities}}.
 Values of 0x0 and those larger than 0x2 are a protocol error.
 
-* End Of Track: 1 if all objects have been published on this track, so
-the End Group ID and Object Id indicate the last Object in the track,
-0 if not.
+* End Of Track: 1 if all Objects have been published on this Track, and
+  the End Location is the final Object in the Track, 0 if not.
 
 * End Location: The largest object covered by the FETCH response.
-  This is the minimum of the {End Group,End Object} specified in FETCH and the
-  largest known {group,object}.  If the relay is currently subscribed to the
-  track, the largest known {group,object} at the relay is used.  For tracks
-  with a requested end larger than what is cached without an active
-  subscription, the relay makes an upstream request in order to satisfy the
-  FETCH.
+  The End Location is determined as follows:
+   - If the requested FETCH End Location was beyond the Largest known (possibly
+     final) Object, End Location is {Largest.Group, Largest.Object + 1}
+   - If End Location.Object in the FETCH request was 0 and the response covers
+     the last Object in the Group, End Location is {Fetch.End Location.Group, 0}
+   - Otherwise, End Location is Fetch.End Location
+
+  If the relay is subscribed to the track, it uses its knowledge of the largest
+  {Group, Object} to set End Location.  If if is not subscribed and the
+  requested End Location exceeds its cached data, the relay makes an upstream
+  request to complete the FETCH, and uses the upstream response to set End
+  Location.
+
+  If End is smaller than the Start Location in the corresponding FETCH the
+  receiver MUST close the session with `Protocol Violation`
 
 * Subscribe Parameters: The parameters are defined in {{version-specific-params}}.
 
@@ -2342,7 +2348,7 @@ failed FETCH.
 ~~~
 FETCH_ERROR Message {
   Type (i) = 0x19,
-  Length (i),
+  Length (16),
   Request ID (i),
   Error Code (i),
   Error Reason (Reason Phrase)
@@ -2377,7 +2383,9 @@ as defined below:
 |------|------------------------------|
 | 0x6  | No Objects                   |
 |------|------------------------------|
-| 0x7  | Invalid Joining Subscribe ID |
+| 0x7  | Invalid Joining Request ID   |
+|------|------------------------------|
+| 0x8  | Unknown Status in Range      |
 |------|------------------------------|
 | 0x10 | Malformed Auth Token         |
 |------|------------------------------|
@@ -2400,10 +2408,13 @@ as defined below:
 * Track Does Not Exist - The requested track is not available at the publisher.
 
 * Invalid Range - The end of the requested range is earlier than the beginning,
-  the start of the requested range is beyond the Largest Object, or the track
+  the start of the requested range is beyond the Largest Location, or the track
   has not published any Objects yet.
 
 * No Objects - No Objects exist between the requested Start and End Locations.
+
+* Unknown Status in Range - The requested range contains objects with unknown
+  status.
 
 * Invalid Joining Subscribe ID - The joining Fetch referenced a Request ID that
   did not belong to an active Subscription.
@@ -2429,7 +2440,7 @@ The format of `FETCH_CANCEL` is as follows:
 ~~~
 FETCH_CANCEL Message {
   Type (i) = 0x17,
-  Length (i),
+  Length (16),
   Request ID (i)
 }
 ~~~
@@ -2448,7 +2459,7 @@ A TRACK_STATUS message MUST be sent in response to each TRACK_STATUS_REQUEST.
 ~~~
 TRACK_STATUS_REQUEST Message {
   Type (i) = 0xD,
-  Length (i),
+  Length (16),
   Request ID (i),
   Track Namespace (tuple),
   Track Name Length (i),
@@ -2476,7 +2487,7 @@ to a TRACK_STATUS_REQUEST message.
 ~~~
 TRACK_STATUS Message {
   Type (i) = 0xE,
-  Length (i),
+  Length (16),
   Request ID (i),
   Status Code (i),
   Largest Location (Location),
@@ -2529,7 +2540,7 @@ publisher is authorized to publish tracks under this namespace.
 ~~~
 ANNOUNCE Message {
   Type (i) = 0x6,
-  Length (i),
+  Length (16),
   Request ID (i),
   Track Namespace (tuple),
   Number of Parameters (i),
@@ -2553,7 +2564,7 @@ successful authorization and acceptance of an ANNOUNCE message.
 ~~~
 ANNOUNCE_OK Message {
   Type (i) = 0x7,
-  Length (i),
+  Length (16),
   Request ID (i)
 }
 ~~~
@@ -2570,7 +2581,7 @@ failed authorization.
 ~~~
 ANNOUNCE_ERROR Message {
   Type (i) = 0x8,
-  Length (i),
+  Length (16),
   Request ID (i),
   Error Code (i),
   Error Reason (Reason Phrase)
@@ -2638,7 +2649,7 @@ within the provided Track Namespace.
 ~~~
 UNANNOUNCE Message {
   Type (i) = 0x9,
-  Length (i),
+  Length (16),
   Track Namespace (tuple),
 }
 ~~~
@@ -2656,7 +2667,7 @@ within the provided Track Namespace.
 ~~~
 ANNOUNCE_CANCEL Message {
   Type (i) = 0xC,
-  Length (i),
+  Length (16),
   Track Namespace (tuple),
   Error Code (i),
   Error Reason (Reason Phrase),
@@ -2682,7 +2693,7 @@ to the set.
 ~~~
 SUBSCRIBE_ANNOUNCES Message {
   Type (i) = 0x11,
-  Length (i),
+  Length (16),
   Request ID (i),
   Track Namespace Prefix (tuple),
   Number of Parameters (i),
@@ -2732,7 +2743,7 @@ namespace subscriptions.
 ~~~
 SUBSCRIBE_ANNOUNCES_OK Message {
   Type (i) = 0x12,
-  Length (i),
+  Length (16),
   Request ID (i),
 }
 ~~~
@@ -2750,7 +2761,7 @@ a failed SUBSCRIBE_ANNOUNCES.
 ~~~
 SUBSCRIBE_ANNOUNCES_ERROR Message {
   Type (i) = 0x13,
-  Length (i),
+  Length (16),
   Request ID (i),
   Error Code (i),
   Error Reason (Reason Phrase)
@@ -2829,7 +2840,7 @@ The format of `UNSUBSCRIBE_ANNOUNCES` is as follows:
 ~~~
 UNSUBSCRIBE_ANNOUNCES Message {
   Type (i) = 0x14,
-  Length (i),
+  Length (16),
   Track Namespace Prefix (tuple)
 }
 ~~~
@@ -2859,9 +2870,9 @@ the datagram.
 |-----------|---------------------------------------------------|
 | ID        | Type                                              |
 |----------:|:--------------------------------------------------|
-| 0x00-0x01 | OBJECT_DATAGRAM ({{object-datagram}})             |
+| 0x00-0x03 | OBJECT_DATAGRAM ({{object-datagram}})             |
 |-----------|---------------------------------------------------|
-| 0x02-0x03 | OBJECT_DATAGRAM_STATUS ({{object-datagram}})      |
+| 0x04-0x05 | OBJECT_DATAGRAM_STATUS ({{object-datagram}})      |
 |-----------|---------------------------------------------------|
 
 An endpoint that receives an unknown stream or datagram type MUST close the
@@ -2878,6 +2889,12 @@ Publisher MUST NOT mix different forwarding preferences within a single track.
 If a subscriber receives Objects via both Subgroup streams and Datagrams in
 response to a SUBSCRIBE, it SHOULD close the session with an error of 'Protocol
 Violation'
+
+## Track Alias
+
+To optimize wire efficiency, Subgroups and Datagrams refer to a track by a
+numeric identifier, rather than the Full Track Name.  Track Alias is chosen by
+the publisher and included in SUBSCRIBE_OK ({{message-subscribe-ok}}.
 
 ## Objects {#message-object}
 
@@ -2940,7 +2957,10 @@ are beyond the end of a group or track.
          GroupID. This is sent right after the last object in the
          group. If the ObjectID is 0, it indicates there are no Objects
          in this Group. This SHOULD be cached. A publisher MAY use an end of
-         Group object to signal the end of all open Subgroups in a Group.
+         Group object to signal the end of all open Subgroups in a Group. A
+         non-zero-length Object can be the End of Group, as signaled in
+         the DATAGRAM or SUBGROUP_HEADER Type field (see {{object-datagram}}
+         and {{subgroup-header}}).
 
 * 0x4 := Indicates end of Track. GroupID is either the largest group produced
          in this track and the ObjectID is one greater than the largest object
@@ -2984,20 +3004,29 @@ Object Extension Headers are serialized as Key-Value-Pairs {{moq-key-value-pair}
 Header types are registered in the IANA table 'MOQ Extension Headers'.
 See {{iana}}.
 
-## Object Datagram {#object-datagram}
+## Datagrams
+
+A single object can be conveyed in a datagram.  The Track Alias field
+{{track-alias}} indicates the track this Datagram belongs to.  If an endpoint
+receives a datagram with an unknown Track Alias, it MAY drop the datagram or
+choose to buffer it for a brief period to handle reordering with the control
+message that establishes the Track Alias.
+
+An Object received in an `OBJECT_DATAGRAM` or `OBJECT_DATAGRAM_STATUS` message
+has an `Object Forwarding Preference` = `Datagram`. To send an Object with
+`Object Forwarding Preference` = `Datagram`, determine the length of the header
+and payload and send the Object as datagram. In certain scenarios where the
+object size can be larger than maximum datagram size for the session, the Object
+will be dropped.
+
+
+### Object Datagram {#object-datagram}
 
 An `OBJECT_DATAGRAM` carries a single object in a datagram.
 
-An Object received in an `OBJECT_DATAGRAM` message has an `Object
-Forwarding Preference` = `Datagram`. To send an Object with `Object
-Forwarding Preference` = `Datagram`, determine the length of the header and
-payload and send the Object as datagram. In certain scenarios where the object
-size can be larger than maximum datagram size for the session, the Object
-will be dropped.
-
 ~~~
 OBJECT_DATAGRAM {
-  Type (i),
+  Type (i) = 0x0-0x4,
   Track Alias (i),
   Group ID (i),
   Object ID (i),
@@ -3009,16 +3038,34 @@ OBJECT_DATAGRAM {
 ~~~
 {: #object-datagram-format title="MOQT OBJECT_DATAGRAM"}
 
-The Type field takes the form 0b0000000X (or the set of values from 0x00 to
-0x01). The LSB of the type determines if the Extensions Headers Length and
-Extension headers are present. If an endpoint receives a datagram with Type
-0x01 and Extension Headers Length is 0, it MUST close the session with Protocol
-Violation.
+There are 4 defined Type values for OBJECT_DATAGRAM:
+
+|------|---------------|------------|
+| Type | End Of Group  | Extensions |
+|      |               | Present    |
+|------|---------------|------------|
+| 0x00 | No            | No         |
+|------|---------------|------------|
+| 0x01 | No            | Yes        |
+|------|---------------|------------|
+| 0x02 | Yes           | No         |
+|------|---------------|------------|
+| 0x03 | Yes           | Yes        |
+|------|---------------|------------|
+
+For Type values where End of Group is Yes, the Object is the last Object in the
+Group.
+
+For Type values where Extensions Present is No, Extensions Headers Length is not
+present and the Object has no extensions.  When Extensions Present is Yes,
+Extension Headers Length is present.  If an endpoint receives a datagram with
+Type 0x01 and Extension Headers Length is 0, it MUST close the session with
+Protocol Violation.
 
 There is no explicit length field.  The entirety of the transport datagram
 following Publisher Priority contains the Object Payload.
 
-## Object Datagram Status {#object-datagram-status}
+### Object Datagram Status {#object-datagram-status}
 
 An `OBJECT_DATAGRAM_STATUS` is similar to OBJECT_DATAGRAM except it
 conveys an Object Status and has no payload.
@@ -3062,13 +3109,22 @@ effect on outstanding subscriptions.
 
 ### Subgroup Header
 
-When a stream begins with `SUBGROUP_HEADER`, all Objects on the stream
-belong to the track requested in the Subscribe message identified by `Track Alias`
-and the subgroup indicated by 'Group ID' and `Subgroup ID`.
+All Objects on a Subgroup stream belong to the track identified by `Track Alias`
+(see {{track-alias}}) and the Subgroup indicated by 'Group ID' and `Subgroup
+ID` in the SUBGROUP_HEADER.
+
+If an endpoint receives a subgroup with an unknown Track Alias, it MAY abandon
+the stream, or choose to buffer it for a brief period to handle reordering with
+the control message that establishes the Track Alias.  The endpoint MAY withhold
+stream flow control beyond the SUBGROUP_HEADER until the Track Alias has been
+established.  To prevent deadlocks, the publisher MUST allocate connection flow
+control to the control stream before allocating it any data streams. Otherwise,
+a receiver might wait for a control message containing a Track Alias to release
+flow control, while the sender waits for flow control to send the message.
 
 ~~~
 SUBGROUP_HEADER {
-  Type (i),
+  Type (i) = 0x8..0xD,
   Track Alias (i),
   Group ID (i),
   [Subgroup ID (i),]
@@ -3080,29 +3136,46 @@ SUBGROUP_HEADER {
 All Objects received on a stream opened with `SUBGROUP_HEADER` have an
 `Object Forwarding Preference` = `Subgroup`.
 
-There are 6 defined Type values for SUBGROUP_HEADER:
+There are 12 defined Type values for SUBGROUP_HEADER:
 
-|------|---------------|-----------------|------------|
-| Type | Subgroup ID   | Subgroup ID     | Extensions |
-|      | Field Present | Value           | Present    |
-|------|---------------|-----------------|------------|
-| 0x08 | No            | 0               | No         |
-|------|---------------|-----------------|------------|
-| 0x09 | No            | 0               | Yes        |
-|------|---------------|-----------------|------------|
-| 0x0A | No            | First Object ID | No         |
-|------|---------------|-----------------|------------|
-| 0x0B | No            | First Object ID | Yes        |
-|------|---------------|-----------------|------------|
-| 0x0C | Yes           | N/A             | No         |
-|------|---------------|-----------------|------------|
-| 0x0D | Yes           | N/A             | Yes        |
-|------|---------------|-----------------|------------|
+|------|---------------|-----------------|------------|--------------|
+| Type | Subgroup ID   | Subgroup ID     | Extensions | Contains End |
+|      | Field Present | Value           | Present    | of Group     |
+|------|---------------|-----------------|------------|--------------|
+| 0x10 | No            | 0               | No         | No           |
+|------|---------------|-----------------|------------|--------------|
+| 0x11 | No            | 0               | Yes        | No           |
+|------|---------------|-----------------|------------|--------------|
+| 0x12 | No            | First Object ID | No         | No           |
+|------|---------------|-----------------|------------|--------------|
+| 0x13 | No            | First Object ID | Yes        | No           |
+|------|---------------|-----------------|------------|--------------|
+| 0x14 | Yes           | N/A             | No         | No           |
+|------|---------------|-----------------|------------|--------------|
+| 0x15 | Yes           | N/A             | Yes        | No           |
+|------|---------------|-----------------|------------|--------------|
+| 0x18 | No            | 0               | No         | Yes          |
+|------|---------------|-----------------|------------|--------------|
+| 0x19 | No            | 0               | Yes        | Yes          |
+|------|---------------|-----------------|------------|--------------|
+| 0x1A | No            | First Object ID | No         | Yes          |
+|------|---------------|-----------------|------------|--------------|
+| 0x1B | No            | First Object ID | Yes        | Yes          |
+|------|---------------|-----------------|------------|--------------|
+| 0x1C | Yes           | N/A             | No         | Yes          |
+|------|---------------|-----------------|------------|--------------|
+| 0x1D | Yes           | N/A             | Yes        | Yes          |
+|------|---------------|-----------------|------------|--------------|
+
+For Type values where Contains End of Group is Yes, the last Object in this
+Subgroup stream before a FIN is the last Object in the Group.  If the Subgroup
+stream is terminated with a RESET_STREAM or RESET_STREAM_AT, the receiver cannot
+determine the End of Group Object ID.
 
 For Type values where Subgroup ID Field Present is No, there is no explicit
 Subgroup ID field in the header and the Subgroup ID is either 0 (for Types
-0x08-09) or the Object ID of the first object transmitted in this subgroup
-(for Types 0x0A-0B).
+0x10-11 and 0x18-19) or the Object ID of the first object transmitted in this
+subgroup (for Types 0x12-13 and 0x1A-1B).
 
 For Type values where Extensions Present is No, Extensions Headers Length is
 not present and all Objects have no extensions.  When Extensions Present is
@@ -3140,16 +3213,16 @@ promptly frees system resources and often unlocks flow control credit to open
 more streams.
 
 If a sender has delivered all objects in a Subgroup to the QUIC stream, except
-any objects before the beginning of a subscription, it MUST close the
-stream with a FIN.
+any Objects with Locations smaller than the subscription's Start Location, it
+MUST close the stream with a FIN.
 
 If a sender closes the stream before delivering all such objects to the QUIC
 stream, it MUST use a RESET_STREAM or RESET_STREAM_AT
 {{!I-D.draft-ietf-quic-reliable-stream-reset}} frame. This includes an open
-Subgroup exceeding its Delivery Timeout, early termination of subscription due to
-an UNSUBSCRIBE message, a publisher's decision to end the subscription early, or a
-SUBSCRIBE_UPDATE moving the end of the subscription to before the current Group
-or the start after the current Group.  When RESET_STREAM_AT is used, the
+Subgroup exceeding its Delivery Timeout, early termination of subscription due
+to an UNSUBSCRIBE message, a publisher's decision to end the subscription early,
+or a SUBSCRIBE_UPDATE moving the subscription's End Group to a smaller Group or
+the Start Location to a larger Location.  When RESET_STREAM_AT is used, the
 reliable_size SHOULD include the stream header so the receiver can identify the
 corresponding subscription and accurately account for reset data streams when
 handling SUBSCRIBE_DONE (see {{message-subscribe-done}}).  Publishers that reset
@@ -3258,6 +3331,7 @@ track requested in the Fetch message identified by `Request ID`.
 
 ~~~
 FETCH_HEADER {
+  Type (i) = 0x5,
   Request ID (i),
 }
 ~~~
