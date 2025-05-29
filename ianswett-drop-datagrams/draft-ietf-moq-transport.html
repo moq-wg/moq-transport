@@ -2047,7 +2047,8 @@ Groups can contain any number of Objects.<a href="#section-2.3-1" class="pilcrow
 <a href="#section-2.3.1" class="section-number selfRef">2.3.1. </a><a href="#name-group-ordering" class="section-name selfRef">Group Ordering</a>
           </h4>
 <p id="section-2.3.1-1">Within a track, the original publisher <span class="bcp14">SHOULD</span> publish Group IDs which increase
-with time. In some cases, Groups will be produced in increasing order, but sent
+with time (where "time" is defined according to the internal clock of the media
+being sent). In some cases, Groups will be produced in increasing order, but sent
 to subscribers in a different order, for example when the subscription's Group
 Order is Descending.  Due to network reordering and the partial reliability
 features of MoQT, Groups can always be received out of order.<a href="#section-2.3.1-1" class="pilcrow">¶</a></p>
@@ -2060,6 +2061,7 @@ to the subset of MoQT that does not compare group IDs. Subscribers to these Trac
 SUBSCRIBE and FETCH delivery use Group Order, so a FETCH cannot deliver Groups
 out of order and a subscription could have unexpected delivery order if Group IDs
 do not increase with time.<a href="#section-2.3.1-3" class="pilcrow">¶</a></p>
+<p id="section-2.3.1-4">Note that the increase in time between two groups is not defined by the protocol.<a href="#section-2.3.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -2785,11 +2787,10 @@ content associated with the track. The authorization
 information can be part of subscription request itself or part of the
 encompassing session. The specifics of how a relay authorizes a user are outside
 the scope of this specification.<a href="#section-7.2-1" class="pilcrow">¶</a></p>
-<p id="section-7.2-2">The relay will have to send an upstream SUBSCRIBE and/or FETCH if it does not
-have all the objects in the FETCH, or is not currently subscribed to the full
-requested range. In this case, it <span class="bcp14">SHOULD</span> withhold sending its own SUBSCRIBE_OK
-until receiving one from upstream. It <span class="bcp14">MUST</span> withhold FETCH_OK until receiving
-one from upstream.<a href="#section-7.2-2" class="pilcrow">¶</a></p>
+<p id="section-7.2-2">The relay <span class="bcp14">MUST</span> have an established upstream subscription before sending
+SUBSCRIBE_OK in response to a downstream SUBSCRIBE.  If a relay does not have
+sufficient information to send a FETCH_OK immediately in response to a FETCH, it
+<span class="bcp14">MUST</span> withhold sending FETCH_OK until it does.<a href="#section-7.2-2" class="pilcrow">¶</a></p>
 <p id="section-7.2-3">For successful subscriptions, the publisher maintains a list of
 subscribers for each track. Each new Object belonging to the
 track within the subscription range is forwarded to each active
@@ -5268,11 +5269,11 @@ the datagram.<a href="#section-9-4" class="pilcrow">¶</a></p>
         </thead>
         <tbody>
           <tr>
-            <td class="text-right" rowspan="1" colspan="1">0x00-0x01</td>
+            <td class="text-right" rowspan="1" colspan="1">0x00-0x03</td>
             <td class="text-left" rowspan="1" colspan="1">OBJECT_DATAGRAM (<a href="#object-datagram" class="auto internal xref">Section 9.3.1</a>)</td>
           </tr>
           <tr>
-            <td class="text-right" rowspan="1" colspan="1">0x02-0x03</td>
+            <td class="text-right" rowspan="1" colspan="1">0x04-0x05</td>
             <td class="text-left" rowspan="1" colspan="1">OBJECT_DATAGRAM_STATUS (<a href="#object-datagram" class="auto internal xref">Section 9.3.1</a>)</td>
           </tr>
         </tbody>
@@ -5380,7 +5381,10 @@ are beyond the end of a group or track.<a href="#section-9.2.1.1-1" class="pilcr
        GroupID. This is sent right after the last object in the
        group. If the ObjectID is 0, it indicates there are no Objects
        in this Group. This <span class="bcp14">SHOULD</span> be cached. A publisher <span class="bcp14">MAY</span> use an end of
-       Group object to signal the end of all open Subgroups in a Group.<a href="#section-9.2.1.1-3.3.1" class="pilcrow">¶</a></p>
+       Group object to signal the end of all open Subgroups in a Group. A
+       non-zero-length Object can be the End of Group, as signaled in
+       the DATAGRAM or SUBGROUP_HEADER Type field (see <a href="#object-datagram" class="auto internal xref">Section 9.3.1</a>
+       and <a href="#subgroup-header" class="auto internal xref">Section 9.4.2</a>).<a href="#section-9.2.1.1-3.3.1" class="pilcrow">¶</a></p>
 </li>
               <li class="normal" id="section-9.2.1.1-3.4">
                 <p id="section-9.2.1.1-3.4.1">0x4 := Indicates end of Track. GroupID is either the largest group produced
@@ -5462,7 +5466,7 @@ exceed the maximum datagram size of a downstream session and be dropped.<a href=
             <div class="alignLeft art-text artwork" id="section-9.3.1-2.1">
 <pre>
 OBJECT_DATAGRAM {
-  Type (i),
+  Type (i) = 0x0-0x4,
   Track Alias (i),
   Group ID (i),
   Object ID (i),
@@ -5477,13 +5481,53 @@ OBJECT_DATAGRAM {
 <a href="#name-moqt-object_datagram" class="selfRef">MOQT OBJECT_DATAGRAM</a>
             </figcaption></figure>
 </div>
-<p id="section-9.3.1-3">The Type field takes the form 0b0000000X (or the set of values from 0x00 to
-0x01). The LSB of the type determines if the Extensions Headers Length and
-Extension headers are present. If an endpoint receives a datagram with Type
-0x01 and Extension Headers Length is 0, it <span class="bcp14">MUST</span> close the session with Protocol
-Violation.<a href="#section-9.3.1-3" class="pilcrow">¶</a></p>
-<p id="section-9.3.1-4">There is no explicit length field.  The entirety of the transport datagram
-following Publisher Priority contains the Object Payload.<a href="#section-9.3.1-4" class="pilcrow">¶</a></p>
+<p id="section-9.3.1-3">There are 4 defined Type values for OBJECT_DATAGRAM:<a href="#section-9.3.1-3" class="pilcrow">¶</a></p>
+<table class="center" id="table-11">
+            <caption><a href="#table-11" class="selfRef">Table 11</a></caption>
+<thead>
+              <tr>
+                <th class="text-left" rowspan="1" colspan="1">Type</th>
+                <th class="text-left" rowspan="1" colspan="1">End Of Group</th>
+                <th class="text-left" rowspan="1" colspan="1">Extensions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1"> </td>
+                <td class="text-left" rowspan="1" colspan="1"> </td>
+                <td class="text-left" rowspan="1" colspan="1">Present</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">0x00</td>
+                <td class="text-left" rowspan="1" colspan="1">No</td>
+                <td class="text-left" rowspan="1" colspan="1">No</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">0x01</td>
+                <td class="text-left" rowspan="1" colspan="1">No</td>
+                <td class="text-left" rowspan="1" colspan="1">Yes</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">0x02</td>
+                <td class="text-left" rowspan="1" colspan="1">Yes</td>
+                <td class="text-left" rowspan="1" colspan="1">No</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">0x03</td>
+                <td class="text-left" rowspan="1" colspan="1">Yes</td>
+                <td class="text-left" rowspan="1" colspan="1">Yes</td>
+              </tr>
+            </tbody>
+          </table>
+<p id="section-9.3.1-5">For Type values where End of Group is Yes, the Object is the last Object in the
+Group.<a href="#section-9.3.1-5" class="pilcrow">¶</a></p>
+<p id="section-9.3.1-6">For Type values where Extensions Present is No, Extensions Headers Length is not
+present and the Object has no extensions.  When Extensions Present is Yes,
+Extension Headers Length is present.  If an endpoint receives a datagram with
+Type 0x01 and Extension Headers Length is 0, it <span class="bcp14">MUST</span> close the session with
+Protocol Violation.<a href="#section-9.3.1-6" class="pilcrow">¶</a></p>
+<p id="section-9.3.1-7">There is no explicit length field.  The entirety of the transport datagram
+following Publisher Priority contains the Object Payload.<a href="#section-9.3.1-7" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="object-datagram-status">
@@ -5579,15 +5623,16 @@ SUBGROUP_HEADER {
 </div>
 <p id="section-9.4.2-4">All Objects received on a stream opened with <code>SUBGROUP_HEADER</code> have an
 <code>Object Forwarding Preference</code> = <code>Subgroup</code>.<a href="#section-9.4.2-4" class="pilcrow">¶</a></p>
-<p id="section-9.4.2-5">There are 6 defined Type values for SUBGROUP_HEADER:<a href="#section-9.4.2-5" class="pilcrow">¶</a></p>
-<table class="center" id="table-11">
-            <caption><a href="#table-11" class="selfRef">Table 11</a></caption>
+<p id="section-9.4.2-5">There are 12 defined Type values for SUBGROUP_HEADER:<a href="#section-9.4.2-5" class="pilcrow">¶</a></p>
+<table class="center" id="table-12">
+            <caption><a href="#table-12" class="selfRef">Table 12</a></caption>
 <thead>
               <tr>
                 <th class="text-left" rowspan="1" colspan="1">Type</th>
                 <th class="text-left" rowspan="1" colspan="1">Subgroup ID</th>
                 <th class="text-left" rowspan="1" colspan="1">Subgroup ID</th>
                 <th class="text-left" rowspan="1" colspan="1">Extensions</th>
+                <th class="text-left" rowspan="1" colspan="1">Contains End</th>
               </tr>
             </thead>
             <tbody>
@@ -5596,61 +5641,114 @@ SUBGROUP_HEADER {
                 <td class="text-left" rowspan="1" colspan="1">Field Present</td>
                 <td class="text-left" rowspan="1" colspan="1">Value</td>
                 <td class="text-left" rowspan="1" colspan="1">Present</td>
+                <td class="text-left" rowspan="1" colspan="1">of Group</td>
               </tr>
               <tr>
-                <td class="text-left" rowspan="1" colspan="1">0x08</td>
+                <td class="text-left" rowspan="1" colspan="1">0x10</td>
                 <td class="text-left" rowspan="1" colspan="1">No</td>
                 <td class="text-left" rowspan="1" colspan="1">0</td>
                 <td class="text-left" rowspan="1" colspan="1">No</td>
+                <td class="text-left" rowspan="1" colspan="1">No</td>
               </tr>
               <tr>
-                <td class="text-left" rowspan="1" colspan="1">0x09</td>
+                <td class="text-left" rowspan="1" colspan="1">0x11</td>
                 <td class="text-left" rowspan="1" colspan="1">No</td>
                 <td class="text-left" rowspan="1" colspan="1">0</td>
                 <td class="text-left" rowspan="1" colspan="1">Yes</td>
+                <td class="text-left" rowspan="1" colspan="1">No</td>
               </tr>
               <tr>
-                <td class="text-left" rowspan="1" colspan="1">0x0A</td>
+                <td class="text-left" rowspan="1" colspan="1">0x12</td>
                 <td class="text-left" rowspan="1" colspan="1">No</td>
                 <td class="text-left" rowspan="1" colspan="1">First Object ID</td>
                 <td class="text-left" rowspan="1" colspan="1">No</td>
+                <td class="text-left" rowspan="1" colspan="1">No</td>
               </tr>
               <tr>
-                <td class="text-left" rowspan="1" colspan="1">0x0B</td>
+                <td class="text-left" rowspan="1" colspan="1">0x13</td>
                 <td class="text-left" rowspan="1" colspan="1">No</td>
                 <td class="text-left" rowspan="1" colspan="1">First Object ID</td>
                 <td class="text-left" rowspan="1" colspan="1">Yes</td>
-              </tr>
-              <tr>
-                <td class="text-left" rowspan="1" colspan="1">0x0C</td>
-                <td class="text-left" rowspan="1" colspan="1">Yes</td>
-                <td class="text-left" rowspan="1" colspan="1">N/A</td>
                 <td class="text-left" rowspan="1" colspan="1">No</td>
               </tr>
               <tr>
-                <td class="text-left" rowspan="1" colspan="1">0x0D</td>
+                <td class="text-left" rowspan="1" colspan="1">0x14</td>
                 <td class="text-left" rowspan="1" colspan="1">Yes</td>
                 <td class="text-left" rowspan="1" colspan="1">N/A</td>
+                <td class="text-left" rowspan="1" colspan="1">No</td>
+                <td class="text-left" rowspan="1" colspan="1">No</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">0x15</td>
+                <td class="text-left" rowspan="1" colspan="1">Yes</td>
+                <td class="text-left" rowspan="1" colspan="1">N/A</td>
+                <td class="text-left" rowspan="1" colspan="1">Yes</td>
+                <td class="text-left" rowspan="1" colspan="1">No</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">0x18</td>
+                <td class="text-left" rowspan="1" colspan="1">No</td>
+                <td class="text-left" rowspan="1" colspan="1">0</td>
+                <td class="text-left" rowspan="1" colspan="1">No</td>
+                <td class="text-left" rowspan="1" colspan="1">Yes</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">0x19</td>
+                <td class="text-left" rowspan="1" colspan="1">No</td>
+                <td class="text-left" rowspan="1" colspan="1">0</td>
+                <td class="text-left" rowspan="1" colspan="1">Yes</td>
+                <td class="text-left" rowspan="1" colspan="1">Yes</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">0x1A</td>
+                <td class="text-left" rowspan="1" colspan="1">No</td>
+                <td class="text-left" rowspan="1" colspan="1">First Object ID</td>
+                <td class="text-left" rowspan="1" colspan="1">No</td>
+                <td class="text-left" rowspan="1" colspan="1">Yes</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">0x1B</td>
+                <td class="text-left" rowspan="1" colspan="1">No</td>
+                <td class="text-left" rowspan="1" colspan="1">First Object ID</td>
+                <td class="text-left" rowspan="1" colspan="1">Yes</td>
+                <td class="text-left" rowspan="1" colspan="1">Yes</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">0x1C</td>
+                <td class="text-left" rowspan="1" colspan="1">Yes</td>
+                <td class="text-left" rowspan="1" colspan="1">N/A</td>
+                <td class="text-left" rowspan="1" colspan="1">No</td>
+                <td class="text-left" rowspan="1" colspan="1">Yes</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">0x1D</td>
+                <td class="text-left" rowspan="1" colspan="1">Yes</td>
+                <td class="text-left" rowspan="1" colspan="1">N/A</td>
+                <td class="text-left" rowspan="1" colspan="1">Yes</td>
                 <td class="text-left" rowspan="1" colspan="1">Yes</td>
               </tr>
             </tbody>
           </table>
-<p id="section-9.4.2-7">For Type values where Subgroup ID Field Present is No, there is no explicit
+<p id="section-9.4.2-7">For Type values where Contains End of Group is Yes, the last Object in this
+Subgroup stream before a FIN is the last Object in the Group.  If the Subgroup
+stream is terminated with a RESET_STREAM or RESET_STREAM_AT, the receiver cannot
+determine the End of Group Object ID.<a href="#section-9.4.2-7" class="pilcrow">¶</a></p>
+<p id="section-9.4.2-8">For Type values where Subgroup ID Field Present is No, there is no explicit
 Subgroup ID field in the header and the Subgroup ID is either 0 (for Types
-0x08-09) or the Object ID of the first object transmitted in this subgroup
-(for Types 0x0A-0B).<a href="#section-9.4.2-7" class="pilcrow">¶</a></p>
-<p id="section-9.4.2-8">For Type values where Extensions Present is No, Extensions Headers Length is
+0x10-11 and 0x18-19) or the Object ID of the first object transmitted in this
+subgroup (for Types 0x12-13 and 0x1A-1B).<a href="#section-9.4.2-8" class="pilcrow">¶</a></p>
+<p id="section-9.4.2-9">For Type values where Extensions Present is No, Extensions Headers Length is
 not present and all Objects have no extensions.  When Extensions Present is
 Yes, Extension Headers Length is present in all Objects in this subgroup.
-Objects with no extensions set Extension Headers Length to 0.<a href="#section-9.4.2-8" class="pilcrow">¶</a></p>
-<p id="section-9.4.2-9">To send an Object with <code>Object Forwarding Preference</code> = <code>Subgroup</code>, find the open
+Objects with no extensions set Extension Headers Length to 0.<a href="#section-9.4.2-9" class="pilcrow">¶</a></p>
+<p id="section-9.4.2-10">To send an Object with <code>Object Forwarding Preference</code> = <code>Subgroup</code>, find the open
 stream that is associated with the subscription, <code>Group ID</code> and <code>Subgroup ID</code>,
 or open a new one and send the <code>SUBGROUP_HEADER</code>. Then serialize the
-following fields.<a href="#section-9.4.2-9" class="pilcrow">¶</a></p>
-<p id="section-9.4.2-10">The Object Status field is only sent if the Object Payload Length is zero.<a href="#section-9.4.2-10" class="pilcrow">¶</a></p>
+following fields.<a href="#section-9.4.2-10" class="pilcrow">¶</a></p>
+<p id="section-9.4.2-11">The Object Status field is only sent if the Object Payload Length is zero.<a href="#section-9.4.2-11" class="pilcrow">¶</a></p>
 <span id="name-moqt-subgroup-object-fields"></span><div id="object-subgroup-format">
 <figure id="figure-33">
-            <div class="alignLeft art-text artwork" id="section-9.4.2-11.1">
+            <div class="alignLeft art-text artwork" id="section-9.4.2-12.1">
 <pre>
 {
   Object ID (i),
@@ -5666,8 +5764,8 @@ following fields.<a href="#section-9.4.2-9" class="pilcrow">¶</a></p>
 <a href="#name-moqt-subgroup-object-fields" class="selfRef">MOQT Subgroup Object Fields</a>
             </figcaption></figure>
 </div>
-<p id="section-9.4.2-12">A publisher <span class="bcp14">MUST NOT</span> send an Object on a stream if its Object ID is less than a
-previously sent Object ID within a given group in that stream.<a href="#section-9.4.2-12" class="pilcrow">¶</a></p>
+<p id="section-9.4.2-13">A publisher <span class="bcp14">MUST NOT</span> send an Object on a stream if its Object ID is less than a
+previously sent Object ID within a given group in that stream.<a href="#section-9.4.2-13" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="closing-subgroup-streams">
@@ -5747,8 +5845,8 @@ Subgroups in the Group or the subscription, although applications might cancel a
 Subgroups in a Group at once.<a href="#section-9.4.3-13" class="pilcrow">¶</a></p>
 <p id="section-9.4.3-14">The application <span class="bcp14">SHOULD</span> use a relevant error code in RESET_STREAM or
 RESET_STREAM_AT, as defined below:<a href="#section-9.4.3-14" class="pilcrow">¶</a></p>
-<table class="center" id="table-12">
-            <caption><a href="#table-12" class="selfRef">Table 12</a></caption>
+<table class="center" id="table-13">
+            <caption><a href="#table-13" class="selfRef">Table 13</a></caption>
 <thead>
               <tr>
                 <th class="text-right" rowspan="1" colspan="1">Code</th>
