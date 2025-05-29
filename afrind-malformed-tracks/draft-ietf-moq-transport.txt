@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 29 November 2025                                  I. Swett, Ed.
+Expires: 30 November 2025                                  I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                             28 May 2025
+                                                             29 May 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 29 November 2025.
+   This Internet-Draft will expire on 30 November 2025.
 
 Copyright Notice
 
@@ -2380,8 +2380,8 @@ Table of Contents
    *  Too Far Behind - The publisher's queue of objects to be sent to
       the given subscriber exceeds its implementation defined limit.
 
-   *  Malformed Track - The publisher detected the track was malformed
-      (see Section 2.5).
+   *  Malformed Track - A relay publisher detected the track was
+      malformed (see Section 2.5).
 
 8.13.  FETCH
 
