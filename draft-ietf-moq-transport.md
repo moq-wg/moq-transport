@@ -2156,7 +2156,7 @@ SUBSCRIBE_DONE, as defined below:
 * Too Far Behind - The publisher's queue of objects to be sent to the given
   subscriber exceeds its implementation defined limit.
 
-* Malformed Track - The publisher detected the track was malformed (see
+* Malformed Track - A relay publisher detected the track was malformed (see
   {{malformed-tracks}}).
 
 ## FETCH {#message-fetch}
