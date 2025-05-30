@@ -86,7 +86,7 @@ discovery and subscription.
 
 * {{model}} describes the data model employed by MOQT.
 
-* {{session}} covers aspects of setting up a MOQT session.
+* {{session}} covers aspects of setting up an MOQT session.
 
 * {{priorities}} covers mechanisms for prioritizing subscriptions.
 
@@ -160,7 +160,7 @@ The following terms are used with the first letter capitalized.
 
 Application:
 
-: The entity using MoQT to transmit and receive data.
+: The entity using MOQT to transmit and receive data.
 
 Client:
 
@@ -383,7 +383,7 @@ video on a given layer is sent as a single object.
 The basic data element of MOQT is an object.  An object is an
 addressable unit whose payload is a sequence of bytes.  All objects
 belong to a group, indicating ordering and potential
-dependencies. {{model-group}}  An object is uniquely identified by
+dependencies (see {{model-group}}).  An object is uniquely identified by
 its track namespace, track name, group ID, and object ID, and must be an
 identical sequence of bytes regardless of how or where it is retrieved.
 An Object can become unavailable, but its contents MUST NOT change over
@@ -458,21 +458,24 @@ Groups can contain any number of Objects.
 ### Group Ordering
 
 Within a track, the original publisher SHOULD publish Group IDs which increase
-with time. In some cases, Groups will be produced in increasing order, but sent
+with time (where "time" is defined according to the internal clock of the media
+being sent). In some cases, Groups will be produced in increasing order, but sent
 to subscribers in a different order, for example when the subscription's Group
 Order is Descending.  Due to network reordering and the partial reliability
-features of MoQT, Groups can always be received out of order.
+features of MOQT, Groups can always be received out of order.
 
 As a result, subscribers cannot infer the existence of a Group until an object in
 the Group is received. This can create gaps in a cache that can be filled
 by doing a Fetch upstream, if necessary.
 
 Applications that cannot produce Group IDs that increase with time are limited
-to the subset of MoQT that does not compare group IDs. Subscribers to these Tracks
-SHOULD NOT use range filters which span multiple Groups in FETCH or SUBSCRIBE.
-SUBSCRIBE and FETCH delivery use Group Order, so a FETCH cannot deliver Groups
-out of order and a subscription could have unexpected delivery order if Group IDs
-do not increase with time.
+to the subset of MOQT that does not compare group IDs. Subscribers to these
+Tracks SHOULD NOT use range filters which span multiple Groups in FETCH or
+SUBSCRIBE.  SUBSCRIBE and FETCH delivery use Group Order, so a FETCH cannot
+deliver Groups out of order and a subscription could have unexpected delivery
+order if Group IDs do not increase with time.
+
+Note that the increase in time between two groups is not defined by the protocol.
 
 ## Track {#model-track}
 
@@ -504,14 +507,57 @@ close the session with a Protocol Violation.
 In this specification, both the Track Namespace tuple fields and the Track Name
 are not constrained to a specific encoding. They carry a sequence of bytes and
 comparison between two Track Namespace tuple fields or Track Names is done by
-exact comparison of the bytes. Specifications that use MoQ Transport may
-constrain the information in these fields, for example by restricting them to
-UTF-8. Any specification that does needs to specify the canonicalization into
-the bytes in the Track Namespace or Track Name such that exact comparison works.
+exact comparison of the bytes. Specifications that use MOQT may constrain the
+information in these fields, for example by restricting them to UTF-8. Any
+specification that does needs to specify the canonicalization into the bytes in
+the Track Namespace or Track Name such that exact comparison works.
+
+## Malformed Tracks
+
+There are multiple ways a publisher can transmit a Track that does not conform
+to MoQT constraints. Such a Track is considered malformed.  Some example
+conditions that constitute a malformed track when detected by a receiver
+include:
+
+1. An Object is received on a Subgroup stream whose Object ID is not strictly
+   larger than the previous Object received on the same Subgroup.
+2. An Object is received in a FETCH response with the same Group as the
+   previous Object, but whose Object ID is not strictly larger than the previous
+   object.
+3. An Object is received in an Ascending FETCH response whose Group ID is smaller
+   than the previous Object in the response.
+4. An Object is received in a Descending FETCH response whose Group ID is larger
+   than the previous Object in the resopnse.
+5. A Subgroup or FETCH response is terminated with a FIN in the middle of an
+   Object
+6. An Object is received whose Object ID is larger than the final Object in the
+   Subgroup.  The final Object in a Subgroup is the last Object received on a
+   Subgroup stream before a FIN.
+7. A Subgroup is received with two or more different final Objects.
+8. An Object is received in a Group whose Object ID is larger than the final
+   Object in the Group.  The final Object in a Group is the Object with Status
+   END_OF_GROUP or the last Object sent in a FETCH that requested the entire
+   Group.
+9. An Object is received on a Track whose Group and Object ID are larger than the
+   final Object in the Track.  The final Object in a Track is the Object with
+   Status END_OF_TRACK or the last Object sent in a FETCH whose response indicated
+   End of Track.
+10. The same Object is received more than once with different Payload or
+    other immutable properties.
+11. An Object is received with a different Forwarding Preference than previously
+    observed from the same Track.
+
+The above list of conditions is not considered exhaustive.
+
+When a subscriber detects a Malformed Track, it MUST UNSUBSCRIBE from the
+Track and SHOULD deliver an error to the application.  If a relay detects a
+Malformed Track, it MUST immediately terminate downstream subscriptions with
+SUBSCRIBE_DONE with Status Code `Malformed Track`.
+
 
 ### Scope {#track-scope}
 
-A MOQT scope is a set of servers (as identified by their connection
+An MOQT scope is a set of servers (as identified by their connection
 URIs) for which the tuple of Track Name and Track Namespace are
 guaranteed to be unique and identify a specific track. It is up to
 the application using MOQT to define how broad or narrow the scope is.
@@ -542,7 +588,7 @@ connection is established. The [QUIC-DATAGRAM] extension
 MUST be supported and negotiated in the QUIC connection used for MOQT,
 which is already a requirement for WebTransport over HTTP/3. The
 RESET_STREAM_AT {{!I-D.draft-ietf-quic-reliable-stream-reset}}
-extension to QUIC can be used by MoQT, but the protocol is also
+extension to QUIC can be used by MOQT, but the protocol is also
 designed to work correctly when the extension is not supported.
 
 There is no definition of the protocol over other transports,
@@ -551,15 +597,15 @@ another protocol when QUIC or WebTransport aren't available.
 
 ### WebTransport
 
-A MOQT server that is accessible via WebTransport can be identified
-using an HTTPS URI ({{!RFC9110, Section 4.2.2}}).  A MOQT session can be
+An MOQT server that is accessible via WebTransport can be identified
+using an HTTPS URI ({{!RFC9110, Section 4.2.2}}).  An MOQT session can be
 established by sending an extended CONNECT request to the host and the
 path indicated by the URI, as described in
 ({{WebTransport, Section 3}}).
 
 ### QUIC
 
-A MOQT server that is accessible via native QUIC can be identified by a
+An MOQT server that is accessible via native QUIC can be identified by a
 URI with a "moqt" scheme.  The "moqt" URI scheme is defined as follows,
 using definitions from {{!RFC3986}}:
 
@@ -588,7 +634,7 @@ is `moq-00`.
 Each track MAY have one or more associated connection URLs specifying
 network hosts through which a track may be accessed. The syntax of the
 Connection URL and the associated connection setup procedures are
-specific to the underlying transport protocol usage {{session}}.
+specific to the underlying transport protocol usage (see {{session}}).
 
 ## Version and Extension Negotiation {#version-negotiation}
 
@@ -597,7 +643,7 @@ any extensions to use.
 
 The client indicates the MOQT versions it supports in the CLIENT_SETUP message
 (see {{message-setup}}). It also includes the union of all Setup Parameters
-{{setup-params}} required for a handshake by any of those versions.
+(see {{setup-params}}) required for a handshake by any of those versions.
 
 Within any MOQT version, clients request the use of extensions by adding Setup
 parameters corresponding to that extension. No extensions are defined in this
@@ -638,8 +684,8 @@ is used, the session is closed using the CONNECTION\_CLOSE frame
 closed using the CLOSE\_WEBTRANSPORT\_SESSION capsule ({{WebTransport,
 Section 5}}).
 
-The application MAY use any error message and SHOULD use a relevant
-code, as defined below:
+When terminating the Session, the application MAY use any error message
+and SHOULD use a relevant code, as defined below:
 
 |------|---------------------------|
 | Code | Reason                    |
@@ -697,7 +743,7 @@ code, as defined below:
 * Key-Value Formatting Error: the key-value pair has a formatting error.
 
 * Too Many Requests: The session was closed because the endpoint used a
-  Request ID equal or larger than the current Maximum Request ID.
+  Request ID equal to or larger than the current Maximum Request ID.
 
 * Invalid Path: The PATH parameter was used by a server, on a WebTransport
   session, or the server does not support the path.
@@ -711,12 +757,12 @@ code, as defined below:
 * Control Message Timeout: The session was closed because the peer took too
   long to respond to a control message.
 
-* Data Stream Timeout: The session was closed because the peer took too
-  long to send data expected on an open Data Stream {{data-streams}}.  This
+* Data Stream Timeout: The session was closed because the peer took too long to
+  send data expected on an open Data Stream (see {{data-streams}}).  This
   includes fields of a stream header or an object header within a data
-  stream. If an endpoint times out waiting for a new object header on an
-  open subgroup stream, it MAY send a STOP_SENDING on that stream or
-  terminate the subscription.
+  stream. If an endpoint times out waiting for a new object header on an open
+  subgroup stream, it MAY send a STOP_SENDING on that stream or terminate the
+  subscription.
 
 * Auth Token Cache Overflow - the Session limit {{max-auth-token-cache-size}} of
   the size of all registered Authorization tokens has been exceeded.
@@ -837,12 +883,12 @@ guarantee described in {{track-scope}}.
 
 # Namespace Discovery {#track-discovery}
 
-Discovery of MoQT servers is always done out-of-band. Namespace discovery can be
-done in the context of an established MoQT session.
+Discovery of MOQT servers is always done out-of-band. Namespace discovery can be
+done in the context of an established MOQT session.
 
 Given sufficient out of band information, it is valid for a subscriber
 to send a SUBSCRIBE or FETCH message to a publisher (including a relay) without
-any previous MoQT messages besides SETUP. However, SUBSCRIBE_ANNOUNCES and
+any previous MOQT messages besides SETUP. However, SUBSCRIBE_ANNOUNCES and
 ANNOUNCE messages provide an in-band means of discovery of publishers for a
 namespace.
 
@@ -920,8 +966,8 @@ congestion.
 
 ## Definitions
 
-MoQT maintains priorities between different _schedulable objects_.
-A schedulable object in MoQT is either:
+MOQT maintains priorities between different _schedulable objects_.
+A schedulable object in MOQT is either:
 
 1. An object in response to a SUBSCRIBE that belongs to a subgroup where
    that object is the next object in that subgroup.
@@ -962,13 +1008,13 @@ subscription cannot be changed.
 
 ## Scheduling Algorithm
 
-When an MoQT publisher has multiple schedulable objects it can choose between,
+When an MOQT publisher has multiple schedulable objects it can choose between,
 the objects SHOULD be selected as follows:
 
-1. If two objects have a different subscriber priority associated with them,
+1. If two objects have different subscriber priorities associated with them,
    the one with **the highest subscriber priority** is sent first.
-1. If two objects have the same subscriber priority, but a different publisher
-   priority, the one with **the highest publisher priority** is sent first.
+1. If two objects have the same subscriber priority, but different publisher
+   priorities, the one with **the highest publisher priority** is sent first.
 2. If two objects in response to the same request have the same subscriber
    and publisher priority, but belong to two different groups of the same track,
    **the group order** of the associated subscription is used to
@@ -995,13 +1041,13 @@ subscribed Objects.
 
 ## Considerations for Setting Priorities
 
-Relays SHOULD respect the subscriber and original publisher's priorities.
-Relays can receive subscriptions with conflicting subscriber priorities
-or Group Order preferences.  Relays SHOULD NOT directly use Subscriber Priority
-or Group Order from incoming subscriptions for upstream subscriptions. Relays
-use of these fields for upstream subscriptions can be based on factors specific
-to it, such as the popularity of the content or policy, or relays can specify
-the same value for all upstream subscriptions.
+For downstream subscriptions, relays SHOULD respect the subscriber and original
+publisher's priorities.  Relays can receive subscriptions with conflicting
+subscriber priorities or Group Order preferences.  Relays SHOULD NOT directly
+use Subscriber Priority or Group Order from incoming subscriptions for upstream
+subscriptions. Relays' use of these fields for upstream subscriptions can be
+based on factors specific to it, such as the popularity of the content or
+policy, or relays can specify the same value for all upstream subscriptions.
 
 MoQ Sessions can span multiple namespaces, and priorities might not
 be coordinated across namespaces.  The subscriber's priority is
@@ -1068,11 +1114,10 @@ information can be part of subscription request itself or part of the
 encompassing session. The specifics of how a relay authorizes a user are outside
 the scope of this specification.
 
-The relay will have to send an upstream SUBSCRIBE and/or FETCH if it does not
-have all the objects in the FETCH, or is not currently subscribed to the full
-requested range. In this case, it SHOULD withhold sending its own SUBSCRIBE_OK
-until receiving one from upstream. It MUST withhold FETCH_OK until receiving
-one from upstream.
+The relay MUST have an established upstream subscription before sending
+SUBSCRIBE_OK in response to a downstream SUBSCRIBE.  If a relay does not have
+sufficient information to send a FETCH_OK immediately in response to a FETCH, it
+MUST withhold sending FETCH_OK until it does.
 
 For successful subscriptions, the publisher maintains a list of
 subscribers for each track. Each new Object belonging to the
@@ -1159,8 +1204,8 @@ sessions.
 
 ### Graceful Publisher Network Switchover
 
-This section describes behavior that a publisher MAY
-choose to implement to allow for a better users experience when
+This section describes a behavior that a publisher MAY
+choose to implement to allow for a better user experience when
 switching between networks, such as WiFi to Cellular or vice versa.
 
 If the original publisher detects it is likely to need to switch networks,
@@ -1168,7 +1213,7 @@ for example because the WiFi signal is getting weaker, and it does not
 have QUIC connection migration available, it establishes a new session
 over the new interface and sends an ANNOUNCE. The relay will forward
 matching subscribes and the publisher publishes objects on both sessions.
-Once the subscriptions have migrated over to session on the new network,
+Once the subscriptions have migrated over to the session on the new network,
 the publisher can stop publishing objects on the old network. The relay
 will drop duplicate objects received on both subscriptions.
 Ideally, the subscriptions downstream from the relay do no observe this
@@ -1176,7 +1221,7 @@ change, and keep receiving the objects on the same subscription.
 
 ### Graceful Publisher Relay Switchover
 
-This section describes behavior that a publisher MAY choose to implement
+This section describes a behavior that a publisher MAY choose to implement
 to allow for a better user experience when a relay sends them a GOAWAY.
 
 When a publisher receives a GOAWAY, it starts the process of
@@ -1190,7 +1235,8 @@ the announcement and subscription to the old relay can be stopped.
 
 MOQT encodes the delivery information via Object headers
 ({{message-object}}).  A relay MUST NOT modify Object properties when
-forwarding.
+forwarding, except for Object Extension Headers as specified in
+{{object-extensions}}.
 
 A relay MUST treat the object payload as opaque.  A relay MUST NOT
 combine, split, or otherwise modify object payloads.  A relay SHOULD
@@ -1294,7 +1340,7 @@ Protocol Violation.
 
 ## Request ID
 
-Most MoQT control messages contain a session specific Request ID.  The Request
+Most MOQT control messages contain a session specific Request ID.  The Request
 ID correlates requests and responses, allows endpoints to update or terminate
 ongoing requests, and supports the endpoint's ability to limit the concurrency
 and frequency of requests.  There are independent Request IDs for each endpoint.
@@ -1306,7 +1352,7 @@ that is not expected, it MUST close the session with `Invalid Request ID`.
 
 ## Parameters {#params}
 
-Some messages include a Parameters field that encode optional message
+Some messages include a Parameters field that encodes optional message
 elements.
 
 Senders MUST NOT repeat the same parameter type in a message unless the
@@ -1319,7 +1365,7 @@ parameters.
 Receivers ignore unrecognized parameters.
 
 The number of parameters in a message is not specifically limited, but the
-total length of a control message is limited to 2^16-1.
+total length of a control message is limited to 2^16-1 bytes.
 
 Parameters are serialized as Key-Value-Pairs {{moq-key-value-pair}}.
 
@@ -1391,8 +1437,8 @@ TOKEN {
   being deleted. Use of the Token Alias is optional.
 
 * Token Type - a numeric identifier for the type of Token payload being
-  transmitted. This type is defined by the IANA table "MOQT Auth Token Type". See
-  {{iana}}. Type 0 is reserved to indicate that the type is not defined in the
+  transmitted. This type is defined by the IANA table "MOQT Auth Token Type" (see
+  {{iana}}). Type 0 is reserved to indicate that the type is not defined in the
   table and must be negotiated out-of-band between client and receiver.
 
 * Token Value - the payload of the Token. The contents and serialization of this
@@ -1429,16 +1475,16 @@ Client SHOULD retire previously registered tokens once their utility has passed.
 By registering a Token, the client is requiring the receiver to store the Token
 Alias and Token Value until they are retired, or the Session ends. The receiver
 can protect its resources by sending a SETUP parameter defining the
-MAX_AUTH_TOKEN_CACHE_SIZE {{max-auth-token-cache-size}} limit it is willing to
-accept. If a registration is attempted which would cause this limit to be
-exceeded, the receiver MUST termiate the Session with a `Auth Token Cache
+MAX_AUTH_TOKEN_CACHE_SIZE limit (see {{max-auth-token-cache-size}}) it is
+willing to accept. If a registration is attempted which would cause this limit
+to be exceeded, the receiver MUST termiate the Session with a `Auth Token Cache
 Overflow` error.
 
 
 #### DELIVERY TIMEOUT Parameter {#delivery-timeout}
 
 The DELIVERY TIMEOUT parameter (Parameter Type 0x02) MAY appear in a
-TRACK_STATUS, SUBSCRIBE, SUBSCRIBE_OK, or a SUBSCRIBE_UDPATE message.
+TRACK_STATUS, SUBSCRIBE, SUBSCRIBE_OK, or SUBSCRIBE_UDPATE message.
 It is the duration in milliseconds the relay SHOULD continue to attempt
 forwarding Objects after they have been received.  The start time for the
 timeout is based on when the beginning of the Object is received, and does
@@ -1521,7 +1567,7 @@ The available versions and Setup parameters are detailed in the next sections.
 
 ### Versions {#setup-versions}
 
-MoQ Transport versions are a 32-bit unsigned integer, encoded as a varint.
+MOQT versions are a 32-bit unsigned integer, encoded as a varint.
 This version of the specification is identified by the number 0x00000001.
 Versions with the most significant 16 bits of the version number cleared are
 reserved for use in future IETF consensus documents.
@@ -1547,9 +1593,10 @@ identified as 0xff00000D.
 
 The PATH parameter (Parameter Type 0x01) allows the client to specify the path
 of the MoQ URI when using native QUIC ({{QUIC}}).  It MUST NOT be used by
-the server, or when WebTransport is used.  If the peer receives a PATH
-parameter from the server, when WebTransport is used, or one the server
-does not support, it MUST close the session with Invalid Path.
+the server, or when WebTransport is used.  When a PATH parameter is received
+from a server, or when a PATH parameter is received while WebTransport is used,
+or when a PATH parameter is received by a server but the server does not
+support the specified path, the session MUST be closed with Invalid Path.
 
 The PATH parameter follows the URI formatting rules {{!RFC3986}}.
 When connecting to a server using a URI with the "moqt" scheme, the
@@ -1632,11 +1679,11 @@ MAX_REQUEST_ID Message {
 ~~~
 {: #moq-transport-max-request-id format title="MOQT MAX_REQUEST_ID Message"}
 
-* Request ID: The new Maximum Request ID for the session. If a Request ID equal
-  or larger than this is received by the endpoint that sent the MAX_REQUEST_ID
-  in any request message (ANNOUNCE, FETCH, SUBSCRIBE, SUBSCRIBE_ANNOUNCES
-  or TRACK_STATUS_REQUEST), the endpoint MUST close the session with an error
-  of 'Too Many Requests'.
+* Request ID: The new Maximum Request ID for the session plus 1. If a Request ID
+  equal to or larger than this is received by the endpoint that sent the
+  MAX_REQUEST_ID in any request message (ANNOUNCE, FETCH, SUBSCRIBE,
+  SUBSCRIBE_ANNOUNCES or TRACK_STATUS_REQUEST), the endpoint MUST close the
+  session with an error of 'Too Many Requests'.
 
 MAX_REQUEST_ID is similar to MAX_STREAMS in ({{?RFC9000, Section 4.6}}), and
 similar considerations apply when deciding how often to send MAX_REQUEST_ID.
@@ -2095,6 +2142,8 @@ SUBSCRIBE_DONE, as defined below:
 |------|---------------------------|
 | 0x6  | Too Far Behind            |
 |------|---------------------------|
+| 0x7  | Malformed Track           |
+|------|---------------------------|
 
 * Internal Error - An implementation specific or generic error occurred.
 
@@ -2113,6 +2162,8 @@ SUBSCRIBE_DONE, as defined below:
 * Too Far Behind - The publisher's queue of objects to be sent to the given
   subscriber exceeds its implementation defined limit.
 
+* Malformed Track - A relay publisher detected the track was malformed (see
+  {{malformed-tracks}}).
 
 ## FETCH {#message-fetch}
 
@@ -2128,6 +2179,9 @@ objects in the stream; and between the last object in the stream and the Largest
 Group/Object indicated in FETCH_OK, so long as the fetch stream is terminated by
 a FIN.  If no Objects exist in the requested range, the publisher returns
 FETCH_ERROR with code `No Objects`.
+
+If an Original Publisher receives a FETCH with a range that includes an object with
+unknown status, it MUST return FETCH_ERROR with code Unknown Status in Range.
 
 **Fetch Types**
 
@@ -2375,6 +2429,10 @@ as defined below:
 |------|------------------------------|
 | 0x7  | Invalid Joining Request ID   |
 |------|------------------------------|
+| 0x8  | Unknown Status in Range      |
+|------|------------------------------|
+| 0x9  | Malformed Track              |
+|------|------------------------------|
 | 0x10 | Malformed Auth Token         |
 |------|------------------------------|
 | 0x11 | Unknown Auth Token Alias     |
@@ -2403,6 +2461,12 @@ as defined below:
 
 * Invalid Joining Subscribe ID - The joining Fetch referenced a Request ID that
   did not belong to an active Subscription.
+
+* Unknown Status in Range - The requested range contains objects with unknown
+  status.
+
+* Malformed Track - A relay publisher detected the track was malformed (see
+  {{malformed-tracks}}).
 
 * Malformed Auth Token - Invalid Auth Token serialization during registration
   (see {{authorization-token}}).
@@ -2855,9 +2919,9 @@ the datagram.
 |-----------|---------------------------------------------------|
 | ID        | Type                                              |
 |----------:|:--------------------------------------------------|
-| 0x00-0x01 | OBJECT_DATAGRAM ({{object-datagram}})             |
+| 0x00-0x03 | OBJECT_DATAGRAM ({{object-datagram}})             |
 |-----------|---------------------------------------------------|
-| 0x02-0x03 | OBJECT_DATAGRAM_STATUS ({{object-datagram}})      |
+| 0x04-0x05 | OBJECT_DATAGRAM_STATUS ({{object-datagram}})      |
 |-----------|---------------------------------------------------|
 
 An endpoint that receives an unknown stream or datagram type MUST close the
@@ -2870,10 +2934,8 @@ violation. Objects can arrive after a subscription or fetch has been cancelled,
 so the session MUST NOT be teriminated in that case.
 
 Every Track has a single 'Object Forwarding Preference' and the Original
-Publisher MUST NOT mix different forwarding preferences within a single track.
-If a subscriber receives Objects via both Subgroup streams and Datagrams in
-response to a SUBSCRIBE, it SHOULD close the session with an error of 'Protocol
-Violation'
+Publisher MUST NOT mix different forwarding preferences within a single track
+(see {{malformed-tracks}}).
 
 ## Track Alias
 
@@ -2942,7 +3004,10 @@ are beyond the end of a group or track.
          GroupID. This is sent right after the last object in the
          group. If the ObjectID is 0, it indicates there are no Objects
          in this Group. This SHOULD be cached. A publisher MAY use an end of
-         Group object to signal the end of all open Subgroups in a Group.
+         Group object to signal the end of all open Subgroups in a Group. A
+         non-zero-length Object can be the End of Group, as signaled in
+         the DATAGRAM or SUBGROUP_HEADER Type field (see {{object-datagram}}
+         and {{subgroup-header}}).
 
 * 0x4 := Indicates end of Track. GroupID is either the largest group produced
          in this track and the ObjectID is one greater than the largest object
@@ -2981,7 +3046,8 @@ If supported by the relay and subject to the processing rules specified in the
 definition of the extension, Extension Headers MAY be modified, added, removed,
 and/or cached by relays.
 
-Object Extension Headers are serialized as Key-Value-Pairs {{moq-key-value-pair}}.
+Object Extension Headers are serialized as Key-Value-Pairs (see
+{{moq-key-value-pair}}).
 
 Header types are registered in the IANA table 'MOQ Extension Headers'.
 See {{iana}}.
@@ -2995,11 +3061,18 @@ choose to buffer it for a brief period to handle reordering with the control
 message that establishes the Track Alias.
 
 An Object received in an `OBJECT_DATAGRAM` or `OBJECT_DATAGRAM_STATUS` message
-has an `Object Forwarding Preference` = `Datagram`. To send an Object with
-`Object Forwarding Preference` = `Datagram`, determine the length of the header
-and payload and send the Object as datagram. In certain scenarios where the
-object size can be larger than maximum datagram size for the session, the Object
-will be dropped.
+has an `Object Forwarding Preference` = `Datagram`.
+
+To send an Object with `Object Forwarding Preference` = `Datagram`, determine
+the length of the header and payload and send the Object as datagram.  When the
+total size is larger than maximum datagram size for the session, the Object will
+be dropped without any explicit notification.
+
+Each session along the path between the Original Publisher and End Subscriber
+might have different maximum datagram sizes. Additionally, Object Extension
+Headers ({{object-extensions}}) can be added to Objects as they pass through
+the MOQT network, increasing the size of the Object and the chances it will
+exceed the maximum datagram size of a downstream session and be dropped.
 
 
 ### Object Datagram {#object-datagram}
@@ -3008,7 +3081,7 @@ An `OBJECT_DATAGRAM` carries a single object in a datagram.
 
 ~~~
 OBJECT_DATAGRAM {
-  Type (i),
+  Type (i) = 0x0-0x4,
   Track Alias (i),
   Group ID (i),
   Object ID (i),
@@ -3020,11 +3093,29 @@ OBJECT_DATAGRAM {
 ~~~
 {: #object-datagram-format title="MOQT OBJECT_DATAGRAM"}
 
-The Type field takes the form 0b0000000X (or the set of values from 0x00 to
-0x01). The LSB of the type determines if the Extensions Headers Length and
-Extension headers are present. If an endpoint receives a datagram with Type
-0x01 and Extension Headers Length is 0, it MUST close the session with Protocol
-Violation.
+There are 4 defined Type values for OBJECT_DATAGRAM:
+
+|------|---------------|------------|
+| Type | End Of Group  | Extensions |
+|      |               | Present    |
+|------|---------------|------------|
+| 0x00 | No            | No         |
+|------|---------------|------------|
+| 0x01 | No            | Yes        |
+|------|---------------|------------|
+| 0x02 | Yes           | No         |
+|------|---------------|------------|
+| 0x03 | Yes           | Yes        |
+|------|---------------|------------|
+
+For Type values where End of Group is Yes, the Object is the last Object in the
+Group.
+
+For Type values where Extensions Present is No, Extensions Headers Length is not
+present and the Object has no extensions.  When Extensions Present is Yes,
+Extension Headers Length is present.  If an endpoint receives a datagram with
+Type 0x01 and Extension Headers Length is 0, it MUST close the session with
+Protocol Violation.
 
 There is no explicit length field.  The entirety of the transport datagram
 following Publisher Priority contains the Object Payload.
@@ -3100,29 +3191,46 @@ SUBGROUP_HEADER {
 All Objects received on a stream opened with `SUBGROUP_HEADER` have an
 `Object Forwarding Preference` = `Subgroup`.
 
-There are 6 defined Type values for SUBGROUP_HEADER:
+There are 12 defined Type values for SUBGROUP_HEADER:
 
-|------|---------------|-----------------|------------|
-| Type | Subgroup ID   | Subgroup ID     | Extensions |
-|      | Field Present | Value           | Present    |
-|------|---------------|-----------------|------------|
-| 0x08 | No            | 0               | No         |
-|------|---------------|-----------------|------------|
-| 0x09 | No            | 0               | Yes        |
-|------|---------------|-----------------|------------|
-| 0x0A | No            | First Object ID | No         |
-|------|---------------|-----------------|------------|
-| 0x0B | No            | First Object ID | Yes        |
-|------|---------------|-----------------|------------|
-| 0x0C | Yes           | N/A             | No         |
-|------|---------------|-----------------|------------|
-| 0x0D | Yes           | N/A             | Yes        |
-|------|---------------|-----------------|------------|
+|------|---------------|-----------------|------------|--------------|
+| Type | Subgroup ID   | Subgroup ID     | Extensions | Contains End |
+|      | Field Present | Value           | Present    | of Group     |
+|------|---------------|-----------------|------------|--------------|
+| 0x10 | No            | 0               | No         | No           |
+|------|---------------|-----------------|------------|--------------|
+| 0x11 | No            | 0               | Yes        | No           |
+|------|---------------|-----------------|------------|--------------|
+| 0x12 | No            | First Object ID | No         | No           |
+|------|---------------|-----------------|------------|--------------|
+| 0x13 | No            | First Object ID | Yes        | No           |
+|------|---------------|-----------------|------------|--------------|
+| 0x14 | Yes           | N/A             | No         | No           |
+|------|---------------|-----------------|------------|--------------|
+| 0x15 | Yes           | N/A             | Yes        | No           |
+|------|---------------|-----------------|------------|--------------|
+| 0x18 | No            | 0               | No         | Yes          |
+|------|---------------|-----------------|------------|--------------|
+| 0x19 | No            | 0               | Yes        | Yes          |
+|------|---------------|-----------------|------------|--------------|
+| 0x1A | No            | First Object ID | No         | Yes          |
+|------|---------------|-----------------|------------|--------------|
+| 0x1B | No            | First Object ID | Yes        | Yes          |
+|------|---------------|-----------------|------------|--------------|
+| 0x1C | Yes           | N/A             | No         | Yes          |
+|------|---------------|-----------------|------------|--------------|
+| 0x1D | Yes           | N/A             | Yes        | Yes          |
+|------|---------------|-----------------|------------|--------------|
+
+For Type values where Contains End of Group is Yes, the last Object in this
+Subgroup stream before a FIN is the last Object in the Group.  If the Subgroup
+stream is terminated with a RESET_STREAM or RESET_STREAM_AT, the receiver cannot
+determine the End of Group Object ID.
 
 For Type values where Subgroup ID Field Present is No, there is no explicit
 Subgroup ID field in the header and the Subgroup ID is either 0 (for Types
-0x08-09) or the Object ID of the first object transmitted in this subgroup
-(for Types 0x0A-0B).
+0x10-11 and 0x18-19) or the Object ID of the first object transmitted in this
+subgroup (for Types 0x12-13 and 0x1A-1B).
 
 For Type values where Extensions Present is No, Extensions Headers Length is
 not present and all Objects have no extensions.  When Extensions Present is
@@ -3206,7 +3314,7 @@ early for any other reason (e.g., to handoff to a different sender) MUST
 use RESET_STREAM or RESET_STREAM_AT. Senders SHOULD terminate a stream on
 Group boundaries to avoid doing so.
 
-An MoQT implementation that processes a stream FIN is assured it has received
+An MOQT implementation that processes a stream FIN is assured it has received
 all objects in a subgroup from the start of the subscription. If a relay, it
 can forward stream FINs to its own subscribers once those objects have been
 sent. A relay MAY treat receipt of EndOfGroup, GroupDoesNotExist, or
@@ -3369,7 +3477,7 @@ SUBGROUP_HEADER {
 
 # Extension Headers
 
-The following Object Extension Headers are defined in MoQT.
+The following Object Extension Headers are defined in MOQT.
 
 ## Prior Group ID Gap
 
@@ -3381,7 +3489,8 @@ include Prior Group ID Gap = 2 in any number of Objects in Group 10, as it sees
 fit.  A track with a Group that contains more than one Object with different
 values for Prior Group ID Gap or has a Prior Group ID Gap larger than the Group
 ID is considered malformed.  If an endpoint receives an Object with a Group ID
-within a previously communicated gap it also treats the track as malformed.
+within a previously communicated gap it also treats the track as malformed
+(see {{malformed-tracks}}.
 
 This extension is optional, as publishers might not know the prior gap gize, or
 there may not be a gap. If Prior Group ID Gap is not present, the receiver
