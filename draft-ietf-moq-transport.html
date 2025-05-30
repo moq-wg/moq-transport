@@ -5534,11 +5534,16 @@ receives a datagram with an unknown Track Alias, it <span class="bcp14">MAY</spa
 choose to buffer it for a brief period to handle reordering with the control
 message that establishes the Track Alias.<a href="#section-9.3-1" class="pilcrow">¶</a></p>
 <p id="section-9.3-2">An Object received in an <code>OBJECT_DATAGRAM</code> or <code>OBJECT_DATAGRAM_STATUS</code> message
-has an <code>Object Forwarding Preference</code> = <code>Datagram</code>. To send an Object with
-<code>Object Forwarding Preference</code> = <code>Datagram</code>, determine the length of the header
-and payload and send the Object as datagram. In certain scenarios where the
-object size can be larger than maximum datagram size for the session, the Object
-will be dropped.<a href="#section-9.3-2" class="pilcrow">¶</a></p>
+has an <code>Object Forwarding Preference</code> = <code>Datagram</code>.<a href="#section-9.3-2" class="pilcrow">¶</a></p>
+<p id="section-9.3-3">To send an Object with <code>Object Forwarding Preference</code> = <code>Datagram</code>, determine
+the length of the header and payload and send the Object as datagram.  When the
+total size is larger than maximum datagram size for the session, the Object will
+be dropped without any explicit notification.<a href="#section-9.3-3" class="pilcrow">¶</a></p>
+<p id="section-9.3-4">Each session along the path between the Original Publisher and End Subscriber
+might have different maximum datagram sizes. Additionally, Object Extension
+Headers (<a href="#object-extensions" class="auto internal xref">Section 9.2.1.2</a>) can be added to Objects as they pass through
+the MOQT network, increasing the size of the Object and the chances it will
+exceed the maximum datagram size of a downstream session and be dropped.<a href="#section-9.3-4" class="pilcrow">¶</a></p>
 <div id="object-datagram">
 <section id="section-9.3.1">
           <h4 id="name-object-datagram">
