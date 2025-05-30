@@ -3061,11 +3061,18 @@ choose to buffer it for a brief period to handle reordering with the control
 message that establishes the Track Alias.
 
 An Object received in an `OBJECT_DATAGRAM` or `OBJECT_DATAGRAM_STATUS` message
-has an `Object Forwarding Preference` = `Datagram`. To send an Object with
-`Object Forwarding Preference` = `Datagram`, determine the length of the header
-and payload and send the Object as datagram. In certain scenarios where the
-object size can be larger than maximum datagram size for the session, the Object
-will be dropped.
+has an `Object Forwarding Preference` = `Datagram`.
+
+To send an Object with `Object Forwarding Preference` = `Datagram`, determine
+the length of the header and payload and send the Object as datagram.  When the
+total size is larger than maximum datagram size for the session, the Object will
+be dropped without any explicit notification.
+
+Each session along the path between the Original Publisher and End Subscriber
+might have different maximum datagram sizes. Additionally, Object Extension
+Headers ({{object-extensions}}) can be added to Objects as they pass through
+the MOQT network, increasing the size of the Object and the chances it will
+exceed the maximum datagram size of a downstream session and be dropped.
 
 
 ### Object Datagram {#object-datagram}
