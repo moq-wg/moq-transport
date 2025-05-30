@@ -1056,7 +1056,7 @@ svg :is([fill="white"], [fill^="#fff"]) {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Nandakumar, et al.</td>
-<td class="center">Expires 29 November 2025</td>
+<td class="center">Expires 1 December 2025</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1069,12 +1069,12 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dd class="internet-draft">draft-ietf-moq-transport-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2025-05-28" class="published">28 May 2025</time>
+<time datetime="2025-05-30" class="published">30 May 2025</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2025-11-29">29 November 2025</time></dd>
+<dd class="expires"><time datetime="2025-12-01">1 December 2025</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1143,7 +1143,7 @@ networks and is designed for high scale and low latency distribution.<a href="#s
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 29 November 2025.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 1 December 2025.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1571,7 +1571,7 @@ discovery and subscription.<a href="#section-1-2" class="pilcrow">¶</a></p>
           <p id="section-1-3.1.1"><a href="#model" class="auto internal xref">Section 2</a> describes the data model employed by MOQT.<a href="#section-1-3.1.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="section-1-3.2">
-          <p id="section-1-3.2.1"><a href="#session" class="auto internal xref">Section 3</a> covers aspects of setting up a MOQT session.<a href="#section-1-3.2.1" class="pilcrow">¶</a></p>
+          <p id="section-1-3.2.1"><a href="#session" class="auto internal xref">Section 3</a> covers aspects of setting up an MOQT session.<a href="#section-1-3.2.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="section-1-3.3">
           <p id="section-1-3.3.1"><a href="#priorities" class="auto internal xref">Section 6</a> covers mechanisms for prioritizing subscriptions.<a href="#section-1-3.3.1" class="pilcrow">¶</a></p>
@@ -1674,7 +1674,7 @@ appear in all capitals, as shown here.<a href="#section-1.2-1" class="pilcrow">�
 <span class="break"></span><dl class="dlParallel" id="section-1.2-3">
           <dt id="section-1.2-3.1">Application:</dt>
           <dd style="margin-left: 1.5em" id="section-1.2-3.2">
-            <p id="section-1.2-3.2.1">The entity using MoQT to transmit and receive data.<a href="#section-1.2-3.2.1" class="pilcrow">¶</a></p>
+            <p id="section-1.2-3.2.1">The entity using MOQT to transmit and receive data.<a href="#section-1.2-3.2.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
 <dt id="section-1.2-3.3">Client:</dt>
@@ -1966,7 +1966,7 @@ video on a given layer is sent as a single object.<a href="#section-2-2" class="
 <p id="section-2.1-1">The basic data element of MOQT is an object.  An object is an
 addressable unit whose payload is a sequence of bytes.  All objects
 belong to a group, indicating ordering and potential
-dependencies. <a href="#model-group" class="auto internal xref">Section 2.3</a>  An object is uniquely identified by
+dependencies (see <a href="#model-group" class="auto internal xref">Section 2.3</a>).  An object is uniquely identified by
 its track namespace, track name, group ID, and object ID, and must be an
 identical sequence of bytes regardless of how or where it is retrieved.
 An Object can become unavailable, but its contents <span class="bcp14">MUST NOT</span> change over
@@ -2051,16 +2051,16 @@ with time (where "time" is defined according to the internal clock of the media
 being sent). In some cases, Groups will be produced in increasing order, but sent
 to subscribers in a different order, for example when the subscription's Group
 Order is Descending.  Due to network reordering and the partial reliability
-features of MoQT, Groups can always be received out of order.<a href="#section-2.3.1-1" class="pilcrow">¶</a></p>
+features of MOQT, Groups can always be received out of order.<a href="#section-2.3.1-1" class="pilcrow">¶</a></p>
 <p id="section-2.3.1-2">As a result, subscribers cannot infer the existence of a Group until an object in
 the Group is received. This can create gaps in a cache that can be filled
 by doing a Fetch upstream, if necessary.<a href="#section-2.3.1-2" class="pilcrow">¶</a></p>
 <p id="section-2.3.1-3">Applications that cannot produce Group IDs that increase with time are limited
-to the subset of MoQT that does not compare group IDs. Subscribers to these Tracks
-<span class="bcp14">SHOULD NOT</span> use range filters which span multiple Groups in FETCH or SUBSCRIBE.
-SUBSCRIBE and FETCH delivery use Group Order, so a FETCH cannot deliver Groups
-out of order and a subscription could have unexpected delivery order if Group IDs
-do not increase with time.<a href="#section-2.3.1-3" class="pilcrow">¶</a></p>
+to the subset of MOQT that does not compare group IDs. Subscribers to these
+Tracks <span class="bcp14">SHOULD NOT</span> use range filters which span multiple Groups in FETCH or
+SUBSCRIBE.  SUBSCRIBE and FETCH delivery use Group Order, so a FETCH cannot
+deliver Groups out of order and a subscription could have unexpected delivery
+order if Group IDs do not increase with time.<a href="#section-2.3.1-3" class="pilcrow">¶</a></p>
 <p id="section-2.3.1-4">Note that the increase in time between two groups is not defined by the protocol.<a href="#section-2.3.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
@@ -2097,10 +2097,10 @@ close the session with a Protocol Violation.<a href="#section-2.4.1-4" class="pi
 <p id="section-2.4.1-5">In this specification, both the Track Namespace tuple fields and the Track Name
 are not constrained to a specific encoding. They carry a sequence of bytes and
 comparison between two Track Namespace tuple fields or Track Names is done by
-exact comparison of the bytes. Specifications that use MoQ Transport may
-constrain the information in these fields, for example by restricting them to
-UTF-8. Any specification that does needs to specify the canonicalization into
-the bytes in the Track Namespace or Track Name such that exact comparison works.<a href="#section-2.4.1-5" class="pilcrow">¶</a></p>
+exact comparison of the bytes. Specifications that use MOQT may constrain the
+information in these fields, for example by restricting them to UTF-8. Any
+specification that does needs to specify the canonicalization into the bytes in
+the Track Namespace or Track Name such that exact comparison works.<a href="#section-2.4.1-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="track-scope">
@@ -2108,7 +2108,7 @@ the bytes in the Track Namespace or Track Name such that exact comparison works.
           <h4 id="name-scope">
 <a href="#section-2.4.2" class="section-number selfRef">2.4.2. </a><a href="#name-scope" class="section-name selfRef">Scope</a>
           </h4>
-<p id="section-2.4.2-1">A MOQT scope is a set of servers (as identified by their connection
+<p id="section-2.4.2-1">An MOQT scope is a set of servers (as identified by their connection
 URIs) for which the tuple of Track Name and Track Namespace are
 guaranteed to be unique and identify a specific track. It is up to
 the application using MOQT to define how broad or narrow the scope is.
@@ -2149,7 +2149,7 @@ connection is established. The [QUIC-DATAGRAM] extension
 <span class="bcp14">MUST</span> be supported and negotiated in the QUIC connection used for MOQT,
 which is already a requirement for WebTransport over HTTP/3. The
 RESET_STREAM_AT <span>[<a href="#I-D.draft-ietf-quic-reliable-stream-reset" class="cite xref">I-D.draft-ietf-quic-reliable-stream-reset</a>]</span>
-extension to QUIC can be used by MoQT, but the protocol is also
+extension to QUIC can be used by MOQT, but the protocol is also
 designed to work correctly when the extension is not supported.<a href="#section-3.1-1" class="pilcrow">¶</a></p>
 <p id="section-3.1-2">There is no definition of the protocol over other transports,
 such as TCP, and applications using MoQ might need to fallback to
@@ -2159,8 +2159,8 @@ another protocol when QUIC or WebTransport aren't available.<a href="#section-3.
           <h4 id="name-webtransport">
 <a href="#section-3.1.1" class="section-number selfRef">3.1.1. </a><a href="#name-webtransport" class="section-name selfRef">WebTransport</a>
           </h4>
-<p id="section-3.1.1-1">A MOQT server that is accessible via WebTransport can be identified
-using an HTTPS URI (<span>[<a href="#RFC9110" class="cite xref">RFC9110</a>], <a href="https://rfc-editor.org/rfc/rfc9110#section-4.2.2" class="relref">Section 4.2.2</a></span>).  A MOQT session can be
+<p id="section-3.1.1-1">An MOQT server that is accessible via WebTransport can be identified
+using an HTTPS URI (<span>[<a href="#RFC9110" class="cite xref">RFC9110</a>], <a href="https://rfc-editor.org/rfc/rfc9110#section-4.2.2" class="relref">Section 4.2.2</a></span>).  An MOQT session can be
 established by sending an extended CONNECT request to the host and the
 path indicated by the URI, as described in
 (<span>[<a href="#WebTransport" class="cite xref">WebTransport</a>], <a href="https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-http3-12#section-3" class="relref">Section 3</a></span>).<a href="#section-3.1.1-1" class="pilcrow">¶</a></p>
@@ -2171,7 +2171,7 @@ path indicated by the URI, as described in
           <h4 id="name-quic">
 <a href="#section-3.1.2" class="section-number selfRef">3.1.2. </a><a href="#name-quic" class="section-name selfRef">QUIC</a>
           </h4>
-<p id="section-3.1.2-1">A MOQT server that is accessible via native QUIC can be identified by a
+<p id="section-3.1.2-1">An MOQT server that is accessible via native QUIC can be identified by a
 URI with a "moqt" scheme.  The "moqt" URI scheme is defined as follows,
 using definitions from <span>[<a href="#RFC3986" class="cite xref">RFC3986</a>]</span>:<a href="#section-3.1.2-1" class="pilcrow">¶</a></p>
 <div class="alignLeft art-text artwork" id="section-3.1.2-2">
@@ -2202,7 +2202,7 @@ is <code>moq-00</code>.<a href="#section-3.1.2-5" class="pilcrow">¶</a></p>
 <p id="section-3.1.3-1">Each track <span class="bcp14">MAY</span> have one or more associated connection URLs specifying
 network hosts through which a track may be accessed. The syntax of the
 Connection URL and the associated connection setup procedures are
-specific to the underlying transport protocol usage <a href="#session" class="auto internal xref">Section 3</a>.<a href="#section-3.1.3-1" class="pilcrow">¶</a></p>
+specific to the underlying transport protocol usage (see <a href="#session" class="auto internal xref">Section 3</a>).<a href="#section-3.1.3-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -2216,7 +2216,7 @@ specific to the underlying transport protocol usage <a href="#session" class="au
 any extensions to use.<a href="#section-3.2-1" class="pilcrow">¶</a></p>
 <p id="section-3.2-2">The client indicates the MOQT versions it supports in the CLIENT_SETUP message
 (see <a href="#message-setup" class="auto internal xref">Section 8.3</a>). It also includes the union of all Setup Parameters
-<a href="#setup-params" class="auto internal xref">Section 8.3.2</a> required for a handshake by any of those versions.<a href="#section-3.2-2" class="pilcrow">¶</a></p>
+(see <a href="#setup-params" class="auto internal xref">Section 8.3.2</a>) required for a handshake by any of those versions.<a href="#section-3.2-2" class="pilcrow">¶</a></p>
 <p id="section-3.2-3">Within any MOQT version, clients request the use of extensions by adding Setup
 parameters corresponding to that extension. No extensions are defined in this
 document.<a href="#section-3.2-3" class="pilcrow">¶</a></p>
@@ -2257,8 +2257,8 @@ session is active.  Doing so results in the session being closed as a
 is used, the session is closed using the CONNECTION_CLOSE frame
 (<span>[<a href="#QUIC" class="cite xref">QUIC</a>], <a href="https://rfc-editor.org/rfc/rfc9000#section-19.19" class="relref">Section 19.19</a></span>).  When WebTransport is used, the session is
 closed using the CLOSE_WEBTRANSPORT_SESSION capsule (<span>[<a href="#WebTransport" class="cite xref">WebTransport</a>], <a href="https://datatracker.ietf.org/doc/html/draft-ietf-webtrans-http3-12#section-5" class="relref">Section 5</a></span>).<a href="#section-3.4-1" class="pilcrow">¶</a></p>
-<p id="section-3.4-2">The application <span class="bcp14">MAY</span> use any error message and <span class="bcp14">SHOULD</span> use a relevant
-code, as defined below:<a href="#section-3.4-2" class="pilcrow">¶</a></p>
+<p id="section-3.4-2">When terminating the Session, the application <span class="bcp14">MAY</span> use any error message
+and <span class="bcp14">SHOULD</span> use a relevant code, as defined below:<a href="#section-3.4-2" class="pilcrow">¶</a></p>
 <table class="center" id="table-1">
           <caption><a href="#table-1" class="selfRef">Table 1</a></caption>
 <thead>
@@ -2363,7 +2363,7 @@ that was already in use.<a href="#section-3.4-4.6.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-3.4-4.8">
             <p id="section-3.4-4.8.1">Too Many Requests: The session was closed because the endpoint used a
-Request ID equal or larger than the current Maximum Request ID.<a href="#section-3.4-4.8.1" class="pilcrow">¶</a></p>
+Request ID equal to or larger than the current Maximum Request ID.<a href="#section-3.4-4.8.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-3.4-4.9">
             <p id="section-3.4-4.9.1">Invalid Path: The PATH parameter was used by a server, on a WebTransport
@@ -2382,12 +2382,12 @@ See session migration (<a href="#session-migration" class="auto internal xref">S
 long to respond to a control message.<a href="#section-3.4-4.12.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-3.4-4.13">
-            <p id="section-3.4-4.13.1">Data Stream Timeout: The session was closed because the peer took too
-long to send data expected on an open Data Stream <a href="#data-streams" class="auto internal xref">Section 9</a>.  This
+            <p id="section-3.4-4.13.1">Data Stream Timeout: The session was closed because the peer took too long to
+send data expected on an open Data Stream (see <a href="#data-streams" class="auto internal xref">Section 9</a>).  This
 includes fields of a stream header or an object header within a data
-stream. If an endpoint times out waiting for a new object header on an
-open subgroup stream, it <span class="bcp14">MAY</span> send a STOP_SENDING on that stream or
-terminate the subscription.<a href="#section-3.4-4.13.1" class="pilcrow">¶</a></p>
+stream. If an endpoint times out waiting for a new object header on an open
+subgroup stream, it <span class="bcp14">MAY</span> send a STOP_SENDING on that stream or terminate the
+subscription.<a href="#section-3.4-4.13.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-3.4-4.14">
             <p id="section-3.4-4.14.1">Auth Token Cache Overflow - the Session limit <a href="#max-auth-token-cache-size" class="auto internal xref">Section 8.3.2.3</a> of
@@ -2531,11 +2531,11 @@ guarantee described in <a href="#track-scope" class="auto internal xref">Section
       <h2 id="name-namespace-discovery">
 <a href="#section-5" class="section-number selfRef">5. </a><a href="#name-namespace-discovery" class="section-name selfRef">Namespace Discovery</a>
       </h2>
-<p id="section-5-1">Discovery of MoQT servers is always done out-of-band. Namespace discovery can be
-done in the context of an established MoQT session.<a href="#section-5-1" class="pilcrow">¶</a></p>
+<p id="section-5-1">Discovery of MOQT servers is always done out-of-band. Namespace discovery can be
+done in the context of an established MOQT session.<a href="#section-5-1" class="pilcrow">¶</a></p>
 <p id="section-5-2">Given sufficient out of band information, it is valid for a subscriber
 to send a SUBSCRIBE or FETCH message to a publisher (including a relay) without
-any previous MoQT messages besides SETUP. However, SUBSCRIBE_ANNOUNCES and
+any previous MOQT messages besides SETUP. However, SUBSCRIBE_ANNOUNCES and
 ANNOUNCE messages provide an in-band means of discovery of publishers for a
 namespace.<a href="#section-5-2" class="pilcrow">¶</a></p>
 <p id="section-5-3">The syntax of these messages is described in <a href="#message" class="auto internal xref">Section 8</a>.<a href="#section-5-3" class="pilcrow">¶</a></p>
@@ -2614,8 +2614,8 @@ congestion.<a href="#section-6-1" class="pilcrow">¶</a></p>
         <h3 id="name-definitions">
 <a href="#section-6.1" class="section-number selfRef">6.1. </a><a href="#name-definitions" class="section-name selfRef">Definitions</a>
         </h3>
-<p id="section-6.1-1">MoQT maintains priorities between different <em>schedulable objects</em>.
-A schedulable object in MoQT is either:<a href="#section-6.1-1" class="pilcrow">¶</a></p>
+<p id="section-6.1-1">MOQT maintains priorities between different <em>schedulable objects</em>.
+A schedulable object in MOQT is either:<a href="#section-6.1-1" class="pilcrow">¶</a></p>
 <ol start="1" type="1" class="normal type-1" id="section-6.1-2">
 <li id="section-6.1-2.1">
             <p id="section-6.1-2.1.1">An object in response to a SUBSCRIBE that belongs to a subgroup where
@@ -2662,16 +2662,16 @@ subscription cannot be changed.<a href="#section-6.1-7" class="pilcrow">¶</a></
         <h3 id="name-scheduling-algorithm">
 <a href="#section-6.2" class="section-number selfRef">6.2. </a><a href="#name-scheduling-algorithm" class="section-name selfRef">Scheduling Algorithm</a>
         </h3>
-<p id="section-6.2-1">When an MoQT publisher has multiple schedulable objects it can choose between,
+<p id="section-6.2-1">When an MOQT publisher has multiple schedulable objects it can choose between,
 the objects <span class="bcp14">SHOULD</span> be selected as follows:<a href="#section-6.2-1" class="pilcrow">¶</a></p>
 <ol start="1" type="1" class="normal type-1" id="section-6.2-2">
 <li id="section-6.2-2.1">
-            <p id="section-6.2-2.1.1">If two objects have a different subscriber priority associated with them,
+            <p id="section-6.2-2.1.1">If two objects have different subscriber priorities associated with them,
 the one with <strong>the highest subscriber priority</strong> is sent first.<a href="#section-6.2-2.1.1" class="pilcrow">¶</a></p>
 </li>
           <li id="section-6.2-2.2">
-            <p id="section-6.2-2.2.1">If two objects have the same subscriber priority, but a different publisher
-priority, the one with <strong>the highest publisher priority</strong> is sent first.<a href="#section-6.2-2.2.1" class="pilcrow">¶</a></p>
+            <p id="section-6.2-2.2.1">If two objects have the same subscriber priority, but different publisher
+priorities, the one with <strong>the highest publisher priority</strong> is sent first.<a href="#section-6.2-2.2.1" class="pilcrow">¶</a></p>
 </li>
           <li id="section-6.2-2.3">
             <p id="section-6.2-2.3.1">If two objects in response to the same request have the same subscriber
@@ -2705,13 +2705,13 @@ subscribed Objects.<a href="#section-6.2-5" class="pilcrow">¶</a></p>
         <h3 id="name-considerations-for-setting-">
 <a href="#section-6.3" class="section-number selfRef">6.3. </a><a href="#name-considerations-for-setting-" class="section-name selfRef">Considerations for Setting Priorities</a>
         </h3>
-<p id="section-6.3-1">Relays <span class="bcp14">SHOULD</span> respect the subscriber and original publisher's priorities.
-Relays can receive subscriptions with conflicting subscriber priorities
-or Group Order preferences.  Relays <span class="bcp14">SHOULD NOT</span> directly use Subscriber Priority
-or Group Order from incoming subscriptions for upstream subscriptions. Relays
-use of these fields for upstream subscriptions can be based on factors specific
-to it, such as the popularity of the content or policy, or relays can specify
-the same value for all upstream subscriptions.<a href="#section-6.3-1" class="pilcrow">¶</a></p>
+<p id="section-6.3-1">For downstream subscriptions, relays <span class="bcp14">SHOULD</span> respect the subscriber and original
+publisher's priorities.  Relays can receive subscriptions with conflicting
+subscriber priorities or Group Order preferences.  Relays <span class="bcp14">SHOULD NOT</span> directly
+use Subscriber Priority or Group Order from incoming subscriptions for upstream
+subscriptions. Relays' use of these fields for upstream subscriptions can be
+based on factors specific to it, such as the popularity of the content or
+policy, or relays can specify the same value for all upstream subscriptions.<a href="#section-6.3-1" class="pilcrow">¶</a></p>
 <p id="section-6.3-2">MoQ Sessions can span multiple namespaces, and priorities might not
 be coordinated across namespaces.  The subscriber's priority is
 considered first, so there is a mechanism for a subscriber to fix
@@ -2873,15 +2873,15 @@ sessions.<a href="#section-7.3-9" class="pilcrow">¶</a></p>
           <h4 id="name-graceful-publisher-network-">
 <a href="#section-7.3.1" class="section-number selfRef">7.3.1. </a><a href="#name-graceful-publisher-network-" class="section-name selfRef">Graceful Publisher Network Switchover</a>
           </h4>
-<p id="section-7.3.1-1">This section describes behavior that a publisher <span class="bcp14">MAY</span>
-choose to implement to allow for a better users experience when
+<p id="section-7.3.1-1">This section describes a behavior that a publisher <span class="bcp14">MAY</span>
+choose to implement to allow for a better user experience when
 switching between networks, such as WiFi to Cellular or vice versa.<a href="#section-7.3.1-1" class="pilcrow">¶</a></p>
 <p id="section-7.3.1-2">If the original publisher detects it is likely to need to switch networks,
 for example because the WiFi signal is getting weaker, and it does not
 have QUIC connection migration available, it establishes a new session
 over the new interface and sends an ANNOUNCE. The relay will forward
 matching subscribes and the publisher publishes objects on both sessions.
-Once the subscriptions have migrated over to session on the new network,
+Once the subscriptions have migrated over to the session on the new network,
 the publisher can stop publishing objects on the old network. The relay
 will drop duplicate objects received on both subscriptions.
 Ideally, the subscriptions downstream from the relay do no observe this
@@ -2893,7 +2893,7 @@ change, and keep receiving the objects on the same subscription.<a href="#sectio
           <h4 id="name-graceful-publisher-relay-sw">
 <a href="#section-7.3.2" class="section-number selfRef">7.3.2. </a><a href="#name-graceful-publisher-relay-sw" class="section-name selfRef">Graceful Publisher Relay Switchover</a>
           </h4>
-<p id="section-7.3.2-1">This section describes behavior that a publisher <span class="bcp14">MAY</span> choose to implement
+<p id="section-7.3.2-1">This section describes a behavior that a publisher <span class="bcp14">MAY</span> choose to implement
 to allow for a better user experience when a relay sends them a GOAWAY.<a href="#section-7.3.2-1" class="pilcrow">¶</a></p>
 <p id="section-7.3.2-2">When a publisher receives a GOAWAY, it starts the process of
 connecting to a new relay and sends announces, but it does not immediately
@@ -2912,7 +2912,8 @@ the announcement and subscription to the old relay can be stopped.<a href="#sect
         </h3>
 <p id="section-7.4-1">MOQT encodes the delivery information via Object headers
 (<a href="#message-object" class="auto internal xref">Section 9.2</a>).  A relay <span class="bcp14">MUST NOT</span> modify Object properties when
-forwarding.<a href="#section-7.4-1" class="pilcrow">¶</a></p>
+forwarding, except for Object Extension Headers as specified in
+<a href="#object-extensions" class="auto internal xref">Section 9.2.1.2</a>.<a href="#section-7.4-1" class="pilcrow">¶</a></p>
 <p id="section-7.4-2">A relay <span class="bcp14">MUST</span> treat the object payload as opaque.  A relay <span class="bcp14">MUST NOT</span>
 combine, split, or otherwise modify object payloads.  A relay <span class="bcp14">SHOULD</span>
 prioritize sending Objects based on <a href="#priorities" class="auto internal xref">Section 6</a>.<a href="#section-7.4-2" class="pilcrow">¶</a></p>
@@ -3091,7 +3092,7 @@ Protocol Violation.<a href="#section-8-5" class="pilcrow">¶</a></p>
         <h3 id="name-request-id">
 <a href="#section-8.1" class="section-number selfRef">8.1. </a><a href="#name-request-id" class="section-name selfRef">Request ID</a>
         </h3>
-<p id="section-8.1-1">Most MoQT control messages contain a session specific Request ID.  The Request
+<p id="section-8.1-1">Most MOQT control messages contain a session specific Request ID.  The Request
 ID correlates requests and responses, allows endpoints to update or terminate
 ongoing requests, and supports the endpoint's ability to limit the concurrency
 and frequency of requests.  There are independent Request IDs for each endpoint.
@@ -3107,7 +3108,7 @@ that is not expected, it <span class="bcp14">MUST</span> close the session with 
         <h3 id="name-parameters">
 <a href="#section-8.2" class="section-number selfRef">8.2. </a><a href="#name-parameters" class="section-name selfRef">Parameters</a>
         </h3>
-<p id="section-8.2-1">Some messages include a Parameters field that encode optional message
+<p id="section-8.2-1">Some messages include a Parameters field that encodes optional message
 elements.<a href="#section-8.2-1" class="pilcrow">¶</a></p>
 <p id="section-8.2-2">Senders <span class="bcp14">MUST NOT</span> repeat the same parameter type in a message unless the
 parameter definition explicitly allows multiple instances of that type to
@@ -3117,7 +3118,7 @@ unauthorized duplicate parameters and close the session as a
 parameters.<a href="#section-8.2-2" class="pilcrow">¶</a></p>
 <p id="section-8.2-3">Receivers ignore unrecognized parameters.<a href="#section-8.2-3" class="pilcrow">¶</a></p>
 <p id="section-8.2-4">The number of parameters in a message is not specifically limited, but the
-total length of a control message is limited to 2^16-1.<a href="#section-8.2-4" class="pilcrow">¶</a></p>
+total length of a control message is limited to 2^16-1 bytes.<a href="#section-8.2-4" class="pilcrow">¶</a></p>
 <p id="section-8.2-5">Parameters are serialized as Key-Value-Pairs <a href="#moq-key-value-pair" class="auto internal xref">Figure 2</a>.<a href="#section-8.2-5" class="pilcrow">¶</a></p>
 <p id="section-8.2-6">Setup message parameters use a namespace that is constant across all MoQ
 Transport versions. All other messages use a version-specific namespace.
@@ -3257,8 +3258,8 @@ being deleted. Use of the Token Alias is optional.<a href="#section-8.2.1.1-7.1.
 </li>
               <li class="normal" id="section-8.2.1.1-7.2">
                 <p id="section-8.2.1.1-7.2.1">Token Type - a numeric identifier for the type of Token payload being
-transmitted. This type is defined by the IANA table "MOQT Auth Token Type". See
-<a href="#iana" class="auto internal xref">Section 12</a>. Type 0 is reserved to indicate that the type is not defined in the
+transmitted. This type is defined by the IANA table "MOQT Auth Token Type" (see
+<a href="#iana" class="auto internal xref">Section 12</a>). Type 0 is reserved to indicate that the type is not defined in the
 table and must be negotiated out-of-band between client and receiver.<a href="#section-8.2.1.1-7.2.1" class="pilcrow">¶</a></p>
 </li>
               <li class="normal" id="section-8.2.1.1-7.3">
@@ -3292,9 +3293,9 @@ Client <span class="bcp14">SHOULD</span> retire previously registered tokens onc
 <p id="section-8.2.1.1-13">By registering a Token, the client is requiring the receiver to store the Token
 Alias and Token Value until they are retired, or the Session ends. The receiver
 can protect its resources by sending a SETUP parameter defining the
-MAX_AUTH_TOKEN_CACHE_SIZE <a href="#max-auth-token-cache-size" class="auto internal xref">Section 8.3.2.3</a> limit it is willing to
-accept. If a registration is attempted which would cause this limit to be
-exceeded, the receiver <span class="bcp14">MUST</span> termiate the Session with a <code>Auth Token Cache
+MAX_AUTH_TOKEN_CACHE_SIZE limit (see <a href="#max-auth-token-cache-size" class="auto internal xref">Section 8.3.2.3</a>) it is
+willing to accept. If a registration is attempted which would cause this limit
+to be exceeded, the receiver <span class="bcp14">MUST</span> termiate the Session with a <code>Auth Token Cache
 Overflow</code> error.<a href="#section-8.2.1.1-13" class="pilcrow">¶</a></p>
 </section>
 </div>
@@ -3304,7 +3305,7 @@ Overflow</code> error.<a href="#section-8.2.1.1-13" class="pilcrow">¶</a></p>
 <a href="#section-8.2.1.2" class="section-number selfRef">8.2.1.2. </a><a href="#name-delivery-timeout-parameter" class="section-name selfRef">DELIVERY TIMEOUT Parameter</a>
             </h5>
 <p id="section-8.2.1.2-1">The DELIVERY TIMEOUT parameter (Parameter Type 0x02) <span class="bcp14">MAY</span> appear in a
-TRACK_STATUS, SUBSCRIBE, SUBSCRIBE_OK, or a SUBSCRIBE_UDPATE message.
+TRACK_STATUS, SUBSCRIBE, SUBSCRIBE_OK, or SUBSCRIBE_UDPATE message.
 It is the duration in milliseconds the relay <span class="bcp14">SHOULD</span> continue to attempt
 forwarding Objects after they have been received.  The start time for the
 timeout is based on when the beginning of the Object is received, and does
@@ -3400,7 +3401,7 @@ SERVER_SETUP Message {
           <h4 id="name-versions">
 <a href="#section-8.3.1" class="section-number selfRef">8.3.1. </a><a href="#name-versions" class="section-name selfRef">Versions</a>
           </h4>
-<p id="section-8.3.1-1">MoQ Transport versions are a 32-bit unsigned integer, encoded as a varint.
+<p id="section-8.3.1-1">MOQT versions are a 32-bit unsigned integer, encoded as a varint.
 This version of the specification is identified by the number 0x00000001.
 Versions with the most significant 16 bits of the version number cleared are
 reserved for use in future IETF consensus documents.<a href="#section-8.3.1-1" class="pilcrow">¶</a></p>
@@ -3430,9 +3431,10 @@ identified as 0xff00000D.<a href="#section-8.3.1-4" class="pilcrow">¶</a></p>
             </h5>
 <p id="section-8.3.2.1-1">The PATH parameter (Parameter Type 0x01) allows the client to specify the path
 of the MoQ URI when using native QUIC (<span>[<a href="#QUIC" class="cite xref">QUIC</a>]</span>).  It <span class="bcp14">MUST NOT</span> be used by
-the server, or when WebTransport is used.  If the peer receives a PATH
-parameter from the server, when WebTransport is used, or one the server
-does not support, it <span class="bcp14">MUST</span> close the session with Invalid Path.<a href="#section-8.3.2.1-1" class="pilcrow">¶</a></p>
+the server, or when WebTransport is used.  When a PATH parameter is received
+from a server, or when a PATH parameter is received while WebTransport is used,
+or when a PATH parameter is received by a server but the server does not
+support the specified path, the session <span class="bcp14">MUST</span> be closed with Invalid Path.<a href="#section-8.3.2.1-1" class="pilcrow">¶</a></p>
 <p id="section-8.3.2.1-2">The PATH parameter follows the URI formatting rules <span>[<a href="#RFC3986" class="cite xref">RFC3986</a>]</span>.
 When connecting to a server using a URI with the "moqt" scheme, the
 client <span class="bcp14">MUST</span> set the PATH parameter to the <code>path-abempty</code> portion of the
@@ -3545,11 +3547,11 @@ MAX_REQUEST_ID Message {
 </div>
 <ul class="normal">
 <li class="normal" id="section-8.5-4.1">
-            <p id="section-8.5-4.1.1">Request ID: The new Maximum Request ID for the session. If a Request ID equal
-or larger than this is received by the endpoint that sent the MAX_REQUEST_ID
-in any request message (ANNOUNCE, FETCH, SUBSCRIBE, SUBSCRIBE_ANNOUNCES
-or TRACK_STATUS_REQUEST), the endpoint <span class="bcp14">MUST</span> close the session with an error
-of 'Too Many Requests'.<a href="#section-8.5-4.1.1" class="pilcrow">¶</a></p>
+            <p id="section-8.5-4.1.1">Request ID: The new Maximum Request ID for the session plus 1. If a Request ID
+equal to or larger than this is received by the endpoint that sent the
+MAX_REQUEST_ID in any request message (ANNOUNCE, FETCH, SUBSCRIBE,
+SUBSCRIBE_ANNOUNCES or TRACK_STATUS_REQUEST), the endpoint <span class="bcp14">MUST</span> close the
+session with an error of 'Too Many Requests'.<a href="#section-8.5-4.1.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-8.5-5">MAX_REQUEST_ID is similar to MAX_STREAMS in (<span>[<a href="#RFC9000" class="cite xref">RFC9000</a>], <a href="https://rfc-editor.org/rfc/rfc9000#section-4.6" class="relref">Section 4.6</a></span>), and
@@ -5425,7 +5427,8 @@ cached as part of the Object and <span class="bcp14">MUST</span> be forwarded by
 <p id="section-9.2.1.2-5">If supported by the relay and subject to the processing rules specified in the
 definition of the extension, Extension Headers <span class="bcp14">MAY</span> be modified, added, removed,
 and/or cached by relays.<a href="#section-9.2.1.2-5" class="pilcrow">¶</a></p>
-<p id="section-9.2.1.2-6">Object Extension Headers are serialized as Key-Value-Pairs <a href="#moq-key-value-pair" class="auto internal xref">Figure 2</a>.<a href="#section-9.2.1.2-6" class="pilcrow">¶</a></p>
+<p id="section-9.2.1.2-6">Object Extension Headers are serialized as Key-Value-Pairs (see
+<a href="#moq-key-value-pair" class="auto internal xref">Figure 2</a>).<a href="#section-9.2.1.2-6" class="pilcrow">¶</a></p>
 <p id="section-9.2.1.2-7">Header types are registered in the IANA table 'MOQ Extension Headers'.
 See <a href="#iana" class="auto internal xref">Section 12</a>.<a href="#section-9.2.1.2-7" class="pilcrow">¶</a></p>
 </section>
@@ -5813,7 +5816,7 @@ always cleanly close all its subgroups. A sender that terminates a stream
 early for any other reason (e.g., to handoff to a different sender) <span class="bcp14">MUST</span>
 use RESET_STREAM or RESET_STREAM_AT. Senders <span class="bcp14">SHOULD</span> terminate a stream on
 Group boundaries to avoid doing so.<a href="#section-9.4.3-8" class="pilcrow">¶</a></p>
-<p id="section-9.4.3-9">An MoQT implementation that processes a stream FIN is assured it has received
+<p id="section-9.4.3-9">An MOQT implementation that processes a stream FIN is assured it has received
 all objects in a subgroup from the start of the subscription. If a relay, it
 can forward stream FINs to its own subscribers once those objects have been
 sent. A relay <span class="bcp14">MAY</span> treat receipt of EndOfGroup, GroupDoesNotExist, or
@@ -6017,7 +6020,7 @@ SUBGROUP_HEADER {
       <h2 id="name-extension-headers">
 <a href="#section-10" class="section-number selfRef">10. </a><a href="#name-extension-headers" class="section-name selfRef">Extension Headers</a>
       </h2>
-<p id="section-10-1">The following Object Extension Headers are defined in MoQT.<a href="#section-10-1" class="pilcrow">¶</a></p>
+<p id="section-10-1">The following Object Extension Headers are defined in MOQT.<a href="#section-10-1" class="pilcrow">¶</a></p>
 <div id="prior-group-id-gap">
 <section id="section-10.1">
         <h3 id="name-prior-group-id-gap">
