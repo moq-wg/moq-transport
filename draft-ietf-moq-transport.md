@@ -2193,10 +2193,14 @@ PUBLISH Message {
   uses the same Track Alias as a different track with an active subscription, it
   MUST close the session with error 'Duplicate Track Alias'.
 
+* Group Order: Indicates the subscription will be delivered in
+  Ascending (0x1) or Descending (0x2) order by group. See {{priorities}}.
+  Values of 0x0 and those larger than 0x2 are a protocol error.
+
 * ContentExists: 1 if an object has been published on this track, 0 if not.
-If 0, then the Largest Group ID and Largest Object ID fields will not be
-present. Any other value is a protocol error and MUST terminate the
-session with a Protocol Violation ({{session-termination}}).
+  If 0, then the Largest Group ID and Largest Object ID fields will not be
+  present. Any other value is a protocol error and MUST terminate the
+  session with a Protocol Violation ({{session-termination}}).
 
 * Largest: The location of the largest object available for this track.
 
@@ -2239,8 +2243,10 @@ PUBLISH_OK Message
 
 * Subscriber Priority: The Subscriber Priority for this subscription.
 
-* Group Order: The Group Order preference for this subscription.  This
-overwrites the GroupOrder specified PUBLISH.
+* Group Order: Indicates the subscription will be delivered in
+  Ascending (0x1) or Descending (0x2) order by group. See {{priorities}}.
+  Values of 0x0 and those larger than 0x2 are a protocol error. This
+  overwrites the GroupOrder specified PUBLISH.
 
 * Filter Type, Start, End Group: See {{message-subscribe-req}}.
 
@@ -2889,15 +2895,15 @@ Violation.
 The publisher will respond with SUBSCRIBE_ANNOUNCES_OK or
 SUBSCRIBE_ANNOUNCES_ERROR.  If the SUBSCRIBE_ANNOUNCES is successful, the
 publisher will immediately forward existing ANNOUNCE and PUBLISH messages that
-have the Track Namespace Prefix.  If the set of matching ANNOUNCE messages
-changes, the publisher sends the corresponding ANNOUNCE or UNANNOUNCE
-message.
+match the Track Namespace Prefix that have not already been sent to this
+subscriber.  If the set of matching ANNOUNCE messages changes, the publisher
+sends the corresponding ANNOUNCE or UNANNOUNCE message.
 
 A subscriber cannot make overlapping namespace subscriptions on a single
 session.  Within a session, if a publisher receives a SUBSCRIBE_ANNOUNCES with a
-Track Namespace Prefix that is a prefix of an earlier SUBSCRIBE_ANNOUNCES or
-vice versa, it MUST respond with SUBSCRIBE_ANNOUNCES_ERROR, with error code
-Namespace Prefix Overlap.
+Track Namespace Prefix that is a prefix of, suffix of, or equal to an active
+SUBSCRIBE_ANNOUNCES, it MUST respond with SUBSCRIBE_ANNOUNCES_ERROR, with error
+code Namespace Prefix Overlap.
 
 The publisher MUST ensure the subscriber is authorized to perform this
 namespace subscription.
