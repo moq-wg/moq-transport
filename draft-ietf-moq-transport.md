@@ -1533,18 +1533,6 @@ stream. Once Objects have expired from cache, their state becomes unknown, and
 a relay that handles a downstream request that includes those Objects
 re-requests them.
 
-#### TRACK STATUS RESPONDER
-
-The TRACK_STATUS_RESPONDER parameter (Parameter Type 0x6) indicates the entity
-that sent a TRACK_STATUS_OK or TRACK_STATUS_ERROR.  The allowed values are:
-
-0x0: Original Publisher
-0x1: Relay with Active Subscription
-0x2: Relay without Active Subscription
-
-If a subscriber receives any other value for this header it MUST close the
-session with error `Protocol Violation`.
-
 ## CLIENT_SETUP and SERVER_SETUP {#message-setup}
 
 The `CLIENT_SETUP` and `SERVER_SETUP` messages are the first messages exchanged
@@ -2522,8 +2510,11 @@ The TRACK_STATUS message format is identical to the SUBSCRIBE message
 
 The receiver of a TRACK_STATUS message treats it identically as if it had
 received a SUBSCRIBE message, except it does not create subscription state or
-send any Objects.  The publisher does not send SUBSCRIBE_DONE for this request,
-and the subscriber cannot send SUBSCRIBE_UPDATE or UNSUBSCRIBE.
+send any Objects.  Relays without an active subscription MAY forward
+TRACK_STATUS to one or more publishers, or MAY initiate a subscription as
+described in {{publisher-interactions}} to determine the response. The publisher
+does not send SUBSCRIBE_DONE for this request, and the subscriber cannot send
+SUBSCRIBE_UPDATE or UNSUBSCRIBE.
 
 ## TRACK_STATUS_OK {#message-track-status-ok}
 
@@ -2534,9 +2525,8 @@ The TRACK_STATUS_OK message format is identical to the SUBSCRIBE_OK message
 ({{message-subscribe-ok}}).
 
 The publisher populates the fields of TRACK_STATUS_OK exactly as it would have
-populated a SUBSCRIBE_OK, and adds the TRACK_STATUS_RESPONDER parameter.  It is
-not considered an error if the specified Track Alias is already in use by an
-active subscription.
+populated a SUBSCRIBE_OK, setting Track Alias to 0. It is not considered an error
+if Track Alias 0 is already in use by an active subscription.
 
 
 ## TRACK_STATUS_ERROR {#message-track-status-error}
@@ -2548,7 +2538,7 @@ The TRACK_STATUS_ERROR message format is identical to the SUBSCRIBE_ERROR
 message ({{message-subscribe-error}}).
 
 The publisher populates the fields of TRACK_STATUS_ERROR exactly as it would
-have populated a SUBSCRIBE_ERROR, and adds the TRACK_STATUS_RESPONDER parameter.
+have populated a SUBSCRIBE_ERROR.
 
 ## ANNOUNCE {#message-announce}
 
