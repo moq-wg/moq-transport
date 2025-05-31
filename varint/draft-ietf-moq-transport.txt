@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 14 November 2025                                  I. Swett, Ed.
+Expires: 2 December 2025                                   I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                             13 May 2025
+                                                             31 May 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 14 November 2025.
+   This Internet-Draft will expire on 2 December 2025.
 
 Copyright Notice
 
@@ -342,8 +342,8 @@ Table of Contents
 
    This document redefines the following RFC9000 syntax:
 
-   x (i):  Indicates that x holds an integer value using the variable-
-      length encoding as described in Section 1.3.1.
+   x (vi64):  Indicates that x holds an integer value using the
+      variable-length encoding as described in Section 1.3.1.
 
    This document extends the RFC9000 syntax and with the additional
    field types:
@@ -393,8 +393,8 @@ Table of Contents
 
                    Table 1: Summary of Integer Encodings
 
-   The four least significant bits of the first byte are reserved in
-   9-byte encodings.
+   The four least significant bits of the first byte are ignored in
+   9-byte encodings.  Senders SHOULD set these bits to 0000.
 
    To reduce unnecessary use of bandwidth, variable length integers
    SHOULD be encoded using the least number of bytes possible to
@@ -407,8 +407,8 @@ Table of Contents
    Location identifies a particular Object in a Group within a Track.
 
    Location {
-     Group (i),
-     Object (i)
+     Group (vi64),
+     Object (vi64)
    }
 
                         Figure 1: Location structure
@@ -427,8 +427,8 @@ Table of Contents
    is optimized for use in the data plane.
 
    Key-Value-Pair {
-     Type (i),
-     [Length (i),]
+     Type (vi64),
+     [Length (vi64),]
      Value (..)
    }
 
@@ -456,7 +456,7 @@ Table of Contents
    diagnostic information about the error condition, where appropriate.
 
    Reason Phrase {
-     Reason Phrase Length (i),
+     Reason Phrase Length (vi64),
      Reason Phrase Value (..)
    }
 
@@ -1388,7 +1388,7 @@ Table of Contents
    stream is formatted as follows:
 
    MOQT Control Message {
-     Message Type (i),
+     Message Type (vi64),
      Message Length (16),
      Message Payload (..),
    }
@@ -1532,9 +1532,9 @@ Table of Contents
    serialized as follows:
 
    TOKEN {
-     Alias Type (i),
-     [Token Alias (i),]
-     [Token Type (i),]
+     Alias Type (vi64),
+     [Token Alias (vi64),]
+     [Token Type (vi64),]
      [Token Value (..)]
    }
 
@@ -1711,19 +1711,19 @@ Table of Contents
    The wire format of the Setup messages are as follows:
 
    CLIENT_SETUP Message {
-     Type (i) = 0x20,
+     Type (vi64) = 0x20,
      Length (16),
-     Number of Supported Versions (i),
-     Supported Versions (i) ...,
-     Number of Parameters (i),
+     Number of Supported Versions (vi64),
+     Supported Versions (vi64) ...,
+     Number of Parameters (vi64),
      Setup Parameters (..) ...,
    }
 
    SERVER_SETUP Message {
-     Type (i) = 0x21,
+     Type (vi64) = 0x21,
      Length (16),
-     Selected Version (i),
-     Number of Parameters (i),
+     Selected Version (vi64),
+     Number of Parameters (vi64),
      Setup Parameters (..) ...,
    }
 
@@ -1815,9 +1815,9 @@ Table of Contents
    (Section 3.4) if it receives multiple GOAWAY messages.
 
    GOAWAY Message {
-     Type (i) = 0x10,
+     Type (vi64) = 0x10,
      Length (16),
-     New Session URI Length (i),
+     New Session URI Length (vi64),
      New Session URI (..),
    }
 
@@ -1845,9 +1845,9 @@ Table of Contents
    ID value is a 'Protocol Violation'.
 
    MAX_REQUEST_ID Message {
-     Type (i) = 0x15,
+     Type (vi64) = 0x15,
      Length (16),
-     Request ID (i),
+     Request ID (vi64),
    }
 
                    Figure 7: MOQT MAX_REQUEST_ID Message
@@ -1878,9 +1878,9 @@ Table of Contents
    required.
 
    REQUESTS_BLOCKED Message {
-     Type (i) = 0x1A,
+     Type (vi64) = 0x1A,
      Length (16),
-     Maximum Request ID (i),
+     Maximum Request ID (vi64),
    }
 
                   Figure 8: MOQT REQUESTS_BLOCKED Message
@@ -1963,20 +1963,20 @@ Table of Contents
    The format of SUBSCRIBE is as follows:
 
    SUBSCRIBE Message {
-     Type (i) = 0x3,
+     Type (vi64) = 0x3,
      Length (16),
-     Request ID (i),
-     Track Alias (i),
+     Request ID (vi64),
+     Track Alias (vi64),
      Track Namespace (tuple),
-     Track Name Length (i),
+     Track Name Length (vi64),
      Track Name (..),
      Subscriber Priority (8),
      Group Order (8),
      Forward (8),
-     Filter Type (i),
+     Filter Type (vi64),
      [Start Location (Location)],
-     [End Group (i)],
-     Number of Parameters (i),
+     [End Group (vi64)],
+     Number of Parameters (vi64),
      Subscribe Parameters (..) ...
    }
 
@@ -2039,14 +2039,14 @@ Table of Contents
    subscriptions.
 
    SUBSCRIBE_OK Message {
-     Type (i) = 0x4,
+     Type (vi64) = 0x4,
      Length (16),
-     Request ID (i),
-     Expires (i),
+     Request ID (vi64),
+     Expires (vi64),
      Group Order (8),
      Content Exists (8),
      [Largest Location (Location)],
-     Number of Parameters (i),
+     Number of Parameters (vi64),
      Subscribe Parameters (..) ...
    }
 
@@ -2083,12 +2083,12 @@ Table of Contents
    failed SUBSCRIBE.
 
    SUBSCRIBE_ERROR Message {
-     Type (i) = 0x5,
+     Type (vi64) = 0x5,
      Length (16),
-     Request ID (i),
-     Error Code (i),
+     Request ID (vi64),
+     Error Code (vi64),
      Error Reason (Reason Phrase),
-     Track Alias (i),
+     Track Alias (vi64),
    }
 
                   Figure 11: MOQT SUBSCRIBE_ERROR Message
@@ -2201,14 +2201,14 @@ Table of Contents
    The format of SUBSCRIBE_UPDATE is as follows:
 
    SUBSCRIBE_UPDATE Message {
-     Type (i) = 0x2,
+     Type (vi64) = 0x2,
      Length (16),
-     Request ID (i),
+     Request ID (vi64),
      Start Location (Location),
-     End Group (i),
+     End Group (vi64),
      Subscriber Priority (8),
      Forward (8),
-     Number of Parameters (i),
+     Number of Parameters (vi64),
      Subscribe Parameters (..) ...
    }
 
@@ -2243,9 +2243,9 @@ Table of Contents
    The format of UNSUBSCRIBE is as follows:
 
    UNSUBSCRIBE Message {
-     Type (i) = 0xA,
+     Type (vi64) = 0xA,
      Length (16),
-     Request ID (i)
+     Request ID (vi64)
    }
 
                     Figure 13: MOQT UNSUBSCRIBE Message
@@ -2296,11 +2296,11 @@ Table of Contents
    The format of SUBSCRIBE_DONE is as follows:
 
    SUBSCRIBE_DONE Message {
-     Type (i) = 0xB,
+     Type (vi64) = 0xB,
      Length (16),
-     Request ID (i),
-     Status Code (i),
-     Stream Count (i),
+     Request ID (vi64),
+     Status Code (vi64),
+     Stream Count (vi64),
      Error Reason (Reason Phrase)
    }
 
@@ -2443,22 +2443,22 @@ Table of Contents
    The format of FETCH is as follows:
 
    FETCH Message {
-     Type (i) = 0x16,
+     Type (vi64) = 0x16,
      Length (16),
-     Request ID (i),
+     Request ID (vi64),
      Subscriber Priority (8),
      Group Order (8),
-     Fetch Type (i),
+     Fetch Type (vi64),
      [Track Namespace (tuple),
-      Track Name Length (i),
+      Track Name Length (vi64),
       Track Name (..),
-      Start Group (i),
-      Start Object (i),
-      End Group (i),
-      End Object (i),]
-     [Joining Subscribe ID (i),
-      Joining Start (i),]
-     Number of Parameters (i),
+      Start Group (vi64),
+      Start Object (vi64),
+      End Group (vi64),
+      End Object (vi64),]
+     [Joining Subscribe ID (vi64),
+      Joining Start (vi64),]
+     Number of Parameters (vi64),
      Parameters (..) ...
    }
 
@@ -2571,13 +2571,13 @@ Table of Contents
    be sent until the end group and object are known.
 
    FETCH_OK Message {
-     Type (i) = 0x18,
+     Type (vi64) = 0x18,
      Length (16),
-     Request ID (i),
+     Request ID (vi64),
      Group Order (8),
      End Of Track (8),
      End Location (Location),
-     Number of Parameters (i),
+     Number of Parameters (vi64),
      Subscribe Parameters (..) ...
    }
 
@@ -2610,10 +2610,10 @@ Table of Contents
    failed FETCH.
 
    FETCH_ERROR Message {
-     Type (i) = 0x19,
+     Type (vi64) = 0x19,
      Length (16),
-     Request ID (i),
-     Error Code (i),
+     Request ID (vi64),
+     Error Code (vi64),
      Error Reason (Reason Phrase)
    }
 
@@ -2703,9 +2703,9 @@ Table of Contents
    The format of FETCH_CANCEL is as follows:
 
    FETCH_CANCEL Message {
-     Type (i) = 0x17,
+     Type (vi64) = 0x17,
      Length (16),
-     Request ID (i)
+     Request ID (vi64)
    }
 
                     Figure 18: MOQT FETCH_CANCEL Message
@@ -2723,13 +2723,13 @@ Table of Contents
    TRACK_STATUS_REQUEST.
 
    TRACK_STATUS_REQUEST Message {
-     Type (i) = 0xD,
+     Type (vi64) = 0xD,
      Length (16),
-     Request ID (i),
+     Request ID (vi64),
      Track Namespace (tuple),
-     Track Name Length (i),
+     Track Name Length (vi64),
      Track Name (..),
-     Number of Parameters (i),
+     Number of Parameters (vi64),
      Parameters (..) ...,
    }
 
@@ -2751,12 +2751,12 @@ Table of Contents
    response to a TRACK_STATUS_REQUEST message.
 
    TRACK_STATUS Message {
-     Type (i) = 0xE,
+     Type (vi64) = 0xE,
      Length (16),
-     Request ID (i),
-     Status Code (i),
+     Request ID (vi64),
+     Status Code (vi64),
      Largest Location (Location),
-     Number of Parameters (i),
+     Number of Parameters (vi64),
      Parameters (..) ...,
    }
 
@@ -2806,11 +2806,11 @@ Table of Contents
    this namespace.
 
    ANNOUNCE Message {
-     Type (i) = 0x6,
+     Type (vi64) = 0x6,
      Length (16),
-     Request ID (i),
+     Request ID (vi64),
      Track Namespace (tuple),
-     Number of Parameters (i),
+     Number of Parameters (vi64),
      Parameters (..) ...,
    }
 
@@ -2829,9 +2829,9 @@ Table of Contents
    the successful authorization and acceptance of an ANNOUNCE message.
 
    ANNOUNCE_OK Message {
-     Type (i) = 0x7,
+     Type (vi64) = 0x7,
      Length (16),
-     Request ID (i)
+     Request ID (vi64)
    }
 
                     Figure 22: MOQT ANNOUNCE_OK Message
@@ -2845,10 +2845,10 @@ Table of Contents
    that failed authorization.
 
    ANNOUNCE_ERROR Message {
-     Type (i) = 0x8,
+     Type (vi64) = 0x8,
      Length (16),
-     Request ID (i),
-     Error Code (i),
+     Request ID (vi64),
+     Error Code (vi64),
      Error Reason (Reason Phrase)
    }
 
@@ -2917,7 +2917,7 @@ Table of Contents
    provided Track Namespace.
 
    UNANNOUNCE Message {
-     Type (i) = 0x9,
+     Type (vi64) = 0x9,
      Length (16),
      Track Namespace (tuple),
    }
@@ -2934,10 +2934,10 @@ Table of Contents
    Track Namespace.
 
    ANNOUNCE_CANCEL Message {
-     Type (i) = 0xC,
+     Type (vi64) = 0xC,
      Length (16),
      Track Namespace (tuple),
-     Error Code (i),
+     Error Code (vi64),
      Error Reason (Reason Phrase),
    }
 
@@ -2960,11 +2960,11 @@ Table of Contents
    well as future updates to the set.
 
    SUBSCRIBE_ANNOUNCES Message {
-     Type (i) = 0x11,
+     Type (vi64) = 0x11,
      Length (16),
-     Request ID (i),
+     Request ID (vi64),
      Track Namespace Prefix (tuple),
-     Number of Parameters (i),
+     Number of Parameters (vi64),
      Parameters (..) ...,
    }
 
@@ -3011,9 +3011,9 @@ Table of Contents
    successful namespace subscriptions.
 
    SUBSCRIBE_ANNOUNCES_OK Message {
-     Type (i) = 0x12,
+     Type (vi64) = 0x12,
      Length (16),
-     Request ID (i),
+     Request ID (vi64),
    }
 
                Figure 27: MOQT SUBSCRIBE_ANNOUNCES_OK Message
@@ -3027,10 +3027,10 @@ Table of Contents
    response to a failed SUBSCRIBE_ANNOUNCES.
 
    SUBSCRIBE_ANNOUNCES_ERROR Message {
-     Type (i) = 0x13,
+     Type (vi64) = 0x13,
      Length (16),
-     Request ID (i),
-     Error Code (i),
+     Request ID (vi64),
+     Error Code (vi64),
      Error Reason (Reason Phrase)
    }
 
@@ -3108,7 +3108,7 @@ Table of Contents
    The format of UNSUBSCRIBE_ANNOUNCES is as follows:
 
    UNSUBSCRIBE_ANNOUNCES Message {
-     Type (i) = 0x14,
+     Type (vi64) = 0x14,
      Length (16),
      Track Namespace Prefix (tuple)
    }
@@ -3286,12 +3286,12 @@ Table of Contents
    the session, the Object will be dropped.
 
    OBJECT_DATAGRAM {
-     Type (i),
-     Track Alias (i),
-     Group ID (i),
-     Object ID (i),
+     Type (vi64),
+     Track Alias (vi64),
+     Group ID (vi64),
+     Object ID (vi64),
      Publisher Priority (8),
-     [Extension Headers Length (i),
+     [Extension Headers Length (vi64),
      Extension headers (...)],
      Object Payload (..),
    }
@@ -3313,14 +3313,14 @@ Table of Contents
    conveys an Object Status and has no payload.
 
    OBJECT_DATAGRAM_STATUS {
-     Type (i),
-     Track Alias (i),
-     Group ID (i),
-     Object ID (i),
+     Type (vi64),
+     Track Alias (vi64),
+     Group ID (vi64),
+     Object ID (vi64),
      Publisher Priority (8),
-     [Extension Headers Length (i),
+     [Extension Headers Length (vi64),
      Extension headers (...)],
-     Object Status (i),
+     Object Status (vi64),
    }
 
                    Figure 31: MOQT OBJECT_DATAGRAM_STATUS
@@ -3355,10 +3355,10 @@ Table of Contents
    Track Alias and the subgroup indicated by 'Group ID' and Subgroup ID.
 
    SUBGROUP_HEADER {
-     Type (i) = 0x8..0xD,
-     Track Alias (i),
-     Group ID (i),
-     [Subgroup ID (i),]
+     Type (vi64) = 0x8..0xD,
+     Track Alias (vi64),
+     Group ID (vi64),
+     [Subgroup ID (vi64),]
      Publisher Priority (8),
    }
 
@@ -3409,11 +3409,11 @@ Table of Contents
    zero.
 
    {
-     Object ID (i),
-     [Extension Headers Length (i),
+     Object ID (vi64),
+     [Extension Headers Length (vi64),
      Extension headers (...)],
-     Object Payload Length (i),
-     [Object Status (i)],
+     Object Payload Length (vi64),
+     [Object Status (vi64)],
      Object Payload (..),
    }
 
@@ -3552,8 +3552,8 @@ Table of Contents
    Request ID.
 
    FETCH_HEADER {
-     Type (i) = 0x5,
-     Request ID (i),
+     Type (vi64) = 0x5,
+     Request ID (vi64),
    }
 
                         Figure 34: MOQT FETCH_HEADER
@@ -3562,14 +3562,14 @@ Table of Contents
    following format:
 
    {
-     Group ID (i),
-     Subgroup ID (i),
-     Object ID (i),
+     Group ID (vi64),
+     Subgroup ID (vi64),
+     Object ID (vi64),
      Publisher Priority (8),
-     Extension Headers Length (i),
+     Extension Headers Length (vi64),
      [Extension headers (...)],
-     Object Payload Length (i),
-     [Object Status (i)],
+     Object Payload Length (vi64),
+     [Object Status (vi64)],
      Object Payload (..),
    }
 

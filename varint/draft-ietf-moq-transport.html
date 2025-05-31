@@ -28,7 +28,7 @@ networks and is designed for high scale and low latency distribution.
     intervaltree 3.1.0
     Jinja2 3.1.6
     lxml 5.3.0
-    platformdirs 4.3.7
+    platformdirs 4.3.8
     pycountry 24.6.1
     PyYAML 6.0.2
     requests 2.32.3
@@ -1056,7 +1056,7 @@ svg :is([fill="white"], [fill^="#fff"]) {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Nandakumar, et al.</td>
-<td class="center">Expires 14 November 2025</td>
+<td class="center">Expires 2 December 2025</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1069,12 +1069,12 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dd class="internet-draft">draft-ietf-moq-transport-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2025-05-13" class="published">13 May 2025</time>
+<time datetime="2025-05-31" class="published">31 May 2025</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2025-11-14">14 November 2025</time></dd>
+<dd class="expires"><time datetime="2025-12-02">2 December 2025</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1143,7 +1143,7 @@ networks and is designed for high scale and low latency distribution.<a href="#s
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 14 November 2025.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 2 December 2025.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1797,7 +1797,7 @@ has a length of L<a href="#section-1.3-3.8.1" class="pilcrow">¶</a></p>
 </dl>
 <p id="section-1.3-4">This document redefines the following RFC9000 syntax:<a href="#section-1.3-4" class="pilcrow">¶</a></p>
 <span class="break"></span><dl class="dlParallel" id="section-1.3-5">
-          <dt id="section-1.3-5.1">x (i):</dt>
+          <dt id="section-1.3-5.1">x (vi64):</dt>
           <dd style="margin-left: 1.5em" id="section-1.3-5.2">
             <p id="section-1.3-5.2.1">Indicates that x holds an integer value using the variable-length
 encoding as described in <a href="#variable-length-integers" class="auto internal xref">Section 1.3.1</a>.<a href="#section-1.3-5.2.1" class="pilcrow">¶</a></p>
@@ -1890,8 +1890,8 @@ properties.<a href="#section-1.3.1-4" class="pilcrow">¶</a></p>
               </tr>
             </tbody>
           </table>
-<p id="section-1.3.1-6">The four least significant bits of the first byte are reserved in 9-byte
-encodings.<a href="#section-1.3.1-6" class="pilcrow">¶</a></p>
+<p id="section-1.3.1-6">The four least significant bits of the first byte are ignored in 9-byte
+encodings.  Senders <span class="bcp14">SHOULD</span> set these bits to 0000.<a href="#section-1.3.1-6" class="pilcrow">¶</a></p>
 <p id="section-1.3.1-7">To reduce unnecessary use of bandwidth, variable length integers <span class="bcp14">SHOULD</span>
 be encoded using the least number of bytes possible to represent the
 required value.<a href="#section-1.3.1-7" class="pilcrow">¶</a></p>
@@ -1909,8 +1909,8 @@ required value.<a href="#section-1.3.1-7" class="pilcrow">¶</a></p>
             <div class="alignLeft art-text artwork" id="section-1.3.2-2.1">
 <pre>
 Location {
-  Group (i),
-  Object (i)
+  Group (vi64),
+  Object (vi64)
 }
 </pre>
 </div>
@@ -1938,8 +1938,8 @@ is optimized for use in the data plane.<a href="#section-1.3.3-2" class="pilcrow
             <div class="alignLeft art-text artwork" id="section-1.3.3-3.1">
 <pre>
 Key-Value-Pair {
-  Type (i),
-  [Length (i),]
+  Type (vi64),
+  [Length (vi64),]
   Value (..)
 }
 </pre>
@@ -1980,7 +1980,7 @@ information about the error condition, where appropriate.<a href="#section-1.3.4
 <div class="alignLeft art-text artwork" id="section-1.3.4-2">
 <pre>
 Reason Phrase {
-  Reason Phrase Length (i),
+  Reason Phrase Length (vi64),
   Reason Phrase Value (..)
 }
 </pre><a href="#section-1.3.4-2" class="pilcrow">¶</a>
@@ -3009,7 +3009,7 @@ formatted as follows:<a href="#section-8-1" class="pilcrow">¶</a></p>
         <div class="alignLeft art-text artwork" id="section-8-2.1">
 <pre>
 MOQT Control Message {
-  Message Type (i),
+  Message Type (vi64),
   Message Length (16),
   Message Payload (..),
 }
@@ -3220,9 +3220,9 @@ in future messages. The TOKEN value is serialized as follows:<a href="#section-8
               <div class="alignLeft art-text artwork" id="section-8.2.1.1-4.1">
 <pre>
 TOKEN {
-  Alias Type (i),
-  [Token Alias (i),]
-  [Token Type (i),]
+  Alias Type (vi64),
+  [Token Alias (vi64),]
+  [Token Type (vi64),]
   [Token Value (..)]
 }
 </pre>
@@ -3438,19 +3438,19 @@ setup parameters. TODO: describe GREASE for those.<a href="#section-8.3-1" class
           <div class="alignLeft art-text artwork" id="section-8.3-3.1">
 <pre>
 CLIENT_SETUP Message {
-  Type (i) = 0x20,
+  Type (vi64) = 0x20,
   Length (16),
-  Number of Supported Versions (i),
-  Supported Versions (i) ...,
-  Number of Parameters (i),
+  Number of Supported Versions (vi64),
+  Supported Versions (vi64) ...,
+  Number of Parameters (vi64),
   Setup Parameters (..) ...,
 }
 
 SERVER_SETUP Message {
-  Type (i) = 0x21,
+  Type (vi64) = 0x21,
   Length (16),
-  Selected Version (i),
-  Number of Parameters (i),
+  Selected Version (vi64),
+  Number of Parameters (vi64),
   Setup Parameters (..) ...,
 }
 </pre>
@@ -3556,9 +3556,9 @@ the peer including SUBSCRIBE, FETCH, ANNOUNCE and SUBSCRIBE_ANNOUNCE.<a href="#s
           <div class="alignLeft art-text artwork" id="section-8.4-5.1">
 <pre>
 GOAWAY Message {
-  Type (i) = 0x10,
+  Type (vi64) = 0x10,
   Length (16),
-  New Session URI Length (i),
+  New Session URI Length (vi64),
   New Session URI (..),
 }
 </pre>
@@ -3598,9 +3598,9 @@ value is a 'Protocol Violation'.<a href="#section-8.5-2" class="pilcrow">¶</a><
           <div class="alignLeft art-text artwork" id="section-8.5-3.1">
 <pre>
 MAX_REQUEST_ID Message {
-  Type (i) = 0x15,
+  Type (vi64) = 0x15,
   Length (16),
-  Request ID (i),
+  Request ID (vi64),
 }
 </pre>
 </div>
@@ -3641,9 +3641,9 @@ sending REQUESTS_BLOCKED is not required.<a href="#section-8.6-2" class="pilcrow
           <div class="alignLeft art-text artwork" id="section-8.6-3.1">
 <pre>
 REQUESTS_BLOCKED Message {
-  Type (i) = 0x1A,
+  Type (vi64) = 0x1A,
   Length (16),
-  Maximum Request ID (i),
+  Maximum Request ID (vi64),
 }
 </pre>
 </div>
@@ -3722,20 +3722,20 @@ sent.<a href="#section-8.7-13" class="pilcrow">¶</a></p>
           <div class="alignLeft art-text artwork" id="section-8.7-15.1">
 <pre>
 SUBSCRIBE Message {
-  Type (i) = 0x3,
+  Type (vi64) = 0x3,
   Length (16),
-  Request ID (i),
-  Track Alias (i),
+  Request ID (vi64),
+  Track Alias (vi64),
   Track Namespace (tuple),
-  Track Name Length (i),
+  Track Name Length (vi64),
   Track Name (..),
   Subscriber Priority (8),
   Group Order (8),
   Forward (8),
-  Filter Type (i),
+  Filter Type (vi64),
   [Start Location (Location)],
-  [End Group (i)],
-  Number of Parameters (i),
+  [End Group (vi64)],
+  Number of Parameters (vi64),
   Subscribe Parameters (..) ...
 }
 </pre>
@@ -3815,14 +3815,14 @@ subscriptions.<a href="#section-8.8-1" class="pilcrow">¶</a></p>
           <div class="alignLeft art-text artwork" id="section-8.8-2.1">
 <pre>
 SUBSCRIBE_OK Message {
-  Type (i) = 0x4,
+  Type (vi64) = 0x4,
   Length (16),
-  Request ID (i),
-  Expires (i),
+  Request ID (vi64),
+  Expires (vi64),
   Group Order (8),
   Content Exists (8),
   [Largest Location (Location)],
-  Number of Parameters (i),
+  Number of Parameters (vi64),
   Subscribe Parameters (..) ...
 }
 </pre>
@@ -3875,12 +3875,12 @@ failed SUBSCRIBE.<a href="#section-8.9-1" class="pilcrow">¶</a></p>
           <div class="alignLeft art-text artwork" id="section-8.9-2.1">
 <pre>
 SUBSCRIBE_ERROR Message {
-  Type (i) = 0x5,
+  Type (vi64) = 0x5,
   Length (16),
-  Request ID (i),
-  Error Code (i),
+  Request ID (vi64),
+  Error Code (vi64),
   Error Reason (Reason Phrase),
-  Track Alias (i),
+  Track Alias (vi64),
 }
 </pre>
 </div>
@@ -4033,14 +4033,14 @@ remove a parameter from a subscription.<a href="#section-8.10-4" class="pilcrow"
           <div class="alignLeft art-text artwork" id="section-8.10-6.1">
 <pre>
 SUBSCRIBE_UPDATE Message {
-  Type (i) = 0x2,
+  Type (vi64) = 0x2,
   Length (16),
-  Request ID (i),
+  Request ID (vi64),
   Start Location (Location),
-  End Group (i),
+  End Group (vi64),
   Subscriber Priority (8),
   Forward (8),
-  Number of Parameters (i),
+  Number of Parameters (vi64),
   Subscribe Parameters (..) ...
 }
 </pre>
@@ -4092,9 +4092,9 @@ the publisher stop sending Objects as soon as possible.<a href="#section-8.11-1"
           <div class="alignLeft art-text artwork" id="section-8.11-3.1">
 <pre>
 UNSUBSCRIBE Message {
-  Type (i) = 0xA,
+  Type (vi64) = 0xA,
   Length (16),
-  Request ID (i)
+  Request ID (vi64)
 }
 </pre>
 </div>
@@ -4150,11 +4150,11 @@ the subscription when it deletes subscription state.<a href="#section-8.12-5" cl
           <div class="alignLeft art-text artwork" id="section-8.12-7.1">
 <pre>
 SUBSCRIBE_DONE Message {
-  Type (i) = 0xB,
+  Type (vi64) = 0xB,
   Length (16),
-  Request ID (i),
-  Status Code (i),
-  Stream Count (i),
+  Request ID (vi64),
+  Status Code (vi64),
+  Stream Count (vi64),
   Error Reason (Reason Phrase)
 }
 </pre>
@@ -4315,22 +4315,22 @@ specify the same or a larger Location than Start Group and Start Object.<a href=
           <div class="alignLeft art-text artwork" id="section-8.13-15.1">
 <pre>
 FETCH Message {
-  Type (i) = 0x16,
+  Type (vi64) = 0x16,
   Length (16),
-  Request ID (i),
+  Request ID (vi64),
   Subscriber Priority (8),
   Group Order (8),
-  Fetch Type (i),
+  Fetch Type (vi64),
   [Track Namespace (tuple),
-   Track Name Length (i),
+   Track Name Length (vi64),
    Track Name (..),
-   Start Group (i),
-   Start Object (i),
-   End Group (i),
-   End Object (i),]
-  [Joining Subscribe ID (i),
-   Joining Start (i),]
-  Number of Parameters (i),
+   Start Group (vi64),
+   Start Object (vi64),
+   End Group (vi64),
+   End Object (vi64),]
+  [Joining Subscribe ID (vi64),
+   Joining Start (vi64),]
+  Number of Parameters (vi64),
   Parameters (..) ...
 }
 </pre>
@@ -4469,13 +4469,13 @@ but the FETCH_OK <span class="bcp14">MUST NOT</span> be sent until the end group
           <div class="alignLeft art-text artwork" id="section-8.14-2.1">
 <pre>
 FETCH_OK Message {
-  Type (i) = 0x18,
+  Type (vi64) = 0x18,
   Length (16),
-  Request ID (i),
+  Request ID (vi64),
   Group Order (8),
   End Of Track (8),
   End Location (Location),
-  Number of Parameters (i),
+  Number of Parameters (vi64),
   Subscribe Parameters (..) ...
 }
 </pre>
@@ -4526,10 +4526,10 @@ failed FETCH.<a href="#section-8.15-1" class="pilcrow">¶</a></p>
           <div class="alignLeft art-text artwork" id="section-8.15-2.1">
 <pre>
 FETCH_ERROR Message {
-  Type (i) = 0x19,
+  Type (vi64) = 0x19,
   Length (16),
-  Request ID (i),
-  Error Code (i),
+  Request ID (vi64),
+  Error Code (vi64),
   Error Reason (Reason Phrase)
 }
 </pre>
@@ -4667,9 +4667,9 @@ is in the middle of delivering an object.<a href="#section-8.16-1" class="pilcro
           <div class="alignLeft art-text artwork" id="section-8.16-3.1">
 <pre>
 FETCH_CANCEL Message {
-  Type (i) = 0x17,
+  Type (vi64) = 0x17,
   Length (16),
-  Request ID (i)
+  Request ID (vi64)
 }
 </pre>
 </div>
@@ -4698,13 +4698,13 @@ stream to obtain information about the current status of a given track.<a href="
           <div class="alignLeft art-text artwork" id="section-8.17-3.1">
 <pre>
 TRACK_STATUS_REQUEST Message {
-  Type (i) = 0xD,
+  Type (vi64) = 0xD,
   Length (16),
-  Request ID (i),
+  Request ID (vi64),
   Track Namespace (tuple),
-  Track Name Length (i),
+  Track Name Length (vi64),
   Track Name (..),
-  Number of Parameters (i),
+  Number of Parameters (vi64),
   Parameters (..) ...,
 }
 </pre>
@@ -4742,12 +4742,12 @@ to a TRACK_STATUS_REQUEST message.<a href="#section-8.18-1" class="pilcrow">¶</
           <div class="alignLeft art-text artwork" id="section-8.18-2.1">
 <pre>
 TRACK_STATUS Message {
-  Type (i) = 0xE,
+  Type (vi64) = 0xE,
   Length (16),
-  Request ID (i),
-  Status Code (i),
+  Request ID (vi64),
+  Status Code (vi64),
   Largest Location (Location),
-  Number of Parameters (i),
+  Number of Parameters (vi64),
   Parameters (..) ...,
 }
 </pre>
@@ -4804,11 +4804,11 @@ publisher is authorized to publish tracks under this namespace.<a href="#section
           <div class="alignLeft art-text artwork" id="section-8.19-2.1">
 <pre>
 ANNOUNCE Message {
-  Type (i) = 0x6,
+  Type (vi64) = 0x6,
   Length (16),
-  Request ID (i),
+  Request ID (vi64),
   Track Namespace (tuple),
-  Number of Parameters (i),
+  Number of Parameters (vi64),
   Parameters (..) ...,
 }
 </pre>
@@ -4843,9 +4843,9 @@ successful authorization and acceptance of an ANNOUNCE message.<a href="#section
           <div class="alignLeft art-text artwork" id="section-8.20-2.1">
 <pre>
 ANNOUNCE_OK Message {
-  Type (i) = 0x7,
+  Type (vi64) = 0x7,
   Length (16),
-  Request ID (i)
+  Request ID (vi64)
 }
 </pre>
 </div>
@@ -4873,10 +4873,10 @@ failed authorization.<a href="#section-8.21-1" class="pilcrow">¶</a></p>
           <div class="alignLeft art-text artwork" id="section-8.21-2.1">
 <pre>
 ANNOUNCE_ERROR Message {
-  Type (i) = 0x8,
+  Type (vi64) = 0x8,
   Length (16),
-  Request ID (i),
-  Error Code (i),
+  Request ID (vi64),
+  Error Code (vi64),
   Error Reason (Reason Phrase)
 }
 </pre>
@@ -4987,7 +4987,7 @@ within the provided Track Namespace.<a href="#section-8.22-1" class="pilcrow">¶
           <div class="alignLeft art-text artwork" id="section-8.22-2.1">
 <pre>
 UNANNOUNCE Message {
-  Type (i) = 0x9,
+  Type (vi64) = 0x9,
   Length (16),
   Track Namespace (tuple),
 }
@@ -5018,10 +5018,10 @@ within the provided Track Namespace.<a href="#section-8.23-1" class="pilcrow">¶
           <div class="alignLeft art-text artwork" id="section-8.23-2.1">
 <pre>
 ANNOUNCE_CANCEL Message {
-  Type (i) = 0xC,
+  Type (vi64) = 0xC,
   Length (16),
   Track Namespace (tuple),
-  Error Code (i),
+  Error Code (vi64),
   Error Reason (Reason Phrase),
 }
 </pre>
@@ -5059,11 +5059,11 @@ to the set.<a href="#section-8.24-1" class="pilcrow">¶</a></p>
           <div class="alignLeft art-text artwork" id="section-8.24-2.1">
 <pre>
 SUBSCRIBE_ANNOUNCES Message {
-  Type (i) = 0x11,
+  Type (vi64) = 0x11,
   Length (16),
-  Request ID (i),
+  Request ID (vi64),
   Track Namespace Prefix (tuple),
-  Number of Parameters (i),
+  Number of Parameters (vi64),
   Parameters (..) ...,
 }
 </pre>
@@ -5120,9 +5120,9 @@ namespace subscriptions.<a href="#section-8.25-1" class="pilcrow">¶</a></p>
           <div class="alignLeft art-text artwork" id="section-8.25-2.1">
 <pre>
 SUBSCRIBE_ANNOUNCES_OK Message {
-  Type (i) = 0x12,
+  Type (vi64) = 0x12,
   Length (16),
-  Request ID (i),
+  Request ID (vi64),
 }
 </pre>
 </div>
@@ -5150,10 +5150,10 @@ a failed SUBSCRIBE_ANNOUNCES.<a href="#section-8.26-1" class="pilcrow">¶</a></p
           <div class="alignLeft art-text artwork" id="section-8.26-2.1">
 <pre>
 SUBSCRIBE_ANNOUNCES_ERROR Message {
-  Type (i) = 0x13,
+  Type (vi64) = 0x13,
   Length (16),
-  Request ID (i),
-  Error Code (i),
+  Request ID (vi64),
+  Error Code (vi64),
   Error Reason (Reason Phrase)
 }
 </pre>
@@ -5276,7 +5276,7 @@ the specified track namespace prefix.<a href="#section-8.27-1" class="pilcrow">�
           <div class="alignLeft art-text artwork" id="section-8.27-3.1">
 <pre>
 UNSUBSCRIBE_ANNOUNCES Message {
-  Type (i) = 0x14,
+  Type (vi64) = 0x14,
   Length (16),
   Track Namespace Prefix (tuple)
 }
@@ -5503,12 +5503,12 @@ will be dropped.<a href="#section-9.2-2" class="pilcrow">¶</a></p>
           <div class="alignLeft art-text artwork" id="section-9.2-3.1">
 <pre>
 OBJECT_DATAGRAM {
-  Type (i),
-  Track Alias (i),
-  Group ID (i),
-  Object ID (i),
+  Type (vi64),
+  Track Alias (vi64),
+  Group ID (vi64),
+  Object ID (vi64),
   Publisher Priority (8),
-  [Extension Headers Length (i),
+  [Extension Headers Length (vi64),
   Extension headers (...)],
   Object Payload (..),
 }
@@ -5539,14 +5539,14 @@ conveys an Object Status and has no payload.<a href="#section-9.3-1" class="pilc
           <div class="alignLeft art-text artwork" id="section-9.3-2.1">
 <pre>
 OBJECT_DATAGRAM_STATUS {
-  Type (i),
-  Track Alias (i),
-  Group ID (i),
-  Object ID (i),
+  Type (vi64),
+  Track Alias (vi64),
+  Group ID (vi64),
+  Object ID (vi64),
   Publisher Priority (8),
-  [Extension Headers Length (i),
+  [Extension Headers Length (vi64),
   Extension headers (...)],
-  Object Status (i),
+  Object Status (vi64),
 }
 </pre>
 </div>
@@ -5596,10 +5596,10 @@ and the subgroup indicated by 'Group ID' and <code>Subgroup ID</code>.<a href="#
             <div class="alignLeft art-text artwork" id="section-9.4.2-2.1">
 <pre>
 SUBGROUP_HEADER {
-  Type (i) = 0x8..0xD,
-  Track Alias (i),
-  Group ID (i),
-  [Subgroup ID (i),]
+  Type (vi64) = 0x8..0xD,
+  Track Alias (vi64),
+  Group ID (vi64),
+  [Subgroup ID (vi64),]
   Publisher Priority (8),
 }
 </pre>
@@ -5684,11 +5684,11 @@ following fields.<a href="#section-9.4.2-8" class="pilcrow">¶</a></p>
             <div class="alignLeft art-text artwork" id="section-9.4.2-10.1">
 <pre>
 {
-  Object ID (i),
-  [Extension Headers Length (i),
+  Object ID (vi64),
+  [Extension Headers Length (vi64),
   Extension headers (...)],
-  Object Payload Length (i),
-  [Object Status (i)],
+  Object Payload Length (vi64),
+  [Object Status (vi64)],
   Object Payload (..),
 }
 </pre>
@@ -5845,8 +5845,8 @@ track requested in the Fetch message identified by <code>Request ID</code>.<a hr
             <div class="alignLeft art-text artwork" id="section-9.4.4-2.1">
 <pre>
 FETCH_HEADER {
-  Type (i) = 0x5,
-  Request ID (i),
+  Type (vi64) = 0x5,
+  Request ID (vi64),
 }
 </pre>
 </div>
@@ -5860,14 +5860,14 @@ FETCH_HEADER {
             <div class="alignLeft art-text artwork" id="section-9.4.4-4.1">
 <pre>
 {
-  Group ID (i),
-  Subgroup ID (i),
-  Object ID (i),
+  Group ID (vi64),
+  Subgroup ID (vi64),
+  Object ID (vi64),
   Publisher Priority (8),
-  Extension Headers Length (i),
+  Extension Headers Length (vi64),
   [Extension headers (...)],
-  Object Payload Length (i),
-  [Object Status (i)],
+  Object Payload Length (vi64),
+  [Object Status (vi64)],
   Object Payload (..),
 }
 </pre>
