@@ -1651,8 +1651,8 @@ initiation.
 #### AUTHORIZATION TOKEN {#setup-auth-token}
 
 See {{authorization-token}}.  The endpoint can specify one or more tokens in
-CLIENT_SETUP or SERVER_SETUP that the peer can use to authorize 
-MOQT session establishment.
+CLIENT_SETUP or SERVER_SETUP that the peer can use to authorize MOQT session
+establishment.
 
 If a server receives an AUTHORIZATION TOKEN parmeter in CLIENT_SETUP with Alias
 Type REGISTER_TOKEN that exceeds its MAX_AUTH_TOKEN_CACHE_SIZE, it MUST NOT fail
