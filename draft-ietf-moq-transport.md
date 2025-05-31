@@ -1399,13 +1399,13 @@ these parameters to appear in Setup messages.
 #### AUTHORIZATION TOKEN {#authorization-token}
 
 The AUTHORIZATION TOKEN parameter (Parameter Type 0x03) MAY appear in a
-CLIENT_SETUP, SUBSCRIBE, SUBSCRIBE_ANNOUNCES, ANNOUNCE, TRACK_STATUS_REQUEST or
-FETCH message. This parameter conveys information to authorize the sender to
-perform the operation carrying the parameter.
+CLIENT_SETUP, SERVER_SETUP, SUBSCRIBE, SUBSCRIBE_ANNOUNCES, ANNOUNCE,
+TRACK_STATUS_REQUEST or FETCH message. This parameter conveys information to
+authorize the sender to perform the operation carrying the parameter.
 
 The AUTHORIZATION TOKEN parameter MAY be repeated within a message.
 
-The parameter value is a Token structure containing an optional session-specific
+The parameter value is a Token structure containing an optional Session-specific
 Alias. The Alias allows the sender to reference a previously transmitted Token
 Type and Token Value in future messages. The Token structure is serialized as
 follows:
@@ -1433,7 +1433,7 @@ Token {
 |------|------------|------------------------------------------------------|
 | 0x1  | REGISTER   | There is an Alias, a Type and a Value. This Alias    |
 |      |            | MUST be associated with the Token Value for the      |
-|      |            | duration of the session or it is deleted. This action|
+|      |            | duration of the Session or it is deleted. This action|
 |      |            | is termed "registering" the Token.                   |
 |------|------------|------------------------------------------------------|
 | 0x2  | USE_ALIAS  | There is an Alias but no Type or Value. Use the Token|
@@ -1445,10 +1445,10 @@ Token {
 |------|------------|------------------------------------------------------|
 
 
-* Token Alias - a session-specific integer identifier that references a Token
+* Token Alias - a Session-specific integer identifier that references a Token
   Value. There are separate Alias spaces for the client and server (eg: they can
   each register Alias=1). Once a Token Alias has been registered, it cannot be
-  re-registered by the same sender in the session without first being
+  re-registered by the same sender in the Session without first being
   deleted. Use of the Token Alias is optional.
 
 * Token Type - a numeric identifier for the type of Token payload being
@@ -1459,9 +1459,9 @@ Token {
 * Token Value - the payload of the Token. The contents and serialization of this
   payload are defined by the Token Type.
 
-If the Token structure cannot be decoded, the receiver MUST close the session
+If the Token structure cannot be decoded, the receiver MUST close the Session
 with Key-Value Formatting error.  The receiver of a message attempting to
-register an Alias which is already registered MUST close the session with
+register an Alias which is already registered MUST close the Session with
 `Duplicate Auth Token Alias`. The receiver of a message referencing an Alias
 that is not currently registered MUST reject the message with `Unknown Auth
 Token Alias`.
@@ -1471,11 +1471,13 @@ invalid AUTHORIZATION TOKEN parameter MUST reject that message with an
 `Malformed Auth Token` error.
 
 The receiver of a message carrying an AUTHORIZATION TOKEN with Alias Type
-REGISTER that does not result in a session error MUST register the Token Alias,
-Type and Value in the token cache, even if the message fails for other reasons,
-including `Unauthorized`.  This allows senders to pipeline messages that refer
-to previously registered tokens without potentially terminating the entire
-session.
+REGISTER that does not result in a Session error MUST register the Token Alias,
+in the token cache, even if the message fails for other reasons, including
+`Unauthorized`.  This allows senders to pipeline messages that refer to
+previously registered tokens without potentially terminating the entire Session.
+A receiver MAY store an error code (eg: Unauthorized or Malformed Auth Token) in
+place of the Token Type and Token Alias if any future message referencing the
+Token Alias will result in that error.
 
 If a receiver detects that an authorization token has expired, it MUST retain
 the registered Alias until it is deleted by the sender, though it MAY discard
@@ -1490,11 +1492,11 @@ message has no retroactive effect on the original authorization, nor does it
 prevent that same Token Type and Value from being re-registered.
 
 Senders of tokens SHOULD only register tokens which they intend to re-use during
-the session and SHOULD retire previously registered tokens once their utility
+the Session and SHOULD retire previously registered tokens once their utility
 has passed.
 
 By registering a Token, the sender is requiring the receiver to store the Token
-Alias and Token Value until they are deleted, or the session ends. The receiver
+Alias and Token Value until they are deleted, or the Session ends. The receiver
 can protect its resources by sending a SETUP parameter defining the
 MAX_AUTH_TOKEN_CACHE_SIZE limit (see {{max-auth-token-cache-size}}) it is
 willing to accept. If a registration is attempted which would cause this limit
@@ -1648,11 +1650,16 @@ initiation.
 
 #### AUTHORIZATION TOKEN {#setup-auth-token}
 
-See {{authorization-token}}.  The client can specify one or more tokens in
-CLIENT_SETUP that the server can use to authorize the client to establish an
-MOQT session.  If the server receives a MAX_AUTH_TOKEN_CACHE_SIZE parameter
-after an AUTHORIZATION_TOKEN in CLIENT_SETUP, it MUST close the session with a
-Protocol Violation.
+See {{authorization-token}}.  The endpoint can specify one or more tokens in
+CLIENT_SETUP or SERVER_SETUP that the peer can use to authorize 
+MOQT session establishment.
+
+If a server receives an AUTHORIZATION TOKEN parmeter in CLIENT_SETUP with Alias
+Type REGISTER_TOKEN that exceeds its MAX_AUTH_TOKEN_CACHE_SIZE, it MUST NOT fail
+the session with `Auth Token Cache Overflow`.  Instead, it MUST treat the
+parameter as Alias Type USE_VALUE.  A client MUST handle registration failures
+of this kind by purging any Token Aliases that failed to register based on the
+MAX_AUTH_TOKEN_CACHE_SIZE parameter in SERVER_SETUP (or the default value of 0).
 
 ## GOAWAY {#message-goaway}
 
