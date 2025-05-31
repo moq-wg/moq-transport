@@ -259,7 +259,7 @@ x (L) ...:
 
 This document redefines the following RFC9000 syntax:
 
-x (i):
+x (vi64):
 
 : Indicates that x holds an integer value using the variable-length
   encoding as described in {{variable-length-integers}}.
@@ -310,8 +310,8 @@ properties.
 |--------------|----------------|-------------|---------------|
 {: format title="Summary of Integer Encodings"}
 
-The four least significant bits of the first byte are reserved in 9-byte
-encodings.
+The four least significant bits of the first byte are ignored in 9-byte
+encodings.  Senders SHOULD set these bits to 0000.
 
 To reduce unnecessary use of bandwidth, variable length integers SHOULD
 be encoded using the least number of bytes possible to represent the
@@ -325,8 +325,8 @@ Location identifies a particular Object in a Group within a Track.
 
 ~~~
 Location {
-  Group (i),
-  Object (i)
+  Group (vi64),
+  Object (vi64)
 }
 ~~~
 {: #moq-location format title="Location structure"}
@@ -347,8 +347,8 @@ is optimized for use in the data plane.
 
 ~~~
 Key-Value-Pair {
-  Type (i),
-  [Length (i),]
+  Type (vi64),
+  [Length (vi64),]
   Value (..)
 }
 ~~~
@@ -375,7 +375,7 @@ information about the error condition, where appropriate.
 
 ~~~
 Reason Phrase {
-  Reason Phrase Length (i),
+  Reason Phrase Length (vi64),
   Reason Phrase Value (..)
 }
 ~~~
@@ -1247,7 +1247,7 @@ formatted as follows:
 
 ~~~
 MOQT Control Message {
-  Message Type (i),
+  Message Type (vi64),
   Message Length (16),
   Message Payload (..),
 }
@@ -1385,9 +1385,9 @@ in future messages. The TOKEN value is serialized as follows:
 
 ~~~
 TOKEN {
-  Alias Type (i),
-  [Token Alias (i),]
-  [Token Type (i),]
+  Alias Type (vi64),
+  [Token Alias (vi64),]
+  [Token Type (vi64),]
   [Token Value (..)]
 }
 ~~~
@@ -1529,19 +1529,19 @@ The wire format of the Setup messages are as follows:
 
 ~~~
 CLIENT_SETUP Message {
-  Type (i) = 0x20,
+  Type (vi64) = 0x20,
   Length (16),
-  Number of Supported Versions (i),
-  Supported Versions (i) ...,
-  Number of Parameters (i),
+  Number of Supported Versions (vi64),
+  Supported Versions (vi64) ...,
+  Number of Parameters (vi64),
   Setup Parameters (..) ...,
 }
 
 SERVER_SETUP Message {
-  Type (i) = 0x21,
+  Type (vi64) = 0x21,
   Length (16),
-  Selected Version (i),
-  Number of Parameters (i),
+  Selected Version (vi64),
+  Number of Parameters (vi64),
   Setup Parameters (..) ...,
 }
 ~~~
@@ -1625,9 +1625,9 @@ The endpoint MUST terminate the session with a Protocol Violation
 
 ~~~
 GOAWAY Message {
-  Type (i) = 0x10,
+  Type (vi64) = 0x10,
   Length (16),
-  New Session URI Length (i),
+  New Session URI Length (vi64),
   New Session URI (..),
 }
 ~~~
@@ -1655,9 +1655,9 @@ value is a 'Protocol Violation'.
 
 ~~~
 MAX_REQUEST_ID Message {
-  Type (i) = 0x15,
+  Type (vi64) = 0x15,
   Length (16),
-  Request ID (i),
+  Request ID (vi64),
 }
 ~~~
 {: #moq-transport-max-request-id format title="MOQT MAX_REQUEST_ID Message"}
@@ -1687,9 +1687,9 @@ sending REQUESTS_BLOCKED is not required.
 
 ~~~
 REQUESTS_BLOCKED Message {
-  Type (i) = 0x1A,
+  Type (vi64) = 0x1A,
   Length (16),
-  Maximum Request ID (i),
+  Maximum Request ID (vi64),
 }
 ~~~
 {: #moq-transport-requests-blocked format title="MOQT REQUESTS_BLOCKED Message"}
@@ -1768,20 +1768,20 @@ The format of SUBSCRIBE is as follows:
 
 ~~~
 SUBSCRIBE Message {
-  Type (i) = 0x3,
+  Type (vi64) = 0x3,
   Length (16),
-  Request ID (i),
-  Track Alias (i),
+  Request ID (vi64),
+  Track Alias (vi64),
   Track Namespace (tuple),
-  Track Name Length (i),
+  Track Name Length (vi64),
   Track Name (..),
   Subscriber Priority (8),
   Group Order (8),
   Forward (8),
-  Filter Type (i),
+  Filter Type (vi64),
   [Start Location (Location)],
-  [End Group (i)],
-  Number of Parameters (i),
+  [End Group (vi64)],
+  Number of Parameters (vi64),
   Subscribe Parameters (..) ...
 }
 ~~~
@@ -1840,14 +1840,14 @@ subscriptions.
 
 ~~~
 SUBSCRIBE_OK Message {
-  Type (i) = 0x4,
+  Type (vi64) = 0x4,
   Length (16),
-  Request ID (i),
-  Expires (i),
+  Request ID (vi64),
+  Expires (vi64),
   Group Order (8),
   Content Exists (8),
   [Largest Location (Location)],
-  Number of Parameters (i),
+  Number of Parameters (vi64),
   Subscribe Parameters (..) ...
 }
 ~~~
@@ -1882,12 +1882,12 @@ failed SUBSCRIBE.
 
 ~~~
 SUBSCRIBE_ERROR Message {
-  Type (i) = 0x5,
+  Type (vi64) = 0x5,
   Length (16),
-  Request ID (i),
-  Error Code (i),
+  Request ID (vi64),
+  Error Code (vi64),
   Error Reason (Reason Phrase),
-  Track Alias (i),
+  Track Alias (vi64),
 }
 ~~~
 {: #moq-transport-subscribe-error format title="MOQT SUBSCRIBE_ERROR Message"}
@@ -1991,14 +1991,14 @@ The format of SUBSCRIBE_UPDATE is as follows:
 
 ~~~
 SUBSCRIBE_UPDATE Message {
-  Type (i) = 0x2,
+  Type (vi64) = 0x2,
   Length (16),
-  Request ID (i),
+  Request ID (vi64),
   Start Location (Location),
-  End Group (i),
+  End Group (vi64),
   Subscriber Priority (8),
   Forward (8),
-  Number of Parameters (i),
+  Number of Parameters (vi64),
   Subscribe Parameters (..) ...
 }
 ~~~
@@ -2033,9 +2033,9 @@ The format of `UNSUBSCRIBE` is as follows:
 
 ~~~
 UNSUBSCRIBE Message {
-  Type (i) = 0xA,
+  Type (vi64) = 0xA,
   Length (16),
-  Request ID (i)
+  Request ID (vi64)
 }
 ~~~
 {: #moq-transport-unsubscribe-format title="MOQT UNSUBSCRIBE Message"}
@@ -2083,11 +2083,11 @@ The format of `SUBSCRIBE_DONE` is as follows:
 
 ~~~
 SUBSCRIBE_DONE Message {
-  Type (i) = 0xB,
+  Type (vi64) = 0xB,
   Length (16),
-  Request ID (i),
-  Status Code (i),
-  Stream Count (i),
+  Request ID (vi64),
+  Status Code (vi64),
+  Stream Count (vi64),
   Error Reason (Reason Phrase)
 }
 ~~~
@@ -2217,22 +2217,22 @@ The format of FETCH is as follows:
 
 ~~~
 FETCH Message {
-  Type (i) = 0x16,
+  Type (vi64) = 0x16,
   Length (16),
-  Request ID (i),
+  Request ID (vi64),
   Subscriber Priority (8),
   Group Order (8),
-  Fetch Type (i),
+  Fetch Type (vi64),
   [Track Namespace (tuple),
-   Track Name Length (i),
+   Track Name Length (vi64),
    Track Name (..),
-   Start Group (i),
-   Start Object (i),
-   End Group (i),
-   End Object (i),]
-  [Joining Subscribe ID (i),
-   Joining Start (i),]
-  Number of Parameters (i),
+   Start Group (vi64),
+   Start Object (vi64),
+   End Group (vi64),
+   End Object (vi64),]
+  [Joining Subscribe ID (vi64),
+   Joining Start (vi64),]
+  Number of Parameters (vi64),
   Parameters (..) ...
 }
 ~~~
@@ -2335,13 +2335,13 @@ but the FETCH_OK MUST NOT be sent until the end group and object are known.
 
 ~~~
 FETCH_OK Message {
-  Type (i) = 0x18,
+  Type (vi64) = 0x18,
   Length (16),
-  Request ID (i),
+  Request ID (vi64),
   Group Order (8),
   End Of Track (8),
   End Location (Location),
-  Number of Parameters (i),
+  Number of Parameters (vi64),
   Subscribe Parameters (..) ...
 }
 ~~~
@@ -2375,10 +2375,10 @@ failed FETCH.
 
 ~~~
 FETCH_ERROR Message {
-  Type (i) = 0x19,
+  Type (vi64) = 0x19,
   Length (16),
-  Request ID (i),
-  Error Code (i),
+  Request ID (vi64),
+  Error Code (vi64),
   Error Reason (Reason Phrase)
 }
 ~~~
@@ -2462,9 +2462,9 @@ The format of `FETCH_CANCEL` is as follows:
 
 ~~~
 FETCH_CANCEL Message {
-  Type (i) = 0x17,
+  Type (vi64) = 0x17,
   Length (16),
-  Request ID (i)
+  Request ID (vi64)
 }
 ~~~
 {: #moq-transport-fetch-cancel title="MOQT FETCH_CANCEL Message"}
@@ -2481,13 +2481,13 @@ A TRACK_STATUS message MUST be sent in response to each TRACK_STATUS_REQUEST.
 
 ~~~
 TRACK_STATUS_REQUEST Message {
-  Type (i) = 0xD,
+  Type (vi64) = 0xD,
   Length (16),
-  Request ID (i),
+  Request ID (vi64),
   Track Namespace (tuple),
-  Track Name Length (i),
+  Track Name Length (vi64),
   Track Name (..),
-  Number of Parameters (i),
+  Number of Parameters (vi64),
   Parameters (..) ...,
 }
 ~~~
@@ -2509,12 +2509,12 @@ to a TRACK_STATUS_REQUEST message.
 
 ~~~
 TRACK_STATUS Message {
-  Type (i) = 0xE,
+  Type (vi64) = 0xE,
   Length (16),
-  Request ID (i),
-  Status Code (i),
+  Request ID (vi64),
+  Status Code (vi64),
   Largest Location (Location),
-  Number of Parameters (i),
+  Number of Parameters (vi64),
   Parameters (..) ...,
 }
 ~~~
@@ -2562,11 +2562,11 @@ publisher is authorized to publish tracks under this namespace.
 
 ~~~
 ANNOUNCE Message {
-  Type (i) = 0x6,
+  Type (vi64) = 0x6,
   Length (16),
-  Request ID (i),
+  Request ID (vi64),
   Track Namespace (tuple),
-  Number of Parameters (i),
+  Number of Parameters (vi64),
   Parameters (..) ...,
 }
 ~~~
@@ -2586,9 +2586,9 @@ successful authorization and acceptance of an ANNOUNCE message.
 
 ~~~
 ANNOUNCE_OK Message {
-  Type (i) = 0x7,
+  Type (vi64) = 0x7,
   Length (16),
-  Request ID (i)
+  Request ID (vi64)
 }
 ~~~
 {: #moq-transport-announce-ok format title="MOQT ANNOUNCE_OK Message"}
@@ -2603,10 +2603,10 @@ failed authorization.
 
 ~~~
 ANNOUNCE_ERROR Message {
-  Type (i) = 0x8,
+  Type (vi64) = 0x8,
   Length (16),
-  Request ID (i),
-  Error Code (i),
+  Request ID (vi64),
+  Error Code (vi64),
   Error Reason (Reason Phrase)
 }
 ~~~
@@ -2671,7 +2671,7 @@ within the provided Track Namespace.
 
 ~~~
 UNANNOUNCE Message {
-  Type (i) = 0x9,
+  Type (vi64) = 0x9,
   Length (16),
   Track Namespace (tuple),
 }
@@ -2689,10 +2689,10 @@ within the provided Track Namespace.
 
 ~~~
 ANNOUNCE_CANCEL Message {
-  Type (i) = 0xC,
+  Type (vi64) = 0xC,
   Length (16),
   Track Namespace (tuple),
-  Error Code (i),
+  Error Code (vi64),
   Error Reason (Reason Phrase),
 }
 ~~~
@@ -2715,11 +2715,11 @@ to the set.
 
 ~~~
 SUBSCRIBE_ANNOUNCES Message {
-  Type (i) = 0x11,
+  Type (vi64) = 0x11,
   Length (16),
-  Request ID (i),
+  Request ID (vi64),
   Track Namespace Prefix (tuple),
-  Number of Parameters (i),
+  Number of Parameters (vi64),
   Parameters (..) ...,
 }
 ~~~
@@ -2765,9 +2765,9 @@ namespace subscriptions.
 
 ~~~
 SUBSCRIBE_ANNOUNCES_OK Message {
-  Type (i) = 0x12,
+  Type (vi64) = 0x12,
   Length (16),
-  Request ID (i),
+  Request ID (vi64),
 }
 ~~~
 {: #moq-transport-sub-ann-ok format title="MOQT SUBSCRIBE_ANNOUNCES_OK
@@ -2783,10 +2783,10 @@ a failed SUBSCRIBE_ANNOUNCES.
 
 ~~~
 SUBSCRIBE_ANNOUNCES_ERROR Message {
-  Type (i) = 0x13,
+  Type (vi64) = 0x13,
   Length (16),
-  Request ID (i),
-  Error Code (i),
+  Request ID (vi64),
+  Error Code (vi64),
   Error Reason (Reason Phrase)
 }
 ~~~
@@ -2862,7 +2862,7 @@ The format of `UNSUBSCRIBE_ANNOUNCES` is as follows:
 
 ~~~
 UNSUBSCRIBE_ANNOUNCES Message {
-  Type (i) = 0x14,
+  Type (vi64) = 0x14,
   Length (16),
   Track Namespace Prefix (tuple)
 }
@@ -3031,12 +3031,12 @@ will be dropped.
 
 ~~~
 OBJECT_DATAGRAM {
-  Type (i),
-  Track Alias (i),
-  Group ID (i),
-  Object ID (i),
+  Type (vi64),
+  Track Alias (vi64),
+  Group ID (vi64),
+  Object ID (vi64),
   Publisher Priority (8),
-  [Extension Headers Length (i),
+  [Extension Headers Length (vi64),
   Extension headers (...)],
   Object Payload (..),
 }
@@ -3059,14 +3059,14 @@ conveys an Object Status and has no payload.
 
 ~~~
 OBJECT_DATAGRAM_STATUS {
-  Type (i),
-  Track Alias (i),
-  Group ID (i),
-  Object ID (i),
+  Type (vi64),
+  Track Alias (vi64),
+  Group ID (vi64),
+  Object ID (vi64),
   Publisher Priority (8),
-  [Extension Headers Length (i),
+  [Extension Headers Length (vi64),
   Extension headers (...)],
-  Object Status (i),
+  Object Status (vi64),
 }
 ~~~
 {: #object-datagram-status-format title="MOQT OBJECT_DATAGRAM_STATUS"}
@@ -3102,10 +3102,10 @@ and the subgroup indicated by 'Group ID' and `Subgroup ID`.
 
 ~~~
 SUBGROUP_HEADER {
-  Type (i) = 0x8..0xD,
-  Track Alias (i),
-  Group ID (i),
-  [Subgroup ID (i),]
+  Type (vi64) = 0x8..0xD,
+  Track Alias (vi64),
+  Group ID (vi64),
+  [Subgroup ID (vi64),]
   Publisher Priority (8),
 }
 ~~~
@@ -3152,11 +3152,11 @@ The Object Status field is only sent if the Object Payload Length is zero.
 
 ~~~
 {
-  Object ID (i),
-  [Extension Headers Length (i),
+  Object ID (vi64),
+  [Extension Headers Length (vi64),
   Extension headers (...)],
-  Object Payload Length (i),
-  [Object Status (i)],
+  Object Payload Length (vi64),
+  [Object Status (vi64)],
   Object Payload (..),
 }
 ~~~
@@ -3292,8 +3292,8 @@ track requested in the Fetch message identified by `Request ID`.
 
 ~~~
 FETCH_HEADER {
-  Type (i) = 0x5,
-  Request ID (i),
+  Type (vi64) = 0x5,
+  Request ID (vi64),
 }
 ~~~
 {: #fetch-header-format title="MOQT FETCH_HEADER"}
@@ -3303,14 +3303,14 @@ Each object sent on a fetch stream after the FETCH_HEADER has the following form
 
 ~~~
 {
-  Group ID (i),
-  Subgroup ID (i),
-  Object ID (i),
+  Group ID (vi64),
+  Subgroup ID (vi64),
+  Object ID (vi64),
   Publisher Priority (8),
-  Extension Headers Length (i),
+  Extension Headers Length (vi64),
   [Extension headers (...)],
-  Object Payload Length (i),
-  [Object Status (i)],
+  Object Payload Length (vi64),
+  [Object Status (vi64)],
   Object Payload (..),
 }
 ~~~
