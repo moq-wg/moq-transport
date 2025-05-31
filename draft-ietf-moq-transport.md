@@ -1681,11 +1681,11 @@ MAX_REQUEST_ID Message {
 ~~~
 {: #moq-transport-max-request-id format title="MOQT MAX_REQUEST_ID Message"}
 
-* Request ID: The new Maximum Request ID for the session. If a Request ID equal
-  or larger than this is received by the endpoint that sent the MAX_REQUEST_ID
-  in any request message (ANNOUNCE, FETCH, SUBSCRIBE, SUBSCRIBE_ANNOUNCES or
-  TRACK_STATUS), the endpoint MUST close the session with an error of 'Too Many
-  Requests'.
+* Request ID: The new Maximum Request ID for the session plus one. If
+  a Request ID equal or larger than this is received by the endpoint
+  that sent the MAX_REQUEST_ID in any request message (ANNOUNCE,
+  FETCH, SUBSCRIBE, SUBSCRIBE_ANNOUNCES or TRACK_STATUS), the endpoint
+  MUST close the session with an error of 'Too Many Requests'.
 
 MAX_REQUEST_ID is similar to MAX_STREAMS in ({{?RFC9000, Section 4.6}}), and
 similar considerations apply when deciding how often to send MAX_REQUEST_ID.
