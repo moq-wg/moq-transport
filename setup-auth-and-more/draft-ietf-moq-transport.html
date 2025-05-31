@@ -3235,11 +3235,11 @@ these parameters to appear in Setup messages.<a href="#section-8.2.1-1" class="p
 <a href="#section-8.2.1.1" class="section-number selfRef">8.2.1.1. </a><a href="#name-authorization-token" class="section-name selfRef">AUTHORIZATION TOKEN</a>
             </h5>
 <p id="section-8.2.1.1-1">The AUTHORIZATION TOKEN parameter (Parameter Type 0x03) <span class="bcp14">MAY</span> appear in a
-CLIENT_SETUP, SUBSCRIBE, SUBSCRIBE_ANNOUNCES, ANNOUNCE, TRACK_STATUS_REQUEST or
-FETCH message. This parameter conveys information to authorize the sender to
-perform the operation carrying the parameter.<a href="#section-8.2.1.1-1" class="pilcrow">¶</a></p>
+CLIENT_SETUP, SERVER_SETUP, SUBSCRIBE, SUBSCRIBE_ANNOUNCES, ANNOUNCE,
+TRACK_STATUS_REQUEST or FETCH message. This parameter conveys information to
+authorize the sender to perform the operation carrying the parameter.<a href="#section-8.2.1.1-1" class="pilcrow">¶</a></p>
 <p id="section-8.2.1.1-2">The AUTHORIZATION TOKEN parameter <span class="bcp14">MAY</span> be repeated within a message.<a href="#section-8.2.1.1-2" class="pilcrow">¶</a></p>
-<p id="section-8.2.1.1-3">The parameter value is a Token structure containing an optional session-specific
+<p id="section-8.2.1.1-3">The parameter value is a Token structure containing an optional Session-specific
 Alias. The Alias allows the sender to reference a previously transmitted Token
 Type and Token Value in future messages. The Token structure is serialized as
 follows:<a href="#section-8.2.1.1-3" class="pilcrow">¶</a></p>
@@ -3310,7 +3310,7 @@ behavior of the receiver. This Alias type has the following code points:<a href=
                 <tr>
                   <td class="text-right" rowspan="1" colspan="1"> </td>
                   <td class="text-left" rowspan="1" colspan="1"> </td>
-                  <td class="text-left" rowspan="1" colspan="1">duration of the session or it is deleted. This action</td>
+                  <td class="text-left" rowspan="1" colspan="1">duration of the Session or it is deleted. This action</td>
                 </tr>
                 <tr>
                   <td class="text-right" rowspan="1" colspan="1"> </td>
@@ -3346,10 +3346,10 @@ behavior of the receiver. This Alias type has the following code points:<a href=
             </table>
 <ul class="normal">
 <li class="normal" id="section-8.2.1.1-7.1">
-                <p id="section-8.2.1.1-7.1.1">Token Alias - a session-specific integer identifier that references a Token
+                <p id="section-8.2.1.1-7.1.1">Token Alias - a Session-specific integer identifier that references a Token
 Value. There are separate Alias spaces for the client and server (eg: they can
 each register Alias=1). Once a Token Alias has been registered, it cannot be
-re-registered by the same sender in the session without first being
+re-registered by the same sender in the Session without first being
 deleted. Use of the Token Alias is optional.<a href="#section-8.2.1.1-7.1.1" class="pilcrow">¶</a></p>
 </li>
               <li class="normal" id="section-8.2.1.1-7.2">
@@ -3363,9 +3363,9 @@ table and is negotiated out-of-band between client and receiver.<a href="#sectio
 payload are defined by the Token Type.<a href="#section-8.2.1.1-7.3.1" class="pilcrow">¶</a></p>
 </li>
             </ul>
-<p id="section-8.2.1.1-8">If the Token structure cannot be decoded, the receiver <span class="bcp14">MUST</span> close the session
+<p id="section-8.2.1.1-8">If the Token structure cannot be decoded, the receiver <span class="bcp14">MUST</span> close the Session
 with Key-Value Formatting error.  The receiver of a message attempting to
-register an Alias which is already registered <span class="bcp14">MUST</span> close the session with
+register an Alias which is already registered <span class="bcp14">MUST</span> close the Session with
 <code>Duplicate Auth Token Alias</code>. The receiver of a message referencing an Alias
 that is not currently registered <span class="bcp14">MUST</span> reject the message with <code>Unknown Auth
 Token Alias</code>.<a href="#section-8.2.1.1-8" class="pilcrow">¶</a></p>
@@ -3373,11 +3373,13 @@ Token Alias</code>.<a href="#section-8.2.1.1-8" class="pilcrow">¶</a></p>
 invalid AUTHORIZATION TOKEN parameter <span class="bcp14">MUST</span> reject that message with an
 <code>Malformed Auth Token</code> error.<a href="#section-8.2.1.1-9" class="pilcrow">¶</a></p>
 <p id="section-8.2.1.1-10">The receiver of a message carrying an AUTHORIZATION TOKEN with Alias Type
-REGISTER that does not result in a session error <span class="bcp14">MUST</span> register the Token Alias,
-Type and Value in the token cache, even if the message fails for other reasons,
-including <code>Unauthorized</code>.  This allows senders to pipeline messages that refer
-to previously registered tokens without potentially terminating the entire
-session.<a href="#section-8.2.1.1-10" class="pilcrow">¶</a></p>
+REGISTER that does not result in a Session error <span class="bcp14">MUST</span> register the Token Alias,
+in the token cache, even if the message fails for other reasons, including
+<code>Unauthorized</code>.  This allows senders to pipeline messages that refer to
+previously registered tokens without potentially terminating the entire Session.
+A receiver <span class="bcp14">MAY</span> store an error code (eg: Unauthorized or Malformed Auth Token) in
+place of the Token Type and Token Alias if any future message referencing the
+Token Alias will result in that error.<a href="#section-8.2.1.1-10" class="pilcrow">¶</a></p>
 <p id="section-8.2.1.1-11">If a receiver detects that an authorization token has expired, it <span class="bcp14">MUST</span> retain
 the registered Alias until it is deleted by the sender, though it <span class="bcp14">MAY</span> discard
 other state associated with the token that is no longer needed.  Expiration does
@@ -3389,10 +3391,10 @@ included directly.  Retiring an Alias that was previously used to authorize a
 message has no retroactive effect on the original authorization, nor does it
 prevent that same Token Type and Value from being re-registered.<a href="#section-8.2.1.1-12" class="pilcrow">¶</a></p>
 <p id="section-8.2.1.1-13">Senders of tokens <span class="bcp14">SHOULD</span> only register tokens which they intend to re-use during
-the session and <span class="bcp14">SHOULD</span> retire previously registered tokens once their utility
+the Session and <span class="bcp14">SHOULD</span> retire previously registered tokens once their utility
 has passed.<a href="#section-8.2.1.1-13" class="pilcrow">¶</a></p>
 <p id="section-8.2.1.1-14">By registering a Token, the sender is requiring the receiver to store the Token
-Alias and Token Value until they are deleted, or the session ends. The receiver
+Alias and Token Value until they are deleted, or the Session ends. The receiver
 can protect its resources by sending a SETUP parameter defining the
 MAX_AUTH_TOKEN_CACHE_SIZE limit (see <a href="#max-auth-token-cache-size" class="auto internal xref">Section 8.3.2.3</a>) it is
 willing to accept. If a registration is attempted which would cause this limit
@@ -3576,11 +3578,15 @@ initiation.<a href="#section-8.3.2.3-2" class="pilcrow">¶</a></p>
             <h5 id="name-authorization-token-2">
 <a href="#section-8.3.2.4" class="section-number selfRef">8.3.2.4. </a><a href="#name-authorization-token-2" class="section-name selfRef">AUTHORIZATION TOKEN</a>
             </h5>
-<p id="section-8.3.2.4-1">See <a href="#authorization-token" class="auto internal xref">Section 8.2.1.1</a>.  The client can specify one or more tokens in
-CLIENT_SETUP that the server can use to authorize the client to establish an
-MOQT session.  If the server receives a MAX_AUTH_TOKEN_CACHE_SIZE parameter
-after an AUTHORIZATION_TOKEN in CLIENT_SETUP, it <span class="bcp14">MUST</span> close the session with a
-Protocol Violation.<a href="#section-8.3.2.4-1" class="pilcrow">¶</a></p>
+<p id="section-8.3.2.4-1">See <a href="#authorization-token" class="auto internal xref">Section 8.2.1.1</a>.  The endpoint can specify one or more tokens in
+CLIENT_SETUP or SERVER_SETUP that the peer can use to authorize MOQT session
+establishment.<a href="#section-8.3.2.4-1" class="pilcrow">¶</a></p>
+<p id="section-8.3.2.4-2">If a server receives an AUTHORIZATION TOKEN parmeter in CLIENT_SETUP with Alias
+Type REGISTER_TOKEN that exceeds its MAX_AUTH_TOKEN_CACHE_SIZE, it <span class="bcp14">MUST NOT</span> fail
+the session with <code>Auth Token Cache Overflow</code>.  Instead, it <span class="bcp14">MUST</span> treat the
+parameter as Alias Type USE_VALUE.  A client <span class="bcp14">MUST</span> handle registration failures
+of this kind by purging any Token Aliases that failed to register based on the
+MAX_AUTH_TOKEN_CACHE_SIZE parameter in SERVER_SETUP (or the default value of 0).<a href="#section-8.3.2.4-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
