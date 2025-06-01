@@ -1144,8 +1144,8 @@ respond with PUBLISH_OK in Forward State=0 until there are known subscribers for
 new tracks.
 
 2. Send an ANNOUNCE message for a Track Namespace to the relay. This enables the
-relay to send SUBSCRIBE messages for Tracks in this Namespace in response to
-received SUBSCRIBE messages.
+relay to send SUBSCRIBE messages to publishers for Tracks in this Namespace in
+response to received SUBSCRIBE messages.
 
 Relays MUST verify that publishers are authorized to publish the set of tracks
 whose Track Namespace matches the namespace in
@@ -1180,7 +1180,7 @@ request from all available publishers.  If it already has a matching upstream
 subscription in Forward State=0, it SHOULD send a SUBSCRIBE_UDPATE with
 Forward=1 to all publishers.
 
-When a relay receives an incoming PUBLISH message, it SHOULD send a PUBLISH
+When a relay receives an incoming PUBLISH message, it MUST send a PUBLISH
 request to each subscriber that has subscribed (via SUBSCRIBE_ANNOUNCES)
 to the track's namespace or prefix thereof.
 
