@@ -1446,9 +1446,9 @@ Token {
 
 
 * Token Alias - a Session-specific integer identifier that references a Token
-  Value. There are separate Alias spaces for the client and server (eg: they can
-  each register Alias=1). Once a Token Alias has been registered, it cannot be
-  re-registered by the same sender in the Session without first being
+  Value. There are separate Alias spaces for the client and server (e.g.: they
+  can each register Alias=1). Once a Token Alias has been registered, it cannot
+  be re-registered by the same sender in the Session without first being
   deleted. Use of the Token Alias is optional.
 
 * Token Type - a numeric identifier for the type of Token payload being
@@ -1477,7 +1477,8 @@ in the token cache, even if the message fails for other reasons, including
 previously registered tokens without potentially terminating the entire Session.
 A receiver MAY store an error code (eg: Unauthorized or Malformed Auth Token) in
 place of the Token Type and Token Alias if any future message referencing the
-Token Alias will result in that error.
+Token Alias will result in that error. The size of a registered cache entry
+includes the length of the Token Value, regardless of whether it is stored.
 
 If a receiver detects that an authorization token has expired, it MUST retain
 the registered Alias until it is deleted by the sender, though it MAY discard
@@ -1654,7 +1655,7 @@ See {{authorization-token}}.  The endpoint can specify one or more tokens in
 CLIENT_SETUP or SERVER_SETUP that the peer can use to authorize MOQT session
 establishment.
 
-If a server receives an AUTHORIZATION TOKEN parmeter in CLIENT_SETUP with Alias
+If a server receives an AUTHORIZATION TOKEN parameter in CLIENT_SETUP with Alias
 Type REGISTER_TOKEN that exceeds its MAX_AUTH_TOKEN_CACHE_SIZE, it MUST NOT fail
 the session with `Auth Token Cache Overflow`.  Instead, it MUST treat the
 parameter as Alias Type USE_VALUE.  A client MUST handle registration failures
