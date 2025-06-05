@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 3 December 2025                                   I. Swett, Ed.
+Expires: 7 December 2025                                   I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                             1 June 2025
+                                                             5 June 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 3 December 2025.
+   This Internet-Draft will expire on 7 December 2025.
 
 Copyright Notice
 
@@ -108,9 +108,10 @@ Table of Contents
        3.6.1.  Bufferbloat
        3.6.2.  Application-Limited
        3.6.3.  Consistent Throughput
-   4.  Retrieving Tracks with Subscribe and Fetch
+   4.  Publishing and Retrieving Tracks
+     4.1.  Subscriptions
    5.  Namespace Discovery
-     5.1.  Subscribing to Announcements
+     5.1.  Subscribing to Namespaces
      5.2.  Announcements
    6.  Priorities
      6.1.  Definitions
@@ -140,23 +141,26 @@ Table of Contents
      8.10. SUBSCRIBE_UPDATE
      8.11. UNSUBSCRIBE
      8.12. SUBSCRIBE_DONE
-     8.13. FETCH
-       8.13.1.  Calculating the Range of a Relative Joining Fetch
-       8.13.2.  Calculating the Range of an Absolute Joining Fetch
-     8.14. FETCH_OK
-     8.15. FETCH_ERROR
-     8.16. FETCH_CANCEL
-     8.17. TRACK_STATUS_REQUEST
-     8.18. TRACK_STATUS
-     8.19. ANNOUNCE
-     8.20. ANNOUNCE_OK
-     8.21. ANNOUNCE_ERROR
-     8.22. UNANNOUNCE
-     8.23. ANNOUNCE_CANCEL
-     8.24. SUBSCRIBE_ANNOUNCES
-     8.25. SUBSCRIBE_ANNOUNCES_OK
-     8.26. SUBSCRIBE_ANNOUNCES_ERROR
-     8.27. UNSUBSCRIBE_ANNOUNCES
+     8.13. PUBLISH
+     8.14. PUBLISH_OK
+     8.15. PUBLISH_ERROR
+     8.16. FETCH
+       8.16.1.  Calculating the Range of a Relative Joining Fetch
+       8.16.2.  Calculating the Range of an Absolute Joining Fetch
+     8.17. FETCH_OK
+     8.18. FETCH_ERROR
+     8.19. FETCH_CANCEL
+     8.20. TRACK_STATUS_REQUEST
+     8.21. TRACK_STATUS
+     8.22. ANNOUNCE
+     8.23. ANNOUNCE_OK
+     8.24. ANNOUNCE_ERROR
+     8.25. UNANNOUNCE
+     8.26. ANNOUNCE_CANCEL
+     8.27. SUBSCRIBE_ANNOUNCES
+     8.28. SUBSCRIBE_ANNOUNCES_OK
+     8.29. SUBSCRIBE_ANNOUNCES_ERROR
+     8.30. UNSUBSCRIBE_ANNOUNCES
    9.  Data Streams and Datagrams
      9.1.  Track Alias
      9.2.  Objects
@@ -952,18 +956,45 @@ Table of Contents
    upon detecting loss.  In both cases, the large reduction in sending
    rate might cause issues with latency sensitive applications.
 
-4.  Retrieving Tracks with Subscribe and Fetch
+4.  Publishing and Retrieving Tracks
 
-   The central interaction with a publisher is to send SUBSCRIBE and/or
-   FETCH for a particular track.  The subscriber expects to receive a
-   SUBSCRIBE_OK/FETCH_OK and objects from the track.
+4.1.  Subscriptions
+
+   A subscription can be initiated by either a publisher or a
+   subscriber.  A publisher initiates a subscription to a track by
+   sending the PUBLISH message.  The subscriber either accepts or
+   rejects the subscription using PUBLISH_OK or PUBLISH_ERROR.  A
+   subscriber initiates a subscription to a track by sending the
+   SUBSCRIBE message.  The publisher either accepts or rejects the
+   subscription using SUBSCRIBE_OK or SUBSCRIBE_ERROR.  Once either of
+   these sequences is successful, the subscription can be updated by the
+   subscriber using SUBSCRIBE_UPDATE, terminated by the subscriber using
+   UNSUBSCRIBE, or terminated by the publisher using SUBSCRIBE_DONE.
+
+   All subscriptions have a Forward State which is either 0 or 1.  If
+   the Forward State is 0, the publisher does not send objects for the
+   subscription.  If the Forward State is 1, the publisher sends
+   objects.  The initiator of the subscription sets the initial Forward
+   State in either PUBLISH or SUBSCRIBE.  The sender of PUBLISH_OK can
+   update the Forward State based on its preference.  Once the
+   subscription is established, the subscriber can update the Forward
+   State by sending SUBSCRIBE_UPDATE.
+
+   Either endpoint can initiate a subscription to a track without
+   exchanging any prior messages other than SETUP.  Relays MUST NOT send
+   any PUBLISH messages without knowing the client is interested in and
+   authorized to receive the content.  The communication of intent and
+   authorization can be accomplished by the client sending
+   SUBSCRIBE_ANNOUNCES, or conveyed in other mechanisms out of band.
 
    A publisher MUST send exactly one SUBSCRIBE_OK or SUBSCRIBE_ERROR in
    response to a SUBSCRIBE.  It MUST send exactly one FETCH_OK or
-   FETCH_ERROR in response to a FETCH.  The subscriber SHOULD close the
-   session with a protocol error if it receives more than one.
+   FETCH_ERROR in response to a FETCH.  A subscriber MUST send exactly
+   one PUBLISH_OK or PUBLISH_ERROR in response to a PUBLISH.  The peer
+   SHOULD close the session with a protocol error if it receives more
+   than one.
 
-   A subscriber keeps SUBSCRIBE state until it sends UNSUBSCRIBE, or
+   A subscriber keeps subscription state until it sends UNSUBSCRIBE, or
    after receipt of a SUBSCRIBE_DONE or SUBSCRIBE_ERROR.  Note that
    SUBSCRIBE_DONE does not usually indicate that state can immediately
    be destroyed, see Section 8.12.
@@ -979,7 +1010,7 @@ Table of Contents
    reset any open streams associated with the SUBSCRIBE or FETCH.  It
    can also destroy state after closing the FETCH data stream.
 
-   The publisher can immediately delete SUBSCRIBE state after sending
+   The publisher can immediately delete subscription state after sending
    SUBSCRIBE_DONE, but MUST NOT send it until it has closed all related
    streams.  It can destroy all FETCH state after closing the data
    stream.
@@ -993,9 +1024,9 @@ Table of Contents
    before determining the result of the request, some Objects could be
    received even if the FETCH results in error.
 
-   The Parameters in SUBSCRIBE and FETCH MUST NOT cause the publisher to
-   alter the payload of the objects it sends, as that would violate the
-   track uniqueness guarantee described in Section 2.5.1.
+   The Parameters in SUBSCRIBE, PUBLISH_OK and FETCH MUST NOT cause the
+   publisher to alter the payload of the objects it sends, as that would
+   violate the track uniqueness guarantee described in Section 2.5.1.
 
 5.  Namespace Discovery
 
@@ -1004,19 +1035,19 @@ Table of Contents
 
    Given sufficient out of band information, it is valid for a
    subscriber to send a SUBSCRIBE or FETCH message to a publisher
-   (including a relay) without any previous MOQT messages besides SETUP.
-   However, SUBSCRIBE_ANNOUNCES and ANNOUNCE messages provide an in-band
-   means of discovery of publishers for a namespace.
+   (including a relay) without any previous MoQT messages besides SETUP.
+   However, SUBSCRIBE_ANNOUNCES, PUBLISH and ANNOUNCE messages provide
+   an in-band means of discovery of publishers for a namespace.
 
    The syntax of these messages is described in Section 8.
 
-5.1.  Subscribing to Announcements
+5.1.  Subscribing to Namespaces
 
    If the subscriber is aware of a namespace of interest, it can send
    SUBSCRIBE_ANNOUNCES to publishers/relays it has established a session
-   with.  The recipient of this message will send any relevant ANNOUNCE
-   or UNANNOUNCE messages for that namespace, or more specific part of
-   that namespace.
+   with.  The recipient of this message will send any relevant ANNOUNCE,
+   UNANNOUNCE or PUBLISH messages for that namespace, or more specific
+   part of that namespace.
 
    A publisher MUST send exactly one SUBSCRIBE_ANNOUNCES_OK or
    SUBSCRIBE_ANNOUNCES_ERROR in response to a SUBSCRIBE_ANNOUNCES.  The
@@ -1028,15 +1059,18 @@ Table of Contents
    can decide which other publishers to contact, if any.
 
    An UNSUBSCRIBE_ANNOUNCES withdraws a previous SUBSCRIBE_ANNOUNCES.
-   It does not prohibit the receiver (publisher) from sending further
-   ANNOUNCE messages.
+   It does not prohibit original publishers from sending further
+   ANNOUNCE or PUBLISH messages, but relays MUST NOT send any further
+   PUBLISH messages to a client without knowing the client is interested
+   in and authorized to receive the content.
 
 5.2.  Announcements
 
    A publisher MAY send ANNOUNCE messages to any subscriber.  An
    ANNOUNCE indicates to the subscriber that the publisher has tracks
    available in that namespace.  A subscriber MAY send SUBSCRIBE or
-   FETCH for a namespace without having received an ANNOUNCE for it.
+   FETCH for tracks in a namespace without having received an ANNOUNCE
+   for it.
 
    If a publisher is authoritative for a given namespace, or is a relay
    that has received an authorized ANNOUNCE for that namespace from an
@@ -1060,7 +1094,7 @@ Table of Contents
 
    An UNANNOUNCE message withdraws a previous ANNOUNCE, although it is
    not a protocol error for the subscriber to send a SUBSCRIBE or FETCH
-   message after receiving an UNANNOUNCE.
+   message for a track in a namespace after receiving an UNANNOUNCE.
 
    A subscriber can send ANNOUNCE_CANCEL to revoke acceptance of an
    ANNOUNCE, for example due to expiration of authorization credentials.
@@ -1300,20 +1334,26 @@ Table of Contents
 
 7.3.  Publisher Interactions
 
-   Publishing through the relay starts with publisher sending ANNOUNCE
-   control message with a Track Namespace (Section 2.4).  The ANNOUNCE
-   enables the relay to know which publisher to forward a SUBSCRIBE to.
+   There are two ways to publish through a relay:
 
-   Relays MUST verify that publishers are authorized to publish the
-   content associated with the set of tracks whose Track Namespace
-   matches the announced namespace.  Where the authorization and
-   identification of the publisher occurs depends on the way the relay
-   is managed and is application specific.
+   1.  Send a PUBLISH message for a specific Track to the relay.  The
+       relay MAY respond with PUBLISH_OK in Forward State=0 until there
+       are known subscribers for new tracks.
 
-   A Relay can receive announcements from multiple publishers for the
-   same Track Namespace and it SHOULD respond with the same response to
-   each of the publishers, as though it was responding to an ANNOUNCE
-   from a single publisher for a given track namespace.
+   2.  Send an ANNOUNCE message for a Track Namespace to the relay.
+       This enables the relay to send SUBSCRIBE messages to publishers
+       for Tracks in this Namespace in response to received SUBSCRIBE
+       messages.
+
+   Relays MUST verify that publishers are authorized to publish the set
+   of tracks whose Track Namespace matches the namespace in an ANNOUNCE,
+   or the Full Track Name in PUBLISH.  The authorization and
+   identification of the publisher depends on the way the relay is
+   managed and is application specific.
+
+   A Relay can receive announcements for the same Track Namespace or
+   PUBLISH messages for the same Track from multiple publishers and is
+   expected to treat them uniformly.
 
    When a publisher wants to stop new subscriptions for an announced
    namespace it sends an UNANNOUNCE.  A subscriber indicates it will no
@@ -1321,20 +1361,35 @@ Table of Contents
    ANNOUNCE_OK to by sending an ANNOUNCE_CANCEL.
 
    A relay manages sessions from multiple publishers and subscribers,
-   connecting them based on the track namespace.  This MUST use an exact
-   match on track namespace unless otherwise negotiated by the
-   application.  For example, a SUBSCRIBE namespace=foobar message will
-   be forwarded to the session that sent ANNOUNCE namespace=foobar.
+   connecting them based on the Track Namespace or Full Track Name.
+   Prefix matching is used to determine which publishers receive a
+   SUBSCRIBE or which subscribers receive a PUBLISH.  For example, a
+   SUBSCRIBE namespace=(foo,bar), track=x message will be forwarded to
+   the sessions that sent ANNOUNCE namespace=(foo) and ANNOUNCE
+   namespace=(foo, bar) respectively, but not one that sent ANNOUNCE
+   namespace=(foobar).  Relays MUST forward SUBSCRIBE messages to all
+   publishers and ANNOUNCE and PUBLISH messages to all subscribers that
+   have a namespace prefix match.
 
-   When a relay receives an incoming SUBSCRIBE request that triggers an
-   upstream subscription, it SHOULD send a SUBSCRIBE request to each
-   publisher that has announced the subscription's namespace, unless it
-   already has an active subscription for the Objects requested by the
-   incoming SUBSCRIBE request from all available publishers.
+   When a relay receives an incoming SUBSCRIBE that triggers an upstream
+   subscription, it SHOULD send a SUBSCRIBE request to each publisher
+   that has announced the subscription's namespace or prefix thereof,
+   unless it already has an active subscription for the Objects
+   requested by the incoming SUBSCRIBE request from all available
+   publishers.  If it already has a matching upstream subscription in
+   Forward State=0, it SHOULD send a SUBSCRIBE_UDPATE with Forward=1 to
+   all publishers.
+
+   When a relay receives an incoming PUBLISH message, it MUST send a
+   PUBLISH request to each subscriber that has subscribed (via
+   SUBSCRIBE_ANNOUNCES) to the track's namespace or prefix thereof.
 
    When a relay receives an incoming ANNOUNCE for a given namespace, for
    each active upstream subscription that matches that namespace, it
    SHOULD send a SUBSCRIBE to the publisher that sent the ANNOUNCE.
+   When it receives an incoming PUBLISH message for a track that has
+   active subscribers, it SHOULD respond with PUBLISH_OK with Forward
+   State=1.
 
    Relays use the Track Alias (Section 9.1) of an incoming Object to
    identify its track and find the active subscribers.  Relays MUST
@@ -1355,14 +1410,14 @@ Table of Contents
    If the original publisher detects it is likely to need to switch
    networks, for example because the WiFi signal is getting weaker, and
    it does not have QUIC connection migration available, it establishes
-   a new session over the new interface and sends an ANNOUNCE.  The
-   relay will forward matching subscribes and the publisher publishes
-   objects on both sessions.  Once the subscriptions have migrated over
-   to the session on the new network, the publisher can stop publishing
-   objects on the old network.  The relay will drop duplicate objects
-   received on both subscriptions.  Ideally, the subscriptions
-   downstream from the relay do no observe this change, and keep
-   receiving the objects on the same subscription.
+   a new session over the new interface and sends ANNOUNCE and/or
+   PUBLISH messages.  The relay will establish subscriptions and the
+   publisher publishes objects on both sessions.  Once the subscriptions
+   have migrated over to session on the new network, the publisher can
+   stop publishing objects on the old network.  The relay will drop
+   duplicate objects received on both subscriptions.  Ideally, the
+   subscriptions downstream from the relay do no observe this change,
+   and keep receiving the objects on the same subscription.
 
 7.3.2.  Graceful Publisher Relay Switchover
 
@@ -1371,12 +1426,12 @@ Table of Contents
    them a GOAWAY.
 
    When a publisher receives a GOAWAY, it starts the process of
-   connecting to a new relay and sends announces, but it does not
-   immediately stop publishing objects to the old relay.  The new relay
-   will send subscribes and the publisher can start sending new objects
-   to the new relay instead of the old relay.  Once objects are going to
-   the new relay, the announcement and subscription to the old relay can
-   be stopped.
+   connecting to a new relay and sends ANNOUNCE and/or PUBLISH messages,
+   but it does not immediately stop publishing objects to the old relay.
+   The new relay will establish subscriptions and the publisher can
+   start sending new objects to the new relay instead of the old relay.
+   Once objects are going to the new relay, the announcements and
+   subscriptions to the old relay can be withdrawn or terminated.
 
 7.4.  Relay Object Handling
 
@@ -1446,35 +1501,41 @@ Table of Contents
            +------+--------------------------------------------+
            |  0xB | SUBSCRIBE_DONE (Section 8.12)              |
            +------+--------------------------------------------+
-           | 0x16 | FETCH (Section 8.13)                       |
+           |  0x1 | PUBLISH (Section 8.13)                     |
            +------+--------------------------------------------+
-           | 0x18 | FETCH_OK (Section 8.14)                    |
+           |  0x2 | PUBLISH_OK (Section 8.14)                  |
            +------+--------------------------------------------+
-           | 0x19 | FETCH_ERROR (Section 8.15)                 |
+           |  0x3 | PUBLISH_ERROR (Section 8.15)               |
            +------+--------------------------------------------+
-           | 0x17 | FETCH_CANCEL (Section 8.16)                |
+           | 0x16 | FETCH (Section 8.16)                       |
            +------+--------------------------------------------+
-           |  0xD | TRACK_STATUS_REQUEST (Section 8.17)        |
+           | 0x18 | FETCH_OK (Section 8.17)                    |
            +------+--------------------------------------------+
-           |  0xE | TRACK_STATUS (Section 8.18)                |
+           | 0x19 | FETCH_ERROR (Section 8.18)                 |
            +------+--------------------------------------------+
-           |  0x6 | ANNOUNCE (Section 8.19)                    |
+           | 0x17 | FETCH_CANCEL (Section 8.19)                |
            +------+--------------------------------------------+
-           |  0x7 | ANNOUNCE_OK (Section 8.20)                 |
+           |  0xD | TRACK_STATUS_REQUEST (Section 8.20)        |
            +------+--------------------------------------------+
-           |  0x8 | ANNOUNCE_ERROR (Section 8.21)              |
+           |  0xE | TRACK_STATUS (Section 8.21)                |
            +------+--------------------------------------------+
-           |  0x9 | UNANNOUNCE (Section 8.22)                  |
+           |  0x6 | ANNOUNCE (Section 8.22)                    |
            +------+--------------------------------------------+
-           |  0xC | ANNOUNCE_CANCEL (Section 8.23)             |
+           |  0x7 | ANNOUNCE_OK (Section 8.23)                 |
            +------+--------------------------------------------+
-           | 0x11 | SUBSCRIBE_ANNOUNCES (Section 8.24)         |
+           |  0x8 | ANNOUNCE_ERROR (Section 8.24)              |
            +------+--------------------------------------------+
-           | 0x12 | SUBSCRIBE_ANNOUNCES_OK (Section 8.25)      |
+           |  0x9 | UNANNOUNCE (Section 8.25)                  |
            +------+--------------------------------------------+
-           | 0x13 | SUBSCRIBE_ANNOUNCES_ERROR (Section 8.26    |
+           |  0xC | ANNOUNCE_CANCEL (Section 8.26)             |
            +------+--------------------------------------------+
-           | 0x14 | UNSUBSCRIBE_ANNOUNCES (Section 8.27)       |
+           | 0x11 | SUBSCRIBE_ANNOUNCES (Section 8.27)         |
+           +------+--------------------------------------------+
+           | 0x12 | SUBSCRIBE_ANNOUNCES_OK (Section 8.28)      |
+           +------+--------------------------------------------+
+           | 0x13 | SUBSCRIBE_ANNOUNCES_ERROR (Section 8.29    |
+           +------+--------------------------------------------+
+           | 0x14 | UNSUBSCRIBE_ANNOUNCES (Section 8.30)       |
            +------+--------------------------------------------+
 
                                   Table 2
@@ -1830,7 +1891,7 @@ Table of Contents
    a publisher MAY reject new requests while in the draining state.
 
    Upon receiving a GOAWAY, an endpoint SHOULD NOT initiate new requests
-   to the peer including SUBSCRIBE, FETCH, ANNOUNCE and
+   to the peer including SUBSCRIBE, PUBLISH, FETCH, ANNOUNCE and
    SUBSCRIBE_ANNOUNCE.
 
    The endpoint MUST terminate the session with a Protocol Violation
@@ -1970,7 +2031,7 @@ Table of Contents
    A filter type other than the above MUST be treated as error.
 
    Subscribe only delivers newly published or received Objects.  Objects
-   from the past are retrieved using FETCH (Section 8.13).
+   from the past are retrieved using FETCH (Section 8.16).
 
    A Subscription can also request a publisher to not forward Objects
    for a given track by setting the Forward field to 0.  This allows the
@@ -2390,7 +2451,166 @@ Table of Contents
    *  Malformed Track - A relay publisher detected the track was
       malformed (see Section 2.5).
 
-8.13.  FETCH
+8.13.  PUBLISH
+
+   The publisher sends the PUBLISH control message to initiate a
+   subscription to a track.  The receiver verifies the publisher is
+   authorized to publish this track.
+
+   PUBLISH Message {
+     Type (i) = 0x6,
+     Length (i),
+     Request ID (i),
+     Track Namespace (tuple),
+     Track Name Length (i),
+     Track Name (..),
+     Track Alias (i),
+     Group Order (8),
+     ContentExists (8),
+     [Largest (Location),]
+     Forward (8),
+     Number of Parameters (i),
+     Parameters (..) ...,
+   }
+
+                      Figure 15: MOQT PUBLISH Message
+
+   *  Request ID: See Section 8.1.
+
+   *  Track Namespace: Identifies a track's namespace as defined in
+      (Section 2.4.1)
+
+   *  Track Name: Identifies the track name as defined in
+      (Section 2.4.1).
+
+   *  Track Alias: The identifer used for this track in Subgroups or
+      Datagrams (see Section 9.1).  The same Track Alias MUST NOT be
+      used to refer to two different Tracks simultaneously.  If a
+      subscriber receives a PUBLISH that uses the same Track Alias as a
+      different track with an active subscription, it MUST close the
+      session with error 'Duplicate Track Alias'.
+
+   *  Group Order: Indicates the subscription will be delivered in
+      Ascending (0x1) or Descending (0x2) order by group.  See
+      Section 6.  Values of 0x0 and those larger than 0x2 are a protocol
+      error.
+
+   *  ContentExists: 1 if an object has been published on this track, 0
+      if not.  If 0, then the Largest Group ID and Largest Object ID
+      fields will not be present.  Any other value is a protocol error
+      and MUST terminate the session with a Protocol Violation
+      (Section 3.4).
+
+   *  Largest: The location of the largest object available for this
+      track.
+
+   *  Forward: The forward mode for this subscription.  Any value other
+      than 0 or 1 is a Protocol Violation.  0 indicates the publisher
+      will not transmit any objects until the subscriber sets the
+      Forward State to 1. 1 indicates the publisher will start
+      transmitting objects immediately, even before PUBLISH_OK.
+
+   *  Parameters: The parameters are defined in Section 8.2.1.
+
+8.14.  PUBLISH_OK
+
+   The subscriber sends an PUBLISH_OK control message to acknowledge the
+   successful authorization and acceptance of a PUBLISH message, and
+   establish a subscription.
+
+   PUBLISH_OK Message
+   {
+     Type (i) = 0x7,
+     Length (i),
+     Request ID (i),
+     Forward (8),
+     Subscriber Priority (8),
+     Group Order (8),
+     Filter Type (i),
+     [Start (Location)],
+     [EndGroup (i)],
+     Number of Parameters (i),
+     Parameters (..) ...,
+   }
+
+                     Figure 16: MOQT PUBLISH_OK Message
+
+   *  Request ID: The Request ID of the PUBLISH this message is replying
+      to Section 8.13.
+
+   *  Forward: The Forward State for this subscription, either 0 (don't
+      forward) or 1 (forward).
+
+   *  Subscriber Priority: The Subscriber Priority for this
+      subscription.
+
+   *  Group Order: Indicates the subscription will be delivered in
+      Ascending (0x1) or Descending (0x2) order by group.  See
+      Section 6.  Values of 0x0 and those larger than 0x2 are a protocol
+      error.  This overwrites the GroupOrder specified PUBLISH.
+
+   *  Filter Type, Start, End Group: See Section 8.7.
+
+   *  Parameters: Parameters associated with this message.
+
+8.15.  PUBLISH_ERROR
+
+   The subscriber sends an PUBLISH_ERROR control message to reject a
+   subscription initiated by PUBLISH.
+
+   PUBLISH_ERROR Message
+   {
+     Type (i) = 0x8,
+     Length (i),
+     Request ID (i),
+     Error Code (i),
+     Error Reason (Reason Phrase),
+   }
+
+                   Figure 17: MOQT PUBLISH_ERROR Message
+
+   *  Request ID: The Request ID of the PUBLISH this message is replying
+      to Section 8.13.
+
+   *  Error Code: Identifies an integer error code for failure.
+
+   *  Error Reason: Provides the reason for subscription error.  See
+      Section 1.3.3.
+
+   The application SHOULD use a relevant error code in PUBLISH_ERROR, as
+   defined below:
+
+                         +======+================+
+                         | Code | Reason         |
+                         +======+================+
+                         |  0x0 | Internal Error |
+                         +------+----------------+
+                         |  0x1 | Unauthorized   |
+                         +------+----------------+
+                         |  0x2 | Timeout        |
+                         +------+----------------+
+                         |  0x3 | Not Supported  |
+                         +------+----------------+
+                         |  0x4 | Uninterested   |
+                         +------+----------------+
+
+                                  Table 6
+
+   *  Internal Error - An implementation specific or generic error
+      occurred.
+
+   *  Unauthorized - The publisher is not authorized to publish the
+      given namespace or track.
+
+   *  Timeout - The subscription could not be established before an
+      implementation specific timeout.
+
+   *  Not Supported - The endpoint does not support the PUBLISH method.
+
+   *  Uninterested - The namespace or track is not of interest to the
+      endpoint.
+
+8.16.  FETCH
 
    A subscriber issues a FETCH to a publisher to request a range of
    already published objects within a track.  The publisher responding
@@ -2478,7 +2698,7 @@ Table of Contents
      Parameters (..) ...
    }
 
-                       Figure 15: MOQT FETCH Message
+                       Figure 18: MOQT FETCH Message
 
    Fields common to all Fetch Types:
 
@@ -2541,7 +2761,7 @@ Table of Contents
    the publisher MUST return FETCH_ERROR with error code 'Invalid
    Range'.
 
-8.13.1.  Calculating the Range of a Relative Joining Fetch
+8.16.1.  Calculating the Range of a Relative Joining Fetch
 
    A publisher that receives a Fetch of type Type 0x2 treats it as a
    Fetch with a range dynamically determined by the Preceding Group
@@ -2567,12 +2787,12 @@ Table of Contents
    subtracted from the Fetch End Location.Group if Fetch End
    Location.Object is 0.
 
-8.13.2.  Calculating the Range of an Absolute Joining Fetch
+8.16.2.  Calculating the Range of an Absolute Joining Fetch
 
    Identical to the Relative Joining fetch except that Fetch Start
    Location.Group is the Joining Start value.
 
-8.14.  FETCH_OK
+8.17.  FETCH_OK
 
    A publisher sends a FETCH_OK control message in response to
    successful fetches.  A publisher MAY send Objects in response to a
@@ -2590,7 +2810,7 @@ Table of Contents
      Subscribe Parameters (..) ...
    }
 
-                      Figure 16: MOQT FETCH_OK Message
+                      Figure 19: MOQT FETCH_OK Message
 
    *  Request ID: The Request ID of the FETCH this message is replying
       to Section 8.7.
@@ -2626,7 +2846,7 @@ Table of Contents
 
    *  Subscribe Parameters: The parameters are defined in Section 8.2.1.
 
-8.15.  FETCH_ERROR
+8.18.  FETCH_ERROR
 
    A publisher sends a FETCH_ERROR control message in response to a
    failed FETCH.
@@ -2639,7 +2859,7 @@ Table of Contents
      Error Reason (Reason Phrase)
    }
 
-                    Figure 17: MOQT FETCH_ERROR Message
+                    Figure 20: MOQT FETCH_ERROR Message
 
    *  Request ID: The Request ID of the FETCH this message is replying
       to Section 8.7.
@@ -2682,7 +2902,7 @@ Table of Contents
                    | 0x12 | Expired Auth Token         |
                    +------+----------------------------+
 
-                                  Table 6
+                                  Table 7
 
    *  Internal Error - An implementation specific or generic error
       occurred.
@@ -2724,7 +2944,7 @@ Table of Contents
    *  Expired Auth Token - Authorization token has expired
       Section 8.2.1.1).
 
-8.16.  FETCH_CANCEL
+8.19.  FETCH_CANCEL
 
    A subscriber sends a FETCH_CANCEL message to a publisher to indicate
    it is no longer interested in receiving objects for the fetch
@@ -2740,12 +2960,12 @@ Table of Contents
      Request ID (i)
    }
 
-                    Figure 18: MOQT FETCH_CANCEL Message
+                    Figure 21: MOQT FETCH_CANCEL Message
 
-   *  Request ID: The Request ID of the FETCH (Section 8.13) this
+   *  Request ID: The Request ID of the FETCH (Section 8.16) this
       message is cancelling.
 
-8.17.  TRACK_STATUS_REQUEST
+8.20.  TRACK_STATUS_REQUEST
 
    A potential subscriber sends a 'TRACK_STATUS_REQUEST' message on the
    control stream to obtain information about the current status of a
@@ -2765,7 +2985,7 @@ Table of Contents
      Parameters (..) ...,
    }
 
-                Figure 19: MOQT TRACK_STATUS_REQUEST Message
+                Figure 22: MOQT TRACK_STATUS_REQUEST Message
 
    *  Request ID: See Section 8.1.
 
@@ -2777,7 +2997,7 @@ Table of Contents
 
    *  Parameters: The parameters are defined in Section 8.2.1.
 
-8.18.  TRACK_STATUS
+8.21.  TRACK_STATUS
 
    A publisher sends a 'TRACK_STATUS' message on the control stream in
    response to a TRACK_STATUS_REQUEST message.
@@ -2792,10 +3012,10 @@ Table of Contents
      Parameters (..) ...,
    }
 
-                    Figure 20: MOQT TRACK_STATUS Message
+                    Figure 23: MOQT TRACK_STATUS Message
 
    *  Request ID: The Request ID of the TRACK_STATUS_REQUEST this
-      message is replying to Section 8.18.
+      message is replying to Section 8.21.
 
    *  Status Code: Provides additional information about the status of
       the track.  It MUST hold one of the following values.  Any other
@@ -2830,7 +3050,7 @@ Table of Contents
 
    The Parameters are defined in Section 8.2.1.
 
-8.19.  ANNOUNCE
+8.22.  ANNOUNCE
 
    The publisher sends the ANNOUNCE control message to advertise that it
    has tracks available within the announced Track Namespace.  The
@@ -2846,7 +3066,7 @@ Table of Contents
      Parameters (..) ...,
    }
 
-                      Figure 21: MOQT ANNOUNCE Message
+                      Figure 24: MOQT ANNOUNCE Message
 
    *  Request ID: See Section 8.1.
 
@@ -2855,7 +3075,7 @@ Table of Contents
 
    *  Parameters: The parameters are defined in Section 8.2.1.
 
-8.20.  ANNOUNCE_OK
+8.23.  ANNOUNCE_OK
 
    The subscriber sends an ANNOUNCE_OK control message to acknowledge
    the successful authorization and acceptance of an ANNOUNCE message.
@@ -2866,12 +3086,12 @@ Table of Contents
      Request ID (i)
    }
 
-                    Figure 22: MOQT ANNOUNCE_OK Message
+                    Figure 25: MOQT ANNOUNCE_OK Message
 
    *  Request ID: The Request ID of the ANNOUNCE this message is
-      replying to Section 8.19.
+      replying to Section 8.22.
 
-8.21.  ANNOUNCE_ERROR
+8.24.  ANNOUNCE_ERROR
 
    The subscriber sends an ANNOUNCE_ERROR control message for tracks
    that failed authorization.
@@ -2884,10 +3104,10 @@ Table of Contents
      Error Reason (Reason Phrase)
    }
 
-                   Figure 23: MOQT ANNOUNCE_ERROR Message
+                   Figure 26: MOQT ANNOUNCE_ERROR Message
 
    *  Request ID: The Request ID of the ANNOUNCE this message is
-      replying to Section 8.19.
+      replying to Section 8.22.
 
    *  Error Code: Identifies an integer error code for announcement
       failure.
@@ -2918,7 +3138,7 @@ Table of Contents
                     | 0x12 | Expired Auth Token       |
                     +------+--------------------------+
 
-                                  Table 7
+                                  Table 8
 
    *  Internal Error - An implementation specific or generic error
       occurred.
@@ -2942,7 +3162,7 @@ Table of Contents
    *  Expired Auth Token - Authorization token has expired
       Section 8.2.1.1).
 
-8.22.  UNANNOUNCE
+8.25.  UNANNOUNCE
 
    The publisher sends the UNANNOUNCE control message to indicate its
    intent to stop serving new subscriptions for tracks within the
@@ -2954,12 +3174,12 @@ Table of Contents
      Track Namespace (tuple),
    }
 
-                     Figure 24: MOQT UNANNOUNCE Message
+                     Figure 27: MOQT UNANNOUNCE Message
 
    *  Track Namespace: Identifies a track's namespace as defined in
       (Section 2.4.1).
 
-8.23.  ANNOUNCE_CANCEL
+8.26.  ANNOUNCE_CANCEL
 
    The subscriber sends an ANNOUNCE_CANCEL control message to indicate
    it will stop sending new subscriptions for tracks within the provided
@@ -2973,23 +3193,23 @@ Table of Contents
      Error Reason (Reason Phrase),
    }
 
-                  Figure 25: MOQT ANNOUNCE_CANCEL Message
+                  Figure 28: MOQT ANNOUNCE_CANCEL Message
 
    *  Track Namespace: Identifies a track's namespace as defined in
       (Section 2.4.1).
 
    *  Error Code: Identifies an integer error code for canceling the
       announcement.  ANNOUNCE_CANCEL uses the same error codes as
-      ANNOUNCE_ERROR (Section 8.21).
+      ANNOUNCE_ERROR (Section 8.24).
 
    *  Error Reason: Provides the reason for announcement cancelation.
       See Section 1.3.3.
 
-8.24.  SUBSCRIBE_ANNOUNCES
+8.27.  SUBSCRIBE_ANNOUNCES
 
    The subscriber sends the SUBSCRIBE_ANNOUNCES control message to a
-   publisher to request the current set of matching announcements, as
-   well as future updates to the set.
+   publisher to request the current set of matching announcements and
+   established subscriptions, as well as future updates to the set.
 
    SUBSCRIBE_ANNOUNCES Message {
      Type (i) = 0x11,
@@ -3000,7 +3220,7 @@ Table of Contents
      Parameters (..) ...,
    }
 
-                Figure 26: MOQT SUBSCRIBE_ANNOUNCES Message
+                Figure 29: MOQT SUBSCRIBE_ANNOUNCES Message
 
    *  Request ID: See Section 8.1.
 
@@ -3018,26 +3238,28 @@ Table of Contents
 
    The publisher will respond with SUBSCRIBE_ANNOUNCES_OK or
    SUBSCRIBE_ANNOUNCES_ERROR.  If the SUBSCRIBE_ANNOUNCES is successful,
-   the publisher will forward any matching ANNOUNCE messages to the
-   subscriber that it has not yet sent.  If the set of matching ANNOUNCE
+   the publisher will immediately forward existing ANNOUNCE and PUBLISH
+   messages that match the Track Namespace Prefix that have not already
+   been sent to this subscriber.  If the set of matching ANNOUNCE
    messages changes, the publisher sends the corresponding ANNOUNCE or
    UNANNOUNCE message.
 
    A subscriber cannot make overlapping namespace subscriptions on a
    single session.  Within a session, if a publisher receives a
-   SUBSCRIBE_ANNOUNCES with a Track Namespace Prefix that is a prefix of
-   an earlier SUBSCRIBE_ANNOUNCES or vice versa, it MUST respond with
-   SUBSCRIBE_ANNOUNCES_ERROR, with error code Namespace Prefix Overlap.
+   SUBSCRIBE_ANNOUNCES with a Track Namespace Prefix that is a prefix
+   of, suffix of, or equal to an active SUBSCRIBE_ANNOUNCES, it MUST
+   respond with SUBSCRIBE_ANNOUNCES_ERROR, with error code Namespace
+   Prefix Overlap.
 
    The publisher MUST ensure the subscriber is authorized to perform
    this namespace subscription.
 
-   SUBSCRIBE_ANNOUNCES is not required for a publisher to send ANNOUNCE
-   and UNANNOUNCE messages to a subscriber.  It is useful in
+   SUBSCRIBE_ANNOUNCES is not required for a publisher to send ANNOUNCE,
+   UNANNOUNCE or PUBLISH messages to a subscriber.  It is useful in
    applications or relays where subscribers are only interested in or
-   authorized to access a subset of available announcements.
+   authorized to access a subset of available announcements and tracks.
 
-8.25.  SUBSCRIBE_ANNOUNCES_OK
+8.28.  SUBSCRIBE_ANNOUNCES_OK
 
    A publisher sends a SUBSCRIBE_ANNOUNCES_OK control message for
    successful namespace subscriptions.
@@ -3048,12 +3270,12 @@ Table of Contents
      Request ID (i),
    }
 
-               Figure 27: MOQT SUBSCRIBE_ANNOUNCES_OK Message
+               Figure 30: MOQT SUBSCRIBE_ANNOUNCES_OK Message
 
    *  Request ID: The Request ID of the SUBSCRIBE_ANNOUNCES this message
-      is replying to Section 8.24.
+      is replying to Section 8.27.
 
-8.26.  SUBSCRIBE_ANNOUNCES_ERROR
+8.29.  SUBSCRIBE_ANNOUNCES_ERROR
 
    A publisher sends a SUBSCRIBE_ANNOUNCES_ERROR control message in
    response to a failed SUBSCRIBE_ANNOUNCES.
@@ -3066,10 +3288,10 @@ Table of Contents
      Error Reason (Reason Phrase)
    }
 
-             Figure 28: MOQT SUBSCRIBE_ANNOUNCES_ERROR Message
+             Figure 31: MOQT SUBSCRIBE_ANNOUNCES_ERROR Message
 
    *  Request ID: The Request ID of the SUBSCRIBE_ANNOUNCES this message
-      is replying to Section 8.24.
+      is replying to Section 8.27.
 
    *  Error Code: Identifies an integer error code for the namespace
       subscription failure.
@@ -3102,7 +3324,7 @@ Table of Contents
                     | 0x12 | Expired Auth Token       |
                     +------+--------------------------+
 
-                                  Table 8
+                                  Table 9
 
    *  Internal Error - An implementation specific or generic error
       occurred.
@@ -3131,11 +3353,11 @@ Table of Contents
    *  Expired Auth Token - Authorization token has expired
       Section 8.2.1.1).
 
-8.27.  UNSUBSCRIBE_ANNOUNCES
+8.30.  UNSUBSCRIBE_ANNOUNCES
 
    A subscriber issues a UNSUBSCRIBE_ANNOUNCES message to a publisher
-   indicating it is no longer interested in ANNOUNCE and UNANNOUNCE
-   messages for the specified track namespace prefix.
+   indicating it is no longer interested in ANNOUNCE, UNANNOUNCE and
+   PUBLISH messages for the specified track namespace prefix.
 
    The format of UNSUBSCRIBE_ANNOUNCES is as follows:
 
@@ -3145,9 +3367,9 @@ Table of Contents
      Track Namespace Prefix (tuple)
    }
 
-                    Figure 29: MOQT UNSUBSCRIBE Message
+               Figure 32: MOQT UNSUBSCRIBE_ANNOUNCES Message
 
-   *  Track Namespace Prefix: As defined in Section 8.24.
+   *  Track Namespace Prefix: As defined in Section 8.27.
 
 9.  Data Streams and Datagrams
 
@@ -3165,7 +3387,7 @@ Table of Contents
               |      0x05 | FETCH_HEADER (Section 9.4.4)    |
               +-----------+---------------------------------+
 
-                                  Table 9
+                                  Table 10
 
    All MOQT datagrams start with a variable-length integer indicating
    the type of the datagram.
@@ -3178,7 +3400,7 @@ Table of Contents
           | 0x04-0x05 | OBJECT_DATAGRAM_STATUS (Section 9.3.1) |
           +-----------+----------------------------------------+
 
-                                 Table 10
+                                 Table 11
 
    An endpoint that receives an unknown stream or datagram type MUST
    close the session.
@@ -3199,7 +3421,7 @@ Table of Contents
    To optimize wire efficiency, Subgroups and Datagrams refer to a track
    by a numeric identifier, rather than the Full Track Name.  Track
    Alias is chosen by the publisher and included in SUBSCRIBE_OK
-   (Section 8.8.
+   (Section 8.8 or PUBLISH (Section 8.13).
 
 9.2.  Objects
 
@@ -3354,7 +3576,7 @@ Table of Contents
      Object Payload (..),
    }
 
-                      Figure 30: MOQT OBJECT_DATAGRAM
+                      Figure 33: MOQT OBJECT_DATAGRAM
 
    There are 4 defined Type values for OBJECT_DATAGRAM:
 
@@ -3372,7 +3594,7 @@ Table of Contents
                    | 0x03 | Yes          | Yes        |
                    +------+--------------+------------+
 
-                                 Table 11
+                                 Table 12
 
    For Type values where End of Group is Yes, the Object is the last
    Object in the Group.
@@ -3402,7 +3624,7 @@ Table of Contents
      Object Status (i),
    }
 
-                   Figure 31: MOQT OBJECT_DATAGRAM_STATUS
+                   Figure 34: MOQT OBJECT_DATAGRAM_STATUS
 
    The Type field takes the form 0b0000001X (or the set of values from
    0x02 to 0x03).  The LSB of the type determines if the Extensions
@@ -3452,7 +3674,7 @@ Table of Contents
      Publisher Priority (8),
    }
 
-                      Figure 32: MOQT SUBGROUP_HEADER
+                      Figure 35: MOQT SUBGROUP_HEADER
 
    All Objects received on a stream opened with SUBGROUP_HEADER have an
    Object Forwarding Preference = Subgroup.
@@ -3493,7 +3715,7 @@ Table of Contents
     | 0x1D | Yes           | N/A         | Yes        | Yes          |
     +------+---------------+-------------+------------+--------------+
 
-                                 Table 12
+                                 Table 13
 
    For Type values where Contains End of Group is Yes, the last Object
    in this Subgroup stream before a FIN is the last Object in the Group.
@@ -3530,7 +3752,7 @@ Table of Contents
      Object Payload (..),
    }
 
-                   Figure 33: MOQT Subgroup Object Fields
+                   Figure 36: MOQT Subgroup Object Fields
 
    A publisher MUST NOT send an Object on a stream if its Object ID is
    less than a previously sent Object ID within a given group in that
@@ -3644,7 +3866,7 @@ Table of Contents
                         |  0x3 | Session Closed   |
                         +------+------------------+
 
-                                  Table 13
+                                  Table 14
 
    Internal Error:  An implementation specific error
 
@@ -3669,7 +3891,7 @@ Table of Contents
      Request ID (i),
    }
 
-                        Figure 34: MOQT FETCH_HEADER
+                        Figure 37: MOQT FETCH_HEADER
 
    Each object sent on a fetch stream after the FETCH_HEADER has the
    following format:
@@ -3686,7 +3908,7 @@ Table of Contents
      Object Payload (..),
    }
 
-                    Figure 35: MOQT Fetch Object Fields
+                    Figure 38: MOQT Fetch Object Fields
 
    The Object Status field is only sent if the Object Payload Length is
    zero.
@@ -3818,6 +4040,8 @@ Table of Contents
    *  Subscribe Error codes
 
    *  Subscribe Namespace Error codes
+
+   *  Publish Error codes
 
    *  Announce Error codes
 
