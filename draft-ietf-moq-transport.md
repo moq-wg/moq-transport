@@ -555,6 +555,11 @@ Malformed Track, it MUST immediately terminate downstream subscriptions with
 SUBSCRIBE_DONE with Status Code `Malformed Track`.
 
 
+To avoid confusion and potential ambiguity, the combined tuple consisting of a
+Full Track Name's Namespace tuple fields and its Track Name MUST NOT also be a
+Track Namespace or a prefix of a Track Namespace. Endpoints encountering such a
+construction MUST terminate the session with a 'Protocol Violation' error.
+
 ### Scope {#track-scope}
 
 An MOQT scope is a set of servers (as identified by their connection
