@@ -1042,9 +1042,10 @@ _Group Order_ is a property of an individual subscription.  It can be either
 'Ascending' (groups with lower group ID are sent first), or 'Descending'
 (groups with higher group ID are sent first).  The subscriber optionally
 communicates its group order preference in the SUBSCRIBE message; the
-publisher's preference is used if the subscriber did not express one (by
-setting Group Order field to value 0x0).  The group order of an existing
-subscription cannot be changed.
+publisher's preference is used if the subscriber did not specify the
+'Group Order' param. If the publisher also does not specify the group order,
+it defaults to ascending. The group order of an existing subscription cannot
+be changed.
 
 ## Scheduling Algorithm
 
@@ -1604,6 +1605,18 @@ stream. Once Objects have expired from cache, their state becomes unknown, and
 a relay that handles a downstream request that includes those Objects
 re-requests them.
 
+#### GROUP ORDER Parameter
+
+The GROUP ORDER parameter (Parameter Type 0x06) allows the subscriber to
+request Objects be delivered in Ascending (0x0) or Descending (0x1) order
+by group. See {{priorities}}. When sent by the publisher, it indicates the
+publisher's preferred order. A value of 0x0 indicates the original Values larger
+than 0x1 are a protocol error.
+
+Group order of a subscription MUST NOT be changed, so it is invalid to use
+GROUP ORDER in SUBSCRIBE_UPDATE or PUBLISH_OK. GROUP ORDER is valid in SUBSCRIBE,
+SUBSCRIBE_OK, PUBLISH, FETCH, and FETCH_OK.
+
 ## CLIENT_SETUP and SERVER_SETUP {#message-setup}
 
 The `CLIENT_SETUP` and `SERVER_SETUP` messages are the first messages exchanged
@@ -1881,7 +1894,6 @@ SUBSCRIBE Message {
   Track Name Length (i),
   Track Name (..),
   Subscriber Priority (8),
-  Group Order (8),
   Forward (8),
   Filter Type (i),
   [Start Location (Location)],
@@ -1902,11 +1914,6 @@ SUBSCRIBE Message {
 * Subscriber Priority: Specifies the priority of a subscription relative to
 other subscriptions in the same session. Lower numbers get higher priority.
 See {{priorities}}.
-
-* Group Order: Allows the subscriber to request Objects be delivered in
-Ascending (0x1) or Descending (0x2) order by group. See {{priorities}}.
-A value of 0x0 indicates the original publisher's Group Order SHOULD be
-used. Values larger than 0x2 are a protocol error.
 
 * Forward: If 1, Objects matching the subscription are forwarded
 to the subscriber. If 0, Objects are not forwarded to the subscriber.
@@ -1944,7 +1951,6 @@ SUBSCRIBE_OK Message {
   Request ID (i),
   Track Alias (i),
   Expires (i),
-  Group Order (8),
   Content Exists (8),
   [Largest Location (Location)],
   Number of Parameters (i),
@@ -1966,10 +1972,6 @@ SUBSCRIBE_OK Message {
 longer valid. A value of 0 indicates that the subscription does not expire
 or expires at an unknown time.  Expires is advisory and a subscription can
 end prior to the expiry time or last longer.
-
-* Group Order: Indicates the subscription will be delivered in
-Ascending (0x1) or Descending (0x2) order by group. See {{priorities}}.
-Values of 0x0 and those larger than 0x2 are a protocol error.
 
 * Content Exists: 1 if an object has been published on this track, 0 if not.
 If 0, then the Largest Group ID and Largest Object ID fields will not be
@@ -2262,7 +2264,6 @@ PUBLISH Message {
   Track Name Length (i),
   Track Name (..),
   Track Alias (i),
-  Group Order (8),
   ContentExists (8),
   [Largest (Location),]
   Forward (8),
@@ -2283,10 +2284,6 @@ PUBLISH Message {
   different Tracks simultaneously. If a subscriber receives a PUBLISH that
   uses the same Track Alias as a different track with an active subscription, it
   MUST close the session with error 'Duplicate Track Alias'.
-
-* Group Order: Indicates the subscription will be delivered in
-  Ascending (0x1) or Descending (0x2) order by group. See {{priorities}}.
-  Values of 0x0 and those larger than 0x2 are a protocol error.
 
 * ContentExists: 1 if an object has been published on this track, 0 if not.
   If 0, then the Largest Group ID and Largest Object ID fields will not be
@@ -2316,7 +2313,6 @@ PUBLISH_OK Message
   Request ID (i),
   Forward (8),
   Subscriber Priority (8),
-  Group Order (8),
   Filter Type (i),
   [Start (Location)],
   [EndGroup (i)],
@@ -2333,11 +2329,6 @@ PUBLISH_OK Message
   forward) or 1 (forward).
 
 * Subscriber Priority: The Subscriber Priority for this subscription.
-
-* Group Order: Indicates the subscription will be delivered in
-  Ascending (0x1) or Descending (0x2) order by group. See {{priorities}}.
-  Values of 0x0 and those larger than 0x2 are a protocol error. This
-  overwrites the GroupOrder specified PUBLISH.
 
 * Filter Type, Start, End Group: See {{message-subscribe-req}}.
 
@@ -2468,7 +2459,6 @@ FETCH Message {
   Length (16),
   Request ID (i),
   Subscriber Priority (8),
-  Group Order (8),
   Fetch Type (i),
   [Track Namespace (tuple),
    Track Name Length (i),
@@ -2490,11 +2480,6 @@ Fields common to all Fetch Types:
 * Subscriber Priority: Specifies the priority of a fetch request relative to
 other subscriptions or fetches in the same session. Lower numbers get higher
 priority. See {{priorities}}.
-
-* Group Order: Allows the subscriber to request Objects be delivered in
-Ascending (0x1) or Descending (0x2) order by group. See {{priorities}}.
-A value of 0x0 indicates the original publisher's Group Order SHOULD be
-used. Values larger than 0x2 are a protocol error.
 
 * Fetch Type: Identifies the type of Fetch, whether Standalone, Relative
   Joining or Absolute Joining.
@@ -2578,7 +2563,6 @@ FETCH_OK Message {
   Type (i) = 0x18,
   Length (16),
   Request ID (i),
-  Group Order (8),
   End Of Track (8),
   End Location (Location),
   Number of Parameters (i),
@@ -2589,10 +2573,6 @@ FETCH_OK Message {
 
 * Request ID: The Request ID of the FETCH this message is replying to
   {{message-subscribe-req}}.
-
-* Group Order: Indicates the fetch will be delivered in
-Ascending (0x1) or Descending (0x2) order by group. See {{priorities}}.
-Values of 0x0 and those larger than 0x2 are a protocol error.
 
 * End Of Track: 1 if all Objects have been published on this Track, and
   the End Location is the final Object in the Track, 0 if not.
