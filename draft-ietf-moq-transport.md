@@ -519,32 +519,30 @@ to MoQT constraints. Such a Track is considered malformed.  Some example
 conditions that constitute a malformed track when detected by a receiver
 include:
 
-1. An Object is received on a Subgroup stream whose Object ID is not strictly
-   larger than the previous Object received on the same Subgroup.
-2. An Object is received in a FETCH response with the same Group as the
+1. An Object is received in a FETCH response with the same Group as the
    previous Object, but whose Object ID is not strictly larger than the previous
    object.
-3. An Object is received in an Ascending FETCH response whose Group ID is smaller
+2. An Object is received in an Ascending FETCH response whose Group ID is smaller
    than the previous Object in the response.
-4. An Object is received in a Descending FETCH response whose Group ID is larger
+3. An Object is received in a Descending FETCH response whose Group ID is larger
    than the previous Object in the resopnse.
-5. A Subgroup or FETCH response is terminated with a FIN in the middle of an
+4. A Subgroup or FETCH response is terminated with a FIN in the middle of an
    Object
-6. An Object is received whose Object ID is larger than the final Object in the
+5. An Object is received whose Object ID is larger than the final Object in the
    Subgroup.  The final Object in a Subgroup is the last Object received on a
    Subgroup stream before a FIN.
-7. A Subgroup is received with two or more different final Objects.
-8. An Object is received in a Group whose Object ID is larger than the final
+6. A Subgroup is received with two or more different final Objects.
+7. An Object is received in a Group whose Object ID is larger than the final
    Object in the Group.  The final Object in a Group is the Object with Status
    END_OF_GROUP or the last Object sent in a FETCH that requested the entire
    Group.
-9. An Object is received on a Track whose Group and Object ID are larger than the
+8. An Object is received on a Track whose Group and Object ID are larger than the
    final Object in the Track.  The final Object in a Track is the Object with
    Status END_OF_TRACK or the last Object sent in a FETCH whose response indicated
    End of Track.
-10. The same Object is received more than once with different Payload or
+9. The same Object is received more than once with different Payload or
     other immutable properties.
-11. An Object is received with a different Forwarding Preference than previously
+10. An Object is received with a different Forwarding Preference than previously
     observed from the same Track.
 
 The above list of conditions is not considered exhaustive.
@@ -3463,9 +3461,14 @@ following fields.
 
 The Object Status field is only sent if the Object Payload Length is zero.
 
+The Object ID Delta + 1 is added to the previous Object ID in the Subgroup
+if there was one.  The Object ID is the Object ID Delta if it's the first
+Object in the Subgroup. For example, a Subgroup of sequential Object IDs
+starting at 0 will have 0 for all Object ID Delta values.
+
 ~~~
 {
-  Object ID (i),
+  Object ID Delta (i),
   [Extension Headers Length (i),
   Extension headers (...)],
   Object Payload Length (i),
@@ -3475,8 +3478,6 @@ The Object Status field is only sent if the Object Payload Length is zero.
 ~~~
 {: #object-subgroup-format title="MOQT Subgroup Object Fields"}
 
-A publisher MUST NOT send an Object on a stream if its Object ID is less than a
-previously sent Object ID within a given group in that stream.
 
 ### Closing Subgroup Streams
 
@@ -3673,7 +3674,7 @@ SUBGROUP_HEADER {
   Publisher Priority = 0
 }
 {
-  Object ID = 0
+  Object ID Delta = 0 (Object ID is 0)
   Extension Headers Length = 33
     { Type = 4
       Value = 2186796243
@@ -3686,7 +3687,7 @@ SUBGROUP_HEADER {
   Payload = "abcd"
 }
 {
-  Object ID = 1
+  Object ID Delta = 0 (Object ID is 1)
   Extension Headers Length = 0
   Object Payload Length = 4
   Payload = "efgh"
