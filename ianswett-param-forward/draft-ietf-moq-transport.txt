@@ -1809,7 +1809,8 @@ Table of Contents
    Objects are not forwarded to the subscriber.  The default is 1 and
    values of 1 indicate Objects will be forwarded.  Values larger than
    0x01 are a protocol error and the session MUST be terminated with a
-   Protocol Violation (Section 3.4).
+   Protocol Violation (Section 3.4).  FORWARD is only valid in
+   SUBSCRIBE, SUBSCRIBE_UPDATE, PUBLISH and PUBLISH_OK.
 
 8.3.  CLIENT_SETUP and SERVER_SETUP
 

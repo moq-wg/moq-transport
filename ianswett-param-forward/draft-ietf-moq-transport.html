@@ -17,11 +17,11 @@ media to publish data and have it consumed via subscription by a
 multiplicity of endpoints. It supports intermediate content distribution
 networks and is designed for high scale and low latency distribution. 
     " name="description">
-<meta content="xml2rfc 3.28.1" name="generator">
+<meta content="xml2rfc 3.29.0" name="generator">
 <meta content="media over quic" name="keyword">
 <meta content="draft-ietf-moq-transport-latest" name="ietf.draft">
 <!-- Generator version information:
-  xml2rfc 3.28.1
+  xml2rfc 3.29.0
     Python 3.12.11
     ConfigArgParse 1.7
     google-i18n-address 3.1.1
@@ -3540,7 +3540,8 @@ re-requests them.<a href="#section-8.2.1.3-1" class="pilcrow">¶</a></p>
 subscription will be forwarded to the subscriber. If 0, Objects are not forwarded
 to the subscriber.  The default is 1 and values of 1 indicate Objects will be
 forwarded. Values larger than 0x01 are a protocol error and the session
-<span class="bcp14">MUST</span> be terminated with a Protocol Violation (<a href="#session-termination" class="auto internal xref">Section 3.4</a>).<a href="#section-8.2.1.4-1" class="pilcrow">¶</a></p>
+<span class="bcp14">MUST</span> be terminated with a Protocol Violation (<a href="#session-termination" class="auto internal xref">Section 3.4</a>).
+FORWARD is only valid in SUBSCRIBE, SUBSCRIBE_UPDATE, PUBLISH and PUBLISH_OK.<a href="#section-8.2.1.4-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
