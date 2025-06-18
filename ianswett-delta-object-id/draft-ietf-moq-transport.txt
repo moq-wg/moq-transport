@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 19 December 2025                                  I. Swett, Ed.
+Expires: 20 December 2025                                  I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                            17 June 2025
+                                                            18 June 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 19 December 2025.
+   This Internet-Draft will expire on 20 December 2025.
 
 Copyright Notice
 
@@ -3758,10 +3758,10 @@ Table of Contents
    zero.
 
    The Object ID Delta + 1 is added to the previous Object ID in the
-   Subgroup if there was one.  The Object ID is the Object ID Delta if
-   it's the first Object in the Subgroup.  For example, a Subgroup of
-   sequential Object IDs starting at 0 will have 0 for all Object ID
-   Delta values.
+   Subgroup stream if there was one.  The Object ID is the Object ID
+   Delta if it's the first Object in the Subgroup stream.  For example,
+   a Subgroup of sequential Object IDs starting at 0 will have 0 for all
+   Object ID Delta values.
 
    {
      Object ID Delta (i),
