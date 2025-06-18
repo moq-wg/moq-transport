@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 19 December 2025                                  I. Swett, Ed.
+Expires: 20 December 2025                                  I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                            17 June 2025
+                                                            18 June 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 19 December 2025.
+   This Internet-Draft will expire on 20 December 2025.
 
 Copyright Notice
 
@@ -1808,8 +1808,8 @@ Table of Contents
    The GROUP ORDER parameter (Parameter Type 0x06) allows the subscriber
    to request Objects be delivered in Ascending (0x0) or Descending
    (0x1) order by group.  See Section 6.  When sent by the publisher, it
-   indicates the publisher's preferred order.  A value of 0x0 indicates
-   the original Values larger than 0x1 are a protocol error.
+   indicates the publisher's preferred order.  Values larger than 0x1
+   are a protocol error.
 
    Group order of a subscription MUST NOT be changed, so it is invalid
    to use GROUP ORDER in SUBSCRIBE_UPDATE or PUBLISH_OK.  GROUP ORDER is
