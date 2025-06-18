@@ -1026,11 +1026,12 @@ A _priority number_ is an unsigned integer with a value between 0 and 255.
 A lower priority number indicates higher priority; the highest priority is 0.
 
 _Subscriber Priority_ is a priority number associated with an individual
-request.  It can be specified as a parameter in SUBSCRIBE or FETCH, and
-can be updated via SUBSCRIBE_UPDATE.  The subscriber priority of an individual
-schedulable object is the subscriber priority of the request that caused that
-object to be sent. When subscriber priority is changed, a best effort SHOULD be
-made to apply the change to all objects that have not been sent, but it is
+request.  It can be specified as a parameter in SUBSCRIBE, FETCH, or
+PUBLISH_OK, and can be updated via SUBSCRIBE_UPDATE. If not specified, the
+default value is 128. The subscriber priority of an individual schedulable
+object is the subscriber priority of the request that caused that object to
+be sent. When subscriber priority is changed, a best effort SHOULD be made
+to apply the change to all objects that have not been sent, but it is
 implementation dependent what happens to objects that have already been
 received and possibly scheduled.
 
