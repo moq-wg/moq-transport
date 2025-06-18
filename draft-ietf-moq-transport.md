@@ -1604,6 +1604,15 @@ stream. Once Objects have expired from cache, their state becomes unknown, and
 a relay that handles a downstream request that includes those Objects
 re-requests them.
 
+#### FORWARD
+
+The FORWARD parameter (Parameter Type 0x0A) indicates if Objects matching the
+subscription will be forwarded to the subscriber. If 0, Objects are not forwarded
+to the subscriber.  The default is 1 and values of 1 indicate Objects will be
+forwarded. Values larger than 0x01 are a protocol error and the session
+MUST be terminated with a Protocol Violation ({{session-termination}}).
+
+
 ## CLIENT_SETUP and SERVER_SETUP {#message-setup}
 
 The `CLIENT_SETUP` and `SERVER_SETUP` messages are the first messages exchanged
@@ -1860,11 +1869,11 @@ Subscribe only delivers newly published or received Objects.  Objects from the
 past are retrieved using FETCH ({{message-fetch}}).
 
 A Subscription can also request a publisher to not forward Objects for a given
-track by setting the `Forward` field to 0. This allows the publisher or relay to
+track specifying a FORWARD parameter of 0. This allows the publisher or relay to
 prepare to serve the subscription in advance, reducing the time to receive
-objects in the future. Relays SHOULD set the `Forward` flag to 1 if a new
-subscription needs to be sent upstream, regardless of the value of the `Forward`
-field from the downstream subscription. Subscriptions that are not forwarded
+objects in the future. Relays SHOULD set the FORWARD parameter to 1 if a new
+subscription needs to be sent upstream, regardless of the value of the FORWARD
+parameter from the downstream subscription. Subscriptions that are not forwarded
 consume resources from the publisher, so a publisher might deprioritize, reject,
 or close those subscriptions to ensure other subscriptions can be delivered.
 Control messages, such as SUBCRIBE_DONE ({{message-subscribe-done}}) are still
@@ -1882,7 +1891,6 @@ SUBSCRIBE Message {
   Track Name (..),
   Subscriber Priority (8),
   Group Order (8),
-  Forward (8),
   Filter Type (i),
   [Start Location (Location)],
   [End Group (i)],
@@ -1907,11 +1915,6 @@ See {{priorities}}.
 Ascending (0x1) or Descending (0x2) order by group. See {{priorities}}.
 A value of 0x0 indicates the original publisher's Group Order SHOULD be
 used. Values larger than 0x2 are a protocol error.
-
-* Forward: If 1, Objects matching the subscription are forwarded
-to the subscriber. If 0, Objects are not forwarded to the subscriber.
-Any other value is a protocol error and MUST terminate the
-session with a Protocol Violation ({{session-termination}}).
 
 * Filter Type: Identifies the type of filter, which also indicates whether
 the Start and End Group fields will be present.
@@ -2087,7 +2090,6 @@ SUBSCRIBE_UPDATE Message {
   Start Location (Location),
   End Group (i),
   Subscriber Priority (8),
-  Forward (8),
   Number of Parameters (i),
   Subscribe Parameters (..) ...
 }
@@ -2105,11 +2107,6 @@ open-ended.
 * Subscriber Priority: Specifies the priority of a subscription relative to
 other subscriptions in the same session. Lower numbers get higher priority.
 See {{priorities}}.
-
-* Forward: If 1, Objects matching the subscription are forwarded
-to the subscriber. If 0, Objects are not forwarded to the subscriber.
-Any other value is a protocol error and MUST terminate the
-session with a Protocol Violation ({{session-termination}}).
 
 * Subscribe Parameters: The parameters are defined in {{version-specific-params}}.
 
@@ -2265,7 +2262,6 @@ PUBLISH Message {
   Group Order (8),
   ContentExists (8),
   [Largest (Location),]
-  Forward (8),
   Number of Parameters (i),
   Parameters (..) ...,
 }
@@ -2295,11 +2291,6 @@ PUBLISH Message {
 
 * Largest: The location of the largest object available for this track.
 
-* Forward: The forward mode for this subscription.  Any value other than 0 or 1
-  is a Protocol Violation.  0 indicates the publisher will not transmit any
-  objects until the subscriber sets the Forward State to 1. 1 indicates the
-  publisher will start transmitting objects immediately, even before PUBLISH_OK.
-
 * Parameters: The parameters are defined in {{version-specific-params}}.
 
 
@@ -2314,7 +2305,6 @@ PUBLISH_OK Message
   Type (i) = 0x7,
   Length (i),
   Request ID (i),
-  Forward (8),
   Subscriber Priority (8),
   Group Order (8),
   Filter Type (i),
@@ -2328,9 +2318,6 @@ PUBLISH_OK Message
 
 * Request ID: The Request ID of the PUBLISH this message is replying to
   {{message-publish}}.
-
-* Forward: The Forward State for this subscription, either 0 (don't
-  forward) or 1 (forward).
 
 * Subscriber Priority: The Subscriber Priority for this subscription.
 
