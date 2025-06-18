@@ -1608,7 +1608,8 @@ re-requests them.
 
 The SUBSCRIBER PRIORITY parameter (Parameter Type 0x08) specifies the priority
 of a subscription relative to other subscriptions in the same session.
-Lower numbers get higher priority. See {{priorities}}. The SUBSCRIBER PRIORITY
+The value is from 0 to 255 and lower numbers get higher priority.
+See {{priorities}}. Priorities above 255 are invalid. The SUBSCRIBER PRIORITY
 parameter is valid in SUBSCRIBE, SUBSCRIBE_UPDATE, PUBLISH_OK and FETCH.
 
 ## CLIENT_SETUP and SERVER_SETUP {#message-setup}
