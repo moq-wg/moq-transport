@@ -1614,7 +1614,7 @@ publisher's preferred order. Values larger than 0x1 are a protocol error.
 
 Group order of a subscription MUST NOT be changed, so it is invalid to use
 GROUP ORDER in SUBSCRIBE_UPDATE or PUBLISH_OK. GROUP ORDER is valid in SUBSCRIBE,
-SUBSCRIBE_OK, PUBLISH, FETCH, and FETCH_OK.
+SUBSCRIBE_OK, PUBLISH, and FETCH.
 
 ## CLIENT_SETUP and SERVER_SETUP {#message-setup}
 
