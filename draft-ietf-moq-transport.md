@@ -3462,9 +3462,9 @@ following fields.
 The Object Status field is only sent if the Object Payload Length is zero.
 
 The Object ID Delta + 1 is added to the previous Object ID in the Subgroup
-if there was one.  The Object ID is the Object ID Delta if it's the first
-Object in the Subgroup. For example, a Subgroup of sequential Object IDs
-starting at 0 will have 0 for all Object ID Delta values.
+stream if there was one.  The Object ID is the Object ID Delta if it's the
+first Object in the Subgroup stream. For example, a Subgroup of sequential
+Object IDs starting at 0 will have 0 for all Object ID Delta values.
 
 ~~~
 {
