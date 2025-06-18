@@ -1610,8 +1610,7 @@ re-requests them.
 The GROUP ORDER parameter (Parameter Type 0x06) allows the subscriber to
 request Objects be delivered in Ascending (0x0) or Descending (0x1) order
 by group. See {{priorities}}. When sent by the publisher, it indicates the
-publisher's preferred order. A value of 0x0 indicates the original Values larger
-than 0x1 are a protocol error.
+publisher's preferred order. Values larger than 0x1 are a protocol error.
 
 Group order of a subscription MUST NOT be changed, so it is invalid to use
 GROUP ORDER in SUBSCRIBE_UPDATE or PUBLISH_OK. GROUP ORDER is valid in SUBSCRIBE,
