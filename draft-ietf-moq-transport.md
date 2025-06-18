@@ -1611,7 +1611,7 @@ subscription will be forwarded to the subscriber. If 0, Objects are not forwarde
 to the subscriber.  The default is 1 and values of 1 indicate Objects will be
 forwarded. Values larger than 0x01 are a protocol error and the session
 MUST be terminated with a Protocol Violation ({{session-termination}}).
-
+FORWARD is only valid in SUBSCRIBE, SUBSCRIBE_UPDATE, PUBLISH and PUBLISH_OK.
 
 ## CLIENT_SETUP and SERVER_SETUP {#message-setup}
 
