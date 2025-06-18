@@ -2985,10 +2985,10 @@ an N of 0 or more than 32, it MUST close the session with a Protocol
 Violation.
 
 * Parameters: The parameters are defined in {{version-specific-params}}. Any
-parameter that is applicable to a subscription, such as DELIVERY TIMEOUT,
-SHOULD be applied to any subscriptions that result from the SUBSCRIBE_ANNOUNCES.
-This enables a user of SUBSCRIBE_ANNOUNCES to specify defaults for any
-resulting subscriptions.
+  parameter that is applicable to a subscription, such as DELIVERY TIMEOUT,
+  SHOULD be applied to any subscriptions that result from the
+  SUBSCRIBE_ANNOUNCES.  This enables a user of SUBSCRIBE_ANNOUNCES to specify
+  defaults for any resulting subscriptions.
 
 The publisher will respond with SUBSCRIBE_ANNOUNCES_OK or
 SUBSCRIBE_ANNOUNCES_ERROR.  If the SUBSCRIBE_ANNOUNCES is successful, the
