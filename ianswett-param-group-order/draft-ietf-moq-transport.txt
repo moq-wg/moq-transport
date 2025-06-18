@@ -1812,8 +1812,8 @@ Table of Contents
    are a protocol error.
 
    Group order of a subscription MUST NOT be changed, so it is invalid
-   to use GROUP ORDER in SUBSCRIBE_UPDATE or PUBLISH_OK.  GROUP ORDER is
-   valid in SUBSCRIBE, SUBSCRIBE_OK, PUBLISH, and FETCH.
+   to use GROUP ORDER in SUBSCRIBE_UPDATE, PUBLISH_OK, or FETCH_OK.
+   GROUP ORDER is valid in SUBSCRIBE, SUBSCRIBE_OK, PUBLISH, and FETCH.
 
 8.3.  CLIENT_SETUP and SERVER_SETUP
 

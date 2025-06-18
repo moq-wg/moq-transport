@@ -17,11 +17,11 @@ media to publish data and have it consumed via subscription by a
 multiplicity of endpoints. It supports intermediate content distribution
 networks and is designed for high scale and low latency distribution. 
     " name="description">
-<meta content="xml2rfc 3.28.1" name="generator">
+<meta content="xml2rfc 3.29.0" name="generator">
 <meta content="media over quic" name="keyword">
 <meta content="draft-ietf-moq-transport-latest" name="ietf.draft">
 <!-- Generator version information:
-  xml2rfc 3.28.1
+  xml2rfc 3.29.0
     Python 3.12.11
     ConfigArgParse 1.7
     google-i18n-address 3.1.1
@@ -3542,8 +3542,8 @@ request Objects be delivered in Ascending (0x0) or Descending (0x1) order
 by group. See <a href="#priorities" class="auto internal xref">Section 6</a>. When sent by the publisher, it indicates the
 publisher's preferred order. Values larger than 0x1 are a protocol error.<a href="#section-8.2.1.4-1" class="pilcrow">¶</a></p>
 <p id="section-8.2.1.4-2">Group order of a subscription <span class="bcp14">MUST NOT</span> be changed, so it is invalid to use
-GROUP ORDER in SUBSCRIBE_UPDATE or PUBLISH_OK. GROUP ORDER is valid in SUBSCRIBE,
-SUBSCRIBE_OK, PUBLISH, and FETCH.<a href="#section-8.2.1.4-2" class="pilcrow">¶</a></p>
+GROUP ORDER in SUBSCRIBE_UPDATE, PUBLISH_OK, or FETCH_OK.
+GROUP ORDER is valid in SUBSCRIBE, SUBSCRIBE_OK, PUBLISH, and FETCH.<a href="#section-8.2.1.4-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
