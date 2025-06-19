@@ -2255,7 +2255,7 @@ track. The receiver verifies the publisher is authorized to publish this track.
 
 ~~~
 PUBLISH Message {
-  Type (i) = 0x6,
+  Type (i) = 0x1,
   Length (i),
   Request ID (i),
   Track Namespace (tuple),
@@ -2311,7 +2311,7 @@ authorization and acceptance of a PUBLISH message, and establish a subscription.
 ~~~
 PUBLISH_OK Message
 {
-  Type (i) = 0x7,
+  Type (i) = 0x2,
   Length (i),
   Request ID (i),
   Forward (8),
@@ -2351,7 +2351,7 @@ a subscription initiated by PUBLISH.
 ~~~
 PUBLISH_ERROR Message
 {
-  Type (i) = 0x8,
+  Type (i) = 0x3,
   Length (i),
   Request ID (i),
   Error Code (i),
