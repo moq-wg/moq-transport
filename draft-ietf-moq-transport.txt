@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 7 December 2025                                   I. Swett, Ed.
+Expires: 22 December 2025                                  I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                             5 June 2025
+                                                            20 June 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 7 December 2025.
+   This Internet-Draft will expire on 22 December 2025.
 
 Copyright Notice
 
@@ -1515,11 +1515,11 @@ Table of Contents
            +------+--------------------------------------------+
            |  0xB | SUBSCRIBE_DONE (Section 8.12)              |
            +------+--------------------------------------------+
-           |  0x1 | PUBLISH (Section 8.13)                     |
+           |  0xD | PUBLISH (Section 8.13)                     |
            +------+--------------------------------------------+
-           |  0x2 | PUBLISH_OK (Section 8.14)                  |
+           |  0xE | PUBLISH_OK (Section 8.14)                  |
            +------+--------------------------------------------+
-           |  0x3 | PUBLISH_ERROR (Section 8.15)               |
+           |  0xF | PUBLISH_ERROR (Section 8.15)               |
            +------+--------------------------------------------+
            | 0x16 | FETCH (Section 8.16)                       |
            +------+--------------------------------------------+
@@ -2491,7 +2491,7 @@ Table of Contents
    authorized to publish this track.
 
    PUBLISH Message {
-     Type (i) = 0x6,
+     Type (i) = 0xD,
      Length (i),
      Request ID (i),
      Track Namespace (tuple),
@@ -2553,7 +2553,7 @@ Table of Contents
 
    PUBLISH_OK Message
    {
-     Type (i) = 0x7,
+     Type (i) = 0xE,
      Length (i),
      Request ID (i),
      Forward (8),
@@ -2593,7 +2593,7 @@ Table of Contents
 
    PUBLISH_ERROR Message
    {
-     Type (i) = 0x8,
+     Type (i) = 0xF,
      Length (i),
      Request ID (i),
      Error Code (i),
@@ -4122,9 +4122,9 @@ Normative References
    [I-D.draft-ietf-quic-reliable-stream-reset]
               Seemann, M. and K. Oku, "QUIC Stream Resets with Partial
               Delivery", Work in Progress, Internet-Draft, draft-ietf-
-              quic-reliable-stream-reset-06, 28 February 2024,
+              quic-reliable-stream-reset-07, 14 June 2025,
               <https://datatracker.ietf.org/doc/html/draft-ietf-quic-
-              reliable-stream-reset-06>.
+              reliable-stream-reset-07>.
 
    [QUIC]     Iyengar, J., Ed. and M. Thomson, Ed., "QUIC: A UDP-Based
               Multiplexed and Secure Transport", RFC 9000,
