@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 20 December 2025                                  I. Swett, Ed.
+Expires: 22 December 2025                                  I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                            18 June 2025
+                                                            20 June 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 20 December 2025.
+   This Internet-Draft will expire on 22 December 2025.
 
 Copyright Notice
 
@@ -3262,7 +3262,12 @@ Table of Contents
       TIMEOUT, SHOULD be applied to any subscriptions that result from
       the SUBSCRIBE_ANNOUNCES.  This enables a user of
       SUBSCRIBE_ANNOUNCES to specify defaults for any resulting
-      subscriptions.
+      subscriptions.  When a PUBLISH is caused by a SUBSCRIBE_ANNOUNCES
+      the publisher SHOULD copy any parameters that are relevant to the
+      subscription into the PUBLISH parameters.  The publisher SHOULD
+      NOT copy any parameters it does not understand.  The subscriber
+      then has the option to override any specified parameters in
+      PUBLISH_OK.
 
    The publisher will respond with SUBSCRIBE_ANNOUNCES_OK or
    SUBSCRIBE_ANNOUNCES_ERROR.  If the SUBSCRIBE_ANNOUNCES is successful,
