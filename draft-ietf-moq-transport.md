@@ -1604,6 +1604,13 @@ stream. Once Objects have expired from cache, their state becomes unknown, and
 a relay that handles a downstream request that includes those Objects
 re-requests them.
 
+#### LARGEST LOCATION Parameter {#largest-location}
+
+The LARGEST LOCATION parameter (Parameter type 0x05) is the location of the
+largest object available for this track encoded as a Location.
+This parameter is valid in SUBSCRIBE_OK, PUBLISH, TRACK_STATUS_OK, and
+FETCH_OK.
+
 ## CLIENT_SETUP and SERVER_SETUP {#message-setup}
 
 The `CLIENT_SETUP` and `SERVER_SETUP` messages are the first messages exchanged
@@ -1945,8 +1952,6 @@ SUBSCRIBE_OK Message {
   Track Alias (i),
   Expires (i),
   Group Order (8),
-  Content Exists (8),
-  [Largest Location (Location)],
   Number of Parameters (i),
   Subscribe Parameters (..) ...
 }
@@ -1970,14 +1975,6 @@ end prior to the expiry time or last longer.
 * Group Order: Indicates the subscription will be delivered in
 Ascending (0x1) or Descending (0x2) order by group. See {{priorities}}.
 Values of 0x0 and those larger than 0x2 are a protocol error.
-
-* Content Exists: 1 if an object has been published on this track, 0 if not.
-If 0, then the Largest Group ID and Largest Object ID fields will not be
-present. Any other value is a protocol error and MUST terminate the
-session with a Protocol Violation ({{session-termination}}).
-
-* Largest Location: The location of the largest object available for this track. This
-  field is only present if Content Exists has a value of 1.
 
 * Subscribe Parameters: The parameters are defined in {{version-specific-params}}.
 
@@ -2766,7 +2763,6 @@ TRACK_STATUS Message {
   Length (16),
   Request ID (i),
   Status Code (i),
-  Largest Location (Location),
   Number of Parameters (i),
   Parameters (..) ...,
 }
