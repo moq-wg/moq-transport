@@ -3804,6 +3804,22 @@ RFC Editor's Note: Please remove this section prior to publication of a final ve
 
 Issue and pull request numbers are listed with a leading octothorp.
 
+## Since draft-ietf-moq-transport-11
+
+* Make all control message lengths a 2-byte int instead of a varint (#972)
+* Move Track Alias from SUBSCRIBE to SUBSCRIBE_OK (#977)
+* Expand cases FETCH_OK returns Invalid Range (#946) and clarify fields (#936)
+* Add an error code to FETCH_ERROR when an Object status is unknown (#825)
+* Rename Latest Object to Largest Object (#1024) and clarify what to
+  do when it's incomplete (#937)
+* Explain Malformed Tracks and what to do with them (#938)
+* Allow End of Group to be indicated in a normal Object (#1011)
+* Relays MUST have an upstream subscription to send SUBSCRIBE_OK (#1017)
+* Allow AUTHORIZATION TOKEN in CLIENT_SETUP, SERVER_SETUP and
+  other fixes (#1013)
+* Add PUBLISH for publisher initiated subscriptions (#995) and
+  fix the PUBLISH codepoints (#1048, #1051)
+
 ## Since draft-ietf-moq-transport-10
 
 * Added Common Structure definitions - Location, Key-Value-Pair and Reason
