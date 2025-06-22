@@ -1515,11 +1515,11 @@ Table of Contents
            +------+--------------------------------------------+
            |  0xB | SUBSCRIBE_DONE (Section 8.12)              |
            +------+--------------------------------------------+
-           |  0xD | PUBLISH (Section 8.13)                     |
+           | 0x1D | PUBLISH (Section 8.13)                     |
            +------+--------------------------------------------+
-           |  0xE | PUBLISH_OK (Section 8.14)                  |
+           | 0x1E | PUBLISH_OK (Section 8.14)                  |
            +------+--------------------------------------------+
-           |  0xF | PUBLISH_ERROR (Section 8.15)               |
+           | 0x1F | PUBLISH_ERROR (Section 8.15)               |
            +------+--------------------------------------------+
            | 0x16 | FETCH (Section 8.16)                       |
            +------+--------------------------------------------+
@@ -2488,7 +2488,7 @@ Table of Contents
    authorized to publish this track.
 
    PUBLISH Message {
-     Type (i) = 0xD,
+     Type (i) = 0x1D,
      Length (i),
      Request ID (i),
      Track Namespace (tuple),
@@ -2539,7 +2539,7 @@ Table of Contents
 
    PUBLISH_OK Message
    {
-     Type (i) = 0xE,
+     Type (i) = 0x1E,
      Length (i),
      Request ID (i),
      Forward (8),
@@ -2579,7 +2579,7 @@ Table of Contents
 
    PUBLISH_ERROR Message
    {
-     Type (i) = 0xF,
+     Type (i) = 0x1F,
      Length (i),
      Request ID (i),
      Error Code (i),

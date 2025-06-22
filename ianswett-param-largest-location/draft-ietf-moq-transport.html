@@ -3176,15 +3176,15 @@ MOQT Control Message {
             <td class="text-left" rowspan="1" colspan="1">SUBSCRIBE_DONE (<a href="#message-subscribe-done" class="auto internal xref">Section 8.12</a>)</td>
           </tr>
           <tr>
-            <td class="text-right" rowspan="1" colspan="1">0xD</td>
+            <td class="text-right" rowspan="1" colspan="1">0x1D</td>
             <td class="text-left" rowspan="1" colspan="1">PUBLISH  (<a href="#message-publish" class="auto internal xref">Section 8.13</a>)</td>
           </tr>
           <tr>
-            <td class="text-right" rowspan="1" colspan="1">0xE</td>
+            <td class="text-right" rowspan="1" colspan="1">0x1E</td>
             <td class="text-left" rowspan="1" colspan="1">PUBLISH_OK (<a href="#message-publish-ok" class="auto internal xref">Section 8.14</a>)</td>
           </tr>
           <tr>
-            <td class="text-right" rowspan="1" colspan="1">0xF</td>
+            <td class="text-right" rowspan="1" colspan="1">0x1F</td>
             <td class="text-left" rowspan="1" colspan="1">PUBLISH_ERROR (<a href="#message-publish-error" class="auto internal xref">Section 8.15</a>)</td>
           </tr>
           <tr>
@@ -4392,7 +4392,7 @@ track. The receiver verifies the publisher is authorized to publish this track.<
           <div class="alignLeft art-text artwork" id="section-8.13-2.1">
 <pre>
 PUBLISH Message {
-  Type (i) = 0xD,
+  Type (i) = 0x1D,
   Length (i),
   Request ID (i),
   Track Namespace (tuple),
@@ -4457,7 +4457,7 @@ authorization and acceptance of a PUBLISH message, and establish a subscription.
 <pre>
 PUBLISH_OK Message
 {
-  Type (i) = 0xE,
+  Type (i) = 0x1E,
   Length (i),
   Request ID (i),
   Forward (8),
@@ -4515,7 +4515,7 @@ a subscription initiated by PUBLISH.<a href="#section-8.15-1" class="pilcrow">¶
 <pre>
 PUBLISH_ERROR Message
 {
-  Type (i) = 0xF,
+  Type (i) = 0x1F,
   Length (i),
   Request ID (i),
   Error Code (i),
