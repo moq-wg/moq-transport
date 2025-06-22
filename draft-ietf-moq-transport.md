@@ -1611,7 +1611,7 @@ largest object available for this track encoded as a Location.
 If any Objects have been published for a Track, this parameter indicates
 the Largest Group ID and Largest Object ID. If no Objects have been published
 for a Track, this parameter is absent. This parameter is valid in SUBSCRIBE_OK,
-PUBLISH, TRACK_STATUS, and FETCH_OK.
+PUBLISH, and FETCH_OK.
 
 ## CLIENT_SETUP and SERVER_SETUP {#message-setup}
 
@@ -2756,6 +2756,7 @@ TRACK_STATUS Message {
   Length (16),
   Request ID (i),
   Status Code (i),
+  Largest Location (Location),
   Number of Parameters (i),
   Parameters (..) ...,
 }
@@ -2769,20 +2770,20 @@ TRACK_STATUS Message {
 track. It MUST hold one of the following values. Any other value is a malformed
 message.
 
-0x00: The track is in progress, and subsequent fields contain the highest group
+0x00: The track is in progress, and Largest Location contain the highest group
 and object ID for that track.
 
-0x01: The track does not exist. Subsequent fields MUST be zero, and any other
+0x01: The track does not exist. The Largest Location MUST be zero, and any other
 value is a malformed message.
 
-0x02: The track has not yet begun. Subsequent fields MUST be zero. Any other
+0x02: The track has not yet begun. The Largest Location MUST be zero. Any other
 value is a malformed message.
 
-0x03: The track has finished, so there is no "live edge." Subsequent fields
-contain the highest Group and object ID known.
+0x03: The track has finished, so there is no "live edge." Largst Location
+contains the highest Group and Object ID known.
 
 0x04: The publisher is a relay that cannot obtain the current track status from
-upstream. Subsequent fields contain the largest group and object ID known.
+upstream. Largest Location contains the largest group and object ID known.
 
 Any other value in the Status Code field is a malformed message.
 
