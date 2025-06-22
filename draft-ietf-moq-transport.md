@@ -1608,7 +1608,7 @@ re-requests them.
 
 The LARGEST LOCATION parameter (Parameter type 0x05) is the location of the
 largest object available for this track encoded as a Location.
-This parameter is valid in SUBSCRIBE_OK, PUBLISH, TRACK_STATUS_OK, and
+This parameter is valid in SUBSCRIBE_OK, PUBLISH, TRACK_STATUS, and
 FETCH_OK.
 
 ## CLIENT_SETUP and SERVER_SETUP {#message-setup}
