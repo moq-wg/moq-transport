@@ -1356,11 +1356,11 @@ The following Message Types are defined:
 |-------|-----------------------------------------------------|
 | 0xB   | SUBSCRIBE_DONE ({{message-subscribe-done}})         |
 |-------|-----------------------------------------------------|
-| 0xD   | PUBLISH  ({{message-publish}})                      |
+| 0x1D  | PUBLISH  ({{message-publish}})                      |
 |-------|-----------------------------------------------------|
-| 0xE   | PUBLISH_OK ({{message-publish-ok}})                 |
+| 0x1E  | PUBLISH_OK ({{message-publish-ok}})                 |
 |-------|-----------------------------------------------------|
-| 0xF   | PUBLISH_ERROR ({{message-publish-error}})           |
+| 0x1F  | PUBLISH_ERROR ({{message-publish-error}})           |
 |-------|-----------------------------------------------------|
 | 0x16  | FETCH ({{message-fetch}})                           |
 |-------|-----------------------------------------------------|
@@ -2254,7 +2254,7 @@ track. The receiver verifies the publisher is authorized to publish this track.
 
 ~~~
 PUBLISH Message {
-  Type (i) = 0xD,
+  Type (i) = 0x1D,
   Length (i),
   Request ID (i),
   Track Namespace (tuple),
@@ -2301,7 +2301,7 @@ authorization and acceptance of a PUBLISH message, and establish a subscription.
 ~~~
 PUBLISH_OK Message
 {
-  Type (i) = 0xE,
+  Type (i) = 0x1E,
   Length (i),
   Request ID (i),
   Forward (8),
@@ -2341,7 +2341,7 @@ a subscription initiated by PUBLISH.
 ~~~
 PUBLISH_ERROR Message
 {
-  Type (i) = 0xF,
+  Type (i) = 0x1F,
   Length (i),
   Request ID (i),
   Error Code (i),
