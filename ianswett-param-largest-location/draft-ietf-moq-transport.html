@@ -3538,8 +3538,10 @@ re-requests them.<a href="#section-8.2.1.3-1" class="pilcrow">¶</a></p>
             </h5>
 <p id="section-8.2.1.4-1">The LARGEST LOCATION parameter (Parameter type 0x05) is the location of the
 largest object available for this track encoded as a Location.
-This parameter is valid in SUBSCRIBE_OK, PUBLISH, TRACK_STATUS, and
-FETCH_OK.<a href="#section-8.2.1.4-1" class="pilcrow">¶</a></p>
+If any Objects have been published for a Track, this parameter indicates
+the Largest Group ID and Largest Object ID. If no Objects have been published
+for a Track, this parameter is absent. This parameter is valid in SUBSCRIBE_OK,
+PUBLISH, TRACK_STATUS, and FETCH_OK.<a href="#section-8.2.1.4-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -4398,8 +4400,6 @@ PUBLISH Message {
   Track Name (..),
   Track Alias (i),
   Group Order (8),
-  ContentExists (8),
-  [Largest (Location),]
   Forward (8),
   Number of Parameters (i),
   Parameters (..) ...,
@@ -4433,22 +4433,13 @@ Ascending (0x1) or Descending (0x2) order by group. See <a href="#priorities" cl
 Values of 0x0 and those larger than 0x2 are a protocol error.<a href="#section-8.13-3.5.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.13-3.6">
-            <p id="section-8.13-3.6.1">ContentExists: 1 if an object has been published on this track, 0 if not.
-If 0, then the Largest Group ID and Largest Object ID fields will not be
-present. Any other value is a protocol error and <span class="bcp14">MUST</span> terminate the
-session with a Protocol Violation (<a href="#session-termination" class="auto internal xref">Section 3.4</a>).<a href="#section-8.13-3.6.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="section-8.13-3.7">
-            <p id="section-8.13-3.7.1">Largest: The location of the largest object available for this track.<a href="#section-8.13-3.7.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="section-8.13-3.8">
-            <p id="section-8.13-3.8.1">Forward: The forward mode for this subscription.  Any value other than 0 or 1
+            <p id="section-8.13-3.6.1">Forward: The forward mode for this subscription.  Any value other than 0 or 1
 is a Protocol Violation.  0 indicates the publisher will not transmit any
 objects until the subscriber sets the Forward State to 1. 1 indicates the
-publisher will start transmitting objects immediately, even before PUBLISH_OK.<a href="#section-8.13-3.8.1" class="pilcrow">¶</a></p>
+publisher will start transmitting objects immediately, even before PUBLISH_OK.<a href="#section-8.13-3.6.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-8.13-3.9">
-            <p id="section-8.13-3.9.1">Parameters: The parameters are defined in <a href="#version-specific-params" class="auto internal xref">Section 8.2.1</a>.<a href="#section-8.13-3.9.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-8.13-3.7">
+            <p id="section-8.13-3.7.1">Parameters: The parameters are defined in <a href="#version-specific-params" class="auto internal xref">Section 8.2.1</a>.<a href="#section-8.13-3.7.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
