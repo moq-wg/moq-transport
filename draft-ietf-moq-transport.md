@@ -1608,8 +1608,10 @@ re-requests them.
 
 The LARGEST LOCATION parameter (Parameter type 0x05) is the location of the
 largest object available for this track encoded as a Location.
-This parameter is valid in SUBSCRIBE_OK, PUBLISH, TRACK_STATUS, and
-FETCH_OK.
+If any Objects have been published for a Track, this parameter indicates
+the Largest Group ID and Largest Object ID. If no Objects have been published
+for a Track, this parameter is absent. This parameter is valid in SUBSCRIBE_OK,
+PUBLISH, TRACK_STATUS, and FETCH_OK.
 
 ## CLIENT_SETUP and SERVER_SETUP {#message-setup}
 
@@ -2260,8 +2262,6 @@ PUBLISH Message {
   Track Name (..),
   Track Alias (i),
   Group Order (8),
-  ContentExists (8),
-  [Largest (Location),]
   Forward (8),
   Number of Parameters (i),
   Parameters (..) ...,
@@ -2284,13 +2284,6 @@ PUBLISH Message {
 * Group Order: Indicates the subscription will be delivered in
   Ascending (0x1) or Descending (0x2) order by group. See {{priorities}}.
   Values of 0x0 and those larger than 0x2 are a protocol error.
-
-* ContentExists: 1 if an object has been published on this track, 0 if not.
-  If 0, then the Largest Group ID and Largest Object ID fields will not be
-  present. Any other value is a protocol error and MUST terminate the
-  session with a Protocol Violation ({{session-termination}}).
-
-* Largest: The location of the largest object available for this track.
 
 * Forward: The forward mode for this subscription.  Any value other than 0 or 1
   is a Protocol Violation.  0 indicates the publisher will not transmit any
