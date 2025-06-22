@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 22 December 2025                                  I. Swett, Ed.
+Expires: 24 December 2025                                  I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                            20 June 2025
+                                                            22 June 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 22 December 2025.
+   This Internet-Draft will expire on 24 December 2025.
 
 Copyright Notice
 
@@ -1806,8 +1806,8 @@ Table of Contents
 
    The LARGEST LOCATION parameter (Parameter type 0x05) is the location
    of the largest object available for this track encoded as a Location.
-   This parameter is valid in SUBSCRIBE_OK, PUBLISH, TRACK_STATUS_OK,
-   and FETCH_OK.
+   This parameter is valid in SUBSCRIBE_OK, PUBLISH, TRACK_STATUS, and
+   FETCH_OK.
 
 8.3.  CLIENT_SETUP and SERVER_SETUP
 
