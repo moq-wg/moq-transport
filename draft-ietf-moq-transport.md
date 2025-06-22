@@ -2779,7 +2779,7 @@ value is a malformed message.
 0x02: The track has not yet begun. The Largest Location MUST be zero. Any other
 value is a malformed message.
 
-0x03: The track has finished, so there is no "live edge." Largst Location
+0x03: The track has finished, so there is no "live edge." Largest Location
 contains the highest Group and Object ID known.
 
 0x04: The publisher is a relay that cannot obtain the current track status from
