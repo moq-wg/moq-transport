@@ -1035,8 +1035,10 @@ implementation dependent what happens to objects that have already been
 received and possibly scheduled.
 
 _Publisher Priority_ is a priority number associated with an individual
-schedulable object.  It is specified in the header of the respective subgroup or
-datagram, or in each object in a FETCH response.
+schedulable object.  A default can be specified in the parameters of PUBLISH,
+SUBSCRIBE_OK, or FETCH_OK. Publisher priority can also be specified in the
+parameters in first Object of a subgroup, datagrams, or each Object in a
+FETCH response. If no value is specified, publisher priority defaults to 128.
 
 _Group Order_ is a property of an individual subscription.  It can be either
 'Ascending' (groups with lower group ID are sent first), or 'Descending'
@@ -1603,6 +1605,14 @@ earlier in a multi-object stream will expire earlier than Objects later in the
 stream. Once Objects have expired from cache, their state becomes unknown, and
 a relay that handles a downstream request that includes those Objects
 re-requests them.
+
+#### PUBLISHER PRIORITY Parameter {#subscriber-priority}
+
+The PUBLISHER PRIORITY parameter (Parameter Type 0x0E) specifies the priority
+of a subscription relative to other subscriptions in the same session.
+The value is from 0 to 255 and lower numbers get higher priority.
+See {{priorities}}. Priorities above 255 are invalid. The PUBLISHER PRIORITY
+parameter is valid in SUBSCRIBE_OK, PUBLISH and FETCH_OK.
 
 ## CLIENT_SETUP and SERVER_SETUP {#message-setup}
 
@@ -3304,7 +3314,6 @@ OBJECT_DATAGRAM {
   Track Alias (i),
   Group ID (i),
   Object ID (i),
-  Publisher Priority (8),
   [Extension Headers Length (i),
   Extension headers (...)],
   Object Payload (..),
@@ -3350,7 +3359,6 @@ OBJECT_DATAGRAM_STATUS {
   Track Alias (i),
   Group ID (i),
   Object ID (i),
-  Publisher Priority (8),
   [Extension Headers Length (i),
   Extension headers (...)],
   Object Status (i),
@@ -3402,7 +3410,6 @@ SUBGROUP_HEADER {
   Track Alias (i),
   Group ID (i),
   [Subgroup ID (i),]
-  Publisher Priority (8),
 }
 ~~~
 {: #object-header-format title="MOQT SUBGROUP_HEADER"}
@@ -3619,7 +3626,6 @@ Each object sent on a fetch stream after the FETCH_HEADER has the following form
   Group ID (i),
   Subgroup ID (i),
   Object ID (i),
-  Publisher Priority (8),
   Extension Headers Length (i),
   [Extension headers (...)],
   Object Payload Length (i),
@@ -3646,7 +3652,6 @@ SUBGROUP_HEADER {
   Track Alias = 2
   Group ID = 0
   Subgroup ID = 0
-  Publisher Priority = 0
 }
 {
   Object ID = 0
@@ -3670,7 +3675,6 @@ SUBGROUP_HEADER {
   Type = 1
   Track Alias = 2
   Group ID = 0
-  Publisher Priority = 0
 }
 {
   Object ID = 0
