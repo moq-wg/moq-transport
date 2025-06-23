@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 24 December 2025                                  I. Swett, Ed.
+Expires: 25 December 2025                                  I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                            22 June 2025
+                                                            23 June 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 24 December 2025.
+   This Internet-Draft will expire on 25 December 2025.
 
 Copyright Notice
 
@@ -4221,9 +4221,6 @@ Appendix A.  Change Log
    Issue and pull request numbers are listed with a leading octothorp.
 
 A.1.  Since draft-ietf-moq-transport-11
-
-   *  Make all control message lengths a 2-byte int instead of a varint
-      (#972)
 
    *  Move Track Alias from SUBSCRIBE to SUBSCRIBE_OK (#977)
 
