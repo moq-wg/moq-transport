@@ -3806,7 +3806,6 @@ Issue and pull request numbers are listed with a leading octothorp.
 
 ## Since draft-ietf-moq-transport-11
 
-* Make all control message lengths a 2-byte int instead of a varint (#972)
 * Move Track Alias from SUBSCRIBE to SUBSCRIBE_OK (#977)
 * Expand cases FETCH_OK returns Invalid Range (#946) and clarify fields (#936)
 * Add an error code to FETCH_ERROR when an Object status is unknown (#825)
