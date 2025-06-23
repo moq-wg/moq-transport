@@ -1009,12 +1009,15 @@ congestion.
 MOQT maintains priorities between different _schedulable objects_.
 A schedulable object in MOQT is either:
 
-1. An object in response to a SUBSCRIBE that belongs to a subgroup where
-   that object is the next object in that subgroup.
-2. An object in response to a SUBSCRIBE that belongs to a track with
+1. An Object in response to a SUBSCRIBE that belongs to a Subgroup where
+   that Object is the next Object in that Subgroup.
+2. An Object in response to a SUBSCRIBE that belongs to a Track with
    delivery preference Datagram.
-3. An object in response to a FETCH where that object is the next
-   object in the response.
+3. An Object in response to a FETCH where that Object is the next
+   Object in the response.
+
+An Object is not schedulable if it cannot be written due to underlying
+transport flow control limits.
 
 A single subgroup or datagram has a single publisher priority. Within a
 response to SUBSCRIBE, it can be useful to conceptualize this process as
