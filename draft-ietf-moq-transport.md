@@ -3300,7 +3300,7 @@ An `OBJECT_DATAGRAM` carries a single object in a datagram.
 
 ~~~
 OBJECT_DATAGRAM {
-  Type (i) = 0x0-0x4,
+  Type (i) = 0x0-0x7,
   Track Alias (i),
   Group ID (i),
   [Object ID (i),]
