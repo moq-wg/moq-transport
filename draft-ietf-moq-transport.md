@@ -1604,6 +1604,15 @@ stream. Once Objects have expired from cache, their state becomes unknown, and
 a relay that handles a downstream request that includes those Objects
 re-requests them.
 
+#### LARGEST LOCATION Parameter {#largest-location}
+
+The LARGEST LOCATION parameter (Parameter type 0x05) is the location of the
+largest object available for this track encoded as a Location.
+If any Objects have been published for a Track, this parameter indicates
+the Largest Group ID and Largest Object ID. If no Objects have been published
+for a Track, this parameter is absent. This parameter is valid in SUBSCRIBE_OK,
+PUBLISH, and FETCH_OK.
+
 ## CLIENT_SETUP and SERVER_SETUP {#message-setup}
 
 The `CLIENT_SETUP` and `SERVER_SETUP` messages are the first messages exchanged
@@ -1945,8 +1954,6 @@ SUBSCRIBE_OK Message {
   Track Alias (i),
   Expires (i),
   Group Order (8),
-  Content Exists (8),
-  [Largest Location (Location)],
   Number of Parameters (i),
   Subscribe Parameters (..) ...
 }
@@ -1970,14 +1977,6 @@ end prior to the expiry time or last longer.
 * Group Order: Indicates the subscription will be delivered in
 Ascending (0x1) or Descending (0x2) order by group. See {{priorities}}.
 Values of 0x0 and those larger than 0x2 are a protocol error.
-
-* Content Exists: 1 if an object has been published on this track, 0 if not.
-If 0, then the Largest Group ID and Largest Object ID fields will not be
-present. Any other value is a protocol error and MUST terminate the
-session with a Protocol Violation ({{session-termination}}).
-
-* Largest Location: The location of the largest object available for this track. This
-  field is only present if Content Exists has a value of 1.
 
 * Subscribe Parameters: The parameters are defined in {{version-specific-params}}.
 
@@ -2263,8 +2262,6 @@ PUBLISH Message {
   Track Name (..),
   Track Alias (i),
   Group Order (8),
-  ContentExists (8),
-  [Largest (Location),]
   Forward (8),
   Number of Parameters (i),
   Parameters (..) ...,
@@ -2287,13 +2284,6 @@ PUBLISH Message {
 * Group Order: Indicates the subscription will be delivered in
   Ascending (0x1) or Descending (0x2) order by group. See {{priorities}}.
   Values of 0x0 and those larger than 0x2 are a protocol error.
-
-* ContentExists: 1 if an object has been published on this track, 0 if not.
-  If 0, then the Largest Group ID and Largest Object ID fields will not be
-  present. Any other value is a protocol error and MUST terminate the
-  session with a Protocol Violation ({{session-termination}}).
-
-* Largest: The location of the largest object available for this track.
 
 * Forward: The forward mode for this subscription.  Any value other than 0 or 1
   is a Protocol Violation.  0 indicates the publisher will not transmit any
@@ -2780,20 +2770,20 @@ TRACK_STATUS Message {
 track. It MUST hold one of the following values. Any other value is a malformed
 message.
 
-0x00: The track is in progress, and subsequent fields contain the highest group
+0x00: The track is in progress, and Largest Location contain the highest group
 and object ID for that track.
 
-0x01: The track does not exist. Subsequent fields MUST be zero, and any other
+0x01: The track does not exist. The Largest Location MUST be zero, and any other
 value is a malformed message.
 
-0x02: The track has not yet begun. Subsequent fields MUST be zero. Any other
+0x02: The track has not yet begun. The Largest Location MUST be zero. Any other
 value is a malformed message.
 
-0x03: The track has finished, so there is no "live edge." Subsequent fields
-contain the highest Group and object ID known.
+0x03: The track has finished, so there is no "live edge." Largest Location
+contains the highest Group and Object ID known.
 
 0x04: The publisher is a relay that cannot obtain the current track status from
-upstream. Subsequent fields contain the largest group and object ID known.
+upstream. Largest Location contains the largest group and object ID known.
 
 Any other value in the Status Code field is a malformed message.
 
