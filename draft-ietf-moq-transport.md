@@ -1037,8 +1037,9 @@ received and possibly scheduled.
 _Publisher Priority_ is a priority number associated with an individual
 schedulable object.  A default can be specified in the parameters of PUBLISH,
 SUBSCRIBE_OK, or FETCH_OK. Publisher priority can also be specified in the
-parameters in first Object of a subgroup, datagrams, or each Object in a
-FETCH response. If no value is specified, publisher priority defaults to 128.
+Extension Headers of the first Object in a subgroup, datagrams, or any
+Object in a FETCH response. If no value is specified, publisher priority
+defaults to 128.
 
 _Group Order_ is a property of an individual subscription.  It can be either
 'Ascending' (groups with lower group ID are sent first), or 'Descending'
@@ -1612,7 +1613,8 @@ The PUBLISHER PRIORITY parameter (Parameter Type 0x0E) specifies the priority
 of a subscription relative to other subscriptions in the same session.
 The value is from 0 to 255 and lower numbers get higher priority.
 See {{priorities}}. Priorities above 255 are invalid. The PUBLISHER PRIORITY
-parameter is valid in SUBSCRIBE_OK, PUBLISH and FETCH_OK.
+parameter is valid in SUBSCRIBE_OK, PUBLISH and FETCH_OK, as well as in
+Object Extension Headers.
 
 ## CLIENT_SETUP and SERVER_SETUP {#message-setup}
 
