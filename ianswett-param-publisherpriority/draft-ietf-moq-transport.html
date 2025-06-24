@@ -1056,7 +1056,7 @@ svg :is([fill="white"], [fill^="#fff"]) {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Nandakumar, et al.</td>
-<td class="center">Expires 25 December 2025</td>
+<td class="center">Expires 26 December 2025</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1069,12 +1069,12 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dd class="internet-draft">draft-ietf-moq-transport-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2025-06-23" class="published">23 June 2025</time>
+<time datetime="2025-06-24" class="published">24 June 2025</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2025-12-25">25 December 2025</time></dd>
+<dd class="expires"><time datetime="2025-12-26">26 December 2025</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1143,7 +1143,7 @@ networks and is designed for high scale and low latency distribution.<a href="#s
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 25 December 2025.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 26 December 2025.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -2789,8 +2789,9 @@ received and possibly scheduled.<a href="#section-6.1-5" class="pilcrow">¶</a><
 <p id="section-6.1-6"><em>Publisher Priority</em> is a priority number associated with an individual
 schedulable object.  A default can be specified in the parameters of PUBLISH,
 SUBSCRIBE_OK, or FETCH_OK. Publisher priority can also be specified in the
-parameters in first Object of a subgroup, datagrams, or each Object in a
-FETCH response. If no value is specified, publisher priority defaults to 128.<a href="#section-6.1-6" class="pilcrow">¶</a></p>
+Extension Headers of the first Object in a subgroup, datagrams, or any
+Object in a FETCH response. If no value is specified, publisher priority
+defaults to 128.<a href="#section-6.1-6" class="pilcrow">¶</a></p>
 <p id="section-6.1-7"><em>Group Order</em> is a property of an individual subscription.  It can be either
 'Ascending' (groups with lower group ID are sent first), or 'Descending'
 (groups with higher group ID are sent first).  The subscriber optionally
@@ -3545,7 +3546,8 @@ re-requests them.<a href="#section-8.2.1.3-1" class="pilcrow">¶</a></p>
 of a subscription relative to other subscriptions in the same session.
 The value is from 0 to 255 and lower numbers get higher priority.
 See <a href="#priorities" class="auto internal xref">Section 6</a>. Priorities above 255 are invalid. The PUBLISHER PRIORITY
-parameter is valid in SUBSCRIBE_OK, PUBLISH and FETCH_OK.<a href="#section-8.2.1.4-1" class="pilcrow">¶</a></p>
+parameter is valid in SUBSCRIBE_OK, PUBLISH and FETCH_OK, as well as in
+Object Extension Headers.<a href="#section-8.2.1.4-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
