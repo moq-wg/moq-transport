@@ -3538,8 +3538,8 @@ re-requests them.<a href="#section-8.2.1.3-1" class="pilcrow">¶</a></p>
             </h5>
 <p id="section-8.2.1.4-1">The START LOCATION parameter (Parameter Type 0x03) indicates the beginning
 of a subscription or fetch and can be used in SUBSCRIBE, SUBSCRIBE_UPDATE,
-FETCH, PUBLISH, and PUBLISH_OK. The default for START LOCATION is the
-beginning of the Track, equivalent to {0, 0}.<a href="#section-8.2.1.4-1" class="pilcrow">¶</a></p>
+FETCH, and PUBLISH_OK. The default for START LOCATION is the beginning of
+the Track, equivalent to None (0x0).<a href="#section-8.2.1.4-1" class="pilcrow">¶</a></p>
 <p id="section-8.2.1.4-2">There are 6 types of filter locations and any other value <span class="bcp14">MUST</span> be treated
 as an error. Some types are only the type value and others have one or
 more following varints.<a href="#section-8.2.1.4-2" class="pilcrow">¶</a></p>
@@ -3565,8 +3565,8 @@ two sequential varints.<a href="#section-8.2.1.4-8" class="pilcrow">¶</a></p>
             </h5>
 <p id="section-8.2.1.5-1">The END LOCATION parameter (Parameter Type 0x05) indicates the end of a
 subscription or fetch and can be used in SUBSCRIBE, SUBSCRIBE_UPDATE,
-FETCH, PUBLISH, and PUBLISH_OK. The default for END LOCATION is the
-end of the Track, equivalent to {MaxVarint, MaxVarint}.<a href="#section-8.2.1.5-1" class="pilcrow">¶</a></p>
+FETCH, and PUBLISH_OK. The default for END LOCATION is the end of the
+Track, equivalent to None (0x1).<a href="#section-8.2.1.5-1" class="pilcrow">¶</a></p>
 <p id="section-8.2.1.5-2">The types and formatting of END LOCATION are identical to
 START LOCATION <a href="#start-location" class="auto internal xref">Section 8.2.1.4</a> defined above.<a href="#section-8.2.1.5-2" class="pilcrow">¶</a></p>
 </section>
