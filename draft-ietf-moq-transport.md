@@ -1604,6 +1604,53 @@ stream. Once Objects have expired from cache, their state becomes unknown, and
 a relay that handles a downstream request that includes those Objects
 re-requests them.
 
+#### DYNAMIC GROUPS Parameter {#dynamic-groups}
+
+The DYNAMIC_GROUPS parameter (parameter type 0x20) MAY appear in PUBLISH or
+SUBSCRIBE_OK.  Values larger than 1 are a Protocol Violation.  When the value is
+1, it indicates that the subscriber can send a NEW_GROUP_REQUEST parameter in
+PUBLISH_OK or SUBSCRIBE_UPDATE for this Track.
+
+#### NEW GROUP_REQUEST Parameter {#new-group-request}
+
+The NEW_GROUP_REQUEST parameter (parameter type 0x22) MAY appear in PUBLISH_OK,
+SUBSCRIBE or SUBSCRIBE_UPDATE.  It is an integer representing the largest Group
+ID in the Track known by the subscriber, plus 1. A value of 0 indicates that the
+subscriber has no Group information for the Track.  A subscriber MUST NOT send
+this parameter in PUBLISH_OK or SUBSCRIBE_UPDATE if the publisher did not
+include DYNAMIC_GROUPS=1 when establishing the subscription.  A subscriber MAY
+include this parameter in SUBSCRIBE without foreknowledge of support.  If the
+publisher does not support dynamic Groups, it ignores the parameter in that
+case.
+
+A Original Publisher that supports dynamic Groups that receives a
+NEW_GROUP_REQUEST with a value of 0 or a value larger than the current Group
+SHOULD end the current Group and begin a new Group as soon as practical.  The
+Original Publisher MAY delay or ignore the NEW_GROUP_REQUEST subject to
+implementation specific concerns, for example, acheiving a minimum duration for
+each Group. The Original Publisher chooses the next Group ID; there are no
+requirements that it be equal to the NEW_GROUP_REQUEST parameter value.
+
+Relay Handling:
+
+A relay can have at most one outstanding NEW_GROUP_REQUEST per Track at a time.
+After sending a NEW_GROUP_REQUEST upstream, the request is considered
+outstanding until the Largest Group increases.
+
+A relay that receives a NEW_GROUP_REQUEST for a Track without an active
+subscription MUST include the NEW_GROUP_REQUEST when subscribing upstream.
+
+A relay that receives a NEW_GROUP_REQUEST for an established subscription with a
+value of 0 or a value larger than the Largest Group MUST send a SUBSCRIBE_UPDATE
+including the NEW_GROUP_REQUEST to the publisher unless:
+
+1. The Track does not support dynamic Groups
+2. There is already an outstanding NEW_GROUP_REQUEST
+
+If a relay receives a NEW_GROUP_REQUEST with a non-zero value less than or equal
+to the Largest Group, it does not send a NEW_GROUP_REQUEST upstream.
+
+
 ## CLIENT_SETUP and SERVER_SETUP {#message-setup}
 
 The `CLIENT_SETUP` and `SERVER_SETUP` messages are the first messages exchanged
