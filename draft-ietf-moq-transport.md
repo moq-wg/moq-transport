@@ -1611,7 +1611,7 @@ of a subscription or fetch and can be used in SUBSCRIBE, SUBSCRIBE_UPDATE,
 FETCH, PUBLISH, and PUBLISH_OK. The default for START LOCATION is the
 beginning of the Track, equivalent to {0, 0}.
 
-There are 4 types of filter locations and any other value MUST be treated
+There are 6 types of filter locations and any other value MUST be treated
 as an error. Some types are only the type value and others have one or
 more following varints.
 
