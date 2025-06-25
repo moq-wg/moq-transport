@@ -1629,7 +1629,7 @@ Prior Group (0x3): The filter Location is '{Largest Object.Group - numgroups}'
 where numgroups is a specified as a subsequent varint.
 
 Absolute Group (0x4): The filter Group is specified explicitly as a
-subsequent varint.
+subsequent varint, and the Start Object is 0.
 
 Absolute Location (0x5): The filter Location is specified explicitly by
 two sequential varints.
