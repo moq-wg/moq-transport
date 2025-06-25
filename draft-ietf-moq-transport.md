@@ -1604,6 +1604,48 @@ stream. Once Objects have expired from cache, their state becomes unknown, and
 a relay that handles a downstream request that includes those Objects
 re-requests them.
 
+#### START LOCATION Parameter {#start-location}
+
+The START LOCATION parameter (Parameter Type 0x03) indicates the beginning
+of a subscription or fetch and can be used in SUBSCRIBE, SUBSCRIBE_UPDATE,
+FETCH, PUBLISH, and PUBLISH_OK. The default for START LOCATION is the
+beginning of the Track, equivalent to {0, 0}.
+
+There are 4 types of filter locations and any other value MUST be treated
+as an error. Some types are only the type value and others have one or
+more following varints.
+
+None (0x0): Specifies no filter, so the default is used. Useful in
+SUBSCRIBE_UPDATE to remove a previously specified filter.
+
+Largest Object (0x1): The filter Location is `{Largest Object.Group,
+Largest Object.Object + 1}`. If no content has been delivered yet, the
+filter Start Location is {0, 0}.
+
+Next Group (0x2): The filter Location is `{Largest Object.Group + 1,
+0}`. If no content has been delivered yet, the Location is {0, 0}.
+
+Prior Group (0x3): The filter Location is '{Largest Object.Group - numgroups}'
+where numgroups is a specified as a subsequent varint.
+
+Absolute Group (0x4): The filter Group is specified explicitly as a
+subsequent varint.
+
+Absolute Location (0x5): The filter Location is specified explicitly by
+two sequential varints.
+
+
+#### END LOCATION Parameter {#end-location}
+
+The END LOCATION parameter (Parameter Type 0x05) indicates the end of a
+subscription or fetch and can be used in SUBSCRIBE, SUBSCRIBE_UPDATE,
+FETCH, PUBLISH, and PUBLISH_OK. The default for END LOCATION is the
+end of the Track, equivalent to {MaxVarint, MaxVarint}.
+
+The types and formatting of END LOCATION are identical to
+START LOCATION {{start-location}} defined above.
+
+
 ## CLIENT_SETUP and SERVER_SETUP {#message-setup}
 
 The `CLIENT_SETUP` and `SERVER_SETUP` messages are the first messages exchanged
@@ -1807,54 +1849,21 @@ A subscription causes the publisher to send newly published objects for a track.
 A subscriber MUST NOT make multiple active subscriptions for a track within a
 single session and publishers SHOULD treat this as a protocol violation.
 
-**Filter Types**
+The subscriber can specify a filter on the subscription to allow
+the publisher to identify which objects need to be delivered. START LOCATION
+allow the subscriber to specify the Start and END LOCATION allow specifying
+the End.
 
-The subscriber specifies a filter on the subscription to allow
-the publisher to identify which objects need to be delivered.
-
-All filters have a Start Location and an optional End Group.  Only objects
-published or received via a subscription having Locations greater than or
-equal to Start and strictly less than or equal to the End Group (when
-present) pass the filter.
+Only objects published or received via a subscription having Locations
+greater than or equal to Start and strictly less than or equal to the End
+pass the filter.
 
 The `Largest Object` is defined to be the object with the largest Location
 ({{location-structure}}) in the track from the perspective of the endpoint
 processing the SUBSCRIBE message. Largest Object updates when the first byte of
 an Object with a larger Location than the previous value is published or
-received through a subscription.
-
-There are 4 types of filters:
-
-Largest Object (0x2): The filter Start Location is `{Largest Object.Group,
-Largest Object.Object + 1}` and `Largest Object` is communicated in
-SUBSCRIBE_OK. If no content has been delivered yet, the filter Start Location is
-{0, 0}. There is no End Group - the subscription is open ended.  Note that due
-to network reordering or prioritization, relays can receive Objects with
-Locations smaller than  `Largest Object` after the SUBSCRIBE is processed, but
-these Objects do not pass the Largest Object filter.
-
-Next Group Start (0x1): The filter start Location is `{Largest Object.Group + 1,
-0}` and `Largest Object` is communicated in SUBSCRIBE_OK. If no content has been
-delivered yet, the filter Start Location is {0, 0}.  There is no End Group -
-the subscription is open ended. For scenarios where the subscriber intends to
-start more than one group in the future, it can use an AbsoluteStart filter
-instead.
-
-AbsoluteStart (0x3):  The filter Start Location is specified explicitly in the
-SUBSCRIBE message. The `Start` specified in the SUBSCRIBE message MAY be less
-than the `Largest Object` observed at the publisher. There is no End Group - the
-subscription is open ended.  To receive all Objects that are published or are
-received after this subscription is processed, a subscriber can use an
-AbsoluteStart filter with `Start` = {0, 0}.
-
-AbsoluteRange (0x4):  The filer Start Location and End Group are specified
-explicitly in the SUBSCRIBE message. The `Start` specified in the SUBSCRIBE
-message MAY be less than the `Largest Object` observed at the publisher. If the
-specified `End Group` is the same group specified in `Start`, the remainder of
-that Group passes the filter. `End Group` MUST specify the same or a larger Group
-than specified in `Start`.
-
-A filter type other than the above MUST be treated as error.
+received through a subscription. The Start MAY be less than the `Largest Object`
+observed at the publisher. 
 
 Subscribe only delivers newly published or received Objects.  Objects from the
 past are retrieved using FETCH ({{message-fetch}}).
@@ -1883,9 +1892,6 @@ SUBSCRIBE Message {
   Subscriber Priority (8),
   Group Order (8),
   Forward (8),
-  Filter Type (i),
-  [Start Location (Location)],
-  [End Group (i)],
   Number of Parameters (i),
   Subscribe Parameters (..) ...
 }
@@ -1912,15 +1918,6 @@ used. Values larger than 0x2 are a protocol error.
 to the subscriber. If 0, Objects are not forwarded to the subscriber.
 Any other value is a protocol error and MUST terminate the
 session with a Protocol Violation ({{session-termination}}).
-
-* Filter Type: Identifies the type of filter, which also indicates whether
-the Start and End Group fields will be present.
-
-* Start Location: The starting location for this subscriptions. Only present for
-  "AbsoluteStart" and "AbsoluteRange" filter types.
-
-* End Group: The end Group ID, inclusive. Only present for the "AbsoluteRange"
-filter type.
 
 * Subscribe Parameters: The parameters are defined in {{version-specific-params}}.
 
@@ -2084,8 +2081,6 @@ SUBSCRIBE_UPDATE Message {
   Type (i) = 0x2,
   Length (16),
   Request ID (i),
-  Start Location (Location),
-  End Group (i),
   Subscriber Priority (8),
   Forward (8),
   Number of Parameters (i),
@@ -2096,11 +2091,6 @@ SUBSCRIBE_UPDATE Message {
 
 * Request ID: The Request ID of the SUBSCRIBE ({{message-subscribe-req}}) this
   message is updating.  This MUST match an existing Request ID.
-
-* Start Location : The starting location.
-
-* End Group: The end Group ID, plus 1. A value of 0 means the subscription is
-open-ended.
 
 * Subscriber Priority: Specifies the priority of a subscription relative to
 other subscriptions in the same session. Lower numbers get higher priority.
@@ -2417,29 +2407,24 @@ unknown status, it MUST return FETCH_ERROR with code Unknown Status in Range.
 
 **Fetch Types**
 
-There are three types of Fetch messages:
+There are two types of Fetch messages:
 
 Standalone Fetch (0x1) : A Fetch of Objects performed independently of any Subscribe.
 
-Relative Joining Fetch (0x2) : A Fetch joined together with a Subscribe by
+Joining Fetch (0x2) : A Fetch joined together with a Subscribe by
 specifying the Request ID of an active subscription and a relative starting
 offset. A publisher receiving a Joining Fetch uses properties of the associated
 Subscribe to determine the Track Namespace, Track, Start Location,
-and End Location such that it is contiguous with the associated
-Subscribe. The Joining Fetch begins the Preceding Group Offset prior to the
-associated subscription.
-
-Absolute Joining Fetch (0x3) : Identical to a Relative Joining Fetch except that the
-Start Group is determined by an absolute Group value rather than a relative offset to
-the subscription.
+and End Location such that it is contiguous with the associated Subscribe.
 
 A Subscriber can use a Joining Fetch to, for example, fill a playback buffer with a
 certain number of groups prior to the live edge of a track.
 
 A Joining Fetch is only permitted when the associated Subscribe has the Filter
-Type Largest Object.
+Type Largest Object. A Joining Fetch MUST not specify an END LOCATION parameter,
+because the End is determined by the Subscribe being joined.
 
-A Fetch Type other than 0x1, 0x2 or 0x3 MUST be treated as an error.
+A Fetch Type other than 0x1 or 0x02 MUST be treated as an error.
 
 A publisher responds to a FETCH request with either a FETCH_OK or a FETCH_ERROR
 message.  The publisher creates a new unidirectional stream that is used to send the
@@ -2456,9 +2441,9 @@ cached objects have been delivered before resetting the stream.
 
 The Object Forwarding Preference does not apply to fetches.
 
-Fetch specifies an inclusive range of Objects starting at Start Location and
-ending at End Location. End Location MUST specify the same or a larger Location
-than Start Location.
+Fetch specifies an inclusive range of Objects starting at the START LOCATION
+param {{start-location}} and ending at the END LOCATION param {{end-location}},
+or their defaults. The End MUST be the same or a larger Location than the Start.
 
 The format of FETCH is as follows:
 
@@ -2473,10 +2458,7 @@ FETCH Message {
   [Track Namespace (tuple),
    Track Name Length (i),
    Track Name (..),
-   Start Location (Location),
-   End Location (Location),]
-  [Joining Request ID (i),
-   Joining Start (i),]
+  [Joining Request ID (i)]
   Number of Parameters (i),
   Parameters (..) ...
 }
@@ -2496,8 +2478,7 @@ Ascending (0x1) or Descending (0x2) order by group. See {{priorities}}.
 A value of 0x0 indicates the original publisher's Group Order SHOULD be
 used. Values larger than 0x2 are a protocol error.
 
-* Fetch Type: Identifies the type of Fetch, whether Standalone, Relative
-  Joining or Absolute Joining.
+* Fetch Type: Identifies the type of Fetch, Standalone or Joining.
 
 * Parameters: The parameters are defined in {{version-specific-params}}.
 
@@ -2508,23 +2489,12 @@ Fields present only for Standalone Fetch (0x1):
 
 * Track Name: Identifies the track name as defined in ({{track-name}}).
 
-* Start Location: The start Location.
-
-* End Location: The end Location, plus 1 Object ID. An Object ID value of 0
-  means the entire group is requested.
-
-Fields present only for Relative Fetch (0x2) and Absolute Fetch (0x3):
+Field present only for Relative Fetch (0x2) and Absolute Fetch (0x3):
 
 * Joining Request ID: The Request ID of the existing subscription to be
   joined. If a publisher receives a Joining Fetch with a Request ID that does
   not correspond to an existing Subscribe in the same session, it MUST respond
   with a Fetch Error with code Invalid Joining Request ID.
-
-* Joining Start : for a Relative Joining Fetch (0x2), this value represents the
-  group offset for the Fetch prior and relative to the Current Group of the
-  corresponding Subscribe. A value of 0 indicates the Fetch starts at the beginning
-  of the Current Group. For an Absolute Joining Fetch (0x3), this value represents
-  the Starting Group ID.
 
 Objects that are not yet published will not be retrieved by a FETCH.  The
 Largest available Object in the requested range is indicated in the FETCH_OK,
@@ -2539,32 +2509,17 @@ If Start Location is greater than the `Largest Object`
 ({{message-subscribe-req}}) the publisher MUST return FETCH_ERROR with error
 code 'Invalid Range'.
 
-### Calculating the Range of a Relative Joining Fetch
+### Calculating the Range of a Joining Fetch
 
-A publisher that receives a Fetch of type Type 0x2 treats it
-as a Fetch with a range dynamically determined by the Preceding Group Offset
-and field values derived from the corresponding subscription.
+The Largest Location value from the corresponding subscription is used to
+calculate the end of a Relative Joining Fetch so the Objects retrieved by the
+FETCH and SUBSCRIBE are contiguous and non-overlapping.
 
-The Largest Location value from the corresponding
-subscription is used to calculate the end of a Relative Joining Fetch so the
-Objects retrieved by the FETCH and SUBSCRIBE are contiguous and non-overlapping.
 If no Objects have been published for the track, and the SUBSCRIBE_OK has a
 Content Exists value of 0, the publisher MUST respond with a FETCH_ERROR with
 error code 'Invalid Range'.
 
-The publisher receiving a Relative Joining Fetch computes the range as follows:
-
-* Fetch Start Location: {Subscribe Largest Location.Group - Joining Start, 0}
-* Fetch End Location: Subscribe Largest Location
-
-A Fetch End Location.Object of 0 requests the entire group, but Fetch will not
-retrieve Objects that have not yet been published, so 1 is subtracted from
-the Fetch End Location.Group if Fetch End Location.Object is 0.
-
-### Calculating the Range of an Absolute Joining Fetch
-
-Identical to the Relative Joining fetch except that Fetch Start Location.Group
-is the Joining Start value.
+Otherwise, the Fetch End Location is subscription's Largest Location.
 
 
 ## FETCH_OK {#message-fetch-ok}
