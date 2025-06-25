@@ -1863,7 +1863,7 @@ The `Largest Object` is defined to be the object with the largest Location
 processing the SUBSCRIBE message. Largest Object updates when the first byte of
 an Object with a larger Location than the previous value is published or
 received through a subscription. The Start MAY be less than the `Largest Object`
-observed at the publisher. 
+observed at the publisher.
 
 Subscribe only delivers newly published or received Objects.  Objects from the
 past are retrieved using FETCH ({{message-fetch}}).
