@@ -877,7 +877,7 @@ Either endpoint can initiate a subscription to a track without exchanging any
 prior messages other than SETUP.  Relays MUST NOT send any PUBLISH messages
 without knowing the client is interested in and authorized to receive the
 content. The communication of intent and authorization can be accomplished by
-the client sending SUBSCRIBE_ANNOUNCES, or conveyed in other mechanisms out of
+the client sending SUBSCRIBE_NAMESPACE, or conveyed in other mechanisms out of
 band.
 
 A publisher MUST send exactly one SUBSCRIBE_OK or SUBSCRIBE_ERROR in response to
@@ -925,7 +925,7 @@ done in the context of an established MOQT session.
 
 Given sufficient out of band information, it is valid for a subscriber to send a
 SUBSCRIBE or FETCH message to a publisher (including a relay) without any
-previous MoQT messages besides SETUP. However, SUBSCRIBE_ANNOUNCES, PUBLISH and
+previous MoQT messages besides SETUP. However, SUBSCRIBE_NAMESPACE, PUBLISH and
 ANNOUNCE messages provide an in-band means of discovery of publishers for a
 namespace.
 
@@ -935,20 +935,20 @@ The syntax of these messages is described in {{message}}.
 ## Subscribing to Namespaces
 
 If the subscriber is aware of a namespace of interest, it can send
-SUBSCRIBE_ANNOUNCES to publishers/relays it has established a session with. The
+SUBSCRIBE_NAMESPACE to publishers/relays it has established a session with. The
 recipient of this message will send any relevant ANNOUNCE, UNANNOUNCE or PUBLISH
 messages for that namespace, or more specific part of that namespace.
 
-A publisher MUST send exactly one SUBSCRIBE_ANNOUNCES_OK or
-SUBSCRIBE_ANNOUNCES_ERROR in response to a SUBSCRIBE_ANNOUNCES. The subscriber
+A publisher MUST send exactly one SUBSCRIBE_NAMESPACE_OK or
+SUBSCRIBE_NAMESPACE_ERROR in response to a SUBSCRIBE_NAMESPACE. The subscriber
 SHOULD close the session with a protocol error if it detects receiving more than
 one.
 
-The receiver of a SUBSCRIBE_ANNOUNCES_OK or SUBSCRIBE_ANNOUNCES_ERROR ought to
+The receiver of a SUBSCRIBE_NAMESPACE_OK or SUBSCRIBE_NAMESPACE_ERROR ought to
 forward the result to the application, so the application can decide which other
 publishers to contact, if any.
 
-An UNSUBSCRIBE_ANNOUNCES withdraws a previous SUBSCRIBE_ANNOUNCES. It does not
+An UNSUBSCRIBE_NAMESPACE withdraws a previous SUBSCRIBE_NAMESPACE. It does not
 prohibit original publishers from sending further ANNOUNCE or PUBLISH messages,
 but relays MUST NOT send any further PUBLISH messages to a client without
 knowing the client is interested in and authorized to receive the content.
@@ -1239,7 +1239,7 @@ subscription in Forward State=0, it SHOULD send a SUBSCRIBE_UDPATE with
 Forward=1 to all publishers.
 
 When a relay receives an incoming PUBLISH message, it MUST send a PUBLISH
-request to each subscriber that has subscribed (via SUBSCRIBE_ANNOUNCES)
+request to each subscriber that has subscribed (via SUBSCRIBE_NAMESPACE)
 to the track's namespace or prefix thereof.
 
 When a relay receives an incoming ANNOUNCE for a given namespace, for
@@ -1384,13 +1384,13 @@ The following Message Types are defined:
 |-------|-----------------------------------------------------|
 | 0xC   | ANNOUNCE_CANCEL ({{message-announce-cancel}})       |
 |-------|-----------------------------------------------------|
-| 0x11  | SUBSCRIBE_ANNOUNCES ({{message-subscribe-ns}})      |
+| 0x11  | SUBSCRIBE_NAMESPACE ({{message-subscribe-ns}})      |
 |-------|-----------------------------------------------------|
-| 0x12  | SUBSCRIBE_ANNOUNCES_OK ({{message-sub-ann-ok}})     |
+| 0x12  | SUBSCRIBE_NAMESPACE_OK ({{message-sub-ns-ok}})      |
 |-------|-----------------------------------------------------|
-| 0x13  | SUBSCRIBE_ANNOUNCES_ERROR ({{message-sub-ann-error}}|
+| 0x13  | SUBSCRIBE_NAMESPACE_ERROR ({{message-sub-ns-error}} |
 |-------|-----------------------------------------------------|
-| 0x14  | UNSUBSCRIBE_ANNOUNCES ({{message-unsub-ann}})       |
+| 0x14  | UNSUBSCRIBE_NAMESPACE ({{message-unsub-ns}})        |
 |-------|-----------------------------------------------------|
 
 An endpoint that receives an unknown message type MUST close the session.
@@ -1408,7 +1408,7 @@ ongoing requests, and supports the endpoint's ability to limit the concurrency
 and frequency of requests.  There are independent Request IDs for each endpoint.
 The client's Request ID starts at 0 and are even and the server's Request ID
 starts at 1 and are odd.  The Request ID increments by 2 with ANNOUNCE, FETCH,
-SUBSCRIBE, SUBSCRIBE_ANNOUNCES or TRACK_STATUS request.  If an endpoint receives
+SUBSCRIBE, SUBSCRIBE_NAMESPACE or TRACK_STATUS request.  If an endpoint receives
 a Request ID that is not valid for the peer, or a new request with a Request ID
 that is not expected, it MUST close the session with `Invalid Request ID`.
 
@@ -1448,7 +1448,7 @@ these parameters to appear in Setup messages.
 #### AUTHORIZATION TOKEN {#authorization-token}
 
 The AUTHORIZATION TOKEN parameter (Parameter Type 0x03) MAY appear in a
-CLIENT_SETUP, SERVER_SETUP, SUBSCRIBE, SUBSCRIBE_ANNOUNCES, ANNOUNCE,
+CLIENT_SETUP, SERVER_SETUP, SUBSCRIBE, SUBSCRIBE_NAMESPACE, ANNOUNCE,
 TRACK_STATUS_REQUEST or FETCH message. This parameter conveys information to
 authorize the sender to perform the operation carrying the parameter.
 
@@ -1722,7 +1722,7 @@ SHOULD individually UNSUBSCRIBE for each existing subscription, while a
 publisher MAY reject new requests while in the draining state.
 
 Upon receiving a GOAWAY, an endpoint SHOULD NOT initiate new requests to
-the peer including SUBSCRIBE, PUBLISH, FETCH, ANNOUNCE and SUBSCRIBE_ANNOUNCE.
+the peer including SUBSCRIBE, PUBLISH, FETCH, ANNOUNCE and SUBSCRIBE_NAMESPACE.
 
 The endpoint MUST terminate the session with a Protocol Violation
 ({{session-termination}}) if it receives multiple GOAWAY messages.
@@ -1769,7 +1769,7 @@ MAX_REQUEST_ID Message {
 * Request ID: The new Maximum Request ID for the session plus 1. If a Request ID
   equal to or larger than this is received by the endpoint that sent the
   MAX_REQUEST_ID in any request message (ANNOUNCE, FETCH, SUBSCRIBE,
-  SUBSCRIBE_ANNOUNCES or TRACK_STATUS_REQUEST), the endpoint MUST close the
+  SUBSCRIBE_NAMESPACE or TRACK_STATUS_REQUEST), the endpoint MUST close the
   session with an error of 'Too Many Requests'.
 
 MAX_REQUEST_ID is similar to MAX_STREAMS in ({{?RFC9000, Section 4.6}}), and
@@ -2955,14 +2955,14 @@ ANNOUNCE_CANCEL uses the same error codes as ANNOUNCE_ERROR
 
 * Error Reason: Provides the reason for announcement cancelation. See {{reason-phrase}}.
 
-## SUBSCRIBE_ANNOUNCES {#message-subscribe-ns}
+## SUBSCRIBE_NAMESPACE {#message-subscribe-ns}
 
-The subscriber sends the SUBSCRIBE_ANNOUNCES control message to a publisher to
+The subscriber sends the SUBSCRIBE_NAMESPACE control message to a publisher to
 request the current set of matching announcements and established subscriptions,
 as well as future updates to the set.
 
 ~~~
-SUBSCRIBE_ANNOUNCES Message {
+SUBSCRIBE_NAMESPACE Message {
   Type (i) = 0x11,
   Length (16),
   Request ID (i),
@@ -2971,7 +2971,7 @@ SUBSCRIBE_ANNOUNCES Message {
   Parameters (..) ...,
 }
 ~~~
-{: #moq-transport-subscribe-ns-format title="MOQT SUBSCRIBE_ANNOUNCES Message"}
+{: #moq-transport-subscribe-ns-format title="MOQT SUBSCRIBE_NAMESPACE Message"}
 
 * Request ID: See {{request-id}}.
 
@@ -2979,59 +2979,59 @@ SUBSCRIBE_ANNOUNCES Message {
 against track namespaces known to the publisher.  For example, if the publisher
 is a relay that has received ANNOUNCE messages for namespaces ("example.com",
 "meeting=123", "participant=100") and ("example.com", "meeting=123",
-"participant=200"), a SUBSCRIBE_ANNOUNCES for ("example.com", "meeting=123")
+"participant=200"), a SUBSCRIBE_NAMESPACE for ("example.com", "meeting=123")
 would match both.  If an endpoint receives a Track Namespace Prefix tuple with
 an N of 0 or more than 32, it MUST close the session with a Protocol
 Violation.
 
 * Parameters: The parameters are defined in {{version-specific-params}}.
 
-The publisher will respond with SUBSCRIBE_ANNOUNCES_OK or
-SUBSCRIBE_ANNOUNCES_ERROR.  If the SUBSCRIBE_ANNOUNCES is successful, the
+The publisher will respond with SUBSCRIBE_NAMESPACE_OK or
+SUBSCRIBE_NAMESPACE_ERROR.  If the SUBSCRIBE_NAMESPACE is successful, the
 publisher will immediately forward existing ANNOUNCE and PUBLISH messages that
 match the Track Namespace Prefix that have not already been sent to this
 subscriber.  If the set of matching ANNOUNCE messages changes, the publisher
 sends the corresponding ANNOUNCE or UNANNOUNCE message.
 
 A subscriber cannot make overlapping namespace subscriptions on a single
-session.  Within a session, if a publisher receives a SUBSCRIBE_ANNOUNCES with a
+session.  Within a session, if a publisher receives a SUBSCRIBE_NAMESPACE with a
 Track Namespace Prefix that is a prefix of, suffix of, or equal to an active
-SUBSCRIBE_ANNOUNCES, it MUST respond with SUBSCRIBE_ANNOUNCES_ERROR, with error
+SUBSCRIBE_NAMESPACE, it MUST respond with SUBSCRIBE_NAMESPACE_ERROR, with error
 code Namespace Prefix Overlap.
 
 The publisher MUST ensure the subscriber is authorized to perform this
 namespace subscription.
 
-SUBSCRIBE_ANNOUNCES is not required for a publisher to send ANNOUNCE, UNANNOUNCE
+SUBSCRIBE_NAMESPACE is not required for a publisher to send ANNOUNCE, UNANNOUNCE
 or PUBLISH messages to a subscriber.  It is useful in applications or relays
 where subscribers are only interested in or authorized to access a subset of
 available announcements and tracks.
 
-## SUBSCRIBE_ANNOUNCES_OK {#message-sub-ann-ok}
+## SUBSCRIBE_NAMESPACE_OK {#message-sub-ns-ok}
 
-A publisher sends a SUBSCRIBE_ANNOUNCES_OK control message for successful
+A publisher sends a SUBSCRIBE_NAMESPACE_OK control message for successful
 namespace subscriptions.
 
 ~~~
-SUBSCRIBE_ANNOUNCES_OK Message {
+SUBSCRIBE_NAMESPACE_OK Message {
   Type (i) = 0x12,
   Length (16),
   Request ID (i),
 }
 ~~~
-{: #moq-transport-sub-ann-ok format title="MOQT SUBSCRIBE_ANNOUNCES_OK
+{: #moq-transport-sub-ann-ok format title="MOQT SUBSCRIBE_NAMESPACE_OK
 Message"}
 
-* Request ID: The Request ID of the SUBSCRIBE_ANNOUNCES this message is replying
+* Request ID: The Request ID of the SUBSCRIBE_NAMESPACE this message is replying
   to {{message-subscribe-ns}}.
 
-## SUBSCRIBE_ANNOUNCES_ERROR {#message-sub-ann-error}
+## SUBSCRIBE_NAMESPACE_ERROR {#message-sub-ns-error}
 
-A publisher sends a SUBSCRIBE_ANNOUNCES_ERROR control message in response to
-a failed SUBSCRIBE_ANNOUNCES.
+A publisher sends a SUBSCRIBE_NAMESPACE_ERROR control message in response to
+a failed SUBSCRIBE_NAMESPACE.
 
 ~~~
-SUBSCRIBE_ANNOUNCES_ERROR Message {
+SUBSCRIBE_NAMESPACE_ERROR Message {
   Type (i) = 0x13,
   Length (16),
   Request ID (i),
@@ -3040,9 +3040,9 @@ SUBSCRIBE_ANNOUNCES_ERROR Message {
 }
 ~~~
 {: #moq-transport-sub-ann-error format
-title="MOQT SUBSCRIBE_ANNOUNCES_ERROR Message"}
+title="MOQT SUBSCRIBE_NAMESPACE_ERROR Message"}
 
-* Request ID: The Request ID of the SUBSCRIBE_ANNOUNCES this message is replying
+* Request ID: The Request ID of the SUBSCRIBE_NAMESPACE this message is replying
   to {{message-subscribe-ns}}.
 
 * Error Code: Identifies an integer error code for the namespace subscription
@@ -3051,7 +3051,7 @@ failure.
 * Error Reason: Provides the reason for the namespace subscription error.
   See {{reason-phrase}}.
 
-The application SHOULD use a relevant error code in SUBSCRIBE_ANNOUNCES_ERROR,
+The application SHOULD use a relevant error code in SUBSCRIBE_NAMESPACE_ERROR,
 as defined below:
 
 |------|---------------------------|
@@ -3082,13 +3082,13 @@ as defined below:
 * Timeout - The operation could not be completed before an implementation
   specific timeout.
 
-* Not Supported - The endpoint does not support the SUBSCRIBE_ANNOUNCES method.
+* Not Supported - The endpoint does not support the SUBSCRIBE_NAMESPACE method.
 
 * Namespace Prefix Unknown - The namespace prefix is not available for
   subscription.
 
 * Namespace Prefix Overlap - The namespace prefix overlaps with another
-  SUBSCRIBE_ANNOUNCES in the same session.
+  SUBSCRIBE_NAMESPACE in the same session.
 
 * Malformed Auth Token - Invalid Auth Token serialization during registration
   (see {{authorization-token}}).
@@ -3096,22 +3096,22 @@ as defined below:
 * Expired Auth Token - Authorization token has expired {{authorization-token}}).
 
 
-## UNSUBSCRIBE_ANNOUNCES {#message-unsub-ann}
+## UNSUBSCRIBE_NAMESPACE {#message-unsub-ns}
 
-A subscriber issues a `UNSUBSCRIBE_ANNOUNCES` message to a publisher indicating
+A subscriber issues a `UNSUBSCRIBE_NAMESPACE` message to a publisher indicating
 it is no longer interested in ANNOUNCE, UNANNOUNCE and PUBLISH messages for the
 specified track namespace prefix.
 
-The format of `UNSUBSCRIBE_ANNOUNCES` is as follows:
+The format of `UNSUBSCRIBE_NAMESPACE` is as follows:
 
 ~~~
-UNSUBSCRIBE_ANNOUNCES Message {
+UNSUBSCRIBE_NAMESPACE Message {
   Type (i) = 0x14,
   Length (16),
   Track Namespace Prefix (tuple)
 }
 ~~~
-{: #moq-transport-unsub-ann-format title="MOQT UNSUBSCRIBE_ANNOUNCES Message"}
+{: #moq-transport-unsub-ann-format title="MOQT UNSUBSCRIBE_NAMESPACE Message"}
 
 * Track Namespace Prefix: As defined in {{message-subscribe-ns}}.
 
@@ -3826,7 +3826,7 @@ Issue and pull request numbers are listed with a leading octothorp.
 * Limit lengths of all variable length fields, including Track Namespace and Name
 * Control Message length is now 16 bits instead of variable length
 * Subscribe ID became Request ID, and was added to most control messages. Request ID
-  is used to correlate OK/ERROR responses for ANNOUNCE, SUBSCRIBE_ANNOUNCES,
+  is used to correlate OK/ERROR responses for ANNOUNCE, SUBSCRIBE_NAMESPACE,
   and TRACK_STATUS.  Like Subscribe ID, Request IDs are flow controlled.
 * Explain rules for caching in more detail
 * Changed the SETUP parameter format for even number parameters to match the
