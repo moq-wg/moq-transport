@@ -1608,8 +1608,8 @@ re-requests them.
 
 The START LOCATION parameter (Parameter Type 0x03) indicates the beginning
 of a subscription or fetch and can be used in SUBSCRIBE, SUBSCRIBE_UPDATE,
-FETCH, PUBLISH, and PUBLISH_OK. The default for START LOCATION is the
-beginning of the Track, equivalent to {0, 0}.
+FETCH, and PUBLISH_OK. The default for START LOCATION is the beginning of
+the Track, equivalent to None (0x0).
 
 There are 6 types of filter locations and any other value MUST be treated
 as an error. Some types are only the type value and others have one or
@@ -1639,8 +1639,8 @@ two sequential varints.
 
 The END LOCATION parameter (Parameter Type 0x05) indicates the end of a
 subscription or fetch and can be used in SUBSCRIBE, SUBSCRIBE_UPDATE,
-FETCH, PUBLISH, and PUBLISH_OK. The default for END LOCATION is the
-end of the Track, equivalent to {MaxVarint, MaxVarint}.
+FETCH, and PUBLISH_OK. The default for END LOCATION is the end of the
+Track, equivalent to None (0x1).
 
 The types and formatting of END LOCATION are identical to
 START LOCATION {{start-location}} defined above.
