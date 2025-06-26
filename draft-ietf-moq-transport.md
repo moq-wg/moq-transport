@@ -623,7 +623,7 @@ application.
 
 The client can establish a connection to a MoQ server identified by a
 given URI by setting up a QUIC connection to the host and port
-identified by the `authority` section of the URI, which is also transmitted
+identified by the `authority` section of the URI. The 'authority' is also transmitted
 to the server in the AUTHORITY parameter, ({{authority}}) which is sent in the
 CLIENT_SETUP message at the start of the session.  The `path-abempty`
 and `query` portions of the URI are similarly communicated to the server
