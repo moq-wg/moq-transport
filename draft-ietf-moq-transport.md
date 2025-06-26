@@ -1623,9 +1623,9 @@ include this parameter in SUBSCRIBE without foreknowledge of support.  If the
 publisher does not support dynamic Groups, it ignores the parameter in that
 case.
 
-A Original Publisher that supports dynamic Groups that receives a
-NEW_GROUP_REQUEST with a value of 0 or a value larger than the current Group
-SHOULD end the current Group and begin a new Group as soon as practical.  The
+When an Original Publisher that supports dynamic Groups receives a
+NEW_GROUP_REQUEST with a value of 0 or a value larger than the current Group,
+it SHOULD end the current Group and begin a new Group as soon as practical.  The
 Original Publisher MAY delay or ignore the NEW_GROUP_REQUEST subject to
 implementation specific concerns, for example, acheiving a minimum duration for
 each Group. The Original Publisher chooses the next Group ID; there are no
