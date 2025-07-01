@@ -1392,6 +1392,8 @@ The following Message Types are defined:
 |-------|-----------------------------------------------------|
 | 0x14  | UNSUBSCRIBE_ANNOUNCES ({{message-unsub-ann}})       |
 |-------|-----------------------------------------------------|
+| 0x15  | NEW_GROUP ({{message-new-group}})                 |
+|-------|-----------------------------------------------------|
 
 An endpoint that receives an unknown message type MUST close the session.
 Control messages have a length to make parsing easier, but no control messages
@@ -1603,6 +1605,13 @@ earlier in a multi-object stream will expire earlier than Objects later in the
 stream. Once Objects have expired from cache, their state becomes unknown, and
 a relay that handles a downstream request that includes those Objects
 re-requests them.
+
+#### DYNAMIC GROUPS Parameter {#dynamic-groups}
+
+The DYNAMIC_GROUPS is Original Publisher only parameter (parameter type 0x20) and MAY appear
+in PUBLISH or SUBSCRIBE_OK.  Values larger than 1 are a Protocol Violation.  When the value is
+1, it indicates that the subscriber can send a NEW_GROUP messsage to request a
+new synchronization point for the track.
 
 ## CLIENT_SETUP and SERVER_SETUP {#message-setup}
 
@@ -3115,6 +3124,52 @@ UNSUBSCRIBE_ANNOUNCES Message {
 
 * Track Namespace Prefix: As defined in {{message-subscribe-ns}}.
 
+
+## NEW GROUP  {#message-new-group}
+
+Subscribers issue a NEW_GROUP message to request a new synchronization point
+(new Group) from original publisher. This message is sent after a subscription to a
+track has been successfully established. The NEW_GROUP message identifies the
+Largest Group observed by the subscriber in the track and requests the
+original publisher to publish a new Group with a GroupID greater than the
+one specified in the message.
+
+Relay publishers MUST aggregate NEW_GROUP messages if the Largest Group in
+the request is less than or equal to the Largest Group in the NEW_GROUP
+message issued upstream. Otherwise, the relay publisher MUST issue a new
+upstream NEW_GROUP message.
+
+Original Publishers that supports NEW_GROUP (via DYNAMIC_GROUPS parameter) MUST
+create and publish a new group in the requested track if no Group with GroupID
+larger than or equal to the one specified in the most recent NEW_GROUP message
+has been published. Original Publisher(s) MAY delay to generate such a group
+subject to implementation specific concerns, for example, acheiving a minimum
+duration for each Group. The Original Publisher chooses the next Group ID; there
+are no requirements that it be equal to the Group ID in the NEW_GROUP message.
+
+~~~
+NEW_GROUP Message {
+Type (i) = 0x15,
+Length (16),
+Request ID(i),
+Largest Group (i),
+Number of Parameters (i),
+Parameters (..) ...,
+}
+~~~
+{: #moq-transport-new-group-format title="MOQT NEW_GROUP Message"}
+
+* Request ID: See {{request-id}}.
+
+* Track Namespace: Identifies a track's namespace as defined in
+({{track-name}})
+
+* Track Name: Identifies the track name as defined in ({{track-name}}).
+
+* Largest Group: The largest observed group in the track (either in
+SUBSCRIBE_OK or TRACK_STATUS_OK or SUBSCRIBE_UPDATE_OK).
+
+* Parameters: The parameters as defined in {{version-specific-params}}.
 
 # Data Streams and Datagrams {#data-streams}
 
