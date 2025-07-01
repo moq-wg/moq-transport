@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 2 December 2025                                   I. Swett, Ed.
+Expires: 2 January 2026                                    I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                             31 May 2025
+                                                             1 July 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 2 December 2025.
+   This Internet-Draft will expire on 2 January 2026.
 
 Copyright Notice
 
@@ -108,9 +108,10 @@ Table of Contents
        3.6.1.  Bufferbloat
        3.6.2.  Application-Limited
        3.6.3.  Consistent Throughput
-   4.  Retrieving Tracks with Subscribe and Fetch
+   4.  Publishing and Retrieving Tracks
+     4.1.  Subscriptions
    5.  Namespace Discovery
-     5.1.  Subscribing to Announcements
+     5.1.  Subscribing to Namespaces
      5.2.  Announcements
    6.  Priorities
      6.1.  Definitions
@@ -140,24 +141,27 @@ Table of Contents
      8.10. SUBSCRIBE_UPDATE
      8.11. UNSUBSCRIBE
      8.12. SUBSCRIBE_DONE
-     8.13. FETCH
-       8.13.1.  Calculating the Range of a Relative Joining Fetch
-       8.13.2.  Calculating the Range of an Absolute Joining Fetch
-     8.14. FETCH_OK
-     8.15. FETCH_ERROR
-     8.16. FETCH_CANCEL
-     8.17. TRACK_STATUS
-     8.18. TRACK_STATUS_OK
-     8.19. TRACK_STATUS_ERROR
-     8.20. ANNOUNCE
-     8.21. ANNOUNCE_OK
-     8.22. ANNOUNCE_ERROR
-     8.23. UNANNOUNCE
-     8.24. ANNOUNCE_CANCEL
-     8.25. SUBSCRIBE_ANNOUNCES
-     8.26. SUBSCRIBE_ANNOUNCES_OK
-     8.27. SUBSCRIBE_ANNOUNCES_ERROR
-     8.28. UNSUBSCRIBE_ANNOUNCES
+     8.13. PUBLISH
+     8.14. PUBLISH_OK
+     8.15. PUBLISH_ERROR
+     8.16. FETCH
+       8.16.1.  Calculating the Range of a Relative Joining Fetch
+       8.16.2.  Calculating the Range of an Absolute Joining Fetch
+     8.17. FETCH_OK
+     8.18. FETCH_ERROR
+     8.19. FETCH_CANCEL
+     8.20. TRACK_STATUS_REQUEST
+     8.21. TRACK_STATUS
+     8.22. ANNOUNCE
+     8.23. ANNOUNCE_OK
+     8.24. ANNOUNCE_ERROR
+     8.25. UNANNOUNCE
+     8.26. ANNOUNCE_CANCEL
+     8.27. SUBSCRIBE_ANNOUNCES
+     8.28. SUBSCRIBE_ANNOUNCES_OK
+     8.29. SUBSCRIBE_ANNOUNCES_ERROR
+     8.30. UNSUBSCRIBE_ANNOUNCES
+     8.31. NEW GROUP
    9.  Data Streams and Datagrams
      9.1.  Track Alias
      9.2.  Objects
@@ -824,6 +828,12 @@ Table of Contents
                    +------+----------------------------+
                    | 0x15 | Version Negotiation Failed |
                    +------+----------------------------+
+                   | 0x16 | Malformed Auth Token       |
+                   +------+----------------------------+
+                   | 0x17 | Unknown Auth Token Alias   |
+                   +------+----------------------------+
+                   | 0x18 | Expired Auth Token         |
+                   +------+----------------------------+
 
                                   Table 1
 
@@ -831,8 +841,7 @@ Table of Contents
 
    *  Internal Error: An implementation specific error occurred.
 
-   *  Unauthorized: The endpoint breached an agreement, which MAY have
-      been pre-negotiated by the application.
+   *  Unauthorized: The client is not authorized to establish a session.
 
    *  Protocol Violation: The remote endpoint performed an action that
       was disallowed by the specification.
@@ -876,10 +885,19 @@ Table of Contents
       the size of all registered Authorization tokens has been exceeded.
 
    *  Duplicate Auth Token Alias - Authorization Token attempted to
-      register an alias that was in use (see Section 8.2.1.1).
+      register an Alias that was in use (see Section 8.2.1.1).
 
    *  Version Negotiation Failed: The client didn't offer a version
       supported by the server.
+
+   *  Malformed Auth Token - Invalid Auth Token serialization during
+      registration (see Section 8.2.1.1).
+
+   *  Unknown Auth Token Alias - No registered token found for the
+      provided Alias (see Section 8.2.1.1).
+
+   *  Expired Auth Token - Authorization token has expired
+      Section 8.2.1.1).
 
    An endpoint MAY choose to treat a subscription or request specific
    error as a session error under certain circumstances, closing the
@@ -953,18 +971,45 @@ Table of Contents
    upon detecting loss.  In both cases, the large reduction in sending
    rate might cause issues with latency sensitive applications.
 
-4.  Retrieving Tracks with Subscribe and Fetch
+4.  Publishing and Retrieving Tracks
 
-   The central interaction with a publisher is to send SUBSCRIBE and/or
-   FETCH for a particular track.  The subscriber expects to receive a
-   SUBSCRIBE_OK/FETCH_OK and objects from the track.
+4.1.  Subscriptions
+
+   A subscription can be initiated by either a publisher or a
+   subscriber.  A publisher initiates a subscription to a track by
+   sending the PUBLISH message.  The subscriber either accepts or
+   rejects the subscription using PUBLISH_OK or PUBLISH_ERROR.  A
+   subscriber initiates a subscription to a track by sending the
+   SUBSCRIBE message.  The publisher either accepts or rejects the
+   subscription using SUBSCRIBE_OK or SUBSCRIBE_ERROR.  Once either of
+   these sequences is successful, the subscription can be updated by the
+   subscriber using SUBSCRIBE_UPDATE, terminated by the subscriber using
+   UNSUBSCRIBE, or terminated by the publisher using SUBSCRIBE_DONE.
+
+   All subscriptions have a Forward State which is either 0 or 1.  If
+   the Forward State is 0, the publisher does not send objects for the
+   subscription.  If the Forward State is 1, the publisher sends
+   objects.  The initiator of the subscription sets the initial Forward
+   State in either PUBLISH or SUBSCRIBE.  The sender of PUBLISH_OK can
+   update the Forward State based on its preference.  Once the
+   subscription is established, the subscriber can update the Forward
+   State by sending SUBSCRIBE_UPDATE.
+
+   Either endpoint can initiate a subscription to a track without
+   exchanging any prior messages other than SETUP.  Relays MUST NOT send
+   any PUBLISH messages without knowing the client is interested in and
+   authorized to receive the content.  The communication of intent and
+   authorization can be accomplished by the client sending
+   SUBSCRIBE_ANNOUNCES, or conveyed in other mechanisms out of band.
 
    A publisher MUST send exactly one SUBSCRIBE_OK or SUBSCRIBE_ERROR in
    response to a SUBSCRIBE.  It MUST send exactly one FETCH_OK or
-   FETCH_ERROR in response to a FETCH.  The subscriber SHOULD close the
-   session with a protocol error if it receives more than one.
+   FETCH_ERROR in response to a FETCH.  A subscriber MUST send exactly
+   one PUBLISH_OK or PUBLISH_ERROR in response to a PUBLISH.  The peer
+   SHOULD close the session with a protocol error if it receives more
+   than one.
 
-   A subscriber keeps SUBSCRIBE state until it sends UNSUBSCRIBE, or
+   A subscriber keeps subscription state until it sends UNSUBSCRIBE, or
    after receipt of a SUBSCRIBE_DONE or SUBSCRIBE_ERROR.  Note that
    SUBSCRIBE_DONE does not usually indicate that state can immediately
    be destroyed, see Section 8.12.
@@ -980,7 +1025,7 @@ Table of Contents
    reset any open streams associated with the SUBSCRIBE or FETCH.  It
    can also destroy state after closing the FETCH data stream.
 
-   The publisher can immediately delete SUBSCRIBE state after sending
+   The publisher can immediately delete subscription state after sending
    SUBSCRIBE_DONE, but MUST NOT send it until it has closed all related
    streams.  It can destroy all FETCH state after closing the data
    stream.
@@ -994,9 +1039,9 @@ Table of Contents
    before determining the result of the request, some Objects could be
    received even if the FETCH results in error.
 
-   The Parameters in SUBSCRIBE and FETCH MUST NOT cause the publisher to
-   alter the payload of the objects it sends, as that would violate the
-   track uniqueness guarantee described in Section 2.5.1.
+   The Parameters in SUBSCRIBE, PUBLISH_OK and FETCH MUST NOT cause the
+   publisher to alter the payload of the objects it sends, as that would
+   violate the track uniqueness guarantee described in Section 2.5.1.
 
 5.  Namespace Discovery
 
@@ -1005,19 +1050,19 @@ Table of Contents
 
    Given sufficient out of band information, it is valid for a
    subscriber to send a SUBSCRIBE or FETCH message to a publisher
-   (including a relay) without any previous MOQT messages besides SETUP.
-   However, SUBSCRIBE_ANNOUNCES and ANNOUNCE messages provide an in-band
-   means of discovery of publishers for a namespace.
+   (including a relay) without any previous MoQT messages besides SETUP.
+   However, SUBSCRIBE_ANNOUNCES, PUBLISH and ANNOUNCE messages provide
+   an in-band means of discovery of publishers for a namespace.
 
    The syntax of these messages is described in Section 8.
 
-5.1.  Subscribing to Announcements
+5.1.  Subscribing to Namespaces
 
    If the subscriber is aware of a namespace of interest, it can send
    SUBSCRIBE_ANNOUNCES to publishers/relays it has established a session
-   with.  The recipient of this message will send any relevant ANNOUNCE
-   or UNANNOUNCE messages for that namespace, or more specific part of
-   that namespace.
+   with.  The recipient of this message will send any relevant ANNOUNCE,
+   UNANNOUNCE or PUBLISH messages for that namespace, or more specific
+   part of that namespace.
 
    A publisher MUST send exactly one SUBSCRIBE_ANNOUNCES_OK or
    SUBSCRIBE_ANNOUNCES_ERROR in response to a SUBSCRIBE_ANNOUNCES.  The
@@ -1029,15 +1074,18 @@ Table of Contents
    can decide which other publishers to contact, if any.
 
    An UNSUBSCRIBE_ANNOUNCES withdraws a previous SUBSCRIBE_ANNOUNCES.
-   It does not prohibit the receiver (publisher) from sending further
-   ANNOUNCE messages.
+   It does not prohibit original publishers from sending further
+   ANNOUNCE or PUBLISH messages, but relays MUST NOT send any further
+   PUBLISH messages to a client without knowing the client is interested
+   in and authorized to receive the content.
 
 5.2.  Announcements
 
    A publisher MAY send ANNOUNCE messages to any subscriber.  An
    ANNOUNCE indicates to the subscriber that the publisher has tracks
    available in that namespace.  A subscriber MAY send SUBSCRIBE or
-   FETCH for a namespace without having received an ANNOUNCE for it.
+   FETCH for tracks in a namespace without having received an ANNOUNCE
+   for it.
 
    If a publisher is authoritative for a given namespace, or is a relay
    that has received an authorized ANNOUNCE for that namespace from an
@@ -1061,7 +1109,7 @@ Table of Contents
 
    An UNANNOUNCE message withdraws a previous ANNOUNCE, although it is
    not a protocol error for the subscriber to send a SUBSCRIBE or FETCH
-   message after receiving an UNANNOUNCE.
+   message for a track in a namespace after receiving an UNANNOUNCE.
 
    A subscriber can send ANNOUNCE_CANCEL to revoke acceptance of an
    ANNOUNCE, for example due to expiration of authorization credentials.
@@ -1301,20 +1349,26 @@ Table of Contents
 
 7.3.  Publisher Interactions
 
-   Publishing through the relay starts with publisher sending ANNOUNCE
-   control message with a Track Namespace (Section 2.4).  The ANNOUNCE
-   enables the relay to know which publisher to forward a SUBSCRIBE to.
+   There are two ways to publish through a relay:
 
-   Relays MUST verify that publishers are authorized to publish the
-   content associated with the set of tracks whose Track Namespace
-   matches the announced namespace.  Where the authorization and
-   identification of the publisher occurs depends on the way the relay
-   is managed and is application specific.
+   1.  Send a PUBLISH message for a specific Track to the relay.  The
+       relay MAY respond with PUBLISH_OK in Forward State=0 until there
+       are known subscribers for new tracks.
 
-   A Relay can receive announcements from multiple publishers for the
-   same Track Namespace and it SHOULD respond with the same response to
-   each of the publishers, as though it was responding to an ANNOUNCE
-   from a single publisher for a given track namespace.
+   2.  Send an ANNOUNCE message for a Track Namespace to the relay.
+       This enables the relay to send SUBSCRIBE messages to publishers
+       for Tracks in this Namespace in response to received SUBSCRIBE
+       messages.
+
+   Relays MUST verify that publishers are authorized to publish the set
+   of tracks whose Track Namespace matches the namespace in an ANNOUNCE,
+   or the Full Track Name in PUBLISH.  The authorization and
+   identification of the publisher depends on the way the relay is
+   managed and is application specific.
+
+   A Relay can receive announcements for the same Track Namespace or
+   PUBLISH messages for the same Track from multiple publishers and is
+   expected to treat them uniformly.
 
    When a publisher wants to stop new subscriptions for an announced
    namespace it sends an UNANNOUNCE.  A subscriber indicates it will no
@@ -1322,20 +1376,35 @@ Table of Contents
    ANNOUNCE_OK to by sending an ANNOUNCE_CANCEL.
 
    A relay manages sessions from multiple publishers and subscribers,
-   connecting them based on the track namespace.  This MUST use an exact
-   match on track namespace unless otherwise negotiated by the
-   application.  For example, a SUBSCRIBE namespace=foobar message will
-   be forwarded to the session that sent ANNOUNCE namespace=foobar.
+   connecting them based on the Track Namespace or Full Track Name.
+   Prefix matching is used to determine which publishers receive a
+   SUBSCRIBE or which subscribers receive a PUBLISH.  For example, a
+   SUBSCRIBE namespace=(foo,bar), track=x message will be forwarded to
+   the sessions that sent ANNOUNCE namespace=(foo) and ANNOUNCE
+   namespace=(foo, bar) respectively, but not one that sent ANNOUNCE
+   namespace=(foobar).  Relays MUST forward SUBSCRIBE messages to all
+   publishers and ANNOUNCE and PUBLISH messages to all subscribers that
+   have a namespace prefix match.
 
-   When a relay receives an incoming SUBSCRIBE request that triggers an
-   upstream subscription, it SHOULD send a SUBSCRIBE request to each
-   publisher that has announced the subscription's namespace, unless it
-   already has an active subscription for the Objects requested by the
-   incoming SUBSCRIBE request from all available publishers.
+   When a relay receives an incoming SUBSCRIBE that triggers an upstream
+   subscription, it SHOULD send a SUBSCRIBE request to each publisher
+   that has announced the subscription's namespace or prefix thereof,
+   unless it already has an active subscription for the Objects
+   requested by the incoming SUBSCRIBE request from all available
+   publishers.  If it already has a matching upstream subscription in
+   Forward State=0, it SHOULD send a SUBSCRIBE_UDPATE with Forward=1 to
+   all publishers.
+
+   When a relay receives an incoming PUBLISH message, it MUST send a
+   PUBLISH request to each subscriber that has subscribed (via
+   SUBSCRIBE_ANNOUNCES) to the track's namespace or prefix thereof.
 
    When a relay receives an incoming ANNOUNCE for a given namespace, for
    each active upstream subscription that matches that namespace, it
    SHOULD send a SUBSCRIBE to the publisher that sent the ANNOUNCE.
+   When it receives an incoming PUBLISH message for a track that has
+   active subscribers, it SHOULD respond with PUBLISH_OK with Forward
+   State=1.
 
    Relays use the Track Alias (Section 9.1) of an incoming Object to
    identify its track and find the active subscribers.  Relays MUST
@@ -1356,14 +1425,14 @@ Table of Contents
    If the original publisher detects it is likely to need to switch
    networks, for example because the WiFi signal is getting weaker, and
    it does not have QUIC connection migration available, it establishes
-   a new session over the new interface and sends an ANNOUNCE.  The
-   relay will forward matching subscribes and the publisher publishes
-   objects on both sessions.  Once the subscriptions have migrated over
-   to the session on the new network, the publisher can stop publishing
-   objects on the old network.  The relay will drop duplicate objects
-   received on both subscriptions.  Ideally, the subscriptions
-   downstream from the relay do no observe this change, and keep
-   receiving the objects on the same subscription.
+   a new session over the new interface and sends ANNOUNCE and/or
+   PUBLISH messages.  The relay will establish subscriptions and the
+   publisher publishes objects on both sessions.  Once the subscriptions
+   have migrated over to session on the new network, the publisher can
+   stop publishing objects on the old network.  The relay will drop
+   duplicate objects received on both subscriptions.  Ideally, the
+   subscriptions downstream from the relay do no observe this change,
+   and keep receiving the objects on the same subscription.
 
 7.3.2.  Graceful Publisher Relay Switchover
 
@@ -1372,12 +1441,12 @@ Table of Contents
    them a GOAWAY.
 
    When a publisher receives a GOAWAY, it starts the process of
-   connecting to a new relay and sends announces, but it does not
-   immediately stop publishing objects to the old relay.  The new relay
-   will send subscribes and the publisher can start sending new objects
-   to the new relay instead of the old relay.  Once objects are going to
-   the new relay, the announcement and subscription to the old relay can
-   be stopped.
+   connecting to a new relay and sends ANNOUNCE and/or PUBLISH messages,
+   but it does not immediately stop publishing objects to the old relay.
+   The new relay will establish subscriptions and the publisher can
+   start sending new objects to the new relay instead of the old relay.
+   Once objects are going to the new relay, the announcements and
+   subscriptions to the old relay can be withdrawn or terminated.
 
 7.4.  Relay Object Handling
 
@@ -1447,37 +1516,43 @@ Table of Contents
            +------+--------------------------------------------+
            |  0xB | SUBSCRIBE_DONE (Section 8.12)              |
            +------+--------------------------------------------+
-           | 0x16 | FETCH (Section 8.13)                       |
+           |  0xD | PUBLISH (Section 8.13)                     |
            +------+--------------------------------------------+
-           | 0x18 | FETCH_OK (Section 8.14)                    |
+           |  0xE | PUBLISH_OK (Section 8.14)                  |
            +------+--------------------------------------------+
-           | 0x19 | FETCH_ERROR (Section 8.15)                 |
+           |  0xF | PUBLISH_ERROR (Section 8.15)               |
            +------+--------------------------------------------+
-           | 0x17 | FETCH_CANCEL (Section 8.16)                |
+           | 0x16 | FETCH (Section 8.16)                       |
            +------+--------------------------------------------+
-           |  0xD | TRACK_STATUS (Section 8.17)                |
+           | 0x18 | FETCH_OK (Section 8.17)                    |
            +------+--------------------------------------------+
-           |  0xE | TRACK_STATUS_OK (Section 8.18              |
+           | 0x19 | FETCH_ERROR (Section 8.18)                 |
            +------+--------------------------------------------+
-           |  0xF | TRACK_STATUS_ERROR (Section 8.19)          |
+           | 0x17 | FETCH_CANCEL (Section 8.19)                |
            +------+--------------------------------------------+
-           |  0x6 | ANNOUNCE (Section 8.20)                    |
+           |  0xD | TRACK_STATUS_REQUEST (Section 8.20)        |
            +------+--------------------------------------------+
-           |  0x7 | ANNOUNCE_OK (Section 8.21)                 |
+           |  0xE | TRACK_STATUS (Section 8.21)                |
            +------+--------------------------------------------+
-           |  0x8 | ANNOUNCE_ERROR (Section 8.22)              |
+           |  0x6 | ANNOUNCE (Section 8.22)                    |
            +------+--------------------------------------------+
-           |  0x9 | UNANNOUNCE (Section 8.23)                  |
+           |  0x7 | ANNOUNCE_OK (Section 8.23)                 |
            +------+--------------------------------------------+
-           |  0xC | ANNOUNCE_CANCEL (Section 8.24)             |
+           |  0x8 | ANNOUNCE_ERROR (Section 8.24)              |
            +------+--------------------------------------------+
-           | 0x11 | SUBSCRIBE_ANNOUNCES (Section 8.25)         |
+           |  0x9 | UNANNOUNCE (Section 8.25)                  |
            +------+--------------------------------------------+
-           | 0x12 | SUBSCRIBE_ANNOUNCES_OK (Section 8.26)      |
+           |  0xC | ANNOUNCE_CANCEL (Section 8.26)             |
            +------+--------------------------------------------+
-           | 0x13 | SUBSCRIBE_ANNOUNCES_ERROR (Section 8.27    |
+           | 0x11 | SUBSCRIBE_ANNOUNCES (Section 8.27)         |
            +------+--------------------------------------------+
-           | 0x14 | UNSUBSCRIBE_ANNOUNCES (Section 8.28)       |
+           | 0x12 | SUBSCRIBE_ANNOUNCES_OK (Section 8.28)      |
+           +------+--------------------------------------------+
+           | 0x13 | SUBSCRIBE_ANNOUNCES_ERROR (Section 8.29    |
+           +------+--------------------------------------------+
+           | 0x14 | UNSUBSCRIBE_ANNOUNCES (Section 8.30)       |
+           +------+--------------------------------------------+
+           | 0x15 | NEW_GROUP (Section 8.31)                   |
            +------+--------------------------------------------+
 
                                   Table 2
@@ -1539,27 +1614,27 @@ Table of Contents
 
 8.2.1.1.  AUTHORIZATION TOKEN
 
-   The AUTHORIZATION TOKEN parameter (Parameter Type 0x01) identifies a
-   track's authorization information in a SUBSCRIBE,
-   SUBSCRIBE_ANNOUNCES, ANNOUNCE TRACK_STATUS or FETCH message.  This
-   parameter is populated for cases where the authorization is required
-   at the track or namespace level.
+   The AUTHORIZATION TOKEN parameter (Parameter Type 0x03) MAY appear in
+   a CLIENT_SETUP, SERVER_SETUP, SUBSCRIBE, SUBSCRIBE_ANNOUNCES,
+   ANNOUNCE, TRACK_STATUS_REQUEST or FETCH message.  This parameter
+   conveys information to authorize the sender to perform the operation
+   carrying the parameter.
 
    The AUTHORIZATION TOKEN parameter MAY be repeated within a message.
 
-   The TOKEN value is a structured object containing an optional
-   session-specific alias.  The Alias allows the client to reference a
-   previously transmitted TOKEN in future messages.  The TOKEN value is
-   serialized as follows:
+   The parameter value is a Token structure containing an optional
+   Session-specific Alias.  The Alias allows the sender to reference a
+   previously transmitted Token Type and Token Value in future messages.
+   The Token structure is serialized as follows:
 
-   TOKEN {
+   Token {
      Alias Type (i),
      [Token Alias (i),]
      [Token Type (i),]
      [Token Value (..)]
    }
 
-                    Figure 4: AUTHORIZATION TOKEN value
+                         Figure 4: Token structure
 
    *  Alias Type - an integer defining both the serialization and the
       processing behavior of the receiver.  This Alias type has the
@@ -1609,56 +1684,65 @@ Table of Contents
 
                                  Table 3
 
-   *  Token Alias - a session-specific integer identifier that
-      references a Token Value.  The Token Alias MUST be unique within
-      the Session.  Once a Token Alias has been registered, it cannot be
-      re-registered within the Session without first being deleted.  Use
-      of the Token Alias is optional.
+   *  Token Alias - a Session-specific integer identifier that
+      references a Token Value.  There are separate Alias spaces for the
+      client and server (e.g.: they can each register Alias=1).  Once a
+      Token Alias has been registered, it cannot be re-registered by the
+      same sender in the Session without first being deleted.  Use of
+      the Token Alias is optional.
 
    *  Token Type - a numeric identifier for the type of Token payload
       being transmitted.  This type is defined by the IANA table "MOQT
       Auth Token Type" (see Section 12).  Type 0 is reserved to indicate
-      that the type is not defined in the table and must be negotiated
-      out-of-band between client and receiver.
+      that the type is not defined in the table and is negotiated out-
+      of-band between client and receiver.
 
    *  Token Value - the payload of the Token.  The contents and
       serialization of this payload are defined by the Token Type.
 
-   The receiver of a message containing an invalid AUTHORIZATION TOKEN
-   parameter MUST reject that message with an Malformed Auth Token
-   error.  This can be due to invalid serialization or providing a token
-   value which does not match the declared Token Type.  The receiver of
-   a message referencing an alias that is not currently registered MUST
-   reject the message with Unknown Auth Token Alias.  The receiver of a
-   message attempting to register an alias which is already registered
-   MUST close the session with Duplicate Auth Token Alias.
+   If the Token structure cannot be decoded, the receiver MUST close the
+   Session with Key-Value Formatting error.  The receiver of a message
+   attempting to register an Alias which is already registered MUST
+   close the Session with Duplicate Auth Token Alias.  The receiver of a
+   message referencing an Alias that is not currently registered MUST
+   reject the message with Unknown Auth Token Alias.
 
-   Any message carrying an AUTHORIZATION TOKEN with Alias Type REGISTER
-   that does not result in Malformed Auth Token MUST effect the token
-   registration, even if the message fails for other reasons, including
-   Unauthorized.  This allows senders to pipeline messages that refer to
-   previously registered tokens.
+   The receiver of a message containing a well-formed Token structure
+   but otherwise invalid AUTHORIZATION TOKEN parameter MUST reject that
+   message with an Malformed Auth Token error.
+
+   The receiver of a message carrying an AUTHORIZATION TOKEN with Alias
+   Type REGISTER that does not result in a Session error MUST register
+   the Token Alias, in the token cache, even if the message fails for
+   other reasons, including Unauthorized.  This allows senders to
+   pipeline messages that refer to previously registered tokens without
+   potentially terminating the entire Session.  A receiver MAY store an
+   error code (eg: Unauthorized or Malformed Auth Token) in place of the
+   Token Type and Token Alias if any future message referencing the
+   Token Alias will result in that error.  The size of a registered
+   cache entry includes the length of the Token Value, regardless of
+   whether it is stored.
 
    If a receiver detects that an authorization token has expired, it
-   MUST retain the registered alias until it is deleted by the sender,
+   MUST retain the registered Alias until it is deleted by the sender,
    though it MAY discard other state associated with the token that is
    no longer needed.  Expiration does not affect the size occupied by a
    token in the token cache.  Any message that references the token with
    Alias Type USE_ALIAS fails with Expired Auth Token.
 
-   Using an Alias to refer to a previously registered Token Value is for
-   efficiency only and has the same effect as if the Token Value was
-   included directly.  Retiring an Alias that was previously used to
-   authorize a message has no retroactive effect on the original
-   authorization, nor does it prevent that same Token Value being re-
-   registered.
+   Using an Alias to refer to a previously registered Token Type and
+   Value is for efficiency only and has the same effect as if the Token
+   Type and Value was included directly.  Retiring an Alias that was
+   previously used to authorize a message has no retroactive effect on
+   the original authorization, nor does it prevent that same Token Type
+   and Value from being re-registered.
 
-   Clients SHOULD only register tokens which they intend to re-use
-   during the session.  Client SHOULD retire previously registered
+   Senders of tokens SHOULD only register tokens which they intend to
+   re-use during the Session and SHOULD retire previously registered
    tokens once their utility has passed.
 
-   By registering a Token, the client is requiring the receiver to store
-   the Token Alias and Token Value until they are retired, or the
+   By registering a Token, the sender is requiring the receiver to store
+   the Token Alias and Token Value until they are deleted, or the
    Session ends.  The receiver can protect its resources by sending a
    SETUP parameter defining the MAX_AUTH_TOKEN_CACHE_SIZE limit (see
    Section 8.3.2.3) it is willing to accept.  If a registration is
@@ -1720,6 +1804,14 @@ Table of Contents
    Once Objects have expired from cache, their state becomes unknown,
    and a relay that handles a downstream request that includes those
    Objects re-requests them.
+
+8.2.1.4.  DYNAMIC GROUPS Parameter
+
+   The DYNAMIC_GROUPS is Original Publisher only parameter (parameter
+   type 0x20) and MAY appear in PUBLISH or SUBSCRIBE_OK.  Values larger
+   than 1 are a Protocol Violation.  When the value is 1, it indicates
+   that the subscriber can send a NEW_GROUP messsage to request a new
+   synchronization point for the track.
 
 8.3.  CLIENT_SETUP and SERVER_SETUP
 
@@ -1813,14 +1905,29 @@ Table of Contents
    communicates the maximum size in bytes of all actively registered
    Authorization tokens that the server is willing to store per Session.
    This parameter is optional.  The default value is 0 which prohibits
-   the use of token aliases.
+   the use of token Aliases.
 
-   The token size is calculated as 8 bytes + the size of the Token value
-   (see Figure 4).  The total size as restricted by the
+   The token size is calculated as 16 bytes + the size of the Token
+   Value field (see Figure 4).  The total size as restricted by the
    MAX_AUTH_TOKEN_CACHE_SIZE parameter is calculated as the sum of the
    token sizes for all registered tokens (Alias Type value of 0x01)
    minus the sum of the token sizes for all deregistered tokens (Alias
    Type value of 0x00), since Session initiation.
+
+8.3.2.4.  AUTHORIZATION TOKEN
+
+   See Section 8.2.1.1.  The endpoint can specify one or more tokens in
+   CLIENT_SETUP or SERVER_SETUP that the peer can use to authorize MOQT
+   session establishment.
+
+   If a server receives an AUTHORIZATION TOKEN parameter in CLIENT_SETUP
+   with Alias Type REGISTER_TOKEN that exceeds its
+   MAX_AUTH_TOKEN_CACHE_SIZE, it MUST NOT fail the session with Auth
+   Token Cache Overflow.  Instead, it MUST treat the parameter as Alias
+   Type USE_VALUE.  A client MUST handle registration failures of this
+   kind by purging any Token Aliases that failed to register based on
+   the MAX_AUTH_TOKEN_CACHE_SIZE parameter in SERVER_SETUP (or the
+   default value of 0).
 
 8.4.  GOAWAY
 
@@ -1833,7 +1940,7 @@ Table of Contents
    a publisher MAY reject new requests while in the draining state.
 
    Upon receiving a GOAWAY, an endpoint SHOULD NOT initiate new requests
-   to the peer including SUBSCRIBE, FETCH, ANNOUNCE and
+   to the peer including SUBSCRIBE, PUBLISH, FETCH, ANNOUNCE and
    SUBSCRIBE_ANNOUNCE.
 
    The endpoint MUST terminate the session with a Protocol Violation
@@ -1877,12 +1984,12 @@ Table of Contents
 
                    Figure 7: MOQT MAX_REQUEST_ID Message
 
-   *  Request ID: The new Maximum Request ID for the session plus one.
-      If a Request ID equal or larger than this is received by the
+   *  Request ID: The new Maximum Request ID for the session plus 1.  If
+      a Request ID equal to or larger than this is received by the
       endpoint that sent the MAX_REQUEST_ID in any request message
-      (ANNOUNCE, FETCH, SUBSCRIBE, SUBSCRIBE_ANNOUNCES or TRACK_STATUS),
-      the endpoint MUST close the session with an error of 'Too Many
-      Requests'.
+      (ANNOUNCE, FETCH, SUBSCRIBE, SUBSCRIBE_ANNOUNCES or
+      TRACK_STATUS_REQUEST), the endpoint MUST close the session with an
+      error of 'Too Many Requests'.
 
    MAX_REQUEST_ID is similar to MAX_STREAMS in ([RFC9000], Section 4.6),
    and similar considerations apply when deciding how often to send
@@ -1973,7 +2080,7 @@ Table of Contents
    A filter type other than the above MUST be treated as error.
 
    Subscribe only delivers newly published or received Objects.  Objects
-   from the past are retrieved using FETCH (Section 8.13).
+   from the past are retrieved using FETCH (Section 8.16).
 
    A Subscription can also request a publisher to not forward Objects
    for a given track by setting the Forward field to 0.  This allows the
@@ -2131,27 +2238,25 @@ Table of Contents
    The application SHOULD use a relevant error code in SUBSCRIBE_ERROR,
    as defined below:
 
-                    +======+==========================+
-                    | Code | Reason                   |
-                    +======+==========================+
-                    |  0x0 | Internal Error           |
-                    +------+--------------------------+
-                    |  0x1 | Unauthorized             |
-                    +------+--------------------------+
-                    |  0x2 | Timeout                  |
-                    +------+--------------------------+
-                    |  0x3 | Not Supported            |
-                    +------+--------------------------+
-                    |  0x4 | Track Does Not Exist     |
-                    +------+--------------------------+
-                    |  0x5 | Invalid Range            |
-                    +------+--------------------------+
-                    | 0x10 | Malformed Auth Token     |
-                    +------+--------------------------+
-                    | 0x11 | Unknown Auth Token Alias |
-                    +------+--------------------------+
-                    | 0x12 | Expired Auth Token       |
-                    +------+--------------------------+
+                      +======+======================+
+                      | Code | Reason               |
+                      +======+======================+
+                      |  0x0 | Internal Error       |
+                      +------+----------------------+
+                      |  0x1 | Unauthorized         |
+                      +------+----------------------+
+                      |  0x2 | Timeout              |
+                      +------+----------------------+
+                      |  0x3 | Not Supported        |
+                      +------+----------------------+
+                      |  0x4 | Track Does Not Exist |
+                      +------+----------------------+
+                      |  0x5 | Invalid Range        |
+                      +------+----------------------+
+                      | 0x10 | Malformed Auth Token |
+                      +------+----------------------+
+                      | 0x12 | Expired Auth Token   |
+                      +------+----------------------+
 
                                   Table 4
 
@@ -2176,9 +2281,6 @@ Table of Contents
 
    *  Malformed Auth Token - Invalid Auth Token serialization during
       registration (see Section 8.2.1.1).
-
-   *  Unknown Auth Token Alias - Authorization Token refers to an alias
-      that is not registered (see Section 8.2.1.1).
 
    *  Expired Auth Token - Authorization token has expired
       Section 8.2.1.1).
@@ -2393,7 +2495,166 @@ Table of Contents
    *  Malformed Track - A relay publisher detected the track was
       malformed (see Section 2.5).
 
-8.13.  FETCH
+8.13.  PUBLISH
+
+   The publisher sends the PUBLISH control message to initiate a
+   subscription to a track.  The receiver verifies the publisher is
+   authorized to publish this track.
+
+   PUBLISH Message {
+     Type (i) = 0xD,
+     Length (i),
+     Request ID (i),
+     Track Namespace (tuple),
+     Track Name Length (i),
+     Track Name (..),
+     Track Alias (i),
+     Group Order (8),
+     ContentExists (8),
+     [Largest (Location),]
+     Forward (8),
+     Number of Parameters (i),
+     Parameters (..) ...,
+   }
+
+                      Figure 15: MOQT PUBLISH Message
+
+   *  Request ID: See Section 8.1.
+
+   *  Track Namespace: Identifies a track's namespace as defined in
+      (Section 2.4.1)
+
+   *  Track Name: Identifies the track name as defined in
+      (Section 2.4.1).
+
+   *  Track Alias: The identifer used for this track in Subgroups or
+      Datagrams (see Section 9.1).  The same Track Alias MUST NOT be
+      used to refer to two different Tracks simultaneously.  If a
+      subscriber receives a PUBLISH that uses the same Track Alias as a
+      different track with an active subscription, it MUST close the
+      session with error 'Duplicate Track Alias'.
+
+   *  Group Order: Indicates the subscription will be delivered in
+      Ascending (0x1) or Descending (0x2) order by group.  See
+      Section 6.  Values of 0x0 and those larger than 0x2 are a protocol
+      error.
+
+   *  ContentExists: 1 if an object has been published on this track, 0
+      if not.  If 0, then the Largest Group ID and Largest Object ID
+      fields will not be present.  Any other value is a protocol error
+      and MUST terminate the session with a Protocol Violation
+      (Section 3.4).
+
+   *  Largest: The location of the largest object available for this
+      track.
+
+   *  Forward: The forward mode for this subscription.  Any value other
+      than 0 or 1 is a Protocol Violation.  0 indicates the publisher
+      will not transmit any objects until the subscriber sets the
+      Forward State to 1. 1 indicates the publisher will start
+      transmitting objects immediately, even before PUBLISH_OK.
+
+   *  Parameters: The parameters are defined in Section 8.2.1.
+
+8.14.  PUBLISH_OK
+
+   The subscriber sends an PUBLISH_OK control message to acknowledge the
+   successful authorization and acceptance of a PUBLISH message, and
+   establish a subscription.
+
+   PUBLISH_OK Message
+   {
+     Type (i) = 0xE,
+     Length (i),
+     Request ID (i),
+     Forward (8),
+     Subscriber Priority (8),
+     Group Order (8),
+     Filter Type (i),
+     [Start (Location)],
+     [EndGroup (i)],
+     Number of Parameters (i),
+     Parameters (..) ...,
+   }
+
+                     Figure 16: MOQT PUBLISH_OK Message
+
+   *  Request ID: The Request ID of the PUBLISH this message is replying
+      to Section 8.13.
+
+   *  Forward: The Forward State for this subscription, either 0 (don't
+      forward) or 1 (forward).
+
+   *  Subscriber Priority: The Subscriber Priority for this
+      subscription.
+
+   *  Group Order: Indicates the subscription will be delivered in
+      Ascending (0x1) or Descending (0x2) order by group.  See
+      Section 6.  Values of 0x0 and those larger than 0x2 are a protocol
+      error.  This overwrites the GroupOrder specified PUBLISH.
+
+   *  Filter Type, Start, End Group: See Section 8.7.
+
+   *  Parameters: Parameters associated with this message.
+
+8.15.  PUBLISH_ERROR
+
+   The subscriber sends an PUBLISH_ERROR control message to reject a
+   subscription initiated by PUBLISH.
+
+   PUBLISH_ERROR Message
+   {
+     Type (i) = 0xF,
+     Length (i),
+     Request ID (i),
+     Error Code (i),
+     Error Reason (Reason Phrase),
+   }
+
+                   Figure 17: MOQT PUBLISH_ERROR Message
+
+   *  Request ID: The Request ID of the PUBLISH this message is replying
+      to Section 8.13.
+
+   *  Error Code: Identifies an integer error code for failure.
+
+   *  Error Reason: Provides the reason for subscription error.  See
+      Section 1.3.3.
+
+   The application SHOULD use a relevant error code in PUBLISH_ERROR, as
+   defined below:
+
+                         +======+================+
+                         | Code | Reason         |
+                         +======+================+
+                         |  0x0 | Internal Error |
+                         +------+----------------+
+                         |  0x1 | Unauthorized   |
+                         +------+----------------+
+                         |  0x2 | Timeout        |
+                         +------+----------------+
+                         |  0x3 | Not Supported  |
+                         +------+----------------+
+                         |  0x4 | Uninterested   |
+                         +------+----------------+
+
+                                  Table 6
+
+   *  Internal Error - An implementation specific or generic error
+      occurred.
+
+   *  Unauthorized - The publisher is not authorized to publish the
+      given namespace or track.
+
+   *  Timeout - The subscription could not be established before an
+      implementation specific timeout.
+
+   *  Not Supported - The endpoint does not support the PUBLISH method.
+
+   *  Uninterested - The namespace or track is not of interest to the
+      endpoint.
+
+8.16.  FETCH
 
    A subscriber issues a FETCH to a publisher to request a range of
    already published objects within a track.  The publisher responding
@@ -2481,7 +2742,7 @@ Table of Contents
      Parameters (..) ...
    }
 
-                       Figure 15: MOQT FETCH Message
+                       Figure 18: MOQT FETCH Message
 
    Fields common to all Fetch Types:
 
@@ -2544,7 +2805,7 @@ Table of Contents
    the publisher MUST return FETCH_ERROR with error code 'Invalid
    Range'.
 
-8.13.1.  Calculating the Range of a Relative Joining Fetch
+8.16.1.  Calculating the Range of a Relative Joining Fetch
 
    A publisher that receives a Fetch of type Type 0x2 treats it as a
    Fetch with a range dynamically determined by the Preceding Group
@@ -2570,12 +2831,12 @@ Table of Contents
    subtracted from the Fetch End Location.Group if Fetch End
    Location.Object is 0.
 
-8.13.2.  Calculating the Range of an Absolute Joining Fetch
+8.16.2.  Calculating the Range of an Absolute Joining Fetch
 
    Identical to the Relative Joining fetch except that Fetch Start
    Location.Group is the Joining Start value.
 
-8.14.  FETCH_OK
+8.17.  FETCH_OK
 
    A publisher sends a FETCH_OK control message in response to
    successful fetches.  A publisher MAY send Objects in response to a
@@ -2593,7 +2854,7 @@ Table of Contents
      Subscribe Parameters (..) ...
    }
 
-                      Figure 16: MOQT FETCH_OK Message
+                      Figure 19: MOQT FETCH_OK Message
 
    *  Request ID: The Request ID of the FETCH this message is replying
       to Section 8.7.
@@ -2629,7 +2890,7 @@ Table of Contents
 
    *  Subscribe Parameters: The parameters are defined in Section 8.2.1.
 
-8.15.  FETCH_ERROR
+8.18.  FETCH_ERROR
 
    A publisher sends a FETCH_ERROR control message in response to a
    failed FETCH.
@@ -2642,7 +2903,7 @@ Table of Contents
      Error Reason (Reason Phrase)
    }
 
-                    Figure 17: MOQT FETCH_ERROR Message
+                    Figure 20: MOQT FETCH_ERROR Message
 
    *  Request ID: The Request ID of the FETCH this message is replying
       to Section 8.7.
@@ -2680,12 +2941,10 @@ Table of Contents
                    +------+----------------------------+
                    | 0x10 | Malformed Auth Token       |
                    +------+----------------------------+
-                   | 0x11 | Unknown Auth Token Alias   |
-                   +------+----------------------------+
                    | 0x12 | Expired Auth Token         |
                    +------+----------------------------+
 
-                                  Table 6
+                                  Table 7
 
    *  Internal Error - An implementation specific or generic error
       occurred.
@@ -2721,13 +2980,10 @@ Table of Contents
    *  Malformed Auth Token - Invalid Auth Token serialization during
       registration (see Section 8.2.1.1).
 
-   *  Unknown Auth Token Alias - Authorization Token refers to an alias
-      that is not registered (see Section 8.2.1.1).
-
    *  Expired Auth Token - Authorization token has expired
       Section 8.2.1.1).
 
-8.16.  FETCH_CANCEL
+8.19.  FETCH_CANCEL
 
    A subscriber sends a FETCH_CANCEL message to a publisher to indicate
    it is no longer interested in receiving objects for the fetch
@@ -2743,54 +2999,97 @@ Table of Contents
      Request ID (i)
    }
 
-                    Figure 18: MOQT FETCH_CANCEL Message
+                    Figure 21: MOQT FETCH_CANCEL Message
 
-   *  Request ID: The Request ID of the FETCH (Section 8.13) this
+   *  Request ID: The Request ID of the FETCH (Section 8.16) this
       message is cancelling.
 
-8.17.  TRACK_STATUS
+8.20.  TRACK_STATUS_REQUEST
 
-   A potential subscriber sends a 'TRACK_STATUS' message on the control
-   stream to obtain information about the current status of a given
-   track.
+   A potential subscriber sends a 'TRACK_STATUS_REQUEST' message on the
+   control stream to obtain information about the current status of a
+   given track.
 
-   The TRACK_STATUS message format is identical to the SUBSCRIBE message
-   (Section 8.7).
+   A TRACK_STATUS message MUST be sent in response to each
+   TRACK_STATUS_REQUEST.
 
-   The receiver of a TRACK_STATUS message treats it identically as if it
-   had received a SUBSCRIBE message, except it does not create
-   subscription state or send any Objects.  Relays without an active
-   subscription MAY forward TRACK_STATUS to one or more publishers, or
-   MAY initiate a subscription as described in Section 7.3 to determine
-   the response.  The publisher does not send SUBSCRIBE_DONE for this
-   request, and the subscriber cannot send SUBSCRIBE_UPDATE or
-   UNSUBSCRIBE.
+   TRACK_STATUS_REQUEST Message {
+     Type (i) = 0xD,
+     Length (16),
+     Request ID (i),
+     Track Namespace (tuple),
+     Track Name Length (i),
+     Track Name (..),
+     Number of Parameters (i),
+     Parameters (..) ...,
+   }
 
-8.18.  TRACK_STATUS_OK
+                Figure 22: MOQT TRACK_STATUS_REQUEST Message
 
-   The publisher sends a TRACK_STATUS_OK control message in response to
-   a successful TRACK_STATUS message.
+   *  Request ID: See Section 8.1.
 
-   The TRACK_STATUS_OK message format is identical to the SUBSCRIBE_OK
-   message (Section 8.8).
+   *  Track Namespace: Identifies the namespace of the track as defined
+      in (Section 2.4.1).
 
-   The publisher populates the fields of TRACK_STATUS_OK exactly as it
-   would have populated a SUBSCRIBE_OK, setting Track Alias to 0.  It is
-   not considered an error if Track Alias 0 is already in use by an
-   active subscription.
+   *  Track Name: Identifies the track name as defined in
+      (Section 2.4.1).
 
-8.19.  TRACK_STATUS_ERROR
+   *  Parameters: The parameters are defined in Section 8.2.1.
 
-   The publisher sends a TRACK_STATUS_ERROR control message in response
-   to a failed TRACK_STATUS message.
+8.21.  TRACK_STATUS
 
-   The TRACK_STATUS_ERROR message format is identical to the
-   SUBSCRIBE_ERROR message (Section 8.9).
+   A publisher sends a 'TRACK_STATUS' message on the control stream in
+   response to a TRACK_STATUS_REQUEST message.
 
-   The publisher populates the fields of TRACK_STATUS_ERROR exactly as
-   it would have populated a SUBSCRIBE_ERROR.
+   TRACK_STATUS Message {
+     Type (i) = 0xE,
+     Length (16),
+     Request ID (i),
+     Status Code (i),
+     Largest Location (Location),
+     Number of Parameters (i),
+     Parameters (..) ...,
+   }
 
-8.20.  ANNOUNCE
+                    Figure 23: MOQT TRACK_STATUS Message
+
+   *  Request ID: The Request ID of the TRACK_STATUS_REQUEST this
+      message is replying to Section 8.21.
+
+   *  Status Code: Provides additional information about the status of
+      the track.  It MUST hold one of the following values.  Any other
+      value is a malformed message.
+
+   0x00: The track is in progress, and subsequent fields contain the
+   highest group and object ID for that track.
+
+   0x01: The track does not exist.  Subsequent fields MUST be zero, and
+   any other value is a malformed message.
+
+   0x02: The track has not yet begun.  Subsequent fields MUST be zero.
+   Any other value is a malformed message.
+
+   0x03: The track has finished, so there is no "live edge."  Subsequent
+   fields contain the highest Group and object ID known.
+
+   0x04: The publisher is a relay that cannot obtain the current track
+   status from upstream.  Subsequent fields contain the largest group
+   and object ID known.
+
+   Any other value in the Status Code field is a malformed message.
+
+   TODO: Auth Failures
+
+   *  Largest Location: represents the largest Object location observed
+      by the Publisher for an active subscription.  If the publisher is
+      a relay without an active subscription, it SHOULD send a
+      TRACK_STATUS_REQUEST upstream or MAY subscribe to the track, to
+      obtain the same information.  If neither is possible, it should
+      return the best available information with status code 0x04.
+
+   The Parameters are defined in Section 8.2.1.
+
+8.22.  ANNOUNCE
 
    The publisher sends the ANNOUNCE control message to advertise that it
    has tracks available within the announced Track Namespace.  The
@@ -2806,7 +3105,7 @@ Table of Contents
      Parameters (..) ...,
    }
 
-                      Figure 19: MOQT ANNOUNCE Message
+                      Figure 24: MOQT ANNOUNCE Message
 
    *  Request ID: See Section 8.1.
 
@@ -2815,7 +3114,7 @@ Table of Contents
 
    *  Parameters: The parameters are defined in Section 8.2.1.
 
-8.21.  ANNOUNCE_OK
+8.23.  ANNOUNCE_OK
 
    The subscriber sends an ANNOUNCE_OK control message to acknowledge
    the successful authorization and acceptance of an ANNOUNCE message.
@@ -2826,12 +3125,12 @@ Table of Contents
      Request ID (i)
    }
 
-                    Figure 20: MOQT ANNOUNCE_OK Message
+                    Figure 25: MOQT ANNOUNCE_OK Message
 
    *  Request ID: The Request ID of the ANNOUNCE this message is
-      replying to Section 8.20.
+      replying to Section 8.22.
 
-8.22.  ANNOUNCE_ERROR
+8.24.  ANNOUNCE_ERROR
 
    The subscriber sends an ANNOUNCE_ERROR control message for tracks
    that failed authorization.
@@ -2844,10 +3143,10 @@ Table of Contents
      Error Reason (Reason Phrase)
    }
 
-                   Figure 21: MOQT ANNOUNCE_ERROR Message
+                   Figure 26: MOQT ANNOUNCE_ERROR Message
 
    *  Request ID: The Request ID of the ANNOUNCE this message is
-      replying to Section 8.20.
+      replying to Section 8.22.
 
    *  Error Code: Identifies an integer error code for announcement
       failure.
@@ -2858,27 +3157,25 @@ Table of Contents
    The application SHOULD use a relevant error code in ANNOUNCE_ERROR,
    as defined below:
 
-                    +======+==========================+
-                    | Code | Reason                   |
-                    +======+==========================+
-                    |  0x0 | Internal Error           |
-                    +------+--------------------------+
-                    |  0x1 | Unauthorized             |
-                    +------+--------------------------+
-                    |  0x2 | Timeout                  |
-                    +------+--------------------------+
-                    |  0x3 | Not Supported            |
-                    +------+--------------------------+
-                    |  0x4 | Uninterested             |
-                    +------+--------------------------+
-                    | 0x10 | Malformed Auth Token     |
-                    +------+--------------------------+
-                    | 0x11 | Unknown Auth Token Alias |
-                    +------+--------------------------+
-                    | 0x12 | Expired Auth Token       |
-                    +------+--------------------------+
+                      +======+======================+
+                      | Code | Reason               |
+                      +======+======================+
+                      |  0x0 | Internal Error       |
+                      +------+----------------------+
+                      |  0x1 | Unauthorized         |
+                      +------+----------------------+
+                      |  0x2 | Timeout              |
+                      +------+----------------------+
+                      |  0x3 | Not Supported        |
+                      +------+----------------------+
+                      |  0x4 | Uninterested         |
+                      +------+----------------------+
+                      | 0x10 | Malformed Auth Token |
+                      +------+----------------------+
+                      | 0x12 | Expired Auth Token   |
+                      +------+----------------------+
 
-                                  Table 7
+                                  Table 8
 
    *  Internal Error - An implementation specific or generic error
       occurred.
@@ -2896,13 +3193,10 @@ Table of Contents
    *  Malformed Auth Token - Invalid Auth Token serialization during
       registration (see Section 8.2.1.1).
 
-   *  Unknown Auth Token Alias - Authorization Token refers to an alias
-      that is not registered (see Section 8.2.1.1).
-
    *  Expired Auth Token - Authorization token has expired
       Section 8.2.1.1).
 
-8.23.  UNANNOUNCE
+8.25.  UNANNOUNCE
 
    The publisher sends the UNANNOUNCE control message to indicate its
    intent to stop serving new subscriptions for tracks within the
@@ -2914,12 +3208,12 @@ Table of Contents
      Track Namespace (tuple),
    }
 
-                     Figure 22: MOQT UNANNOUNCE Message
+                     Figure 27: MOQT UNANNOUNCE Message
 
    *  Track Namespace: Identifies a track's namespace as defined in
       (Section 2.4.1).
 
-8.24.  ANNOUNCE_CANCEL
+8.26.  ANNOUNCE_CANCEL
 
    The subscriber sends an ANNOUNCE_CANCEL control message to indicate
    it will stop sending new subscriptions for tracks within the provided
@@ -2933,23 +3227,23 @@ Table of Contents
      Error Reason (Reason Phrase),
    }
 
-                  Figure 23: MOQT ANNOUNCE_CANCEL Message
+                  Figure 28: MOQT ANNOUNCE_CANCEL Message
 
    *  Track Namespace: Identifies a track's namespace as defined in
       (Section 2.4.1).
 
    *  Error Code: Identifies an integer error code for canceling the
       announcement.  ANNOUNCE_CANCEL uses the same error codes as
-      ANNOUNCE_ERROR (Section 8.22).
+      ANNOUNCE_ERROR (Section 8.24).
 
    *  Error Reason: Provides the reason for announcement cancelation.
       See Section 1.3.3.
 
-8.25.  SUBSCRIBE_ANNOUNCES
+8.27.  SUBSCRIBE_ANNOUNCES
 
    The subscriber sends the SUBSCRIBE_ANNOUNCES control message to a
-   publisher to request the current set of matching announcements, as
-   well as future updates to the set.
+   publisher to request the current set of matching announcements and
+   established subscriptions, as well as future updates to the set.
 
    SUBSCRIBE_ANNOUNCES Message {
      Type (i) = 0x11,
@@ -2960,7 +3254,7 @@ Table of Contents
      Parameters (..) ...,
    }
 
-                Figure 24: MOQT SUBSCRIBE_ANNOUNCES Message
+                Figure 29: MOQT SUBSCRIBE_ANNOUNCES Message
 
    *  Request ID: See Section 8.1.
 
@@ -2978,26 +3272,28 @@ Table of Contents
 
    The publisher will respond with SUBSCRIBE_ANNOUNCES_OK or
    SUBSCRIBE_ANNOUNCES_ERROR.  If the SUBSCRIBE_ANNOUNCES is successful,
-   the publisher will forward any matching ANNOUNCE messages to the
-   subscriber that it has not yet sent.  If the set of matching ANNOUNCE
+   the publisher will immediately forward existing ANNOUNCE and PUBLISH
+   messages that match the Track Namespace Prefix that have not already
+   been sent to this subscriber.  If the set of matching ANNOUNCE
    messages changes, the publisher sends the corresponding ANNOUNCE or
    UNANNOUNCE message.
 
    A subscriber cannot make overlapping namespace subscriptions on a
    single session.  Within a session, if a publisher receives a
-   SUBSCRIBE_ANNOUNCES with a Track Namespace Prefix that is a prefix of
-   an earlier SUBSCRIBE_ANNOUNCES or vice versa, it MUST respond with
-   SUBSCRIBE_ANNOUNCES_ERROR, with error code Namespace Prefix Overlap.
+   SUBSCRIBE_ANNOUNCES with a Track Namespace Prefix that is a prefix
+   of, suffix of, or equal to an active SUBSCRIBE_ANNOUNCES, it MUST
+   respond with SUBSCRIBE_ANNOUNCES_ERROR, with error code Namespace
+   Prefix Overlap.
 
    The publisher MUST ensure the subscriber is authorized to perform
    this namespace subscription.
 
-   SUBSCRIBE_ANNOUNCES is not required for a publisher to send ANNOUNCE
-   and UNANNOUNCE messages to a subscriber.  It is useful in
+   SUBSCRIBE_ANNOUNCES is not required for a publisher to send ANNOUNCE,
+   UNANNOUNCE or PUBLISH messages to a subscriber.  It is useful in
    applications or relays where subscribers are only interested in or
-   authorized to access a subset of available announcements.
+   authorized to access a subset of available announcements and tracks.
 
-8.26.  SUBSCRIBE_ANNOUNCES_OK
+8.28.  SUBSCRIBE_ANNOUNCES_OK
 
    A publisher sends a SUBSCRIBE_ANNOUNCES_OK control message for
    successful namespace subscriptions.
@@ -3008,12 +3304,12 @@ Table of Contents
      Request ID (i),
    }
 
-               Figure 25: MOQT SUBSCRIBE_ANNOUNCES_OK Message
+               Figure 30: MOQT SUBSCRIBE_ANNOUNCES_OK Message
 
    *  Request ID: The Request ID of the SUBSCRIBE_ANNOUNCES this message
-      is replying to Section 8.25.
+      is replying to Section 8.27.
 
-8.27.  SUBSCRIBE_ANNOUNCES_ERROR
+8.29.  SUBSCRIBE_ANNOUNCES_ERROR
 
    A publisher sends a SUBSCRIBE_ANNOUNCES_ERROR control message in
    response to a failed SUBSCRIBE_ANNOUNCES.
@@ -3026,10 +3322,10 @@ Table of Contents
      Error Reason (Reason Phrase)
    }
 
-             Figure 26: MOQT SUBSCRIBE_ANNOUNCES_ERROR Message
+             Figure 31: MOQT SUBSCRIBE_ANNOUNCES_ERROR Message
 
    *  Request ID: The Request ID of the SUBSCRIBE_ANNOUNCES this message
-      is replying to Section 8.25.
+      is replying to Section 8.27.
 
    *  Error Code: Identifies an integer error code for the namespace
       subscription failure.
@@ -3057,12 +3353,10 @@ Table of Contents
                     +------+--------------------------+
                     | 0x10 | Malformed Auth Token     |
                     +------+--------------------------+
-                    | 0x11 | Unknown Auth Token Alias |
-                    +------+--------------------------+
                     | 0x12 | Expired Auth Token       |
                     +------+--------------------------+
 
-                                  Table 8
+                                  Table 9
 
    *  Internal Error - An implementation specific or generic error
       occurred.
@@ -3085,17 +3379,14 @@ Table of Contents
    *  Malformed Auth Token - Invalid Auth Token serialization during
       registration (see Section 8.2.1.1).
 
-   *  Unknown Auth Token Alias - Authorization Token refers to an alias
-      that is not registered (see Section 8.2.1.1).
-
    *  Expired Auth Token - Authorization token has expired
       Section 8.2.1.1).
 
-8.28.  UNSUBSCRIBE_ANNOUNCES
+8.30.  UNSUBSCRIBE_ANNOUNCES
 
    A subscriber issues a UNSUBSCRIBE_ANNOUNCES message to a publisher
-   indicating it is no longer interested in ANNOUNCE and UNANNOUNCE
-   messages for the specified track namespace prefix.
+   indicating it is no longer interested in ANNOUNCE, UNANNOUNCE and
+   PUBLISH messages for the specified track namespace prefix.
 
    The format of UNSUBSCRIBE_ANNOUNCES is as follows:
 
@@ -3105,9 +3396,58 @@ Table of Contents
      Track Namespace Prefix (tuple)
    }
 
-                    Figure 27: MOQT UNSUBSCRIBE Message
+               Figure 32: MOQT UNSUBSCRIBE_ANNOUNCES Message
 
-   *  Track Namespace Prefix: As defined in Section 8.25.
+   *  Track Namespace Prefix: As defined in Section 8.27.
+
+8.31.  NEW GROUP
+
+   Subscribers issue a NEW_GROUP message to request a new
+   synchronization point (new Group) from original publisher.  This
+   message is sent after a subscription to a track has been successfully
+   established.  The NEW_GROUP message identifies the Largest Group
+   observed by the subscriber in the track and requests the original
+   publisher to publish a new Group with a GroupID greater than the one
+   specified in the message.
+
+   Relay publishers MUST aggregate NEW_GROUP messages if the Largest
+   Group in the request is less than or equal to the Largest Group in
+   the NEW_GROUP message issued upstream.  Otherwise, the relay
+   publisher MUST issue a new upstream NEW_GROUP message.
+
+   Original Publishers that supports NEW_GROUP (via DYNAMIC_GROUPS
+   parameter) MUST create and publish a new group in the requested track
+   if no Group with GroupID larger than or equal to the one specified in
+   the most recent NEW_GROUP message has been published.  Original
+   Publisher(s) MAY delay to generate such a group subject to
+   implementation specific concerns, for example, acheiving a minimum
+   duration for each Group.  The Original Publisher chooses the next
+   Group ID; there are no requirements that it be equal to the Group ID
+   in the NEW_GROUP message.
+
+   NEW_GROUP Message {
+   Type (i) = 0x15,
+   Length (16),
+   Request ID(i),
+   Largest Group (i),
+   Number of Parameters (i),
+   Parameters (..) ...,
+   }
+
+                     Figure 33: MOQT NEW_GROUP Message
+
+   *  Request ID: See Section 8.1.
+
+   *  Track Namespace: Identifies a track's namespace as defined in
+      (Section 2.4.1)
+
+   *  Track Name: Identifies the track name as defined in
+      (Section 2.4.1).
+
+   *  Largest Group: The largest observed group in the track (either in
+      SUBSCRIBE_OK or TRACK_STATUS_OK or SUBSCRIBE_UPDATE_OK).
+
+   *  Parameters: The parameters as defined in Section 8.2.1.
 
 9.  Data Streams and Datagrams
 
@@ -3125,7 +3465,7 @@ Table of Contents
               |      0x05 | FETCH_HEADER (Section 9.4.4)    |
               +-----------+---------------------------------+
 
-                                  Table 9
+                                  Table 10
 
    All MOQT datagrams start with a variable-length integer indicating
    the type of the datagram.
@@ -3138,7 +3478,7 @@ Table of Contents
           | 0x04-0x05 | OBJECT_DATAGRAM_STATUS (Section 9.3.1) |
           +-----------+----------------------------------------+
 
-                                 Table 10
+                                 Table 11
 
    An endpoint that receives an unknown stream or datagram type MUST
    close the session.
@@ -3159,7 +3499,7 @@ Table of Contents
    To optimize wire efficiency, Subgroups and Datagrams refer to a track
    by a numeric identifier, rather than the Full Track Name.  Track
    Alias is chosen by the publisher and included in SUBSCRIBE_OK
-   (Section 8.8.
+   (Section 8.8 or PUBLISH (Section 8.13).
 
 9.2.  Objects
 
@@ -3314,7 +3654,7 @@ Table of Contents
      Object Payload (..),
    }
 
-                      Figure 28: MOQT OBJECT_DATAGRAM
+                      Figure 34: MOQT OBJECT_DATAGRAM
 
    There are 4 defined Type values for OBJECT_DATAGRAM:
 
@@ -3332,7 +3672,7 @@ Table of Contents
                    | 0x03 | Yes          | Yes        |
                    +------+--------------+------------+
 
-                                 Table 11
+                                 Table 12
 
    For Type values where End of Group is Yes, the Object is the last
    Object in the Group.
@@ -3362,7 +3702,7 @@ Table of Contents
      Object Status (i),
    }
 
-                   Figure 29: MOQT OBJECT_DATAGRAM_STATUS
+                   Figure 35: MOQT OBJECT_DATAGRAM_STATUS
 
    The Type field takes the form 0b0000001X (or the set of values from
    0x02 to 0x03).  The LSB of the type determines if the Extensions
@@ -3412,7 +3752,7 @@ Table of Contents
      Publisher Priority (8),
    }
 
-                      Figure 30: MOQT SUBGROUP_HEADER
+                      Figure 36: MOQT SUBGROUP_HEADER
 
    All Objects received on a stream opened with SUBGROUP_HEADER have an
    Object Forwarding Preference = Subgroup.
@@ -3453,7 +3793,7 @@ Table of Contents
     | 0x1D | Yes           | N/A         | Yes        | Yes          |
     +------+---------------+-------------+------------+--------------+
 
-                                 Table 12
+                                 Table 13
 
    For Type values where Contains End of Group is Yes, the last Object
    in this Subgroup stream before a FIN is the last Object in the Group.
@@ -3490,7 +3830,7 @@ Table of Contents
      Object Payload (..),
    }
 
-                   Figure 31: MOQT Subgroup Object Fields
+                   Figure 37: MOQT Subgroup Object Fields
 
    A publisher MUST NOT send an Object on a stream if its Object ID is
    less than a previously sent Object ID within a given group in that
@@ -3604,7 +3944,7 @@ Table of Contents
                         |  0x3 | Session Closed   |
                         +------+------------------+
 
-                                  Table 13
+                                  Table 14
 
    Internal Error:  An implementation specific error
 
@@ -3629,7 +3969,7 @@ Table of Contents
      Request ID (i),
    }
 
-                        Figure 32: MOQT FETCH_HEADER
+                        Figure 38: MOQT FETCH_HEADER
 
    Each object sent on a fetch stream after the FETCH_HEADER has the
    following format:
@@ -3646,7 +3986,7 @@ Table of Contents
      Object Payload (..),
    }
 
-                    Figure 33: MOQT Fetch Object Fields
+                    Figure 39: MOQT Fetch Object Fields
 
    The Object Status field is only sent if the Object Payload Length is
    zero.
@@ -3772,11 +4112,14 @@ Table of Contents
 
    *  Setup parameters
 
-   *  Subscribe parameters
+   *  Subscribe parameters - List which params can be repeated in the
+      table.
 
    *  Subscribe Error codes
 
    *  Subscribe Namespace Error codes
+
+   *  Publish Error codes
 
    *  Announce Error codes
 
@@ -3788,6 +4131,7 @@ Table of Contents
       for standards utilization where space is a premium, 64 - 16383 for
       standards utilization where space is less of a concern, and 16384
       and above for first-come-first-served non-standardization usage.
+      List which headers can be repeated in the table.
 
    *  MOQT Auth Token Type
 
@@ -3838,9 +4182,9 @@ Normative References
    [I-D.draft-ietf-quic-reliable-stream-reset]
               Seemann, M. and K. Oku, "QUIC Stream Resets with Partial
               Delivery", Work in Progress, Internet-Draft, draft-ietf-
-              quic-reliable-stream-reset-06, 28 February 2024,
+              quic-reliable-stream-reset-07, 14 June 2025,
               <https://datatracker.ietf.org/doc/html/draft-ietf-quic-
-              reliable-stream-reset-06>.
+              reliable-stream-reset-07>.
 
    [QUIC]     Iyengar, J., Ed. and M. Thomson, Ed., "QUIC: A UDP-Based
               Multiplexed and Secure Transport", RFC 9000,
