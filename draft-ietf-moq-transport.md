@@ -1606,6 +1606,13 @@ stream. Once Objects have expired from cache, their state becomes unknown, and
 a relay that handles a downstream request that includes those Objects
 re-requests them.
 
+#### DYNAMIC GROUPS Parameter {#dynamic-groups}
+
+The DYNAMIC_GROUPS is Original Publisher only parameter (parameter type 0x20) and MAY appear
+in PUBLISH or SUBSCRIBE_OK.  Values larger than 1 are a Protocol Violation.  When the value is
+1, it indicates that the subscriber can send a NEW_GROUP messsage to request a
+new synchronization point for the track.
+
 ## CLIENT_SETUP and SERVER_SETUP {#message-setup}
 
 The `CLIENT_SETUP` and `SERVER_SETUP` messages are the first messages exchanged
@@ -3121,20 +3128,24 @@ UNSUBSCRIBE_ANNOUNCES Message {
 ## NEW GROUP  {#message-new-group}
 
 Subscribers issue a NEW_GROUP message to request a new synchronization point
-(new Group) from the publisher. This message is sent after a subscription to a
+(new Group) from original publisher. This message is sent after a subscription to a
 track has been successfully established. The NEW_GROUP message identifies the
-Largest Group observed by the subscriber in the track and requests the publisher
-to publish a new Group with a GroupID greater than the one specified in the
-message.
+Largest Group observed by the subscriber in the track and requests the
+original publisher to publish a new Group with a GroupID greater than the
+one specified in the message.
 
 Relay publishers MUST aggregate NEW_GROUP messages if the Largest Group in
 the request is less than or equal to the Largest Group in the NEW_GROUP
 message issued upstream. Otherwise, the relay publisher MUST issue a new
 upstream NEW_GROUP message.
 
-Original publishers MUST create and publish a new group in the requested track
-if no Group with a GroupID greater than or equal to the one specified in the
-most recent NEW_GROUP message has been published.
+Original Publishers that supports NEW_GROUP (via DYNAMIC_GROUPS parameter) MUST
+create and publish a new group in the requested track if no Group with GroupID
+larger than or equal to the one specified in the most recent NEW_GROUP message
+has been published. Original Publisher(s) MAY delay to generate such a group
+subject to implementation specific concerns, for example, acheiving a minimum
+duration for each Group. The Original Publisher chooses the next Group ID; there
+are no requirements that it be equal to the Group ID in the NEW_GROUP message.
 
 ~~~
 NEW_GROUP Message {
@@ -3158,7 +3169,7 @@ Parameters (..) ...,
 * Largest Group: The largest observed group in the track (either in
 SUBSCRIBE_OK or TRACK_STATUS_OK or SUBSCRIBE_UPDATE_OK).
 
-* Parameters: The parameters are d
+* Parameters: The parameters as defined in {{version-specific-params}}.
 
 # Data Streams and Datagrams {#data-streams}
 
