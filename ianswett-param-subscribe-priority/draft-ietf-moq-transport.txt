@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 20 December 2025                                  I. Swett, Ed.
+Expires: 3 January 2026                                    I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                            18 June 2025
+                                                             2 July 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 20 December 2025.
+   This Internet-Draft will expire on 3 January 2026.
 
 Copyright Notice
 
@@ -185,7 +185,8 @@ Table of Contents
      Normative References
      Informative References
    Appendix A.  Change Log
-     A.1.  Since draft-ietf-moq-transport-10
+     A.1.  Since draft-ietf-moq-transport-11
+     A.2.  Since draft-ietf-moq-transport-10
    Authors' Addresses
 
 1.  Introduction
@@ -1516,11 +1517,11 @@ Table of Contents
            +------+--------------------------------------------+
            |  0xB | SUBSCRIBE_DONE (Section 8.12)              |
            +------+--------------------------------------------+
-           |  0x1 | PUBLISH (Section 8.13)                     |
+           | 0x1D | PUBLISH (Section 8.13)                     |
            +------+--------------------------------------------+
-           |  0x2 | PUBLISH_OK (Section 8.14)                  |
+           | 0x1E | PUBLISH_OK (Section 8.14)                  |
            +------+--------------------------------------------+
-           |  0x3 | PUBLISH_ERROR (Section 8.15)               |
+           | 0x1F | PUBLISH_ERROR (Section 8.15)               |
            +------+--------------------------------------------+
            | 0x16 | FETCH (Section 8.16)                       |
            +------+--------------------------------------------+
@@ -2491,7 +2492,7 @@ Table of Contents
    authorized to publish this track.
 
    PUBLISH Message {
-     Type (i) = 0x6,
+     Type (i) = 0x1D,
      Length (i),
      Request ID (i),
      Track Namespace (tuple),
@@ -2553,7 +2554,7 @@ Table of Contents
 
    PUBLISH_OK Message
    {
-     Type (i) = 0x7,
+     Type (i) = 0x1E,
      Length (i),
      Request ID (i),
      Forward (8),
@@ -2589,7 +2590,7 @@ Table of Contents
 
    PUBLISH_ERROR Message
    {
-     Type (i) = 0x8,
+     Type (i) = 0x1F,
      Length (i),
      Request ID (i),
      Error Code (i),
@@ -4210,7 +4211,33 @@ Appendix A.  Change Log
 
    Issue and pull request numbers are listed with a leading octothorp.
 
-A.1.  Since draft-ietf-moq-transport-10
+A.1.  Since draft-ietf-moq-transport-11
+
+   *  Move Track Alias from SUBSCRIBE to SUBSCRIBE_OK (#977)
+
+   *  Expand cases FETCH_OK returns Invalid Range (#946) and clarify
+      fields (#936)
+
+   *  Add an error code to FETCH_ERROR when an Object status is unknown
+      (#825)
+
+   *  Rename Latest Object to Largest Object (#1024) and clarify what to
+      do when it's incomplete (#937)
+
+   *  Explain Malformed Tracks and what to do with them (#938)
+
+   *  Allow End of Group to be indicated in a normal Object (#1011)
+
+   *  Relays MUST have an upstream subscription to send SUBSCRIBE_OK
+      (#1017)
+
+   *  Allow AUTHORIZATION TOKEN in CLIENT_SETUP, SERVER_SETUP and other
+      fixes (#1013)
+
+   *  Add PUBLISH for publisher initiated subscriptions (#995) and fix
+      the PUBLISH codepoints (#1048, #1051)
+
+A.2.  Since draft-ietf-moq-transport-10
 
    *  Added Common Structure definitions - Location, Key-Value-Pair and
       Reason Phrase
