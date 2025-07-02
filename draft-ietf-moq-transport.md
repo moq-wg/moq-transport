@@ -1357,11 +1357,11 @@ The following Message Types are defined:
 |-------|-----------------------------------------------------|
 | 0xB   | SUBSCRIBE_DONE ({{message-subscribe-done}})         |
 |-------|-----------------------------------------------------|
-| 0x1   | PUBLISH  ({{message-publish}})                      |
+| 0x1D  | PUBLISH  ({{message-publish}})                      |
 |-------|-----------------------------------------------------|
-| 0x2   | PUBLISH_OK ({{message-publish-ok}})                 |
+| 0x1E  | PUBLISH_OK ({{message-publish-ok}})                 |
 |-------|-----------------------------------------------------|
-| 0x3   | PUBLISH_ERROR ({{message-publish-error}})           |
+| 0x1F  | PUBLISH_ERROR ({{message-publish-error}})           |
 |-------|-----------------------------------------------------|
 | 0x16  | FETCH ({{message-fetch}})                           |
 |-------|-----------------------------------------------------|
@@ -2254,7 +2254,7 @@ track. The receiver verifies the publisher is authorized to publish this track.
 
 ~~~
 PUBLISH Message {
-  Type (i) = 0x6,
+  Type (i) = 0x1D,
   Length (i),
   Request ID (i),
   Track Namespace (tuple),
@@ -2310,7 +2310,7 @@ authorization and acceptance of a PUBLISH message, and establish a subscription.
 ~~~
 PUBLISH_OK Message
 {
-  Type (i) = 0x7,
+  Type (i) = 0x1E,
   Length (i),
   Request ID (i),
   Forward (8),
@@ -2347,7 +2347,7 @@ a subscription initiated by PUBLISH.
 ~~~
 PUBLISH_ERROR Message
 {
-  Type (i) = 0x8,
+  Type (i) = 0x1F,
   Length (i),
   Request ID (i),
   Error Code (i),
@@ -3794,6 +3794,21 @@ document:
 RFC Editor's Note: Please remove this section prior to publication of a final version of this document.
 
 Issue and pull request numbers are listed with a leading octothorp.
+
+## Since draft-ietf-moq-transport-11
+
+* Move Track Alias from SUBSCRIBE to SUBSCRIBE_OK (#977)
+* Expand cases FETCH_OK returns Invalid Range (#946) and clarify fields (#936)
+* Add an error code to FETCH_ERROR when an Object status is unknown (#825)
+* Rename Latest Object to Largest Object (#1024) and clarify what to
+  do when it's incomplete (#937)
+* Explain Malformed Tracks and what to do with them (#938)
+* Allow End of Group to be indicated in a normal Object (#1011)
+* Relays MUST have an upstream subscription to send SUBSCRIBE_OK (#1017)
+* Allow AUTHORIZATION TOKEN in CLIENT_SETUP, SERVER_SETUP and
+  other fixes (#1013)
+* Add PUBLISH for publisher initiated subscriptions (#995) and
+  fix the PUBLISH codepoints (#1048, #1051)
 
 ## Since draft-ietf-moq-transport-10
 
