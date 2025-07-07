@@ -1457,16 +1457,16 @@ networks and is designed for high scale and low latency distribution.<a href="#s
                 <p id="section-toc.1-1.8.2.26.1"><a href="#section-8.26" class="auto internal xref">8.26</a>. <a href="#name-announce_cancel" class="internal xref">ANNOUNCE_CANCEL</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.27">
-                <p id="section-toc.1-1.8.2.27.1"><a href="#section-8.27" class="auto internal xref">8.27</a>. <a href="#name-subscribe_announces" class="internal xref">SUBSCRIBE_ANNOUNCES</a></p>
+                <p id="section-toc.1-1.8.2.27.1"><a href="#section-8.27" class="auto internal xref">8.27</a>. <a href="#name-subscribe_namespace" class="internal xref">SUBSCRIBE_NAMESPACE</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.28">
-                <p id="section-toc.1-1.8.2.28.1"><a href="#section-8.28" class="auto internal xref">8.28</a>. <a href="#name-subscribe_announces_ok" class="internal xref">SUBSCRIBE_ANNOUNCES_OK</a></p>
+                <p id="section-toc.1-1.8.2.28.1"><a href="#section-8.28" class="auto internal xref">8.28</a>. <a href="#name-subscribe_namespace_ok" class="internal xref">SUBSCRIBE_NAMESPACE_OK</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.29">
-                <p id="section-toc.1-1.8.2.29.1"><a href="#section-8.29" class="auto internal xref">8.29</a>. <a href="#name-subscribe_announces_error" class="internal xref">SUBSCRIBE_ANNOUNCES_ERROR</a></p>
+                <p id="section-toc.1-1.8.2.29.1"><a href="#section-8.29" class="auto internal xref">8.29</a>. <a href="#name-subscribe_namespace_error" class="internal xref">SUBSCRIBE_NAMESPACE_ERROR</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.30">
-                <p id="section-toc.1-1.8.2.30.1"><a href="#section-8.30" class="auto internal xref">8.30</a>. <a href="#name-unsubscribe_announces" class="internal xref">UNSUBSCRIBE_ANNOUNCES</a></p>
+                <p id="section-toc.1-1.8.2.30.1"><a href="#section-8.30" class="auto internal xref">8.30</a>. <a href="#name-unsubscribe_namespace" class="internal xref">UNSUBSCRIBE_NAMESPACE</a></p>
 </li>
             </ul>
 </li>
@@ -2628,7 +2628,7 @@ sending SUBSCRIBE_UPDATE.<a href="#section-4.1-2" class="pilcrow">¶</a></p>
 prior messages other than SETUP.  Relays <span class="bcp14">MUST NOT</span> send any PUBLISH messages
 without knowing the client is interested in and authorized to receive the
 content. The communication of intent and authorization can be accomplished by
-the client sending SUBSCRIBE_ANNOUNCES, or conveyed in other mechanisms out of
+the client sending SUBSCRIBE_NAMESPACE, or conveyed in other mechanisms out of
 band.<a href="#section-4.1-3" class="pilcrow">¶</a></p>
 <p id="section-4.1-4">A publisher <span class="bcp14">MUST</span> send exactly one SUBSCRIBE_OK or SUBSCRIBE_ERROR in response to
 a SUBSCRIBE. It <span class="bcp14">MUST</span> send exactly one FETCH_OK or FETCH_ERROR in response to a
@@ -2673,7 +2673,7 @@ uniqueness guarantee described in <a href="#track-scope" class="auto internal xr
 done in the context of an established MOQT session.<a href="#section-5-1" class="pilcrow">¶</a></p>
 <p id="section-5-2">Given sufficient out of band information, it is valid for a subscriber to send a
 SUBSCRIBE or FETCH message to a publisher (including a relay) without any
-previous MoQT messages besides SETUP. However, SUBSCRIBE_ANNOUNCES, PUBLISH and
+previous MoQT messages besides SETUP. However, SUBSCRIBE_NAMESPACE, PUBLISH and
 ANNOUNCE messages provide an in-band means of discovery of publishers for a
 namespace.<a href="#section-5-2" class="pilcrow">¶</a></p>
 <p id="section-5-3">The syntax of these messages is described in <a href="#message" class="auto internal xref">Section 8</a>.<a href="#section-5-3" class="pilcrow">¶</a></p>
@@ -2683,17 +2683,17 @@ namespace.<a href="#section-5-2" class="pilcrow">¶</a></p>
 <a href="#section-5.1" class="section-number selfRef">5.1. </a><a href="#name-subscribing-to-namespaces" class="section-name selfRef">Subscribing to Namespaces</a>
         </h3>
 <p id="section-5.1-1">If the subscriber is aware of a namespace of interest, it can send
-SUBSCRIBE_ANNOUNCES to publishers/relays it has established a session with. The
+SUBSCRIBE_NAMESPACE to publishers/relays it has established a session with. The
 recipient of this message will send any relevant ANNOUNCE, UNANNOUNCE or PUBLISH
 messages for that namespace, or more specific part of that namespace.<a href="#section-5.1-1" class="pilcrow">¶</a></p>
-<p id="section-5.1-2">A publisher <span class="bcp14">MUST</span> send exactly one SUBSCRIBE_ANNOUNCES_OK or
-SUBSCRIBE_ANNOUNCES_ERROR in response to a SUBSCRIBE_ANNOUNCES. The subscriber
+<p id="section-5.1-2">A publisher <span class="bcp14">MUST</span> send exactly one SUBSCRIBE_NAMESPACE_OK or
+SUBSCRIBE_NAMESPACE_ERROR in response to a SUBSCRIBE_NAMESPACE. The subscriber
 <span class="bcp14">SHOULD</span> close the session with a protocol error if it detects receiving more than
 one.<a href="#section-5.1-2" class="pilcrow">¶</a></p>
-<p id="section-5.1-3">The receiver of a SUBSCRIBE_ANNOUNCES_OK or SUBSCRIBE_ANNOUNCES_ERROR ought to
+<p id="section-5.1-3">The receiver of a SUBSCRIBE_NAMESPACE_OK or SUBSCRIBE_NAMESPACE_ERROR ought to
 forward the result to the application, so the application can decide which other
 publishers to contact, if any.<a href="#section-5.1-3" class="pilcrow">¶</a></p>
-<p id="section-5.1-4">An UNSUBSCRIBE_ANNOUNCES withdraws a previous SUBSCRIBE_ANNOUNCES. It does not
+<p id="section-5.1-4">An UNSUBSCRIBE_NAMESPACE withdraws a previous SUBSCRIBE_NAMESPACE. It does not
 prohibit original publishers from sending further ANNOUNCE or PUBLISH messages,
 but relays <span class="bcp14">MUST NOT</span> send any further PUBLISH messages to a client without
 knowing the client is interested in and authorized to receive the content.<a href="#section-5.1-4" class="pilcrow">¶</a></p>
@@ -3014,7 +3014,7 @@ request from all available publishers.  If it already has a matching upstream
 subscription in Forward State=0, it <span class="bcp14">SHOULD</span> send a SUBSCRIBE_UDPATE with
 Forward=1 to all publishers.<a href="#section-7.3-7" class="pilcrow">¶</a></p>
 <p id="section-7.3-8">When a relay receives an incoming PUBLISH message, it <span class="bcp14">MUST</span> send a PUBLISH
-request to each subscriber that has subscribed (via SUBSCRIBE_ANNOUNCES)
+request to each subscriber that has subscribed (via SUBSCRIBE_NAMESPACE)
 to the track's namespace or prefix thereof.<a href="#section-7.3-8" class="pilcrow">¶</a></p>
 <p id="section-7.3-9">When a relay receives an incoming ANNOUNCE for a given namespace, for
 each active upstream subscription that matches that namespace, it <span class="bcp14">SHOULD</span> send a
@@ -3237,20 +3237,20 @@ MOQT Control Message {
           </tr>
           <tr>
             <td class="text-right" rowspan="1" colspan="1">0x11</td>
-            <td class="text-left" rowspan="1" colspan="1">SUBSCRIBE_ANNOUNCES (<a href="#message-subscribe-ns" class="auto internal xref">Section 8.27</a>)</td>
+            <td class="text-left" rowspan="1" colspan="1">SUBSCRIBE_NAMESPACE (<a href="#message-subscribe-ns" class="auto internal xref">Section 8.27</a>)</td>
           </tr>
           <tr>
             <td class="text-right" rowspan="1" colspan="1">0x12</td>
-            <td class="text-left" rowspan="1" colspan="1">SUBSCRIBE_ANNOUNCES_OK (<a href="#message-sub-ann-ok" class="auto internal xref">Section 8.28</a>)</td>
+            <td class="text-left" rowspan="1" colspan="1">SUBSCRIBE_NAMESPACE_OK (<a href="#message-sub-ns-ok" class="auto internal xref">Section 8.28</a>)</td>
           </tr>
           <tr>
             <td class="text-right" rowspan="1" colspan="1">0x13</td>
-            <td class="text-left" rowspan="1" colspan="1">SUBSCRIBE_ANNOUNCES_ERROR (<a href="#message-sub-ann-error" class="auto internal xref">Section 8.29</a>
+            <td class="text-left" rowspan="1" colspan="1">SUBSCRIBE_NAMESPACE_ERROR (<a href="#message-sub-ns-error" class="auto internal xref">Section 8.29</a>
 </td>
           </tr>
           <tr>
             <td class="text-right" rowspan="1" colspan="1">0x14</td>
-            <td class="text-left" rowspan="1" colspan="1">UNSUBSCRIBE_ANNOUNCES (<a href="#message-unsub-ann" class="auto internal xref">Section 8.30</a>)</td>
+            <td class="text-left" rowspan="1" colspan="1">UNSUBSCRIBE_NAMESPACE (<a href="#message-unsub-ns" class="auto internal xref">Section 8.30</a>)</td>
           </tr>
         </tbody>
       </table>
@@ -3271,7 +3271,7 @@ ongoing requests, and supports the endpoint's ability to limit the concurrency
 and frequency of requests.  There are independent Request IDs for each endpoint.
 The client's Request ID starts at 0 and are even and the server's Request ID
 starts at 1 and are odd.  The Request ID increments by 2 with ANNOUNCE, FETCH,
-SUBSCRIBE, SUBSCRIBE_ANNOUNCES or TRACK_STATUS request.  If an endpoint receives
+SUBSCRIBE, SUBSCRIBE_NAMESPACE or TRACK_STATUS request.  If an endpoint receives
 a Request ID that is not valid for the peer, or a new request with a Request ID
 that is not expected, it <span class="bcp14">MUST</span> close the session with <code>Invalid Request ID</code>.<a href="#section-8.1-1" class="pilcrow">¶</a></p>
 </section>
@@ -3314,7 +3314,7 @@ these parameters to appear in Setup messages.<a href="#section-8.2.1-1" class="p
 <a href="#section-8.2.1.1" class="section-number selfRef">8.2.1.1. </a><a href="#name-authorization-token" class="section-name selfRef">AUTHORIZATION TOKEN</a>
             </h5>
 <p id="section-8.2.1.1-1">The AUTHORIZATION TOKEN parameter (Parameter Type 0x03) <span class="bcp14">MAY</span> appear in a
-CLIENT_SETUP, SERVER_SETUP, SUBSCRIBE, SUBSCRIBE_ANNOUNCES, ANNOUNCE,
+CLIENT_SETUP, SERVER_SETUP, SUBSCRIBE, SUBSCRIBE_NAMESPACE, ANNOUNCE,
 TRACK_STATUS_REQUEST or FETCH message. This parameter conveys information to
 authorize the sender to perform the operation carrying the parameter.<a href="#section-8.2.1.1-1" class="pilcrow">¶</a></p>
 <p id="section-8.2.1.1-2">The AUTHORIZATION TOKEN parameter <span class="bcp14">MAY</span> be repeated within a message.<a href="#section-8.2.1.1-2" class="pilcrow">¶</a></p>
@@ -3685,7 +3685,7 @@ the session soon.  Servers can use GOAWAY to initiate session migration
 <span class="bcp14">SHOULD</span> individually UNSUBSCRIBE for each existing subscription, while a
 publisher <span class="bcp14">MAY</span> reject new requests while in the draining state.<a href="#section-8.4-2" class="pilcrow">¶</a></p>
 <p id="section-8.4-3">Upon receiving a GOAWAY, an endpoint <span class="bcp14">SHOULD NOT</span> initiate new requests to
-the peer including SUBSCRIBE, PUBLISH, FETCH, ANNOUNCE and SUBSCRIBE_ANNOUNCE.<a href="#section-8.4-3" class="pilcrow">¶</a></p>
+the peer including SUBSCRIBE, PUBLISH, FETCH, ANNOUNCE and SUBSCRIBE_NAMESPACE.<a href="#section-8.4-3" class="pilcrow">¶</a></p>
 <p id="section-8.4-4">The endpoint <span class="bcp14">MUST</span> terminate the session with a Protocol Violation
 (<a href="#session-termination" class="auto internal xref">Section 3.4</a>) if it receives multiple GOAWAY messages.<a href="#section-8.4-4" class="pilcrow">¶</a></p>
 <span id="name-moqt-goaway-message"></span><div id="moq-transport-goaway-format">
@@ -3750,7 +3750,7 @@ MAX_REQUEST_ID Message {
             <p id="section-8.5-4.1.1">Request ID: The new Maximum Request ID for the session plus 1. If a Request ID
 equal to or larger than this is received by the endpoint that sent the
 MAX_REQUEST_ID in any request message (ANNOUNCE, FETCH, SUBSCRIBE,
-SUBSCRIBE_ANNOUNCES or TRACK_STATUS_REQUEST), the endpoint <span class="bcp14">MUST</span> close the
+SUBSCRIBE_NAMESPACE or TRACK_STATUS_REQUEST), the endpoint <span class="bcp14">MUST</span> close the
 session with an error of 'Too Many Requests'.<a href="#section-8.5-4.1.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
@@ -5402,17 +5402,17 @@ ANNOUNCE_CANCEL uses the same error codes as ANNOUNCE_ERROR
 </div>
 <div id="message-subscribe-ns">
 <section id="section-8.27">
-        <h3 id="name-subscribe_announces">
-<a href="#section-8.27" class="section-number selfRef">8.27. </a><a href="#name-subscribe_announces" class="section-name selfRef">SUBSCRIBE_ANNOUNCES</a>
+        <h3 id="name-subscribe_namespace">
+<a href="#section-8.27" class="section-number selfRef">8.27. </a><a href="#name-subscribe_namespace" class="section-name selfRef">SUBSCRIBE_NAMESPACE</a>
         </h3>
-<p id="section-8.27-1">The subscriber sends the SUBSCRIBE_ANNOUNCES control message to a publisher to
+<p id="section-8.27-1">The subscriber sends the SUBSCRIBE_NAMESPACE control message to a publisher to
 request the current set of matching announcements and established subscriptions,
 as well as future updates to the set.<a href="#section-8.27-1" class="pilcrow">¶</a></p>
-<span id="name-moqt-subscribe_announces-me"></span><div id="moq-transport-subscribe-ns-format">
+<span id="name-moqt-subscribe_namespace-me"></span><div id="moq-transport-subscribe-ns-format">
 <figure id="figure-29">
           <div class="alignLeft art-text artwork" id="section-8.27-2.1">
 <pre>
-SUBSCRIBE_ANNOUNCES Message {
+SUBSCRIBE_NAMESPACE Message {
   Type (i) = 0x11,
   Length (16),
   Request ID (i),
@@ -5423,7 +5423,7 @@ SUBSCRIBE_ANNOUNCES Message {
 </pre>
 </div>
 <figcaption><a href="#figure-29" class="selfRef">Figure 29</a>:
-<a href="#name-moqt-subscribe_announces-me" class="selfRef">MOQT SUBSCRIBE_ANNOUNCES Message</a>
+<a href="#name-moqt-subscribe_namespace-me" class="selfRef">MOQT SUBSCRIBE_NAMESPACE Message</a>
           </figcaption></figure>
 </div>
 <ul class="normal">
@@ -5435,7 +5435,7 @@ SUBSCRIBE_ANNOUNCES Message {
 against track namespaces known to the publisher.  For example, if the publisher
 is a relay that has received ANNOUNCE messages for namespaces ("example.com",
 "meeting=123", "participant=100") and ("example.com", "meeting=123",
-"participant=200"), a SUBSCRIBE_ANNOUNCES for ("example.com", "meeting=123")
+"participant=200"), a SUBSCRIBE_NAMESPACE for ("example.com", "meeting=123")
 would match both.  If an endpoint receives a Track Namespace Prefix tuple with
 an N of 0 or more than 32, it <span class="bcp14">MUST</span> close the session with a Protocol
 Violation.<a href="#section-8.27-3.2.1" class="pilcrow">¶</a></p>
@@ -5444,37 +5444,37 @@ Violation.<a href="#section-8.27-3.2.1" class="pilcrow">¶</a></p>
             <p id="section-8.27-3.3.1">Parameters: The parameters are defined in <a href="#version-specific-params" class="auto internal xref">Section 8.2.1</a>.<a href="#section-8.27-3.3.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
-<p id="section-8.27-4">The publisher will respond with SUBSCRIBE_ANNOUNCES_OK or
-SUBSCRIBE_ANNOUNCES_ERROR.  If the SUBSCRIBE_ANNOUNCES is successful, the
+<p id="section-8.27-4">The publisher will respond with SUBSCRIBE_NAMESPACE_OK or
+SUBSCRIBE_NAMESPACE_ERROR.  If the SUBSCRIBE_NAMESPACE is successful, the
 publisher will immediately forward existing ANNOUNCE and PUBLISH messages that
 match the Track Namespace Prefix that have not already been sent to this
 subscriber.  If the set of matching ANNOUNCE messages changes, the publisher
 sends the corresponding ANNOUNCE or UNANNOUNCE message.<a href="#section-8.27-4" class="pilcrow">¶</a></p>
 <p id="section-8.27-5">A subscriber cannot make overlapping namespace subscriptions on a single
-session.  Within a session, if a publisher receives a SUBSCRIBE_ANNOUNCES with a
+session.  Within a session, if a publisher receives a SUBSCRIBE_NAMESPACE with a
 Track Namespace Prefix that is a prefix of, suffix of, or equal to an active
-SUBSCRIBE_ANNOUNCES, it <span class="bcp14">MUST</span> respond with SUBSCRIBE_ANNOUNCES_ERROR, with error
+SUBSCRIBE_NAMESPACE, it <span class="bcp14">MUST</span> respond with SUBSCRIBE_NAMESPACE_ERROR, with error
 code Namespace Prefix Overlap.<a href="#section-8.27-5" class="pilcrow">¶</a></p>
 <p id="section-8.27-6">The publisher <span class="bcp14">MUST</span> ensure the subscriber is authorized to perform this
 namespace subscription.<a href="#section-8.27-6" class="pilcrow">¶</a></p>
-<p id="section-8.27-7">SUBSCRIBE_ANNOUNCES is not required for a publisher to send ANNOUNCE, UNANNOUNCE
+<p id="section-8.27-7">SUBSCRIBE_NAMESPACE is not required for a publisher to send ANNOUNCE, UNANNOUNCE
 or PUBLISH messages to a subscriber.  It is useful in applications or relays
 where subscribers are only interested in or authorized to access a subset of
 available announcements and tracks.<a href="#section-8.27-7" class="pilcrow">¶</a></p>
 </section>
 </div>
-<div id="message-sub-ann-ok">
+<div id="message-sub-ns-ok">
 <section id="section-8.28">
-        <h3 id="name-subscribe_announces_ok">
-<a href="#section-8.28" class="section-number selfRef">8.28. </a><a href="#name-subscribe_announces_ok" class="section-name selfRef">SUBSCRIBE_ANNOUNCES_OK</a>
+        <h3 id="name-subscribe_namespace_ok">
+<a href="#section-8.28" class="section-number selfRef">8.28. </a><a href="#name-subscribe_namespace_ok" class="section-name selfRef">SUBSCRIBE_NAMESPACE_OK</a>
         </h3>
-<p id="section-8.28-1">A publisher sends a SUBSCRIBE_ANNOUNCES_OK control message for successful
+<p id="section-8.28-1">A publisher sends a SUBSCRIBE_NAMESPACE_OK control message for successful
 namespace subscriptions.<a href="#section-8.28-1" class="pilcrow">¶</a></p>
-<span id="name-moqt-subscribe_announces_ok"></span><div id="moq-transport-sub-ann-ok">
+<span id="name-moqt-subscribe_namespace_ok"></span><div id="moq-transport-sub-ann-ok">
 <figure id="figure-30">
           <div class="alignLeft art-text artwork" id="section-8.28-2.1">
 <pre>
-SUBSCRIBE_ANNOUNCES_OK Message {
+SUBSCRIBE_NAMESPACE_OK Message {
   Type (i) = 0x12,
   Length (16),
   Request ID (i),
@@ -5482,29 +5482,29 @@ SUBSCRIBE_ANNOUNCES_OK Message {
 </pre>
 </div>
 <figcaption><a href="#figure-30" class="selfRef">Figure 30</a>:
-<a href="#name-moqt-subscribe_announces_ok" class="selfRef">MOQT SUBSCRIBE_ANNOUNCES_OK Message</a>
+<a href="#name-moqt-subscribe_namespace_ok" class="selfRef">MOQT SUBSCRIBE_NAMESPACE_OK Message</a>
           </figcaption></figure>
 </div>
 <ul class="normal">
 <li class="normal" id="section-8.28-3.1">
-            <p id="section-8.28-3.1.1">Request ID: The Request ID of the SUBSCRIBE_ANNOUNCES this message is replying
+            <p id="section-8.28-3.1.1">Request ID: The Request ID of the SUBSCRIBE_NAMESPACE this message is replying
 to <a href="#message-subscribe-ns" class="auto internal xref">Section 8.27</a>.<a href="#section-8.28-3.1.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
 </div>
-<div id="message-sub-ann-error">
+<div id="message-sub-ns-error">
 <section id="section-8.29">
-        <h3 id="name-subscribe_announces_error">
-<a href="#section-8.29" class="section-number selfRef">8.29. </a><a href="#name-subscribe_announces_error" class="section-name selfRef">SUBSCRIBE_ANNOUNCES_ERROR</a>
+        <h3 id="name-subscribe_namespace_error">
+<a href="#section-8.29" class="section-number selfRef">8.29. </a><a href="#name-subscribe_namespace_error" class="section-name selfRef">SUBSCRIBE_NAMESPACE_ERROR</a>
         </h3>
-<p id="section-8.29-1">A publisher sends a SUBSCRIBE_ANNOUNCES_ERROR control message in response to
-a failed SUBSCRIBE_ANNOUNCES.<a href="#section-8.29-1" class="pilcrow">¶</a></p>
-<span id="name-moqt-subscribe_announces_er"></span><div id="moq-transport-sub-ann-error">
+<p id="section-8.29-1">A publisher sends a SUBSCRIBE_NAMESPACE_ERROR control message in response to
+a failed SUBSCRIBE_NAMESPACE.<a href="#section-8.29-1" class="pilcrow">¶</a></p>
+<span id="name-moqt-subscribe_namespace_er"></span><div id="moq-transport-sub-ann-error">
 <figure id="figure-31">
           <div class="alignLeft art-text artwork" id="section-8.29-2.1">
 <pre>
-SUBSCRIBE_ANNOUNCES_ERROR Message {
+SUBSCRIBE_NAMESPACE_ERROR Message {
   Type (i) = 0x13,
   Length (16),
   Request ID (i),
@@ -5514,12 +5514,12 @@ SUBSCRIBE_ANNOUNCES_ERROR Message {
 </pre>
 </div>
 <figcaption><a href="#figure-31" class="selfRef">Figure 31</a>:
-<a href="#name-moqt-subscribe_announces_er" class="selfRef">MOQT SUBSCRIBE_ANNOUNCES_ERROR Message</a>
+<a href="#name-moqt-subscribe_namespace_er" class="selfRef">MOQT SUBSCRIBE_NAMESPACE_ERROR Message</a>
           </figcaption></figure>
 </div>
 <ul class="normal">
 <li class="normal" id="section-8.29-3.1">
-            <p id="section-8.29-3.1.1">Request ID: The Request ID of the SUBSCRIBE_ANNOUNCES this message is replying
+            <p id="section-8.29-3.1.1">Request ID: The Request ID of the SUBSCRIBE_NAMESPACE this message is replying
 to <a href="#message-subscribe-ns" class="auto internal xref">Section 8.27</a>.<a href="#section-8.29-3.1.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.29-3.2">
@@ -5531,7 +5531,7 @@ failure.<a href="#section-8.29-3.2.1" class="pilcrow">¶</a></p>
 See <a href="#reason-phrase" class="auto internal xref">Section 1.3.3</a>.<a href="#section-8.29-3.3.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
-<p id="section-8.29-4">The application <span class="bcp14">SHOULD</span> use a relevant error code in SUBSCRIBE_ANNOUNCES_ERROR,
+<p id="section-8.29-4">The application <span class="bcp14">SHOULD</span> use a relevant error code in SUBSCRIBE_NAMESPACE_ERROR,
 as defined below:<a href="#section-8.29-4" class="pilcrow">¶</a></p>
 <table class="center" id="table-9">
           <caption><a href="#table-9" class="selfRef">Table 9</a></caption>
@@ -5589,7 +5589,7 @@ namespace prefix.<a href="#section-8.29-6.2.1" class="pilcrow">¶</a></p>
 specific timeout.<a href="#section-8.29-6.3.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.29-6.4">
-            <p id="section-8.29-6.4.1">Not Supported - The endpoint does not support the SUBSCRIBE_ANNOUNCES method.<a href="#section-8.29-6.4.1" class="pilcrow">¶</a></p>
+            <p id="section-8.29-6.4.1">Not Supported - The endpoint does not support the SUBSCRIBE_NAMESPACE method.<a href="#section-8.29-6.4.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.29-6.5">
             <p id="section-8.29-6.5.1">Namespace Prefix Unknown - The namespace prefix is not available for
@@ -5597,7 +5597,7 @@ subscription.<a href="#section-8.29-6.5.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.29-6.6">
             <p id="section-8.29-6.6.1">Namespace Prefix Overlap - The namespace prefix overlaps with another
-SUBSCRIBE_ANNOUNCES in the same session.<a href="#section-8.29-6.6.1" class="pilcrow">¶</a></p>
+SUBSCRIBE_NAMESPACE in the same session.<a href="#section-8.29-6.6.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.29-6.7">
             <p id="section-8.29-6.7.1">Malformed Auth Token - Invalid Auth Token serialization during registration
@@ -5609,20 +5609,20 @@ SUBSCRIBE_ANNOUNCES in the same session.<a href="#section-8.29-6.6.1" class="pil
         </ul>
 </section>
 </div>
-<div id="message-unsub-ann">
+<div id="message-unsub-ns">
 <section id="section-8.30">
-        <h3 id="name-unsubscribe_announces">
-<a href="#section-8.30" class="section-number selfRef">8.30. </a><a href="#name-unsubscribe_announces" class="section-name selfRef">UNSUBSCRIBE_ANNOUNCES</a>
+        <h3 id="name-unsubscribe_namespace">
+<a href="#section-8.30" class="section-number selfRef">8.30. </a><a href="#name-unsubscribe_namespace" class="section-name selfRef">UNSUBSCRIBE_NAMESPACE</a>
         </h3>
-<p id="section-8.30-1">A subscriber issues a <code>UNSUBSCRIBE_ANNOUNCES</code> message to a publisher indicating
+<p id="section-8.30-1">A subscriber issues a <code>UNSUBSCRIBE_NAMESPACE</code> message to a publisher indicating
 it is no longer interested in ANNOUNCE, UNANNOUNCE and PUBLISH messages for the
 specified track namespace prefix.<a href="#section-8.30-1" class="pilcrow">¶</a></p>
-<p id="section-8.30-2">The format of <code>UNSUBSCRIBE_ANNOUNCES</code> is as follows:<a href="#section-8.30-2" class="pilcrow">¶</a></p>
-<span id="name-moqt-unsubscribe_announces-"></span><div id="moq-transport-unsub-ann-format">
+<p id="section-8.30-2">The format of <code>UNSUBSCRIBE_NAMESPACE</code> is as follows:<a href="#section-8.30-2" class="pilcrow">¶</a></p>
+<span id="name-moqt-unsubscribe_namespace-"></span><div id="moq-transport-unsub-ann-format">
 <figure id="figure-32">
           <div class="alignLeft art-text artwork" id="section-8.30-3.1">
 <pre>
-UNSUBSCRIBE_ANNOUNCES Message {
+UNSUBSCRIBE_NAMESPACE Message {
   Type (i) = 0x14,
   Length (16),
   Track Namespace Prefix (tuple)
@@ -5630,7 +5630,7 @@ UNSUBSCRIBE_ANNOUNCES Message {
 </pre>
 </div>
 <figcaption><a href="#figure-32" class="selfRef">Figure 32</a>:
-<a href="#name-moqt-unsubscribe_announces-" class="selfRef">MOQT UNSUBSCRIBE_ANNOUNCES Message</a>
+<a href="#name-moqt-unsubscribe_namespace-" class="selfRef">MOQT UNSUBSCRIBE_NAMESPACE Message</a>
           </figcaption></figure>
 </div>
 <ul class="normal">
@@ -6752,7 +6752,7 @@ Phrase<a href="#appendix-A.2-1.1.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="appendix-A.2-1.4">
             <p id="appendix-A.2-1.4.1">Subscribe ID became Request ID, and was added to most control messages. Request ID
-is used to correlate OK/ERROR responses for ANNOUNCE, SUBSCRIBE_ANNOUNCES,
+is used to correlate OK/ERROR responses for ANNOUNCE, SUBSCRIBE_NAMESPACE,
 and TRACK_STATUS.  Like Subscribe ID, Request IDs are flow controlled.<a href="#appendix-A.2-1.4.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="appendix-A.2-1.5">
