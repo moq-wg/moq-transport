@@ -623,11 +623,11 @@ application.
 
 The client can establish a connection to a MoQ server identified by a
 given URI by setting up a QUIC connection to the host and port
-identified by the `authority` section of the URI. The 'authority' is also transmitted
-to the server in the AUTHORITY parameter, ({{authority}}) which is sent in the
-CLIENT_SETUP message at the start of the session.  The `path-abempty`
-and `query` portions of the URI are similarly communicated to the server
-using the PATH parameter ({{path}}).  The ALPN value {{!RFC7301}} used by
+identified by the `authority` section of the URI. The 'authority' is also
+transmitted to the server in the AUTHORITY parameter, ({{authority}}) which is
+sent in the CLIENT_SETUP message at the start of the session.  The
+`path-abempty` and `query` portions of the URI are similarly communicated to the
+server using the PATH parameter ({{path}}).  The ALPN value {{!RFC7301}} used by
 the protocol is `moq-00`.
 
 ### Connection URL
@@ -1675,11 +1675,12 @@ identified as 0xff00000D.
 #### AUTHORITY {#authority}
 
 The AUTHORITY parameter (Parameter Type 0x05) allows the client to specify the
-authority component of the MoQ URI when using native QUIC ({{QUIC}}).  It MUST NOT be used by
-the server, or when WebTransport is used.  When an AUTHORITY parameter is received
-from a server, or when an AUTHORITY parameter is received while WebTransport is used,
-or when an AUTHORITY parameter is received by a server but the server does not
-support the specified authority, the session MUST be closed with Invalid Authority.
+authority component of the MoQ URI when using native QUIC ({{QUIC}}).  It MUST
+NOT be used by the server, or when WebTransport is used.  When an AUTHORITY
+parameter is received from a server, or when an AUTHORITY parameter is received
+while WebTransport is used, or when an AUTHORITY parameter is received by a
+server but the server does not support the specified authority, the session MUST
+be closed with Invalid Authority.
 
 The AUTHORITY parameter follows the URI formatting rules {{!RFC3986}}.
 When connecting to a server using a URI with the "moqt" scheme, the
