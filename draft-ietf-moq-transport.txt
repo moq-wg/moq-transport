@@ -186,8 +186,9 @@ Table of Contents
      Normative References
      Informative References
    Appendix A.  Change Log
-     A.1.  Since draft-ietf-moq-transport-11
-     A.2.  Since draft-ietf-moq-transport-10
+     A.1.  Since draft-ietf-moq-transport-12
+     A.2.  Since draft-ietf-moq-transport-11
+     A.3.  Since draft-ietf-moq-transport-10
    Authors' Addresses
 
 1.  Introduction
@@ -4180,7 +4181,15 @@ Appendix A.  Change Log
 
    Issue and pull request numbers are listed with a leading octothorp.
 
-A.1.  Since draft-ietf-moq-transport-11
+A.1.  Since draft-ietf-moq-transport-12
+
+   *  TRACK_STATUS_REQUEST and TRACK_STATUS have changed to directly
+      mirror SUBSCRIBE/OK/ERROR (#1015)
+
+   *  SUBSCRIBE_ANNOUNCES was renamed back to SUBSCRIBE_NAMESPACE
+      (#1049)
+
+A.2.  Since draft-ietf-moq-transport-11
 
    *  Move Track Alias from SUBSCRIBE to SUBSCRIBE_OK (#977)
 
@@ -4206,7 +4215,7 @@ A.1.  Since draft-ietf-moq-transport-11
    *  Add PUBLISH for publisher initiated subscriptions (#995) and fix
       the PUBLISH codepoints (#1048, #1051)
 
-A.2.  Since draft-ietf-moq-transport-10
+A.3.  Since draft-ietf-moq-transport-10
 
    *  Added Common Structure definitions - Location, Key-Value-Pair and
       Reason Phrase
