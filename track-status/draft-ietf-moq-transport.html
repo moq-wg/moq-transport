@@ -17,12 +17,12 @@ media to publish data and have it consumed via subscription by a
 multiplicity of endpoints. It supports intermediate content distribution
 networks and is designed for high scale and low latency distribution. 
     " name="description">
-<meta content="xml2rfc 3.28.1" name="generator">
+<meta content="xml2rfc 3.29.0" name="generator">
 <meta content="media over quic" name="keyword">
 <meta content="draft-ietf-moq-transport-latest" name="ietf.draft">
 <!-- Generator version information:
-  xml2rfc 3.28.1
-    Python 3.12.10
+  xml2rfc 3.29.0
+    Python 3.12.11
     ConfigArgParse 1.7
     google-i18n-address 3.1.1
     intervaltree 3.1.0
@@ -31,7 +31,7 @@ networks and is designed for high scale and low latency distribution.
     platformdirs 4.3.8
     pycountry 24.6.1
     PyYAML 6.0.2
-    requests 2.32.3
+    requests 2.32.4
     setuptools 80.9.0
     wcwidth 0.2.13
 -->
@@ -1052,11 +1052,11 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <thead><tr>
 <td class="left">Internet-Draft</td>
 <td class="center">moq-transport</td>
-<td class="right">June 2025</td>
+<td class="right">July 2025</td>
 </tr></thead>
 <tfoot><tr>
 <td class="left">Nandakumar, et al.</td>
-<td class="center">Expires 5 December 2025</td>
+<td class="center">Expires 8 January 2026</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1069,12 +1069,12 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dd class="internet-draft">draft-ietf-moq-transport-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2025-06-03" class="published">3 June 2025</time>
+<time datetime="2025-07-07" class="published">7 July 2025</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2025-12-05">5 December 2025</time></dd>
+<dd class="expires"><time datetime="2026-01-08">8 January 2026</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1143,7 +1143,7 @@ networks and is designed for high scale and low latency distribution.<a href="#s
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 5 December 2025.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 8 January 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1422,37 +1422,40 @@ networks and is designed for high scale and low latency distribution.<a href="#s
                 <p id="section-toc.1-1.8.2.16.1"><a href="#section-8.16" class="auto internal xref">8.16</a>. <a href="#name-fetch_cancel" class="internal xref">FETCH_CANCEL</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.17">
-                <p id="section-toc.1-1.8.2.17.1"><a href="#section-8.17" class="auto internal xref">8.17</a>. <a href="#name-track_status_request" class="internal xref">TRACK_STATUS_REQUEST</a></p>
+                <p id="section-toc.1-1.8.2.17.1"><a href="#section-8.17" class="auto internal xref">8.17</a>. <a href="#name-track_status" class="internal xref">TRACK_STATUS</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.18">
-                <p id="section-toc.1-1.8.2.18.1"><a href="#section-8.18" class="auto internal xref">8.18</a>. <a href="#name-track_status" class="internal xref">TRACK_STATUS</a></p>
+                <p id="section-toc.1-1.8.2.18.1"><a href="#section-8.18" class="auto internal xref">8.18</a>. <a href="#name-track_status_ok" class="internal xref">TRACK_STATUS_OK</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.19">
-                <p id="section-toc.1-1.8.2.19.1"><a href="#section-8.19" class="auto internal xref">8.19</a>. <a href="#name-announce" class="internal xref">ANNOUNCE</a></p>
+                <p id="section-toc.1-1.8.2.19.1"><a href="#section-8.19" class="auto internal xref">8.19</a>. <a href="#name-track_status_error" class="internal xref">TRACK_STATUS_ERROR</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.20">
-                <p id="section-toc.1-1.8.2.20.1"><a href="#section-8.20" class="auto internal xref">8.20</a>. <a href="#name-announce_ok" class="internal xref">ANNOUNCE_OK</a></p>
+                <p id="section-toc.1-1.8.2.20.1"><a href="#section-8.20" class="auto internal xref">8.20</a>. <a href="#name-announce" class="internal xref">ANNOUNCE</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.21">
-                <p id="section-toc.1-1.8.2.21.1"><a href="#section-8.21" class="auto internal xref">8.21</a>. <a href="#name-announce_error" class="internal xref">ANNOUNCE_ERROR</a></p>
+                <p id="section-toc.1-1.8.2.21.1"><a href="#section-8.21" class="auto internal xref">8.21</a>. <a href="#name-announce_ok" class="internal xref">ANNOUNCE_OK</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.22">
-                <p id="section-toc.1-1.8.2.22.1"><a href="#section-8.22" class="auto internal xref">8.22</a>. <a href="#name-unannounce" class="internal xref">UNANNOUNCE</a></p>
+                <p id="section-toc.1-1.8.2.22.1"><a href="#section-8.22" class="auto internal xref">8.22</a>. <a href="#name-announce_error" class="internal xref">ANNOUNCE_ERROR</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.23">
-                <p id="section-toc.1-1.8.2.23.1"><a href="#section-8.23" class="auto internal xref">8.23</a>. <a href="#name-announce_cancel" class="internal xref">ANNOUNCE_CANCEL</a></p>
+                <p id="section-toc.1-1.8.2.23.1"><a href="#section-8.23" class="auto internal xref">8.23</a>. <a href="#name-unannounce" class="internal xref">UNANNOUNCE</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.24">
-                <p id="section-toc.1-1.8.2.24.1"><a href="#section-8.24" class="auto internal xref">8.24</a>. <a href="#name-subscribe_announces" class="internal xref">SUBSCRIBE_ANNOUNCES</a></p>
+                <p id="section-toc.1-1.8.2.24.1"><a href="#section-8.24" class="auto internal xref">8.24</a>. <a href="#name-announce_cancel" class="internal xref">ANNOUNCE_CANCEL</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.25">
-                <p id="section-toc.1-1.8.2.25.1"><a href="#section-8.25" class="auto internal xref">8.25</a>. <a href="#name-subscribe_announces_ok" class="internal xref">SUBSCRIBE_ANNOUNCES_OK</a></p>
+                <p id="section-toc.1-1.8.2.25.1"><a href="#section-8.25" class="auto internal xref">8.25</a>. <a href="#name-subscribe_announces" class="internal xref">SUBSCRIBE_ANNOUNCES</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.26">
-                <p id="section-toc.1-1.8.2.26.1"><a href="#section-8.26" class="auto internal xref">8.26</a>. <a href="#name-subscribe_announces_error" class="internal xref">SUBSCRIBE_ANNOUNCES_ERROR</a></p>
+                <p id="section-toc.1-1.8.2.26.1"><a href="#section-8.26" class="auto internal xref">8.26</a>. <a href="#name-subscribe_announces_ok" class="internal xref">SUBSCRIBE_ANNOUNCES_OK</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.27">
-                <p id="section-toc.1-1.8.2.27.1"><a href="#section-8.27" class="auto internal xref">8.27</a>. <a href="#name-unsubscribe_announces" class="internal xref">UNSUBSCRIBE_ANNOUNCES</a></p>
+                <p id="section-toc.1-1.8.2.27.1"><a href="#section-8.27" class="auto internal xref">8.27</a>. <a href="#name-subscribe_announces_error" class="internal xref">SUBSCRIBE_ANNOUNCES_ERROR</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.28">
+                <p id="section-toc.1-1.8.2.28.1"><a href="#section-8.28" class="auto internal xref">8.28</a>. <a href="#name-unsubscribe_announces" class="internal xref">UNSUBSCRIBE_ANNOUNCES</a></p>
 </li>
             </ul>
 </li>
@@ -2404,18 +2407,6 @@ and <span class="bcp14">SHOULD</span> use a relevant code, as defined below:<a h
               <td class="text-right" rowspan="1" colspan="1">0x15</td>
               <td class="text-left" rowspan="1" colspan="1">Version Negotiation Failed</td>
             </tr>
-            <tr>
-              <td class="text-right" rowspan="1" colspan="1">0x16</td>
-              <td class="text-left" rowspan="1" colspan="1">Malformed Auth Token</td>
-            </tr>
-            <tr>
-              <td class="text-right" rowspan="1" colspan="1">0x17</td>
-              <td class="text-left" rowspan="1" colspan="1">Unknown Auth Token Alias</td>
-            </tr>
-            <tr>
-              <td class="text-right" rowspan="1" colspan="1">0x18</td>
-              <td class="text-left" rowspan="1" colspan="1">Expired Auth Token</td>
-            </tr>
           </tbody>
         </table>
 <ul class="normal">
@@ -2426,7 +2417,8 @@ and <span class="bcp14">SHOULD</span> use a relevant code, as defined below:<a h
             <p id="section-3.4-4.2.1">Internal Error: An implementation specific error occurred.<a href="#section-3.4-4.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-3.4-4.3">
-            <p id="section-3.4-4.3.1">Unauthorized: The client is not authorized to establish a session.<a href="#section-3.4-4.3.1" class="pilcrow">¶</a></p>
+            <p id="section-3.4-4.3.1">Unauthorized: The endpoint breached an agreement, which <span class="bcp14">MAY</span> have been
+ pre-negotiated by the application.<a href="#section-3.4-4.3.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-3.4-4.4">
             <p id="section-3.4-4.4.1">Protocol Violation: The remote endpoint performed an action that was
@@ -2478,22 +2470,11 @@ the size of all registered Authorization tokens has been exceeded.<a href="#sect
 </li>
           <li class="normal" id="section-3.4-4.15">
             <p id="section-3.4-4.15.1">Duplicate Auth Token Alias - Authorization Token attempted to register an
-Alias that was in use (see <a href="#authorization-token" class="auto internal xref">Section 8.2.1.1</a>).<a href="#section-3.4-4.15.1" class="pilcrow">¶</a></p>
+alias that was in use (see <a href="#authorization-token" class="auto internal xref">Section 8.2.1.1</a>).<a href="#section-3.4-4.15.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-3.4-4.16">
             <p id="section-3.4-4.16.1">Version Negotiation Failed: The client didn't offer a version supported
 by the server.<a href="#section-3.4-4.16.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="section-3.4-4.17">
-            <p id="section-3.4-4.17.1">Malformed Auth Token - Invalid Auth Token serialization during registration
-(see <a href="#authorization-token" class="auto internal xref">Section 8.2.1.1</a>).<a href="#section-3.4-4.17.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="section-3.4-4.18">
-            <p id="section-3.4-4.18.1">Unknown Auth Token Alias - No registered token found for the provided Alias
-(see <a href="#authorization-token" class="auto internal xref">Section 8.2.1.1</a>).<a href="#section-3.4-4.18.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="section-3.4-4.19">
-            <p id="section-3.4-4.19.1">Expired Auth Token - Authorization token has expired <a href="#authorization-token" class="auto internal xref">Section 8.2.1.1</a>).<a href="#section-3.4-4.19.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-3.4-5">An endpoint <span class="bcp14">MAY</span> choose to treat a subscription or request specific error as a
@@ -3130,48 +3111,53 @@ MOQT Control Message {
           </tr>
           <tr>
             <td class="text-right" rowspan="1" colspan="1">0xD</td>
-            <td class="text-left" rowspan="1" colspan="1">TRACK_STATUS_REQUEST (<a href="#message-track-status-req" class="auto internal xref">Section 8.17</a>)</td>
+            <td class="text-left" rowspan="1" colspan="1">TRACK_STATUS (<a href="#message-track-status" class="auto internal xref">Section 8.17</a>)</td>
           </tr>
           <tr>
             <td class="text-right" rowspan="1" colspan="1">0xE</td>
-            <td class="text-left" rowspan="1" colspan="1">TRACK_STATUS (<a href="#message-track-status" class="auto internal xref">Section 8.18</a>)</td>
+            <td class="text-left" rowspan="1" colspan="1">TRACK_STATUS_OK (<a href="#message-track-status-ok" class="auto internal xref">Section 8.18</a>
+</td>
+          </tr>
+          <tr>
+            <td class="text-right" rowspan="1" colspan="1">0xF</td>
+            <td class="text-left" rowspan="1" colspan="1">TRACK_STATUS_ERROR (<a href="#message-track-status-error" class="auto internal xref">Section 8.19</a>)</td>
           </tr>
           <tr>
             <td class="text-right" rowspan="1" colspan="1">0x6</td>
-            <td class="text-left" rowspan="1" colspan="1">ANNOUNCE  (<a href="#message-announce" class="auto internal xref">Section 8.19</a>)</td>
+            <td class="text-left" rowspan="1" colspan="1">ANNOUNCE  (<a href="#message-announce" class="auto internal xref">Section 8.20</a>)</td>
           </tr>
           <tr>
             <td class="text-right" rowspan="1" colspan="1">0x7</td>
-            <td class="text-left" rowspan="1" colspan="1">ANNOUNCE_OK (<a href="#message-announce-ok" class="auto internal xref">Section 8.20</a>)</td>
+            <td class="text-left" rowspan="1" colspan="1">ANNOUNCE_OK (<a href="#message-announce-ok" class="auto internal xref">Section 8.21</a>)</td>
           </tr>
           <tr>
             <td class="text-right" rowspan="1" colspan="1">0x8</td>
-            <td class="text-left" rowspan="1" colspan="1">ANNOUNCE_ERROR (<a href="#message-announce-error" class="auto internal xref">Section 8.21</a>)</td>
+            <td class="text-left" rowspan="1" colspan="1">ANNOUNCE_ERROR (<a href="#message-announce-error" class="auto internal xref">Section 8.22</a>)</td>
           </tr>
           <tr>
             <td class="text-right" rowspan="1" colspan="1">0x9</td>
-            <td class="text-left" rowspan="1" colspan="1">UNANNOUNCE  (<a href="#message-unannounce" class="auto internal xref">Section 8.22</a>)</td>
+            <td class="text-left" rowspan="1" colspan="1">UNANNOUNCE  (<a href="#message-unannounce" class="auto internal xref">Section 8.23</a>)</td>
           </tr>
           <tr>
             <td class="text-right" rowspan="1" colspan="1">0xC</td>
-            <td class="text-left" rowspan="1" colspan="1">ANNOUNCE_CANCEL (<a href="#message-announce-cancel" class="auto internal xref">Section 8.23</a>)</td>
+            <td class="text-left" rowspan="1" colspan="1">ANNOUNCE_CANCEL (<a href="#message-announce-cancel" class="auto internal xref">Section 8.24</a>)</td>
           </tr>
           <tr>
             <td class="text-right" rowspan="1" colspan="1">0x11</td>
-            <td class="text-left" rowspan="1" colspan="1">SUBSCRIBE_ANNOUNCES (<a href="#message-subscribe-ns" class="auto internal xref">Section 8.24</a>)</td>
+            <td class="text-left" rowspan="1" colspan="1">SUBSCRIBE_ANNOUNCES (<a href="#message-subscribe-ns" class="auto internal xref">Section 8.25</a>)</td>
           </tr>
           <tr>
             <td class="text-right" rowspan="1" colspan="1">0x12</td>
-            <td class="text-left" rowspan="1" colspan="1">SUBSCRIBE_ANNOUNCES_OK (<a href="#message-sub-ann-ok" class="auto internal xref">Section 8.25</a>)</td>
+            <td class="text-left" rowspan="1" colspan="1">SUBSCRIBE_ANNOUNCES_OK (<a href="#message-sub-ann-ok" class="auto internal xref">Section 8.26</a>)</td>
           </tr>
           <tr>
             <td class="text-right" rowspan="1" colspan="1">0x13</td>
-            <td class="text-left" rowspan="1" colspan="1">SUBSCRIBE_ANNOUNCES_ERROR (<a href="#message-sub-ann-error" class="auto internal xref">Section 8.26</a>
+            <td class="text-left" rowspan="1" colspan="1">SUBSCRIBE_ANNOUNCES_ERROR (<a href="#message-sub-ann-error" class="auto internal xref">Section 8.27</a>
 </td>
           </tr>
           <tr>
             <td class="text-right" rowspan="1" colspan="1">0x14</td>
-            <td class="text-left" rowspan="1" colspan="1">UNSUBSCRIBE_ANNOUNCES (<a href="#message-unsub-ann" class="auto internal xref">Section 8.27</a>)</td>
+            <td class="text-left" rowspan="1" colspan="1">UNSUBSCRIBE_ANNOUNCES (<a href="#message-unsub-ann" class="auto internal xref">Section 8.28</a>)</td>
           </tr>
         </tbody>
       </table>
@@ -3234,20 +3220,19 @@ these parameters to appear in Setup messages.<a href="#section-8.2.1-1" class="p
             <h5 id="name-authorization-token">
 <a href="#section-8.2.1.1" class="section-number selfRef">8.2.1.1. </a><a href="#name-authorization-token" class="section-name selfRef">AUTHORIZATION TOKEN</a>
             </h5>
-<p id="section-8.2.1.1-1">The AUTHORIZATION TOKEN parameter (Parameter Type 0x03) <span class="bcp14">MAY</span> appear in a
-CLIENT_SETUP, SERVER_SETUP, SUBSCRIBE, SUBSCRIBE_ANNOUNCES, ANNOUNCE,
-TRACK_STATUS_REQUEST or FETCH message. This parameter conveys information to
-authorize the sender to perform the operation carrying the parameter.<a href="#section-8.2.1.1-1" class="pilcrow">¶</a></p>
+<p id="section-8.2.1.1-1">The AUTHORIZATION TOKEN parameter (Parameter Type 0x01) identifies a track's
+authorization information in a SUBSCRIBE, SUBSCRIBE_ANNOUNCES, ANNOUNCE
+TRACK_STATUS or FETCH message. This parameter is populated for cases where the
+authorization is required at the track or namespace level.<a href="#section-8.2.1.1-1" class="pilcrow">¶</a></p>
 <p id="section-8.2.1.1-2">The AUTHORIZATION TOKEN parameter <span class="bcp14">MAY</span> be repeated within a message.<a href="#section-8.2.1.1-2" class="pilcrow">¶</a></p>
-<p id="section-8.2.1.1-3">The parameter value is a Token structure containing an optional Session-specific
-Alias. The Alias allows the sender to reference a previously transmitted Token
-Type and Token Value in future messages. The Token structure is serialized as
-follows:<a href="#section-8.2.1.1-3" class="pilcrow">¶</a></p>
-<span id="name-token-structure"></span><div id="moq-token">
+<p id="section-8.2.1.1-3">The TOKEN value is a structured object containing an optional session-specific
+alias. The Alias allows the client to reference a previously transmitted TOKEN
+in future messages. The TOKEN value is serialized as follows:<a href="#section-8.2.1.1-3" class="pilcrow">¶</a></p>
+<span id="name-authorization-token-value"></span><div id="moq-token">
 <figure id="figure-4">
               <div class="alignLeft art-text artwork" id="section-8.2.1.1-4.1">
 <pre>
-Token {
+TOKEN {
   Alias Type (i),
   [Token Alias (i),]
   [Token Type (i),]
@@ -3256,7 +3241,7 @@ Token {
 </pre>
 </div>
 <figcaption><a href="#figure-4" class="selfRef">Figure 4</a>:
-<a href="#name-token-structure" class="selfRef">Token structure</a>
+<a href="#name-authorization-token-value" class="selfRef">AUTHORIZATION TOKEN value</a>
               </figcaption></figure>
 </div>
 <ul class="normal">
@@ -3346,61 +3331,52 @@ behavior of the receiver. This Alias type has the following code points:<a href=
             </table>
 <ul class="normal">
 <li class="normal" id="section-8.2.1.1-7.1">
-                <p id="section-8.2.1.1-7.1.1">Token Alias - a Session-specific integer identifier that references a Token
-Value. There are separate Alias spaces for the client and server (e.g.: they
-can each register Alias=1). Once a Token Alias has been registered, it cannot
-be re-registered by the same sender in the Session without first being
-deleted. Use of the Token Alias is optional.<a href="#section-8.2.1.1-7.1.1" class="pilcrow">¶</a></p>
+                <p id="section-8.2.1.1-7.1.1">Token Alias - a session-specific integer identifier that references a Token
+Value. The Token Alias <span class="bcp14">MUST</span> be unique within the Session. Once a Token Alias has
+been registered, it cannot be re-registered within the Session without first
+being deleted. Use of the Token Alias is optional.<a href="#section-8.2.1.1-7.1.1" class="pilcrow">¶</a></p>
 </li>
               <li class="normal" id="section-8.2.1.1-7.2">
                 <p id="section-8.2.1.1-7.2.1">Token Type - a numeric identifier for the type of Token payload being
 transmitted. This type is defined by the IANA table "MOQT Auth Token Type" (see
 <a href="#iana" class="auto internal xref">Section 12</a>). Type 0 is reserved to indicate that the type is not defined in the
-table and is negotiated out-of-band between client and receiver.<a href="#section-8.2.1.1-7.2.1" class="pilcrow">¶</a></p>
+table and must be negotiated out-of-band between client and receiver.<a href="#section-8.2.1.1-7.2.1" class="pilcrow">¶</a></p>
 </li>
               <li class="normal" id="section-8.2.1.1-7.3">
                 <p id="section-8.2.1.1-7.3.1">Token Value - the payload of the Token. The contents and serialization of this
 payload are defined by the Token Type.<a href="#section-8.2.1.1-7.3.1" class="pilcrow">¶</a></p>
 </li>
             </ul>
-<p id="section-8.2.1.1-8">If the Token structure cannot be decoded, the receiver <span class="bcp14">MUST</span> close the Session
-with Key-Value Formatting error.  The receiver of a message attempting to
-register an Alias which is already registered <span class="bcp14">MUST</span> close the Session with
-<code>Duplicate Auth Token Alias</code>. The receiver of a message referencing an Alias
-that is not currently registered <span class="bcp14">MUST</span> reject the message with <code>Unknown Auth
-Token Alias</code>.<a href="#section-8.2.1.1-8" class="pilcrow">¶</a></p>
-<p id="section-8.2.1.1-9">The receiver of a message containing a well-formed Token structure but otherwise
-invalid AUTHORIZATION TOKEN parameter <span class="bcp14">MUST</span> reject that message with an
-<code>Malformed Auth Token</code> error.<a href="#section-8.2.1.1-9" class="pilcrow">¶</a></p>
-<p id="section-8.2.1.1-10">The receiver of a message carrying an AUTHORIZATION TOKEN with Alias Type
-REGISTER that does not result in a Session error <span class="bcp14">MUST</span> register the Token Alias,
-in the token cache, even if the message fails for other reasons, including
-<code>Unauthorized</code>.  This allows senders to pipeline messages that refer to
-previously registered tokens without potentially terminating the entire Session.
-A receiver <span class="bcp14">MAY</span> store an error code (eg: Unauthorized or Malformed Auth Token) in
-place of the Token Type and Token Alias if any future message referencing the
-Token Alias will result in that error. The size of a registered cache entry
-includes the length of the Token Value, regardless of whether it is stored.<a href="#section-8.2.1.1-10" class="pilcrow">¶</a></p>
-<p id="section-8.2.1.1-11">If a receiver detects that an authorization token has expired, it <span class="bcp14">MUST</span> retain
-the registered Alias until it is deleted by the sender, though it <span class="bcp14">MAY</span> discard
+<p id="section-8.2.1.1-8">The receiver of a message containing an invalid AUTHORIZATION TOKEN parameter
+<span class="bcp14">MUST</span> reject that message with an <code>Malformed Auth Token</code> error. This can be due
+to invalid serialization or providing a token value which does not match the
+declared Token Type.  The receiver of a message referencing an alias that is
+not currently registered <span class="bcp14">MUST</span> reject the message with <code>Unknown Auth Token
+Alias</code>. The receiver of a message attempting to register an alias which is
+already registered <span class="bcp14">MUST</span> close the session with <code>Duplicate Auth Token Alias</code>.<a href="#section-8.2.1.1-8" class="pilcrow">¶</a></p>
+<p id="section-8.2.1.1-9">Any message carrying an AUTHORIZATION TOKEN with Alias Type REGISTER that does
+not result in <code>Malformed Auth Token</code> <span class="bcp14">MUST</span> effect the token registration, even
+if the message fails for other reasons, including <code>Unauthorized</code>.  This allows
+senders to pipeline messages that refer to previously registered tokens.<a href="#section-8.2.1.1-9" class="pilcrow">¶</a></p>
+<p id="section-8.2.1.1-10">If a receiver detects that an authorization token has expired, it <span class="bcp14">MUST</span> retain
+the registered alias until it is deleted by the sender, though it <span class="bcp14">MAY</span> discard
 other state associated with the token that is no longer needed.  Expiration does
 not affect the size occupied by a token in the token cache.  Any message that
-references the token with Alias Type USE_ALIAS fails with <code>Expired Auth Token</code>.<a href="#section-8.2.1.1-11" class="pilcrow">¶</a></p>
-<p id="section-8.2.1.1-12">Using an Alias to refer to a previously registered Token Type and Value is for
-efficiency only and has the same effect as if the Token Type and Value was
-included directly.  Retiring an Alias that was previously used to authorize a
-message has no retroactive effect on the original authorization, nor does it
-prevent that same Token Type and Value from being re-registered.<a href="#section-8.2.1.1-12" class="pilcrow">¶</a></p>
-<p id="section-8.2.1.1-13">Senders of tokens <span class="bcp14">SHOULD</span> only register tokens which they intend to re-use during
-the Session and <span class="bcp14">SHOULD</span> retire previously registered tokens once their utility
-has passed.<a href="#section-8.2.1.1-13" class="pilcrow">¶</a></p>
-<p id="section-8.2.1.1-14">By registering a Token, the sender is requiring the receiver to store the Token
-Alias and Token Value until they are deleted, or the Session ends. The receiver
+references the token with Alias Type USE_ALIAS fails with <code>Expired Auth Token</code>.<a href="#section-8.2.1.1-10" class="pilcrow">¶</a></p>
+<p id="section-8.2.1.1-11">Using an Alias to refer to a previously registered Token Value is for efficiency
+only and has the same effect as if the Token Value was included directly.
+Retiring an Alias that was previously used to authorize a message has no
+retroactive effect on the original authorization, nor does it prevent that same
+Token Value being re-registered.<a href="#section-8.2.1.1-11" class="pilcrow">¶</a></p>
+<p id="section-8.2.1.1-12">Clients <span class="bcp14">SHOULD</span> only register tokens which they intend to re-use during the session.
+Client <span class="bcp14">SHOULD</span> retire previously registered tokens once their utility has passed.<a href="#section-8.2.1.1-12" class="pilcrow">¶</a></p>
+<p id="section-8.2.1.1-13">By registering a Token, the client is requiring the receiver to store the Token
+Alias and Token Value until they are retired, or the Session ends. The receiver
 can protect its resources by sending a SETUP parameter defining the
 MAX_AUTH_TOKEN_CACHE_SIZE limit (see <a href="#max-auth-token-cache-size" class="auto internal xref">Section 8.3.2.3</a>) it is
 willing to accept. If a registration is attempted which would cause this limit
 to be exceeded, the receiver <span class="bcp14">MUST</span> termiate the Session with a <code>Auth Token Cache
-Overflow</code> error.<a href="#section-8.2.1.1-14" class="pilcrow">¶</a></p>
+Overflow</code> error.<a href="#section-8.2.1.1-13" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="delivery-timeout">
@@ -3565,29 +3541,12 @@ value is 0, so if not specified, the peer <span class="bcp14">MUST NOT</span> se
 <p id="section-8.3.2.3-1">The MAX_AUTH_TOKEN_CACHE_SIZE parameter (Parameter Type 0x04) communicates the
 maximum size in bytes of all actively registered Authorization tokens that the
 server is willing to store per Session. This parameter is optional. The default
-value is 0 which prohibits the use of token Aliases.<a href="#section-8.3.2.3-1" class="pilcrow">¶</a></p>
-<p id="section-8.3.2.3-2">The token size is calculated as 16 bytes + the size of the Token Value field
-(see <a href="#moq-token" class="auto internal xref">Figure 4</a>). The total size as restricted by the
-MAX_AUTH_TOKEN_CACHE_SIZE parameter is calculated as the sum of the token sizes
-for all registered tokens (Alias Type value of 0x01) minus the sum of the token
-sizes for all deregistered tokens (Alias Type value of 0x00), since Session
-initiation.<a href="#section-8.3.2.3-2" class="pilcrow">¶</a></p>
-</section>
-</div>
-<div id="setup-auth-token">
-<section id="section-8.3.2.4">
-            <h5 id="name-authorization-token-2">
-<a href="#section-8.3.2.4" class="section-number selfRef">8.3.2.4. </a><a href="#name-authorization-token-2" class="section-name selfRef">AUTHORIZATION TOKEN</a>
-            </h5>
-<p id="section-8.3.2.4-1">See <a href="#authorization-token" class="auto internal xref">Section 8.2.1.1</a>.  The endpoint can specify one or more tokens in
-CLIENT_SETUP or SERVER_SETUP that the peer can use to authorize MOQT session
-establishment.<a href="#section-8.3.2.4-1" class="pilcrow">¶</a></p>
-<p id="section-8.3.2.4-2">If a server receives an AUTHORIZATION TOKEN parameter in CLIENT_SETUP with Alias
-Type REGISTER_TOKEN that exceeds its MAX_AUTH_TOKEN_CACHE_SIZE, it <span class="bcp14">MUST NOT</span> fail
-the session with <code>Auth Token Cache Overflow</code>.  Instead, it <span class="bcp14">MUST</span> treat the
-parameter as Alias Type USE_VALUE.  A client <span class="bcp14">MUST</span> handle registration failures
-of this kind by purging any Token Aliases that failed to register based on the
-MAX_AUTH_TOKEN_CACHE_SIZE parameter in SERVER_SETUP (or the default value of 0).<a href="#section-8.3.2.4-2" class="pilcrow">¶</a></p>
+value is 0 which prohibits the use of token aliases.<a href="#section-8.3.2.3-1" class="pilcrow">¶</a></p>
+<p id="section-8.3.2.3-2">The token size is calculated as 8 bytes + the size of the Token value (see
+<a href="#moq-token" class="auto internal xref">Figure 4</a>). The total size as restricted by the MAX_AUTH_TOKEN_CACHE_SIZE
+parameter is calculated as the sum of the token sizes for all registered tokens
+(Alias Type value of 0x01) minus the sum of the token sizes for all deregistered
+tokens (Alias Type value of 0x00), since Session initiation.<a href="#section-8.3.2.3-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -3668,11 +3627,11 @@ MAX_REQUEST_ID Message {
 </div>
 <ul class="normal">
 <li class="normal" id="section-8.5-4.1">
-            <p id="section-8.5-4.1.1">Request ID: The new Maximum Request ID for the session plus 1. If a Request ID
-equal to or larger than this is received by the endpoint that sent the
+            <p id="section-8.5-4.1.1">Request ID: The new Maximum Request ID for the session plus one. If a Request
+ID equal or larger than this is received by the endpoint that sent the
 MAX_REQUEST_ID in any request message (ANNOUNCE, FETCH, SUBSCRIBE,
-SUBSCRIBE_ANNOUNCES or TRACK_STATUS_REQUEST), the endpoint <span class="bcp14">MUST</span> close the
-session with an error of 'Too Many Requests'.<a href="#section-8.5-4.1.1" class="pilcrow">¶</a></p>
+SUBSCRIBE_ANNOUNCES or TRACK_STATUS), the endpoint <span class="bcp14">MUST</span> close the session with
+an error of 'Too Many Requests'.<a href="#section-8.5-4.1.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-8.5-5">MAX_REQUEST_ID is similar to MAX_STREAMS in (<span>[<a href="#RFC9000" class="cite xref">RFC9000</a>], <a href="https://rfc-editor.org/rfc/rfc9000#section-4.6" class="relref">Section 4.6</a></span>), and
@@ -3999,6 +3958,10 @@ as defined below:<a href="#section-8.9-4" class="pilcrow">¶</a></p>
               <td class="text-left" rowspan="1" colspan="1">Malformed Auth Token</td>
             </tr>
             <tr>
+              <td class="text-right" rowspan="1" colspan="1">0x11</td>
+              <td class="text-left" rowspan="1" colspan="1">Unknown Auth Token Alias</td>
+            </tr>
+            <tr>
               <td class="text-right" rowspan="1" colspan="1">0x12</td>
               <td class="text-left" rowspan="1" colspan="1">Expired Auth Token</td>
             </tr>
@@ -4032,7 +3995,11 @@ or the end of the range has already been published.<a href="#section-8.9-6.6.1" 
 (see <a href="#authorization-token" class="auto internal xref">Section 8.2.1.1</a>).<a href="#section-8.9-6.7.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.9-6.8">
-            <p id="section-8.9-6.8.1">Expired Auth Token - Authorization token has expired <a href="#authorization-token" class="auto internal xref">Section 8.2.1.1</a>).<a href="#section-8.9-6.8.1" class="pilcrow">¶</a></p>
+            <p id="section-8.9-6.8.1">Unknown Auth Token Alias - Authorization Token refers to an alias that is
+not registered (see <a href="#authorization-token" class="auto internal xref">Section 8.2.1.1</a>).<a href="#section-8.9-6.8.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-8.9-6.9">
+            <p id="section-8.9-6.9.1">Expired Auth Token - Authorization token has expired <a href="#authorization-token" class="auto internal xref">Section 8.2.1.1</a>).<a href="#section-8.9-6.9.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
@@ -4656,6 +4623,10 @@ as defined below:<a href="#section-8.15-4" class="pilcrow">¶</a></p>
               <td class="text-left" rowspan="1" colspan="1">Malformed Auth Token</td>
             </tr>
             <tr>
+              <td class="text-right" rowspan="1" colspan="1">0x11</td>
+              <td class="text-left" rowspan="1" colspan="1">Unknown Auth Token Alias</td>
+            </tr>
+            <tr>
               <td class="text-right" rowspan="1" colspan="1">0x12</td>
               <td class="text-left" rowspan="1" colspan="1">Expired Auth Token</td>
             </tr>
@@ -4705,7 +4676,11 @@ status.<a href="#section-8.15-6.9.1" class="pilcrow">¶</a></p>
 (see <a href="#authorization-token" class="auto internal xref">Section 8.2.1.1</a>).<a href="#section-8.15-6.11.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.15-6.12">
-            <p id="section-8.15-6.12.1">Expired Auth Token - Authorization token has expired <a href="#authorization-token" class="auto internal xref">Section 8.2.1.1</a>).<a href="#section-8.15-6.12.1" class="pilcrow">¶</a></p>
+            <p id="section-8.15-6.12.1">Unknown Auth Token Alias - Authorization Token refers to an alias that is
+not registered (see <a href="#authorization-token" class="auto internal xref">Section 8.2.1.1</a>).<a href="#section-8.15-6.12.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-8.15-6.13">
+            <p id="section-8.15-6.13.1">Expired Auth Token - Authorization token has expired <a href="#authorization-token" class="auto internal xref">Section 8.2.1.1</a>).<a href="#section-8.15-6.13.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
@@ -4743,123 +4718,62 @@ cancelling.<a href="#section-8.16-4.1.1" class="pilcrow">¶</a></p>
         </ul>
 </section>
 </div>
-<div id="message-track-status-req">
+<div id="message-track-status">
 <section id="section-8.17">
-        <h3 id="name-track_status_request">
-<a href="#section-8.17" class="section-number selfRef">8.17. </a><a href="#name-track_status_request" class="section-name selfRef">TRACK_STATUS_REQUEST</a>
+        <h3 id="name-track_status">
+<a href="#section-8.17" class="section-number selfRef">8.17. </a><a href="#name-track_status" class="section-name selfRef">TRACK_STATUS</a>
         </h3>
-<p id="section-8.17-1">A potential subscriber sends a 'TRACK_STATUS_REQUEST' message on the control
+<p id="section-8.17-1">A potential subscriber sends a 'TRACK_STATUS' message on the control
 stream to obtain information about the current status of a given track.<a href="#section-8.17-1" class="pilcrow">¶</a></p>
-<p id="section-8.17-2">A TRACK_STATUS message <span class="bcp14">MUST</span> be sent in response to each TRACK_STATUS_REQUEST.<a href="#section-8.17-2" class="pilcrow">¶</a></p>
-<span id="name-moqt-track_status_request-m"></span><div id="moq-track-status-request-format">
-<figure id="figure-19">
-          <div class="alignLeft art-text artwork" id="section-8.17-3.1">
-<pre>
-TRACK_STATUS_REQUEST Message {
-  Type (i) = 0xD,
-  Length (16),
-  Request ID (i),
-  Track Namespace (tuple),
-  Track Name Length (i),
-  Track Name (..),
-  Number of Parameters (i),
-  Parameters (..) ...,
-}
-</pre>
-</div>
-<figcaption><a href="#figure-19" class="selfRef">Figure 19</a>:
-<a href="#name-moqt-track_status_request-m" class="selfRef">MOQT TRACK_STATUS_REQUEST Message</a>
-          </figcaption></figure>
-</div>
-<ul class="normal">
-<li class="normal" id="section-8.17-4.1">
-            <p id="section-8.17-4.1.1">Request ID: See <a href="#request-id" class="auto internal xref">Section 8.1</a>.<a href="#section-8.17-4.1.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="section-8.17-4.2">
-            <p id="section-8.17-4.2.1">Track Namespace: Identifies the namespace of the track as defined in
-(<a href="#track-name" class="auto internal xref">Section 2.4.1</a>).<a href="#section-8.17-4.2.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="section-8.17-4.3">
-            <p id="section-8.17-4.3.1">Track Name: Identifies the track name as defined in (<a href="#track-name" class="auto internal xref">Section 2.4.1</a>).<a href="#section-8.17-4.3.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="section-8.17-4.4">
-            <p id="section-8.17-4.4.1">Parameters: The parameters are defined in <a href="#version-specific-params" class="auto internal xref">Section 8.2.1</a>.<a href="#section-8.17-4.4.1" class="pilcrow">¶</a></p>
-</li>
-        </ul>
+<p id="section-8.17-2">The TRACK_STATUS message format is identical to the SUBSCRIBE message
+(<a href="#message-subscribe-req" class="auto internal xref">Section 8.7</a>).<a href="#section-8.17-2" class="pilcrow">¶</a></p>
+<p id="section-8.17-3">The receiver of a TRACK_STATUS message treats it identically as if it had
+received a SUBSCRIBE message, except it does not create downstream subscription
+state or send any Objects.  Relays without an active subscription <span class="bcp14">MAY</span> forward
+TRACK_STATUS to one or more publishers, or <span class="bcp14">MAY</span> initiate a subscription (subject
+to authorization) as described in <a href="#publisher-interactions" class="auto internal xref">Section 7.3</a> to determine the
+response. The publisher does not send SUBSCRIBE_DONE for this request, and the
+subscriber cannot send SUBSCRIBE_UPDATE or UNSUBSCRIBE.<a href="#section-8.17-3" class="pilcrow">¶</a></p>
 </section>
 </div>
-<div id="message-track-status">
+<div id="message-track-status-ok">
 <section id="section-8.18">
-        <h3 id="name-track_status">
-<a href="#section-8.18" class="section-number selfRef">8.18. </a><a href="#name-track_status" class="section-name selfRef">TRACK_STATUS</a>
+        <h3 id="name-track_status_ok">
+<a href="#section-8.18" class="section-number selfRef">8.18. </a><a href="#name-track_status_ok" class="section-name selfRef">TRACK_STATUS_OK</a>
         </h3>
-<p id="section-8.18-1">A publisher sends a 'TRACK_STATUS' message on the control stream in response
-to a TRACK_STATUS_REQUEST message.<a href="#section-8.18-1" class="pilcrow">¶</a></p>
-<span id="name-moqt-track_status-message"></span><div id="moq-track-status-format">
-<figure id="figure-20">
-          <div class="alignLeft art-text artwork" id="section-8.18-2.1">
-<pre>
-TRACK_STATUS Message {
-  Type (i) = 0xE,
-  Length (16),
-  Request ID (i),
-  Status Code (i),
-  Largest Location (Location),
-  Number of Parameters (i),
-  Parameters (..) ...,
-}
-</pre>
+<p id="section-8.18-1">The publisher sends a TRACK_STATUS_OK control message in response
+to a successful TRACK_STATUS message.<a href="#section-8.18-1" class="pilcrow">¶</a></p>
+<p id="section-8.18-2">The TRACK_STATUS_OK message format is identical to the SUBSCRIBE_OK message
+(<a href="#message-subscribe-ok" class="auto internal xref">Section 8.8</a>).<a href="#section-8.18-2" class="pilcrow">¶</a></p>
+<p id="section-8.18-3">The publisher populates the fields of TRACK_STATUS_OK exactly as it would have
+populated a SUBSCRIBE_OK, setting Track Alias to 0. It is not considered an error
+if Track Alias 0 is already in use by an active subscription.<a href="#section-8.18-3" class="pilcrow">¶</a></p>
+</section>
 </div>
-<figcaption><a href="#figure-20" class="selfRef">Figure 20</a>:
-<a href="#name-moqt-track_status-message" class="selfRef">MOQT TRACK_STATUS Message</a>
-          </figcaption></figure>
-</div>
-<ul class="normal">
-<li class="normal" id="section-8.18-3.1">
-            <p id="section-8.18-3.1.1">Request ID: The Request ID of the TRACK_STATUS_REQUEST this message is
-replying to <a href="#message-track-status" class="auto internal xref">Section 8.18</a>.<a href="#section-8.18-3.1.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="section-8.18-3.2">
-            <p id="section-8.18-3.2.1">Status Code: Provides additional information about the status of the
-track. It <span class="bcp14">MUST</span> hold one of the following values. Any other value is a malformed
-message.<a href="#section-8.18-3.2.1" class="pilcrow">¶</a></p>
-</li>
-        </ul>
-<p id="section-8.18-4">0x00: The track is in progress, and subsequent fields contain the highest group
-and object ID for that track.<a href="#section-8.18-4" class="pilcrow">¶</a></p>
-<p id="section-8.18-5">0x01: The track does not exist. Subsequent fields <span class="bcp14">MUST</span> be zero, and any other
-value is a malformed message.<a href="#section-8.18-5" class="pilcrow">¶</a></p>
-<p id="section-8.18-6">0x02: The track has not yet begun. Subsequent fields <span class="bcp14">MUST</span> be zero. Any other
-value is a malformed message.<a href="#section-8.18-6" class="pilcrow">¶</a></p>
-<p id="section-8.18-7">0x03: The track has finished, so there is no "live edge." Subsequent fields
-contain the highest Group and object ID known.<a href="#section-8.18-7" class="pilcrow">¶</a></p>
-<p id="section-8.18-8">0x04: The publisher is a relay that cannot obtain the current track status from
-upstream. Subsequent fields contain the largest group and object ID known.<a href="#section-8.18-8" class="pilcrow">¶</a></p>
-<p id="section-8.18-9">Any other value in the Status Code field is a malformed message.<a href="#section-8.18-9" class="pilcrow">¶</a></p>
-<p id="section-8.18-10">TODO: Auth Failures<a href="#section-8.18-10" class="pilcrow">¶</a></p>
-<ul class="normal">
-<li class="normal" id="section-8.18-11.1">
-            <p id="section-8.18-11.1.1">Largest Location: represents the largest Object location observed by the
-Publisher for an active subscription. If the publisher is a relay without an
-active subscription, it <span class="bcp14">SHOULD</span> send a TRACK_STATUS_REQUEST upstream or <span class="bcp14">MAY</span>
-subscribe to the track, to obtain the same information. If neither is possible,
-it should return the best available information with status code 0x04.<a href="#section-8.18-11.1.1" class="pilcrow">¶</a></p>
-</li>
-        </ul>
-<p id="section-8.18-12">The <code>Parameters</code> are defined in <a href="#version-specific-params" class="auto internal xref">Section 8.2.1</a>.<a href="#section-8.18-12" class="pilcrow">¶</a></p>
+<div id="message-track-status-error">
+<section id="section-8.19">
+        <h3 id="name-track_status_error">
+<a href="#section-8.19" class="section-number selfRef">8.19. </a><a href="#name-track_status_error" class="section-name selfRef">TRACK_STATUS_ERROR</a>
+        </h3>
+<p id="section-8.19-1">The publisher sends a TRACK_STATUS_ERROR control message in response
+to a failed TRACK_STATUS message.<a href="#section-8.19-1" class="pilcrow">¶</a></p>
+<p id="section-8.19-2">The TRACK_STATUS_ERROR message format is identical to the SUBSCRIBE_ERROR
+message (<a href="#message-subscribe-error" class="auto internal xref">Section 8.9</a>).<a href="#section-8.19-2" class="pilcrow">¶</a></p>
+<p id="section-8.19-3">The publisher populates the fields of TRACK_STATUS_ERROR exactly as it would
+have populated a SUBSCRIBE_ERROR.<a href="#section-8.19-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="message-announce">
-<section id="section-8.19">
+<section id="section-8.20">
         <h3 id="name-announce">
-<a href="#section-8.19" class="section-number selfRef">8.19. </a><a href="#name-announce" class="section-name selfRef">ANNOUNCE</a>
+<a href="#section-8.20" class="section-number selfRef">8.20. </a><a href="#name-announce" class="section-name selfRef">ANNOUNCE</a>
         </h3>
-<p id="section-8.19-1">The publisher sends the ANNOUNCE control message to advertise that it has
+<p id="section-8.20-1">The publisher sends the ANNOUNCE control message to advertise that it has
 tracks available within the announced Track Namespace. The receiver verifies the
-publisher is authorized to publish tracks under this namespace.<a href="#section-8.19-1" class="pilcrow">¶</a></p>
+publisher is authorized to publish tracks under this namespace.<a href="#section-8.20-1" class="pilcrow">¶</a></p>
 <span id="name-moqt-announce-message"></span><div id="moq-transport-announce-format">
-<figure id="figure-21">
-          <div class="alignLeft art-text artwork" id="section-8.19-2.1">
+<figure id="figure-19">
+          <div class="alignLeft art-text artwork" id="section-8.20-2.1">
 <pre>
 ANNOUNCE Message {
   Type (i) = 0x6,
@@ -4871,34 +4785,34 @@ ANNOUNCE Message {
 }
 </pre>
 </div>
-<figcaption><a href="#figure-21" class="selfRef">Figure 21</a>:
+<figcaption><a href="#figure-19" class="selfRef">Figure 19</a>:
 <a href="#name-moqt-announce-message" class="selfRef">MOQT ANNOUNCE Message</a>
           </figcaption></figure>
 </div>
 <ul class="normal">
-<li class="normal" id="section-8.19-3.1">
-            <p id="section-8.19-3.1.1">Request ID: See <a href="#request-id" class="auto internal xref">Section 8.1</a>.<a href="#section-8.19-3.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-8.20-3.1">
+            <p id="section-8.20-3.1.1">Request ID: See <a href="#request-id" class="auto internal xref">Section 8.1</a>.<a href="#section-8.20-3.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-8.19-3.2">
-            <p id="section-8.19-3.2.1">Track Namespace: Identifies a track's namespace as defined in
-(<a href="#track-name" class="auto internal xref">Section 2.4.1</a>)<a href="#section-8.19-3.2.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-8.20-3.2">
+            <p id="section-8.20-3.2.1">Track Namespace: Identifies a track's namespace as defined in
+(<a href="#track-name" class="auto internal xref">Section 2.4.1</a>)<a href="#section-8.20-3.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-8.19-3.3">
-            <p id="section-8.19-3.3.1">Parameters: The parameters are defined in <a href="#version-specific-params" class="auto internal xref">Section 8.2.1</a>.<a href="#section-8.19-3.3.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-8.20-3.3">
+            <p id="section-8.20-3.3.1">Parameters: The parameters are defined in <a href="#version-specific-params" class="auto internal xref">Section 8.2.1</a>.<a href="#section-8.20-3.3.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
 </div>
 <div id="message-announce-ok">
-<section id="section-8.20">
+<section id="section-8.21">
         <h3 id="name-announce_ok">
-<a href="#section-8.20" class="section-number selfRef">8.20. </a><a href="#name-announce_ok" class="section-name selfRef">ANNOUNCE_OK</a>
+<a href="#section-8.21" class="section-number selfRef">8.21. </a><a href="#name-announce_ok" class="section-name selfRef">ANNOUNCE_OK</a>
         </h3>
-<p id="section-8.20-1">The subscriber sends an ANNOUNCE_OK control message to acknowledge the
-successful authorization and acceptance of an ANNOUNCE message.<a href="#section-8.20-1" class="pilcrow">¶</a></p>
+<p id="section-8.21-1">The subscriber sends an ANNOUNCE_OK control message to acknowledge the
+successful authorization and acceptance of an ANNOUNCE message.<a href="#section-8.21-1" class="pilcrow">¶</a></p>
 <span id="name-moqt-announce_ok-message"></span><div id="moq-transport-announce-ok">
-<figure id="figure-22">
-          <div class="alignLeft art-text artwork" id="section-8.20-2.1">
+<figure id="figure-20">
+          <div class="alignLeft art-text artwork" id="section-8.21-2.1">
 <pre>
 ANNOUNCE_OK Message {
   Type (i) = 0x7,
@@ -4907,28 +4821,28 @@ ANNOUNCE_OK Message {
 }
 </pre>
 </div>
-<figcaption><a href="#figure-22" class="selfRef">Figure 22</a>:
+<figcaption><a href="#figure-20" class="selfRef">Figure 20</a>:
 <a href="#name-moqt-announce_ok-message" class="selfRef">MOQT ANNOUNCE_OK Message</a>
           </figcaption></figure>
 </div>
 <ul class="normal">
-<li class="normal" id="section-8.20-3.1">
-            <p id="section-8.20-3.1.1">Request ID: The Request ID of the ANNOUNCE this message is replying to
-<a href="#message-announce" class="auto internal xref">Section 8.19</a>.<a href="#section-8.20-3.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-8.21-3.1">
+            <p id="section-8.21-3.1.1">Request ID: The Request ID of the ANNOUNCE this message is replying to
+<a href="#message-announce" class="auto internal xref">Section 8.20</a>.<a href="#section-8.21-3.1.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
 </div>
 <div id="message-announce-error">
-<section id="section-8.21">
+<section id="section-8.22">
         <h3 id="name-announce_error">
-<a href="#section-8.21" class="section-number selfRef">8.21. </a><a href="#name-announce_error" class="section-name selfRef">ANNOUNCE_ERROR</a>
+<a href="#section-8.22" class="section-number selfRef">8.22. </a><a href="#name-announce_error" class="section-name selfRef">ANNOUNCE_ERROR</a>
         </h3>
-<p id="section-8.21-1">The subscriber sends an ANNOUNCE_ERROR control message for tracks that
-failed authorization.<a href="#section-8.21-1" class="pilcrow">¶</a></p>
+<p id="section-8.22-1">The subscriber sends an ANNOUNCE_ERROR control message for tracks that
+failed authorization.<a href="#section-8.22-1" class="pilcrow">¶</a></p>
 <span id="name-moqt-announce_error-message"></span><div id="moq-transport-announce-error">
-<figure id="figure-23">
-          <div class="alignLeft art-text artwork" id="section-8.21-2.1">
+<figure id="figure-21">
+          <div class="alignLeft art-text artwork" id="section-8.22-2.1">
 <pre>
 ANNOUNCE_ERROR Message {
   Type (i) = 0x8,
@@ -4939,24 +4853,24 @@ ANNOUNCE_ERROR Message {
 }
 </pre>
 </div>
-<figcaption><a href="#figure-23" class="selfRef">Figure 23</a>:
+<figcaption><a href="#figure-21" class="selfRef">Figure 21</a>:
 <a href="#name-moqt-announce_error-message" class="selfRef">MOQT ANNOUNCE_ERROR Message</a>
           </figcaption></figure>
 </div>
 <ul class="normal">
-<li class="normal" id="section-8.21-3.1">
-            <p id="section-8.21-3.1.1">Request ID: The Request ID of the ANNOUNCE this message is replying to
-<a href="#message-announce" class="auto internal xref">Section 8.19</a>.<a href="#section-8.21-3.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-8.22-3.1">
+            <p id="section-8.22-3.1.1">Request ID: The Request ID of the ANNOUNCE this message is replying to
+<a href="#message-announce" class="auto internal xref">Section 8.20</a>.<a href="#section-8.22-3.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-8.21-3.2">
-            <p id="section-8.21-3.2.1">Error Code: Identifies an integer error code for announcement failure.<a href="#section-8.21-3.2.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-8.22-3.2">
+            <p id="section-8.22-3.2.1">Error Code: Identifies an integer error code for announcement failure.<a href="#section-8.22-3.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-8.21-3.3">
-            <p id="section-8.21-3.3.1">Error Reason: Provides the reason for announcement error. See <a href="#reason-phrase" class="auto internal xref">Section 1.3.3</a>.<a href="#section-8.21-3.3.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-8.22-3.3">
+            <p id="section-8.22-3.3.1">Error Reason: Provides the reason for announcement error. See <a href="#reason-phrase" class="auto internal xref">Section 1.3.3</a>.<a href="#section-8.22-3.3.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
-<p id="section-8.21-4">The application <span class="bcp14">SHOULD</span> use a relevant error code in ANNOUNCE_ERROR, as defined
-below:<a href="#section-8.21-4" class="pilcrow">¶</a></p>
+<p id="section-8.22-4">The application <span class="bcp14">SHOULD</span> use a relevant error code in ANNOUNCE_ERROR, as defined
+below:<a href="#section-8.22-4" class="pilcrow">¶</a></p>
 <table class="center" id="table-7">
           <caption><a href="#table-7" class="selfRef">Table 7</a></caption>
 <thead>
@@ -4991,50 +4905,58 @@ below:<a href="#section-8.21-4" class="pilcrow">¶</a></p>
               <td class="text-left" rowspan="1" colspan="1">Malformed Auth Token</td>
             </tr>
             <tr>
+              <td class="text-right" rowspan="1" colspan="1">0x11</td>
+              <td class="text-left" rowspan="1" colspan="1">Unknown Auth Token Alias</td>
+            </tr>
+            <tr>
               <td class="text-right" rowspan="1" colspan="1">0x12</td>
               <td class="text-left" rowspan="1" colspan="1">Expired Auth Token</td>
             </tr>
           </tbody>
         </table>
 <ul class="normal">
-<li class="normal" id="section-8.21-6.1">
-            <p id="section-8.21-6.1.1">Internal Error - An implementation specific or generic error occurred.<a href="#section-8.21-6.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-8.22-6.1">
+            <p id="section-8.22-6.1.1">Internal Error - An implementation specific or generic error occurred.<a href="#section-8.22-6.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-8.21-6.2">
-            <p id="section-8.21-6.2.1">Unauthorized - The subscriber is not authorized to announce the given
-namespace.<a href="#section-8.21-6.2.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-8.22-6.2">
+            <p id="section-8.22-6.2.1">Unauthorized - The subscriber is not authorized to announce the given
+namespace.<a href="#section-8.22-6.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-8.21-6.3">
-            <p id="section-8.21-6.3.1">Timeout - The announce could not be completed before an implementation
-specific timeout.<a href="#section-8.21-6.3.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-8.22-6.3">
+            <p id="section-8.22-6.3.1">Timeout - The announce could not be completed before an implementation
+specific timeout.<a href="#section-8.22-6.3.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-8.21-6.4">
-            <p id="section-8.21-6.4.1">Not Supported - The endpoint does not support the ANNOUNCE method.<a href="#section-8.21-6.4.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-8.22-6.4">
+            <p id="section-8.22-6.4.1">Not Supported - The endpoint does not support the ANNOUNCE method.<a href="#section-8.22-6.4.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-8.21-6.5">
-            <p id="section-8.21-6.5.1">Uninterested - The namespace is not of interest to the endpoint.<a href="#section-8.21-6.5.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-8.22-6.5">
+            <p id="section-8.22-6.5.1">Uninterested - The namespace is not of interest to the endpoint.<a href="#section-8.22-6.5.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-8.21-6.6">
-            <p id="section-8.21-6.6.1">Malformed Auth Token - Invalid Auth Token serialization during registration
-(see <a href="#authorization-token" class="auto internal xref">Section 8.2.1.1</a>).<a href="#section-8.21-6.6.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-8.22-6.6">
+            <p id="section-8.22-6.6.1">Malformed Auth Token - Invalid Auth Token serialization during registration
+(see <a href="#authorization-token" class="auto internal xref">Section 8.2.1.1</a>).<a href="#section-8.22-6.6.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-8.21-6.7">
-            <p id="section-8.21-6.7.1">Expired Auth Token - Authorization token has expired <a href="#authorization-token" class="auto internal xref">Section 8.2.1.1</a>).<a href="#section-8.21-6.7.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-8.22-6.7">
+            <p id="section-8.22-6.7.1">Unknown Auth Token Alias - Authorization Token refers to an alias that is
+not registered (see <a href="#authorization-token" class="auto internal xref">Section 8.2.1.1</a>).<a href="#section-8.22-6.7.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-8.22-6.8">
+            <p id="section-8.22-6.8.1">Expired Auth Token - Authorization token has expired <a href="#authorization-token" class="auto internal xref">Section 8.2.1.1</a>).<a href="#section-8.22-6.8.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
 </div>
 <div id="message-unannounce">
-<section id="section-8.22">
+<section id="section-8.23">
         <h3 id="name-unannounce">
-<a href="#section-8.22" class="section-number selfRef">8.22. </a><a href="#name-unannounce" class="section-name selfRef">UNANNOUNCE</a>
+<a href="#section-8.23" class="section-number selfRef">8.23. </a><a href="#name-unannounce" class="section-name selfRef">UNANNOUNCE</a>
         </h3>
-<p id="section-8.22-1">The publisher sends the <code>UNANNOUNCE</code> control message to indicate
+<p id="section-8.23-1">The publisher sends the <code>UNANNOUNCE</code> control message to indicate
 its intent to stop serving new subscriptions for tracks
-within the provided Track Namespace.<a href="#section-8.22-1" class="pilcrow">¶</a></p>
+within the provided Track Namespace.<a href="#section-8.23-1" class="pilcrow">¶</a></p>
 <span id="name-moqt-unannounce-message"></span><div id="moq-transport-unannounce-format">
-<figure id="figure-24">
-          <div class="alignLeft art-text artwork" id="section-8.22-2.1">
+<figure id="figure-22">
+          <div class="alignLeft art-text artwork" id="section-8.23-2.1">
 <pre>
 UNANNOUNCE Message {
   Type (i) = 0x9,
@@ -5043,29 +4965,29 @@ UNANNOUNCE Message {
 }
 </pre>
 </div>
-<figcaption><a href="#figure-24" class="selfRef">Figure 24</a>:
+<figcaption><a href="#figure-22" class="selfRef">Figure 22</a>:
 <a href="#name-moqt-unannounce-message" class="selfRef">MOQT UNANNOUNCE Message</a>
           </figcaption></figure>
 </div>
 <ul class="normal">
-<li class="normal" id="section-8.22-3.1">
-            <p id="section-8.22-3.1.1">Track Namespace: Identifies a track's namespace as defined in
-(<a href="#track-name" class="auto internal xref">Section 2.4.1</a>).<a href="#section-8.22-3.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-8.23-3.1">
+            <p id="section-8.23-3.1.1">Track Namespace: Identifies a track's namespace as defined in
+(<a href="#track-name" class="auto internal xref">Section 2.4.1</a>).<a href="#section-8.23-3.1.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
 </div>
 <div id="message-announce-cancel">
-<section id="section-8.23">
+<section id="section-8.24">
         <h3 id="name-announce_cancel">
-<a href="#section-8.23" class="section-number selfRef">8.23. </a><a href="#name-announce_cancel" class="section-name selfRef">ANNOUNCE_CANCEL</a>
+<a href="#section-8.24" class="section-number selfRef">8.24. </a><a href="#name-announce_cancel" class="section-name selfRef">ANNOUNCE_CANCEL</a>
         </h3>
-<p id="section-8.23-1">The subscriber sends an <code>ANNOUNCE_CANCEL</code> control message to
+<p id="section-8.24-1">The subscriber sends an <code>ANNOUNCE_CANCEL</code> control message to
 indicate it will stop sending new subscriptions for tracks
-within the provided Track Namespace.<a href="#section-8.23-1" class="pilcrow">¶</a></p>
+within the provided Track Namespace.<a href="#section-8.24-1" class="pilcrow">¶</a></p>
 <span id="name-moqt-announce_cancel-messag"></span><div id="moq-transport-announce-cancel-format">
-<figure id="figure-25">
-          <div class="alignLeft art-text artwork" id="section-8.23-2.1">
+<figure id="figure-23">
+          <div class="alignLeft art-text artwork" id="section-8.24-2.1">
 <pre>
 ANNOUNCE_CANCEL Message {
   Type (i) = 0xC,
@@ -5076,37 +4998,37 @@ ANNOUNCE_CANCEL Message {
 }
 </pre>
 </div>
-<figcaption><a href="#figure-25" class="selfRef">Figure 25</a>:
+<figcaption><a href="#figure-23" class="selfRef">Figure 23</a>:
 <a href="#name-moqt-announce_cancel-messag" class="selfRef">MOQT ANNOUNCE_CANCEL Message</a>
           </figcaption></figure>
 </div>
 <ul class="normal">
-<li class="normal" id="section-8.23-3.1">
-            <p id="section-8.23-3.1.1">Track Namespace: Identifies a track's namespace as defined in
-(<a href="#track-name" class="auto internal xref">Section 2.4.1</a>).<a href="#section-8.23-3.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-8.24-3.1">
+            <p id="section-8.24-3.1.1">Track Namespace: Identifies a track's namespace as defined in
+(<a href="#track-name" class="auto internal xref">Section 2.4.1</a>).<a href="#section-8.24-3.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-8.23-3.2">
-            <p id="section-8.23-3.2.1">Error Code: Identifies an integer error code for canceling the announcement.
+          <li class="normal" id="section-8.24-3.2">
+            <p id="section-8.24-3.2.1">Error Code: Identifies an integer error code for canceling the announcement.
 ANNOUNCE_CANCEL uses the same error codes as ANNOUNCE_ERROR
-(<a href="#message-announce-error" class="auto internal xref">Section 8.21</a>).<a href="#section-8.23-3.2.1" class="pilcrow">¶</a></p>
+(<a href="#message-announce-error" class="auto internal xref">Section 8.22</a>).<a href="#section-8.24-3.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-8.23-3.3">
-            <p id="section-8.23-3.3.1">Error Reason: Provides the reason for announcement cancelation. See <a href="#reason-phrase" class="auto internal xref">Section 1.3.3</a>.<a href="#section-8.23-3.3.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-8.24-3.3">
+            <p id="section-8.24-3.3.1">Error Reason: Provides the reason for announcement cancelation. See <a href="#reason-phrase" class="auto internal xref">Section 1.3.3</a>.<a href="#section-8.24-3.3.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
 </div>
 <div id="message-subscribe-ns">
-<section id="section-8.24">
+<section id="section-8.25">
         <h3 id="name-subscribe_announces">
-<a href="#section-8.24" class="section-number selfRef">8.24. </a><a href="#name-subscribe_announces" class="section-name selfRef">SUBSCRIBE_ANNOUNCES</a>
+<a href="#section-8.25" class="section-number selfRef">8.25. </a><a href="#name-subscribe_announces" class="section-name selfRef">SUBSCRIBE_ANNOUNCES</a>
         </h3>
-<p id="section-8.24-1">The subscriber sends the SUBSCRIBE_ANNOUNCES control message to a publisher
+<p id="section-8.25-1">The subscriber sends the SUBSCRIBE_ANNOUNCES control message to a publisher
 to request the current set of matching announcements, as well as future updates
-to the set.<a href="#section-8.24-1" class="pilcrow">¶</a></p>
+to the set.<a href="#section-8.25-1" class="pilcrow">¶</a></p>
 <span id="name-moqt-subscribe_announces-me"></span><div id="moq-transport-subscribe-ns-format">
-<figure id="figure-26">
-          <div class="alignLeft art-text artwork" id="section-8.24-2.1">
+<figure id="figure-24">
+          <div class="alignLeft art-text artwork" id="section-8.25-2.1">
 <pre>
 SUBSCRIBE_ANNOUNCES Message {
   Type (i) = 0x11,
@@ -5118,56 +5040,56 @@ SUBSCRIBE_ANNOUNCES Message {
 }
 </pre>
 </div>
-<figcaption><a href="#figure-26" class="selfRef">Figure 26</a>:
+<figcaption><a href="#figure-24" class="selfRef">Figure 24</a>:
 <a href="#name-moqt-subscribe_announces-me" class="selfRef">MOQT SUBSCRIBE_ANNOUNCES Message</a>
           </figcaption></figure>
 </div>
 <ul class="normal">
-<li class="normal" id="section-8.24-3.1">
-            <p id="section-8.24-3.1.1">Request ID: See <a href="#request-id" class="auto internal xref">Section 8.1</a>.<a href="#section-8.24-3.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-8.25-3.1">
+            <p id="section-8.25-3.1.1">Request ID: See <a href="#request-id" class="auto internal xref">Section 8.1</a>.<a href="#section-8.25-3.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-8.24-3.2">
-            <p id="section-8.24-3.2.1">Track Namespace Prefix: An ordered N-Tuple of byte fields which are matched
+          <li class="normal" id="section-8.25-3.2">
+            <p id="section-8.25-3.2.1">Track Namespace Prefix: An ordered N-Tuple of byte fields which are matched
 against track namespaces known to the publisher.  For example, if the publisher
 is a relay that has received ANNOUNCE messages for namespaces ("example.com",
 "meeting=123", "participant=100") and ("example.com", "meeting=123",
 "participant=200"), a SUBSCRIBE_ANNOUNCES for ("example.com", "meeting=123")
 would match both.  If an endpoint receives a Track Namespace Prefix tuple with
 an N of 0 or more than 32, it <span class="bcp14">MUST</span> close the session with a Protocol
-Violation.<a href="#section-8.24-3.2.1" class="pilcrow">¶</a></p>
+Violation.<a href="#section-8.25-3.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-8.24-3.3">
-            <p id="section-8.24-3.3.1">Parameters: The parameters are defined in <a href="#version-specific-params" class="auto internal xref">Section 8.2.1</a>.<a href="#section-8.24-3.3.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-8.25-3.3">
+            <p id="section-8.25-3.3.1">Parameters: The parameters are defined in <a href="#version-specific-params" class="auto internal xref">Section 8.2.1</a>.<a href="#section-8.25-3.3.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
-<p id="section-8.24-4">The publisher will respond with SUBSCRIBE_ANNOUNCES_OK or
+<p id="section-8.25-4">The publisher will respond with SUBSCRIBE_ANNOUNCES_OK or
 SUBSCRIBE_ANNOUNCES_ERROR.  If the SUBSCRIBE_ANNOUNCES is successful,
 the publisher will forward any matching ANNOUNCE messages to the subscriber
 that it has not yet sent.  If the set of matching ANNOUNCE messages changes, the
-publisher sends the corresponding ANNOUNCE or UNANNOUNCE message.<a href="#section-8.24-4" class="pilcrow">¶</a></p>
-<p id="section-8.24-5">A subscriber cannot make overlapping namespace subscriptions on a single
+publisher sends the corresponding ANNOUNCE or UNANNOUNCE message.<a href="#section-8.25-4" class="pilcrow">¶</a></p>
+<p id="section-8.25-5">A subscriber cannot make overlapping namespace subscriptions on a single
 session.  Within a session, if a publisher receives a SUBSCRIBE_ANNOUNCES
 with a Track Namespace Prefix that is a prefix of an earlier
 SUBSCRIBE_ANNOUNCES or vice versa, it <span class="bcp14">MUST</span> respond with
-SUBSCRIBE_ANNOUNCES_ERROR, with error code Namespace Prefix Overlap.<a href="#section-8.24-5" class="pilcrow">¶</a></p>
-<p id="section-8.24-6">The publisher <span class="bcp14">MUST</span> ensure the subscriber is authorized to perform this
-namespace subscription.<a href="#section-8.24-6" class="pilcrow">¶</a></p>
-<p id="section-8.24-7">SUBSCRIBE_ANNOUNCES is not required for a publisher to send ANNOUNCE and
+SUBSCRIBE_ANNOUNCES_ERROR, with error code Namespace Prefix Overlap.<a href="#section-8.25-5" class="pilcrow">¶</a></p>
+<p id="section-8.25-6">The publisher <span class="bcp14">MUST</span> ensure the subscriber is authorized to perform this
+namespace subscription.<a href="#section-8.25-6" class="pilcrow">¶</a></p>
+<p id="section-8.25-7">SUBSCRIBE_ANNOUNCES is not required for a publisher to send ANNOUNCE and
 UNANNOUNCE messages to a subscriber.  It is useful in applications or relays
 where subscribers are only interested in or authorized to access a subset of
-available announcements.<a href="#section-8.24-7" class="pilcrow">¶</a></p>
+available announcements.<a href="#section-8.25-7" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="message-sub-ann-ok">
-<section id="section-8.25">
+<section id="section-8.26">
         <h3 id="name-subscribe_announces_ok">
-<a href="#section-8.25" class="section-number selfRef">8.25. </a><a href="#name-subscribe_announces_ok" class="section-name selfRef">SUBSCRIBE_ANNOUNCES_OK</a>
+<a href="#section-8.26" class="section-number selfRef">8.26. </a><a href="#name-subscribe_announces_ok" class="section-name selfRef">SUBSCRIBE_ANNOUNCES_OK</a>
         </h3>
-<p id="section-8.25-1">A publisher sends a SUBSCRIBE_ANNOUNCES_OK control message for successful
-namespace subscriptions.<a href="#section-8.25-1" class="pilcrow">¶</a></p>
+<p id="section-8.26-1">A publisher sends a SUBSCRIBE_ANNOUNCES_OK control message for successful
+namespace subscriptions.<a href="#section-8.26-1" class="pilcrow">¶</a></p>
 <span id="name-moqt-subscribe_announces_ok"></span><div id="moq-transport-sub-ann-ok">
-<figure id="figure-27">
-          <div class="alignLeft art-text artwork" id="section-8.25-2.1">
+<figure id="figure-25">
+          <div class="alignLeft art-text artwork" id="section-8.26-2.1">
 <pre>
 SUBSCRIBE_ANNOUNCES_OK Message {
   Type (i) = 0x12,
@@ -5176,28 +5098,28 @@ SUBSCRIBE_ANNOUNCES_OK Message {
 }
 </pre>
 </div>
-<figcaption><a href="#figure-27" class="selfRef">Figure 27</a>:
+<figcaption><a href="#figure-25" class="selfRef">Figure 25</a>:
 <a href="#name-moqt-subscribe_announces_ok" class="selfRef">MOQT SUBSCRIBE_ANNOUNCES_OK Message</a>
           </figcaption></figure>
 </div>
 <ul class="normal">
-<li class="normal" id="section-8.25-3.1">
-            <p id="section-8.25-3.1.1">Request ID: The Request ID of the SUBSCRIBE_ANNOUNCES this message is replying
-to <a href="#message-subscribe-ns" class="auto internal xref">Section 8.24</a>.<a href="#section-8.25-3.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-8.26-3.1">
+            <p id="section-8.26-3.1.1">Request ID: The Request ID of the SUBSCRIBE_ANNOUNCES this message is replying
+to <a href="#message-subscribe-ns" class="auto internal xref">Section 8.25</a>.<a href="#section-8.26-3.1.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
 </div>
 <div id="message-sub-ann-error">
-<section id="section-8.26">
+<section id="section-8.27">
         <h3 id="name-subscribe_announces_error">
-<a href="#section-8.26" class="section-number selfRef">8.26. </a><a href="#name-subscribe_announces_error" class="section-name selfRef">SUBSCRIBE_ANNOUNCES_ERROR</a>
+<a href="#section-8.27" class="section-number selfRef">8.27. </a><a href="#name-subscribe_announces_error" class="section-name selfRef">SUBSCRIBE_ANNOUNCES_ERROR</a>
         </h3>
-<p id="section-8.26-1">A publisher sends a SUBSCRIBE_ANNOUNCES_ERROR control message in response to
-a failed SUBSCRIBE_ANNOUNCES.<a href="#section-8.26-1" class="pilcrow">¶</a></p>
+<p id="section-8.27-1">A publisher sends a SUBSCRIBE_ANNOUNCES_ERROR control message in response to
+a failed SUBSCRIBE_ANNOUNCES.<a href="#section-8.27-1" class="pilcrow">¶</a></p>
 <span id="name-moqt-subscribe_announces_er"></span><div id="moq-transport-sub-ann-error">
-<figure id="figure-28">
-          <div class="alignLeft art-text artwork" id="section-8.26-2.1">
+<figure id="figure-26">
+          <div class="alignLeft art-text artwork" id="section-8.27-2.1">
 <pre>
 SUBSCRIBE_ANNOUNCES_ERROR Message {
   Type (i) = 0x13,
@@ -5208,26 +5130,26 @@ SUBSCRIBE_ANNOUNCES_ERROR Message {
 }
 </pre>
 </div>
-<figcaption><a href="#figure-28" class="selfRef">Figure 28</a>:
+<figcaption><a href="#figure-26" class="selfRef">Figure 26</a>:
 <a href="#name-moqt-subscribe_announces_er" class="selfRef">MOQT SUBSCRIBE_ANNOUNCES_ERROR Message</a>
           </figcaption></figure>
 </div>
 <ul class="normal">
-<li class="normal" id="section-8.26-3.1">
-            <p id="section-8.26-3.1.1">Request ID: The Request ID of the SUBSCRIBE_ANNOUNCES this message is replying
-to <a href="#message-subscribe-ns" class="auto internal xref">Section 8.24</a>.<a href="#section-8.26-3.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-8.27-3.1">
+            <p id="section-8.27-3.1.1">Request ID: The Request ID of the SUBSCRIBE_ANNOUNCES this message is replying
+to <a href="#message-subscribe-ns" class="auto internal xref">Section 8.25</a>.<a href="#section-8.27-3.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-8.26-3.2">
-            <p id="section-8.26-3.2.1">Error Code: Identifies an integer error code for the namespace subscription
-failure.<a href="#section-8.26-3.2.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-8.27-3.2">
+            <p id="section-8.27-3.2.1">Error Code: Identifies an integer error code for the namespace subscription
+failure.<a href="#section-8.27-3.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-8.26-3.3">
-            <p id="section-8.26-3.3.1">Error Reason: Provides the reason for the namespace subscription error.
-See <a href="#reason-phrase" class="auto internal xref">Section 1.3.3</a>.<a href="#section-8.26-3.3.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-8.27-3.3">
+            <p id="section-8.27-3.3.1">Error Reason: Provides the reason for the namespace subscription error.
+See <a href="#reason-phrase" class="auto internal xref">Section 1.3.3</a>.<a href="#section-8.27-3.3.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
-<p id="section-8.26-4">The application <span class="bcp14">SHOULD</span> use a relevant error code in SUBSCRIBE_ANNOUNCES_ERROR,
-as defined below:<a href="#section-8.26-4" class="pilcrow">¶</a></p>
+<p id="section-8.27-4">The application <span class="bcp14">SHOULD</span> use a relevant error code in SUBSCRIBE_ANNOUNCES_ERROR,
+as defined below:<a href="#section-8.27-4" class="pilcrow">¶</a></p>
 <table class="center" id="table-8">
           <caption><a href="#table-8" class="selfRef">Table 8</a></caption>
 <thead>
@@ -5266,56 +5188,64 @@ as defined below:<a href="#section-8.26-4" class="pilcrow">¶</a></p>
               <td class="text-left" rowspan="1" colspan="1">Malformed Auth Token</td>
             </tr>
             <tr>
+              <td class="text-right" rowspan="1" colspan="1">0x11</td>
+              <td class="text-left" rowspan="1" colspan="1">Unknown Auth Token Alias</td>
+            </tr>
+            <tr>
               <td class="text-right" rowspan="1" colspan="1">0x12</td>
               <td class="text-left" rowspan="1" colspan="1">Expired Auth Token</td>
             </tr>
           </tbody>
         </table>
 <ul class="normal">
-<li class="normal" id="section-8.26-6.1">
-            <p id="section-8.26-6.1.1">Internal Error - An implementation specific or generic error occurred.<a href="#section-8.26-6.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-8.27-6.1">
+            <p id="section-8.27-6.1.1">Internal Error - An implementation specific or generic error occurred.<a href="#section-8.27-6.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-8.26-6.2">
-            <p id="section-8.26-6.2.1">Unauthorized - The subscriber is not authorized to subscribe to the given
-namespace prefix.<a href="#section-8.26-6.2.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-8.27-6.2">
+            <p id="section-8.27-6.2.1">Unauthorized - The subscriber is not authorized to subscribe to the given
+namespace prefix.<a href="#section-8.27-6.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-8.26-6.3">
-            <p id="section-8.26-6.3.1">Timeout - The operation could not be completed before an implementation
-specific timeout.<a href="#section-8.26-6.3.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-8.27-6.3">
+            <p id="section-8.27-6.3.1">Timeout - The operation could not be completed before an implementation
+specific timeout.<a href="#section-8.27-6.3.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-8.26-6.4">
-            <p id="section-8.26-6.4.1">Not Supported - The endpoint does not support the SUBSCRIBE_ANNOUNCES method.<a href="#section-8.26-6.4.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-8.27-6.4">
+            <p id="section-8.27-6.4.1">Not Supported - The endpoint does not support the SUBSCRIBE_ANNOUNCES method.<a href="#section-8.27-6.4.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-8.26-6.5">
-            <p id="section-8.26-6.5.1">Namespace Prefix Unknown - The namespace prefix is not available for
-subscription.<a href="#section-8.26-6.5.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-8.27-6.5">
+            <p id="section-8.27-6.5.1">Namespace Prefix Unknown - The namespace prefix is not available for
+subscription.<a href="#section-8.27-6.5.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-8.26-6.6">
-            <p id="section-8.26-6.6.1">Namespace Prefix Overlap - The namespace prefix overlaps with another
-SUBSCRIBE_ANNOUNCES in the same session.<a href="#section-8.26-6.6.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-8.27-6.6">
+            <p id="section-8.27-6.6.1">Namespace Prefix Overlap - The namespace prefix overlaps with another
+SUBSCRIBE_ANNOUNCES in the same session.<a href="#section-8.27-6.6.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-8.26-6.7">
-            <p id="section-8.26-6.7.1">Malformed Auth Token - Invalid Auth Token serialization during registration
-(see <a href="#authorization-token" class="auto internal xref">Section 8.2.1.1</a>).<a href="#section-8.26-6.7.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-8.27-6.7">
+            <p id="section-8.27-6.7.1">Malformed Auth Token - Invalid Auth Token serialization during registration
+(see <a href="#authorization-token" class="auto internal xref">Section 8.2.1.1</a>).<a href="#section-8.27-6.7.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-8.26-6.8">
-            <p id="section-8.26-6.8.1">Expired Auth Token - Authorization token has expired <a href="#authorization-token" class="auto internal xref">Section 8.2.1.1</a>).<a href="#section-8.26-6.8.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-8.27-6.8">
+            <p id="section-8.27-6.8.1">Unknown Auth Token Alias - Authorization Token refers to an alias that is
+not registered (see <a href="#authorization-token" class="auto internal xref">Section 8.2.1.1</a>).<a href="#section-8.27-6.8.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-8.27-6.9">
+            <p id="section-8.27-6.9.1">Expired Auth Token - Authorization token has expired <a href="#authorization-token" class="auto internal xref">Section 8.2.1.1</a>).<a href="#section-8.27-6.9.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
 </div>
 <div id="message-unsub-ann">
-<section id="section-8.27">
+<section id="section-8.28">
         <h3 id="name-unsubscribe_announces">
-<a href="#section-8.27" class="section-number selfRef">8.27. </a><a href="#name-unsubscribe_announces" class="section-name selfRef">UNSUBSCRIBE_ANNOUNCES</a>
+<a href="#section-8.28" class="section-number selfRef">8.28. </a><a href="#name-unsubscribe_announces" class="section-name selfRef">UNSUBSCRIBE_ANNOUNCES</a>
         </h3>
-<p id="section-8.27-1">A subscriber issues a <code>UNSUBSCRIBE_ANNOUNCES</code> message to a publisher
+<p id="section-8.28-1">A subscriber issues a <code>UNSUBSCRIBE_ANNOUNCES</code> message to a publisher
 indicating it is no longer interested in ANNOUNCE and UNANNOUNCE messages for
-the specified track namespace prefix.<a href="#section-8.27-1" class="pilcrow">¶</a></p>
-<p id="section-8.27-2">The format of <code>UNSUBSCRIBE_ANNOUNCES</code> is as follows:<a href="#section-8.27-2" class="pilcrow">¶</a></p>
+the specified track namespace prefix.<a href="#section-8.28-1" class="pilcrow">¶</a></p>
+<p id="section-8.28-2">The format of <code>UNSUBSCRIBE_ANNOUNCES</code> is as follows:<a href="#section-8.28-2" class="pilcrow">¶</a></p>
 <span id="name-moqt-unsubscribe-message-2"></span><div id="moq-transport-unsub-ann-format">
-<figure id="figure-29">
-          <div class="alignLeft art-text artwork" id="section-8.27-3.1">
+<figure id="figure-27">
+          <div class="alignLeft art-text artwork" id="section-8.28-3.1">
 <pre>
 UNSUBSCRIBE_ANNOUNCES Message {
   Type (i) = 0x14,
@@ -5324,13 +5254,13 @@ UNSUBSCRIBE_ANNOUNCES Message {
 }
 </pre>
 </div>
-<figcaption><a href="#figure-29" class="selfRef">Figure 29</a>:
+<figcaption><a href="#figure-27" class="selfRef">Figure 27</a>:
 <a href="#name-moqt-unsubscribe-message-2" class="selfRef">MOQT UNSUBSCRIBE Message</a>
           </figcaption></figure>
 </div>
 <ul class="normal">
-<li class="normal" id="section-8.27-4.1">
-            <p id="section-8.27-4.1.1">Track Namespace Prefix: As defined in <a href="#message-subscribe-ns" class="auto internal xref">Section 8.24</a>.<a href="#section-8.27-4.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-8.28-4.1">
+            <p id="section-8.28-4.1.1">Track Namespace Prefix: As defined in <a href="#message-subscribe-ns" class="auto internal xref">Section 8.25</a>.<a href="#section-8.28-4.1.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
@@ -5568,7 +5498,7 @@ exceed the maximum datagram size of a downstream session and be dropped.<a href=
           </h4>
 <p id="section-9.3.1-1">An <code>OBJECT_DATAGRAM</code> carries a single object in a datagram.<a href="#section-9.3.1-1" class="pilcrow">¶</a></p>
 <span id="name-moqt-object_datagram"></span><div id="object-datagram-format">
-<figure id="figure-30">
+<figure id="figure-28">
             <div class="alignLeft art-text artwork" id="section-9.3.1-2.1">
 <pre>
 OBJECT_DATAGRAM {
@@ -5583,7 +5513,7 @@ OBJECT_DATAGRAM {
 }
 </pre>
 </div>
-<figcaption><a href="#figure-30" class="selfRef">Figure 30</a>:
+<figcaption><a href="#figure-28" class="selfRef">Figure 28</a>:
 <a href="#name-moqt-object_datagram" class="selfRef">MOQT OBJECT_DATAGRAM</a>
             </figcaption></figure>
 </div>
@@ -5644,7 +5574,7 @@ following Publisher Priority contains the Object Payload.<a href="#section-9.3.1
 <p id="section-9.3.2-1">An <code>OBJECT_DATAGRAM_STATUS</code> is similar to OBJECT_DATAGRAM except it
 conveys an Object Status and has no payload.<a href="#section-9.3.2-1" class="pilcrow">¶</a></p>
 <span id="name-moqt-object_datagram_status"></span><div id="object-datagram-status-format">
-<figure id="figure-31">
+<figure id="figure-29">
             <div class="alignLeft art-text artwork" id="section-9.3.2-2.1">
 <pre>
 OBJECT_DATAGRAM_STATUS {
@@ -5659,7 +5589,7 @@ OBJECT_DATAGRAM_STATUS {
 }
 </pre>
 </div>
-<figcaption><a href="#figure-31" class="selfRef">Figure 31</a>:
+<figcaption><a href="#figure-29" class="selfRef">Figure 29</a>:
 <a href="#name-moqt-object_datagram_status" class="selfRef">MOQT OBJECT_DATAGRAM_STATUS</a>
             </figcaption></figure>
 </div>
@@ -5711,7 +5641,7 @@ control to the control stream before allocating it any data streams. Otherwise,
 a receiver might wait for a control message containing a Track Alias to release
 flow control, while the sender waits for flow control to send the message.<a href="#section-9.4.2-2" class="pilcrow">¶</a></p>
 <span id="name-moqt-subgroup_header"></span><div id="object-header-format">
-<figure id="figure-32">
+<figure id="figure-30">
             <div class="alignLeft art-text artwork" id="section-9.4.2-3.1">
 <pre>
 SUBGROUP_HEADER {
@@ -5723,7 +5653,7 @@ SUBGROUP_HEADER {
 }
 </pre>
 </div>
-<figcaption><a href="#figure-32" class="selfRef">Figure 32</a>:
+<figcaption><a href="#figure-30" class="selfRef">Figure 30</a>:
 <a href="#name-moqt-subgroup_header" class="selfRef">MOQT SUBGROUP_HEADER</a>
             </figcaption></figure>
 </div>
@@ -5853,7 +5783,7 @@ or open a new one and send the <code>SUBGROUP_HEADER</code>. Then serialize the
 following fields.<a href="#section-9.4.2-10" class="pilcrow">¶</a></p>
 <p id="section-9.4.2-11">The Object Status field is only sent if the Object Payload Length is zero.<a href="#section-9.4.2-11" class="pilcrow">¶</a></p>
 <span id="name-moqt-subgroup-object-fields"></span><div id="object-subgroup-format">
-<figure id="figure-33">
+<figure id="figure-31">
             <div class="alignLeft art-text artwork" id="section-9.4.2-12.1">
 <pre>
 {
@@ -5866,7 +5796,7 @@ following fields.<a href="#section-9.4.2-10" class="pilcrow">¶</a></p>
 }
 </pre>
 </div>
-<figcaption><a href="#figure-33" class="selfRef">Figure 33</a>:
+<figcaption><a href="#figure-31" class="selfRef">Figure 31</a>:
 <a href="#name-moqt-subgroup-object-fields" class="selfRef">MOQT Subgroup Object Fields</a>
             </figcaption></figure>
 </div>
@@ -6014,7 +5944,7 @@ stream<a href="#section-9.4.3-16.6.1" class="pilcrow">¶</a></p>
 <p id="section-9.4.4-1">When a stream begins with <code>FETCH_HEADER</code>, all objects on the stream belong to the
 track requested in the Fetch message identified by <code>Request ID</code>.<a href="#section-9.4.4-1" class="pilcrow">¶</a></p>
 <span id="name-moqt-fetch_header"></span><div id="fetch-header-format">
-<figure id="figure-34">
+<figure id="figure-32">
             <div class="alignLeft art-text artwork" id="section-9.4.4-2.1">
 <pre>
 FETCH_HEADER {
@@ -6023,13 +5953,13 @@ FETCH_HEADER {
 }
 </pre>
 </div>
-<figcaption><a href="#figure-34" class="selfRef">Figure 34</a>:
+<figcaption><a href="#figure-32" class="selfRef">Figure 32</a>:
 <a href="#name-moqt-fetch_header" class="selfRef">MOQT FETCH_HEADER</a>
             </figcaption></figure>
 </div>
 <p id="section-9.4.4-3">Each object sent on a fetch stream after the FETCH_HEADER has the following format:<a href="#section-9.4.4-3" class="pilcrow">¶</a></p>
 <span id="name-moqt-fetch-object-fields"></span><div id="object-fetch-format">
-<figure id="figure-35">
+<figure id="figure-33">
             <div class="alignLeft art-text artwork" id="section-9.4.4-4.1">
 <pre>
 {
@@ -6045,7 +5975,7 @@ FETCH_HEADER {
 }
 </pre>
 </div>
-<figcaption><a href="#figure-35" class="selfRef">Figure 35</a>:
+<figcaption><a href="#figure-33" class="selfRef">Figure 33</a>:
 <a href="#name-moqt-fetch-object-fields" class="selfRef">MOQT Fetch Object Fields</a>
             </figcaption></figure>
 </div>
@@ -6302,7 +6232,7 @@ document:<a href="#section-13-1" class="pilcrow">¶</a></p>
 <dl class="references">
 <dt id="I-D.draft-ietf-quic-reliable-stream-reset">[I-D.draft-ietf-quic-reliable-stream-reset]</dt>
         <dd>
-<span class="refAuthor">Seemann, M.</span> and <span class="refAuthor">K. Oku</span>, <span class="refTitle">"QUIC Stream Resets with Partial Delivery"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-quic-reliable-stream-reset-06</span>, <time datetime="2024-02-28" class="refDate">28 February 2024</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-quic-reliable-stream-reset-06">https://datatracker.ietf.org/doc/html/draft-ietf-quic-reliable-stream-reset-06</a>&gt;</span>. </dd>
+<span class="refAuthor">Seemann, M.</span> and <span class="refAuthor">K. Oku</span>, <span class="refTitle">"QUIC Stream Resets with Partial Delivery"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-quic-reliable-stream-reset-07</span>, <time datetime="2025-06-14" class="refDate">14 June 2025</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-quic-reliable-stream-reset-07">https://datatracker.ietf.org/doc/html/draft-ietf-quic-reliable-stream-reset-07</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="QUIC">[QUIC]</dt>
         <dd>
