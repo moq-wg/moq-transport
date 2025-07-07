@@ -3633,31 +3633,29 @@ Each object sent on a fetch stream after the FETCH_HEADER has the following form
 The Serialization field defines the serialization of the object. The
 following code points are defined:
 
-|------|----------|-------------|--------------|-----------|-------------------|
-| Code | Group ID	| Subgroup ID	| Object ID	   | Publisher | Extension Headers |
-|      |         	|             |              | Priority	 | Length            |
-|------|----------|-------------|--------------|-----------|-------------------|
-| 0x0	 | Present  | Present	    | Present	     | Present   | Present           |
-|------|----------|-------------|--------------|-----------|-------------------|
-| 0x1	 | Present  | Presen      | Present	     | Present   | 0                 |
-|------|----------|-------------|--------------|-----------|-------------------|
-| 0x2	 | Present  | 0           | 0            | Present	  | Present           |
-|------|----------|-------------|--------------|-----------|-------------------|
-| 0x3	 | Present  | 0           | 0            | Present   | 0                 |
-|------|----------|-------------|--------------|-----------|-------------------|
-| 0x4	 | Previous | Previous    | Previous + 1 | Previous  | Present           |
-|------|----------|-------------|--------------|-----------|-------------------|
-| 0x5	 | Previous | Previous    | Previous + 1 | Previous  | 0                 |
-|------|----------|-------------|--------------|-----------|-------------------|
-| 0x6	 | Previous | Previous +1 | Previous + 1 | Present   | Present           |
-|------|----------|-------------|--------------|-----------|-------------------|
-| 0x7	 | Previous | Previous +1 | Previous + 1 | Present   | 0                 |
-|------|----------|-------------|--------------|-----------|-------------------|
+| Code | Group ID | Subgroup<br>ID | Object<br>ID | Publisher<br>Priority | Extension<br>Headers<br>Length |
+|------|----------|----------|-----------|-----------|----------------|
+| 0x0	 | Yes      | Yes      | Yes       | Yes       | Yes            |
+|------|----------|----------|-----------|-----------|----------------|
+| 0x1	 | Yes      | Yes      | Yes       | Yes       | 0              |
+|------|----------|----------|-----------|-----------|----------------|
+| 0x2	 | Yes      | 0        | 0         | Yes       | Yes            |
+|------|----------|----------|-----------|-----------|----------------|
+| 0x3	 | Yes      | 0        | 0         | Yes       | 0              |
+|------|----------|----------|-----------|-----------|----------------|
+| 0x4	 | Prior    | Prior    | Prior + 1 | Prior     | Yes            |
+|------|----------|----------|-----------|-----------|----------------|
+| 0x5	 | Prior    | Prior    | Prior + 1 | Prior     | 0              |
+|------|----------|----------|-----------|-----------|----------------|
+| 0x6	 | Prior    | Prior +1 | Prior + 1 | Yes       | Yes            |
+|------|----------|----------|-----------|-----------|----------------|
+| 0x7	 | Prior    | Prior +1 | Prior + 1 | Yes       | 0              |
+|------|----------|----------|-----------|-----------|----------------|
 
-'Present' indicates that the field is serialized and holds a value.
-'Previous' indicates that the field is not serialized and that the attribute
+'Yes' indicates that the field is serialized and holds a value.
+'Prior' indicates that the field is not serialized and that the attribute
 value is identical to that of the prior Object.
-'Previous + 1' indicates that the field is not serialized and that the attribute
+'Prior + 1' indicates that the field is not serialized and that the attribute
 value is 1 more than that of the prior Object.
 '0' indicates that the field is not serialized and that is has a value of 0.
 
