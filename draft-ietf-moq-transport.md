@@ -3764,6 +3764,12 @@ RFC Editor's Note: Please remove this section prior to publication of a final ve
 
 Issue and pull request numbers are listed with a leading octothorp.
 
+## Since draft-ietf-moq-transport-12
+
+* TRACK_STATUS_REQUEST and TRACK_STATUS have changed to directly mirror
+  SUBSCRIBE/OK/ERROR (#1015)
+* SUBSCRIBE_ANNOUNCES was renamed back to SUBSCRIBE_NAMESPACE (#1049)
+
 ## Since draft-ietf-moq-transport-11
 
 * Move Track Alias from SUBSCRIBE to SUBSCRIBE_OK (#977)
