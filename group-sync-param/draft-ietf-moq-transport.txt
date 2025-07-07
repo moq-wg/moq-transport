@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 28 December 2025                                  I. Swett, Ed.
+Expires: 8 January 2026                                    I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                            26 June 2025
+                                                             7 July 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 28 December 2025.
+   This Internet-Draft will expire on 8 January 2026.
 
 Copyright Notice
 
@@ -1810,6 +1810,10 @@ Table of Contents
    Violation.  When the value is 1, it indicates that the subscriber can
    send a NEW_GROUP_REQUEST parameter in PUBLISH_OK or SUBSCRIBE_UPDATE
    for this Track.
+
+   Relays MUST preserve the value of this parameter received from an
+   upstream publisher in SUBSCRIBE_OK or PUBLISH when sending these
+   messages to downstream subscribers.
 
 8.2.1.5.  NEW GROUP_REQUEST Parameter
 
