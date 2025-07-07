@@ -1611,6 +1611,10 @@ SUBSCRIBE_OK.  Values larger than 1 are a Protocol Violation.  When the value is
 1, it indicates that the subscriber can send a NEW_GROUP_REQUEST parameter in
 PUBLISH_OK or SUBSCRIBE_UPDATE for this Track.
 
+Relays MUST preserve the value of this parameter received from an upstream
+publisher in SUBSCRIBE_OK or PUBLISH when sending these messages to downstream
+subscribers.
+
 #### NEW GROUP_REQUEST Parameter {#new-group-request}
 
 The NEW_GROUP_REQUEST parameter (parameter type 0x22) MAY appear in PUBLISH_OK,
