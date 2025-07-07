@@ -2509,12 +2509,12 @@ The TRACK_STATUS message format is identical to the SUBSCRIBE message
 ({{message-subscribe-req}}).
 
 The receiver of a TRACK_STATUS message treats it identically as if it had
-received a SUBSCRIBE message, except it does not create subscription state or
-send any Objects.  Relays without an active subscription MAY forward
-TRACK_STATUS to one or more publishers, or MAY initiate a subscription as
-described in {{publisher-interactions}} to determine the response. The publisher
-does not send SUBSCRIBE_DONE for this request, and the subscriber cannot send
-SUBSCRIBE_UPDATE or UNSUBSCRIBE.
+received a SUBSCRIBE message, except it does not create downstream subscription
+state or send any Objects.  Relays without an active subscription MAY forward
+TRACK_STATUS to one or more publishers, or MAY initiate a subscription (subject
+to authorization) as described in {{publisher-interactions}} to determine the
+response. The publisher does not send SUBSCRIBE_DONE for this request, and the
+subscriber cannot send SUBSCRIBE_UPDATE or UNSUBSCRIBE.
 
 ## TRACK_STATUS_OK {#message-track-status-ok}
 
