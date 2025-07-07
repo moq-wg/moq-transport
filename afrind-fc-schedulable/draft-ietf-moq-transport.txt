@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 25 December 2025                                  I. Swett, Ed.
+Expires: 8 January 2026                                    I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                            23 June 2025
+                                                             7 July 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 25 December 2025.
+   This Internet-Draft will expire on 8 January 2026.
 
 Copyright Notice
 
@@ -1139,11 +1139,11 @@ Table of Contents
    MOQT maintains priorities between different _schedulable objects_. A
    schedulable object in MOQT is either:
 
-   1.  An Object in response to a SUBSCRIBE that belongs to a Subgroup
-       where that Object is the next Object in that Subgroup.
+   1.  The first or next Object in a Subgroup that is in response to a
+       subscription.
 
-   2.  An Object in response to a SUBSCRIBE that belongs to a Track with
-       delivery preference Datagram.
+   2.  An Object in response to a subscription that belongs to a Track
+       with delivery preference Datagram.
 
    3.  An Object in response to a FETCH where that Object is the next
        Object in the response.
