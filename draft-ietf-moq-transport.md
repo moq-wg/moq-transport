@@ -2311,8 +2311,7 @@ The subscriber sends an PUBLISH_OK control message to acknowledge the successful
 authorization and acceptance of a PUBLISH message, and establish a subscription.
 
 ~~~
-PUBLISH_OK Message
-{
+PUBLISH_OK Message {
   Type (i) = 0x1E,
   Length (i),
   Request ID (i),
@@ -2351,8 +2350,7 @@ The subscriber sends an PUBLISH_ERROR control message to reject
 a subscription initiated by PUBLISH.
 
 ~~~
-PUBLISH_ERROR Message
-{
+PUBLISH_ERROR Message {
   Type (i) = 0x1F,
   Length (i),
   Request ID (i),
