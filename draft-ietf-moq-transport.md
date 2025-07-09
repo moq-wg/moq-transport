@@ -1015,8 +1015,8 @@ A schedulable object in MOQT is either:
 3. An Object in response to a FETCH where that Object is the next
    Object in the response.
 
-An Object is not schedulable if it cannot be written due to underlying
-transport flow control limits.
+An Object is not schedulable if it is known that no part of it can be written
+due to underlying transport flow control limits.
 
 A single subgroup or datagram has a single publisher priority. Within a
 response to SUBSCRIBE, it can be useful to conceptualize this process as
