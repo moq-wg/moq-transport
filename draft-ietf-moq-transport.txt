@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 8 January 2026                                    I. Swett, Ed.
+Expires: 10 January 2026                                   I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                             7 July 2025
+                                                             9 July 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 8 January 2026.
+   This Internet-Draft will expire on 10 January 2026.
 
 Copyright Notice
 
@@ -2556,8 +2556,7 @@ Table of Contents
    successful authorization and acceptance of a PUBLISH message, and
    establish a subscription.
 
-   PUBLISH_OK Message
-   {
+   PUBLISH_OK Message {
      Type (i) = 0x1E,
      Length (i),
      Request ID (i),
@@ -2596,8 +2595,7 @@ Table of Contents
    The subscriber sends an PUBLISH_ERROR control message to reject a
    subscription initiated by PUBLISH.
 
-   PUBLISH_ERROR Message
-   {
+   PUBLISH_ERROR Message {
      Type (i) = 0x1F,
      Length (i),
      Request ID (i),
@@ -4124,9 +4122,9 @@ Normative References
    [WebTransport]
               Frindell, A., Kinnear, E., and V. Vasiliev, "WebTransport
               over HTTP/3", Work in Progress, Internet-Draft, draft-
-              ietf-webtrans-http3-12, 3 March 2025,
+              ietf-webtrans-http3-13, 7 July 2025,
               <https://datatracker.ietf.org/doc/html/draft-ietf-
-              webtrans-http3-12>.
+              webtrans-http3-13>.
 
 Informative References
 
@@ -4153,11 +4151,11 @@ Informative References
               04>.
 
    [I-D.ietf-webtrans-overview]
-              Vasiliev, V., "The WebTransport Protocol Framework", Work
-              in Progress, Internet-Draft, draft-ietf-webtrans-overview-
-              09, 25 February 2025,
+              Kinnear, E. and V. Vasiliev, "The WebTransport Protocol
+              Framework", Work in Progress, Internet-Draft, draft-ietf-
+              webtrans-overview-10, 7 July 2025,
               <https://datatracker.ietf.org/doc/html/draft-ietf-
-              webtrans-overview-09>.
+              webtrans-overview-10>.
 
    [RFC6582]  Henderson, T., Floyd, S., Gurtov, A., and Y. Nishida, "The
               NewReno Modification to TCP's Fast Recovery Algorithm",
