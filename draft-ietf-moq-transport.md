@@ -2266,7 +2266,7 @@ PUBLISH Message {
   Track Alias (i),
   Group Order (8),
   ContentExists (8),
-  [Largest (Location),]
+  [Largest Location (Location),]
   Forward (8),
   Number of Parameters (i),
   Parameters (..) ...,
@@ -2295,7 +2295,7 @@ PUBLISH Message {
   present. Any other value is a protocol error and MUST terminate the
   session with a Protocol Violation ({{session-termination}}).
 
-* Largest: The location of the largest object available for this track.
+* Largest Location: The location of the largest object available for this track.
 
 * Forward: The forward mode for this subscription.  Any value other than 0 or 1
   is a Protocol Violation.  0 indicates the publisher will not transmit any
@@ -2319,8 +2319,8 @@ PUBLISH_OK Message {
   Subscriber Priority (8),
   Group Order (8),
   Filter Type (i),
-  [Start (Location)],
-  [EndGroup (i)],
+  [Start Location (Location)],
+  [End Group (i)],
   Number of Parameters (i),
   Parameters (..) ...,
 }
@@ -2340,7 +2340,7 @@ PUBLISH_OK Message {
   Values of 0x0 and those larger than 0x2 are a protocol error. This
   overwrites the GroupOrder specified PUBLISH.
 
-* Filter Type, Start, End Group: See {{message-subscribe-req}}.
+* Filter Type, Start Location, End Group: See {{message-subscribe-req}}.
 
 * Parameters: Parameters associated with this message.
 
