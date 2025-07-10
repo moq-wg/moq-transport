@@ -1056,7 +1056,7 @@ svg :is([fill="white"], [fill^="#fff"]) {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Nandakumar, et al.</td>
-<td class="center">Expires 10 January 2026</td>
+<td class="center">Expires 11 January 2026</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1069,12 +1069,12 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dd class="internet-draft">draft-ietf-moq-transport-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2025-07-09" class="published">9 July 2025</time>
+<time datetime="2025-07-10" class="published">10 July 2025</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2026-01-10">10 January 2026</time></dd>
+<dd class="expires"><time datetime="2026-01-11">11 January 2026</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1143,7 +1143,7 @@ networks and is designed for high scale and low latency distribution.<a href="#s
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 10 January 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 11 January 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -4414,7 +4414,7 @@ PUBLISH Message {
   Track Alias (i),
   Group Order (8),
   ContentExists (8),
-  [Largest (Location),]
+  [Largest Location (Location),]
   Forward (8),
   Number of Parameters (i),
   Parameters (..) ...,
@@ -4454,7 +4454,7 @@ present. Any other value is a protocol error and <span class="bcp14">MUST</span>
 session with a Protocol Violation (<a href="#session-termination" class="auto internal xref">Section 3.4</a>).<a href="#section-8.13-3.6.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.13-3.7">
-            <p id="section-8.13-3.7.1">Largest: The location of the largest object available for this track.<a href="#section-8.13-3.7.1" class="pilcrow">¶</a></p>
+            <p id="section-8.13-3.7.1">Largest Location: The location of the largest object available for this track.<a href="#section-8.13-3.7.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.13-3.8">
             <p id="section-8.13-3.8.1">Forward: The forward mode for this subscription.  Any value other than 0 or 1
@@ -4487,8 +4487,8 @@ PUBLISH_OK Message {
   Subscriber Priority (8),
   Group Order (8),
   Filter Type (i),
-  [Start (Location)],
-  [EndGroup (i)],
+  [Start Location (Location)],
+  [End Group (i)],
   Number of Parameters (i),
   Parameters (..) ...,
 }
@@ -4517,7 +4517,7 @@ Values of 0x0 and those larger than 0x2 are a protocol error. This
 overwrites the GroupOrder specified PUBLISH.<a href="#section-8.14-3.4.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.14-3.5">
-            <p id="section-8.14-3.5.1">Filter Type, Start, End Group: See <a href="#message-subscribe-req" class="auto internal xref">Section 8.7</a>.<a href="#section-8.14-3.5.1" class="pilcrow">¶</a></p>
+            <p id="section-8.14-3.5.1">Filter Type, Start Location, End Group: See <a href="#message-subscribe-req" class="auto internal xref">Section 8.7</a>.<a href="#section-8.14-3.5.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.14-3.6">
             <p id="section-8.14-3.6.1">Parameters: Parameters associated with this message.<a href="#section-8.14-3.6.1" class="pilcrow">¶</a></p>

@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 10 January 2026                                   I. Swett, Ed.
+Expires: 11 January 2026                                   I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                             9 July 2025
+                                                            10 July 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 10 January 2026.
+   This Internet-Draft will expire on 11 January 2026.
 
 Copyright Notice
 
@@ -2505,7 +2505,7 @@ Table of Contents
      Track Alias (i),
      Group Order (8),
      ContentExists (8),
-     [Largest (Location),]
+     [Largest Location (Location),]
      Forward (8),
      Number of Parameters (i),
      Parameters (..) ...,
@@ -2539,8 +2539,8 @@ Table of Contents
       and MUST terminate the session with a Protocol Violation
       (Section 3.4).
 
-   *  Largest: The location of the largest object available for this
-      track.
+   *  Largest Location: The location of the largest object available for
+      this track.
 
    *  Forward: The forward mode for this subscription.  Any value other
       than 0 or 1 is a Protocol Violation.  0 indicates the publisher
@@ -2564,8 +2564,8 @@ Table of Contents
      Subscriber Priority (8),
      Group Order (8),
      Filter Type (i),
-     [Start (Location)],
-     [EndGroup (i)],
+     [Start Location (Location)],
+     [End Group (i)],
      Number of Parameters (i),
      Parameters (..) ...,
    }
@@ -2586,7 +2586,7 @@ Table of Contents
       Section 6.  Values of 0x0 and those larger than 0x2 are a protocol
       error.  This overwrites the GroupOrder specified PUBLISH.
 
-   *  Filter Type, Start, End Group: See Section 8.7.
+   *  Filter Type, Start Location, End Group: See Section 8.7.
 
    *  Parameters: Parameters associated with this message.
 
