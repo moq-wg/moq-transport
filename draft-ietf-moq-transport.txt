@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 11 January 2026                                   I. Swett, Ed.
+Expires: 12 January 2026                                   I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                            10 July 2025
+                                                            11 July 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 11 January 2026.
+   This Internet-Draft will expire on 12 January 2026.
 
 Copyright Notice
 
@@ -1141,14 +1141,17 @@ Table of Contents
    MOQT maintains priorities between different _schedulable objects_. A
    schedulable object in MOQT is either:
 
-   1.  An object in response to a SUBSCRIBE that belongs to a subgroup
-       where that object is the next object in that subgroup.
+   1.  The first or next Object in a Subgroup that is in response to a
+       subscription.
 
-   2.  An object in response to a SUBSCRIBE that belongs to a track with
-       delivery preference Datagram.
+   2.  An Object in response to a subscription that belongs to a Track
+       with delivery preference Datagram.
 
-   3.  An object in response to a FETCH where that object is the next
-       object in the response.
+   3.  An Object in response to a FETCH where that Object is the next
+       Object in the response.
+
+   An Object is not schedulable if it is known that no part of it can be
+   written due to underlying transport flow control limits.
 
    A single subgroup or datagram has a single publisher priority.
    Within a response to SUBSCRIBE, it can be useful to conceptualize
