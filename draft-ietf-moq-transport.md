@@ -1372,9 +1372,11 @@ The following Message Types are defined:
 |-------|-----------------------------------------------------|
 | 0x17  | FETCH_CANCEL ({{message-fetch-cancel}})             |
 |-------|-----------------------------------------------------|
-| 0xD   | TRACK_STATUS_REQUEST ({{message-track-status-req}}) |
+| 0xD   | TRACK_STATUS ({{message-track-status}})             |
 |-------|-----------------------------------------------------|
-| 0xE   | TRACK_STATUS ({{message-track-status}})             |
+| 0xE   | TRACK_STATUS_OK ({{message-track-status-ok}}        |
+|-------|-----------------------------------------------------|
+| 0xF   | TRACK_STATUS_ERROR ({{message-track-status-error}}) |
 |-------|-----------------------------------------------------|
 | 0x6   | ANNOUNCE  ({{message-announce}})                    |
 |-------|-----------------------------------------------------|
@@ -1451,8 +1453,8 @@ these parameters to appear in Setup messages.
 
 The AUTHORIZATION TOKEN parameter (Parameter Type 0x03) MAY appear in a
 CLIENT_SETUP, SERVER_SETUP, SUBSCRIBE, SUBSCRIBE_NAMESPACE, ANNOUNCE,
-TRACK_STATUS_REQUEST or FETCH message. This parameter conveys information to
-authorize the sender to perform the operation carrying the parameter.
+TRACK_STATUS or FETCH message. This parameter conveys information to authorize
+the sender to perform the operation carrying the parameter.
 
 The AUTHORIZATION TOKEN parameter MAY be repeated within a message.
 
@@ -1768,11 +1770,11 @@ MAX_REQUEST_ID Message {
 ~~~
 {: #moq-transport-max-request-id format title="MOQT MAX_REQUEST_ID Message"}
 
-* Request ID: The new Maximum Request ID for the session plus 1. If a Request ID
-  equal to or larger than this is received by the endpoint that sent the
+* Request ID: The new Maximum Request ID for the session plus one. If a Request
+  ID equal or larger than this is received by the endpoint that sent the
   MAX_REQUEST_ID in any request message (ANNOUNCE, FETCH, SUBSCRIBE,
-  SUBSCRIBE_NAMESPACE or TRACK_STATUS_REQUEST), the endpoint MUST close the
-  session with an error of 'Too Many Requests'.
+  SUBSCRIBE_NAMESPACE or TRACK_STATUS), the endpoint MUST close the session with
+  an error of 'Too Many Requests'.
 
 MAX_REQUEST_ID is similar to MAX_STREAMS in ({{?RFC9000, Section 4.6}}), and
 similar considerations apply when deciding how often to send MAX_REQUEST_ID.
@@ -2266,7 +2268,7 @@ PUBLISH Message {
   Track Alias (i),
   Group Order (8),
   ContentExists (8),
-  [Largest (Location),]
+  [Largest Location (Location),]
   Forward (8),
   Number of Parameters (i),
   Parameters (..) ...,
@@ -2295,7 +2297,7 @@ PUBLISH Message {
   present. Any other value is a protocol error and MUST terminate the
   session with a Protocol Violation ({{session-termination}}).
 
-* Largest: The location of the largest object available for this track.
+* Largest Location: The location of the largest object available for this track.
 
 * Forward: The forward mode for this subscription.  Any value other than 0 or 1
   is a Protocol Violation.  0 indicates the publisher will not transmit any
@@ -2311,8 +2313,7 @@ The subscriber sends an PUBLISH_OK control message to acknowledge the successful
 authorization and acceptance of a PUBLISH message, and establish a subscription.
 
 ~~~
-PUBLISH_OK Message
-{
+PUBLISH_OK Message {
   Type (i) = 0x1E,
   Length (i),
   Request ID (i),
@@ -2320,8 +2321,8 @@ PUBLISH_OK Message
   Subscriber Priority (8),
   Group Order (8),
   Filter Type (i),
-  [Start (Location)],
-  [EndGroup (i)],
+  [Start Location (Location)],
+  [End Group (i)],
   Number of Parameters (i),
   Parameters (..) ...,
 }
@@ -2341,7 +2342,7 @@ PUBLISH_OK Message
   Values of 0x0 and those larger than 0x2 are a protocol error. This
   overwrites the GroupOrder specified PUBLISH.
 
-* Filter Type, Start, End Group: See {{message-subscribe-req}}.
+* Filter Type, Start Location, End Group: See {{message-subscribe-req}}.
 
 * Parameters: Parameters associated with this message.
 
@@ -2351,8 +2352,7 @@ The subscriber sends an PUBLISH_ERROR control message to reject
 a subscription initiated by PUBLISH.
 
 ~~~
-PUBLISH_ERROR Message
-{
+PUBLISH_ERROR Message {
   Type (i) = 0x1F,
   Length (i),
   Request ID (i),
@@ -2727,87 +2727,45 @@ FETCH_CANCEL Message {
 * Request ID: The Request ID of the FETCH ({{message-fetch}}) this message is
   cancelling.
 
-## TRACK_STATUS_REQUEST {#message-track-status-req}
-
-A potential subscriber sends a 'TRACK_STATUS_REQUEST' message on the control
-stream to obtain information about the current status of a given track.
-
-A TRACK_STATUS message MUST be sent in response to each TRACK_STATUS_REQUEST.
-
-~~~
-TRACK_STATUS_REQUEST Message {
-  Type (i) = 0xD,
-  Length (16),
-  Request ID (i),
-  Track Namespace (tuple),
-  Track Name Length (i),
-  Track Name (..),
-  Number of Parameters (i),
-  Parameters (..) ...,
-}
-~~~
-{: #moq-track-status-request-format title="MOQT TRACK_STATUS_REQUEST Message"}
-
-* Request ID: See {{request-id}}.
-
-* Track Namespace: Identifies the namespace of the track as defined in
-  ({{track-name}}).
-
-* Track Name: Identifies the track name as defined in ({{track-name}}).
-
-* Parameters: The parameters are defined in {{version-specific-params}}.
-
 ## TRACK_STATUS {#message-track-status}
 
-A publisher sends a 'TRACK_STATUS' message on the control stream in response
-to a TRACK_STATUS_REQUEST message.
+A potential subscriber sends a 'TRACK_STATUS' message on the control
+stream to obtain information about the current status of a given track.
 
-~~~
-TRACK_STATUS Message {
-  Type (i) = 0xE,
-  Length (16),
-  Request ID (i),
-  Status Code (i),
-  Largest Location (Location),
-  Number of Parameters (i),
-  Parameters (..) ...,
-}
-~~~
-{: #moq-track-status-format title="MOQT TRACK_STATUS Message"}
+The TRACK_STATUS message format is identical to the SUBSCRIBE message
+({{message-subscribe-req}}).
 
-* Request ID: The Request ID of the TRACK_STATUS_REQUEST this message is
-  replying to {{message-track-status}}.
+The receiver of a TRACK_STATUS message treats it identically as if it had
+received a SUBSCRIBE message, except it does not create downstream subscription
+state or send any Objects.  Relays without an active subscription MAY forward
+TRACK_STATUS to one or more publishers, or MAY initiate a subscription (subject
+to authorization) as described in {{publisher-interactions}} to determine the
+response. The publisher does not send SUBSCRIBE_DONE for this request, and the
+subscriber cannot send SUBSCRIBE_UPDATE or UNSUBSCRIBE.
 
-* Status Code: Provides additional information about the status of the
-track. It MUST hold one of the following values. Any other value is a malformed
-message.
+## TRACK_STATUS_OK {#message-track-status-ok}
 
-0x00: The track is in progress, and subsequent fields contain the highest group
-and object ID for that track.
+The publisher sends a TRACK_STATUS_OK control message in response
+to a successful TRACK_STATUS message.
 
-0x01: The track does not exist. Subsequent fields MUST be zero, and any other
-value is a malformed message.
+The TRACK_STATUS_OK message format is identical to the SUBSCRIBE_OK message
+({{message-subscribe-ok}}).
 
-0x02: The track has not yet begun. Subsequent fields MUST be zero. Any other
-value is a malformed message.
+The publisher populates the fields of TRACK_STATUS_OK exactly as it would have
+populated a SUBSCRIBE_OK, setting Track Alias to 0. It is not considered an error
+if Track Alias 0 is already in use by an active subscription.
 
-0x03: The track has finished, so there is no "live edge." Subsequent fields
-contain the highest Group and object ID known.
 
-0x04: The publisher is a relay that cannot obtain the current track status from
-upstream. Subsequent fields contain the largest group and object ID known.
+## TRACK_STATUS_ERROR {#message-track-status-error}
 
-Any other value in the Status Code field is a malformed message.
+The publisher sends a TRACK_STATUS_ERROR control message in response
+to a failed TRACK_STATUS message.
 
-TODO: Auth Failures
+The TRACK_STATUS_ERROR message format is identical to the SUBSCRIBE_ERROR
+message ({{message-subscribe-error}}).
 
-* Largest Location: represents the largest Object location observed by the
-Publisher for an active subscription. If the publisher is a relay without an
-active subscription, it SHOULD send a TRACK_STATUS_REQUEST upstream or MAY
-subscribe to the track, to obtain the same information. If neither is possible,
-it should return the best available information with status code 0x04.
-
-The `Parameters` are defined in {{version-specific-params}}.
+The publisher populates the fields of TRACK_STATUS_ERROR exactly as it would
+have populated a SUBSCRIBE_ERROR.
 
 ## ANNOUNCE {#message-announce}
 
@@ -3805,6 +3763,12 @@ document:
 RFC Editor's Note: Please remove this section prior to publication of a final version of this document.
 
 Issue and pull request numbers are listed with a leading octothorp.
+
+## Since draft-ietf-moq-transport-12
+
+* TRACK_STATUS_REQUEST and TRACK_STATUS have changed to directly mirror
+  SUBSCRIBE/OK/ERROR (#1015)
+* SUBSCRIBE_ANNOUNCES was renamed back to SUBSCRIBE_NAMESPACE (#1049)
 
 ## Since draft-ietf-moq-transport-11
 
