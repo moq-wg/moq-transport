@@ -1450,9 +1450,10 @@ these parameters to appear in Setup messages.
 #### AUTHORIZATION TOKEN {#authorization-token}
 
 The AUTHORIZATION TOKEN parameter (Parameter Type 0x03) MAY appear in a
-CLIENT_SETUP, SERVER_SETUP, PUBLISH, SUBSCRIBE, SUBSCRIBE_NAMESPACE, ANNOUNCE,
-TRACK_STATUS or FETCH message. This parameter conveys information to authorize
-the sender to perform the operation carrying the parameter.
+CLIENT_SETUP, SERVER_SETUP, PUBLISH, SUBSCRIBE, SUBSCRIBE_UPDATE,
+SUBSCRIBE_NAMESPACE, ANNOUNCE, TRACK_STATUS or FETCH message. This parameter
+conveys information to authorize the sender to perform the operation carrying
+the parameter.
 
 The AUTHORIZATION TOKEN parameter MAY be repeated within a message.
 
