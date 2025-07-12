@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 10 January 2026                                   I. Swett, Ed.
+Expires: 13 January 2026                                   I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                             9 July 2025
+                                                            12 July 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 10 January 2026.
+   This Internet-Draft will expire on 13 January 2026.
 
 Copyright Notice
 
@@ -1617,7 +1617,7 @@ Table of Contents
 8.2.1.1.  AUTHORIZATION TOKEN
 
    The AUTHORIZATION TOKEN parameter (Parameter Type 0x03) MAY appear in
-   a CLIENT_SETUP, SERVER_SETUP, PUBLISH, SUBSCRIBE,
+   a CLIENT_SETUP, SERVER_SETUP, PUBLISH, SUBSCRIBE, SUBSCRIBE_UPDATE,
    SUBSCRIBE_NAMESPACE, ANNOUNCE, TRACK_STATUS or FETCH message.  This
    parameter conveys information to authorize the sender to perform the
    operation carrying the parameter.
