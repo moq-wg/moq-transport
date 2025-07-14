@@ -549,10 +549,11 @@ include:
 
 The above list of conditions is not considered exhaustive.
 
-When a subscriber detects a Malformed Track, it MUST UNSUBSCRIBE from the
-Track and SHOULD deliver an error to the application.  If a relay detects a
-Malformed Track, it MUST immediately terminate downstream subscriptions with
-SUBSCRIBE_DONE with Status Code `Malformed Track`.
+When a subscriber detects a Malformed Track, it MUST UNSUBSCRIBE any
+subscription and FETCH_CANCEL any fetch for that Track from that publisher, and
+SHOULD deliver an error to the application.  If a relay detects a Malformed
+Track, it MUST immediately terminate downstream subscriptions with
+SUBSCRIBE_DONE and reset any fetch streams with Status Code `Malformed Track`.
 
 
 ### Scope {#track-scope}
