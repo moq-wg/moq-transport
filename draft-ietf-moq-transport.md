@@ -623,11 +623,12 @@ application.
 
 The client can establish a connection to a MoQ server identified by a
 given URI by setting up a QUIC connection to the host and port
-identified by the `authority` section of the URI.  The `path-abempty`
-and `query` portions of the URI are communicated to the server using the
-PATH parameter ({{path}}) which is sent in the CLIENT_SETUP message at the
-start of the session.  The ALPN value {{!RFC7301}} used by the protocol
-is `moq-00`.
+identified by the `authority` section of the URI. The 'authority' is also
+transmitted to the server in the AUTHORITY parameter, ({{authority}}) which is
+sent in the CLIENT_SETUP message at the start of the session.  The
+`path-abempty` and `query` portions of the URI are similarly communicated to the
+server using the PATH parameter ({{path}}).  The ALPN value {{!RFC7301}} used by
+the protocol is `moq-00`.
 
 ### Connection URL
 
@@ -728,6 +729,10 @@ and SHOULD use a relevant code, as defined below:
 |------|---------------------------|
 | 0x18 | Expired Auth Token        |
 |------|---------------------------|
+| 0x19 | Invalid Authority         |
+|------|---------------------------|
+| 0x1A | Malformed Authority       |
+|------|---------------------------|
 
 * No Error: The session is being terminated without an error.
 
@@ -785,6 +790,11 @@ and SHOULD use a relevant code, as defined below:
   (see {{authorization-token}}).
 
 * Expired Auth Token - Authorization token has expired {{authorization-token}}).
+
+* Invalid Authority - The specified AUTHORITY does not correspond to this server
+  or cannot be used in this context.
+
+* Malformed Authority - The AUTHORITY value is syntactically invalid.
 
 An endpoint MAY choose to treat a subscription or request specific error as a
 session error under certain circumstances, closing the entire session in
@@ -1665,6 +1675,22 @@ number to 0xff000000. For example, draft-ietf-moq-transport-13 would be
 identified as 0xff00000D.
 
 ### Setup Parameters {#setup-params}
+
+#### AUTHORITY {#authority}
+
+The AUTHORITY parameter (Parameter Type 0x05) allows the client to specify the
+authority component of the MoQ URI when using native QUIC ({{QUIC}}).  It MUST
+NOT be used by the server, or when WebTransport is used.  When an AUTHORITY
+parameter is received from a server, or when an AUTHORITY parameter is received
+while WebTransport is used, or when an AUTHORITY parameter is received by a
+server but the server does not support the specified authority, the session MUST
+be closed with Invalid Authority.
+
+The AUTHORITY parameter follows the URI formatting rules {{!RFC3986}}.
+When connecting to a server using a URI with the "moqt" scheme, the
+client MUST set the AUTHORITY parameter to the `authority` portion of the
+URI. If an AUTHORITY parameter does not conform to
+these rules, the session MUST be closed with Malformed Authority.
 
 #### PATH {#path}
 
@@ -2691,7 +2717,7 @@ as defined below:
 
 * No Objects - No Objects exist between the requested Start and End Locations.
 
-* Invalid Joining Subscribe ID - The joining Fetch referenced a Request ID that
+* Invalid Joining Request ID - The joining Fetch referenced a Request ID that
   did not belong to an active Subscription.
 
 * Unknown Status in Range - The requested range contains objects with unknown
