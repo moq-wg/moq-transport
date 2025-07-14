@@ -1056,7 +1056,7 @@ svg :is([fill="white"], [fill^="#fff"]) {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Nandakumar, et al.</td>
-<td class="center">Expires 12 January 2026</td>
+<td class="center">Expires 15 January 2026</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1069,12 +1069,12 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dd class="internet-draft">draft-ietf-moq-transport-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2025-07-11" class="published">11 July 2025</time>
+<time datetime="2025-07-14" class="published">14 July 2025</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2026-01-12">12 January 2026</time></dd>
+<dd class="expires"><time datetime="2026-01-15">15 January 2026</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1143,7 +1143,7 @@ networks and is designed for high scale and low latency distribution.<a href="#s
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 12 January 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 15 January 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -2282,11 +2282,12 @@ The <code>moqt</code> URI scheme supports the <code>/.well-known/</code> path pr
 application.<a href="#section-3.1.2-4" class="pilcrow">¶</a></p>
 <p id="section-3.1.2-5">The client can establish a connection to a MoQ server identified by a
 given URI by setting up a QUIC connection to the host and port
-identified by the <code>authority</code> section of the URI.  The <code>path-abempty</code>
-and <code>query</code> portions of the URI are communicated to the server using the
-PATH parameter (<a href="#path" class="auto internal xref">Section 8.3.2.1</a>) which is sent in the CLIENT_SETUP message at the
-start of the session.  The ALPN value <span>[<a href="#RFC7301" class="cite xref">RFC7301</a>]</span> used by the protocol
-is <code>moq-00</code>.<a href="#section-3.1.2-5" class="pilcrow">¶</a></p>
+identified by the <code>authority</code> section of the URI. The 'authority' is also
+transmitted to the server in the AUTHORITY parameter, (<a href="#authority" class="auto internal xref">Section 8.3.2.1</a>) which is
+sent in the CLIENT_SETUP message at the start of the session.  The
+<code>path-abempty</code> and <code>query</code> portions of the URI are similarly communicated to the
+server using the PATH parameter (<a href="#path" class="auto internal xref">Section 8.3.2.2</a>).  The ALPN value <span>[<a href="#RFC7301" class="cite xref">RFC7301</a>]</span> used by
+the protocol is <code>moq-00</code>.<a href="#section-3.1.2-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="connection-url">
@@ -2439,6 +2440,14 @@ and <span class="bcp14">SHOULD</span> use a relevant code, as defined below:<a h
               <td class="text-right" rowspan="1" colspan="1">0x18</td>
               <td class="text-left" rowspan="1" colspan="1">Expired Auth Token</td>
             </tr>
+            <tr>
+              <td class="text-right" rowspan="1" colspan="1">0x19</td>
+              <td class="text-left" rowspan="1" colspan="1">Invalid Authority</td>
+            </tr>
+            <tr>
+              <td class="text-right" rowspan="1" colspan="1">0x1A</td>
+              <td class="text-left" rowspan="1" colspan="1">Malformed Authority</td>
+            </tr>
           </tbody>
         </table>
 <ul class="normal">
@@ -2476,7 +2485,7 @@ Request ID equal to or larger than the current Maximum Request ID.<a href="#sect
 session, or the server does not support the path.<a href="#section-3.4-4.9.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-3.4-4.10">
-            <p id="section-3.4-4.10.1">Malformed Path: The PATH parameter does not conform to the rules in <a href="#path" class="auto internal xref">Section 8.3.2.1</a>.<a href="#section-3.4-4.10.1" class="pilcrow">¶</a></p>
+            <p id="section-3.4-4.10.1">Malformed Path: The PATH parameter does not conform to the rules in <a href="#path" class="auto internal xref">Section 8.3.2.2</a>.<a href="#section-3.4-4.10.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-3.4-4.11">
             <p id="section-3.4-4.11.1">GOAWAY Timeout: The session was closed because the peer took too long to
@@ -2496,7 +2505,7 @@ subgroup stream, it <span class="bcp14">MAY</span> send a STOP_SENDING on that s
 subscription.<a href="#section-3.4-4.13.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-3.4-4.14">
-            <p id="section-3.4-4.14.1">Auth Token Cache Overflow - the Session limit <a href="#max-auth-token-cache-size" class="auto internal xref">Section 8.3.2.3</a> of
+            <p id="section-3.4-4.14.1">Auth Token Cache Overflow - the Session limit <a href="#max-auth-token-cache-size" class="auto internal xref">Section 8.3.2.4</a> of
 the size of all registered Authorization tokens has been exceeded.<a href="#section-3.4-4.14.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-3.4-4.15">
@@ -2517,6 +2526,13 @@ by the server.<a href="#section-3.4-4.16.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-3.4-4.19">
             <p id="section-3.4-4.19.1">Expired Auth Token - Authorization token has expired <a href="#authorization-token" class="auto internal xref">Section 8.2.1.1</a>).<a href="#section-3.4-4.19.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-3.4-4.20">
+            <p id="section-3.4-4.20.1">Invalid Authority - The specified AUTHORITY does not correspond to this server
+or cannot be used in this context.<a href="#section-3.4-4.20.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-3.4-4.21">
+            <p id="section-3.4-4.21.1">Malformed Authority - The AUTHORITY value is syntactically invalid.<a href="#section-3.4-4.21.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-3.4-5">An endpoint <span class="bcp14">MAY</span> choose to treat a subscription or request specific error as a
@@ -3487,7 +3503,7 @@ has passed.<a href="#section-8.2.1.1-13" class="pilcrow">¶</a></p>
 <p id="section-8.2.1.1-14">By registering a Token, the sender is requiring the receiver to store the Token
 Alias and Token Value until they are deleted, or the Session ends. The receiver
 can protect its resources by sending a SETUP parameter defining the
-MAX_AUTH_TOKEN_CACHE_SIZE limit (see <a href="#max-auth-token-cache-size" class="auto internal xref">Section 8.3.2.3</a>) it is
+MAX_AUTH_TOKEN_CACHE_SIZE limit (see <a href="#max-auth-token-cache-size" class="auto internal xref">Section 8.3.2.4</a>) it is
 willing to accept. If a registration is attempted which would cause this limit
 to be exceeded, the receiver <span class="bcp14">MUST</span> termiate the Session with a <code>Auth Token Cache
 Overflow</code> error.<a href="#section-8.2.1.1-14" class="pilcrow">¶</a></p>
@@ -3618,66 +3634,84 @@ identified as 0xff00000D.<a href="#section-8.3.1-4" class="pilcrow">¶</a></p>
           <h4 id="name-setup-parameters">
 <a href="#section-8.3.2" class="section-number selfRef">8.3.2. </a><a href="#name-setup-parameters" class="section-name selfRef">Setup Parameters</a>
           </h4>
-<div id="path">
+<div id="authority">
 <section id="section-8.3.2.1">
-            <h5 id="name-path">
-<a href="#section-8.3.2.1" class="section-number selfRef">8.3.2.1. </a><a href="#name-path" class="section-name selfRef">PATH</a>
+            <h5 id="name-authority">
+<a href="#section-8.3.2.1" class="section-number selfRef">8.3.2.1. </a><a href="#name-authority" class="section-name selfRef">AUTHORITY</a>
             </h5>
-<p id="section-8.3.2.1-1">The PATH parameter (Parameter Type 0x01) allows the client to specify the path
+<p id="section-8.3.2.1-1">The AUTHORITY parameter (Parameter Type 0x05) allows the client to specify the
+authority component of the MoQ URI when using native QUIC (<span>[<a href="#QUIC" class="cite xref">QUIC</a>]</span>).  It <span class="bcp14">MUST NOT</span> be used by the server, or when WebTransport is used.  When an AUTHORITY
+parameter is received from a server, or when an AUTHORITY parameter is received
+while WebTransport is used, or when an AUTHORITY parameter is received by a
+server but the server does not support the specified authority, the session <span class="bcp14">MUST</span>
+be closed with Invalid Authority.<a href="#section-8.3.2.1-1" class="pilcrow">¶</a></p>
+<p id="section-8.3.2.1-2">The AUTHORITY parameter follows the URI formatting rules <span>[<a href="#RFC3986" class="cite xref">RFC3986</a>]</span>.
+When connecting to a server using a URI with the "moqt" scheme, the
+client <span class="bcp14">MUST</span> set the AUTHORITY parameter to the <code>authority</code> portion of the
+URI. If an AUTHORITY parameter does not conform to
+these rules, the session <span class="bcp14">MUST</span> be closed with Malformed Authority.<a href="#section-8.3.2.1-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="path">
+<section id="section-8.3.2.2">
+            <h5 id="name-path">
+<a href="#section-8.3.2.2" class="section-number selfRef">8.3.2.2. </a><a href="#name-path" class="section-name selfRef">PATH</a>
+            </h5>
+<p id="section-8.3.2.2-1">The PATH parameter (Parameter Type 0x01) allows the client to specify the path
 of the MoQ URI when using native QUIC (<span>[<a href="#QUIC" class="cite xref">QUIC</a>]</span>).  It <span class="bcp14">MUST NOT</span> be used by
 the server, or when WebTransport is used.  When a PATH parameter is received
 from a server, or when a PATH parameter is received while WebTransport is used,
 or when a PATH parameter is received by a server but the server does not
-support the specified path, the session <span class="bcp14">MUST</span> be closed with Invalid Path.<a href="#section-8.3.2.1-1" class="pilcrow">¶</a></p>
-<p id="section-8.3.2.1-2">The PATH parameter follows the URI formatting rules <span>[<a href="#RFC3986" class="cite xref">RFC3986</a>]</span>.
+support the specified path, the session <span class="bcp14">MUST</span> be closed with Invalid Path.<a href="#section-8.3.2.2-1" class="pilcrow">¶</a></p>
+<p id="section-8.3.2.2-2">The PATH parameter follows the URI formatting rules <span>[<a href="#RFC3986" class="cite xref">RFC3986</a>]</span>.
 When connecting to a server using a URI with the "moqt" scheme, the
 client <span class="bcp14">MUST</span> set the PATH parameter to the <code>path-abempty</code> portion of the
 URI; if <code>query</code> is present, the client <span class="bcp14">MUST</span> concatenate <code>?</code>, followed by
 the <code>query</code> portion of the URI to the parameter. If a PATH does not conform to
-these rules, the session <span class="bcp14">MUST</span> be closed with Malformed Path.<a href="#section-8.3.2.1-2" class="pilcrow">¶</a></p>
+these rules, the session <span class="bcp14">MUST</span> be closed with Malformed Path.<a href="#section-8.3.2.2-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="max-request-id">
-<section id="section-8.3.2.2">
+<section id="section-8.3.2.3">
             <h5 id="name-max_request_id">
-<a href="#section-8.3.2.2" class="section-number selfRef">8.3.2.2. </a><a href="#name-max_request_id" class="section-name selfRef">MAX_REQUEST_ID</a>
+<a href="#section-8.3.2.3" class="section-number selfRef">8.3.2.3. </a><a href="#name-max_request_id" class="section-name selfRef">MAX_REQUEST_ID</a>
             </h5>
-<p id="section-8.3.2.2-1">The MAX_REQUEST_ID parameter (Parameter Type 0x02) communicates an initial
+<p id="section-8.3.2.3-1">The MAX_REQUEST_ID parameter (Parameter Type 0x02) communicates an initial
 value for the Maximum Request ID to the receiving endpoint. The default
-value is 0, so if not specified, the peer <span class="bcp14">MUST NOT</span> send requests.<a href="#section-8.3.2.2-1" class="pilcrow">¶</a></p>
+value is 0, so if not specified, the peer <span class="bcp14">MUST NOT</span> send requests.<a href="#section-8.3.2.3-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="max-auth-token-cache-size">
-<section id="section-8.3.2.3">
+<section id="section-8.3.2.4">
             <h5 id="name-max_auth_token_cache_size">
-<a href="#section-8.3.2.3" class="section-number selfRef">8.3.2.3. </a><a href="#name-max_auth_token_cache_size" class="section-name selfRef">MAX_AUTH_TOKEN_CACHE_SIZE</a>
+<a href="#section-8.3.2.4" class="section-number selfRef">8.3.2.4. </a><a href="#name-max_auth_token_cache_size" class="section-name selfRef">MAX_AUTH_TOKEN_CACHE_SIZE</a>
             </h5>
-<p id="section-8.3.2.3-1">The MAX_AUTH_TOKEN_CACHE_SIZE parameter (Parameter Type 0x04) communicates the
+<p id="section-8.3.2.4-1">The MAX_AUTH_TOKEN_CACHE_SIZE parameter (Parameter Type 0x04) communicates the
 maximum size in bytes of all actively registered Authorization tokens that the
 server is willing to store per Session. This parameter is optional. The default
-value is 0 which prohibits the use of token Aliases.<a href="#section-8.3.2.3-1" class="pilcrow">¶</a></p>
-<p id="section-8.3.2.3-2">The token size is calculated as 16 bytes + the size of the Token Value field
+value is 0 which prohibits the use of token Aliases.<a href="#section-8.3.2.4-1" class="pilcrow">¶</a></p>
+<p id="section-8.3.2.4-2">The token size is calculated as 16 bytes + the size of the Token Value field
 (see <a href="#moq-token" class="auto internal xref">Figure 4</a>). The total size as restricted by the
 MAX_AUTH_TOKEN_CACHE_SIZE parameter is calculated as the sum of the token sizes
 for all registered tokens (Alias Type value of 0x01) minus the sum of the token
 sizes for all deregistered tokens (Alias Type value of 0x00), since Session
-initiation.<a href="#section-8.3.2.3-2" class="pilcrow">¶</a></p>
+initiation.<a href="#section-8.3.2.4-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="setup-auth-token">
-<section id="section-8.3.2.4">
+<section id="section-8.3.2.5">
             <h5 id="name-authorization-token-2">
-<a href="#section-8.3.2.4" class="section-number selfRef">8.3.2.4. </a><a href="#name-authorization-token-2" class="section-name selfRef">AUTHORIZATION TOKEN</a>
+<a href="#section-8.3.2.5" class="section-number selfRef">8.3.2.5. </a><a href="#name-authorization-token-2" class="section-name selfRef">AUTHORIZATION TOKEN</a>
             </h5>
-<p id="section-8.3.2.4-1">See <a href="#authorization-token" class="auto internal xref">Section 8.2.1.1</a>.  The endpoint can specify one or more tokens in
+<p id="section-8.3.2.5-1">See <a href="#authorization-token" class="auto internal xref">Section 8.2.1.1</a>.  The endpoint can specify one or more tokens in
 CLIENT_SETUP or SERVER_SETUP that the peer can use to authorize MOQT session
-establishment.<a href="#section-8.3.2.4-1" class="pilcrow">¶</a></p>
-<p id="section-8.3.2.4-2">If a server receives an AUTHORIZATION TOKEN parameter in CLIENT_SETUP with Alias
+establishment.<a href="#section-8.3.2.5-1" class="pilcrow">¶</a></p>
+<p id="section-8.3.2.5-2">If a server receives an AUTHORIZATION TOKEN parameter in CLIENT_SETUP with Alias
 Type REGISTER_TOKEN that exceeds its MAX_AUTH_TOKEN_CACHE_SIZE, it <span class="bcp14">MUST NOT</span> fail
 the session with <code>Auth Token Cache Overflow</code>.  Instead, it <span class="bcp14">MUST</span> treat the
 parameter as Alias Type USE_VALUE.  A client <span class="bcp14">MUST</span> handle registration failures
 of this kind by purging any Token Aliases that failed to register based on the
-MAX_AUTH_TOKEN_CACHE_SIZE parameter in SERVER_SETUP (or the default value of 0).<a href="#section-8.3.2.4-2" class="pilcrow">¶</a></p>
+MAX_AUTH_TOKEN_CACHE_SIZE parameter in SERVER_SETUP (or the default value of 0).<a href="#section-8.3.2.5-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
