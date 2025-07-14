@@ -2717,7 +2717,7 @@ as defined below:
 
 * No Objects - No Objects exist between the requested Start and End Locations.
 
-* Invalid Joining Subscribe ID - The joining Fetch referenced a Request ID that
+* Invalid Joining Request ID - The joining Fetch referenced a Request ID that
   did not belong to an active Subscription.
 
 * Unknown Status in Range - The requested range contains objects with unknown
