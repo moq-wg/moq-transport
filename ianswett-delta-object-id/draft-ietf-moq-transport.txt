@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 12 January 2026                                   I. Swett, Ed.
+Expires: 15 January 2026                                   I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                            11 July 2025
+                                                            14 July 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 12 January 2026.
+   This Internet-Draft will expire on 15 January 2026.
 
 Copyright Notice
 
@@ -723,11 +723,13 @@ Table of Contents
 
    The client can establish a connection to a MoQ server identified by a
    given URI by setting up a QUIC connection to the host and port
-   identified by the authority section of the URI.  The path-abempty and
-   query portions of the URI are communicated to the server using the
-   PATH parameter (Section 8.3.2.1) which is sent in the CLIENT_SETUP
-   message at the start of the session.  The ALPN value [RFC7301] used
-   by the protocol is moq-00.
+   identified by the authority section of the URI.  The 'authority' is
+   also transmitted to the server in the AUTHORITY parameter,
+   (Section 8.3.2.1) which is sent in the CLIENT_SETUP message at the
+   start of the session.  The path-abempty and query portions of the URI
+   are similarly communicated to the server using the PATH parameter
+   (Section 8.3.2.2).  The ALPN value [RFC7301] used by the protocol is
+   moq-00.
 
 3.1.3.  Connection URL
 
@@ -832,6 +834,10 @@ Table of Contents
                    +------+----------------------------+
                    | 0x18 | Expired Auth Token         |
                    +------+----------------------------+
+                   | 0x19 | Invalid Authority          |
+                   +------+----------------------------+
+                   | 0x1A | Malformed Authority        |
+                   +------+----------------------------+
 
                                   Table 1
 
@@ -863,7 +869,7 @@ Table of Contents
       WebTransport session, or the server does not support the path.
 
    *  Malformed Path: The PATH parameter does not conform to the rules
-      in Section 8.3.2.1.
+      in Section 8.3.2.2.
 
    *  GOAWAY Timeout: The session was closed because the peer took too
       long to close the session in response to a GOAWAY (Section 8.4)
@@ -879,7 +885,7 @@ Table of Contents
       a new object header on an open subgroup stream, it MAY send a
       STOP_SENDING on that stream or terminate the subscription.
 
-   *  Auth Token Cache Overflow - the Session limit Section 8.3.2.3 of
+   *  Auth Token Cache Overflow - the Session limit Section 8.3.2.4 of
       the size of all registered Authorization tokens has been exceeded.
 
    *  Duplicate Auth Token Alias - Authorization Token attempted to
@@ -896,6 +902,12 @@ Table of Contents
 
    *  Expired Auth Token - Authorization token has expired
       Section 8.2.1.1).
+
+   *  Invalid Authority - The specified AUTHORITY does not correspond to
+      this server or cannot be used in this context.
+
+   *  Malformed Authority - The AUTHORITY value is syntactically
+      invalid.
 
    An endpoint MAY choose to treat a subscription or request specific
    error as a session error under certain circumstances, closing the
@@ -1746,7 +1758,7 @@ Table of Contents
    the Token Alias and Token Value until they are deleted, or the
    Session ends.  The receiver can protect its resources by sending a
    SETUP parameter defining the MAX_AUTH_TOKEN_CACHE_SIZE limit (see
-   Section 8.3.2.3) it is willing to accept.  If a registration is
+   Section 8.3.2.4) it is willing to accept.  If a registration is
    attempted which would cause this limit to be exceeded, the receiver
    MUST termiate the Session with a Auth Token Cache Overflow error.
 
@@ -1867,7 +1879,24 @@ Table of Contents
 
 8.3.2.  Setup Parameters
 
-8.3.2.1.  PATH
+8.3.2.1.  AUTHORITY
+
+   The AUTHORITY parameter (Parameter Type 0x05) allows the client to
+   specify the authority component of the MoQ URI when using native QUIC
+   ([QUIC]).  It MUST NOT be used by the server, or when WebTransport is
+   used.  When an AUTHORITY parameter is received from a server, or when
+   an AUTHORITY parameter is received while WebTransport is used, or
+   when an AUTHORITY parameter is received by a server but the server
+   does not support the specified authority, the session MUST be closed
+   with Invalid Authority.
+
+   The AUTHORITY parameter follows the URI formatting rules [RFC3986].
+   When connecting to a server using a URI with the "moqt" scheme, the
+   client MUST set the AUTHORITY parameter to the authority portion of
+   the URI.  If an AUTHORITY parameter does not conform to these rules,
+   the session MUST be closed with Malformed Authority.
+
+8.3.2.2.  PATH
 
    The PATH parameter (Parameter Type 0x01) allows the client to specify
    the path of the MoQ URI when using native QUIC ([QUIC]).  It MUST NOT
@@ -1885,14 +1914,14 @@ Table of Contents
    conform to these rules, the session MUST be closed with Malformed
    Path.
 
-8.3.2.2.  MAX_REQUEST_ID
+8.3.2.3.  MAX_REQUEST_ID
 
    The MAX_REQUEST_ID parameter (Parameter Type 0x02) communicates an
    initial value for the Maximum Request ID to the receiving endpoint.
    The default value is 0, so if not specified, the peer MUST NOT send
    requests.
 
-8.3.2.3.  MAX_AUTH_TOKEN_CACHE_SIZE
+8.3.2.4.  MAX_AUTH_TOKEN_CACHE_SIZE
 
    The MAX_AUTH_TOKEN_CACHE_SIZE parameter (Parameter Type 0x04)
    communicates the maximum size in bytes of all actively registered
@@ -1907,7 +1936,7 @@ Table of Contents
    minus the sum of the token sizes for all deregistered tokens (Alias
    Type value of 0x00), since Session initiation.
 
-8.3.2.4.  AUTHORIZATION TOKEN
+8.3.2.5.  AUTHORIZATION TOKEN
 
    See Section 8.2.1.1.  The endpoint can specify one or more tokens in
    CLIENT_SETUP or SERVER_SETUP that the peer can use to authorize MOQT
@@ -2959,7 +2988,7 @@ Table of Contents
    *  No Objects - No Objects exist between the requested Start and End
       Locations.
 
-   *  Invalid Joining Subscribe ID - The joining Fetch referenced a
+   *  Invalid Joining Request ID - The joining Fetch referenced a
       Request ID that did not belong to an active Subscription.
 
    *  Unknown Status in Range - The requested range contains objects
@@ -3603,11 +3632,24 @@ Table of Contents
 
                    Figure 32: MOQT OBJECT_DATAGRAM_STATUS
 
-   The Type field takes the form 0b0000001X (or the set of values from
-   0x02 to 0x03).  The LSB of the type determines if the Extensions
-   Headers Length and Extension headers are present.  If an endpoint
-   receives a datagram with Type 0x03 and Extension Headers Length is 0,
-   it MUST close the session with Protocol Violation.
+   There are 2 defined Type values for OBJECT_DATAGRAM_STATUS:
+
+                           +======+============+
+                           | Type | Extensions |
+                           +======+============+
+                           |      | Present    |
+                           +------+------------+
+                           | 0x04 | No         |
+                           +------+------------+
+                           | 0x05 | Yes        |
+                           +------+------------+
+
+                                  Table 13
+
+   The LSB of the type determines if the Extensions Headers Length and
+   Extension headers are present.  If an endpoint receives a datagram
+   with Type 0x05 and Extension Headers Length is 0, it MUST close the
+   session with Protocol Violation.
 
 9.4.  Streams
 
@@ -3692,7 +3734,7 @@ Table of Contents
     | 0x1D | Yes           | N/A         | Yes        | Yes          |
     +------+---------------+-------------+------------+--------------+
 
-                                 Table 13
+                                 Table 14
 
    For Type values where Contains End of Group is Yes, the last Object
    in this Subgroup stream before a FIN is the last Object in the Group.
@@ -3845,7 +3887,7 @@ Table of Contents
                         |  0x3 | Session Closed   |
                         +------+------------------+
 
-                                  Table 14
+                                  Table 15
 
    Internal Error:  An implementation specific error
 
