@@ -3121,9 +3121,9 @@ the datagram.
 |-----------|---------------------------------------------------|
 | ID        | Type                                              |
 |----------:|:--------------------------------------------------|
-| 0x00-0x03 | OBJECT_DATAGRAM ({{object-datagram}})             |
+| 0x00-0x07 | OBJECT_DATAGRAM ({{object-datagram}})             |
 |-----------|---------------------------------------------------|
-| 0x04-0x05 | OBJECT_DATAGRAM_STATUS ({{object-datagram}})      |
+| 0x20-0x21 | OBJECT_DATAGRAM_STATUS ({{object-datagram}})      |
 |-----------|---------------------------------------------------|
 
 An endpoint that receives an unknown stream or datagram type MUST close the
@@ -3284,10 +3284,10 @@ An `OBJECT_DATAGRAM` carries a single object in a datagram.
 
 ~~~
 OBJECT_DATAGRAM {
-  Type (i) = 0x0-0x4,
+  Type (i) = 0x0-0x7,
   Track Alias (i),
   Group ID (i),
-  Object ID (i),
+  [Object ID (i),]
   Publisher Priority (8),
   [Extension Headers Length (i),
   Extension headers (...)],
@@ -3296,20 +3296,28 @@ OBJECT_DATAGRAM {
 ~~~
 {: #object-datagram-format title="MOQT OBJECT_DATAGRAM"}
 
-There are 4 defined Type values for OBJECT_DATAGRAM:
+There are 8 defined Type values for OBJECT_DATAGRAM:
 
-|------|---------------|------------|
-| Type | End Of Group  | Extensions |
-|      |               | Present    |
-|------|---------------|------------|
-| 0x00 | No            | No         |
-|------|---------------|------------|
-| 0x01 | No            | Yes        |
-|------|---------------|------------|
-| 0x02 | Yes           | No         |
-|------|---------------|------------|
-| 0x03 | Yes           | Yes        |
-|------|---------------|------------|
+|------|---------------|------------|-----------|
+| Type | End Of Group  | Extensions | Object ID |
+|      |               | Present    | Present   |
+|------|---------------|------------|-----------|
+| 0x00 | No            | No         | Yes       |
+|------|---------------|------------|-----------|
+| 0x01 | No            | Yes        | Yes       |
+|------|---------------|------------|-----------|
+| 0x02 | Yes           | No         | Yes       |
+|------|---------------|------------|-----------|
+| 0x03 | Yes           | Yes        | Yes       |
+|------|---------------|------------|-----------|
+| 0x04 | No            | No         | No        |
+|------|---------------|------------|-----------|
+| 0x05 | No            | Yes        | No        |
+|------|---------------|------------|-----------|
+| 0x06 | Yes           | No         | No        |
+|------|---------------|------------|-----------|
+| 0x07 | Yes           | Yes        | No        |
+|------|---------------|------------|-----------|
 
 For Type values where End of Group is Yes, the Object is the last Object in the
 Group.
@@ -3319,6 +3327,10 @@ present and the Object has no extensions.  When Extensions Present is Yes,
 Extension Headers Length is present.  If an endpoint receives a datagram with
 Type 0x01 and Extension Headers Length is 0, it MUST close the session with
 Protocol Violation.
+
+For Type values where Object ID Present is No, the Object ID field is omitted
+and the Object ID is 0.  When Object ID Present is Yes, the Object ID field is
+present and encodes the Object ID.
 
 There is no explicit length field.  The entirety of the transport datagram
 following Publisher Priority contains the Object Payload.
@@ -3348,9 +3360,9 @@ There are 2 defined Type values for OBJECT_DATAGRAM_STATUS:
 | Type | Extensions |
 |      | Present    |
 |------|------------|
-| 0x04 | No         |
+| 0x20 | No         |
 |------|------------|
-| 0x05 | Yes        |
+| 0x21 | Yes        |
 |------|------------|
 
 The LSB of the type determines if the Extensions Headers Length and Extension
