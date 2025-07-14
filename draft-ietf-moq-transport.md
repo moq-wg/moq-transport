@@ -3123,9 +3123,9 @@ the datagram.
 |-----------|---------------------------------------------------|
 | ID        | Type                                              |
 |----------:|:--------------------------------------------------|
-| 0x00-0x03 | OBJECT_DATAGRAM ({{object-datagram}})             |
+| 0x00-0x07 | OBJECT_DATAGRAM ({{object-datagram}})             |
 |-----------|---------------------------------------------------|
-| 0x04-0x05 | OBJECT_DATAGRAM_STATUS ({{object-datagram}})      |
+| 0x20-0x21 | OBJECT_DATAGRAM_STATUS ({{object-datagram}})      |
 |-----------|---------------------------------------------------|
 
 An endpoint that receives an unknown stream or datagram type MUST close the
@@ -3362,9 +3362,9 @@ There are 2 defined Type values for OBJECT_DATAGRAM_STATUS:
 | Type | Extensions |
 |      | Present    |
 |------|------------|
-| 0x04 | No         |
+| 0x20 | No         |
 |------|------------|
-| 0x05 | Yes        |
+| 0x21 | Yes        |
 |------|------------|
 
 The LSB of the type determines if the Extensions Headers Length and Extension
