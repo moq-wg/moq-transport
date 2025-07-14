@@ -3330,7 +3330,7 @@ There are 2 defined Type values for OBJECT_DATAGRAM_STATUS:
 |------|------------|
 
 The LSB of the type determines if the Extensions Headers Length and Extension
-headers are present. If an endpoint receives a datagram with Type 0x04 and
+headers are present. If an endpoint receives a datagram with Type 0x05 and
 Extension Headers Length is 0, it MUST close the session with Protocol Violation.
 
 ## Streams
