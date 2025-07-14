@@ -3623,9 +3623,9 @@ Table of Contents
    an endpoint receives a datagram with Type 0x01 and Extension Headers
    Length is 0, it MUST close the session with Protocol Violation.
 
-   For Type values where Object ID Present is No, Object ID is not
-   present and the Object has ID zero.  When Object ID Present is Yes,
-   Object ID is present and contains the Object ID.
+   For Type values where Object ID Present is No, the Object ID field is
+   omitted and the Object ID is 0.  When Object ID Present is Yes, the
+   Object ID field is present and encodes the Object ID.
 
    There is no explicit length field.  The entirety of the transport
    datagram following Publisher Priority contains the Object Payload.

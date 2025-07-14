@@ -5950,9 +5950,9 @@ present and the Object has no extensions.  When Extensions Present is Yes,
 Extension Headers Length is present.  If an endpoint receives a datagram with
 Type 0x01 and Extension Headers Length is 0, it <span class="bcp14">MUST</span> close the session with
 Protocol Violation.<a href="#section-9.3.1-6" class="pilcrow">¶</a></p>
-<p id="section-9.3.1-7">For Type values where Object ID Present is No, Object ID is not present and the
-Object has ID zero.  When Object ID Present is Yes, Object ID is present and
-contains the Object ID.<a href="#section-9.3.1-7" class="pilcrow">¶</a></p>
+<p id="section-9.3.1-7">For Type values where Object ID Present is No, the Object ID field is omitted
+and the Object ID is 0.  When Object ID Present is Yes, the Object ID field is
+present and encodes the Object ID.<a href="#section-9.3.1-7" class="pilcrow">¶</a></p>
 <p id="section-9.3.1-8">There is no explicit length field.  The entirety of the transport datagram
 following Publisher Priority contains the Object Payload.<a href="#section-9.3.1-8" class="pilcrow">¶</a></p>
 </section>
