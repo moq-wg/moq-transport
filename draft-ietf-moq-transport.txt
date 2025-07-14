@@ -3636,11 +3636,24 @@ Table of Contents
 
                    Figure 32: MOQT OBJECT_DATAGRAM_STATUS
 
-   The Type field takes the form 0b0000001X (or the set of values from
-   0x02 to 0x03).  The LSB of the type determines if the Extensions
-   Headers Length and Extension headers are present.  If an endpoint
-   receives a datagram with Type 0x03 and Extension Headers Length is 0,
-   it MUST close the session with Protocol Violation.
+   There are 2 defined Type values for OBJECT_DATAGRAM_STATUS:
+
+                           +======+============+
+                           | Type | Extensions |
+                           +======+============+
+                           |      | Present    |
+                           +------+------------+
+                           | 0x04 | No         |
+                           +------+------------+
+                           | 0x05 | Yes        |
+                           +------+------------+
+
+                                  Table 13
+
+   The LSB of the type determines if the Extensions Headers Length and
+   Extension headers are present.  If an endpoint receives a datagram
+   with Type 0x05 and Extension Headers Length is 0, it MUST close the
+   session with Protocol Violation.
 
 9.4.  Streams
 
@@ -3725,7 +3738,7 @@ Table of Contents
     | 0x1D | Yes           | N/A         | Yes        | Yes          |
     +------+---------------+-------------+------------+--------------+
 
-                                 Table 13
+                                 Table 14
 
    For Type values where Contains End of Group is Yes, the last Object
    in this Subgroup stream before a FIN is the last Object in the Group.
@@ -3876,7 +3889,7 @@ Table of Contents
                         |  0x3 | Session Closed   |
                         +------+------------------+
 
-                                  Table 14
+                                  Table 15
 
    Internal Error:  An implementation specific error
 

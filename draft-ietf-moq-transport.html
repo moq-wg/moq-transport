@@ -5951,11 +5951,33 @@ OBJECT_DATAGRAM_STATUS {
 <a href="#name-moqt-object_datagram_status" class="selfRef">MOQT OBJECT_DATAGRAM_STATUS</a>
             </figcaption></figure>
 </div>
-<p id="section-9.3.2-3">The Type field takes the form 0b0000001X (or the set of values from 0x02 to
-0x03). The LSB of the type determines if the Extensions Headers Length and
-Extension headers are present. If an endpoint receives a datagram with Type
-0x03 and Extension Headers Length is 0, it <span class="bcp14">MUST</span> close the session with Protocol
-Violation.<a href="#section-9.3.2-3" class="pilcrow">¶</a></p>
+<p id="section-9.3.2-3">There are 2 defined Type values for OBJECT_DATAGRAM_STATUS:<a href="#section-9.3.2-3" class="pilcrow">¶</a></p>
+<table class="center" id="table-13">
+            <caption><a href="#table-13" class="selfRef">Table 13</a></caption>
+<thead>
+              <tr>
+                <th class="text-left" rowspan="1" colspan="1">Type</th>
+                <th class="text-left" rowspan="1" colspan="1">Extensions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1"> </td>
+                <td class="text-left" rowspan="1" colspan="1">Present</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">0x04</td>
+                <td class="text-left" rowspan="1" colspan="1">No</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">0x05</td>
+                <td class="text-left" rowspan="1" colspan="1">Yes</td>
+              </tr>
+            </tbody>
+          </table>
+<p id="section-9.3.2-5">The LSB of the type determines if the Extensions Headers Length and Extension
+headers are present. If an endpoint receives a datagram with Type 0x05 and
+Extension Headers Length is 0, it <span class="bcp14">MUST</span> close the session with Protocol Violation.<a href="#section-9.3.2-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -6018,8 +6040,8 @@ SUBGROUP_HEADER {
 <p id="section-9.4.2-4">All Objects received on a stream opened with <code>SUBGROUP_HEADER</code> have an
 <code>Object Forwarding Preference</code> = <code>Subgroup</code>.<a href="#section-9.4.2-4" class="pilcrow">¶</a></p>
 <p id="section-9.4.2-5">There are 12 defined Type values for SUBGROUP_HEADER:<a href="#section-9.4.2-5" class="pilcrow">¶</a></p>
-<table class="center" id="table-13">
-            <caption><a href="#table-13" class="selfRef">Table 13</a></caption>
+<table class="center" id="table-14">
+            <caption><a href="#table-14" class="selfRef">Table 14</a></caption>
 <thead>
               <tr>
                 <th class="text-left" rowspan="1" colspan="1">Type</th>
@@ -6239,8 +6261,8 @@ Subgroups in the Group or the subscription, although applications might cancel a
 Subgroups in a Group at once.<a href="#section-9.4.3-13" class="pilcrow">¶</a></p>
 <p id="section-9.4.3-14">The application <span class="bcp14">SHOULD</span> use a relevant error code in RESET_STREAM or
 RESET_STREAM_AT, as defined below:<a href="#section-9.4.3-14" class="pilcrow">¶</a></p>
-<table class="center" id="table-14">
-            <caption><a href="#table-14" class="selfRef">Table 14</a></caption>
+<table class="center" id="table-15">
+            <caption><a href="#table-15" class="selfRef">Table 15</a></caption>
 <thead>
               <tr>
                 <th class="text-right" rowspan="1" colspan="1">Code</th>
