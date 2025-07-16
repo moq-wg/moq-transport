@@ -3110,7 +3110,7 @@ the type of the stream in question.
 |-------------|-------------------------------------------------|
 | ID          | Type                                            |
 |------------:|:------------------------------------------------|
-| 0x08-0x0D   | SUBGROUP_HEADER  ({{subgroup-header}})          |
+| 0x10-0x1D   | SUBGROUP_HEADER  ({{subgroup-header}})          |
 |-------------|-------------------------------------------------|
 | 0x05        | FETCH_HEADER  ({{fetch-header}})                |
 |-------------|-------------------------------------------------|
@@ -3403,7 +3403,7 @@ flow control, while the sender waits for flow control to send the message.
 
 ~~~
 SUBGROUP_HEADER {
-  Type (i) = 0x8..0xD,
+  Type (i) = 0x10..0x1D,
   Track Alias (i),
   Group ID (i),
   [Subgroup ID (i),]
@@ -3650,7 +3650,7 @@ Sending a subgroup on one stream:
 Stream = 2
 
 SUBGROUP_HEADER {
-  Type = 0
+  Type = 0x14
   Track Alias = 2
   Group ID = 0
   Subgroup ID = 0
@@ -3675,9 +3675,10 @@ Extension Headers.
 Stream = 2
 
 SUBGROUP_HEADER {
-  Type = 1
+  Type = 0x15
   Track Alias = 2
   Group ID = 0
+  Subgroup ID = 0
   Publisher Priority = 0
 }
 {
