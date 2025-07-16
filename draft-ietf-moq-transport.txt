@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 15 January 2026                                   I. Swett, Ed.
+Expires: 17 January 2026                                   I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                            14 July 2025
+                                                            16 July 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 15 January 2026.
+   This Internet-Draft will expire on 17 January 2026.
 
 Copyright Notice
 
@@ -3388,7 +3388,7 @@ Table of Contents
               +===========+=================================+
               |        ID | Type                            |
               +===========+=================================+
-              | 0x08-0x0D | SUBGROUP_HEADER (Section 9.4.2) |
+              | 0x10-0x1D | SUBGROUP_HEADER (Section 9.4.2) |
               +-----------+---------------------------------+
               |      0x05 | FETCH_HEADER (Section 9.4.4)    |
               +-----------+---------------------------------+
@@ -3698,7 +3698,7 @@ Table of Contents
    control to send the message.
 
    SUBGROUP_HEADER {
-     Type (i) = 0x8..0xD,
+     Type (i) = 0x10..0x1D,
      Track Alias (i),
      Group ID (i),
      [Subgroup ID (i),]
@@ -3956,7 +3956,7 @@ Table of Contents
    Stream = 2
 
    SUBGROUP_HEADER {
-     Type = 0
+     Type = 0x14
      Track Alias = 2
      Group ID = 0
      Subgroup ID = 0
@@ -3979,9 +3979,10 @@ Table of Contents
    Stream = 2
 
    SUBGROUP_HEADER {
-     Type = 1
+     Type = 0x15
      Track Alias = 2
      Group ID = 0
+     Subgroup ID = 0
      Publisher Priority = 0
    }
    {
