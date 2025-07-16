@@ -556,7 +556,7 @@ SUBSCRIBE_DONE with Status Code `Malformed Track`.
 ### Scope {#track-scope}
 
 An MOQT scope is a set of servers (as identified by their connection
-URIs) for which the tuple of Track Name and Track Namespace are
+URIs) for which the tuple of Track Namespace and Track Name are
 guaranteed to be unique and identify a specific track. It is up to
 the application using MOQT to define how broad or narrow the scope is.
 An application that deals with connections between devices
