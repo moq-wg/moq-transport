@@ -2363,8 +2363,8 @@ the endpoints exchange Setup messages (<a href="#message-setup" class="auto inte
 messages defined in <a href="#message" class="auto internal xref">Section 8</a>.<a href="#section-3.3-1" class="pilcrow">¶</a></p>
 <p id="section-3.3-2">This draft only specifies a single use of bidirectional streams. Objects are
 sent on unidirectional streams.  Because there are no other uses of
-bidirectional streams, a peer <span class="bcp14">MAY</span> currently close the session as a
-<code>PROTOCOL_VIOLATION</code> if it receives a second bidirectional stream.<a href="#section-3.3-2" class="pilcrow">¶</a></p>
+bidirectional streams, a peer <span class="bcp14">MAY</span> close the session as a <code>PROTOCOL_VIOLATION</code> if
+it receives a second bidirectional stream.<a href="#section-3.3-2" class="pilcrow">¶</a></p>
 <p id="section-3.3-3">The control stream <span class="bcp14">MUST NOT</span> be closed at the underlying transport layer while the
 session is active.  Doing so results in the session being closed as a
 <code>PROTOCOL_VIOLATION</code>.<a href="#section-3.3-3" class="pilcrow">¶</a></p>
@@ -3311,9 +3311,10 @@ these parameters to appear in Setup messages.<a href="#section-8.2.1-1" class="p
 <a href="#section-8.2.1.1" class="section-number selfRef">8.2.1.1. </a><a href="#name-authorization-token" class="section-name selfRef">AUTHORIZATION TOKEN</a>
             </h5>
 <p id="section-8.2.1.1-1">The AUTHORIZATION TOKEN parameter (Parameter Type 0x03) <span class="bcp14">MAY</span> appear in a
-CLIENT_SETUP, SERVER_SETUP, SUBSCRIBE, SUBSCRIBE_NAMESPACE, ANNOUNCE,
-TRACK_STATUS or FETCH message. This parameter conveys information to authorize
-the sender to perform the operation carrying the parameter.<a href="#section-8.2.1.1-1" class="pilcrow">¶</a></p>
+CLIENT_SETUP, SERVER_SETUP, PUBLISH, SUBSCRIBE, SUBSCRIBE_UPDATE,
+SUBSCRIBE_NAMESPACE, ANNOUNCE, TRACK_STATUS or FETCH message. This parameter
+conveys information to authorize the sender to perform the operation carrying
+the parameter.<a href="#section-8.2.1.1-1" class="pilcrow">¶</a></p>
 <p id="section-8.2.1.1-2">The AUTHORIZATION TOKEN parameter <span class="bcp14">MAY</span> be repeated within a message.<a href="#section-8.2.1.1-2" class="pilcrow">¶</a></p>
 <p id="section-8.2.1.1-3">The parameter value is a Token structure containing an optional Session-specific
 Alias. The Alias allows the sender to reference a previously transmitted Token
@@ -3486,12 +3487,12 @@ to be exceeded, the receiver <span class="bcp14">MUST</span> termiate the Sessio
 <a href="#section-8.2.1.2" class="section-number selfRef">8.2.1.2. </a><a href="#name-delivery-timeout-parameter" class="section-name selfRef">DELIVERY TIMEOUT Parameter</a>
             </h5>
 <p id="section-8.2.1.2-1">The DELIVERY TIMEOUT parameter (Parameter Type 0x02) <span class="bcp14">MAY</span> appear in a
-TRACK_STATUS, SUBSCRIBE, SUBSCRIBE_OK, or SUBSCRIBE_UDPATE message.
-It is the duration in milliseconds the relay <span class="bcp14">SHOULD</span> continue to attempt
-forwarding Objects after they have been received.  The start time for the
-timeout is based on when the beginning of the Object is received, and does
-not depend upon the forwarding preference. There is no explicit signal that
-an Object was not sent because the delivery timeout was exceeded.<a href="#section-8.2.1.2-1" class="pilcrow">¶</a></p>
+TRACK_STATUS, TRACK_STATUS_OK, PUBLISH, PUBLISH_OK, SUBSCRIBE, SUBSCRIBE_OK, or
+SUBSCRIBE_UDPATE message.  It is the duration in milliseconds the relay <span class="bcp14">SHOULD</span>
+continue to attempt forwarding Objects after they have been received.  The start
+time for the timeout is based on when the beginning of the Object is received,
+and does not depend upon the forwarding preference. There is no explicit signal
+that an Object was not sent because the delivery timeout was exceeded.<a href="#section-8.2.1.2-1" class="pilcrow">¶</a></p>
 <p id="section-8.2.1.2-2">If both the subscriber and publisher specify the parameter, they use the min of
 the two values for the subscription.  The publisher <span class="bcp14">SHOULD</span> always specify the
 value received from an upstream subscription when there is one, and nothing
@@ -3521,16 +3522,15 @@ congestion control, and any other relevant information.<a href="#section-8.2.1.2
             <h5 id="name-max-cache-duration-paramete">
 <a href="#section-8.2.1.3" class="section-number selfRef">8.2.1.3. </a><a href="#name-max-cache-duration-paramete" class="section-name selfRef">MAX CACHE DURATION Parameter</a>
             </h5>
-<p id="section-8.2.1.3-1">The MAX_CACHE_DURATION parameter (Parameter Type 0x04) <span class="bcp14">MAY</span> appear in a
-SUBSCRIBE_OK, FETCH_OK or TRACK_STATUS message.  It is an integer expressing
-the number of milliseconds an object can be served from a cache. If present,
-the relay <span class="bcp14">MUST NOT</span> start forwarding any individual Object received through
-this subscription or fetch after the specified number of milliseconds has
-elapsed since the beginning of the Object was received.  This means Objects
-earlier in a multi-object stream will expire earlier than Objects later in the
-stream. Once Objects have expired from cache, their state becomes unknown, and
-a relay that handles a downstream request that includes those Objects
-re-requests them.<a href="#section-8.2.1.3-1" class="pilcrow">¶</a></p>
+<p id="section-8.2.1.3-1">The MAX_CACHE_DURATION parameter (Parameter Type 0x04) <span class="bcp14">MAY</span> appear in a PUBLISH,
+SUBSCRIBE_OK, FETCH_OK or TRACK_STATUS_OK message.  It is an integer expressing
+the number of milliseconds an object can be served from a cache. If present, the
+relay <span class="bcp14">MUST NOT</span> start forwarding any individual Object received through this
+subscription or fetch after the specified number of milliseconds has elapsed
+since the beginning of the Object was received.  This means Objects earlier in a
+multi-object stream will expire earlier than Objects later in the stream. Once
+Objects have expired from cache, their state becomes unknown, and a relay that
+handles a downstream request that includes those Objects re-requests them.<a href="#section-8.2.1.3-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
