@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 17 January 2026                                   I. Swett, Ed.
+Expires: 18 January 2026                                   I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                            16 July 2025
+                                                            17 July 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 17 January 2026.
+   This Internet-Draft will expire on 18 January 2026.
 
 Copyright Notice
 
@@ -774,9 +774,8 @@ Table of Contents
 
    This draft only specifies a single use of bidirectional streams.
    Objects are sent on unidirectional streams.  Because there are no
-   other uses of bidirectional streams, a peer MAY currently close the
-   session as a 'Protocol Violation' if it receives a second
-   bidirectional stream.
+   other uses of bidirectional streams, a peer MAY close the session as
+   a 'Protocol Violation' if it receives a second bidirectional stream.
 
    The control stream MUST NOT be closed at the underlying transport
    layer while the session is active.  Doing so results in the session
