@@ -668,8 +668,8 @@ messages defined in {{message}}.
 
 This draft only specifies a single use of bidirectional streams. Objects are
 sent on unidirectional streams.  Because there are no other uses of
-bidirectional streams, a peer MAY currently close the session as a
-'Protocol Violation' if it receives a second bidirectional stream.
+bidirectional streams, a peer MAY close the session as a 'Protocol Violation' if
+it receives a second bidirectional stream.
 
 The control stream MUST NOT be closed at the underlying transport layer while the
 session is active.  Doing so results in the session being closed as a
