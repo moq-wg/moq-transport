@@ -573,6 +573,18 @@ which tracks are delivered via Subscribe Parameters, but the actual content of
 the tracks does not depend on those parameters; this is in contrast to
 protocols like HTTP, where request headers can alter the server response.
 
+A publisher that loses state and intends to continue publishing has multiple
+options to confirm to the above requirements.
+
+1. Select a unique Track Name or Track Namespace each time it resumes
+   publishing. For example, it can base one of the Namespace tuple fields on the
+   current time, or select a sufficiently large random value.
+2. Continue under a previous Track Name and Namespace and set the initial Group
+   ID to a unique value guaranteed to be larger than all previously used groups.
+   This can be done by choosing a Group ID based on the current time.
+3. Use TRACK_STATUS or another mechanism to determine the previous state,
+   querying for the largest published Group ID.
+
 # Sessions {#session}
 
 ## Session establishment {#session-establishment}
