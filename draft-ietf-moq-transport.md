@@ -3132,7 +3132,7 @@ session.
 The publisher only sends Objects after receiving a SUBSCRIBE or FETCH.  The
 publisher MUST NOT send Objects that are not requested.  If an endpoint receives
 an Object it never requested, it SHOULD terminate the session with a protocol
-violation. Objects can arrive after a subscription or fetch has been cancelled,
+violation. Objects can arrive after a subscription or fetch has been canceled,
 so the session MUST NOT be teriminated in that case.
 
 Every Track has a single 'Object Forwarding Preference' and the Original
@@ -3579,7 +3579,7 @@ RESET_STREAM_AT, as defined below:
 |-----:|:--------------------------|
 | 0x0  | Internal Error            |
 |------|---------------------------|
-| 0x1  | Cancelled                 |
+| 0x1  | Canceled                 |
 |------|---------------------------|
 | 0x2  | Delivery Timeout          |
 |------|---------------------------|
@@ -3590,7 +3590,7 @@ Internal Error:
 
 : An implementation specific error
 
-Cancelled:
+Canceled:
 
 : The subscriber requested cancellation via UNSUBSCRIBE, FETCH_CANCEL or
 STOP_SENDING, or the publisher ended the subscription, in which case
