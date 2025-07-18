@@ -526,23 +526,21 @@ include:
    than the previous Object in the response.
 3. An Object is received in a Descending FETCH response whose Group ID is larger
    than the previous Object in the resopnse.
-4. A Subgroup or FETCH response is terminated with a FIN in the middle of an
-   Object
-5. An Object is received whose Object ID is larger than the final Object in the
+4. An Object is received whose Object ID is larger than the final Object in the
    Subgroup.  The final Object in a Subgroup is the last Object received on a
    Subgroup stream before a FIN.
-6. A Subgroup is received with two or more different final Objects.
-7. An Object is received in a Group whose Object ID is larger than the final
+5. A Subgroup is received with two or more different final Objects.
+6. An Object is received in a Group whose Object ID is larger than the final
    Object in the Group.  The final Object in a Group is the Object with Status
    END_OF_GROUP or the last Object sent in a FETCH that requested the entire
    Group.
-8. An Object is received on a Track whose Group and Object ID are larger than the
+7. An Object is received on a Track whose Group and Object ID are larger than the
    final Object in the Track.  The final Object in a Track is the Object with
    Status END_OF_TRACK or the last Object sent in a FETCH whose response indicated
    End of Track.
-9. The same Object is received more than once with different Payload or
+8. The same Object is received more than once with different Payload or
     other immutable properties.
-10. An Object is received with a different Forwarding Preference than previously
+9. An Object is received with a different Forwarding Preference than previously
     observed from the same Track.
 
 The above list of conditions is not considered exhaustive.
