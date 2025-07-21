@@ -568,9 +568,9 @@ MOQT scope, they can be used as a cache key for the track.
 If, at a given moment in time, two tracks within the same scope contain
 different data, they MUST have different names and/or namespaces.
 MOQT provides subscribers with the ability to alter the specific manner in
-which tracks are delivered via Subscribe Parameters, but the actual content of
-the tracks does not depend on those parameters; this is in contrast to
-protocols like HTTP, where request headers can alter the server response.
+which tracks are delivered via Parameters, but the actual content of the tracks
+does not depend on those parameters; this is in contrast to protocols like HTTP,
+where request headers can alter the server response.
 
 # Sessions {#session}
 
@@ -1887,7 +1887,7 @@ SUBSCRIBE Message {
   [Start Location (Location)],
   [End Group (i)],
   Number of Parameters (i),
-  Subscribe Parameters (..) ...
+  Parameters (..) ...
 }
 ~~~
 {: #moq-transport-subscribe-format title="MOQT SUBSCRIBE Message"}
@@ -1922,7 +1922,7 @@ the Start and End Group fields will be present.
 * End Group: The end Group ID, inclusive. Only present for the "AbsoluteRange"
 filter type.
 
-* Subscribe Parameters: The parameters are defined in {{version-specific-params}}.
+* Parameters: The parameters are defined in {{version-specific-params}}.
 
 On successful subscription, the publisher MUST reply with a SUBSCRIBE_OK,
 allowing the subscriber to determine the start group/object when not explicitly
@@ -1949,7 +1949,7 @@ SUBSCRIBE_OK Message {
   Content Exists (8),
   [Largest Location (Location)],
   Number of Parameters (i),
-  Subscribe Parameters (..) ...
+  Parameters (..) ...
 }
 ~~~
 {: #moq-transport-subscribe-ok format title="MOQT SUBSCRIBE_OK Message"}
@@ -1980,7 +1980,7 @@ session with a `PROTOCOL_VIOLATION` ({{session-termination}}).
 * Largest Location: The location of the largest object available for this track. This
   field is only present if Content Exists has a value of 1.
 
-* Subscribe Parameters: The parameters are defined in {{version-specific-params}}.
+* Parameters: The parameters are defined in {{version-specific-params}}.
 
 ## SUBSCRIBE_ERROR {#message-subscribe-error}
 
@@ -2077,7 +2077,7 @@ SUBSCRIBE_UPDATE Message {
   Subscriber Priority (8),
   Forward (8),
   Number of Parameters (i),
-  Subscribe Parameters (..) ...
+  Parameters (..) ...
 }
 ~~~
 {: #moq-transport-subscribe-update-format title="MOQT SUBSCRIBE_UPDATE Message"}
@@ -2099,7 +2099,7 @@ to the subscriber. If 0, Objects are not forwarded to the subscriber.
 Any other value is a protocol error and MUST terminate the
 session with a `PROTOCOL_VIOLATION` ({{session-termination}}).
 
-* Subscribe Parameters: The parameters are defined in {{version-specific-params}}.
+* Parameters: The parameters are defined in {{version-specific-params}}.
 
 ## UNSUBSCRIBE {#message-unsubscribe}
 
@@ -2543,7 +2543,7 @@ FETCH_OK Message {
   End Of Track (8),
   End Location (Location),
   Number of Parameters (i),
-  Subscribe Parameters (..) ...
+  Parameters (..) ...
 }
 ~~~
 {: #moq-transport-fetch-ok format title="MOQT FETCH_OK Message"}
@@ -2575,7 +2575,7 @@ Values of 0x0 and those larger than 0x2 are a protocol error.
   If End is smaller than the Start Location in the corresponding FETCH the
   receiver MUST close the session with `PROTOCOL_VIOLATION`
 
-* Subscribe Parameters: The parameters are defined in {{version-specific-params}}.
+* Parameters: The parameters are defined in {{version-specific-params}}.
 
 ## FETCH_ERROR {#message-fetch-error}
 
@@ -3636,7 +3636,7 @@ TODO: fill out currently missing registries:
 
 * MOQT version numbers
 * Setup parameters
-* Subscribe parameters - List which params can be repeated in the table.
+* Non-setup Parameters - List which params can be repeated in the table.
 * Message types
 * MOQ Extension headers - we wish to reserve extension types 0-63 for
   standards utilization where space is a premium, 64 - 16383 for
