@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 18 January 2026                                   I. Swett, Ed.
+Expires: 22 January 2026                                   I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                            17 July 2025
+                                                            21 July 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 18 January 2026.
+   This Internet-Draft will expire on 22 January 2026.
 
 Copyright Notice
 
@@ -672,10 +672,10 @@ Table of Contents
    a given moment in time, two tracks within the same scope contain
    different data, they MUST have different names and/or namespaces.
    MOQT provides subscribers with the ability to alter the specific
-   manner in which tracks are delivered via Subscribe Parameters, but
-   the actual content of the tracks does not depend on those parameters;
-   this is in contrast to protocols like HTTP, where request headers can
-   alter the server response.
+   manner in which tracks are delivered via Parameters, but the actual
+   content of the tracks does not depend on those parameters; this is in
+   contrast to protocols like HTTP, where request headers can alter the
+   server response.
 
 3.  Sessions
 
@@ -2132,7 +2132,7 @@ Table of Contents
      [Start Location (Location)],
      [End Group (i)],
      Number of Parameters (i),
-     Subscribe Parameters (..) ...
+     Parameters (..) ...
    }
 
                       Figure 9: MOQT SUBSCRIBE Message
@@ -2169,7 +2169,7 @@ Table of Contents
    *  End Group: The end Group ID, inclusive.  Only present for the
       "AbsoluteRange" filter type.
 
-   *  Subscribe Parameters: The parameters are defined in Section 8.2.1.
+   *  Parameters: The parameters are defined in Section 8.2.1.
 
    On successful subscription, the publisher MUST reply with a
    SUBSCRIBE_OK, allowing the subscriber to determine the start group/
@@ -2196,7 +2196,7 @@ Table of Contents
      Content Exists (8),
      [Largest Location (Location)],
      Number of Parameters (i),
-     Subscribe Parameters (..) ...
+     Parameters (..) ...
    }
 
                     Figure 10: MOQT SUBSCRIBE_OK Message
@@ -2231,7 +2231,7 @@ Table of Contents
       this track.  This field is only present if Content Exists has a
       value of 1.
 
-   *  Subscribe Parameters: The parameters are defined in Section 8.2.1.
+   *  Parameters: The parameters are defined in Section 8.2.1.
 
 8.9.  SUBSCRIBE_ERROR
 
@@ -2348,7 +2348,7 @@ Table of Contents
      Subscriber Priority (8),
      Forward (8),
      Number of Parameters (i),
-     Subscribe Parameters (..) ...
+     Parameters (..) ...
    }
 
                   Figure 12: MOQT SUBSCRIBE_UPDATE Message
@@ -2370,7 +2370,7 @@ Table of Contents
       subscriber.  Any other value is a protocol error and MUST
       terminate the session with a Protocol Violation (Section 3.4).
 
-   *  Subscribe Parameters: The parameters are defined in Section 8.2.1.
+   *  Parameters: The parameters are defined in Section 8.2.1.
 
 8.11.  UNSUBSCRIBE
 
@@ -2871,7 +2871,7 @@ Table of Contents
      End Of Track (8),
      End Location (Location),
      Number of Parameters (i),
-     Subscribe Parameters (..) ...
+     Parameters (..) ...
    }
 
                       Figure 19: MOQT FETCH_OK Message
@@ -2908,7 +2908,7 @@ Table of Contents
       If End is smaller than the Start Location in the corresponding
       FETCH the receiver MUST close the session with Protocol Violation
 
-   *  Subscribe Parameters: The parameters are defined in Section 8.2.1.
+   *  Parameters: The parameters are defined in Section 8.2.1.
 
 8.18.  FETCH_ERROR
 
@@ -4068,7 +4068,7 @@ Table of Contents
 
    *  Setup parameters
 
-   *  Subscribe parameters - List which params can be repeated in the
+   *  Non-setup Parameters - List which params can be repeated in the
       table.
 
    *  Subscribe Error codes
