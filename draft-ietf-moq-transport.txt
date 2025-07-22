@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 22 January 2026                                   I. Swett, Ed.
+Expires: 23 January 2026                                   I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                            21 July 2025
+                                                            22 July 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 22 January 2026.
+   This Internet-Draft will expire on 23 January 2026.
 
 Copyright Notice
 
@@ -651,10 +651,12 @@ Table of Contents
 
    The above list of conditions is not considered exhaustive.
 
-   When a subscriber detects a Malformed Track, it MUST UNSUBSCRIBE from
-   the Track and SHOULD deliver an error to the application.  If a relay
-   detects a Malformed Track, it MUST immediately terminate downstream
-   subscriptions with SUBSCRIBE_DONE with Status Code Malformed Track.
+   When a subscriber detects a Malformed Track, it MUST UNSUBSCRIBE any
+   subscription and FETCH_CANCEL any fetch for that Track from that
+   publisher, and SHOULD deliver an error to the application.  If a
+   relay detects a Malformed Track, it MUST immediately terminate
+   downstream subscriptions with SUBSCRIBE_DONE and reset any fetch
+   streams with Status Code Malformed Track.
 
 2.5.1.  Scope
 
