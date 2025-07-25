@@ -2190,17 +2190,18 @@ observed from the same Track.<a href="#section-2.5-2.10.1" class="pilcrow">¶</a
 </li>
         </ol>
 <p id="section-2.5-3">The above list of conditions is not considered exhaustive.<a href="#section-2.5-3" class="pilcrow">¶</a></p>
-<p id="section-2.5-4">When a subscriber detects a Malformed Track, it <span class="bcp14">MUST</span> UNSUBSCRIBE from the
-Track and <span class="bcp14">SHOULD</span> deliver an error to the application.  If a relay detects a
-Malformed Track, it <span class="bcp14">MUST</span> immediately terminate downstream subscriptions with
-SUBSCRIBE_DONE with Status Code <code>Malformed Track</code>.<a href="#section-2.5-4" class="pilcrow">¶</a></p>
+<p id="section-2.5-4">When a subscriber detects a Malformed Track, it <span class="bcp14">MUST</span> UNSUBSCRIBE any
+subscription and FETCH_CANCEL any fetch for that Track from that publisher, and
+<span class="bcp14">SHOULD</span> deliver an error to the application.  If a relay detects a Malformed
+Track, it <span class="bcp14">MUST</span> immediately terminate downstream subscriptions with
+SUBSCRIBE_DONE and reset any fetch streams with Status Code <code>Malformed Track</code>.<a href="#section-2.5-4" class="pilcrow">¶</a></p>
 <div id="track-scope">
 <section id="section-2.5.1">
           <h4 id="name-scope">
 <a href="#section-2.5.1" class="section-number selfRef">2.5.1. </a><a href="#name-scope" class="section-name selfRef">Scope</a>
           </h4>
 <p id="section-2.5.1-1">An MOQT scope is a set of servers (as identified by their connection
-URIs) for which the tuple of Track Name and Track Namespace are
+URIs) for which the tuple of Track Namespace and Track Name are
 guaranteed to be unique and identify a specific track. It is up to
 the application using MOQT to define how broad or narrow the scope is.
 An application that deals with connections between devices
@@ -2212,9 +2213,9 @@ MOQT scope, they can be used as a cache key for the track.
 If, at a given moment in time, two tracks within the same scope contain
 different data, they <span class="bcp14">MUST</span> have different names and/or namespaces.
 MOQT provides subscribers with the ability to alter the specific manner in
-which tracks are delivered via Subscribe Parameters, but the actual content of
-the tracks does not depend on those parameters; this is in contrast to
-protocols like HTTP, where request headers can alter the server response.<a href="#section-2.5.1-2" class="pilcrow">¶</a></p>
+which tracks are delivered via Parameters, but the actual content of the tracks
+does not depend on those parameters; this is in contrast to protocols like HTTP,
+where request headers can alter the server response.<a href="#section-2.5.1-2" class="pilcrow">¶</a></p>
 <p id="section-2.5.1-3">A publisher that loses state and intends to resume publishing on the same Track
 risks of colliding with previously published Objects and violating the above
 requirements.  A publisher can handle this in application specific ways, for
@@ -2354,8 +2355,8 @@ the endpoints exchange Setup messages (<a href="#message-setup" class="auto inte
 messages defined in <a href="#message" class="auto internal xref">Section 8</a>.<a href="#section-3.3-1" class="pilcrow">¶</a></p>
 <p id="section-3.3-2">This draft only specifies a single use of bidirectional streams. Objects are
 sent on unidirectional streams.  Because there are no other uses of
-bidirectional streams, a peer <span class="bcp14">MAY</span> currently close the session as a
-'Protocol Violation' if it receives a second bidirectional stream.<a href="#section-3.3-2" class="pilcrow">¶</a></p>
+bidirectional streams, a peer <span class="bcp14">MAY</span> close the session as a 'Protocol Violation' if
+it receives a second bidirectional stream.<a href="#section-3.3-2" class="pilcrow">¶</a></p>
 <p id="section-3.3-3">The control stream <span class="bcp14">MUST NOT</span> be closed at the underlying transport layer while the
 session is active.  Doing so results in the session being closed as a
 'Protocol Violation'.<a href="#section-3.3-3" class="pilcrow">¶</a></p>
@@ -3358,9 +3359,10 @@ these parameters to appear in Setup messages.<a href="#section-8.2.1-1" class="p
 <a href="#section-8.2.1.1" class="section-number selfRef">8.2.1.1. </a><a href="#name-authorization-token" class="section-name selfRef">AUTHORIZATION TOKEN</a>
             </h5>
 <p id="section-8.2.1.1-1">The AUTHORIZATION TOKEN parameter (Parameter Type 0x03) <span class="bcp14">MAY</span> appear in a
-CLIENT_SETUP, SERVER_SETUP, SUBSCRIBE, SUBSCRIBE_NAMESPACE, ANNOUNCE,
-TRACK_STATUS or FETCH message. This parameter conveys information to authorize
-the sender to perform the operation carrying the parameter.<a href="#section-8.2.1.1-1" class="pilcrow">¶</a></p>
+CLIENT_SETUP, SERVER_SETUP, PUBLISH, SUBSCRIBE, SUBSCRIBE_UPDATE,
+SUBSCRIBE_NAMESPACE, ANNOUNCE, TRACK_STATUS or FETCH message. This parameter
+conveys information to authorize the sender to perform the operation carrying
+the parameter.<a href="#section-8.2.1.1-1" class="pilcrow">¶</a></p>
 <p id="section-8.2.1.1-2">The AUTHORIZATION TOKEN parameter <span class="bcp14">MAY</span> be repeated within a message.<a href="#section-8.2.1.1-2" class="pilcrow">¶</a></p>
 <p id="section-8.2.1.1-3">The parameter value is a Token structure containing an optional Session-specific
 Alias. The Alias allows the sender to reference a previously transmitted Token
@@ -3532,12 +3534,12 @@ Overflow</code> error.<a href="#section-8.2.1.1-14" class="pilcrow">¶</a></p>
 <a href="#section-8.2.1.2" class="section-number selfRef">8.2.1.2. </a><a href="#name-delivery-timeout-parameter" class="section-name selfRef">DELIVERY TIMEOUT Parameter</a>
             </h5>
 <p id="section-8.2.1.2-1">The DELIVERY TIMEOUT parameter (Parameter Type 0x02) <span class="bcp14">MAY</span> appear in a
-TRACK_STATUS, SUBSCRIBE, SUBSCRIBE_OK, or SUBSCRIBE_UDPATE message.
-It is the duration in milliseconds the relay <span class="bcp14">SHOULD</span> continue to attempt
-forwarding Objects after they have been received.  The start time for the
-timeout is based on when the beginning of the Object is received, and does
-not depend upon the forwarding preference. There is no explicit signal that
-an Object was not sent because the delivery timeout was exceeded.<a href="#section-8.2.1.2-1" class="pilcrow">¶</a></p>
+TRACK_STATUS, TRACK_STATUS_OK, PUBLISH, PUBLISH_OK, SUBSCRIBE, SUBSCRIBE_OK, or
+SUBSCRIBE_UDPATE message.  It is the duration in milliseconds the relay <span class="bcp14">SHOULD</span>
+continue to attempt forwarding Objects after they have been received.  The start
+time for the timeout is based on when the beginning of the Object is received,
+and does not depend upon the forwarding preference. There is no explicit signal
+that an Object was not sent because the delivery timeout was exceeded.<a href="#section-8.2.1.2-1" class="pilcrow">¶</a></p>
 <p id="section-8.2.1.2-2">If both the subscriber and publisher specify the parameter, they use the min of
 the two values for the subscription.  The publisher <span class="bcp14">SHOULD</span> always specify the
 value received from an upstream subscription when there is one, and nothing
@@ -3567,16 +3569,15 @@ congestion control, and any other relevant information.<a href="#section-8.2.1.2
             <h5 id="name-max-cache-duration-paramete">
 <a href="#section-8.2.1.3" class="section-number selfRef">8.2.1.3. </a><a href="#name-max-cache-duration-paramete" class="section-name selfRef">MAX CACHE DURATION Parameter</a>
             </h5>
-<p id="section-8.2.1.3-1">The MAX_CACHE_DURATION parameter (Parameter Type 0x04) <span class="bcp14">MAY</span> appear in a
-SUBSCRIBE_OK, FETCH_OK or TRACK_STATUS message.  It is an integer expressing
-the number of milliseconds an object can be served from a cache. If present,
-the relay <span class="bcp14">MUST NOT</span> start forwarding any individual Object received through
-this subscription or fetch after the specified number of milliseconds has
-elapsed since the beginning of the Object was received.  This means Objects
-earlier in a multi-object stream will expire earlier than Objects later in the
-stream. Once Objects have expired from cache, their state becomes unknown, and
-a relay that handles a downstream request that includes those Objects
-re-requests them.<a href="#section-8.2.1.3-1" class="pilcrow">¶</a></p>
+<p id="section-8.2.1.3-1">The MAX_CACHE_DURATION parameter (Parameter Type 0x04) <span class="bcp14">MAY</span> appear in a PUBLISH,
+SUBSCRIBE_OK, FETCH_OK or TRACK_STATUS_OK message.  It is an integer expressing
+the number of milliseconds an object can be served from a cache. If present, the
+relay <span class="bcp14">MUST NOT</span> start forwarding any individual Object received through this
+subscription or fetch after the specified number of milliseconds has elapsed
+since the beginning of the Object was received.  This means Objects earlier in a
+multi-object stream will expire earlier than Objects later in the stream. Once
+Objects have expired from cache, their state becomes unknown, and a relay that
+handles a downstream request that includes those Objects re-requests them.<a href="#section-8.2.1.3-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -3936,7 +3937,7 @@ SUBSCRIBE Message {
   [Start Location (Location)],
   [End Group (i)],
   Number of Parameters (i),
-  Subscribe Parameters (..) ...
+  Parameters (..) ...
 }
 </pre>
 </div>
@@ -3985,7 +3986,7 @@ the Start and End Group fields will be present.<a href="#section-8.7-16.7.1" cla
 filter type.<a href="#section-8.7-16.9.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.7-16.10">
-            <p id="section-8.7-16.10.1">Subscribe Parameters: The parameters are defined in <a href="#version-specific-params" class="auto internal xref">Section 8.2.1</a>.<a href="#section-8.7-16.10.1" class="pilcrow">¶</a></p>
+            <p id="section-8.7-16.10.1">Parameters: The parameters are defined in <a href="#version-specific-params" class="auto internal xref">Section 8.2.1</a>.<a href="#section-8.7-16.10.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-8.7-17">On successful subscription, the publisher <span class="bcp14">MUST</span> reply with a SUBSCRIBE_OK,
@@ -4017,7 +4018,7 @@ SUBSCRIBE_OK Message {
   Content Exists (8),
   [Largest Location (Location)],
   Number of Parameters (i),
-  Subscribe Parameters (..) ...
+  Parameters (..) ...
 }
 </pre>
 </div>
@@ -4059,7 +4060,7 @@ session with a Protocol Violation (<a href="#session-termination" class="auto in
 field is only present if Content Exists has a value of 1.<a href="#section-8.8-3.6.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.8-3.7">
-            <p id="section-8.8-3.7.1">Subscribe Parameters: The parameters are defined in <a href="#version-specific-params" class="auto internal xref">Section 8.2.1</a>.<a href="#section-8.8-3.7.1" class="pilcrow">¶</a></p>
+            <p id="section-8.8-3.7.1">Parameters: The parameters are defined in <a href="#version-specific-params" class="auto internal xref">Section 8.2.1</a>.<a href="#section-8.8-3.7.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
@@ -4219,7 +4220,7 @@ SUBSCRIBE_UPDATE Message {
   Subscriber Priority (8),
   Forward (8),
   Number of Parameters (i),
-  Subscribe Parameters (..) ...
+  Parameters (..) ...
 }
 </pre>
 </div>
@@ -4251,7 +4252,7 @@ Any other value is a protocol error and <span class="bcp14">MUST</span> terminat
 session with a Protocol Violation (<a href="#session-termination" class="auto internal xref">Section 3.4</a>).<a href="#section-8.10-7.5.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.10-7.6">
-            <p id="section-8.10-7.6.1">Subscribe Parameters: The parameters are defined in <a href="#version-specific-params" class="auto internal xref">Section 8.2.1</a>.<a href="#section-8.10-7.6.1" class="pilcrow">¶</a></p>
+            <p id="section-8.10-7.6.1">Parameters: The parameters are defined in <a href="#version-specific-params" class="auto internal xref">Section 8.2.1</a>.<a href="#section-8.10-7.6.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
@@ -4465,7 +4466,7 @@ PUBLISH Message {
   Track Name (..),
   Track Alias (i),
   Group Order (8),
-  ContentExists (8),
+  Content Exists (8),
   [Largest Location (Location),]
   Forward (8),
   Number of Parameters (i),
@@ -4500,7 +4501,7 @@ Ascending (0x1) or Descending (0x2) order by group. See <a href="#priorities" cl
 Values of 0x0 and those larger than 0x2 are a protocol error.<a href="#section-8.13-3.5.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.13-3.6">
-            <p id="section-8.13-3.6.1">ContentExists: 1 if an object has been published on this track, 0 if not.
+            <p id="section-8.13-3.6.1">Content Exists: 1 if an object has been published on this track, 0 if not.
 If 0, then the Largest Group ID and Largest Object ID fields will not be
 present. Any other value is a protocol error and <span class="bcp14">MUST</span> terminate the
 session with a Protocol Violation (<a href="#session-termination" class="auto internal xref">Section 3.4</a>).<a href="#section-8.13-3.6.1" class="pilcrow">¶</a></p>
@@ -4874,7 +4875,7 @@ FETCH_OK Message {
   End Of Track (8),
   End Location (Location),
   Number of Parameters (i),
-  Subscribe Parameters (..) ...
+  Parameters (..) ...
 }
 </pre>
 </div>
@@ -4923,7 +4924,7 @@ If End is smaller than the Start Location in the corresponding FETCH the
 receiver <span class="bcp14">MUST</span> close the session with <code>Protocol Violation</code><a href="#section-8.17-3.4.4" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.17-3.5">
-            <p id="section-8.17-3.5.1">Subscribe Parameters: The parameters are defined in <a href="#version-specific-params" class="auto internal xref">Section 8.2.1</a>.<a href="#section-8.17-3.5.1" class="pilcrow">¶</a></p>
+            <p id="section-8.17-3.5.1">Parameters: The parameters are defined in <a href="#version-specific-params" class="auto internal xref">Section 8.2.1</a>.<a href="#section-8.17-3.5.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
@@ -5659,7 +5660,7 @@ the type of the stream in question.<a href="#section-9-2" class="pilcrow">¶</a>
         </thead>
         <tbody>
           <tr>
-            <td class="text-right" rowspan="1" colspan="1">0x08-0x0D</td>
+            <td class="text-right" rowspan="1" colspan="1">0x10-0x1D</td>
             <td class="text-left" rowspan="1" colspan="1">SUBGROUP_HEADER  (<a href="#subgroup-header" class="auto internal xref">Section 9.4.2</a>)</td>
           </tr>
           <tr>
@@ -6075,7 +6076,7 @@ flow control, while the sender waits for flow control to send the message.<a hre
             <div class="alignLeft art-text artwork" id="section-9.4.2-3.1">
 <pre>
 SUBGROUP_HEADER {
-  Type (i) = 0x8..0xD,
+  Type (i) = 0x10..0x1D,
   Track Alias (i),
   Group ID (i),
   [Subgroup ID (i),]
@@ -6429,7 +6430,7 @@ FETCH_HEADER {
 Stream = 2
 
 SUBGROUP_HEADER {
-  Type = 0
+  Type = 0x14
   Track Alias = 2
   Group ID = 0
   Subgroup ID = 0
@@ -6454,9 +6455,10 @@ Extension Headers.<a href="#section-9.5-3" class="pilcrow">¶</a></p>
 Stream = 2
 
 SUBGROUP_HEADER {
-  Type = 1
+  Type = 0x15
   Track Alias = 2
   Group ID = 0
+  Subgroup ID = 0
   Publisher Priority = 0
 }
 {
@@ -6567,7 +6569,7 @@ an expected time.  Each implementation is expected to set its own limits.<a href
           <p id="section-12-2.2.1">Setup parameters<a href="#section-12-2.2.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="section-12-2.3">
-          <p id="section-12-2.3.1">Subscribe parameters - List which params can be repeated in the table.<a href="#section-12-2.3.1" class="pilcrow">¶</a></p>
+          <p id="section-12-2.3.1">Non-setup Parameters - List which params can be repeated in the table.<a href="#section-12-2.3.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="section-12-2.4">
           <p id="section-12-2.4.1">Subscribe Error codes<a href="#section-12-2.4.1" class="pilcrow">¶</a></p>
