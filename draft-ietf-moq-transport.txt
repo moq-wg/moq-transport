@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 23 January 2026                                   I. Swett, Ed.
+Expires: 26 January 2026                                   I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                            22 July 2025
+                                                            25 July 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 23 January 2026.
+   This Internet-Draft will expire on 26 January 2026.
 
 Copyright Notice
 
@@ -2534,7 +2534,7 @@ Table of Contents
      Track Name (..),
      Track Alias (i),
      Group Order (8),
-     ContentExists (8),
+     Content Exists (8),
      [Largest Location (Location),]
      Forward (8),
      Number of Parameters (i),
@@ -2563,7 +2563,7 @@ Table of Contents
       Section 6.  Values of 0x0 and those larger than 0x2 are a protocol
       error.
 
-   *  ContentExists: 1 if an object has been published on this track, 0
+   *  Content Exists: 1 if an object has been published on this track, 0
       if not.  If 0, then the Largest Group ID and Largest Object ID
       fields will not be present.  Any other value is a protocol error
       and MUST terminate the session with a Protocol Violation
