@@ -519,46 +519,45 @@ to MoQT constraints. Such a Track is considered malformed.  Some example
 conditions that constitute a malformed track when detected by a receiver
 include:
 
-1. An Object is received on a Subgroup stream whose Object ID is not strictly
-   larger than the previous Object received on the same Subgroup.
-2. An Object is received in a FETCH response with the same Group as the
+1. An Object is received in a FETCH response with the same Group as the
    previous Object, but whose Object ID is not strictly larger than the previous
    object.
-3. An Object is received in an Ascending FETCH response whose Group ID is smaller
+2. An Object is received in an Ascending FETCH response whose Group ID is smaller
    than the previous Object in the response.
-4. An Object is received in a Descending FETCH response whose Group ID is larger
+3. An Object is received in a Descending FETCH response whose Group ID is larger
    than the previous Object in the resopnse.
-5. A Subgroup or FETCH response is terminated with a FIN in the middle of an
+4. A Subgroup or FETCH response is terminated with a FIN in the middle of an
    Object
-6. An Object is received whose Object ID is larger than the final Object in the
+5. An Object is received whose Object ID is larger than the final Object in the
    Subgroup.  The final Object in a Subgroup is the last Object received on a
    Subgroup stream before a FIN.
-7. A Subgroup is received with two or more different final Objects.
-8. An Object is received in a Group whose Object ID is larger than the final
+6. A Subgroup is received with two or more different final Objects.
+7. An Object is received in a Group whose Object ID is larger than the final
    Object in the Group.  The final Object in a Group is the Object with Status
    END_OF_GROUP or the last Object sent in a FETCH that requested the entire
    Group.
-9. An Object is received on a Track whose Group and Object ID are larger than the
+8. An Object is received on a Track whose Group and Object ID are larger than the
    final Object in the Track.  The final Object in a Track is the Object with
    Status END_OF_TRACK or the last Object sent in a FETCH whose response indicated
    End of Track.
-10. The same Object is received more than once with different Payload or
+9. The same Object is received more than once with different Payload or
     other immutable properties.
-11. An Object is received with a different Forwarding Preference than previously
+10. An Object is received with a different Forwarding Preference than previously
     observed from the same Track.
 
 The above list of conditions is not considered exhaustive.
 
-When a subscriber detects a Malformed Track, it MUST UNSUBSCRIBE from the
-Track and SHOULD deliver an error to the application.  If a relay detects a
-Malformed Track, it MUST immediately terminate downstream subscriptions with
-SUBSCRIBE_DONE with Status Code `Malformed Track`.
+When a subscriber detects a Malformed Track, it MUST UNSUBSCRIBE any
+subscription and FETCH_CANCEL any fetch for that Track from that publisher, and
+SHOULD deliver an error to the application.  If a relay detects a Malformed
+Track, it MUST immediately terminate downstream subscriptions with
+SUBSCRIBE_DONE and reset any fetch streams with Status Code `Malformed Track`.
 
 
 ### Scope {#track-scope}
 
 An MOQT scope is a set of servers (as identified by their connection
-URIs) for which the tuple of Track Name and Track Namespace are
+URIs) for which the tuple of Track Namespace and Track Name are
 guaranteed to be unique and identify a specific track. It is up to
 the application using MOQT to define how broad or narrow the scope is.
 An application that deals with connections between devices
@@ -571,9 +570,9 @@ MOQT scope, they can be used as a cache key for the track.
 If, at a given moment in time, two tracks within the same scope contain
 different data, they MUST have different names and/or namespaces.
 MOQT provides subscribers with the ability to alter the specific manner in
-which tracks are delivered via Subscribe Parameters, but the actual content of
-the tracks does not depend on those parameters; this is in contrast to
-protocols like HTTP, where request headers can alter the server response.
+which tracks are delivered via Parameters, but the actual content of the tracks
+does not depend on those parameters; this is in contrast to protocols like HTTP,
+where request headers can alter the server response.
 
 # Sessions {#session}
 
@@ -623,11 +622,12 @@ application.
 
 The client can establish a connection to a MoQ server identified by a
 given URI by setting up a QUIC connection to the host and port
-identified by the `authority` section of the URI.  The `path-abempty`
-and `query` portions of the URI are communicated to the server using the
-PATH parameter ({{path}}) which is sent in the CLIENT_SETUP message at the
-start of the session.  The ALPN value {{!RFC7301}} used by the protocol
-is `moq-00`.
+identified by the `authority` section of the URI. The 'authority' is also
+transmitted to the server in the AUTHORITY parameter, ({{authority}}) which is
+sent in the CLIENT_SETUP message at the start of the session.  The
+`path-abempty` and `query` portions of the URI are similarly communicated to the
+server using the PATH parameter ({{path}}).  The ALPN value {{!RFC7301}} used by
+the protocol is `moq-00`.
 
 ### Connection URL
 
@@ -669,8 +669,8 @@ messages defined in {{message}}.
 
 This draft only specifies a single use of bidirectional streams. Objects are
 sent on unidirectional streams.  Because there are no other uses of
-bidirectional streams, a peer MAY currently close the session as a
-'Protocol Violation' if it receives a second bidirectional stream.
+bidirectional streams, a peer MAY close the session as a 'Protocol Violation' if
+it receives a second bidirectional stream.
 
 The control stream MUST NOT be closed at the underlying transport layer while the
 session is active.  Doing so results in the session being closed as a
@@ -727,6 +727,10 @@ and SHOULD use a relevant code, as defined below:
 | 0x17 | Unknown Auth Token Alias  |
 |------|---------------------------|
 | 0x18 | Expired Auth Token        |
+|------|---------------------------|
+| 0x19 | Invalid Authority         |
+|------|---------------------------|
+| 0x1A | Malformed Authority       |
 |------|---------------------------|
 
 * No Error: The session is being terminated without an error.
@@ -785,6 +789,11 @@ and SHOULD use a relevant code, as defined below:
   (see {{authorization-token}}).
 
 * Expired Auth Token - Authorization token has expired {{authorization-token}}).
+
+* Invalid Authority - The specified AUTHORITY does not correspond to this server
+  or cannot be used in this context.
+
+* Malformed Authority - The AUTHORITY value is syntactically invalid.
 
 An endpoint MAY choose to treat a subscription or request specific error as a
 session error under certain circumstances, closing the entire session in
@@ -1015,12 +1024,14 @@ congestion.
 MOQT maintains priorities between different _schedulable objects_.
 A schedulable object in MOQT is either:
 
-1. An object in response to a SUBSCRIBE that belongs to a subgroup where
-   that object is the next object in that subgroup.
-2. An object in response to a SUBSCRIBE that belongs to a track with
+1. The first or next Object in a Subgroup that is in response to a subscription.
+2. An Object in response to a subscription that belongs to a Track with
    delivery preference Datagram.
-3. An object in response to a FETCH where that object is the next
-   object in the response.
+3. An Object in response to a FETCH where that Object is the next
+   Object in the response.
+
+An Object is not schedulable if it is known that no part of it can be written
+due to underlying transport flow control limits.
 
 A single subgroup or datagram has a single publisher priority. Within a
 response to SUBSCRIBE, it can be useful to conceptualize this process as
@@ -1362,11 +1373,11 @@ The following Message Types are defined:
 |-------|-----------------------------------------------------|
 | 0xB   | SUBSCRIBE_DONE ({{message-subscribe-done}})         |
 |-------|-----------------------------------------------------|
-| 0xD   | PUBLISH  ({{message-publish}})                      |
+| 0x1D  | PUBLISH  ({{message-publish}})                      |
 |-------|-----------------------------------------------------|
-| 0xE   | PUBLISH_OK ({{message-publish-ok}})                 |
+| 0x1E  | PUBLISH_OK ({{message-publish-ok}})                 |
 |-------|-----------------------------------------------------|
-| 0xF   | PUBLISH_ERROR ({{message-publish-error}})           |
+| 0x1F  | PUBLISH_ERROR ({{message-publish-error}})           |
 |-------|-----------------------------------------------------|
 | 0x16  | FETCH ({{message-fetch}})                           |
 |-------|-----------------------------------------------------|
@@ -1376,9 +1387,11 @@ The following Message Types are defined:
 |-------|-----------------------------------------------------|
 | 0x17  | FETCH_CANCEL ({{message-fetch-cancel}})             |
 |-------|-----------------------------------------------------|
-| 0xD   | TRACK_STATUS_REQUEST ({{message-track-status-req}}) |
+| 0xD   | TRACK_STATUS ({{message-track-status}})             |
 |-------|-----------------------------------------------------|
-| 0xE   | TRACK_STATUS ({{message-track-status}})             |
+| 0xE   | TRACK_STATUS_OK ({{message-track-status-ok}}        |
+|-------|-----------------------------------------------------|
+| 0xF   | TRACK_STATUS_ERROR ({{message-track-status-error}}) |
 |-------|-----------------------------------------------------|
 | 0x6   | PUBLISH_NAMESPACE  ({{message-pub-ns}})             |
 |-------|-----------------------------------------------------|
@@ -1455,9 +1468,10 @@ these parameters to appear in Setup messages.
 #### AUTHORIZATION TOKEN {#authorization-token}
 
 The AUTHORIZATION TOKEN parameter (Parameter Type 0x03) MAY appear in a
-CLIENT_SETUP, SERVER_SETUP, SUBSCRIBE, SUBSCRIBE_NAMESPACE, PUBLISH_NAMESPACE,
-TRACK_STATUS_REQUEST or FETCH message. This parameter conveys information to
-authorize the sender to perform the operation carrying the parameter.
+CLIENT_SETUP, SERVER_SETUP, PUBLISH, SUBSCRIBE, SUBSCRIBE_UPDATE,
+SUBSCRIBE_NAMESPACE, PUBLISH_NAMESPACE, TRACK_STATUS or FETCH message. This
+parameter conveys information to authorize the sender to perform the operation
+carrying the parameter.
 
 The AUTHORIZATION TOKEN parameter MAY be repeated within a message.
 
@@ -1564,12 +1578,12 @@ Overflow` error.
 #### DELIVERY TIMEOUT Parameter {#delivery-timeout}
 
 The DELIVERY TIMEOUT parameter (Parameter Type 0x02) MAY appear in a
-TRACK_STATUS, SUBSCRIBE, SUBSCRIBE_OK, or SUBSCRIBE_UDPATE message.
-It is the duration in milliseconds the relay SHOULD continue to attempt
-forwarding Objects after they have been received.  The start time for the
-timeout is based on when the beginning of the Object is received, and does
-not depend upon the forwarding preference. There is no explicit signal that
-an Object was not sent because the delivery timeout was exceeded.
+TRACK_STATUS, TRACK_STATUS_OK, PUBLISH, PUBLISH_OK, SUBSCRIBE, SUBSCRIBE_OK, or
+SUBSCRIBE_UDPATE message.  It is the duration in milliseconds the relay SHOULD
+continue to attempt forwarding Objects after they have been received.  The start
+time for the timeout is based on when the beginning of the Object is received,
+and does not depend upon the forwarding preference. There is no explicit signal
+that an Object was not sent because the delivery timeout was exceeded.
 
 If both the subscriber and publisher specify the parameter, they use the min of
 the two values for the subscription.  The publisher SHOULD always specify the
@@ -1600,16 +1614,15 @@ congestion control, and any other relevant information.
 
 #### MAX CACHE DURATION Parameter {#max-cache-duration}
 
-The MAX_CACHE_DURATION parameter (Parameter Type 0x04) MAY appear in a
-SUBSCRIBE_OK, FETCH_OK or TRACK_STATUS message.  It is an integer expressing
-the number of milliseconds an object can be served from a cache. If present,
-the relay MUST NOT start forwarding any individual Object received through
-this subscription or fetch after the specified number of milliseconds has
-elapsed since the beginning of the Object was received.  This means Objects
-earlier in a multi-object stream will expire earlier than Objects later in the
-stream. Once Objects have expired from cache, their state becomes unknown, and
-a relay that handles a downstream request that includes those Objects
-re-requests them.
+The MAX_CACHE_DURATION parameter (Parameter Type 0x04) MAY appear in a PUBLISH,
+SUBSCRIBE_OK, FETCH_OK or TRACK_STATUS_OK message.  It is an integer expressing
+the number of milliseconds an object can be served from a cache. If present, the
+relay MUST NOT start forwarding any individual Object received through this
+subscription or fetch after the specified number of milliseconds has elapsed
+since the beginning of the Object was received.  This means Objects earlier in a
+multi-object stream will expire earlier than Objects later in the stream. Once
+Objects have expired from cache, their state becomes unknown, and a relay that
+handles a downstream request that includes those Objects re-requests them.
 
 ## CLIENT_SETUP and SERVER_SETUP {#message-setup}
 
@@ -1668,6 +1681,22 @@ number to 0xff000000. For example, draft-ietf-moq-transport-13 would be
 identified as 0xff00000D.
 
 ### Setup Parameters {#setup-params}
+
+#### AUTHORITY {#authority}
+
+The AUTHORITY parameter (Parameter Type 0x05) allows the client to specify the
+authority component of the MoQ URI when using native QUIC ({{QUIC}}).  It MUST
+NOT be used by the server, or when WebTransport is used.  When an AUTHORITY
+parameter is received from a server, or when an AUTHORITY parameter is received
+while WebTransport is used, or when an AUTHORITY parameter is received by a
+server but the server does not support the specified authority, the session MUST
+be closed with Invalid Authority.
+
+The AUTHORITY parameter follows the URI formatting rules {{!RFC3986}}.
+When connecting to a server using a URI with the "moqt" scheme, the
+client MUST set the AUTHORITY parameter to the `authority` portion of the
+URI. If an AUTHORITY parameter does not conform to
+these rules, the session MUST be closed with Malformed Authority.
 
 #### PATH {#path}
 
@@ -1777,8 +1806,8 @@ MAX_REQUEST_ID Message {
 * Request ID: The new Maximum Request ID for the session plus 1. If a Request ID
   equal to or larger than this is received by the endpoint that sent the
   MAX_REQUEST_ID in any request message (PUBLISH_NAMESPACE, FETCH, SUBSCRIBE,
-  SUBSCRIBE_NAMESPACE or TRACK_STATUS_REQUEST), the endpoint MUST close the
-  session with an error of 'Too Many Requests'.
+  SUBSCRIBE_NAMESPACE or TRACK_STATUS), the endpoint MUST close the session with
+  an error of 'Too Many Requests'.
 
 MAX_REQUEST_ID is similar to MAX_STREAMS in ({{?RFC9000, Section 4.6}}), and
 similar considerations apply when deciding how often to send MAX_REQUEST_ID.
@@ -1895,7 +1924,7 @@ SUBSCRIBE Message {
   [Start Location (Location)],
   [End Group (i)],
   Number of Parameters (i),
-  Subscribe Parameters (..) ...
+  Parameters (..) ...
 }
 ~~~
 {: #moq-transport-subscribe-format title="MOQT SUBSCRIBE Message"}
@@ -1930,7 +1959,7 @@ the Start and End Group fields will be present.
 * End Group: The end Group ID, inclusive. Only present for the "AbsoluteRange"
 filter type.
 
-* Subscribe Parameters: The parameters are defined in {{version-specific-params}}.
+* Parameters: The parameters are defined in {{version-specific-params}}.
 
 On successful subscription, the publisher MUST reply with a SUBSCRIBE_OK,
 allowing the subscriber to determine the start group/object when not explicitly
@@ -1956,7 +1985,7 @@ SUBSCRIBE_OK Message {
   Content Exists (8),
   [Largest Location (Location)],
   Number of Parameters (i),
-  Subscribe Parameters (..) ...
+  Parameters (..) ...
 }
 ~~~
 {: #moq-transport-subscribe-ok format title="MOQT SUBSCRIBE_OK Message"}
@@ -1987,7 +2016,7 @@ session with a Protocol Violation ({{session-termination}}).
 * Largest Location: The location of the largest object available for this track. This
   field is only present if Content Exists has a value of 1.
 
-* Subscribe Parameters: The parameters are defined in {{version-specific-params}}.
+* Parameters: The parameters are defined in {{version-specific-params}}.
 
 ## SUBSCRIBE_ERROR {#message-subscribe-error}
 
@@ -2097,7 +2126,7 @@ SUBSCRIBE_UPDATE Message {
   Subscriber Priority (8),
   Forward (8),
   Number of Parameters (i),
-  Subscribe Parameters (..) ...
+  Parameters (..) ...
 }
 ~~~
 {: #moq-transport-subscribe-update-format title="MOQT SUBSCRIBE_UPDATE Message"}
@@ -2119,7 +2148,7 @@ to the subscriber. If 0, Objects are not forwarded to the subscriber.
 Any other value is a protocol error and MUST terminate the
 session with a Protocol Violation ({{session-termination}}).
 
-* Subscribe Parameters: The parameters are defined in {{version-specific-params}}.
+* Parameters: The parameters are defined in {{version-specific-params}}.
 
 ## UNSUBSCRIBE {#message-unsubscribe}
 
@@ -2263,7 +2292,7 @@ track. The receiver verifies the publisher is authorized to publish this track.
 
 ~~~
 PUBLISH Message {
-  Type (i) = 0xD,
+  Type (i) = 0x1D,
   Length (i),
   Request ID (i),
   Track Namespace (tuple),
@@ -2271,8 +2300,8 @@ PUBLISH Message {
   Track Name (..),
   Track Alias (i),
   Group Order (8),
-  ContentExists (8),
-  [Largest (Location),]
+  Content Exists (8),
+  [Largest Location (Location),]
   Forward (8),
   Number of Parameters (i),
   Parameters (..) ...,
@@ -2296,12 +2325,12 @@ PUBLISH Message {
   Ascending (0x1) or Descending (0x2) order by group. See {{priorities}}.
   Values of 0x0 and those larger than 0x2 are a protocol error.
 
-* ContentExists: 1 if an object has been published on this track, 0 if not.
+* Content Exists: 1 if an object has been published on this track, 0 if not.
   If 0, then the Largest Group ID and Largest Object ID fields will not be
   present. Any other value is a protocol error and MUST terminate the
   session with a Protocol Violation ({{session-termination}}).
 
-* Largest: The location of the largest object available for this track.
+* Largest Location: The location of the largest object available for this track.
 
 * Forward: The forward mode for this subscription.  Any value other than 0 or 1
   is a Protocol Violation.  0 indicates the publisher will not transmit any
@@ -2317,17 +2346,16 @@ The subscriber sends a PUBLISH_OK control message to acknowledge the successful
 authorization and acceptance of a PUBLISH message, and establish a subscription.
 
 ~~~
-PUBLISH_OK Message
-{
-  Type (i) = 0xE,
+PUBLISH_OK Message {
+  Type (i) = 0x1E,
   Length (i),
   Request ID (i),
   Forward (8),
   Subscriber Priority (8),
   Group Order (8),
   Filter Type (i),
-  [Start (Location)],
-  [EndGroup (i)],
+  [Start Location (Location)],
+  [End Group (i)],
   Number of Parameters (i),
   Parameters (..) ...,
 }
@@ -2347,7 +2375,7 @@ PUBLISH_OK Message
   Values of 0x0 and those larger than 0x2 are a protocol error. This
   overwrites the GroupOrder specified PUBLISH.
 
-* Filter Type, Start, End Group: See {{message-subscribe-req}}.
+* Filter Type, Start Location, End Group: See {{message-subscribe-req}}.
 
 * Parameters: Parameters associated with this message.
 
@@ -2357,9 +2385,8 @@ The subscriber sends a PUBLISH_ERROR control message to reject
 a subscription initiated by PUBLISH.
 
 ~~~
-PUBLISH_ERROR Message
-{
-  Type (i) = 0xF,
+PUBLISH_ERROR Message {
+  Type (i) = 0x1F,
   Length (i),
   Request ID (i),
   Error Code (i),
@@ -2590,7 +2617,7 @@ FETCH_OK Message {
   End Of Track (8),
   End Location (Location),
   Number of Parameters (i),
-  Subscribe Parameters (..) ...
+  Parameters (..) ...
 }
 ~~~
 {: #moq-transport-fetch-ok format title="MOQT FETCH_OK Message"}
@@ -2622,7 +2649,7 @@ Values of 0x0 and those larger than 0x2 are a protocol error.
   If End is smaller than the Start Location in the corresponding FETCH the
   receiver MUST close the session with `Protocol Violation`
 
-* Subscribe Parameters: The parameters are defined in {{version-specific-params}}.
+* Parameters: The parameters are defined in {{version-specific-params}}.
 
 ## FETCH_ERROR {#message-fetch-error}
 
@@ -2697,7 +2724,7 @@ as defined below:
 
 * No Objects - No Objects exist between the requested Start and End Locations.
 
-* Invalid Joining Subscribe ID - The joining Fetch referenced a Request ID that
+* Invalid Joining Request ID - The joining Fetch referenced a Request ID that
   did not belong to an active Subscription.
 
 * Unknown Status in Range - The requested range contains objects with unknown
@@ -2733,87 +2760,45 @@ FETCH_CANCEL Message {
 * Request ID: The Request ID of the FETCH ({{message-fetch}}) this message is
   cancelling.
 
-## TRACK_STATUS_REQUEST {#message-track-status-req}
-
-A potential subscriber sends a 'TRACK_STATUS_REQUEST' message on the control
-stream to obtain information about the current status of a given track.
-
-A TRACK_STATUS message MUST be sent in response to each TRACK_STATUS_REQUEST.
-
-~~~
-TRACK_STATUS_REQUEST Message {
-  Type (i) = 0xD,
-  Length (16),
-  Request ID (i),
-  Track Namespace (tuple),
-  Track Name Length (i),
-  Track Name (..),
-  Number of Parameters (i),
-  Parameters (..) ...,
-}
-~~~
-{: #moq-track-status-request-format title="MOQT TRACK_STATUS_REQUEST Message"}
-
-* Request ID: See {{request-id}}.
-
-* Track Namespace: Identifies the namespace of the track as defined in
-  ({{track-name}}).
-
-* Track Name: Identifies the track name as defined in ({{track-name}}).
-
-* Parameters: The parameters are defined in {{version-specific-params}}.
-
 ## TRACK_STATUS {#message-track-status}
 
-A publisher sends a 'TRACK_STATUS' message on the control stream in response
-to a TRACK_STATUS_REQUEST message.
+A potential subscriber sends a 'TRACK_STATUS' message on the control
+stream to obtain information about the current status of a given track.
 
-~~~
-TRACK_STATUS Message {
-  Type (i) = 0xE,
-  Length (16),
-  Request ID (i),
-  Status Code (i),
-  Largest Location (Location),
-  Number of Parameters (i),
-  Parameters (..) ...,
-}
-~~~
-{: #moq-track-status-format title="MOQT TRACK_STATUS Message"}
+The TRACK_STATUS message format is identical to the SUBSCRIBE message
+({{message-subscribe-req}}).
 
-* Request ID: The Request ID of the TRACK_STATUS_REQUEST this message is
-  replying to {{message-track-status}}.
+The receiver of a TRACK_STATUS message treats it identically as if it had
+received a SUBSCRIBE message, except it does not create downstream subscription
+state or send any Objects.  Relays without an active subscription MAY forward
+TRACK_STATUS to one or more publishers, or MAY initiate a subscription (subject
+to authorization) as described in {{publisher-interactions}} to determine the
+response. The publisher does not send SUBSCRIBE_DONE for this request, and the
+subscriber cannot send SUBSCRIBE_UPDATE or UNSUBSCRIBE.
 
-* Status Code: Provides additional information about the status of the
-track. It MUST hold one of the following values. Any other value is a malformed
-message.
+## TRACK_STATUS_OK {#message-track-status-ok}
 
-0x00: The track is in progress, and subsequent fields contain the highest group
-and object ID for that track.
+The publisher sends a TRACK_STATUS_OK control message in response
+to a successful TRACK_STATUS message.
 
-0x01: The track does not exist. Subsequent fields MUST be zero, and any other
-value is a malformed message.
+The TRACK_STATUS_OK message format is identical to the SUBSCRIBE_OK message
+({{message-subscribe-ok}}).
 
-0x02: The track has not yet begun. Subsequent fields MUST be zero. Any other
-value is a malformed message.
+The publisher populates the fields of TRACK_STATUS_OK exactly as it would have
+populated a SUBSCRIBE_OK, setting Track Alias to 0. It is not considered an error
+if Track Alias 0 is already in use by an active subscription.
 
-0x03: The track has finished, so there is no "live edge." Subsequent fields
-contain the highest Group and object ID known.
 
-0x04: The publisher is a relay that cannot obtain the current track status from
-upstream. Subsequent fields contain the largest group and object ID known.
+## TRACK_STATUS_ERROR {#message-track-status-error}
 
-Any other value in the Status Code field is a malformed message.
+The publisher sends a TRACK_STATUS_ERROR control message in response
+to a failed TRACK_STATUS message.
 
-TODO: Auth Failures
+The TRACK_STATUS_ERROR message format is identical to the SUBSCRIBE_ERROR
+message ({{message-subscribe-error}}).
 
-* Largest Location: represents the largest Object location observed by the
-Publisher for an active subscription. If the publisher is a relay without an
-active subscription, it SHOULD send a TRACK_STATUS_REQUEST upstream or MAY
-subscribe to the track, to obtain the same information. If neither is possible,
-it should return the best available information with status code 0x04.
-
-The `Parameters` are defined in {{version-specific-params}}.
+The publisher populates the fields of TRACK_STATUS_ERROR exactly as it would
+have populated a SUBSCRIBE_ERROR.
 
 ## PUBLISH_NAMESPACE {#message-pub-ns}
 
@@ -3137,7 +3122,7 @@ the type of the stream in question.
 |-------------|-------------------------------------------------|
 | ID          | Type                                            |
 |------------:|:------------------------------------------------|
-| 0x08-0x0D   | SUBGROUP_HEADER  ({{subgroup-header}})          |
+| 0x10-0x1D   | SUBGROUP_HEADER  ({{subgroup-header}})          |
 |-------------|-------------------------------------------------|
 | 0x05        | FETCH_HEADER  ({{fetch-header}})                |
 |-------------|-------------------------------------------------|
@@ -3148,9 +3133,9 @@ the datagram.
 |-----------|---------------------------------------------------|
 | ID        | Type                                              |
 |----------:|:--------------------------------------------------|
-| 0x00-0x03 | OBJECT_DATAGRAM ({{object-datagram}})             |
+| 0x00-0x07 | OBJECT_DATAGRAM ({{object-datagram}})             |
 |-----------|---------------------------------------------------|
-| 0x04-0x05 | OBJECT_DATAGRAM_STATUS ({{object-datagram}})      |
+| 0x20-0x21 | OBJECT_DATAGRAM_STATUS ({{object-datagram}})      |
 |-----------|---------------------------------------------------|
 
 An endpoint that receives an unknown stream or datagram type MUST close the
@@ -3311,10 +3296,10 @@ An `OBJECT_DATAGRAM` carries a single object in a datagram.
 
 ~~~
 OBJECT_DATAGRAM {
-  Type (i) = 0x0-0x4,
+  Type (i) = 0x0-0x7,
   Track Alias (i),
   Group ID (i),
-  Object ID (i),
+  [Object ID (i),]
   Publisher Priority (8),
   [Extension Headers Length (i),
   Extension headers (...)],
@@ -3323,20 +3308,28 @@ OBJECT_DATAGRAM {
 ~~~
 {: #object-datagram-format title="MOQT OBJECT_DATAGRAM"}
 
-There are 4 defined Type values for OBJECT_DATAGRAM:
+There are 8 defined Type values for OBJECT_DATAGRAM:
 
-|------|---------------|------------|
-| Type | End Of Group  | Extensions |
-|      |               | Present    |
-|------|---------------|------------|
-| 0x00 | No            | No         |
-|------|---------------|------------|
-| 0x01 | No            | Yes        |
-|------|---------------|------------|
-| 0x02 | Yes           | No         |
-|------|---------------|------------|
-| 0x03 | Yes           | Yes        |
-|------|---------------|------------|
+|------|---------------|------------|-----------|
+| Type | End Of Group  | Extensions | Object ID |
+|      |               | Present    | Present   |
+|------|---------------|------------|-----------|
+| 0x00 | No            | No         | Yes       |
+|------|---------------|------------|-----------|
+| 0x01 | No            | Yes        | Yes       |
+|------|---------------|------------|-----------|
+| 0x02 | Yes           | No         | Yes       |
+|------|---------------|------------|-----------|
+| 0x03 | Yes           | Yes        | Yes       |
+|------|---------------|------------|-----------|
+| 0x04 | No            | No         | No        |
+|------|---------------|------------|-----------|
+| 0x05 | No            | Yes        | No        |
+|------|---------------|------------|-----------|
+| 0x06 | Yes           | No         | No        |
+|------|---------------|------------|-----------|
+| 0x07 | Yes           | Yes        | No        |
+|------|---------------|------------|-----------|
 
 For Type values where End of Group is Yes, the Object is the last Object in the
 Group.
@@ -3346,6 +3339,10 @@ present and the Object has no extensions.  When Extensions Present is Yes,
 Extension Headers Length is present.  If an endpoint receives a datagram with
 Type 0x01 and Extension Headers Length is 0, it MUST close the session with
 Protocol Violation.
+
+For Type values where Object ID Present is No, the Object ID field is omitted
+and the Object ID is 0.  When Object ID Present is Yes, the Object ID field is
+present and encodes the Object ID.
 
 There is no explicit length field.  The entirety of the transport datagram
 following Publisher Priority contains the Object Payload.
@@ -3369,11 +3366,20 @@ OBJECT_DATAGRAM_STATUS {
 ~~~
 {: #object-datagram-status-format title="MOQT OBJECT_DATAGRAM_STATUS"}
 
-The Type field takes the form 0b0000001X (or the set of values from 0x02 to
-0x03). The LSB of the type determines if the Extensions Headers Length and
-Extension headers are present. If an endpoint receives a datagram with Type
-0x03 and Extension Headers Length is 0, it MUST close the session with Protocol
-Violation.
+There are 2 defined Type values for OBJECT_DATAGRAM_STATUS:
+
+|------|------------|
+| Type | Extensions |
+|      | Present    |
+|------|------------|
+| 0x20 | No         |
+|------|------------|
+| 0x21 | Yes        |
+|------|------------|
+
+The LSB of the type determines if the Extensions Headers Length and Extension
+headers are present. If an endpoint receives a datagram with Type 0x05 and
+Extension Headers Length is 0, it MUST close the session with Protocol Violation.
 
 ## Streams
 
@@ -3409,7 +3415,7 @@ flow control, while the sender waits for flow control to send the message.
 
 ~~~
 SUBGROUP_HEADER {
-  Type (i) = 0x8..0xD,
+  Type (i) = 0x10..0x1D,
   Track Alias (i),
   Group ID (i),
   [Subgroup ID (i),]
@@ -3474,9 +3480,14 @@ following fields.
 
 The Object Status field is only sent if the Object Payload Length is zero.
 
+The Object ID Delta + 1 is added to the previous Object ID in the Subgroup
+stream if there was one.  The Object ID is the Object ID Delta if it's the
+first Object in the Subgroup stream. For example, a Subgroup of sequential
+Object IDs starting at 0 will have 0 for all Object ID Delta values.
+
 ~~~
 {
-  Object ID (i),
+  Object ID Delta (i),
   [Extension Headers Length (i),
   Extension headers (...)],
   Object Payload Length (i),
@@ -3486,8 +3497,6 @@ The Object Status field is only sent if the Object Payload Length is zero.
 ~~~
 {: #object-subgroup-format title="MOQT Subgroup Object Fields"}
 
-A publisher MUST NOT send an Object on a stream if its Object ID is less than a
-previously sent Object ID within a given group in that stream.
 
 ### Closing Subgroup Streams
 
@@ -3653,7 +3662,7 @@ Sending a subgroup on one stream:
 Stream = 2
 
 SUBGROUP_HEADER {
-  Type = 0
+  Type = 0x14
   Track Alias = 2
   Group ID = 0
   Subgroup ID = 0
@@ -3678,13 +3687,14 @@ Extension Headers.
 Stream = 2
 
 SUBGROUP_HEADER {
-  Type = 1
+  Type = 0x15
   Track Alias = 2
   Group ID = 0
+  Subgroup ID = 0
   Publisher Priority = 0
 }
 {
-  Object ID = 0
+  Object ID Delta = 0 (Object ID is 0)
   Extension Headers Length = 33
     { Type = 4
       Value = 2186796243
@@ -3697,7 +3707,7 @@ SUBGROUP_HEADER {
   Payload = "abcd"
 }
 {
-  Object ID = 1
+  Object ID Delta = 0 (Object ID is 1)
   Extension Headers Length = 0
   Object Payload Length = 4
   Payload = "efgh"
@@ -3765,7 +3775,7 @@ TODO: fill out currently missing registries:
 
 * MOQT version numbers
 * Setup parameters
-* Subscribe parameters - List which params can be repeated in the table.
+* Non-setup Parameters - List which params can be repeated in the table.
 * Subscribe Error codes
 * Subscribe Namespace Error codes
 * Publish Error codes
@@ -3815,16 +3825,36 @@ RFC Editor's Note: Please remove this section prior to publication of a final ve
 
 Issue and pull request numbers are listed with a leading octothorp.
 
+## Since draft-ietf-moq-transport-12
+
+* TRACK_STATUS_REQUEST and TRACK_STATUS have changed to directly mirror
+  SUBSCRIBE/OK/ERROR (#1015)
+* SUBSCRIBE_ANNOUNCES was renamed back to SUBSCRIBE_NAMESPACE (#1049)
+
+## Since draft-ietf-moq-transport-11
+
+* Move Track Alias from SUBSCRIBE to SUBSCRIBE_OK (#977)
+* Expand cases FETCH_OK returns Invalid Range (#946) and clarify fields (#936)
+* Add an error code to FETCH_ERROR when an Object status is unknown (#825)
+* Rename Latest Object to Largest Object (#1024) and clarify what to
+  do when it's incomplete (#937)
+* Explain Malformed Tracks and what to do with them (#938)
+* Allow End of Group to be indicated in a normal Object (#1011)
+* Relays MUST have an upstream subscription to send SUBSCRIBE_OK (#1017)
+* Allow AUTHORIZATION TOKEN in CLIENT_SETUP, SERVER_SETUP and
+  other fixes (#1013)
+* Add PUBLISH for publisher initiated subscriptions (#995) and
+  fix the PUBLISH codepoints (#1048, #1051)
+
 ## Since draft-ietf-moq-transport-10
 
 * Added Common Structure definitions - Location, Key-Value-Pair and Reason
   Phrase
 * Limit lengths of all variable length fields, including Track Namespace and Name
 * Control Message length is now 16 bits instead of variable length
-* Subscribe ID became Request ID, and was added to most control messages.
-  Request ID is used to correlate OK/ERROR responses for PUBLISH_NAMESPACE,
-  SUBSCRIBE_NAMESPACE,and TRACK_STATUS.  Like Subscribe ID, Request IDs are
-  flow controlled.
+* Subscribe ID became Request ID, and was added to most control messages. Request ID
+  is used to correlate OK/ERROR responses for ANNOUNCE, SUBSCRIBE_NAMESPACE,
+  and TRACK_STATUS.  Like Subscribe ID, Request IDs are flow controlled.
 * Explain rules for caching in more detail
 * Changed the SETUP parameter format for even number parameters to match the
   Object Header Extension format
