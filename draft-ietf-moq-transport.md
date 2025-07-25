@@ -2292,7 +2292,7 @@ PUBLISH Message {
   Track Name (..),
   Track Alias (i),
   Group Order (8),
-  ContentExists (8),
+  Content Exists (8),
   [Largest Location (Location),]
   Forward (8),
   Number of Parameters (i),
@@ -2317,7 +2317,7 @@ PUBLISH Message {
   Ascending (0x1) or Descending (0x2) order by group. See {{priorities}}.
   Values of 0x0 and those larger than 0x2 are a protocol error.
 
-* ContentExists: 1 if an object has been published on this track, 0 if not.
+* Content Exists: 1 if an object has been published on this track, 0 if not.
   If 0, then the Largest Group ID and Largest Object ID fields will not be
   present. Any other value is a protocol error and MUST terminate the
   session with a Protocol Violation ({{session-termination}}).
