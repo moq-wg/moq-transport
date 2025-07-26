@@ -957,8 +957,8 @@ Table of Contents
    unsupported messages with the appropriate NOT_SUPPORTED error code or
    close the session, rather than ignoring them.
 
-   Relays MUST all MOQT messages defined in this document, as well as
-   processing rules described in Section 8.
+   Relays MUST implement all MOQT messages defined in this document, as
+   well as processing rules described in Section 8.
 
 5.  Publishing and Retrieving Tracks
 
