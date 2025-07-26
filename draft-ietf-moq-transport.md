@@ -3636,11 +3636,12 @@ Each object sent on a fetch stream after the FETCH_HEADER has the following form
 
 ~~~
 {
-  Group ID (i),
-  Subgroup ID (i),
-  Object ID (i),
-  Publisher Priority (8),
-  Extension Headers Length (i),
+  Serialization (8),
+  [Group ID (i),]
+  [Subgroup ID (i),]
+  [Object ID (i),]
+  [Publisher Priority (8),]
+  [Extension Headers Length (i),]
   [Extension headers (...)],
   Object Payload Length (i),
   [Object Status (i)],
@@ -3648,6 +3649,35 @@ Each object sent on a fetch stream after the FETCH_HEADER has the following form
 }
 ~~~
 {: #object-fetch-format title="MOQT Fetch Object Fields"}
+
+The Serialization field defines the serialization of the object. The
+following code points are defined:
+
+| Code | Group ID | Subgroup<br>ID | Object<br>ID | Publisher<br>Priority | Extension<br>Headers<br>Length |
+|------|----------|----------|-----------|-----------|----------------|
+| 0x0	 | Yes      | Yes      | Yes       | Yes       | Yes            |
+|------|----------|----------|-----------|-----------|----------------|
+| 0x1	 | Yes      | Yes      | Yes       | Yes       | 0              |
+|------|----------|----------|-----------|-----------|----------------|
+| 0x2	 | Yes      | 0        | 0         | Yes       | Yes            |
+|------|----------|----------|-----------|-----------|----------------|
+| 0x3	 | Yes      | 0        | 0         | Yes       | 0              |
+|------|----------|----------|-----------|-----------|----------------|
+| 0x4	 | Prior    | Prior    | Prior + 1 | Prior     | Yes            |
+|------|----------|----------|-----------|-----------|----------------|
+| 0x5	 | Prior    | Prior    | Prior + 1 | Prior     | 0              |
+|------|----------|----------|-----------|-----------|----------------|
+| 0x6	 | Prior    | Prior +1 | Prior + 1 | Yes       | Yes            |
+|------|----------|----------|-----------|-----------|----------------|
+| 0x7	 | Prior    | Prior +1 | Prior + 1 | Yes       | 0              |
+|------|----------|----------|-----------|-----------|----------------|
+
+'Yes' indicates that the field is serialized and holds a value.
+'Prior' indicates that the field is not serialized and that the attribute
+value is identical to that of the prior Object.
+'Prior + 1' indicates that the field is not serialized and that the attribute
+value is 1 more than that of the prior Object.
+'0' indicates that the field is not serialized and that is has a value of 0.
 
 The Object Status field is only sent if the Object Payload Length is zero.
 
