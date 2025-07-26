@@ -1167,6 +1167,12 @@ aggregate upstream subscriptions can subscribe using the Largest Object
 filter to avoid churn as downstream subscribers with disparate filters
 subscribe and unsubscribe from a track.
 
+A subscriber remains subscribed to a Track at a Relay until it unsubscribes or
+the upstream publisher terminates the subscription, and all subgroups are
+accounted for. Subscriber filters do not affect when the subscription ends
+unless the Relay knows definitively that no additional Objects can arrive that
+match the filter.
+
 ### Graceful Subscriber Relay Switchover
 
 This section describes behavior a subscriber MAY implement
