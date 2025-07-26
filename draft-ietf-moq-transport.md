@@ -3652,8 +3652,8 @@ TODO: register the URI scheme and the ALPN and grease the Extension types
 
 ### Session Termination Error Codes {#iana-session-termination}
 
-| Name                       | Code | Specification |
-|:---------------------------|:----:|:--------------|
+| Name                       | Code | Specification           |
+|:---------------------------|:----:|:------------------------|
 | NO_ERROR                   | 0x0  | {{session-termination}} |
 | INTERNAL_ERROR             | 0x1  | {{session-termination}} |
 | UNAUTHORIZED               | 0x2  | {{session-termination}} |
@@ -3678,8 +3678,8 @@ TODO: register the URI scheme and the ALPN and grease the Extension types
 
 ### SUBSCRIBE_ERROR Codes {#iana-subscribe-error}
 
-| Name                  | Code | Specification |
-|:----------------------|:----:|:--------------|
+| Name                  | Code | Specification               |
+|:----------------------|:----:|:----------------------------|
 | INTERNAL_ERROR        | 0x0  | {{message-subscribe-error}} |
 | UNAUTHORIZED          | 0x1  | {{message-subscribe-error}} |
 | TIMEOUT               | 0x2  | {{message-subscribe-error}} |
@@ -3691,8 +3691,8 @@ TODO: register the URI scheme and the ALPN and grease the Extension types
 
 ### SUBSCRIBE_DONE Codes {#iana-subscribe-done}
 
-| Name               | Code | Specification |
-|:-------------------|:----:|:--------------|
+| Name               | Code | Specification              |
+|:-------------------|:----:|:---------------------------|
 | INTERNAL_ERROR     | 0x0  | {{message-subscribe-done}} |
 | UNAUTHORIZED       | 0x1  | {{message-subscribe-done}} |
 | TRACK_ENDED        | 0x2  | {{message-subscribe-done}} |
@@ -3704,8 +3704,8 @@ TODO: register the URI scheme and the ALPN and grease the Extension types
 
 ### PUBLISH_ERROR Codes {#iana-publish-error}
 
-| Name           | Code | Specification |
-|:---------------|:----:|:--------------|
+| Name           | Code | Specification             |
+|:---------------|:----:|:--------------------------|
 | INTERNAL_ERROR | 0x0  | {{message-publish-error}} |
 | UNAUTHORIZED   | 0x1  | {{message-publish-error}} |
 | TIMEOUT        | 0x2  | {{message-publish-error}} |
@@ -3714,8 +3714,8 @@ TODO: register the URI scheme and the ALPN and grease the Extension types
 
 ### FETCH_ERROR Codes {#iana-fetch-error}
 
-| Name                       | Code | Specification |
-|:---------------------------|:----:|:--------------|
+| Name                       | Code | Specification           |
+|:---------------------------|:----:|:------------------------|
 | INTERNAL_ERROR             | 0x0  | {{message-fetch-error}} |
 | UNAUTHORIZED               | 0x1  | {{message-fetch-error}} |
 | TIMEOUT                    | 0x2  | {{message-fetch-error}} |
@@ -3731,8 +3731,8 @@ TODO: register the URI scheme and the ALPN and grease the Extension types
 
 ### ANNOUNCE_ERROR Codes {#iana-announce-error}
 
-| Name                  | Code | Specification |
-|:----------------------|:----:|:--------------|
+| Name                  | Code | Specification              |
+|:----------------------|:----:|:---------------------------|
 | INTERNAL_ERROR        | 0x0  | {{message-announce-error}} |
 | UNAUTHORIZED          | 0x1  | {{message-announce-error}} |
 | TIMEOUT               | 0x2  | {{message-announce-error}} |
@@ -3743,8 +3743,8 @@ TODO: register the URI scheme and the ALPN and grease the Extension types
 
 ### SUBSCRIBE_NAMESPACE_ERROR Codes {#iana-subscribe-namespace-error}
 
-| Name                     | Code | Specification |
-|:-------------------------|:----:|:--------------|
+| Name                     | Code | Specification            |
+|:-------------------------|:----:|:-------------------------|
 | INTERNAL_ERROR           | 0x0  | {{message-sub-ns-error}} |
 | UNAUTHORIZED             | 0x1  | {{message-sub-ns-error}} |
 | TIMEOUT                  | 0x2  | {{message-sub-ns-error}} |
@@ -3756,8 +3756,8 @@ TODO: register the URI scheme and the ALPN and grease the Extension types
 
 ### Data Stream Reset Error Codes {#iana-reset-stream}
 
-| Name             | Code | Specification |
-|:-----------------|:----:|:--------------|
+| Name             | Code | Specification                |
+|:-----------------|:----:|:-----------------------------|
 | INTERNAL_ERROR   | 0x0  | {{closing-subgroup-streams}} |
 | CANCELLED        | 0x1  | {{closing-subgroup-streams}} |
 | DELIVERY_TIMEOUT | 0x2  | {{closing-subgroup-streams}} |
