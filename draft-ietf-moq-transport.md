@@ -3742,15 +3742,15 @@ TODO: register the URI scheme and the ALPN and grease the Extension types
 
 ### ANNOUNCE_ERROR Codes {#iana-announce-error}
 
-| Name                  | Code | Specification              |
-|:----------------------|:----:|:---------------------------|
-| INTERNAL_ERROR        | 0x0  | {{message-announce-error}} |
-| UNAUTHORIZED          | 0x1  | {{message-announce-error}} |
-| TIMEOUT               | 0x2  | {{message-announce-error}} |
-| NOT_SUPPORTED         | 0x3  | {{message-announce-error}} |
-| UNINTERESTED          | 0x4  | {{message-announce-error}} |
-| MALFORMED_AUTH_TOKEN  | 0x10 | {{message-announce-error}} |
-| EXPIRED_AUTH_TOKEN    | 0x12 | {{message-announce-error}} |
+| Name                  | Code | Specification            |
+|:----------------------|:----:|:-------------------------|
+| INTERNAL_ERROR        | 0x0  | {{message-pub-ns-error}} |
+| UNAUTHORIZED          | 0x1  | {{message-pub-ns-error}} |
+| TIMEOUT               | 0x2  | {{message-pub-ns-error}} |
+| NOT_SUPPORTED         | 0x3  | {{message-pub-ns-error}} |
+| UNINTERESTED          | 0x4  | {{message-pub-ns-error}} |
+| MALFORMED_AUTH_TOKEN  | 0x10 | {{message-pub-ns-error}} |
+| EXPIRED_AUTH_TOKEN    | 0x12 | {{message-pub-ns-error}} |
 
 ### SUBSCRIBE_NAMESPACE_ERROR Codes {#iana-subscribe-namespace-error}
 
