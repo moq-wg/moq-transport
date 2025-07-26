@@ -1395,11 +1395,12 @@ ID correlates requests and responses, allows endpoints to update or terminate
 ongoing requests, and supports the endpoint's ability to limit the concurrency
 and frequency of requests.  There are independent Request IDs for each endpoint.
 The client's Request ID starts at 0 and are even and the server's Request ID
-starts at 1 and are odd.  The Request ID increments by 2 with PUBLISH_NAMESPACE,
-FETCH, SUBSCRIBE, SUBSCRIBE_NAMESPACE or TRACK_STATUS request.  If an endpoint
-receives a Request ID that is not valid for the peer, or a new request with a
-Request ID that is not expected, it MUST close the session with
-`INVALID_REQUEST_ID`.
+starts at 1 and are odd.  The Request ID increments by 2 with each FETCH,
+SUBSCRIBE, SUBSCRIBE_UPDATE, SUBSCRIBE_NAMESPACE, PUBLISH, PUBLISH_NAMESPACE or
+TRACK_STATUS request.  Other messages with a Request ID field reference the
+Request ID of another message for correlation. If an endpoint receives a Request
+ID that is not valid for the peer, or a new request with a Request ID that is
+not expected, it MUST close the session with `INVALID_REQUEST_ID`.
 
 ## Parameters {#params}
 
@@ -2079,6 +2080,7 @@ SUBSCRIBE_UPDATE Message {
   Type (i) = 0x2,
   Length (16),
   Request ID (i),
+  Subscription Request ID (i),
   Start Location (Location),
   End Group (i),
   Subscriber Priority (8),
@@ -2089,8 +2091,11 @@ SUBSCRIBE_UPDATE Message {
 ~~~
 {: #moq-transport-subscribe-update-format title="MOQT SUBSCRIBE_UPDATE Message"}
 
-* Request ID: The Request ID of the SUBSCRIBE ({{message-subscribe-req}}) this
-  message is updating.  This MUST match an existing Request ID.
+* Request ID: See {{request-id}}.
+
+* Subscription Request ID: The Request ID of the SUBSCRIBE
+  ({{message-subscribe-req}}) this message is updating.  This MUST match an
+  existing Request ID.
 
 * Start Location : The starting location.
 
