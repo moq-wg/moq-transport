@@ -1717,6 +1717,12 @@ parameter as Alias Type USE_VALUE.  A client MUST handle registration failures
 of this kind by purging any Token Aliases that failed to register based on the
 MAX_AUTH_TOKEN_CACHE_SIZE parameter in SERVER_SETUP (or the default value of 0).
 
+#### MOQT AGENT
+
+The MOQT_AGENT parameter (Parameter Type 0x05) is a UTF-8 encoded
+string describing the software agent of the sender.
+
+
 ## GOAWAY {#message-goaway}
 
 An endpoint sends a `GOAWAY` message to inform the peer it intends to close
