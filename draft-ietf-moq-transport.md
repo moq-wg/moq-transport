@@ -843,8 +843,8 @@ using only SUBSCRIBE related messages.  Limited endpoints SHOULD respond to any
 unsupported messages with the appropriate `NOT_SUPPORTED` error code or close
 the session, rather than ignoring them.
 
-Relays MUST all MOQT messages defined in this document, as well as processing
-rules described in {{relays-moq}}.
+Relays MUST implement all MOQT messages defined in this document, as well as
+processing rules described in {{relays-moq}}.
 
 # Publishing and Retrieving Tracks
 
