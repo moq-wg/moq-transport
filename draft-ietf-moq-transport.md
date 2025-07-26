@@ -575,7 +575,7 @@ does not depend on those parameters; this is in contrast to protocols like HTTP,
 where request headers can alter the server response.
 
 A publisher that loses state and intends to resume publishing on the same Track
-risks of colliding with previously published Objects and violating the above
+risks colliding with previously published Objects and violating the above
 requirements.  A publisher can handle this in application specific ways, for
 example:
 
