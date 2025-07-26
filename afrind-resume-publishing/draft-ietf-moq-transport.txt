@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 26 January 2026                                   I. Swett, Ed.
+Expires: 27 January 2026                                   I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                            25 July 2025
+                                                            26 July 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 26 January 2026.
+   This Internet-Draft will expire on 27 January 2026.
 
 Copyright Notice
 
@@ -680,7 +680,7 @@ Table of Contents
    server response.
 
    A publisher that loses state and intends to resume publishing on the
-   same Track risks of colliding with previously published Objects and
+   same Track risks colliding with previously published Objects and
    violating the above requirements.  A publisher can handle this in
    application specific ways, for example:
 
