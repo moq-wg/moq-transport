@@ -864,6 +864,11 @@ FETCH. A subscriber MUST send exactly one PUBLISH_OK or PUBLISH_ERROR in
 response to a PUBLISH. The peer SHOULD close the session with a protocol error
 if it receives more than one.
 
+Publishers SHOULD only send Objects belonging to Tracks of interest to the
+subscriber, as indicated by a SUBSCRIBE, FETCH or PUBLISH_OK message.
+Publishers with out-of-band knowledge of subscriber interest MAY begin sending
+Objects on PUBLISH initiated subscriptions before receiving PUBLISH_OK.
+
 A subscriber keeps subscription state until it sends UNSUBSCRIBE, or after
 receipt of a SUBSCRIBE_DONE or SUBSCRIBE_ERROR. Note that SUBSCRIBE_DONE does
 not usually indicate that state can immediately be destroyed, see
@@ -2283,6 +2288,9 @@ PUBLISH Message {
 
 * Parameters: The parameters are defined in {{version-specific-params}}.
 
+A subscriber receiving a PUBLISH for a Track it does not wish to receive SHOULD
+send PUBLISH_ERROR with error code `UNINTERESTED`, and STOP_SENDING any streams
+associated with that subscription.
 
 ## PUBLISH_OK {#message-publish-ok}
 
@@ -3029,12 +3037,6 @@ the datagram.
 An endpoint that receives an unknown stream or datagram type MUST close the
 session.
 
-The publisher only sends Objects after receiving a SUBSCRIBE or FETCH.  The
-publisher MUST NOT send Objects that are not requested.  If an endpoint receives
-an Object it never requested, it SHOULD terminate the session with a protocol
-violation. Objects can arrive after a subscription or fetch has been cancelled,
-so the session MUST NOT be teriminated in that case.
-
 Every Track has a single 'Object Forwarding Preference' and the Original
 Publisher MUST NOT mix different forwarding preferences within a single track
 (see {{malformed-tracks}}).
@@ -3045,6 +3047,11 @@ To optimize wire efficiency, Subgroups and Datagrams refer to a track by a
 numeric identifier, rather than the Full Track Name.  Track Alias is chosen by
 the publisher and included in SUBSCRIBE_OK ({{message-subscribe-ok}} or PUBLISH
 ({{message-publish}}).
+
+Objects can arrive after a subscription has been cancelled.  Subscribers SHOULD
+retain sufficient state to quickly discard these unwanted Objects, rather than
+treating them as belonging to an unknown Track Alias.
+
 
 ## Objects {#message-object}
 
