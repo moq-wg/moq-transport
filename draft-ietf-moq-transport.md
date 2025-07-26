@@ -332,10 +332,9 @@ Key-Value-Pair {
 * Value: A single varint encoded value when Type is even, otherwise a
   sequence of Length bytes.
 
-If a receiver understands a Type, and the following Value or
-Length/Value does not match the serialization defined by that Type,
-the receiver MUST terminate the session with error code 'Key-Value
-Formatting Error'.
+If a receiver understands a Type, and the following Value or Length/Value does
+not match the serialization defined by that Type, the receiver MUST terminate
+the session with error code `KEY_VALUE_FORMATTING_ERROR`.
 
 ### Reason Phrase Structure {#reason-phrase}
 
@@ -352,7 +351,7 @@ Reason Phrase {
 * Reason Phrase Length: A variable-length integer specifying the length of the
   reason phrase in bytes. The reason phrase length has a maximum length of
   1024 bytes. If an endpoint receives a length exceeding the maximum, it MUST
-  close the session with a Protocol Violation
+  close the session with a `PROTOCOL_VIOLATION`
 
 * Reason Phrase Value: Additional diagnostic information about the error condition.
   The reason phrase value is encoded as UTF-8 string and does not carry information,
@@ -502,7 +501,7 @@ namespace.
 The maximum total length of a Full Track Name is 4,096 bytes, computed as the
 sum of the lengths of each Track Namespace tuple field and the Track Name length
 field.  If an endpoint receives a Full Track Name exceeding this length, it MUST
-close the session with a Protocol Violation.
+close the session with a `PROTOCOL_VIOLATION`.
 
 In this specification, both the Track Namespace tuple fields and the Track Name
 are not constrained to a specific encoding. They carry a sequence of bytes and
@@ -551,7 +550,7 @@ When a subscriber detects a Malformed Track, it MUST UNSUBSCRIBE any
 subscription and FETCH_CANCEL any fetch for that Track from that publisher, and
 SHOULD deliver an error to the application.  If a relay detects a Malformed
 Track, it MUST immediately terminate downstream subscriptions with
-SUBSCRIBE_DONE and reset any fetch streams with Status Code `Malformed Track`.
+SUBSCRIBE_DONE and reset any fetch streams with Status Code `MALFORMED_TRACK`.
 
 
 ### Scope {#track-scope}
@@ -669,12 +668,12 @@ messages defined in {{message}}.
 
 This draft only specifies a single use of bidirectional streams. Objects are
 sent on unidirectional streams.  Because there are no other uses of
-bidirectional streams, a peer MAY close the session as a 'Protocol Violation' if
+bidirectional streams, a peer MAY close the session as a `PROTOCOL_VIOLATION` if
 it receives a second bidirectional stream.
 
 The control stream MUST NOT be closed at the underlying transport layer while the
 session is active.  Doing so results in the session being closed as a
-'Protocol Violation'.
+`PROTOCOL_VIOLATION`.
 
 ## Termination  {#session-termination}
 
@@ -687,113 +686,85 @@ Section 5}}).
 When terminating the Session, the application MAY use any error message
 and SHOULD use a relevant code, as defined below:
 
-|------|---------------------------|
-| Code | Reason                    |
-|-----:|:--------------------------|
-| 0x0  | No Error                  |
-|------|---------------------------|
-| 0x1  | Internal Error            |
-|------|---------------------------|
-| 0x2  | Unauthorized              |
-|------|---------------------------|
-| 0x3  | Protocol Violation        |
-|------|---------------------------|
-| 0x4  | Invalid Request ID        |
-|------|---------------------------|
-| 0x5  | Duplicate Track Alias     |
-|------|---------------------------|
-| 0x6  | Key-Value Formatting Error|
-|------|---------------------------|
-| 0x7  | Too Many Requests         |
-|------|---------------------------|
-| 0x8  | Invalid Path              |
-|------|---------------------------|
-| 0x9  | Malformed Path            |
-|------|---------------------------|
-| 0x10 | GOAWAY Timeout            |
-|------|---------------------------|
-| 0x11 | Control Message Timeout   |
-|------|---------------------------|
-| 0x12 | Data Stream Timeout       |
-|------|---------------------------|
-| 0x13 | Auth Token Cache Overflow |
-|------|---------------------------|
-| 0x14 | Duplicate Auth Token Alias|
-|------|---------------------------|
-| 0x15 | Version Negotiation Failed|
-|------|---------------------------|
-| 0x16 | Malformed Auth Token      |
-|------|---------------------------|
-| 0x17 | Unknown Auth Token Alias  |
-|------|---------------------------|
-| 0x18 | Expired Auth Token        |
-|------|---------------------------|
-| 0x19 | Invalid Authority         |
-|------|---------------------------|
-| 0x1A | Malformed Authority       |
-|------|---------------------------|
+NO_ERROR (0x0):
+: The session is being terminated without an error.
 
-* No Error: The session is being terminated without an error.
+INTERNAL_ERROR (0x1):
+: An implementation specific error occurred.
 
-* Internal Error: An implementation specific error occurred.
+UNAUTHORIZED (0x2):
+: The client is not authorized to establish a session.
 
-* Unauthorized: The client is not authorized to establish a session.
+PROTOCOL_VIOLATION (0x3):
+: The remote endpoint performed an action that was disallowed by the
+  specification.
 
-* Protocol Violation: The remote endpoint performed an action that was
-  disallowed by the specification.
+INVALID_REQUEST_ID (0x4):
+: The session was closed because the endpoint used a Request ID that was
+  smaller than or equal to a previously received request ID, or the least-
+  significant bit of the request ID was incorrect for the endpoint.
 
-* Invalid Request ID: The session was closed because the endpoint used a Request
-  ID that was smaller than or equal to a previously received request ID, or the
-  least-significant bit of the request ID was incorrect for the endpoint.
+DUPLICATE_TRACK_ALIAS (0x5):
+: The endpoint attempted to use a Track Alias that was already in use.
 
-* Duplicate Track Alias: The endpoint attempted to use a Track Alias
-  that was already in use.
+KEY_VALUE_FORMATTING_ERROR (0x6):
+: The key-value pair has a formatting error.
 
-* Key-Value Formatting Error: the key-value pair has a formatting error.
+TOO_MANY_REQUESTS (0x7):
+: The session was closed because the endpoint used a Request ID equal to or
+  larger than the current Maximum Request ID.
 
-* Too Many Requests: The session was closed because the endpoint used a
-  Request ID equal to or larger than the current Maximum Request ID.
+INVALID_PATH (0x8):
+: The PATH parameter was used by a server, on a WebTransport session, or the
+  server does not support the path.
 
-* Invalid Path: The PATH parameter was used by a server, on a WebTransport
-  session, or the server does not support the path.
+MALFORMED_PATH (0x9):
+: The PATH parameter does not conform to the rules in {{path}}.
 
-* Malformed Path: The PATH parameter does not conform to the rules in {{path}}.
+GOAWAY_TIMEOUT (0x10):
+: The session was closed because the peer took too long to close the session
+  in response to a GOAWAY ({{message-goaway}}) message. See session migration
+  ({{session-migration}}).
 
-* GOAWAY Timeout: The session was closed because the peer took too long to
-  close the session in response to a GOAWAY ({{message-goaway}}) message.
-  See session migration ({{session-migration}}).
+CONTROL_MESSAGE_TIMEOUT (0x11):
+: The session was closed because the peer took too long to respond to a
+  control message.
 
-* Control Message Timeout: The session was closed because the peer took too
-  long to respond to a control message.
+DATA_STREAM_TIMEOUT (0x12):
+: The session was closed because the peer took too long to send data expected
+  on an open Data Stream (see {{data-streams}}). This includes fields of a
+  stream header or an object header within a data stream. If an endpoint
+  times out waiting for a new object header on an open subgroup stream, it
+  MAY send a STOP_SENDING on that stream or terminate the subscription.
 
-* Data Stream Timeout: The session was closed because the peer took too long to
-  send data expected on an open Data Stream (see {{data-streams}}).  This
-  includes fields of a stream header or an object header within a data
-  stream. If an endpoint times out waiting for a new object header on an open
-  subgroup stream, it MAY send a STOP_SENDING on that stream or terminate the
-  subscription.
+AUTH_TOKEN_CACHE_OVERFLOW (0x13):
+: The Session limit {{max-auth-token-cache-size}} of the size of all
+  registered Authorization tokens has been exceeded.
 
-* Auth Token Cache Overflow - the Session limit {{max-auth-token-cache-size}} of
-  the size of all registered Authorization tokens has been exceeded.
+DUPLICATE_AUTH_TOKEN_ALIAS (0x14):
+: Authorization Token attempted to register an Alias that was in use (see
+  {{authorization-token}}).
 
-* Duplicate Auth Token Alias - Authorization Token attempted to register an
-  Alias that was in use (see {{authorization-token}}).
+VERSION_NEGOTIATION_FAILED (0x15):
+: The client didn't offer a version supported by the server.
 
-* Version Negotiation Failed: The client didn't offer a version supported
-  by the server.
+MALFORMED_AUTH_TOKEN (0x16):
+: Invalid Auth Token serialization during registration (see
+  {{authorization-token}}).
 
-* Malformed Auth Token - Invalid Auth Token serialization during registration
-  (see {{authorization-token}}).
+UNKNOWN_AUTH_TOKEN_ALIAS (0x17):
+: No registered token found for the provided Alias (see
+  {{authorization-token}}).
 
-* Unknown Auth Token Alias - No registered token found for the provided Alias
-  (see {{authorization-token}}).
+EXPIRED_AUTH_TOKEN (0x18):
+: Authorization token has expired ({{authorization-token}}).
 
-* Expired Auth Token - Authorization token has expired {{authorization-token}}).
+INVALID_AUTHORITY (0x19):
+: The specified AUTHORITY does not correspond to this server or cannot be
+  used in this context.
 
-* Invalid Authority - The specified AUTHORITY does not correspond to this server
-  or cannot be used in this context.
-
-* Malformed Authority - The AUTHORITY value is syntactically invalid.
+MALFORMED_AUTHORITY (0x1A):
+: The AUTHORITY value is syntactically invalid.
 
 An endpoint MAY choose to treat a subscription or request specific error as a
 session error under certain circumstances, closing the entire session in
@@ -811,7 +782,7 @@ MOQT enables proactively draining sessions via the GOAWAY message ({{message-goa
 The server sends a GOAWAY message, signaling the client to establish a new
 session and migrate any active subscriptions. The GOAWAY message optionally
 contains a new URI for the new session, otherwise the current URI is
-reused. The server SHOULD terminate the session with 'GOAWAY Timeout' after a
+reused. The server SHOULD terminate the session with `GOAWAY_TIMEOUT` after a
 sufficient timeout if there are still open subscriptions or fetches on a
 connection.
 
@@ -824,7 +795,7 @@ Ideally this is transparent to the application using MOQT, which involves
 establishing a new session in the background and migrating active subscriptions
 and published namespaces. The client can choose to delay closing the session if
 it expects more OBJECTs to be delivered. The server closes the session with a
-'GOAWAY Timeout' if the client doesn't close the session quickly enough.
+`GOAWAY_TIMEOUT` if the client doesn't close the session quickly enough.
 
 ## Congestion Control
 
@@ -1417,7 +1388,7 @@ Control messages have a length to make parsing easier, but no control messages
 are intended to be ignored. The length is set to the number of bytes in Message
 Payload, which is defined by each message type.  If the length does not match
 the length of the Message Payload, the receiver MUST close the session with
-Protocol Violation.
+`PROTOCOL_VIOLATION`.
 
 ## Request ID
 
@@ -1429,8 +1400,8 @@ The client's Request ID starts at 0 and are even and the server's Request ID
 starts at 1 and are odd.  The Request ID increments by 2 with PUBLISH_NAMESPACE,
 FETCH, SUBSCRIBE, SUBSCRIBE_NAMESPACE or TRACK_STATUS request.  If an endpoint
 receives a Request ID that is not valid for the peer, or a new request with a
-Request ID that is not expected, it MUST close the session with `Invalid Request
-ID`.
+Request ID that is not expected, it MUST close the session with
+`INVALID_REQUEST_ID`.
 
 ## Parameters {#params}
 
@@ -1441,7 +1412,7 @@ Senders MUST NOT repeat the same parameter type in a message unless the
 parameter definition explicitly allows multiple instances of that type to
 be sent in a single message. Receivers SHOULD check that there are no
 unauthorized duplicate parameters and close the session as a
-'Protocol Violation' if found.  Receivers MUST allow duplicates of unknown
+`PROTOCOL_VIOLATION` if found.  Receivers MUST allow duplicates of unknown
 parameters.
 
 Receivers ignore unrecognized parameters.
@@ -1532,29 +1503,30 @@ Token {
 If the Token structure cannot be decoded, the receiver MUST close the Session
 with Key-Value Formatting error.  The receiver of a message attempting to
 register an Alias which is already registered MUST close the Session with
-`Duplicate Auth Token Alias`. The receiver of a message referencing an Alias
-that is not currently registered MUST reject the message with `Unknown Auth
-Token Alias`.
+`DUPLICATE_AUTH_TOKEN_ALIAS`. The receiver of a message referencing an Alias
+that is not currently registered MUST reject the message with
+`UNKNOWN_AUTH_TOKEN_ALIAS`.
 
 The receiver of a message containing a well-formed Token structure but otherwise
 invalid AUTHORIZATION TOKEN parameter MUST reject that message with an
-`Malformed Auth Token` error.
+`MALFORMED_AUTH_TOKEN` error.
 
 The receiver of a message carrying an AUTHORIZATION TOKEN with Alias Type
 REGISTER that does not result in a Session error MUST register the Token Alias,
 in the token cache, even if the message fails for other reasons, including
 `Unauthorized`.  This allows senders to pipeline messages that refer to
 previously registered tokens without potentially terminating the entire Session.
-A receiver MAY store an error code (eg: Unauthorized or Malformed Auth Token) in
-place of the Token Type and Token Alias if any future message referencing the
-Token Alias will result in that error. The size of a registered cache entry
-includes the length of the Token Value, regardless of whether it is stored.
+A receiver MAY store an error code (eg: `UNAUTHORIZED` or
+`MALFORMED_AUTH_TOKEN`) in place of the Token Type and Token Alias if any future
+message referencing the Token Alias will result in that error. The size of a
+registered cache entry includes the length of the Token Value, regardless of
+whether it is stored.
 
 If a receiver detects that an authorization token has expired, it MUST retain
 the registered Alias until it is deleted by the sender, though it MAY discard
 other state associated with the token that is no longer needed.  Expiration does
 not affect the size occupied by a token in the token cache.  Any message that
-references the token with Alias Type USE_ALIAS fails with `Expired Auth Token`.
+references the token with Alias Type USE_ALIAS fails with `EXPIRED_AUTH_TOKEN`.
 
 Using an Alias to refer to a previously registered Token Type and Value is for
 efficiency only and has the same effect as if the Token Type and Value was
@@ -1571,8 +1543,8 @@ Alias and Token Value until they are deleted, or the Session ends. The receiver
 can protect its resources by sending a SETUP parameter defining the
 MAX_AUTH_TOKEN_CACHE_SIZE limit (see {{max-auth-token-cache-size}}) it is
 willing to accept. If a registration is attempted which would cause this limit
-to be exceeded, the receiver MUST termiate the Session with a `Auth Token Cache
-Overflow` error.
+to be exceeded, the receiver MUST termiate the Session with a
+`AUTH_TOKEN_CACHE_OVERFLOW` error.
 
 
 #### DELIVERY TIMEOUT Parameter {#delivery-timeout}
@@ -1599,7 +1571,7 @@ subscriber or publisher specify DELIVERY TIMEOUT, all Objects in the track
 matching the subscription filter are delivered as indicated by their Group Order
 and Priority.  If a subscriber fails to consume Objects at a sufficient rate,
 causing the publisher to exceed its resource limits, the publisher MAY terminate
-the subscription with error 'Too Far Behind'.
+the subscription with error `TOO_FAR_BEHIND`.
 
 If an object in a subgroup exceeds the delivery timeout, the publisher MUST
 reset the underlying transport stream (see {{closing-subgroup-streams}}).
@@ -1669,7 +1641,7 @@ The client offers the list of the protocol versions it supports; the
 server MUST reply with one of the versions offered by the client. If the
 server does not support any of the versions offered by the client, or
 the client receives a server version that it did not offer, the
-corresponding peer MUST close the session with `Version Negotiation Failed`.
+corresponding peer MUST close the session with `VERSION_NEGOTIATION_FAILED`.
 
 \[\[RFC editor: please remove the remainder of this section before
 publication.]]
@@ -1742,7 +1714,7 @@ establishment.
 
 If a server receives an AUTHORIZATION TOKEN parameter in CLIENT_SETUP with Alias
 Type REGISTER_TOKEN that exceeds its MAX_AUTH_TOKEN_CACHE_SIZE, it MUST NOT fail
-the session with `Auth Token Cache Overflow`.  Instead, it MUST treat the
+the session with `AUTH_TOKEN_CACHE_OVERFLOW`.  Instead, it MUST treat the
 parameter as Alias Type USE_VALUE.  A client MUST handle registration failures
 of this kind by purging any Token Aliases that failed to register based on the
 MAX_AUTH_TOKEN_CACHE_SIZE parameter in SERVER_SETUP (or the default value of 0).
@@ -1761,7 +1733,7 @@ Upon receiving a GOAWAY, an endpoint SHOULD NOT initiate new requests to the
 peer including SUBSCRIBE, PUBLISH, FETCH, PUBLISH_NAMESPACE and
 SUBSCRIBE_NAMESPACE.
 
-The endpoint MUST terminate the session with a Protocol Violation
+The endpoint MUST terminate the session with a `PROTOCOL_VIOLATION`
 ({{session-termination}}) if it receives multiple GOAWAY messages.
 
 ~~~
@@ -1780,10 +1752,10 @@ GOAWAY Message {
   instead. The new session URI SHOULD use the same scheme
   as the current URL to ensure compatibility.  The maxmimum length of the New
   Session URI is 8,192 bytes.  If an endpoint receives a length exceeding the
-  maximum, it MUST close the session with a Protocol Violation.
+  maximum, it MUST close the session with a `PROTOCOL_VIOLATION`.
 
   If a server receives a GOAWAY with a non-zero New Session URI Length it MUST
-  terminate the session with a Protocol Violation.
+  terminate the session with a `PROTOCOL_VIOLATION`.
 
 ## MAX_REQUEST_ID {#message-max-request-id}
 
@@ -1792,7 +1764,7 @@ the peer can send within a session.
 
 The Maximum Request ID MUST only increase within a session, and
 receipt of a MAX_REQUEST_ID message with an equal or smaller Request ID
-value is a 'Protocol Violation'.
+value is a `PROTOCOL_VIOLATION`.
 
 ~~~
 MAX_REQUEST_ID Message {
@@ -1807,7 +1779,7 @@ MAX_REQUEST_ID Message {
   equal to or larger than this is received by the endpoint that sent the
   MAX_REQUEST_ID in any request message (PUBLISH_NAMESPACE, FETCH, SUBSCRIBE,
   SUBSCRIBE_NAMESPACE or TRACK_STATUS), the endpoint MUST close the session with
-  an error of 'Too Many Requests'.
+  an error of `TOO_MANY_REQUESTS`.
 
 MAX_REQUEST_ID is similar to MAX_STREAMS in ({{?RFC9000, Section 4.6}}), and
 similar considerations apply when deciding how often to send MAX_REQUEST_ID.
@@ -1948,7 +1920,7 @@ used. Values larger than 0x2 are a protocol error.
 * Forward: If 1, Objects matching the subscription are forwarded
 to the subscriber. If 0, Objects are not forwarded to the subscriber.
 Any other value is a protocol error and MUST terminate the
-session with a Protocol Violation ({{session-termination}}).
+session with a `PROTOCOL_VIOLATION` ({{session-termination}}).
 
 * Filter Type: Identifies the type of filter, which also indicates whether
 the Start and End Group fields will be present.
@@ -1966,8 +1938,9 @@ allowing the subscriber to determine the start group/object when not explicitly
 specified and the publisher SHOULD start delivering objects.
 
 If a publisher cannot satisfy the requested start or end or if the end has
-already been published it SHOULD send a SUBSCRIBE_ERROR with code 'Invalid Range'.
-A publisher MUST NOT send objects from outside the requested start and end.
+already been published it SHOULD send a SUBSCRIBE_ERROR with code
+`INVALID_RANGE`.  A publisher MUST NOT send objects from outside the requested
+start and end.
 
 ## SUBSCRIBE_OK {#message-subscribe-ok}
 
@@ -1997,7 +1970,7 @@ SUBSCRIBE_OK Message {
   {{track-alias}}). The same Track Alias MUST NOT be used to refer to two
   different Tracks simultaneously. If a subscriber receives a SUBSCRIBE_OK that
   uses the same Track Alias as a different track with an active subscription, it
-  MUST close the session with error 'Duplicate Track Alias'.
+  MUST close the session with error `DUPLICATE_TRACK_ALIAS`.
 
 * Expires: Time in milliseconds after which the subscription is no
 longer valid. A value of 0 indicates that the subscription does not expire
@@ -2011,7 +1984,7 @@ Values of 0x0 and those larger than 0x2 are a protocol error.
 * Content Exists: 1 if an object has been published on this track, 0 if not.
 If 0, then the Largest Group ID and Largest Object ID fields will not be
 present. Any other value is a protocol error and MUST terminate the
-session with a Protocol Violation ({{session-termination}}).
+session with a `PROTOCOL_VIOLATION` ({{session-termination}}).
 
 * Largest Location: The location of the largest object available for this track. This
   field is only present if Content Exists has a value of 1.
@@ -2044,46 +2017,33 @@ SUBSCRIBE_ERROR Message {
 The application SHOULD use a relevant error code in SUBSCRIBE_ERROR,
 as defined below:
 
-|------|---------------------------|
-| Code | Reason                    |
-|-----:|:--------------------------|
-| 0x0  | Internal Error            |
-|------|---------------------------|
-| 0x1  | Unauthorized              |
-|------|---------------------------|
-| 0x2  | Timeout                   |
-|------|---------------------------|
-| 0x3  | Not Supported             |
-|------|---------------------------|
-| 0x4  | Track Does Not Exist      |
-|------|---------------------------|
-| 0x5  | Invalid Range             |
-|------|---------------------------|
-| 0x10 | Malformed Auth Token      |
-|------|---------------------------|
-| 0x12 | Expired Auth Token        |
-|------|---------------------------|
+INTERNAL_ERROR (0x0):
+: An implementation specific or generic error occurred.
 
-* Internal Error - An implementation specific or generic error occurred.
+UNAUTHORIZED (0x1):
+: The subscriber is not authorized to subscribe to the given track.
 
-* Unauthorized - The subscriber is not authorized to subscribe to the given
-  track.
+TIMEOUT (0x2):
+: The subscription could not be completed before an implementation specific
+  timeout. For example, a relay could not establish an upstream subscription
+  within the timeout.
 
-* Timeout - The subscription could not be completed before an implementation
-  specific timeout.  For example, a relay could not establish an upstream
-  subscription within the timeout.
+NOT_SUPPORTED (0x3):
+: The endpoint does not support the SUBSCRIBE method.
 
-* Not Supported - The endpoint does not support the SUBSCRIBE method.
+TRACK_DOES_NOT_EXIST (0x4):
+: The requested track is not available at the publisher.
 
-* Track Does Not Exist - The requested track is not available at the publisher.
+INVALID_RANGE (0x5):
+: The end of the SUBSCRIBE range is earlier than the beginning, or the end of
+  the range has already been published.
 
-* Invalid Range - The end of the SUBSCRIBE range is earlier than the beginning,
-  or the end of the range has already been published.
+MALFORMED_AUTH_TOKEN (0x10):
+: Invalid Auth Token serialization during registration (see
+  {{authorization-token}}).
 
-* Malformed Auth Token - Invalid Auth Token serialization during registration
-  (see {{authorization-token}}).
-
-* Expired Auth Token - Authorization token has expired {{authorization-token}}).
+EXPIRED_AUTH_TOKEN (0x12):
+: Authorization token has expired ({{authorization-token}}).
 
 
 ## SUBSCRIBE_UPDATE {#message-subscribe-update}
@@ -2097,7 +2057,7 @@ guarantee that the publisher has not already sent Objects with Locations smaller
 than the new Start Location. Similarly, the End Group MUST NOT increase, and if
 it decreases, there is no guarantee that the publisher has not already sent
 Objects with Locations larger than the new End Location.  A publisher MUST
-terminate the session with a 'Protocol Violation' if the SUBSCRIBE_UPDATE
+terminate the session with a `PROTOCOL_VIOLATION` if the SUBSCRIBE_UPDATE
 violates these rules or if the subscriber specifies a request ID that has not
 existed within the Session.
 
@@ -2146,7 +2106,7 @@ See {{priorities}}.
 * Forward: If 1, Objects matching the subscription are forwarded
 to the subscriber. If 0, Objects are not forwarded to the subscriber.
 Any other value is a protocol error and MUST terminate the
-session with a Protocol Violation ({{session-termination}}).
+session with a `PROTOCOL_VIOLATION` ({{session-termination}}).
 
 * Parameters: The parameters are defined in {{version-specific-params}}.
 
@@ -2237,51 +2197,37 @@ SHOULD use a timeout or other mechanism to remove subscription state in case
 the publisher set an incorrect value, reset a stream before the SUBGROUP_HEADER,
 or set the maximum value.  If a subscriber receives more streams for a
 subscription than specified in Stream Count, it MAY close the session with a
-Protocol Violation.
+`PROTOCOL_VIOLATION`.
 
 * Error Reason: Provides the reason for subscription error. See {{reason-phrase}}.
 
 The application SHOULD use a relevant status code in
 SUBSCRIBE_DONE, as defined below:
 
-|------|---------------------------|
-| Code | Reason                    |
-|-----:|:--------------------------|
-| 0x0  | Internal Error            |
-|------|---------------------------|
-| 0x1  | Unauthorized              |
-|------|---------------------------|
-| 0x2  | Track Ended               |
-|------|---------------------------|
-| 0x3  | Subscription Ended        |
-|------|---------------------------|
-| 0x4  | Going Away                |
-|------|---------------------------|
-| 0x5  | Expired                   |
-|------|---------------------------|
-| 0x6  | Too Far Behind            |
-|------|---------------------------|
-| 0x7  | Malformed Track           |
-|------|---------------------------|
+INTERNAL_ERROR (0x0):
+: An implementation specific or generic error occurred.
 
-* Internal Error - An implementation specific or generic error occurred.
+UNAUTHORIZED (0x1):
+: The subscriber is no longer authorized to subscribe to the given track.
 
-* Unauthorized - The subscriber is no longer authorized to subscribe to the
-  given track.
+TRACK_ENDED (0x2):
+: The track is no longer being published.
 
-* Track Ended - The track is no longer being published.
+SUBSCRIPTION_ENDED (0x3):
+: The publisher reached the end of an associated Subscribe filter.
 
-* Subscription Ended - The publisher reached the end of an associated
-  Subscribe filter.
+GOING_AWAY (0x4):
+: The subscriber or publisher issued a GOAWAY message.
 
-* Going Away - The subscriber or publisher issued a GOAWAY message.
+EXPIRED (0x5):
+: The publisher reached the timeout specified in SUBSCRIBE_OK.
 
-* Expired - The publisher reached the timeout specified in SUBSCRIBE_OK.
+TOO_FAR_BEHIND (0x6):
+: The publisher's queue of objects to be sent to the given subscriber exceeds
+  its implementation defined limit.
 
-* Too Far Behind - The publisher's queue of objects to be sent to the given
-  subscriber exceeds its implementation defined limit.
-
-* Malformed Track - A relay publisher detected the track was malformed (see
+MALFORMED_TRACK (0x7):
+: A relay publisher detected the track was malformed (see
   {{malformed-tracks}}).
 
 
@@ -2319,7 +2265,7 @@ PUBLISH Message {
   {{track-alias}}). The same Track Alias MUST NOT be used to refer to two
   different Tracks simultaneously. If a subscriber receives a PUBLISH that
   uses the same Track Alias as a different track with an active subscription, it
-  MUST close the session with error 'Duplicate Track Alias'.
+  MUST close the session with error `DUPLICATE_TRACK_ALIAS`.
 
 * Group Order: Indicates the subscription will be delivered in
   Ascending (0x1) or Descending (0x2) order by group. See {{priorities}}.
@@ -2328,12 +2274,12 @@ PUBLISH Message {
 * Content Exists: 1 if an object has been published on this track, 0 if not.
   If 0, then the Largest Group ID and Largest Object ID fields will not be
   present. Any other value is a protocol error and MUST terminate the
-  session with a Protocol Violation ({{session-termination}}).
+  session with a `PROTOCOL_VIOLATION` ({{session-termination}}).
 
 * Largest Location: The location of the largest object available for this track.
 
 * Forward: The forward mode for this subscription.  Any value other than 0 or 1
-  is a Protocol Violation.  0 indicates the publisher will not transmit any
+  is a `PROTOCOL_VIOLATION`.  0 indicates the publisher will not transmit any
   objects until the subscriber sets the Forward State to 1. 1 indicates the
   publisher will start transmitting objects immediately, even before PUBLISH_OK.
 
@@ -2405,32 +2351,21 @@ PUBLISH_ERROR Message {
 The application SHOULD use a relevant error code in PUBLISH_ERROR, as defined
 below:
 
-|------|---------------------------|
-| Code | Reason                    |
-|-----:|:--------------------------|
-| 0x0  | Internal Error            |
-|------|---------------------------|
-| 0x1  | Unauthorized              |
-|------|---------------------------|
-| 0x2  | Timeout                   |
-|------|---------------------------|
-| 0x3  | Not Supported             |
-|------|---------------------------|
-| 0x4  | Uninterested              |
-|------|---------------------------|
+INTERNAL_ERROR (0x0):
+: An implementation specific or generic error occurred.
 
-* Internal Error - An implementation specific or generic error occurred.
+UNAUTHORIZED (0x1):
+: The publisher is not authorized to publish the given namespace or track.
 
-* Unauthorized - The publisher is not authorized to publish the given
-  namespace or track.
+TIMEOUT (0x2):
+: The subscription could not be established before an implementation specific
+  timeout.
 
-* Timeout - The subscription could not be established before an
-  implementation specific timeout.
+NOT_SUPPORTED (0x3):
+: The endpoint does not support the PUBLISH method.
 
-* Not Supported - The endpoint does not support the PUBLISH method.
-
-* Uninterested - The namespace or track is not of interest to the
-  endpoint.
+UNINTERESTED (0x4):
+: The namespace or track is not of interest to the endpoint.
 
 ## FETCH {#message-fetch}
 
@@ -2445,10 +2380,10 @@ between the first requested object and the first object in the stream; between
 objects in the stream; and between the last object in the stream and the Largest
 Group/Object indicated in FETCH_OK, so long as the fetch stream is terminated by
 a FIN.  If no Objects exist in the requested range, the publisher returns
-FETCH_ERROR with code `No Objects`.
+FETCH_ERROR with code `NO_OBJECTS`.
 
 If an Original Publisher receives a FETCH with a range that includes an object with
-unknown status, it MUST return FETCH_ERROR with code Unknown Status in Range.
+unknown status, it MUST return FETCH_ERROR with code UNKNOWN_STATUS_IN_RANGE.
 
 **Fetch Types**
 
@@ -2572,7 +2507,7 @@ subgroup ID is not used for ordering.
 
 If Start Location is greater than the `Largest Object`
 ({{message-subscribe-req}}) the publisher MUST return FETCH_ERROR with error
-code 'Invalid Range'.
+code `INVALID_RANGE`.
 
 ### Calculating the Range of a Relative Joining Fetch
 
@@ -2585,7 +2520,7 @@ subscription is used to calculate the end of a Relative Joining Fetch so the
 Objects retrieved by the FETCH and SUBSCRIBE are contiguous and non-overlapping.
 If no Objects have been published for the track, and the SUBSCRIBE_OK has a
 Content Exists value of 0, the publisher MUST respond with a FETCH_ERROR with
-error code 'Invalid Range'.
+error code `INVALID_RANGE`.
 
 The publisher receiving a Relative Joining Fetch computes the range as follows:
 
@@ -2647,7 +2582,7 @@ Values of 0x0 and those larger than 0x2 are a protocol error.
   Location.
 
   If End is smaller than the Start Location in the corresponding FETCH the
-  receiver MUST close the session with `Protocol Violation`
+  receiver MUST close the session with `PROTOCOL_VIOLATION`
 
 * Parameters: The parameters are defined in {{version-specific-params}}.
 
@@ -2677,66 +2612,47 @@ FETCH_ERROR Message {
 The application SHOULD use a relevant error code in FETCH_ERROR,
 as defined below:
 
-|------|------------------------------|
-| Code | Reason                       |
-|-----:|:-----------------------------|
-| 0x0  | Internal Error               |
-|------|------------------------------|
-| 0x1  | Unauthorized                 |
-|------|------------------------------|
-| 0x2  | Timeout                      |
-|------|------------------------------|
-| 0x3  | Not Supported                |
-|------|------------------------------|
-| 0x4  | Track Does Not Exist         |
-|------|------------------------------|
-| 0x5  | Invalid Range                |
-|------|------------------------------|
-| 0x6  | No Objects                   |
-|------|------------------------------|
-| 0x7  | Invalid Joining Request ID   |
-|------|------------------------------|
-| 0x8  | Unknown Status in Range      |
-|------|------------------------------|
-| 0x9  | Malformed Track              |
-|------|------------------------------|
-| 0x10 | Malformed Auth Token         |
-|------|------------------------------|
-| 0x12 | Expired Auth Token           |
-|------|------------------------------|
+INTERNAL_ERROR (0x0):
+: An implementation specific or generic error occurred.
 
-* Internal Error - An implementation specific or generic error occurred.
+UNAUTHORIZED (0x1):
+: The subscriber is not authorized to fetch from the given track.
 
-* Unauthorized - The subscriber is not authorized to fetch from the given
-  track.
+TIMEOUT (0x2):
+: The fetch could not be completed before an implementation specific timeout.
+  For example, a relay could not FETCH missing objects within the timeout.
 
-* Timeout - The fetch could not be completed before an implementation
-  specific timeout.  For example, a relay could not FETCH missing objects
-  within the timeout.
+NOT_SUPPORTED (0x3):
+: The endpoint does not support the FETCH method.
 
-* Not supported - The endpoint does not support the FETCH method.
+TRACK_DOES_NOT_EXIST (0x4):
+: The requested track is not available at the publisher.
 
-* Track Does Not Exist - The requested track is not available at the publisher.
+INVALID_RANGE (0x5):
+: The end of the requested range is earlier than the beginning, the start of
+  the requested range is beyond the Largest Location, or the track has not
+  published any Objects yet.
 
-* Invalid Range - The end of the requested range is earlier than the beginning,
-  the start of the requested range is beyond the Largest Location, or the track
-  has not published any Objects yet.
+NO_OBJECTS (0x6):
+: No Objects exist between the requested Start and End Locations.
 
-* No Objects - No Objects exist between the requested Start and End Locations.
+INVALID_JOINING_REQUEST_ID (0x7):
+: The joining Fetch referenced a Request ID that did not belong to an active
+  Subscription.
 
-* Invalid Joining Request ID - The joining Fetch referenced a Request ID that
-  did not belong to an active Subscription.
+UNKNOWN_STATUS_IN_RANGE (0x8):
+: The requested range contains objects with unknown status.
 
-* Unknown Status in Range - The requested range contains objects with unknown
-  status.
-
-* Malformed Track - A relay publisher detected the track was malformed (see
+MALFORMED_TRACK (0x9):
+: A relay publisher detected the track was malformed (see
   {{malformed-tracks}}).
 
-* Malformed Auth Token - Invalid Auth Token serialization during registration
-  (see {{authorization-token}}).
+MALFORMED_AUTH_TOKEN (0x10):
+: Invalid Auth Token serialization during registration (see
+  {{authorization-token}}).
 
-* Expired Auth Token - Authorization token has expired {{authorization-token}}).
+EXPIRED_AUTH_TOKEN (0x12):
+: Authorization token has expired ({{authorization-token}}).
 
 
 ## FETCH_CANCEL {#message-fetch-cancel}
@@ -2762,7 +2678,7 @@ FETCH_CANCEL Message {
 
 ## TRACK_STATUS {#message-track-status}
 
-A potential subscriber sends a 'TRACK_STATUS' message on the control
+A potential subscriber sends a `TRACK_STATUS` message on the control
 stream to obtain information about the current status of a given track.
 
 The TRACK_STATUS message format is identical to the SUBSCRIBE message
@@ -2869,40 +2785,28 @@ PUBLISH_NAMESPACE_ERROR Message {
 The application SHOULD use a relevant error code in PUBLISH_NAMESPACE_ERROR, as
 defined below:
 
-|------|---------------------------|
-| Code | Reason                    |
-|-----:|:--------------------------|
-| 0x0  | Internal Error            |
-|------|---------------------------|
-| 0x1  | Unauthorized              |
-|------|---------------------------|
-| 0x2  | Timeout                   |
-|------|---------------------------|
-| 0x3  | Not Supported             |
-|------|---------------------------|
-| 0x4  | Uninterested              |
-|------|---------------------------|
-| 0x10 | Malformed Auth Token      |
-|------|---------------------------|
-| 0x12 | Expired Auth Token        |
-|------|---------------------------|
+INTERNAL_ERROR (0x0):
+: An implementation specific or generic error occurred.
 
-* Internal Error - An implementation specific or generic error occurred.
+UNAUTHORIZED (0x1):
+: The subscriber is not authorized to announce the given namespace.
 
-* Unauthorized - The subscriber is not authorized to publish the given
-  namespace.
+TIMEOUT (0x2):
+: The announce could not be completed before an implementation specific
+  timeout.
 
-* Timeout - The publish namespace could not be completed before an
-  implementation specific timeout.
+NOT_SUPPORTED (0x3):
+: The endpoint does not support the PUBLISH_NAMESPACE method.
 
-* Not Supported - The endpoint does not support the PUBLISH_NAMESPACE method.
+UNINTERESTED (0x4):
+: The namespace is not of interest to the endpoint.
 
-* Uninterested - The namespace is not of interest to the endpoint.
+MALFORMED_AUTH_TOKEN (0x10):
+: Invalid Auth Token serialization during registration (see
+  {{authorization-token}}).
 
-* Malformed Auth Token - Invalid Auth Token serialization during registration
-  (see {{authorization-token}}).
-
-* Expired Auth Token - Authorization token has expired {{authorization-token}}).
+EXPIRED_AUTH_TOKEN (0x12):
+: Authorization token has expired ({{authorization-token}}).
 
 
 ## PUBLISH_NAMESPACE_DONE {#message-pub-ns-done}
@@ -2993,7 +2897,7 @@ A subscriber cannot make overlapping namespace subscriptions on a single
 session.  Within a session, if a publisher receives a SUBSCRIBE_NAMESPACE with a
 Track Namespace Prefix that is a prefix of, suffix of, or equal to an active
 SUBSCRIBE_NAMESPACE, it MUST respond with SUBSCRIBE_NAMESPACE_ERROR, with error
-code Namespace Prefix Overlap.
+code `NAMESPACE_PREFIX_OVERLAP`.
 
 The publisher MUST ensure the subscriber is authorized to perform this
 namespace subscription.
@@ -3050,46 +2954,32 @@ failure.
 The application SHOULD use a relevant error code in SUBSCRIBE_NAMESPACE_ERROR,
 as defined below:
 
-|------|---------------------------|
-| Code | Reason                    |
-|-----:|:--------------------------|
-| 0x0  | Internal Error            |
-|------|---------------------------|
-| 0x1  | Unauthorized              |
-|------|---------------------------|
-| 0x2  | Timeout                   |
-|------|---------------------------|
-| 0x3  | Not Supported             |
-|------|---------------------------|
-| 0x4  | Namespace Prefix Unknown  |
-|------|---------------------------|
-| 0x5  | Namespace Prefix Overlap  |
-|------|---------------------------|
-| 0x10 | Malformed Auth Token      |
-|------|---------------------------|
-| 0x12 | Expired Auth Token        |
-|------|---------------------------|
+INTERNAL_ERROR (0x0):
+: An implementation specific or generic error occurred.
 
-* Internal Error - An implementation specific or generic error occurred.
+UNAUTHORIZED (0x1):
+: The subscriber is not authorized to subscribe to the given namespace prefix.
 
-* Unauthorized - The subscriber is not authorized to subscribe to the given
-  namespace prefix.
+TIMEOUT (0x2):
+: The operation could not be completed before an implementation specific
+  timeout.
 
-* Timeout - The operation could not be completed before an implementation
-  specific timeout.
+NOT_SUPPORTED (0x3):
+: The endpoint does not support the SUBSCRIBE_NAMESPACE method.
 
-* Not Supported - The endpoint does not support the SUBSCRIBE_NAMESPACE method.
+NAMESPACE_PREFIX_UNKNOWN (0x4):
+: The namespace prefix is not available for subscription.
 
-* Namespace Prefix Unknown - The namespace prefix is not available for
-  subscription.
+NAMESPACE_PREFIX_OVERLAP (0x5):
+: The namespace prefix overlaps with another SUBSCRIBE_NAMESPACE in the same
+  session.
 
-* Namespace Prefix Overlap - The namespace prefix overlaps with another
-  SUBSCRIBE_NAMESPACE in the same session.
+MALFORMED_AUTH_TOKEN (0x10):
+: Invalid Auth Token serialization during registration (see
+  {{authorization-token}}).
 
-* Malformed Auth Token - Invalid Auth Token serialization during registration
-  (see {{authorization-token}}).
-
-* Expired Auth Token - Authorization token has expired {{authorization-token}}).
+EXPIRED_AUTH_TOKEN (0x12):
+: Authorization token has expired ({{authorization-token}}).
 
 
 ## UNSUBSCRIBE_NAMESPACE {#message-unsub-ns}
@@ -3235,13 +3125,13 @@ are beyond the end of a group or track.
          cached.
 
 Any other value SHOULD be treated as a protocol error and terminate the
-session with a Protocol Violation ({{session-termination}}).
+session with a `PROTOCOL_VIOLATION` ({{session-termination}}).
 Any object with a status code other than zero MUST have an empty payload.
 
 #### Object Extension Header {#object-extensions}
 Any Object may have extension headers except those with Object Status 'Object
 Does Not Exist'.  If an endpoint receives a non-existent Object containing
-extension headers it MUST close the session with a Protocol Violation.
+extension headers it MUST close the session with a `PROTOCOL_VIOLATION`.
 
 Object Extension Headers are visible to relays and allow the transmission of
 future metadata relevant to MOQT Object distribution. Any Object metadata never
@@ -3338,7 +3228,7 @@ For Type values where Extensions Present is No, Extensions Headers Length is not
 present and the Object has no extensions.  When Extensions Present is Yes,
 Extension Headers Length is present.  If an endpoint receives a datagram with
 Type 0x01 and Extension Headers Length is 0, it MUST close the session with
-Protocol Violation.
+`PROTOCOL_VIOLATION`.
 
 For Type values where Object ID Present is No, the Object ID field is omitted
 and the Object ID is 0.  When Object ID Present is Yes, the Object ID field is
@@ -3379,14 +3269,14 @@ There are 2 defined Type values for OBJECT_DATAGRAM_STATUS:
 
 The LSB of the type determines if the Extensions Headers Length and Extension
 headers are present. If an endpoint receives a datagram with Type 0x05 and
-Extension Headers Length is 0, it MUST close the session with Protocol Violation.
+Extension Headers Length is 0, it MUST close the session with PROTOCOL_VIOLATION.
 
 ## Streams
 
 When objects are sent on streams, the stream begins with a Subgroup Header
 and is followed by one or more sets of serialized object fields.
 If a stream ends gracefully in the middle of a serialized Object, the session
-SHOULD be terminated with a Protocol Violation.
+SHOULD be terminated with a PROTOCOL_VIOLATION.
 
 A publisher SHOULD NOT open more than one stream at a time with the same Subgroup
 Header field values.
@@ -3586,37 +3476,20 @@ Subgroups in a Group at once.
 The application SHOULD use a relevant error code in RESET_STREAM or
 RESET_STREAM_AT, as defined below:
 
-|------|---------------------------|
-| Code | Reason                    |
-|-----:|:--------------------------|
-| 0x0  | Internal Error            |
-|------|---------------------------|
-| 0x1  | Cancelled                 |
-|------|---------------------------|
-| 0x2  | Delivery Timeout          |
-|------|---------------------------|
-| 0x3  | Session Closed            |
-|------|---------------------------|
+INTERNAL_ERROR (0x0):
+: An implementation specific error.
 
-Internal Error:
-
-: An implementation specific error
-
-Cancelled:
-
+CANCELLED (0x1):
 : The subscriber requested cancellation via UNSUBSCRIBE, FETCH_CANCEL or
-STOP_SENDING, or the publisher ended the subscription, in which case
-SUBSCRIBE_DONE ({{message-subscribe-done}}) will have a more detailed
-status code.
+  STOP_SENDING, or the publisher ended the subscription, in which case
+  SUBSCRIBE_DONE ({{message-subscribe-done}}) will have a more detailed status
+  code.
 
-Delivery Timeout:
+DELIVERY_TIMEOUT (0x2):
+: The DELIVERY TIMEOUT {{delivery-timeout}} was exceeded for this stream.
 
-: The DELIVERY TIMEOUT {{delivery-timeout}} was exceeded for this
-stream
-
-Session Closed:
-
-: The publisher session is being closed
+SESSION_CLOSED (0x3):
+: The publisher session is being closed.
 
 ### Fetch Header {#fetch-header}
 
@@ -3776,11 +3649,6 @@ TODO: fill out currently missing registries:
 * MOQT version numbers
 * Setup parameters
 * Non-setup Parameters - List which params can be repeated in the table.
-* Subscribe Error codes
-* Subscribe Namespace Error codes
-* Publish Error codes
-* Publish Namespace Error codes
-* Publish Namespace Cancel Reason codes
 * Message types
 * MOQ Extension headers - we wish to reserve extension types 0-63 for
   standards utilization where space is a premium, 64 - 16383 for
@@ -3790,6 +3658,121 @@ TODO: fill out currently missing registries:
 * MOQT Auth Token Type
 
 TODO: register the URI scheme and the ALPN and grease the Extension types
+
+## Error Codes {#iana-error-codes}
+
+### Session Termination Error Codes {#iana-session-termination}
+
+| Name                       | Code | Specification           |
+|:---------------------------|:----:|:------------------------|
+| NO_ERROR                   | 0x0  | {{session-termination}} |
+| INTERNAL_ERROR             | 0x1  | {{session-termination}} |
+| UNAUTHORIZED               | 0x2  | {{session-termination}} |
+| PROTOCOL_VIOLATION         | 0x3  | {{session-termination}} |
+| INVALID_REQUEST_ID         | 0x4  | {{session-termination}} |
+| DUPLICATE_TRACK_ALIAS      | 0x5  | {{session-termination}} |
+| KEY_VALUE_FORMATTING_ERROR | 0x6  | {{session-termination}} |
+| TOO_MANY_REQUESTS          | 0x7  | {{session-termination}} |
+| INVALID_PATH               | 0x8  | {{session-termination}} |
+| MALFORMED_PATH             | 0x9  | {{session-termination}} |
+| GOAWAY_TIMEOUT             | 0x10 | {{session-termination}} |
+| CONTROL_MESSAGE_TIMEOUT    | 0x11 | {{session-termination}} |
+| DATA_STREAM_TIMEOUT        | 0x12 | {{session-termination}} |
+| AUTH_TOKEN_CACHE_OVERFLOW  | 0x13 | {{session-termination}} |
+| DUPLICATE_AUTH_TOKEN_ALIAS | 0x14 | {{session-termination}} |
+| VERSION_NEGOTIATION_FAILED | 0x15 | {{session-termination}} |
+| MALFORMED_AUTH_TOKEN       | 0x16 | {{session-termination}} |
+| UNKNOWN_AUTH_TOKEN_ALIAS   | 0x17 | {{session-termination}} |
+| EXPIRED_AUTH_TOKEN         | 0x18 | {{session-termination}} |
+| INVALID_AUTHORITY          | 0x19 | {{session-termination}} |
+| MALFORMED_AUTHORITY        | 0x1A | {{session-termination}} |
+
+### SUBSCRIBE_ERROR Codes {#iana-subscribe-error}
+
+| Name                  | Code | Specification               |
+|:----------------------|:----:|:----------------------------|
+| INTERNAL_ERROR        | 0x0  | {{message-subscribe-error}} |
+| UNAUTHORIZED          | 0x1  | {{message-subscribe-error}} |
+| TIMEOUT               | 0x2  | {{message-subscribe-error}} |
+| NOT_SUPPORTED         | 0x3  | {{message-subscribe-error}} |
+| TRACK_DOES_NOT_EXIST  | 0x4  | {{message-subscribe-error}} |
+| INVALID_RANGE         | 0x5  | {{message-subscribe-error}} |
+| MALFORMED_AUTH_TOKEN  | 0x10 | {{message-subscribe-error}} |
+| EXPIRED_AUTH_TOKEN    | 0x12 | {{message-subscribe-error}} |
+
+### SUBSCRIBE_DONE Codes {#iana-subscribe-done}
+
+| Name               | Code | Specification              |
+|:-------------------|:----:|:---------------------------|
+| INTERNAL_ERROR     | 0x0  | {{message-subscribe-done}} |
+| UNAUTHORIZED       | 0x1  | {{message-subscribe-done}} |
+| TRACK_ENDED        | 0x2  | {{message-subscribe-done}} |
+| SUBSCRIPTION_ENDED | 0x3  | {{message-subscribe-done}} |
+| GOING_AWAY         | 0x4  | {{message-subscribe-done}} |
+| EXPIRED            | 0x5  | {{message-subscribe-done}} |
+| TOO_FAR_BEHIND     | 0x6  | {{message-subscribe-done}} |
+| MALFORMED_TRACK    | 0x7  | {{message-subscribe-done}} |
+
+### PUBLISH_ERROR Codes {#iana-publish-error}
+
+| Name           | Code | Specification             |
+|:---------------|:----:|:--------------------------|
+| INTERNAL_ERROR | 0x0  | {{message-publish-error}} |
+| UNAUTHORIZED   | 0x1  | {{message-publish-error}} |
+| TIMEOUT        | 0x2  | {{message-publish-error}} |
+| NOT_SUPPORTED  | 0x3  | {{message-publish-error}} |
+| UNINTERESTED   | 0x4  | {{message-publish-error}} |
+
+### FETCH_ERROR Codes {#iana-fetch-error}
+
+| Name                       | Code | Specification           |
+|:---------------------------|:----:|:------------------------|
+| INTERNAL_ERROR             | 0x0  | {{message-fetch-error}} |
+| UNAUTHORIZED               | 0x1  | {{message-fetch-error}} |
+| TIMEOUT                    | 0x2  | {{message-fetch-error}} |
+| NOT_SUPPORTED              | 0x3  | {{message-fetch-error}} |
+| TRACK_DOES_NOT_EXIST       | 0x4  | {{message-fetch-error}} |
+| INVALID_RANGE              | 0x5  | {{message-fetch-error}} |
+| NO_OBJECTS                 | 0x6  | {{message-fetch-error}} |
+| INVALID_JOINING_REQUEST_ID | 0x7  | {{message-fetch-error}} |
+| UNKNOWN_STATUS_IN_RANGE    | 0x8  | {{message-fetch-error}} |
+| MALFORMED_TRACK            | 0x9  | {{message-fetch-error}} |
+| MALFORMED_AUTH_TOKEN       | 0x10 | {{message-fetch-error}} |
+| EXPIRED_AUTH_TOKEN         | 0x12 | {{message-fetch-error}} |
+
+### ANNOUNCE_ERROR Codes {#iana-announce-error}
+
+| Name                  | Code | Specification            |
+|:----------------------|:----:|:-------------------------|
+| INTERNAL_ERROR        | 0x0  | {{message-pub-ns-error}} |
+| UNAUTHORIZED          | 0x1  | {{message-pub-ns-error}} |
+| TIMEOUT               | 0x2  | {{message-pub-ns-error}} |
+| NOT_SUPPORTED         | 0x3  | {{message-pub-ns-error}} |
+| UNINTERESTED          | 0x4  | {{message-pub-ns-error}} |
+| MALFORMED_AUTH_TOKEN  | 0x10 | {{message-pub-ns-error}} |
+| EXPIRED_AUTH_TOKEN    | 0x12 | {{message-pub-ns-error}} |
+
+### SUBSCRIBE_NAMESPACE_ERROR Codes {#iana-subscribe-namespace-error}
+
+| Name                     | Code | Specification            |
+|:-------------------------|:----:|:-------------------------|
+| INTERNAL_ERROR           | 0x0  | {{message-sub-ns-error}} |
+| UNAUTHORIZED             | 0x1  | {{message-sub-ns-error}} |
+| TIMEOUT                  | 0x2  | {{message-sub-ns-error}} |
+| NOT_SUPPORTED            | 0x3  | {{message-sub-ns-error}} |
+| NAMESPACE_PREFIX_UNKNOWN | 0x4  | {{message-sub-ns-error}} |
+| NAMESPACE_PREFIX_OVERLAP | 0x5  | {{message-sub-ns-error}} |
+| MALFORMED_AUTH_TOKEN     | 0x10 | {{message-sub-ns-error}} |
+| EXPIRED_AUTH_TOKEN       | 0x12 | {{message-sub-ns-error}} |
+
+### Data Stream Reset Error Codes {#iana-reset-stream}
+
+| Name             | Code | Specification                |
+|:-----------------|:----:|:-----------------------------|
+| INTERNAL_ERROR   | 0x0  | {{closing-subgroup-streams}} |
+| CANCELLED        | 0x1  | {{closing-subgroup-streams}} |
+| DELIVERY_TIMEOUT | 0x2  | {{closing-subgroup-streams}} |
+| SESSION_CLOSED   | 0x3  | {{closing-subgroup-streams}} |
 
 # Contributors
 {:numbered="false"}
