@@ -547,8 +547,8 @@ The above list of conditions is not considered exhaustive.
 When a subscriber detects a Malformed Track, it MUST UNSUBSCRIBE any
 subscription and FETCH_CANCEL any fetch for that Track from that publisher, and
 SHOULD deliver an error to the application.  If a relay detects a Malformed
-Track, it MUST immediately terminate downstream subscriptions with
-SUBSCRIBE_DONE and reset any fetch streams with Status Code `MALFORMED_TRACK`.
+Track, it MUST immediately terminate downstream subscriptions with PUBLISH_DONE
+and reset any fetch streams with Status Code `MALFORMED_TRACK`.
 
 
 ### Scope {#track-scope}
@@ -841,7 +841,7 @@ SUBSCRIBE message.  The publisher either accepts or rejects the subscription
 using SUBSCRIBE_OK or SUBSCRIBE_ERROR.  Once either of these sequences is
 successful, the subscription can be updated by the subscriber using
 SUBSCRIBE_UPDATE, terminated by the subscriber using UNSUBSCRIBE, or terminated
-by the publisher using SUBSCRIBE_DONE.
+by the publisher using PUBLISH_DONE.
 
 All subscriptions have a Forward State which is either 0 or 1.  If the Forward
 State is 0, the publisher does not send objects for the subscription.  If the
@@ -865,9 +865,9 @@ response to a PUBLISH. The peer SHOULD close the session with a protocol error
 if it receives more than one.
 
 A subscriber keeps subscription state until it sends UNSUBSCRIBE, or after
-receipt of a SUBSCRIBE_DONE or SUBSCRIBE_ERROR. Note that SUBSCRIBE_DONE does
-not usually indicate that state can immediately be destroyed, see
-{{message-subscribe-done}}.
+receipt of a PUBLISH_DONE or SUBSCRIBE_ERROR. Note that PUBLISH_DONE does not
+usually indicate that state can immediately be destroyed, see
+{{message-publish-done}}.
 
 A subscriber keeps FETCH state until it sends FETCH_CANCEL, receives
 FETCH_ERROR, or receives a FIN or RESET_STREAM for the FETCH data stream. If the
@@ -880,7 +880,7 @@ associated with the SUBSCRIBE or FETCH. It can also destroy state after closing
 the FETCH data stream.
 
 The publisher can immediately delete subscription state after sending
-SUBSCRIBE_DONE, but MUST NOT send it until it has closed all related streams. It
+PUBLISH_DONE, but MUST NOT send it until it has closed all related streams. It
 can destroy all FETCH state after closing the data stream.
 
 A SUBSCRIBE_ERROR indicates no objects will be delivered, and both endpoints can
@@ -1340,7 +1340,7 @@ The following Message Types are defined:
 |-------|-----------------------------------------------------|
 | 0xA   | UNSUBSCRIBE ({{message-unsubscribe}})               |
 |-------|-----------------------------------------------------|
-| 0xB   | SUBSCRIBE_DONE ({{message-subscribe-done}})         |
+| 0xB   | PUBLISH_DONE ({{message-publish-done}})             |
 |-------|-----------------------------------------------------|
 | 0x1D  | PUBLISH  ({{message-publish}})                      |
 |-------|-----------------------------------------------------|
@@ -1874,7 +1874,7 @@ subscription needs to be sent upstream, regardless of the value of the `Forward`
 field from the downstream subscription. Subscriptions that are not forwarded
 consume resources from the publisher, so a publisher might deprioritize, reject,
 or close those subscriptions to ensure other subscriptions can be delivered.
-Control messages, such as SUBCRIBE_DONE ({{message-subscribe-done}}) are still
+Control messages, such as SUBCRIBE_DONE ({{message-publish-done}}) are still
 sent.
 
 The format of SUBSCRIBE is as follows:
@@ -2128,46 +2128,45 @@ UNSUBSCRIBE Message {
 * Request ID: The Request ID of the subscription that is being terminated. See
   {{message-subscribe-req}}.
 
-## SUBSCRIBE_DONE {#message-subscribe-done}
+## PUBLISH_DONE {#message-publish-done}
 
-A publisher sends a `SUBSCRIBE_DONE` message to indicate it is done publishing
+A publisher sends a `PUBLISH_DONE` message to indicate it is done publishing
 Objects for that subscription.  The Status Code indicates why the subscription
-ended, and whether it was an error. Because SUBSCRIBE_DONE is sent on the
-control stream, it is likely to arrive at the receiver before late-arriving
-objects, and often even late-opening streams. However, the receiver uses it
-as an indication that it should receive any late-opening streams in a relatively
-short time.
+ended, and whether it was an error. Because PUBLISH_DONE is sent on the control
+stream, it is likely to arrive at the receiver before late-arriving objects, and
+often even late-opening streams. However, the receiver uses it as an indication
+that it should receive any late-opening streams in a relatively short time.
 
 Note that some objects in the subscribed track might never be delivered,
 because a stream was reset, or never opened in the first place, due to the
 delivery timeout.
 
-A sender MUST NOT send SUBSCRIBE_DONE until it has closed all streams it will
-ever open, and has no further datagrams to send, for a subscription. After
-sending SUBSCRIBE_DONE, the sender can immediately destroy subscription state,
-although stream state can persist until delivery completes. The sender might
-persist subscription state to enforce the delivery timeout by resetting streams
-on which it has already sent FIN, only deleting it when all such streams have
-received ACK of the FIN.
+A sender MUST NOT send PUBLISH_DONE until it has closed all streams it will ever
+open, and has no further datagrams to send, for a subscription. After sending
+PUBLISH_DONE, the sender can immediately destroy subscription state, although
+stream state can persist until delivery completes. The sender might persist
+subscription state to enforce the delivery timeout by resetting streams on which
+it has already sent FIN, only deleting it when all such streams have received
+ACK of the FIN.
 
-A sender MUST NOT destroy subscription state until it sends SUBSCRIBE_DONE,
-though it can choose to stop sending objects (and thus send SUBSCRIBE_DONE) for
-any reason.
+A sender MUST NOT destroy subscription state until it sends PUBLISH_DONE, though
+it can choose to stop sending objects (and thus send PUBLISH_DONE) for any
+reason.
 
-A subscriber that receives SUBSCRIBE_DONE SHOULD set a timer of at least its
-delivery timeout in case some objects are still inbound due to prioritization
-or packet loss. The subscriber MAY dispense with a timer if it sent UNSUBSCRIBE
-or is otherwise no longer interested in objects from the track. Once the timer
-has expired, the receiver destroys subscription state once all open streams for
-the subscription have closed. A subscriber MAY discard subscription state
-earlier, at the cost of potentially not delivering some late objects to the
+A subscriber that receives PUBLISH_DONE SHOULD set a timer of at least its
+delivery timeout in case some objects are still inbound due to prioritization or
+packet loss. The subscriber MAY dispense with a timer if it sent UNSUBSCRIBE or
+is otherwise no longer interested in objects from the track. Once the timer has
+expired, the receiver destroys subscription state once all open streams for the
+subscription have closed. A subscriber MAY discard subscription state earlier,
+at the cost of potentially not delivering some late objects to the
 application. The subscriber SHOULD send STOP_SENDING on all streams related to
 the subscription when it deletes subscription state.
 
-The format of `SUBSCRIBE_DONE` is as follows:
+The format of `PUBLISH_DONE` is as follows:
 
 ~~~
-SUBSCRIBE_DONE Message {
+PUBLISH_DONE Message {
   Type (i) = 0xB,
   Length (16),
   Request ID (i),
@@ -2176,7 +2175,7 @@ SUBSCRIBE_DONE Message {
   Error Reason (Reason Phrase)
 }
 ~~~
-{: #moq-transport-subscribe-fin-format title="MOQT SUBSCRIBE_DONE Message"}
+{: #moq-transport-subscribe-fin-format title="MOQT PUBLISH_DONE Message"}
 
 * Request ID: The Request ID of the subscription that is being terminated. See
   {{message-subscribe-req}}.
@@ -2199,8 +2198,8 @@ subscription than specified in Stream Count, it MAY close the session with a
 
 * Error Reason: Provides the reason for subscription error. See {{reason-phrase}}.
 
-The application SHOULD use a relevant status code in
-SUBSCRIBE_DONE, as defined below:
+The application SHOULD use a relevant status code in PUBLISH_DONE, as defined
+below:
 
 INTERNAL_ERROR (0x0):
 : An implementation specific or generic error occurred.
@@ -2687,7 +2686,7 @@ received a SUBSCRIBE message, except it does not create downstream subscription
 state or send any Objects.  Relays without an active subscription MAY forward
 TRACK_STATUS to one or more publishers, or MAY initiate a subscription (subject
 to authorization) as described in {{publisher-interactions}} to determine the
-response. The publisher does not send SUBSCRIBE_DONE for this request, and the
+response. The publisher does not send PUBLISH_DONE for this request, and the
 subscriber cannot send SUBSCRIBE_UPDATE or UNSUBSCRIBE.
 
 ## TRACK_STATUS_OK {#message-track-status-ok}
@@ -3407,7 +3406,7 @@ or a SUBSCRIBE_UPDATE moving the subscription's End Group to a smaller Group or
 the Start Location to a larger Location.  When RESET_STREAM_AT is used, the
 reliable_size SHOULD include the stream header so the receiver can identify the
 corresponding subscription and accurately account for reset data streams when
-handling SUBSCRIBE_DONE (see {{message-subscribe-done}}).  Publishers that reset
+handling PUBLISH_DONE (see {{message-publish-done}}).  Publishers that reset
 data streams without using RESET_STREAM_AT with an appropriate reliable_size can
 cause subscribers to hold on to subscription state until a timeout expires.
 
@@ -3480,7 +3479,7 @@ INTERNAL_ERROR (0x0):
 CANCELLED (0x1):
 : The subscriber requested cancellation via UNSUBSCRIBE, FETCH_CANCEL or
   STOP_SENDING, or the publisher ended the subscription, in which case
-  SUBSCRIBE_DONE ({{message-subscribe-done}}) will have a more detailed status
+  PUBLISH_DONE ({{message-publish-done}}) will have a more detailed status
   code.
 
 DELIVERY_TIMEOUT (0x2):
@@ -3698,18 +3697,18 @@ TODO: register the URI scheme and the ALPN and grease the Extension types
 | MALFORMED_AUTH_TOKEN  | 0x10 | {{message-subscribe-error}} |
 | EXPIRED_AUTH_TOKEN    | 0x12 | {{message-subscribe-error}} |
 
-### SUBSCRIBE_DONE Codes {#iana-subscribe-done}
+### PUBLISH_DONE Codes {#iana-publish-done}
 
-| Name               | Code | Specification              |
-|:-------------------|:----:|:---------------------------|
-| INTERNAL_ERROR     | 0x0  | {{message-subscribe-done}} |
-| UNAUTHORIZED       | 0x1  | {{message-subscribe-done}} |
-| TRACK_ENDED        | 0x2  | {{message-subscribe-done}} |
-| SUBSCRIPTION_ENDED | 0x3  | {{message-subscribe-done}} |
-| GOING_AWAY         | 0x4  | {{message-subscribe-done}} |
-| EXPIRED            | 0x5  | {{message-subscribe-done}} |
-| TOO_FAR_BEHIND     | 0x6  | {{message-subscribe-done}} |
-| MALFORMED_TRACK    | 0x7  | {{message-subscribe-done}} |
+| Name               | Code | Specification            |
+|:-------------------|:----:|:-------------------------|
+| INTERNAL_ERROR     | 0x0  | {{message-publish-done}} |
+| UNAUTHORIZED       | 0x1  | {{message-publish-done}} |
+| TRACK_ENDED        | 0x2  | {{message-publish-done}} |
+| SUBSCRIPTION_ENDED | 0x3  | {{message-publish-done}} |
+| GOING_AWAY         | 0x4  | {{message-publish-done}} |
+| EXPIRED            | 0x5  | {{message-publish-done}} |
+| TOO_FAR_BEHIND     | 0x6  | {{message-publish-done}} |
+| MALFORMED_TRACK    | 0x7  | {{message-publish-done}} |
 
 ### PUBLISH_ERROR Codes {#iana-publish-error}
 
