@@ -793,8 +793,8 @@ After the client receives a GOAWAY, it's RECOMMENDED that the client waits until
 there are no more active subscriptions before closing the session with NO_ERROR.
 Ideally this is transparent to the application using MOQT, which involves
 establishing a new session in the background and migrating active subscriptions
-and announcements. The client can choose to delay closing the session if it
-expects more OBJECTs to be delivered. The server closes the session with a
+and published namespaces. The client can choose to delay closing the session if
+it expects more OBJECTs to be delivered. The server closes the session with a
 `GOAWAY_TIMEOUT` if the client doesn't close the session quickly enough.
 
 ## Congestion Control
@@ -906,8 +906,8 @@ done in the context of an established MOQT session.
 Given sufficient out of band information, it is valid for a subscriber to send a
 SUBSCRIBE or FETCH message to a publisher (including a relay) without any
 previous MoQT messages besides SETUP. However, SUBSCRIBE_NAMESPACE, PUBLISH and
-ANNOUNCE messages provide an in-band means of discovery of publishers for a
-namespace.
+PUBLISH_NAMESPACE messages provide an in-band means of discovery of publishers
+for a namespace.
 
 The syntax of these messages is described in {{message}}.
 
@@ -916,8 +916,9 @@ The syntax of these messages is described in {{message}}.
 
 If the subscriber is aware of a namespace of interest, it can send
 SUBSCRIBE_NAMESPACE to publishers/relays it has established a session with. The
-recipient of this message will send any relevant ANNOUNCE, UNANNOUNCE or PUBLISH
-messages for that namespace, or more specific part of that namespace.
+recipient of this message will send any relevant PUBLISH_NAMESPACE,
+PUBLISH_NAMESPACE_DONE or PUBLISH messages for that namespace, or more specific
+part of that namespace.
 
 A publisher MUST send exactly one SUBSCRIBE_NAMESPACE_OK or
 SUBSCRIBE_NAMESPACE_ERROR in response to a SUBSCRIBE_NAMESPACE. The subscriber
@@ -929,53 +930,58 @@ forward the result to the application, so the application can decide which other
 publishers to contact, if any.
 
 An UNSUBSCRIBE_NAMESPACE withdraws a previous SUBSCRIBE_NAMESPACE. It does not
-prohibit original publishers from sending further ANNOUNCE or PUBLISH messages,
-but relays MUST NOT send any further PUBLISH messages to a client without
-knowing the client is interested in and authorized to receive the content.
+prohibit original publishers from sending further PUBLISH_NAMESPACE or PUBLISH
+messages, but relays MUST NOT send any further PUBLISH messages to a client
+without knowing the client is interested in and authorized to receive the
+content.
 
-## Announcements
+## Publishing Namespaces
 
-A publisher MAY send ANNOUNCE messages to any subscriber. An ANNOUNCE indicates
-to the subscriber that the publisher has tracks available in that namespace. A
-subscriber MAY send SUBSCRIBE or FETCH for tracks in a namespace without having
-received an ANNOUNCE for it.
+A publisher MAY send PUBLISH_NAMESPACE messages to any subscriber. A
+PUBLISH_NAMESPACE indicates to the subscriber that the publisher has tracks
+available in that namespace. A subscriber MAY send SUBSCRIBE or FETCH for tracks
+in a namespace without having received a PUBLISH_NAMESPACE for it.
 
 If a publisher is authoritative for a given namespace, or is a relay that has
-received an authorized ANNOUNCE for that namespace from an upstream publisher,
-it MUST send an ANNOUNCE to any subscriber that has subscribed to ANNOUNCE for
-that namespace, or a more generic set including that namespace. A publisher MAY
-send the ANNOUNCE to any other subscriber.
+received an authorized PUBLISH_NAMESPACE for that namespace from an upstream
+publisher, it MUST send a PUBLISH_NAMESPACE to any subscriber that has
+subscribed via SUBSCRIBE_NAMESPACE for that namespace, or a more generic set
+including that namespace. A publisher MAY send the PUBLISH_NAMESPACE to any
+other subscriber.
 
-An endpoint SHOULD NOT, however, send an ANNOUNCE advertising a namespace that
-exactly matches a namespace for which the peer sent an earlier ANNOUNCE
-(i.e. an ANNOUNCE ought not to be echoed back to its sender).
+An endpoint SHOULD NOT, however, send a PUBLISH_NAMESPACE advertising a
+namespace that exactly matches a namespace for which the peer sent an earlier
+PUBLISH_NAMESPACE (i.e. a PUBLISH_NAMESPACE ought not to be echoed back to its
+sender).
 
-The receiver of an ANNOUNCE_OK or ANNOUNCE_ERROR SHOULD report this to the
-application to inform the search for additional subscribers for a namespace,
-or abandoning the attempt to publish under this namespace. This might be
-especially useful in upload or chat applications. A subscriber MUST send exactly
-one ANNOUNCE_OK or ANNOUNCE_ERROR in response to an ANNOUNCE. The publisher
-SHOULD close the session with a protocol error if it receives more than one.
+The receiver of a PUBLISH_NAMESPACE_OK or PUBLISH_NAMESPACE_ERROR SHOULD report
+this to the application to inform the search for additional subscribers for a
+namespace, or abandoning the attempt to publish under this namespace. This might
+be especially useful in upload or chat applications. A subscriber MUST send
+exactly one PUBLISH_NAMESPACE_OK or PUBLISH_NAMESPACE_ERROR in response to an
+PUBLISH_NAMESPACE. The publisher SHOULD close the session with a protocol error
+if it receives more than one.
 
-An UNANNOUNCE message withdraws a previous ANNOUNCE, although it is not a
-protocol error for the subscriber to send a SUBSCRIBE or FETCH message for a
-track in a namespace after receiving an UNANNOUNCE.
+A PUBLISH_NAMESPACE_DONE message withdraws a previous PUBLISH_NAMESPACE,
+although it is not a protocol error for the subscriber to send a SUBSCRIBE or
+FETCH message for a track in a namespace after receiving an
+PUBLISH_NAMESPACE_DONE.
 
-A subscriber can send ANNOUNCE_CANCEL to revoke acceptance of an ANNOUNCE, for
-example due to expiration of authorization credentials. The message enables the
-publisher to ANNOUNCE again with refreshed authorization, or discard associated
-state. After receiving an ANNOUNCE_CANCEL, the publisher does not send
-UNANNOUNCE.
+A subscriber can send PUBLISH_NAMESPACE_CANCEL to revoke acceptance of an
+PUBLISH_NAMESPACE, for example due to expiration of authorization
+credentials. The message enables the publisher to PUBLISH_NAMESPACE again with
+refreshed authorization, or discard associated state. After receiving an
+PUBLISH_NAMESPACE_CANCEL, the publisher does not send PUBLISH_NAMESPACE_DONE.
 
-While ANNOUNCE indicates to relays how to connect publishers and subscribers, it
-is not a full-fledged routing protocol and does not protect against loops and
-other phenomena. In particular, ANNOUNCE SHOULD NOT be used to find paths
-through richly connected networks of relays.
+While PUBLISH_NAMESPACE indicates to relays how to connect publishers and
+subscribers, it is not a full-fledged routing protocol and does not protect
+against loops and other phenomena. In particular, PUBLISH_NAMESPACE SHOULD NOT
+be used to find paths through richly connected networks of relays.
 
 A subscriber MAY send a SUBSCRIBE or FETCH for a track to any publisher. If it
-has accepted an ANNOUNCE with a namespace that exactly matches the namespace for
-that track, it SHOULD only request it from the senders of those ANNOUNCE
-messages.
+has accepted a PUBLISH_NAMESPACE with a namespace that exactly matches the
+namespace for that track, it SHOULD only request it from the senders of those
+PUBLISH_NAMESPACE messages.
 
 
 # Priorities {#priorities}
@@ -1183,38 +1189,37 @@ There are two ways to publish through a relay:
 respond with PUBLISH_OK in Forward State=0 until there are known subscribers for
 new tracks.
 
-2. Send an ANNOUNCE message for a Track Namespace to the relay. This enables the
-relay to send SUBSCRIBE messages to publishers for Tracks in this Namespace in
-response to received SUBSCRIBE messages.
+2. Send a PUBLISH_NAMESPACE message for a Track Namespace to the relay. This
+enables the relay to send SUBSCRIBE messages to publishers for Tracks in this
+Namespace in response to received SUBSCRIBE messages.
 
 Relays MUST verify that publishers are authorized to publish the set of tracks
-whose Track Namespace matches the namespace in
-an ANNOUNCE, or the Full Track Name in PUBLISH. The authorization and
-identification of the publisher depends on the way the relay is managed
-and is application specific.
+whose Track Namespace matches the namespace in a PUBLISH_NAMESPACE, or the Full
+Track Name in PUBLISH. The authorization and identification of the publisher
+depends on the way the relay is managed and is application specific.
 
-A Relay can receive announcements for the same Track Namespace or PUBLISH
+A Relay can receive PUBLISH_NAMESPACE for the same Track Namespace or PUBLISH
 messages for the same Track from multiple publishers and is expected to treat
 them uniformly.
 
-When a publisher wants to stop new subscriptions for an announced namespace it
-sends an UNANNOUNCE. A subscriber indicates it will no longer subcribe to tracks
-in a namespace it previously responded ANNOUNCE_OK to by sending an
-ANNOUNCE_CANCEL.
+When a publisher wants to stop new subscriptions for a published namespace it
+sends a PUBLISH_NAMESPACE_DONE. A subscriber indicates it will no longer
+subcribe to tracks in a namespace it previously responded PUBLISH_NAMESPACE_OK
+to by sending a PUBLISH_NAMESPACE_CANCEL.
 
 A relay manages sessions from multiple publishers and subscribers, connecting
 them based on the Track Namespace or Full Track Name.  Prefix matching is used
 to determine which publishers receive a SUBSCRIBE or which subscribers receive a
 PUBLISH. For example, a SUBSCRIBE namespace=(foo,bar), track=x message will be
-forwarded to the sessions that sent ANNOUNCE namespace=(foo) and ANNOUNCE
-namespace=(foo, bar) respectively, but not one that sent ANNOUNCE
-namespace=(foobar).  Relays MUST forward SUBSCRIBE messages to all publishers
-and ANNOUNCE and PUBLISH messages to all subscribers that have a namespace
-prefix match.
+forwarded to the sessions that sent PUBLISH_NAMESPACE namespace=(foo) and
+PUBLISH_NAMESPACE namespace=(foo, bar) respectively, but not one that sent
+PUBLISH_NAMESPACE namespace=(foobar).  Relays MUST forward SUBSCRIBE messages to
+all publishers and PUBLISH_NAMESPACE and PUBLISH messages to all subscribers
+that have a namespace prefix match.
 
 When a relay receives an incoming SUBSCRIBE that triggers an upstream
 subscription, it SHOULD send a SUBSCRIBE request to each publisher that has
-announced the subscription's namespace or prefix thereof, unless it already has
+published the subscription's namespace or prefix thereof, unless it already has
 an active subscription for the Objects requested by the incoming SUBSCRIBE
 request from all available publishers.  If it already has a matching upstream
 subscription in Forward State=0, it SHOULD send a SUBSCRIBE_UDPATE with
@@ -1224,11 +1229,11 @@ When a relay receives an incoming PUBLISH message, it MUST send a PUBLISH
 request to each subscriber that has subscribed (via SUBSCRIBE_NAMESPACE)
 to the track's namespace or prefix thereof.
 
-When a relay receives an incoming ANNOUNCE for a given namespace, for
+When a relay receives an incoming PUBLISH_NAMESPACE for a given namespace, for
 each active upstream subscription that matches that namespace, it SHOULD send a
-SUBSCRIBE to the publisher that sent the ANNOUNCE.  When it receives an incoming
-PUBLISH message for a track that has active subscribers, it SHOULD respond
-with PUBLISH_OK with Forward State=1.
+SUBSCRIBE to the publisher that sent the PUBLISH_NAMESPACE.  When it receives an
+incoming PUBLISH message for a track that has active subscribers, it SHOULD
+respond with PUBLISH_OK with Forward State=1.
 
 Relays use the Track Alias ({{track-alias}}) of an incoming Object to identify
 its track and find the active subscribers. Relays MUST forward Objects to
@@ -1249,13 +1254,13 @@ switching between networks, such as WiFi to Cellular or vice versa.
 If the original publisher detects it is likely to need to switch networks, for
 example because the WiFi signal is getting weaker, and it does not have QUIC
 connection migration available, it establishes a new session over the new
-interface and sends ANNOUNCE and/or PUBLISH messages. The relay will establish
-subscriptions and the publisher publishes objects on both sessions.  Once the
-subscriptions have migrated over to session on the new network, the publisher
-can stop publishing objects on the old network. The relay will drop duplicate
-objects received on both subscriptions.  Ideally, the subscriptions downstream
-from the relay do no observe this change, and keep receiving the objects on the
-same subscription.
+interface and sends PUBLISH_NAMESPACE and/or PUBLISH messages. The relay will
+establish subscriptions and the publisher publishes objects on both sessions.
+Once the subscriptions have migrated over to session on the new network, the
+publisher can stop publishing objects on the old network. The relay will drop
+duplicate objects received on both subscriptions.  Ideally, the subscriptions
+downstream from the relay do no observe this change, and keep receiving the
+objects on the same subscription.
 
 ### Graceful Publisher Relay Switchover
 
@@ -1263,11 +1268,12 @@ This section describes a behavior that a publisher MAY choose to implement
 to allow for a better user experience when a relay sends them a GOAWAY.
 
 When a publisher receives a GOAWAY, it starts the process of connecting to a new
-relay and sends ANNOUNCE and/or PUBLISH messages, but it does not immediately
-stop publishing objects to the old relay. The new relay will establish
-subscriptions and the publisher can start sending new objects to the new relay
-instead of the old relay. Once objects are going to the new relay, the
-announcements and subscriptions to the old relay can be withdrawn or terminated.
+relay and sends PUBLISH_NAMESPACE and/or PUBLISH messages, but it does not
+immediately stop publishing objects to the old relay. The new relay will
+establish subscriptions and the publisher can start sending new objects to the
+new relay instead of the old relay. Once objects are going to the new relay, the
+published namespaces and subscriptions to the old relay can be withdrawn or
+terminated.
 
 ## Relay Object Handling
 
@@ -1358,15 +1364,15 @@ The following Message Types are defined:
 |-------|-----------------------------------------------------|
 | 0xF   | TRACK_STATUS_ERROR ({{message-track-status-error}}) |
 |-------|-----------------------------------------------------|
-| 0x6   | ANNOUNCE  ({{message-announce}})                    |
+| 0x6   | PUBLISH_NAMESPACE  ({{message-pub-ns}})             |
 |-------|-----------------------------------------------------|
-| 0x7   | ANNOUNCE_OK ({{message-announce-ok}})               |
+| 0x7   | PUBLISH_NAMESPACE_OK ({{message-pub-ns-ok}})        |
 |-------|-----------------------------------------------------|
-| 0x8   | ANNOUNCE_ERROR ({{message-announce-error}})         |
+| 0x8   | PUBLISH_NAMESPACE_ERROR ({{message-pub-ns-error}})  |
 |-------|-----------------------------------------------------|
-| 0x9   | UNANNOUNCE  ({{message-unannounce}})                |
+| 0x9   | PUBLISH_NAMESPACE_DONE  ({{message-pub-ns-done}})   |
 |-------|-----------------------------------------------------|
-| 0xC   | ANNOUNCE_CANCEL ({{message-announce-cancel}})       |
+| 0xC   | PUBLISH_NAMESPACE_CANCEL ({{message-pub-ns-cancel}})|
 |-------|-----------------------------------------------------|
 | 0x11  | SUBSCRIBE_NAMESPACE ({{message-subscribe-ns}})      |
 |-------|-----------------------------------------------------|
@@ -1391,10 +1397,11 @@ ID correlates requests and responses, allows endpoints to update or terminate
 ongoing requests, and supports the endpoint's ability to limit the concurrency
 and frequency of requests.  There are independent Request IDs for each endpoint.
 The client's Request ID starts at 0 and are even and the server's Request ID
-starts at 1 and are odd.  The Request ID increments by 2 with ANNOUNCE, FETCH,
-SUBSCRIBE, SUBSCRIBE_NAMESPACE or TRACK_STATUS request.  If an endpoint receives
-a Request ID that is not valid for the peer, or a new request with a Request ID
-that is not expected, it MUST close the session with `INVALID_REQUEST_ID`.
+starts at 1 and are odd.  The Request ID increments by 2 with PUBLISH_NAMESPACE,
+FETCH, SUBSCRIBE, SUBSCRIBE_NAMESPACE or TRACK_STATUS request.  If an endpoint
+receives a Request ID that is not valid for the peer, or a new request with a
+Request ID that is not expected, it MUST close the session with
+`INVALID_REQUEST_ID`.
 
 ## Parameters {#params}
 
@@ -1433,9 +1440,9 @@ these parameters to appear in Setup messages.
 
 The AUTHORIZATION TOKEN parameter (Parameter Type 0x03) MAY appear in a
 CLIENT_SETUP, SERVER_SETUP, PUBLISH, SUBSCRIBE, SUBSCRIBE_UPDATE,
-SUBSCRIBE_NAMESPACE, ANNOUNCE, TRACK_STATUS or FETCH message. This parameter
-conveys information to authorize the sender to perform the operation carrying
-the parameter.
+SUBSCRIBE_NAMESPACE, PUBLISH_NAMESPACE, TRACK_STATUS or FETCH message. This
+parameter conveys information to authorize the sender to perform the operation
+carrying the parameter.
 
 The AUTHORIZATION TOKEN parameter MAY be repeated within a message.
 
@@ -1722,8 +1729,9 @@ The GOAWAY message does not impact subscription state. A subscriber
 SHOULD individually UNSUBSCRIBE for each existing subscription, while a
 publisher MAY reject new requests while in the draining state.
 
-Upon receiving a GOAWAY, an endpoint SHOULD NOT initiate new requests to
-the peer including SUBSCRIBE, PUBLISH, FETCH, ANNOUNCE and SUBSCRIBE_NAMESPACE.
+Upon receiving a GOAWAY, an endpoint SHOULD NOT initiate new requests to the
+peer including SUBSCRIBE, PUBLISH, FETCH, PUBLISH_NAMESPACE and
+SUBSCRIBE_NAMESPACE.
 
 The endpoint MUST terminate the session with a `PROTOCOL_VIOLATION`
 ({{session-termination}}) if it receives multiple GOAWAY messages.
@@ -1767,9 +1775,9 @@ MAX_REQUEST_ID Message {
 ~~~
 {: #moq-transport-max-request-id format title="MOQT MAX_REQUEST_ID Message"}
 
-* Request ID: The new Maximum Request ID for the session plus one. If a Request
-  ID equal or larger than this is received by the endpoint that sent the
-  MAX_REQUEST_ID in any request message (ANNOUNCE, FETCH, SUBSCRIBE,
+* Request ID: The new Maximum Request ID for the session plus 1. If a Request ID
+  equal to or larger than this is received by the endpoint that sent the
+  MAX_REQUEST_ID in any request message (PUBLISH_NAMESPACE, FETCH, SUBSCRIBE,
   SUBSCRIBE_NAMESPACE or TRACK_STATUS), the endpoint MUST close the session with
   an error of `TOO_MANY_REQUESTS`.
 
@@ -2280,7 +2288,7 @@ PUBLISH Message {
 
 ## PUBLISH_OK {#message-publish-ok}
 
-The subscriber sends an PUBLISH_OK control message to acknowledge the successful
+The subscriber sends a PUBLISH_OK control message to acknowledge the successful
 authorization and acceptance of a PUBLISH message, and establish a subscription.
 
 ~~~
@@ -2319,7 +2327,7 @@ PUBLISH_OK Message {
 
 ## PUBLISH_ERROR {#message-publish-error}
 
-The subscriber sends an PUBLISH_ERROR control message to reject
+The subscriber sends a PUBLISH_ERROR control message to reject
 a subscription initiated by PUBLISH.
 
 ~~~
@@ -2708,14 +2716,14 @@ message ({{message-subscribe-error}}).
 The publisher populates the fields of TRACK_STATUS_ERROR exactly as it would
 have populated a SUBSCRIBE_ERROR.
 
-## ANNOUNCE {#message-announce}
+## PUBLISH_NAMESPACE {#message-pub-ns}
 
-The publisher sends the ANNOUNCE control message to advertise that it has
-tracks available within the announced Track Namespace. The receiver verifies the
+The publisher sends the PUBLISH_NAMESPACE control message to advertise that it
+has tracks available within a Track Namespace. The receiver verifies the
 publisher is authorized to publish tracks under this namespace.
 
 ~~~
-ANNOUNCE Message {
+PUBLISH_NAMESPACE Message {
   Type (i) = 0x6,
   Length (16),
   Request ID (i),
@@ -2724,7 +2732,7 @@ ANNOUNCE Message {
   Parameters (..) ...,
 }
 ~~~
-{: #moq-transport-announce-format title="MOQT ANNOUNCE Message"}
+{: #moq-transport-pub-ns-format title="MOQT PUBLISH_NAMESPACE Message"}
 
 * Request ID: See {{request-id}}.
 
@@ -2733,30 +2741,30 @@ ANNOUNCE Message {
 
 * Parameters: The parameters are defined in {{version-specific-params}}.
 
-## ANNOUNCE_OK {#message-announce-ok}
+## PUBLISH_NAMESPACE_OK {#message-pub-ns-ok}
 
-The subscriber sends an ANNOUNCE_OK control message to acknowledge the
-successful authorization and acceptance of an ANNOUNCE message.
+The subscriber sends a PUBLISH_NAMESPACE_OK control message to acknowledge the
+successful authorization and acceptance of a PUBLISH_NAMESPACE message.
 
 ~~~
-ANNOUNCE_OK Message {
+PUBLISH_NAMESPACE_OK Message {
   Type (i) = 0x7,
   Length (16),
   Request ID (i)
 }
 ~~~
-{: #moq-transport-announce-ok format title="MOQT ANNOUNCE_OK Message"}
+{: #moq-transport-pub-ns-ok format title="MOQT PUBLISH_NAMESPACE_OK Message"}
 
-* Request ID: The Request ID of the ANNOUNCE this message is replying to
-  {{message-announce}}.
+* Request ID: The Request ID of the PUBLISH_NAMESPACE this message is replying
+  to {{message-pub-ns}}.
 
-## ANNOUNCE_ERROR {#message-announce-error}
+## PUBLISH_NAMESPACE_ERROR {#message-pub-ns-error}
 
-The subscriber sends an ANNOUNCE_ERROR control message for tracks that
+The subscriber sends a PUBLISH_NAMESPACE_ERROR control message for tracks that
 failed authorization.
 
 ~~~
-ANNOUNCE_ERROR Message {
+PUBLISH_NAMESPACE_ERROR Message {
   Type (i) = 0x8,
   Length (16),
   Request ID (i),
@@ -2764,17 +2772,18 @@ ANNOUNCE_ERROR Message {
   Error Reason (Reason Phrase)
 }
 ~~~
-{: #moq-transport-announce-error format title="MOQT ANNOUNCE_ERROR Message"}
+{: #moq-transport-pub-ns-error format title="MOQT PUBLISH_NAMESPACE_ERROR Message"}
 
-* Request ID: The Request ID of the ANNOUNCE this message is replying to
-  {{message-announce}}.
+* Request ID: The Request ID of the PUBLISH_NAMESPACE this message is replying
+  to {{message-pub-ns}}.
 
-* Error Code: Identifies an integer error code for announcement failure.
+* Error Code: Identifies an integer error code for publish namespace failure.
 
-* Error Reason: Provides the reason for announcement error. See {{reason-phrase}}.
+* Error Reason: Provides the reason for publish namespace error. See
+  {{reason-phrase}}.
 
-The application SHOULD use a relevant error code in ANNOUNCE_ERROR, as defined
-below:
+The application SHOULD use a relevant error code in PUBLISH_NAMESPACE_ERROR, as
+defined below:
 
 INTERNAL_ERROR (0x0):
 : An implementation specific or generic error occurred.
@@ -2787,7 +2796,7 @@ TIMEOUT (0x2):
   timeout.
 
 NOT_SUPPORTED (0x3):
-: The endpoint does not support the ANNOUNCE method.
+: The endpoint does not support the PUBLISH_NAMESPACE method.
 
 UNINTERESTED (0x4):
 : The namespace is not of interest to the endpoint.
@@ -2800,32 +2809,32 @@ EXPIRED_AUTH_TOKEN (0x12):
 : Authorization token has expired ({{authorization-token}}).
 
 
-## UNANNOUNCE {#message-unannounce}
+## PUBLISH_NAMESPACE_DONE {#message-pub-ns-done}
 
-The publisher sends the `UNANNOUNCE` control message to indicate
-its intent to stop serving new subscriptions for tracks
-within the provided Track Namespace.
+The publisher sends the `PUBLISH_NAMESPACE_DONE` control message to indicate its
+intent to stop serving new subscriptions for tracks within the provided Track
+Namespace.
 
 ~~~
-UNANNOUNCE Message {
+PUBLISH_NAMESPACE_DONE Message {
   Type (i) = 0x9,
   Length (16),
   Track Namespace (tuple),
 }
 ~~~
-{: #moq-transport-unannounce-format title="MOQT UNANNOUNCE Message"}
+{: #moq-transport-pub-ns-done-format title="MOQT PUBLISH_NAMESPACE_DONE Message"}
 
 * Track Namespace: Identifies a track's namespace as defined in
 ({{track-name}}).
 
-## ANNOUNCE_CANCEL {#message-announce-cancel}
+## PUBLISH_NAMESPACE_CANCEL {#message-pub-ns-cancel}
 
-The subscriber sends an `ANNOUNCE_CANCEL` control message to
+The subscriber sends an `PUBLISH_NAMESPACE_CANCEL` control message to
 indicate it will stop sending new subscriptions for tracks
 within the provided Track Namespace.
 
 ~~~
-ANNOUNCE_CANCEL Message {
+PUBLISH_NAMESPACE_CANCEL Message {
   Type (i) = 0xC,
   Length (16),
   Track Namespace (tuple),
@@ -2833,22 +2842,23 @@ ANNOUNCE_CANCEL Message {
   Error Reason (Reason Phrase),
 }
 ~~~
-{: #moq-transport-announce-cancel-format title="MOQT ANNOUNCE_CANCEL Message"}
+{: #moq-transport-pub-ns-cancel-format title="MOQT PUBLISH_NAMESPACE_CANCEL Message"}
 
 * Track Namespace: Identifies a track's namespace as defined in
-({{track-name}}).
+  ({{track-name}}).
 
-* Error Code: Identifies an integer error code for canceling the announcement.
-ANNOUNCE_CANCEL uses the same error codes as ANNOUNCE_ERROR
-({{message-announce-error}}).
+* Error Code: Identifies an integer error code for canceling the publish.
+  PUBLISH_NAMESPACE_CANCEL uses the same error codes as PUBLISH_NAMESPACE_ERROR
+  ({{message-pub-ns-error}}).
 
-* Error Reason: Provides the reason for announcement cancelation. See {{reason-phrase}}.
+* Error Reason: Provides the reason for publish cancelation. See
+  {{reason-phrase}}.
 
 ## SUBSCRIBE_NAMESPACE {#message-subscribe-ns}
 
 The subscriber sends the SUBSCRIBE_NAMESPACE control message to a publisher to
-request the current set of matching announcements and established subscriptions,
-as well as future updates to the set.
+request the current set of matching published namespaces and established
+subscriptions, as well as future updates to the set.
 
 ~~~
 SUBSCRIBE_NAMESPACE Message {
@@ -2866,21 +2876,22 @@ SUBSCRIBE_NAMESPACE Message {
 
 * Track Namespace Prefix: An ordered N-Tuple of byte fields which are matched
 against track namespaces known to the publisher.  For example, if the publisher
-is a relay that has received ANNOUNCE messages for namespaces ("example.com",
-"meeting=123", "participant=100") and ("example.com", "meeting=123",
-"participant=200"), a SUBSCRIBE_NAMESPACE for ("example.com", "meeting=123")
-would match both.  If an endpoint receives a Track Namespace Prefix tuple with
-an N of 0 or more than 32, it MUST close the session with a Protocol
-Violation.
+is a relay that has received PUBLISH_NAMESPACE messages for namespaces
+("example.com", "meeting=123", "participant=100") and ("example.com",
+"meeting=123", "participant=200"), a SUBSCRIBE_NAMESPACE for ("example.com",
+"meeting=123") would match both.  If an endpoint receives a Track Namespace
+Prefix tuple with an N of 0 or more than 32, it MUST close the session with a
+Protocol Violation.
 
 * Parameters: The parameters are defined in {{version-specific-params}}.
 
 The publisher will respond with SUBSCRIBE_NAMESPACE_OK or
 SUBSCRIBE_NAMESPACE_ERROR.  If the SUBSCRIBE_NAMESPACE is successful, the
-publisher will immediately forward existing ANNOUNCE and PUBLISH messages that
-match the Track Namespace Prefix that have not already been sent to this
-subscriber.  If the set of matching ANNOUNCE messages changes, the publisher
-sends the corresponding ANNOUNCE or UNANNOUNCE message.
+publisher will immediately forward existing PUBLISH_NAMESPACE and PUBLISH
+messages that match the Track Namespace Prefix that have not already been sent
+to this subscriber.  If the set of matching PUBLISH_NAMESPACE messages changes,
+the publisher sends the corresponding PUBLISH_NAMESPACE or
+PUBLISH_NAMESPACE_DONE message.
 
 A subscriber cannot make overlapping namespace subscriptions on a single
 session.  Within a session, if a publisher receives a SUBSCRIBE_NAMESPACE with a
@@ -2891,10 +2902,10 @@ code `NAMESPACE_PREFIX_OVERLAP`.
 The publisher MUST ensure the subscriber is authorized to perform this
 namespace subscription.
 
-SUBSCRIBE_NAMESPACE is not required for a publisher to send ANNOUNCE, UNANNOUNCE
-or PUBLISH messages to a subscriber.  It is useful in applications or relays
-where subscribers are only interested in or authorized to access a subset of
-available announcements and tracks.
+SUBSCRIBE_NAMESPACE is not required for a publisher to send PUBLISH_NAMESPACE,
+PUBLISH_NAMESPACE_DONE or PUBLISH messages to a subscriber.  It is useful in
+applications or relays where subscribers are only interested in or authorized to
+access a subset of available namespaces and tracks.
 
 ## SUBSCRIBE_NAMESPACE_OK {#message-sub-ns-ok}
 
@@ -2974,8 +2985,8 @@ EXPIRED_AUTH_TOKEN (0x12):
 ## UNSUBSCRIBE_NAMESPACE {#message-unsub-ns}
 
 A subscriber issues a `UNSUBSCRIBE_NAMESPACE` message to a publisher indicating
-it is no longer interested in ANNOUNCE, UNANNOUNCE and PUBLISH messages for the
-specified track namespace prefix.
+it is no longer interested in PUBLISH_NAMESPACE, PUBLISH_NAMESPACE_DONE and
+PUBLISH messages for the specified track namespace prefix.
 
 The format of `UNSUBSCRIBE_NAMESPACE` is as follows:
 
