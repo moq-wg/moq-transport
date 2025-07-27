@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 27 January 2026                                   I. Swett, Ed.
+Expires: 28 January 2026                                   I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                            26 July 2025
+                                                            27 July 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 27 January 2026.
+   This Internet-Draft will expire on 28 January 2026.
 
 Copyright Notice
 
@@ -1919,10 +1919,10 @@ Table of Contents
    on the MAX_AUTH_TOKEN_CACHE_SIZE parameter in SERVER_SETUP (or the
    default value of 0).
 
-8.3.2.6.  MOQT AGENT
+8.3.2.6.  MOQT IMPLEMENTATION
 
-   The MOQT_AGENT parameter (Parameter Type 0x05) is a UTF-8 encoded
-   string describing the software agent of the sender.
+   The MOQT_IMPLEMENTATION parameter (Parameter Type 0x05) is a UTF-8
+   encoded string describing the software agent of the sender.
 
 8.4.  GOAWAY
 
