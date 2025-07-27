@@ -1227,13 +1227,14 @@ PUBLISH_NAMESPACE namespace=(foobar).  Relays MUST forward SUBSCRIBE messages to
 all publishers and PUBLISH_NAMESPACE and PUBLISH messages to all subscribers
 that have a namespace prefix match.
 
-When a relay receives an incoming SUBSCRIBE that triggers an upstream
-subscription, it MUST send a SUBSCRIBE request to each publisher that has
-published the subscription's namespace or prefix thereof, unless it already has
-an active subscription for the Track requested by the incoming SUBSCRIBE request
-from all available publishers.  If it already has a matching upstream
-subscription in Forward State=0, it SHOULD send a SUBSCRIBE_UDPATE with
-Forward=1 to all publishers.
+When a Relay receives an authorized SUBSCRIBE for a Track with one or more
+active upstream subscriptions, it MUST reply with SUBSCRIBE_OK.  If the
+SUBSCRIBE has Forward State=1 and the upstream subscriptions are in Forward
+State=0, the Relay MUST send SUBSCRIBE_UPDATE with Forward=1 to all publishers.
+If there are no active upstream subscriptions for the requested Track, the Relay
+MUST send a SUBSCRIBE request to each publisher that has published the
+subscription's namespace or prefix thereof.  If the SUBSCRIBE has Forward
+State=1, then the Relay MUST use Foward=1 when subscribing upstream.
 
 When a relay receives an incoming PUBLISH message, it MUST send a PUBLISH
 request to each subscriber that has subscribed (via SUBSCRIBE_NAMESPACE)
