@@ -2923,14 +2923,14 @@ forward the duplicate object in this case.<a href="#section-7.1-5" class="pilcro
 <p id="section-7.2-1">A Relay can receive PUBLISH_NAMESPACE for the same Track Namespace or PUBLISH
 messages for the same Track from multiple publishers and is expected to treat
 them uniformly.<a href="#section-7.2-1" class="pilcrow">¶</a></p>
-<p id="section-7.2-2">The is required in order to support the following use cases:<a href="#section-7.2-2" class="pilcrow">¶</a></p>
+<p id="section-7.2-2">This behavior is necessary to support the following scenarios:<a href="#section-7.2-2" class="pilcrow">¶</a></p>
 <ol start="1" type="1" class="normal type-1" id="section-7.2-3">
 <li id="section-7.2-3.1">
             <p id="section-7.2-3.1.1">A publisher loses state and reconnects to the same Relay, but the Relay
 has not yet detected the old session has terminated.<a href="#section-7.2-3.1.1" class="pilcrow">¶</a></p>
 </li>
           <li id="section-7.2-3.2">
-            <p id="section-7.2-3.2.1">A publisher is attempting to gracefully migrate to a new session.<a href="#section-7.2-3.2.1" class="pilcrow">¶</a></p>
+            <p id="section-7.2-3.2.1">A publisher is performing a graceful migration to a new session.<a href="#section-7.2-3.2.1" class="pilcrow">¶</a></p>
 </li>
           <li id="section-7.2-3.3">
             <p id="section-7.2-3.3.1">A system that facilitates failover with multiple redundant publishers that
@@ -2941,10 +2941,9 @@ produce identical Track content.<a href="#section-7.2-3.3.1" class="pilcrow">¶<
 Track.<a href="#section-7.2-3.4.1" class="pilcrow">¶</a></p>
 </li>
         </ol>
-<p id="section-7.2-4">Relays <span class="bcp14">MUST</span> be able to process Objects for the same Track from multiple
-publishers and forward Objects to active matching subscriptions.  The Relay
-<span class="bcp14">SHOULD</span> attempt to deduplicate Objects when forwarding downstream, subject to
-implementation limits.<a href="#section-7.2-4" class="pilcrow">¶</a></p>
+<p id="section-7.2-4">Relays <span class="bcp14">MUST</span> handle Objects for the same Track from multiple publishers and
+forward them to active matching subscriptions. The Relay <span class="bcp14">SHOULD</span> attempt to
+deduplicate Objects before forwarding, subject to implementation constraints.<a href="#section-7.2-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="subscriber-interactions">
