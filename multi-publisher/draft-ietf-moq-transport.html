@@ -2941,6 +2941,10 @@ produce identical Track content.<a href="#section-7.2-3.3.1" class="pilcrow">¶<
 Track.<a href="#section-7.2-3.4.1" class="pilcrow">¶</a></p>
 </li>
         </ol>
+<p id="section-7.2-4">Relays <span class="bcp14">MUST</span> be able to process Objects for the same Track from multiple
+publishers and forward Objects to active matching subscriptions.  The Relay
+<span class="bcp14">SHOULD</span> attempt to deduplicate Objects when forwarding downstream, subject to
+implementation limits.<a href="#section-7.2-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="subscriber-interactions">
@@ -2963,13 +2967,9 @@ sufficient information to send a FETCH_OK immediately in response to a FETCH, it
 subscribers for each Track. Each new Object belonging to the
 Track within the subscription range is forwarded to each active
 subscriber, dependent on the congestion response.<a href="#section-7.3-3" class="pilcrow">¶</a></p>
-<p id="section-7.3-4">Relays <span class="bcp14">MUST</span> be able to process Objects for the same Track from multiple
-publishers and forward Objects to active matching subscriptions.  The Relay
-<span class="bcp14">SHOULD</span> attempt to deduplicate Objects when forwarding downstream, subject to
-implementation limits.<a href="#section-7.3-4" class="pilcrow">¶</a></p>
-<p id="section-7.3-5">A relay <span class="bcp14">MUST NOT</span> reorder or drop objects received on a multi-object stream when
-forwarding to subscribers, unless it has application specific information.<a href="#section-7.3-5" class="pilcrow">¶</a></p>
-<p id="section-7.3-6">Relays <span class="bcp14">MAY</span> aggregate authorized subscriptions for a given Track when
+<p id="section-7.3-4">A relay <span class="bcp14">MUST NOT</span> reorder or drop objects received on a multi-object stream when
+forwarding to subscribers, unless it has application specific information.<a href="#section-7.3-4" class="pilcrow">¶</a></p>
+<p id="section-7.3-5">Relays <span class="bcp14">MAY</span> aggregate authorized subscriptions for a given Track when
 multiple subscribers request the same Track. Subscription aggregation
 allows relays to make only a single upstream subscription for the
 Track. The published content received from the upstream subscription
@@ -2977,7 +2977,7 @@ request is cached and shared among the pending subscribers.
 Because SUBSCRIBE_UPDATE only allows narrowing a subscription, relays that
 aggregate upstream subscriptions can subscribe using the Largest Object
 filter to avoid churn as downstream subscribers with disparate filters
-subscribe and unsubscribe from a Track.<a href="#section-7.3-6" class="pilcrow">¶</a></p>
+subscribe and unsubscribe from a Track.<a href="#section-7.3-5" class="pilcrow">¶</a></p>
 <div id="graceful-subscriber-relay-switchover">
 <section id="section-7.3.1">
           <h4 id="name-graceful-subscriber-relay-s">
