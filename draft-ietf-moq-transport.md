@@ -1720,7 +1720,7 @@ MAX_AUTH_TOKEN_CACHE_SIZE parameter in SERVER_SETUP (or the default value of 0).
 #### MOQT IMPLEMENTATION
 
 The MOQT_IMPLEMENTATION parameter (Parameter Type 0x05) is a UTF-8 encoded
-string describing the software agent of the sender.
+string describing the sender's MOQT implementation.
 
 
 ## GOAWAY {#message-goaway}
