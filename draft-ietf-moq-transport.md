@@ -1239,12 +1239,13 @@ When a relay receives an incoming PUBLISH message, it MUST send a PUBLISH
 request to each subscriber that has subscribed (via SUBSCRIBE_NAMESPACE)
 to the Track's namespace or prefix thereof.
 
-When a relay receives an incoming PUBLISH_NAMESPACE for a namespace that matches
-one or more existing subscriptions to other upstream sessions, it MUST send a
-SUBSCRIBE to the publisher that sent the PUBLISH_NAMESPACE for each matching
-subscription.  When it receives an incoming PUBLISH message for a Track that has
-active subscribers, it MUST respond with PUBLISH_OK, and SHOULD use Forward
-State=1.
+When a relay receives an authorized PUBLISH_NAMESPACE for a namespace that
+matches one or more existing subscriptions to other upstream sessions, it MUST
+send a SUBSCRIBE to the publisher that sent the PUBLISH_NAMESPACE for each
+matching subscription.  When it receives an authorized PUBLISH message for a
+Track that has active subscribers, it MUST respond with PUBLISH_OK.  If at least
+one downstream subscriber for the Track has Forward State=1, the Relay MUST use
+Forward State=1 in the reply.
 
 Relays use the Track Alias ({{track-alias}}) of an incoming Object to identify
 its Track and find the active subscribers. Relays MUST forward Objects to
