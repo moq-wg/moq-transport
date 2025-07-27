@@ -1276,8 +1276,8 @@ Table of Contents
 7.2.  Multiple Publishers
 
    A Relay can receive PUBLISH_NAMESPACE for the same Track Namespace or
-   PUBLISH messages for the same Track from multiple publishers and is
-   expected to treat them uniformly.
+   PUBLISH messages for the same Track from multiple publishers and MUST
+   handle them uniformly.
 
    This behavior is necessary to support the following scenarios:
 
@@ -1289,7 +1289,7 @@ Table of Contents
    3.  A system that facilitates failover with multiple redundant
        publishers that produce identical Track content.
 
-   4.  A distributed set of endpoints, each publishing different content
+   4.  A distributed set of endpoints, each publishing different Objects
        in the same Track.
 
    Relays MUST handle Objects for the same Track from multiple
