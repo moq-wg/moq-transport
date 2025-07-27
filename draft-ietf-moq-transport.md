@@ -1717,9 +1717,9 @@ parameter as Alias Type USE_VALUE.  A client MUST handle registration failures
 of this kind by purging any Token Aliases that failed to register based on the
 MAX_AUTH_TOKEN_CACHE_SIZE parameter in SERVER_SETUP (or the default value of 0).
 
-#### MOQT AGENT
+#### MOQT IMPLEMENTATION
 
-The MOQT_AGENT parameter (Parameter Type 0x05) is a UTF-8 encoded
+The MOQT_IMPLEMENTATION parameter (Parameter Type 0x05) is a UTF-8 encoded
 string describing the software agent of the sender.
 
 
