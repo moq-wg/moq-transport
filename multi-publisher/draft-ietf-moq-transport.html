@@ -3038,12 +3038,13 @@ Forward=1 to all publishers.<a href="#section-7.4-6" class="pilcrow">¶</a></p>
 <p id="section-7.4-7">When a relay receives an incoming PUBLISH message, it <span class="bcp14">MUST</span> send a PUBLISH
 request to each subscriber that has subscribed (via SUBSCRIBE_NAMESPACE)
 to the Track's namespace or prefix thereof.<a href="#section-7.4-7" class="pilcrow">¶</a></p>
-<p id="section-7.4-8">When a relay receives an incoming PUBLISH_NAMESPACE for a namespace that matches
-one or more existing subscriptions to other upstream sessions, it <span class="bcp14">MUST</span> send a
-SUBSCRIBE to the publisher that sent the PUBLISH_NAMESPACE for each matching
-subscription.  When it receives an incoming PUBLISH message for a Track that has
-active subscribers, it <span class="bcp14">MUST</span> respond with PUBLISH_OK, and <span class="bcp14">SHOULD</span> use Forward
-State=1.<a href="#section-7.4-8" class="pilcrow">¶</a></p>
+<p id="section-7.4-8">When a relay receives an authorized PUBLISH_NAMESPACE for a namespace that
+matches one or more existing subscriptions to other upstream sessions, it <span class="bcp14">MUST</span>
+send a SUBSCRIBE to the publisher that sent the PUBLISH_NAMESPACE for each
+matching subscription.  When it receives an authorized PUBLISH message for a
+Track that has active subscribers, it <span class="bcp14">MUST</span> respond with PUBLISH_OK.  If at least
+one downstream subscriber for the Track has Forward State=1, the Relay <span class="bcp14">MUST</span> use
+Forward State=1 in the reply.<a href="#section-7.4-8" class="pilcrow">¶</a></p>
 <p id="section-7.4-9">Relays use the Track Alias (<a href="#track-alias" class="auto internal xref">Section 9.1</a>) of an incoming Object to identify
 its Track and find the active subscribers. Relays <span class="bcp14">MUST</span> forward Objects to
 matching subscribers in accordance to each subscription's priority, group order,
