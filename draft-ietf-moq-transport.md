@@ -1136,20 +1136,19 @@ A Relay can receive PUBLISH_NAMESPACE for the same Track Namespace or PUBLISH
 messages for the same Track from multiple publishers and is expected to treat
 them uniformly.
 
-The is required in order to support the following use cases:
+This behavior is necessary to support the following scenarios:
 
 1. A publisher loses state and reconnects to the same Relay, but the Relay
    has not yet detected the old session has terminated.
-2. A publisher is attempting to gracefully migrate to a new session.
+2. A publisher is performing a graceful migration to a new session.
 3. A system that facilitates failover with multiple redundant publishers that
    produce identical Track content.
 4. A distributed set of endpoints, each publishing different content in the same
    Track.
 
-Relays MUST be able to process Objects for the same Track from multiple
-publishers and forward Objects to active matching subscriptions.  The Relay
-SHOULD attempt to deduplicate Objects when forwarding downstream, subject to
-implementation limits.
+Relays MUST handle Objects for the same Track from multiple publishers and
+forward them to active matching subscriptions. The Relay SHOULD attempt to
+deduplicate Objects before forwarding, subject to implementation constraints.
 
 ## Subscriber Interactions
 
