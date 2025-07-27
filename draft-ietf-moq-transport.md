@@ -1146,6 +1146,11 @@ The is required in order to support the following use cases:
 4. A distributed set of endpoints, each publishing different content in the same
    Track.
 
+Relays MUST be able to process Objects for the same Track from multiple
+publishers and forward Objects to active matching subscriptions.  The Relay
+SHOULD attempt to deduplicate Objects when forwarding downstream, subject to
+implementation limits.
+
 ## Subscriber Interactions
 
 Subscribers subscribe to tracks by sending a SUBSCRIBE
@@ -1165,11 +1170,6 @@ For successful subscriptions, the publisher maintains a list of
 subscribers for each Track. Each new Object belonging to the
 Track within the subscription range is forwarded to each active
 subscriber, dependent on the congestion response.
-
-Relays MUST be able to process Objects for the same Track from multiple
-publishers and forward Objects to active matching subscriptions.  The Relay
-SHOULD attempt to deduplicate Objects when forwarding downstream, subject to
-implementation limits.
 
 A relay MUST NOT reorder or drop objects received on a multi-object stream when
 forwarding to subscribers, unless it has application specific information.
