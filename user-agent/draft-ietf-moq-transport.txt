@@ -1922,7 +1922,7 @@ Table of Contents
 8.3.2.6.  MOQT IMPLEMENTATION
 
    The MOQT_IMPLEMENTATION parameter (Parameter Type 0x05) is a UTF-8
-   encoded string describing the software agent of the sender.
+   encoded string describing the sender's MOQT implementation.
 
 8.4.  GOAWAY
 
