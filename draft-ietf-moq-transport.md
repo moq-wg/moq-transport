@@ -1207,7 +1207,7 @@ to by sending a PUBLISH_NAMESPACE_CANCEL.
 
 A Relay manages sessions from multiple publishers and subscribers, connecting
 them based on the Track Namespace or Full Track Name.  The Full Track Name in
-SUBSCRIBE is matched exactly against existing subscriptions.
+SUBSCRIBE is matched exactly against existing upstream subscriptions.
 
 Namespace Prefix Matching is further used to determine which publishers receive
 a SUBSCRIBE and which subscribers receive a PUBLISH.  In Namespace Prefix
