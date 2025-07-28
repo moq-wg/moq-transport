@@ -3234,8 +3234,18 @@ There are 8 defined Type values for OBJECT_DATAGRAM:
 | 0x07 | Yes           | Yes        | No        |
 |------|---------------|------------|-----------|
 
-For Type values where End of Group is Yes, the Object is the last Object in the
-Group.
+For Type values where End of Group is Yes, the effect is the same as receiving
+the current Datagram followed by an OBJECT_DATAGRAM_STATUS with the following
+values:
+
+~~~
+  Track Alias = datagram.Track Alias
+  Group ID = datagram.Group ID
+  Object ID = datagram.Object ID + 1
+  Publisher Priority = datagram.Publisher Priority
+  Extension Headers Length = 0
+  Object Status = End of Group
+~~~
 
 For Type values where Extensions Present is No, Extensions Headers Length is not
 present and the Object has no extensions.  When Extensions Present is Yes,
@@ -3361,10 +3371,20 @@ There are 12 defined Type values for SUBGROUP_HEADER:
 | 0x1D | Yes           | N/A             | Yes        | Yes          |
 |------|---------------|-----------------|------------|--------------|
 
-For Type values where Contains End of Group is Yes, the last Object in this
-Subgroup stream before a FIN is the last Object in the Group.  If the Subgroup
-stream is terminated with a RESET_STREAM or RESET_STREAM_AT, the receiver cannot
-determine the End of Group Object ID.
+For Type values where Contains End of Group is Yes, when the Subgroup stream is
+terminated with a FIN, the effect is the same as receiving an additional Object
+in the Subgroup with the following values:
+
+~~~
+  Object ID Delta = 0
+  Extension Headers Length = 0
+  Object Payload Length = 0
+  Object Status = End of Group
+~~~
+
+If such a Subgroup stream is terminated with a RESET_STREAM or RESET_STREAM_AT,
+no End of Group object can be inferred.  If the stream contains no Objects,
+Object 0 is the End of Group.
 
 For Type values where Subgroup ID Field Present is No, there is no explicit
 Subgroup ID field in the header and the Subgroup ID is either 0 (for Types
