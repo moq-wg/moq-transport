@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 28 January 2026                                   I. Swett, Ed.
+Expires: 29 January 2026                                   I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                            27 July 2025
+                                                            28 July 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 28 January 2026.
+   This Internet-Draft will expire on 29 January 2026.
 
 Copyright Notice
 
@@ -1356,7 +1356,7 @@ Table of Contents
    A Relay manages sessions from multiple publishers and subscribers,
    connecting them based on the Track Namespace or Full Track Name.  The
    Full Track Name in SUBSCRIBE is matched exactly against existing
-   subscriptions.
+   upstream subscriptions.
 
    Namespace Prefix Matching is further used to determine which
    publishers receive a SUBSCRIBE and which subscribers receive a
