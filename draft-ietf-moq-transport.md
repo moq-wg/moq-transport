@@ -3760,12 +3760,12 @@ an expected time.  Each implementation is expected to set its own limits.
 
 ## Relay memory consumption
 
-A Relay SHOULD have mechanisms to prevent malicious endpoints from flooding
-it with ANNOUNCE or SUBSCRIBE_ANNOUNCE requests that could bloat data
-structures. It could use the advertised MAX_REQUEST_ID to limit the number
-of such requests, or could have application-specific policies that can
-reject incoming ANNOUNCE or SUBSCRIBE_NAMESPACE requests that cause the
-state maintenance for the session to be excessive.
+A Relay SHOULD have mechanisms to prevent malicious endpoints from flooding it
+with PUBLISH_NAMESPACE or SUBSCRIBE_NAMESPACE requests that could bloat data
+structures. It could use the advertised MAX_REQUEST_ID to limit the number of
+such requests, or could have application-specific policies that can reject
+incoming PUBLISH_NAMESPACE or SUBSCRIBE_NAMESPACE requests that cause the state
+maintenance for the session to be excessive.
 
 # IANA Considerations {#iana}
 
