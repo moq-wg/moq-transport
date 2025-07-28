@@ -3384,9 +3384,13 @@ following fields.
 The Object Status field is only sent if the Object Payload Length is zero.
 
 The Object ID Delta + 1 is added to the previous Object ID in the Subgroup
-stream if there was one.  The Object ID is the Object ID Delta if it's the
-first Object in the Subgroup stream. For example, a Subgroup of sequential
-Object IDs starting at 0 will have 0 for all Object ID Delta values.
+stream if there was one.  The Object ID is the Object ID Delta if it's the first
+Object in the Subgroup stream. For example, a Subgroup of sequential Object IDs
+starting at 0 will have 0 for all Object ID Delta values. A consumer cannot
+infer information about the existence of Objects between the current and
+previous Object ID in the Subgroup (e.g. when Object ID Delta is non-zero)
+unless there is an Prior Object ID Gap extesnion header (see
+{{prior-object-id-gap}}).
 
 ~~~
 {
@@ -3607,21 +3611,54 @@ The following Object Extension Headers are defined in MOQT.
 
 ## Prior Group ID Gap
 
-Prior Group ID Gap (Extension Header Type 0x40) is a variable length integer
+Prior Group ID Gap (Extension Header Type 0x3C) is a variable length integer
 containing the number of Groups prior to the current Group that do not and will
-never exist. For example, if the Original Publisher published an Object in Group
-7 and knows it will never publish any Objects in Group 8 or Group 9, it can
-include Prior Group ID Gap = 2 in any number of Objects in Group 10, as it sees
-fit.  A track with a Group that contains more than one Object with different
-values for Prior Group ID Gap or has a Prior Group ID Gap larger than the Group
-ID is considered malformed.  If an endpoint receives an Object with a Group ID
-within a previously communicated gap it also treats the track as malformed
-(see {{malformed-tracks}}.
+never exist. This is equivalent to receiving an `End of Group` status with
+Object ID 0 for each skipped Group. For example, if the Original Publisher is
+publishing an Object in Group 7 and knows it will never publish any Objects in
+Group 8 or Group 9, it can include Prior Group ID Gap = 2 in any number of
+Objects in Group 10, as it sees fit.  A Track is considered malformed (see
+{{malformed-tracks}} if any of the following conditions are detected:
+
+ * An Object contains more than one instance of Prior Group ID Gap
+ * A Group contains more than one Object with different values for Prior Group
+    ID Gap
+ * An Object has a Prior Group ID Gap larger than the Group ID
+ * An endpoint receives an Object with a Prior Group ID Gap covering an Object
+   it previously received
+ * An endpoint receives an Object with a Group ID within a previously
+   communicated gap
 
 This extension is optional, as publishers might not know the prior gap gize, or
 there may not be a gap. If Prior Group ID Gap is not present, the receiver
 cannot infer any information about the existence of prior groups (see
 {{group-ordering}}).
+
+This extension can be added by the Original Publisher, but MUST NOT be added by
+relays. This extension MUST NOT be modified or removed.
+
+## Prior Object ID Gap
+
+Prior Object ID Gap (Extension Header Type 0x3E) is a variable length integer
+containing the number of Objects prior to the current Object that do not and
+will never exist. This is equivalent to receiving an `Object Does Not Exist`
+status for each skipped Object ID. For example, if the Original Publisher is
+publishing Object 10 in Group 3 and knows it will never publish Objects 8 or 9
+in this Group, it can include Prior Object ID Gap = 2.  A Track is considered
+malformed (see {{malformed-tracks}} if any of the following conditions are
+detected:
+
+ * An Object contains more than one instance of Prior Object ID Gap
+ * An Object has a Prior Object ID Gap larger than the Object ID
+ * An endpoint receives an Object with a Prior Object ID Gap covering an Object
+   it previously received
+ * An endpoint receives an Object with an Object ID within a previously
+   communicated gap
+
+This extension is optional, as publishers might not know the prior gap gize, or
+there may not be a gap. If Prior Object ID Gap is not present, the receiver
+cannot infer any information about the existence of prior objects (see
+{{model-object}}).
 
 This extension can be added by the Original Publisher, but MUST NOT be added by
 relays. This extension MUST NOT be modified or removed.
