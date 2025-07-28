@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 27 January 2026                                   I. Swett, Ed.
+Expires: 29 January 2026                                   I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                            26 July 2025
+                                                            28 July 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 27 January 2026.
+   This Internet-Draft will expire on 29 January 2026.
 
 Copyright Notice
 
@@ -3845,12 +3845,13 @@ Table of Contents
 
    Prior Group ID Gap (Extension Header Type 0x3C) is a variable length
    integer containing the number of Groups prior to the current Group
-   that do not and will never exist.  For example, if the Original
-   Publisher is publishing an Object in Group 7 and knows it will never
-   publish any Objects in Group 8 or Group 9, it can include Prior Group
-   ID Gap = 2 in any number of Objects in Group 10, as it sees fit.  A
-   Track is considered malformed (see Section 2.5 if any of the
-   following conditions are detected:
+   that do not and will never exist.  This is equivalent to receiving an
+   End of Group status with Object ID 0 for each skipped Group.  For
+   example, if the Original Publisher is publishing an Object in Group 7
+   and knows it will never publish any Objects in Group 8 or Group 9, it
+   can include Prior Group ID Gap = 2 in any number of Objects in Group
+   10, as it sees fit.  A Track is considered malformed (see Section 2.5
+   if any of the following conditions are detected:
 
    *  An Object contains more than one instance of Prior Group ID Gap
 
@@ -3877,11 +3878,12 @@ Table of Contents
 
    Prior Object ID Gap (Extension Header Type 0x3E) is a variable length
    integer containing the number of Objects prior to the current Object
-   that do not and will never exist.  For example, if the Original
-   Publisher is publishing Object 10 in Group 3 and knows it will never
-   publish Objects 8 or 9 in this Group, it can include Prior Object ID
-   Gap = 2.  A Track is considered malformed (see Section 2.5 if any of
-   the following conditions are detected:
+   that do not and will never exist.  This is equivalent to receiving an
+   Object Does Not Exist status for each skipped Object ID.  For
+   example, if the Original Publisher is publishing Object 10 in Group 3
+   and knows it will never publish Objects 8 or 9 in this Group, it can
+   include Prior Object ID Gap = 2.  A Track is considered malformed
+   (see Section 2.5 if any of the following conditions are detected:
 
    *  An Object contains more than one instance of Prior Object ID Gap
 
