@@ -1147,23 +1147,24 @@ A cache MUST store all properties of an Object defined in
 
 ## Subscriber Interactions
 
-Subscribers subscribe to tracks by sending a SUBSCRIBE
-({{message-subscribe-req}}) control message for each track of
-interest. Relays MUST ensure subscribers are authorized to access the
-content associated with the track. The authorization
-information can be part of subscription request itself or part of the
-encompassing session. The specifics of how a relay authorizes a user are outside
-the scope of this specification.
+Subscribers request Tracks by sending a SUBSCRIBE (see
+{{message-subscribe-req}}) or FETCH (see {{message-fetch}}) control message for
+each Track of interest. Relays MUST ensure subscribers are authorized to access
+the content associated with the Track. The authorization information can be part
+of request itself or part of the encompassing session. The specifics of how a
+relay authorizes a user are outside the scope of this specification.
 
 The relay MUST have an established upstream subscription before sending
 SUBSCRIBE_OK in response to a downstream SUBSCRIBE.  If a relay does not have
 sufficient information to send a FETCH_OK immediately in response to a FETCH, it
 MUST withhold sending FETCH_OK until it does.
 
-For successful subscriptions, the publisher maintains a list of
-subscribers for each track. Each new Object belonging to the
-track within the subscription range is forwarded to each active
-subscriber, dependent on the congestion response.
+For successful subscriptions, the publisher maintains a list of subscribers for
+each Track. Relays use the Track Alias ({{track-alias}}) of an incoming Object
+to identify its Track and find the active subscribers.  Each new Object
+belonging to the Track within the subscription range is forwarded to each active
+subscriber, according to the priority (see {{priorities}}) and delivery timeout
+(see {{delivery-timeout}}).
 
 Relays MUST be able to process objects for the same Full Track Name from
 multiple publishers and forward objects to active matching subscriptions.  The
@@ -1203,8 +1204,8 @@ respond with PUBLISH_OK in Forward State=0 until there are known subscribers for
 new tracks.
 
 2. Send a PUBLISH_NAMESPACE message for a Track Namespace to the relay. This
-enables the relay to send SUBSCRIBE messages to publishers for Tracks in this
-Namespace in response to received SUBSCRIBE messages.
+enables the relay to send SUBSCRIBE or FETCH messages to publishers for Tracks
+in this Namespace in response to requests received from subscribers.
 
 Relays MUST verify that publishers are authorized to publish the set of tracks
 whose Track Namespace matches the namespace in a PUBLISH_NAMESPACE, or the Full
@@ -1248,15 +1249,10 @@ SUBSCRIBE to the publisher that sent the PUBLISH_NAMESPACE.  When it receives an
 incoming PUBLISH message for a track that has active subscribers, it SHOULD
 respond with PUBLISH_OK with Forward State=1.
 
-Relays use the Track Alias ({{track-alias}}) of an incoming Object to identify
-its track and find the active subscribers. Relays MUST forward Objects to
-matching subscribers in accordance to each subscription's priority, group order,
-and delivery timeout.
-
-If an upstream session is closed due to an unknown or invalid control message
-or Object, the relay MUST NOT continue to propagate that message or Object
-downstream, because it would enable a single session to close unrelated
-sessions.
+If a Session is closed due to an unknown or invalid control message or Object,
+the Relay MUST NOT propagate that message or Object to another Session, because
+it would enable a single Session error to force an unrelated Session, which
+might be handling other subscriptions, to be closed.
 
 ### Graceful Publisher Network Switchover
 
@@ -1301,13 +1297,6 @@ prioritize sending Objects based on {{priorities}}.
 
 A publisher SHOULD begin sending incomplete objects when available to
 avoid incurring additional latency.
-
-A relay that reads from one stream and writes to another in order can
-introduce head-of-line blocking.  Packet loss will cause stream data to
-be buffered in the library, awaiting in-order delivery, which could
-increase latency over additional hops.  To mitigate this, a relay MAY
-read and write stream data out of order subject to flow control
-limits.  See section 2.2 in {{QUIC}}.
 
 # Control Messages {#message}
 
@@ -3629,6 +3618,8 @@ relays. This extension MUST NOT be modified or removed.
 # Security Considerations {#security}
 
 TODO: Expand this section, including subscriptions.
+
+TODO: Describe Cache Poisoning attacks
 
 ## Resource Exhaustion
 
