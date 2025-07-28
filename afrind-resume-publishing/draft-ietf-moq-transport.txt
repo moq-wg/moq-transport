@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 27 January 2026                                   I. Swett, Ed.
+Expires: 29 January 2026                                   I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                            26 July 2025
+                                                            28 July 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 27 January 2026.
+   This Internet-Draft will expire on 29 January 2026.
 
 Copyright Notice
 
@@ -679,15 +679,15 @@ Table of Contents
    contrast to protocols like HTTP, where request headers can alter the
    server response.
 
-   A publisher that loses state and intends to resume publishing on the
-   same Track risks colliding with previously published Objects and
-   violating the above requirements.  A publisher can handle this in
-   application specific ways, for example:
+   A publisher that loses state (e.g. crashes) and intends to resume
+   publishing on the same Track risks colliding with previously
+   published Objects and violating the above requirements.  A publisher
+   can handle this in application specific ways, for example:
 
-   1.  Selecting a unique Track Name or Track Namespace whenever it
-       resumes publishing.  For example, it can base one of the
-       Namespace tuple fields on the current time, or select a
-       sufficiently large random value.
+   1.  Select a unique Track Name or Track Namespace whenever it resumes
+       publishing.  For example, it can base one of the Namespace tuple
+       fields on the current time, or select a sufficiently large random
+       value.
 
    2.  Resume publishing under a previous Track Name and Namespace and
        set the initial Group ID to a unique value guaranteed to be
