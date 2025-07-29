@@ -3390,7 +3390,7 @@ payload.
 | Object | Mutable    | Marker | Immutable  | [Payload] | App Metadata |
 | Fields | Extensions |        | Extensions | [Length ] | App Payload  |
 +--------+------------+--------+------------+-----------+--------------+
-                       xxxxxxxxxxxxxxxxxxxxx              xxxxxxxxxxxxx
+                       xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
                                        yyyyy              yyyyyyyyyyyyy
 x = e2e Authenticated Data
 y = e2e Encrypted Data
