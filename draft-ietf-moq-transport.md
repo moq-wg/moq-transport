@@ -1162,9 +1162,10 @@ MUST withhold sending FETCH_OK until it does.
 For successful subscriptions, the publisher maintains a list of subscribers for
 each Track. Relays use the Track Alias ({{track-alias}}) of an incoming Object
 to identify its Track and find the active subscribers.  Each new Object
-belonging to the Track within the subscription range is forwarded to each active
-subscriber, according to the priority (see {{priorities}}) and delivery timeout
-(see {{delivery-timeout}}).
+belonging to the Track is forwarded to each active subscriber, as allowed by the
+subscription's filter (see {{message-subscribe-req}}), and delivered according
+to the priority (see {{priorities}}) and delivery timeout (see
+{{delivery-timeout}}).
 
 Relays MUST be able to process objects for the same Full Track Name from
 multiple publishers and forward objects to active matching subscriptions.  The
