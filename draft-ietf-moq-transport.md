@@ -3379,17 +3379,21 @@ specifications. The Immutable Extension Marker is assigned Type 0xA and is a
 variable length integer that MUST have value 1.  Any other value results in
 closing the session with a `PROTOCOL_VIOLATION`.
 
-The following figure shows an example Object structure with a
-combination of mutable and immutable extensions and end to end encrypted
-extensions in the object payload.
+The following figure shows an example Object structure with a combination of
+mutable and immutable extensions and end to end encrypted metadata in the object
+payload.
 
 ~~~
-+------+------------+-----------+-------------+------------+--------+
-|Header| Mutable    | Marker    | Immutable   | Encrypted  | Object |
-|      | Extensions | Extension | Extensions  | Extensions | Data   |
-+------+------------+-----------+-------------+------------+--------+
-                   Object Header                    Object Payload
-<---------------------------------------------><-------------------->
+                   Object Header                          Object Payload
+<------------------------------------------------------> <------------->
++--------+------------+--------+------------+-----------+--------------+
+| Object | Mutable    | Marker | Immutable  | [Payload] | App Metadata |
+| Fields | Extensions |        | Extensions | [Length ] | App Payload  |
++--------+------------+--------+------------+-----------+--------------+
+                       xxxxxxxxxxxxxxxxxxxxx              xxxxxxxxxxxxx
+                                                          yyyyyyyyyyyyy
+x = e2e Authenticated Data
+y = e2e Encrypted Data
 ~~~
 
 
