@@ -5918,13 +5918,13 @@ payload.<a href="#section-10.2-3" class="pilcrow">¶</a></p>
 <div class="alignLeft art-text artwork" id="section-10.2-4">
 <pre>
                    Object Header                          Object Payload
-&lt;------------------------------------------------------&gt; &lt;-------------&gt;
-+--------+------------+--------+------------+-----------+--------------+
-| Object | Mutable    | Marker | Immutable  | [Payload] | App Metadata |
-| Fields | Extensions |        | Extensions | [Length ] | App Payload  |
-+--------+------------+--------+------------+-----------+--------------+
-                       xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-                                                          yyyyyyyyyyyyy
+&lt;------------------------------------------------------&gt; &lt;----------------&gt;
++--------+------------+--------+------------+-----------+-----------------+
+| Object | Mutable    | Marker | Immutable  | [Payload] | Enc Obj Headers |
+| Fields | Extensions |        | Extensions | [Length ] | App Payload     |
++--------+------------+--------+------------+-----------+-----------------+
+                       xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+                                                          yyyyyyyyyyyyyyyy
 x = e2e Authenticated Data
 y = e2e Encrypted Data
 </pre><a href="#section-10.2-4" class="pilcrow">¶</a>

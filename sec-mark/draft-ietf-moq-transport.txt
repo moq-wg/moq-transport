@@ -3636,13 +3636,13 @@ Table of Contents
    encrypted metadata in the object payload.
 
                    Object Header                          Object Payload
-<------------------------------------------------------> <------------->
-+--------+------------+--------+------------+-----------+--------------+
-| Object | Mutable    | Marker | Immutable  | [Payload] | App Metadata |
-| Fields | Extensions |        | Extensions | [Length ] | App Payload  |
-+--------+------------+--------+------------+-----------+--------------+
-                       xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-                                                          yyyyyyyyyyyyy
+<------------------------------------------------------> <---------------->
++--------+------------+--------+------------+-----------+-----------------+
+| Object | Mutable    | Marker | Immutable  | [Payload] | Enc Obj Headers |
+| Fields | Extensions |        | Extensions | [Length ] | App Payload     |
++--------+------------+--------+------------+-----------+-----------------+
+                       xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+                                                          yyyyyyyyyyyyyyyy
 x = e2e Authenticated Data
 y = e2e Encrypted Data
 
