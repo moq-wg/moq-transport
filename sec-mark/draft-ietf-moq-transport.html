@@ -5905,9 +5905,9 @@ relays. This extension <span class="bcp14">MUST NOT</span> be modified or remove
         </h3>
 <p id="section-10.2-1">The "Immutable Extension Marker" (Extension Header Type 0xA) serves as a
 boundary indicating the start of immutable header extensions.<a href="#section-10.2-1" class="pilcrow">¶</a></p>
-<p id="section-10.2-2">Header extensions appearing after this marker <span class="bcp14">MUST NOT</span> be modified or
-removed by relays and <span class="bcp14">MUST</span> be cached if the object is
-cached. Conversely, header extensions preceding this marker <span class="bcp14">MAY</span> be
+<p id="section-10.2-2">Relays <span class="bcp14">MUST NOT</span> add, modify, remove or reorder extensions after the Immutable
+Extension Marker.  Relays <span class="bcp14">MUST</span> cache all immutable header extensions if the
+object is cached. Conversely, header extensions preceding this marker <span class="bcp14">MAY</span> be
 modified or removed by relays, as specified by their individual
 specifications. The Immutable Extension Marker is assigned Type 0xA and is a
 variable length integer that <span class="bcp14">MUST</span> have value 1.  Any other value results in
