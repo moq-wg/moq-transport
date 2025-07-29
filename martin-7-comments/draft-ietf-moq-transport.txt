@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 29 January 2026                                   I. Swett, Ed.
+Expires: 30 January 2026                                   I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                            28 July 2025
+                                                            29 July 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 29 January 2026.
+   This Internet-Draft will expire on 30 January 2026.
 
 Copyright Notice
 
@@ -1309,10 +1309,10 @@ Table of Contents
    For successful subscriptions, the publisher maintains a list of
    subscribers for each Track.  Relays use the Track Alias (Section 9.1)
    of an incoming Object to identify its Track and find the active
-   subscribers.  Each new Object belonging to the Track within the
-   subscription range is forwarded to each active subscriber, according
-   to the priority (see Section 6) and delivery timeout (see
-   Section 8.2.1.2).
+   subscribers.  Each new Object belonging to the Track is forwarded to
+   each active subscriber, as allowed by the subscription's filter (see
+   Section 8.7), and delivered according to the priority (see Section 6)
+   and delivery timeout (see Section 8.2.1.2).
 
    Relays MUST be able to process objects for the same Full Track Name
    from multiple publishers and forward objects to active matching
