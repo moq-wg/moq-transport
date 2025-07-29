@@ -3371,9 +3371,9 @@ relays. This extension MUST NOT be modified or removed.
 The "Immutable Extension Marker" (Extension Header Type 0xA) serves as a
 boundary indicating the start of immutable header extensions.
 
-Header extensions appearing after this marker MUST NOT be modified or
-removed by relays and MUST be cached if the object is
-cached. Conversely, header extensions preceding this marker MAY be
+Relays MUST NOT add, modify, remove or reorder extensions after the Immutable
+Extension Marker.  Relays MUST cache all immutable header extensions if the
+object is cached. Conversely, header extensions preceding this marker MAY be
 modified or removed by relays, as specified by their individual
 specifications. The Immutable Extension Marker is assigned Type 0xA and is a
 variable length integer that MUST have value 1.  Any other value results in
