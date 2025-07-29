@@ -3391,7 +3391,7 @@ payload.
 | Fields | Extensions |        | Extensions | [Length ] | App Payload  |
 +--------+------------+--------+------------+-----------+--------------+
                        xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-                                       yyyyy              yyyyyyyyyyyyy
+                                                          yyyyyyyyyyyyy
 x = e2e Authenticated Data
 y = e2e Encrypted Data
 ~~~
