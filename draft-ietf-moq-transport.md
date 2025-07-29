@@ -3369,10 +3369,7 @@ relays. This extension MUST NOT be modified or removed.
 ## Immutable Extensions Marker
 
 The "Immutable Extension Marker" (Extension Header Type 0xA) serves as a
-boundary indicating the start of immutable header extensions.  The
-primary purpose of this marker is so that end to end encryption schemes
-know that any header extensions after and including this marker can be
-end to end authenticated.
+boundary indicating the start of immutable header extensions.
 
 Header extensions appearing after this marker MUST NOT be modified or
 removed by relays and MUST be cached if the object is
