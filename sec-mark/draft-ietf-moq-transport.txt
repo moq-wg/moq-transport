@@ -3633,14 +3633,18 @@ Table of Contents
 
    The following figure shows an example Object structure with a
    combination of mutable and immutable extensions and end to end
-   encrypted extensions in the object payload.
+   encrypted metadata in the object payload.
 
-   +------+------------+-----------+-------------+------------+--------+
-   |Header| Mutable    | Marker    | Immutable   | Encrypted  | Object |
-   |      | Extensions | Extension | Extensions  | Extensions | Data   |
-   +------+------------+-----------+-------------+------------+--------+
-                      Object Header                    Object Payload
-   <---------------------------------------------><-------------------->
+                   Object Header                          Object Payload
+<------------------------------------------------------> <------------->
++--------+------------+--------+------------+-----------+--------------+
+| Object | Mutable    | Marker | Immutable  | [Payload] | App Metadata |
+| Fields | Extensions |        | Extensions | [Length ] | App Payload  |
++--------+------------+--------+------------+-----------+--------------+
+                       xxxxxxxxxxxxxxxxxxxxx              xxxxxxxxxxxxx
+                                                          yyyyyyyyyyyyy
+x = e2e Authenticated Data
+y = e2e Encrypted Data
 
 11.  Security Considerations
 

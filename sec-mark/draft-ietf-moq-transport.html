@@ -5912,17 +5912,21 @@ modified or removed by relays, as specified by their individual
 specifications. The Immutable Extension Marker is assigned Type 0xA and is a
 variable length integer that <span class="bcp14">MUST</span> have value 1.  Any other value results in
 closing the session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-10.2-2" class="pilcrow">¶</a></p>
-<p id="section-10.2-3">The following figure shows an example Object structure with a
-combination of mutable and immutable extensions and end to end encrypted
-extensions in the object payload.<a href="#section-10.2-3" class="pilcrow">¶</a></p>
+<p id="section-10.2-3">The following figure shows an example Object structure with a combination of
+mutable and immutable extensions and end to end encrypted metadata in the object
+payload.<a href="#section-10.2-3" class="pilcrow">¶</a></p>
 <div class="alignLeft art-text artwork" id="section-10.2-4">
 <pre>
-+------+------------+-----------+-------------+------------+--------+
-|Header| Mutable    | Marker    | Immutable   | Encrypted  | Object |
-|      | Extensions | Extension | Extensions  | Extensions | Data   |
-+------+------------+-----------+-------------+------------+--------+
-                   Object Header                    Object Payload
-&lt;---------------------------------------------&gt;&lt;--------------------&gt;
+                   Object Header                          Object Payload
+&lt;------------------------------------------------------&gt; &lt;-------------&gt;
++--------+------------+--------+------------+-----------+--------------+
+| Object | Mutable    | Marker | Immutable  | [Payload] | App Metadata |
+| Fields | Extensions |        | Extensions | [Length ] | App Payload  |
++--------+------------+--------+------------+-----------+--------------+
+                       xxxxxxxxxxxxxxxxxxxxx              xxxxxxxxxxxxx
+                                                          yyyyyyyyyyyyy
+x = e2e Authenticated Data
+y = e2e Encrypted Data
 </pre><a href="#section-10.2-4" class="pilcrow">¶</a>
 </div>
 </section>
