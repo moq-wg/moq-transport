@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 28 January 2026                                   I. Swett, Ed.
+Expires: 30 January 2026                                   I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                            27 July 2025
+                                                            29 July 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 28 January 2026.
+   This Internet-Draft will expire on 30 January 2026.
 
 Copyright Notice
 
@@ -3621,9 +3621,6 @@ Table of Contents
 
    The "Immutable Extension Marker" (Extension Header Type 0xA) serves
    as a boundary indicating the start of immutable header extensions.
-   The primary purpose of this marker is so that end to end encryption
-   schemes know that any header extensions after and including this
-   marker can be end to end authenticated.
 
    Header extensions appearing after this marker MUST NOT be modified or
    removed by relays and MUST be cached if the object is cached.
