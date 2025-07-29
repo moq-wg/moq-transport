@@ -1133,10 +1133,12 @@ A cache MUST store all properties of an Object defined in
 ## Multiple Publishers
 
 A Relay can receive PUBLISH_NAMESPACE for the same Track Namespace or PUBLISH
-messages for the same Track from multiple publishers and MUST handle them
-uniformly.
+messages for the same Track from multiple publishers.  This following sections
+explain how Relays maintain subscriptions to all available publishers for a
+given Track.
 
-This behavior is necessary to support the following scenarios:
+There are multiple scenarios where more than one publisher of the same Track
+connects to the same Relay, including, but not limited to:
 
 1. A publisher loses state and reconnects to the same Relay, but the Relay
    has not yet detected the old session has terminated.
