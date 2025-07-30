@@ -194,14 +194,10 @@ End Subscriber:
 
 : A subscriber that initiates a subscription and does not send the data on to other subscribers.
 
-Intermediary:
-
-: An entity that is both a Publisher and a Subscriber, but not the Original
-Publisher or End Subscriber.
-
 Relay:
 
-: An intermediary that conforms to all requirements in {{relays-moq}}.
+: An entity that is both a Publisher and a Subscriber, is not the Original
+Publisher or End Subscriber, and conforms to all requirements in {{relays-moq}}.
 
 Upstream:
 
@@ -837,11 +833,11 @@ cause issues with latency sensitive applications.
 
 MOQT defines all messages necessary to implement both simple publishing or
 subscribing endpoints as well as highly functional Relays.  Non-Relay endpoints
-and intermediaries MAY implement only the subset of functionality required to
-perform necessary tasks.  For example, a limited media player could operate
-using only SUBSCRIBE related messages.  Limited endpoints SHOULD respond to any
-unsupported messages with the appropriate `NOT_SUPPORTED` error code or close
-the session, rather than ignoring them.
+MAY implement only the subset of functionality required to perform necessary
+tasks.  For example, a limited media player could operate using only SUBSCRIBE
+related messages.  Limited endpoints SHOULD respond to any unsupported messages
+with the appropriate `NOT_SUPPORTED` error code or close the session, rather
+than ignoring them.
 
 Relays MUST implement all MOQT messages defined in this document, as well as
 processing rules described in {{relays-moq}}.
