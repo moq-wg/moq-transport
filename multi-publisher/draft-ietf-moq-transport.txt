@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 30 January 2026                                   I. Swett, Ed.
+Expires: 31 January 2026                                   I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                            29 July 2025
+                                                            30 July 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 30 January 2026.
+   This Internet-Draft will expire on 31 January 2026.
 
 Copyright Notice
 
@@ -1276,7 +1276,7 @@ Table of Contents
 7.2.  Multiple Publishers
 
    A Relay can receive PUBLISH_NAMESPACE for the same Track Namespace or
-   PUBLISH messages for the same Track from multiple publishers.  This
+   PUBLISH messages for the same Track from multiple publishers.  The
    following sections explain how Relays maintain subscriptions to all
    available publishers for a given Track.
 
@@ -1391,7 +1391,7 @@ Table of Contents
    subscriptions for the requested Track, the Relay MUST send a
    SUBSCRIBE request to each publisher that has published the
    subscription's namespace or prefix thereof.  If the SUBSCRIBE has
-   Forward State=1, then the Relay MUST use Foward=1 when subscribing
+   Forward =1, then the Relay MUST use Forward=1 when subscribing
    upstream.
 
    When a relay receives an incoming PUBLISH message, it MUST send a
