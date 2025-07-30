@@ -3380,7 +3380,7 @@ variable length integer that MUST have value 1.  Any other value results in
 closing the session with a `PROTOCOL_VIOLATION`.
 
 The following figure shows an example Object structure with a combination of
-mutable and immutable extensions and end to end encrypted metadata in the object
+mutable and immutable extensions and end to end encrypted metadata in the Object
 payload.
 
 ~~~
