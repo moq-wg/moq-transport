@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 29 January 2026                                   I. Swett, Ed.
+Expires: 31 January 2026                                   I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                            28 July 2025
+                                                            30 July 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 29 January 2026.
+   This Internet-Draft will expire on 31 January 2026.
 
 Copyright Notice
 
@@ -181,6 +181,7 @@ Table of Contents
    11. Security Considerations
      11.1.  Resource Exhaustion
      11.2.  Timeouts
+     11.3.  Relay memory consumption
    12. IANA Considerations
      12.1.  Error Codes
        12.1.1.  Session Termination Error Codes
@@ -3949,6 +3950,16 @@ Table of Contents
    exhaustion attacks by a peer that does not send expected data within
    an expected time.  Each implementation is expected to set its own
    limits.
+
+11.3.  Relay memory consumption
+
+   A Relay SHOULD have mechanisms to prevent malicious endpoints from
+   flooding it with PUBLISH_NAMESPACE or SUBSCRIBE_NAMESPACE requests
+   that could bloat data structures.  It could use the advertised
+   MAX_REQUEST_ID to limit the number of such requests, or could have
+   application-specific policies that can reject incoming
+   PUBLISH_NAMESPACE or SUBSCRIBE_NAMESPACE requests that cause the
+   state maintenance for the session to be excessive.
 
 12.  IANA Considerations
 
