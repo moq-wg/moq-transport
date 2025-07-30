@@ -1133,7 +1133,7 @@ A cache MUST store all properties of an Object defined in
 ## Multiple Publishers
 
 A Relay can receive PUBLISH_NAMESPACE for the same Track Namespace or PUBLISH
-messages for the same Track from multiple publishers.  This following sections
+messages for the same Track from multiple publishers.  The following sections
 explain how Relays maintain subscriptions to all available publishers for a
 given Track.
 
@@ -1236,7 +1236,7 @@ State=0, the Relay MUST send SUBSCRIBE_UPDATE with Forward=1 to all publishers.
 If there are no active upstream subscriptions for the requested Track, the Relay
 MUST send a SUBSCRIBE request to each publisher that has published the
 subscription's namespace or prefix thereof.  If the SUBSCRIBE has Forward
-State=1, then the Relay MUST use Foward=1 when subscribing upstream.
+=1, then the Relay MUST use Forward=1 when subscribing upstream.
 
 When a relay receives an incoming PUBLISH message, it MUST send a PUBLISH
 request to each subscriber that has subscribed (via SUBSCRIBE_NAMESPACE)
