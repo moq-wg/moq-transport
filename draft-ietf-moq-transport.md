@@ -3692,6 +3692,16 @@ Implementations are advised to use timeouts to prevent resource
 exhaustion attacks by a peer that does not send expected data within
 an expected time.  Each implementation is expected to set its own limits.
 
+
+## Relay memory consumption
+
+A Relay SHOULD have mechanisms to prevent malicious endpoints from flooding it
+with PUBLISH_NAMESPACE or SUBSCRIBE_NAMESPACE requests that could bloat data
+structures. It could use the advertised MAX_REQUEST_ID to limit the number of
+such requests, or could have application-specific policies that can reject
+incoming PUBLISH_NAMESPACE or SUBSCRIBE_NAMESPACE requests that cause the state
+maintenance for the session to be excessive.
+
 # IANA Considerations {#iana}
 
 TODO: fill out currently missing registries:
