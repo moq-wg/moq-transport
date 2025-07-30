@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 27 January 2026                                   I. Swett, Ed.
+Expires: 31 January 2026                                   I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                            26 July 2025
+                                                            30 July 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 27 January 2026.
+   This Internet-Draft will expire on 31 January 2026.
 
 Copyright Notice
 
@@ -980,11 +980,12 @@ Table of Contents
    SHOULD close the session with a protocol error if it receives more
    than one.
 
-   Publishers SHOULD only send Objects belonging to Tracks of interest
-   to the subscriber, as indicated by a SUBSCRIBE, FETCH or PUBLISH_OK
-   message.  Publishers with out-of-band knowledge of subscriber
-   interest MAY begin sending Objects on PUBLISH initiated subscriptions
-   before receiving PUBLISH_OK.
+   Publishers SHOULD only send Objects for Tracks explicitly requested
+   by the subscriber through a SUBSCRIBE or FETCH message, or
+   acknowledged in a PUBLISH_OK message.  However, Publishers with out-
+   of-band knowledge of likely subscriber interest MAY start sending
+   Objects on PUBLISH-initiated subscriptions before receiving a
+   PUBLISH_OK response.
 
    A subscriber keeps subscription state until it sends UNSUBSCRIBE, or
    after receipt of a SUBSCRIBE_DONE or SUBSCRIBE_ERROR.  Note that
