@@ -3690,7 +3690,9 @@ exhaustion attacks by a peer that does not send expected data within
 an expected time.  Each implementation is expected to set its own limits.
 
 
-## Relay memory consumption
+## Relay security considerations
+
+### State maintenance
 
 A Relay SHOULD have mechanisms to prevent malicious endpoints from flooding it
 with PUBLISH_NAMESPACE or SUBSCRIBE_NAMESPACE requests that could bloat data
@@ -3698,6 +3700,15 @@ structures. It could use the advertised MAX_REQUEST_ID to limit the number of
 such requests, or could have application-specific policies that can reject
 incoming PUBLISH_NAMESPACE or SUBSCRIBE_NAMESPACE requests that cause the state
 maintenance for the session to be excessive.
+
+### SUBSCRIBE_NAMESPACE with short prefixes
+
+A Relay SHOULD use authorization rules in order to prevent subscriptions closer
+to the root of a large prefix tree. Otherwise, if an entity sends a relay a
+SUBSCRIBE_NAMESPACE message with a short prefix, it can cause the relay to send
+a lot of ANNOUNCE messages. As churn continues in the tree of prefixes being
+announced/unannounced, the relay would have to continue to send ANNOUNCE/UNANNOUNCE
+messages to the entity that had sent the SUBSCRIBE_NAMESPACE.
 
 # IANA Considerations {#iana}
 
