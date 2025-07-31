@@ -864,11 +864,10 @@ FETCH. A subscriber MUST send exactly one PUBLISH_OK or PUBLISH_ERROR in
 response to a PUBLISH. The peer SHOULD close the session with a protocol error
 if it receives more than one.
 
-Publishers SHOULD only send Objects for Tracks explicitly requested by the
-subscriber through a SUBSCRIBE or FETCH message, or acknowledged in a PUBLISH_OK
-message. However, Publishers with out-of-band knowledge of likely subscriber
-interest MAY start sending Objects on PUBLISH-initiated subscriptions before
-receiving a PUBLISH_OK response.
+Publishers MAY start sending Objects on PUBLISH-initiated subscriptions before
+receiving a PUBLISH_OK response to reduce latency.  Doing so can consume
+unnecessary resources in cases where the Subscriber rejects the subscription
+with PUBLISH_ERROR or sets Forward State=0 in PUBLISH_OK.
 
 A subscriber keeps subscription state until it sends UNSUBSCRIBE, or after
 receipt of a SUBSCRIBE_DONE or SUBSCRIBE_ERROR. Note that SUBSCRIBE_DONE does
@@ -2290,8 +2289,9 @@ PUBLISH Message {
 * Parameters: The parameters are defined in {{version-specific-params}}.
 
 A subscriber receiving a PUBLISH for a Track it does not wish to receive SHOULD
-send PUBLISH_ERROR with error code `UNINTERESTED`, and STOP_SENDING any streams
-associated with that subscription.
+send PUBLISH_ERROR with error code `UNINTERESTED`, and abandon reading any
+publisher initiated streams associated with that subscription using a
+STOP_SENDING frame.
 
 ## PUBLISH_OK {#message-publish-ok}
 
