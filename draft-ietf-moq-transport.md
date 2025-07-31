@@ -1168,10 +1168,9 @@ filter to avoid churn as downstream subscribers with disparate filters
 subscribe and unsubscribe from a track.
 
 A subscriber remains subscribed to a Track at a Relay until it unsubscribes or
-the upstream publisher terminates the subscription, and all subgroups are
-accounted for. Subscriber filters do not affect when the subscription ends
-unless the Relay knows definitively that no additional Objects can arrive that
-match the filter.
+the upstream publisher terminates the subscription. Subscription filters only
+allow a Relay to end the subscription when it knows that no additional Objects
+can match the filter.
 
 ### Graceful Subscriber Relay Switchover
 
