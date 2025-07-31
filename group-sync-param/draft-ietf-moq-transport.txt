@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 8 January 2026                                    I. Swett, Ed.
+Expires: 1 February 2026                                   I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                             7 July 2025
+                                                            31 July 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 8 January 2026.
+   This Internet-Draft will expire on 1 February 2026.
 
 Copyright Notice
 
@@ -1831,7 +1831,7 @@ Table of Contents
    When an Original Publisher that supports dynamic Groups receives a
    NEW_GROUP_REQUEST with a value of 0 or a value larger than the
    current Group, it SHOULD end the current Group and begin a new Group
-   as soon as practical.  The Original Publisher MAY delay or ignore the
+   as soon as practical.  The Original Publisher MAY delay the
    NEW_GROUP_REQUEST subject to implementation specific concerns, for
    example, acheiving a minimum duration for each Group.  The Original
    Publisher chooses the next Group ID; there are no requirements that
@@ -1854,7 +1854,7 @@ Table of Contents
 
    1.  The Track does not support dynamic Groups
 
-   2.  There is already an outstanding NEW_GROUP_REQUEST
+   2.  There is already an outstanding NEW_GROUP_REQUEST from this Relay
 
    If a relay receives a NEW_GROUP_REQUEST with a non-zero value less
    than or equal to the Largest Group, it does not send a
@@ -4220,9 +4220,9 @@ Normative References
    [WebTransport]
               Frindell, A., Kinnear, E., and V. Vasiliev, "WebTransport
               over HTTP/3", Work in Progress, Internet-Draft, draft-
-              ietf-webtrans-http3-12, 3 March 2025,
+              ietf-webtrans-http3-13, 7 July 2025,
               <https://datatracker.ietf.org/doc/html/draft-ietf-
-              webtrans-http3-12>.
+              webtrans-http3-13>.
 
 Informative References
 
@@ -4249,11 +4249,11 @@ Informative References
               04>.
 
    [I-D.ietf-webtrans-overview]
-              Vasiliev, V., "The WebTransport Protocol Framework", Work
-              in Progress, Internet-Draft, draft-ietf-webtrans-overview-
-              09, 25 February 2025,
+              Kinnear, E. and V. Vasiliev, "The WebTransport Protocol
+              Framework", Work in Progress, Internet-Draft, draft-ietf-
+              webtrans-overview-10, 7 July 2025,
               <https://datatracker.ietf.org/doc/html/draft-ietf-
-              webtrans-overview-09>.
+              webtrans-overview-10>.
 
    [RFC6582]  Henderson, T., Floyd, S., Gurtov, A., and Y. Nishida, "The
               NewReno Modification to TCP's Fast Recovery Algorithm",
