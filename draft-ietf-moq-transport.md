@@ -1224,10 +1224,7 @@ and PUBLISH messages to all subscribers that have a Namespace Prefix Match.
 
 When a Relay needs to make an upstream FETCH request, it determines the
 available publishers using the same matching rules as SUBSCRIBE. When more than
-one publisher is available, the Relay MUST send the FETCH to at least one of
-them.  If FETCH fails with `UNKNOWN_STATUS_IN_RANGE` (see {{message-fetch}}),
-the Relay MUST attempt the FETCH against other matching publishers until the
-FETCH succeeds or fails for a different reason.
+one publisher is available, the Relay MAY send the FETCH to any of them.
 
 When a relay receives an incoming SUBSCRIBE that triggers an upstream
 subscription, it SHOULD send a SUBSCRIBE request to each publisher that has
