@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 27 January 2026                                   I. Swett, Ed.
+Expires: 1 February 2026                                   I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                            26 July 2025
+                                                            31 July 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 27 January 2026.
+   This Internet-Draft will expire on 1 February 2026.
 
 Copyright Notice
 
@@ -1314,10 +1314,9 @@ Table of Contents
    unsubscribe from a track.
 
    A subscriber remains subscribed to a Track at a Relay until it
-   unsubscribes or the upstream publisher terminates the subscription,
-   and all subgroups are accounted for.  Subscriber filters do not
-   affect when the subscription ends unless the Relay knows definitively
-   that no additional Objects can arrive that match the filter.
+   unsubscribes or the upstream publisher terminates the subscription.
+   Subscription filters only allow a Relay to end the subscription when
+   it knows that no additional Objects can match the filter.
 
 7.2.1.  Graceful Subscriber Relay Switchover
 
