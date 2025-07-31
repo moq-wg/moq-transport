@@ -1630,7 +1630,7 @@ case.
 When an Original Publisher that supports dynamic Groups receives a
 NEW_GROUP_REQUEST with a value of 0 or a value larger than the current Group,
 it SHOULD end the current Group and begin a new Group as soon as practical.  The
-Original Publisher MAY delay or ignore the NEW_GROUP_REQUEST subject to
+Original Publisher MAY delay the NEW_GROUP_REQUEST subject to
 implementation specific concerns, for example, acheiving a minimum duration for
 each Group. The Original Publisher chooses the next Group ID; there are no
 requirements that it be equal to the NEW_GROUP_REQUEST parameter value.
@@ -1649,7 +1649,7 @@ value of 0 or a value larger than the Largest Group MUST send a SUBSCRIBE_UPDATE
 including the NEW_GROUP_REQUEST to the publisher unless:
 
 1. The Track does not support dynamic Groups
-2. There is already an outstanding NEW_GROUP_REQUEST
+2. There is already an outstanding NEW_GROUP_REQUEST from this Relay
 
 If a relay receives a NEW_GROUP_REQUEST with a non-zero value less than or equal
 to the Largest Group, it does not send a NEW_GROUP_REQUEST upstream.
