@@ -1205,22 +1205,24 @@ sends a PUBLISH_NAMESPACE_DONE. A subscriber indicates it will no longer
 subcribe to tracks in a namespace it previously responded PUBLISH_NAMESPACE_OK
 to by sending a PUBLISH_NAMESPACE_CANCEL.
 
-A Relay manages sessions from multiple publishers and subscribers, connecting
-them based on the Track Namespace or Full Track Name.  The Full Track Name in
-SUBSCRIBE is matched exactly against existing upstream subscriptions.
+A Relay connects publishers and subscribers by managing sessions based on the
+Track Namespace or Full Track Name. When a SUBSCRIBE message is sent, its Full
+Track Name is matched exactly against existing upstream subscriptions.
 
-Namespace Prefix Matching is further used to determine which publishers receive
-a SUBSCRIBE and which subscribers receive a PUBLISH.  In Namespace Prefix
-Matching, the Track Namespace tuple fields are matched from 1 to 32, with each
-tuple field requiring an exact match.  If a session's published or subscribed
-Track Namespace has equal or fewer tuple fields than the Track Namesapce in the
-message, it is considered a match. For example, a SUBSCRIBE namespace=(foo,bar),
-name=x message will be forwarded to the sessions that sent PUBLISH_NAMESPACE
-message with namespace=(foo) and namespace=(foo, bar) respectively, but not one
-that sent PUBLISH_NAMESPACE namespace=(foobar).
+Namespace Prefix Matching is further used to decide which publishers receive a
+SUBSCRIBE and which subscribers receive a PUBLISH. In this process, the tuples
+in the Track Namespace are matched sequentially, requiring an exact match for
+each field. If the published or subscribed Track Namespace has the same or fewer
+fields than the Track Namespace in the message, it qualifies as a match.
 
-Relays MUST forward SUBSCRIBE messages to all publishers and PUBLISH_NAMESPACE
-and PUBLISH messages to all subscribers that have a Namespace Prefix Match.
+For example:
+A SUBSCRIBE message with namespace=(foo, bar) and name=x will match sessions
+that sent PUBLISH_NAMESPACE messages with namespace=(foo) or namespace=(foo,
+bar).  It will not match a session with namespace=(foobar).
+
+Relays MUST forward SUBSCRIBE messages to all matching publishers and
+PUBLISH_NAMESPACE or PUBLISH messages to all matching subscribers.
+
 
 When a relay receives an incoming SUBSCRIBE that triggers an upstream
 subscription, it SHOULD send a SUBSCRIBE request to each publisher that has
