@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 28 January 2026                                   I. Swett, Ed.
+Expires: 1 February 2026                                   I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                            27 July 2025
+                                                            31 July 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 28 January 2026.
+   This Internet-Draft will expire on 1 February 2026.
 
 Copyright Notice
 
@@ -1376,11 +1376,8 @@ Table of Contents
 
    When a Relay needs to make an upstream FETCH request, it determines
    the available publishers using the same matching rules as SUBSCRIBE.
-   When more than one publisher is available, the Relay MUST send the
-   FETCH to at least one of them.  If FETCH fails with
-   UNKNOWN_STATUS_IN_RANGE (see Section 8.16), the Relay MUST attempt
-   the FETCH against other matching publishers until the FETCH succeeds
-   or fails for a different reason.
+   When more than one publisher is available, the Relay MAY send the
+   FETCH to any of them.
 
    When a relay receives an incoming SUBSCRIBE that triggers an upstream
    subscription, it SHOULD send a SUBSCRIBE request to each publisher
