@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 31 January 2026                                   I. Swett, Ed.
+Expires: 1 February 2026                                   I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                            30 July 2025
+                                                            31 July 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 31 January 2026.
+   This Internet-Draft will expire on 1 February 2026.
 
 Copyright Notice
 
@@ -980,12 +980,11 @@ Table of Contents
    SHOULD close the session with a protocol error if it receives more
    than one.
 
-   Publishers SHOULD only send Objects for Tracks explicitly requested
-   by the subscriber through a SUBSCRIBE or FETCH message, or
-   acknowledged in a PUBLISH_OK message.  However, Publishers with out-
-   of-band knowledge of likely subscriber interest MAY start sending
-   Objects on PUBLISH-initiated subscriptions before receiving a
-   PUBLISH_OK response.
+   Publishers MAY start sending Objects on PUBLISH-initiated
+   subscriptions before receiving a PUBLISH_OK response to reduce
+   latency.  Doing so can consume unnecessary resources in cases where
+   the Subscriber rejects the subscription with PUBLISH_ERROR or sets
+   Forward State=0 in PUBLISH_OK.
 
    A subscriber keeps subscription state until it sends UNSUBSCRIBE, or
    after receipt of a SUBSCRIBE_DONE or SUBSCRIBE_ERROR.  Note that
@@ -2512,7 +2511,8 @@ Table of Contents
 
    A subscriber receiving a PUBLISH for a Track it does not wish to
    receive SHOULD send PUBLISH_ERROR with error code UNINTERESTED, and
-   STOP_SENDING any streams associated with that subscription.
+   abandon reading any publisher initiated streams associated with that
+   subscription using a STOP_SENDING frame.
 
 8.14.  PUBLISH_OK
 
