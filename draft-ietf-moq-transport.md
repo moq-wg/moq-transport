@@ -924,7 +924,7 @@ recipient of this message will send any relevant PUBLISH_NAMESPACE,
 PUBLISH_NAMESPACE_DONE or PUBLISH messages for that namespace, or more specific
 part of that namespace.  This includes echoing back PUBLISH or PUBLISH_NAMESPACE
 messages to the endpoint that sent them.  If an endpoint accepts its own
-PUBLISH, this behaves as self-subscription descrbed in {{subscriptions}}.
+PUBLISH, this behaves as self-subscription described in {{subscriptions}}.
 
 A publisher MUST send exactly one SUBSCRIBE_NAMESPACE_OK or
 SUBSCRIBE_NAMESPACE_ERROR in response to a SUBSCRIBE_NAMESPACE. The subscriber
