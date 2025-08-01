@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 27 January 2026                                   I. Swett, Ed.
+Expires: 2 February 2026                                   I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                            26 July 2025
+                                                           1 August 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 27 January 2026.
+   This Internet-Draft will expire on 2 February 2026.
 
 Copyright Notice
 
@@ -1042,7 +1042,7 @@ Table of Contents
    that namespace, or more specific part of that namespace.  This
    includes echoing back PUBLISH or PUBLISH_NAMESPACE messages to the
    endpoint that sent them.  If an endpoint accepts its own PUBLISH,
-   this behaves as self-subscription descrbed in Section 4.1.
+   this behaves as self-subscription described in Section 4.1.
 
    A publisher MUST send exactly one SUBSCRIBE_NAMESPACE_OK or
    SUBSCRIBE_NAMESPACE_ERROR in response to a SUBSCRIBE_NAMESPACE.  The
