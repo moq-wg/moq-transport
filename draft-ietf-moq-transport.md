@@ -3706,9 +3706,10 @@ maintenance for the session to be excessive.
 A Relay can use authorization rules in order to prevent subscriptions closer
 to the root of a large prefix tree. Otherwise, if an entity sends a relay a
 SUBSCRIBE_NAMESPACE message with a short prefix, it can cause the relay to send
-a lot of PUBLISH_NAMESPACE messages. As churn continues in the tree of prefixes,
-the relay would have to continue to send PUBLISH_NAMESPACE/PUBLISH_NAMESPACE_DONE
-messages to the entity that had sent the SUBSCRIBE_NAMESPACE.
+a large volume of PUBLISH_NAMESPACE messages. As churn continues in the tree of
+prefixes, the relay would have to continue to send
+PUBLISH_NAMESPACE/PUBLISH_NAMESPACE_DONE messages to the entity that had sent
+the SUBSCRIBE_NAMESPACE.
 
 # IANA Considerations {#iana}
 
