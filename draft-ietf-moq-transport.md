@@ -1743,8 +1743,8 @@ SHOULD individually UNSUBSCRIBE for each existing subscription, while a
 publisher MAY reject new requests while in the draining state.
 
 Upon receiving a GOAWAY, an endpoint SHOULD NOT initiate new requests to the
-peer including SUBSCRIBE, PUBLISH, FETCH, PUBLISH_NAMESPACE and
-SUBSCRIBE_NAMESPACE.
+peer including SUBSCRIBE, PUBLISH, FETCH, PUBLISH_NAMESPACE,
+SUBSCRIBE_NAMESPACE and TRACK_SATUS.
 
 The endpoint MUST terminate the session with a `PROTOCOL_VIOLATION`
 ({{session-termination}}) if it receives multiple GOAWAY messages.
