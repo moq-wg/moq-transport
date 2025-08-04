@@ -3646,6 +3646,8 @@ Implementations are advised to use timeouts to prevent resource
 exhaustion attacks by a peer that does not send expected data within
 an expected time.  Each implementation is expected to set its own limits.
 
+TODO: Security Considerations of MOQT_IMPLEMENTATION parameter
+
 # IANA Considerations {#iana}
 
 TODO: fill out currently missing registries:
