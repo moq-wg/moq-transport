@@ -2944,21 +2944,23 @@ forward the duplicate object in this case.<a href="#section-7.1-5" class="pilcro
         <h3 id="name-subscriber-interactions">
 <a href="#section-7.2" class="section-number selfRef">7.2. </a><a href="#name-subscriber-interactions" class="section-name selfRef">Subscriber Interactions</a>
         </h3>
-<p id="section-7.2-1">Subscribers subscribe to tracks by sending a SUBSCRIBE
-(<a href="#message-subscribe-req" class="auto internal xref">Section 8.7</a>) control message for each track of
-interest. Relays <span class="bcp14">MUST</span> ensure subscribers are authorized to access the
-content associated with the track. The authorization
-information can be part of subscription request itself or part of the
-encompassing session. The specifics of how a relay authorizes a user are outside
-the scope of this specification.<a href="#section-7.2-1" class="pilcrow">¶</a></p>
+<p id="section-7.2-1">Subscribers request Tracks by sending a SUBSCRIBE (see
+<a href="#message-subscribe-req" class="auto internal xref">Section 8.7</a>) or FETCH (see <a href="#message-fetch" class="auto internal xref">Section 8.16</a>) control message for
+each Track of interest. Relays <span class="bcp14">MUST</span> ensure subscribers are authorized to access
+the content associated with the Track. The authorization information can be part
+of request itself or part of the encompassing session. The specifics of how a
+relay authorizes a user are outside the scope of this specification.<a href="#section-7.2-1" class="pilcrow">¶</a></p>
 <p id="section-7.2-2">The relay <span class="bcp14">MUST</span> have an established upstream subscription before sending
 SUBSCRIBE_OK in response to a downstream SUBSCRIBE.  If a relay does not have
 sufficient information to send a FETCH_OK immediately in response to a FETCH, it
 <span class="bcp14">MUST</span> withhold sending FETCH_OK until it does.<a href="#section-7.2-2" class="pilcrow">¶</a></p>
-<p id="section-7.2-3">For successful subscriptions, the publisher maintains a list of
-subscribers for each track. Each new Object belonging to the
-track within the subscription range is forwarded to each active
-subscriber, dependent on the congestion response.<a href="#section-7.2-3" class="pilcrow">¶</a></p>
+<p id="section-7.2-3">For successful subscriptions, the publisher maintains a list of subscribers for
+each Track. Relays use the Track Alias (<a href="#track-alias" class="auto internal xref">Section 9.1</a>) of an incoming Object
+to identify its Track and find the active subscribers.  Each new Object
+belonging to the Track is forwarded to each active subscriber, as allowed by the
+subscription's filter (see <a href="#message-subscribe-req" class="auto internal xref">Section 8.7</a>), and delivered according
+to the priority (see <a href="#priorities" class="auto internal xref">Section 6</a>) and delivery timeout (see
+<a href="#delivery-timeout" class="auto internal xref">Section 8.2.1.2</a>).<a href="#section-7.2-3" class="pilcrow">¶</a></p>
 <p id="section-7.2-4">Relays <span class="bcp14">MUST</span> be able to process objects for the same Full Track Name from
 multiple publishers and forward objects to active matching subscriptions.  The
 same object <span class="bcp14">SHOULD NOT</span> be forwarded more than once on the same subscription.<a href="#section-7.2-4" class="pilcrow">¶</a></p>
@@ -3003,8 +3005,8 @@ new tracks.<a href="#section-7.3-2.1.1" class="pilcrow">¶</a></p>
 </li>
           <li id="section-7.3-2.2">
             <p id="section-7.3-2.2.1">Send a PUBLISH_NAMESPACE message for a Track Namespace to the relay. This
-enables the relay to send SUBSCRIBE messages to publishers for Tracks in this
-Namespace in response to received SUBSCRIBE messages.<a href="#section-7.3-2.2.1" class="pilcrow">¶</a></p>
+enables the relay to send SUBSCRIBE or FETCH messages to publishers for Tracks
+in this Namespace in response to requests received from subscribers.<a href="#section-7.3-2.2.1" class="pilcrow">¶</a></p>
 </li>
         </ol>
 <p id="section-7.3-3">Relays <span class="bcp14">MUST</span> verify that publishers are authorized to publish the set of tracks
@@ -3047,14 +3049,10 @@ each active upstream subscription that matches that namespace, it <span class="b
 SUBSCRIBE to the publisher that sent the PUBLISH_NAMESPACE.  When it receives an
 incoming PUBLISH message for a track that has active subscribers, it <span class="bcp14">SHOULD</span>
 respond with PUBLISH_OK with Forward State=1.<a href="#section-7.3-12" class="pilcrow">¶</a></p>
-<p id="section-7.3-13">Relays use the Track Alias (<a href="#track-alias" class="auto internal xref">Section 9.1</a>) of an incoming Object to identify
-its track and find the active subscribers. Relays <span class="bcp14">MUST</span> forward Objects to
-matching subscribers in accordance to each subscription's priority, group order,
-and delivery timeout.<a href="#section-7.3-13" class="pilcrow">¶</a></p>
-<p id="section-7.3-14">If an upstream session is closed due to an unknown or invalid control message
-or Object, the relay <span class="bcp14">MUST NOT</span> continue to propagate that message or Object
-downstream, because it would enable a single session to close unrelated
-sessions.<a href="#section-7.3-14" class="pilcrow">¶</a></p>
+<p id="section-7.3-13">If a Session is closed due to an unknown or invalid control message or Object,
+the Relay <span class="bcp14">MUST NOT</span> propagate that message or Object to another Session, because
+it would enable a single Session error to force an unrelated Session, which
+might be handling other subscriptions, to be closed.<a href="#section-7.3-13" class="pilcrow">¶</a></p>
 <div id="graceful-publisher-network-switchover">
 <section id="section-7.3.1">
           <h4 id="name-graceful-publisher-network-">
@@ -3107,12 +3105,6 @@ combine, split, or otherwise modify object payloads.  A relay <span class="bcp14
 prioritize sending Objects based on <a href="#priorities" class="auto internal xref">Section 6</a>.<a href="#section-7.4-2" class="pilcrow">¶</a></p>
 <p id="section-7.4-3">A publisher <span class="bcp14">SHOULD</span> begin sending incomplete objects when available to
 avoid incurring additional latency.<a href="#section-7.4-3" class="pilcrow">¶</a></p>
-<p id="section-7.4-4">A relay that reads from one stream and writes to another in order can
-introduce head-of-line blocking.  Packet loss will cause stream data to
-be buffered in the library, awaiting in-order delivery, which could
-increase latency over additional hops.  To mitigate this, a relay <span class="bcp14">MAY</span>
-read and write stream data out of order subject to flow control
-limits.  See section 2.2 in <span>[<a href="#QUIC" class="cite xref">QUIC</a>]</span>.<a href="#section-7.4-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -6372,6 +6364,7 @@ relays. This extension <span class="bcp14">MUST NOT</span> be modified or remove
 <a href="#section-11" class="section-number selfRef">11. </a><a href="#name-security-considerations" class="section-name selfRef">Security Considerations</a>
       </h2>
 <p id="section-11-1">TODO: Expand this section, including subscriptions.<a href="#section-11-1" class="pilcrow">¶</a></p>
+<p id="section-11-2">TODO: Describe Cache Poisoning attacks<a href="#section-11-2" class="pilcrow">¶</a></p>
 <div id="resource-exhaustion">
 <section id="section-11.1">
         <h3 id="name-resource-exhaustion">
