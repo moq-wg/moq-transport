@@ -3349,25 +3349,22 @@ Table of Contents
       object does not exist at any publisher and it will not be
       published in the future.  This SHOULD be cached.
 
-   *  0x3 := Indicates end of Group.  ObjectId is one greater that the
-      largest object produced in the group identified by the GroupID.
-      This is sent right after the last object in the group.  If the
-      ObjectID is 0, it indicates there are no Objects in this Group.
-      This SHOULD be cached.  A publisher MAY use an end of Group object
-      to signal the end of all open Subgroups in a Group.  A non-zero-
-      length Object can be the End of Group, as signaled in the DATAGRAM
-      or SUBGROUP_HEADER Type field (see Section 9.3.1 and
+   *  0x3 := Indicates End of Group.  Object ID is one greater that the
+      largest Object produced in the Group identified by the Group ID.
+      If the Object ID is 0, it indicates there are no Objects in this
+      Group.  This SHOULD be cached.  A publisher MAY use an end of
+      Group object to signal the end of all open Subgroups in a Group.
+      A non-zero-length Object can be the End of Group, as signaled in
+      the DATAGRAM or SUBGROUP_HEADER Type field (see Section 9.3.1 and
       Section 9.4.2).
 
-   *  0x4 := Indicates end of Track.  GroupID is either the largest
-      group produced in this track and the ObjectID is one greater than
-      the largest object produced in that group, or GroupID is one
-      greater than the largest group produced in this track and the
-      ObjectID is zero.  This status also indicates the last group has
-      ended.  An object with this status that has a Group ID less than
-      any other GroupID, or an ObjectID less than or equal to the
-      largest in the specified group, is a protocol error, and the
-      receiver MUST terminate the session.  This SHOULD be cached.
+   *  0x4 := Indicates End of Track.  Group ID is either the largest
+      Group produced in this Track with Object ID one greater than the
+      largest Object produced in that Group, or Group ID is one greater
+      than the largest Group produced in this Track with Object ID zero.
+      This status also indicates the specified Group has ended.
+      Publishers MUST NOT publish an Object with a Location larger than
+      this Location (see Section 2.5).  This SHOULD be cached.
 
    Any other value SHOULD be treated as a protocol error and terminate
    the session with a PROTOCOL_VIOLATION (Section 3.4).  Any object with

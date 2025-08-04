@@ -5603,26 +5603,22 @@ are beyond the end of a group or track.<a href="#section-9.2.1.1-1" class="pilcr
        the future. This <span class="bcp14">SHOULD</span> be cached.<a href="#section-9.2.1.1-3.2.1" class="pilcrow">¶</a></p>
 </li>
               <li class="normal" id="section-9.2.1.1-3.3">
-                <p id="section-9.2.1.1-3.3.1">0x3 := Indicates end of Group. ObjectId is one greater that the
-       largest object produced in the group identified by the
-       GroupID. This is sent right after the last object in the
-       group. If the ObjectID is 0, it indicates there are no Objects
-       in this Group. This <span class="bcp14">SHOULD</span> be cached. A publisher <span class="bcp14">MAY</span> use an end of
-       Group object to signal the end of all open Subgroups in a Group. A
-       non-zero-length Object can be the End of Group, as signaled in
-       the DATAGRAM or SUBGROUP_HEADER Type field (see <a href="#object-datagram" class="auto internal xref">Section 9.3.1</a>
-       and <a href="#subgroup-header" class="auto internal xref">Section 9.4.2</a>).<a href="#section-9.2.1.1-3.3.1" class="pilcrow">¶</a></p>
+                <p id="section-9.2.1.1-3.3.1">0x3 := Indicates End of Group. Object ID is one greater that the largest
+       Object produced in the Group identified by the Group ID. If the Object
+       ID is 0, it indicates there are no Objects in this Group. This <span class="bcp14">SHOULD</span>
+       be cached. A publisher <span class="bcp14">MAY</span> use an end of Group object to signal the end
+       of all open Subgroups in a Group. A non-zero-length Object can be the
+       End of Group, as signaled in the DATAGRAM or SUBGROUP_HEADER Type field
+       (see <a href="#object-datagram" class="auto internal xref">Section 9.3.1</a> and <a href="#subgroup-header" class="auto internal xref">Section 9.4.2</a>).<a href="#section-9.2.1.1-3.3.1" class="pilcrow">¶</a></p>
 </li>
               <li class="normal" id="section-9.2.1.1-3.4">
-                <p id="section-9.2.1.1-3.4.1">0x4 := Indicates end of Track. GroupID is either the largest group produced
-       in this track and the ObjectID is one greater than the largest object
-       produced in that group, or GroupID is one greater than the largest
-       group produced in this track and the ObjectID is zero. This status
-       also indicates the last group has ended. An object with this status
-       that has a Group ID less than any other GroupID, or an ObjectID less
-       than or equal to the largest in the specified group, is a protocol
-       error, and the receiver <span class="bcp14">MUST</span> terminate the session. This <span class="bcp14">SHOULD</span> be
-       cached.<a href="#section-9.2.1.1-3.4.1" class="pilcrow">¶</a></p>
+                <p id="section-9.2.1.1-3.4.1">0x4 := Indicates End of Track. Group ID is either the largest Group produced
+       in this Track with Object ID one greater than the largest Object
+       produced in that Group, or Group ID is one greater than the largest
+       Group produced in this Track with Object ID zero. This status also
+       indicates the specified Group has ended. Publishers <span class="bcp14">MUST NOT</span> publish an
+       Object with a Location larger than this Location (see
+       <a href="#malformed-tracks" class="auto internal xref">Section 2.5</a>). This <span class="bcp14">SHOULD</span> be cached.<a href="#section-9.2.1.1-3.4.1" class="pilcrow">¶</a></p>
 </li>
             </ul>
 <p id="section-9.2.1.1-4">Any other value <span class="bcp14">SHOULD</span> be treated as a protocol error and terminate the
