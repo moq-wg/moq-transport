@@ -1169,8 +1169,8 @@ subscribe and unsubscribe from a track.
 
 A subscriber remains subscribed to a Track at a Relay until it unsubscribes, the
 upstream publisher terminates the subscription, or the subscription expires (see
-{{subscribe_ok}}).  A subscription with a filter can reach a state where all
-possible Objects matching the filter have been delivered to the subscriber.
+{{message-subscribe-ok}}).  A subscription with a filter can reach a state where
+all possible Objects matching the filter have been delivered to the subscriber.
 Since tracking this can be prohibitively expensive, Relays are not required or
 expected to do so.
 
