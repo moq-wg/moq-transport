@@ -1137,9 +1137,9 @@ change, or a Forwarding Preference, Subgroup ID, Priority or Payload that
 differ from a previous version MUST treat the track as Malformed.
 
 Note that due to reordering, an implementation can receive a duplicate Object
-with a status of Normal, End of Group or End of Track after receiving a
-previous status of Object Not Exists.  The endpoint SHOULD NOT cache or
-forward the duplicate object in this case.
+with a status of Normal, End of Group or End of Track after receiving a previous
+status of Object Does Not Exist.  The endpoint SHOULD NOT cache or forward the
+duplicate object in this case.
 
 A cache MUST store all properties of an Object defined in
 {{object-properties}}, with the exception of any extensions
@@ -3112,9 +3112,9 @@ are beyond the end of a group or track.
 * 0x0 := Normal object. This status is implicit for any non-zero length object.
          Zero-length objects explicitly encode the Normal status.
 
-* 0x1 := Indicates Object does not exist. Indicates that this object
-         does not exist at any publisher and it will not be published in
-         the future. This SHOULD be cached.
+* 0x1 := Indicates Object Does Not Exist. Indicates that this Object does not
+         exist at any publisher and it will not be published in the future. This
+         SHOULD be cached.
 
 * 0x3 := Indicates End of Group. Object ID is one greater that the largest
          Object produced in the Group identified by the Group ID. If the Object
