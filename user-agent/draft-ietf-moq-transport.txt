@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 28 January 2026                                   I. Swett, Ed.
+Expires: 5 February 2026                                   I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                            27 July 2025
+                                                           4 August 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 28 January 2026.
+   This Internet-Draft will expire on 5 February 2026.
 
 Copyright Notice
 
@@ -3892,6 +3892,8 @@ Table of Contents
    exhaustion attacks by a peer that does not send expected data within
    an expected time.  Each implementation is expected to set its own
    limits.
+
+   TODO: Security Considerations of MOQT_IMPLEMENTATION parameter
 
 12.  IANA Considerations
 
