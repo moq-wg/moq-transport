@@ -375,7 +375,7 @@ This allows the client to join at the logical points where decoding
 of the stream can start without needing information before the join
 points. The temporal layers are sent as separate subgroups to allow
 the priority mechanism to favor lower temporal layers when there is
-not enough bandwidth to send all temporal layers. Each picture is sent 
+not enough bandwidth to send all temporal layers. Each picture is sent
 as a single object.
 
 ## Objects {#model-object}
@@ -2059,7 +2059,7 @@ widen could fail. If Objects with Locations smaller than the current
 subscription's Start Location are required, FETCH can be used to retrieve
 them. The Start Location MUST NOT decrease and the End Group MUST NOT increase.
 However, when a subscriber sends a SUBSCRIBE_UPDATE to narrow a subscription,
-there is no guarantee that the subscriber won't receive Objects outside the 
+there is no guarantee that the subscriber won't receive Objects outside the
 narrowed range. A publisher MUST terminate the session with a
 `PROTOCOL_VIOLATION` if the SUBSCRIBE_UPDATE violates these rules or if the
 subscriber specifies a request ID that has not existed within the Session.
