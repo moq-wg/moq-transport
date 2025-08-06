@@ -957,14 +957,13 @@ namespace that exactly matches a namespace for which the peer sent an earlier
 PUBLISH_NAMESPACE (i.e. a PUBLISH_NAMESPACE ought not to be echoed back to its
 sender).
 
-An endpoint SHOULD report the reception of an PUBLISH_NAMESPACE_OK or
+An endpoint SHOULD report the reception of a PUBLISH_NAMESPACE_OK or
 PUBLISH_NAMESPACE_ERROR to the application to inform the search for additional
 subscribers for a namespace, or to abandon the attempt to publish under this
-namespace. This might
-be especially useful in upload or chat applications. A subscriber MUST send
-exactly one PUBLISH_NAMESPACE_OK or PUBLISH_NAMESPACE_ERROR in response to an
-PUBLISH_NAMESPACE. The publisher SHOULD close the session with a protocol error
-if it receives more than one.
+namespace. This might be especially useful in upload or chat applications. A
+subscriber MUST send exactly one PUBLISH_NAMESPACE_OK or PUBLISH_NAMESPACE_ERROR
+in response to an PUBLISH_NAMESPACE. The publisher SHOULD close the session with
+a protocol error if it receives more than one.
 
 A PUBLISH_NAMESPACE_DONE message withdraws a previous PUBLISH_NAMESPACE,
 although it is not a protocol error for the subscriber to send a SUBSCRIBE or
