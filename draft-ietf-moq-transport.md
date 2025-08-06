@@ -431,9 +431,9 @@ ID without implying any relationship between them. In general, publishers assign
 objects to subgroups in order to leverage the features of streams as described
 above.
 
-When assigning Objects to different Subgroups, a reasonable tradeoff should be considered
-between having a good number of Subgroups (hence a good number of different priorities) in
-a group and minimizing the number of streams used.
+When assigning Objects to different Subgroups, a reasonable tradeoff should be
+considered between having a good number of Subgroups (hence a good number of
+different priorities) in a group and minimizing the number of streams used.
 
 ## Groups {#model-group}
 
@@ -957,9 +957,10 @@ namespace that exactly matches a namespace for which the peer sent an earlier
 PUBLISH_NAMESPACE (i.e. a PUBLISH_NAMESPACE ought not to be echoed back to its
 sender).
 
-An endpoint SHOULD report the reception of an ANNOUNCE_OK or ANNOUNCE_ERROR to
-the application to inform the search for additional subscribers for a namespace,
-or to abandon the attempt to publish under this namespace. This might
+An endpoint SHOULD report the reception of an PUBLISH_NAMESPACE_OK or
+PUBLISH_NAMESPACE_ERROR to the application to inform the search for additional
+subscribers for a namespace, or to abandon the attempt to publish under this
+namespace. This might
 be especially useful in upload or chat applications. A subscriber MUST send
 exactly one PUBLISH_NAMESPACE_OK or PUBLISH_NAMESPACE_ERROR in response to an
 PUBLISH_NAMESPACE. The publisher SHOULD close the session with a protocol error
