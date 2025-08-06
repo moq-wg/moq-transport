@@ -1137,16 +1137,12 @@ messages for the same Track from multiple publishers.  The following sections
 explain how Relays maintain subscriptions to all available publishers for a
 given Track.
 
-There are multiple scenarios where more than one publisher of the same Track
-connects to the same Relay, including, but not limited to:
-
-1. A publisher loses state and reconnects to the same Relay, but the Relay
-   has not yet detected the old session has terminated.
-2. A publisher is performing a graceful migration to a new session.
-3. A system that facilitates failover with multiple redundant publishers that
-   produce identical Track content.
-4. A distributed set of endpoints, each publishing different Objects in the same
-   Track.
+There is no specified limit to the number of publishers of a Track Namespace or
+Track.  An implementation can use mechanisms such as PUBLISH_ERROR,
+PUBLISH_NAMESPACE_ERROR, UNSUBSCRIBE, PUBLISH_NAMESPACE_CANCEL or GOAWAY if it
+cannot accept an additional publisher due to implementation constraints.
+Implementations can consider the establishment or idle time of the session or
+subscription to determine which publisher to reject or disconnect.
 
 Relays MUST handle Objects for the same Track from multiple publishers and
 forward them to active matching subscriptions. The Relay SHOULD attempt to
