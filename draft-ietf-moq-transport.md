@@ -372,11 +372,11 @@ the display environment and available bandwidth. Each independently
 coded sequence of pictures in a resolution is sent as a group as the
 first picture in the sequence can be used as a random access point.
 This allows the client to join at the logical points where decoding
-of the stream can start without needing information before the join
+of the media can start without needing information before the join
 points. The temporal layers are sent as separate subgroups to allow
 the priority mechanism to favor lower temporal layers when there is
-not enough bandwidth to send all temporal layers. Each picture is sent
-as a single object.
+not enough bandwidth to send all temporal layers. Each frame of video
+is sent as a single object.
 
 ## Objects {#model-object}
 
