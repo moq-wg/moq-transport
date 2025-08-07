@@ -431,9 +431,15 @@ ID without implying any relationship between them. In general, publishers assign
 objects to subgroups in order to leverage the features of streams as described
 above.
 
-When assigning Objects to different Subgroups, a reasonable tradeoff should be
-considered between having a good number of Subgroups (hence a good number of
-different priorities) in a group and minimizing the number of streams used.
+In general, if Object B is dependent on Object A, then delivery of B can follow
+A, i.e. A and B can be usefully delivered over a single stream.  If an Object is
+dependent on all previous Objects in a Subgroup, it likely fits best in that
+Subgroup.  If an Object is not dependent on any of the Objects in a Subgroup, it
+likely belongs in a different Subgroup.
+
+When assigning Objects to different Subgroups, the Original Publisher makes a
+reasonable tradeoff between having an optimal mapping of Object relationships in
+a Group and minimizing the number of streams used.
 
 ## Groups {#model-group}
 
