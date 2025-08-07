@@ -3617,7 +3617,7 @@ Objects in Group 10, as it sees fit.  A Track is considered malformed (see
 This extension is optional, as publishers might not know the prior gap gize, or
 there may not be a gap. If Prior Group ID Gap is not present, the receiver
 cannot infer any information about the existence of prior groups (see
-{{group-ordering}}).
+{{group-id-allocation}}).
 
 This extension can be added by the Original Publisher, but MUST NOT be added by
 relays. This extension MUST NOT be modified or removed.
