@@ -836,8 +836,7 @@ subscribing endpoints as well as highly functional Relays.  Non-Relay endpoints
 MAY implement only the subset of functionality required to perform necessary
 tasks.  For example, a limited media player could operate using only SUBSCRIBE
 related messages.  Limited endpoints SHOULD respond to any unsupported messages
-with the appropriate `NOT_SUPPORTED` error code or close the session, rather
-than ignoring them.
+with the appropriate `NOT_SUPPORTED` error code, rather than ignoring them.
 
 Relays MUST implement all MOQT messages defined in this document, as well as
 processing rules described in {{relays-moq}}.
