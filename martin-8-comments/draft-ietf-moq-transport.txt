@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 29 January 2026                                   I. Swett, Ed.
+Expires: 9 February 2026                                   I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                            28 July 2025
+                                                           8 August 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 29 January 2026.
+   This Internet-Draft will expire on 9 February 2026.
 
 Copyright Notice
 
@@ -1762,11 +1762,7 @@ Table of Contents
    If both the subscriber and publisher specify the parameter, they use
    the min of the two values for the subscription.  The publisher SHOULD
    always specify the value received from an upstream subscription when
-   there is one, and nothing otherwise.  If a Relay receives an Object
-   with Location L smaller than the Largest Object (see Section 8.7), it
-   can consider its receipt time as that of the Object with smallest
-   Location larger than L, with the assumption that the Objects were
-   reordered.
+   there is one, and nothing otherwise.
 
    Publishers can, at their discretion, discontinue forwarding Objects
    earlier than the negotiated DELIVERY TIMEOUT, subject to stream
