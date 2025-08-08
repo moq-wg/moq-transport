@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 31 January 2026                                   I. Swett, Ed.
+Expires: 9 February 2026                                   I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                            30 July 2025
+                                                           8 August 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 31 January 2026.
+   This Internet-Draft will expire on 9 February 2026.
 
 Copyright Notice
 
@@ -952,8 +952,8 @@ Table of Contents
    functionality required to perform necessary tasks.  For example, a
    limited media player could operate using only SUBSCRIBE related
    messages.  Limited endpoints SHOULD respond to any unsupported
-   messages with the appropriate NOT_SUPPORTED error code or close the
-   session, rather than ignoring them.
+   messages with the appropriate NOT_SUPPORTED error code, rather than
+   ignoring them.
 
    Relays MUST implement all MOQT messages defined in this document, as
    well as processing rules described in Section 8.
