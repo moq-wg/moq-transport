@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 6 February 2026                                   I. Swett, Ed.
+Expires: 9 February 2026                                   I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                           5 August 2025
+                                                           8 August 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 6 February 2026.
+   This Internet-Draft will expire on 9 February 2026.
 
 Copyright Notice
 
@@ -1082,8 +1082,8 @@ Table of Contents
    that has received an authorized PUBLISH_NAMESPACE for that namespace
    from an upstream publisher, it MUST send a PUBLISH_NAMESPACE to any
    subscriber that has subscribed via SUBSCRIBE_NAMESPACE for that
-   namespace, or a more generic set including that namespace.  A
-   publisher MAY send the PUBLISH_NAMESPACE to any other subscriber.
+   namespace, or a prefix of that namespace.  A publisher MAY send the
+   PUBLISH_NAMESPACE to any other subscriber.
 
    An endpoint SHOULD NOT, however, send a PUBLISH_NAMESPACE advertising
    a namespace that exactly matches a namespace for which the peer sent
