@@ -2665,6 +2665,10 @@ MALFORMED_AUTH_TOKEN (0x10):
 EXPIRED_AUTH_TOKEN (0x12):
 : Authorization token has expired ({{authorization-token}}).
 
+FETCH_TOO_LARGE (0x13):
+: The FETCH request could not be satisfied because the requested range
+  exceeds the publisher's current limit.
+
 
 ## FETCH_CANCEL {#message-fetch-cancel}
 
