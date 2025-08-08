@@ -2063,11 +2063,13 @@ subscription. Subscriptions can only be narrowed, not widened, as an attempt to
 widen could fail. If Objects with Locations smaller than the current
 subscription's Start Location are required, FETCH can be used to retrieve
 them. The Start Location MUST NOT decrease and the End Group MUST NOT increase.
-However, when a subscriber sends a SUBSCRIBE_UPDATE to narrow a subscription,
-there is no guarantee that the subscriber won't receive Objects outside the
-narrowed range. A publisher MUST terminate the session with a
-`PROTOCOL_VIOLATION` if the SUBSCRIBE_UPDATE violates these rules or if the
-subscriber specifies a request ID that has not existed within the Session.
+A publisher MUST terminate the session with a `PROTOCOL_VIOLATION` if the
+SUBSCRIBE_UPDATE violates these rules or if the subscriber specifies a request
+ID that has not existed within the Session.
+
+When a subscriber narrows their subscription, it might still receive objects
+outside the new range if the publisher sent them before the update was
+processed.
 
 There is no control message in response to a SUBSCRIBE_UPDATE, because it is
 expected that it will always succeed and the worst outcome is that it is not
