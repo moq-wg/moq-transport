@@ -1541,7 +1541,15 @@ networks and is designed for high scale and low latency distribution.<a href="#s
                 <p id="section-toc.1-1.11.2.2.1"><a href="#section-11.2" class="auto internal xref">11.2</a>.  <a href="#name-timeouts" class="internal xref">Timeouts</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.11.2.3">
-                <p id="section-toc.1-1.11.2.3.1"><a href="#section-11.3" class="auto internal xref">11.3</a>.  <a href="#name-relay-memory-consumption" class="internal xref">Relay memory consumption</a></p>
+                <p id="section-toc.1-1.11.2.3.1"><a href="#section-11.3" class="auto internal xref">11.3</a>.  <a href="#name-relay-security-consideratio" class="internal xref">Relay security considerations</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.11.2.3.2.1">
+                    <p id="section-toc.1-1.11.2.3.2.1.1"><a href="#section-11.3.1" class="auto internal xref">11.3.1</a>.  <a href="#name-state-maintenance" class="internal xref">State maintenance</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.11.2.3.2.2">
+                    <p id="section-toc.1-1.11.2.3.2.2.1"><a href="#section-11.3.2" class="auto internal xref">11.3.2</a>.  <a href="#name-subscribe_namespace-with-sh" class="internal xref">SUBSCRIBE_NAMESPACE with short prefixes</a></p>
+</li>
+                </ul>
 </li>
             </ul>
 </li>
@@ -6393,17 +6401,38 @@ exhaustion attacks by a peer that does not send expected data within
 an expected time.  Each implementation is expected to set its own limits.<a href="#section-11.2-1" class="pilcrow">¶</a></p>
 </section>
 </div>
-<div id="relay-memory-consumption">
+<div id="relay-security-considerations">
 <section id="section-11.3">
-        <h3 id="name-relay-memory-consumption">
-<a href="#section-11.3" class="section-number selfRef">11.3. </a><a href="#name-relay-memory-consumption" class="section-name selfRef">Relay memory consumption</a>
+        <h3 id="name-relay-security-consideratio">
+<a href="#section-11.3" class="section-number selfRef">11.3. </a><a href="#name-relay-security-consideratio" class="section-name selfRef">Relay security considerations</a>
         </h3>
-<p id="section-11.3-1">A Relay <span class="bcp14">SHOULD</span> have mechanisms to prevent malicious endpoints from flooding it
+<div id="state-maintenance">
+<section id="section-11.3.1">
+          <h4 id="name-state-maintenance">
+<a href="#section-11.3.1" class="section-number selfRef">11.3.1. </a><a href="#name-state-maintenance" class="section-name selfRef">State maintenance</a>
+          </h4>
+<p id="section-11.3.1-1">A Relay <span class="bcp14">SHOULD</span> have mechanisms to prevent malicious endpoints from flooding it
 with PUBLISH_NAMESPACE or SUBSCRIBE_NAMESPACE requests that could bloat data
 structures. It could use the advertised MAX_REQUEST_ID to limit the number of
 such requests, or could have application-specific policies that can reject
 incoming PUBLISH_NAMESPACE or SUBSCRIBE_NAMESPACE requests that cause the state
-maintenance for the session to be excessive.<a href="#section-11.3-1" class="pilcrow">¶</a></p>
+maintenance for the session to be excessive.<a href="#section-11.3.1-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="subscribenamespace-with-short-prefixes">
+<section id="section-11.3.2">
+          <h4 id="name-subscribe_namespace-with-sh">
+<a href="#section-11.3.2" class="section-number selfRef">11.3.2. </a><a href="#name-subscribe_namespace-with-sh" class="section-name selfRef">SUBSCRIBE_NAMESPACE with short prefixes</a>
+          </h4>
+<p id="section-11.3.2-1">A Relay can use authorization rules in order to prevent subscriptions closer
+to the root of a large prefix tree. Otherwise, if an entity sends a relay a
+SUBSCRIBE_NAMESPACE message with a short prefix, it can cause the relay to send
+a large volume of PUBLISH_NAMESPACE messages. As churn continues in the tree of
+prefixes, the relay would have to continue to send
+PUBLISH_NAMESPACE/PUBLISH_NAMESPACE_DONE messages to the entity that had sent
+the SUBSCRIBE_NAMESPACE.<a href="#section-11.3.2-1" class="pilcrow">¶</a></p>
+</section>
+</div>
 </section>
 </div>
 </section>

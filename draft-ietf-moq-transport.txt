@@ -181,7 +181,9 @@ Table of Contents
    11. Security Considerations
      11.1.  Resource Exhaustion
      11.2.  Timeouts
-     11.3.  Relay memory consumption
+     11.3.  Relay security considerations
+       11.3.1.  State maintenance
+       11.3.2.  SUBSCRIBE_NAMESPACE with short prefixes
    12. IANA Considerations
      12.1.  Error Codes
        12.1.1.  Session Termination Error Codes
@@ -3950,7 +3952,9 @@ Table of Contents
    an expected time.  Each implementation is expected to set its own
    limits.
 
-11.3.  Relay memory consumption
+11.3.  Relay security considerations
+
+11.3.1.  State maintenance
 
    A Relay SHOULD have mechanisms to prevent malicious endpoints from
    flooding it with PUBLISH_NAMESPACE or SUBSCRIBE_NAMESPACE requests
@@ -3959,6 +3963,17 @@ Table of Contents
    application-specific policies that can reject incoming
    PUBLISH_NAMESPACE or SUBSCRIBE_NAMESPACE requests that cause the
    state maintenance for the session to be excessive.
+
+11.3.2.  SUBSCRIBE_NAMESPACE with short prefixes
+
+   A Relay can use authorization rules in order to prevent subscriptions
+   closer to the root of a large prefix tree.  Otherwise, if an entity
+   sends a relay a SUBSCRIBE_NAMESPACE message with a short prefix, it
+   can cause the relay to send a large volume of PUBLISH_NAMESPACE
+   messages.  As churn continues in the tree of prefixes, the relay
+   would have to continue to send PUBLISH_NAMESPACE/
+   PUBLISH_NAMESPACE_DONE messages to the entity that had sent the
+   SUBSCRIBE_NAMESPACE.
 
 12.  IANA Considerations
 
