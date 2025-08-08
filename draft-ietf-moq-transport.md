@@ -958,9 +958,8 @@ in a namespace without having received a PUBLISH_NAMESPACE for it.
 If a publisher is authoritative for a given namespace, or is a relay that has
 received an authorized PUBLISH_NAMESPACE for that namespace from an upstream
 publisher, it MUST send a PUBLISH_NAMESPACE to any subscriber that has
-subscribed via SUBSCRIBE_NAMESPACE for that namespace, or a more generic set
-including that namespace. A publisher MAY send the PUBLISH_NAMESPACE to any
-other subscriber.
+subscribed via SUBSCRIBE_NAMESPACE for that namespace, or a prefix of that
+namespace. A publisher MAY send the PUBLISH_NAMESPACE to any other subscriber.
 
 An endpoint SHOULD NOT, however, send a PUBLISH_NAMESPACE advertising a
 namespace that exactly matches a namespace for which the peer sent an earlier
