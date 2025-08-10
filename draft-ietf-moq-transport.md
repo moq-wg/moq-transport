@@ -450,7 +450,7 @@ point for subscriptions, so a subscriber that does not want to receive the
 entire Track can opt to receive only Groups starting from a given Group ID.
 Groups can contain any number of Objects.
 
-### Group ID Allocation
+### Group IDs
 
 Within a track, the original publisher SHOULD publish Group IDs which increase
 with time (where "time" is defined according to the internal clock of the media
@@ -3625,7 +3625,7 @@ Objects in Group 10, as it sees fit.  A Track is considered malformed (see
 This extension is optional, as publishers might not know the prior gap gize, or
 there may not be a gap. If Prior Group ID Gap is not present, the receiver
 cannot infer any information about the existence of prior groups (see
-{{group-id-allocation}}).
+{{group-ids}}).
 
 This extension can be added by the Original Publisher, but MUST NOT be added by
 relays. This extension MUST NOT be modified or removed.
