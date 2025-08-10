@@ -867,7 +867,9 @@ if it receives more than one.
 Publishers MAY start sending Objects on PUBLISH-initiated subscriptions before
 receiving a PUBLISH_OK response to reduce latency.  Doing so can consume
 unnecessary resources in cases where the Subscriber rejects the subscription
-with PUBLISH_ERROR or sets Forward State=0 in PUBLISH_OK.
+with PUBLISH_ERROR or sets Forward State=0 in PUBLISH_OK. It can also result in
+the Subscriber dropping Objects if its buffering limits are exceeded (see
+{{datagrams}} and {{subgroup-header}}).
 
 A subscriber keeps subscription state until it sends UNSUBSCRIBE, or after
 receipt of a SUBSCRIBE_DONE or SUBSCRIBE_ERROR. Note that SUBSCRIBE_DONE does
