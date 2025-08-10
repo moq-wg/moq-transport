@@ -1052,11 +1052,11 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <thead><tr>
 <td class="left">Internet-Draft</td>
 <td class="center">moq-transport</td>
-<td class="right">July 2025</td>
+<td class="right">August 2025</td>
 </tr></thead>
 <tfoot><tr>
 <td class="left">Nandakumar, et al.</td>
-<td class="center">Expires 1 February 2026</td>
+<td class="center">Expires 11 February 2026</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1069,12 +1069,12 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dd class="internet-draft">draft-ietf-moq-transport-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2025-07-31" class="published">31 July 2025</time>
+<time datetime="2025-08-10" class="published">10 August 2025</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2026-02-01">1 February 2026</time></dd>
+<dd class="expires"><time datetime="2026-02-11">11 February 2026</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1143,7 +1143,7 @@ networks and is designed for high scale and low latency distribution.<a href="#s
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 1 February 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 11 February 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -2627,7 +2627,9 @@ if it receives more than one.<a href="#section-4.1-4" class="pilcrow">¶</a></p>
 <p id="section-4.1-5">Publishers <span class="bcp14">MAY</span> start sending Objects on PUBLISH-initiated subscriptions before
 receiving a PUBLISH_OK response to reduce latency.  Doing so can consume
 unnecessary resources in cases where the Subscriber rejects the subscription
-with PUBLISH_ERROR or sets Forward State=0 in PUBLISH_OK.<a href="#section-4.1-5" class="pilcrow">¶</a></p>
+with PUBLISH_ERROR or sets Forward State=0 in PUBLISH_OK. It can also result in
+the Subscriber dropping Objects if its buffering limits are exceeded (see
+<a href="#datagrams" class="auto internal xref">Section 9.3</a> and <a href="#subgroup-header" class="auto internal xref">Section 9.4.2</a>).<a href="#section-4.1-5" class="pilcrow">¶</a></p>
 <p id="section-4.1-6">A subscriber keeps subscription state until it sends UNSUBSCRIBE, or after
 receipt of a SUBSCRIBE_DONE or SUBSCRIBE_ERROR. Note that SUBSCRIBE_DONE does
 not usually indicate that state can immediately be destroyed, see

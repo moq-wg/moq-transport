@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 1 February 2026                                   I. Swett, Ed.
+Expires: 11 February 2026                                  I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                            31 July 2025
+                                                          10 August 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 1 February 2026.
+   This Internet-Draft will expire on 11 February 2026.
 
 Copyright Notice
 
@@ -984,7 +984,9 @@ Table of Contents
    subscriptions before receiving a PUBLISH_OK response to reduce
    latency.  Doing so can consume unnecessary resources in cases where
    the Subscriber rejects the subscription with PUBLISH_ERROR or sets
-   Forward State=0 in PUBLISH_OK.
+   Forward State=0 in PUBLISH_OK.  It can also result in the Subscriber
+   dropping Objects if its buffering limits are exceeded (see
+   Section 9.3 and Section 9.4.2).
 
    A subscriber keeps subscription state until it sends UNSUBSCRIBE, or
    after receipt of a SUBSCRIBE_DONE or SUBSCRIBE_ERROR.  Note that
