@@ -1026,11 +1026,12 @@ A _priority number_ is an unsigned integer with a value between 0 and 255.
 A lower priority number indicates higher priority; the highest priority is 0.
 
 _Subscriber Priority_ is a priority number associated with an individual
-request.  It is specified in the SUBSCRIBE or FETCH message, and can be
-updated via SUBSCRIBE_UPDATE message.  The subscriber priority of an individual
-schedulable object is the subscriber priority of the request that caused that
-object to be sent. When subscriber priority is changed, a best effort SHOULD be
-made to apply the change to all objects that have not been sent, but it is
+request.  It can be specified as a parameter in SUBSCRIBE, FETCH, or
+PUBLISH_OK, and can be updated via SUBSCRIBE_UPDATE. If not specified, the
+default value is 128. The subscriber priority of an individual schedulable
+object is the subscriber priority of the request that caused that object to
+be sent. When subscriber priority is changed, a best effort SHOULD be made
+to apply the change to all objects that have not been sent, but it is
 implementation dependent what happens to objects that have already been
 received and possibly scheduled.
 
@@ -1607,6 +1608,14 @@ multi-object stream will expire earlier than Objects later in the stream. Once
 Objects have expired from cache, their state becomes unknown, and a relay that
 handles a downstream request that includes those Objects re-requests them.
 
+#### SUBSCRIBER PRIORITY Parameter {#subscriber-priority}
+
+The SUBSCRIBER PRIORITY parameter (Parameter Type 0x08) specifies the priority
+of a subscription relative to other subscriptions in the same session.
+The value is from 0 to 255 and lower numbers get higher priority.
+See {{priorities}}. Priorities above 255 are invalid. The SUBSCRIBER PRIORITY
+parameter is valid in SUBSCRIBE, SUBSCRIBE_UPDATE, PUBLISH_OK and FETCH.
+
 ## CLIENT_SETUP and SERVER_SETUP {#message-setup}
 
 The `CLIENT_SETUP` and `SERVER_SETUP` messages are the first messages exchanged
@@ -1900,7 +1909,6 @@ SUBSCRIBE Message {
   Track Namespace (tuple),
   Track Name Length (i),
   Track Name (..),
-  Subscriber Priority (8),
   Group Order (8),
   Forward (8),
   Filter Type (i),
@@ -1918,10 +1926,6 @@ SUBSCRIBE Message {
 ({{track-name}}).
 
 * Track Name: Identifies the track name as defined in ({{track-name}}).
-
-* Subscriber Priority: Specifies the priority of a subscription relative to
-other subscriptions in the same session. Lower numbers get higher priority.
-See {{priorities}}.
 
 * Group Order: Allows the subscriber to request Objects be delivered in
 Ascending (0x1) or Descending (0x2) order by group. See {{priorities}}.
@@ -2094,7 +2098,6 @@ SUBSCRIBE_UPDATE Message {
   Request ID (i),
   Start Location (Location),
   End Group (i),
-  Subscriber Priority (8),
   Forward (8),
   Number of Parameters (i),
   Parameters (..) ...
@@ -2109,10 +2112,6 @@ SUBSCRIBE_UPDATE Message {
 
 * End Group: The end Group ID, plus 1. A value of 0 means the subscription is
 open-ended.
-
-* Subscriber Priority: Specifies the priority of a subscription relative to
-other subscriptions in the same session. Lower numbers get higher priority.
-See {{priorities}}.
 
 * Forward: If 1, Objects matching the subscription are forwarded
 to the subscriber. If 0, Objects are not forwarded to the subscriber.
@@ -2308,7 +2307,6 @@ PUBLISH_OK Message {
   Length (i),
   Request ID (i),
   Forward (8),
-  Subscriber Priority (8),
   Group Order (8),
   Filter Type (i),
   [Start Location (Location)],
@@ -2324,8 +2322,6 @@ PUBLISH_OK Message {
 
 * Forward: The Forward State for this subscription, either 0 (don't
   forward) or 1 (forward).
-
-* Subscriber Priority: The Subscriber Priority for this subscription.
 
 * Group Order: Indicates the subscription will be delivered in
   Ascending (0x1) or Descending (0x2) order by group. See {{priorities}}.
@@ -2448,7 +2444,6 @@ FETCH Message {
   Type (i) = 0x16,
   Length (16),
   Request ID (i),
-  Subscriber Priority (8),
   Group Order (8),
   Fetch Type (i),
   [Track Namespace (tuple),
@@ -2467,10 +2462,6 @@ FETCH Message {
 Fields common to all Fetch Types:
 
 * Request ID: See {{request-id}}.
-
-* Subscriber Priority: Specifies the priority of a fetch request relative to
-other subscriptions or fetches in the same session. Lower numbers get higher
-priority. See {{priorities}}.
 
 * Group Order: Allows the subscriber to request Objects be delivered in
 Ascending (0x1) or Descending (0x2) order by group. See {{priorities}}.
