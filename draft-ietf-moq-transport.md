@@ -196,8 +196,8 @@ End Subscriber:
 
 Relay:
 
-: An entity that is both a Publisher and a Subscriber, but not the Original
-Publisher or End Subscriber.
+: An entity that is both a Publisher and a Subscriber, is not the Original
+Publisher or End Subscriber, and conforms to all requirements in {{relays-moq}}.
 
 Upstream:
 
@@ -843,6 +843,18 @@ For example, BBR's PROBE_RTT state halves the sending rate for more than a round
 in order to obtain an accurate minimum RTT. Similarly, Reno halves it's congestion
 window upon detecting loss.  In both cases, the large reduction in sending rate might
 cause issues with latency sensitive applications.
+
+# Modularity
+
+MOQT defines all messages necessary to implement both simple publishing or
+subscribing endpoints as well as highly functional Relays.  Non-Relay endpoints
+MAY implement only the subset of functionality required to perform necessary
+tasks.  For example, a limited media player could operate using only SUBSCRIBE
+related messages.  Limited endpoints SHOULD respond to any unsupported messages
+with the appropriate `NOT_SUPPORTED` error code, rather than ignoring them.
+
+Relays MUST implement all MOQT messages defined in this document, as well as
+processing rules described in {{relays-moq}}.
 
 # Publishing and Retrieving Tracks
 
