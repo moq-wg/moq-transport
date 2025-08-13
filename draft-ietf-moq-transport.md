@@ -368,14 +368,15 @@ To give an example of how an application might use this data model,
 consider an application sending high and low resolution video using a
 codec with temporal scalability. Each resolution is sent as a separate
 track to allow the subscriber to pick the appropriate resolution given
-the display environment and available bandwidth. Each "group of pictures"
-in a video is sent as a group because the first frame is needed to
-decode later frames. This allows the client to join at the logical points
-where they can get the information to start decoding the media.
-The temporal layers are sent as separate sub groups to allow the
-priority mechanism to favour the base layer when there is not enough
-bandwidth to send both the base and enhancement layers. Each frame of
-video on a given layer is sent as a single object.
+the display environment and available bandwidth. Each independently
+coded sequence of pictures in a resolution is sent as a group as the
+first picture in the sequence can be used as a random access point.
+This allows the client to join at the logical points where decoding
+of the media can start without needing information before the join
+points. The temporal layers are sent as separate subgroups to allow
+the priority mechanism to favor lower temporal layers when there is
+not enough bandwidth to send all temporal layers. Each frame of video
+is sent as a single object.
 
 ## Objects {#model-object}
 
@@ -430,20 +431,15 @@ ID without implying any relationship between them. In general, publishers assign
 objects to subgroups in order to leverage the features of streams as described
 above.
 
-An example strategy for using stream properties follows. If object B is
-dependent on object A, then delivery of B can follow A, i.e. A and B can be
-usefully delivered over a single stream. Furthermore, in this example:
+In general, if Object B is dependent on Object A, then delivery of B can follow
+A, i.e. A and B can be usefully delivered over a single stream.  If an Object is
+dependent on all previous Objects in a Subgroup, it likely fits best in that
+Subgroup.  If an Object is not dependent on any of the Objects in a Subgroup, it
+likely belongs in a different Subgroup.
 
-- If an object is dependent on all previous objects in a Subgroup, it is added to
-that Subgroup.
-
-- If an object is not dependent on all of the objects in a Subgroup, it goes in
-a different Subgroup.
-
-- There are often many ways to compose Subgroups that meet these criteria. Where
-possible, choose the composition that results in the fewest Subgroups in a group
-to minimize the number of streams used.
-
+When assigning Objects to different Subgroups, the Original Publisher makes a
+reasonable tradeoff between having an optimal mapping of Object relationships in
+a Group and minimizing the number of streams used.
 
 ## Groups {#model-group}
 
@@ -454,7 +450,7 @@ point for subscriptions, so a subscriber that does not want to receive the
 entire Track can opt to receive only Groups starting from a given Group ID.
 Groups can contain any number of Objects.
 
-### Group Ordering
+### Group IDs
 
 Within a track, the original publisher SHOULD publish Group IDs which increase
 with time (where "time" is defined according to the internal clock of the media
@@ -547,8 +543,8 @@ The above list of conditions is not considered exhaustive.
 When a subscriber detects a Malformed Track, it MUST UNSUBSCRIBE any
 subscription and FETCH_CANCEL any fetch for that Track from that publisher, and
 SHOULD deliver an error to the application.  If a relay detects a Malformed
-Track, it MUST immediately terminate downstream subscriptions with
-SUBSCRIBE_DONE and reset any fetch streams with Status Code `MALFORMED_TRACK`.
+Track, it MUST immediately terminate downstream subscriptions with PUBLISH_DONE
+and reset any fetch streams with Status Code `MALFORMED_TRACK`.
 
 
 ### Scope {#track-scope}
@@ -868,7 +864,7 @@ SUBSCRIBE message.  The publisher either accepts or rejects the subscription
 using SUBSCRIBE_OK or SUBSCRIBE_ERROR.  Once either of these sequences is
 successful, the subscription can be updated by the subscriber using
 SUBSCRIBE_UPDATE, terminated by the subscriber using UNSUBSCRIBE, or terminated
-by the publisher using SUBSCRIBE_DONE.
+by the publisher using PUBLISH_DONE.
 
 All subscriptions have a Forward State which is either 0 or 1.  If the Forward
 State is 0, the publisher does not send objects for the subscription.  If the
@@ -892,9 +888,9 @@ response to a PUBLISH. The peer SHOULD close the session with a protocol error
 if it receives more than one.
 
 A subscriber keeps subscription state until it sends UNSUBSCRIBE, or after
-receipt of a SUBSCRIBE_DONE or SUBSCRIBE_ERROR. Note that SUBSCRIBE_DONE does
-not usually indicate that state can immediately be destroyed, see
-{{message-subscribe-done}}.
+receipt of a PUBLISH_DONE or SUBSCRIBE_ERROR. Note that PUBLISH_DONE does not
+usually indicate that state can immediately be destroyed, see
+{{message-publish-done}}.
 
 A subscriber keeps FETCH state until it sends FETCH_CANCEL, receives
 FETCH_ERROR, or receives a FIN or RESET_STREAM for the FETCH data stream. If the
@@ -907,7 +903,7 @@ associated with the SUBSCRIBE or FETCH. It can also destroy state after closing
 the FETCH data stream.
 
 The publisher can immediately delete subscription state after sending
-SUBSCRIBE_DONE, but MUST NOT send it until it has closed all related streams. It
+PUBLISH_DONE, but MUST NOT send it until it has closed all related streams. It
 can destroy all FETCH state after closing the data stream.
 
 A SUBSCRIBE_ERROR indicates no objects will be delivered, and both endpoints can
@@ -978,13 +974,13 @@ namespace that exactly matches a namespace for which the peer sent an earlier
 PUBLISH_NAMESPACE (i.e. a PUBLISH_NAMESPACE ought not to be echoed back to its
 sender).
 
-The receiver of a PUBLISH_NAMESPACE_OK or PUBLISH_NAMESPACE_ERROR SHOULD report
-this to the application to inform the search for additional subscribers for a
-namespace, or abandoning the attempt to publish under this namespace. This might
-be especially useful in upload or chat applications. A subscriber MUST send
-exactly one PUBLISH_NAMESPACE_OK or PUBLISH_NAMESPACE_ERROR in response to an
-PUBLISH_NAMESPACE. The publisher SHOULD close the session with a protocol error
-if it receives more than one.
+An endpoint SHOULD report the reception of a PUBLISH_NAMESPACE_OK or
+PUBLISH_NAMESPACE_ERROR to the application to inform the search for additional
+subscribers for a namespace, or to abandon the attempt to publish under this
+namespace. This might be especially useful in upload or chat applications. A
+subscriber MUST send exactly one PUBLISH_NAMESPACE_OK or PUBLISH_NAMESPACE_ERROR
+in response to a PUBLISH_NAMESPACE. The publisher SHOULD close the session with
+a protocol error if it receives more than one.
 
 A PUBLISH_NAMESPACE_DONE message withdraws a previous PUBLISH_NAMESPACE,
 although it is not a protocol error for the subscriber to send a SUBSCRIBE or
@@ -1042,9 +1038,9 @@ request.  It is specified in the SUBSCRIBE or FETCH message, and can be
 updated via SUBSCRIBE_UPDATE message.  The subscriber priority of an individual
 schedulable object is the subscriber priority of the request that caused that
 object to be sent. When subscriber priority is changed, a best effort SHOULD be
-made to apply the change to all objects that have not been sent, but it is
+made to apply the change to all objects that have not been scheduled, but it is
 implementation dependent what happens to objects that have already been
-received and possibly scheduled.
+scheduled.
 
 _Publisher Priority_ is a priority number associated with an individual
 schedulable object.  It is specified in the header of the respective subgroup or
@@ -1064,22 +1060,23 @@ When an MOQT publisher has multiple schedulable objects it can choose between,
 the objects SHOULD be selected as follows:
 
 1. If two objects have different subscriber priorities associated with them,
-   the one with **the highest subscriber priority** is sent first.
+   the one with **the highest subscriber priority** is scheduled to be sent first.
 1. If two objects have the same subscriber priority, but different publisher
-   priorities, the one with **the highest publisher priority** is sent first.
+   priorities, the one with **the highest publisher priority** is scheduled to be
+   sent first.
 2. If two objects in response to the same request have the same subscriber
    and publisher priority, but belong to two different groups of the same track,
    **the group order** of the associated subscription is used to
-   decide the one that is sent first.
+   decide the one that is scheduled to be sent first.
 3. If two objects in response to the same request belong to the same group of
    the same track, the one with **the lowest Subgroup ID** (for tracks
    with delivery preference Subgroup), or **the lowest Object ID** (for tracks
-   with delivery preference Datagram) is sent first.
+   with delivery preference Datagram) is scheduled to be sent first.
 
-The definition of "sent first" in the algorithm is implementation dependent and
-is constrained by the prioritization interface of the underlying transport.
-For some implementations, it could mean that the object is serialized and
-passed to the underlying transport first.  In other implementations, it can
+The definition of "scheduled to be sent first" in the algorithm is implementation
+dependent and is constrained by the prioritization interface of the underlying
+transport. For some implementations, it could mean that the object is serialized
+and passed to the underlying transport first.  Other implementations can
 control the order packets are initially transmitted.
 
 This algorithm does not provide a well-defined ordering for objects that belong
@@ -1365,7 +1362,7 @@ The following Message Types are defined:
 |-------|-----------------------------------------------------|
 | 0xA   | UNSUBSCRIBE ({{message-unsubscribe}})               |
 |-------|-----------------------------------------------------|
-| 0xB   | SUBSCRIBE_DONE ({{message-subscribe-done}})         |
+| 0xB   | PUBLISH_DONE ({{message-publish-done}})             |
 |-------|-----------------------------------------------------|
 | 0x1D  | PUBLISH  ({{message-publish}})                      |
 |-------|-----------------------------------------------------|
@@ -1591,7 +1588,7 @@ next larger Location, with the assumption that the Objects were reordered.
 Publishers can, at their discretion, discontinue forwarding Objects earlier than
 the negotiated DELIVERY TIMEOUT, subject to stream closure and ordering
 constraints described in {{closing-subgroup-streams}}.  However, if neither the
-subscriber or publisher specify DELIVERY TIMEOUT, all Objects in the track
+subscriber nor publisher specifies DELIVERY TIMEOUT, all Objects in the track
 matching the subscription filter are delivered as indicated by their Group Order
 and Priority.  If a subscriber fails to consume Objects at a sufficient rate,
 causing the publisher to exceed its resource limits, the publisher MAY terminate
@@ -1604,9 +1601,10 @@ When sent by a subscriber, this parameter is intended to be specific to a
 subscription, so it SHOULD NOT be forwarded upstream by a relay that intends
 to serve multiple subscriptions for the same track.
 
-Publishers SHOULD consider whether the entire Object is likely to be delivered
-before sending any data for that Object, taking into account priorities,
-congestion control, and any other relevant information.
+Publishers SHOULD consider whether the entire Object can likely be
+successfully delivered within the timeout period before sending any data
+for that Object, taking into account priorities, congestion control, and
+any other relevant information.
 
 #### MAX CACHE DURATION Parameter {#max-cache-duration}
 
@@ -1832,7 +1830,7 @@ REQUESTS_BLOCKED Message {
 {: #moq-transport-requests-blocked format title="MOQT REQUESTS_BLOCKED Message"}
 
 * Maximum Request ID: The Maximum Request ID for the session on which the
-  endpoint is blocked. More on Request ID in {{message-subscribe-req}}.
+  endpoint is blocked. More on Request ID in {{request-id}}.
 
 ## SUBSCRIBE {#message-subscribe-req}
 
@@ -1866,11 +1864,11 @@ to network reordering or prioritization, relays can receive Objects with
 Locations smaller than  `Largest Object` after the SUBSCRIBE is processed, but
 these Objects do not pass the Largest Object filter.
 
-Next Group Start (0x1): The filter start Location is `{Largest Object.Group + 1,
+Next Group Start (0x1): The filter Start Location is `{Largest Object.Group + 1,
 0}` and `Largest Object` is communicated in SUBSCRIBE_OK. If no content has been
 delivered yet, the filter Start Location is {0, 0}.  There is no End Group -
 the subscription is open ended. For scenarios where the subscriber intends to
-start more than one group in the future, it can use an AbsoluteStart filter
+start from more than one group in the future, it can use an AbsoluteStart filter
 instead.
 
 AbsoluteStart (0x3):  The filter Start Location is specified explicitly in the
@@ -1900,7 +1898,7 @@ subscription needs to be sent upstream, regardless of the value of the `Forward`
 field from the downstream subscription. Subscriptions that are not forwarded
 consume resources from the publisher, so a publisher might deprioritize, reject,
 or close those subscriptions to ensure other subscriptions can be delivered.
-Control messages, such as SUBCRIBE_DONE ({{message-subscribe-done}}) are still
+Control messages, such as SUBCRIBE_DONE ({{message-publish-done}}) are still
 sent.
 
 The format of SUBSCRIBE is as follows:
@@ -2076,14 +2074,14 @@ A subscriber sends a SUBSCRIBE_UPDATE to a publisher to modify an existing
 subscription. Subscriptions can only be narrowed, not widened, as an attempt to
 widen could fail. If Objects with Locations smaller than the current
 subscription's Start Location are required, FETCH can be used to retrieve
-them. The Start Location MUST NOT decrease, and if it increases, there is no
-guarantee that the publisher has not already sent Objects with Locations smaller
-than the new Start Location. Similarly, the End Group MUST NOT increase, and if
-it decreases, there is no guarantee that the publisher has not already sent
-Objects with Locations larger than the new End Location.  A publisher MUST
-terminate the session with a `PROTOCOL_VIOLATION` if the SUBSCRIBE_UPDATE
-violates these rules or if the subscriber specifies a request ID that has not
-existed within the Session.
+them. The Start Location MUST NOT decrease and the End Group MUST NOT increase.
+A publisher MUST terminate the session with a `PROTOCOL_VIOLATION` if the
+SUBSCRIBE_UPDATE violates these rules or if the subscriber specifies a request
+ID that has not existed within the Session.
+
+When a subscriber narrows their subscription, it might still receive objects
+outside the new range if the publisher sent them before the update was
+processed.
 
 There is no control message in response to a SUBSCRIBE_UPDATE, because it is
 expected that it will always succeed and the worst outcome is that it is not
@@ -2158,46 +2156,45 @@ UNSUBSCRIBE Message {
 * Request ID: The Request ID of the subscription that is being terminated. See
   {{message-subscribe-req}}.
 
-## SUBSCRIBE_DONE {#message-subscribe-done}
+## PUBLISH_DONE {#message-publish-done}
 
-A publisher sends a `SUBSCRIBE_DONE` message to indicate it is done publishing
+A publisher sends a `PUBLISH_DONE` message to indicate it is done publishing
 Objects for that subscription.  The Status Code indicates why the subscription
-ended, and whether it was an error. Because SUBSCRIBE_DONE is sent on the
-control stream, it is likely to arrive at the receiver before late-arriving
-objects, and often even late-opening streams. However, the receiver uses it
-as an indication that it should receive any late-opening streams in a relatively
-short time.
+ended, and whether it was an error. Because PUBLISH_DONE is sent on the control
+stream, it is likely to arrive at the receiver before late-arriving objects, and
+often even late-opening streams. However, the receiver uses it as an indication
+that it should receive any late-opening streams in a relatively short time.
 
 Note that some objects in the subscribed track might never be delivered,
 because a stream was reset, or never opened in the first place, due to the
 delivery timeout.
 
-A sender MUST NOT send SUBSCRIBE_DONE until it has closed all streams it will
-ever open, and has no further datagrams to send, for a subscription. After
-sending SUBSCRIBE_DONE, the sender can immediately destroy subscription state,
-although stream state can persist until delivery completes. The sender might
-persist subscription state to enforce the delivery timeout by resetting streams
-on which it has already sent FIN, only deleting it when all such streams have
-received ACK of the FIN.
+A sender MUST NOT send PUBLISH_DONE until it has closed all streams it will ever
+open, and has no further datagrams to send, for a subscription. After sending
+PUBLISH_DONE, the sender can immediately destroy subscription state, although
+stream state can persist until delivery completes. The sender might persist
+subscription state to enforce the delivery timeout by resetting streams on which
+it has already sent FIN, only deleting it when all such streams have received
+ACK of the FIN.
 
-A sender MUST NOT destroy subscription state until it sends SUBSCRIBE_DONE,
-though it can choose to stop sending objects (and thus send SUBSCRIBE_DONE) for
-any reason.
+A sender MUST NOT destroy subscription state until it sends PUBLISH_DONE, though
+it can choose to stop sending objects (and thus send PUBLISH_DONE) for any
+reason.
 
-A subscriber that receives SUBSCRIBE_DONE SHOULD set a timer of at least its
-delivery timeout in case some objects are still inbound due to prioritization
-or packet loss. The subscriber MAY dispense with a timer if it sent UNSUBSCRIBE
-or is otherwise no longer interested in objects from the track. Once the timer
-has expired, the receiver destroys subscription state once all open streams for
-the subscription have closed. A subscriber MAY discard subscription state
-earlier, at the cost of potentially not delivering some late objects to the
+A subscriber that receives PUBLISH_DONE SHOULD set a timer of at least its
+delivery timeout in case some objects are still inbound due to prioritization or
+packet loss. The subscriber MAY dispense with a timer if it sent UNSUBSCRIBE or
+is otherwise no longer interested in objects from the track. Once the timer has
+expired, the receiver destroys subscription state once all open streams for the
+subscription have closed. A subscriber MAY discard subscription state earlier,
+at the cost of potentially not delivering some late objects to the
 application. The subscriber SHOULD send STOP_SENDING on all streams related to
 the subscription when it deletes subscription state.
 
-The format of `SUBSCRIBE_DONE` is as follows:
+The format of `PUBLISH_DONE` is as follows:
 
 ~~~
-SUBSCRIBE_DONE Message {
+PUBLISH_DONE Message {
   Type (i) = 0xB,
   Length (16),
   Request ID (i),
@@ -2206,7 +2203,7 @@ SUBSCRIBE_DONE Message {
   Error Reason (Reason Phrase)
 }
 ~~~
-{: #moq-transport-subscribe-fin-format title="MOQT SUBSCRIBE_DONE Message"}
+{: #moq-transport-subscribe-fin-format title="MOQT PUBLISH_DONE Message"}
 
 * Request ID: The Request ID of the subscription that is being terminated. See
   {{message-subscribe-req}}.
@@ -2229,8 +2226,8 @@ subscription than specified in Stream Count, it MAY close the session with a
 
 * Error Reason: Provides the reason for subscription error. See {{reason-phrase}}.
 
-The application SHOULD use a relevant status code in
-SUBSCRIBE_DONE, as defined below:
+The application SHOULD use a relevant status code in PUBLISH_DONE, as defined
+below:
 
 INTERNAL_ERROR (0x0):
 : An implementation specific or generic error occurred.
@@ -2717,7 +2714,7 @@ received a SUBSCRIBE message, except it does not create downstream subscription
 state or send any Objects.  Relays without an active subscription MAY forward
 TRACK_STATUS to one or more publishers, or MAY initiate a subscription (subject
 to authorization) as described in {{publisher-interactions}} to determine the
-response. The publisher does not send SUBSCRIBE_DONE for this request, and the
+response. The publisher does not send PUBLISH_DONE for this request, and the
 subscriber cannot send SUBSCRIBE_UPDATE or UNSUBSCRIBE.
 
 ## TRACK_STATUS_OK {#message-track-status-ok}
@@ -3438,7 +3435,7 @@ or a SUBSCRIBE_UPDATE moving the subscription's End Group to a smaller Group or
 the Start Location to a larger Location.  When RESET_STREAM_AT is used, the
 reliable_size SHOULD include the stream header so the receiver can identify the
 corresponding subscription and accurately account for reset data streams when
-handling SUBSCRIBE_DONE (see {{message-subscribe-done}}).  Publishers that reset
+handling PUBLISH_DONE (see {{message-publish-done}}).  Publishers that reset
 data streams without using RESET_STREAM_AT with an appropriate reliable_size can
 cause subscribers to hold on to subscription state until a timeout expires.
 
@@ -3512,7 +3509,7 @@ INTERNAL_ERROR (0x0):
 CANCELLED (0x1):
 : The subscriber requested cancellation via UNSUBSCRIBE, FETCH_CANCEL or
   STOP_SENDING, or the publisher ended the subscription, in which case
-  SUBSCRIBE_DONE ({{message-subscribe-done}}) will have a more detailed status
+  PUBLISH_DONE ({{message-publish-done}}) will have a more detailed status
   code.
 
 DELIVERY_TIMEOUT (0x2):
@@ -3645,7 +3642,7 @@ Objects in Group 10, as it sees fit.  A Track is considered malformed (see
 This extension is optional, as publishers might not know the prior gap gize, or
 there may not be a gap. If Prior Group ID Gap is not present, the receiver
 cannot infer any information about the existence of prior groups (see
-{{group-ordering}}).
+{{group-ids}}).
 
 This extension can be added by the Original Publisher, but MUST NOT be added by
 relays. This extension MUST NOT be modified or removed.
@@ -3787,18 +3784,18 @@ TODO: register the URI scheme and the ALPN and grease the Extension types
 | MALFORMED_AUTH_TOKEN  | 0x10 | {{message-subscribe-error}} |
 | EXPIRED_AUTH_TOKEN    | 0x12 | {{message-subscribe-error}} |
 
-### SUBSCRIBE_DONE Codes {#iana-subscribe-done}
+### PUBLISH_DONE Codes {#iana-publish-done}
 
-| Name               | Code | Specification              |
-|:-------------------|:----:|:---------------------------|
-| INTERNAL_ERROR     | 0x0  | {{message-subscribe-done}} |
-| UNAUTHORIZED       | 0x1  | {{message-subscribe-done}} |
-| TRACK_ENDED        | 0x2  | {{message-subscribe-done}} |
-| SUBSCRIPTION_ENDED | 0x3  | {{message-subscribe-done}} |
-| GOING_AWAY         | 0x4  | {{message-subscribe-done}} |
-| EXPIRED            | 0x5  | {{message-subscribe-done}} |
-| TOO_FAR_BEHIND     | 0x6  | {{message-subscribe-done}} |
-| MALFORMED_TRACK    | 0x7  | {{message-subscribe-done}} |
+| Name               | Code | Specification            |
+|:-------------------|:----:|:-------------------------|
+| INTERNAL_ERROR     | 0x0  | {{message-publish-done}} |
+| UNAUTHORIZED       | 0x1  | {{message-publish-done}} |
+| TRACK_ENDED        | 0x2  | {{message-publish-done}} |
+| SUBSCRIPTION_ENDED | 0x3  | {{message-publish-done}} |
+| GOING_AWAY         | 0x4  | {{message-publish-done}} |
+| EXPIRED            | 0x5  | {{message-publish-done}} |
+| TOO_FAR_BEHIND     | 0x6  | {{message-publish-done}} |
+| MALFORMED_TRACK    | 0x7  | {{message-publish-done}} |
 
 ### PUBLISH_ERROR Codes {#iana-publish-error}
 
