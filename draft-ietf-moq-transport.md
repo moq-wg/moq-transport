@@ -368,14 +368,15 @@ To give an example of how an application might use this data model,
 consider an application sending high and low resolution video using a
 codec with temporal scalability. Each resolution is sent as a separate
 track to allow the subscriber to pick the appropriate resolution given
-the display environment and available bandwidth. Each "group of pictures"
-in a video is sent as a group because the first frame is needed to
-decode later frames. This allows the client to join at the logical points
-where they can get the information to start decoding the media.
-The temporal layers are sent as separate sub groups to allow the
-priority mechanism to favour the base layer when there is not enough
-bandwidth to send both the base and enhancement layers. Each frame of
-video on a given layer is sent as a single object.
+the display environment and available bandwidth. Each independently
+coded sequence of pictures in a resolution is sent as a group as the
+first picture in the sequence can be used as a random access point.
+This allows the client to join at the logical points where decoding
+of the media can start without needing information before the join
+points. The temporal layers are sent as separate subgroups to allow
+the priority mechanism to favor lower temporal layers when there is
+not enough bandwidth to send all temporal layers. Each frame of video
+is sent as a single object.
 
 ## Objects {#model-object}
 
@@ -430,20 +431,15 @@ ID without implying any relationship between them. In general, publishers assign
 objects to subgroups in order to leverage the features of streams as described
 above.
 
-An example strategy for using stream properties follows. If object B is
-dependent on object A, then delivery of B can follow A, i.e. A and B can be
-usefully delivered over a single stream. Furthermore, in this example:
+In general, if Object B is dependent on Object A, then delivery of B can follow
+A, i.e. A and B can be usefully delivered over a single stream.  If an Object is
+dependent on all previous Objects in a Subgroup, it likely fits best in that
+Subgroup.  If an Object is not dependent on any of the Objects in a Subgroup, it
+likely belongs in a different Subgroup.
 
-- If an object is dependent on all previous objects in a Subgroup, it is added to
-that Subgroup.
-
-- If an object is not dependent on all of the objects in a Subgroup, it goes in
-a different Subgroup.
-
-- There are often many ways to compose Subgroups that meet these criteria. Where
-possible, choose the composition that results in the fewest Subgroups in a group
-to minimize the number of streams used.
-
+When assigning Objects to different Subgroups, the Original Publisher makes a
+reasonable tradeoff between having an optimal mapping of Object relationships in
+a Group and minimizing the number of streams used.
 
 ## Groups {#model-group}
 
@@ -454,7 +450,7 @@ point for subscriptions, so a subscriber that does not want to receive the
 entire Track can opt to receive only Groups starting from a given Group ID.
 Groups can contain any number of Objects.
 
-### Group Ordering
+### Group IDs
 
 Within a track, the original publisher SHOULD publish Group IDs which increase
 with time (where "time" is defined according to the internal clock of the media
@@ -978,13 +974,13 @@ namespace that exactly matches a namespace for which the peer sent an earlier
 PUBLISH_NAMESPACE (i.e. a PUBLISH_NAMESPACE ought not to be echoed back to its
 sender).
 
-The receiver of a PUBLISH_NAMESPACE_OK or PUBLISH_NAMESPACE_ERROR SHOULD report
-this to the application to inform the search for additional subscribers for a
-namespace, or abandoning the attempt to publish under this namespace. This might
-be especially useful in upload or chat applications. A subscriber MUST send
-exactly one PUBLISH_NAMESPACE_OK or PUBLISH_NAMESPACE_ERROR in response to an
-PUBLISH_NAMESPACE. The publisher SHOULD close the session with a protocol error
-if it receives more than one.
+An endpoint SHOULD report the reception of a PUBLISH_NAMESPACE_OK or
+PUBLISH_NAMESPACE_ERROR to the application to inform the search for additional
+subscribers for a namespace, or to abandon the attempt to publish under this
+namespace. This might be especially useful in upload or chat applications. A
+subscriber MUST send exactly one PUBLISH_NAMESPACE_OK or PUBLISH_NAMESPACE_ERROR
+in response to a PUBLISH_NAMESPACE. The publisher SHOULD close the session with
+a protocol error if it receives more than one.
 
 A PUBLISH_NAMESPACE_DONE message withdraws a previous PUBLISH_NAMESPACE,
 although it is not a protocol error for the subscriber to send a SUBSCRIBE or
@@ -1042,9 +1038,9 @@ request.  It is specified in the SUBSCRIBE or FETCH message, and can be
 updated via SUBSCRIBE_UPDATE message.  The subscriber priority of an individual
 schedulable object is the subscriber priority of the request that caused that
 object to be sent. When subscriber priority is changed, a best effort SHOULD be
-made to apply the change to all objects that have not been sent, but it is
+made to apply the change to all objects that have not been scheduled, but it is
 implementation dependent what happens to objects that have already been
-received and possibly scheduled.
+scheduled.
 
 _Publisher Priority_ is a priority number associated with an individual
 schedulable object.  It is specified in the header of the respective subgroup or
@@ -1064,22 +1060,23 @@ When an MOQT publisher has multiple schedulable objects it can choose between,
 the objects SHOULD be selected as follows:
 
 1. If two objects have different subscriber priorities associated with them,
-   the one with **the highest subscriber priority** is sent first.
+   the one with **the highest subscriber priority** is scheduled to be sent first.
 1. If two objects have the same subscriber priority, but different publisher
-   priorities, the one with **the highest publisher priority** is sent first.
+   priorities, the one with **the highest publisher priority** is scheduled to be
+   sent first.
 2. If two objects in response to the same request have the same subscriber
    and publisher priority, but belong to two different groups of the same track,
    **the group order** of the associated subscription is used to
-   decide the one that is sent first.
+   decide the one that is scheduled to be sent first.
 3. If two objects in response to the same request belong to the same group of
    the same track, the one with **the lowest Subgroup ID** (for tracks
    with delivery preference Subgroup), or **the lowest Object ID** (for tracks
-   with delivery preference Datagram) is sent first.
+   with delivery preference Datagram) is scheduled to be sent first.
 
-The definition of "sent first" in the algorithm is implementation dependent and
-is constrained by the prioritization interface of the underlying transport.
-For some implementations, it could mean that the object is serialized and
-passed to the underlying transport first.  In other implementations, it can
+The definition of "scheduled to be sent first" in the algorithm is implementation
+dependent and is constrained by the prioritization interface of the underlying
+transport. For some implementations, it could mean that the object is serialized
+and passed to the underlying transport first.  Other implementations can
 control the order packets are initially transmitted.
 
 This algorithm does not provide a well-defined ordering for objects that belong
@@ -1591,7 +1588,7 @@ next larger Location, with the assumption that the Objects were reordered.
 Publishers can, at their discretion, discontinue forwarding Objects earlier than
 the negotiated DELIVERY TIMEOUT, subject to stream closure and ordering
 constraints described in {{closing-subgroup-streams}}.  However, if neither the
-subscriber or publisher specify DELIVERY TIMEOUT, all Objects in the track
+subscriber nor publisher specifies DELIVERY TIMEOUT, all Objects in the track
 matching the subscription filter are delivered as indicated by their Group Order
 and Priority.  If a subscriber fails to consume Objects at a sufficient rate,
 causing the publisher to exceed its resource limits, the publisher MAY terminate
@@ -1604,9 +1601,10 @@ When sent by a subscriber, this parameter is intended to be specific to a
 subscription, so it SHOULD NOT be forwarded upstream by a relay that intends
 to serve multiple subscriptions for the same track.
 
-Publishers SHOULD consider whether the entire Object is likely to be delivered
-before sending any data for that Object, taking into account priorities,
-congestion control, and any other relevant information.
+Publishers SHOULD consider whether the entire Object can likely be
+successfully delivered within the timeout period before sending any data
+for that Object, taking into account priorities, congestion control, and
+any other relevant information.
 
 #### MAX CACHE DURATION Parameter {#max-cache-duration}
 
@@ -1832,7 +1830,7 @@ REQUESTS_BLOCKED Message {
 {: #moq-transport-requests-blocked format title="MOQT REQUESTS_BLOCKED Message"}
 
 * Maximum Request ID: The Maximum Request ID for the session on which the
-  endpoint is blocked. More on Request ID in {{message-subscribe-req}}.
+  endpoint is blocked. More on Request ID in {{request-id}}.
 
 ## SUBSCRIBE {#message-subscribe-req}
 
@@ -1866,11 +1864,11 @@ to network reordering or prioritization, relays can receive Objects with
 Locations smaller than  `Largest Object` after the SUBSCRIBE is processed, but
 these Objects do not pass the Largest Object filter.
 
-Next Group Start (0x1): The filter start Location is `{Largest Object.Group + 1,
+Next Group Start (0x1): The filter Start Location is `{Largest Object.Group + 1,
 0}` and `Largest Object` is communicated in SUBSCRIBE_OK. If no content has been
 delivered yet, the filter Start Location is {0, 0}.  There is no End Group -
 the subscription is open ended. For scenarios where the subscriber intends to
-start more than one group in the future, it can use an AbsoluteStart filter
+start from more than one group in the future, it can use an AbsoluteStart filter
 instead.
 
 AbsoluteStart (0x3):  The filter Start Location is specified explicitly in the
@@ -2076,14 +2074,14 @@ A subscriber sends a SUBSCRIBE_UPDATE to a publisher to modify an existing
 subscription. Subscriptions can only be narrowed, not widened, as an attempt to
 widen could fail. If Objects with Locations smaller than the current
 subscription's Start Location are required, FETCH can be used to retrieve
-them. The Start Location MUST NOT decrease, and if it increases, there is no
-guarantee that the publisher has not already sent Objects with Locations smaller
-than the new Start Location. Similarly, the End Group MUST NOT increase, and if
-it decreases, there is no guarantee that the publisher has not already sent
-Objects with Locations larger than the new End Location.  A publisher MUST
-terminate the session with a `PROTOCOL_VIOLATION` if the SUBSCRIBE_UPDATE
-violates these rules or if the subscriber specifies a request ID that has not
-existed within the Session.
+them. The Start Location MUST NOT decrease and the End Group MUST NOT increase.
+A publisher MUST terminate the session with a `PROTOCOL_VIOLATION` if the
+SUBSCRIBE_UPDATE violates these rules or if the subscriber specifies a request
+ID that has not existed within the Session.
+
+When a subscriber narrows their subscription, it might still receive objects
+outside the new range if the publisher sent them before the update was
+processed.
 
 There is no control message in response to a SUBSCRIBE_UPDATE, because it is
 expected that it will always succeed and the worst outcome is that it is not
@@ -3643,7 +3641,7 @@ Objects in Group 10, as it sees fit.  A Track is considered malformed (see
 This extension is optional, as publishers might not know the prior gap gize, or
 there may not be a gap. If Prior Group ID Gap is not present, the receiver
 cannot infer any information about the existence of prior groups (see
-{{group-ordering}}).
+{{group-ids}}).
 
 This extension can be added by the Original Publisher, but MUST NOT be added by
 relays. This extension MUST NOT be modified or removed.
