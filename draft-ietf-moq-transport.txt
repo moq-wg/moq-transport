@@ -141,7 +141,7 @@ Table of Contents
      9.9.  SUBSCRIBE_ERROR
      9.10. SUBSCRIBE_UPDATE
      9.11. UNSUBSCRIBE
-     9.12. SUBSCRIBE_DONE
+     9.12. PUBLISH_DONE
      9.13. PUBLISH
      9.14. PUBLISH_OK
      9.15. PUBLISH_ERROR
@@ -189,7 +189,7 @@ Table of Contents
      13.1.  Error Codes
        13.1.1.  Session Termination Error Codes
        13.1.2.  SUBSCRIBE_ERROR Codes
-       13.1.3.  SUBSCRIBE_DONE Codes
+       13.1.3.  PUBLISH_DONE Codes
        13.1.4.  PUBLISH_ERROR Codes
        13.1.5.  FETCH_ERROR Codes
        13.1.6.  ANNOUNCE_ERROR Codes
@@ -663,7 +663,7 @@ Table of Contents
    subscription and FETCH_CANCEL any fetch for that Track from that
    publisher, and SHOULD deliver an error to the application.  If a
    relay detects a Malformed Track, it MUST immediately terminate
-   downstream subscriptions with SUBSCRIBE_DONE and reset any fetch
+   downstream subscriptions with PUBLISH_DONE and reset any fetch
    streams with Status Code MALFORMED_TRACK.
 
 2.5.1.  Scope
@@ -989,7 +989,7 @@ Table of Contents
    subscription using SUBSCRIBE_OK or SUBSCRIBE_ERROR.  Once either of
    these sequences is successful, the subscription can be updated by the
    subscriber using SUBSCRIBE_UPDATE, terminated by the subscriber using
-   UNSUBSCRIBE, or terminated by the publisher using SUBSCRIBE_DONE.
+   UNSUBSCRIBE, or terminated by the publisher using PUBLISH_DONE.
 
    All subscriptions have a Forward State which is either 0 or 1.  If
    the Forward State is 0, the publisher does not send objects for the
@@ -1015,9 +1015,9 @@ Table of Contents
    than one.
 
    A subscriber keeps subscription state until it sends UNSUBSCRIBE, or
-   after receipt of a SUBSCRIBE_DONE or SUBSCRIBE_ERROR.  Note that
-   SUBSCRIBE_DONE does not usually indicate that state can immediately
-   be destroyed, see Section 9.12.
+   after receipt of a PUBLISH_DONE or SUBSCRIBE_ERROR.  Note that
+   PUBLISH_DONE does not usually indicate that state can immediately be
+   destroyed, see Section 9.12.
 
    A subscriber keeps FETCH state until it sends FETCH_CANCEL, receives
    FETCH_ERROR, or receives a FIN or RESET_STREAM for the FETCH data
@@ -1031,7 +1031,7 @@ Table of Contents
    can also destroy state after closing the FETCH data stream.
 
    The publisher can immediately delete subscription state after sending
-   SUBSCRIBE_DONE, but MUST NOT send it until it has closed all related
+   PUBLISH_DONE, but MUST NOT send it until it has closed all related
    streams.  It can destroy all FETCH state after closing the data
    stream.
 
@@ -1529,7 +1529,7 @@ Table of Contents
            +------+--------------------------------------------+
            |  0xA | UNSUBSCRIBE (Section 9.11)                 |
            +------+--------------------------------------------+
-           |  0xB | SUBSCRIBE_DONE (Section 9.12)              |
+           |  0xB | PUBLISH_DONE (Section 9.12)                |
            +------+--------------------------------------------+
            | 0x1D | PUBLISH (Section 9.13)                     |
            +------+--------------------------------------------+
@@ -2379,13 +2379,13 @@ Table of Contents
    *  Request ID: The Request ID of the subscription that is being
       terminated.  See Section 9.7.
 
-9.12.  SUBSCRIBE_DONE
+9.12.  PUBLISH_DONE
 
-   A publisher sends a SUBSCRIBE_DONE message to indicate it is done
+   A publisher sends a PUBLISH_DONE message to indicate it is done
    publishing Objects for that subscription.  The Status Code indicates
    why the subscription ended, and whether it was an error.  Because
-   SUBSCRIBE_DONE is sent on the control stream, it is likely to arrive
-   at the receiver before late-arriving objects, and often even late-
+   PUBLISH_DONE is sent on the control stream, it is likely to arrive at
+   the receiver before late-arriving objects, and often even late-
    opening streams.  However, the receiver uses it as an indication that
    it should receive any late-opening streams in a relatively short
    time.
@@ -2394,20 +2394,20 @@ Table of Contents
    delivered, because a stream was reset, or never opened in the first
    place, due to the delivery timeout.
 
-   A sender MUST NOT send SUBSCRIBE_DONE until it has closed all streams
+   A sender MUST NOT send PUBLISH_DONE until it has closed all streams
    it will ever open, and has no further datagrams to send, for a
-   subscription.  After sending SUBSCRIBE_DONE, the sender can
-   immediately destroy subscription state, although stream state can
-   persist until delivery completes.  The sender might persist
-   subscription state to enforce the delivery timeout by resetting
-   streams on which it has already sent FIN, only deleting it when all
-   such streams have received ACK of the FIN.
+   subscription.  After sending PUBLISH_DONE, the sender can immediately
+   destroy subscription state, although stream state can persist until
+   delivery completes.  The sender might persist subscription state to
+   enforce the delivery timeout by resetting streams on which it has
+   already sent FIN, only deleting it when all such streams have
+   received ACK of the FIN.
 
    A sender MUST NOT destroy subscription state until it sends
-   SUBSCRIBE_DONE, though it can choose to stop sending objects (and
-   thus send SUBSCRIBE_DONE) for any reason.
+   PUBLISH_DONE, though it can choose to stop sending objects (and thus
+   send PUBLISH_DONE) for any reason.
 
-   A subscriber that receives SUBSCRIBE_DONE SHOULD set a timer of at
+   A subscriber that receives PUBLISH_DONE SHOULD set a timer of at
    least its delivery timeout in case some objects are still inbound due
    to prioritization or packet loss.  The subscriber MAY dispense with a
    timer if it sent UNSUBSCRIBE or is otherwise no longer interested in
@@ -2419,9 +2419,9 @@ Table of Contents
    on all streams related to the subscription when it deletes
    subscription state.
 
-   The format of SUBSCRIBE_DONE is as follows:
+   The format of PUBLISH_DONE is as follows:
 
-   SUBSCRIBE_DONE Message {
+   PUBLISH_DONE Message {
      Type (i) = 0xB,
      Length (16),
      Request ID (i),
@@ -2430,7 +2430,7 @@ Table of Contents
      Error Reason (Reason Phrase)
    }
 
-                   Figure 14: MOQT SUBSCRIBE_DONE Message
+                    Figure 14: MOQT PUBLISH_DONE Message
 
    *  Request ID: The Request ID of the subscription that is being
       terminated.  See Section 9.7.
@@ -2457,8 +2457,8 @@ Table of Contents
    *  Error Reason: Provides the reason for subscription error.  See
       Section 1.3.3.
 
-   The application SHOULD use a relevant status code in SUBSCRIBE_DONE,
-   as defined below:
+   The application SHOULD use a relevant status code in PUBLISH_DONE, as
+   defined below:
 
    INTERNAL_ERROR (0x0):  An implementation specific or generic error
       occurred.
@@ -2959,7 +2959,7 @@ Table of Contents
    active subscription MAY forward TRACK_STATUS to one or more
    publishers, or MAY initiate a subscription (subject to authorization)
    as described in Section 8.3 to determine the response.  The publisher
-   does not send SUBSCRIBE_DONE for this request, and the subscriber
+   does not send PUBLISH_DONE for this request, and the subscriber
    cannot send SUBSCRIBE_UPDATE or UNSUBSCRIBE.
 
 9.21.  TRACK_STATUS_OK
@@ -3696,7 +3696,7 @@ Table of Contents
    a larger Location.  When RESET_STREAM_AT is used, the reliable_size
    SHOULD include the stream header so the receiver can identify the
    corresponding subscription and accurately account for reset data
-   streams when handling SUBSCRIBE_DONE (see Section 9.12).  Publishers
+   streams when handling PUBLISH_DONE (see Section 9.12).  Publishers
    that reset data streams without using RESET_STREAM_AT with an
    appropriate reliable_size can cause subscribers to hold on to
    subscription state until a timeout expires.
@@ -3774,7 +3774,7 @@ Table of Contents
 
    CANCELLED (0x1):  The subscriber requested cancellation via
       UNSUBSCRIBE, FETCH_CANCEL or STOP_SENDING, or the publisher ended
-      the subscription, in which case SUBSCRIBE_DONE (Section 9.12) will
+      the subscription, in which case PUBLISH_DONE (Section 9.12) will
       have a more detailed status code.
 
    DELIVERY_TIMEOUT (0x2):  The DELIVERY TIMEOUT Section 9.2.1.2 was
@@ -4094,7 +4094,7 @@ Table of Contents
 
                                   Table 9
 
-13.1.3.  SUBSCRIBE_DONE Codes
+13.1.3.  PUBLISH_DONE Codes
 
                +====================+======+===============+
                | Name               | Code | Specification |
