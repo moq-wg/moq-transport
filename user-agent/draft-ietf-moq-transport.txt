@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 5 February 2026                                   I. Swett, Ed.
+Expires: 15 February 2026                                  I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                           4 August 2025
+                                                          14 August 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 5 February 2026.
+   This Internet-Draft will expire on 15 February 2026.
 
 Copyright Notice
 
@@ -1921,8 +1921,11 @@ Table of Contents
 
 8.3.2.6.  MOQT IMPLEMENTATION
 
-   The MOQT_IMPLEMENTATION parameter (Parameter Type 0x05) is a UTF-8
-   encoded string describing the sender's MOQT implementation.
+   The MOQT_IMPLEMENTATION parameter (Parameter Type 0x05) identifies
+   the name and version of the sender's MOQT implementation.  This
+   SHOULD be a UTF-8 encoded string [RFC3629], though the message does
+   not carry information, such as language tags, that would aid
+   comprehension by any entity other than the one that created the text.
 
 8.4.  GOAWAY
 
@@ -3893,7 +3896,8 @@ Table of Contents
    an expected time.  Each implementation is expected to set its own
    limits.
 
-   TODO: Security Considerations of MOQT_IMPLEMENTATION parameter
+   TODO: Security/Privacy Considerations of MOQT_IMPLEMENTATION
+   parameter
 
 12.  IANA Considerations
 
