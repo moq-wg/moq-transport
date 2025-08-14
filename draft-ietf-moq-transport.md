@@ -1369,7 +1369,7 @@ The following Message Types are defined:
 |-------|-----------------------------------------------------|
 | 0x1A  | REQUESTS_BLOCKED ({{message-requests-blocked}})     |
 |-------|-----------------------------------------------------|
-| 0x2   | REQUEST_ERROR  ({{message-request-ok}})             |
+| 0x2   | REQUEST_ERROR  ({{message-request-error}})          |       
 |-------|-----------------------------------------------------|
 | 0x3   | SUBSCRIBE ({{message-subscribe-req}})               |
 |-------|-----------------------------------------------------|
