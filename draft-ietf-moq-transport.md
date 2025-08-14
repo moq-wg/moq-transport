@@ -1796,7 +1796,7 @@ GOAWAY Message {
   connect to continue this session.  The client MUST use this URI for the new
   session if provided. If the URI is zero bytes long, the current URI is reused
   instead. The new session URI SHOULD use the same scheme
-  as the current URL to ensure compatibility.  The maxmimum length of the New
+  as the current URI to ensure compatibility.  The maxmimum length of the New
   Session URI is 8,192 bytes.  If an endpoint receives a length exceeding the
   maximum, it MUST close the session with a `PROTOCOL_VIOLATION`.
 
@@ -1830,7 +1830,7 @@ MAX_REQUEST_ID Message {
 MAX_REQUEST_ID is similar to MAX_STREAMS in ({{?RFC9000, Section 4.6}}), and
 similar considerations apply when deciding how often to send MAX_REQUEST_ID.
 For example, implementations might choose to increase MAX_REQUEST_ID as
-subscriptions close to keep the number of subscriptions available roughly
+subscriptions are closed to keep the number of available subscriptions roughly
 consistent.
 
 ## REQUESTS_BLOCKED {#message-requests-blocked}
@@ -1974,7 +1974,7 @@ the Start and End Group fields will be present.
 * Start Location: The starting location for this subscriptions. Only present for
   "AbsoluteStart" and "AbsoluteRange" filter types.
 
-* End Group: The end Group ID, inclusive. Only present for the "AbsoluteRange"
+* End Group: The end Group ID. Only present for the "AbsoluteRange"
 filter type.
 
 * Parameters: The parameters are defined in {{version-specific-params}}.
@@ -2533,7 +2533,7 @@ Fields present only for Standalone Fetch (0x1):
 
 * Start Location: The start Location.
 
-* End Location: The end Location, plus 1 Object ID. An Object ID value of 0
+* End Location: The end Location, plus 1. A Location.Object value of 0
   means the entire group is requested.
 
 Fields present only for Relative Fetch (0x2) and Absolute Fetch (0x3):
@@ -2629,13 +2629,13 @@ Values of 0x0 and those larger than 0x2 are a protocol error.
    - Otherwise, End Location is Fetch.End Location
 
   If the relay is subscribed to the track, it uses its knowledge of the largest
-  {Group, Object} to set End Location.  If if is not subscribed and the
+  {Group, Object} to set End Location.  If it is not subscribed and the
   requested End Location exceeds its cached data, the relay makes an upstream
   request to complete the FETCH, and uses the upstream response to set End
   Location.
 
-  If End is smaller than the Start Location in the corresponding FETCH the
-  receiver MUST close the session with `PROTOCOL_VIOLATION`
+  If End Location is smaller than the Start Location in the corresponding FETCH
+  the receiver MUST close the session with `PROTOCOL_VIOLATION`.
 
 * Parameters: The parameters are defined in {{version-specific-params}}.
 
@@ -3092,7 +3092,7 @@ Publisher MUST NOT mix different forwarding preferences within a single track
 
 To optimize wire efficiency, Subgroups and Datagrams refer to a track by a
 numeric identifier, rather than the Full Track Name.  Track Alias is chosen by
-the publisher and included in SUBSCRIBE_OK ({{message-subscribe-ok}} or PUBLISH
+the publisher and included in SUBSCRIBE_OK ({{message-subscribe-ok}}) or PUBLISH
 ({{message-publish}}).
 
 Objects can arrive after a subscription has been cancelled.  Subscribers SHOULD
@@ -3156,7 +3156,7 @@ are beyond the end of a group or track.
          exist at any publisher and it will not be published in the future. This
          SHOULD be cached.
 
-* 0x3 := Indicates End of Group. Object ID is one greater that the largest
+* 0x3 := Indicates End of Group. Object ID is one greater than the largest
          Object produced in the Group identified by the Group ID. If the Object
          ID is 0, it indicates there are no Objects in this Group. This SHOULD
          be cached. A publisher MAY use an end of Group object to signal the end
@@ -3172,8 +3172,8 @@ are beyond the end of a group or track.
          Object with a Location larger than this Location (see
          {{malformed-tracks}}). This SHOULD be cached.
 
-Any other value SHOULD be treated as a protocol error and terminate the
-session with a `PROTOCOL_VIOLATION` ({{session-termination}}).
+Any other value SHOULD be treated as a protocol error and the session SHOULD
+be terminated with a `PROTOCOL_VIOLATION` ({{session-termination}}).
 Any object with a status code other than zero MUST have an empty payload.
 
 #### Object Extension Header {#object-extensions}
@@ -3275,8 +3275,8 @@ Group.
 For Type values where Extensions Present is No, Extensions Headers Length is not
 present and the Object has no extensions.  When Extensions Present is Yes,
 Extension Headers Length is present.  If an endpoint receives a datagram with
-Type 0x01 and Extension Headers Length is 0, it MUST close the session with
-`PROTOCOL_VIOLATION`.
+Extensions Present and Extension Headers Length is 0, it MUST close the session
+with `PROTOCOL_VIOLATION`.
 
 For Type values where Object ID Present is No, the Object ID field is omitted
 and the Object ID is 0.  When Object ID Present is Yes, the Object ID field is
@@ -3316,15 +3316,17 @@ There are 2 defined Type values for OBJECT_DATAGRAM_STATUS:
 |------|------------|
 
 The LSB of the type determines if the Extensions Headers Length and Extension
-headers are present. If an endpoint receives a datagram with Type 0x05 and
-Extension Headers Length is 0, it MUST close the session with PROTOCOL_VIOLATION.
+headers are present. If an endpoint receives a datagram with Extensions Present
+and Extension Headers Length is 0, it MUST close the session with
+`PROTOCOL_VIOLATION`.
 
 ## Streams
 
-When objects are sent on streams, the stream begins with a Subgroup Header
-and is followed by one or more sets of serialized object fields.
-If a stream ends gracefully in the middle of a serialized Object, the session
-SHOULD be terminated with a PROTOCOL_VIOLATION.
+When Objects are sent on streams, the stream begins with a Subgroup or Fetch
+Header and is followed by one or more sets of serialized Object fields.
+If a stream ends gracefully (i.e., the stream terminates with a FIN) in the
+middle of a serialized Object, the session SHOULD be terminated with a
+`PROTOCOL_VIOLATION`.
 
 A publisher SHOULD NOT open more than one stream at a time with the same Subgroup
 Header field values.
@@ -3478,6 +3480,7 @@ tells the receiver there is an unsent Subgroup.
 A relay MUST NOT forward an Object on an existing Subgroup stream unless it is
 the next Object in that Subgroup.  A relay knows that an Object is the next
 Object in the Subgroup if at least one of the following is true:
+
  * the Object ID is one greater than the previous Object sent on this Subgroup
    stream.
  * the Object was received on the same upstream Subgroup stream as the
@@ -3510,10 +3513,10 @@ implement.
 Processing a RESET_STREAM or RESET_STREAM_AT means that there might be other
 objects in the Subgroup beyond the last one received. A relay might immediately
 reset the corresponding downstream stream, or it might attempt to recover the
-missing Objects in an effort send all the objects in the subgroups and the FIN. It also
-might send RESET_STREAM_AT with reliable_size set to the last object it has, so
-as to reliably deliver the objects it has while signaling that other objects
-might exist.
+missing Objects in an effort to send all the Objects in the subgroups and the FIN.
+It also might send RESET_STREAM_AT with reliable_size set to the last Object it
+has, so as to reliably deliver the Objects it has while signaling that other
+Objects might exist.
 
 A subscriber MAY send a QUIC STOP_SENDING frame for a subgroup stream if the Group
 or Subgroup is no longer of interest to it. The publisher SHOULD respond with
@@ -3653,7 +3656,7 @@ Object ID 0 for each skipped Group. For example, if the Original Publisher is
 publishing an Object in Group 7 and knows it will never publish any Objects in
 Group 8 or Group 9, it can include Prior Group ID Gap = 2 in any number of
 Objects in Group 10, as it sees fit.  A Track is considered malformed (see
-{{malformed-tracks}} if any of the following conditions are detected:
+{{malformed-tracks}}) if any of the following conditions are detected:
 
  * An Object contains more than one instance of Prior Group ID Gap
  * A Group contains more than one Object with different values for Prior Group
@@ -3680,7 +3683,7 @@ will never exist. This is equivalent to receiving an `Object Does Not Exist`
 status for each skipped Object ID. For example, if the Original Publisher is
 publishing Object 10 in Group 3 and knows it will never publish Objects 8 or 9
 in this Group, it can include Prior Object ID Gap = 2.  A Track is considered
-malformed (see {{malformed-tracks}} if any of the following conditions are
+malformed (see {{malformed-tracks}}) if any of the following conditions are
 detected:
 
  * An Object contains more than one instance of Prior Object ID Gap
