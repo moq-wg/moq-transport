@@ -3799,7 +3799,7 @@ GOAWAY Message {
 connect to continue this session.  The client <span class="bcp14">MUST</span> use this URI for the new
 session if provided. If the URI is zero bytes long, the current URI is reused
 instead. The new session URI <span class="bcp14">SHOULD</span> use the same scheme
-as the current URL to ensure compatibility.  The maxmimum length of the New
+as the current URI to ensure compatibility.  The maxmimum length of the New
 Session URI is 8,192 bytes.  If an endpoint receives a length exceeding the
 maximum, it <span class="bcp14">MUST</span> close the session with a <code>PROTOCOL_VIOLATION</code>.<a href="#section-9.4-6.1.1" class="pilcrow">¶</a></p>
 <p id="section-9.4-6.1.2">
@@ -3846,7 +3846,7 @@ an error of <code>TOO_MANY_REQUESTS</code>.<a href="#section-9.5-4.1.1" class="p
 <p id="section-9.5-5">MAX_REQUEST_ID is similar to MAX_STREAMS in (<span>[<a href="#RFC9000" class="cite xref">RFC9000</a>], <a href="https://rfc-editor.org/rfc/rfc9000#section-4.6" class="relref">Section 4.6</a></span>), and
 similar considerations apply when deciding how often to send MAX_REQUEST_ID.
 For example, implementations might choose to increase MAX_REQUEST_ID as
-subscriptions close to keep the number of subscriptions available roughly
+subscriptions are closed to keep the number of available subscriptions roughly
 consistent.<a href="#section-9.5-5" class="pilcrow">¶</a></p>
 </section>
 </div>
@@ -4008,7 +4008,7 @@ the Start and End Group fields will be present.<a href="#section-9.7-16.7.1" cla
 "AbsoluteStart" and "AbsoluteRange" filter types.<a href="#section-9.7-16.8.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-9.7-16.9">
-            <p id="section-9.7-16.9.1">End Group: The end Group ID, inclusive. Only present for the "AbsoluteRange"
+            <p id="section-9.7-16.9.1">End Group: The end Group ID. Only present for the "AbsoluteRange"
 filter type.<a href="#section-9.7-16.9.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-9.7-16.10">
@@ -4740,7 +4740,7 @@ Joining or Absolute Joining.<a href="#section-9.16-18.4.1" class="pilcrow">¶</a
             <p id="section-9.16-20.3.1">Start Location: The start Location.<a href="#section-9.16-20.3.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-9.16-20.4">
-            <p id="section-9.16-20.4.1">End Location: The end Location, plus 1 Object ID. An Object ID value of 0
+            <p id="section-9.16-20.4.1">End Location: The end Location, plus 1. A Location.Object value of 0
 means the entire group is requested.<a href="#section-9.16-20.4.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
@@ -4869,13 +4869,13 @@ the last Object in the Group, End Location is {Fetch.End Location.Group, 0}<a hr
             </ul>
 <p id="section-9.17-3.4.3">
 If the relay is subscribed to the track, it uses its knowledge of the largest
-{Group, Object} to set End Location.  If if is not subscribed and the
+{Group, Object} to set End Location.  If it is not subscribed and the
 requested End Location exceeds its cached data, the relay makes an upstream
 request to complete the FETCH, and uses the upstream response to set End
 Location.<a href="#section-9.17-3.4.3" class="pilcrow">¶</a></p>
 <p id="section-9.17-3.4.4">
-If End is smaller than the Start Location in the corresponding FETCH the
-receiver <span class="bcp14">MUST</span> close the session with <code>PROTOCOL_VIOLATION</code><a href="#section-9.17-3.4.4" class="pilcrow">¶</a></p>
+If End Location is smaller than the Start Location in the corresponding FETCH
+the receiver <span class="bcp14">MUST</span> close the session with <code>PROTOCOL_VIOLATION</code>.<a href="#section-9.17-3.4.4" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-9.17-3.5">
             <p id="section-9.17-3.5.1">Parameters: The parameters are defined in <a href="#version-specific-params" class="auto internal xref">Section 9.2.1</a>.<a href="#section-9.17-3.5.1" class="pilcrow">¶</a></p>
@@ -5566,7 +5566,7 @@ Publisher <span class="bcp14">MUST NOT</span> mix different forwarding preferenc
         </h3>
 <p id="section-10.1-1">To optimize wire efficiency, Subgroups and Datagrams refer to a track by a
 numeric identifier, rather than the Full Track Name.  Track Alias is chosen by
-the publisher and included in SUBSCRIBE_OK (<a href="#message-subscribe-ok" class="auto internal xref">Section 9.8</a> or PUBLISH
+the publisher and included in SUBSCRIBE_OK (<a href="#message-subscribe-ok" class="auto internal xref">Section 9.8</a>) or PUBLISH
 (<a href="#message-publish" class="auto internal xref">Section 9.13</a>).<a href="#section-10.1-1" class="pilcrow">¶</a></p>
 <p id="section-10.1-2">Objects can arrive after a subscription has been cancelled.  Subscribers <span class="bcp14">SHOULD</span>
 retain sufficient state to quickly discard these unwanted Objects, rather than
@@ -5649,7 +5649,7 @@ are beyond the end of a group or track.<a href="#section-10.2.1.1-1" class="pilc
        <span class="bcp14">SHOULD</span> be cached.<a href="#section-10.2.1.1-3.2.1" class="pilcrow">¶</a></p>
 </li>
               <li class="normal" id="section-10.2.1.1-3.3">
-                <p id="section-10.2.1.1-3.3.1">0x3 := Indicates End of Group. Object ID is one greater that the largest
+                <p id="section-10.2.1.1-3.3.1">0x3 := Indicates End of Group. Object ID is one greater than the largest
        Object produced in the Group identified by the Group ID. If the Object
        ID is 0, it indicates there are no Objects in this Group. This <span class="bcp14">SHOULD</span>
        be cached. A publisher <span class="bcp14">MAY</span> use an end of Group object to signal the end
@@ -5667,8 +5667,8 @@ are beyond the end of a group or track.<a href="#section-10.2.1.1-1" class="pilc
        <a href="#malformed-tracks" class="auto internal xref">Section 2.5</a>). This <span class="bcp14">SHOULD</span> be cached.<a href="#section-10.2.1.1-3.4.1" class="pilcrow">¶</a></p>
 </li>
             </ul>
-<p id="section-10.2.1.1-4">Any other value <span class="bcp14">SHOULD</span> be treated as a protocol error and terminate the
-session with a <code>PROTOCOL_VIOLATION</code> (<a href="#session-termination" class="auto internal xref">Section 3.4</a>).
+<p id="section-10.2.1.1-4">Any other value <span class="bcp14">SHOULD</span> be treated as a protocol error and the session <span class="bcp14">SHOULD</span>
+be terminated with a <code>PROTOCOL_VIOLATION</code> (<a href="#session-termination" class="auto internal xref">Section 3.4</a>).
 Any object with a status code other than zero <span class="bcp14">MUST</span> have an empty payload.<a href="#section-10.2.1.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
@@ -5824,8 +5824,8 @@ Group.<a href="#section-10.3.1-5" class="pilcrow">¶</a></p>
 <p id="section-10.3.1-6">For Type values where Extensions Present is No, Extensions Headers Length is not
 present and the Object has no extensions.  When Extensions Present is Yes,
 Extension Headers Length is present.  If an endpoint receives a datagram with
-Type 0x01 and Extension Headers Length is 0, it <span class="bcp14">MUST</span> close the session with
-<code>PROTOCOL_VIOLATION</code>.<a href="#section-10.3.1-6" class="pilcrow">¶</a></p>
+Extensions Present and Extension Headers Length is 0, it <span class="bcp14">MUST</span> close the session
+with <code>PROTOCOL_VIOLATION</code>.<a href="#section-10.3.1-6" class="pilcrow">¶</a></p>
 <p id="section-10.3.1-7">For Type values where Object ID Present is No, the Object ID field is omitted
 and the Object ID is 0.  When Object ID Present is Yes, the Object ID field is
 present and encodes the Object ID.<a href="#section-10.3.1-7" class="pilcrow">¶</a></p>
@@ -5885,8 +5885,9 @@ OBJECT_DATAGRAM_STATUS {
             </tbody>
           </table>
 <p id="section-10.3.2-5">The LSB of the type determines if the Extensions Headers Length and Extension
-headers are present. If an endpoint receives a datagram with Type 0x05 and
-Extension Headers Length is 0, it <span class="bcp14">MUST</span> close the session with PROTOCOL_VIOLATION.<a href="#section-10.3.2-5" class="pilcrow">¶</a></p>
+headers are present. If an endpoint receives a datagram with Extensions Present
+and Extension Headers Length is 0, it <span class="bcp14">MUST</span> close the session with
+<code>PROTOCOL_VIOLATION</code>.<a href="#section-10.3.2-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -5896,10 +5897,11 @@ Extension Headers Length is 0, it <span class="bcp14">MUST</span> close the sess
         <h3 id="name-streams">
 <a href="#section-10.4" class="section-number selfRef">10.4. </a><a href="#name-streams" class="section-name selfRef">Streams</a>
         </h3>
-<p id="section-10.4-1">When objects are sent on streams, the stream begins with a Subgroup Header
-and is followed by one or more sets of serialized object fields.
-If a stream ends gracefully in the middle of a serialized Object, the session
-<span class="bcp14">SHOULD</span> be terminated with a PROTOCOL_VIOLATION.<a href="#section-10.4-1" class="pilcrow">¶</a></p>
+<p id="section-10.4-1">When Objects are sent on streams, the stream begins with a Subgroup or Fetch
+Header and is followed by one or more sets of serialized Object fields.
+If a stream ends gracefully (i.e., the stream terminates with a FIN) in the
+middle of a serialized Object, the session <span class="bcp14">SHOULD</span> be terminated with a
+<code>PROTOCOL_VIOLATION</code>.<a href="#section-10.4-1" class="pilcrow">¶</a></p>
 <p id="section-10.4-2">A publisher <span class="bcp14">SHOULD NOT</span> open more than one stream at a time with the same Subgroup
 Header field values.<a href="#section-10.4-2" class="pilcrow">¶</a></p>
 <div id="stream-cancellation">
@@ -6134,70 +6136,78 @@ with a reliable_size equal to the length of the stream header. This explicitly
 tells the receiver there is an unsent Subgroup.<a href="#section-10.4.3-5" class="pilcrow">¶</a></p>
 <p id="section-10.4.3-6">A relay <span class="bcp14">MUST NOT</span> forward an Object on an existing Subgroup stream unless it is
 the next Object in that Subgroup.  A relay knows that an Object is the next
-Object in the Subgroup if at least one of the following is true:
- * the Object ID is one greater than the previous Object sent on this Subgroup
-   stream.
- * the Object was received on the same upstream Subgroup stream as the
-   previously sent Object on the downstream Subgroup stream, with no other
-   Objects in between.
- * it knows all Object IDs between the current and previous Object IDs
-   on the Subgroup stream belong to different Subgroups or do not exist.<a href="#section-10.4.3-6" class="pilcrow">¶</a></p>
-<p id="section-10.4.3-7">If the relay does not know if an Object is the next Object, it <span class="bcp14">MUST</span> reset the
-Subgroup stream and open a new one to forward it.<a href="#section-10.4.3-7" class="pilcrow">¶</a></p>
-<p id="section-10.4.3-8">Since SUBSCRIBEs always end on a group boundary, an ending subscription can
+Object in the Subgroup if at least one of the following is true:<a href="#section-10.4.3-6" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-10.4.3-7.1">
+              <p id="section-10.4.3-7.1.1">the Object ID is one greater than the previous Object sent on this Subgroup
+stream.<a href="#section-10.4.3-7.1.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-10.4.3-7.2">
+              <p id="section-10.4.3-7.2.1">the Object was received on the same upstream Subgroup stream as the
+previously sent Object on the downstream Subgroup stream, with no other
+Objects in between.<a href="#section-10.4.3-7.2.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-10.4.3-7.3">
+              <p id="section-10.4.3-7.3.1">it knows all Object IDs between the current and previous Object IDs
+on the Subgroup stream belong to different Subgroups or do not exist.<a href="#section-10.4.3-7.3.1" class="pilcrow">¶</a></p>
+</li>
+          </ul>
+<p id="section-10.4.3-8">If the relay does not know if an Object is the next Object, it <span class="bcp14">MUST</span> reset the
+Subgroup stream and open a new one to forward it.<a href="#section-10.4.3-8" class="pilcrow">¶</a></p>
+<p id="section-10.4.3-9">Since SUBSCRIBEs always end on a group boundary, an ending subscription can
 always cleanly close all its subgroups. A sender that terminates a stream
 early for any other reason (e.g., to handoff to a different sender) <span class="bcp14">MUST</span>
 use RESET_STREAM or RESET_STREAM_AT. Senders <span class="bcp14">SHOULD</span> terminate a stream on
-Group boundaries to avoid doing so.<a href="#section-10.4.3-8" class="pilcrow">¶</a></p>
-<p id="section-10.4.3-9">An MOQT implementation that processes a stream FIN is assured it has received
+Group boundaries to avoid doing so.<a href="#section-10.4.3-9" class="pilcrow">¶</a></p>
+<p id="section-10.4.3-10">An MOQT implementation that processes a stream FIN is assured it has received
 all objects in a subgroup from the start of the subscription. If a relay, it
 can forward stream FINs to its own subscribers once those objects have been
 sent. A relay <span class="bcp14">MAY</span> treat receipt of EndOfGroup, GroupDoesNotExist, or
 EndOfTrack objects as a signal to close corresponding streams even if the FIN
-has not arrived, as further objects on the stream would be a protocol violation.<a href="#section-10.4.3-9" class="pilcrow">¶</a></p>
-<p id="section-10.4.3-10">Similarly, an EndOfGroup message indicates the maximum Object ID in the
+has not arrived, as further objects on the stream would be a protocol violation.<a href="#section-10.4.3-10" class="pilcrow">¶</a></p>
+<p id="section-10.4.3-11">Similarly, an EndOfGroup message indicates the maximum Object ID in the
 Group, so if all Objects in the Group have been received, a FIN can be sent on
 any stream where the entire subgroup has been sent. This might be complex to
-implement.<a href="#section-10.4.3-10" class="pilcrow">¶</a></p>
-<p id="section-10.4.3-11">Processing a RESET_STREAM or RESET_STREAM_AT means that there might be other
+implement.<a href="#section-10.4.3-11" class="pilcrow">¶</a></p>
+<p id="section-10.4.3-12">Processing a RESET_STREAM or RESET_STREAM_AT means that there might be other
 objects in the Subgroup beyond the last one received. A relay might immediately
 reset the corresponding downstream stream, or it might attempt to recover the
-missing Objects in an effort send all the objects in the subgroups and the FIN. It also
-might send RESET_STREAM_AT with reliable_size set to the last object it has, so
-as to reliably deliver the objects it has while signaling that other objects
-might exist.<a href="#section-10.4.3-11" class="pilcrow">¶</a></p>
-<p id="section-10.4.3-12">A subscriber <span class="bcp14">MAY</span> send a QUIC STOP_SENDING frame for a subgroup stream if the Group
+missing Objects in an effort to send all the Objects in the subgroups and the FIN.
+It also might send RESET_STREAM_AT with reliable_size set to the last Object it
+has, so as to reliably deliver the Objects it has while signaling that other
+Objects might exist.<a href="#section-10.4.3-12" class="pilcrow">¶</a></p>
+<p id="section-10.4.3-13">A subscriber <span class="bcp14">MAY</span> send a QUIC STOP_SENDING frame for a subgroup stream if the Group
 or Subgroup is no longer of interest to it. The publisher <span class="bcp14">SHOULD</span> respond with
 RESET_STREAM or RESET_STREAM_AT. If RESET_STREAM_AT is sent, note that the receiver
 has indicated no interest in the objects, so setting a reliable_size beyond the
-stream header is of questionable utility.<a href="#section-10.4.3-12" class="pilcrow">¶</a></p>
-<p id="section-10.4.3-13">RESET_STREAM and STOP_SENDING on SUBSCRIBE data streams have no impact on other
+stream header is of questionable utility.<a href="#section-10.4.3-13" class="pilcrow">¶</a></p>
+<p id="section-10.4.3-14">RESET_STREAM and STOP_SENDING on SUBSCRIBE data streams have no impact on other
 Subgroups in the Group or the subscription, although applications might cancel all
-Subgroups in a Group at once.<a href="#section-10.4.3-13" class="pilcrow">¶</a></p>
-<p id="section-10.4.3-14">The application <span class="bcp14">SHOULD</span> use a relevant error code in RESET_STREAM or
-RESET_STREAM_AT, as defined below:<a href="#section-10.4.3-14" class="pilcrow">¶</a></p>
-<span class="break"></span><dl class="dlParallel" id="section-10.4.3-15">
-            <dt id="section-10.4.3-15.1">INTERNAL_ERROR (0x0):</dt>
-            <dd style="margin-left: 1.5em" id="section-10.4.3-15.2">
-              <p id="section-10.4.3-15.2.1">An implementation specific error.<a href="#section-10.4.3-15.2.1" class="pilcrow">¶</a></p>
+Subgroups in a Group at once.<a href="#section-10.4.3-14" class="pilcrow">¶</a></p>
+<p id="section-10.4.3-15">The application <span class="bcp14">SHOULD</span> use a relevant error code in RESET_STREAM or
+RESET_STREAM_AT, as defined below:<a href="#section-10.4.3-15" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-10.4.3-16">
+            <dt id="section-10.4.3-16.1">INTERNAL_ERROR (0x0):</dt>
+            <dd style="margin-left: 1.5em" id="section-10.4.3-16.2">
+              <p id="section-10.4.3-16.2.1">An implementation specific error.<a href="#section-10.4.3-16.2.1" class="pilcrow">¶</a></p>
 </dd>
             <dd class="break"></dd>
-<dt id="section-10.4.3-15.3">CANCELLED (0x1):</dt>
-            <dd style="margin-left: 1.5em" id="section-10.4.3-15.4">
-              <p id="section-10.4.3-15.4.1">The subscriber requested cancellation via UNSUBSCRIBE, FETCH_CANCEL or
+<dt id="section-10.4.3-16.3">CANCELLED (0x1):</dt>
+            <dd style="margin-left: 1.5em" id="section-10.4.3-16.4">
+              <p id="section-10.4.3-16.4.1">The subscriber requested cancellation via UNSUBSCRIBE, FETCH_CANCEL or
 STOP_SENDING, or the publisher ended the subscription, in which case
 PUBLISH_DONE (<a href="#message-publish-done" class="auto internal xref">Section 9.12</a>) will have a more detailed status
-code.<a href="#section-10.4.3-15.4.1" class="pilcrow">¶</a></p>
+code.<a href="#section-10.4.3-16.4.1" class="pilcrow">¶</a></p>
 </dd>
             <dd class="break"></dd>
-<dt id="section-10.4.3-15.5">DELIVERY_TIMEOUT (0x2):</dt>
-            <dd style="margin-left: 1.5em" id="section-10.4.3-15.6">
-              <p id="section-10.4.3-15.6.1">The DELIVERY TIMEOUT <a href="#delivery-timeout" class="auto internal xref">Section 9.2.1.2</a> was exceeded for this stream.<a href="#section-10.4.3-15.6.1" class="pilcrow">¶</a></p>
+<dt id="section-10.4.3-16.5">DELIVERY_TIMEOUT (0x2):</dt>
+            <dd style="margin-left: 1.5em" id="section-10.4.3-16.6">
+              <p id="section-10.4.3-16.6.1">The DELIVERY TIMEOUT <a href="#delivery-timeout" class="auto internal xref">Section 9.2.1.2</a> was exceeded for this stream.<a href="#section-10.4.3-16.6.1" class="pilcrow">¶</a></p>
 </dd>
             <dd class="break"></dd>
-<dt id="section-10.4.3-15.7">SESSION_CLOSED (0x3):</dt>
-            <dd style="margin-left: 1.5em" id="section-10.4.3-15.8">
-              <p id="section-10.4.3-15.8.1">The publisher session is being closed.<a href="#section-10.4.3-15.8.1" class="pilcrow">¶</a></p>
+<dt id="section-10.4.3-16.7">SESSION_CLOSED (0x3):</dt>
+            <dd style="margin-left: 1.5em" id="section-10.4.3-16.8">
+              <p id="section-10.4.3-16.8.1">The publisher session is being closed.<a href="#section-10.4.3-16.8.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
 </dl>
@@ -6339,7 +6349,7 @@ Object ID 0 for each skipped Group. For example, if the Original Publisher is
 publishing an Object in Group 7 and knows it will never publish any Objects in
 Group 8 or Group 9, it can include Prior Group ID Gap = 2 in any number of
 Objects in Group 10, as it sees fit.  A Track is considered malformed (see
-<a href="#malformed-tracks" class="auto internal xref">Section 2.5</a> if any of the following conditions are detected:<a href="#section-11.1-1" class="pilcrow">¶</a></p>
+<a href="#malformed-tracks" class="auto internal xref">Section 2.5</a>) if any of the following conditions are detected:<a href="#section-11.1-1" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-11.1-2.1">
             <p id="section-11.1-2.1.1">An Object contains more than one instance of Prior Group ID Gap<a href="#section-11.1-2.1.1" class="pilcrow">¶</a></p>
@@ -6379,7 +6389,7 @@ will never exist. This is equivalent to receiving an <code>Object Does Not Exist
 status for each skipped Object ID. For example, if the Original Publisher is
 publishing Object 10 in Group 3 and knows it will never publish Objects 8 or 9
 in this Group, it can include Prior Object ID Gap = 2.  A Track is considered
-malformed (see <a href="#malformed-tracks" class="auto internal xref">Section 2.5</a> if any of the following conditions are
+malformed (see <a href="#malformed-tracks" class="auto internal xref">Section 2.5</a>) if any of the following conditions are
 detected:<a href="#section-11.2-1" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-11.2-2.1">
