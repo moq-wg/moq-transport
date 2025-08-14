@@ -1846,7 +1846,7 @@ REQUESTS_BLOCKED Message {
 * Maximum Request ID: The Maximum Request ID for the session on which the
   endpoint is blocked. More on Request ID in {{request-id}}.
 
-## REQUEST_ERROR (#message-request-error}
+## REQUEST_ERROR {#message-request-error}
 
 The REQUEST_ERROR message is sent to a response to any request (SUBSCRIBE, FETCH,
 PUBLISH, SUBSCRIBE_NAMESPACE, PUBLISH_NAMESPACE, TRACK_STATUS). The unique
