@@ -3730,6 +3730,18 @@ of this kind by purging any Token Aliases that failed to register based on the
 MAX_AUTH_TOKEN_CACHE_SIZE parameter in SERVER_SETUP (or the default value of 0).<a href="#section-9.3.2.5-2" class="pilcrow">¶</a></p>
 </section>
 </div>
+<div id="moqt-implementation">
+<section id="section-9.3.2.6">
+            <h5 id="name-moqt-implementation">
+<a href="#section-9.3.2.6" class="section-number selfRef">9.3.2.6. </a><a href="#name-moqt-implementation" class="section-name selfRef">MOQT IMPLEMENTATION</a>
+            </h5>
+<p id="section-9.3.2.6-1">The MOQT_IMPLEMENTATION parameter (Parameter Type 0x05) identifies the name and
+version of the sender's MOQT implementation.  This <span class="bcp14">SHOULD</span> be a UTF-8 encoded
+string [RFC3629], though the message does not carry information, such as
+language tags, that would aid comprehension by any entity other than the one
+that created the text.<a href="#section-9.3.2.6-1" class="pilcrow">¶</a></p>
+</section>
+</div>
 </section>
 </div>
 </section>
@@ -6444,6 +6456,7 @@ a large volume of PUBLISH_NAMESPACE messages. As churn continues in the tree of
 prefixes, the relay would have to continue to send
 PUBLISH_NAMESPACE/PUBLISH_NAMESPACE_DONE messages to the entity that had sent
 the SUBSCRIBE_NAMESPACE.<a href="#section-12.3.2-1" class="pilcrow">¶</a></p>
+<p id="section-12.3.2-2">TODO: Security/Privacy Considerations of MOQT_IMPLEMENTATION parameter<a href="#section-12.3.2-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
