@@ -859,7 +859,7 @@ the client sending SUBSCRIBE_NAMESPACE, or conveyed in other mechanisms out of
 band.
 
 An endpoint MAY SUBSCRIBE to a Track it is publishing, though only Relays are
-required to forward such a SUBSCRIBE.  Such self-subscriptions are identical to
+required to handle such a SUBSCRIBE.  Such self-subscriptions are identical to
 subscriptions initiated by other endpoints, and all published Objects will be
 forwarded back to the endpoint, subject to priority and congestion response
 rules.
