@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 2 February 2026                                   I. Swett, Ed.
+Expires: 15 February 2026                                  I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                           1 August 2025
+                                                          14 August 2025
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 2 February 2026.
+   This Internet-Draft will expire on 15 February 2026.
 
 Copyright Notice
 
@@ -974,7 +974,7 @@ Table of Contents
    SUBSCRIBE_NAMESPACE, or conveyed in other mechanisms out of band.
 
    An endpoint MAY SUBSCRIBE to a Track it is publishing, though only
-   Relays are required to forward such a SUBSCRIBE.  Such self-
+   Relays are required to handle such a SUBSCRIBE.  Such self-
    subscriptions are identical to subscriptions initiated by other
    endpoints, and all published Objects will be forwarded back to the
    endpoint, subject to priority and congestion response rules.
