@@ -1014,6 +1014,14 @@ Table of Contents
    SHOULD close the session with a protocol error if it receives more
    than one.
 
+   Publishers MAY start sending Objects on PUBLISH-initiated
+   subscriptions before receiving a PUBLISH_OK response to reduce
+   latency.  Doing so can consume unnecessary resources in cases where
+   the Subscriber rejects the subscription with PUBLISH_ERROR or sets
+   Forward State=0 in PUBLISH_OK.  It can also result in the Subscriber
+   dropping Objects if its buffering limits are exceeded (see
+   Section 10.3 and Section 10.4.2).
+
    A subscriber keeps subscription state until it sends UNSUBSCRIBE, or
    after receipt of a PUBLISH_DONE or SUBSCRIBE_ERROR.  Note that
    PUBLISH_DONE does not usually indicate that state can immediately be
@@ -2557,6 +2565,11 @@ Table of Contents
 
    *  Parameters: The parameters are defined in Section 9.2.1.
 
+   A subscriber receiving a PUBLISH for a Track it does not wish to
+   receive SHOULD send PUBLISH_ERROR with error code UNINTERESTED, and
+   abandon reading any publisher initiated streams associated with that
+   subscription using a STOP_SENDING frame.
+
 9.14.  PUBLISH_OK
 
    The subscriber sends a PUBLISH_OK control message to acknowledge the
@@ -3307,13 +3320,6 @@ Table of Contents
    An endpoint that receives an unknown stream or datagram type MUST
    close the session.
 
-   The publisher only sends Objects after receiving a SUBSCRIBE or
-   FETCH.  The publisher MUST NOT send Objects that are not requested.
-   If an endpoint receives an Object it never requested, it SHOULD
-   terminate the session with a protocol violation.  Objects can arrive
-   after a subscription or fetch has been cancelled, so the session MUST
-   NOT be teriminated in that case.
-
    Every Track has a single 'Object Forwarding Preference' and the
    Original Publisher MUST NOT mix different forwarding preferences
    within a single track (see Section 2.5).
@@ -3324,6 +3330,11 @@ Table of Contents
    by a numeric identifier, rather than the Full Track Name.  Track
    Alias is chosen by the publisher and included in SUBSCRIBE_OK
    (Section 9.8 or PUBLISH (Section 9.13).
+
+   Objects can arrive after a subscription has been cancelled.
+   Subscribers SHOULD retain sufficient state to quickly discard these
+   unwanted Objects, rather than treating them as belonging to an
+   unknown Track Alias.
 
 10.2.  Objects
 

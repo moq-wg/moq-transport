@@ -2668,31 +2668,37 @@ a SUBSCRIBE. It <span class="bcp14">MUST</span> send exactly one FETCH_OK or FET
 FETCH. A subscriber <span class="bcp14">MUST</span> send exactly one PUBLISH_OK or PUBLISH_ERROR in
 response to a PUBLISH. The peer <span class="bcp14">SHOULD</span> close the session with a protocol error
 if it receives more than one.<a href="#section-5.1-4" class="pilcrow">¶</a></p>
-<p id="section-5.1-5">A subscriber keeps subscription state until it sends UNSUBSCRIBE, or after
+<p id="section-5.1-5">Publishers <span class="bcp14">MAY</span> start sending Objects on PUBLISH-initiated subscriptions before
+receiving a PUBLISH_OK response to reduce latency.  Doing so can consume
+unnecessary resources in cases where the Subscriber rejects the subscription
+with PUBLISH_ERROR or sets Forward State=0 in PUBLISH_OK. It can also result in
+the Subscriber dropping Objects if its buffering limits are exceeded (see
+<a href="#datagrams" class="auto internal xref">Section 10.3</a> and <a href="#subgroup-header" class="auto internal xref">Section 10.4.2</a>).<a href="#section-5.1-5" class="pilcrow">¶</a></p>
+<p id="section-5.1-6">A subscriber keeps subscription state until it sends UNSUBSCRIBE, or after
 receipt of a PUBLISH_DONE or SUBSCRIBE_ERROR. Note that PUBLISH_DONE does not
 usually indicate that state can immediately be destroyed, see
-<a href="#message-publish-done" class="auto internal xref">Section 9.12</a>.<a href="#section-5.1-5" class="pilcrow">¶</a></p>
-<p id="section-5.1-6">A subscriber keeps FETCH state until it sends FETCH_CANCEL, receives
+<a href="#message-publish-done" class="auto internal xref">Section 9.12</a>.<a href="#section-5.1-6" class="pilcrow">¶</a></p>
+<p id="section-5.1-7">A subscriber keeps FETCH state until it sends FETCH_CANCEL, receives
 FETCH_ERROR, or receives a FIN or RESET_STREAM for the FETCH data stream. If the
 data stream is already open, it <span class="bcp14">MAY</span> send STOP_SENDING for the data stream along
-with FETCH_CANCEL, but <span class="bcp14">MUST</span> send FETCH_CANCEL.<a href="#section-5.1-6" class="pilcrow">¶</a></p>
-<p id="section-5.1-7">The Publisher can destroy subscription or fetch state as soon as it has received
+with FETCH_CANCEL, but <span class="bcp14">MUST</span> send FETCH_CANCEL.<a href="#section-5.1-7" class="pilcrow">¶</a></p>
+<p id="section-5.1-8">The Publisher can destroy subscription or fetch state as soon as it has received
 UNSUBSCRIBE or FETCH_CANCEL, respectively. It <span class="bcp14">MUST</span> reset any open streams
 associated with the SUBSCRIBE or FETCH. It can also destroy state after closing
-the FETCH data stream.<a href="#section-5.1-7" class="pilcrow">¶</a></p>
-<p id="section-5.1-8">The publisher can immediately delete subscription state after sending
+the FETCH data stream.<a href="#section-5.1-8" class="pilcrow">¶</a></p>
+<p id="section-5.1-9">The publisher can immediately delete subscription state after sending
 PUBLISH_DONE, but <span class="bcp14">MUST NOT</span> send it until it has closed all related streams. It
-can destroy all FETCH state after closing the data stream.<a href="#section-5.1-8" class="pilcrow">¶</a></p>
-<p id="section-5.1-9">A SUBSCRIBE_ERROR indicates no objects will be delivered, and both endpoints can
+can destroy all FETCH state after closing the data stream.<a href="#section-5.1-9" class="pilcrow">¶</a></p>
+<p id="section-5.1-10">A SUBSCRIBE_ERROR indicates no objects will be delivered, and both endpoints can
 immediately destroy relevant state. Objects <span class="bcp14">MUST NOT</span> be sent for requests that
-end with an error.<a href="#section-5.1-9" class="pilcrow">¶</a></p>
-<p id="section-5.1-10">A FETCH_ERROR indicates that both endpoints can immediately destroy state.
+end with an error.<a href="#section-5.1-10" class="pilcrow">¶</a></p>
+<p id="section-5.1-11">A FETCH_ERROR indicates that both endpoints can immediately destroy state.
 Since a relay can start delivering FETCH Objects from cache before determining
 the result of the request, some Objects could be received even if the FETCH
-results in error.<a href="#section-5.1-10" class="pilcrow">¶</a></p>
-<p id="section-5.1-11">The Parameters in SUBSCRIBE, PUBLISH_OK and FETCH <span class="bcp14">MUST NOT</span> cause the publisher
+results in error.<a href="#section-5.1-11" class="pilcrow">¶</a></p>
+<p id="section-5.1-12">The Parameters in SUBSCRIBE, PUBLISH_OK and FETCH <span class="bcp14">MUST NOT</span> cause the publisher
 to alter the payload of the objects it sends, as that would violate the track
-uniqueness guarantee described in <a href="#track-scope" class="auto internal xref">Section 2.5.1</a>.<a href="#section-5.1-11" class="pilcrow">¶</a></p>
+uniqueness guarantee described in <a href="#track-scope" class="auto internal xref">Section 2.5.1</a>.<a href="#section-5.1-12" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -4483,6 +4489,10 @@ publisher will start transmitting objects immediately, even before PUBLISH_OK.<a
             <p id="section-9.13-3.9.1">Parameters: The parameters are defined in <a href="#version-specific-params" class="auto internal xref">Section 9.2.1</a>.<a href="#section-9.13-3.9.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
+<p id="section-9.13-4">A subscriber receiving a PUBLISH for a Track it does not wish to receive <span class="bcp14">SHOULD</span>
+send PUBLISH_ERROR with error code <code>UNINTERESTED</code>, and abandon reading any
+publisher initiated streams associated with that subscription using a
+STOP_SENDING frame.<a href="#section-9.13-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="message-publish-ok">
@@ -5543,14 +5553,9 @@ the datagram.<a href="#section-10-4" class="pilcrow">¶</a></p>
       </table>
 <p id="section-10-6">An endpoint that receives an unknown stream or datagram type <span class="bcp14">MUST</span> close the
 session.<a href="#section-10-6" class="pilcrow">¶</a></p>
-<p id="section-10-7">The publisher only sends Objects after receiving a SUBSCRIBE or FETCH.  The
-publisher <span class="bcp14">MUST NOT</span> send Objects that are not requested.  If an endpoint receives
-an Object it never requested, it <span class="bcp14">SHOULD</span> terminate the session with a protocol
-violation. Objects can arrive after a subscription or fetch has been cancelled,
-so the session <span class="bcp14">MUST NOT</span> be teriminated in that case.<a href="#section-10-7" class="pilcrow">¶</a></p>
-<p id="section-10-8">Every Track has a single 'Object Forwarding Preference' and the Original
+<p id="section-10-7">Every Track has a single 'Object Forwarding Preference' and the Original
 Publisher <span class="bcp14">MUST NOT</span> mix different forwarding preferences within a single track
-(see <a href="#malformed-tracks" class="auto internal xref">Section 2.5</a>).<a href="#section-10-8" class="pilcrow">¶</a></p>
+(see <a href="#malformed-tracks" class="auto internal xref">Section 2.5</a>).<a href="#section-10-7" class="pilcrow">¶</a></p>
 <div id="track-alias">
 <section id="section-10.1">
         <h3 id="name-track-alias">
@@ -5560,6 +5565,9 @@ Publisher <span class="bcp14">MUST NOT</span> mix different forwarding preferenc
 numeric identifier, rather than the Full Track Name.  Track Alias is chosen by
 the publisher and included in SUBSCRIBE_OK (<a href="#message-subscribe-ok" class="auto internal xref">Section 9.8</a> or PUBLISH
 (<a href="#message-publish" class="auto internal xref">Section 9.13</a>).<a href="#section-10.1-1" class="pilcrow">¶</a></p>
+<p id="section-10.1-2">Objects can arrive after a subscription has been cancelled.  Subscribers <span class="bcp14">SHOULD</span>
+retain sufficient state to quickly discard these unwanted Objects, rather than
+treating them as belonging to an unknown Track Alias.<a href="#section-10.1-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="message-object">
