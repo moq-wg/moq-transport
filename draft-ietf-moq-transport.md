@@ -881,6 +881,12 @@ content. The communication of intent and authorization can be accomplished by
 the client sending SUBSCRIBE_NAMESPACE, or conveyed in other mechanisms out of
 band.
 
+An endpoint MAY SUBSCRIBE to a Track it is publishing, though only Relays are
+required to handle such a SUBSCRIBE.  Such self-subscriptions are identical to
+subscriptions initiated by other endpoints, and all published Objects will be
+forwarded back to the endpoint, subject to priority and congestion response
+rules.
+
 A publisher MUST send exactly one SUBSCRIBE_OK or SUBSCRIBE_ERROR in response to
 a SUBSCRIBE. It MUST send exactly one FETCH_OK or FETCH_ERROR in response to a
 FETCH. A subscriber MUST send exactly one PUBLISH_OK or PUBLISH_ERROR in
@@ -946,7 +952,9 @@ If the subscriber is aware of a namespace of interest, it can send
 SUBSCRIBE_NAMESPACE to publishers/relays it has established a session with. The
 recipient of this message will send any relevant PUBLISH_NAMESPACE,
 PUBLISH_NAMESPACE_DONE or PUBLISH messages for that namespace, or more specific
-part of that namespace.
+part of that namespace.  This includes echoing back PUBLISH or PUBLISH_NAMESPACE
+messages to the endpoint that sent them.  If an endpoint accepts its own
+PUBLISH, this behaves as self-subscription described in {{subscriptions}}.
 
 A publisher MUST send exactly one SUBSCRIBE_NAMESPACE_OK or
 SUBSCRIBE_NAMESPACE_ERROR in response to a SUBSCRIBE_NAMESPACE. The subscriber
@@ -975,11 +983,6 @@ received an authorized PUBLISH_NAMESPACE for that namespace from an upstream
 publisher, it MUST send a PUBLISH_NAMESPACE to any subscriber that has
 subscribed via SUBSCRIBE_NAMESPACE for that namespace, or a prefix of that
 namespace. A publisher MAY send the PUBLISH_NAMESPACE to any other subscriber.
-
-An endpoint SHOULD NOT, however, send a PUBLISH_NAMESPACE advertising a
-namespace that exactly matches a namespace for which the peer sent an earlier
-PUBLISH_NAMESPACE (i.e. a PUBLISH_NAMESPACE ought not to be echoed back to its
-sender).
 
 An endpoint SHOULD report the reception of a PUBLISH_NAMESPACE_OK or
 PUBLISH_NAMESPACE_ERROR to the application to inform the search for additional
