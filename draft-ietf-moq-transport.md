@@ -1719,8 +1719,11 @@ MAX_AUTH_TOKEN_CACHE_SIZE parameter in SERVER_SETUP (or the default value of 0).
 
 #### MOQT IMPLEMENTATION
 
-The MOQT_IMPLEMENTATION parameter (Parameter Type 0x05) is a UTF-8 encoded
-string describing the sender's MOQT implementation.
+The MOQT_IMPLEMENTATION parameter (Parameter Type 0x05) identifies the name and
+version of the sender's MOQT implementation.  This SHOULD be a UTF-8 encoded
+string [RFC3629], though the message does not carry information, such as
+language tags, that would aid comprehension by any entity other than the one
+that created the text.
 
 
 ## GOAWAY {#message-goaway}
@@ -3646,7 +3649,7 @@ Implementations are advised to use timeouts to prevent resource
 exhaustion attacks by a peer that does not send expected data within
 an expected time.  Each implementation is expected to set its own limits.
 
-TODO: Security Considerations of MOQT_IMPLEMENTATION parameter
+TODO: Security/Privacy Considerations of MOQT_IMPLEMENTATION parameter
 
 # IANA Considerations {#iana}
 
