@@ -2122,7 +2122,7 @@ SUBSCRIBE_UPDATE Message {
 
 * Start Location : The starting location.
 
-* End Group: The end Group ID. A value of 0 means the subscription is
+* End Group: The end Group ID, plus 1. A value of 0 means the subscription is
 open-ended.
 
 * Subscriber Priority: Specifies the priority of a subscription relative to
@@ -3248,8 +3248,8 @@ Group.
 For Type values where Extensions Present is No, Extensions Headers Length is not
 present and the Object has no extensions.  When Extensions Present is Yes,
 Extension Headers Length is present.  If an endpoint receives a datagram with
-Type & 0x01 equal to 1 and Extension Headers Length is 0, it MUST close the
-session with `PROTOCOL_VIOLATION`.
+Extensions Present and Extension Headers Length is 0, it MUST close the session
+with `PROTOCOL_VIOLATION`.
 
 For Type values where Object ID Present is No, the Object ID field is omitted
 and the Object ID is 0.  When Object ID Present is Yes, the Object ID field is
@@ -3289,16 +3289,17 @@ There are 2 defined Type values for OBJECT_DATAGRAM_STATUS:
 |------|------------|
 
 The LSB of the type determines if the Extensions Headers Length and Extension
-headers are present. If an endpoint receives a datagram with Type 0x21 and
-Extension Headers Length is 0, it MUST close the session with PROTOCOL_VIOLATION.
+headers are present. If an endpoint receives a datagram with Extensions Present
+and Extension Headers Length is 0, it MUST close the session with
+`PROTOCOL_VIOLATION`.
 
 ## Streams
 
-When objects are sent on streams, the stream begins with a Subgroup or Fetch
-Header and is followed by one or more sets of serialized object fields.
+When Objects are sent on streams, the stream begins with a Subgroup or Fetch
+Header and is followed by one or more sets of serialized Object fields.
 If a stream ends gracefully (i.e., the stream terminates with a FIN) in the
 middle of a serialized Object, the session SHOULD be terminated with a
-PROTOCOL_VIOLATION.
+`PROTOCOL_VIOLATION`.
 
 A publisher SHOULD NOT open more than one stream at a time with the same Subgroup
 Header field values.
@@ -3485,10 +3486,10 @@ implement.
 Processing a RESET_STREAM or RESET_STREAM_AT means that there might be other
 objects in the Subgroup beyond the last one received. A relay might immediately
 reset the corresponding downstream stream, or it might attempt to recover the
-missing Objects in an effort to send all the objects in the subgroups and the FIN.
-It also might send RESET_STREAM_AT with reliable_size set to the last object it
-has, so as to reliably deliver the objects it has while signaling that other
-objects might exist.
+missing Objects in an effort to send all the Objects in the subgroups and the FIN.
+It also might send RESET_STREAM_AT with reliable_size set to the last Object it
+has, so as to reliably deliver the Objects it has while signaling that other
+Objects might exist.
 
 A subscriber MAY send a QUIC STOP_SENDING frame for a subgroup stream if the Group
 or Subgroup is no longer of interest to it. The publisher SHOULD respond with
