@@ -1739,6 +1739,15 @@ parameter as Alias Type USE_VALUE.  A client MUST handle registration failures
 of this kind by purging any Token Aliases that failed to register based on the
 MAX_AUTH_TOKEN_CACHE_SIZE parameter in SERVER_SETUP (or the default value of 0).
 
+#### MOQT IMPLEMENTATION
+
+The MOQT_IMPLEMENTATION parameter (Parameter Type 0x05) identifies the name and
+version of the sender's MOQT implementation.  This SHOULD be a UTF-8 encoded
+string [RFC3629], though the message does not carry information, such as
+language tags, that would aid comprehension by any entity other than the one
+that created the text.
+
+
 ## GOAWAY {#message-goaway}
 
 An endpoint sends a `GOAWAY` message to inform the peer it intends to close
@@ -3700,7 +3709,6 @@ Implementations are advised to use timeouts to prevent resource
 exhaustion attacks by a peer that does not send expected data within
 an expected time.  Each implementation is expected to set its own limits.
 
-
 ## Relay security considerations
 
 ### State maintenance
@@ -3721,6 +3729,8 @@ a large volume of PUBLISH_NAMESPACE messages. As churn continues in the tree of
 prefixes, the relay would have to continue to send
 PUBLISH_NAMESPACE/PUBLISH_NAMESPACE_DONE messages to the entity that had sent
 the SUBSCRIBE_NAMESPACE.
+
+TODO: Security/Privacy Considerations of MOQT_IMPLEMENTATION parameter
 
 # IANA Considerations {#iana}
 
