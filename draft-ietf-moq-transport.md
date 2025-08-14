@@ -881,11 +881,24 @@ content. The communication of intent and authorization can be accomplished by
 the client sending SUBSCRIBE_NAMESPACE, or conveyed in other mechanisms out of
 band.
 
+An endpoint MAY SUBSCRIBE to a Track it is publishing, though only Relays are
+required to handle such a SUBSCRIBE.  Such self-subscriptions are identical to
+subscriptions initiated by other endpoints, and all published Objects will be
+forwarded back to the endpoint, subject to priority and congestion response
+rules.
+
 A publisher MUST send exactly one SUBSCRIBE_OK or SUBSCRIBE_ERROR in response to
 a SUBSCRIBE. It MUST send exactly one FETCH_OK or FETCH_ERROR in response to a
 FETCH. A subscriber MUST send exactly one PUBLISH_OK or PUBLISH_ERROR in
 response to a PUBLISH. The peer SHOULD close the session with a protocol error
 if it receives more than one.
+
+Publishers MAY start sending Objects on PUBLISH-initiated subscriptions before
+receiving a PUBLISH_OK response to reduce latency.  Doing so can consume
+unnecessary resources in cases where the Subscriber rejects the subscription
+with PUBLISH_ERROR or sets Forward State=0 in PUBLISH_OK. It can also result in
+the Subscriber dropping Objects if its buffering limits are exceeded (see
+{{datagrams}} and {{subgroup-header}}).
 
 A subscriber keeps subscription state until it sends UNSUBSCRIBE, or after
 receipt of a PUBLISH_DONE or SUBSCRIBE_ERROR. Note that PUBLISH_DONE does not
@@ -939,7 +952,9 @@ If the subscriber is aware of a namespace of interest, it can send
 SUBSCRIBE_NAMESPACE to publishers/relays it has established a session with. The
 recipient of this message will send any relevant PUBLISH_NAMESPACE,
 PUBLISH_NAMESPACE_DONE or PUBLISH messages for that namespace, or more specific
-part of that namespace.
+part of that namespace.  This includes echoing back PUBLISH or PUBLISH_NAMESPACE
+messages to the endpoint that sent them.  If an endpoint accepts its own
+PUBLISH, this behaves as self-subscription described in {{subscriptions}}.
 
 A publisher MUST send exactly one SUBSCRIBE_NAMESPACE_OK or
 SUBSCRIBE_NAMESPACE_ERROR in response to a SUBSCRIBE_NAMESPACE. The subscriber
@@ -968,11 +983,6 @@ received an authorized PUBLISH_NAMESPACE for that namespace from an upstream
 publisher, it MUST send a PUBLISH_NAMESPACE to any subscriber that has
 subscribed via SUBSCRIBE_NAMESPACE for that namespace, or a prefix of that
 namespace. A publisher MAY send the PUBLISH_NAMESPACE to any other subscriber.
-
-An endpoint SHOULD NOT, however, send a PUBLISH_NAMESPACE advertising a
-namespace that exactly matches a namespace for which the peer sent an earlier
-PUBLISH_NAMESPACE (i.e. a PUBLISH_NAMESPACE ought not to be echoed back to its
-sender).
 
 An endpoint SHOULD report the reception of a PUBLISH_NAMESPACE_OK or
 PUBLISH_NAMESPACE_ERROR to the application to inform the search for additional
@@ -1191,6 +1201,13 @@ Because SUBSCRIBE_UPDATE only allows narrowing a subscription, relays that
 aggregate upstream subscriptions can subscribe using the Largest Object
 filter to avoid churn as downstream subscribers with disparate filters
 subscribe and unsubscribe from a track.
+
+A subscriber remains subscribed to a Track at a Relay until it unsubscribes, the
+upstream publisher terminates the subscription, or the subscription expires (see
+{{message-subscribe-ok}}).  A subscription with a filter can reach a state where
+all possible Objects matching the filter have been delivered to the subscriber.
+Since tracking this can be prohibitively expensive, Relays are not required or
+expected to do so.
 
 ### Graceful Subscriber Relay Switchover
 
@@ -1581,9 +1598,7 @@ that an Object was not sent because the delivery timeout was exceeded.
 If both the subscriber and publisher specify the parameter, they use the min of
 the two values for the subscription.  The publisher SHOULD always specify the
 value received from an upstream subscription when there is one, and nothing
-otherwise.  If an Object with a smaller ID arrives later than subsequent
-Objects, relays can consider its receipt time as that of the Object with the
-next larger Location, with the assumption that the Objects were reordered.
+otherwise.
 
 Publishers can, at their discretion, discontinue forwarding Objects earlier than
 the negotiated DELIVERY TIMEOUT, subject to stream closure and ordering
@@ -1740,6 +1755,15 @@ the session with `AUTH_TOKEN_CACHE_OVERFLOW`.  Instead, it MUST treat the
 parameter as Alias Type USE_VALUE.  A client MUST handle registration failures
 of this kind by purging any Token Aliases that failed to register based on the
 MAX_AUTH_TOKEN_CACHE_SIZE parameter in SERVER_SETUP (or the default value of 0).
+
+#### MOQT IMPLEMENTATION
+
+The MOQT_IMPLEMENTATION parameter (Parameter Type 0x05) identifies the name and
+version of the sender's MOQT implementation.  This SHOULD be a UTF-8 encoded
+string [RFC3629], though the message does not carry information, such as
+language tags, that would aid comprehension by any entity other than the one
+that created the text.
+
 
 ## GOAWAY {#message-goaway}
 
@@ -2310,6 +2334,10 @@ PUBLISH Message {
 
 * Parameters: The parameters are defined in {{version-specific-params}}.
 
+A subscriber receiving a PUBLISH for a Track it does not wish to receive SHOULD
+send PUBLISH_ERROR with error code `UNINTERESTED`, and abandon reading any
+publisher initiated streams associated with that subscription using a
+STOP_SENDING frame.
 
 ## PUBLISH_OK {#message-publish-ok}
 
@@ -3056,12 +3084,6 @@ the datagram.
 An endpoint that receives an unknown stream or datagram type MUST close the
 session.
 
-The publisher only sends Objects after receiving a SUBSCRIBE or FETCH.  The
-publisher MUST NOT send Objects that are not requested.  If an endpoint receives
-an Object it never requested, it SHOULD terminate the session with a protocol
-violation. Objects can arrive after a subscription or fetch has been cancelled,
-so the session MUST NOT be teriminated in that case.
-
 Every Track has a single 'Object Forwarding Preference' and the Original
 Publisher MUST NOT mix different forwarding preferences within a single track
 (see {{malformed-tracks}}).
@@ -3072,6 +3094,11 @@ To optimize wire efficiency, Subgroups and Datagrams refer to a track by a
 numeric identifier, rather than the Full Track Name.  Track Alias is chosen by
 the publisher and included in SUBSCRIBE_OK ({{message-subscribe-ok}}) or PUBLISH
 ({{message-publish}}).
+
+Objects can arrive after a subscription has been cancelled.  Subscribers SHOULD
+retain sufficient state to quickly discard these unwanted Objects, rather than
+treating them as belonging to an unknown Track Alias.
+
 
 ## Objects {#message-object}
 
@@ -3705,7 +3732,6 @@ Implementations are advised to use timeouts to prevent resource
 exhaustion attacks by a peer that does not send expected data within
 an expected time.  Each implementation is expected to set its own limits.
 
-
 ## Relay security considerations
 
 ### State maintenance
@@ -3726,6 +3752,8 @@ a large volume of PUBLISH_NAMESPACE messages. As churn continues in the tree of
 prefixes, the relay would have to continue to send
 PUBLISH_NAMESPACE/PUBLISH_NAMESPACE_DONE messages to the entity that had sent
 the SUBSCRIBE_NAMESPACE.
+
+TODO: Security/Privacy Considerations of MOQT_IMPLEMENTATION parameter
 
 # IANA Considerations {#iana}
 
