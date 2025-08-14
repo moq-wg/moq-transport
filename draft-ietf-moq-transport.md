@@ -3675,6 +3675,36 @@ cannot infer any information about the existence of prior groups (see
 This extension can be added by the Original Publisher, but MUST NOT be added by
 relays. This extension MUST NOT be modified or removed.
 
+## Immutable Extensions Marker
+
+The "Immutable Extension Marker" (Extension Header Type 0xA) serves as a
+boundary indicating the start of immutable header extensions.
+
+Relays MUST NOT add, modify, remove or reorder extensions after the Immutable
+Extension Marker.  Relays MUST cache all immutable header extensions if the
+object is cached. Conversely, header extensions preceding this marker MAY be
+modified or removed by relays, as specified by their individual
+specifications. The Immutable Extension Marker is assigned Type 0xA and is a
+variable length integer that MUST have value 1.  Any other value results in
+closing the session with a `PROTOCOL_VIOLATION`.
+
+The following figure shows an example Object structure with a combination of
+mutable and immutable extensions and end to end encrypted metadata in the Object
+payload.
+
+~~~
+                   Object Header                          Object Payload
+<------------------------------------------------------> <---------------->
++--------+------------+--------+------------+-----------+-----------------+
+| Object | Mutable    | Marker | Immutable  | [Payload] | Enc Obj Headers |
+| Fields | Extensions |        | Extensions | [Length ] | App Payload     |
++--------+------------+--------+------------+-----------+-----------------+
+                       xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+                                                          yyyyyyyyyyyyyyyy
+x = e2e Authenticated Data
+y = e2e Encrypted Data
+~~~
+
 ## Prior Object ID Gap
 
 Prior Object ID Gap (Extension Header Type 0x3E) is a variable length integer
