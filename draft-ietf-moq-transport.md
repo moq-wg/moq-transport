@@ -3611,6 +3611,10 @@ following code points are defined:
 |------|----------|----------|-----------|-----------|----------------|
 | 0x7	 | Prior    | Prior +1 | Prior + 1 | Yes       | 0              |
 |------|----------|----------|-----------|-----------|----------------|
+| 0x8	 | Prior    | 0 | Prior + 1 | Yes       | Yes              |
+|------|----------|----------|-----------|-----------|----------------|
+| 0x9	 | Prior    | 0 | Prior + 1 | Yes       | 0              |
+|------|----------|----------|-----------|-----------|----------------|
 
 'Yes' indicates that the field is serialized and holds a value.
 'Prior' indicates that the field is not serialized and that the attribute
