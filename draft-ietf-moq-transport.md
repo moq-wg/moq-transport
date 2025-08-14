@@ -1581,9 +1581,7 @@ that an Object was not sent because the delivery timeout was exceeded.
 If both the subscriber and publisher specify the parameter, they use the min of
 the two values for the subscription.  The publisher SHOULD always specify the
 value received from an upstream subscription when there is one, and nothing
-otherwise.  If an Object with a smaller ID arrives later than subsequent
-Objects, relays can consider its receipt time as that of the Object with the
-next larger Location, with the assumption that the Objects were reordered.
+otherwise.
 
 Publishers can, at their discretion, discontinue forwarding Objects earlier than
 the negotiated DELIVERY TIMEOUT, subject to stream closure and ordering
